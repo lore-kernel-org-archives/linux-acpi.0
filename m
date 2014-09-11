@@ -1,113 +1,93 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Thu, 11 Sep 2014 01:38:37 +0200
-Message-ID: <3131715.Lrb4tsKR2m@vostro.rjw.lan>
-References: <54095EE7.3080302@jp.fujitsu.com> <6346979.uGFiy3j9K2@vostro.rjw.lan> <540FC29B.7010808@jp.fujitsu.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v4 12/16] x86, irq, ACPI: Implement interface to support
+ ACPI based IOAPIC hot-addition
+Date: Thu, 11 Sep 2014 14:05:32 +0800
+Message-ID: <54113BAC.10505@linux.intel.com>
+References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-13-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409091417120.11037@nanos> <540FC1C2.40100@linux.intel.com> <alpine.DEB.2.10.1409102202530.4178@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63872 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752626AbaIJXTH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Sep 2014 19:19:07 -0400
-In-Reply-To: <540FC29B.7010808@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1409102202530.4178@nanos>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, jlee@suse.com
 
-On Wednesday, September 10, 2014 12:16:43 PM Yasuaki Ishimatsu wrote:
-> (2014/09/08 6:34), Rafael J. Wysocki wrote:
-> > On Friday, September 05, 2014 03:57:43 PM Yasuaki Ishimatsu wrote:
-> >> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
-> >> Move container-specific code out of the core" because container-
-> >> specific uevent is raised to udev by attaching container device.
-> >> But the container-specific uevent is not useful.
-> >>
-> >> In my box, conainer device has CPU and memory devices. In this case,
-> >> when hot adding container device, the following uevets are raised to
-> >> udev.
-> >>
-> >>    # udevadm monitor --kernel
-> >>    monitor will print the received events for:
-> >>    KERNEL - the kernel uevent
-> >>
-> >>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> >>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> >>
-> >> When udev catches the container add uevent in my box, udev executes
-> >> user land script for onlining all child's devices. But memory and CPU
-> >> devices have not been attached at this time. So user land script fails.
-> >>
-> >> One of solutions is that user land script waits for all child's devices
-> >> to attach. But user land script has no way to know all child's devices
-> >> were attached.
-> >>
-> >> So the patch adds container online uevent to acpi_bus_sttach(). By
-> >> applying
-> >> the patch, container online uevent is raised to udev after all child's
-> >> devices were attached as follows:
-> >>
-> >>    # udevadm monitor --kernel
-> >>    monitor will print the received events for:
-> >>    KERNEL - the kernel uevent
-> >>
-> >>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> >>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> >>    <snip>
-> >>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> >>    KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> >>
-> >> So if user land script is executed after raising the container online
-> >> uevent, it guarantees that all child's devices were attached.
-> >
-> > I see the problem, but I don't like the patch.
-> >
-> > For example, we don't need to match the container's name again, we can use
-> > the fact that we've already matched the container scan handler to it.
-> >
-> > Does the one below work too?
+On 2014/9/11 4:06, Thomas Gleixner wrote:
+> On Wed, 10 Sep 2014, Jiang Liu wrote:
+>>>>  int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+>>>> @@ -3867,8 +3873,15 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+>>>>  	}
+>>>>  	for_each_ioapic(ioapic)
+>>>>  		if (ioapics[ioapic].mp_config.apicaddr == address) {
+>>>> -			pr_warn("address 0x%x conflicts with IOAPIC%d\n",
+>>>> -				address, ioapic);
+>>>> +			/*
+>>>> +			 * IOAPIC unit may also be visible in PCI scope.
+>>>> +			 * When ioapic PCI driver's probe() is called,
+>>>> +			 * the IOAPIC unit may have already been initialized
+>>>> +			 * at boot time.
+>>>> +			 */
+>>>> +			if (!ioapic_initialized)
+>>>> +				pr_warn("address 0x%x conflicts with IOAPIC%d\n",
+>>>> +					address, ioapic);
+>>>
+>>> Hmm. This smells fishy. Why do we allow multiple initializations of
+>>> the same IOAPIC in the first place. Either it's done via ACPI or via
+>>> PCI, but not both.
+>> The ACPI subsystem will register and initialize all IOAPICs when walking
+>> ACPI MADT table during boot, before initializing PCI subsystem.
+>> Later when binding ioapic PCI driver to IOAPIC PCI device, it will try
+>> to register the IOAPIC device again.
+>>
+>> After this patchset is applied, we could remove the !ioapic_initialized
+>> check. We check acpi_ioapic_register() before calling
+>> acpi_register_ioapic(). So the check becomes redundant.
+>> Or we could remove the temporary code from this patch.
 > 
-> Hi Rafael,
-> 
-> Thank you for posting your patch. I confirmed that your patch fixed my issue
-> as folloes:
-> 
-> # udevadm monitor --kernel
-> monitor will print the received events for:
-> KERNEL - the kernel uevent
-> 
-> KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> <snip>
-> KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> <snip>
-> KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> <snip>
-> KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> <snip>
-> KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> 
-> So feel free to  add "Tested-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>"
-> to the patch.
+> How about removing the disfunctional ioapic PCI driver first and then
+> implementing the whole thing cleanly?
+Good suggestion:)
 
-Thanks!
+>  
+>>>
+>>>>  			return -EEXIST;
+>>>>  		}
+>>>>  
+>>>> @@ -3918,6 +3931,14 @@ int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+>>>>  	ioapics[idx].irqdomain = NULL;
+>>>>  	ioapics[idx].irqdomain_cfg = *cfg;
+>>>>  
+>>>> +	if (ioapic_initialized) {
+>>>
+>>> I have a hard time to understand this conditional. Why can't we do
+>>> that unconditionally?
+>> How about following comments?
+>> /*
+>>  * If mp_register_ioapic() is called during early boot stage when
+>>  * walking ACPI/SFI/DT tables, it's too early to create irqdomain,
+>>  * we are still using bootmem allocator. So delay it to setup_IO_APIC().
+>>  */
+> 
+> Fine, but then the "if (ioapic_initialized)" conditional still does
+> not make sense. We surely have some global non ioapic specific
+> indicator that bootmem is done and the proper memory allocator is
+> available, right?
+Flag ioapic_initialized will be used to check whether we have created
+irqdomains for IOAPICs. Currently function arch_dynirq_lower_bound()
+uses that flag, and alloc_irq_from_domain() will use it too later.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
+> Aside of that is there a point to walk those tables before we actually
+> can make any use of their content?
+At least we depend on walking those tables to detect whether system has
+IOAPICs available:)
+
+Regards!
+Gerry
+> 
+> Thanks,
+> 
+> 	tglx
+> 
