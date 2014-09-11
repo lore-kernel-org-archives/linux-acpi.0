@@ -1,11 +1,8 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part1 v1 01/18] x86, irq, ACPI: Fix building warning of unused code
-Date: Thu, 11 Sep 2014 16:24:48 +0800
-Message-ID: <1410423905-26239-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Part1 v1 06/18] x86, irq: Protect __clear_irq_vector() with vector_lock
+Date: Thu, 11 Sep 2014 16:24:53 +0800
+Message-ID: <1410423905-26239-7-git-send-email-jiang.liu@linux.intel.com>
 References: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -13,34 +10,84 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-=46ix building warning when CONFIG_X86_LOCAL_APIC is disabled.
-arch/x86/kernel/acpi/boot.c:699:20: warning: =E2=80=98acpi_set_irq_mode=
-l_ioapic=E2=80=99 defined but not used [-Wunused-function]
+Function __clear_irq_vector() accesses vector related data structure,
+so protect it with vector_lock. Also rename it as clear_irq_vector().
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/acpi/boot.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/apic/io_apic.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 132f98a2288b..7f00bbf7956b 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -706,6 +706,7 @@ void acpi_unregister_gsi(u32 gsi)
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 814527753563..ee3d3ff521a3 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -1349,10 +1349,12 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
+ 	return err;
  }
- EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-=20
-+#ifdef CONFIG_X86_LOCAL_APIC
- static void __init acpi_set_irq_model_ioapic(void)
+ 
+-static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
++static void clear_irq_vector(int irq, struct irq_cfg *cfg)
  {
- 	acpi_irq_model =3D ACPI_IRQ_MODEL_IOAPIC;
-@@ -713,6 +714,7 @@ static void __init acpi_set_irq_model_ioapic(void)
- 	__acpi_unregister_gsi =3D acpi_unregister_gsi_ioapic;
- 	acpi_ioapic =3D 1;
+ 	int cpu, vector;
++	unsigned long flags;
+ 
++	raw_spin_lock_irqsave(&vector_lock, flags);
+ 	BUG_ON(!cfg->vector);
+ 
+ 	vector = cfg->vector;
+@@ -1362,8 +1364,11 @@ static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
+ 	cfg->vector = 0;
+ 	cpumask_clear(cfg->domain);
+ 
+-	if (likely(!cfg->move_in_progress))
++	if (likely(!cfg->move_in_progress)) {
++		raw_spin_unlock_irqrestore(&vector_lock, flags);
+ 		return;
++	}
++
+ 	for_each_cpu_and(cpu, cfg->old_domain, cpu_online_mask) {
+ 		for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++) {
+ 			if (per_cpu(vector_irq, cpu)[vector] != irq)
+@@ -1373,6 +1378,7 @@ static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
+ 		}
+ 	}
+ 	cfg->move_in_progress = 0;
++	raw_spin_unlock_irqrestore(&vector_lock, flags);
  }
-+#endif
-=20
- /*
-  *  ACPI based hotplug support for CPU
---=20
+ 
+ void __setup_vector_irq(int cpu)
+@@ -1499,7 +1505,7 @@ static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
+ 					 &dest)) {
+ 		pr_warn("Failed to obtain apicid for ioapic %d, pin %d\n",
+ 			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
+-		__clear_irq_vector(irq, cfg);
++		clear_irq_vector(irq, cfg);
+ 
+ 		return;
+ 	}
+@@ -1513,7 +1519,7 @@ static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
+ 	if (x86_io_apic_ops.setup_entry(irq, &entry, dest, cfg->vector, attr)) {
+ 		pr_warn("Failed to setup ioapic entry for ioapic  %d, pin %d\n",
+ 			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
+-		__clear_irq_vector(irq, cfg);
++		clear_irq_vector(irq, cfg);
+ 
+ 		return;
+ 	}
+@@ -3082,12 +3088,9 @@ int arch_setup_hwirq(unsigned int irq, int node)
+ void arch_teardown_hwirq(unsigned int irq)
+ {
+ 	struct irq_cfg *cfg = irq_cfg(irq);
+-	unsigned long flags;
+ 
+ 	free_remapped_irq(irq);
+-	raw_spin_lock_irqsave(&vector_lock, flags);
+-	__clear_irq_vector(irq, cfg);
+-	raw_spin_unlock_irqrestore(&vector_lock, flags);
++	clear_irq_vector(irq, cfg);
+ 	free_irq_cfg(irq, cfg);
+ }
+ 
+-- 
 1.7.10.4
