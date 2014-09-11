@@ -1,65 +1,121 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH] ACPI / LPSS: not using UART RTS override with Auto Flow Control
-Date: Thu, 11 Sep 2014 15:19:33 +0300
-Message-ID: <1410437973-16873-1-git-send-email-heikki.krogerus@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
+Date: Thu, 11 Sep 2014 15:14:26 +0200
+Message-ID: <2311044.Mgki24rmc5@vostro.rjw.lan>
+References: <54095EE7.3080302@jp.fujitsu.com> <3131715.Lrb4tsKR2m@vostro.rjw.lan> <20140911071717.GB4622@linux-rxt1.site>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20138 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754271AbaIKMTh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Sep 2014 08:19:37 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:57984 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751219AbaIKMy5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 08:54:57 -0400
+In-Reply-To: <20140911071717.GB4622@linux-rxt1.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
+To: joeyli <jlee@suse.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
 
-Adding a check for UART Auto Flow Control feature and only
-enabling the RTS override when it's not supported. RTS
-override is not needed when Auto Flow Control is used and
-they shouldn't be used together.
+On Thursday, September 11, 2014 03:17:17 PM joeyli wrote:
+> Hi Rafael, 
+> 
+> On Thu, Sep 11, 2014 at 01:38:37AM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, September 10, 2014 12:16:43 PM Yasuaki Ishimatsu wrote:
+> > > (2014/09/08 6:34), Rafael J. Wysocki wrote:
+> > > > On Friday, September 05, 2014 03:57:43 PM Yasuaki Ishimatsu wrote:
+> > > >> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
+> > > >> Move container-specific code out of the core" because container-
+> > > >> specific uevent is raised to udev by attaching container device.
+> > > >> But the container-specific uevent is not useful.
+> > > >>
+> > > >> In my box, conainer device has CPU and memory devices. In this case,
+> > > >> when hot adding container device, the following uevets are raised to
+> > > >> udev.
+> > > >>
+> > > >>    # udevadm monitor --kernel
+> > > >>    monitor will print the received events for:
+> > > >>    KERNEL - the kernel uevent
+> > > >>
+> > > >>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
+> > > >>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
+> > > >>
+> > > >> When udev catches the container add uevent in my box, udev executes
+> > > >> user land script for onlining all child's devices. But memory and CPU
+> > > >> devices have not been attached at this time. So user land script fails.
+> > > >>
+> > > >> One of solutions is that user land script waits for all child's devices
+> > > >> to attach. But user land script has no way to know all child's devices
+> > > >> were attached.
+> > > >>
+> > > >> So the patch adds container online uevent to acpi_bus_sttach(). By
+> > > >> applying
+> > > >> the patch, container online uevent is raised to udev after all child's
+> > > >> devices were attached as follows:
+> > > >>
+> > > >>    # udevadm monitor --kernel
+> > > >>    monitor will print the received events for:
+> > > >>    KERNEL - the kernel uevent
+> > > >>
+> > > >>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
+> > > >>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
+> > > >>    <snip>
+> > > >>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
+> > > >>    KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
+> > > >>
+> > > >> So if user land script is executed after raising the container online
+> > > >> uevent, it guarantees that all child's devices were attached.
+> > > >
+> > > > I see the problem, but I don't like the patch.
+> > > >
+> > > > For example, we don't need to match the container's name again, we can use
+> > > > the fact that we've already matched the container scan handler to it.
+> > > >
+> > > > Does the one below work too?
+> > > 
+> > > Hi Rafael,
+> > > 
+> > > Thank you for posting your patch. I confirmed that your patch fixed my issue
+> > > as folloes:
+> > > 
+> > > # udevadm monitor --kernel
+> > > monitor will print the received events for:
+> > > KERNEL - the kernel uevent
+> > > 
+> > > KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
+> > > <snip>
+> > > KERNEL[...] add      /devices/system/memory/memory2048 (memory)
+> > > <snip>
+> > > KERNEL[...] add      /devices/system/memory/memory2063 (memory)
+> > > <snip>
+> > > KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
+> > > <snip>
+> > > KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
+> > > KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
+> > > 
+> > > So feel free to  add "Tested-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>"
+> > > to the patch.
+> > 
+> > Thanks!
+> >
+> 
+> I just tested your new patch, it works on my side as Yasuaki's patch. 
+> 
+> Tested-by: Lee, Chun-Yi <jlee@suse.com>
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/acpi/acpi_lpss.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 1951b59..76cc698 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -83,18 +83,26 @@ struct lpss_private_data {
- 	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
- };
- 
-+/* UART Component Parameter Register */
-+#define LPSS_UART_CPR			0xF4
-+#define LPSS_UART_CPR_AFCE		BIT(4)
-+
- static void lpss_uart_setup(struct lpss_private_data *pdata)
- {
- 	unsigned int offset;
--	u32 reg;
-+	u32 val;
- 
- 	offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
--	reg = readl(pdata->mmio_base + offset);
--	writel(reg | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
--
--	offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
--	reg = readl(pdata->mmio_base + offset);
--	writel(reg | LPSS_GENERAL_UART_RTS_OVRD, pdata->mmio_base + offset);
-+	val = readl(pdata->mmio_base + offset);
-+	writel(val | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
-+
-+	val = readl(pdata->mmio_base + LPSS_UART_CPR);
-+	if (!(val & LPSS_UART_CPR_AFCE)) {
-+		offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
-+		val = readl(pdata->mmio_base + offset);
-+		val |= LPSS_GENERAL_UART_RTS_OVRD;
-+		writel(val, pdata->mmio_base + offset);
-+	}
- }
- 
- static void byt_i2c_setup(struct lpss_private_data *pdata)
--- 
-2.1.0
+Thanks!
 
