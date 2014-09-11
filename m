@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part1 v1 14/18] x86, irq: Make MSI and HT_IRQ indepenent of X86_IO_APIC
-Date: Thu, 11 Sep 2014 16:25:01 +0800
-Message-ID: <1410423905-26239-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Part1 v1 17/18] iommu/vt-d: Use helpers to access irq_cfg data structure associated with IRQ
+Date: Thu, 11 Sep 2014 16:25:04 +0800
+Message-ID: <1410423905-26239-18-git-send-email-jiang.liu@linux.intel.com>
 References: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,43 +10,63 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now we have splitted functions to support MSI and HT_IRQ into vector.c,
-and they have no dependency on IOAPIC any more. So change Kconfig files
-to make MSI and HT_IRQ independent of X86_IO_APIC.
+Use helpers to access irq_cfg data structure associated with IRQ,
+instead of accessing irq_data->chip_data directly. Later we could
+rewrite those helpers to support hierarchy irqdomain.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/Kconfig    |    4 ++--
- drivers/pci/Kconfig |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/iommu/intel_irq_remapping.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index e0fc1e721ae2..7d0ca80d628f 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -839,8 +839,8 @@ config X86_LOCAL_APIC
- 	select GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
+diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
+index 0df41f6264f5..319b39edcf7e 100644
+--- a/drivers/iommu/intel_irq_remapping.c
++++ b/drivers/iommu/intel_irq_remapping.c
+@@ -55,7 +55,7 @@ static int __init parse_ioapics_under_ir(void);
  
- config X86_IO_APIC
--	def_bool y
--	depends on X86_64 || SMP || X86_32_NON_STANDARD || X86_UP_IOAPIC || PCI_MSI
-+	def_bool X86_64 || SMP || X86_32_NON_STANDARD || X86_UP_IOAPIC
-+	depends on X86_LOCAL_APIC
- 	select IRQ_DOMAIN
+ static struct irq_2_iommu *irq_2_iommu(unsigned int irq)
+ {
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	return cfg ? &cfg->irq_2_iommu : NULL;
+ }
  
- config X86_REROUTE_FOR_BROKEN_BOOT_IRQS
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 39866d18004e..b9db0f2ce11f 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -61,7 +61,7 @@ config XEN_PCIDEV_FRONTEND
- config HT_IRQ
- 	bool "Interrupts on hypertransport devices"
- 	default y
--	depends on PCI && X86_LOCAL_APIC && X86_IO_APIC
-+	depends on PCI && X86_LOCAL_APIC
- 	help
- 	   This allows native hypertransport devices to use interrupts.
+@@ -86,7 +86,7 @@ static int alloc_irte(struct intel_iommu *iommu, int irq, u16 count)
+ {
+ 	struct ir_table *table = iommu->ir_table;
+ 	struct irq_2_iommu *irq_iommu = irq_2_iommu(irq);
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	unsigned int mask = 0;
+ 	unsigned long flags;
+ 	int index;
+@@ -154,7 +154,7 @@ static int map_irq_to_irte_handle(int irq, u16 *sub_handle)
+ static int set_irte_irq(int irq, struct intel_iommu *iommu, u16 index, u16 subhandle)
+ {
+ 	struct irq_2_iommu *irq_iommu = irq_2_iommu(irq);
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	unsigned long flags;
  
+ 	if (!irq_iommu)
+@@ -1009,7 +1009,7 @@ static int
+ intel_ioapic_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 			  bool force)
+ {
+-	struct irq_cfg *cfg = data->chip_data;
++	struct irq_cfg *cfg = irqd_cfg(data);
+ 	unsigned int dest, irq = data->irq;
+ 	struct irte irte;
+ 	int err;
+@@ -1064,7 +1064,7 @@ static void intel_compose_msi_msg(struct pci_dev *pdev,
+ 	u16 sub_handle = 0;
+ 	int ir_index;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 
+ 	ir_index = map_irq_to_irte_handle(irq, &sub_handle);
+ 	BUG_ON(ir_index == -1);
 -- 
 1.7.10.4
