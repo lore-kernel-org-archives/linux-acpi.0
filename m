@@ -1,70 +1,111 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v3 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 11 Sep 2014 14:49:22 +0100
-Message-ID: <20140911134922.GG6158@arm.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
- <20140911132935.068DCC408F6@trevor.secretlab.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Part2 v1 00/21] Enable hierarchy irqdomian on x86 platforms
+Date: Thu, 11 Sep 2014 22:03:27 +0800
+Message-ID: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:52864 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752623AbaIKNtY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Sep 2014 09:49:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20140911132935.068DCC408F6@trevor.secretlab.ca>
+Received: from mga14.intel.com ([192.55.52.115]:52776 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751053AbaIKOBr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Sep 2014 10:01:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Grant,
+We plan to restructure x86 interrupt code based on hierarchy irqdomain,
+that is to build irqdomains for CPU vector, interrupt remapping unit,
+IOAPIC, MSI and HPET etc and organize those irqdomains in hierarchy mode.
+Each irqdomain manages corresponding interrupt controller and talks to
+parent interrupt controller through public irqdomain interfaces. We also
+support stacked irq_chip based on hierarchy irqdomain. It will make the
+x86 interrupt architecture much more clear and more easy to maintain
+with hierarchy irqdomain and stacked irq_chip. It may also help ARM
+interrupt management architecture too.
 
-On Thu, Sep 11, 2014 at 02:29:34PM +0100, Grant Likely wrote:
-> On Mon,  1 Sep 2014 22:57:38 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> > ACPI 5.1 has been released and now be freely available for
-> > download [1]. It fixed some major gaps to run ACPI on ARM,
-> > this patch just follow the ACPI 5.1 spec and prepare the
-> > code to run ACPI on ARM64.
-> > 
-> > ACPI 5.1 has some major changes for the following tables and
-> > method which are essential for ARM platforms:
-> > 1) MADT table updates.
-> > 2) FADT updates for PSCI
-> > 3) GTDT
-> > 
-> > This patch set is the ARM64 ACPI core patches covered MADT, FADT
-> > and GTDT, platform board specific drivers are not covered by this
-> > patch set, but we provide drivers for Juno to boot with ACPI only
-> > in the follwing patch set for review purpose.
+This is the second patch set to enable support of hierarchy irqdomain
+on x86 platforms. It depends on the first part at:
+https://lkml.org/lkml/2014/9/11/101 
+And you may access it at:
+https://github.com/jiangliu/linux.git irqdomain/p2v1
 
-[...]
+And there will be a third patch set to convert IOAPIC driver to support
+hierarchy irqdomain and clean up code.
 
-> I've read through this entire series now. In my mind, aside from a few
-> comments that I know you're addressing, this is ready.  The hooks into
-> arm64 core code are not terribly invasive, it is nicely organized and
-> manageable. Get the next version out ASAP, but I would also like to see
-> the diffs from this version to the next so I don't need to review the
-> entire series again.
-> 
-> Regarding the requests to refactor ACPICA to work better for ARM. I
-> completely agree that it should be done, but I do not think it should be
-> a prerequisite to getting this core support merged. That kind of
-> refactoring is far easier to justify when it has immediate improvement
-> on the mainline codebase, and it gives us a working baseline to test
-> against. Doing it the other way around just makes things harder.
-> 
-> I would really like to see the next version of this series go into
-> linux-next. I think this is ready for some wider exposure. Have you got
-> a branch being pulled into Fengguang's autobuilder yet?
+The first patch extends irqdomain interfaces to support hierarchy
+irqdomain. Hope this interface could be used by other architectures too,
+such as ARM/ARM64.
+The second patch introduces two helper functions to support stacked
+irq_chip.
+Patch 3-9 implements an irqdomain to manange CPU interrupt vectors, and
+it's the root irqdomain for x86 platforms.
+Patch 10-13 converts Intel and AMD interrupt remapping drivers to
+support hierarchy irqdomain.
+Patch 14-17 converts HPET, MSI and HT_IRQ drivers to support hierarchy
+irqdomain.
+Patch 18-21 cleans up unsued code in x86 arch and interrupt remapping
+drivers.
 
-Apart from build testing, what does this wider exposure achieve? Is there a
-platform available that would be able to boot Linux (to a meaingful state)
-with this patch series alone?
+We have tested this patchset on Intel 32-bit and 64-bit systems. But we
+have only done compilation tests for HT_IRQ and AMD interrupt remapping
+drivers due to hardware resource limitation. Tests on AMD platforms are
+warmly welcomed!
 
-I'm mindful of merging arch code that I'm unable to test, so I'd really
-rather it was merged along with the code (and a devicetree) for a platform
-that can use it.
+Jiang Liu (21):
+  irqdomain: Introduce new interfaces to support hierarchy irqdomains
+  genirq: Introduce helper functions to support stacked irq_chip
+  x86, irq: Save destination CPU ID in irq_cfg
+  x86, irq: Use hierarchy irqdomain to manage CPU interrupt vectors
+  x86, hpet: Use new irqdomain interfaces to allocate/free IRQ
+  x86, MSI: Use new irqdomain interfaces to allocate/free IRQ
+  x86, uv: Use new irqdomain interfaces to allocate/free IRQ
+  x86, htirq: Use new irqdomain interfaces to allocate/free IRQ
+  x86, dmar: Use new irqdomain interfaces to allocate/free IRQ
+  x86: irq_remapping: Introduce new interfaces to support hierarchy
+    irqdomain
+  iommu/vt-d: Change prototypes to prepare for enabling hierarchy
+    irqdomain
+  iommu/vt-d: Enhance Intel IR driver to suppport hierarchy irqdomain
+  iommu/amd: Enhance AMD IR driver to suppport hierarchy irqdomain
+  x86, hpet: Enhance HPET IRQ to support hierarchy irqdomain
+  x86, MSI: Use hierarchy irqdomain to manage MSI interrupts
+  x86, irq: Directly call native_compose_msi_msg() for DMAR IRQ
+  x86, htirq: Use hierarchy irqdomain to manage Hypertransport
+    interrupts
+  iommu/vt-d: Clean up unused MSI related code
+  iommu/amd: Clean up unused MSI related code
+  x86: irq_remapping: Clean up unused MSI related code
+  x86, irq: Clean up unused MSI related code and interfaces
 
-Will
+ arch/x86/Kconfig                     |    3 +-
+ arch/x86/include/asm/hpet.h          |   16 +-
+ arch/x86/include/asm/hw_irq.h        |   64 +++++
+ arch/x86/include/asm/irq_remapping.h |   66 +++--
+ arch/x86/include/asm/pci.h           |    5 -
+ arch/x86/include/asm/x86_init.h      |    4 -
+ arch/x86/kernel/apic/htirq.c         |  179 +++++++++----
+ arch/x86/kernel/apic/io_apic.c       |    3 -
+ arch/x86/kernel/apic/msi.c           |  430 +++++++++++++++++++++++--------
+ arch/x86/kernel/apic/vector.c        |  158 +++++++++++-
+ arch/x86/kernel/hpet.c               |   57 ++---
+ arch/x86/kernel/x86_init.c           |    2 -
+ arch/x86/platform/uv/uv_irq.c        |   27 +-
+ drivers/iommu/amd_iommu.c            |  385 ++++++++++++++++++++++------
+ drivers/iommu/amd_iommu_init.c       |    4 +
+ drivers/iommu/amd_iommu_proto.h      |    9 +
+ drivers/iommu/amd_iommu_types.h      |    5 +
+ drivers/iommu/intel_irq_remapping.c  |  468 +++++++++++++++++++++++-----------
+ drivers/iommu/irq_remapping.c        |  221 ++++++----------
+ drivers/iommu/irq_remapping.h        |   22 +-
+ drivers/pci/htirq.c                  |   48 +---
+ include/linux/htirq.h                |   22 +-
+ include/linux/intel-iommu.h          |    4 +
+ include/linux/irq.h                  |    8 +
+ include/linux/irqdomain.h            |   60 +++++
+ kernel/irq/Kconfig                   |    3 +
+ kernel/irq/chip.c                    |   21 ++
+ kernel/irq/irqdomain.c               |  349 ++++++++++++++++++++++++-
+ 28 files changed, 1934 insertions(+), 709 deletions(-)
+
+-- 
+1.7.10.4
+
