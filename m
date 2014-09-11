@@ -1,59 +1,86 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v4 14/16] x86, irq: Introduce helper to check whether
- an IOAPIC has been registered
-Date: Thu, 11 Sep 2014 15:17:56 +0800
-Message-ID: <54114CA4.9030503@linux.intel.com>
-References: <1409192561-19744-1-git-send-email-jiang.liu@linux.intel.com> <1409192561-19744-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409091433150.11037@nanos> <540FBB93.4020509@linux.intel.com> <alpine.DEB.2.10.1409102206300.4178@nanos>
+From: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: complete PM entries for LPSS power domain
+Date: Thu, 11 Sep 2014 15:41:06 +0800
+Message-ID: <54115212.2090608@linux.intel.com>
+References: <540E9145.50403@linux.intel.com> <2533938.9vYvzr8gPz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1409102206300.4178@nanos>
-Sender: linux-pm-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:17383 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751044AbaIKHmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Sep 2014 03:42:11 -0400
+In-Reply-To: <2533938.9vYvzr8gPz@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
 
+Many thanks.
 
-On 2014/9/11 4:08, Thomas Gleixner wrote:
-> On Wed, 10 Sep 2014, Jiang Liu wrote:
->> On 2014/9/9 20:37, Thomas Gleixner wrote:
->>>> +	ret  = mp_ioapic_registered(gsi_base);
->>>> +	up_write(&acpi_ioapic_rwsem);
->>>> +
->>>> +	return ret;
->>>> +}
->>>
->>> So I assume that this is for a particular caller in the apci ioapic
->>> hotplug code and that call site has its own serialization. Otherwise
->>> the return value is not protected at all.
->>>
->>> Please add a Docbook comment to that function, and document the
->>> locking rules as thats pretty non obvious.
->> How about this comments about locking rules?
->> /*
->>  * Locks related to IOAPIC hotplug
->>  * Hotplug side:
->>  *      ->lock_device_hotplug() //device_hotplug_lock
->>  *              ->acpi_ioapic_rwsem
->>  *                      ->ioapic_lock
->>  * Interrupt mapping side:
->>  *      ->acpi_ioapic_rwsem
->>  *              ->ioapic_mutex
->>  *                      ->ioapic_lock
->>  */
-> 
-> That looks asymetric. Why is the hotplug side not taking ioapic_mutex?
-Hi Thomas,
-	We decide to protect system from IOAPIC hotplug in the ACPI
-layer. For ACPI enumerated IOAPICs, ioapic_mutex is redundant and
-it's used to protect MPPARSE, SFI, OF enumerated IOAPICs.
-Regards!
-Gerry
+Thanks,
+Zhonghui
 
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+On 2014/9/10 4:43, Rafael J. Wysocki wrote:
+> On Tuesday, September 09, 2014 01:33:57 PM Fu, Zhonghui wrote:
+>> From de3dfa34bd7f219586057a1e0679f9e7515fa722 Mon Sep 17 00:00:00 2001
+>> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+>> Date: Tue, 9 Sep 2014 10:54:30 +0800
+>> Subject: [PATCH] ACPI / LPSS: complete PM entries for LPSS power domain
+>>
+>> PM entries of LPSS power domain were not implemented correctly
+>> in the patch "ACPI / LPSS: custom power domain for LPSS"
+>> commit ID c78b0830667a7e7c1f0ca65b76b33166a84806b3.
+>> This patch fixes and completes these PM entries.
+>>
+>> Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
+>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+> Queued up for 3.17-rc5, thanks!
+>
+>> ---
+>>  drivers/acpi/acpi_lpss.c |   10 +++++-----
+>>  1 files changed, 5 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+>> index 9dfec48..fddc1e8 100644
+>> --- a/drivers/acpi/acpi_lpss.c
+>> +++ b/drivers/acpi/acpi_lpss.c
+>> @@ -610,7 +610,7 @@ static int acpi_lpss_suspend_late(struct device *dev)
+>>  	return acpi_dev_suspend_late(dev);
+>>  }
+>>  
+>> -static int acpi_lpss_restore_early(struct device *dev)
+>> +static int acpi_lpss_resume_early(struct device *dev)
+>>  {
+>>  	int ret = acpi_dev_resume_early(dev);
+>>  
+>> @@ -650,15 +650,15 @@ static int acpi_lpss_runtime_resume(struct device *dev)
+>>  static struct dev_pm_domain acpi_lpss_pm_domain = {
+>>  	.ops = {
+>>  #ifdef CONFIG_PM_SLEEP
+>> -		.suspend_late = acpi_lpss_suspend_late,
+>> -		.restore_early = acpi_lpss_restore_early,
+>>  		.prepare = acpi_subsys_prepare,
+>>  		.complete = acpi_subsys_complete,
+>>  		.suspend = acpi_subsys_suspend,
+>> -		.resume_early = acpi_subsys_resume_early,
+>> +		.suspend_late = acpi_lpss_suspend_late,
+>> +		.resume_early = acpi_lpss_resume_early,
+>>  		.freeze = acpi_subsys_freeze,
+>>  		.poweroff = acpi_subsys_suspend,
+>> -		.poweroff_late = acpi_subsys_suspend_late,
+>> +		.poweroff_late = acpi_lpss_suspend_late,
+>> +		.restore_early = acpi_lpss_resume_early,
+>>  #endif
+>>  #ifdef CONFIG_PM_RUNTIME
+>>  		.runtime_suspend = acpi_lpss_runtime_suspend,
+>> -- 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
