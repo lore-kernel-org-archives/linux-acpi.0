@@ -1,65 +1,94 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Part1 v1 07/18] x86, irq: Introduce helpers to access struct
- irq_cfg
-Date: Thu, 11 Sep 2014 11:27:40 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409111126410.4178@nanos>
-References: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com> <1410423905-26239-8-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1410423905-26239-8-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP
+ initialization
+Date: Thu, 11 Sep 2014 11:24:36 +0100
+Message-ID: <20140911102436.B6671C40862@trevor.secretlab.ca>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+	<1409583475-6978-10-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 11 Sep 2014, Jiang Liu wrote:
-
-> Change irq_cfg() from static to extern, also introduce helper function
-> irqd_cfg(). Later we could rewrite these two helpers when enabling
-> hierarchy irqdomain.
+On Mon,  1 Sep 2014 22:57:47 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> MADT contains the information for MPIDR which is essential for
+> SMP initialization, parse the GIC cpu interface structures to
+> get the MPIDR value and map it to cpu_logical_map(), and add
+> enabled cpu with valid MPIDR into cpu_possible_map.
 > 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
+> Parking protocol, but the Parking protocol is only specified for
+> ARMv7 now, so make PSCI as the only way for the SMP boot protocol
+> before some updates for the ACPI spec or the Parking protocol spec.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > ---
->  arch/x86/include/asm/hw_irq.h  |    2 ++
->  arch/x86/kernel/apic/io_apic.c |    7 ++++++-
->  2 files changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-> index 18e8717bf644..f457fcd0f3ba 100644
-> --- a/arch/x86/include/asm/hw_irq.h
-> +++ b/arch/x86/include/asm/hw_irq.h
-> @@ -132,6 +132,8 @@ struct irq_cfg {
->  	};
->  };
->  
-> +extern struct irq_cfg *irq_cfg(unsigned int irq);
-> +extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
->  extern void setup_vector_irq(int cpu);
->  extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
->  extern void send_cleanup_vector(struct irq_cfg *);
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index ee3d3ff521a3..9b048c239dd4 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -281,11 +281,16 @@ int __init arch_early_irq_init(void)
->  	return 0;
->  }
->  
-> -static inline struct irq_cfg *irq_cfg(unsigned int irq)
-> +struct irq_cfg *irq_cfg(unsigned int irq)
->  {
->  	return irq_get_chip_data(irq);
->  }
->  
-> +struct irq_cfg *irqd_cfg(struct irq_data *irq_data)
+> +/**
+> + * acpi_map_gic_cpu_interface - generates a logical cpu number
+> + * and map to MPIDR represented by GICC structure
+> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
+> + * @enabled: this cpu is enabled or not
+> + *
+> + * Returns the logical cpu number which maps to MPIDR
+> + */
+> +static int acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
 > +{
-> +	return irq_data->chip_data;
-> +}
+> +	int cpu;
+> +
+> +	if (mpidr == INVALID_HWID) {
+> +		pr_info("Skip invalid cpu hardware ID\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	total_cpus++;
+> +	if (!enabled)
+> +		return -EINVAL;
+> +
+> +	if (enabled_cpus >=  NR_CPUS) {
+> +		pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
+> +			NR_CPUS, total_cpus, mpidr);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* No need to check duplicate MPIDRs for the first CPU */
+> +	if (enabled_cpus) {
+> +		/*
+> +		 * Duplicate MPIDRs are a recipe for disaster. Scan
+> +		 * all initialized entries and check for
+> +		 * duplicates. If any is found just ignore the CPU.
+> +		 */
+> +		for_each_possible_cpu(cpu) {
+> +			if (cpu_logical_map(cpu) == mpidr) {
+> +				pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+> +				mpidr);
+> +				return -EINVAL;
+> +			}
+> +		}
+> +	} else {
+> +		/* Fist GICC entry must be BSP as ACPI spec said */
+> +		if  (cpu_logical_map(0) != mpidr) {
+> +			pr_err("First GICC entry is not BSP for MPIDR 0x%llx\n",
+> +			       mpidr);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	/* allocate a logical cpu id for the new comer */
+> +	if (cpu_logical_map(0) == mpidr) {
+> +		/*
+> +		 * boot_cpu_init() already hold bit 0 in cpu_present_mask
+> +		 * for BSP, no need to allocate again.
+> +		 */
+> +		cpu = 0;
+> +	} else {
+> +		cpu = cpumask_next_zero(-1, cpu_possible_mask);
+> +	}
 
-We can make those inlines. There is no point to have that as global
-functions.
+Nit: so the above two if/else blocks are essentially testing for the
+same condition: Is this the first cpu? or a secondary cpu? I would
+merge the two into a single if/else block.
 
-Thanks,
-
-	tglx
+g.
