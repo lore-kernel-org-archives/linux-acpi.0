@@ -1,134 +1,90 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part2 v1 08/21] x86,
- htirq: Use new irqdomain interfaces to allocate/free IRQ
-Date: Thu, 11 Sep 2014 22:03:35 +0800
-Message-ID: <1410444228-3134-9-git-send-email-jiang.liu@linux.intel.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v3 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 11 Sep 2014 15:04:46 +0100
+Message-ID: <CACxGe6tkzdpDaTm0J8bzSHev=a7+28cOnWUJxBcwr7z+GUpH4w@mail.gmail.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <20140911132935.068DCC408F6@trevor.secretlab.ca> <61335531.hz91PL2Gdf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <61335531.hz91PL2Gdf@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infra
 List-Id: linux-acpi@vger.kernel.org
 
-Use new irqdomain interfaces to allocate/free IRQ for HTIRQ, so we could
-kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ later.
+On Thu, Sep 11, 2014 at 3:23 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, September 11, 2014 02:29:34 PM Grant Likely wrote:
+>> On Mon,  1 Sep 2014 22:57:38 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>> > ACPI 5.1 has been released and now be freely available for
+>> > download [1]. It fixed some major gaps to run ACPI on ARM,
+>> > this patch just follow the ACPI 5.1 spec and prepare the
+>> > code to run ACPI on ARM64.
+>> >
+>> > ACPI 5.1 has some major changes for the following tables and
+>> > method which are essential for ARM platforms:
+>> > 1) MADT table updates.
+>> > 2) FADT updates for PSCI
+>> > 3) GTDT
+>> >
+>> > This patch set is the ARM64 ACPI core patches covered MADT, FADT
+>> > and GTDT, platform board specific drivers are not covered by this
+>> > patch set, but we provide drivers for Juno to boot with ACPI only
+>> > in the follwing patch set for review purpose.
+>> >
+>> > We first introduce acpi.c and its related head file which are needed
+>> > by ACPI core, and then get RSDP to extract all the ACPI boot-time tables.
+>> > When all the boot-time tables (FADT, MADT, GTDT) are ready, then
+>> > parse them to init the sytem when booted. Specifically,
+>> > a) we use FADT to init PSCI and use PSCI to boot SMP;
+>> > b) Use MADT for GIC init and SMP init;
+>> > c) GTDT for arch timer init.
+>> >
+>> > This patch set is based on 3.17-rc2 and was tested by Graeme on Juno
+>> > and FVP base model boot with ACPI only OK, if you want to test them,
+>> > you can pull from acpi-5.1-v3 branch in leg/acpi repo:
+>> > git://git.linaro.org/leg/acpi/acpi.git
+>> >
+>> > Updates since v2:
+>> >  - Refactor the code to make SMP/PSCI init with less sperated init
+>> >    path by Tomasz
+>> >  - make ACPI depend on EXPERT
+>> >  - Address lots of comments from Catalin, Sudeep, Geoff
+>> >  - Add Juno device ACPI driver patches for review
+>> >
+>> > Updates since v1:
+>> >  - Set ACPI default off on ARM64 suggested by Olof;
+>> >  - Rebase the patch set on top of linux-next branch/linux-pm tree which
+>> >    includes the ACPICA for full ACPI 5.1 support.
+>> >  - Update the document as suggested;
+>> >  - Adress lots of comments from Mark, Sudeep, Randy, Naresh, Olof, Geoff
+>> >    and more...
+>> >
+>> > [1]: http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+>>
+>> I've read through this entire series now. In my mind, aside from a few
+>> comments that I know you're addressing, this is ready.  The hooks into
+>> arm64 core code are not terribly invasive, it is nicely organized and
+>> manageable. Get the next version out ASAP, but I would also like to see
+>> the diffs from this version to the next so I don't need to review the
+>> entire series again.
+>>
+>> Regarding the requests to refactor ACPICA to work better for ARM. I
+>> completely agree that it should be done, but I do not think it should be
+>> a prerequisite to getting this core support merged. That kind of
+>> refactoring is far easier to justify when it has immediate improvement
+>> on the mainline codebase, and it gives us a working baseline to test
+>> against. Doing it the other way around just makes things harder.
+>>
+>> I would really like to see the next version of this series go into
+>> linux-next. I think this is ready for some wider exposure. Have you got
+>> a branch being pulled into Fengguang's autobuilder yet?
+>
+> Having looked at the patches recently, I don't see any major problems in
+> them from the ACPI core perspective, so to me they are good to go.
+>
+> Question is who's going to handle them?
 
-This patch changes the interfaces between arch independent PCI driver
-and arch specific code. Currently HT_IRQ is only enabled on x86, so it
-shouldn't break other architectures.
+They should absolutely go via Catalin & Will's tree.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/apic/htirq.c |   26 +++++++++++++-------------
- drivers/pci/htirq.c          |    7 +++----
- include/linux/htirq.h        |    2 ++
- 3 files changed, 18 insertions(+), 17 deletions(-)
-
-diff --git a/arch/x86/kernel/apic/htirq.c b/arch/x86/kernel/apic/htirq.c
-index 6f527b02ac4c..55cb061a95cb 100644
---- a/arch/x86/kernel/apic/htirq.c
-+++ b/arch/x86/kernel/apic/htirq.c
-@@ -14,6 +14,7 @@
- #include <linux/device.h>
- #include <linux/pci.h>
- #include <linux/htirq.h>
-+#include <linux/irqdomain.h>
- #include <asm/hw_irq.h>
- #include <asm/apic.h>
- #include <asm/hypertransport.h>
-@@ -60,31 +61,30 @@ static struct irq_chip ht_irq_chip = {
- 	.irq_retrigger		= apic_retrigger_irq,
- };
- 
-+int arch_alloc_ht_irq(struct pci_dev *dev)
-+{
-+	return irq_domain_alloc_irqs(NULL, -1, 1, dev_to_node(&dev->dev), NULL);
-+}
-+
-+void arch_free_ht_irq(int irq)
-+{
-+	irq_domain_free_irqs(irq, 1);
-+}
-+
- int arch_setup_ht_irq(unsigned int irq, struct pci_dev *dev)
- {
- 	struct irq_cfg *cfg;
- 	struct ht_irq_msg msg;
--	unsigned dest;
--	int err;
- 
- 	if (disable_apic)
- 		return -ENXIO;
- 
- 	cfg = irq_cfg(irq);
--	err = assign_irq_vector(irq, cfg, apic->target_cpus());
--	if (err)
--		return err;
--
--	err = apic->cpu_mask_to_apicid_and(cfg->domain,
--					   apic->target_cpus(), &dest);
--	if (err)
--		return err;
--
--	msg.address_hi = HT_IRQ_HIGH_DEST_ID(dest);
-+	msg.address_hi = HT_IRQ_HIGH_DEST_ID(cfg->dest_apicid);
- 
- 	msg.address_lo =
- 		HT_IRQ_LOW_BASE |
--		HT_IRQ_LOW_DEST_ID(dest) |
-+		HT_IRQ_LOW_DEST_ID(cfg->dest_apicid) |
- 		HT_IRQ_LOW_VECTOR(cfg->vector) |
- 		((apic->irq_dest_mode == 0) ?
- 			HT_IRQ_LOW_DM_PHYSICAL :
-diff --git a/drivers/pci/htirq.c b/drivers/pci/htirq.c
-index a94dd2c4183a..ceb0ebeb7b5f 100644
---- a/drivers/pci/htirq.c
-+++ b/drivers/pci/htirq.c
-@@ -117,8 +117,8 @@ int __ht_create_irq(struct pci_dev *dev, int idx, ht_irq_update_t *update)
- 	cfg->msg.address_lo = 0xffffffff;
- 	cfg->msg.address_hi = 0xffffffff;
- 
--	irq = irq_alloc_hwirq(dev_to_node(&dev->dev));
--	if (!irq) {
-+	irq = arch_alloc_ht_irq(dev);
-+	if (irq <= 0) {
- 		kfree(cfg);
- 		return -EBUSY;
- 	}
-@@ -163,8 +163,7 @@ void ht_destroy_irq(unsigned int irq)
- 	cfg = irq_get_handler_data(irq);
- 	irq_set_chip(irq, NULL);
- 	irq_set_handler_data(irq, NULL);
--	irq_free_hwirq(irq);
--
-+	arch_free_ht_irq(irq);
- 	kfree(cfg);
- }
- EXPORT_SYMBOL(ht_destroy_irq);
-diff --git a/include/linux/htirq.h b/include/linux/htirq.h
-index 70a1dbbf2093..5caa51b7b95c 100644
---- a/include/linux/htirq.h
-+++ b/include/linux/htirq.h
-@@ -15,6 +15,8 @@ void unmask_ht_irq(struct irq_data *data);
- 
- /* The arch hook for getting things started */
- int arch_setup_ht_irq(unsigned int irq, struct pci_dev *dev);
-+int arch_alloc_ht_irq(struct pci_dev *dev);
-+void arch_free_ht_irq(int irq);
- 
- /* For drivers of buggy hardware */
- typedef void (ht_irq_update_t)(struct pci_dev *dev, int irq,
--- 
-1.7.10.4
+g.
