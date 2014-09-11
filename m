@@ -1,99 +1,47 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH] ata: ahci_platform: Add ACPI support for AMD Seattle SATA controller
-Date: Thu, 11 Sep 2014 13:17:23 -0700
-Message-ID: <CAOesGMh_Ku-pReg5LHVFvRM0-s_zEO4rgAvaD5rv-eTfPD71Yw@mail.gmail.com>
-References: <1410295035-14471-1-git-send-email-suravee.suthikulpanit@amd.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH 0/2] PCI: Ignore hotplug events for dual GPU systems
+Date: Thu, 11 Sep 2014 16:23:54 -0600
+Message-ID: <20140911222022.16809.57079.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1410295035-14471-1-git-send-email-suravee.suthikulpanit@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Cc: Tejun Heo <tj@kernel.org>, Hans de Goede <hdegoede@redhat.com>, linux-ide@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:64540 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752241AbaIKWX6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 18:23:58 -0400
+Received: by mail-pd0-f174.google.com with SMTP id v10so14138545pde.5
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Sep 2014 15:23:57 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: SpacemanSpiff <a818958@trbvm.com>, Rajat Jain <rajatxjain@gmail.com>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Pali =?utf-8?b?Um9ow6Fy?= <pali.rohar@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, "Jose P." <lbdkmjdf@sharklasers.com>
 
-On Tue, Sep 9, 2014 at 1:37 PM,  <suravee.suthikulpanit@amd.com> wrote:
-> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->
-> This patch adds ACPI support for non-PCI SATA contoller in ahci_platform driver.
-> It adds ACPI matching table in ahci_platform to support AMD Seattle SATA controller
-> with following ASL structure in DSDT:
->
->     Device (SATA0)
->     {
->       Name(_HID, "AMDI0600")    // Seattle AHSATA
->       Name (_CCA, 1)            // Cache-coherent controller
->       Name (_CRS, ResourceTemplate ()
->       {
->         Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
->         Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
->       })
->     }
->
-> Since ATA driver should not require PCI support for ATA_ACPI,
-> this patch also removes dependency in the driver/ata/Kconfig.
->
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
->  drivers/ata/Kconfig         |  2 +-
->  drivers/ata/ahci_platform.c | 13 +++++++++++++
->  2 files changed, 14 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-> index e1b9278..f2e6c9e 100644
-> --- a/drivers/ata/Kconfig
-> +++ b/drivers/ata/Kconfig
-> @@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
->
->  config ATA_ACPI
->         bool "ATA ACPI Support"
-> -       depends on ACPI && PCI
-> +       depends on ACPI
->         default y
->         help
->           This option adds support for ATA-related ACPI objects.
-> diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-> index f61ddb9..3499bab 100644
-> --- a/drivers/ata/ahci_platform.c
-> +++ b/drivers/ata/ahci_platform.c
-> @@ -20,6 +20,9 @@
->  #include <linux/platform_device.h>
->  #include <linux/libata.h>
->  #include <linux/ahci_platform.h>
-> +#ifdef CONFIG_ATA_ACPI
-> +#include <linux/acpi.h>
-> +#endif
->  #include "ahci.h"
->
->  static const struct ata_port_info ahci_port_info = {
-> @@ -87,6 +90,13 @@ static const struct of_device_id ahci_of_match[] = {
->  };
->  MODULE_DEVICE_TABLE(of, ahci_of_match);
->
-> +#ifdef CONFIG_ATA_ACPI
-> +static const struct acpi_device_id ahci_acpi_match[] = {
-> +       { "AMDI0600", 0 }, /* AMD Seattle AHCI */
-> +       { },
-> +};
-> +#endif
-> +
->  static struct platform_driver ahci_driver = {
->         .probe = ahci_probe,
->         .remove = ata_platform_remove_one,
-> @@ -94,6 +104,9 @@ static struct platform_driver ahci_driver = {
->                 .name = "ahci",
->                 .owner = THIS_MODULE,
->                 .of_match_table = ahci_of_match,
-> +#ifdef CONFIG_ATA_ACPI
-> +               .acpi_match_table = ACPI_PTR(ahci_acpi_match),
-> +#endif
+These are intended to resolve problems on dual GPU systems where the radeon
+driver becomes unusable because of problems suspending or resuming a GPU.
+When the GPU is powered off, we may get hotplug remove events, and we 
+would normally unbind the driver and destroy the pci_dev.  But in this
+case, the radeon and nouveau drivers expect to remain bound to the device
+because it isn't really removable, and they may power it back on later.
 
-The whole point of having ACPI_PTR() is to avoid having ifdefs like
-these. The structure member is always there, so there's no need to
-have it conditionally compiled out.
+Links to the bug reports in the patch changelogs.
 
-Come to think of it, the match table should be under CONFIG_ACPI
-instead -- why do a separate config option just for this?
+I would like to get these into v3.17 if they seem reasonable.
+
+---
+
+Bjorn Helgaas (2):
+      PCI: Add pci_ignore_hotplug() to ignore hotplug events for a device
+      ACPIPHP / radeon / nouveau: Remove acpi_bus_no_hotplug()
 
 
--Olof
+ drivers/acpi/bus.c                           |   10 ----------
+ drivers/gpu/drm/nouveau/nouveau_acpi.c       |   16 ++--------------
+ drivers/gpu/drm/nouveau/nouveau_drm.c        |    1 +
+ drivers/gpu/drm/radeon/radeon_atpx_handler.c |   16 ++--------------
+ drivers/gpu/drm/radeon/radeon_drv.c          |    1 +
+ drivers/pci/hotplug/acpiphp_glue.c           |   16 ++++++----------
+ drivers/pci/hotplug/pciehp_hpc.c             |   12 ++++++++++++
+ include/acpi/acpi_bus.h                      |    4 +---
+ include/linux/pci.h                          |    6 ++++++
+ 9 files changed, 31 insertions(+), 51 deletions(-)
