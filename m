@@ -1,123 +1,65 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time
- tables
-Date: Wed, 10 Sep 2014 22:41:15 +0100
-Message-ID: <20140910214115.BFF3DC40FE6@trevor.secretlab.ca>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
-	<1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
-	<20140909162648.GE2910@arm.com> <540F2DCF.1010104@redhat.com>
-	<20140909171541.GD3896@leverpostej>
-	<20140909175010.GF4948@e102568-lin.cambridge.arm.com>
-	<540F4155.4090200@arm.com> <540F4FCF.1090508@redhat.com>
-	<5410326F.8080104@huawei.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5410326F.8080104@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Jon Masters <jcm@redhat.com>, Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <Mark.Rutland@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC Part1 v1 07/18] x86, irq: Introduce helpers to access struct
+ irq_cfg
+Date: Thu, 11 Sep 2014 11:27:40 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1409111126410.4178@nanos>
+References: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com> <1410423905-26239-8-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1410423905-26239-8-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 10 Sep 2014 19:13:51 +0800, Hanjun Guo <guohanjun@huawei.com> wrote:
-> On 2014/9/10 3:06, Jon Masters wrote:
-> > On 09/09/2014 02:05 PM, Sudeep Holla wrote:
-> >>
-> >>
-> >> On 09/09/14 18:50, Lorenzo Pieralisi wrote:
-> >>> On Tue, Sep 09, 2014 at 06:15:41PM +0100, Mark Rutland wrote:
-> >>>> On Tue, Sep 09, 2014 at 05:41:51PM +0100, Jon Masters wrote:
-> >>>>> On 09/09/2014 12:26 PM, Catalin Marinas wrote:
-> >>>>>> On Mon, Sep 01, 2014 at 03:57:40PM +0100, Hanjun Guo wrote:
-> >>>>>>> diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-> >>>>>>> new file mode 100644
-> >>>>>>> index 0000000..3899ee6
-> >>>>>>> --- /dev/null
-> >>>>>>> +++ b/arch/arm64/include/asm/acenv.h
-> >>>>>>> @@ -0,0 +1,18 @@
-> >>>>>>> +/*
-> >>>>>>> + * ARM64 specific ACPICA environments and implementation
-> >>>>>>> + *
-> >>>>>>> + * Copyright (C) 2014, Linaro Ltd.
-> >>>>>>> + *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>>>> + *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-> >>>>>>> + *
-> >>>>>>> + * This program is free software; you can redistribute it and/or modify
-> >>>>>>> + * it under the terms of the GNU General Public License version 2 as
-> >>>>>>> + * published by the Free Software Foundation.
-> >>>>>>> + */
-> >>>>>>> +
-> >>>>>>> +#ifndef _ASM_ACENV_H
-> >>>>>>> +#define _ASM_ACENV_H
-> >>>>>>> +
-> >>>>>>> +#define ACPI_FLUSH_CPU_CACHE() WARN_ONCE(1, "Not currently supported on ARM64")
-> >>>>>>
-> >>>>>> Does this mean that it will be supported at some point? Looking at the
-> >>>>>> places where this function is called, I don't really see how this would
-> >>>>>> ever work on ARM. Which means that we add such macro just to be able to
-> >>>>>> compile code that would never be used on arm64. I would rather see the
-> >>>>>> relevant ACPI files only compiled on x86/IA-64 rather than arm64.
-> >>>>>
-> >>>>> That specific cache behavior is a part of e.g. ACPI C3 state support
-> >>>>> (e.g. ACPI5.1 8.1.4 Processor Power State C3).
-> >>>>
-> >>>> Per table 5-35, if neither WBINVD or WBINVD_FLUSH are set in the FADT,
-> >>>> we don't get S1, S2, or S3 states either.
-> >>>>
-> >>>>> As you note, it's not going to work on 64-bit ARM as it does on x86,
-> >>>>> but it's optional to implement C3 and early 64-bit ARM systems should
-> >>>>> not report Wbindv flags in the FADT anyway.
-> >>>>
-> >>>> Unless the arm cache architecture changes, I wouldn't expect any 64-bit
-> >>>> ARM system to set either of the WBINVD flags.
-> >>>>
-> >>>>> They can also set FADT.P_LVL3_LAT > 1000, which has the effect of
-> >>>>> disabling C3 support, while also allowing for use of _CST objects to
-> >>>>> define more flexible C-States later on.
-> >>>>
-> >>>> It sounds like we should be sanity checking these in the arm64 ACPI code
-> >>>> for the moment. I don't want us to discover that current platforms
-> >>>> report the wrong thing only when new platforms come out that might
-> >>>> actually report things correctly.
-> >>>
-> >>> I think that the kernel must ignore most of the stuff mentioned above
-> >>> in HW_REDUCED_ACPI mode. And to be frank I still think that the problem
-> >>> is not even there. The problem is trying to compile code that basically
-> >>> has no defined behaviour - ie it is unspecified - on ARM64, that's what
-> >>> Catalin pointed out.
-> >>>
-> >>> I understand it is compiled in by default on x86, but that's not a reason
-> >>> why we should add empty hooks all over the place to compile code that
-> >>> does not stand a chance to be doing anything sensible apart from
-> >>> returning an error code, in the best case scenario.
-> >>>
-> >>
-> >> I had pointed out this earlier, even if we make it compile there's
-> >> every possibility that it can blow up if some vendor adds S- states
-> >> to their ACPI tables. One clear reason why it could blow up is:
-> >>
-> >> "
-> >>       /* This violates the spec but is required for bug compatibility. */
-> >>       acpi_write_bit_register(ACPI_BITREG_SCI_ENABLE, 1);
-> >> "
-> >>
-> >> I don't think this can ever work on ARM platforms. So better to fix it
-> >> properly.
-> > 
-> > Hanjun,
-> > 
-> > How do you want to proceed? I'm not sure it should be !HW_REDUCED_MODE
-> > for the cache behavior, because an embedded x86 box would still probably
-> > define those, but removing the hooks on ARM may make sense.
-> 
-> As Graeme said in the reply, for sleep we are doing the same thing as
-> ia64 in stubbing out the functions, and before that we are trying to remove
-> the hooks on ARM by introducing more stubs and making things more complicated.
-> 
-> I agree that we should rework the ACPI core to make sleep/cache related
-> stuff compatible with ARM, but I think we may not do this in one go, it will
-> need incremental changes over the next couple of years as real hardware
-> starts to appear and we finalise the standards to support this.
+On Thu, 11 Sep 2014, Jiang Liu wrote:
 
-Yes, reworking acpica is out of scope for this patch set. I don't think
-it makes sense to try and do that refactoring here.
+> Change irq_cfg() from static to extern, also introduce helper function
+> irqd_cfg(). Later we could rewrite these two helpers when enabling
+> hierarchy irqdomain.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/x86/include/asm/hw_irq.h  |    2 ++
+>  arch/x86/kernel/apic/io_apic.c |    7 ++++++-
+>  2 files changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+> index 18e8717bf644..f457fcd0f3ba 100644
+> --- a/arch/x86/include/asm/hw_irq.h
+> +++ b/arch/x86/include/asm/hw_irq.h
+> @@ -132,6 +132,8 @@ struct irq_cfg {
+>  	};
+>  };
+>  
+> +extern struct irq_cfg *irq_cfg(unsigned int irq);
+> +extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
+>  extern void setup_vector_irq(int cpu);
+>  extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
+>  extern void send_cleanup_vector(struct irq_cfg *);
+> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+> index ee3d3ff521a3..9b048c239dd4 100644
+> --- a/arch/x86/kernel/apic/io_apic.c
+> +++ b/arch/x86/kernel/apic/io_apic.c
+> @@ -281,11 +281,16 @@ int __init arch_early_irq_init(void)
+>  	return 0;
+>  }
+>  
+> -static inline struct irq_cfg *irq_cfg(unsigned int irq)
+> +struct irq_cfg *irq_cfg(unsigned int irq)
+>  {
+>  	return irq_get_chip_data(irq);
+>  }
+>  
+> +struct irq_cfg *irqd_cfg(struct irq_data *irq_data)
+> +{
+> +	return irq_data->chip_data;
+> +}
 
-g.
+We can make those inlines. There is no point to have that as global
+functions.
+
+Thanks,
+
+	tglx
