@@ -1,121 +1,156 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Thu, 11 Sep 2014 15:14:26 +0200
-Message-ID: <2311044.Mgki24rmc5@vostro.rjw.lan>
-References: <54095EE7.3080302@jp.fujitsu.com> <3131715.Lrb4tsKR2m@vostro.rjw.lan> <20140911071717.GB4622@linux-rxt1.site>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v3 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 11 Sep 2014 14:29:34 +0100
+Message-ID: <20140911132935.068DCC408F6@trevor.secretlab.ca>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57984 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751219AbaIKMy5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 08:54:57 -0400
-In-Reply-To: <20140911071717.GB4622@linux-rxt1.site>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:56582 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752007AbaIKN3r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 09:29:47 -0400
+Received: by mail-we0-f172.google.com with SMTP id k48so4516706wev.17
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Sep 2014 06:29:46 -0700 (PDT)
+In-Reply-To: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Thursday, September 11, 2014 03:17:17 PM joeyli wrote:
-> Hi Rafael, 
+On Mon,  1 Sep 2014 22:57:38 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> ACPI 5.1 has been released and now be freely available for
+> download [1]. It fixed some major gaps to run ACPI on ARM,
+> this patch just follow the ACPI 5.1 spec and prepare the
+> code to run ACPI on ARM64.
 > 
-> On Thu, Sep 11, 2014 at 01:38:37AM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, September 10, 2014 12:16:43 PM Yasuaki Ishimatsu wrote:
-> > > (2014/09/08 6:34), Rafael J. Wysocki wrote:
-> > > > On Friday, September 05, 2014 03:57:43 PM Yasuaki Ishimatsu wrote:
-> > > >> Container online uevent was deleted by "46394fd01 : ACPI / hotplug:
-> > > >> Move container-specific code out of the core" because container-
-> > > >> specific uevent is raised to udev by attaching container device.
-> > > >> But the container-specific uevent is not useful.
-> > > >>
-> > > >> In my box, conainer device has CPU and memory devices. In this case,
-> > > >> when hot adding container device, the following uevets are raised to
-> > > >> udev.
-> > > >>
-> > > >>    # udevadm monitor --kernel
-> > > >>    monitor will print the received events for:
-> > > >>    KERNEL - the kernel uevent
-> > > >>
-> > > >>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> > > >>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> > > >>
-> > > >> When udev catches the container add uevent in my box, udev executes
-> > > >> user land script for onlining all child's devices. But memory and CPU
-> > > >> devices have not been attached at this time. So user land script fails.
-> > > >>
-> > > >> One of solutions is that user land script waits for all child's devices
-> > > >> to attach. But user land script has no way to know all child's devices
-> > > >> were attached.
-> > > >>
-> > > >> So the patch adds container online uevent to acpi_bus_sttach(). By
-> > > >> applying
-> > > >> the patch, container online uevent is raised to udev after all child's
-> > > >> devices were attached as follows:
-> > > >>
-> > > >>    # udevadm monitor --kernel
-> > > >>    monitor will print the received events for:
-> > > >>    KERNEL - the kernel uevent
-> > > >>
-> > > >>    KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> > > >>    KERNEL[...] add      /devices/system/memory/memory2049 (memory)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> > > >>    <snip>
-> > > >>    KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> > > >>    KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> > > >>
-> > > >> So if user land script is executed after raising the container online
-> > > >> uevent, it guarantees that all child's devices were attached.
-> > > >
-> > > > I see the problem, but I don't like the patch.
-> > > >
-> > > > For example, we don't need to match the container's name again, we can use
-> > > > the fact that we've already matched the container scan handler to it.
-> > > >
-> > > > Does the one below work too?
-> > > 
-> > > Hi Rafael,
-> > > 
-> > > Thank you for posting your patch. I confirmed that your patch fixed my issue
-> > > as folloes:
-> > > 
-> > > # udevadm monitor --kernel
-> > > monitor will print the received events for:
-> > > KERNEL - the kernel uevent
-> > > 
-> > > KERNEL[...] add      /devices/system/container/ACPI0004:01 (container)
-> > > <snip>
-> > > KERNEL[...] add      /devices/system/memory/memory2048 (memory)
-> > > <snip>
-> > > KERNEL[...] add      /devices/system/memory/memory2063 (memory)
-> > > <snip>
-> > > KERNEL[...] add      /devices/system/cpu/cpu60 (cpu)
-> > > <snip>
-> > > KERNEL[...] add      /devices/system/cpu/cpu119 (cpu)
-> > > KERNEL[...] online   /devices/system/container/ACPI0004:01 (container)
-> > > 
-> > > So feel free to  add "Tested-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>"
-> > > to the patch.
-> > 
-> > Thanks!
-> >
+> ACPI 5.1 has some major changes for the following tables and
+> method which are essential for ARM platforms:
+> 1) MADT table updates.
+> 2) FADT updates for PSCI
+> 3) GTDT
 > 
-> I just tested your new patch, it works on my side as Yasuaki's patch. 
+> This patch set is the ARM64 ACPI core patches covered MADT, FADT
+> and GTDT, platform board specific drivers are not covered by this
+> patch set, but we provide drivers for Juno to boot with ACPI only
+> in the follwing patch set for review purpose.
 > 
-> Tested-by: Lee, Chun-Yi <jlee@suse.com>
+> We first introduce acpi.c and its related head file which are needed
+> by ACPI core, and then get RSDP to extract all the ACPI boot-time tables.
+> When all the boot-time tables (FADT, MADT, GTDT) are ready, then
+> parse them to init the sytem when booted. Specifically, 
+> a) we use FADT to init PSCI and use PSCI to boot SMP;
+> b) Use MADT for GIC init and SMP init;
+> c) GTDT for arch timer init.
+> 
+> This patch set is based on 3.17-rc2 and was tested by Graeme on Juno
+> and FVP base model boot with ACPI only OK, if you want to test them,
+> you can pull from acpi-5.1-v3 branch in leg/acpi repo:
+> git://git.linaro.org/leg/acpi/acpi.git
+> 
+> Updates since v2:
+>  - Refactor the code to make SMP/PSCI init with less sperated init
+>    path by Tomasz
+>  - make ACPI depend on EXPERT
+>  - Address lots of comments from Catalin, Sudeep, Geoff
+>  - Add Juno device ACPI driver patches for review
+> 
+> Updates since v1:
+>  - Set ACPI default off on ARM64 suggested by Olof;
+>  - Rebase the patch set on top of linux-next branch/linux-pm tree which
+>    includes the ACPICA for full ACPI 5.1 support.
+>  - Update the document as suggested;
+>  - Adress lots of comments from Mark, Sudeep, Randy, Naresh, Olof, Geoff
+>    and more...
+> 
+> [1]: http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
 
-Thanks!
+I've read through this entire series now. In my mind, aside from a few
+comments that I know you're addressing, this is ready.  The hooks into
+arm64 core code are not terribly invasive, it is nicely organized and
+manageable. Get the next version out ASAP, but I would also like to see
+the diffs from this version to the next so I don't need to review the
+entire series again.
+
+Regarding the requests to refactor ACPICA to work better for ARM. I
+completely agree that it should be done, but I do not think it should be
+a prerequisite to getting this core support merged. That kind of
+refactoring is far easier to justify when it has immediate improvement
+on the mainline codebase, and it gives us a working baseline to test
+against. Doing it the other way around just makes things harder.
+
+I would really like to see the next version of this series go into
+linux-next. I think this is ready for some wider exposure. Have you got
+a branch being pulled into Fengguang's autobuilder yet?
+
+g.
+
+> 
+> Al Stone (3):
+>   ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+>   ARM64 / ACPI: Introduce early_param for "acpi"
+>   ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
+>     ARM64
+> 
+> Ashwin Chaugule (1):
+>   ACPI / table: Add new function to get table entries
+> 
+> Graeme Gregory (4):
+>   ARM64 / ACPI: Introduce lowlevel suspend function
+>   ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+>   ARM64 / ACPI: Enable ARM64 in Kconfig
+>   Documentation: ACPI for ARM64
+> 
+> Hanjun Guo (8):
+>   ARM64: Move the init of cpu_logical_map(0) before
+>     unflatten_device_tree()
+>   ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+>   ARM64 / ACPI: Parse FADT table to get PSCI flags for PSCI init
+>   ACPI / table: Print GIC information when MADT is parsed
+>   ARM64 / ACPI: Parse MADT for SMP initialization
+>   ACPI / processor: Make it possible to get CPU hardware ID via GICC
+>   ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+>   ARM64 / ACPI: Parse GTDT to initialize arch timer
+> 
+> Tomasz Nowicki (1):
+>   ARM64 / ACPI: Add GICv2 specific ACPI boot support
+> 
+>  Documentation/arm64/arm-acpi.txt     |  218 +++++++++++++++++++++
+>  Documentation/kernel-parameters.txt  |    3 +-
+>  arch/arm64/Kconfig                   |    3 +
+>  arch/arm64/include/asm/acenv.h       |   18 ++
+>  arch/arm64/include/asm/acpi.h        |  108 ++++++++++
+>  arch/arm64/include/asm/cpu_ops.h     |    1 +
+>  arch/arm64/include/asm/pci.h         |   11 ++
+>  arch/arm64/include/asm/psci.h        |    3 +-
+>  arch/arm64/include/asm/smp.h         |    5 +-
+>  arch/arm64/kernel/Makefile           |    1 +
+>  arch/arm64/kernel/acpi.c             |  359 ++++++++++++++++++++++++++++++++++
+>  arch/arm64/kernel/cpu_ops.c          |    4 +-
+>  arch/arm64/kernel/irq.c              |    5 +
+>  arch/arm64/kernel/psci.c             |   78 +++++---
+>  arch/arm64/kernel/setup.c            |   23 ++-
+>  arch/arm64/kernel/smp.c              |    2 +-
+>  arch/arm64/kernel/time.c             |    7 +
+>  drivers/acpi/Kconfig                 |    6 +-
+>  drivers/acpi/Makefile                |    2 +-
+>  drivers/acpi/bus.c                   |    3 +
+>  drivers/acpi/internal.h              |    5 +
+>  drivers/acpi/processor_core.c        |   37 ++++
+>  drivers/acpi/tables.c                |  113 +++++++++--
+>  drivers/clocksource/arm_arch_timer.c |  117 +++++++++--
+>  drivers/irqchip/irq-gic.c            |  114 +++++++++++
+>  include/linux/acpi.h                 |    5 +
+>  include/linux/clocksource.h          |    6 +
+>  include/linux/irqchip/arm-gic-acpi.h |   33 ++++
+>  include/linux/pci.h                  |   37 +++-
+>  29 files changed, 1237 insertions(+), 90 deletions(-)
+>  create mode 100644 Documentation/arm64/arm-acpi.txt
+>  create mode 100644 arch/arm64/include/asm/acenv.h
+>  create mode 100644 arch/arm64/include/asm/acpi.h
+>  create mode 100644 arch/arm64/include/asm/pci.h
+>  create mode 100644 arch/arm64/kernel/acpi.c
+>  create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+> 
+> -- 
+> 1.7.9.5
+> 
 
