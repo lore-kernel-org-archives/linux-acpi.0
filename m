@@ -1,86 +1,93 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP
- initialization
-Date: Thu, 11 Sep 2014 11:32:18 +0100
-Message-ID: <20140911103218.A7A78C40862@trevor.secretlab.ca>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
-	<1409583475-6978-10-git-send-email-hanjun.guo@linaro.org>
-	<20140903172138.GG1824@e102568-lin.cambridge.arm.com>
-	<5408854B.9010703@linaro.org> <540E7A4C.7050401@redhat.com>
-	<20140909102256.GB27786@leverpostej>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3 02/17] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Thu, 11 Sep 2014 12:01:46 +0100
+Message-ID: <20140911110146.GB5814@localhost>
+References: <1409583475-6978-3-git-send-email-hanjun.guo@linaro.org>
+ <20140909162648.GE2910@arm.com>
+ <540F2DCF.1010104@redhat.com>
+ <20140909171541.GD3896@leverpostej>
+ <20140909175010.GF4948@e102568-lin.cambridge.arm.com>
+ <540F4155.4090200@arm.com>
+ <540F4FCF.1090508@redhat.com>
+ <5410326F.8080104@huawei.com>
+ <20140910123352.GA31237@localhost>
+ <20140910215130.6D448C411AA@trevor.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:56192 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972AbaIKKcX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 06:32:23 -0400
-Received: by mail-wi0-f177.google.com with SMTP id em10so3629791wid.16
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Sep 2014 03:32:21 -0700 (PDT)
-In-Reply-To: <20140909102256.GB27786@leverpostej>
+Received: from service87.mimecast.com ([91.220.42.44]:51402 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187AbaIKLBy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 07:01:54 -0400
+In-Reply-To: <20140910215130.6D448C411AA@trevor.secretlab.ca>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, Jon Masters <jcm@redhat.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.o>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: "guohanjun@huawei.com" <guohanjun@huawei.com>, "jcm@redhat.com" <jcm@redhat.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.>
 
-On Tue, 9 Sep 2014 11:22:56 +0100, Mark Rutland <mark.rutland@arm.com> wrote:
-> On Tue, Sep 09, 2014 at 04:55:56AM +0100, Jon Masters wrote:
-> > Hi Hanjun, Lorenzo,
+On Wed, Sep 10, 2014 at 10:51:30PM +0100, Grant Likely wrote:
+> On Wed, 10 Sep 2014 13:33:52 +0100, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > On Wed, Sep 10, 2014 at 12:13:51PM +0100, Hanjun Guo wrote:
+> > > I agree that we should rework the ACPI core to make sleep/cache related
+> > > stuff compatible with ARM, but I think we may not do this in one go, it will
+> > > need incremental changes over the next couple of years as real hardware
+> > > starts to appear and we finalise the standards to support this.
+> > > 
+> > > Now, as we list in the arm-acpi.txt doc, power management of sleep states
+> > > and CPU power/frequency control are not well defined in ACPI spec for ARM,
+> > > we need some time to finalize the standard and then we know how to implement
+> > > that in a good shape.
+> > > 
+> > > ACPI 5.1 already fixed lots missing features for ARM64 and provide the
+> > > fundamental needs to bring up the basic system for ARM server, power
+> > > management is not critical at now, so why not fix/implement it later?
 > > 
-> > On 09/04/2014 11:29 AM, Hanjun Guo wrote:
-> > 
-> > > Hi Lorenzo,
-> > 
-> > >>> +	} else {
-> > >>> +		/* Fist GICC entry must be BSP as ACPI spec said */
-> > >> s/Fist/First/
-> > >>
-> > >>> +		if  (cpu_logical_map(0) != mpidr) {
-> > >>> +			pr_err("First GICC entry is not BSP for MPIDR 0x%llx\n",
-> > >>> +			       mpidr);
-> > >>> +			return -EINVAL;
-> > >>> +		}
-> > >> Interesting, this means that if I want to change the boot CPU I have to
-> > >> recompile the ACPI tables. Is that really true ?
-> > 
-> > Well, the ACPI5.1 specification does require that the PEs (cores) be
-> > listed in a very specific order, with the boot CPU first, and then a
-> > precisely defined sequence of interleaving of any possible SMT threads
-> > with other cores. So I think you would in practice update your tables.
+> > I don't have a problem with implementing (rather than fixing) power
+> > management later, once the ACPI spec covers it. But the point a few of
+> > us were trying to make is that even when ACPI spec is updated, the
+> > current power management code and hooks still won't make sense on ARM.
+> > The best is to avoid compiling it for ARM now and look at refactoring it
+> > later to accommodate ARM ACPI.
 > 
-> That'll be fun if we ever want to do a kexec from a CPU other than the
-> BSP (where logical CPU0 may be arbitrary), but perhaps that's
-> inadvisable for other reasons?
+> I disagree strongly here. We're talking about a library of code that is
+> working on x86 and ia64, but hasn't been tuned for ARM.
 
-They're just flat tables. If that becomes necessary, kexec can and
-should reorder the data to stay within spec compliance.
+I think where we disagree is the "tuning" part. If it's just that, it
+would be fine, but there are fundamental differences in the
+architectures that the above would not even make sense on ARM (so it's
+more like rewriting than tuning).
 
-> > >>> +	/*
-> > >>> +	 * ACPI 5.1 only has two explicit methods to boot up SMP,
-> > >>> +	 * PSCI and Parking protocol, but the Parking protocol is
-> > >>> +	 * only specified for ARMv7 now, so make PSCI as the only
-> > >>> +	 * way for the SMP boot protocol before some updates for
-> > >>> +	 * the ACPI spec or the Parking protocol spec.
-> > >>> +	 */
-> > 
-> > The Parking Protocol may be updated for a (limited) number of platforms
-> > that may use it in the early days. The preferred option (as described in
-> > the SBBR) is to use PSCI when at all possible. Some implementations of
-> > the architecture may not be able to use PSCI for MP-Boot. Thus while
-> > there may be some limited early use of the parking protocol (including
-> > while PSCI firmware is being finalized during bringup activities), it
-> > will ultimately be completely replaced by PSCI based boot over time.
-> 
-> I would expect that any platform with EL3 uses PSCI. It's fundamentally
-> stupid to use the parking protocol if your platform does have EL3, and
-> barely adviseable if your platform does not.
+> Trying to
+> refactor it first, and then get it compiling for ARM is entirely the
+> wrong way around.
 
-For the purposes of this patch series, I think it is reasonable to
-completely ignore the parking protocol and only support PSCI. Adding
-parking protocol support should be dealt with separately so that it
-doesn't distract from getting the recommended implementation sorted out.
+Note that I explicitly stated "refactoring it later". I have not asked
+for the existing code to be refactored _now_ as it's not even clear how
+it would look like on ARM (what's clear though is that its behaviour is
+_undefined_).
 
-Adding parking protocol support should be dealt with separately so that
-it doesn't distract from getting the recommended implementation sorted
-out.
+> The best way to get that code refactored for
+> ARM is to get it compiling first, and then refactor it to remove the
+> unnecessary stubs. That makes it a whole lot easier to make the
+> arguements about why the changes are needed. Otherwise it just shows
+> churn on the ACPICA side without any evidence of why the change is
+> good. Trying to refactor first also has the risk of breaking things
+> that work now in the name of "refactoring" and not being able to easily
+> bisect it for ARM. That's just madness.
 
-g.
+I agree with not starting the refactoring now. But is it difficult to
+make it compilable based on something like CONFIG_ACPI_SLEEP and the
+latter depend on !ARM64 until the spec is clear?
+
+> Aside from a slightly larger kernel, there is no downside to using
+> stubs for now.
+
+There is a serious downside - code with _undefined_ behaviour on arm64
+that may get executed depending on the content of the ACPI tables. I'm
+sure it's a lot of fun debugging this.
+
+-- 
+Catalin
 
