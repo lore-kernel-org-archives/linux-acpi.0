@@ -1,36 +1,93 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Part1 v1 07/18] x86, irq: Introduce helpers to access struct
- irq_cfg
-Date: Thu, 11 Sep 2014 16:47:26 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1409111647000.4178@nanos>
-References: <1410423905-26239-1-git-send-email-jiang.liu@linux.intel.com> <1410423905-26239-8-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409111126410.4178@nanos>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 16/17] ARM64 / ACPI: Enable ARM64 in Kconfig
+Date: Thu, 11 Sep 2014 16:18:35 +0100
+Message-ID: <20140911151835.GA28298@e102568-lin.cambridge.arm.com>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <1409583475-6978-17-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:41048 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbaIKOsK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Sep 2014 10:48:10 -0400
-In-Reply-To: <alpine.DEB.2.10.1409111126410.4178@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1409583475-6978-17-git-send-email-hanjun.guo@linaro.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 11 Sep 2014, Thomas Gleixner wrote:
-> On Thu, 11 Sep 2014, Jiang Liu wrote:
-> > -static inline struct irq_cfg *irq_cfg(unsigned int irq)
-> > +struct irq_cfg *irq_cfg(unsigned int irq)
-> >  {
-> >  	return irq_get_chip_data(irq);
-> >  }
-> >  
-> > +struct irq_cfg *irqd_cfg(struct irq_data *irq_data)
-> > +{
-> > +	return irq_data->chip_data;
-> > +}
+On Mon, Sep 01, 2014 at 03:57:54PM +0100, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
 > 
-> We can make those inlines. There is no point to have that as global
-> functions.
+> Add Kconfigs to build ACPI on ARM64, and make ACPI available on ARM64.
+> 
+> acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
+> depend on X86 || IA64, and implement it on ARM64 in the future.
 
-Never mind. Just reading the other patch set.....
+So are S states. Maybe I am being pedantic, but why can't you do
+the same thing for drivers/acpi/sleep.c ? Is it really that complicated to add
+a config option and avoid compiling it (that file supports a part
+of the ACPI specs that is completely undefined for ARM64), and with that
+removing the need for useless hooks on ARM64 ?
+
+Why do we have to compile that code at all on ARM64 ?
+
+Thanks,
+Lorenzo
+
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/Kconfig   |    2 ++
+>  drivers/acpi/Kconfig |    6 +++---
+>  2 files changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 065438c..8dabaeb 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -422,6 +422,8 @@ source "drivers/Kconfig"
+>  
+>  source "drivers/firmware/Kconfig"
+>  
+> +source "drivers/acpi/Kconfig"
+> +
+>  source "fs/Kconfig"
+>  
+>  source "arch/arm64/kvm/Kconfig"
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index d0f3265..f935d2e 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -5,8 +5,7 @@
+>  menuconfig ACPI
+>  	bool "ACPI (Advanced Configuration and Power Interface) Support"
+>  	depends on !IA64_HP_SIM
+> -	depends on IA64 || X86
+> -	depends on PCI
+> +	depends on ((IA64 || X86) && PCI) || (ARM64 && EXPERT)
+>  	select PNP
+>  	default y
+>  	help
+> @@ -163,6 +162,7 @@ config ACPI_PROCESSOR
+>  	tristate "Processor"
+>  	select THERMAL
+>  	select CPU_IDLE
+> +	depends on X86 || IA64
+>  	default y
+>  	help
+>  	  This driver installs ACPI as the idle handler for Linux and uses
+> @@ -263,7 +263,7 @@ config ACPI_DEBUG
+>  
+>  config ACPI_PCI_SLOT
+>  	bool "PCI slot detection driver"
+> -	depends on SYSFS
+> +	depends on SYSFS && PCI
+>  	default n
+>  	help
+>  	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
+> -- 
+> 1.7.9.5
+> 
+> 
