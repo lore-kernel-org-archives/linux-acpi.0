@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part2 v1 07/21] x86, uv: Use new irqdomain interfaces to allocate/free IRQ
-Date: Thu, 11 Sep 2014 22:03:34 +0800
-Message-ID: <1410444228-3134-8-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Part2 v1 16/21] x86, irq: Directly call native_compose_msi_msg() for DMAR IRQ
+Date: Thu, 11 Sep 2014 22:03:43 +0800
+Message-ID: <1410444228-3134-17-git-send-email-jiang.liu@linux.intel.com>
 References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,93 +10,33 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use new irqdomain interfaces to allocate/free IRQ, so we could
-kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ later.
+DMAR interrupt won't be remapped by interrupt remapping hardware,
+so directly call native_compose_msi_msg() for DMAR IRQ to compose MSI
+message data. This will help to simplify MSI code later.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/platform/uv/uv_irq.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ arch/x86/kernel/apic/msi.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
-index 0ce673645432..74871ead5a30 100644
---- a/arch/x86/platform/uv/uv_irq.c
-+++ b/arch/x86/platform/uv/uv_irq.c
-@@ -12,6 +12,7 @@
- #include <linux/rbtree.h>
- #include <linux/slab.h>
- #include <linux/irq.h>
-+#include <linux/irqdomain.h>
+diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
+index 5696703271af..4f2a349ccef0 100644
+--- a/arch/x86/kernel/apic/msi.c
++++ b/arch/x86/kernel/apic/msi.c
+@@ -375,12 +375,10 @@ static struct irq_chip dmar_msi_type = {
  
- #include <asm/apic.h>
- #include <asm/uv/uv_irq.h>
-@@ -130,24 +131,14 @@ static int
- arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
- 		       unsigned long mmr_offset, int limit)
+ int arch_setup_dmar_msi(unsigned int irq)
  {
--	const struct cpumask *eligible_cpu = cpumask_of(cpu);
- 	struct irq_cfg *cfg = irq_cfg(irq);
- 	unsigned long mmr_value;
- 	struct uv_IO_APIC_route_entry *entry;
--	int mmr_pnode, err;
--	unsigned int dest;
-+	int mmr_pnode;
+-	int ret;
+ 	struct msi_msg msg;
++	struct irq_cfg *cfg = irq_cfg(irq);
  
- 	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
- 			sizeof(unsigned long));
- 
--	err = assign_irq_vector(irq, cfg, eligible_cpu);
--	if (err != 0)
--		return err;
--
--	err = apic->cpu_mask_to_apicid_and(eligible_cpu, eligible_cpu, &dest);
--	if (err != 0)
--		return err;
--
- 	if (limit == UV_AFFINITY_CPU)
- 		irq_set_status_flags(irq, IRQ_NO_BALANCING);
- 	else
-@@ -164,7 +155,7 @@ arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
- 	entry->polarity		= 0;
- 	entry->trigger		= 0;
- 	entry->mask		= 0;
--	entry->dest		= dest;
-+	entry->dest		= cfg->dest_apicid;
- 
- 	mmr_pnode = uv_blade_to_pnode(mmr_blade);
- 	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
-@@ -238,9 +229,13 @@ uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
- int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
- 		 unsigned long mmr_offset, int limit)
- {
--	int ret, irq = irq_alloc_hwirq(uv_blade_to_memory_nid(mmr_blade));
-+	int ret, irq;
-+	struct irq_alloc_info info;
- 
--	if (!irq)
-+	init_irq_alloc_info(&info, cpumask_of(cpu));
-+	irq = irq_domain_alloc_irqs(NULL, -1, 1,
-+				    uv_blade_to_memory_nid(mmr_blade), &info);
-+	if (irq <= 0)
- 		return -EBUSY;
- 
- 	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
-@@ -248,7 +243,7 @@ int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
- 	if (ret == irq)
- 		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
- 	else
--		irq_free_hwirq(irq);
-+		irq_domain_free_irqs(irq, 1);
- 
- 	return ret;
- }
-@@ -283,6 +278,6 @@ void uv_teardown_irq(unsigned int irq)
- 			n = n->rb_right;
- 	}
- 	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
--	irq_free_hwirq(irq);
-+	irq_domain_free_irqs(irq, 1);
- }
- EXPORT_SYMBOL_GPL(uv_teardown_irq);
+-	ret = msi_compose_msg(NULL, irq, &msg, -1);
+-	if (ret < 0)
+-		return ret;
++	native_compose_msi_msg(NULL, irq, cfg->dest_apicid, &msg, -1);
+ 	dmar_msi_write(irq, &msg);
+ 	irq_set_chip_and_handler_name(irq, &dmar_msi_type, handle_edge_irq,
+ 				      "edge");
 -- 
 1.7.10.4
