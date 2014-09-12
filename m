@@ -1,49 +1,402 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v4 05/18] ARM64 / ACPI: Introduce sleep-arm.c
-Date: Fri, 12 Sep 2014 17:10:32 -0400
-Message-ID: <54136148.40106@redhat.com>
-References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org> <1410530416-30200-6-git-send-email-hanjun.guo@linaro.org> <54134CE8.8070506@redhat.com> <20140912200355.GD9234@xora-haswell.xora.org.uk>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v1 02/13] PCI: Move pci_configure_slot() to drivers/pci/probe.c
+Date: Fri, 12 Sep 2014 14:31:17 -0700
+Message-ID: <CAE9FiQX3_BiOy5ZaQwDA+XN7Bn-XOtrdGrqAVWuAsuguHa+YYg@mail.gmail.com>
+References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+	<20140912180300.1630.62966.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29653 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518AbaILVL6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Sep 2014 17:11:58 -0400
-In-Reply-To: <20140912200355.GD9234@xora-haswell.xora.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140912180300.1630.62966.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Lv Zheng <lv.zheng@intel.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Bjo
 
-On 09/12/2014 04:03 PM, Graeme Gregory wrote:
-> On Fri, Sep 12, 2014 at 03:43:36PM -0400, Jon Masters wrote:
->> On 09/12/2014 10:00 AM, Hanjun Guo wrote:
->>> From: Graeme Gregory <graeme.gregory@linaro.org>
->>>
->>> ACPI 5.1 does not currently support S states for ARM64 hardware but
->>> ACPI code will call acpi_target_system_state() for device power
->>> managment, so introduce sleep-arm.c to allow other drivers to function
->>> until S states are defined.
->>
->> Aside: ACPI5.1 does define the Platform Communication Channel and CPC
->> (Collaborative Processor Performance Control). Some details need to be
->> fleshed out there for practical 64-bit ARMv8 server systems, but the
->> underpinnings and mechanisms are in place in the 5.1 specification that
->> can be built upon over time to achieve practical S-State equivalence.
-                                                    ^ meant C/P sorry
+On Fri, Sep 12, 2014 at 11:03 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> Move pci_configure_slot() and related functions from
+> drivers/pci/hotplug/pcihp_slot to drivers/pci/probe.c.
+>
+> This is to prepare for doing device configuration during the normal
+> enumeration process instead of just after hot-add.
+>
+> No functional change.
+>
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/pci/hotplug/Makefile     |    2
+>  drivers/pci/hotplug/pcihp_slot.c |  176 --------------------------------------
+>  drivers/pci/probe.c              |  148 ++++++++++++++++++++++++++++++++
+>  3 files changed, 149 insertions(+), 177 deletions(-)
+>  delete mode 100644 drivers/pci/hotplug/pcihp_slot.c
+>
+> diff --git a/drivers/pci/hotplug/Makefile b/drivers/pci/hotplug/Makefile
+> index 3e6532b945c1..4a9aa08b08f1 100644
+> --- a/drivers/pci/hotplug/Makefile
+> +++ b/drivers/pci/hotplug/Makefile
+> @@ -24,7 +24,7 @@ obj-$(CONFIG_HOTPLUG_PCI_S390)                += s390_pci_hpc.o
+>
+>  obj-$(CONFIG_HOTPLUG_PCI_ACPI_IBM)     += acpiphp_ibm.o
+>
+> -pci_hotplug-objs       :=      pci_hotplug_core.o pcihp_slot.o
+> +pci_hotplug-objs       :=      pci_hotplug_core.o
+>
+>  ifdef CONFIG_HOTPLUG_PCI_CPCI
+>  pci_hotplug-objs       +=      cpci_hotplug_core.o     \
+> diff --git a/drivers/pci/hotplug/pcihp_slot.c b/drivers/pci/hotplug/pcihp_slot.c
+> deleted file mode 100644
+> index 3e36ec8d708a..000000000000
+> --- a/drivers/pci/hotplug/pcihp_slot.c
+> +++ /dev/null
+> @@ -1,176 +0,0 @@
+> -/*
+> - * Copyright (C) 1995,2001 Compaq Computer Corporation
+> - * Copyright (C) 2001 Greg Kroah-Hartman (greg@kroah.com)
+> - * Copyright (C) 2001 IBM Corp.
+> - * Copyright (C) 2003-2004 Intel Corporation
+> - * (c) Copyright 2009 Hewlett-Packard Development Company, L.P.
+> - *
+> - * All rights reserved.
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation; either version 2 of the License, or (at
+> - * your option) any later version.
+> - *
+> - * This program is distributed in the hope that it will be useful, but
+> - * WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
+> - * NON INFRINGEMENT.  See the GNU General Public License for more
+> - * details.
+> - *
+> - * You should have received a copy of the GNU General Public License
+> - * along with this program; if not, write to the Free Software
+> - * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> - */
+> -
+> -#include <linux/pci.h>
+> -#include <linux/export.h>
+> -#include <linux/pci_hotplug.h>
+> -
+> -static struct hpp_type0 pci_default_type0 = {
+> -       .revision = 1,
+> -       .cache_line_size = 8,
+> -       .latency_timer = 0x40,
+> -       .enable_serr = 0,
+> -       .enable_perr = 0,
+> -};
+> -
+> -static void program_hpp_type0(struct pci_dev *dev, struct hpp_type0 *hpp)
+> -{
+> -       u16 pci_cmd, pci_bctl;
+> -
+> -       if (!hpp) {
+> -               /*
+> -                * Perhaps we *should* use default settings for PCIe, but
+> -                * pciehp didn't, so we won't either.
+> -                */
+> -               if (pci_is_pcie(dev))
+> -                       return;
+> -               hpp = &pci_default_type0;
+> -       }
+> -
+> -       if (hpp->revision > 1) {
+> -               dev_warn(&dev->dev,
+> -                        "PCI settings rev %d not supported; using defaults\n",
+> -                        hpp->revision);
+> -               hpp = &pci_default_type0;
+> -       }
+> -
+> -       pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE, hpp->cache_line_size);
+> -       pci_write_config_byte(dev, PCI_LATENCY_TIMER, hpp->latency_timer);
+> -       pci_read_config_word(dev, PCI_COMMAND, &pci_cmd);
+> -       if (hpp->enable_serr)
+> -               pci_cmd |= PCI_COMMAND_SERR;
+> -       else
+> -               pci_cmd &= ~PCI_COMMAND_SERR;
+> -       if (hpp->enable_perr)
+> -               pci_cmd |= PCI_COMMAND_PARITY;
+> -       else
+> -               pci_cmd &= ~PCI_COMMAND_PARITY;
+> -       pci_write_config_word(dev, PCI_COMMAND, pci_cmd);
+> -
+> -       /* Program bridge control value */
+> -       if ((dev->class >> 8) == PCI_CLASS_BRIDGE_PCI) {
+> -               pci_write_config_byte(dev, PCI_SEC_LATENCY_TIMER,
+> -                                     hpp->latency_timer);
+> -               pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &pci_bctl);
+> -               if (hpp->enable_serr)
+> -                       pci_bctl |= PCI_BRIDGE_CTL_SERR;
+> -               else
+> -                       pci_bctl &= ~PCI_BRIDGE_CTL_SERR;
+> -               if (hpp->enable_perr)
+> -                       pci_bctl |= PCI_BRIDGE_CTL_PARITY;
+> -               else
+> -                       pci_bctl &= ~PCI_BRIDGE_CTL_PARITY;
+> -               pci_write_config_word(dev, PCI_BRIDGE_CONTROL, pci_bctl);
+> -       }
+> -}
+> -
+> -static void program_hpp_type1(struct pci_dev *dev, struct hpp_type1 *hpp)
+> -{
+> -       if (hpp)
+> -               dev_warn(&dev->dev, "PCI-X settings not supported\n");
+> -}
+> -
+> -static void program_hpp_type2(struct pci_dev *dev, struct hpp_type2 *hpp)
+> -{
+> -       int pos;
+> -       u32 reg32;
+> -
+> -       if (!hpp)
+> -               return;
+> -
+> -       if (hpp->revision > 1) {
+> -               dev_warn(&dev->dev, "PCIe settings rev %d not supported\n",
+> -                        hpp->revision);
+> -               return;
+> -       }
+> -
+> -       /* Initialize Device Control Register */
+> -       pcie_capability_clear_and_set_word(dev, PCI_EXP_DEVCTL,
+> -                       ~hpp->pci_exp_devctl_and, hpp->pci_exp_devctl_or);
+> -
+> -       /* Initialize Link Control Register */
+> -       if (dev->subordinate)
+> -               pcie_capability_clear_and_set_word(dev, PCI_EXP_LNKCTL,
+> -                       ~hpp->pci_exp_lnkctl_and, hpp->pci_exp_lnkctl_or);
+> -
+> -       /* Find Advanced Error Reporting Enhanced Capability */
+> -       pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
+> -       if (!pos)
+> -               return;
+> -
+> -       /* Initialize Uncorrectable Error Mask Register */
+> -       pci_read_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, &reg32);
+> -       reg32 = (reg32 & hpp->unc_err_mask_and) | hpp->unc_err_mask_or;
+> -       pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, reg32);
+> -
+> -       /* Initialize Uncorrectable Error Severity Register */
+> -       pci_read_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, &reg32);
+> -       reg32 = (reg32 & hpp->unc_err_sever_and) | hpp->unc_err_sever_or;
+> -       pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, reg32);
+> -
+> -       /* Initialize Correctable Error Mask Register */
+> -       pci_read_config_dword(dev, pos + PCI_ERR_COR_MASK, &reg32);
+> -       reg32 = (reg32 & hpp->cor_err_mask_and) | hpp->cor_err_mask_or;
+> -       pci_write_config_dword(dev, pos + PCI_ERR_COR_MASK, reg32);
+> -
+> -       /* Initialize Advanced Error Capabilities and Control Register */
+> -       pci_read_config_dword(dev, pos + PCI_ERR_CAP, &reg32);
+> -       reg32 = (reg32 & hpp->adv_err_cap_and) | hpp->adv_err_cap_or;
+> -       pci_write_config_dword(dev, pos + PCI_ERR_CAP, reg32);
+> -
+> -       /*
+> -        * FIXME: The following two registers are not supported yet.
+> -        *
+> -        *   o Secondary Uncorrectable Error Severity Register
+> -        *   o Secondary Uncorrectable Error Mask Register
+> -        */
+> -}
+> -
+> -void pci_configure_slot(struct pci_dev *dev)
+> -{
+> -       struct pci_dev *cdev;
+> -       struct hotplug_params hpp;
+> -
+> -       if (!(dev->hdr_type == PCI_HEADER_TYPE_NORMAL ||
+> -                       (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE &&
+> -                       (dev->class >> 8) == PCI_CLASS_BRIDGE_PCI)))
+> -               return;
+> -
+> -       pcie_bus_configure_settings(dev->bus);
+> -
+> -       memset(&hpp, 0, sizeof(hpp));
+> -       pci_get_hp_params(dev, &hpp);
+> -
+> -       program_hpp_type2(dev, hpp.t2);
+> -       program_hpp_type1(dev, hpp.t1);
+> -       program_hpp_type0(dev, hpp.t0);
+> -
+> -       if (dev->subordinate) {
+> -               list_for_each_entry(cdev, &dev->subordinate->devices,
+> -                                   bus_list)
+> -                       pci_configure_slot(cdev);
+> -       }
+> -}
+> -EXPORT_SYMBOL_GPL(pci_configure_slot);
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index e3cf8a2e6292..5d0cc646817a 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -6,6 +6,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/init.h>
+>  #include <linux/pci.h>
+> +#include <linux/pci_hotplug.h>
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+>  #include <linux/cpumask.h>
+> @@ -1236,6 +1237,153 @@ int pci_setup_device(struct pci_dev *dev)
+>         return 0;
+>  }
+>
+> +static struct hpp_type0 pci_default_type0 = {
+> +       .revision = 1,
+> +       .cache_line_size = 8,
+> +       .latency_timer = 0x40,
+> +       .enable_serr = 0,
+> +       .enable_perr = 0,
+> +};
+> +
+> +static void program_hpp_type0(struct pci_dev *dev, struct hpp_type0 *hpp)
+> +{
+> +       u16 pci_cmd, pci_bctl;
+> +
+> +       if (!hpp) {
+> +               /*
+> +                * Perhaps we *should* use default settings for PCIe, but
+> +                * pciehp didn't, so we won't either.
+> +                */
+> +               if (pci_is_pcie(dev))
+> +                       return;
+> +               hpp = &pci_default_type0;
+> +       }
+> +
+> +       if (hpp->revision > 1) {
+> +               dev_warn(&dev->dev,
+> +                        "PCI settings rev %d not supported; using defaults\n",
+> +                        hpp->revision);
+> +               hpp = &pci_default_type0;
+> +       }
+> +
+> +       pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE, hpp->cache_line_size);
+> +       pci_write_config_byte(dev, PCI_LATENCY_TIMER, hpp->latency_timer);
+> +       pci_read_config_word(dev, PCI_COMMAND, &pci_cmd);
+> +       if (hpp->enable_serr)
+> +               pci_cmd |= PCI_COMMAND_SERR;
+> +       else
+> +               pci_cmd &= ~PCI_COMMAND_SERR;
+> +       if (hpp->enable_perr)
+> +               pci_cmd |= PCI_COMMAND_PARITY;
+> +       else
+> +               pci_cmd &= ~PCI_COMMAND_PARITY;
+> +       pci_write_config_word(dev, PCI_COMMAND, pci_cmd);
+> +
+> +       /* Program bridge control value */
+> +       if ((dev->class >> 8) == PCI_CLASS_BRIDGE_PCI) {
+> +               pci_write_config_byte(dev, PCI_SEC_LATENCY_TIMER,
+> +                                     hpp->latency_timer);
+> +               pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &pci_bctl);
+> +               if (hpp->enable_serr)
+> +                       pci_bctl |= PCI_BRIDGE_CTL_SERR;
+> +               else
+> +                       pci_bctl &= ~PCI_BRIDGE_CTL_SERR;
+> +               if (hpp->enable_perr)
+> +                       pci_bctl |= PCI_BRIDGE_CTL_PARITY;
+> +               else
+> +                       pci_bctl &= ~PCI_BRIDGE_CTL_PARITY;
+> +               pci_write_config_word(dev, PCI_BRIDGE_CONTROL, pci_bctl);
+> +       }
+> +}
+> +
+> +static void program_hpp_type1(struct pci_dev *dev, struct hpp_type1 *hpp)
+> +{
+> +       if (hpp)
+> +               dev_warn(&dev->dev, "PCI-X settings not supported\n");
+> +}
+> +
+> +static void program_hpp_type2(struct pci_dev *dev, struct hpp_type2 *hpp)
+> +{
+> +       int pos;
+> +       u32 reg32;
+> +
+> +       if (!hpp)
+> +               return;
+> +
+> +       if (hpp->revision > 1) {
+> +               dev_warn(&dev->dev, "PCIe settings rev %d not supported\n",
+> +                        hpp->revision);
+> +               return;
+> +       }
+> +
+> +       /* Initialize Device Control Register */
+> +       pcie_capability_clear_and_set_word(dev, PCI_EXP_DEVCTL,
+> +                       ~hpp->pci_exp_devctl_and, hpp->pci_exp_devctl_or);
+> +
+> +       /* Initialize Link Control Register */
+> +       if (dev->subordinate)
+> +               pcie_capability_clear_and_set_word(dev, PCI_EXP_LNKCTL,
+> +                       ~hpp->pci_exp_lnkctl_and, hpp->pci_exp_lnkctl_or);
+> +
+> +       /* Find Advanced Error Reporting Enhanced Capability */
+> +       pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR);
+> +       if (!pos)
+> +               return;
+> +
+> +       /* Initialize Uncorrectable Error Mask Register */
+> +       pci_read_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, &reg32);
+> +       reg32 = (reg32 & hpp->unc_err_mask_and) | hpp->unc_err_mask_or;
+> +       pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_MASK, reg32);
+> +
+> +       /* Initialize Uncorrectable Error Severity Register */
+> +       pci_read_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, &reg32);
+> +       reg32 = (reg32 & hpp->unc_err_sever_and) | hpp->unc_err_sever_or;
+> +       pci_write_config_dword(dev, pos + PCI_ERR_UNCOR_SEVER, reg32);
+> +
+> +       /* Initialize Correctable Error Mask Register */
+> +       pci_read_config_dword(dev, pos + PCI_ERR_COR_MASK, &reg32);
+> +       reg32 = (reg32 & hpp->cor_err_mask_and) | hpp->cor_err_mask_or;
+> +       pci_write_config_dword(dev, pos + PCI_ERR_COR_MASK, reg32);
+> +
+> +       /* Initialize Advanced Error Capabilities and Control Register */
+> +       pci_read_config_dword(dev, pos + PCI_ERR_CAP, &reg32);
+> +       reg32 = (reg32 & hpp->adv_err_cap_and) | hpp->adv_err_cap_or;
+> +       pci_write_config_dword(dev, pos + PCI_ERR_CAP, reg32);
+> +
+> +       /*
+> +        * FIXME: The following two registers are not supported yet.
+> +        *
+> +        *   o Secondary Uncorrectable Error Severity Register
+> +        *   o Secondary Uncorrectable Error Mask Register
+> +        */
+> +}
+> +
+> +void pci_configure_slot(struct pci_dev *dev)
+> +{
+> +       struct pci_dev *cdev;
+> +       struct hotplug_params hpp;
+> +
+> +       if (!(dev->hdr_type == PCI_HEADER_TYPE_NORMAL ||
+> +                       (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE &&
+> +                       (dev->class >> 8) == PCI_CLASS_BRIDGE_PCI)))
+> +               return;
+> +
+> +       pcie_bus_configure_settings(dev->bus);
+> +
+> +       memset(&hpp, 0, sizeof(hpp));
+> +       pci_get_hp_params(dev, &hpp);
+> +
+> +       program_hpp_type2(dev, hpp.t2);
+> +       program_hpp_type1(dev, hpp.t1);
+> +       program_hpp_type0(dev, hpp.t0);
+> +
+> +       if (dev->subordinate) {
+> +               list_for_each_entry(cdev, &dev->subordinate->devices,
+> +                                   bus_list)
+> +                       pci_configure_slot(cdev);
+> +       }
+> +}
+> +EXPORT_SYMBOL_GPL(pci_configure_slot);
+>  static void pci_release_capabilities(struct pci_dev *dev)
+>  {
+>         pci_vpd_release(dev);
+>
 
-> Disagree, S-States are about going to sleep or hibernating, that is
-> nothing to do with CPU Performance.
+Would be better if those acpi related code could be moved to
+drivers/pci/pci-acpi.c. and should put pci_configure_device() from
+next patch to pci-acpi.c.
 
-Correct. In replying to the above, I was thinking about power and
-performance management of components  - CPU (C/P), and device (D)
-specific power/performance states - not the overall system (S) state,
-and I went off on a tangent. That was off-topic. For the actual topic at
-hand, that of global sleep, you are correct that only G0 (S0) and S5 are
-really defined today. Though I do think that the PCC might be used to
-actually implement overall system sleep state transitions later.
+Other that,  for the whole patchset,
 
-Jon.
-
+Acked-by: Yinghai Lu <yinghai@kernel.org>
