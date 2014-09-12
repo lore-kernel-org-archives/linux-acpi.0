@@ -1,224 +1,93 @@
-From: Rajat Jain <rajatxjain@gmail.com>
-Subject: Re: [PATCH 1/2] PCI: Add pci_ignore_hotplug() to ignore hotplug
- events for a device
-Date: Fri, 12 Sep 2014 09:40:39 -0700
-Message-ID: <CAA93t1oEFG6d4b+KXw5L5EfNT0EbEYcxpiba-BXo-h8Mqt0zGQ@mail.gmail.com>
-References: <20140911222022.16809.57079.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-	<20140911222402.16809.94145.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Reply-To: rajatxjain@gmail.com
+From: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
+Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume
+ of LPSS devices
+Date: Sat, 13 Sep 2014 01:40:10 +0800
+Message-ID: <54132FFA.7050300@linux.intel.com>
+References: <540E91F0.2060306@linux.intel.com> <74255682.ogZlaWiZ0J@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:54311 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751120AbaILQkk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 12:40:40 -0400
-In-Reply-To: <20140911222402.16809.94145.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <74255682.ogZlaWiZ0J@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, SpacemanSpiff <a818958@trbvm.com>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, "Jose P." <lbdkmjdf@sharklasers.com>
 
-Hi,
 
-On Thu, Sep 11, 2014 at 3:24 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> Powering off a hot-pluggable device, e.g., with pci_set_power_state(D3cold),
-> normally generates a hot-remove event that unbinds the driver.
->
-> Some drivers expect to remain bound to a device even while they power it
-> off and back on again.  This can be dangerous, because if the device is
-> removed or replaced while it is powered off, the driver doesn't know that
-> anything changed.  But some drivers accept that risk.
->
-> Add pci_ignore_hotplug() for use by drivers that know their device cannot
-> be removed.  Using pci_ignore_hotplug() tells the PCI core that hot-plug
-> events for the device should be ignored.
->
-> The radeon and nouveau drivers use this to switch between a low-power,
-> integrated GPU and a higher-power, higher-performance discrete GPU.  They
-> power off the unused GPU, but they want to remain bound to it.
->
-> This is a reimplementation of f244d8b623da ("ACPIPHP / radeon / nouveau:
-> Fix VGA switcheroo problem related to hotplug") but extends it to work with
-> both acpiphp and pciehp.
->
-> This fixes a problem where systems with dual GPUs using the radeon drivers
-> become unusable, freezing every few seconds (see bugzillas below).  The
-> resume of the radeon device may also fail, e.g.,
->
-> This fixes problems on dual GPU systems where the radeon driver becomes
-> unusable because of problems while suspending the device, as in bug 79701:
->
->     [drm] radeon: finishing device.
->     radeon 0000:01:00.0: Userspace still has active objects !
->     radeon 0000:01:00.0: ffff8800cb4ec288 ffff8800cb4ec000 16384 4294967297 force free
->     ...
->     WARNING: CPU: 0 PID: 67 at /home/apw/COD/linux/drivers/gpu/drm/radeon/radeon_gart.c:234 radeon_gart_unbind+0xd2/0xe0 [radeon]()
->     trying to unbind memory from uninitialized GART !
->
-> or while resuming it, as in bug 77261:
->
->     radeon 0000:01:00.0: ring 0 stalled for more than 10158msec
->     radeon 0000:01:00.0: GPU lockup ...
->     radeon 0000:01:00.0: GPU pci config reset
->     pciehp 0000:00:01.0:pcie04: Card not present on Slot(1-1)
->     radeon 0000:01:00.0: GPU reset succeeded, trying to resume
->     *ERROR* radeon: dpm resume failed
->     radeon 0000:01:00.0: Wait for MC idle timedout !
->
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=77261
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=79701
-> Reported-by: Shawn Starr <shawn.starr@rogers.com>
-> Reported-by: Jose P. <lbdkmjdf@sharklasers.com>
-> Tested-by: SpacemanSpiff <a818958@trbvm.com>
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> CC: stable@vger.kernel.org      # v3.15+
+hi, Rafael
 
-Acked-by: Rajat Jain <rajatxjain@gmail.com>
+Sorry for late response.
 
-Just some additional notes (not related to the current problem). I
-think there are other places where we could make use of the same newly
-introduced pci_ignore_hotplug():
-
-https://lkml.org/lkml/2013/12/15/151
-
-I think that at least there are 2 places where this can potentially be utilized:
-
-1) While handling AER, we may reset the link while trying to do a
-recovery. This will result in a hot-remove followed by a hot-add. We
-may utilize this call in that situation (will also need a
-pci_resume_hotplug() call to cleat the ignore_hotplug flag)
-
-2) Some drivers [mpt3sas_base.c: _base_diag_reset()] may reset the
-device during a firmware upgrade or diagnostics.
+Yes,Only removing the "enable" line is sufficient. I have verified this, and made a new patch as follows.
 
 Thanks,
+Zhonghui
 
-Rajat
+>From 3c89c22c5b35ddbdcadecd391f2521a15ffc2f4f Mon Sep 17 00:00:00 2001
+From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+Date: Sat, 13 Sep 2014 01:26:04 +0800
+Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+
+LPSS devices must suspend/resume in fixed order. Or some LPSS devices
+will hang during the transition to ACPI_STATE_D0 state.
+
+Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
+Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index fddc1e8..b0ea767 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -419,7 +419,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	adev->driver_data = pdata;
+ 	pdev = acpi_create_platform_device(adev);
+ 	if (!IS_ERR_OR_NULL(pdev)) {
+-		device_enable_async_suspend(&pdev->dev);
+ 		return 1;
+ 	}
+ 
+-- 1.7.1
 
 
-> ---
->  drivers/gpu/drm/nouveau/nouveau_drm.c |    1 +
->  drivers/gpu/drm/radeon/radeon_drv.c   |    1 +
->  drivers/pci/hotplug/acpiphp_glue.c    |   16 ++++++----------
->  drivers/pci/hotplug/pciehp_hpc.c      |   12 ++++++++++++
->  include/linux/pci.h                   |    6 ++++++
->  5 files changed, 26 insertions(+), 10 deletions(-)
+
+On 2014/9/9 21:17, Rafael J. Wysocki wrote:
+> On Tuesday, September 09, 2014 01:36:48 PM Fu, Zhonghui wrote:
+>> From 6deb00230f5df68da3ca7490402a0c537bf386bb Mon Sep 17 00:00:00 2001
+>> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+>> Date: Tue, 9 Sep 2014 13:02:25 +0800
+>> Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+>>
+>> LPSS devices must suspend/resume in fixed order. Or some LPSS devices
+>> will hang during the transition to ACPI_STATE_D0 state.
+>>
+>> Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
+>> Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+>> ---
+>>  drivers/acpi/acpi_lpss.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+>> index fddc1e8..54e5c97 100644
+>> --- a/drivers/acpi/acpi_lpss.c
+>> +++ b/drivers/acpi/acpi_lpss.c
+>> @@ -419,7 +419,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>>  	adev->driver_data = pdata;
+>>  	pdev = acpi_create_platform_device(adev);
+>>  	if (!IS_ERR_OR_NULL(pdev)) {
+>> -		device_enable_async_suspend(&pdev->dev);
+>> +		device_disable_async_suspend(&pdev->dev);
+> Removing the "enable" line should be sufficient for that.  Isn't it?
 >
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
-> index 250a5e88c751..9c3af96a7153 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_drm.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
-> @@ -627,6 +627,7 @@ int nouveau_pmops_suspend(struct device *dev)
->
->         pci_save_state(pdev);
->         pci_disable_device(pdev);
-> +       pci_ignore_hotplug(pdev);
->         pci_set_power_state(pdev, PCI_D3hot);
->         return 0;
->  }
-> diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
-> index 8df888908833..abbd87adfd75 100644
-> --- a/drivers/gpu/drm/radeon/radeon_drv.c
-> +++ b/drivers/gpu/drm/radeon/radeon_drv.c
-> @@ -440,6 +440,7 @@ static int radeon_pmops_runtime_suspend(struct device *dev)
->         ret = radeon_suspend_kms(drm_dev, false, false);
->         pci_save_state(pdev);
->         pci_disable_device(pdev);
-> +       pci_ignore_hotplug(pdev);
->         pci_set_power_state(pdev, PCI_D3cold);
->         drm_dev->switch_power_state = DRM_SWITCH_POWER_DYNAMIC_OFF;
->
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 70741c8c46a0..6cd5160fc057 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -560,19 +560,15 @@ static void disable_slot(struct acpiphp_slot *slot)
->         slot->flags &= (~SLOT_ENABLED);
->  }
->
-> -static bool acpiphp_no_hotplug(struct acpi_device *adev)
-> -{
-> -       return adev && adev->flags.no_hotplug;
-> -}
-> -
->  static bool slot_no_hotplug(struct acpiphp_slot *slot)
->  {
-> -       struct acpiphp_func *func;
-> +       struct pci_bus *bus = slot->bus;
-> +       struct pci_dev *dev;
->
-> -       list_for_each_entry(func, &slot->funcs, sibling)
-> -               if (acpiphp_no_hotplug(func_to_acpi_device(func)))
-> +       list_for_each_entry(dev, &bus->devices, bus_list) {
-> +               if (PCI_SLOT(dev->devfn) == slot->device && dev->ignore_hotplug)
->                         return true;
-> -
-> +       }
->         return false;
->  }
->
-> @@ -645,7 +641,7 @@ static void trim_stale_devices(struct pci_dev *dev)
->
->                 status = acpi_evaluate_integer(adev->handle, "_STA", NULL, &sta);
->                 alive = (ACPI_SUCCESS(status) && device_status_valid(sta))
-> -                       || acpiphp_no_hotplug(adev);
-> +                       || dev->ignore_hotplug;
->         }
->         if (!alive)
->                 alive = pci_device_is_present(dev);
-> diff --git a/drivers/pci/hotplug/pciehp_hpc.c b/drivers/pci/hotplug/pciehp_hpc.c
-> index 9da84b8b27d8..5e01ae39ec46 100644
-> --- a/drivers/pci/hotplug/pciehp_hpc.c
-> +++ b/drivers/pci/hotplug/pciehp_hpc.c
-> @@ -506,6 +506,8 @@ static irqreturn_t pcie_isr(int irq, void *dev_id)
->  {
->         struct controller *ctrl = (struct controller *)dev_id;
->         struct pci_dev *pdev = ctrl_dev(ctrl);
-> +       struct pci_bus *subordinate = pdev->subordinate;
-> +       struct pci_dev *dev;
->         struct slot *slot = ctrl->slot;
->         u16 detected, intr_loc;
->
-> @@ -539,6 +541,16 @@ static irqreturn_t pcie_isr(int irq, void *dev_id)
->                 wake_up(&ctrl->queue);
->         }
->
-> +       if (subordinate) {
-> +               list_for_each_entry(dev, &subordinate->devices, bus_list) {
-> +                       if (dev->ignore_hotplug) {
-> +                               ctrl_dbg(ctrl, "ignoring hotplug event %#06x (%s requested no hotplug)\n",
-> +                                        intr_loc, pci_name(dev));
-> +                               return IRQ_HANDLED;
-> +                       }
-> +               }
-> +       }
-> +
->         if (!(intr_loc & ~PCI_EXP_SLTSTA_CC))
->                 return IRQ_HANDLED;
->
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 61978a460841..96453f9bc8ba 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -303,6 +303,7 @@ struct pci_dev {
->                                                    D3cold, not set for devices
->                                                    powered on/off by the
->                                                    corresponding bridge */
-> +       unsigned int    ignore_hotplug:1;       /* Ignore hotplug events */
->         unsigned int    d3_delay;       /* D3->D0 transition time in ms */
->         unsigned int    d3cold_delay;   /* D3cold->D0 transition time in ms */
->
-> @@ -1021,6 +1022,11 @@ bool pci_dev_run_wake(struct pci_dev *dev);
->  bool pci_check_pme_status(struct pci_dev *dev);
->  void pci_pme_wakeup_bus(struct pci_bus *bus);
->
-> +static inline void pci_ignore_hotplug(struct pci_dev *dev)
-> +{
-> +       dev->ignore_hotplug = 1;
-> +}
-> +
->  static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
->                                   bool enable)
->  {
->
+>>  		return 1;
+>>  	}
+>>  
+>> -- 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
