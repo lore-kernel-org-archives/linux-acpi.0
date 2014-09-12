@@ -1,70 +1,92 @@
-From: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
-Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume
- of LPSS devices
-Date: Sat, 13 Sep 2014 01:53:55 +0800
-Message-ID: <54133333.1020406@linux.intel.com>
-References: <540E91F0.2060306@linux.intel.com> <20140910075026.GB13406@lahna.fi.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH v1 00/13] PCI: Device configuration cleanup
+Date: Fri, 12 Sep 2014 12:02:46 -0600
+Message-ID: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:7462 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750883AbaILRyk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Sep 2014 13:54:40 -0400
-In-Reply-To: <20140910075026.GB13406@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+
+The motivation for this is to fix Linus' complaint about too many _HPP
+messages (https://bugzilla.kernel.org/show_bug.cgi?id=84391):
+
+    pci 0000:00:00.0: no hotplug settings from platform
+    pci 0000:00:00.0: using default PCI settings
+
+The first patch drops the messages and I intend it for v3.17.  The rest
+are candidates for v3.18.
+
+But the excessive *number* of messages is an indication that we're
+calling pci_configure_slot() way too many times to begin with.  The
+reason this happens is because:
+
+    - acpiphp supports many slots on a single bus
+    - on a Bus Check, we call acpiphp_check_bridge() to check each slot
+      for changes
+    - acpiphp_check_bridge() calls enable_slot() for every valid device it
+      finds on a bus
+    - enable_slot() calls pci_configure_slot() for every device on the bus
+
+The typical result is that we find a bunch of devices on bus 00, and
+each time we find one, we configure every device on bus 00.
+
+I think the best way to fix this is to move device configuration out of
+the hotplug drivers and into the PCI core.  That way we can do it once
+when the device is enumerated and added.
+
+This series adds a pci_configure_device() function that does the
+configuration (similar to the existing pci_configure_slot()), and calls
+it from pci_device_add(), where we already call pci_init_capabilities()
+to initialize MSI, power management, ARI, etc.
+
+Then it drops the existing pci_configure_slot() calls (this requires
+keeping the pcie_bus_configure_settings() MPS and MRRS configuration
+that was done by pci_configure_slot() but is not done by
+pci_configure_device(), since it's not a simple per-device thing).
+
+Finally, it tweaks several _HPP/_HPX things where we do things not
+required by the spec and I haven't seen any other good reason for them:
+
+    - We don't apply _HPP to PCIe devices, and I think we should
+    - We clear SERR and PERR bits, and the spec says we shouldn't
+    - We don't apply _HPP to certain bridge types (PCI-ISA, etc), and
+      I don't see a reason to avoid them
+    - We fiddle MPS and MRRS settings based on _HPX, even though Linux
+      should control these
+    - We only configure hot-added devices, but I think we should
+      configure things present at boot the same way
+
+I know some of these might be controversial, so I split them all into
+separate patches and we can debate and drop them if necessary.
+
+---
+
+Bjorn Helgaas (13):
+      PCI: Remove "no hotplug settings from platform" warning
+      PCI: Move pci_configure_slot() to drivers/pci/probe.c
+      PCI: Add pci_configure_device() during enumeration
+      PCI: pciehp: Configure hot-added display devices
+      PCI: pciehp: Remove pci_configure_slot() usage
+      PCI: shpchp: Remove pci_configure_slot() usage
+      ACPI / hotplug / PCI: Remove pci_configure_slot() usage
+      PCI: Remove unused pci_configure_slot()
+      PCI: Apply _HPP settings to PCIe devices as well as PCI and PCI-X
+      PCI: Preserve BIOS PCI_COMMAND_SERR and PCI_COMMAND_PARITY settings
+      PCI: Apply _HPP settings to all hot-added PCI devices
+      PCI: Preserve MPS and MRRS when applying _HPX settings
+      PCI: Configure *all* devices, not just hot-added ones
 
 
-On 2014/9/10 15:50, Mika Westerberg wrote:
-> On Tue, Sep 09, 2014 at 01:36:48PM +0800, Fu, Zhonghui wrote:
->> >From 6deb00230f5df68da3ca7490402a0c537bf386bb Mon Sep 17 00:00:00 2001
->> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
->> Date: Tue, 9 Sep 2014 13:02:25 +0800
->> Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
->>
->> LPSS devices must suspend/resume in fixed order. Or some LPSS devices
->> will hang during the transition to ACPI_STATE_D0 state.
-> In addition to the comment from Rafael, I would like to have more
-> details here why we must suspend/resume the LPSS devices in certain
-> order.
-Sorry for late response.
-
-After the patch "ACPI / platform / LPSS: Enable async suspend/resume of LPSS devices(commit ID: 8ce62f85a81f57e86bc120ab690facc612223188)" was merged into upstream kernel, some LPSS devices(UART, I2C) frequently hang during resume. So, my patch is actually reverting that patch.
-
-
->
->> Signed-off-by: Li Aubrey <aubrey.li@linux.intel.com>
->> Signed-off-by: Fu Zhonghui <zhonghui.fu@linux.intel.com>
->> ---
->>  drivers/acpi/acpi_lpss.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
->> index fddc1e8..54e5c97 100644
->> --- a/drivers/acpi/acpi_lpss.c
->> +++ b/drivers/acpi/acpi_lpss.c
->> @@ -419,7 +419,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
->>  	adev->driver_data = pdata;
->>  	pdev = acpi_create_platform_device(adev);
->>  	if (!IS_ERR_OR_NULL(pdev)) {
->> -		device_enable_async_suspend(&pdev->dev);
->> +		device_disable_async_suspend(&pdev->dev);
->>  		return 1;
->>  	}
->>  
->> -- 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
+ drivers/pci/hotplug/Makefile       |    2 
+ drivers/pci/hotplug/acpiphp_glue.c |   11 --
+ drivers/pci/hotplug/pciehp_pci.c   |    9 --
+ drivers/pci/hotplug/pcihp_slot.c   |  180 ------------------------------------
+ drivers/pci/hotplug/shpchp_pci.c   |    8 --
+ drivers/pci/probe.c                |  134 +++++++++++++++++++++++++++
+ include/linux/pci_hotplug.h        |    2 
+ 7 files changed, 138 insertions(+), 208 deletions(-)
+ delete mode 100644 drivers/pci/hotplug/pcihp_slot.c
