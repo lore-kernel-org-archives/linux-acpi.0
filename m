@@ -1,8 +1,7 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v1 01/13] PCI: Remove "no hotplug settings from platform"
- warning
-Date: Fri, 12 Sep 2014 12:02:54 -0600
-Message-ID: <20140912180254.1630.79691.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH v1 04/13] PCI: pciehp: Configure hot-added display devices
+Date: Fri, 12 Sep 2014 12:03:14 -0600
+Message-ID: <20140912180314.1630.94483.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,54 +13,37 @@ To: linux-pci@vger.kernel.org
 Cc: Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We print way too many messages like this:
+We configure cache line size and other settings of hot-added devices, e.g.,
+based on ACPI _HPP or _HPX methods.  Previously we skipped this
+configuration for display devices, but there is no spec requirement for
+that.
 
-    pci 0000:00:00.0: no hotplug settings from platform
-    pci 0000:00:00.0: using default PCI settings
+Remove the check so we configure display devices the same way we configure
+other devices.
 
-This usually happens when the platform doesn't supply an ACPI _HPP method,
-but the method is optional, so there's no point in warning about it.
+See also ac81860ea073 ("PCI: hotplug: pciehp: Removed check for hotplug of
+display devices").
 
-Not only are the messages useless, but we call pci_configure_slot() far too
-many times, so they're repeated many times.  I'll fix the overuse of
-pci_configure_slot() too, but that will wait until the next merge window.
-
-For now, just remove both log messages.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=84391
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/hotplug/pcihp_slot.c |    6 +-----
+ drivers/pci/hotplug/pciehp_pci.c |    6 +-----
  1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/pci/hotplug/pcihp_slot.c b/drivers/pci/hotplug/pcihp_slot.c
-index e246a10a0d2c..3e36ec8d708a 100644
---- a/drivers/pci/hotplug/pcihp_slot.c
-+++ b/drivers/pci/hotplug/pcihp_slot.c
-@@ -46,7 +46,6 @@ static void program_hpp_type0(struct pci_dev *dev, struct hpp_type0 *hpp)
- 		 */
- 		if (pci_is_pcie(dev))
- 			return;
--		dev_info(&dev->dev, "using default PCI settings\n");
- 		hpp = &pci_default_type0;
- 	}
+diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
+index 5f871f4c4af1..b66812703415 100644
+--- a/drivers/pci/hotplug/pciehp_pci.c
++++ b/drivers/pci/hotplug/pciehp_pci.c
+@@ -66,12 +66,8 @@ int pciehp_configure_device(struct slot *p_slot)
  
-@@ -153,7 +152,6 @@ void pci_configure_slot(struct pci_dev *dev)
- {
- 	struct pci_dev *cdev;
- 	struct hotplug_params hpp;
--	int ret;
+ 	pci_assign_unassigned_bridge_resources(bridge);
  
- 	if (!(dev->hdr_type == PCI_HEADER_TYPE_NORMAL ||
- 			(dev->hdr_type == PCI_HEADER_TYPE_BRIDGE &&
-@@ -163,9 +161,7 @@ void pci_configure_slot(struct pci_dev *dev)
- 	pcie_bus_configure_settings(dev->bus);
+-	list_for_each_entry(dev, &parent->devices, bus_list) {
+-		if ((dev->class >> 16) == PCI_BASE_CLASS_DISPLAY)
+-			continue;
+-
++	list_for_each_entry(dev, &parent->devices, bus_list)
+ 		pci_configure_slot(dev);
+-	}
  
- 	memset(&hpp, 0, sizeof(hpp));
--	ret = pci_get_hp_params(dev, &hpp);
--	if (ret)
--		dev_warn(&dev->dev, "no hotplug settings from platform\n");
-+	pci_get_hp_params(dev, &hpp);
+ 	pci_bus_add_devices(parent);
  
- 	program_hpp_type2(dev, hpp.t2);
- 	program_hpp_type1(dev, hpp.t1);
