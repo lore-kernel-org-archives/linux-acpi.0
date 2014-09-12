@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v1 10/13] PCI: Preserve BIOS PCI_COMMAND_SERR and
- PCI_COMMAND_PARITY settings
-Date: Fri, 12 Sep 2014 12:03:54 -0600
-Message-ID: <20140912180354.1630.57838.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH v1 11/13] PCI: Apply _HPP settings to all hot-added PCI
+ devices
+Date: Fri, 12 Sep 2014 12:04:03 -0600
+Message-ID: <20140912180403.1630.49400.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,57 +14,36 @@ To: linux-pci@vger.kernel.org
 Cc: Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Do not clear PCI_COMMAND_SERR or PCI_COMMAND_PARITY based on _HPP.  The
-spec (ACPI rev 5.0, sec 6.2.7) says that when "Enable SERR" is set to 1,
-we should enable SERR in the command register.  It says nothing about
-*disabling* SERR or PERR; in fact, the example in 6.2.7.1 says we should
-leave PERR alone unless "Enable PERR" is 1.
+We currently apply _HPP settings only to:
 
-For hot-added devices, this probably doesn't matter because they power up
-with these bits cleared.  But in addition to hot-plugged devices, the spec
-allows the platform to use _HPP for "configuration of PCI devices not
-configured by the BIOS at system boot," and it may make a difference for
-devices present at boot.
+    - non-bridge devices, and
+    - PCI-to-PCI bridges
 
-This change means that if BIOS enables SERR or PERR on a device, and it
-supplies _HPP or _HPX with the SERR or PERR bits *cleared*, we will leave
-SERR or PERR reporting enabled on that device instead of disabling it.
+i.e., we do not apply them to PCI-to-ISA bridges and the like.  It has been
+that way since _HPP support was added by 40abb96c51bb ("pciehp: Fix
+programming hotplug parameters"), but I don't think there's any reason to
+exclude these other bridges.
 
-See also 40abb96c51bb ("pciehp: Fix programming hotplug parameters"), where
-this code was first added.
+Apply _HPP settings to hot-added PCI devices of any type.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/probe.c |    8 --------
- 1 file changed, 8 deletions(-)
+ drivers/pci/probe.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 003d112a783d..a16b3472b70d 100644
+index a16b3472b70d..1ff2105ba401 100644
 --- a/drivers/pci/probe.c
 +++ b/drivers/pci/probe.c
-@@ -1264,12 +1264,8 @@ static void program_hpp_type0(struct pci_dev *dev, struct hpp_type0 *hpp)
- 	pci_read_config_word(dev, PCI_COMMAND, &pci_cmd);
- 	if (hpp->enable_serr)
- 		pci_cmd |= PCI_COMMAND_SERR;
--	else
--		pci_cmd &= ~PCI_COMMAND_SERR;
- 	if (hpp->enable_perr)
- 		pci_cmd |= PCI_COMMAND_PARITY;
--	else
--		pci_cmd &= ~PCI_COMMAND_PARITY;
- 	pci_write_config_word(dev, PCI_COMMAND, pci_cmd);
+@@ -1351,11 +1351,6 @@ static void pci_configure_device(struct pci_dev *dev)
+ 	if (system_state == SYSTEM_BOOTING)
+ 		return;
  
- 	/* Program bridge control value */
-@@ -1279,12 +1275,8 @@ static void program_hpp_type0(struct pci_dev *dev, struct hpp_type0 *hpp)
- 		pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &pci_bctl);
- 		if (hpp->enable_serr)
- 			pci_bctl |= PCI_BRIDGE_CTL_SERR;
--		else
--			pci_bctl &= ~PCI_BRIDGE_CTL_SERR;
- 		if (hpp->enable_perr)
- 			pci_bctl |= PCI_BRIDGE_CTL_PARITY;
--		else
--			pci_bctl &= ~PCI_BRIDGE_CTL_PARITY;
- 		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, pci_bctl);
- 	}
- }
+-	if (!(dev->hdr_type == PCI_HEADER_TYPE_NORMAL ||
+-			(dev->hdr_type == PCI_HEADER_TYPE_BRIDGE &&
+-			(dev->class >> 8) == PCI_CLASS_BRIDGE_PCI)))
+-		return;
+-
+ 	memset(&hpp, 0, sizeof(hpp));
+ 	ret = pci_get_hp_params(dev, &hpp);
+ 	if (ret)
