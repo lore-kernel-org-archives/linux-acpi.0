@@ -1,159 +1,121 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH 2/2] ACPIPHP / radeon / nouveau: Remove acpi_bus_no_hotplug()
-Date: Thu, 11 Sep 2014 16:24:10 -0600
-Message-ID: <20140911222410.16809.69017.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-References: <20140911222022.16809.57079.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ata: ahci_platform: Add ACPI support for AMD Seattle
+ SATA controller
+Date: Fri, 12 Sep 2014 10:14:18 +0200
+Message-ID: <5412AB5A.3090801@redhat.com>
+References: <1410295035-14471-1-git-send-email-suravee.suthikulpanit@amd.com> <CAOesGMh_Ku-pReg5LHVFvRM0-s_zEO4rgAvaD5rv-eTfPD71Yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140911222022.16809.57079.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+In-Reply-To: <CAOesGMh_Ku-pReg5LHVFvRM0-s_zEO4rgAvaD5rv-eTfPD71Yw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: SpacemanSpiff <a818958@trbvm.com>, Rajat Jain <rajatxjain@gmail.com>, Dave Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Pali =?utf-8?b?Um9ow6Fy?= <pali.rohar@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, "Jose P." <lbdkmjdf@sharklasers.com>
+To: Olof Johansson <olof@lixom.net>, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Cc: Tejun Heo <tj@kernel.org>, linux-ide@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Revert parts of f244d8b623da ("ACPIPHP / radeon / nouveau: Fix VGA
-switcheroo problem related to hotplug").
+Hi,
 
-A previous commit 5493b31f0b55 ("PCI: Add pci_ignore_hotplug() to ignore
-hotplug events for a device") added equivalent functionality implemented in
-a different way for both acpiphp and pciehp.
+On 09/11/2014 10:17 PM, Olof Johansson wrote:
+> On Tue, Sep 9, 2014 at 1:37 PM,  <suravee.suthikulpanit@amd.com> wrote:
+>> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>>
+>> This patch adds ACPI support for non-PCI SATA contoller in ahci_platform driver.
+>> It adds ACPI matching table in ahci_platform to support AMD Seattle SATA controller
+>> with following ASL structure in DSDT:
+>>
+>>     Device (SATA0)
+>>     {
+>>       Name(_HID, "AMDI0600")    // Seattle AHSATA
+>>       Name (_CCA, 1)            // Cache-coherent controller
+>>       Name (_CRS, ResourceTemplate ()
+>>       {
+>>         Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
+>>         Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
+>>       })
+>>     }
+>>
+>> Since ATA driver should not require PCI support for ATA_ACPI,
+>> this patch also removes dependency in the driver/ata/Kconfig.
+>>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> ---
+>>  drivers/ata/Kconfig         |  2 +-
+>>  drivers/ata/ahci_platform.c | 13 +++++++++++++
+>>  2 files changed, 14 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+>> index e1b9278..f2e6c9e 100644
+>> --- a/drivers/ata/Kconfig
+>> +++ b/drivers/ata/Kconfig
+>> @@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
+>>
+>>  config ATA_ACPI
+>>         bool "ATA ACPI Support"
+>> -       depends on ACPI && PCI
+>> +       depends on ACPI
+>>         default y
+>>         help
+>>           This option adds support for ATA-related ACPI objects.
+>> diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
+>> index f61ddb9..3499bab 100644
+>> --- a/drivers/ata/ahci_platform.c
+>> +++ b/drivers/ata/ahci_platform.c
+>> @@ -20,6 +20,9 @@
+>>  #include <linux/platform_device.h>
+>>  #include <linux/libata.h>
+>>  #include <linux/ahci_platform.h>
+>> +#ifdef CONFIG_ATA_ACPI
+>> +#include <linux/acpi.h>
+>> +#endif
+>>  #include "ahci.h"
+>>
+>>  static const struct ata_port_info ahci_port_info = {
+>> @@ -87,6 +90,13 @@ static const struct of_device_id ahci_of_match[] = {
+>>  };
+>>  MODULE_DEVICE_TABLE(of, ahci_of_match);
+>>
+>> +#ifdef CONFIG_ATA_ACPI
+>> +static const struct acpi_device_id ahci_acpi_match[] = {
+>> +       { "AMDI0600", 0 }, /* AMD Seattle AHCI */
+>> +       { },
+>> +};
+>> +#endif
+>> +
+>>  static struct platform_driver ahci_driver = {
+>>         .probe = ahci_probe,
+>>         .remove = ata_platform_remove_one,
+>> @@ -94,6 +104,9 @@ static struct platform_driver ahci_driver = {
+>>                 .name = "ahci",
+>>                 .owner = THIS_MODULE,
+>>                 .of_match_table = ahci_of_match,
+>> +#ifdef CONFIG_ATA_ACPI
+>> +               .acpi_match_table = ACPI_PTR(ahci_acpi_match),
+>> +#endif
+> 
+> The whole point of having ACPI_PTR() is to avoid having ifdefs like
+> these. The structure member is always there, so there's no need to
+> have it conditionally compiled out.
+> 
+> Come to think of it, the match table should be under CONFIG_ACPI
+> instead -- why do a separate config option just for this?
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/acpi/bus.c                           |   10 ----------
- drivers/gpu/drm/nouveau/nouveau_acpi.c       |   16 ++--------------
- drivers/gpu/drm/radeon/radeon_atpx_handler.c |   16 ++--------------
- include/acpi/acpi_bus.h                      |    4 +---
- 4 files changed, 5 insertions(+), 41 deletions(-)
+To clarify this for people like me who were under the impression
+that ACPI_PTR() does some kind of cast, this is the definition
+of ACPI_PTR:
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 8581f5b84f48..8b67bd0f6bb5 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -177,16 +177,6 @@ void acpi_bus_detach_private_data(acpi_handle handle)
- }
- EXPORT_SYMBOL_GPL(acpi_bus_detach_private_data);
- 
--void acpi_bus_no_hotplug(acpi_handle handle)
--{
--	struct acpi_device *adev = NULL;
--
--	acpi_bus_get_device(handle, &adev);
--	if (adev)
--		adev->flags.no_hotplug = true;
--}
--EXPORT_SYMBOL_GPL(acpi_bus_no_hotplug);
--
- static void acpi_print_osc_error(acpi_handle handle,
- 	struct acpi_osc_context *context, char *error)
- {
-diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-index 279206997e5c..622424692b3b 100644
---- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
-@@ -46,7 +46,6 @@ static struct nouveau_dsm_priv {
- 	bool dsm_detected;
- 	bool optimus_detected;
- 	acpi_handle dhandle;
--	acpi_handle other_handle;
- 	acpi_handle rom_handle;
- } nouveau_dsm_priv;
- 
-@@ -222,10 +221,9 @@ static int nouveau_dsm_pci_probe(struct pci_dev *pdev)
- 	if (!dhandle)
- 		return false;
- 
--	if (!acpi_has_method(dhandle, "_DSM")) {
--		nouveau_dsm_priv.other_handle = dhandle;
-+	if (!acpi_has_method(dhandle, "_DSM"))
- 		return false;
--	}
-+
- 	if (acpi_check_dsm(dhandle, nouveau_dsm_muid, 0x00000102,
- 			   1 << NOUVEAU_DSM_POWER))
- 		retval |= NOUVEAU_DSM_HAS_MUX;
-@@ -301,16 +299,6 @@ static bool nouveau_dsm_detect(void)
- 		printk(KERN_INFO "VGA switcheroo: detected DSM switching method %s handle\n",
- 			acpi_method_name);
- 		nouveau_dsm_priv.dsm_detected = true;
--		/*
--		 * On some systems hotplug events are generated for the device
--		 * being switched off when _DSM is executed.  They cause ACPI
--		 * hotplug to trigger and attempt to remove the device from
--		 * the system, which causes it to break down.  Prevent that from
--		 * happening by setting the no_hotplug flag for the involved
--		 * ACPI device objects.
--		 */
--		acpi_bus_no_hotplug(nouveau_dsm_priv.dhandle);
--		acpi_bus_no_hotplug(nouveau_dsm_priv.other_handle);
- 		ret = true;
- 	}
- 
-diff --git a/drivers/gpu/drm/radeon/radeon_atpx_handler.c b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-index a9fb0d016d38..8bc7d0bbd3c8 100644
---- a/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-+++ b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-@@ -33,7 +33,6 @@ static struct radeon_atpx_priv {
- 	bool atpx_detected;
- 	/* handle for device - and atpx */
- 	acpi_handle dhandle;
--	acpi_handle other_handle;
- 	struct radeon_atpx atpx;
- } radeon_atpx_priv;
- 
-@@ -453,10 +452,9 @@ static bool radeon_atpx_pci_probe_handle(struct pci_dev *pdev)
- 		return false;
- 
- 	status = acpi_get_handle(dhandle, "ATPX", &atpx_handle);
--	if (ACPI_FAILURE(status)) {
--		radeon_atpx_priv.other_handle = dhandle;
-+	if (ACPI_FAILURE(status))
- 		return false;
--	}
-+
- 	radeon_atpx_priv.dhandle = dhandle;
- 	radeon_atpx_priv.atpx.handle = atpx_handle;
- 	return true;
-@@ -540,16 +538,6 @@ static bool radeon_atpx_detect(void)
- 		printk(KERN_INFO "VGA switcheroo: detected switching method %s handle\n",
- 		       acpi_method_name);
- 		radeon_atpx_priv.atpx_detected = true;
--		/*
--		 * On some systems hotplug events are generated for the device
--		 * being switched off when ATPX is executed.  They cause ACPI
--		 * hotplug to trigger and attempt to remove the device from
--		 * the system, which causes it to break down.  Prevent that from
--		 * happening by setting the no_hotplug flag for the involved
--		 * ACPI device objects.
--		 */
--		acpi_bus_no_hotplug(radeon_atpx_priv.dhandle);
--		acpi_bus_no_hotplug(radeon_atpx_priv.other_handle);
- 		return true;
- 	}
- 	return false;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bcfd808b1098..95c506961a13 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -204,10 +204,9 @@ struct acpi_device_flags {
- 	u32 match_driver:1;
- 	u32 initialized:1;
- 	u32 visited:1;
--	u32 no_hotplug:1;
- 	u32 hotplug_notify:1;
- 	u32 is_dock_station:1;
--	u32 reserved:22;
-+	u32 reserved:23;
- };
- 
- /* File System */
-@@ -412,7 +411,6 @@ void acpi_bus_private_data_handler(acpi_handle, void *);
- int acpi_bus_get_private_data(acpi_handle, void **);
- int acpi_bus_attach_private_data(acpi_handle, void *);
- void acpi_bus_detach_private_data(acpi_handle);
--void acpi_bus_no_hotplug(acpi_handle handle);
- extern int acpi_notifier_call_chain(struct acpi_device *, u32, u32);
- extern int register_acpi_notifier(struct notifier_block *);
- extern int unregister_acpi_notifier(struct notifier_block *);
+#ifdef  CONFIG_ACPI
+#define ACPI_PTR(_ptr)  (_ptr)
+#else
+#define ACPI_PTR(_ptr)  (NULL)
+#endif
+
+Regards,
+
+Hans
+
+
+> 
+> 
+> -Olof
+> 
