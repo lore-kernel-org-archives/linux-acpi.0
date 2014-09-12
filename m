@@ -1,27 +1,73 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v1 00/13] PCI: Device configuration cleanup
-Date: Fri, 12 Sep 2014 11:53:14 -0700
-Message-ID: <CA+55aFzrt7PRbNbcDJzK2doEuhuvDrNDr=X21m6k0+bXk2tmmg@mail.gmail.com>
-References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Peter Huewe <peterhuewe@gmx.de>
+Subject: [PATCH] [REGRESSION] i2c-acpi: Fix NULL Pointer dereference
+Date: Fri, 12 Sep 2014 21:09:47 +0200
+Message-ID: <1410548987-3558-1-git-send-email-peterhuewe@gmx.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f176.google.com ([209.85.220.176]:43844 "EHLO
-	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185AbaILSxP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 14:53:15 -0400
-In-Reply-To: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Received: from mout.gmx.net ([212.227.15.19]:49603 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751017AbaILTJI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Sep 2014 15:09:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Rajat Jain <rajatxjain@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>
 
-On Fri, Sep 12, 2014 at 11:02 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
-> Finally, it tweaks several _HPP/_HPX things where we do things not
-> required by the spec and I haven't seen any other good reason for them:
+If adapter->dev.parent == NULL there is a NULL pointer dereference in
+acpi_i2c_install_space_handler and acpi_i2c_remove_space_handler.
 
-Looks ok to me, although, as always, resource management changes just
-makes me worry that things worked "by mistake" before.
+This is present since introduction of this code:
+366047515c6e "i2c: rework kernel config I2C_ACPI" or even
+da3c6647ee08 "I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI"
 
-          Linus
+The adapter->dev.parent == NULL case is valid for the i2c_stub,
+so loading i2c_stub with ACPI_I2C_OPREGION enabled results in an oops.
+This is also valid at least for i2c_tiny_usb and i2c_robotfuzz_osif.
+
+Fix by checking whether it is null before calling ACPI_HANDLE.
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+---
+ drivers/i2c/i2c-acpi.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/i2c-acpi.c b/drivers/i2c/i2c-acpi.c
+index 0dbc18c..c456b17 100644
+--- a/drivers/i2c/i2c-acpi.c
++++ b/drivers/i2c/i2c-acpi.c
+@@ -308,10 +308,15 @@ acpi_i2c_space_handler(u32 function, acpi_physical_address command,
+ 
+ int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
+ {
+-	acpi_handle handle = ACPI_HANDLE(adapter->dev.parent);
++	acpi_handle handle;
+ 	struct acpi_i2c_handler_data *data;
+ 	acpi_status status;
+ 
++	if (!adapter->dev.parent)
++		return -ENODEV;
++
++	handle = ACPI_HANDLE(adapter->dev.parent);
++
+ 	if (!handle)
+ 		return -ENODEV;
+ 
+@@ -344,10 +349,15 @@ int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
+ 
+ void acpi_i2c_remove_space_handler(struct i2c_adapter *adapter)
+ {
+-	acpi_handle handle = ACPI_HANDLE(adapter->dev.parent);
++	acpi_handle handle;
+ 	struct acpi_i2c_handler_data *data;
+ 	acpi_status status;
+ 
++	if (!adapter->dev.parent)
++		return;
++
++	handle = ACPI_HANDLE(adapter->dev.parent);
++
+ 	if (!handle)
+ 		return;
+ 
+-- 
+1.8.5.5
+
