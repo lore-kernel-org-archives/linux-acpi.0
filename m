@@ -1,236 +1,160 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 04/18] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Fri, 12 Sep 2014 22:00:02 +0800
-Message-ID: <1410530416-30200-5-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v4 02/18] ACPI / table: Add new function to get table entries
+Date: Fri, 12 Sep 2014 22:00:00 +0800
+Message-ID: <1410530416-30200-3-git-send-email-hanjun.guo@linaro.org>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-As we want to get ACPI tables to parse and then use the information
-for system initialization, we should get the RSDP (Root System
-Description Pointer) first, it then locates Extended Root Description
-Table (XSDT) which contains all the 64-bit physical address that
-pointer to other boot-time tables.
+The acpi_table_parse() function has a callback that
+passes a pointer to a table_header. Add a new function
+which takes this pointer and parses its entries. This
+eliminates the need to re-traverse all the tables for
+each call. e.g. as in acpi_table_parse_madt() which is
+normally called after acpi_table_parse().
 
-Introduce acpi.c and its related head file in this patch to provide
-fundamental needs of extern variables and functions for ACPI core,
-and then get boot-time tables as needed.
-  - asm/acenv.h for arch specific ACPICA environments and
-    implementation, It is needed unconditionally by ACPI core;
-  - asm/acpi.h for arch specific variables and functions needed by
-    ACPI driver core;
-  - acpi.c for ARM64 related ACPI implementation for ACPI driver
-    core;
-
-acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
-it will be called in setup_arch() before paging_init(), so we should
-use eary_memremap() mechanism here to get the RSDP and all the table
-pointers.
-
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acenv.h |   18 +++++++++++
- arch/arm64/include/asm/acpi.h  |   45 ++++++++++++++++++++++++++
- arch/arm64/kernel/Makefile     |    1 +
- arch/arm64/kernel/acpi.c       |   69 ++++++++++++++++++++++++++++++++++++++++
- arch/arm64/kernel/setup.c      |    4 +++
- 5 files changed, 137 insertions(+)
- create mode 100644 arch/arm64/include/asm/acenv.h
- create mode 100644 arch/arm64/include/asm/acpi.h
- create mode 100644 arch/arm64/kernel/acpi.c
+ drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
+ include/linux/acpi.h  |    4 +++
+ 2 files changed, 51 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-new file mode 100644
-index 0000000..b49166f
---- /dev/null
-+++ b/arch/arm64/include/asm/acenv.h
-@@ -0,0 +1,18 @@
-+/*
-+ * ARM64 specific ACPICA environments and implementation
-+ *
-+ * Copyright (C) 2014, Linaro Ltd.
-+ *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _ASM_ACENV_H
-+#define _ASM_ACENV_H
-+
-+/* It is required unconditionally by ACPI core, update it when needed. */
-+
-+#endif /* _ASM_ACENV_H */
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-new file mode 100644
-index 0000000..8b837ab
---- /dev/null
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -0,0 +1,45 @@
-+/*
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation;
-+ */
-+
-+#ifndef _ASM_ACPI_H
-+#define _ASM_ACPI_H
-+
-+/* Basic configuration for ACPI */
-+#ifdef	CONFIG_ACPI
-+#define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-+extern int acpi_disabled;
-+extern int acpi_noirq;
-+extern int acpi_pci_disabled;
-+
-+static inline void disable_acpi(void)
-+{
-+	acpi_disabled = 1;
-+	acpi_pci_disabled = 1;
-+	acpi_noirq = 1;
-+}
-+
-+/*
-+ * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-+ * with this check the ACPI core will not override the CPU index
-+ * obtained from GICC with 0 and not print some error message as well.
-+ * Since MADT must provide at least one GICC structure for GIC
-+ * initialization, CPU will be always available in MADT on ARM64.
-+ */
-+static inline bool acpi_has_cpu_in_madt(void)
-+{
-+	return true;
-+}
-+
-+static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-+
-+#endif /* CONFIG_ACPI */
-+
-+#endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index df7ef87..29ea7d6 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -29,6 +29,7 @@ arm64-obj-$(CONFIG_ARM64_CPU_SUSPEND)	+= sleep.o suspend.o
- arm64-obj-$(CONFIG_JUMP_LABEL)		+= jump_label.o
- arm64-obj-$(CONFIG_KGDB)		+= kgdb.o
- arm64-obj-$(CONFIG_EFI)			+= efi.o efi-stub.o efi-entry.o
-+arm64-obj-$(CONFIG_ACPI)		+= acpi.o
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 6d5a6cd..21ae521 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
  
- obj-y					+= $(arm64-obj-y) vdso/
- obj-m					+= $(arm64-obj-m)
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-new file mode 100644
-index 0000000..9252f72
---- /dev/null
-+++ b/arch/arm64/kernel/acpi.c
-@@ -0,0 +1,69 @@
-+/*
-+ *  ARM64 Specific Low-Level ACPI Boot Support
-+ *
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *	Author: Naresh Bhat <naresh.bhat@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
+ 
+ int __init
+-acpi_table_parse_entries(char *id,
+-			     unsigned long table_size,
+-			     int entry_id,
+-			     acpi_tbl_entry_handler handler,
+-			     unsigned int max_entries)
++acpi_parse_entries(unsigned long table_size,
++		acpi_tbl_entry_handler handler,
++		struct acpi_table_header *table_header,
++		int entry_id, unsigned int max_entries)
+ {
+-	struct acpi_table_header *table_header = NULL;
+ 	struct acpi_subtable_header *entry;
+-	unsigned int count = 0;
++	int count = 0;
+ 	unsigned long table_end;
+-	acpi_size tbl_size;
+ 
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+@@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
+ 	if (!handler)
+ 		return -EINVAL;
+ 
+-	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+-		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+-	else
+-		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
++	if (!table_size)
++		return -EINVAL;
+ 
+ 	if (!table_header) {
+-		pr_warn("%4.4s not present\n", id);
++		pr_warn("Table header not present\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
+ 		if (entry->type == entry_id
+ 		    && (!max_entries || count++ < max_entries))
+ 			if (handler(entry, table_end))
+-				goto err;
++				return -EINVAL;
+ 
+ 		/*
+ 		 * If entry->length is 0, break from this loop to avoid
+ 		 * infinite loop.
+ 		 */
+ 		if (entry->length == 0) {
+-			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
+-			goto err;
++			pr_err("[0x%02x] Invalid zero length\n", entry_id);
++			return -EINVAL;
+ 		}
+ 
+ 		entry = (struct acpi_subtable_header *)
+ 		    ((unsigned long)entry + entry->length);
+ 	}
 +
-+#include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <linux/cpumask.h>
-+#include <linux/memblock.h>
-+#include <linux/irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/bootmem.h>
-+#include <linux/smp.h>
-+
-+int acpi_noirq;			/* skip ACPI IRQ initialization */
-+int acpi_disabled;
-+EXPORT_SYMBOL(acpi_disabled);
-+
-+int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
-+EXPORT_SYMBOL(acpi_pci_disabled);
-+
-+/*
-+ * __acpi_map_table() will be called before page_init(), so early_ioremap()
-+ * or early_memremap() should be called here to for ACPI table mapping.
-+ */
-+char *__init __acpi_map_table(unsigned long phys, unsigned long size)
-+{
-+	if (!phys || !size)
-+		return NULL;
-+
-+	return early_memremap(phys, size);
+ 	if (max_entries && count > max_entries) {
+ 		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
+-			id, entry_id, count - max_entries, count);
++			table_header->signature, entry_id, count - max_entries,
++			count);
+ 	}
+ 
+-	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+ 	return count;
+-err:
 +}
 +
-+void __init __acpi_unmap_table(char *map, unsigned long size)
++int __init
++acpi_table_parse_entries(char *id,
++			 unsigned long table_size,
++			 int entry_id,
++			 acpi_tbl_entry_handler handler,
++			 unsigned int max_entries)
 +{
-+	if (!map || !size)
-+		return;
++	struct acpi_table_header *table_header = NULL;
++	acpi_size tbl_size;
++	int count;
 +
-+	early_memunmap(map, size);
-+}
-+
-+/*
-+ * acpi_boot_table_init() called from setup_arch(), always.
-+ *	1. find RSDP and get its address, and then find XSDT
-+ *	2. extract all tables and checksums them all
-+ *
-+ * We can parse ACPI boot-time tables such as MADT after
-+ * this function is called.
-+ */
-+void __init acpi_boot_table_init(void)
-+{
-+	/* If acpi_disabled, bail out */
 +	if (acpi_disabled)
-+		return;
++		return -ENODEV;
 +
-+	/* Initialize the ACPI boot-time table parser. */
-+	if (acpi_table_init())
-+		disable_acpi();
-+}
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index 8f33f72..5b05227 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -43,6 +43,7 @@
- #include <linux/of_fdt.h>
- #include <linux/of_platform.h>
- #include <linux/efi.h>
-+#include <linux/acpi.h>
- 
- #include <asm/fixmap.h>
- #include <asm/cpu.h>
-@@ -388,6 +389,9 @@ void __init setup_arch(char **cmdline_p)
- 	efi_init();
- 	arm64_memblock_init();
- 
-+	/* Parse the ACPI tables for possible boot-time configuration */
-+	acpi_boot_table_init();
++	if (!handler)
++		return -EINVAL;
 +
- 	paging_init();
- 	request_standard_resources();
++	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
++		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
++	else
++		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
++
++	if (!table_header) {
++		pr_warn("%4.4s not present\n", id);
++		return -ENODEV;
++	}
++
++	count = acpi_parse_entries(table_size, handler, table_header,
++			entry_id, max_entries);
++
+ 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+-	return -EINVAL;
++	return count;
+ }
  
+ int __init
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 807cbc4..36d5012 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -123,6 +123,10 @@ int acpi_numa_init (void);
+ 
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
++int __init acpi_parse_entries(unsigned long table_size,
++			      acpi_tbl_entry_handler handler,
++			      struct acpi_table_header *table_header,
++			      int entry_id, unsigned int max_entries);
+ int __init acpi_table_parse_entries(char *id, unsigned long table_size,
+ 				    int entry_id,
+ 				    acpi_tbl_entry_handler handler,
 -- 
 1.7.9.5
