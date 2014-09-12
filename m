@@ -1,51 +1,27 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v1 13/13] PCI: Configure *all* devices,
- not just hot-added ones
-Date: Fri, 12 Sep 2014 12:04:16 -0600
-Message-ID: <20140912180415.1630.57583.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH v1 00/13] PCI: Device configuration cleanup
+Date: Fri, 12 Sep 2014 11:53:14 -0700
+Message-ID: <CA+55aFzrt7PRbNbcDJzK2doEuhuvDrNDr=X21m6k0+bXk2tmmg@mail.gmail.com>
 References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vc0-f176.google.com ([209.85.220.176]:43844 "EHLO
+	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185AbaILSxP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 14:53:15 -0400
 In-Reply-To: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Rajat Jain <rajatxjain@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
 
-There's not really a good way to determine whether firmware has already
-configured a device with _HPP/_HPX settings.  On legacy systems, the BIOS
-has probably configured everything, but on UEFI systems it is not required
-to do so.
+On Fri, Sep 12, 2014 at 11:02 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>
+> Finally, it tweaks several _HPP/_HPX things where we do things not
+> required by the spec and I haven't seen any other good reason for them:
 
-Per the PCI Firmware Specification, rev 3.1, sec 3.5, if PCI_COMMAND_IO or
-PCI_COMMAND_MEMORY is set, we can assume firmware has set the corresponding
-BARs and maybe we can assume it has configured the rest of the device.  And
-if a bridge has PCI_COMMAND_PARITY or PCI_COMMAND_SERR set, we can assume
-firmware has configured the bridge.  But we can't tell much about devices
-without BARs.
+Looks ok to me, although, as always, resource management changes just
+makes me worry that things worked "by mistake" before.
 
-I think it should be safe to apply _HPP and _HPX settings anyway, even if
-firmware has already configured the device, so configure everything we
-find.
-
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/probe.c |    3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index cb411fbb6435..290c657da0b9 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1358,9 +1358,6 @@ static void pci_configure_device(struct pci_dev *dev)
- 	struct hotplug_params hpp;
- 	int ret;
- 
--	if (system_state == SYSTEM_BOOTING)
--		return;
--
- 	memset(&hpp, 0, sizeof(hpp));
- 	ret = pci_get_hp_params(dev, &hpp);
- 	if (ret)
+          Linus
