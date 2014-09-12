@@ -1,222 +1,309 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 15/18] ARM64 / ACPI: Parse GTDT to initialize arch timer
-Date: Fri, 12 Sep 2014 22:00:13 +0800
-Message-ID: <1410530416-30200-16-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v4 09/18] ARM64 / ACPI: Parse FADT table to get PSCI flags for
+ PSCI init
+Date: Fri, 12 Sep 2014 22:00:07 +0800
+Message-ID: <1410530416-30200-10-git-send-email-hanjun.guo@linaro.org>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Using the information presented by GTDT to initialize the arch
-timer (not memory-mapped).
+There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
+the former signals to the OS that the firmware is PSCI compliant.
+The latter selects the appropriate conduit for PSCI calls by
+toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
+(SMC).
 
-Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+FADT table contains such information, parse FADT to get the flags
+for PSCI init. Since ACPI 5.1 doesn't support self defined PSCI
+function IDs, which means that only PSCI 0.2+ is supported in ACPI.
+
+At the same time, only ACPI 5.1 or higher verison supports PSCI,
+and FADT Major.Minor version was introduced in ACPI 5.1, so we
+will check the version and only parse FADT table with version >= 5.1.
+
+If firmware provides ACPI tables with ACPI version less than 5.1,
+OS will be messed up with those information and have no way to init
+smp and GIC, so disable ACPI if we get an FADT table with version
+less that 5.1.
+
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 ---
- arch/arm64/kernel/time.c             |    7 ++
- drivers/clocksource/arm_arch_timer.c |  117 ++++++++++++++++++++++++++++------
- include/linux/clocksource.h          |    6 ++
- 3 files changed, 111 insertions(+), 19 deletions(-)
+ arch/arm64/include/asm/acpi.h |   17 +++++++++
+ arch/arm64/include/asm/psci.h |    3 +-
+ arch/arm64/kernel/acpi.c      |   31 +++++++++++++++-
+ arch/arm64/kernel/psci.c      |   78 ++++++++++++++++++++++++++++-------------
+ arch/arm64/kernel/setup.c     |    8 +++--
+ 5 files changed, 108 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-index 1a7125c..42f9195 100644
---- a/arch/arm64/kernel/time.c
-+++ b/arch/arm64/kernel/time.c
-@@ -35,6 +35,7 @@
- #include <linux/delay.h>
- #include <linux/clocksource.h>
- #include <linux/clk-provider.h>
-+#include <linux/acpi.h>
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 8b837ab..ecba671 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -19,6 +19,18 @@ extern int acpi_disabled;
+ extern int acpi_noirq;
+ extern int acpi_pci_disabled;
  
- #include <clocksource/arm_arch_timer.h>
- 
-@@ -72,6 +73,12 @@ void __init time_init(void)
- 
- 	tick_setup_hrtimer_broadcast();
- 
-+	/*
-+	 * Since ACPI or FDT will only one be available in the system,
-+	 * we can use acpi_generic_timer_init() here safely
-+	 */
-+	acpi_generic_timer_init();
++/* 1 to indicate PSCI 0.2+ is implemented */
++static inline bool acpi_psci_present(void)
++{
++	return acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_COMPLIANT;
++}
 +
- 	arch_timer_rate = arch_timer_get_rate();
- 	if (!arch_timer_rate)
- 		panic("Unable to initialise architected timer.\n");
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 5163ec1..397783f 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -21,6 +21,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/sched_clock.h>
-+#include <linux/acpi.h>
++/* 1 to indicate HVC must be used instead of SMC as the PSCI conduit */
++static inline bool acpi_psci_use_hvc(void)
++{
++	return acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_USE_HVC;
++}
++
+ static inline void disable_acpi(void)
+ {
+ 	acpi_disabled = 1;
+@@ -40,6 +52,11 @@ static inline bool acpi_has_cpu_in_madt(void)
  
- #include <asm/arch_timer.h>
- #include <asm/virt.h>
-@@ -338,8 +339,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
- 	if (arch_timer_rate)
- 		return;
+ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
  
--	/* Try to determine the frequency from the device tree or CNTFRQ */
--	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-+	/*
-+	 * Try to determine the frequency from the device tree or CNTFRQ,
-+	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-+	 */
-+	if (!acpi_disabled ||
-+	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
- 		if (cntbase)
- 			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
- 		else
-@@ -635,20 +640,8 @@ static void __init arch_timer_common_init(void)
- 	arch_timer_arch_init();
++#else
++
++static inline bool acpi_psci_present(void) { return false; }
++static inline bool acpi_psci_use_hvc(void) { return false; }
++
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/include/asm/psci.h b/arch/arm64/include/asm/psci.h
+index e5312ea..2454bc5 100644
+--- a/arch/arm64/include/asm/psci.h
++++ b/arch/arm64/include/asm/psci.h
+@@ -14,6 +14,7 @@
+ #ifndef __ASM_PSCI_H
+ #define __ASM_PSCI_H
+ 
+-int psci_init(void);
++int psci_dt_init(void);
++int psci_acpi_init(void);
+ 
+ #endif /* __ASM_PSCI_H */
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 693da7f..9e1ae37 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -13,6 +13,8 @@
+  *  published by the Free Software Foundation.
+  */
+ 
++#define pr_fmt(fmt) "ACPI: " fmt
++
+ #include <linux/init.h>
+ #include <linux/acpi.h>
+ #include <linux/cpumask.h>
+@@ -49,10 +51,32 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+ 	early_memunmap(map, size);
  }
  
--static void __init arch_timer_init(struct device_node *np)
-+static void __init arch_timer_init(void)
- {
--	int i;
--
--	if (arch_timers_present & ARCH_CP15_TIMER) {
--		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
--		return;
--	}
--
--	arch_timers_present |= ARCH_CP15_TIMER;
--	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
--		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
--	arch_timer_detect_rate(NULL, np);
--
- 	/*
- 	 * If HYP mode is available, we know that the physical timer
- 	 * has been configured to be accessible from PL1. Use it, so
-@@ -667,13 +660,31 @@ static void __init arch_timer_init(struct device_node *np)
++static int __init acpi_parse_fadt(struct acpi_table_header *table)
++{
++	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
++
++	/*
++	 * Revision in table header is the FADT Major revision,
++	 * and there is a minor revision of FADT which was introduced
++	 * by ACPI 5.1, we only deal with ACPI 5.1 or higher revision
++	 * to get arm boot flags, or we will disable ACPI.
++	 */
++	if (table->revision > 5 ||
++	    (table->revision == 5 && fadt->minor_revision >= 1))
++		return 0;
++
++	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
++		table->revision, fadt->minor_revision);
++	disable_acpi();
++
++	return -EINVAL;
++}
++
+ /*
+  * acpi_boot_table_init() called from setup_arch(), always.
+  *	1. find RSDP and get its address, and then find XSDT
+  *	2. extract all tables and checksums them all
++ *	3. check ACPI FADT revisoin
+  *
+  * We can parse ACPI boot-time tables such as MADT after
+  * this function is called.
+@@ -64,8 +88,13 @@ void __init acpi_boot_table_init(void)
+ 		return;
+ 
+ 	/* Initialize the ACPI boot-time table parser. */
+-	if (acpi_table_init())
++	if (acpi_table_init()) {
+ 		disable_acpi();
++		return;
++	}
++
++	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt))
++		pr_err("Can't find FADT or error happened during parsing FADT\n");
+ }
+ 
+ static int __init parse_acpi(char *arg)
+diff --git a/arch/arm64/kernel/psci.c b/arch/arm64/kernel/psci.c
+index 5539547..15ba470 100644
+--- a/arch/arm64/kernel/psci.c
++++ b/arch/arm64/kernel/psci.c
+@@ -15,6 +15,7 @@
+ 
+ #define pr_fmt(fmt) "psci: " fmt
+ 
++#include <linux/acpi.h>
+ #include <linux/init.h>
+ #include <linux/of.h>
+ #include <linux/smp.h>
+@@ -23,6 +24,7 @@
+ #include <linux/delay.h>
+ #include <uapi/linux/psci.h>
+ 
++#include <asm/acpi.h>
+ #include <asm/compiler.h>
+ #include <asm/cpu_ops.h>
+ #include <asm/errno.h>
+@@ -231,6 +233,33 @@ static void psci_sys_poweroff(void)
+ 	invoke_psci_fn(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
+ }
+ 
++static void psci_0_2_set_functions(void)
++{
++	pr_info("Using standard PSCI v0.2 function IDs\n");
++	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
++	psci_ops.cpu_suspend = psci_cpu_suspend;
++
++	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
++	psci_ops.cpu_off = psci_cpu_off;
++
++	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
++	psci_ops.cpu_on = psci_cpu_on;
++
++	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
++	psci_ops.migrate = psci_migrate;
++
++	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
++	psci_ops.affinity_info = psci_affinity_info;
++
++	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
++		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
++	psci_ops.migrate_info_type = psci_migrate_info_type;
++
++	arm_pm_restart = psci_sys_reset;
++
++	pm_power_off = psci_sys_poweroff;
++}
++
+ /*
+  * PSCI Function IDs for v0.2+ are well defined so use
+  * standard values.
+@@ -264,29 +293,7 @@ static int __init psci_0_2_init(struct device_node *np)
  		}
  	}
  
--	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+-	pr_info("Using standard PSCI v0.2 function IDs\n");
+-	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
+-	psci_ops.cpu_suspend = psci_cpu_suspend;
 -
- 	arch_timer_register();
- 	arch_timer_common_init();
- }
--CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
--CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
-+
-+static void __init arch_timer_of_init(struct device_node *np)
-+{
-+	int i;
-+
-+	if (arch_timers_present & ARCH_CP15_TIMER) {
-+		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-+		return;
-+	}
-+
-+	arch_timers_present |= ARCH_CP15_TIMER;
-+	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
-+		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
-+
-+	arch_timer_detect_rate(NULL, np);
-+
-+	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
-+
-+	arch_timer_init();
-+}
-+CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
-+CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+-	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
+-	psci_ops.cpu_off = psci_cpu_off;
+-
+-	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
+-	psci_ops.cpu_on = psci_cpu_on;
+-
+-	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
+-	psci_ops.migrate = psci_migrate;
+-
+-	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
+-	psci_ops.affinity_info = psci_affinity_info;
+-
+-	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
+-		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
+-	psci_ops.migrate_info_type = psci_migrate_info_type;
+-
+-	arm_pm_restart = psci_sys_reset;
+-
+-	pm_power_off = psci_sys_poweroff;
++	psci_0_2_set_functions();
  
- static void __init arch_timer_mem_init(struct device_node *np)
+ out_put_node:
+ 	of_node_put(np);
+@@ -339,7 +346,7 @@ static const struct of_device_id psci_of_match[] __initconst = {
+ 	{},
+ };
+ 
+-int __init psci_init(void)
++int __init psci_dt_init(void)
  {
-@@ -740,3 +751,71 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ 	struct device_node *np;
+ 	const struct of_device_id *matched_np;
+@@ -354,6 +361,29 @@ int __init psci_init(void)
+ 	return init_fn(np);
  }
- CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
- 		       arch_timer_mem_init);
-+
-+#ifdef CONFIG_ACPI
-+static int __init
-+map_generic_timer_interrupt(u32 interrupt, u32 flags)
+ 
++/*
++ * We use PSCI 0.2+ when ACPI is deployed on ARM64 and it's
++ * explicitly clarified in SBBR
++ */
++int __init psci_acpi_init(void)
 +{
-+	int trigger, polarity;
-+
-+	if (!interrupt)
-+		return 0;
-+
-+	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-+			: ACPI_LEVEL_SENSITIVE;
-+
-+	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-+			: ACPI_ACTIVE_HIGH;
-+
-+	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
-+}
-+
-+/* Initialize per-processor generic timer */
-+static int __init arch_timer_acpi_init(struct acpi_table_header *table)
-+{
-+	struct acpi_table_gtdt *gtdt;
-+
-+	if (arch_timers_present & ARCH_CP15_TIMER) {
-+		pr_warn("arch_timer: already initialized, skipping\n");
-+		return -EINVAL;
++	if (!acpi_psci_present()) {
++		pr_info("is not implemented in ACPI.\n");
++		return -EOPNOTSUPP;
 +	}
 +
-+	gtdt = container_of(table, struct acpi_table_gtdt, header);
++	pr_info("probing for conduit method from ACPI.\n");
 +
-+	arch_timers_present |= ARCH_CP15_TIMER;
++	if (acpi_psci_use_hvc())
++		invoke_psci_fn = __invoke_psci_fn_hvc;
++	else
++		invoke_psci_fn = __invoke_psci_fn_smc;
 +
-+	arch_timer_ppi[PHYS_SECURE_PPI] =
-+		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
-+		gtdt->secure_el1_flags);
++	psci_0_2_set_functions();
 +
-+	arch_timer_ppi[PHYS_NONSECURE_PPI] =
-+		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
-+		gtdt->non_secure_el1_flags);
-+
-+	arch_timer_ppi[VIRT_PPI] =
-+		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
-+		gtdt->virtual_timer_flags);
-+
-+	arch_timer_ppi[HYP_PPI] =
-+		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
-+		gtdt->non_secure_el2_flags);
-+
-+	/* Get the frequency from CNTFRQ */
-+	arch_timer_detect_rate(NULL, NULL);
-+
-+	/* Always-on capability */
-+	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-+
-+	arch_timer_init();
 +	return 0;
 +}
 +
-+/* Initialize all the generic timers presented in GTDT */
-+void __init acpi_generic_timer_init(void)
-+{
-+	if (acpi_disabled)
-+		return;
-+
-+	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
-+}
-+#endif
-diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-index 653f0e2..5839f98 100644
---- a/include/linux/clocksource.h
-+++ b/include/linux/clocksource.h
-@@ -346,4 +346,10 @@ extern void clocksource_of_init(void);
- static inline void clocksource_of_init(void) {}
- #endif
+ #ifdef CONFIG_SMP
  
-+#ifdef CONFIG_ACPI
-+void acpi_generic_timer_init(void);
-+#else
-+static inline void acpi_generic_timer_init(void) {}
-+#endif
-+
- #endif /* _LINUX_CLOCKSOURCE_H */
+ static int __init cpu_psci_cpu_init(struct device_node *dn, unsigned int cpu)
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 5796734..7ba20d4 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -398,10 +398,12 @@ void __init setup_arch(char **cmdline_p)
+ 	efi_idmap_init();
+ 
+ 	cpu_logical_map(0) = read_cpuid_mpidr() & MPIDR_HWID_BITMASK;
+-	if (acpi_disabled)
++	if (acpi_disabled) {
+ 		unflatten_device_tree();
+-
+-	psci_init();
++		psci_dt_init();
++	} else {
++		psci_acpi_init();
++	}
+ 
+ 	cpu_read_bootcpu_ops();
+ #ifdef CONFIG_SMP
 -- 
 1.7.9.5
