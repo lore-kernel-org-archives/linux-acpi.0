@@ -1,81 +1,85 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 17/18] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Fri, 12 Sep 2014 22:00:15 +0800
-Message-ID: <1410530416-30200-18-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v4 06/18] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Fri, 12 Sep 2014 22:00:04 +0800
+Message-ID: <1410530416-30200-7-git-send-email-hanjun.guo@linaro.org>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:48310 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755286AbaILOCO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 10:02:14 -0400
-Received: by mail-pa0-f53.google.com with SMTP id rd3so1343527pab.40
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2014 07:02:14 -0700 (PDT)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+From: Al Stone <al.stone@linaro.org>
 
-Add Kconfigs to build ACPI on ARM64, and make ACPI available on ARM64.
+Introduce one early parameters "off" for "acpi" to disable ACPI on
+ARM64.
 
-acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
-depend on X86 || IA64, and implement it on ARM64 in the future.
+This ensures the kernel uses the DT on a platform that provides both
+ACPI tables and DT.
 
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Al Stone <al.stone@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/Kconfig   |    2 ++
- drivers/acpi/Kconfig |    6 +++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ Documentation/kernel-parameters.txt |    3 ++-
+ arch/arm64/kernel/acpi.c            |   15 +++++++++++++++
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 065438c..8dabaeb 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -422,6 +422,8 @@ source "drivers/Kconfig"
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 5ae8608..9dfb1d8 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
+ bytes respectively. Such letter suffixes can also be entirely omitted.
  
- source "drivers/firmware/Kconfig"
  
-+source "drivers/acpi/Kconfig"
+-	acpi=		[HW,ACPI,X86]
++	acpi=		[HW,ACPI,X86,ARM]
+ 			Advanced Configuration and Power Interface
+ 			Format: { force | off | strict | noirq | rsdt }
+ 			force -- enable ACPI if default was off
+@@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 				strictly ACPI specification compliant.
+ 			rsdt -- prefer RSDT over (default) XSDT
+ 			copy_dsdt -- copy DSDT to memory
++			For ARM64, ONLY "acpi=off" is available.
+ 
+ 			See also Documentation/power/runtime_pm.txt, pci=noacpi
+ 
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 9252f72..693da7f 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -67,3 +67,18 @@ void __init acpi_boot_table_init(void)
+ 	if (acpi_table_init())
+ 		disable_acpi();
+ }
 +
- source "fs/Kconfig"
- 
- source "arch/arm64/kvm/Kconfig"
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index d0f3265..f935d2e 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -5,8 +5,7 @@
- menuconfig ACPI
- 	bool "ACPI (Advanced Configuration and Power Interface) Support"
- 	depends on !IA64_HP_SIM
--	depends on IA64 || X86
--	depends on PCI
-+	depends on ((IA64 || X86) && PCI) || (ARM64 && EXPERT)
- 	select PNP
- 	default y
- 	help
-@@ -163,6 +162,7 @@ config ACPI_PROCESSOR
- 	tristate "Processor"
- 	select THERMAL
- 	select CPU_IDLE
-+	depends on X86 || IA64
- 	default y
- 	help
- 	  This driver installs ACPI as the idle handler for Linux and uses
-@@ -263,7 +263,7 @@ config ACPI_DEBUG
- 
- config ACPI_PCI_SLOT
- 	bool "PCI slot detection driver"
--	depends on SYSFS
-+	depends on SYSFS && PCI
- 	default n
- 	help
- 	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
++static int __init parse_acpi(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	/* "acpi=off" disables both ACPI table parsing and interpreter */
++	if (strcmp(arg, "off") == 0)
++		disable_acpi();
++	else
++		return -EINVAL;	/* Core will print when we return error */
++
++	return 0;
++}
++early_param("acpi", parse_acpi);
 -- 
 1.7.9.5
-
