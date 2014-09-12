@@ -1,160 +1,147 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 02/18] ACPI / table: Add new function to get table entries
-Date: Fri, 12 Sep 2014 22:00:00 +0800
-Message-ID: <1410530416-30200-3-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v4 08/18] ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+Date: Fri, 12 Sep 2014 22:00:06 +0800
+Message-ID: <1410530416-30200-9-git-send-email-hanjun.guo@linaro.org>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+As PCI for ARM64 is not ready, so introduce some stub functions
+to make PCI optional for ACPI, and make ACPI core run without
+CONFIG_PCI on ARM64.
 
-The acpi_table_parse() function has a callback that
-passes a pointer to a table_header. Add a new function
-which takes this pointer and parses its entries. This
-eliminates the need to re-traverse all the tables for
-each call. e.g. as in acpi_table_parse_madt() which is
-normally called after acpi_table_parse().
+Since ACPI on X86 and IA64 depends on PCI and this patch only makes
+PCI optional for ARM64, it will not break anything on X86 and IA64.
 
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
- include/linux/acpi.h  |    4 +++
- 2 files changed, 51 insertions(+), 20 deletions(-)
+ arch/arm64/include/asm/pci.h |   11 +++++++++++
+ drivers/acpi/Makefile        |    2 +-
+ drivers/acpi/internal.h      |    5 +++++
+ include/linux/pci.h          |   37 +++++++++++++++++++++++++++----------
+ 4 files changed, 44 insertions(+), 11 deletions(-)
+ create mode 100644 arch/arm64/include/asm/pci.h
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 6d5a6cd..21ae521 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
- 
- 
- int __init
--acpi_table_parse_entries(char *id,
--			     unsigned long table_size,
--			     int entry_id,
--			     acpi_tbl_entry_handler handler,
--			     unsigned int max_entries)
-+acpi_parse_entries(unsigned long table_size,
-+		acpi_tbl_entry_handler handler,
-+		struct acpi_table_header *table_header,
-+		int entry_id, unsigned int max_entries)
- {
--	struct acpi_table_header *table_header = NULL;
- 	struct acpi_subtable_header *entry;
--	unsigned int count = 0;
-+	int count = 0;
- 	unsigned long table_end;
--	acpi_size tbl_size;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
- 	if (!handler)
- 		return -EINVAL;
- 
--	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
--		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
--	else
--		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-+	if (!table_size)
-+		return -EINVAL;
- 
- 	if (!table_header) {
--		pr_warn("%4.4s not present\n", id);
-+		pr_warn("Table header not present\n");
- 		return -ENODEV;
- 	}
- 
-@@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
- 		if (entry->type == entry_id
- 		    && (!max_entries || count++ < max_entries))
- 			if (handler(entry, table_end))
--				goto err;
-+				return -EINVAL;
- 
- 		/*
- 		 * If entry->length is 0, break from this loop to avoid
- 		 * infinite loop.
- 		 */
- 		if (entry->length == 0) {
--			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
--			goto err;
-+			pr_err("[0x%02x] Invalid zero length\n", entry_id);
-+			return -EINVAL;
- 		}
- 
- 		entry = (struct acpi_subtable_header *)
- 		    ((unsigned long)entry + entry->length);
- 	}
+diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+new file mode 100644
+index 0000000..250cd24
+--- /dev/null
++++ b/arch/arm64/include/asm/pci.h
+@@ -0,0 +1,11 @@
++#ifndef __ASM_PCI_H
++#define __ASM_PCI_H
++#ifdef __KERNEL__
 +
- 	if (max_entries && count > max_entries) {
- 		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
--			id, entry_id, count - max_entries, count);
-+			table_header->signature, entry_id, count - max_entries,
-+			count);
- 	}
++/*
++ * PCI address space differs from physical memory address space
++ */
++#define PCI_DMA_BUS_IS_PHYS	(0)
++
++#endif  /* __KERNEL__ */
++#endif  /* __ASM_PCI_H */
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 89837f8..6f3a74d 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -43,7 +43,7 @@ acpi-y				+= processor_core.o
+ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+ acpi-y				+= ec.o
+ acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+-acpi-y				+= pci_root.o pci_link.o pci_irq.o
++acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
+ acpi-y				+= acpi_lpss.o
+ acpi-y				+= acpi_platform.o
+ acpi-y				+= acpi_pnp.o
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 4c5cf77..e1e6487 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -26,8 +26,13 @@
+ acpi_status acpi_os_initialize1(void);
+ int init_acpi_device_notify(void);
+ int acpi_scan_init(void);
++#ifdef CONFIG_PCI
+ void acpi_pci_root_init(void);
+ void acpi_pci_link_init(void);
++#else
++static inline void acpi_pci_root_init(void) {}
++static inline void acpi_pci_link_init(void) {}
++#endif
+ void acpi_processor_init(void);
+ void acpi_platform_init(void);
+ void acpi_pnp_init(void);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 61978a4..50fa750 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -558,15 +558,6 @@ struct pci_ops {
+ 	int (*write)(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 val);
+ };
  
--	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
- 	return count;
--err:
-+}
-+
-+int __init
-+acpi_table_parse_entries(char *id,
-+			 unsigned long table_size,
-+			 int entry_id,
-+			 acpi_tbl_entry_handler handler,
-+			 unsigned int max_entries)
-+{
-+	struct acpi_table_header *table_header = NULL;
-+	acpi_size tbl_size;
-+	int count;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	if (!handler)
-+		return -EINVAL;
-+
-+	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
-+		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-+	else
-+		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-+
-+	if (!table_header) {
-+		pr_warn("%4.4s not present\n", id);
-+		return -ENODEV;
-+	}
-+
-+	count = acpi_parse_entries(table_size, handler, table_header,
-+			entry_id, max_entries);
-+
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
--	return -EINVAL;
-+	return count;
- }
+-/*
+- * ACPI needs to be able to access PCI config space before we've done a
+- * PCI bus scan and created pci_bus structures.
+- */
+-int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+-		 int reg, int len, u32 *val);
+-int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+-		  int reg, int len, u32 val);
+-
+ struct pci_bus_region {
+ 	dma_addr_t start;
+ 	dma_addr_t end;
+@@ -1293,6 +1284,16 @@ typedef int (*arch_set_vga_state_t)(struct pci_dev *pdev, bool decode,
+ 		      unsigned int command_bits, u32 flags);
+ void pci_register_set_vga_state(arch_set_vga_state_t func);
  
- int __init
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 807cbc4..36d5012 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -123,6 +123,10 @@ int acpi_numa_init (void);
++/*
++ * ACPI needs to be able to access PCI config space before we've done a
++ * PCI bus scan and created pci_bus structures.
++ */
++int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
++		 int reg, int len, u32 *val);
++int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
++		  int reg, int len, u32 val);
++void pcibios_penalize_isa_irq(int irq, int active);
++
+ #else /* CONFIG_PCI is not enabled */
  
- int acpi_table_init (void);
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
-+int __init acpi_parse_entries(unsigned long table_size,
-+			      acpi_tbl_entry_handler handler,
-+			      struct acpi_table_header *table_header,
-+			      int entry_id, unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 				    int entry_id,
- 				    acpi_tbl_entry_handler handler,
+ /*
+@@ -1394,6 +1395,23 @@ static inline struct pci_dev *pci_get_bus_and_slot(unsigned int bus,
+ 						unsigned int devfn)
+ { return NULL; }
+ 
++static inline struct pci_bus *pci_find_bus(int domain, int busnr)
++{ return NULL; }
++
++static inline int pci_bus_write_config_byte(struct pci_bus *bus,
++				unsigned int devfn, int where, u8 val)
++{ return -ENOSYS; }
++
++static inline int raw_pci_read(unsigned int domain, unsigned int bus,
++			unsigned int devfn, int reg, int len, u32 *val)
++{ return -ENOSYS; }
++
++static inline int raw_pci_write(unsigned int domain, unsigned int bus,
++			unsigned int devfn, int reg, int len, u32 val)
++{ return -ENOSYS; }
++
++static inline void pcibios_penalize_isa_irq(int irq, int active) { }
++
+ static inline int pci_domain_nr(struct pci_bus *bus) { return 0; }
+ static inline struct pci_dev *pci_dev_get(struct pci_dev *dev) { return NULL; }
+ 
+@@ -1607,7 +1625,6 @@ int pcibios_set_pcie_reset_state(struct pci_dev *dev,
+ 				 enum pcie_reset_state state);
+ int pcibios_add_device(struct pci_dev *dev);
+ void pcibios_release_device(struct pci_dev *dev);
+-void pcibios_penalize_isa_irq(int irq, int active);
+ 
+ #ifdef CONFIG_HIBERNATE_CALLBACKS
+ extern struct dev_pm_ops pcibios_pm_ops;
 -- 
 1.7.9.5
