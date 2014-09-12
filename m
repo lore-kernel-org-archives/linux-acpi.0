@@ -1,37 +1,65 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / scan: Correct error return value of create_modalias()
-Date: Fri, 12 Sep 2014 11:33:10 +0300
-Message-ID: <1410510790-21251-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: state[i].transition_latency and state[i].bus_master_latency set
+ to 0. BUG?
+Date: Fri, 12 Sep 2014 10:55:24 +0200
+Message-ID: <CAPybu_3u1+TLpFO0ZisWE3UZ+dCsR76AbpQsD+1cSX0ta1Tbbg@mail.gmail.com>
+References: <CAPybu_0wdTRYHwPN6mHdBrx8_RjcEXBWRpBs4HU5LASR16cOQg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:21876 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbaILIdP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Sep 2014 04:33:15 -0400
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:35780 "EHLO
+	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbaILIzp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 04:55:45 -0400
+In-Reply-To: <CAPybu_0wdTRYHwPN6mHdBrx8_RjcEXBWRpBs4HU5LASR16cOQg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, "alex@qtec.com" <alex@qtec.com>
 
-There is a typo, it should be negative -errno instead.
+Just in case somebody missed this mail in their holiday inbox :)....
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/scan.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Any good ideas for this?
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3bf7764659a4..d5e6ac5042d8 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -130,7 +130,7 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
- 	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
- 		count = snprintf(&modalias[len], size, "%s:", id->id);
- 		if (count < 0)
--			return EINVAL;
-+			return -EINVAL;
- 		if (count >= size)
- 			return -ENOMEM;
- 		len += count;
+On Tue, Aug 5, 2014 at 5:37 PM, Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+> Hello!
+>
+> I am working with an AMD family 14h Processor. And I believe that the
+> governor is not behaving as expected.
+>
+> On the _PSS table, the transition_latency and bus_master_latency are set to 0.
+>
+> The AMDs BIOS development guide (page 60 and 61)
+> http://developer.amd.com/wordpress/media/2012/10/43170_14h_Mod_00h-0Fh_BKDG.pdf
+> they recommend to use value of 0.
+>
+> Is 0 valid value? The governor will work properly with this value?
+>
+> What could be a good default value?
+>
+> Is there a way to experimentally measure the latency?
+>
+> Thanks for your help!
+>
+> Extract from dmesg:
+> [    0.843340] Extracting state 0
+> [    0.843374] State [0]: core_frequency[1650] power[6075]
+> transition_latency[0] bus_master_latency[0] control[0x0] status[0x0]
+> [    0.843481] Extracting state 1
+> [    0.843513] State [1]: core_frequency[1320] power[3712]
+> transition_latency[0] bus_master_latency[0] control[0x1] status[0x1]
+> [    0.843618] Extracting state 2
+> [    0.843652] State [2]: core_frequency[825] power[1472]
+> transition_latency[0] bus_master_latency[0] control[0x2] status[0x2]
+> [    0.843757] Extracting state 3
+> [    0.843790] State [3]: core_frequency[528] power[1008]
+> transition_latency[0] bus_master_latency[0] control[0x3] status[0x3]
+>
+>
+> --
+> Ricardo Ribalda
+
+
+
 -- 
-2.1.0
-
+Ricardo Ribalda
