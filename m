@@ -1,32 +1,43 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v3 09/17] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Fri, 12 Sep 2014 17:30:01 -0400
-Message-ID: <541365D9.4050908@redhat.com>
-References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org> <1409583475-6978-10-git-send-email-hanjun.guo@linaro.org> <540E80BD.20801@redhat.com> <540E88A2.1000606@linaro.org> <540E93A0.4040306@redhat.com> <540F2422.90105@linaro.org> <540F24FF.2060302@redhat.com> <20140911141508.GK6158@arm.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v1 02/13] PCI: Move pci_configure_slot() to drivers/pci/probe.c
+Date: Fri, 12 Sep 2014 15:35:10 -0600
+Message-ID: <CAErSpo6dF468YjBdYL3A2=cgsB3bAaqNdOL-Fs-EVnz=cJ0MUA@mail.gmail.com>
+References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <20140912180300.1630.62966.stgit@bhelgaas-glaptop2.roam.corp.google.com> <CAE9FiQX3_BiOy5ZaQwDA+XN7Bn-XOtrdGrqAVWuAsuguHa+YYg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140911141508.GK6158@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bj
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f177.google.com ([209.85.216.177]:64040 "EHLO
+	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056AbaILVfc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 17:35:32 -0400
+Received: by mail-qc0-f177.google.com with SMTP id o8so1233165qcw.22
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2014 14:35:31 -0700 (PDT)
+In-Reply-To: <CAE9FiQX3_BiOy5ZaQwDA+XN7Bn-XOtrdGrqAVWuAsuguHa+YYg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 09/11/2014 10:15 AM, Will Deacon wrote:
-> On Tue, Sep 09, 2014 at 05:04:15PM +0100, Jon Masters wrote:
->> On 09/09/2014 12:00 PM, Hanjun Guo wrote:
->>> No, you didn't miss it, I'm still working on the new version, sorry I didn't
->>> clarify that in my previous email.
+On Fri, Sep 12, 2014 at 3:31 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Sep 12, 2014 at 11:03 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> Move pci_configure_slot() and related functions from
+>> drivers/pci/hotplug/pcihp_slot to drivers/pci/probe.c.
 >>
->> Thanks. If you could copy me on the next posting that would rock. In a
->> few hours we should have another platform posted as an example. In
->> addition, a couple of lower priority patches (building upon the core
->> ACPI pieces) should be posted as well.
-> 
-> Can I breath out yet or did I miss the platform posting?
+>> This is to prepare for doing device configuration during the normal
+>> enumeration process instead of just after hot-add.
+>>
+>> ...
 
-There's a posting for AMD Seattle coming soon as an example. Also, there
-should be some hardware at Connect on which patches can run.
+> Would be better if those acpi related code could be moved to
+> drivers/pci/pci-acpi.c. and should put pci_configure_device() from
+> next patch to pci-acpi.c.
 
-Jon.
+Good point.  I just moved a bunch of the stuff from
+drivers/pci/hotplug/acpi_pcihp.c to pci-acpi.h, because acpi_pcihp.c
+is not compiled unless CONFIG_PCI_HOTPLUG is set.  And this stuff
+probably should go there, too.
+
+> Other that,  for the whole patchset,
+>
+> Acked-by: Yinghai Lu <yinghai@kernel.org>
