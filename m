@@ -1,410 +1,145 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v7 1/2] Mailbox: Add support for Platform Communication Channel
-Date: Fri, 12 Sep 2014 09:08:08 -0400
-Message-ID: <CAJ5Y-eYNqV_J2q_HJkXvaw_9QfezZ1AZBB+rQkaLLwMnUH_WBA@mail.gmail.com>
-References: <1410369619-2570-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1410369619-2570-2-git-send-email-ashwin.chaugule@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v4 00/18] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Fri, 12 Sep 2014 21:59:58 +0800
+Message-ID: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:55179 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967AbaILNIQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 09:08:16 -0400
-Received: by mail-wg0-f44.google.com with SMTP id y10so677696wgg.3
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2014 06:08:09 -0700 (PDT)
-In-Reply-To: <1410369619-2570-2-git-send-email-ashwin.chaugule@linaro.org>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:34733 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753637AbaILOAp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 10:00:45 -0400
+Received: by mail-pa0-f53.google.com with SMTP id rd3so1330170pab.12
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2014 07:00:44 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Hello,
+ACPI 5.1 has been released and now be freely available for
+download [1]. It fixed some major gaps to run ACPI on ARM,
+this patch just follow the ACPI 5.1 spec and prepare the
+code to run ACPI on ARM64.
 
-On 10 September 2014 13:20, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> ACPI 5.0+ spec defines a generic mode of communication
-> between the OS and a platform such as the BMC. This medium
-> (PCC) is typically used by CPPC (ACPI CPU Performance management),
-> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-> states).
->
-> This patch adds PCC support as a Mailbox Controller.
->
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> ---
->  drivers/mailbox/Kconfig   |  12 ++
->  drivers/mailbox/Makefile  |   2 +
->  drivers/mailbox/mailbox.c |   4 +-
->  drivers/mailbox/mailbox.h |  16 +++
->  drivers/mailbox/pcc.c     | 282 ++++++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 313 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/mailbox/mailbox.h
->  create mode 100644 drivers/mailbox/pcc.c
+ACPI 5.1 has some major changes for the following tables and
+method which are essential for ARM platforms:
+1) MADT table updates.
+2) FADT updates for PSCI
+3) GTDT
 
-How does this version look? If there are no more changes, please let
-me know which tree this can be picked by and I can send a pull request
-if that is preferred for this single patch.
+This patch set is the ARM64 ACPI core patches covered MADT, FADT
+and GTDT, platform board specific drivers are not covered by this
+patch set, but we provided drivers for Juno to boot with ACPI only
+for review purpose.
 
-Cheers,
-Ashwin
+We first introduce acpi.c and its related head file which are needed
+by ACPI core, and then get RSDP to extract all the ACPI boot-time tables.
+When all the boot-time tables (FADT, MADT, GTDT) are ready, then
+parse them to init the sytem when booted. Specifically, 
+a) we use FADT to init PSCI and use PSCI to boot SMP;
+b) Use MADT for GIC init and SMP init;
+c) GTDT for arch timer init.
 
->
-> diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-> index c8b5c13..e08cc83 100644
-> --- a/drivers/mailbox/Kconfig
-> +++ b/drivers/mailbox/Kconfig
-> @@ -50,4 +50,16 @@ config OMAP_MBOX_KFIFO_SIZE
->           Specify the default size of mailbox's kfifo buffers (bytes).
->           This can also be changed at runtime (via the mbox_kfifo_size
->           module parameter).
-> +
-> +config PCC
-> +       bool "Platform Communication Channel Driver"
-> +       depends on ACPI
-> +       help
-> +               ACPI 5.0+ spec defines a generic mode of communication
-> +               between the OS and a platform such as the BMC. This medium
-> +               (PCC) is typically used by CPPC (ACPI CPU Performance management),
-> +               RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-> +               states). Select this driver if your platform implements the
-> +               PCC clients mentioned above.
-> +
->  endif
-> diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-> index 2fa343a..0b09d6f 100644
-> --- a/drivers/mailbox/Makefile
-> +++ b/drivers/mailbox/Makefile
-> @@ -9,3 +9,5 @@ obj-$(CONFIG_OMAP1_MBOX)        += mailbox_omap1.o
->  mailbox_omap1-objs             := mailbox-omap1.o
->  obj-$(CONFIG_OMAP2PLUS_MBOX)   += mailbox_omap2.o
->  mailbox_omap2-objs             := mailbox-omap2.o
-> +
-> +obj-$(CONFIG_PCC)                      += pcc.o
-> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-> index 63ecc17..9d9366a 100644
-> --- a/drivers/mailbox/mailbox.c
-> +++ b/drivers/mailbox/mailbox.c
-> @@ -21,9 +21,7 @@
->  #include <linux/mailbox_client.h>
->  #include <linux/mailbox_controller.h>
->
-> -#define TXDONE_BY_IRQ  BIT(0) /* controller has remote RTR irq */
-> -#define TXDONE_BY_POLL BIT(1) /* controller can read status of last TX */
-> -#define TXDONE_BY_ACK  BIT(2) /* S/W ACK recevied by Client ticks the TX */
-> +#include "mailbox.h"
->
->  static LIST_HEAD(mbox_cons);
->  static DEFINE_MUTEX(con_mutex);
-> diff --git a/drivers/mailbox/mailbox.h b/drivers/mailbox/mailbox.h
-> new file mode 100644
-> index 0000000..5a15a25
-> --- /dev/null
-> +++ b/drivers/mailbox/mailbox.h
-> @@ -0,0 +1,16 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef __MAILBOX_H
-> +#define __MAILBOX_H
-> +
-> +#define TXDONE_BY_IRQ  BIT(0) /* controller has remote RTR irq */
-> +#define TXDONE_BY_POLL BIT(1) /* controller can read status of last TX */
-> +#define TXDONE_BY_ACK  BIT(2) /* S/W ACK recevied by Client ticks the TX */
-> +
-> +#endif /* __MAILBOX_H */
-> +
-> +
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> new file mode 100644
-> index 0000000..bb8e8b1
-> --- /dev/null
-> +++ b/drivers/mailbox/pcc.c
-> @@ -0,0 +1,282 @@
-> +/*
-> + *     Copyright (C) 2014 Linaro Ltd.
-> + *     Author: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/cpufreq.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/init.h>
-> +#include <linux/ioctl.h>
-> +#include <linux/module.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/vmalloc.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/mailbox_controller.h>
-> +#include <linux/mailbox_client.h>
-> +
-> +#include "mailbox.h"
-> +
-> +#define MAX_PCC_SUBSPACES      256
-> +#define PCCS_SS_SIG_MAGIC      0x50434300
-> +#define PCC_CMD_COMPLETE       0x1
-> +
-> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
-> +static struct mbox_controller pcc_mbox_ctrl = {};
-> +
-> +struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
-> +               int index)
-> +{
-> +       struct device *dev = pcc_mbox_ctrl.dev;
-> +       struct mbox_chan *chan;
-> +       unsigned long flags;
-> +
-> +       /*
-> +        * Each PCC Subspace is a Mailbox Channel.
-> +        * The PCC Clients get their PCC Subspace ID
-> +        * from their own tables and pass it here.
-> +        * This returns a pointer to the PCC subspace
-> +        * for the Client to operate on.
-> +        */
-> +       chan = &pcc_mbox_chan[index];
-> +
-> +       if (!chan || chan->cl) {
-> +               dev_err(dev, "%s: PCC mailbox not free\n", __func__);
-> +               return ERR_PTR(-EBUSY);
-> +       }
-> +
-> +       spin_lock_irqsave(&chan->lock, flags);
-> +       chan->msg_free = 0;
-> +       chan->msg_count = 0;
-> +       chan->active_req = NULL;
-> +       chan->cl = cl;
-> +       init_completion(&chan->tx_complete);
-> +
-> +       if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
-> +               chan->txdone_method |= TXDONE_BY_ACK;
-> +
-> +       spin_unlock_irqrestore(&chan->lock, flags);
-> +
-> +       return chan;
-> +}
-> +EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
-> +
-> +void pcc_mbox_free_channel(struct mbox_chan *chan)
-> +{
-> +       unsigned long flags;
-> +
-> +       if (!chan || !chan->cl)
-> +               return;
-> +
-> +       spin_lock_irqsave(&chan->lock, flags);
-> +       chan->cl = NULL;
-> +       chan->active_req = NULL;
-> +       if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
-> +               chan->txdone_method = TXDONE_BY_POLL;
-> +
-> +       spin_unlock_irqrestore(&chan->lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
-> +
-> +static bool pcc_tx_done(struct mbox_chan *chan)
-> +{
-> +       struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-> +       struct acpi_pcct_shared_memory *generic_comm_base =
-> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-> +       u16 cmd_delay = pcct_ss->min_turnaround_time;
-> +
-> +       /* Wait for Platform to consume. */
-> +       while (!(readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE))
-> +               udelay(cmd_delay);
-> +
-> +       return true;
-> +}
-> +
-> +static int get_subspace_id(struct mbox_chan *chan)
-> +{
-> +       int id = chan - pcc_mbox_chan;
-> +
-> +       if (id < 0 || id > pcc_mbox_ctrl.num_chans)
-> +               return -ENOENT;
-> +
-> +       return id;
-> +}
-> +
-> +/* Channel lock is already held by mbox controller code. */
-> +static int pcc_send_data(struct mbox_chan *chan, void *data)
-> +{
-> +       struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-> +       struct acpi_pcct_shared_memory *generic_comm_base =
-> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-> +       struct acpi_generic_address doorbell;
-> +       u64 doorbell_preserve;
-> +       u64 doorbell_val;
-> +       u64 doorbell_write;
-> +       u16 cmd = *(u16 *) data;
-> +       u16 ss_idx = -1;
-> +       int ret = 0;
-> +
-> +       ss_idx = get_subspace_id(chan);
-> +
-> +       if (ss_idx < 0) {
-> +               pr_err("Invalid Subspace ID from PCC client\n");
-> +               ret = -EINVAL;
-> +               goto out_err;
-> +       }
-> +
-> +       doorbell = pcct_ss->doorbell_register;
-> +       doorbell_preserve = pcct_ss->preserve_mask;
-> +       doorbell_write = pcct_ss->write_mask;
-> +
-> +       /* Write to the shared comm region. */
-> +       writew(cmd, &generic_comm_base->command);
-> +
-> +       /* Write Subspace MAGIC value so platform can identify destination. */
-> +       writel((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
-> +
-> +       /* Flip CMD COMPLETE bit */
-> +       writew(0, &generic_comm_base->status);
-> +
-> +       /* Sync notification from OSPM to Platform. */
-> +       acpi_read(&doorbell_val, &doorbell);
-> +       acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
-> +                       &doorbell);
-> +
-> +out_err:
-> +       return ret;
-> +}
-> +
-> +static struct mbox_chan_ops pcc_chan_ops = {
-> +       .send_data = pcc_send_data,
-> +       .last_tx_done = pcc_tx_done,
-> +};
-> +
-> +static int parse_pcc_subspace(struct acpi_subtable_header *header,
-> +               const unsigned long end)
-> +{
-> +       struct acpi_pcct_subspace *pcct_ss;
-> +
-> +       if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
-> +               pcct_ss = (struct acpi_pcct_subspace *) header;
-> +
-> +               if (pcct_ss->header.type != ACPI_PCCT_TYPE_GENERIC_SUBSPACE) {
-> +                       pr_err("Incorrect PCC Subspace type detected\n");
-> +                       return -EINVAL;
-> +               }
-> +
-> +               /* New mbox channel entry for each PCC subspace detected. */
-> +               pcc_mbox_chan[pcc_mbox_ctrl.num_chans].con_priv = pcct_ss;
-> +               pcc_mbox_ctrl.num_chans++;
-> +
-> +       } else {
-> +               pr_err("No more space for PCC subspaces.\n");
-> +               return -ENOSPC;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static int __init acpi_pcc_probe(void)
-> +{
-> +       acpi_status status = AE_OK;
-> +       acpi_size pcct_tbl_header_size;
-> +       struct acpi_table_pcct *pcct_tbl;
-> +
-> +       /* Search for PCCT */
-> +       status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
-> +                       (struct acpi_table_header **)&pcct_tbl,
-> +                       &pcct_tbl_header_size);
-> +
-> +       if (ACPI_SUCCESS(status) && !pcct_tbl) {
-> +               pr_warn("PCCT header not found.\n");
-> +               status = AE_NOT_FOUND;
-> +               goto out_err;
-> +       }
-> +
-> +       status = acpi_table_parse_entries(ACPI_SIG_PCCT,
-> +                       sizeof(struct acpi_table_pcct),
-> +                       ACPI_PCCT_TYPE_GENERIC_SUBSPACE,
-> +                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
-> +
-> +       if (ACPI_SUCCESS(status)) {
-> +               pr_err("Error parsing PCC subspaces from PCCT\n");
-> +               status = AE_ERROR;
-> +               goto out_err;
-> +       }
-> +
-> +       pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
-> +
-> +       pcc_mbox_ctrl.chans = pcc_mbox_chan;
-> +       pcc_mbox_ctrl.ops = &pcc_chan_ops;
-> +       pcc_mbox_ctrl.txdone_poll = true;
-> +       pcc_mbox_ctrl.txpoll_period = 1;
-> +
-> +out_err:
-> +       return ACPI_SUCCESS(status) ? -EINVAL : 0;
-> +}
-> +
-> +static int pcc_mbox_probe(struct platform_device *pdev)
-> +{
-> +       int ret = 0;
-> +
-> +       pcc_mbox_ctrl.dev = &pdev->dev;
-> +
-> +       pr_info("Registering PCC driver as Mailbox controller\n");
-> +       ret = mbox_controller_register(&pcc_mbox_ctrl);
-> +
-> +       if (ret) {
-> +               pr_err("Err registering PCC as Mailbox controller: %d\n", ret);
-> +               ret = -ENODEV;
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +struct platform_driver pcc_mbox_driver = {
-> +       .probe = pcc_mbox_probe,
-> +       .driver = {
-> +               .name = "PCCT",
-> +               .owner = THIS_MODULE,
-> +       },
-> +};
-> +
-> +static int __init pcc_init(void)
-> +{
-> +       int ret;
-> +       struct platform_device *pcc_pdev;
-> +
-> +       if (acpi_disabled)
-> +               return -ENODEV;
-> +
-> +       /* Check if PCC support is available. */
-> +       ret = acpi_pcc_probe();
-> +
-> +       if (ret) {
-> +               pr_debug("ACPI PCC probe failed.\n");
-> +               return -ENODEV;
-> +       }
-> +
-> +       pcc_pdev = platform_create_bundle(&pcc_mbox_driver,
-> +                       pcc_mbox_probe, NULL, 0, NULL, 0);
-> +
-> +       if (!pcc_pdev) {
-> +               pr_err("Err creating PCC platform bundle\n");
-> +               return -ENODEV;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +device_initcall(pcc_init);
-> --
-> 1.9.1
->
+This patch set is based on 3.17-rc4 and was tested by Graeme on Juno
+and FVP base model boot with ACPI only OK, if you want to test them,
+you can pull from acpi-5.1-v4 branch in leg/acpi repo:
+git://git.linaro.org/leg/acpi/acpi.git
+
+Updates since v3:
+ - Compile out sleep.c on ARM64 when ACPI enabled
+ - refactor the GIC init code to address the comments from Marc and
+   Arnd
+ - refactor the SMP init code to fix some logic problem when PSCI is
+   not present, also address some of Grant and Lorenzo's comments
+ - reorder the patch series and move ACPI table changes to the front
+   of patch set
+ - rebase on top of 3.17-rc4
+
+Updates since v2:
+ - Refactor the code to make SMP/PSCI init with less sperated init
+   path by Tomasz
+ - make ACPI depend on EXPERT
+ - Address lots of comments from Catalin, Sudeep, Geoff
+ - Add Juno device ACPI driver patches for review
+
+Updates since v1:
+ - Set ACPI default off on ARM64 suggested by Olof;
+ - Rebase the patch set on top of linux-next branch/linux-pm tree which
+   includes the ACPICA for full ACPI 5.1 support.
+ - Update the document as suggested;
+ - Adress lots of comments from Mark, Sudeep, Randy, Naresh, Olof, Geoff
+   and more...
+
+[1]: http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+
+Al Stone (3):
+  ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+  ARM64 / ACPI: Introduce early_param for "acpi"
+  ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
+    ARM64
+
+Ashwin Chaugule (1):
+  ACPI / table: Add new function to get table entries
+
+Graeme Gregory (4):
+  ARM64 / ACPI: Introduce sleep-arm.c
+  ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+  ARM64 / ACPI: Enable ARM64 in Kconfig
+  Documentation: ACPI for ARM64
+
+Hanjun Guo (8):
+  ARM64: Move the init of cpu_logical_map(0) before
+    unflatten_device_tree()
+  ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+  ARM64 / ACPI: Parse FADT table to get PSCI flags for PSCI init
+  ACPI / table: Print GIC information when MADT is parsed
+  ARM64 / ACPI: Parse MADT for SMP initialization
+  ACPI / processor: Make it possible to get CPU hardware ID via GICC
+  ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+  ARM64 / ACPI: Parse GTDT to initialize arch timer
+
+Tomasz Nowicki (2):
+  ACPI / table: Count matched and successfully parsed entries without
+    specifying max entries
+  ARM64 / ACPI: Add GICv2 specific ACPI boot support
+
+ Documentation/arm64/arm-acpi.txt     |  218 +++++++++++++++++++++
+ Documentation/kernel-parameters.txt  |    3 +-
+ arch/arm64/Kconfig                   |    3 +
+ arch/arm64/include/asm/acenv.h       |   18 ++
+ arch/arm64/include/asm/acpi.h        |   96 ++++++++++
+ arch/arm64/include/asm/cpu_ops.h     |    1 +
+ arch/arm64/include/asm/pci.h         |   11 ++
+ arch/arm64/include/asm/psci.h        |    3 +-
+ arch/arm64/include/asm/smp.h         |    5 +-
+ arch/arm64/kernel/Makefile           |    1 +
+ arch/arm64/kernel/acpi.c             |  351 ++++++++++++++++++++++++++++++++++
+ arch/arm64/kernel/cpu_ops.c          |    4 +-
+ arch/arm64/kernel/psci.c             |   78 +++++---
+ arch/arm64/kernel/setup.c            |   23 ++-
+ arch/arm64/kernel/smp.c              |    2 +-
+ arch/arm64/kernel/time.c             |    7 +
+ drivers/acpi/Kconfig                 |    6 +-
+ drivers/acpi/Makefile                |    6 +-
+ drivers/acpi/bus.c                   |    3 +
+ drivers/acpi/internal.h              |    5 +
+ drivers/acpi/processor_core.c        |   37 ++++
+ drivers/acpi/sleep-arm.c             |   28 +++
+ drivers/acpi/tables.c                |  115 +++++++++--
+ drivers/clocksource/arm_arch_timer.c |  117 ++++++++++--
+ drivers/irqchip/irq-gic.c            |  106 ++++++++++
+ drivers/irqchip/irqchip.c            |    3 +
+ include/linux/acpi.h                 |    5 +
+ include/linux/clocksource.h          |    6 +
+ include/linux/irqchip/arm-gic-acpi.h |   31 +++
+ include/linux/pci.h                  |   37 +++-
+ 30 files changed, 1238 insertions(+), 91 deletions(-)
+ create mode 100644 Documentation/arm64/arm-acpi.txt
+ create mode 100644 arch/arm64/include/asm/acenv.h
+ create mode 100644 arch/arm64/include/asm/acpi.h
+ create mode 100644 arch/arm64/include/asm/pci.h
+ create mode 100644 arch/arm64/kernel/acpi.c
+ create mode 100644 drivers/acpi/sleep-arm.c
+ create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+
+-- 
+1.7.9.5
+
