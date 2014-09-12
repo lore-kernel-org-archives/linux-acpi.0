@@ -1,27 +1,20 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH v1 07/13] ACPI / hotplug / PCI: Remove pci_configure_slot()
- usage
-Date: Fri, 12 Sep 2014 12:03:34 -0600
-Message-ID: <20140912180334.1630.56528.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Subject: [PATCH v1 05/13] PCI: pciehp: Remove pci_configure_slot() usage
+Date: Fri, 12 Sep 2014 12:03:21 -0600
+Message-ID: <20140912180321.1630.88175.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:56683 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292AbaILSDg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 14:03:36 -0400
-Received: by mail-ie0-f175.google.com with SMTP id at20so1403347iec.34
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2014 11:03:36 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-pci@vger.kernel.org
 Cc: Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 We now configure each PCI device as it is enumerated, in pci_device_add(),
-so remove the configuration done in acpiphp.
+so remove the configuration done in pciehp.
 
 That configuration, in pci_configure_device(), does not include the
 MPS/MRRS configuration done by pcie_bus_configure_settings(), so keep
@@ -29,43 +22,22 @@ that here.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/pci/hotplug/pciehp_pci.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 70741c8c46a0..a6f8e0ba0bfe 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -61,7 +61,6 @@ static DEFINE_MUTEX(bridge_mutex);
- static int acpiphp_hotplug_notify(struct acpi_device *adev, u32 type);
- static void acpiphp_post_dock_fixup(struct acpi_device *adev);
- static void acpiphp_sanitize_bus(struct pci_bus *bus);
--static void acpiphp_set_hpp_values(struct pci_bus *bus);
- static void hotplug_event(u32 type, struct acpiphp_context *context);
- static void free_bridge(struct kref *kref);
+diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
+index b66812703415..9e69403be632 100644
+--- a/drivers/pci/hotplug/pciehp_pci.c
++++ b/drivers/pci/hotplug/pciehp_pci.c
+@@ -65,10 +65,7 @@ int pciehp_configure_device(struct slot *p_slot)
+ 			pci_hp_add_bridge(dev);
  
-@@ -510,7 +509,7 @@ static void enable_slot(struct acpiphp_slot *slot)
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
- 
- 	acpiphp_sanitize_bus(bus);
--	acpiphp_set_hpp_values(bus);
-+	pcie_bus_configure_settings(bus);
- 	acpiphp_set_acpi_region(slot);
- 
- 	list_for_each_entry(dev, &bus->devices, bus_list) {
-@@ -702,14 +701,6 @@ static void acpiphp_check_bridge(struct acpiphp_bridge *bridge)
- 	}
- }
- 
--static void acpiphp_set_hpp_values(struct pci_bus *bus)
--{
--	struct pci_dev *dev;
+ 	pci_assign_unassigned_bridge_resources(bridge);
 -
--	list_for_each_entry(dev, &bus->devices, bus_list)
+-	list_for_each_entry(dev, &parent->devices, bus_list)
 -		pci_configure_slot(dev);
--}
 -
- /*
-  * Remove devices for which we could not assign resources, call
-  * arch specific code to fix-up the bus
-
++	pcie_bus_configure_settings(parent);
+ 	pci_bus_add_devices(parent);
+ 
+  out:
