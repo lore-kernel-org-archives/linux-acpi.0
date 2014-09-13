@@ -1,55 +1,36 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v1 02/13] PCI: Move pci_configure_slot() to drivers/pci/probe.c
-Date: Fri, 12 Sep 2014 15:51:21 -0600
-Message-ID: <CAErSpo40npxipMjmQ9x8G0oGqjLxqkWLnAZfih-H-QTHcCvkPA@mail.gmail.com>
-References: <20140912180141.1630.17120.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <20140912180300.1630.62966.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <CAE9FiQX3_BiOy5ZaQwDA+XN7Bn-XOtrdGrqAVWuAsuguHa+YYg@mail.gmail.com> <CAErSpo6dF468YjBdYL3A2=cgsB3bAaqNdOL-Fs-EVnz=cJ0MUA@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] [REGRESSION] i2c-acpi: Fix NULL Pointer dereference
+Date: Sat, 13 Sep 2014 09:34:31 +0300
+Message-ID: <20140913063431.GJ10854@lahna.fi.intel.com>
+References: <1410548987-3558-1-git-send-email-peterhuewe@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:62758 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752712AbaILVvn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Sep 2014 17:51:43 -0400
-Received: by mail-qg0-f50.google.com with SMTP id z60so1468496qgd.37
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Sep 2014 14:51:41 -0700 (PDT)
-In-Reply-To: <CAErSpo6dF468YjBdYL3A2=cgsB3bAaqNdOL-Fs-EVnz=cJ0MUA@mail.gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:9314 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751477AbaIMGef (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Sep 2014 02:34:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1410548987-3558-1-git-send-email-peterhuewe@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Rajat Jain <rajatxjain@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Peter Huewe <peterhuewe@gmx.de>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Sep 12, 2014 at 3:35 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Fri, Sep 12, 2014 at 3:31 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->> On Fri, Sep 12, 2014 at 11:03 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>> Move pci_configure_slot() and related functions from
->>> drivers/pci/hotplug/pcihp_slot to drivers/pci/probe.c.
->>>
->>> This is to prepare for doing device configuration during the normal
->>> enumeration process instead of just after hot-add.
->>>
->>> ...
->
->> Would be better if those acpi related code could be moved to
->> drivers/pci/pci-acpi.c. and should put pci_configure_device() from
->> next patch to pci-acpi.c.
->
-> Good point.  I just moved a bunch of the stuff from
-> drivers/pci/hotplug/acpi_pcihp.c to pci-acpi.h, because acpi_pcihp.c
-> is not compiled unless CONFIG_PCI_HOTPLUG is set.  And this stuff
-> probably should go there, too.
+On Fri, Sep 12, 2014 at 09:09:47PM +0200, Peter Huewe wrote:
+> If adapter->dev.parent == NULL there is a NULL pointer dereference in
+> acpi_i2c_install_space_handler and acpi_i2c_remove_space_handler.
+> 
+> This is present since introduction of this code:
+> 366047515c6e "i2c: rework kernel config I2C_ACPI" or even
+> da3c6647ee08 "I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI"
+> 
+> The adapter->dev.parent == NULL case is valid for the i2c_stub,
+> so loading i2c_stub with ACPI_I2C_OPREGION enabled results in an oops.
+> This is also valid at least for i2c_tiny_usb and i2c_robotfuzz_osif.
+> 
+> Fix by checking whether it is null before calling ACPI_HANDLE.
+> 
+> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
 
-On second thought, none of the stuff from pcihp_slot.c
-(pci_configure_slot(), program_hpp_type0(), program_hpp_type1(),
-program_hpp2()) actually mentions ACPI or uses any ACPI interfaces,
-and it is all compiled into pcihp_slot.o today even without
-CONFIG_ACPI.  So my patch really doesn't change any of that, except to
-make it available when CONFIG_PCI_HOTPLUG is not set.  I'll have to
-think about this some more.  It certainly is all implicitly driven by
-the ACPI spec and the "hpp", "type0", "type1", etc. names are from
-ACPI, so maybe it could be abstracted better somehow.
-
->> Other that,  for the whole patchset,
->>
->> Acked-by: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
