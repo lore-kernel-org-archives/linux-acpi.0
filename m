@@ -1,38 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [v4,1/9] ACPI / PM: Let acpi_dev_pm_detach() return an error code
-Date: Sun, 14 Sep 2014 18:38:58 +0200
-Message-ID: <6318611.DnX9cEgMjk@vostro.rjw.lan>
-References: <1410262570-22785-2-git-send-email-ulf.hansson@linaro.org> <20140912210553.GA27924@core.coreip.homeip.net>
+Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+Date: Sun, 14 Sep 2014 18:52:52 +0200
+Message-ID: <5973164.RGiBWmV7v9@vostro.rjw.lan>
+References: <540E91F0.2060306@linux.intel.com> <20140910075026.GB13406@lahna.fi.intel.com> <54133333.1020406@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65365 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:56848 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752668AbaINQTZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Sep 2014 12:19:25 -0400
-In-Reply-To: <20140912210553.GA27924@core.coreip.homeip.net>
+	with SMTP id S1752336AbaINQdT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Sep 2014 12:33:19 -0400
+In-Reply-To: <54133333.1020406@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, linux-acpi@vger.kernel.org, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel@lists.infradead.org
+To: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Friday, September 12, 2014 02:05:53 PM Dmitry Torokhov wrote:
-> Hi Ulf,
+On Saturday, September 13, 2014 01:53:55 AM Fu, Zhonghui wrote:
 > 
-> On Tue, Sep 09, 2014 at 01:36:02PM +0200, Ulf Hansson wrote:
-> > To give callers the option of acting on a errors while removing the
-> > pm_domain ops for the device in the ACPI PM domain, let
-> > acpi_dev_pm_detach() return an int to provide the error code.
+> On 2014/9/10 15:50, Mika Westerberg wrote:
+> > On Tue, Sep 09, 2014 at 01:36:48PM +0800, Fu, Zhonghui wrote:
+> >> >From 6deb00230f5df68da3ca7490402a0c537bf386bb Mon Sep 17 00:00:00 2001
+> >> From: Fu Zhonghui <zhonghui.fu@linux.intel.com>
+> >> Date: Tue, 9 Sep 2014 13:02:25 +0800
+> >> Subject: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+> >>
+> >> LPSS devices must suspend/resume in fixed order. Or some LPSS devices
+> >> will hang during the transition to ACPI_STATE_D0 state.
+> > In addition to the comment from Rafael, I would like to have more
+> > details here why we must suspend/resume the LPSS devices in certain
+> > order.
+> Sorry for late response.
 > 
-> So how would callers handle the errors? As far as I can see
-> acpi_dev_pm_detach() is called from ->remove() and ->shutdown() methods, where
-> there is no meaningful strategy to handle errors as you are past the point of
-> no return and you keep on tearing down the device.
+> After the patch "ACPI / platform / LPSS: Enable async suspend/resume of LPSS devices(commit ID: 8ce62f85a81f57e86bc120ab690facc612223188)" was merged into upstream kernel, some LPSS devices(UART, I2C) frequently hang during resume. So, my patch is actually reverting that patch.
 
-This is specifically for what patch [3/9] is doing AFAICS.  
+I suppose the Mika's question was more about whether or not you were able
+to identify the exact reason why the LPSS devices in question stopped
+resuming correctly after the above change.
 
-The existing callers don't need to worry about this.
+Also, your patch is not actually revering the whole commit mentioned above, as
+it did a couple of things more.  You're simply restoring the previous behavior,
+which doesn't mean "reverting".
 
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
