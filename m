@@ -1,89 +1,60 @@
-From: Edward Lin <yidi.lin@canonical.com>
-Subject: [PATCH] ACPI: blacklist Win8 OSI for some Dell laptop models
-Date: Mon, 15 Sep 2014 11:56:12 +0800
-Message-ID: <1410753372-10912-1-git-send-email-yidi.lin@canonical.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add
+ support for probing from ACPI
+Date: Sun, 14 Sep 2014 21:08:44 -0700
+Message-ID: <20140915040844.12D19C40A02@trevor.secretlab.ca>
+References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org>
+	<1409583961-7466-2-git-send-email-hanjun.guo@linaro.org>
+	<2861461.8zNpLC3I2n@wuerfel>
+	<20140901152854.GJ2953@xora-haswell.xora.org.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:60360 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753145AbaIOD4R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Sep 2014 23:56:17 -0400
-Received: by mail-pa0-f54.google.com with SMTP id lj1so5555855pab.41
-        for <linux-acpi@vger.kernel.org>; Sun, 14 Sep 2014 20:56:16 -0700 (PDT)
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:43858 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750756AbaIOEIr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 00:08:47 -0400
+Received: by mail-pa0-f48.google.com with SMTP id hz1so5533678pad.7
+        for <linux-acpi@vger.kernel.org>; Sun, 14 Sep 2014 21:08:46 -0700 (PDT)
+In-Reply-To: <20140901152854.GJ2953@xora-haswell.xora.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: yk@canonical.com
+To: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi@lists.linaro.org, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Olof Johansson <olof@lixom.net>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Lv Zheng <lv.zheng@intel.com>
 
-The wireless hotkey of those machines does not work with Win8 OSI.
-Due to insufficient documentation for the driver implementation,
-blacklist those machines as a workaround.
+On Mon, 1 Sep 2014 16:28:54 +0100, Graeme Gregory <graeme.gregory@linaro.org> wrote:
+> On Mon, Sep 01, 2014 at 05:17:51PM +0200, Arnd Bergmann wrote:
+> > On Monday 01 September 2014 23:06:00 Hanjun Guo wrote:
+> > > +#ifdef CONFIG_ACPI
+> > > +/* Configure some sensible defaults for ACPI mode */
+> > > +static int smsc911x_probe_config_acpi(struct smsc911x_platform_config *config,
+> > > +                                   acpi_handle *ahandle)
+> > > +{
+> > > +       if (!ahandle)
+> > > +               return -ENOSYS;
+> > > +
+> > > +       config->phy_interface = PHY_INTERFACE_MODE_MII;
+> > > 
+> > 
+> > Please remove the #ifdef and use 
+> > 
+> > 	if (!IS_ENABLED(CONFIG_ACPI) || !ahandle)
+> > 
+> > to check for ACPI support. This should result in the same object code
+> > in all cases, but give better compile-time coverage when ACPI is
+> > disabled.
+> > 
+> struct acpi_handle does not exist in the case !CONFIG_ACPI
+> 
+> > Also, -ENOSYS is probably the wrong return value. I think you mean
+> > -ENXIO.
+> > 
+> Yes that would make sense thanks.
+> 
+> Not sure if we are planning to actually upstream this patch, I guess it
+> depends if ARM start shipping Junos with the ACPI tables loaded on them.
 
-"audo wake on after shutdown" bug on Dell Inspiron 7737 is fixed by BIOS[1].
-But this machine still suffers the hotkey issue. So keep the quirk for the
-wireless hotkey issue.
+I think we do want this upstreamed. Juno is intended to be a readily
+available reference platform, regardless of the firmware loaded when
+shipped. There will be users who use it as a test platform for ACPI
+development.
 
-[1]:
-http://www.dell.com/support/home/us/en/19/Drivers/DriversDetails?driverId=MJWNX
-
-Signed-off-by: Edward Lin <yidi.lin@canonical.com>
----
- drivers/acpi/blacklist.c | 36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 36eb42e..ed122e1 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -247,8 +247,8 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	},
- 
- 	/*
--	 * These machines will power on immediately after shutdown when
--	 * reporting the Windows 2012 OSI.
-+	 * The wireless hotkey does not work on those machines when
-+	 * returning true for _OSI("Windows 2012")
- 	 */
- 	{
- 	.callback = dmi_disable_osi_win8,
-@@ -258,6 +258,38 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7737"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Inspiron 7537",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7537"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Inspiron 5437",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5437"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Inspiron 3437",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 3437"),
-+		},
-+	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Vostro 3446",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3446"),
-+		},
-+	},
- 
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
--- 
-1.9.1
-
+g.
