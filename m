@@ -1,49 +1,55 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v4 10/18] ACPI / table: Print GIC information when MADT is parsed
-Date: Mon, 15 Sep 2014 11:01:40 -0700
-Message-ID: <CAOesGMjcXYjmUzZqGncnkN-uhnLC1ey2vqeqE4MQ5UDm8BaYTg@mail.gmail.com>
-References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
-	<1410530416-30200-11-git-send-email-hanjun.guo@linaro.org>
-	<20140915064010.GD26649@localhost>
-	<20140915175250.8177DC40A42@trevor.secretlab.ca>
+From: Rajat Jain <rajatxjain@gmail.com>
+Subject: Re: [PATCH 0/2] PCI: Ignore hotplug events for dual GPU systems
+Date: Mon, 15 Sep 2014 12:06:42 -0700
+Message-ID: <CAA93t1qEmGkVHOJFjvB3OGecjC3c43SmpJW2yKv-OZTDESBWDw@mail.gmail.com>
+References: <20140911222022.16809.57079.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+	<1434331.0IZIM5O2Ci@vostro.rjw.lan>
+	<alpine.DEB.2.00.1409151152400.28050@skynet.skynet.ie>
+Reply-To: rajatxjain@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140915175250.8177DC40A42@trevor.secretlab.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:62931 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754265AbaIOTGm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 15:06:42 -0400
+In-Reply-To: <alpine.DEB.2.00.1409151152400.28050@skynet.skynet.ie>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Airlie <airlied@linux.ie>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, SpacemanSpiff <a818958@trbvm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, "Jose P." <lbdkmjdf@sharklasers.com>
 
-On Mon, Sep 15, 2014 at 10:52 AM, Grant Likely <grant.likely@linaro.org> wrote:
-> On Sun, 14 Sep 2014 23:40:10 -0700, Olof Johansson <olof@lixom.net> wrote:
->> On Fri, Sep 12, 2014 at 10:00:08PM +0800, Hanjun Guo wrote:
->> > When MADT is parsed, print GIC information to make the boot
->> > log look pretty.
+On Mon, Sep 15, 2014 at 3:53 AM, Dave Airlie <airlied@linux.ie> wrote:
+>
+>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Acked-by: Dave Airlie <airlied@redhat.com>
+
+Acked-by: Rajat Jain <rajatxjain@gmail.com>
+
 >>
->> If you do this for prettiness, having an example output in the commit
->> message would be a nice touch.
->
-> Agreed.
->
->> The question is why it's needed though? Do we really need all this verbose
->> information in dmesg when it could be found out in other ways instead?
+>> for both.
 >>
->> x86 is notoriously verbose in some of these aspects, I'm not sure it's
->> something we need to mimic here?
->
-> For consistency, it does make sense to have the common x86 and ARM64
-> code outputing information in the same way, so I think the patch still
-> makes sense. All of them could be moved to KERN_DEBUG as a separate
-> patch if we want to cull early boot output. I would split that off and
-> discuss it separately.
-
-Yeah, pr_debug() makes sense here -- in particular if you're going to
-have a potentially slow serial console to print all this to at info
-level.
-
-I disagree on order though, there's no reason to hold off fixing this
-and doing it as a separate patch.
-
-
--Olof
+>> > ---
+>> >
+>> > Bjorn Helgaas (2):
+>> >       PCI: Add pci_ignore_hotplug() to ignore hotplug events for a device
+>> >       ACPIPHP / radeon / nouveau: Remove acpi_bus_no_hotplug()
+>> >
+>> >
+>> >  drivers/acpi/bus.c                           |   10 ----------
+>> >  drivers/gpu/drm/nouveau/nouveau_acpi.c       |   16 ++--------------
+>> >  drivers/gpu/drm/nouveau/nouveau_drm.c        |    1 +
+>> >  drivers/gpu/drm/radeon/radeon_atpx_handler.c |   16 ++--------------
+>> >  drivers/gpu/drm/radeon/radeon_drv.c          |    1 +
+>> >  drivers/pci/hotplug/acpiphp_glue.c           |   16 ++++++----------
+>> >  drivers/pci/hotplug/pciehp_hpc.c             |   12 ++++++++++++
+>> >  include/acpi/acpi_bus.h                      |    4 +---
+>> >  include/linux/pci.h                          |    6 ++++++
+>> >  9 files changed, 31 insertions(+), 51 deletions(-)
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
