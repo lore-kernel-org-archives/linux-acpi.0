@@ -1,44 +1,38 @@
-From: Dave Airlie <airlied@linux.ie>
-Subject: Re: [PATCH 0/2] PCI: Ignore hotplug events for dual GPU systems
-Date: Mon, 15 Sep 2014 11:53:03 +0100 (IST)
-Message-ID: <alpine.DEB.2.00.1409151152400.28050@skynet.skynet.ie>
-References: <20140911222022.16809.57079.stgit@bhelgaas-glaptop2.roam.corp.google.com> <1434331.0IZIM5O2Ci@vostro.rjw.lan>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: [PATCH] ACPI: Update acpi_check_dsm() comments
+Date: Mon, 15 Sep 2014 19:36:53 +0800
+Message-ID: <1410781013-16673-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1434331.0IZIM5O2Ci@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, SpacemanSpiff <a818958@trbvm.com>, Rajat Jain <rajatxjain@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, =?ISO-8859-15?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Alex Deucher <alexdeucher@gmail.com>, "Jose P." <lbdkmjdf@sharklasers.com>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:40683 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbaIOLOI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 07:14:08 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>
 
+Update function comments.
 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/acpi/utils.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Acked-by: Dave Airlie <airlied@redhat.com>
-> 
-> for both.
-> 
-> > ---
-> > 
-> > Bjorn Helgaas (2):
-> >       PCI: Add pci_ignore_hotplug() to ignore hotplug events for a device
-> >       ACPIPHP / radeon / nouveau: Remove acpi_bus_no_hotplug()
-> > 
-> > 
-> >  drivers/acpi/bus.c                           |   10 ----------
-> >  drivers/gpu/drm/nouveau/nouveau_acpi.c       |   16 ++--------------
-> >  drivers/gpu/drm/nouveau/nouveau_drm.c        |    1 +
-> >  drivers/gpu/drm/radeon/radeon_atpx_handler.c |   16 ++--------------
-> >  drivers/gpu/drm/radeon/radeon_drv.c          |    1 +
-> >  drivers/pci/hotplug/acpiphp_glue.c           |   16 ++++++----------
-> >  drivers/pci/hotplug/pciehp_hpc.c             |   12 ++++++++++++
-> >  include/acpi/acpi_bus.h                      |    4 +---
-> >  include/linux/pci.h                          |    6 ++++++
-> >  9 files changed, 31 insertions(+), 51 deletions(-)
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 07c8c5a..834f35c 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -661,7 +661,6 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+  * @uuid: UUID of requested functions, should be 16 bytes at least
+  * @rev: revision number of requested functions
+  * @funcs: bitmap of requested functions
+- * @exclude: excluding special value, used to support i915 and nouveau
+  *
+  * Evaluate device's _DSM method to check whether it supports requested
+  * functions. Currently only support 64 functions at maximum, should be
+-- 
+1.7.1
+
