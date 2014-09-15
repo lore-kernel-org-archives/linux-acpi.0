@@ -1,83 +1,178 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v4 14/18] ARM64 / ACPI: Add GICv2 specific ACPI boot
- support
-Date: Mon, 15 Sep 2014 17:42:53 +0100
-Message-ID: <20140915164253.GI5415@arm.com>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v4 02/18] ACPI / table: Add new function to get table
+ entries
+Date: Mon, 15 Sep 2014 09:48:21 -0700
+Message-ID: <20140915164821.8740BC40A26@trevor.secretlab.ca>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
- <1410530416-30200-15-git-send-email-hanjun.guo@linaro.org>
- <20140915150136.GF5415@arm.com>
- <541710D5.3030001@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	<1410530416-30200-3-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:33044 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753319AbaIOQnM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 12:43:12 -0400
-Content-Disposition: inline
-In-Reply-To: <541710D5.3030001@redhat.com>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:54462 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216AbaIOQs1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 12:48:27 -0400
+Received: by mail-pd0-f179.google.com with SMTP id g10so6551266pdj.38
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2014 09:48:26 -0700 (PDT)
+In-Reply-To: <1410530416-30200-3-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Will Deacon <will.deacon@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Mon, Sep 15, 2014 at 05:16:21PM +0100, Jon Masters wrote:
-> On 09/15/2014 11:01 AM, Catalin Marinas wrote:
-> > On Fri, Sep 12, 2014 at 03:00:12PM +0100, Hanjun Guo wrote:
-> >> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> >> index 5b3546b..9869377 100644
-> >> --- a/arch/arm64/kernel/acpi.c
-> >> +++ b/arch/arm64/kernel/acpi.c
-> >> @@ -23,6 +23,7 @@
-> >>  #include <linux/irqdomain.h>
-> >>  #include <linux/bootmem.h>
-> >>  #include <linux/smp.h>
-> >> +#include <linux/irqchip/arm-gic-acpi.h>
-> >>  
-> >>  #include <asm/cputype.h>
-> >>  #include <asm/cpu_ops.h>
-> >> @@ -312,6 +313,28 @@ void __init acpi_boot_table_init(void)
-> >>  		pr_err("Can't find FADT or error happened during parsing FADT\n");
-> >>  }
-> >>  
-> >> +void __init acpi_gic_init(void)
-> >> +{
-> >> +	struct acpi_table_header *table;
-> >> +	acpi_status status;
-> >> +	acpi_size tbl_size;
-> >> +	int err;
-> >> +
-> >> +	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
-> >> +	if (ACPI_FAILURE(status)) {
-> >> +		const char *msg = acpi_format_exception(status);
-> >> +
-> >> +		pr_err("Failed to get MADT table, %s\n", msg);
-> >> +		return;
-> >> +	}
-> >> +
-> >> +	err = gic_v2_acpi_init(table);
-> >> +	if (err)
-> >> +		pr_err("Failed to initialize GIC IRQ controller");
-> >> +
-> >> +	early_acpi_os_unmap_memory((char *)table, tbl_size);
-> >> +}
-> > 
-> > Maybe this was discussed already but why does this function need to live
-> > under arch/arm64? Isn't the driver code more appropriate?
+On Fri, 12 Sep 2014 22:00:00 +0800, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 > 
-> Well there's two halves to this, right? There's the MADT parsing/setup,
-> which is architecture specific, and then there's the GIC irqchip
-> initialization which lives under drivers.
+> The acpi_table_parse() function has a callback that
+> passes a pointer to a table_header. Add a new function
+> which takes this pointer and parses its entries. This
+> eliminates the need to re-traverse all the tables for
+> each call. e.g. as in acpi_table_parse_madt() which is
+> normally called after acpi_table_parse().
+> 
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-I think it gets worse, this function is called from irqchip_init(). I
-would have been slightly happier if it was called from the arm64
-init_IRQ(). But putting an ARM specific GIC initialisation call in a
-generic irqchip_init() just looks weird. Can we do anything better here?
+Makes sense.
 
+Acked-by: Grant Likely <grant.likely@linaro.org>
+
+g.
+
+> ---
+>  drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
+>  include/linux/acpi.h  |    4 +++
+>  2 files changed, 51 insertions(+), 20 deletions(-)
 > 
-> Jon.
-> 
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 6d5a6cd..21ae521 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  
+>  
+>  int __init
+> -acpi_table_parse_entries(char *id,
+> -			     unsigned long table_size,
+> -			     int entry_id,
+> -			     acpi_tbl_entry_handler handler,
+> -			     unsigned int max_entries)
+> +acpi_parse_entries(unsigned long table_size,
+> +		acpi_tbl_entry_handler handler,
+> +		struct acpi_table_header *table_header,
+> +		int entry_id, unsigned int max_entries)
+>  {
+> -	struct acpi_table_header *table_header = NULL;
+>  	struct acpi_subtable_header *entry;
+> -	unsigned int count = 0;
+> +	int count = 0;
+>  	unsigned long table_end;
+> -	acpi_size tbl_size;
+>  
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+> @@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
+>  	if (!handler)
+>  		return -EINVAL;
+>  
+> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+> -	else
+> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
+> +	if (!table_size)
+> +		return -EINVAL;
+>  
+>  	if (!table_header) {
+> -		pr_warn("%4.4s not present\n", id);
+> +		pr_warn("Table header not present\n");
+>  		return -ENODEV;
+>  	}
+>  
+> @@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
+>  		if (entry->type == entry_id
+>  		    && (!max_entries || count++ < max_entries))
+>  			if (handler(entry, table_end))
+> -				goto err;
+> +				return -EINVAL;
+>  
+>  		/*
+>  		 * If entry->length is 0, break from this loop to avoid
+>  		 * infinite loop.
+>  		 */
+>  		if (entry->length == 0) {
+> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
+> -			goto err;
+> +			pr_err("[0x%02x] Invalid zero length\n", entry_id);
+> +			return -EINVAL;
+>  		}
+>  
+>  		entry = (struct acpi_subtable_header *)
+>  		    ((unsigned long)entry + entry->length);
+>  	}
+> +
+>  	if (max_entries && count > max_entries) {
+>  		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
+> -			id, entry_id, count - max_entries, count);
+> +			table_header->signature, entry_id, count - max_entries,
+> +			count);
+>  	}
+>  
+> -	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+>  	return count;
+> -err:
+> +}
+> +
+> +int __init
+> +acpi_table_parse_entries(char *id,
+> +			 unsigned long table_size,
+> +			 int entry_id,
+> +			 acpi_tbl_entry_handler handler,
+> +			 unsigned int max_entries)
+> +{
+> +	struct acpi_table_header *table_header = NULL;
+> +	acpi_size tbl_size;
+> +	int count;
+> +
+> +	if (acpi_disabled)
+> +		return -ENODEV;
+> +
+> +	if (!handler)
+> +		return -EINVAL;
+> +
+> +	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+> +		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+> +	else
+> +		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
+> +
+> +	if (!table_header) {
+> +		pr_warn("%4.4s not present\n", id);
+> +		return -ENODEV;
+> +	}
+> +
+> +	count = acpi_parse_entries(table_size, handler, table_header,
+> +			entry_id, max_entries);
+> +
+>  	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+> -	return -EINVAL;
+> +	return count;
+>  }
+>  
+>  int __init
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 807cbc4..36d5012 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -123,6 +123,10 @@ int acpi_numa_init (void);
+>  
+>  int acpi_table_init (void);
+>  int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+> +int __init acpi_parse_entries(unsigned long table_size,
+> +			      acpi_tbl_entry_handler handler,
+> +			      struct acpi_table_header *table_header,
+> +			      int entry_id, unsigned int max_entries);
+>  int __init acpi_table_parse_entries(char *id, unsigned long table_size,
+>  				    int entry_id,
+>  				    acpi_tbl_entry_handler handler,
+> -- 
+> 1.7.9.5
 > 
 
--- 
-Catalin
