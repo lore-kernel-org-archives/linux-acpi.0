@@ -1,90 +1,99 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v4 15/18] ARM64 / ACPI: Parse GTDT to initialize arch
- timer
-Date: Mon, 15 Sep 2014 00:13:04 -0700
-Message-ID: <20140915071304.GG26649@localhost>
+Subject: Re: [PATCH v4 06/18] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Sun, 14 Sep 2014 23:28:24 -0700
+Message-ID: <20140915062824.GB26649@localhost>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
- <1410530416-30200-16-git-send-email-hanjun.guo@linaro.org>
+ <1410530416-30200-7-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1410530416-30200-16-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1410530416-30200-7-git-send-email-hanjun.guo@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Jon Masters <jcm@redhat.com>, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>"Rafael J. Wysocki" <r>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 12, 2014 at 10:00:13PM +0800, Hanjun Guo wrote:
-> Using the information presented by GTDT to initialize the arch
-> timer (not memory-mapped).
+On Fri, Sep 12, 2014 at 10:00:04PM +0800, Hanjun Guo wrote:
+> From: Al Stone <al.stone@linaro.org>
 > 
-> Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> Introduce one early parameters "off" for "acpi" to disable ACPI on
+> ARM64.
+> 
+> This ensures the kernel uses the DT on a platform that provides both
+> ACPI tables and DT.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
->  arch/arm64/kernel/time.c             |    7 ++
->  drivers/clocksource/arm_arch_timer.c |  117 ++++++++++++++++++++++++++++------
->  include/linux/clocksource.h          |    6 ++
->  3 files changed, 111 insertions(+), 19 deletions(-)
+>  Documentation/kernel-parameters.txt |    3 ++-
+>  arch/arm64/kernel/acpi.c            |   15 +++++++++++++++
+>  2 files changed, 17 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-> index 1a7125c..42f9195 100644
-> --- a/arch/arm64/kernel/time.c
-> +++ b/arch/arm64/kernel/time.c
-> @@ -35,6 +35,7 @@
->  #include <linux/delay.h>
->  #include <linux/clocksource.h>
->  #include <linux/clk-provider.h>
-> +#include <linux/acpi.h>
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index 5ae8608..9dfb1d8 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
+>  bytes respectively. Such letter suffixes can also be entirely omitted.
 >  
->  #include <clocksource/arm_arch_timer.h>
 >  
-> @@ -72,6 +73,12 @@ void __init time_init(void)
+> -	acpi=		[HW,ACPI,X86]
+> +	acpi=		[HW,ACPI,X86,ARM]
+
+ARM64, not ARM.
+
+>  			Advanced Configuration and Power Interface
+>  			Format: { force | off | strict | noirq | rsdt }
+>  			force -- enable ACPI if default was off
+> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>  				strictly ACPI specification compliant.
+>  			rsdt -- prefer RSDT over (default) XSDT
+>  			copy_dsdt -- copy DSDT to memory
+> +			For ARM64, ONLY "acpi=off" is available.
+
+Both force and off should be made available, since they're the two main switches here.
+
+>  			See also Documentation/power/runtime_pm.txt, pci=noacpi
 >  
->  	tick_setup_hrtimer_broadcast();
->  
-> +	/*
-> +	 * Since ACPI or FDT will only one be available in the system,
-> +	 * we can use acpi_generic_timer_init() here safely
-> +	 */
-> +	acpi_generic_timer_init();
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 9252f72..693da7f 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -67,3 +67,18 @@ void __init acpi_boot_table_init(void)
+>  	if (acpi_table_init())
+>  		disable_acpi();
+>  }
 > +
->  	arch_timer_rate = arch_timer_get_rate();
->  	if (!arch_timer_rate)
->  		panic("Unable to initialise architected timer.\n");
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index 5163ec1..397783f 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -21,6 +21,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/sched_clock.h>
-> +#include <linux/acpi.h>
->  
->  #include <asm/arch_timer.h>
->  #include <asm/virt.h>
-> @@ -338,8 +339,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
->  	if (arch_timer_rate)
->  		return;
->  
-> -	/* Try to determine the frequency from the device tree or CNTFRQ */
-> -	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-> +	/*
-> +	 * Try to determine the frequency from the device tree or CNTFRQ,
-> +	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-> +	 */
+> +static int __init parse_acpi(char *arg)
+> +{
+> +	if (!arg)
+> +		return -EINVAL;
+> +
+> +	/* "acpi=off" disables both ACPI table parsing and interpreter */
+> +	if (strcmp(arg, "off") == 0)
+> +		disable_acpi();
+> +	else
+> +		return -EINVAL;	/* Core will print when we return error */
 
-If ACPI is enabled, the tree won't have been unflattened and there wouldn't be
-a property to match. So I don't think the extra check is needed here.
+For symmetry, you should handle acpi=force here too (i.e. if someone
+disables by default, which I expect we'll ask for when this code is
+first merged).
 
-If anything, add a check to make sure "np" is non-null instead.
-
-> +	if (!acpi_disabled ||
-> +	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
->  		if (cntbase)
->  			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
->  		else
-
-
--Olof
+> +
+> +	return 0;
+> +}
+> +early_param("acpi", parse_acpi);
+> -- 
+> 1.7.9.5
+> 
