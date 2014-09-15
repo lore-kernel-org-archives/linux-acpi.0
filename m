@@ -1,59 +1,74 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 0/2] Support CrystalCove PMIC ACPI operation region
-Date: Mon, 15 Sep 2014 10:57:29 +0800
-Message-ID: <20140915025727.GA14730@aaronlu.sh.intel.com>
-References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: [PATCH RFC] x86 early_ioremap: increase FIX_BTMAPS_SLOTS to 8
+Date: Mon, 15 Sep 2014 11:33:55 +0800
+Message-ID: <20140915033355.GB2700@darkstar.nay.redhat.com>
+References: <20140826090641.GA16550@darkstar.nay.redhat.com>
+ <20140914141412.GJ18582@console-pimps.org>
+ <20140915023805.GA2700@darkstar.nay.redhat.com>
+ <20140915024205.GA2561@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-gpio@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, Daniel =?iso-8859-1?Q?Gl=F6ckner?= <dg@emlix.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+In-Reply-To: <20140915024205.GA2561@kroah.com>
+Sender: stable-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Matt Fleming <matt@console-pimps.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, matt.fleming@intel.com, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lenb@kernel.org, rafael.j.wysocki@intel.com, robert.moore@intel.com, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-I wonder if anyone has looked at this?
+On 09/14/14 at 07:42pm, Greg KH wrote:
+> On Mon, Sep 15, 2014 at 10:38:05AM +0800, Dave Young wrote:
+> > On 09/14/14 at 03:14pm, Matt Fleming wrote:
+> > > On Tue, 26 Aug, at 05:06:41PM, Dave Young wrote:
+> > > > 3.16 kernel boot fail with earlyprintk=efi, it keeps scrolling at the
+> > > > bottom line of screen.
+> > > > 
+> > > > Bisected, the first bad commit is below:
+> > > > commit 86dfc6f339886559d80ee0d4bd20fe5ee90450f0
+> > > > Author: Lv Zheng <lv.zheng@intel.com>
+> > > > Date:   Fri Apr 4 12:38:57 2014 +0800
+> > > > 
+> > > >     ACPICA: Tables: Fix table checksums verification before installation.
+> > > 
+> > > [...]
+> > > 
+> > > > Quote reply from Lv.zheng about the early ioremap slot usage in this case:
+> > > > 
+> > > > """
+> > > > In early_efi_scroll_up(), 2 mapping entries will be used for the src/dst screen buffer.
+> > > > In drivers/acpi/acpica/tbutils.c, we've improved the early table loading code in acpi_tb_parse_root_table().
+> > > > We now need 2 mapping entries:
+> > > > 1. One mapping entry is used for RSDT table mapping. Each RSDT entry contains an address for another ACPI table.
+> > > > 2. For each entry in RSDP, we need another mapping entry to map the table to perform necessary check/override before installing it.
+> > > > 
+> > > > When acpi_tb_parse_root_table() prints something through EFI earlyprintk console, we'll have 4 mapping entries used.
+> > > > The current 4 slots setting of early_ioremap() seems to be too small for such a use case.
+> > > > """
+> > > > 
+> > > > Thus increase the slot to 8 in this patch to fix this issue.
+> > > > boot-time mappings become 512 page with this patch.
+> > >  
+> > > This analysis and solution makes sense to me, but I was really hoping
+> > > for one of the x86 maintainers to ACK the below patch. I'm happy to take
+> > > it through the EFI tree if it's not picked up into tip meanwhile.
+> > > 
+> > > Also, Dave, it sounds like this should be tagged for stable if the bug
+> > > has been around since v3.16?
+> > 
+> > Matt, yes, it should be a stable issue, ccing Greg and stable list.
+> 
+> <formletter>
+> 
+> This is not the correct way to submit patches for inclusion in the
+> stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
+> for how to do this properly.
+> 
+> </formletter>
 
-Note that this is for CrystalCove PMIC operation region support and the
-CrystalCove driver is already in mainline, not for the DollarCove PMIC
-driver that Jacob is currently upstreaming, so the patch doesn't have
-any dependency.
+Frankly I did not know the exact work flow about stable patches. Thanks for
+pointing me the documentation. I was just assuming I should cc your guys 
+about the issues which could be stable candidate even though it has not been
+accepted now, so it can get noticed by stable people.
 
-Regards,
-Aaron
-
-On Tue, Sep 09, 2014 at 10:32:46AM +0800, Aaron Lu wrote:
-> The two patches add support for CrystalCove PMIC ACPI operation region.
-> The PMIC chip has two customized operation regions: one for power rail
-> manipulation and one for thermal purpose: sensor temperature reading
-> and trip point value reading/setting.
-> 
-> For an example ASL code on ASUS T100 with CrystalCove PMIC, see here:
-> https://gist.github.com/aaronlu/f5f65771a6c3251fae5d
-> 
-> Aaron Lu (2):
->   gpio / CrystalCove: support virtual GPIO
->   PMIC / opregion: support PMIC customized operation region for
->     CrystalCove
-> 
->  drivers/gpio/gpio-crystalcove.c           |  19 +-
->  drivers/mfd/Kconfig                       |  11 +
->  drivers/mfd/Makefile                      |   1 +
->  drivers/mfd/intel_soc_pmic_crc.c          |   3 +
->  drivers/mfd/intel_soc_pmic_crc_opregion.c | 229 +++++++++++++++++++
->  drivers/mfd/intel_soc_pmic_opregion.c     | 350 ++++++++++++++++++++++++++++++
->  drivers/mfd/intel_soc_pmic_opregion.h     |  35 +++
->  include/asm-generic/gpio.h                |   2 +-
->  8 files changed, 646 insertions(+), 4 deletions(-)
->  create mode 100644 drivers/mfd/intel_soc_pmic_crc_opregion.c
->  create mode 100644 drivers/mfd/intel_soc_pmic_opregion.c
->  create mode 100644 drivers/mfd/intel_soc_pmic_opregion.h
-> 
-> -- 
-> 1.9.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Dave
