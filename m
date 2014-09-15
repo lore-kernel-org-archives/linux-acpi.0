@@ -1,41 +1,65 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v4 11/18] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Mon, 15 Sep 2014 15:56:31 +0100
-Message-ID: <20140915145630.GE5415@arm.com>
+Subject: Re: [PATCH v4 14/18] ARM64 / ACPI: Add GICv2 specific ACPI boot
+ support
+Date: Mon, 15 Sep 2014 16:01:36 +0100
+Message-ID: <20140915150136.GF5415@arm.com>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
- <1410530416-30200-12-git-send-email-hanjun.guo@linaro.org>
- <54134DB4.6010705@redhat.com>
+ <1410530416-30200-15-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:32996 "EHLO
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:33007 "EHLO
 	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbaIOO4z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 10:56:55 -0400
+	with ESMTP id S1752485AbaIOPBv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 11:01:51 -0400
 Content-Disposition: inline
-In-Reply-To: <54134DB4.6010705@redhat.com>
+In-Reply-To: <1410530416-30200-15-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux-acpi@vger.ker
 
-On Fri, Sep 12, 2014 at 08:47:00PM +0100, Jon Masters wrote:
-> On 09/12/2014 10:00 AM, Hanjun Guo wrote:
-> > MADT contains the information for MPIDR which is essential for
-> > SMP initialization, parse the GIC cpu interface structures to
-> > get the MPIDR value and map it to cpu_logical_map(), and add
-> > enabled cpu with valid MPIDR into cpu_possible_map.
-> > 
-> > ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
-> > Parking protocol, but the Parking protocol is only specified for
-> > ARMv7 now, so make PSCI as the only way for the SMP boot protocol
-> > before some updates for the ACPI spec or the Parking protocol spec.
-> 
-> As an aside, initial support for the Parking Protocol is working on test
-> systems within Red Hat at this time.
+On Fri, Sep 12, 2014 at 03:00:12PM +0100, Hanjun Guo wrote:
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 5b3546b..9869377 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/irqdomain.h>
+>  #include <linux/bootmem.h>
+>  #include <linux/smp.h>
+> +#include <linux/irqchip/arm-gic-acpi.h>
+>  
+>  #include <asm/cputype.h>
+>  #include <asm/cpu_ops.h>
+> @@ -312,6 +313,28 @@ void __init acpi_boot_table_init(void)
+>  		pr_err("Can't find FADT or error happened during parsing FADT\n");
+>  }
+>  
+> +void __init acpi_gic_init(void)
+> +{
+> +	struct acpi_table_header *table;
+> +	acpi_status status;
+> +	acpi_size tbl_size;
+> +	int err;
+> +
+> +	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
+> +	if (ACPI_FAILURE(status)) {
+> +		const char *msg = acpi_format_exception(status);
+> +
+> +		pr_err("Failed to get MADT table, %s\n", msg);
+> +		return;
+> +	}
+> +
+> +	err = gic_v2_acpi_init(table);
+> +	if (err)
+> +		pr_err("Failed to initialize GIC IRQ controller");
+> +
+> +	early_acpi_os_unmap_memory((char *)table, tbl_size);
+> +}
 
-BTW, have the details of the parking protocol been updated for ARMv8
-yet?
+Maybe this was discussed already but why does this function need to live
+under arch/arm64? Isn't the driver code more appropriate?
 
 -- 
 Catalin
