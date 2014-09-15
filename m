@@ -1,47 +1,72 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [v4,1/9] ACPI / PM: Let acpi_dev_pm_detach() return an error code
-Date: Mon, 15 Sep 2014 09:53:59 -0700
-Message-ID: <20140915165359.GA13080@core.coreip.homeip.net>
-References: <1410262570-22785-2-git-send-email-ulf.hansson@linaro.org>
- <20140912210553.GA27924@core.coreip.homeip.net>
- <6318611.DnX9cEgMjk@vostro.rjw.lan>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v4 06/18] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Mon, 15 Sep 2014 09:09:02 -0700
+Message-ID: <20140915160902.GA6504@localhost>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
+ <1410530416-30200-7-git-send-email-hanjun.guo@linaro.org>
+ <20140915062824.GB26649@localhost>
+ <20140915145106.GC5415@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:35051 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754106AbaIORIt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 13:08:49 -0400
+Received: by mail-pa0-f47.google.com with SMTP id ey11so6783062pad.20
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Sep 2014 10:08:48 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <6318611.DnX9cEgMjk@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, linux-acpi@vger.kernel.org, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20140915145106.GC5415@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>lin
 
-On Sun, Sep 14, 2014 at 06:38:58PM +0200, Rafael J. Wysocki wrote:
-> On Friday, September 12, 2014 02:05:53 PM Dmitry Torokhov wrote:
-> > Hi Ulf,
+On Mon, Sep 15, 2014 at 03:51:07PM +0100, Catalin Marinas wrote:
+> On Mon, Sep 15, 2014 at 07:28:24AM +0100, Olof Johansson wrote:
+> > On Fri, Sep 12, 2014 at 10:00:04PM +0800, Hanjun Guo wrote:
+> > >  			See also Documentation/power/runtime_pm.txt, pci=noacpi
+> > >  
+> > > diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> > > index 9252f72..693da7f 100644
+> > > --- a/arch/arm64/kernel/acpi.c
+> > > +++ b/arch/arm64/kernel/acpi.c
+> > > @@ -67,3 +67,18 @@ void __init acpi_boot_table_init(void)
+> > >  	if (acpi_table_init())
+> > >  		disable_acpi();
+> > >  }
+> > > +
+> > > +static int __init parse_acpi(char *arg)
+> > > +{
+> > > +	if (!arg)
+> > > +		return -EINVAL;
+> > > +
+> > > +	/* "acpi=off" disables both ACPI table parsing and interpreter */
+> > > +	if (strcmp(arg, "off") == 0)
+> > > +		disable_acpi();
+> > > +	else
+> > > +		return -EINVAL;	/* Core will print when we return error */
 > > 
-> > On Tue, Sep 09, 2014 at 01:36:02PM +0200, Ulf Hansson wrote:
-> > > To give callers the option of acting on a errors while removing the
-> > > pm_domain ops for the device in the ACPI PM domain, let
-> > > acpi_dev_pm_detach() return an int to provide the error code.
-> > 
-> > So how would callers handle the errors? As far as I can see
-> > acpi_dev_pm_detach() is called from ->remove() and ->shutdown() methods, where
-> > there is no meaningful strategy to handle errors as you are past the point of
-> > no return and you keep on tearing down the device.
+> > For symmetry, you should handle acpi=force here too (i.e. if someone
+> > disables by default, which I expect we'll ask for when this code is
+> > first merged).
 > 
-> This is specifically for what patch [3/9] is doing AFAICS.  
-> 
-> The existing callers don't need to worry about this.
+> Does this mean you want another Kconfig option - ACPI_DEFAULT_OFF (which
+> would be set by default)?
 
-OK, so I have the very same comment about patch 3 then: we have
-dev_pm_domain_detach() returning error. How would the callers handle errors?
+No, adding another config option isn't going to help anyone. Instead,
+this gives us the full symmetry and option to just always by default
+keep ACPI off, even if it is merged.
 
-WRT this patch: I'd rater we did not just return generic "error code" just
-because we do not know who manages PD for the device. Can we add API to check
-if we are using ACPI to manage power domains? Then patch #3 could check if it
-needs to use ACPI or generic power domain API.
+My argument on when ACPI should be merged is not new (i.e. once we've
+seen more than just the simple system parts solved with it and solved
+successfully), then we're still likely to have a transition period when
+it's in tree but not enabled by default. That's what acpi=force is for,
+for those who want to test with it during that time.
 
-Thanks.
+So, my suggestion is just there now to make sure that whichever way
+we go, things will just work as expected (and the same way as on x86,
+which is a goal for some).
 
--- 
-Dmitry
+
+-Olof
