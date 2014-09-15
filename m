@@ -1,60 +1,100 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [Linaro-acpi] [RFC PATCH for Juno 1/2] net: smsc911x add
- support for probing from ACPI
-Date: Sun, 14 Sep 2014 21:08:44 -0700
-Message-ID: <20140915040844.12D19C40A02@trevor.secretlab.ca>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC PATCH for Juno 1/2] net: smsc911x add support for probing
+ from ACPI
+Date: Sun, 14 Sep 2014 21:14:04 -0700
+Message-ID: <20140915041404.A72CCC40A02@trevor.secretlab.ca>
 References: <1409583961-7466-1-git-send-email-hanjun.guo@linaro.org>
 	<1409583961-7466-2-git-send-email-hanjun.guo@linaro.org>
-	<2861461.8zNpLC3I2n@wuerfel>
-	<20140901152854.GJ2953@xora-haswell.xora.org.uk>
+	<20140901170447.GF608@arm.com> <21764799.KDNDm9XRax@wuerfel>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:43858 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750756AbaIOEIr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 00:08:47 -0400
-Received: by mail-pa0-f48.google.com with SMTP id hz1so5533678pad.7
-        for <linux-acpi@vger.kernel.org>; Sun, 14 Sep 2014 21:08:46 -0700 (PDT)
-In-Reply-To: <20140901152854.GJ2953@xora-haswell.xora.org.uk>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:47776 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407AbaIOEOH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 00:14:07 -0400
+Received: by mail-pd0-f178.google.com with SMTP id p10so5336491pdj.37
+        for <linux-acpi@vger.kernel.org>; Sun, 14 Sep 2014 21:14:06 -0700 (PDT)
+In-Reply-To: <21764799.KDNDm9XRax@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-acpi@lists.linaro.org, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Olof Johansson <olof@lixom.net>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Lv Zheng <lv.zheng@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-ke
 
-On Mon, 1 Sep 2014 16:28:54 +0100, Graeme Gregory <graeme.gregory@linaro.org> wrote:
-> On Mon, Sep 01, 2014 at 05:17:51PM +0200, Arnd Bergmann wrote:
-> > On Monday 01 September 2014 23:06:00 Hanjun Guo wrote:
+On Mon, 01 Sep 2014 19:11:44 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 01 September 2014 18:04:47 Catalin Marinas wrote:
+> > On Mon, Sep 01, 2014 at 04:06:00PM +0100, Hanjun Guo wrote:
 > > > +#ifdef CONFIG_ACPI
 > > > +/* Configure some sensible defaults for ACPI mode */
 > > > +static int smsc911x_probe_config_acpi(struct smsc911x_platform_config *config,
-> > > +                                   acpi_handle *ahandle)
+> > > +                                 acpi_handle *ahandle)
 > > > +{
-> > > +       if (!ahandle)
-> > > +               return -ENOSYS;
+> > > +     if (!ahandle)
+> > > +             return -ENOSYS;
 > > > +
-> > > +       config->phy_interface = PHY_INTERFACE_MODE_MII;
-> > > 
+> > > +     config->phy_interface = PHY_INTERFACE_MODE_MII;
+> > > +
+> > > +     config->flags |= SMSC911X_USE_32BIT;
+> > > +
+> > > +     config->irq_polarity = SMSC911X_IRQ_POLARITY_ACTIVE_HIGH;
+> > > +
+> > > +     config->irq_type = SMSC911X_IRQ_TYPE_PUSH_PULL;
+> > > +
+> > > +     return 0;
+> > > +}
+> > > +#else
 > > 
-> > Please remove the #ifdef and use 
-> > 
-> > 	if (!IS_ENABLED(CONFIG_ACPI) || !ahandle)
-> > 
-> > to check for ACPI support. This should result in the same object code
-> > in all cases, but give better compile-time coverage when ACPI is
-> > disabled.
-> > 
-> struct acpi_handle does not exist in the case !CONFIG_ACPI
+> > I don't like this and it shows issues we have with ACPI on certain ARM
+> > platforms. You hard-code these values to match the Juno platform. What
+> > if we get another SoC which has different configuration here? For DT, we
+> > have the smsc911x_probe_config_dt() which reads the relevant information
+> > from DT. I think this kind of configuration would be more suitable as
+> > _DSD properties and sharing the similar names with DT (but we go back to
+> > the question about who's in charge of the _DSD properties).
 > 
-> > Also, -ENOSYS is probably the wrong return value. I think you mean
-> > -ENXIO.
-> > 
-> Yes that would make sense thanks.
+> Good point, I totally missed that.
 > 
-> Not sure if we are planning to actually upstream this patch, I guess it
-> depends if ARM start shipping Junos with the ACPI tables loaded on them.
+> There is of course the possibility to set those values based on the
+> acpi_device_id, but that is exactly the part that _DSD is trying to
+> avoid.
 
-I think we do want this upstreamed. Juno is intended to be a readily
-available reference platform, regardless of the firmware loaded when
-shipped. There will be users who use it as a test platform for ACPI
-development.
+These are merely defaults. DSD parsing, when implemented, would be
+override these default values.
+
+> 
+> > >  static int smsc911x_drv_probe(struct platform_device *pdev)
+> > >  {
+> > >       struct device_node *np = pdev->dev.of_node;
+> > > +     acpi_handle *ahandle = ACPI_HANDLE(&pdev->dev);
+> > >       struct net_device *dev;
+> > >       struct smsc911x_data *pdata;
+> > >       struct smsc911x_platform_config *config = dev_get_platdata(&pdev->dev);
+> > > @@ -2436,6 +2464,9 @@ static int smsc911x_drv_probe(struct platform_device *pdev)
+> > >       }
+> > >  
+> > >       retval = smsc911x_probe_config_dt(&pdata->config, np);
+> > > +     if (retval)
+> > > +             retval = smsc911x_probe_config_acpi(&pdata->config, ahandle);
+> > > +
+> > 
+> > In most of the ACPI patches so far we check for ACPI first with DT as a
+> > fall-back if ACPI is not enabled. This changes here.
+> 
+> Does this really make a difference?
+
+Nope. Only one of DT or ACPI will be matched.
+
+> 
+> > I would prefer
+> > something which probes only ACPI if the ACPI is enabled (run-time, not
+> > config) otherwise DT only. E.g.
+> 
+> (example missing?)
+> 
+> I think we should have the equivalent of of_have_populated_dt(), to
+> check whether acpi is being used to boot, and have that new function
+> be hardcoded to zero in case of !IS_ENABLED(CONFIG_ACPI).
+
+The code already accounts for it. If ACPI isn't enabled, or isn't
+populated, then the ACPI_HANDLE macro will return NULL and the
+smsc911x_probe_config_acpi() function will fail.
 
 g.
