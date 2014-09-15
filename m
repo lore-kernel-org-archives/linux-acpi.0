@@ -1,85 +1,50 @@
-From: Frans Klaver <fransklaver@gmail.com>
-Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
- get_cpufv
-Date: Mon, 15 Sep 2014 23:55:28 +0200
-Message-ID: <20140915215527.GC7867@gmail.com>
-References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
- <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
- <20140915214902.GB64909@vmdeb7>
- <20140915215125.GA21435@kroah.com>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [PATCH v4 10/18] ACPI / table: Print GIC information when MADT
+ is parsed
+Date: Mon, 15 Sep 2014 17:55:41 -0400
+Message-ID: <5417605D.7070303@redhat.com>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>	<1410530416-30200-11-git-send-email-hanjun.guo@linaro.org>	<20140915064010.GD26649@localhost>	<20140915175250.8177DC40A42@trevor.secretlab.ca> <CAOesGMjcXYjmUzZqGncnkN-uhnLC1ey2vqeqE4MQ5UDm8BaYTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:32993 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755726AbaIOVzc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 17:55:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20140915215125.GA21435@kroah.com>
+Received: from mx1.redhat.com ([209.132.183.28]:60686 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754483AbaIOV47 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Sep 2014 17:56:59 -0400
+In-Reply-To: <CAOesGMjcXYjmUzZqGncnkN-uhnLC1ey2vqeqE4MQ5UDm8BaYTg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@linux.intel.com>
+To: Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-kerne
 
-On Mon, Sep 15, 2014 at 02:51:25PM -0700, Greg Kroah-Hartman wrote:
-> On Mon, Sep 15, 2014 at 02:49:02PM -0700, Darren Hart wrote:
-> > On Sat, Sep 13, 2014 at 01:06:49AM +0200, Frans Klaver wrote:
-> > > In get_cpufv the return value of get_acpi is stored in the cpufv struct.
-> > > Right before this value is checked for errors, it is and'ed with 0xff.
-> > > This means c->cur can never be less than zero. Besides that, the actual
-> > > error value is ignored.
-> > > 
-> > > c->num is also and'ed with 0xff, which means we can ignore values below
-> > > zero.
-> > > 
-> > > Check the result of get_acpi() right away. While at it, propagate the
-> > > error if we got one.
-> > > 
-> > > Signed-off-by: Frans Klaver <fransklaver@gmail.com>
-> > > ---
-> > >  drivers/platform/x86/eeepc-laptop.c | 5 ++++-
-> > >  1 file changed, 4 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-> > > index 47488d3..828db56 100644
-> > > --- a/drivers/platform/x86/eeepc-laptop.c
-> > > +++ b/drivers/platform/x86/eeepc-laptop.c
-> > > @@ -332,9 +332,12 @@ struct eeepc_cpufv {
-> > >  static int get_cpufv(struct eeepc_laptop *eeepc, struct eeepc_cpufv *c)
-> > >  {
-> > >  	c->cur = get_acpi(eeepc, CM_ASL_CPUFV);
-> > > +	if (c->cur < 0)
-> > > +		return c->cur;
-> > > +
-> > >  	c->num = (c->cur >> 8) & 0xff;
-> > >  	c->cur &= 0xff;
-> > > -	if (c->cur < 0 || c->num <= 0 || c->num > 12)
-> > > +	if (c->num == 0 || c->num > 12)
-> > >  		return -ENODEV;
-> > >  	return 0;
-> > 
-> > This patch is fine as is. However, Greg has supported propogating the error code
-> > through to the sysfs interface (if I understand him correctly on an earlier post
-> > to this list). This would require an addition change to this patch would
-> > propogated the get_cpufv error code in show_available_cpuv(), show_cpuv(), and
-> > store_cpuv(). As it is, we return -ENODEV on any failure, where an ACPI call
-> > error should probably return -ENXIO as I understand it.
-> 
-> I really have no idea at this point in time what to recommend.  How
-> about just stick with what is happening today so that:
-> 
-> > However, there was a rather famous change in error code handling in which pulse
-> > audio broke and Linus was very upset with one of his maintainers.
-> 
-> That doesn't happen :)
+On 09/15/2014 02:01 PM, Olof Johansson wrote:
+> On Mon, Sep 15, 2014 at 10:52 AM, Grant Likely <grant.likely@linaro.org> wrote:
+>> On Sun, 14 Sep 2014 23:40:10 -0700, Olof Johansson <olof@lixom.net> wrote:
+>>> On Fri, Sep 12, 2014 at 10:00:08PM +0800, Hanjun Guo wrote:
+>>>> When MADT is parsed, print GIC information to make the boot
+>>>> log look pretty.
+>>>
+>>> If you do this for prettiness, having an example output in the commit
+>>> message would be a nice touch.
+>>
+>> Agreed.
 
-So if I interpret that correctly, we're dropping the last patch
-(ENODEV -> ENXIO) from the series? That's fine by me. As mentioned
-earlier, I already saw something else break because I returned ENXIO
-instead of ENODEV.
+Here's example output from a hardware platform (just as an example in
+this thread, mostly for archiving purposes):
 
-Maybe it's a good idea to try and document the expected behavior
-somewhere, if even Greg isn't sure what to do.
+[    0.000000] ACPI: GICC (acpi_id[0x0000] address[00000000e112f000]
+MPDIR[0x0] enabled)
+[    0.000000] ACPI: GICC (acpi_id[0x0001] address[00000000e112f000]
+MPDIR[0x1] enabled)
+[    0.000000] ACPI: GICC (acpi_id[0x0100] address[00000000e112f000]
+MPDIR[0x100] enabled)
+[    0.000000] ACPI: GICC (acpi_id[0x0101] address[00000000e112f000]
+MPDIR[0x101] enabled)
+[    0.000000] ACPI: GICC (acpi_id[0x0200] address[00000000e112f000]
+MPDIR[0x200] enabled)
+[    0.000000] ACPI: GICC (acpi_id[0x0201] address[00000000e112f000]
+MPDIR[0x201] enabled)
 
-Thanks,
-Frans
+Jon.
+
