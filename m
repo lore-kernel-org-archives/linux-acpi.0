@@ -1,47 +1,50 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v4 10/18] ACPI / table: Print GIC information when MADT
- is parsed
-Date: Mon, 15 Sep 2014 10:11:20 -0400 (EDT)
-Message-ID: <110210623.13993550.1410790280170.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
-References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org> <1410530416-30200-11-git-send-email-hanjun.guo@linaro.org> <20140915064010.GD26649@localhost>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v4 06/18] ARM64 / ACPI: Introduce early_param for "acpi"
+Date: Mon, 15 Sep 2014 15:51:07 +0100
+Message-ID: <20140915145106.GC5415@arm.com>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
+ <1410530416-30200-7-git-send-email-hanjun.guo@linaro.org>
+ <20140915062824.GB26649@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3-phx2.redhat.com ([209.132.183.24]:56097 "EHLO
-	mx3-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbaIOOMa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Sep 2014 10:12:30 -0400
-In-Reply-To: <20140915064010.GD26649@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140915062824.GB26649@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Olof Johansson <olof@lixom.net>
-Cc: linux-acpi@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Lv Zheng <lv.zheng@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, linaro-acpi@lists.linaro.org, Robert Richter <rric@kernel.org>, Charles.Garcia-Tobin@arm.com, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Mark Brown <broonie@kernel.org>, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Grant
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>lin
+List-Id: linux-acpi@vger.kernel.org
 
-Hi Olof,
+On Mon, Sep 15, 2014 at 07:28:24AM +0100, Olof Johansson wrote:
+> On Fri, Sep 12, 2014 at 10:00:04PM +0800, Hanjun Guo wrote:
+> >  			See also Documentation/power/runtime_pm.txt, pci=noacpi
+> >  
+> > diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> > index 9252f72..693da7f 100644
+> > --- a/arch/arm64/kernel/acpi.c
+> > +++ b/arch/arm64/kernel/acpi.c
+> > @@ -67,3 +67,18 @@ void __init acpi_boot_table_init(void)
+> >  	if (acpi_table_init())
+> >  		disable_acpi();
+> >  }
+> > +
+> > +static int __init parse_acpi(char *arg)
+> > +{
+> > +	if (!arg)
+> > +		return -EINVAL;
+> > +
+> > +	/* "acpi=off" disables both ACPI table parsing and interpreter */
+> > +	if (strcmp(arg, "off") == 0)
+> > +		disable_acpi();
+> > +	else
+> > +		return -EINVAL;	/* Core will print when we return error */
+> 
+> For symmetry, you should handle acpi=force here too (i.e. if someone
+> disables by default, which I expect we'll ask for when this code is
+> first merged).
 
-How about having it verbose in the initial implementation (in case there are any fun times bringing up early systems) and then revisiting this? x86 is very verbose but it can be helpful.
-
-Jon.
+Does this mean you want another Kconfig option - ACPI_DEFAULT_OFF (which
+would be set by default)?
 
 -- 
-Computer Architect | Sent from my #ARM Powered Mobile device
-
-On Sep 15, 2014 12:34 AM, Olof Johansson <olof@lixom.net> wrote:
->
-> On Fri, Sep 12, 2014 at 10:00:08PM +0800, Hanjun Guo wrote: 
-> > When MADT is parsed, print GIC information to On Fri, Sep 12, 2014 at 10:00:08PM +0800, Hanjun Guo wrote:
-> When MADT is parsed, print GIC information to make the boot
-> log look pretty.
-
-If you do this for prettiness, having an example output in the commit
-message would be a nice touch.
-
-The question is why it's needed though? Do we really need all this verbose
-information in dmesg when it could be found out in other ways instead?
-
-x86 is notoriously verbose in some of these aspects, I'm not sure it's
-something we need to mimic here?
-
-
--Olof
+Catalin
