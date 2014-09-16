@@ -1,169 +1,287 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Tue, 16 Sep 2014 14:52:38 +0300
-Message-ID: <1410868367-11056-8-git-send-email-mika.westerberg@linux.intel.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [RFC PATCH v2 00/16] Add ACPI _DSD and unified device properties support
+Date: Tue, 16 Sep 2014 14:52:31 +0300
+Message-ID: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Some drivers need to deal with only firmware representation of its
-GPIOs. An example would be a GPIO button array driver where each button
-is described as a separate firmware node in device tree. Typically these
-child nodes do not have physical representation in the Linux device
-model.
+This is a second revision of the patches first submitted here [1].
 
-In order to help device drivers to handle such firmware child nodes we
-add dev[m]_node_get_named_gpiod() that takes a firmware node pointer as
-parameter, finds the GPIO using whatever is the underlying firmware
-method, and requests the GPIO properly.
+The recent publication of the ACPI 5.1 specification [2] adds a reserved name
+for Device Specific Data (_DSD, Section 6.2.5). This mechanism allows for
+passing arbitrary hardware description data to the OS. The exact format of the
+_DSD data is specific to the UUID paired with it [3].   
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/gpio/devres.c         | 35 +++++++++++++++++++++++++++
- drivers/gpio/gpiolib.c        | 55 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/gpio/consumer.h |  7 ++++++
- 3 files changed, 97 insertions(+)
+An ACPI Device Properties UUID has been defined [4] to provide a format
+compatible with existing device tree schemas. The purpose for this was to
+allow for the reuse of the existing schemas and encourage the development
+of firmware agnostic device drivers.
 
-diff --git a/drivers/gpio/devres.c b/drivers/gpio/devres.c
-index 954b9f6b0ef8..1556a251fc8e 100644
---- a/drivers/gpio/devres.c
-+++ b/drivers/gpio/devres.c
-@@ -109,6 +109,41 @@ struct gpio_desc *__must_check __devm_gpiod_get_index(struct device *dev,
- EXPORT_SYMBOL(__devm_gpiod_get_index);
- 
- /**
-+ * devm_node_get_named_gpiod - resource-managed dev_node_get_named_gpiod()
-+ * @dev:	GPIO consumer
-+ * @fdn:	firmware device node
-+ * @propname:	name of the firmware property
-+ * @idx:	index of the GPIO in the property value in case of many
-+ *
-+ * Managed dev_node_get_named_gpiod(). GPIO descriptors returned from
-+ * this function are automatically disposed on driver detach.
-+ */
-+struct gpio_desc *devm_node_get_named_gpiod(struct device *dev,
-+					    struct fw_dev_node *fdn,
-+					    const char *propname, int index)
-+{
-+	struct gpio_desc **dr;
-+	struct gpio_desc *desc;
-+
-+	dr = devres_alloc(devm_gpiod_release, sizeof(struct gpio_desc *),
-+			  GFP_KERNEL);
-+	if (!dr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	desc = dev_node_get_named_gpiod(fdn, propname, index);
-+	if (IS_ERR(desc)) {
-+		devres_free(dr);
-+		return desc;
-+	}
-+
-+	*dr = desc;
-+	devres_add(dev, dr);
-+
-+	return desc;
-+}
-+EXPORT_SYMBOL(devm_node_get_named_gpiod);
-+
-+/**
-  * devm_gpiod_get_index_optional - Resource-managed gpiod_get_index_optional()
-  * @dev: GPIO consumer
-  * @con_id: function within the GPIO consumer
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 444d43c9fd3e..d364214d2946 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1717,6 +1717,61 @@ struct gpio_desc *__must_check __gpiod_get_index(struct device *dev,
- EXPORT_SYMBOL_GPL(__gpiod_get_index);
- 
- /**
-+ * dev_node_get_named_gpiod - obtain a GPIO from firmware device node
-+ * @fdn:	firmware device node
-+ * @propname:	name of the firmware property
-+ * @idx:	index of the GPIO in the property value in case of many
-+ *
-+ * This function can be used for drivers that get their configuration
-+ * from firmware in such way that there is not always corresponding
-+ * physical device pointer available. For example some properties are
-+ * described as a child nodes for the parent device in DT or ACPI.
-+ *
-+ * Function properly finds the corresponding GPIO using whatever is the
-+ * underlying firmware interface and then makes sure that the GPIO
-+ * descriptor is requested before it is returned to the caller.
-+ *
-+ * In case of error an ERR_PTR() is returned.
-+ */
-+struct gpio_desc *dev_node_get_named_gpiod(struct fw_dev_node *fdn,
-+					   const char *propname, int index)
-+{
-+	struct gpio_desc *desc = ERR_PTR(-ENODEV);
-+	struct acpi_device *adev = fdn->acpi_node;
-+	struct device_node *np = fdn->of_node;
-+	bool active_low = false;
-+	int ret;
-+
-+	if (IS_ENABLED(CONFIG_OF) && np) {
-+		enum of_gpio_flags flags;
-+
-+		desc = of_get_named_gpiod_flags(np, propname, index, &flags);
-+		if (!IS_ERR(desc))
-+			active_low = flags & OF_GPIO_ACTIVE_LOW;
-+	} else if (IS_ENABLED(CONFIG_ACPI) && adev) {
-+		struct acpi_gpio_info info;
-+
-+		desc = acpi_get_gpiod_by_index(adev, propname, index, &info);
-+		if (!IS_ERR(desc))
-+			active_low = info.active_low;
-+	}
-+
-+	if (IS_ERR(desc))
-+		return desc;
-+
-+	ret = gpiod_request(desc, NULL);
-+	if (ret)
-+		return ERR_PTR(ret);
-+
-+	/* Only value flag can be set from both DT and ACPI is active_low */
-+	if (active_low)
-+		set_bit(FLAG_ACTIVE_LOW, &desc->flags);
-+
-+	return desc;
-+}
-+EXPORT_SYMBOL_GPL(dev_node_get_named_gpiod);
-+
-+/**
-  * gpiod_get_index_optional - obtain an optional GPIO from a multi-index GPIO
-  *                            function
-  * @dev: GPIO consumer, can be NULL for system-global GPIOs
-diff --git a/include/linux/gpio/consumer.h b/include/linux/gpio/consumer.h
-index 12f146fa6604..aa1b273f0e38 100644
---- a/include/linux/gpio/consumer.h
-+++ b/include/linux/gpio/consumer.h
-@@ -6,6 +6,7 @@
- #include <linux/kernel.h>
- 
- struct device;
-+struct fw_dev_node;
- 
- /**
-  * Opaque descriptor for a GPIO. These are obtained using gpiod_get() and are
-@@ -94,6 +95,12 @@ int gpiod_to_irq(const struct gpio_desc *desc);
- struct gpio_desc *gpio_to_desc(unsigned gpio);
- int desc_to_gpio(const struct gpio_desc *desc);
- 
-+/* Firmware node interface */
-+struct gpio_desc *dev_node_get_named_gpiod(struct fw_dev_node *fdn,
-+					   const char *propname, int index);
-+struct gpio_desc *devm_node_get_named_gpiod(struct device *dev,
-+					    struct fw_dev_node *fdn,
-+					    const char *propname, int index);
- #else /* CONFIG_GPIOLIB */
- 
- static inline struct gpio_desc *__must_check __gpiod_get(struct device *dev,
+This series accomplishes the following (as well as some other dependencies):
+
+ * Add _DSD support to the ACPI core
+   This simply reads the UUID and the accompanying Package
+
+ * Add ACPI Device Properties _DSD format support
+   This understands the hierarchical key:value pair structure
+   defined by the Device Properties UUID
+
+ * Add a unified device properties API with ACPI and OF backends
+   This provides for the firmware agnostic device properties
+   Interface to be used by drivers
+
+ * Provides 3 example drivers that were previously Device Tree aware that
+   can now be used with either Device Tree or ACPI Device Properties. The
+   drivers use "PRP0001" as their _HID which means that the match should be
+   done using driver's .of_match_table instead.
+
+The patch series has been tested on Minnoboard and Minnowboard MAX and the
+relevant part of DSDTs are at the end of this cover letter.
+
+This series does not provide for a means to append to a system DSDT. That
+will ultimately be required to make the most effective use of the _DSD
+mechanism. Work is underway on that as a separate effort.
+
+Most important changes to the previous RFC version:
+
+  * Added wrapper functions for most used property types
+  * Return -EOVERFLOW in case integer would not fit to a type
+  * Dropped dev_prop_ops
+  * We now have dev_node_xxx() functions to access firmware node
+    properties without dev pointer
+  * The accessor function names try to be close to their corresponding of_*
+    counterpart
+  * Tried to have a bit better examples in the documentation patch
+  * gpiolib got support for _DSD and also it now understand firmware node
+    properties with dev_node_get_named_gpiod() that requests the GPIO
+    properly.
+  * Support for "PRP0001" _HID/_CID. This means that the match should be
+    done using driver .of_match_table instead.
+  * Add unified property support for at25 SPI eeprom driver as well.
+
+[1] https://lkml.org/lkml/2014/8/17/10
+[2] http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+[3] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+[4] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+
+Aaron Lu (2):
+  input: gpio_keys_polled - Add support for GPIO descriptors
+  input: gpio_keys_polled - Make use of device property API
+
+Max Eliaser (2):
+  leds: leds-gpio: Make use of device property API
+  leds: leds-gpio: Add ACPI probing support
+
+Mika Westerberg (11):
+  ACPI: Add support for device specific properties
+  ACPI: Allow drivers to match using Device Tree compatible property
+  ACPI: Document ACPI device specific properties
+  mfd: Add ACPI support
+  gpio / ACPI: Add support for _DSD device properties
+  gpio: Add support for unified device properties interface
+  gpio: sch: Consolidate core and resume banks
+  leds: leds-gpio: Add support for GPIO descriptors
+  input: gpio_keys_polled - Add ACPI probing support
+  misc: at25: Make use of device property API
+  misc: at25: Add ACPI probing support
+
+Rafael J. Wysocki (1):
+  Driver core: Unified device properties interface for platform firmware
+
+ Documentation/acpi/enumeration.txt        |  27 ++
+ Documentation/acpi/properties.txt         | 410 +++++++++++++++++++++
+ drivers/acpi/Makefile                     |   1 +
+ drivers/acpi/internal.h                   |   6 +
+ drivers/acpi/property.c                   | 584 ++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c                       |  93 ++++-
+ drivers/base/Makefile                     |   2 +-
+ drivers/base/property.c                   | 196 ++++++++++
+ drivers/gpio/devres.c                     |  35 ++
+ drivers/gpio/gpio-sch.c                   | 293 ++++++---------
+ drivers/gpio/gpiolib-acpi.c               |  78 +++-
+ drivers/gpio/gpiolib.c                    |  85 ++++-
+ drivers/gpio/gpiolib.h                    |   7 +-
+ drivers/input/keyboard/gpio_keys_polled.c | 169 +++++----
+ drivers/leds/leds-gpio.c                  | 188 +++++-----
+ drivers/mfd/mfd-core.c                    |  40 ++
+ drivers/misc/eeprom/at25.c                |  41 +--
+ drivers/of/base.c                         | 188 ++++++++++
+ include/acpi/acpi_bus.h                   |   8 +
+ include/linux/acpi.h                      |  90 ++++-
+ include/linux/gpio/consumer.h             |   7 +
+ include/linux/gpio_keys.h                 |   3 +
+ include/linux/leds.h                      |   1 +
+ include/linux/mfd/core.h                  |   3 +
+ include/linux/of.h                        |  37 ++
+ include/linux/property.h                  | 193 ++++++++++
+ 26 files changed, 2377 insertions(+), 408 deletions(-)
+ create mode 100644 Documentation/acpi/properties.txt
+ create mode 100644 drivers/acpi/property.c
+ create mode 100644 drivers/base/property.c
+ create mode 100644 include/linux/property.h
+
+DSDT modifications for Minnowboard (for leds-gpio.c and gpio_keys_polled.c)
+---------------------------------------------------------------------------
+
+    Scope (\_SB.PCI0.LPC)
+    {
+        Device (LEDS)
+        {
+            Name (_HID, "PRP0001")
+
+            Name (_CRS, ResourceTemplate () {
+                GpioIo (Exclusive, PullDown, 0, 0, IoRestrictionOutputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {10}
+                GpioIo (Exclusive, PullDown, 0, 0, IoRestrictionOutputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {11}
+            })
+
+            Name (_DSD, Package () {
+                  ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                  Package () {
+                      Package () {"compatible", Package () {"gpio-leds"}},
+                  }
+            })
+
+            Device (LEDH)
+            {
+                Name (_DSD, Package () {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package () {
+                        Package () {"label", "Heartbeat"},
+                        Package () {"gpios", Package () {^^LEDS, 0, 0, 0}},
+                        Package () {"linux,default-trigger", "heartbeat"},
+                        Package () {"linux,default-state", "off"},
+                        Package () {"linux,retain-state-suspended", 1},
+                    }
+                })
+            }
+
+            Device (LEDM)
+            {
+                Name (_DSD, Package () {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package () {
+                        Package () {"label", "MMC0 Activity"},
+                        Package () {"gpios", Package () {^^LEDS, 1, 0, 0}},
+                        Package () {"linux,default-trigger", "mmc0"},
+                        Package () {"linux,default-state", "off"},
+                        Package () {"linux,retain-state-suspended", 1},
+                    }
+                })
+            }
+        }
+        
+        Device (BTNS)
+        {
+            Name (_HID, "PRP0001")
+
+            Name (_CRS, ResourceTemplate () {
+                GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+                        "\\_SB.PCI0.LPC", 0, ResourceConsumer) {0, 1, 2, 3}
+            })
+
+            Name (_DSD, Package () {
+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                Package () {
+                    Package () {"compatible", Package () {"gpio-keys-polled"}},
+                    Package () {"poll-interval", 100},
+                    Package () {"autorepeat", 1}
+                }
+            })
+
+            Device (BTN0)
+            {
+                Name (_DSD, Package () {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package () {
+                        Package () {"linux,code", 105},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package () {^^BTNS, 0, 0, 1}},
+                    }
+                })
+            }
+
+            Device (BTN1)
+            {
+                Name (_DSD, Package () {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package () {
+                        Package () {"linux,code", 108},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package (4) {^^BTNS, 0, 1, 1}},
+                    }
+                })
+            }
+            
+            Device (BTN2)
+            {
+                Name (_DSD, Package () {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package () {
+                        Package () {"linux,code", 103},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package () {^^BTNS, 0, 2, 1}},
+                    }
+                })
+            }
+            
+            Device (BTN3)
+            {
+                Name (_DSD, Package () {
+                    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                    Package ()
+                    {
+                        Package () {"linux,code", 106},
+                        Package () {"linux,input-type", 1},
+                        Package () {"gpios", Package (4) {^^BTNS, 0, 3, 1}},
+                    }
+                })
+            }
+        }
+    }
+
+DSDT modifications for Minnowboard MAX (for at25.c)
+---------------------------------------------------
+
+    Scope (\_SB.SPI1)
+    {
+        Device (AT25)
+        {
+            Name (_HID, "PRP0001")
+            Method (_CRS, 0, Serialized) {
+                Name (UBUF, ResourceTemplate () {
+                    SpiSerialBus (0x0000, PolarityLow, FourWireMode, 0x08,
+                        ControllerInitiated, 0x007A1200, ClockPolarityLow,
+                        ClockPhaseSecond, "\\_SB.SPI1",
+                        0x00, ResourceConsumer)
+                })
+                Return (UBUF)
+            }
+
+            Name (_DSD, Package () {
+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                Package () {
+                    Package () {"compatible", Package () {"atmel,at25"}},
+		    Package () {"size", 1024},
+		    Package () {"pagesize", 32},
+		    Package () {"address-width", 16},
+                }
+            })
+
+            Method (_STA, 0, NotSerialized)
+            {
+                Return (0xF)
+            }
+        }
+    }
 -- 
 2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
