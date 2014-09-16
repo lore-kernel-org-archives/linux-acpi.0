@@ -1,88 +1,45 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 1/2] intel-rst: Use ACPI_FAILURE() macro instead
- !ACPI_SUCCESS() for error checking
-Date: Tue, 16 Sep 2014 15:49:14 -0700
-Message-ID: <20140916224914.GA17720@vmdeb7>
-References: <1410902036-10282-1-git-send-email-peter.ujfalusi@gmail.com>
- <1410902036-10282-2-git-send-email-peter.ujfalusi@gmail.com>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [RFC PATCH for AMD Seattle 0/4] Drivers for AMD-Seatlle to boot
+ from ACPI
+Date: Tue, 16 Sep 2014 18:56:52 -0400
+Message-ID: <5418C034.8020305@redhat.com>
+References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com> <5417BC57.4030504@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1410902036-10282-2-git-send-email-peter.ujfalusi@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@gmail.com>
-Cc: mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:60785 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752512AbaIPW5r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Sep 2014 18:57:47 -0400
+In-Reply-To: <5417BC57.4030504@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, marc.zyngier@arm.com, mark.rutland@arm.com, Sudeep.Holla@arm.com, olof@lixom.net, grant.likely@linaro.org, graeme.gregory@linaro.org, arnd@arndb.de, jason@lakedaemon.net, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 17, 2014 at 12:13:55AM +0300, Peter Ujfalusi wrote:
-> ACPI_SUCCESS is defined as:
-> #define ACPI_SUCCESS(a)			(!(a))
-> 
-> There is no need for the the double ! since there is already a macro
-> defined for failures: ACPI_FAILURE()
-> 
+On 09/16/2014 12:28 AM, Suravee Suthikulpanit wrote:
+> Note: Correcting the typo for linux-acpi mailing list in this reply.
+>=20
+> Also, I would like to add the link to the "AMD Opteron=99 A1100 Serie=
+s=20
+> Processor ACPI Porting Guide", which describes the current ACPI table=
+=20
+> for AMD Seattle platform here:
+>=20
+> http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Seattl=
+e_ACPI_Guide.pdf
 
-Cc: linux-acpi
+Thanks again for posting the patch series, and this document, which is
+very useful. We have test systems running these patches right now, and
+they work quite well. If anyone at Linaro Connect this week would like
+to see hardware and get their own kernel built running these bits, let
+myself, Suravee, or Al know and we'll help you make that happen.
 
-Thanks,
+Jon.
 
-Darren
-
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@gmail.com>
-> ---
->  drivers/platform/x86/intel-rst.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/intel-rst.c b/drivers/platform/x86/intel-rst.c
-> index d45bca3..8c6a8fe 100644
-> --- a/drivers/platform/x86/intel-rst.c
-> +++ b/drivers/platform/x86/intel-rst.c
-> @@ -35,7 +35,7 @@ static ssize_t irst_show_wakeup_events(struct device *dev,
->  	acpi = to_acpi_device(dev);
->  
->  	status = acpi_evaluate_integer(acpi->handle, "GFFS", NULL, &value);
-> -	if (!ACPI_SUCCESS(status))
-> +	if (ACPI_FAILURE(status))
->  		return -EINVAL;
->  
->  	return sprintf(buf, "%lld\n", value);
-> @@ -59,7 +59,7 @@ static ssize_t irst_store_wakeup_events(struct device *dev,
->  
->  	status = acpi_execute_simple_method(acpi->handle, "SFFS", value);
->  
-> -	if (!ACPI_SUCCESS(status))
-> +	if (ACPI_FAILURE(status))
->  		return -EINVAL;
->  
->  	return count;
-> @@ -81,7 +81,7 @@ static ssize_t irst_show_wakeup_time(struct device *dev,
->  	acpi = to_acpi_device(dev);
->  
->  	status = acpi_evaluate_integer(acpi->handle, "GFTV", NULL, &value);
-> -	if (!ACPI_SUCCESS(status))
-> +	if (ACPI_FAILURE(status))
->  		return -EINVAL;
->  
->  	return sprintf(buf, "%lld\n", value);
-> @@ -105,7 +105,7 @@ static ssize_t irst_store_wakeup_time(struct device *dev,
->  
->  	status = acpi_execute_simple_method(acpi->handle, "SFTV", value);
->  
-> -	if (!ACPI_SUCCESS(status))
-> +	if (ACPI_FAILURE(status))
->  		return -EINVAL;
->  
->  	return count;
-> -- 
-> 2.1.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe platform-driver-x86" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--- 
-Darren Hart
-Intel Open Source Technology Center
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
