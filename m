@@ -1,8 +1,8 @@
-From: Frans Klaver <fransklaver@gmail.com>
+From: Darren Hart <dvhart@infradead.org>
 Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
  get_cpufv
-Date: Tue, 16 Sep 2014 23:10:01 +0200
-Message-ID: <20140916211001.GA23674@gmail.com>
+Date: Tue, 16 Sep 2014 14:27:15 -0700
+Message-ID: <20140916212715.GB6856@vmdeb7>
 References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
  <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
  <20140915214902.GB64909@vmdeb7>
@@ -11,12 +11,12 @@ References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
  <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
  <20140916205247.GA6856@vmdeb7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20140916205247.GA6856@vmdeb7>
 Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
+To: Frans Klaver <fransklaver@gmail.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
@@ -66,22 +66,33 @@ On Tue, Sep 16, 2014 at 01:52:47PM -0700, Darren Hart wrote:
 > error handling which makes things more uniform, etc.
 > 
 > If this results in broken userspace, the maintainer will revert the change.
-
-Alright, that is basically what I was expecting it to be. As it happens,
-this also means that we'll have to decide what to do about returning
--EIO/-ENODEV/rv in show_sys_acpi and store_sys_acpi. The latter was
-changed by Paul Bolle's "eeepc-laptop: simplify parse_arg()". The return
-value of these functions is propagated to the sysfs interface.
-
-
+> 
 > This is probably a good thing to add to sysfs-rules.txt. I'll prepare a patch.
+> 
 
-Agreed.
+What do people think of appending this to sysfs-rules.txt?
 
-While I was removing the patches changing the sysfs error behavior, I
-also noticed that eeepc-laptop.c doesn't really seem to handle errors
-uniformly. In some cases the callers of get_acpi and set_acpi don't even
-seem to consider that these functions may return an error code (e.g.
-eeepc_hotk_thaw()). I'd fix those in a new series though.
+- When reading and writing sysfs device attribute files, avoid dependency
+  on specific error codes wherever possible. This minimizes coupling to
+  the error handling implemementation within the kernel.
 
-Frans
+  In general, failures to read or write sysfs device attributes shall
+  propogate errors wherever possible. Common errors include, but are not
+  limited to:
+
+  -EIO: The read or store operation is not supported, typically returned by
+        the sysfs system itself if the read or store pointer is NULL.
+
+  -ENXIO: The read or store operation failed
+
+  Error codes will not be changed without good reason, and should a change
+  to error codes result in user-space breakage, it will be fixed, or the
+  the offending change will be reverted.
+
+  Userspace applications can, however, expect the format and contents of
+  the attribute files to remain consistent in the absence of a version
+  attribute change in the context of a given attributes.
+
+-- 
+Darren Hart
+Intel Open Source Technology Center
