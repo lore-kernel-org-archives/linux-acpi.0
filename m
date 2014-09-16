@@ -1,45 +1,72 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 10/22] ACPI / battery: Replace strnicmp with strncasecmp
-Date: Tue, 16 Sep 2014 22:51:24 +0200
-Message-ID: <1410900696-6481-11-git-send-email-linux@rasmusvillemoes.dk>
-References: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
+ get_cpufv
+Date: Tue, 16 Sep 2014 13:52:47 -0700
+Message-ID: <20140916205247.GA6856@vmdeb7>
+References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
+ <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
+ <20140915214902.GB64909@vmdeb7>
+ <20140915215125.GA21435@kroah.com>
+ <20140915215527.GC7867@gmail.com>
+ <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
+Content-Disposition: inline
+In-Reply-To: <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Frans Klaver <fransklaver@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The kernel used to contain two functions for length-delimited,
-case-insensitive string comparison, strnicmp with correct semantics
-and a slightly buggy strncasecmp. The latter is the POSIX name, so
-strnicmp was renamed to strncasecmp, and strnicmp made into a wrapper
-for the new strncasecmp to avoid breaking existing users.
+On Tue, Sep 16, 2014 at 01:54:25PM +0200, Frans Klaver wrote:
+> On Mon, Sep 15, 2014 at 11:55 PM, Frans Klaver <fransklaver@gmail.com> wrote:
+> > On Mon, Sep 15, 2014 at 02:51:25PM -0700, Greg Kroah-Hartman wrote:
+> >> On Mon, Sep 15, 2014 at 02:49:02PM -0700, Darren Hart wrote:
+> >> >
+> >> > This patch is fine as is. However, Greg has supported propogating the error code
+> >> > through to the sysfs interface (if I understand him correctly on an earlier post
+> >> > to this list). This would require an addition change to this patch would
+> >> > propogated the get_cpufv error code in show_available_cpuv(), show_cpuv(), and
+> >> > store_cpuv(). As it is, we return -ENODEV on any failure, where an ACPI call
+> >> > error should probably return -ENXIO as I understand it.
+> >>
+> >> I really have no idea at this point in time what to recommend.  How
+> >> about just stick with what is happening today so that:
+> >>
+> >> > However, there was a rather famous change in error code handling in which pulse
+> >> > audio broke and Linus was very upset with one of his maintainers.
+> >>
+> >> That doesn't happen :)
+> >
+> > So if I interpret that correctly, we're dropping the last patch
+> > (ENODEV -> ENXIO) from the series? That's fine by me. As mentioned
+> > earlier, I already saw something else break because I returned ENXIO
+> > instead of ENODEV.
+> >
+> > Maybe it's a good idea to try and document the expected behavior
+> > somewhere, if even Greg isn't sure what to do.
+> 
+> For good measure:
+> 
+> v2 will not change the return values at the sysfs interface, meaning
+> we will always return -ENODEV on error. I am going to try to keep as
+> much internal functions propagating errors as possible though, unless
+> someone strongly disagrees.
+> 
+> Thanks,
+> Frans
 
-To allow the compat wrapper strnicmp to be removed at some point in
-the future, and to avoid the extra indirection cost, do
-s/strnicmp/strncasecmp/g.
+I cornered Linus today and asked about this specifically. The policy is this:
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/acpi/battery.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Don't change the sysfs return codes without good reason. A good reason could be
+a real bug or problem with the return codes. It could also be to consolidate
+error handling which makes things more uniform, etc.
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 5fdfe65..8ec8a89 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -695,7 +695,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
- 		const char *s;
- 		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
--		if (s && !strnicmp(s, "ThinkPad", 8)) {
-+		if (s && !strncasecmp(s, "ThinkPad", 8)) {
- 			dmi_walk(find_battery, battery);
- 			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
- 				     &battery->flags) &&
+If this results in broken userspace, the maintainer will revert the change.
+
+This is probably a good thing to add to sysfs-rules.txt. I'll prepare a patch.
+
 -- 
-2.0.4
+Darren Hart
+Intel Open Source Technology Center
