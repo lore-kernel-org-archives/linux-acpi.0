@@ -1,61 +1,84 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v7 1/2] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 16 Sep 2014 14:28:54 -0400
-Message-ID: <CAJ5Y-eak5iMak6vqTBNYdWz1tKFRjGUfD7cZor+uHKknwYNhoQ@mail.gmail.com>
-References: <1410369619-2570-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1410369619-2570-2-git-send-email-ashwin.chaugule@linaro.org>
-	<20140916174035.GT7960@sirena.org.uk>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC Part2 v1 14/21] x86, hpet: Enhance HPET IRQ to support
+ hierarchy irqdomain
+Date: Tue, 16 Sep 2014 11:31:45 -0700 (PDT)
+Message-ID: <alpine.DEB.2.10.1409161104120.4247@nanos>
+References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-15-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:56710 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754926AbaIPS2z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 14:28:55 -0400
-Received: by mail-wi0-f180.google.com with SMTP id ex7so620355wid.13
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Sep 2014 11:28:54 -0700 (PDT)
-In-Reply-To: <20140916174035.GT7960@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1410444228-3134-15-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>
 
-Hi Mark,
+On Thu, 11 Sep 2014, Jiang Liu wrote:
+>  #ifdef CONFIG_HPET_TIMER
+> +#define	HPET_DOMAIN_REMAPPED		0x80000000
+> +
+> +static inline int hpet_dev_id(struct irq_domain *domain)
+> +{
+> +	return (int)((long)domain->host_data & ~HPET_DOMAIN_REMAPPED);
+> +}
+> +
+> +static inline bool hpet_remapped(struct irq_domain *domain)
+> +{
+> +	return (bool)((long)domain->host_data & HPET_DOMAIN_REMAPPED);
+> +}
 
-On 16 September 2014 13:40, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, Sep 10, 2014 at 01:20:18PM -0400, Ashwin Chaugule wrote:
->
->> ACPI 5.0+ spec defines a generic mode of communication
->> between the OS and a platform such as the BMC. This medium
->> (PCC) is typically used by CPPC (ACPI CPU Performance management),
->> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
->> states).
->
-> This mostly looks good to me at a fairly high level, one small nit below
-> which I don't think should be a blocker to an initial merge but would be
-> good to fix.
->
-> Reviewed-by: Mark Brown <broonie@kernel.org>
+It's kinda odd to have this encoded in domain->host_data.
 
-Much appreciated!
+>  static int hpet_msi_set_affinity(struct irq_data *data,
+>  				 const struct cpumask *mask, bool force)
+>  {
+> +	struct irq_data *parent = data->parent_data;
+>  	struct irq_cfg *cfg = irqd_cfg(data);
+>  	struct msi_msg msg;
+> -	unsigned int dest;
+>  	int ret;
+>  
+> -	ret = apic_set_affinity(data, mask, &dest);
+> -	if (ret)
+> -		return ret;
+> -
+> -	hpet_msi_read(data->handler_data, &msg);
+> -
+> -	msg.data &= ~MSI_DATA_VECTOR_MASK;
+> -	msg.data |= MSI_DATA_VECTOR(cfg->vector);
+> -	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
+> -	msg.address_lo |= MSI_ADDR_DEST_ID(dest);
+> -
+> -	hpet_msi_write(data->handler_data, &msg);
+> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
+> +	/* No need to rewrite HPET registers if interrupt is remapped */
+> +	if (ret >= 0 && !hpet_remapped(data->domain)) {
 
->
->> +static bool pcc_tx_done(struct mbox_chan *chan)
->> +{
->> +     struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
->> +     struct acpi_pcct_shared_memory *generic_comm_base =
->> +             (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
->> +     u16 cmd_delay = pcct_ss->min_turnaround_time;
->> +
->> +     /* Wait for Platform to consume. */
->> +     while (!(readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE))
->> +             udelay(cmd_delay);
->
-> This will busy wait for ever if the controller dies.  We're in big
-> trouble if that happens but it would be good to have some sort of
-> timeout and scream here.
+So we really should use irq_data->chip_data for this, i.e. storing
 
-Agreed. I'll add this along with Lv's feedback.
+struct hpet_msi {
+       struct msi_msg msg;
+       bool remapped;
+       /* whatever you need here */
+};
 
-Cheers,
-Ashwin
+> +		hpet_msi_read(data->handler_data, &msg);
+> +		msg.data &= ~MSI_DATA_VECTOR_MASK;
+> +		msg.data |= MSI_DATA_VECTOR(cfg->vector);
+> +		msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
+> +		msg.address_lo |= MSI_ADDR_DEST_ID(cfg->dest_apicid);
+
+We need the same thing for MSI so this should be a helper function
+
+   msi_update_msg(struct msi_msg *msg, struct irq_cfg *cfg)
+
+> +		hpet_msi_write(data->handler_data, &msg);
+> +	}
+>  
+> -	return IRQ_SET_MASK_OK_NOCOPY;
+> +	return ret;
+>  }
+ 
+Thanks,
+
+	tglx
