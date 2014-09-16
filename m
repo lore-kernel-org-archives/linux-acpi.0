@@ -1,65 +1,88 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC PATCH v2 05/16] mfd: Add ACPI support
-Date: Tue, 16 Sep 2014 14:54:40 -0700
-Message-ID: <20140916215440.GP25162@lee--X1>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1410868367-11056-6-git-send-email-mika.westerberg@linux.intel.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 1/2] intel-rst: Use ACPI_FAILURE() macro instead
+ !ACPI_SUCCESS() for error checking
+Date: Tue, 16 Sep 2014 15:49:14 -0700
+Message-ID: <20140916224914.GA17720@vmdeb7>
+References: <1410902036-10282-1-git-send-email-peter.ujfalusi@gmail.com>
+ <1410902036-10282-2-git-send-email-peter.ujfalusi@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:47825 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753021AbaIPVys (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 17:54:48 -0400
-Received: by mail-pa0-f48.google.com with SMTP id hz1so653567pad.35
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Sep 2014 14:54:47 -0700 (PDT)
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410868367-11056-6-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1410902036-10282-2-git-send-email-peter.ujfalusi@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@gmail.com>
+Cc: mjg59@srcf.ucam.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Tue, 16 Sep 2014, Mika Westerberg wrote:
+On Wed, Sep 17, 2014 at 12:13:55AM +0300, Peter Ujfalusi wrote:
+> ACPI_SUCCESS is defined as:
+> #define ACPI_SUCCESS(a)			(!(a))
+> 
+> There is no need for the the double ! since there is already a macro
+> defined for failures: ACPI_FAILURE()
+> 
 
-> If an MFD device is backed by ACPI namespace, we should allow subdevi=
-ce
-> drivers to access their corresponding ACPI companion devices through =
-normal
-> means (e.g using ACPI_COMPANION()).
->=20
-> This patch adds such support to the MFD core. If the MFD parent devic=
-e
-> does not specify any ACPI _HID/_CID for the child device, the child
-> device will share the parent ACPI companion device. Otherwise the chi=
-ld
-> device will be assigned with the corresponding ACPI companion, if fou=
-nd
-> in the namespace below the parent.
->=20
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+Cc: linux-acpi
+
+Thanks,
+
+Darren
+
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@gmail.com>
 > ---
-> Lee, I tried to get rid of #ifdefs in the below patch but it wasn't
-> possible because we are using functions that are not available when
-> !CONFIG_ACPI.
->=20
->  Documentation/acpi/enumeration.txt | 27 +++++++++++++++++++++++++
->  drivers/mfd/mfd-core.c             | 40 ++++++++++++++++++++++++++++=
-++++++++++
->  include/linux/mfd/core.h           |  3 +++
->  3 files changed, 70 insertions(+)
+>  drivers/platform/x86/intel-rst.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/intel-rst.c b/drivers/platform/x86/intel-rst.c
+> index d45bca3..8c6a8fe 100644
+> --- a/drivers/platform/x86/intel-rst.c
+> +++ b/drivers/platform/x86/intel-rst.c
+> @@ -35,7 +35,7 @@ static ssize_t irst_show_wakeup_events(struct device *dev,
+>  	acpi = to_acpi_device(dev);
+>  
+>  	status = acpi_evaluate_integer(acpi->handle, "GFFS", NULL, &value);
+> -	if (!ACPI_SUCCESS(status))
+> +	if (ACPI_FAILURE(status))
+>  		return -EINVAL;
+>  
+>  	return sprintf(buf, "%lld\n", value);
+> @@ -59,7 +59,7 @@ static ssize_t irst_store_wakeup_events(struct device *dev,
+>  
+>  	status = acpi_execute_simple_method(acpi->handle, "SFFS", value);
+>  
+> -	if (!ACPI_SUCCESS(status))
+> +	if (ACPI_FAILURE(status))
+>  		return -EINVAL;
+>  
+>  	return count;
+> @@ -81,7 +81,7 @@ static ssize_t irst_show_wakeup_time(struct device *dev,
+>  	acpi = to_acpi_device(dev);
+>  
+>  	status = acpi_evaluate_integer(acpi->handle, "GFTV", NULL, &value);
+> -	if (!ACPI_SUCCESS(status))
+> +	if (ACPI_FAILURE(status))
+>  		return -EINVAL;
+>  
+>  	return sprintf(buf, "%lld\n", value);
+> @@ -105,7 +105,7 @@ static ssize_t irst_store_wakeup_time(struct device *dev,
+>  
+>  	status = acpi_execute_simple_method(acpi->handle, "SFTV", value);
+>  
+> -	if (!ACPI_SUCCESS(status))
+> +	if (ACPI_FAILURE(status))
+>  		return -EINVAL;
+>  
+>  	return count;
+> -- 
+> 2.1.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe platform-driver-x86" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Darren Hart
+Intel Open Source Technology Center
