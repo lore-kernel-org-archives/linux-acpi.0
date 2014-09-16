@@ -1,8 +1,8 @@
-From: Frans Klaver <fransklaver@gmail.com>
+From: Darren Hart <dvhart@infradead.org>
 Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
  get_cpufv
-Date: Tue, 16 Sep 2014 23:40:37 +0200
-Message-ID: <20140916214037.GB23674@gmail.com>
+Date: Tue, 16 Sep 2014 14:43:34 -0700
+Message-ID: <20140916214334.GC6856@vmdeb7>
 References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
  <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
  <20140915214902.GB64909@vmdeb7>
@@ -11,45 +11,61 @@ References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
  <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
  <20140916205247.GA6856@vmdeb7>
  <20140916212715.GB6856@vmdeb7>
+ <20140916214037.GB23674@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:43367 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753837AbaIPVn3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 17:43:29 -0400
 Content-Disposition: inline
-In-Reply-To: <20140916212715.GB6856@vmdeb7>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
+In-Reply-To: <20140916214037.GB23674@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Frans Klaver <fransklaver@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
 
-On Tue, Sep 16, 2014 at 02:27:15PM -0700, Darren Hart wrote:
+On Tue, Sep 16, 2014 at 11:40:37PM +0200, Frans Klaver wrote:
+> On Tue, Sep 16, 2014 at 02:27:15PM -0700, Darren Hart wrote:
+> > 
+> > - When reading and writing sysfs device attribute files, avoid dependency
+> >   on specific error codes wherever possible. This minimizes coupling to
+> >   the error handling implemementation within the kernel.
+> > 
+> >   In general, failures to read or write sysfs device attributes shall
+> >   propogate errors wherever possible. Common errors include, but are not
+> >   limited to:
+> > 
+> >   -EIO: The read or store operation is not supported, typically returned by
+> >         the sysfs system itself if the read or store pointer is NULL.
+> > 
+> >   -ENXIO: The read or store operation failed
+> > 
+> >   Error codes will not be changed without good reason, and should a change
+> >   to error codes result in user-space breakage, it will be fixed, or the
+> >   the offending change will be reverted.
 > 
-> - When reading and writing sysfs device attribute files, avoid dependency
->   on specific error codes wherever possible. This minimizes coupling to
->   the error handling implemementation within the kernel.
+> sysfs-rules.txt is written for user space? In that case, reverting the
+> change is as much a fix as patching it.
 > 
->   In general, failures to read or write sysfs device attributes shall
->   propogate errors wherever possible. Common errors include, but are not
->   limited to:
-> 
->   -EIO: The read or store operation is not supported, typically returned by
->         the sysfs system itself if the read or store pointer is NULL.
-> 
->   -ENXIO: The read or store operation failed
-> 
->   Error codes will not be changed without good reason, and should a change
->   to error codes result in user-space breakage, it will be fixed, or the
->   the offending change will be reverted.
+> > 
+> >   Userspace applications can, however, expect the format and contents of
+> >   the attribute files to remain consistent in the absence of a version
+> >   attribute change in the context of a given attributes.
 
-sysfs-rules.txt is written for user space? In that case, reverting the
-change is as much a fix as patching it.
+Agreed, but I wanted to make this clear to kernel devs reading this as well,
+rather than duplicating this blurb elsewhere.
 
 > 
->   Userspace applications can, however, expect the format and contents of
->   the attribute files to remain consistent in the absence of a version
->   attribute change in the context of a given attributes.
+> ...attribute.
+> 
+> That's it for the nit-picking.
 
-...attribute.
+Thanks for the plural catch.
 
-That's it for the nit-picking.
+I'll send to Greg as a patch.
 
-Frans
+-- 
+Darren Hart
+Intel Open Source Technology Center
