@@ -1,201 +1,187 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
-Date: Tue, 16 Sep 2014 14:46:41 +0800
-Message-ID: <1410850001-2242-1-git-send-email-jiang.liu@linux.intel.com>
-References: <1410422758-24942-5-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410422758-24942-5-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Part2 v1] x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+Date: Tue, 16 Sep 2014 14:50:56 +0800
+Message-ID: <1410850256-2561-1-git-send-email-jiang.liu@linux.intel.com>
+References: <1410422758-24942-11-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:6442 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751740AbaIPGsa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Sep 2014 02:48:30 -0400
+In-Reply-To: <1410422758-24942-11-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Yinghai Lu <yinghai@kernel.org>
+Refine mp_register_ioapic() to prepare for IOAPIC hotplug by:
+1) change return value from void to int.
+2) check for gsi range conflicts
+3) check for IOAPIC physical address conflicts
+4) enhance the way to allocate IOAPIC index
 
-We need to parse APIC ID for IOAPIC registration for IOAPIC hotplug.
-ACPI _MAT method and MADT table are used to figure out IOAPIC ID, just
-like parsing CPU APIC ID for CPU hotplug.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
 Hi Thomas,
-	I have fixed the docbook issues, and renamed functions with
-more meaningful names.
+	I have fixed docbook issues in this patch.
 Regards!
 Gerry
 ---
- drivers/acpi/processor_core.c |  122 ++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h          |    4 ++
- 2 files changed, 117 insertions(+), 9 deletions(-)
+ arch/x86/include/asm/io_apic.h |    4 +-
+ arch/x86/kernel/apic/io_apic.c |   87 ++++++++++++++++++++++++++--------------
+ 2 files changed, 58 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index b048f3752c2b..4a3150f2187c 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -4,6 +4,10 @@
-  *
-  *	Alex Chiang <achiang@hp.com>
-  *	- Unified x86/ia64 implementations
-+ *
-+ * I/O APIC hotplug support
-+ *	Yinghai Lu <yinghai@kernel.org>
-+ *	Jiang Liu <jiang.liu@intel.com>
-  */
- #include <linux/export.h>
- #include <linux/acpi.h>
-@@ -12,6 +16,21 @@
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_core");
- 
-+static struct acpi_table_madt *get_madt_table(void)
-+{
-+	static struct acpi_table_madt *madt;
-+	static int read_madt;
-+
-+	if (!read_madt) {
-+		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
-+					(struct acpi_table_header **)&madt)))
-+			madt = NULL;
-+		read_madt++;
-+	}
-+
-+	return madt;
-+}
-+
- static int map_lapic_id(struct acpi_subtable_header *entry,
- 		 u32 acpi_id, int *apic_id)
- {
-@@ -67,17 +86,10 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
--	static struct acpi_table_madt *madt;
--	static int read_madt;
- 	int apic_id = -1;
-+	struct acpi_table_madt *madt;
- 
--	if (!read_madt) {
--		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
--					(struct acpi_table_header **)&madt)))
--			madt = NULL;
--		read_madt++;
--	}
--
-+	madt = get_madt_table();
- 	if (!madt)
- 		return apic_id;
- 
-@@ -203,3 +215,95 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- 	return acpi_map_cpuid(apic_id, acpi_id);
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index a666dcdeea67..8741c1ea33c3 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -188,8 +188,8 @@ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
+ extern u32 mp_pin_to_gsi(int ioapic, int pin);
+ extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags);
+ extern void mp_unmap_irq(int irq);
+-extern void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+-			       struct ioapic_domain_cfg *cfg);
++extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
++			      struct ioapic_domain_cfg *cfg);
+ extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 			    irq_hw_number_t hwirq);
+ extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 81f014891237..9945eb974509 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3827,20 +3827,6 @@ int mp_find_ioapic_pin(int ioapic, u32 gsi)
+ 	return gsi - gsi_cfg->gsi_base;
  }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
-+
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
-+			 u64 *phys_addr, int *ioapic_id)
-+{
-+	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
-+
-+	if (ioapic->global_irq_base != gsi_base)
-+		return 0;
-+
-+	*phys_addr = ioapic->address;
-+	*ioapic_id = ioapic->id;
-+	return 1;
-+}
-+
-+static int parse_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
-+{
-+	struct acpi_subtable_header *hdr;
-+	unsigned long madt_end, entry;
-+	int apic_id = -1;
-+	struct acpi_table_madt *madt;
-+
-+	madt = get_madt_table();
-+	if (!madt)
-+		return apic_id;
-+
-+	entry = (unsigned long)madt;
-+	madt_end = entry + madt->header.length;
-+
-+	/* Parse all entries looking for a match. */
-+	entry += sizeof(struct acpi_table_madt);
-+	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-+		hdr = (struct acpi_subtable_header *)entry;
-+		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
-+		    get_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
-+			break;
-+		else
-+			entry += hdr->length;
-+	}
-+
-+	return apic_id;
-+}
-+
-+static int parse_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
-+				  u64 *phys_addr)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *obj;
-+	struct acpi_subtable_header *header;
-+	int apic_id = -1;
-+
-+	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
-+		goto exit;
-+
-+	if (!buffer.length || !buffer.pointer)
-+		goto exit;
-+
-+	obj = buffer.pointer;
-+	if (obj->type != ACPI_TYPE_BUFFER ||
-+	    obj->buffer.length < sizeof(struct acpi_subtable_header))
-+		goto exit;
-+
-+	header = (struct acpi_subtable_header *)obj->buffer.pointer;
-+	if (header->type == ACPI_MADT_TYPE_IO_APIC)
-+		get_ioapic_id(header, gsi_base, phys_addr, &apic_id);
-+
-+exit:
-+	kfree(buffer.pointer);
-+	return apic_id;
+ 
+-static int bad_ioapic(unsigned long address)
+-{
+-	if (nr_ioapics >= MAX_IO_APICS) {
+-		pr_warn("WARNING: Max # of I/O APICs (%d) exceeded (found %d), skipping\n",
+-			MAX_IO_APICS, nr_ioapics);
+-		return 1;
+-	}
+-	if (!address) {
+-		pr_warn("WARNING: Bogus (zero) I/O APIC address found in table, skipping!\n");
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+ static int bad_ioapic_register(int idx)
+ {
+ 	union IO_APIC_reg_00 reg_00;
+@@ -3860,29 +3846,51 @@ static int bad_ioapic_register(int idx)
+ 	return 0;
+ }
+ 
+-void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+-			struct ioapic_domain_cfg *cfg)
++static int find_free_ioapic_entry(void)
+ {
+-	int idx = 0;
+-	int entries;
++	return nr_ioapics;
 +}
 +
 +/**
-+ * acpi_get_ioapic_id - Get IOAPIC ID and physical address matching @gsi_base
-+ * @handle:	ACPI object for IOAPIC device
-+ * @gsi_base:	GSI base to match with
-+ * @phys_add:	hold physical address of matching IOAPIC record
-+ *
-+ * Walk resources returned by ACPI_MAT method, then ACPI MADT table, to search
-+ * for an ACPI IOAPIC record matching @gsi_base.
-+ * Return IOAPIC id and physical address if found a match, otherwise return <0.
++ * mp_register_ioapic - Register an IOAPIC device
++ * @id:		hardware IOAPIC ID
++ * @address:	physical address of IOAPIC register area
++ * @gsi_base:	base of GSI associated with the IOAPIC
++ * @cfg:	configuration information for the IOAPIC
 + */
-+int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
++int mp_register_ioapic(int id, u32 address, u32 gsi_base,
++		       struct ioapic_domain_cfg *cfg)
 +{
-+	int apic_id;
-+
-+	apic_id = parse_mat_ioapic_entry(handle, gsi_base, phys_addr);
-+	if (apic_id == -1)
-+		apic_id = parse_madt_ioapic_entry(gsi_base, phys_addr);
-+
-+	return apic_id;
-+}
-+#endif /* CONFIG_ACPI_HOTPLUG_IOAPIC */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 807cbc46d73e..3574f137242e 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -146,6 +146,10 @@ int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
- int acpi_unmap_lsapic(int cpu);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
++	u32 gsi_end;
++	int idx, ioapic, entries;
+ 	struct mp_ioapic_gsi *gsi_cfg;
  
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
-+#endif
+-	if (bad_ioapic(address))
+-		return;
++	if (!address) {
++		pr_warn("Bogus (zero) I/O APIC address found, skipping!\n");
++		return -EINVAL;
++	}
++	for_each_ioapic(ioapic)
++		if (ioapics[ioapic].mp_config.apicaddr == address) {
++			pr_warn("address 0x%x conflicts with IOAPIC%d\n",
++				address, ioapic);
++			return -EEXIST;
++		}
+ 
+-	idx = nr_ioapics;
++	idx = find_free_ioapic_entry();
++	if (idx >= MAX_IO_APICS) {
++		pr_warn("Max # of I/O APICs (%d) exceeded (found %d), skipping\n",
++			MAX_IO_APICS, idx);
++		return -ENOSPC;
++	}
+ 
+ 	ioapics[idx].mp_config.type = MP_IOAPIC;
+ 	ioapics[idx].mp_config.flags = MPC_APIC_USABLE;
+ 	ioapics[idx].mp_config.apicaddr = address;
+-	ioapics[idx].irqdomain = NULL;
+-	ioapics[idx].irqdomain_cfg = *cfg;
+ 
+ 	set_fixmap_nocache(FIX_IO_APIC_BASE_0 + idx, address);
+-
+ 	if (bad_ioapic_register(idx)) {
+ 		clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
+-		return;
++		return -ENODEV;
+ 	}
+ 
+ 	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
+@@ -3893,24 +3901,41 @@ void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
+ 	 */
+ 	entries = io_apic_get_redir_entries(idx);
++	gsi_end = gsi_base + entries - 1;
++	for_each_ioapic(ioapic) {
++		gsi_cfg = mp_ioapic_gsi_routing(ioapic);
++		if ((gsi_base >= gsi_cfg->gsi_base &&
++		     gsi_base <= gsi_cfg->gsi_end) ||
++		    (gsi_end >= gsi_cfg->gsi_base &&
++		     gsi_end <= gsi_cfg->gsi_end)) {
++			pr_warn("GSI range [%u-%u] for new IOAPIC conflicts with GSI[%u-%u]\n",
++				gsi_base, gsi_end,
++				gsi_cfg->gsi_base, gsi_cfg->gsi_end);
++			clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
++			return -ENOSPC;
++		}
++	}
+ 	gsi_cfg = mp_ioapic_gsi_routing(idx);
+ 	gsi_cfg->gsi_base = gsi_base;
+-	gsi_cfg->gsi_end = gsi_base + entries - 1;
++	gsi_cfg->gsi_end = gsi_end;
+ 
+-	/*
+-	 * The number of IO-APIC IRQ registers (== #pins):
+-	 */
+-	ioapics[idx].nr_registers = entries;
++	ioapics[idx].irqdomain = NULL;
++	ioapics[idx].irqdomain_cfg = *cfg;
+ 
+ 	if (gsi_cfg->gsi_end >= gsi_top)
+ 		gsi_top = gsi_cfg->gsi_end + 1;
++	if (nr_ioapics <= idx)
++		nr_ioapics = idx + 1;
 +
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
- int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
- void acpi_irq_stats_init(void);
++	/* Set nr_registers to mark entry present */
++	ioapics[idx].nr_registers = entries;
+ 
+ 	pr_info("IOAPIC[%d]: apic_id %d, version %d, address 0x%x, GSI %d-%d\n",
+ 		idx, mpc_ioapic_id(idx),
+ 		mpc_ioapic_ver(idx), mpc_ioapic_addr(idx),
+ 		gsi_cfg->gsi_base, gsi_cfg->gsi_end);
+ 
+-	nr_ioapics++;
++	return 0;
+ }
+ 
+ int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
 -- 
 1.7.10.4
+
