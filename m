@@ -1,84 +1,45 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Part2 v1 14/21] x86, hpet: Enhance HPET IRQ to support
- hierarchy irqdomain
-Date: Tue, 16 Sep 2014 11:31:45 -0700 (PDT)
-Message-ID: <alpine.DEB.2.10.1409161104120.4247@nanos>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-15-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1410444228-3134-15-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 10/22] ACPI / battery: Replace strnicmp with strncasecmp
+Date: Tue, 16 Sep 2014 22:51:24 +0200
+Message-ID: <1410900696-6481-11-git-send-email-linux@rasmusvillemoes.dk>
+References: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 11 Sep 2014, Jiang Liu wrote:
->  #ifdef CONFIG_HPET_TIMER
-> +#define	HPET_DOMAIN_REMAPPED		0x80000000
-> +
-> +static inline int hpet_dev_id(struct irq_domain *domain)
-> +{
-> +	return (int)((long)domain->host_data & ~HPET_DOMAIN_REMAPPED);
-> +}
-> +
-> +static inline bool hpet_remapped(struct irq_domain *domain)
-> +{
-> +	return (bool)((long)domain->host_data & HPET_DOMAIN_REMAPPED);
-> +}
+The kernel used to contain two functions for length-delimited,
+case-insensitive string comparison, strnicmp with correct semantics
+and a slightly buggy strncasecmp. The latter is the POSIX name, so
+strnicmp was renamed to strncasecmp, and strnicmp made into a wrapper
+for the new strncasecmp to avoid breaking existing users.
 
-It's kinda odd to have this encoded in domain->host_data.
+To allow the compat wrapper strnicmp to be removed at some point in
+the future, and to avoid the extra indirection cost, do
+s/strnicmp/strncasecmp/g.
 
->  static int hpet_msi_set_affinity(struct irq_data *data,
->  				 const struct cpumask *mask, bool force)
->  {
-> +	struct irq_data *parent = data->parent_data;
->  	struct irq_cfg *cfg = irqd_cfg(data);
->  	struct msi_msg msg;
-> -	unsigned int dest;
->  	int ret;
->  
-> -	ret = apic_set_affinity(data, mask, &dest);
-> -	if (ret)
-> -		return ret;
-> -
-> -	hpet_msi_read(data->handler_data, &msg);
-> -
-> -	msg.data &= ~MSI_DATA_VECTOR_MASK;
-> -	msg.data |= MSI_DATA_VECTOR(cfg->vector);
-> -	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
-> -	msg.address_lo |= MSI_ADDR_DEST_ID(dest);
-> -
-> -	hpet_msi_write(data->handler_data, &msg);
-> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
-> +	/* No need to rewrite HPET registers if interrupt is remapped */
-> +	if (ret >= 0 && !hpet_remapped(data->domain)) {
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+---
+ drivers/acpi/battery.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-So we really should use irq_data->chip_data for this, i.e. storing
-
-struct hpet_msi {
-       struct msi_msg msg;
-       bool remapped;
-       /* whatever you need here */
-};
-
-> +		hpet_msi_read(data->handler_data, &msg);
-> +		msg.data &= ~MSI_DATA_VECTOR_MASK;
-> +		msg.data |= MSI_DATA_VECTOR(cfg->vector);
-> +		msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
-> +		msg.address_lo |= MSI_ADDR_DEST_ID(cfg->dest_apicid);
-
-We need the same thing for MSI so this should be a helper function
-
-   msi_update_msg(struct msi_msg *msg, struct irq_cfg *cfg)
-
-> +		hpet_msi_write(data->handler_data, &msg);
-> +	}
->  
-> -	return IRQ_SET_MASK_OK_NOCOPY;
-> +	return ret;
->  }
- 
-Thanks,
-
-	tglx
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 5fdfe65..8ec8a89 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -695,7 +695,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+ 	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
+ 		const char *s;
+ 		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
+-		if (s && !strnicmp(s, "ThinkPad", 8)) {
++		if (s && !strncasecmp(s, "ThinkPad", 8)) {
+ 			dmi_walk(find_battery, battery);
+ 			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
+ 				     &battery->flags) &&
+-- 
+2.0.4
