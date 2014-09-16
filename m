@@ -1,109 +1,71 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: x86, irq: Introduce helper to check whether an IOAPIC has been registered
-Date: Tue, 16 Sep 2014 14:53:03 +0800
-Message-ID: <1410850383-2784-1-git-send-email-jiang.liu@linux.intel.com>
-References: <1410422758-24942-15-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410422758-24942-15-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Tue, 16 Sep 2014 11:12:56 +0100
+Message-ID: <20140916101256.GA21943@localhost>
+References: <1409583475-6978-1-git-send-email-hanjun.guo@linaro.org>
+ <20140911132935.068DCC408F6@trevor.secretlab.ca>
+ <20140911153739.GA24416@localhost>
+ <20140915043116.9985CC407E8@trevor.secretlab.ca>
+ <20140915091515.GA1577@arm.com>
+ <20140915224800.BA32FC40B84@trevor.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:33113 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628AbaIPKNG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 06:13:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20140915224800.BA32FC40B84@trevor.secretlab.ca>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "grant.likely@linaro.org" <grant.likely@linaro.org>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Introduce acpi_ioapic_registered() to check whether an IOAPIC has already
-been registered, it will be used when enabling IOAPIC hotplug.
+On Mon, Sep 15, 2014 at 11:48:00PM +0100, Grant Likely wrote:
+> On Mon, 15 Sep 2014 10:15:16 +0100, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > On Mon, Sep 15, 2014 at 05:31:16AM +0100, Grant Likely wrote:
+> > > On Thu, 11 Sep 2014 16:37:39 +0100, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > > > On Thu, Sep 11, 2014 at 02:29:34PM +0100, Grant Likely wrote:
+> > > > > Regarding the requests to refactor ACPICA to work better for ARM. I
+> > > > > completely agree that it should be done, but I do not think it should be
+> > > > > a prerequisite to getting this core support merged. That kind of
+> > > > > refactoring is far easier to justify when it has immediate improvement
+> > > > > on the mainline codebase, and it gives us a working baseline to test
+> > > > > against. Doing it the other way around just makes things harder.
+> > > > 
+> > > > I have to disagree here. As I said, I'm perfectly fine with refactoring
+> > > > happening later but I'm not happy with compiling in code with undefined
+> > > > behaviour on ARM that may actually be executed at run-time.
+> > > > 
+> > > > I'm being told one of the main advantages of ACPI is forward
+> > > > compatibility: running older kernels on newer hardware (potentially with
+> > > > newer ACPI version tables). ACPI 5.1 includes partial support for ARM
+> > > > but the S and C states are not defined yet. We therefore assume that
+> > > > hardware vendors deploying servers using ACPI would not provide such
+> > > > yet to be defined information in ACPI 5.1 tables.
+> > > 
+> > > We're good on this front. ACPI-future platforms aren't allowed to use
+> > > new features when booting an older kernel.
+> > 
+> > Do you mean ACPI-future firmware should not provide new information to
+> > older kernels?
+> 
+> I mean that ACPI has the mechanism so that the platform (via AML)
+> doesn't try to do things that the OS doesn't understand.  AML methods are
+> to use the \_REV object to determine whether or not it can use a
+> feature. If, for example, the _REV is 5, then the AML must switch itself
+> to code paths that don't use ACPI 6 features.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
-Hi Thomas,
-	I have fixed docbook issues in this patch.
-Regards!
-Gerry
----
- arch/x86/include/asm/io_apic.h |    1 +
- arch/x86/kernel/acpi/boot.c    |   22 ++++++++++++++++++++++
- arch/x86/kernel/apic/io_apic.c |   11 +++++++++++
- include/linux/acpi.h           |    1 +
- 4 files changed, 35 insertions(+)
+So you are talking about AML code paths and from what I understand they
+should be fine.
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 7c04b8ec22a4..ca742d5249db 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -191,6 +191,7 @@ extern void mp_unmap_irq(int irq);
- extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 			      struct ioapic_domain_cfg *cfg);
- extern int mp_unregister_ioapic(u32 gsi_base);
-+extern int mp_ioapic_registered(u32 gsi_base);
- extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
- 			    irq_hw_number_t hwirq);
- extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 0e67d792741d..5a69df5dba56 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -821,6 +821,28 @@ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
- }
- EXPORT_SYMBOL(acpi_unregister_ioapic);
- 
-+/**
-+ * acpi_ioapic_registered - Check whether IOAPIC assoicatied with @gsi_base
-+ *			    has been registered
-+ * @handle:	ACPI handle of the IOAPIC deivce
-+ * @gsi_base:	GSI base associated with the IOAPIC
-+ *
-+ * Assume caller holds some type of lock to serialize acpi_ioapic_registered()
-+ * with acpi_register_ioapic()/acpi_unregister_ioapic().
-+ */
-+int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base)
-+{
-+	int ret = 0;
-+
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+	down_read(&acpi_ioapic_rwsem);
-+	ret  = mp_ioapic_registered(gsi_base);
-+	up_read(&acpi_ioapic_rwsem);
-+#endif
-+
-+	return ret;
-+}
-+
- static int __init acpi_parse_sbf(struct acpi_table_header *table)
- {
- 	struct acpi_table_boot *sb;
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 7fec2a8f72f3..eba25bccefd2 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -4013,6 +4013,17 @@ int mp_unregister_ioapic(u32 gsi_base)
- 	return 0;
- }
- 
-+int mp_ioapic_registered(u32 gsi_base)
-+{
-+	int ioapic;
-+
-+	for_each_ioapic(ioapic)
-+		if (ioapics[ioapic].gsi_config.gsi_base == gsi_base)
-+			return 1;
-+
-+	return 0;
-+}
-+
- int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
- 		     irq_hw_number_t hwirq)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 3574f137242e..e916cc9ca5a8 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -152,6 +152,7 @@ int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
- int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
-+int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base);
- void acpi_irq_stats_init(void);
- extern u32 acpi_irq_handled;
- extern u32 acpi_irq_not_handled;
+However, what I'm talking about is _kernel_ code paths and functions
+like acpi_suspend_enter(). Do you mean this function can only be called
+as a result of some AML execution (it doesn't look so to me)? If not,
+what guarantees do we have that ACPI-future tables exposed to an older
+kernel would not trigger this kernel code path (if compiled in)?
+
 -- 
-1.7.10.4
+Catalin
