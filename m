@@ -1,102 +1,201 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [RFC PATCH for AMD Seattle 0/4] Drivers for AMD-Seatlle to boot
- from ACPI
-Date: Mon, 15 Sep 2014 23:28:07 -0500
-Message-ID: <5417BC57.4030504@amd.com>
-References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0112.outbound.protection.outlook.com ([207.46.100.112]:14709
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753133AbaIPGO3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 02:14:29 -0400
-In-Reply-To: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
+Date: Tue, 16 Sep 2014 14:46:41 +0800
+Message-ID: <1410850001-2242-1-git-send-email-jiang.liu@linux.intel.com>
+References: <1410422758-24942-5-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1410422758-24942-5-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, astone@redhat.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, marc.zyngier@arm.com, mark.rutland@arm.com, Sudeep.Holla@arm.com, olof@lixom.net, grant.likely@linaro.org, graeme.gregory@linaro.org, arnd@arndb.de, jason@lakedaemon.net
 
-Note: Correcting the typo for linux-acpi mailing list in this reply.
+From: Yinghai Lu <yinghai@kernel.org>
 
-Also, I would like to add the link to the "AMD Opteron=99 A1100 Series=20
-Processor ACPI Porting Guide", which describes the current ACPI table=20
-for AMD Seattle platform here:
+We need to parse APIC ID for IOAPIC registration for IOAPIC hotplug.
+ACPI _MAT method and MADT table are used to figure out IOAPIC ID, just
+like parsing CPU APIC ID for CPU hotplug.
 
-http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Seattle_=
-ACPI_Guide.pdf
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+Hi Thomas,
+	I have fixed the docbook issues, and renamed functions with
+more meaningful names.
+Regards!
+Gerry
+---
+ drivers/acpi/processor_core.c |  122 ++++++++++++++++++++++++++++++++++++++---
+ include/linux/acpi.h          |    4 ++
+ 2 files changed, 117 insertions(+), 9 deletions(-)
 
-Suravee
-
-On 09/15/2014 07:47 PM, suravee.suthikulpanit@amd.com wrote:
-> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->
-> As a follow up of the email thread:
->
->      [PATCH v3 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
->      https://lkml.org/lkml/2014/9/1/446
->
-> Besides Hanjun Guo's patches above, these are the additional patches =
-required
-> to boot AMD Seattle platform with full ACPI support:
->
->      [PATCH] efi/arm64: efistub: don't abort if base of DRAM is occup=
-ied
->      http://lists.infradead.org/pipermail/linux-arm-kernel/2014-July/=
-272274.html
->
->      [PATCH v2] efi/arm64: fix fdt-related memory reservation
->      https://lkml.org/lkml/2014/9/8/483
->
->      [PATCH] ata: ahci_platform: Add ACPI support for AMD Seattle SAT=
-A controller
->      https://lkml.org/lkml/2014/9/9/834
->
->      [RFC PATCH for Juno 2/2] tty: SBSA compatible UART
->      https://lkml.org/lkml/2014/9/1/448
->      (NOTE: This is not meant to be submitted upstream, but required =
-to enable
->       ACPI support for UART SBSA driver.)
->
-> These patches are rebased from the linux-3.17-rc4 upstream kernel, an=
-d
-> compatible with the AMD Seattle Firmware version ROD0070C.
-> The full kernel boot log can be found here:
->
->      http://people.linaro.org/~al.stone/seattle-boot-acpi-dmesg.txt
->
-> Suravee / Al
->
-> Ard Biesheuvel (1):
->    arm64/efi: efistub: don't abort if base of DRAM is occupied
->
-> Grame Gregory (1):
->    [RFC PATCH for Juno 2/2] tty: SBSA compatible UART
->
-> Mark Salter (1):
->    efi/arm64: fix fdt-related memory reservation
->
-> Suravee Suthikulpanit (1):
->    ata: ahci_platform: Add ACPI support for AMD Seattle SATA controll=
-er
->
->   arch/arm64/kernel/efi-stub.c       |  16 +-
->   arch/arm64/mm/init.c               |   3 +-
->   drivers/ata/Kconfig                |   2 +-
->   drivers/ata/ahci_platform.c        |  13 ++
->   drivers/firmware/efi/libstub/fdt.c |  10 +-
->   drivers/tty/Kconfig                |   6 +
->   drivers/tty/Makefile               |   1 +
->   drivers/tty/sbsauart.c             | 328 ++++++++++++++++++++++++++=
-+++++++++++
->   8 files changed, 365 insertions(+), 14 deletions(-)
->   create mode 100644 drivers/tty/sbsauart.c
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index b048f3752c2b..4a3150f2187c 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -4,6 +4,10 @@
+  *
+  *	Alex Chiang <achiang@hp.com>
+  *	- Unified x86/ia64 implementations
++ *
++ * I/O APIC hotplug support
++ *	Yinghai Lu <yinghai@kernel.org>
++ *	Jiang Liu <jiang.liu@intel.com>
+  */
+ #include <linux/export.h>
+ #include <linux/acpi.h>
+@@ -12,6 +16,21 @@
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_core");
+ 
++static struct acpi_table_madt *get_madt_table(void)
++{
++	static struct acpi_table_madt *madt;
++	static int read_madt;
++
++	if (!read_madt) {
++		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
++					(struct acpi_table_header **)&madt)))
++			madt = NULL;
++		read_madt++;
++	}
++
++	return madt;
++}
++
+ static int map_lapic_id(struct acpi_subtable_header *entry,
+ 		 u32 acpi_id, int *apic_id)
+ {
+@@ -67,17 +86,10 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+ static int map_madt_entry(int type, u32 acpi_id)
+ {
+ 	unsigned long madt_end, entry;
+-	static struct acpi_table_madt *madt;
+-	static int read_madt;
+ 	int apic_id = -1;
++	struct acpi_table_madt *madt;
+ 
+-	if (!read_madt) {
+-		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
+-					(struct acpi_table_header **)&madt)))
+-			madt = NULL;
+-		read_madt++;
+-	}
+-
++	madt = get_madt_table();
+ 	if (!madt)
+ 		return apic_id;
+ 
+@@ -203,3 +215,95 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ 	return acpi_map_cpuid(apic_id, acpi_id);
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
++
++#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
++static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
++			 u64 *phys_addr, int *ioapic_id)
++{
++	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
++
++	if (ioapic->global_irq_base != gsi_base)
++		return 0;
++
++	*phys_addr = ioapic->address;
++	*ioapic_id = ioapic->id;
++	return 1;
++}
++
++static int parse_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
++{
++	struct acpi_subtable_header *hdr;
++	unsigned long madt_end, entry;
++	int apic_id = -1;
++	struct acpi_table_madt *madt;
++
++	madt = get_madt_table();
++	if (!madt)
++		return apic_id;
++
++	entry = (unsigned long)madt;
++	madt_end = entry + madt->header.length;
++
++	/* Parse all entries looking for a match. */
++	entry += sizeof(struct acpi_table_madt);
++	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
++		hdr = (struct acpi_subtable_header *)entry;
++		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
++		    get_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
++			break;
++		else
++			entry += hdr->length;
++	}
++
++	return apic_id;
++}
++
++static int parse_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
++				  u64 *phys_addr)
++{
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *obj;
++	struct acpi_subtable_header *header;
++	int apic_id = -1;
++
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
++		goto exit;
++
++	if (!buffer.length || !buffer.pointer)
++		goto exit;
++
++	obj = buffer.pointer;
++	if (obj->type != ACPI_TYPE_BUFFER ||
++	    obj->buffer.length < sizeof(struct acpi_subtable_header))
++		goto exit;
++
++	header = (struct acpi_subtable_header *)obj->buffer.pointer;
++	if (header->type == ACPI_MADT_TYPE_IO_APIC)
++		get_ioapic_id(header, gsi_base, phys_addr, &apic_id);
++
++exit:
++	kfree(buffer.pointer);
++	return apic_id;
++}
++
++/**
++ * acpi_get_ioapic_id - Get IOAPIC ID and physical address matching @gsi_base
++ * @handle:	ACPI object for IOAPIC device
++ * @gsi_base:	GSI base to match with
++ * @phys_add:	hold physical address of matching IOAPIC record
++ *
++ * Walk resources returned by ACPI_MAT method, then ACPI MADT table, to search
++ * for an ACPI IOAPIC record matching @gsi_base.
++ * Return IOAPIC id and physical address if found a match, otherwise return <0.
++ */
++int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
++{
++	int apic_id;
++
++	apic_id = parse_mat_ioapic_entry(handle, gsi_base, phys_addr);
++	if (apic_id == -1)
++		apic_id = parse_madt_ioapic_entry(gsi_base, phys_addr);
++
++	return apic_id;
++}
++#endif /* CONFIG_ACPI_HOTPLUG_IOAPIC */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 807cbc46d73e..3574f137242e 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -146,6 +146,10 @@ int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
+ int acpi_unmap_lsapic(int cpu);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
++int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
++#endif
++
+ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
+ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
+ void acpi_irq_stats_init(void);
+-- 
+1.7.10.4
