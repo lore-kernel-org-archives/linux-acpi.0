@@ -1,71 +1,65 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
- get_cpufv
-Date: Tue, 16 Sep 2014 14:43:34 -0700
-Message-ID: <20140916214334.GC6856@vmdeb7>
-References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
- <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
- <20140915214902.GB64909@vmdeb7>
- <20140915215125.GA21435@kroah.com>
- <20140915215527.GC7867@gmail.com>
- <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
- <20140916205247.GA6856@vmdeb7>
- <20140916212715.GB6856@vmdeb7>
- <20140916214037.GB23674@gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCH v2 05/16] mfd: Add ACPI support
+Date: Tue, 16 Sep 2014 14:54:40 -0700
+Message-ID: <20140916215440.GP25162@lee--X1>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1410868367-11056-6-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43367 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753837AbaIPVn3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 17:43:29 -0400
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:47825 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753021AbaIPVys (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 17:54:48 -0400
+Received: by mail-pa0-f48.google.com with SMTP id hz1so653567pad.35
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Sep 2014 14:54:47 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140916214037.GB23674@gmail.com>
+In-Reply-To: <1410868367-11056-6-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frans Klaver <fransklaver@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Tue, Sep 16, 2014 at 11:40:37PM +0200, Frans Klaver wrote:
-> On Tue, Sep 16, 2014 at 02:27:15PM -0700, Darren Hart wrote:
-> > 
-> > - When reading and writing sysfs device attribute files, avoid dependency
-> >   on specific error codes wherever possible. This minimizes coupling to
-> >   the error handling implemementation within the kernel.
-> > 
-> >   In general, failures to read or write sysfs device attributes shall
-> >   propogate errors wherever possible. Common errors include, but are not
-> >   limited to:
-> > 
-> >   -EIO: The read or store operation is not supported, typically returned by
-> >         the sysfs system itself if the read or store pointer is NULL.
-> > 
-> >   -ENXIO: The read or store operation failed
-> > 
-> >   Error codes will not be changed without good reason, and should a change
-> >   to error codes result in user-space breakage, it will be fixed, or the
-> >   the offending change will be reverted.
-> 
-> sysfs-rules.txt is written for user space? In that case, reverting the
-> change is as much a fix as patching it.
-> 
-> > 
-> >   Userspace applications can, however, expect the format and contents of
-> >   the attribute files to remain consistent in the absence of a version
-> >   attribute change in the context of a given attributes.
+On Tue, 16 Sep 2014, Mika Westerberg wrote:
 
-Agreed, but I wanted to make this clear to kernel devs reading this as well,
-rather than duplicating this blurb elsewhere.
+> If an MFD device is backed by ACPI namespace, we should allow subdevi=
+ce
+> drivers to access their corresponding ACPI companion devices through =
+normal
+> means (e.g using ACPI_COMPANION()).
+>=20
+> This patch adds such support to the MFD core. If the MFD parent devic=
+e
+> does not specify any ACPI _HID/_CID for the child device, the child
+> device will share the parent ACPI companion device. Otherwise the chi=
+ld
+> device will be assigned with the corresponding ACPI companion, if fou=
+nd
+> in the namespace below the parent.
+>=20
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+> ---
+> Lee, I tried to get rid of #ifdefs in the below patch but it wasn't
+> possible because we are using functions that are not available when
+> !CONFIG_ACPI.
+>=20
+>  Documentation/acpi/enumeration.txt | 27 +++++++++++++++++++++++++
+>  drivers/mfd/mfd-core.c             | 40 ++++++++++++++++++++++++++++=
+++++++++++
+>  include/linux/mfd/core.h           |  3 +++
+>  3 files changed, 70 insertions(+)
 
-> 
-> ...attribute.
-> 
-> That's it for the nit-picking.
+Acked-by: Lee Jones <lee.jones@linaro.org>
 
-Thanks for the plural catch.
-
-I'll send to Greg as a patch.
-
--- 
-Darren Hart
-Intel Open Source Technology Center
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
