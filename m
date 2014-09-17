@@ -1,37 +1,68 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH v4 18/18] Documentation: ACPI for ARM64
-Date: Wed, 17 Sep 2014 02:57:34 +0100
-Message-ID: <20140917015734.GD31214@srcf.ucam.org>
-References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
- <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org>
- <20140917014410.GC31214@srcf.ucam.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC Part2 v1 03/21] x86, irq: Save destination CPU ID in irq_cfg
+Date: Wed, 17 Sep 2014 10:24:59 +0800
+Message-ID: <5418F0FB.6090004@linux.intel.com>
+References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-4-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409161046460.4247@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:43812 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbaIQB5n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 21:57:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20140917014410.GC31214@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1409161046460.4247@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-k
 
-On Wed, Sep 17, 2014 at 02:44:10AM +0100, Matthew Garrett wrote:
-> On Fri, Sep 12, 2014 at 10:00:16PM +0800, Hanjun Guo wrote:
-> > +No code shall be accepted into the kernel unless it complies with the released
-> > +standards from UEFI ASWG. If there are features missing from ACPI to make it
-> > +function on a platform, ECRs should be submitted to ASWG and go through the
-> > +approval process.
+
+
+On 2014/9/17 1:47, Thomas Gleixner wrote:
 > 
-> Similar question here. Is the expectation that all ARM vendors will 
-> become UEFI contributors?
-
-I should also add that this is inconsistent with how we've managed 
-things in the x86 world - there's a great deal of ACPI functionality 
-implemented that's not covered in the spec.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> 
+> On Thu, 11 Sep 2014, Jiang Liu wrote:
+> 
+>> Cache destination CPU APIC ID into struct irq_cfg when assigning vector
+>> for interrupt. Upper layer just needs to read the cached APIC ID instead
+>> of calling apic->cpu_mask_to_apicid_and(), it helps to hide APIC driver
+>> details from IOAPIC/HPET/MSI drivers..
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>>  arch/x86/include/asm/hw_irq.h |    1 +
+>>  arch/x86/kernel/apic/vector.c |    4 ++++
+>>  2 files changed, 5 insertions(+)
+>>
+>> diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+>> index 7624fffc2822..3d51d74d6c01 100644
+>> --- a/arch/x86/include/asm/hw_irq.h
+>> +++ b/arch/x86/include/asm/hw_irq.h
+>> @@ -116,6 +116,7 @@ struct irq_data;
+>>  struct irq_cfg {
+>>  	cpumask_var_t		domain;
+>>  	cpumask_var_t		old_domain;
+>> +	unsigned int		dest_apicid;
+>>  	u8			vector;
+>>  	u8			move_in_progress : 1;
+>>  #ifdef CONFIG_IRQ_REMAP
+>> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+>> index 7562cb15b3bd..287ae4e8d500 100644
+>> --- a/arch/x86/kernel/apic/vector.c
+>> +++ b/arch/x86/kernel/apic/vector.c
+>> @@ -188,6 +188,10 @@ next:
+>>  	}
+>>  	free_cpumask_var(tmp_mask);
+> 
+> Lacks a comment what this call is actually doing.
+How about this?
+/* cache destination APIC IDs into cfg->dest_apicid */
+Regards!
+Gerry
+>   
+>> +	if (!err)
+>> +		err = apic->cpu_mask_to_apicid_and(mask, cfg->domain,
+>> +						   &cfg->dest_apicid);
+>> +
+> 
+> Thanks,
+> 
+> 	tglx
+> 
