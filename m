@@ -1,69 +1,41 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH v2 02/16] Driver core: Unified device properties
- interface for platform firmware
-Date: Wed, 17 Sep 2014 11:28:40 -0700
-Message-ID: <20140917182840.GA8346@kroah.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1410868367-11056-3-git-send-email-mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 18/18] Documentation: ACPI for ARM64
+Date: Wed, 17 Sep 2014 21:37:42 +0200
+Message-ID: <4416582.iOjLNrLDZE@vostro.rjw.lan>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org> <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org> <20140917014410.GC31214@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53352 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755492AbaIQS33 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 14:29:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1410868367-11056-3-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140917014410.GC31214@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rd>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Tue, Sep 16, 2014 at 02:52:33PM +0300, Mika Westerberg wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Wednesday, September 17, 2014 02:44:10 AM Matthew Garrett wrote:
+> On Fri, Sep 12, 2014 at 10:00:16PM +0800, Hanjun Guo wrote:
 > 
-> Add a uniform interface by which device drivers can request device
-> properties from the platform firmware by providing a property name
-> and the corresponding data type.  The purpose of it is to help to
-> write portable code that won't depend on any particular platform
-> firmware interface.
-> 
-> Three general helper functions, device_get_property(),
-> device_read_property() and device_read_property_array() are provided.
-> The first one allows the raw value of a given device property to be
-> accessed by the driver.  The remaining two allow the value of a numeric
-> or string property and multiple numeric or string values of one array
-> property to be acquired, respectively.  Static inline wrappers are also
-> provided for the various property data types that can be passed to
-> device_read_property() or device_read_property_array() for extra type
-> checking.
-> 
-> In addition to that new generic routines are provided for retrieving
-> properties from device description objects in the platform firmware
-> in case there are no struct device objects for them (either those
-> objects have not been created yet or they do not exist at all).
-> Again, three functions are provided, dev_node_get_property(),
-> dev_node_read_property(), dev_node_read_property_array(), in analogy
-> with device_get_property(), device_read_property() and
-> device_read_property_array() described above, respectively, along
-> with static inline wrappers for all of the propery data types that
-> can be used.  For all of them, the first argument is a pointer to
-> struct fw_dev_node (new type) that in turn contains exactly one
-> valid pointer to a device description object (depending on what
-> platform firmware interface is in use).
-> 
-> Finally, device_for_each_child_node() is added for iterating over
-> the children of the device description object associated with the
-> given device.
-> 
-> The interface covers both ACPI and Device Trees.
-> 
-> This change set includes material from Mika Westerberg and Aaron Lu.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > +Common _DSD bindings should be submitted to ASWG to be included in the
+> > +document :-
+> > +
+> > +http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
 
-Looks good to me, feel free to take this through your tree with my:
+Well, the intention here is different.
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+The linked document is supposed to define the format of data to be returned
+by _DSD and the one at:
+
+http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+
+does it specifically for the UUID associated with the DT bindings format.
+
+There are no implied IP issues with using the information there I know of and
+if there's any fine print anywhere that may suggest so, please let me know.
+
+That said, those documents are not intended to be libraries of actual bindings.
+
+A common place for the binding and a process for submitting/accepting them is
+needed, but we are yet to agree on how to do that.
+
+Rafael
