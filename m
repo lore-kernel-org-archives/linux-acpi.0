@@ -1,106 +1,87 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Part2 v1 14/21] x86, hpet: Enhance HPET IRQ to support hierarchy
- irqdomain
-Date: Wed, 17 Sep 2014 13:16:23 +0800
-Message-ID: <54191927.2040102@linux.intel.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409161104120.4247@nanos>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v4 14/18] ARM64 / ACPI: Add GICv2 specific ACPI boot support
+Date: Wed, 17 Sep 2014 09:40:08 +0200
+Message-ID: <54193AD8.3090301@linaro.org>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org> <1410530416-30200-15-git-send-email-hanjun.guo@linaro.org> <20140915150136.GF5415@arm.com> <541710D5.3030001@redhat.com> <20140915164253.GI5415@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:51947 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751088AbaIQFQp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Sep 2014 01:16:45 -0400
-In-Reply-To: <alpine.DEB.2.10.1409161104120.4247@nanos>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:59726 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751577AbaIQHjd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 03:39:33 -0400
+Received: by mail-wi0-f174.google.com with SMTP id n3so653232wiv.7
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Sep 2014 00:39:32 -0700 (PDT)
+In-Reply-To: <20140915164253.GI5415@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Jon Masters <jcm@redhat.com>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux
 
+On 15.09.2014 18:42, Catalin Marinas wrote:
+> On Mon, Sep 15, 2014 at 05:16:21PM +0100, Jon Masters wrote:
+>> On 09/15/2014 11:01 AM, Catalin Marinas wrote:
+>>> On Fri, Sep 12, 2014 at 03:00:12PM +0100, Hanjun Guo wrote:
+>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>>> index 5b3546b..9869377 100644
+>>>> --- a/arch/arm64/kernel/acpi.c
+>>>> +++ b/arch/arm64/kernel/acpi.c
+>>>> @@ -23,6 +23,7 @@
+>>>>   #include <linux/irqdomain.h>
+>>>>   #include <linux/bootmem.h>
+>>>>   #include <linux/smp.h>
+>>>> +#include <linux/irqchip/arm-gic-acpi.h>
+>>>>
+>>>>   #include <asm/cputype.h>
+>>>>   #include <asm/cpu_ops.h>
+>>>> @@ -312,6 +313,28 @@ void __init acpi_boot_table_init(void)
+>>>>   		pr_err("Can't find FADT or error happened during parsing FADT\n");
+>>>>   }
+>>>>
+>>>> +void __init acpi_gic_init(void)
+>>>> +{
+>>>> +	struct acpi_table_header *table;
+>>>> +	acpi_status status;
+>>>> +	acpi_size tbl_size;
+>>>> +	int err;
+>>>> +
+>>>> +	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
+>>>> +	if (ACPI_FAILURE(status)) {
+>>>> +		const char *msg = acpi_format_exception(status);
+>>>> +
+>>>> +		pr_err("Failed to get MADT table, %s\n", msg);
+>>>> +		return;
+>>>> +	}
+>>>> +
+>>>> +	err = gic_v2_acpi_init(table);
+>>>> +	if (err)
+>>>> +		pr_err("Failed to initialize GIC IRQ controller");
+>>>> +
+>>>> +	early_acpi_os_unmap_memory((char *)table, tbl_size);
+>>>> +}
+>>>
+>>> Maybe this was discussed already but why does this function need to live
+>>> under arch/arm64? Isn't the driver code more appropriate?
 
+There will be another call here for GICv3 so this function will merge 
+common logic for them. As Jon pointed out, we are planning to add ACPI 
+flag which indicates GICv3 or GICv2(m) IRQ controller in advance.
 
-On 2014/9/17 2:31, Thomas Gleixner wrote:
-> On Thu, 11 Sep 2014, Jiang Liu wrote:
->>  #ifdef CONFIG_HPET_TIMER
->> +#define	HPET_DOMAIN_REMAPPED		0x80000000
->> +
->> +static inline int hpet_dev_id(struct irq_domain *domain)
->> +{
->> +	return (int)((long)domain->host_data & ~HPET_DOMAIN_REMAPPED);
->> +}
->> +
->> +static inline bool hpet_remapped(struct irq_domain *domain)
->> +{
->> +	return (bool)((long)domain->host_data & HPET_DOMAIN_REMAPPED);
->> +}
-> 
-> It's kinda odd to have this encoded in domain->host_data.
-Hi Thomas,
-	I have thought about add a "domain_flags" field to struct
-irq_domain to host the remapping flag. But remapping flag is not a
-common flag for all architectures, so I adopted the dirty solution
-to hide the remapped flag in x86 arch specific code.
-How about adding domain_flags field and define IRQ_DOMAIN_FLAG_ARCH1?
+>>
+>> Well there's two halves to this, right? There's the MADT parsing/setup,
+>> which is architecture specific, and then there's the GIC irqchip
+>> initialization which lives under drivers.
+>
+> I think it gets worse, this function is called from irqchip_init(). I
+> would have been slightly happier if it was called from the arm64
+> init_IRQ(). But putting an ARM specific GIC initialisation call in a
+> generic irqchip_init() just looks weird. Can we do anything better here?
 
-> 
->>  static int hpet_msi_set_affinity(struct irq_data *data,
->>  				 const struct cpumask *mask, bool force)
->>  {
->> +	struct irq_data *parent = data->parent_data;
->>  	struct irq_cfg *cfg = irqd_cfg(data);
->>  	struct msi_msg msg;
->> -	unsigned int dest;
->>  	int ret;
->>  
->> -	ret = apic_set_affinity(data, mask, &dest);
->> -	if (ret)
->> -		return ret;
->> -
->> -	hpet_msi_read(data->handler_data, &msg);
->> -
->> -	msg.data &= ~MSI_DATA_VECTOR_MASK;
->> -	msg.data |= MSI_DATA_VECTOR(cfg->vector);
->> -	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
->> -	msg.address_lo |= MSI_ADDR_DEST_ID(dest);
->> -
->> -	hpet_msi_write(data->handler_data, &msg);
->> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
->> +	/* No need to rewrite HPET registers if interrupt is remapped */
->> +	if (ret >= 0 && !hpet_remapped(data->domain)) {
-> 
-> So we really should use irq_data->chip_data for this, i.e. storing
-> 
-> struct hpet_msi {
->        struct msi_msg msg;
->        bool remapped;
->        /* whatever you need here */
-> };
-OK, we add this flag for HPET, MSI and IOAPIC.
+Yes this was discussed, please have a look at: 
+https://lkml.org/lkml/2014/9/1/555
+We had this in init_IRQ() in previous patch set, then we got feedback 
+irqchip_init() is more appropriate. We can move it back to init_IRQ() 
+and I am sold on this.
 
-> 
->> +		hpet_msi_read(data->handler_data, &msg);
->> +		msg.data &= ~MSI_DATA_VECTOR_MASK;
->> +		msg.data |= MSI_DATA_VECTOR(cfg->vector);
->> +		msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
->> +		msg.address_lo |= MSI_ADDR_DEST_ID(cfg->dest_apicid);
-> 
-> We need the same thing for MSI so this should be a helper function
-> 
->    msi_update_msg(struct msi_msg *msg, struct irq_cfg *cfg)
-Good suggestion, will do it in next version
-Regards!
-Gerry
-
-> 
->> +		hpet_msi_write(data->handler_data, &msg);
->> +	}
->>  
->> -	return IRQ_SET_MASK_OK_NOCOPY;
->> +	return ret;
->>  }
->  
-> Thanks,
-> 
-> 	tglx
-> 
+Tomasz
