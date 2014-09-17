@@ -1,41 +1,63 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v4 18/18] Documentation: ACPI for ARM64
-Date: Wed, 17 Sep 2014 04:58:10 -0400
-Message-ID: <54194D22.7060706@redhat.com>
-References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org> <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org> <20140917014410.GC31214@srcf.ucam.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
+ get_cpufv
+Date: Wed, 17 Sep 2014 07:34:47 -0300
+Message-ID: <20140917103446.GA8594@khazad-dum.debian.net>
+References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
+ <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
+ <20140915214902.GB64909@vmdeb7>
+ <20140915215125.GA21435@kroah.com>
+ <20140915215527.GC7867@gmail.com>
+ <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
+ <20140916205247.GA6856@vmdeb7>
+ <20140916212715.GB6856@vmdeb7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29001 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753385AbaIQI7i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Sep 2014 04:59:38 -0400
-In-Reply-To: <20140917014410.GC31214@srcf.ucam.org>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:34276 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751564AbaIQKe7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Sep 2014 06:34:59 -0400
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
+	by gateway2.nyi.internal (Postfix) with ESMTP id D417920968
+	for <linux-acpi@vger.kernel.org>; Wed, 17 Sep 2014 06:34:58 -0400 (EDT)
+Content-Disposition: inline
+In-Reply-To: <20140916212715.GB6856@vmdeb7>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>li
+To: Darren Hart <dvhart@infradead.org>
+Cc: Frans Klaver <fransklaver@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
 
-On 09/16/2014 09:44 PM, Matthew Garrett wrote:
-> On Fri, Sep 12, 2014 at 10:00:16PM +0800, Hanjun Guo wrote:
+On Tue, 16 Sep 2014, Darren Hart wrote:
+> - When reading and writing sysfs device attribute files, avoid dependency
+>   on specific error codes wherever possible. This minimizes coupling to
+>   the error handling implemementation within the kernel.
 > 
->> +Common _DSD bindings should be submitted to ASWG to be included in the
->> +document :-
->> +
->> +http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+>   In general, failures to read or write sysfs device attributes shall
+>   propogate errors wherever possible. Common errors include, but are not
+>   limited to:
 > 
-> How are individuals/companies who aren't UEFI members supposed to do 
-> this? Aren't there IP issues involved in taking submissions from 
-> non-members?
+>   -EIO: The read or store operation is not supported, typically returned by
+>         the sysfs system itself if the read or store pointer is NULL.
+> 
+>   -ENXIO: The read or store operation failed
 
-Obviously, I'm not a lawyer, but I would note that the _DSD bindings
-aren't going into the core ACPI document. I think the specifics for non
-members of the UEFI to potentially contribute bindings need to be
-addressed. That said, at this point, the population of the UEFI forum is
-very well aligned with initial players (that this is the case is not
-entirely an accident, I went around to a few folks a year or so ago and
-made sure that they had become members in anticipation of this issue).
+from errno(3):
+       EIO             Input/output error (POSIX.1)
+       ENXIO           No such device or address (POSIX.1)
 
-Jon.
+It makes sense to retry EIO.  ENXIO means there's nobody listening at the
+time, and isn't usually retried.
 
+The device-based interfaces get it right.  A typical example is the
+cpu-based devices, where ENXIO means "no such processor", while EIO means
+"whatever you're trying to do failed",  so a MSR read would return ENXIO if
+the processor core is offline/doesn't exist, and EIO if the processor core
+is there, but raised a #GP when the MSR read was attempted.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
