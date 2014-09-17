@@ -1,66 +1,43 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Part2 v1 03/21] x86, irq: Save destination CPU ID in irq_cfg
-Date: Wed, 17 Sep 2014 10:24:59 +0800
-Message-ID: <5418F0FB.6090004@linux.intel.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-4-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409161046460.4247@nanos>
+Subject: Re: [RFC Part2 v1 02/21] genirq: Introduce helper functions to support
+ stacked irq_chip
+Date: Wed, 17 Sep 2014 11:07:13 +0800
+Message-ID: <5418FAE1.4030008@linux.intel.com>
+References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-3-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409161044330.4247@nanos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1409161046460.4247@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:55180 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754759AbaIQDIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Sep 2014 23:08:12 -0400
+In-Reply-To: <alpine.DEB.2.10.1409161044330.4247@nanos>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 2014/9/17 1:47, Thomas Gleixner wrote:
-> 
-> 
+On 2014/9/17 1:45, Thomas Gleixner wrote:
 > On Thu, 11 Sep 2014, Jiang Liu wrote:
+>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+>> +void irq_chip_ack_parent(struct irq_data *data)
+>> +{
+>> +	data = data->parent_data;
+>> +	if (data && data->chip && data->chip->irq_ack)
+>> +		data->chip->irq_ack(data);
 > 
->> Cache destination CPU APIC ID into struct irq_cfg when assigning vector
->> for interrupt. Upper layer just needs to read the cached APIC ID instead
->> of calling apic->cpu_mask_to_apicid_and(), it helps to hide APIC driver
->> details from IOAPIC/HPET/MSI drivers..
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> ---
->>  arch/x86/include/asm/hw_irq.h |    1 +
->>  arch/x86/kernel/apic/vector.c |    4 ++++
->>  2 files changed, 5 insertions(+)
->>
->> diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
->> index 7624fffc2822..3d51d74d6c01 100644
->> --- a/arch/x86/include/asm/hw_irq.h
->> +++ b/arch/x86/include/asm/hw_irq.h
->> @@ -116,6 +116,7 @@ struct irq_data;
->>  struct irq_cfg {
->>  	cpumask_var_t		domain;
->>  	cpumask_var_t		old_domain;
->> +	unsigned int		dest_apicid;
->>  	u8			vector;
->>  	u8			move_in_progress : 1;
->>  #ifdef CONFIG_IRQ_REMAP
->> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
->> index 7562cb15b3bd..287ae4e8d500 100644
->> --- a/arch/x86/kernel/apic/vector.c
->> +++ b/arch/x86/kernel/apic/vector.c
->> @@ -188,6 +188,10 @@ next:
->>  	}
->>  	free_cpumask_var(tmp_mask);
-> 
-> Lacks a comment what this call is actually doing.
-How about this?
-/* cache destination APIC IDs into cfg->dest_apicid */
+> Why is this restricted to a single parent level and does not go down
+> the whole stack?
+Hi Thomas,
+	It happens to work on x86, and we want to achieve a bit
+performance advantage by not walking down the whole stack.
+If preferred, I will change it to walk the whole stack.
 Regards!
 Gerry
->   
->> +	if (!err)
->> +		err = apic->cpu_mask_to_apicid_and(mask, cfg->domain,
->> +						   &cfg->dest_apicid);
->> +
+
 > 
 > Thanks,
 > 
