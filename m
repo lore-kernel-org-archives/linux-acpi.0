@@ -1,51 +1,35 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/4] ata: ahci_platform: Add ACPI support for AMD Seattle
- SATA controller
-Date: Wed, 17 Sep 2014 02:26:14 +0100
-Message-ID: <20140917012614.GA31214@srcf.ucam.org>
-References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com>
- <1410828446-28502-2-git-send-email-suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v4 05/18] ARM64 / ACPI: Introduce sleep-arm.c
+Date: Wed, 17 Sep 2014 02:31:14 +0100
+Message-ID: <20140917013114.GB31214@srcf.ucam.org>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
+ <1410530416-30200-6-git-send-email-hanjun.guo@linaro.org>
+ <20140912145102.GB5532@arm.com>
+ <20140912151850.GB9234@xora-haswell.xora.org.uk>
+ <20140912154903.GE5532@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:43607 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753624AbaIQBbi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Sep 2014 21:31:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1410828446-28502-2-git-send-email-suravee.suthikulpanit@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: suravee.suthikulpanit@amd.com
-Cc: mark.rutland@arm.com, rjw@rjwysocki.net, graeme.gregory@linaro.org, arnd@arndb.de, marc.zyngier@arm.com, catalin.marinas@arm.com, olof@lixom.net, will.deacon@arm.com, linux-kernel@vger.kernel.org, astone@redhat.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com, grant.likely@linaro.org, linux-arm-kernel@lists.infradead.org, jason@lakedaemon.net
+In-Reply-To: <20140912154903.GE5532@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.
 
-On Mon, Sep 15, 2014 at 07:47:23PM -0500, suravee.suthikulpanit@amd.com wrote:
-> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> 
-> This patch adds ACPI match table in ahci_platform. The table includes
-> the acpi_device_id to match AMD Seattle SATA controller with following
-> asl structure in DSDT:
-> 
->     Device (SATA0)
->     {
->       Name(_HID, "AMDI0600")	// Seattle AHSATA
+On Fri, Sep 12, 2014 at 04:49:03PM +0100, Catalin Marinas wrote:
 
-There really ought to be a well-defined PNPID for AHCI, so you can _HID 
-to AMD and _CID to something generic. That way we won't have:
+> Now, for x86, do we need acpi_sleep_init() when CONFIG_ACPI_SLEEP is
+> off? If not, we could simply add a dummy acpi_sleep_init() function when
+> !ACPI_SLEEP and don't enable the config option for arm64.
 
-> +#ifdef CONFIG_ATA_ACPI
-> +static const struct acpi_device_id ahci_acpi_match[] = {
-> +	{ "AMDI0600", 0 }, /* AMD Seattle AHCI */
-> +	{ },
-> +};
-
-utter sadness here. Really, please don't end up in a situation where we 
-need to add device-specific IDs to a generic driver.
+The !ACPI_SLEEP case still uses the ACPI code for powering the system 
+down. I'd recommend adding a new CONFIG_ACPI_POWER_OFF option, wrapping 
+the remaining code in sleep.c and disabling that on ARM.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
