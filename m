@@ -1,39 +1,70 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v4 01/18] ARM64: Move the init of cpu_logical_map(0)
- before unflatten_device_tree()
-Date: Wed, 17 Sep 2014 17:48:50 +0100
-Message-ID: <20140917164850.GB7983@leverpostej>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 18/18] Documentation: ACPI for ARM64
+Date: Wed, 17 Sep 2014 10:02:35 -0700
+Message-ID: <20140917170235.GP7960@sirena.org.uk>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
- <1410530416-30200-2-git-send-email-hanjun.guo@linaro.org>
- <20140915061632.GA26649@localhost>
+ <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org>
+ <20140917014410.GC31214@srcf.ucam.org>
+ <54194D22.7060706@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="U3jK8g368jZ6I4TC"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48279 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755788AbaIQRDy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 13:03:54 -0400
 Content-Disposition: inline
-In-Reply-To: <20140915061632.GA26649@localhost>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
+In-Reply-To: <54194D22.7060706@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>
 
-On Mon, Sep 15, 2014 at 07:16:32AM +0100, Olof Johansson wrote:
-> On Fri, Sep 12, 2014 at 09:59:59PM +0800, Hanjun Guo wrote:
-> > It always make sense to initialize CPU0's logical map entry from the
-> > hardware values, so move the initialization of cpu_logical_map(0)
-> > before unflatten_device_tree() which is needed by ACPI code later.
-> > 
-> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> Acked-by: Olof Johansson <olof@lixom.net>
-> 
-> With or without needs for ACPI, I don't think there's any reason for
-> this code to not go in now.
 
-I can see this being of use to psci_init() where I'd like to check
-MIGRATE_INFO_TYPE and MIGRATE_INFO_UP_CPU early on for systems with PSCI
-0.2+. So moving it at least that early sounds good to me.
+--U3jK8g368jZ6I4TC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Mark Rutland <mark.rutland@arm.com>
+On Wed, Sep 17, 2014 at 04:58:10AM -0400, Jon Masters wrote:
+> On 09/16/2014 09:44 PM, Matthew Garrett wrote:
 
-Mark.
+> >> +http://www.uefi.org/sites/default/files/resources/_DSD-implementation=
+-guide-toplevel.htm
+
+> > How are individuals/companies who aren't UEFI members supposed to do=20
+> > this? Aren't there IP issues involved in taking submissions from=20
+> > non-members?
+
+> Obviously, I'm not a lawyer, but I would note that the _DSD bindings
+> aren't going into the core ACPI document. I think the specifics for non
+> members of the UEFI to potentially contribute bindings need to be
+> addressed. That said, at this point, the population of the UEFI forum is
+> very well aligned with initial players (that this is the case is not
+> entirely an accident, I went around to a few folks a year or so ago and
+> made sure that they had become members in anticipation of this issue).
+
+Are you sure you've covered all the vendors of off-SoC components who
+might be involved?  That's certainly already an issue with people doing
+x86 machines (who aren't being bound by this spec but as a subsystem
+maintainer how am I supposed to tell if the target is an ARM or x86
+system?).
+
+--U3jK8g368jZ6I4TC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUGb6qAAoJECTWi3JdVIfQQpMH/1vpKVWr9byiSMcTqwEoj99S
+YvyCkM596Ybj9n6tKfRnA6pPQZ61KkDYB8p/TTRxbXFAWF6WwouC26DugEbrPftp
+hAC6fkzW2WhqMQ4TjvfIYeq5/kxVE4B3+XmjFnwOealqkUxvgpfpDxs9dKwi1TEA
+mLi9Xk1k0orGSjtzCHx30Fbzydad4EAWAtz6byePzD/YUjRL6VgS5ewP1/ZclkHe
+fPWzvOKe58XBf+nXlTsNy+2OS4uew3h9gvbnG7ilna9QeYKbuf/AR430LXoicjM7
+fW0Mx93gy5PnyUWnqvT7yfHx8iiSLzmudmDYTdEt8L9VNRHYgi4A32ABkKERLaI=
+=tvMO
+-----END PGP SIGNATURE-----
+
+--U3jK8g368jZ6I4TC--
