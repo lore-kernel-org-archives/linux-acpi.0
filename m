@@ -1,75 +1,69 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [v4,1/9] ACPI / PM: Let acpi_dev_pm_detach() return an error code
-Date: Wed, 17 Sep 2014 20:25:44 +0200
-Message-ID: <CAPDyKFq6FZcuU=TCMh0JE0ymbS73_eLtNrTgmgKA4OxEp=_zpw@mail.gmail.com>
-References: <1410262570-22785-2-git-send-email-ulf.hansson@linaro.org>
-	<6318611.DnX9cEgMjk@vostro.rjw.lan>
-	<20140915165359.GA13080@core.coreip.homeip.net>
-	<4451285.EDb1j6ttbA@vostro.rjw.lan>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [RFC PATCH v2 02/16] Driver core: Unified device properties
+ interface for platform firmware
+Date: Wed, 17 Sep 2014 11:28:40 -0700
+Message-ID: <20140917182840.GA8346@kroah.com>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1410868367-11056-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4451285.EDb1j6ttbA@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53352 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755492AbaIQS33 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 14:29:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1410868367-11056-3-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On 16 September 2014 01:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, September 15, 2014 09:53:59 AM Dmitry Torokhov wrote:
->> On Sun, Sep 14, 2014 at 06:38:58PM +0200, Rafael J. Wysocki wrote:
->> > On Friday, September 12, 2014 02:05:53 PM Dmitry Torokhov wrote:
->> > > Hi Ulf,
->> > >
->> > > On Tue, Sep 09, 2014 at 01:36:02PM +0200, Ulf Hansson wrote:
->> > > > To give callers the option of acting on a errors while removing the
->> > > > pm_domain ops for the device in the ACPI PM domain, let
->> > > > acpi_dev_pm_detach() return an int to provide the error code.
->> > >
->> > > So how would callers handle the errors? As far as I can see
->> > > acpi_dev_pm_detach() is called from ->remove() and ->shutdown() methods, where
->> > > there is no meaningful strategy to handle errors as you are past the point of
->> > > no return and you keep on tearing down the device.
+On Tue, Sep 16, 2014 at 02:52:33PM +0300, Mika Westerberg wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> 
+> Add a uniform interface by which device drivers can request device
+> properties from the platform firmware by providing a property name
+> and the corresponding data type.  The purpose of it is to help to
+> write portable code that won't depend on any particular platform
+> firmware interface.
+> 
+> Three general helper functions, device_get_property(),
+> device_read_property() and device_read_property_array() are provided.
+> The first one allows the raw value of a given device property to be
+> accessed by the driver.  The remaining two allow the value of a numeric
+> or string property and multiple numeric or string values of one array
+> property to be acquired, respectively.  Static inline wrappers are also
+> provided for the various property data types that can be passed to
+> device_read_property() or device_read_property_array() for extra type
+> checking.
+> 
+> In addition to that new generic routines are provided for retrieving
+> properties from device description objects in the platform firmware
+> in case there are no struct device objects for them (either those
+> objects have not been created yet or they do not exist at all).
+> Again, three functions are provided, dev_node_get_property(),
+> dev_node_read_property(), dev_node_read_property_array(), in analogy
+> with device_get_property(), device_read_property() and
+> device_read_property_array() described above, respectively, along
+> with static inline wrappers for all of the propery data types that
+> can be used.  For all of them, the first argument is a pointer to
+> struct fw_dev_node (new type) that in turn contains exactly one
+> valid pointer to a device description object (depending on what
+> platform firmware interface is in use).
+> 
+> Finally, device_for_each_child_node() is added for iterating over
+> the children of the device description object associated with the
+> given device.
+> 
+> The interface covers both ACPI and Device Trees.
+> 
+> This change set includes material from Mika Westerberg and Aaron Lu.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The benefit is only relevant when ACPI and genpd PM domains would
-co-exist. In that case we might be able to skip genpd_dev_pm_detach()
-if acpi_dev_pm_detach() succeeds. So, currently there are  no benefit,
-but still it doesn't hurt.
+Looks good to me, feel free to take this through your tree with my:
 
->> >
->> > This is specifically for what patch [3/9] is doing AFAICS.
->> >
->> > The existing callers don't need to worry about this.
->>
->> OK, so I have the very same comment about patch 3 then: we have
->> dev_pm_domain_detach() returning error. How would the callers handle errors?
->
-> Ulf?
-
-I see your point. How about making dev_pm_domain_detach() to be a void
-function instead?
-
->
->> WRT this patch: I'd rater we did not just return generic "error code" just
->> because we do not know who manages PD for the device. Can we add API to check
->> if we are using ACPI to manage power domains? Then patch #3 could check if it
->> needs to use ACPI or generic power domain API.
-
-The problem is scalability. If we have other PM domains implementation
-in future, each of them need to be checked prior invoking the attach
-functions.
-Also, how would we distinguish between genpd and a new PM domain XYZ?
-
-Kind regards
-Uffe
-
->
-> The rule is that if there is an ACPI companion object for the given device, then
-> ACPI is used.  So the API is ACPI_COMPANION(dev) and we have that check around
-> until someone realized that acpi_dev_pm_attach/detach() made it too.  We can
-> restore it, I suppose, but I'm not sure how much better it is going to be.
->
-> Either way, I have no strong preferences here.
->
-> Rafael
->
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
