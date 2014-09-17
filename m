@@ -1,70 +1,106 @@
-From: Frans Klaver <fransklaver@gmail.com>
-Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in get_cpufv
-Date: Wed, 17 Sep 2014 13:57:33 +0200
-Message-ID: <CAH6sp9N8uWaiuPtqqcEgnyqzR=AUg6i-RwWpij-GQ-fE9AS+9g@mail.gmail.com>
-References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
-	<1410563212-31565-11-git-send-email-fransklaver@gmail.com>
-	<20140915214902.GB64909@vmdeb7>
-	<20140915215125.GA21435@kroah.com>
-	<20140915215527.GC7867@gmail.com>
-	<CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
-	<20140916205247.GA6856@vmdeb7>
-	<20140916212715.GB6856@vmdeb7>
-	<20140917103446.GA8594@khazad-dum.debian.net>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v4 14/18] ARM64 / ACPI: Add GICv2 specific ACPI boot
+ support
+Date: Wed, 17 Sep 2014 16:14:45 +0100
+Message-ID: <20140917151445.GF10392@e104818-lin.cambridge.arm.com>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
+ <1410530416-30200-15-git-send-email-hanjun.guo@linaro.org>
+ <20140915150136.GF5415@arm.com>
+ <541710D5.3030001@redhat.com>
+ <20140915164253.GI5415@arm.com>
+ <54193AD8.3090301@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:36801 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755212AbaIQL5f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 07:57:35 -0400
-In-Reply-To: <20140917103446.GA8594@khazad-dum.debian.net>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:33718 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754786AbaIQPO5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 11:14:57 -0400
+Content-Disposition: inline
+In-Reply-To: <54193AD8.3090301@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Darren Hart <dvhart@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: "jcm@redhat.com" <jcm@redhat.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Ch>
 
-On Wed, Sep 17, 2014 at 12:34 PM, Henrique de Moraes Holschuh
-<hmh@hmh.eng.br> wrote:
-> On Tue, 16 Sep 2014, Darren Hart wrote:
->> - When reading and writing sysfs device attribute files, avoid dependency
->>   on specific error codes wherever possible. This minimizes coupling to
->>   the error handling implemementation within the kernel.
->>
->>   In general, failures to read or write sysfs device attributes shall
->>   propogate errors wherever possible. Common errors include, but are not
->>   limited to:
->>
->>   -EIO: The read or store operation is not supported, typically returned by
->>         the sysfs system itself if the read or store pointer is NULL.
->>
->>   -ENXIO: The read or store operation failed
->
-> from errno(3):
->        EIO             Input/output error (POSIX.1)
->        ENXIO           No such device or address (POSIX.1)
->
-> It makes sense to retry EIO.  ENXIO means there's nobody listening at the
-> time, and isn't usually retried.
->
-> The device-based interfaces get it right.  A typical example is the
-> cpu-based devices, where ENXIO means "no such processor", while EIO means
-> "whatever you're trying to do failed",  so a MSR read would return ENXIO if
-> the processor core is offline/doesn't exist, and EIO if the processor core
-> is there, but raised a #GP when the MSR read was attempted.
+On Wed, Sep 17, 2014 at 08:40:08AM +0100, Tomasz Nowicki wrote:
+> On 15.09.2014 18:42, Catalin Marinas wrote:
+> > On Mon, Sep 15, 2014 at 05:16:21PM +0100, Jon Masters wrote:
+> >> On 09/15/2014 11:01 AM, Catalin Marinas wrote:
+> >>> On Fri, Sep 12, 2014 at 03:00:12PM +0100, Hanjun Guo wrote:
+> >>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> >>>> index 5b3546b..9869377 100644
+> >>>> --- a/arch/arm64/kernel/acpi.c
+> >>>> +++ b/arch/arm64/kernel/acpi.c
+> >>>> @@ -23,6 +23,7 @@
+> >>>>   #include <linux/irqdomain.h>
+> >>>>   #include <linux/bootmem.h>
+> >>>>   #include <linux/smp.h>
+> >>>> +#include <linux/irqchip/arm-gic-acpi.h>
+> >>>>
+> >>>>   #include <asm/cputype.h>
+> >>>>   #include <asm/cpu_ops.h>
+> >>>> @@ -312,6 +313,28 @@ void __init acpi_boot_table_init(void)
+> >>>>   		pr_err("Can't find FADT or error happened during parsing FADT\n");
+> >>>>   }
+> >>>>
+> >>>> +void __init acpi_gic_init(void)
+> >>>> +{
+> >>>> +	struct acpi_table_header *table;
+> >>>> +	acpi_status status;
+> >>>> +	acpi_size tbl_size;
+> >>>> +	int err;
+> >>>> +
+> >>>> +	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
+> >>>> +	if (ACPI_FAILURE(status)) {
+> >>>> +		const char *msg = acpi_format_exception(status);
+> >>>> +
+> >>>> +		pr_err("Failed to get MADT table, %s\n", msg);
+> >>>> +		return;
+> >>>> +	}
+> >>>> +
+> >>>> +	err = gic_v2_acpi_init(table);
+> >>>> +	if (err)
+> >>>> +		pr_err("Failed to initialize GIC IRQ controller");
+> >>>> +
+> >>>> +	early_acpi_os_unmap_memory((char *)table, tbl_size);
+> >>>> +}
+> >>>
+> >>> Maybe this was discussed already but why does this function need to live
+> >>> under arch/arm64? Isn't the driver code more appropriate?
+> 
+> There will be another call here for GICv3 so this function will merge 
+> common logic for them. As Jon pointed out, we are planning to add ACPI 
+> flag which indicates GICv3 or GICv2(m) IRQ controller in advance.
 
-Here's something I don't quite understand. How should one then
-distinguish between sysfs's use of EIO "can't (read from|write to)
-this file", and this example's EIO "something went wrong, you might
-want to try again"? Why not use EAGAIN "Resource temporarily
-unavailable" in the case where trying again makes sense? I wouldn't
-normally retry the last operation if I was just told something
-actually went wrong.
+We have GIC stuff for ACPI scattered around the kernel
+(arch/arm64/kernel/acpi.c, drivers/acpi/processor_core.c,
+drivers/irqchip/). It would be nicer if we find some common place for
+them, even if that is something under drivers/acpi/ or drivers/irqchip/
+(we even have an irq-gic-common.c).
 
-I've only been at it for a couple of weeks, but I get the impression
-that sysfs has never really been guided regarding error codes, or has
-gone to live its own life now kept in check with "don't change the
-errors, it may break userspace". Does that make sense?
+> >> Well there's two halves to this, right? There's the MADT parsing/setup,
+> >> which is architecture specific, and then there's the GIC irqchip
+> >> initialization which lives under drivers.
+> >
+> > I think it gets worse, this function is called from irqchip_init(). I
+> > would have been slightly happier if it was called from the arm64
+> > init_IRQ(). But putting an ARM specific GIC initialisation call in a
+> > generic irqchip_init() just looks weird. Can we do anything better here?
+> 
+> Yes this was discussed, please have a look at: 
+> https://lkml.org/lkml/2014/9/1/555
+> We had this in init_IRQ() in previous patch set, then we got feedback 
+> irqchip_init() is more appropriate. We can move it back to init_IRQ() 
+> and I am sold on this.
 
-Thanks,
-Frans
+The irqchip_init() is indeed the place to call other interrupt
+controller initialisation functions but what I don't particularly like
+is calling the GIC one directly while the OF ones are checked against a
+match string. For GICv3 and later, do you plan to use the same
+acpi_gic_init() functions? Otherwise we could do something like
+ACPI_IRQCHIP_DECLARE() similar to the OF ones and a common function that
+probes whatever is built into the kernel.
+
+-- 
+Catalin
