@@ -1,91 +1,54 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [v4,1/9] ACPI / PM: Let acpi_dev_pm_detach() return an error code
-Date: Wed, 17 Sep 2014 13:10:25 -0700
-Message-ID: <20140917201025.GC25297@core.coreip.homeip.net>
-References: <1410262570-22785-2-git-send-email-ulf.hansson@linaro.org>
- <6318611.DnX9cEgMjk@vostro.rjw.lan>
- <20140915165359.GA13080@core.coreip.homeip.net>
- <4451285.EDb1j6ttbA@vostro.rjw.lan>
- <CAPDyKFq6FZcuU=TCMh0JE0ymbS73_eLtNrTgmgKA4OxEp=_zpw@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC Part2 v1 02/21] genirq: Introduce helper functions to
+ support stacked irq_chip
+Date: Wed, 17 Sep 2014 13:58:55 -0700 (PDT)
+Message-ID: <alpine.DEB.2.10.1409171244090.21313@nanos>
+References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-3-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409161044330.4247@nanos> <5418FAE1.4030008@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPDyKFq6FZcuU=TCMh0JE0ymbS73_eLtNrTgmgKA4OxEp=_zpw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@fluff>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:51519 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756757AbaIQU7y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Sep 2014 16:59:54 -0400
+In-Reply-To: <5418FAE1.4030008@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Sep 17, 2014 at 08:25:44PM +0200, Ulf Hansson wrote:
-> On 16 September 2014 01:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Monday, September 15, 2014 09:53:59 AM Dmitry Torokhov wrote:
-> >> On Sun, Sep 14, 2014 at 06:38:58PM +0200, Rafael J. Wysocki wrote:
-> >> > On Friday, September 12, 2014 02:05:53 PM Dmitry Torokhov wrote:
-> >> > > Hi Ulf,
-> >> > >
-> >> > > On Tue, Sep 09, 2014 at 01:36:02PM +0200, Ulf Hansson wrote:
-> >> > > > To give callers the option of acting on a errors while removing the
-> >> > > > pm_domain ops for the device in the ACPI PM domain, let
-> >> > > > acpi_dev_pm_detach() return an int to provide the error code.
-> >> > >
-> >> > > So how would callers handle the errors? As far as I can see
-> >> > > acpi_dev_pm_detach() is called from ->remove() and ->shutdown() methods, where
-> >> > > there is no meaningful strategy to handle errors as you are past the point of
-> >> > > no return and you keep on tearing down the device.
-> 
-> The benefit is only relevant when ACPI and genpd PM domains would
-> co-exist. In that case we might be able to skip genpd_dev_pm_detach()
-> if acpi_dev_pm_detach() succeeds. So, currently there are  no benefit,
-> but still it doesn't hurt.
+On Wed, 17 Sep 2014, Jiang Liu wrote:
+> On 2014/9/17 1:45, Thomas Gleixner wrote:
+> > On Thu, 11 Sep 2014, Jiang Liu wrote:
+> >> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+> >> +void irq_chip_ack_parent(struct irq_data *data)
+> >> +{
+> >> +	data = data->parent_data;
+> >> +	if (data && data->chip && data->chip->irq_ack)
+> >> +		data->chip->irq_ack(data);
+> > 
+> > Why is this restricted to a single parent level and does not go down
+> > the whole stack?
+> Hi Thomas,
+> 	It happens to work on x86, and we want to achieve a bit
+> performance advantage by not walking down the whole stack.
+> If preferred, I will change it to walk the whole stack.
 
-It doe snot have any negative material effect, the drawback is purely
-from API perspective.
+Happens to work on my machine is always a bad argument :)
 
-> 
-> >> >
-> >> > This is specifically for what patch [3/9] is doing AFAICS.
-> >> >
-> >> > The existing callers don't need to worry about this.
-> >>
-> >> OK, so I have the very same comment about patch 3 then: we have
-> >> dev_pm_domain_detach() returning error. How would the callers handle errors?
-> >
-> > Ulf?
-> 
-> I see your point. How about making dev_pm_domain_detach() to be a void
-> function instead?
+Now, I can see why you want to do that, but if we do an optimization
+like that then we should really get rid of the conditional.
 
-Yes, please.
+You surely need a conditional on data->chip and data->chip->callback
+for a full stackq walk, but for an explicit request to use the parents
+ack the parent better has a chip with an ack function, right?
 
-> 
-> >
-> >> WRT this patch: I'd rater we did not just return generic "error code" just
-> >> because we do not know who manages PD for the device. Can we add API to check
-> >> if we are using ACPI to manage power domains? Then patch #3 could check if it
-> >> needs to use ACPI or generic power domain API.
-> 
-> The problem is scalability. If we have other PM domains implementation
-> in future, each of them need to be checked prior invoking the attach
-> functions.
-> Also, how would we distinguish between genpd and a new PM domain XYZ?
+void irq_chip_ack_parent(struct irq_data *data)
+{
+	data = data->parent_data;
+	data->chip->irq_ack(data);
+}
 
-I do not think that trying all available methods to detach a pm domain,
-i.e.
+Thanks,
 
-	err = acpi_dev_pm_detach();
-	if (err)
-		err = blah_dev_pm_detach();
-	if (err)
-		err = flab_dev_pm_detach();
-	if (err)
-		err = gen_dev_pm_detach();
-
-is any better from scalability point of view. If you need to do that you
-will probably have to store something like "struct pd_ops *pd_ops" in
-your device and call appropriate implementation via it.
-
-Thanks.
-
--- 
-Dmitry
+	tglx
