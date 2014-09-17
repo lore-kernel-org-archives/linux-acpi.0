@@ -1,85 +1,51 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 10/13] eeepc-laptop: compare proper return values in
- get_cpufv
-Date: Tue, 16 Sep 2014 16:39:46 -0700
-Message-ID: <20140916233946.GB18698@vmdeb7>
-References: <1410563212-31565-1-git-send-email-fransklaver@gmail.com>
- <1410563212-31565-11-git-send-email-fransklaver@gmail.com>
- <20140915214902.GB64909@vmdeb7>
- <20140915215125.GA21435@kroah.com>
- <20140915215527.GC7867@gmail.com>
- <CAH6sp9N1y3=LLju85ZHgc05ENUYLgUdYBYpemc6_oNhbsZ+r6g@mail.gmail.com>
- <20140916205247.GA6856@vmdeb7>
- <20140916211001.GA23674@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/4] ata: ahci_platform: Add ACPI support for AMD Seattle
+ SATA controller
+Date: Wed, 17 Sep 2014 02:26:14 +0100
+Message-ID: <20140917012614.GA31214@srcf.ucam.org>
+References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com>
+ <1410828446-28502-2-git-send-email-suravee.suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20140916211001.GA23674@gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Frans Klaver <fransklaver@gmail.com>, Paul Bolle <pebolle@tiscali.nl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Corentin Chary <corentin.chary@gmail.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, platform-driver-x86 <platform-driver-x86@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>
+In-Reply-To: <1410828446-28502-2-git-send-email-suravee.suthikulpanit@amd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: suravee.suthikulpanit@amd.com
+Cc: mark.rutland@arm.com, rjw@rjwysocki.net, graeme.gregory@linaro.org, arnd@arndb.de, marc.zyngier@arm.com, catalin.marinas@arm.com, olof@lixom.net, will.deacon@arm.com, linux-kernel@vger.kernel.org, astone@redhat.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com, grant.likely@linaro.org, linux-arm-kernel@lists.infradead.org, jason@lakedaemon.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 16, 2014 at 11:10:01PM +0200, Frans Klaver wrote:
-> On Tue, Sep 16, 2014 at 01:52:47PM -0700, Darren Hart wrote:
-> > On Tue, Sep 16, 2014 at 01:54:25PM +0200, Frans Klaver wrote:
-> > > On Mon, Sep 15, 2014 at 11:55 PM, Frans Klaver <fransklaver@gmail.com> wrote:
-> > > > On Mon, Sep 15, 2014 at 02:51:25PM -0700, Greg Kroah-Hartman wrote:
-> > > >> On Mon, Sep 15, 2014 at 02:49:02PM -0700, Darren Hart wrote:
-> > > >> >
-> > > >> > This patch is fine as is. However, Greg has supported propogating the error code
-> > > >> > through to the sysfs interface (if I understand him correctly on an earlier post
-> > > >> > to this list). This would require an addition change to this patch would
-> > > >> > propogated the get_cpufv error code in show_available_cpuv(), show_cpuv(), and
-> > > >> > store_cpuv(). As it is, we return -ENODEV on any failure, where an ACPI call
-> > > >> > error should probably return -ENXIO as I understand it.
-> > > >>
-> > > >> I really have no idea at this point in time what to recommend.  How
-> > > >> about just stick with what is happening today so that:
-> > > >>
-> > > >> > However, there was a rather famous change in error code handling in which pulse
-> > > >> > audio broke and Linus was very upset with one of his maintainers.
-> > > >>
-> > > >> That doesn't happen :)
-> > > >
-> > > > So if I interpret that correctly, we're dropping the last patch
-> > > > (ENODEV -> ENXIO) from the series? That's fine by me. As mentioned
-> > > > earlier, I already saw something else break because I returned ENXIO
-> > > > instead of ENODEV.
-> > > >
-> > > > Maybe it's a good idea to try and document the expected behavior
-> > > > somewhere, if even Greg isn't sure what to do.
-> > > 
-> > > For good measure:
-> > > 
-> > > v2 will not change the return values at the sysfs interface, meaning
-> > > we will always return -ENODEV on error. I am going to try to keep as
-> > > much internal functions propagating errors as possible though, unless
-> > > someone strongly disagrees.
-> > > 
-> > > Thanks,
-> > > Frans
-> > 
-> > I cornered Linus today and asked about this specifically. The policy is this:
-> > 
-> > Don't change the sysfs return codes without good reason. A good reason could be
-> > a real bug or problem with the return codes. It could also be to consolidate
-> > error handling which makes things more uniform, etc.
-> > 
-> > If this results in broken userspace, the maintainer will revert the change.
+On Mon, Sep 15, 2014 at 07:47:23PM -0500, suravee.suthikulpanit@amd.com wrote:
+> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 > 
-> Alright, that is basically what I was expecting it to be. As it happens,
-> this also means that we'll have to decide what to do about returning
-> -EIO/-ENODEV/rv in show_sys_acpi and store_sys_acpi. The latter was
-> changed by Paul Bolle's "eeepc-laptop: simplify parse_arg()". The return
-> value of these functions is propagated to the sysfs interface.
+> This patch adds ACPI match table in ahci_platform. The table includes
+> the acpi_device_id to match AMD Seattle SATA controller with following
+> asl structure in DSDT:
+> 
+>     Device (SATA0)
+>     {
+>       Name(_HID, "AMDI0600")	// Seattle AHSATA
 
-Yes, that change to store_sys_acpi needs to be reverted. I don't think
-show_sys_acpi is actually changed in that patch.
+There really ought to be a well-defined PNPID for AHCI, so you can _HID 
+to AMD and _CID to something generic. That way we won't have:
 
-Paul, can you resend that patch with the store_sys_acpi() -EIO return restored?
+> +#ifdef CONFIG_ATA_ACPI
+> +static const struct acpi_device_id ahci_acpi_match[] = {
+> +	{ "AMDI0600", 0 }, /* AMD Seattle AHCI */
+> +	{ },
+> +};
+
+utter sadness here. Really, please don't end up in a situation where we 
+need to add device-specific IDs to a generic driver.
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
+Matthew Garrett | mjg59@srcf.ucam.org
