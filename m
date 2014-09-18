@@ -1,47 +1,67 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Part2 v1 01/21] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Thu, 18 Sep 2014 16:58:19 +0800
-Message-ID: <541A9EAB.3060000@linux.intel.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com>	 <1410444228-3134-2-git-send-email-jiang.liu@linux.intel.com> <1411030087.14746.2.camel@mtksdaap41>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: ACPI defined devices not showing up under /sys/bus/platform/devices
+Date: Thu, 18 Sep 2014 14:04:11 +0200
+Message-ID: <541ACA3B.3070309@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54445 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:55263 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755155AbaIRI7D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Sep 2014 04:59:03 -0400
-In-Reply-To: <1411030087.14746.2.camel@mtksdaap41>
+	id S1751060AbaIRMEQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Sep 2014 08:04:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Joe.C" <srv_yingjoe.chen@mediatek.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Marcos Paulo de souza <marcos.souza.org@gmail.com>, Hans de Goede <hdegoede@redhat.com>
 
-On 2014/9/18 16:48, Joe.C wrote:
-> On Thu, 2014-09-11 at 22:03 +0800, Jiang Liu wrote:
->> +#else	/* CONFIG_IRQ_DOMAIN_HIERARCHY */
->> +static inline int irq_domain_activate_irq(struct irq_data *data) { return 0; }
->> +static inline int irq_domain_deactivate_irq(struct irq_data *data) { return 0; }
->> +#endif	/* CONFIG_IRQ_DOMAIN_HIERARCHY */
->> +
-> 
-> I get the following build warnings on these lines:
-> 
-> ../include/linux/irqdomain.h:75:47: warning: 'struct irq_data' declared
-> inside parameter list [enabled by default]
-> ../include/linux/irqdomain.h:75:47: warning: its scope is only this
-> definition or declaration, which is probably not what you want [enabled
-> by default]
-> ../include/linux/irqdomain.h:76:49: warning: 'struct irq_data' declared
-> inside parameter list [enabled by default
-Hi Joe,
-	Thanks for testing. We should add a forward declaration of
-struct irq_data to the top of include/linux/irqdomain.h.
-Will fix it in next version.
-Regards!
-Gerry
-> 
-> Joe.C
-> 
-> 
+Hi,
+
+I'm trying to help various users with Asus X450 and Asus X550 laptops
+to get their touchpad to work:
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1110011
+
+We believe that this touchpad is connected over i2c, using the
+i2c-designware-platform driver.
+
+If you look at the DSDT attached there you can clearly see
+nodes defines which should lead to e.g. :
+
+/sys/bus/platform/devices/INT33C2:00
+
+Showing up (which should then be bound by i2c-designware-platform).
+
+But nothing is showing up, not a single ACPI defined device shows
+up actually:
+
+
+
+
+
+[root@asusx550 devices]# ll
+insgesamt 0
+lrwxrwxrwx. 1 root root 0 22. Jul 14:56 alarmtimer -> ../../../devices/platform/alarmtimer
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 asus-nb-wmi -> ../../../devices/platform/asus-nb-wmi
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 coretemp.0 -> ../../../devices/platform/coretemp.0
+lrwxrwxrwx. 1 root root 0 22. Jul 14:56 efi-framebuffer.0 -> ../../../devices/platform/efi-framebuffer.0
+lrwxrwxrwx. 1 root root 0 22. Jul 14:56 Fixed MDIO bus.0 -> ../../../devices/platform/Fixed MDIO bus.0
+lrwxrwxrwx. 1 root root 0 22. Jul 14:56 i8042 -> ../../../devices/platform/i8042
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 iTCO_wdt -> ../../../devices/pci0000:00/0000:00:1f.0/iTCO_wdt
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 microcode -> ../../../devices/platform/microcode
+lrwxrwxrwx. 1 root root 0 22. Jul 14:56 pcspkr -> ../../../devices/platform/pcspkr
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 regulatory.0 -> ../../../devices/platform/regulatory.0
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 rtsx_pci_ms.0 -> ../../../devices/pci0000:00/0000:00:1c.2/0000:02:00.0/rtsx_pci_ms.0
+lrwxrwxrwx. 1 root root 0 25. Jul 23:54 rtsx_pci_sdmmc.0 -> ../../../devices/pci0000:00/0000:00:1c.2/0000:02:00.0/rtsx_pci_sdmmc.0
+lrwxrwxrwx. 1 root root 0 22. Jul 14:56 serial8250 -> ../../../devices/platform/serial8250
+
+
+Which is weird, since any recent machine usually has at least one or 2
+show up.
+
+Therefor I would like to ask your help with figuring out how to
+get the device nodes defined in the DSDT to actual show up.
+
+Thanks & Regards,
+
+Hans
