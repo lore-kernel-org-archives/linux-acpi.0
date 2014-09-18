@@ -1,59 +1,105 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Part2 v1 02/21] genirq: Introduce helper functions to support
- stacked irq_chip
-Date: Thu, 18 Sep 2014 14:14:43 +0800
-Message-ID: <541A7853.4020303@linux.intel.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-3-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409161044330.4247@nanos> <5418FAE1.4030008@linux.intel.com> <alpine.DEB.2.10.1409171244090.21313@nanos>
+Subject: Re: [RFC Part2 v1 01/21] irqdomain: Introduce new interfaces to support
+ hierarchy irqdomains
+Date: Thu, 18 Sep 2014 15:28:44 +0800
+Message-ID: <541A89AC.9000706@linux.intel.com>
+References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-2-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.10.1409160859080.4247@nanos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:43929 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751279AbaIRGPT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Sep 2014 02:15:19 -0400
-In-Reply-To: <alpine.DEB.2.10.1409171244090.21313@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1409160859080.4247@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
+On 2014/9/17 1:43, Thomas Gleixner wrote:
+> Jiang,
+> 
+> On Thu, 11 Sep 2014, Jiang Liu wrote:
+>> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+>>  	/* Create mapping */
+>> -	virq = irq_create_mapping(domain, hwirq);
+>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+>> +	if (domain->ops->alloc)
+>> +		virq = irq_domain_alloc_irqs(domain, -1, 1, NUMA_NO_NODE,
+>> +					     irq_data);
+>> +	else
+>> +#endif
+>> +		virq = irq_create_mapping(domain, hwirq);
+> 
+> I'd prefer to get rid of the #ifdef CONFIG...s in the code. So this
+> can be written:
+> 
+>         if (irq_domain_has_hierarchy(domain))
+> 		virq = irq_domain_alloc_irqs(domain, -1, 1, NUMA_NO_NODE,
+> 					     irq_data);
+> 	else
+> 		virq = irq_create_mapping(domain, hwirq);
+Sure, will kill the ifdef. 	
 
+> 	   
+> 
+>>  	if (!virq)
+>>  		return virq;
+>>  
+>> @@ -540,7 +542,11 @@ unsigned int irq_find_mapping(struct irq_domain *domain,
+>>  		return 0;
+>>  
+>>  	if (hwirq < domain->revmap_direct_max_irq) {
+>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+>> +		data = irq_domain_get_irq_data(domain, hwirq);
+>> +#else
+>>  		data = irq_get_irq_data(hwirq);
+>> +#endif
+> 
+> Similar here. Make irq_domain_get_irq_data() map to irq_get_irq_data() for
+> the non hierarchy mode so you end up with a single line:
+> 
+> -  		data = irq_get_irq_data(hwirq);
+> +		data = irq_domain_get_irq_data(domain, hwirq);
+Sure.
 
-On 2014/9/18 4:58, Thomas Gleixner wrote:
-> On Wed, 17 Sep 2014, Jiang Liu wrote:
->> On 2014/9/17 1:45, Thomas Gleixner wrote:
->>> On Thu, 11 Sep 2014, Jiang Liu wrote:
->>>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
->>>> +void irq_chip_ack_parent(struct irq_data *data)
->>>> +{
->>>> +	data = data->parent_data;
->>>> +	if (data && data->chip && data->chip->irq_ack)
->>>> +		data->chip->irq_ack(data);
->>>
->>> Why is this restricted to a single parent level and does not go down
->>> the whole stack?
->> Hi Thomas,
->> 	It happens to work on x86, and we want to achieve a bit
->> performance advantage by not walking down the whole stack.
->> If preferred, I will change it to walk the whole stack.
+>> +#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+>> +/**
+>> + * irq_domain_alloc_irqs - Allocate IRQs from domain
+>> + * @domain: domain to allocate from
+>> + * @irq_base: allocate specified IRQ nubmer if irq_base >= 0
+>> + * @nr_irqs: number of IRQs to allocate
+>> + * @node: NUMA node id for memory allocation
+>> + * @arg: domain specific argument
+>> + * @realloc: IRQ descriptors have already been allocated if true
+>> + *
+>> + * Allocate IRQ numbers and initialized all data structures to support
+>> + * hiearchy IRQ domains.
+>> + * Parameter @realloc is mainly to support legacy IRQs.
 > 
-> Happens to work on my machine is always a bad argument :)
+> What's the issue with the legacy irqs? So this has the interrupt
+> descriptors allocated already. Are they already wired up for serving
+> interrupts and what's the state of those lines?
+Function arch_early_ioapic_init() will allocate irq descriptors and
+irq_cfg structures for all legacy IRQ for three purposes:
+1) To support ISA IRQs managed by 8259.
+2) To reserve vectors on all CPUs for legacy IRQs
+3) Prepare data structures to support pre_init_apic_IRQ0().
+We will kill pre_init_apic_IRQ0() soon, so item 3 above won't be needed
+anymore.
+
+When __irq_domain_alloc_irqs() is called, only irq descriptor and
+irq_cfg have been allocated, but the interrupt controller hardware
+should be untouched yet.
+
 > 
-> Now, I can see why you want to do that, but if we do an optimization
-> like that then we should really get rid of the conditional.
+>> + * Returns error code or allocated IRQ number
 > 
-> You surely need a conditional on data->chip and data->chip->callback
-> for a full stackq walk, but for an explicit request to use the parents
-> ack the parent better has a chip with an ack function, right?
+> Can you please add some documentation how the hierarchical allocation
+> is supposed to work and how the domains are connected. That should
+> probably go to Documentation/IRQ-domains.txt.
+Sure, I will do my best to add documentations for it.
 > 
-> void irq_chip_ack_parent(struct irq_data *data)
-> {
-> 	data = data->parent_data;
-> 	data->chip->irq_ack(data);
-> }
-Sure, will optimize it further as above code.
-Regards!
+> Other than that this looks pretty good! Nice work!
+Thanks!
 Gerry
 > 
 > Thanks,
