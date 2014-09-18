@@ -1,96 +1,118 @@
-From: Marcos Paulo de souza <marcos.souza.org@gmail.com>
-Subject: Re: ACPI defined devices not showing up under /sys/bus/platform/devices
-Date: Thu, 18 Sep 2014 18:02:40 -0300
-Message-ID: <541B4870.2010906@gmail.com>
-References: <541ACA3B.3070309@redhat.com> <20140918140106.GU10854@lahna.fi.intel.com> <541B455C.4000601@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [v4,1/9] ACPI / PM: Let acpi_dev_pm_detach() return an error code
+Date: Fri, 19 Sep 2014 01:13:21 +0200
+Message-ID: <58813810.nrS47mt5xk@vostro.rjw.lan>
+References: <1410262570-22785-2-git-send-email-ulf.hansson@linaro.org> <20140917234331.GA28771@core.coreip.homeip.net> <CAPDyKFoPBfAYfP9gwSxWvdUvNSjMxxNeJ_BfRkgvOZLTNpzJXA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:37370 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757302AbaIRVCo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Sep 2014 17:02:44 -0400
-Received: by mail-qg0-f42.google.com with SMTP id q108so1318939qgd.29
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Sep 2014 14:02:43 -0700 (PDT)
-In-Reply-To: <541B455C.4000601@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFoPBfAYfP9gwSxWvdUvNSjMxxNeJ_BfRkgvOZLTNpzJXA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, Philipp Zabel <philipp.zabel@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tomasz Figa <tomasz.figa@gmail.com>, Chris Ball <chris@printf.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Simon Horman <horms@verge.net.au>, Alan Stern <stern@rowland.harvard.edu>, Mark Brown <broonie@kernel.org>, Ben Dooks <ben-linux@f>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi,
+On Thursday, September 18, 2014 02:35:44 AM Ulf Hansson wrote:
+> On 18 September 2014 01:43, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> > On Thu, Sep 18, 2014 at 01:20:49AM +0200, Ulf Hansson wrote:
+> >> On 17 September 2014 22:10, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> >> > On Wed, Sep 17, 2014 at 08:25:44PM +0200, Ulf Hansson wrote:
+> >> >> On 16 September 2014 01:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> >> > On Monday, September 15, 2014 09:53:59 AM Dmitry Torokhov wrote:
+> >> >> >> On Sun, Sep 14, 2014 at 06:38:58PM +0200, Rafael J. Wysocki wrote:
+> >> >> >> > On Friday, September 12, 2014 02:05:53 PM Dmitry Torokhov wrote:
+> >> >> >> > > Hi Ulf,
+> >> >> >> > >
+> >> >> >> > > On Tue, Sep 09, 2014 at 01:36:02PM +0200, Ulf Hansson wrote:
+> >> >> >> > > > To give callers the option of acting on a errors while removing the
+> >> >> >> > > > pm_domain ops for the device in the ACPI PM domain, let
+> >> >> >> > > > acpi_dev_pm_detach() return an int to provide the error code.
+> >> >> >> > >
+> >> >> >> > > So how would callers handle the errors? As far as I can see
+> >> >> >> > > acpi_dev_pm_detach() is called from ->remove() and ->shutdown() methods, where
+> >> >> >> > > there is no meaningful strategy to handle errors as you are past the point of
+> >> >> >> > > no return and you keep on tearing down the device.
+> >> >>
+> >> >> The benefit is only relevant when ACPI and genpd PM domains would
+> >> >> co-exist. In that case we might be able to skip genpd_dev_pm_detach()
+> >> >> if acpi_dev_pm_detach() succeeds. So, currently there are  no benefit,
+> >> >> but still it doesn't hurt.
+> >> >
+> >> > It doe snot have any negative material effect, the drawback is purely
+> >> > from API perspective.
+> >> >
+> >> >>
+> >> >> >> >
+> >> >> >> > This is specifically for what patch [3/9] is doing AFAICS.
+> >> >> >> >
+> >> >> >> > The existing callers don't need to worry about this.
+> >> >> >>
+> >> >> >> OK, so I have the very same comment about patch 3 then: we have
+> >> >> >> dev_pm_domain_detach() returning error. How would the callers handle errors?
+> >> >> >
+> >> >> > Ulf?
+> >> >>
+> >> >> I see your point. How about making dev_pm_domain_detach() to be a void
+> >> >> function instead?
+> >> >
+> >> > Yes, please.
+> >>
+> >> OK!
+> >>
+> >> >
+> >> >>
+> >> >> >
+> >> >> >> WRT this patch: I'd rater we did not just return generic "error code" just
+> >> >> >> because we do not know who manages PD for the device. Can we add API to check
+> >> >> >> if we are using ACPI to manage power domains? Then patch #3 could check if it
+> >> >> >> needs to use ACPI or generic power domain API.
+> >> >>
+> >> >> The problem is scalability. If we have other PM domains implementation
+> >> >> in future, each of them need to be checked prior invoking the attach
+> >> >> functions.
+> >> >> Also, how would we distinguish between genpd and a new PM domain XYZ?
+> >> >
+> >> > I do not think that trying all available methods to detach a pm domain,
+> >> > i.e.
+> >> >
+> >> >         err = acpi_dev_pm_detach();
+> >> >         if (err)
+> >> >                 err = blah_dev_pm_detach();
+> >> >         if (err)
+> >> >                 err = flab_dev_pm_detach();
+> >> >         if (err)
+> >> >                 err = gen_dev_pm_detach();
+> >> >
+> >> > is any better from scalability point of view. If you need to do that you
+> >> > will probably have to store something like "struct pd_ops *pd_ops" in
+> >> > your device and call appropriate implementation via it.
+> >>
+> >> No, that's not needed. Go ahead and have look at both ACPI and genpd,
+> >> the interesting part is the validation of struct dev_pm_domain pointer
+> >> in the struct device. That's all there is to it, no additional data
+> >> are required.
+> >
+> > OK, so can you simply put the needed method into struct dev_pm_domain and then
+> > dev_pm_domain_detach() would become:
+> >
+> > void dev_pm_domain_detach(struct device *dev, bool power_off)
+> > {
+> >         if (dev->pm_domain)
+> >                 dev->pm_domain->detach(dev, power_off);
+> > }
+> >
+> > Thanks.
+> 
+> Ohh, didn't quite follow that this is what you meant. That would be a
+> great improvement, I will adopt in the next version.
 
-On 09/18/2014 05:49 PM, Hans de Goede wrote:
-> Hi,
->
-> On 09/18/2014 04:01 PM, Mika Westerberg wrote:
->> On Thu, Sep 18, 2014 at 02:04:11PM +0200, Hans de Goede wrote:
->>> Hi,
->>>
->>> I'm trying to help various users with Asus X450 and Asus X550 laptops
->>> to get their touchpad to work:
->>>
->>> https://bugzilla.redhat.com/show_bug.cgi?id=1110011
->>>
->>> We believe that this touchpad is connected over i2c, using the
->>> i2c-designware-platform driver.
->>>
->>> If you look at the DSDT attached there you can clearly see
->>> nodes defines which should lead to e.g. :
->>>
->>> /sys/bus/platform/devices/INT33C2:00
->>>
->>> Showing up (which should then be bound by i2c-designware-platform).
->>>
->>> But nothing is showing up, not a single ACPI defined device shows
->>> up actually:
->>>
->>>
->>>
->>>
->>>
->>> [root@asusx550 devices]# ll
->>> insgesamt 0
->>> lrwxrwxrwx. 1 root root 0 22. Jul 14:56 alarmtimer -> ../../../devices/platform/alarmtimer
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 asus-nb-wmi -> ../../../devices/platform/asus-nb-wmi
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 coretemp.0 -> ../../../devices/platform/coretemp.0
->>> lrwxrwxrwx. 1 root root 0 22. Jul 14:56 efi-framebuffer.0 -> ../../../devices/platform/efi-framebuffer.0
->>> lrwxrwxrwx. 1 root root 0 22. Jul 14:56 Fixed MDIO bus.0 -> ../../../devices/platform/Fixed MDIO bus.0
->>> lrwxrwxrwx. 1 root root 0 22. Jul 14:56 i8042 -> ../../../devices/platform/i8042
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 iTCO_wdt -> ../../../devices/pci0000:00/0000:00:1f.0/iTCO_wdt
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 microcode -> ../../../devices/platform/microcode
->>> lrwxrwxrwx. 1 root root 0 22. Jul 14:56 pcspkr -> ../../../devices/platform/pcspkr
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 regulatory.0 -> ../../../devices/platform/regulatory.0
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 rtsx_pci_ms.0 -> ../../../devices/pci0000:00/0000:00:1c.2/0000:02:00.0/rtsx_pci_ms.0
->>> lrwxrwxrwx. 1 root root 0 25. Jul 23:54 rtsx_pci_sdmmc.0 -> ../../../devices/pci0000:00/0000:00:1c.2/0000:02:00.0/rtsx_pci_sdmmc.0
->>> lrwxrwxrwx. 1 root root 0 22. Jul 14:56 serial8250 -> ../../../devices/platform/serial8250
->>>
->>>
->>> Which is weird, since any recent machine usually has at least one or 2
->>> show up.
->> It depends whether the BIOS has enabled those or not.
->>
->> If
->>
->>   # cat /sys/bus/acpi/devices/INT33C2:00/status
->>   # cat /sys/bus/acpi/devices/INT33C3:00/status
->>
->> returns 0xf, then the device should be there, otherwise it is not.
-> Interesting. Marcos, can you give this a try please ?
-Hans, both here returned 0. As I said to you, I'm using Fedora in 
-insecure mode (I don't know if this changes anything).
->
->> The "status" refers directly shat _STA() ACPI method returns.
-> Ok, so assuming that Marcos' testing shows it is not enabled,
-> is there anything we can, could there be some ACPI call to
-> enable these devs ?
->
->> Note that the device could also be in PCI mode, in case lspci should
->> show it.
-> Right, it does not show in lspci.
->
-> Regards,
->
-> Hans
+
+         if (dev->pm_domain && dev->pm_domain->detach)
+                 dev->pm_domain->detach(dev, power_off);
+
+
+Pretty please.
+
+Rafael
 
