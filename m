@@ -1,37 +1,43 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
-Date: Fri, 19 Sep 2014 11:48:49 -0700
-Message-ID: <20140919184849.GA14832@core.coreip.homeip.net>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v4 01/11 UPDATE] cpumask: factor out show_cpumap into
+ separate helper function
+Date: Fri, 19 Sep 2014 15:23:13 -0700
+Message-ID: <541CACD1.8070507@codeaurora.org>
+References: <1409763617-17074-2-git-send-email-sudeep.holla@arm.com> <1409845592-27739-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:47687 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757474AbaISSsy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Sep 2014 14:48:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1409845592-27739-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, LKML <linux-kernel@vger.kernel.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 
-Hi Ulf,
+On 09/04/14 08:46, Sudeep Holla wrote:
+> From: Sudeep Holla <sudeep.holla@arm.com>
+>
+> Many sysfs *_show function use cpu{list,mask}_scnprintf to copy cpumap
+> to the buffer aligned to PAGE_SIZE, append '\n' and '\0' to return null
+> terminated buffer with newline.
+>
+> This patch creates a new helper function cpumap_print_to_pagebuf in
+> cpumask.h using newly added bitmap_print_to_pagebuf and consolidates
+> most of those sysfs functions using the new helper function.
+>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> Suggested-by: Stephen Boyd <sboyd@codeaurora.org>
+> Acked-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+> Cc: x86@kernel.org
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-pci@vger.kernel.org
+>
 
-On Fri, Sep 19, 2014 at 08:27:33PM +0200, Ulf Hansson wrote:
-> Changes in v5:
-> 	- Converted dev_pm_domain_detach() to a void function
-> 	- Added a ->detach() callback to the PM domain struct, invoked from the
-> 	  dev_pm_domain_detach().
-> 	- Make ACPI and genpd both assign the ->detach() callback at successfull
-> 	  attachment.
-> 	- The above changes made it possible to make acpi_pm_domain_detach() to
-> 	  be static, added a separate patch for that.
-
-Thank you for making these changes. For the series:
-
-Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Tested-by: Stephen Boyd <sboyd@codeaurora.org>
 
 -- 
-Dmitry
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
