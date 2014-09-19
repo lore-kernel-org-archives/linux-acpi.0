@@ -1,199 +1,133 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: ACPI defined devices not showing up under
- /sys/bus/platform/devices
-Date: Fri, 19 Sep 2014 15:26:35 +0300
-Message-ID: <20140919122635.GA1786@lahna.fi.intel.com>
-References: <541ACA3B.3070309@redhat.com>
- <20140918140106.GU10854@lahna.fi.intel.com>
- <541B455C.4000601@redhat.com>
- <541B4870.2010906@gmail.com>
- <20140919084707.GB10854@lahna.fi.intel.com>
- <541C1821.30206@gmail.com>
- <20140919120103.GO10854@lahna.fi.intel.com>
- <541C1F42.1070106@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v5 00/11] PM / Domains: Generic OF-based support
+Date: Fri, 19 Sep 2014 20:27:33 +0200
+Message-ID: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:56799 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755682AbaISM1I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Sep 2014 08:27:08 -0400
-Content-Disposition: inline
-In-Reply-To: <541C1F42.1070106@gmail.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:60129 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757658AbaISS1x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Sep 2014 14:27:53 -0400
+Received: by mail-pa0-f54.google.com with SMTP id fb1so609646pad.27
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Sep 2014 11:27:53 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcos Paulo de souza <marcos.souza.org@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>
 
-On Fri, Sep 19, 2014 at 09:19:14AM -0300, Marcos Paulo de souza wrote:
-> Hi Mika,
-> 
-> On 09/19/2014 09:01 AM, Mika Westerberg wrote:
-> >On Fri, Sep 19, 2014 at 08:48:49AM -0300, Marcos Paulo de souza wrote:
-> >>Hi,
-> >>
-> >>On 09/19/2014 05:47 AM, Mika Westerberg wrote:
-> >>>On Thu, Sep 18, 2014 at 06:02:40PM -0300, Marcos Paulo de souza wrote:
-> >>>>Hi,
-> >>>>
-> >>>>On 09/18/2014 05:49 PM, Hans de Goede wrote:
-> >>>>>Hi,
-> >>>>>
-> >>>>>On 09/18/2014 04:01 PM, Mika Westerberg wrote:
-> >>>>>>On Thu, Sep 18, 2014 at 02:04:11PM +0200, Hans de Goede wrote:
-> >>>>>>>Hi,
-> >>>>>>>
-> >>>>>>>I'm trying to help various users with Asus X450 and Asus X550 laptops
-> >>>>>>>to get their touchpad to work:
-> >>>>>>>
-> >>>>>>>https://bugzilla.redhat.com/show_bug.cgi?id=1110011
-> >>>>>>>
-> >>>>>>>We believe that this touchpad is connected over i2c, using the
-> >>>>>>>i2c-designware-platform driver.
-> >>>>>>>
-> >>>>>>>If you look at the DSDT attached there you can clearly see
-> >>>>>>>nodes defines which should lead to e.g. :
-> >>>>>>>
-> >>>>>>>/sys/bus/platform/devices/INT33C2:00
-> >>>>>>>
-> >>>>>>>Showing up (which should then be bound by i2c-designware-platform).
-> >>>>>>>
-> >>>>>>>But nothing is showing up, not a single ACPI defined device shows
-> >>>>>>>up actually:
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>[root@asusx550 devices]# ll
-> >>>>>>>insgesamt 0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 22. Jul 14:56 alarmtimer -> ../../../devices/platform/alarmtimer
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 asus-nb-wmi -> ../../../devices/platform/asus-nb-wmi
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 coretemp.0 -> ../../../devices/platform/coretemp.0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 22. Jul 14:56 efi-framebuffer.0 -> ../../../devices/platform/efi-framebuffer.0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 22. Jul 14:56 Fixed MDIO bus.0 -> ../../../devices/platform/Fixed MDIO bus.0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 22. Jul 14:56 i8042 -> ../../../devices/platform/i8042
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 iTCO_wdt -> ../../../devices/pci0000:00/0000:00:1f.0/iTCO_wdt
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 microcode -> ../../../devices/platform/microcode
-> >>>>>>>lrwxrwxrwx. 1 root root 0 22. Jul 14:56 pcspkr -> ../../../devices/platform/pcspkr
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 regulatory.0 -> ../../../devices/platform/regulatory.0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 rtsx_pci_ms.0 -> ../../../devices/pci0000:00/0000:00:1c.2/0000:02:00.0/rtsx_pci_ms.0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 25. Jul 23:54 rtsx_pci_sdmmc.0 -> ../../../devices/pci0000:00/0000:00:1c.2/0000:02:00.0/rtsx_pci_sdmmc.0
-> >>>>>>>lrwxrwxrwx. 1 root root 0 22. Jul 14:56 serial8250 -> ../../../devices/platform/serial8250
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>Which is weird, since any recent machine usually has at least one or 2
-> >>>>>>>show up.
-> >>>>>>It depends whether the BIOS has enabled those or not.
-> >>>>>>
-> >>>>>>If
-> >>>>>>
-> >>>>>>  # cat /sys/bus/acpi/devices/INT33C2:00/status
-> >>>>>>  # cat /sys/bus/acpi/devices/INT33C3:00/status
-> >>>>>>
-> >>>>>>returns 0xf, then the device should be there, otherwise it is not.
-> >>>>>Interesting. Marcos, can you give this a try please ?
-> >>>>Hans, both here returned 0. As I said to you, I'm using Fedora in insecure
-> >>>>mode (I don't know if this changes anything).
-> >>>That just means that your BIOS has disabled these devices. Unless there
-> >>>is a menu somewhere in BIOS setup to enable these, there is nothing we
-> >>>can do in the kernel to make them appear.
-> >>Interesting. This machine came with Windows 8, and removed. The touchpad was
-> >>working on Windows. Mika, I verified my BIOS configurations and there isn't
-> >>any configuration to enable PCI devices. Do you beleive there is something
-> >>about secure boot? As it worked with Windows, hwo can it be detected on
-> >>Linux?
-> >Are you sure that your touch pad is connected to I2C bus in the first
-> >place?
-> >
-> >In your ACPI DSDT, there is also a device called PS2M that happens to to
-> >look like touch pad to me. For example it reports one of these _HIDs:
-> >
-> >                     Method (_HID, 0, NotSerialized)  // _HID: Hardware ID
-> >                     {
-> >                         If (SYNA)
-> >                         {
-> >                             Return (0x190A2E4F)
-> >                         }
-> >
-> >                         If (ALPS)
-> >                         {
-> >                             Return (0x0713A906)
-> >                         }
-> >
-> >                         If (ELAN)
-> >                         {
-> >                             Return (0x08018416)
-> >                         }
-> >
-> >                         If (STLC)
-> >                         {
-> >                             Return (0x41C18C4E)
-> >                         }
-> >
-> >                         If (FOLT)
-> >                         {
-> >                             Return (0x01019419)
-> >                         }
-> >
-> >                         Return (0x060A2E4F)
-> >                     }
-> >
-> >Have you checked if any of these are present in /sys/bus/acpi/devices/*?
-> 
-> Yes. This is exactly the same:
-> 
->                     Method (_HID, 0, NotSerialized)  // _HID: Hardware ID
->                     {
->                         If (SYNA)
->                         {
->                             Return (0x190A2E4F)
->                         }
-> 
->                         If (ALPS)
->                         {
->                             Return (0x0713A906)
->                         }
-> 
->                         If (ELAN)
->                         {
->                             Return (0x08018416)
->                         }
-> 
->                         If (STLC)
->                         {
->                             Return (0x41C18C4E)
->                         }
-> 
->                         If (FOLT)
->                         {
->                             Return (0x02019419)
->                         }
-> 
->                         Return (0x060A2E4F)
->                     }
+Changes in v5:
+	- Converted dev_pm_domain_detach() to a void function
+	- Added a ->detach() callback to the PM domain struct, invoked from the
+	  dev_pm_domain_detach().
+	- Make ACPI and genpd both assign the ->detach() callback at successfull
+	  attachment.
+	- The above changes made it possible to make acpi_pm_domain_detach() to
+	  be static, added a separate patch for that.
 
-Which one of them is present in /sys/bus/acpi/devices/?
+Changes in v4:
+	- Rebased patch "PM / Domains: Add generic OF-based PM domain look-up" -
+	  and updated the author and the commit message.
+	- Adopted review comments for "PM / Domains: Add APIs to attach/detach
+	  a PM domain for a device".
+	- Updated author and commit message for "ARM: exynos: Move to generic
+	  PM domain DT bindings".
+	- Added some acks and reviewed by tags.
+	- Started to use the "--in-reply-to" option to git-send-email. It should
+	  provide the option to show a better diffstat per patch.
 
-> >
-> >>>>>>The "status" refers directly shat _STA() ACPI method returns.
-> >>>>>Ok, so assuming that Marcos' testing shows it is not enabled,
-> >>>>>is there anything we can, could there be some ACPI call to
-> >>>>>enable these devs ?
-> >>>>>
-> >>>>>>Note that the device could also be in PCI mode, in case lspci should
-> >>>>>>show it.
-> >>>>>Right, it does not show in lspci.
-> >>>OK. So I think that this particular machine, either does not have Intel
-> >>>LPSS (it is not Haswell-LP) or the devices have been deliberately
-> >>>disabled for some reason.
-> >>How can I verify this?
-> >Can you send me output of lspci -vv?
-> It I have a Haswell-ULT:
+Changes in v3:
+	- Aligned on terminology, now using "PM domain" in comments and commit
+	- messages/headers.
+	- Improved English and grammar in comments and commit messages/headers.
+	- Adopted proposal from Geert, to have compile-time-check wrapper
+	  functions for the API that adds xlate_simple and xlate_onecell
+	  providers.
+ 	- Renamed "domain_num" to "num_domains", in genpd_onecell_data struct.
+	- Handle non-contiguous arrays for onecell PM domain providers.
+	- Rebased the Exynos patch to follow the new genpd API changes.
 
-Based on your lspci output you have LPSS disabled. For comparison here
-is a snippet from one development machine which is HSW-ULT:
 
-...
-00:15.1 Serial bus controller [0c80]: Intel Corporation Lynx Point-LP I2C Controller #0 (rev 03)
-00:15.2 Serial bus controller [0c80]: Intel Corporation Lynx Point-LP I2C Controller #1 (rev 03)
+Changes in v2:
+	- Fix the ACPI patch, it didn't even compile for CONFIG_ACPI.
+	- Updated some comments in code and in commit messages.
+	- Fixed the dev_pm_domain_attach API to handle EPROBE_DEFER properly.
+	- Rebased the ARM Exynos patch.
+	- Added some Tested-by tags.
+
+
+This patchset has a bit of a history and some parts of it has been posted
+earlier.
+
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/262725.html
+
+In the first revision I intentially didn't increase version number of the
+patches, since I think it would have cause more confusion than clarity.
+
+A summary of changes in V1 and since the last patchset, from the link above:
+	- Instead of letting driver core handling the device to power domain
+	binding/unbinding, follow the behavior of how the ACPI power domain
+	is handled.
+
+
+This is a summary of what these patches are intended to do:
+
+1)
+Add generic power domain OF-based support which also includes APIs to handle
+attach/detach of generic power domains to devices.
+
+2)
+Adding a common API to attach/detach power domains and include support for the
+ACPI and the generic power domain in there.
+
+3)
+>From subsystem level code, at probe/remove, convert from invoking the ACPI
+specific power domain attach/detach functions to the new common attach/detach
+APIs.
+
+4)
+Add support for the AMBA bus to attach/detach power domains, using the new
+common APIs.
+
+5)
+Convert Exynos to use the new generic power domain OF support.
+
+Obviously, there are dependencies througout this patchset, which means if they
+get accepted the all need to go together. It might also be convenient to share
+them through an immutable branch.
+
+
+Tomasz Figa (2):
+  PM / Domains: Add generic OF-based PM domain look-up
+  ARM: exynos: Move to generic PM domain DT bindings
+
+Ulf Hansson (9):
+  PM / Domains: Add a detach callback to the struct dev_pm_domain
+  ACPI / PM: Assign the ->detach() callback when attaching the PM domain
+  PM / Domains: Add APIs to attach/detach a PM domain for a device
+  drivercore / platform: Convert to dev_pm_domain_attach|detach()
+  i2c: core: Convert to dev_pm_domain_attach|detach()
+  mmc: sdio: Convert to dev_pm_domain_attach|detach()
+  spi: core: Convert to dev_pm_domain_attach|detach()
+  amba: Add support for attach/detach of PM domains
+  ACPI / PM: Convert acpi_dev_pm_detach() into a static function
+
+ .../bindings/arm/exynos/power_domain.txt           |  13 +-
+ .../devicetree/bindings/power/power_domain.txt     |  49 ++++
+ arch/arm/mach-exynos/pm_domains.c                  |  78 +-----
+ drivers/acpi/device_pm.c                           |  71 ++---
+ drivers/amba/bus.c                                 |  10 +-
+ drivers/base/platform.c                            |  15 +-
+ drivers/base/power/common.c                        |  52 ++++
+ drivers/base/power/domain.c                        | 289 +++++++++++++++++++++
+ drivers/i2c/i2c-core.c                             |  13 +-
+ drivers/mmc/core/sdio_bus.c                        |   4 +-
+ drivers/spi/spi.c                                  |  12 +-
+ include/linux/acpi.h                               |   2 -
+ include/linux/pm.h                                 |  12 +
+ include/linux/pm_domain.h                          |  52 ++++
+ kernel/power/Kconfig                               |   4 +
+ 15 files changed, 535 insertions(+), 141 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/power/power_domain.txt
+
+-- 
+1.9.1
+
