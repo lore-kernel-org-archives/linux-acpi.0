@@ -1,25 +1,25 @@
 From: Marcos Paulo de souza <marcos.souza.org@gmail.com>
 Subject: Re: ACPI defined devices not showing up under /sys/bus/platform/devices
-Date: Fri, 19 Sep 2014 08:48:49 -0300
-Message-ID: <541C1821.30206@gmail.com>
+Date: Fri, 19 Sep 2014 08:51:05 -0300
+Message-ID: <541C18A9.2030505@gmail.com>
 References: <541ACA3B.3070309@redhat.com> <20140918140106.GU10854@lahna.fi.intel.com> <541B455C.4000601@redhat.com> <541B4870.2010906@gmail.com> <20140919084707.GB10854@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:35500 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932089AbaISLsy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Sep 2014 07:48:54 -0400
-Received: by mail-qa0-f49.google.com with SMTP id i13so2414485qae.8
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Sep 2014 04:48:53 -0700 (PDT)
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:39863 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756485AbaISLvI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Sep 2014 07:51:08 -0400
+Received: by mail-qc0-f180.google.com with SMTP id m20so2803689qcx.25
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Sep 2014 04:51:08 -0700 (PDT)
 In-Reply-To: <20140919084707.GB10854@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi,
+Another info,
 
 On 09/19/2014 05:47 AM, Mika Westerberg wrote:
 > On Thu, Sep 18, 2014 at 06:02:40PM -0300, Marcos Paulo de souza wrote:
@@ -87,11 +87,9 @@ On 09/19/2014 05:47 AM, Mika Westerberg wrote:
 > That just means that your BIOS has disabled these devices. Unless there
 > is a menu somewhere in BIOS setup to enable these, there is nothing we
 > can do in the kernel to make them appear.
-Interesting. This machine came with Windows 8, and removed. The touchpad 
-was working on Windows. Mika, I verified my BIOS configurations and 
-there isn't any configuration to enable PCI devices. Do you beleive 
-there is something about secure boot? As it worked with Windows, hwo can 
-it be detected on Linux?
+When I removed Windows, I did a mistake removing the EFI partition. I 
+didn't boot my Fedora. After that, I created a new EFI partition with 
+Anaconda. Maybe this can related to the problem?
 >
 >>>> The "status" refers directly shat _STA() ACPI method returns.
 >>> Ok, so assuming that Marcos' testing shows it is not enabled,
@@ -104,5 +102,4 @@ it be detected on Linux?
 > OK. So I think that this particular machine, either does not have Intel
 > LPSS (it is not Haswell-LP) or the devices have been deliberately
 > disabled for some reason.
-How can I verify this?
 
