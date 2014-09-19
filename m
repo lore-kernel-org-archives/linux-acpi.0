@@ -1,54 +1,58 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / video: disable native backlight for ThinkPad X201s
-Date: Fri, 19 Sep 2014 10:01:18 +0800
-Message-ID: <541B8E6E.4050703@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
+Date: Fri, 19 Sep 2014 14:53:59 +0900
+Message-ID: <541BC4F7.9020602@jp.fujitsu.com>
+References: <54095EE7.3080302@jp.fujitsu.com> <3131715.Lrb4tsKR2m@vostro.rjw.lan> <20140911071717.GB4622@linux-rxt1.site> <2311044.Mgki24rmc5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:22123 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750855AbaISCBl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Sep 2014 22:01:41 -0400
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:48059 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280AbaISFzL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Sep 2014 01:55:11 -0400
+Received: from kw-mxoi1.gw.nic.fujitsu.com (unknown [10.0.237.133])
+	by fgwmail6.fujitsu.co.jp (Postfix) with ESMTP id 5DED03EE0C3
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Sep 2014 14:55:10 +0900 (JST)
+Received: from s2.gw.fujitsu.co.jp (s2.gw.fujitsu.co.jp [10.0.50.92])
+	by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 6267CAC099D
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Sep 2014 14:55:09 +0900 (JST)
+Received: from g01jpfmpwyt03.exch.g01.fujitsu.local (g01jpfmpwyt03.exch.g01.fujitsu.local [10.128.193.57])
+	by s2.gw.fujitsu.co.jp (Postfix) with ESMTP id D76371DB803C
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Sep 2014 14:55:08 +0900 (JST)
+In-Reply-To: <2311044.Mgki24rmc5@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Yves-Alexis Perez <corsac@debian.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, joeyli <jlee@suse.com>
+Cc: rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
 
-The ThinkPad X201s has a working ACPI video backlight interface and is
-shipped before Win8; then there is BIOS update that starts to query
-_OSI("Windows 2012") and that would make our video module stop creating
-backlight interface and caused problem for the user. Add it to the DMI
-table to disable native backlight to fix this problem.
+Hi Rafael,
 
-LINK: https://bugzilla.kernel.org/show_bug.cgi?id=81691
-LINK: https://bugzilla.kernel.org/show_bug.cgi?id=51231
-Cc: 3.16+ <stable@vger.kernel.org> # 3.16+
-Reported-and-tested-by: Yves-Alexis Perez <corsac@debian.org>
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/video.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+>>>> So feel free to  add "Tested-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>"
+>>>> to the patch.
+>>>
+>>> Thanks!
+>>>
+>>
+>> I just tested your new patch, it works on my side as Yasuaki's patch.
+>>
+>> Tested-by: Lee, Chun-Yi <jlee@suse.com>
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index fcbda105616e..8e7e18567ae6 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -750,6 +750,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T520"),
- 		},
- 	},
-+	{
-+	 .callback = video_disable_native_backlight,
-+	 .ident = "ThinkPad X201s",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201s"),
-+		},
-+	},
- 
- 	/* The native backlight controls do not work on some older machines */
- 	{
--- 
-1.9.3
+Hi Rafael,
+
+When will you merge the patch into your tree?
+I would like you to do it soon.
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> Thanks!
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 
