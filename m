@@ -1,150 +1,104 @@
-From: andreas.noever@gmail.com
-Subject: [PATCH v2 2/3] ACPI: Disable smart battery manager on Apple
-Date: Sat, 20 Sep 2014 13:19:46 +0200
-Message-ID: <5ff86f5736bfc9f6f638c664d33a8e13e1556e56.1411211725.git.andreas.noever@gmail.com>
-References: <cover.1411211725.git.andreas.noever@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:63298 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755094AbaITLUS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Sep 2014 07:20:18 -0400
-In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
-In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
-References: <cover.1411211725.git.andreas.noever@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH v5 06/11] i2c: core: Convert to
+ dev_pm_domain_attach|detach()
+Date: Sat, 20 Sep 2014 14:23:19 +0200
+Message-ID: <20140920122318.GC3850@katana>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+ <1411151264-16245-7-git-send-email-ulf.hansson@linaro.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bAmEntskrkuBymla"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1411151264-16245-7-git-send-email-ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Philipp Zabel <philipp.zabel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Chris Ball <chris-OsFVWbfNK3isTnJN9+BGXg@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov@gmail>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.or, linux-pci@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, Andreas Noever <andreas.noever@gmail.com>
 
-From: Matthew Garrett <matthew.garrett@nebula.com>
 
-From: Matthew Garrett <matthew.garrett@nebula.com>
+--bAmEntskrkuBymla
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Touching the smart battery manager at all on Apple hardware appears to
-make it unhappy - unplugging the AC adapter triggers accesses that hang
-the controller for several minutes. Quirk it out via DMI in order to
-avoid this.  Compensate by changing battery presence if we fail to
-communicate with the battery.
+On Fri, Sep 19, 2014 at 08:27:39PM +0200, Ulf Hansson wrote:
+> Previously only the ACPI PM domain was supported by the i2c bus.
+>=20
+> Let's convert to the common attach/detach functions for PM domains,
+> which currently means we are extending the support to include the
+> generic PM domain as well.
+>=20
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Signed-off-by: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Reviewed-by: Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-Signed-off-by: Andreas Noever <andreas.noever@gmail.com>
----
- drivers/acpi/sbs.c | 51 +++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 43 insertions(+), 8 deletions(-)
+Looks good to me, but I'd like to give Mika a chance to look at it,
+since he does ACPI with I2C. Adding to CC.
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index b1df4ee..32aecea 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -35,6 +35,7 @@
- #include <linux/jiffies.h>
- #include <linux/delay.h>
- #include <linux/power_supply.h>
-+#include <linux/dmi.h>
- 
- #include "sbshc.h"
- #include "battery.h"
-@@ -61,6 +62,8 @@ static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
- 
-+static bool sbs_manager_broken;
-+
- #define MAX_SBS_BAT			4
- #define ACPI_SBS_BLOCK_MAX		32
- 
-@@ -494,16 +497,21 @@ static int acpi_battery_read(struct acpi_battery *battery)
- 				  ACPI_SBS_MANAGER, 0x01, (u8 *)&state, 2);
- 	} else if (battery->id == 0)
- 		battery->present = 1;
-+
- 	if (result || !battery->present)
- 		return result;
- 
- 	if (saved_present != battery->present) {
- 		battery->update_time = 0;
- 		result = acpi_battery_get_info(battery);
--		if (result)
-+		if (result) {
-+			battery->present = 0;
- 			return result;
-+		}
- 	}
- 	result = acpi_battery_get_state(battery);
-+	if (result)
-+		battery->present = 0;
- 	return result;
- }
- 
-@@ -535,6 +543,7 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int id)
- 	result = power_supply_register(&sbs->device->dev, &battery->bat);
- 	if (result)
- 		goto end;
-+
- 	result = device_create_file(battery->bat.dev, &alarm_attr);
- 	if (result)
- 		goto end;
-@@ -613,12 +622,31 @@ static void acpi_sbs_callback(void *context)
- 	}
- }
- 
-+static int disable_sbs_manager(const struct dmi_system_id *d)
-+{
-+	sbs_manager_broken = true;
-+	return 0;
-+}
-+
-+static struct dmi_system_id acpi_sbs_dmi_table[] = {
-+	{
-+		.callback = disable_sbs_manager,
-+		.ident = "Apple",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc.")
-+		},
-+	},
-+	{ },
-+};
-+
- static int acpi_sbs_add(struct acpi_device *device)
- {
- 	struct acpi_sbs *sbs;
- 	int result = 0;
- 	int id;
- 
-+	dmi_check_system(acpi_sbs_dmi_table);
-+
- 	sbs = kzalloc(sizeof(struct acpi_sbs), GFP_KERNEL);
- 	if (!sbs) {
- 		result = -ENOMEM;
-@@ -637,14 +665,21 @@ static int acpi_sbs_add(struct acpi_device *device)
- 	if (result && result != -ENODEV)
- 		goto end;
- 
--	result = acpi_manager_get_info(sbs);
--	if (!result) {
--		sbs->manager_present = 1;
--		for (id = 0; id < MAX_SBS_BAT; ++id)
--			if ((sbs->batteries_supported & (1 << id)))
--				acpi_battery_add(sbs, id);
--	} else
-+	result = 0;
-+
-+	if (!sbs_manager_broken) {
-+		result = acpi_manager_get_info(sbs);
-+		if (!result) {
-+			sbs->manager_present = 0;
-+			for (id = 0; id < MAX_SBS_BAT; ++id)
-+				if ((sbs->batteries_supported & (1 << id)))
-+					acpi_battery_add(sbs, id);
-+		}
-+	}
-+
-+	if (!sbs->manager_present)
- 		acpi_battery_add(sbs, 0);
-+
- 	acpi_smbus_register_callback(sbs->hc, acpi_sbs_callback, sbs);
-       end:
- 	if (result)
--- 
-2.1.0
+> ---
+>  drivers/i2c/i2c-core.c | 13 ++++++++-----
+>  1 file changed, 8 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index 632057a..3cd8f11 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -279,10 +279,13 @@ static int i2c_device_probe(struct device *dev)
+>  	if (status < 0)
+>  		return status;
+> =20
+> -	acpi_dev_pm_attach(&client->dev, true);
+> -	status =3D driver->probe(client, i2c_match_id(driver->id_table, client)=
+);
+> -	if (status)
+> -		acpi_dev_pm_detach(&client->dev, true);
+> +	status =3D dev_pm_domain_attach(&client->dev, true);
+> +	if (status !=3D -EPROBE_DEFER) {
+> +		status =3D driver->probe(client, i2c_match_id(driver->id_table,
+> +					client));
 
+Very minor: I think it is more readable to keep this in one line.
+
+> +		if (status)
+> +			dev_pm_domain_detach(&client->dev, true);
+> +	}
+> =20
+>  	return status;
+>  }
+> @@ -302,7 +305,7 @@ static int i2c_device_remove(struct device *dev)
+>  		status =3D driver->remove(client);
+>  	}
+> =20
+> -	acpi_dev_pm_detach(&client->dev, true);
+> +	dev_pm_domain_detach(&client->dev, true);
+>  	return status;
+>  }
+> =20
+> --=20
+> 1.9.1
+>=20
+
+--bAmEntskrkuBymla
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUHXG2AAoJEBQN5MwUoCm2E7EP/1ykOCTRgrozlYwdbXxO9X8Z
+b6ad23VambrSiQJTZcYheydiVW9qrXIsn8TQf1flWChXtkD06odQRy8tGN8Vw3MQ
+MTdhyB19x1Z0TMkdmcrbhohsRchjsaeMgcpCNklW8ul8nASuDjY9KUdhVfUaY07q
+O1zyZxrA5ykPCq/xP2gakHTTOrB6pj0zwOlDe4yQOd1hJcWrhX0/EBxY4DgvvQIr
+o05w2rdr+s6qCCgV3WSY9EJ0JBOqNhvvGpGnpZe6tms8e1RmrEnSil3piBC1nhHP
+LPeZr/ZHdoRbEgUPNnr/otLhufVeE5uMLu7FFhmZi3DTVXXVb+kMjE17C6XYc3mM
+DIumY2ubMBInCIZDjFZa0BvwuodKqkWrG5cmgimDw8VywhDfmCXm7Q1immbKZ0rw
+p9R4YHkBl5ii0KCyTSrf5M4+ksV80iplb4jmIwfmU0kKnOIan1fgkmyHXR/WN67M
+d6sZUpMsuCUNTRj7Axe6LdKuuQe/EbO9GC66umjxtckJIesM/BSHHgGAGqnxQolQ
+q/NnP2JBTVz6sSjoBRb+EMw5cri2Yb2M1Ak24nw+uoveiqBGGMuFFQGoHyV9UXVP
+zA0MaUKKESiwO1RIaqhYe5lRwIwFSUktD5s/yYQqKbSF0zGAeRn79O+U2ei7xI9a
+gv2ABkxPmYxBPoSf9y1B
+=izqF
+-----END PGP SIGNATURE-----
+
+--bAmEntskrkuBymla--
