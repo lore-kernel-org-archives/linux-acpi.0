@@ -1,99 +1,124 @@
 From: andreas.noever@gmail.com
-Subject: [PATCH v2 1/3] ACPI: Don't assume the existence of an SBS charger
-Date: Sat, 20 Sep 2014 13:19:45 +0200
-Message-ID: <291e876fa0a2c963b948e22a7bce963e63e6150a.1411211725.git.andreas.noever@gmail.com>
+Subject: [PATCH v2 3/3] ACPI: Support _OSI("Darwin") correctly
+Date: Sat, 20 Sep 2014 13:19:47 +0200
+Message-ID: <bf5856a35c5ba95c4da960f797514ef4cfaf71b2.1411211725.git.andreas.noever@gmail.com>
 References: <cover.1411211725.git.andreas.noever@gmail.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f46.google.com ([209.85.192.46]:65501 "EHLO
+	mail-qg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755170AbaITLUU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Sep 2014 07:20:20 -0400
 In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
 In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
 References: <cover.1411211725.git.andreas.noever@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net
 Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.or, linux-pci@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com, Andreas Noever <andreas.noever@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Matthew Garrett <matthew.garrett@nebula.com>
 
 From: Matthew Garrett <matthew.garrett@nebula.com>
 
-Apple hardware continues to expose an ACPI AC charger even when using
-SBS to report battery state. The charger status byte returns all 0s in
-this case.  Since the spec requires that bit 4 be 1 at all times, assume
-that there's not really a charger if it's set to zero.
+Apple hardware queries _OSI("Darwin") in order to determine whether the
+system is running OS X, and changes firmware behaviour based on the
+answer.  The most obvious difference in behaviour is that Thunderbolt
+hardware is forcibly powered down unless the system is running OS X. The
+obvious solution would be to simply add Darwin to the list of supported
+_OSI strings, but this causes problems.
+
+Recent Apple hardware includes two separate methods for checking _OSI
+strings. The first will check whether Darwin is supported, and if so
+will exit. The second will check whether Darwin is supported, but will
+then continue to check for further operating systems. If a further
+operating system is found then later firmware code will assume that the
+OS is not OS X.  This results in the unfortunate situation where the
+Thunderbolt controller is available at boot time but remains powered
+down after suspend.
+
+The easiest way to handle this is to special-case it in the
+Linux-specific OSI handling code. If we see Darwin, we should answer
+true and then disable all other _OSI vendor strings.
+
+The next problem is that the Apple PCI _OSC method has the following
+code:
+
+if (LEqual (0x01, OSDW ()))
+  if (LAnd (LEqual (Arg0, GUID), NEXP)
+    (do stuff)
+  else
+    (fail)
+NEXP is a value in high memory and is presumably under the control of
+the firmware. No methods sets it. The methods that are called in the "do
+stuff" path are dummies. Unless there's some additional firmware call in
+early boot, there's no way for this call to succeed - and even if it
+does, it doesn't do anything.
+
+The easiest way to handle this is simply to ignore it. We know which
+flags would be set, so just set them by hand if the platform is running
+in Darwin mode.
 
 Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+[andreas.noever@gmail.com: merged two patches, do not touch ACPICA]
 Signed-off-by: Andreas Noever <andreas.noever@gmail.com>
 ---
- drivers/acpi/sbs.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ drivers/acpi/osl.c      | 10 ++++++++++
+ drivers/acpi/pci_root.c | 14 ++++++++++++++
+ 2 files changed, 24 insertions(+)
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 366ca40..b1df4ee 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -109,6 +109,7 @@ struct acpi_sbs {
- 	u8 batteries_supported:4;
- 	u8 manager_present:1;
- 	u8 charger_present:1;
-+	u8 charger_exists:1;
- };
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 3abe9b2..938b6ac 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -152,6 +152,16 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 			osi_linux.dmi ? " via DMI" : "");
+ 	}
  
- #define to_acpi_sbs(x) container_of(x, struct acpi_sbs, charger)
-@@ -429,9 +430,19 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
- 
- 	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER,
- 				 0x13, (u8 *) & status);
--	if (!result)
--		sbs->charger_present = (status >> 15) & 0x1;
--	return result;
++	if (!strcmp("Darwin", interface)) {
++		/*
++		 * Apple firmware will behave poorly if it receives positive
++		 * answers to "Darwin" and any other OS. Respond positively
++		 * to Darwin and then disable all other vendor strings.
++		 */
++		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
++		supported = ACPI_UINT32_MAX;
++	}
 +
-+	if (result)
-+		return result;
-+
-+	/*
-+	 * The spec requires that bit 4 always be 1. If it's not set, assume
-+	 * that the implementation doesn't support an SBS charger
-+	 */
-+	if (!(status >> 4) & 0x1)
-+		return -ENODEV;
-+
-+	sbs->charger_present = (status >> 15) & 0x1;
-+	return 0;
+ 	return supported;
  }
  
- static ssize_t acpi_battery_alarm_show(struct device *dev,
-@@ -554,6 +565,7 @@ static int acpi_charger_add(struct acpi_sbs *sbs)
- 	if (result)
- 		goto end;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index e6ae603..cd4de7e 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -35,6 +35,7 @@
+ #include <linux/pci-aspm.h>
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
++#include <linux/dmi.h>
+ #include <acpi/apei.h>	/* for acpi_hest_init() */
  
-+	sbs->charger_exists = 1;
- 	sbs->charger.name = "sbs-charger";
- 	sbs->charger.type = POWER_SUPPLY_TYPE_MAINS;
- 	sbs->charger.properties = sbs_ac_props;
-@@ -580,9 +592,12 @@ static void acpi_sbs_callback(void *context)
- 	struct acpi_battery *bat;
- 	u8 saved_charger_state = sbs->charger_present;
- 	u8 saved_battery_state;
--	acpi_ac_get_present(sbs);
--	if (sbs->charger_present != saved_charger_state)
--		kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
+ #include "internal.h"
+@@ -430,6 +431,19 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
+ 	acpi_handle handle = device->handle;
+ 
+ 	/*
++	 * Apple always return failure on _OSC calls when _OSI("Darwin") has
++	 * been called successfully. We know the feature set supported by the
++	 * platform, so avoid calling _OSC at all
++	 */
 +
-+	if (sbs->charger_exists) {
-+		acpi_ac_get_present(sbs);
-+		if (sbs->charger_present != saved_charger_state)
-+			kobject_uevent(&sbs->charger.dev->kobj, KOBJ_CHANGE);
++	if (dmi_match(DMI_SYS_VENDOR, "Apple Inc.")) {
++		root->osc_control_set = ~OSC_PCI_EXPRESS_PME_CONTROL;
++		decode_osc_control(root, "OS assumes control of",
++				   root->osc_control_set);
++		return;
 +	}
- 
- 	if (sbs->manager_present) {
- 		for (id = 0; id < MAX_SBS_BAT; ++id) {
-@@ -619,7 +634,7 @@ static int acpi_sbs_add(struct acpi_device *device)
- 	device->driver_data = sbs;
- 
- 	result = acpi_charger_add(sbs);
--	if (result)
-+	if (result && result != -ENODEV)
- 		goto end;
- 
- 	result = acpi_manager_get_info(sbs);
++
++	/*
+ 	 * All supported architectures that use ACPI have support for
+ 	 * PCI domains, so we indicate this in _OSC support capabilities.
+ 	 */
 -- 
 2.1.0
+
