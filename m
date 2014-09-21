@@ -1,45 +1,106 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/3] ACPI: Improve behaviour on Apple hardware
-Date: Sun, 21 Sep 2014 02:22:42 +0200
-Message-ID: <2602701.nnkzbmBANY@vostro.rjw.lan>
-References: <cover.1411211725.git.andreas.noever@gmail.com>
+Subject: Re: [RFC PATCH v2 00/16] Add ACPI _DSD and unified device properties support
+Date: Sun, 21 Sep 2014 02:26:05 +0200
+Message-ID: <1582936.0FiE8Cvqie@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60177 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51382 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751393AbaIUAC6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Sep 2014 20:02:58 -0400
-In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
+	with SMTP id S1751360AbaIUAGV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Sep 2014 20:06:21 -0400
+In-Reply-To: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andreas.noever@gmail.com, matthew.garrett@nebula.com
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.or, linux-pci@vger.kernel.org, bhelgaas@google.com, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Saturday, September 20, 2014 01:19:44 PM andreas.noever@gmail.com wrote:
-> From: Andreas Noever <andreas.noever@gmail.com>
+On Tuesday, September 16, 2014 02:52:31 PM Mika Westerberg wrote:
+> This is a second revision of the patches first submitted here [1].
 > 
-> This is a resend of Matthew's patches from https://lkml.org/lkml/2014/6/1/165
-> which are needed to fully support Thunderbolt on Apple hardware:
-> > Apple hardware behaves differently depending on whether or not the OS claims
-> > to be Darwin. Failing to report Darwin results in some hardware being
-> > disabled.  However, claiming to be Darwin also alters the behaviour of
-> > battery reporting and PCI handling. These patches add support for reporting
-> > Darwin support and fixing up the behavioural quirks that are exposed as a
-> > result.
-> Without these patches the firmware will cut power to the controller after
-> suspend (at the latest) and the thunderbolt driver will fail.
+> The recent publication of the ACPI 5.1 specification [2] adds a reserved name
+> for Device Specific Data (_DSD, Section 6.2.5). This mechanism allows for
+> passing arbitrary hardware description data to the OS. The exact format of the
+> _DSD data is specific to the UUID paired with it [3].   
 > 
-> I have reordered them such that the two battery fixes/quirks come before the
-> _OSI change that breaks battery reporting. I have also merged "ACPI: Don't call
-> PCI OSC on Apple hardware when claiming to be Darwin" into "ACPI: Support
-> _OSI("Darwin") correctly" to avoid (temporarily) breaking hotplug events and
-> modified the patch to not touch ACPICA, as requested by Rafael.
+> An ACPI Device Properties UUID has been defined [4] to provide a format
+> compatible with existing device tree schemas. The purpose for this was to
+> allow for the reuse of the existing schemas and encourage the development
+> of firmware agnostic device drivers.
+> 
+> This series accomplishes the following (as well as some other dependencies):
+> 
+>  * Add _DSD support to the ACPI core
+>    This simply reads the UUID and the accompanying Package
+> 
+>  * Add ACPI Device Properties _DSD format support
+>    This understands the hierarchical key:value pair structure
+>    defined by the Device Properties UUID
+> 
+>  * Add a unified device properties API with ACPI and OF backends
+>    This provides for the firmware agnostic device properties
+>    Interface to be used by drivers
+> 
+>  * Provides 3 example drivers that were previously Device Tree aware that
+>    can now be used with either Device Tree or ACPI Device Properties. The
+>    drivers use "PRP0001" as their _HID which means that the match should be
+>    done using driver's .of_match_table instead.
+> 
+> The patch series has been tested on Minnoboard and Minnowboard MAX and the
+> relevant part of DSDTs are at the end of this cover letter.
+> 
+> This series does not provide for a means to append to a system DSDT. That
+> will ultimately be required to make the most effective use of the _DSD
+> mechanism. Work is underway on that as a separate effort.
+> 
+> Most important changes to the previous RFC version:
+> 
+>   * Added wrapper functions for most used property types
+>   * Return -EOVERFLOW in case integer would not fit to a type
+>   * Dropped dev_prop_ops
+>   * We now have dev_node_xxx() functions to access firmware node
+>     properties without dev pointer
+>   * The accessor function names try to be close to their corresponding of_*
+>     counterpart
+>   * Tried to have a bit better examples in the documentation patch
+>   * gpiolib got support for _DSD and also it now understand firmware node
+>     properties with dev_node_get_named_gpiod() that requests the GPIO
+>     properly.
+>   * Support for "PRP0001" _HID/_CID. This means that the match should be
+>     done using driver .of_match_table instead.
+>   * Add unified property support for at25 SPI eeprom driver as well.
+> 
+> [1] https://lkml.org/lkml/2014/8/17/10
+> [2] http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+> [3] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+> [4] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+> 
+> Aaron Lu (2):
+>   input: gpio_keys_polled - Add support for GPIO descriptors
+>   input: gpio_keys_polled - Make use of device property API
+> 
+> Max Eliaser (2):
+>   leds: leds-gpio: Make use of device property API
+>   leds: leds-gpio: Add ACPI probing support
+> 
+> Mika Westerberg (11):
+>   ACPI: Add support for device specific properties
+>   ACPI: Allow drivers to match using Device Tree compatible property
+>   ACPI: Document ACPI device specific properties
+>   mfd: Add ACPI support
+>   gpio / ACPI: Add support for _DSD device properties
+>   gpio: Add support for unified device properties interface
+>   gpio: sch: Consolidate core and resume banks
+>   leds: leds-gpio: Add support for GPIO descriptors
+>   input: gpio_keys_polled - Add ACPI probing support
+>   misc: at25: Make use of device property API
+>   misc: at25: Add ACPI probing support
 
-This looks good to me, but I'd like Matthew to say a word here.
-
-Mattew, is this fine by you?
+Given the ACKs that we've got already (the Greg's one in particular) and
+the apparent lack of objections (or indeed any comments at all), I'm about
+to queue this up for 3.18 next week.
 
 Rafael
 
