@@ -1,37 +1,41 @@
-From: koffi joma <koffijoma1@gmail.com>
-Subject: Please if you are honestly interested
-Date: Sun, 21 Sep 2014 21:35:39 +0200
-Message-ID: <CAPm1HeZ2ZrQBu0jYBZc1ixTckuBQ7q=NiCB5a3QnWzZGVagH2g__38418.226541444$1411329774$gmane$org@mail.gmail.com>
+From: "Benjamin Siaka" <siajaka@gmail.com>
+Subject: HOW ARE YOU?
+Date: Mon, 22 Sep 2014 01:13:59 +0000
+Message-ID: <20140922011410.09FEA3AE81DE@studentsvm0.itb.ac.id>
+Reply-To: bensiaka@she.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f194.google.com ([74.125.82.194]:53017 "EHLO
-	mail-we0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbaIUUCp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Sep 2014 16:02:45 -0400
-Received: by mail-we0-f194.google.com with SMTP id u56so717760wes.1
-        for <linux-acpi@vger.kernel.org>; Sun, 21 Sep 2014 13:02:44 -0700 (PDT)
+Received: from mx2.itb.ac.id ([167.205.23.7]:29491 "EHLO mx2.itb.ac.id"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752747AbaIVBWu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Sep 2014 21:22:50 -0400
+Received: from av1.itb.ac.id (av1.itb.ac.id [167.205.1.71])
+	by mx2.itb.ac.id (Postfix) with ESMTP id 3j1SNP0MK2z4fcmG
+	for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2014 08:14:13 +0700 (WIT)
+Received: from mx2.itb.ac.id ([167.205.1.67])
+	by av1.itb.ac.id (av1.itb.ac.id [167.205.1.73]) (amavisd-new, port 10002)
+	with ESMTP id 2QfMkPNDk7pN for <linux-acpi@vger.kernel.org>;
+	Mon, 22 Sep 2014 08:17:07 +0700 (WIT)
+Received: from studentsvm0.itb.ac.id (unknown [167.205.50.87])
+	by mx2.itb.ac.id (Postfix) with ESMTP id 3j1SNN0ggSz4fclw
+	for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2014 08:14:12 +0700 (WIT)
+Received: from [10.200.21.4] (unknown [79.142.73.220])
+	by studentsvm0.itb.ac.id (Postfix) with ESMTPSA id 09FEA3AE81DE
+	for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2014 08:14:09 +0700 (WIB)
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This message might meet you in utmost surprise; however, it=E2=80=99s j=
-ust my
-urgent need for foreign partner that made me to contact you for this
-transaction. I am MR  KOFFI  JOMA , MANAGER AUDIT AND ACCOUNTANCY
-DEPARTMENT Bank of Africa(B.O.A),
+Hello my Dear,
 
-I need your urgent assistance in transferring the sum of ($7.3MILLION)
-Dollars immediately to your account. I will send you full
-information=E2=80=99s on how the business will be executed and also not=
-e that
-you will receive 40% of the above mentioned amount while 60% is for me
+I will greatly appreciate my correspondence meets you in good health condition.
 
-Reply me back for more clarification to  koffijoma01@outlook.com
+My name is Mr. Benjamin Siaka. I am seeking for your co-operation for investment partnership in your Country. I shall provide the FUND for the investment. When you acknowledged the receipt of this correspondence, thereafter I will give you the Full Details of my investment proposal.
 
-MR KOFFI  JOMA
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I await your response in earliest.
+
+My regards,
+Mr. Benjamin Siaka.
