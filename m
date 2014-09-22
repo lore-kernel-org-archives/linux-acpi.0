@@ -1,44 +1,40 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH v4 18/18] Documentation: ACPI for ARM64
-Date: Mon, 22 Sep 2014 21:48:41 +0200
-Message-ID: <20140922194841.GA9868@amd>
+Date: Mon, 22 Sep 2014 21:31:36 +0100
+Message-ID: <20140922203136.GA32156@srcf.ucam.org>
 References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
  <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org>
+ <20140922194841.GA9868@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34068 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751563AbaIVTss (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2014 15:48:48 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:41360 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887AbaIVUb4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2014 16:31:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <20140922194841.GA9868@amd>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.orgli
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Jon Masters <jcm@redhat.com>, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael J.
 
-On Fri 2014-09-12 22:00:16, Hanjun Guo wrote:
-> From: Graeme Gregory <graeme.gregory@linaro.org>
+On Mon, Sep 22, 2014 at 09:48:41PM +0200, Pavel Machek wrote:
+> On Fri 2014-09-12 22:00:16, Hanjun Guo wrote:
+> > +No code shall be accepted into the kernel unless it complies with the released
+> > +standards from UEFI ASWG. If there are features missing from ACPI to make it
+> > +function on a platform, ECRs should be submitted to ASWG and go through the
+> > +approval process.
 > 
-> Add documentation for the guidelines of how to use ACPI
-> on ARM64.
+> Surely this should be narrowed down somehow? Or is reading all the
+> released standards from ASWG mandatory before patching the kernel now?
+> 
+> Spelling out wtf ECR is would be nice, too.
 
-> +No code shall be accepted into the kernel unless it complies with the released
-> +standards from UEFI ASWG. If there are features missing from ACPI to make it
-> +function on a platform, ECRs should be submitted to ASWG and go through the
-> +approval process.
+Explicit Change Request. These can only be filed by paid-up members of 
+the UEFI Forum, so I suspect this requirement is going to be unworkable 
+(there's plenty of ACPI support code for large x86 vendors which isn't 
+part of any ACPI spec)
 
-Surely this should be narrowed down somehow? Or is reading all the
-released standards from ASWG mandatory before patching the kernel now?
-
-Spelling out wtf ECR is would be nice, too.
-
-And if you expect all kernel contributors to comply with your
-favourite standards, you should put an URL where the standards can be
-downloaded here.
-
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
