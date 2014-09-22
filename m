@@ -1,44 +1,62 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v5 01/11] PM / Domains: Add a detach callback to the
- struct dev_pm_domain
-Date: Mon, 22 Sep 2014 13:15:21 +0200
-Message-ID: <CAMuHMdX7twqW5A1LS-RqoZHRmqZdLVCaACr45GrtyA843iVA_Q@mail.gmail.com>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
-	<1411151264-16245-2-git-send-email-ulf.hansson@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / video: disable native backlight for ThinkPad X201s
+Date: Mon, 22 Sep 2014 16:02:43 +0200
+Message-ID: <1907787.WmIEonuPRb@vostro.rjw.lan>
+References: <541B8E6E.4050703@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1411151264-16245-2-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53594 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753486AbaIVNm5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2014 09:42:57 -0400
+In-Reply-To: <541B8E6E.4050703@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Yves-Alexis Perez <corsac@debian.org>, Hans de Goede <hdegoede@redhat.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Fri, Sep 19, 2014 at 8:27 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> --- a/include/linux/pm.h
-> +++ b/include/linux/pm.h
-> @@ -619,6 +619,7 @@ extern int dev_pm_put_subsys_data(struct device *dev);
->   */
->  struct dev_pm_domain {
->         struct dev_pm_ops       ops;
-> +       void (*detach)(struct device *, bool);
+On Friday, September 19, 2014 10:01:18 AM Aaron Lu wrote:
+> The ThinkPad X201s has a working ACPI video backlight interface and is
+> shipped before Win8; then there is BIOS update that starts to query
+> _OSI("Windows 2012") and that would make our video module stop creating
+> backlight interface and caused problem for the user. Add it to the DMI
+> table to disable native backlight to fix this problem.
+> 
+> LINK: https://bugzilla.kernel.org/show_bug.cgi?id=81691
+> LINK: https://bugzilla.kernel.org/show_bug.cgi?id=51231
+> Cc: 3.16+ <stable@vger.kernel.org> # 3.16+
+> Reported-and-tested-by: Yves-Alexis Perez <corsac@debian.org>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-I think it would help to add the parameter names, especially for
-the "bool" parameter:
+Queued up for 3.17-rc7, thanks!
 
-void (*detach)(struct device *dev, bool power_off);
+> ---
+>  drivers/acpi/video.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index fcbda105616e..8e7e18567ae6 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -750,6 +750,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad T520"),
+>  		},
+>  	},
+> +	{
+> +	 .callback = video_disable_native_backlight,
+> +	 .ident = "ThinkPad X201s",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201s"),
+> +		},
+> +	},
+>  
+>  	/* The native backlight controls do not work on some older machines */
+>  	{
+> 
 
->  };
->
->  /*
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
