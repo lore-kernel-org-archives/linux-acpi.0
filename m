@@ -1,49 +1,44 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
-Date: Mon, 22 Sep 2014 21:04:28 +0200
-Message-ID: <CAPDyKFqT1A=N6=CFHVMq-u+zkYK9zp_Ztmm8OWpftmHY2w68DA@mail.gmail.com>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
-	<20140919184849.GA14832@core.coreip.homeip.net>
-	<2161168.GXttgFlE1X@vostro.rjw.lan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v4 18/18] Documentation: ACPI for ARM64
+Date: Mon, 22 Sep 2014 21:48:41 +0200
+Message-ID: <20140922194841.GA9868@amd>
+References: <1410530416-30200-1-git-send-email-hanjun.guo@linaro.org>
+ <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f52.google.com ([209.85.216.52]:42779 "EHLO
-	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754279AbaIVTE3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2014 15:04:29 -0400
-Received: by mail-qa0-f52.google.com with SMTP id dc16so573972qab.25
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Sep 2014 12:04:28 -0700 (PDT)
-In-Reply-To: <2161168.GXttgFlE1X@vostro.rjw.lan>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34068 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563AbaIVTss (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Sep 2014 15:48:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1410530416-30200-19-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, linux-acpi@vger.kernel.orgli
 
-On 22 September 2014 16:19, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, September 19, 2014 11:48:49 AM Dmitry Torokhov wrote:
->> Hi Ulf,
->>
->> On Fri, Sep 19, 2014 at 08:27:33PM +0200, Ulf Hansson wrote:
->> > Changes in v5:
->> >     - Converted dev_pm_domain_detach() to a void function
->> >     - Added a ->detach() callback to the PM domain struct, invoked from the
->> >       dev_pm_domain_detach().
->> >     - Make ACPI and genpd both assign the ->detach() callback at successfull
->> >       attachment.
->> >     - The above changes made it possible to make acpi_pm_domain_detach() to
->> >       be static, added a separate patch for that.
->>
->> Thank you for making these changes. For the series:
->>
->> Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
->
-> I've queued up this patchset for 3.18 (I fixed up the two minor issues pointed
-> to by Geert in the process).
+On Fri 2014-09-12 22:00:16, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+> 
+> Add documentation for the guidelines of how to use ACPI
+> on ARM64.
 
-Thanks Rafael!
+> +No code shall be accepted into the kernel unless it complies with the released
+> +standards from UEFI ASWG. If there are features missing from ACPI to make it
+> +function on a platform, ECRs should be submitted to ASWG and go through the
+> +approval process.
 
-Feel free to apply Wolfram's comment on patch 6 as well.
+Surely this should be narrowed down somehow? Or is reading all the
+released standards from ASWG mandatory before patching the kernel now?
 
-Kind regards
-Uffe
+Spelling out wtf ECR is would be nice, too.
+
+And if you expect all kernel contributors to comply with your
+favourite standards, you should put an URL where the standards can be
+downloaded here.
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
