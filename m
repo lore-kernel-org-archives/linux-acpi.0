@@ -1,73 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] gpio / ACPI: Use pin index and bit length
-Date: Tue, 23 Sep 2014 17:52:58 +0200
-Message-ID: <1443862.Jnxdc6ttcC@vostro.rjw.lan>
-References: <715ed7865378d29b78003c710d50dba77b2cb9bb.1411439631.git.lv.zheng@intel.com> <6093416.FMcGNUEiEQ@vostro.rjw.lan> <20140923152917.GS1786@lahna.fi.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
+Date: Tue, 23 Sep 2014 17:45:57 +0200
+Message-ID: <12538216.vu4CbU01qP@wuerfel>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <1410868367-11056-8-git-send-email-mika.westerberg@linux.intel.com> <CACRpkdaZJt_6cd1vtDw-Ys+YqUhNb0aXazUxGCX8mk4=6EmdHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61803 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751783AbaIWPdP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 11:33:15 -0400
-In-Reply-To: <20140923152917.GS1786@lahna.fi.intel.com>
+Received: from mout.kundenserver.de ([212.227.126.187]:58839 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756223AbaIWPqN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 11:46:13 -0400
+In-Reply-To: <CACRpkdaZJt_6cd1vtDw-Ys+YqUhNb0aXazUxGCX8mk4=6EmdHw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Tuesday, September 23, 2014 06:29:17 PM Mika Westerberg wrote:
-> On Tue, Sep 23, 2014 at 05:32:02PM +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, September 23, 2014 01:27:28 PM Mika Westerberg wrote:
-> > > On Tue, Sep 23, 2014 at 10:35:54AM +0800, Lv Zheng wrote:
-> > > > From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > > > 
-> > > > Fix code when the operation region callback is for an gpio, which
-> > > > is not at index 0 and for partial pins in a GPIO definition.
-> > > > For example:
-> > > > Name (GMOD, ResourceTemplate ()
-> > > > {
-> > > > 	//3 Outputs that define the Power mode of the device
-> > > > 	GpioIo (Exclusive, PullDown, , , , "\\_SB.GPI2") {10, 11, 12}
-> > > > 	})
-> > > > }
-> > > > 
-> > > > If opregion callback calls is for:
-> > > > - Set pin 10, then address = 0 and bit length = 1
-> > > > - Set pin 11, then address = 1 and bit length = 1
-> > > > - Set for both pin 11 and pin 12, then address = 1, bit length = 2
-> > > > 
-> > > > This change requires updated ACPICA gpio operation handler code to
-> > > > send the pin index and bit length.
-> > > > 
-> > > > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > > > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > 
-> > > Adding the GPIO maintainers since we need their ACK to get this merged
-> > > through ACPI tree.
-> > 
-> > Actually, it would be good to say that the ACPICA change mentioned in the
-> > changelog above is made by patch [1/2] in this series.
-> > 
-> > Linus, Alexandre, please let us know if you need the whole series to be
-> > resent for context. This is quite urgent, as we need that fixed in 3.18,
-> > because there are systems out there where it doesn't work already.
-> > 
-> > Mika, Srinivas, I suppose that we need this in -stable?  Which one if so?
+On Tuesday 23 September 2014 17:25:50 Linus Walleij wrote:
+> On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
 > 
-> The GPIO operation region support was introduced with commit
-> 473ed7be0da04 (gpio / ACPI: Add support for ACPI GPIO operation
-> regions):
+> > Some drivers need to deal with only firmware representation of its
+> > GPIOs. An example would be a GPIO button array driver where each button
+> > is described as a separate firmware node in device tree. Typically these
+> > child nodes do not have physical representation in the Linux device
+> > model.
+> >
+> > In order to help device drivers to handle such firmware child nodes we
+> > add dev[m]_node_get_named_gpiod() that takes a firmware node pointer as
+> > parameter, finds the GPIO using whatever is the underlying firmware
+> > method, and requests the GPIO properly.
+> >
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
->  % git describe 473ed7be0da041275d57ab0bde1c21a6f23e637f
->  v3.14-rc6-61-g473ed7be0da0
+> I have a hard time figuring out if this is what we want for common
+> accessors between DT and ACPI.
 > 
-> So if I understand the above correctly it is needed starting from v3.14.
-> Please correct me if I'm wrong.
+> Can I get some input from Grant, Arnd, Mark, Darren...?
 
-Sounds correct.
+I just took a brief look at this. My first impression is that the
+fw_dev_node structure is weird when all callers just do (in patch 2)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
++	struct fw_dev_node fdn = {
++		.of_node = dev->of_node,
++		.acpi_node = ACPI_COMPANION(dev),
++	};
+
+I'd much rather see an interface that passes the 'struct device'
+pointer down to dev_get_named_gpiod() and all other exported
+functions, and then internally does the conversion at the point
+where the access is done.
+
+	Arnd
