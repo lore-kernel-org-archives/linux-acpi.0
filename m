@@ -1,60 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 2/4] ACPI / platform: provide default DMA mask
-Date: Tue, 23 Sep 2014 16:52:01 +0200
-Message-ID: <1487657.QLes1WRKBI@vostro.rjw.lan>
-References: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com> <1408535728-10518-3-git-send-email-heikki.krogerus@linux.intel.com> <20140923121712.GD18814@xps8300>
+Date: Tue, 23 Sep 2014 09:52:21 -0500
+Message-ID: <20140923145221.GC28592@saruman>
+References: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1408535728-10518-3-git-send-email-heikki.krogerus@linux.intel.com>
+ <20140923121712.GD18814@xps8300>
+ <1487657.QLes1WRKBI@vostro.rjw.lan>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62019 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751755AbaIWOcQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 10:32:16 -0400
-In-Reply-To: <20140923121712.GD18814@xps8300>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WfZ7S8PLGjBY9Voh"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1487657.QLes1WRKBI@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Felipe Balbi <balbi@ti.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Felipe Balbi <balbi@ti.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, September 23, 2014 03:17:12 PM Heikki Krogerus wrote:
-> On Wed, Aug 20, 2014 at 02:55:26PM +0300, Heikki Krogerus wrote:
-> > Most devices are configured for 32-bit DMA addresses.
-> > Setting the mask to 32-bit here removes the need for the
-> > drivers to do it separately.
-> 
-> Rafael, is this OK?
+--WfZ7S8PLGjBY9Voh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fine by me, but it should go in via dwc3 I think.
+On Tue, Sep 23, 2014 at 04:52:01PM +0200, Rafael J. Wysocki wrote:
+> On Tuesday, September 23, 2014 03:17:12 PM Heikki Krogerus wrote:
+> > On Wed, Aug 20, 2014 at 02:55:26PM +0300, Heikki Krogerus wrote:
+> > > Most devices are configured for 32-bit DMA addresses.
+> > > Setting the mask to 32-bit here removes the need for the
+> > > drivers to do it separately.
+> >=20
+> > Rafael, is this OK?
+>=20
+> Fine by me, but it should go in via dwc3 I think.
 
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > ---
-> >  drivers/acpi/acpi_platform.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> > index 2bf9082..8d099e6 100644
-> > --- a/drivers/acpi/acpi_platform.c
-> > +++ b/drivers/acpi/acpi_platform.c
-> > @@ -16,6 +16,7 @@
-> >  #include <linux/err.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/module.h>
-> > +#include <linux/dma-mapping.h>
-> >  #include <linux/platform_device.h>
-> >  
-> >  #include "internal.h"
-> > @@ -102,6 +103,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
-> >  	pdevinfo.res = resources;
-> >  	pdevinfo.num_res = count;
-> >  	pdevinfo.acpi_node.companion = adev;
-> > +	pdevinfo.dma_mask = DMA_BIT_MASK(32);
-> >  	pdev = platform_device_register_full(&pdevinfo);
-> >  	if (IS_ERR(pdev))
-> >  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
-> 
-> 
+huh ? Seems like there's no direct dependency.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--=20
+balbi
+
+--WfZ7S8PLGjBY9Voh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUIYklAAoJEIaOsuA1yqREUrwP/ja40yNX+TPE6j4qKTTd+vQA
+NLG2ieiriRWKpk0Qw0mtrUnAqaGxAXFatan2inF1N66NGuPboAqLxLqqQ8cNY7zH
+ZreS7ut28m2hHllYS08XPivV6NOpBNDftn0t4CLH3RVE7HjZEGchYxvN0gxwPiyW
+PLEOuMM2vWxLlYBUGUhlOwXu9ICau9NAOHEXRt44VbnPa6b8ShCTO8JouVHYUYbD
+R6VQnSJ47CRW8puIwcVE7gU7VuTaWN3YLGhaIKI/H/9rk2fASVCY8hpsILKQwGoJ
+ZSiMjuWb+vlge1T2hq74twVP/y1GRBMa+veUW98fpHyVFC1rCpYQBq6zqaRgvkH0
+R1rTB1tDvQRHtg2+VQaQJTuKIVFgPkpAtP1uD+nBmGh0wMzJIodh8NAXTwmTlPep
+kclHvWu2i1ZE2ujpjqwE5i9OtD/td0ZrGMHmdiRMnmBipq0QfYHYWFjx3QKaM8HC
+veFAU8lJF0UgVki7w4bQJ+EeqnTh+jdhjZhxME1vIOis8Da5hvDOT6nOYF/YiSqF
+8d0uu+hA/WEPo5rgfIgD0cLTgLfHU/YzqQovuQGql+UODLUSKMR682Xrnun1H7QM
+VEGeL6T4iQ6ZoUVzsZQMt5agmHCiCVlz9IYNuGGEehvsSNer3exJWkyWwYZPqP2W
+kX6fkfboke72UIquMVCb
+=ng59
+-----END PGP SIGNATURE-----
+
+--WfZ7S8PLGjBY9Voh--
