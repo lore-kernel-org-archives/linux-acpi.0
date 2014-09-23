@@ -1,85 +1,75 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC PATCH v2 06/16] gpio / ACPI: Add support for _DSD device properties
-Date: Tue, 23 Sep 2014 17:27:19 +0200
-Message-ID: <CACRpkdaMboJa4e7PyxDQCFX_+a0Odr57i-00qs0bJePkBqfaYQ@mail.gmail.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1410868367-11056-7-git-send-email-mika.westerberg@linux.intel.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] ACPI / platform: provide default DMA mask
+Date: Tue, 23 Sep 2014 10:29:45 -0500
+Message-ID: <20140923152945.GE28592@saruman>
+References: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1487657.QLes1WRKBI@vostro.rjw.lan>
+ <20140923145221.GC28592@saruman>
+ <2422219.EN0C5cKd3e@vostro.rjw.lan>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lteA1dqeVaWQ9QQl"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:44496 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754470AbaIWP1U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 11:27:20 -0400
-Received: by mail-ie0-f171.google.com with SMTP id rd18so4891101iec.30
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2014 08:27:19 -0700 (PDT)
-In-Reply-To: <1410868367-11056-7-git-send-email-mika.westerberg@linux.intel.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37145 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755123AbaIWP3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Sep 2014 11:29:55 -0400
+Content-Disposition: inline
+In-Reply-To: <2422219.EN0C5cKd3e@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: balbi@ti.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
+--lteA1dqeVaWQ9QQl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> With release of ACPI 5.1 and _DSD method we can finally name GPIOs (and
-> other things as well) returned by _CRS. Previously we were only able to
-> use integer index to find the corresponding GPIO, which is pretty error
-> prone if the order changes.
->
-> With _DSD we can now query GPIOs using name instead of an integer index,
-> like the below example shows:
->
->   // Bluetooth device with reset and shutdown GPIOs
->   Device (BTH)
->   {
->       Name (_HID, ...)
->
->       Name (_CRS, ResourceTemplate ()
->       {
->           GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
->                   "\\_SB.GPO0", 0, ResourceConsumer) {15}
->           GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
->                   "\\_SB.GPO0", 0, ResourceConsumer) {27, 31}
->       })
->
->       Name (_DSD, Package ()
->       {
->           ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->           Package ()
->           {
->               Package () {"reset-gpio", Package() {^BTH, 1, 1, 0 }},
->               Package () {"shutdown-gpio", Package() {^BTH, 0, 0, 0 }},
->           }
->       })
->   }
->
-> The format of the supported GPIO property is:
->
->   Package () { "name", Package () { ref, index, pin, active_low }}
->
->   ref - The device that has _CRS containing GpioIo()/GpioInt() resources,
->         typically this is the device itself (BTH in our case).
->   index - Index of the GpioIo()/GpioInt() resource in _CRS starting from zero.
->   pin - Pin in the GpioIo()/GpioInt() resource. Typically this is zero.
->   active_low - If 1 the GPIO is marked as active_low.
->
-> Since ACPI GpioIo() resource does not have field saying whether it is
-> active low or high, the "active_low" argument can be used here. Setting
-> it to 1 marks the GPIO as active low.
->
-> In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
-> resource, second pin in that resource with the GPIO number of 31.
->
-> This patch implements necessary support to gpiolib for extracting GPIOs
-> using _DSD device properties.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Tue, Sep 23, 2014 at 05:17:03PM +0200, Rafael J. Wysocki wrote:
+> On Tuesday, September 23, 2014 09:52:21 AM Felipe Balbi wrote:
+> > On Tue, Sep 23, 2014 at 04:52:01PM +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, September 23, 2014 03:17:12 PM Heikki Krogerus wrote:
+> > > > On Wed, Aug 20, 2014 at 02:55:26PM +0300, Heikki Krogerus wrote:
+> > > > > Most devices are configured for 32-bit DMA addresses.
+> > > > > Setting the mask to 32-bit here removes the need for the
+> > > > > drivers to do it separately.
+> > > >=20
+> > > > Rafael, is this OK?
+> > >=20
+> > > Fine by me, but it should go in via dwc3 I think.
+> >=20
+> > huh ? Seems like there's no direct dependency.
+>=20
+> Well, it's part of a series where all of the other patches touch dwc3.
+> Doesn't anything in that series depend on this patch?
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+dunno, I haven't received anything.
 
-If Rafael is happy with this approach, and you decide to take it
-through the ACPI tree.
+--=20
+balbi
 
-Yours,
-Linus Walleij
+--lteA1dqeVaWQ9QQl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUIZHpAAoJEIaOsuA1yqREHMIQAKUzy5waHyI72sEal92KklRX
+jsyZPv/qYxo4JJVoOxqtowpXvI1gx95FlFEbtIkM/lHbg3J8Vc+ENacERx2qpqvK
+OAAfQbbmOtg8U7NN4n+DtmMTNt3MbZ4R2SpgrxXg4wLeKmAvehG1UB5emmrk2bwK
+1Ts9yzz7/XIzFXHYBAlowcaVx7KFDoiCpveU3VN+g9Zbp6Xta7un91yxOCFMhS/A
+dCC67ht/6FfgHVLgCus1PXCz2x28SyC4ba5zfyeg0nQsjhcputYCJWHm19ZIKDKA
+9RGDXdDkKvkOB4F2PYlAA/laN/AAu8g//VR9EaHO9de3c28Yi1QhakDenLrzuiQB
+rTo+itXRxLTeW/N0aDC5uMAGMa9+8j0lj+nqpYxnGnBE81xSt/zyJqv/i4gu9mT6
+/qIsZTOigGzA6tUqh6AM/zLq6IGmz0ifvZGNZxcn1bEAkFe0mT2QnmcQDFpMxVHn
+Fsy7gC18ZhZYOSAVlXtqVtEN2MHQ2HwBgb2AOgorjcT00ts4wRBXL31B6J0lZT1a
+IAWESXB3+vgTnbZjHZz/lnBJBWs/8FxnVGIJ6UDvR2NxwHe6IsoH9E3iReIAIBYT
+JgAKvK+lhjGiUOGHePKKf2HNuhRS6s1WU1iFP0ahI2UuTnFiRi+761TcZQK8hB1q
+vqghEGn9RtyMaYlggU36
+=kxSv
+-----END PGP SIGNATURE-----
+
+--lteA1dqeVaWQ9QQl--
