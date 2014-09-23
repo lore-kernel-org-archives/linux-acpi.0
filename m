@@ -1,81 +1,72 @@
-From: =?utf-8?B?5bCP6IOh?= <miguel@ubannet.com.br>
-Subject: =?utf-8?B?55So6L+Z5Liq5bmz5Y+w5Y+R55+t5L+h77yM6L+Z5bCx5a+55LqGICAgICAgIA==?=
-	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
-	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
-	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
-	=?utf-8?B?ICBia3dtaQ==?=
-Date: Tue, 23 Sep 2014 22:32:52 +0800
-Message-ID: <20140923223303755621@ubannet.com.br>
-Reply-To: <dingxj8@aliyun.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
+Date: Tue, 23 Sep 2014 22:31:27 +0200
+Message-ID: <2531965.8yTKWbxWX4@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20140923155202.GT1786@lahna.fi.intel.com> <20140923161724.GA40700@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ip-177.53.74.146.ubannet.com.br ([177.53.74.146]:41501 "EHLO
-	srv01.ubannet.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755540AbaIWUIB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 16:08:01 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140923161724.GA40700-WlK9ik9hQGAhIp7JRqBPierSzoNAToWh@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linusi@163.com, linuton@hotmail.com.tw, linuwa@yeah.net, linux-acpi@vger.kernel.org
 
-DQogIOWbveWGheacgOWlveeUqOeahOefreS/oeW5s+WPsO+8jOmAiei/meS4qui/meWwseWvueS6
-huOAguato+inhOWGheWuuemDveWPr+S7peWPke+8jOWIsOi+vumrmO+8jOS4jeWxj+iUveOAguWS
-qOivouivt+WKoFFRMTkzOTg5NzI177yM5Y+v5Lul5rWL6K+V5ZOm44CCDQoNCg0KDQoNCg0KIA0K
-DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
-Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
-DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
-Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCuS7heiusuaEj+Wig++8jOabtOim
-geiusumfteW+i++8jOinhOWImeS4peagvOWIsOiLm+WIu++8jOWPr+iwk+aItOedgOmVo+mTkOi3
-s+iInuOAgiAgICDoh6rigJzkupTlm5vpnanlkb3igJ3mtYHooYznmb3or53mlofku6XmnaXvvIzl
-pKflrrbpg73miorov5nkuJzopb/lvZPlgZrns5/nspXkuKLlvIPkuobvvIzku6XkuLrlroPpmLvn
-oo3mhJ/mg4XnmoTooajovr7vvIzmlrDor5fliJnlpKflhbTlhbbpgZPjgIIgICAg6ZmI5Yas5Ly4
-5LqG5Liq5oeS6IWw77yM6YGT77ya4oCc5pON77yM5pS55LiN5a6M55qE5Y235a2Q77yB5L2g6K+0
-5bCx5LiN6IO95bCR6ICD5Lik5qyh5LmI77yf5L2g54i95oiR5Lmf54i977yM5a2m55Sf54i977yM
-6ICB5biI5Lmf54i944CC4oCd6Iul5peg5YW25LqL5Zyw5Z2Q5Yiw5Yqe5YWs5qGM5YmN5byA5aeL
-5om55pS56K+V5Y2344CCICAgIOadqOaZr+WInei1sOWIsOiHquW3seeahOWKnuWFrOWMuu+8jOWd
-kOS6huS4i+adpei/h+adpe+8jOeci+eci+S9oOi/mOiupOivhuaIkeS4je+8n+KAnSAgICDpqazo
-g5blq4LlrZDmmK/mnZHph4zmr5TovoPms7zovqPnmoTlpoflpbPvvIzkuInljYHlpJrlsoHvvIzo
-g73or7TkvJrpgZPvvIzlvpfnkIbkuI3ppbbkurrjgIIgICAg5L2G5piv5ZKM6Ieq5bex5a6255qE
-5YWz57O754m55Yir5aW977yM5Lmf54m55Yir55a854ix6Ieq5bex77yM5Lul5YmN5LuW5q+P5qyh
-5pqR5YGH44CB5a+S5YGH5Zue6ICB5a62546p5rSb6IKv5a6a5LiN6IO96LWw5byA5LqG77yM5LuW
-6L+Y6KaB6K+05LiA5Lqb5oSf6LCi55qE6K+d77yM5o6l5Y+X5aSn5a6255qE56Wd6LS677yM5bGI
-5bCP5YWD5Yeg5Liq5Z2P5a2p5a2Q5LiA5omv5LuW55qE6IOz6IaK77yM5oyk55yJ5byE55y85Zyw
-6YGT77ya4oCc5oiR5Zyo5qW85LiL562J5L2g5ZWK44CC4oCdICAgIOWkj+Wwj+a0m+efpemBk+S7
-luiCr+WumuWcqOaJk+S7gOS5iOWdj+S4u+aEj+OAgiAgICDlnKjkvJrorq7mmK/ng5/nq5nkuZ/o
-tZrkuI3liLDpkrHjgILigJ0gICAg4oCc5piv77yM6L+Y5b6X6Z2g5bel5Lia44CC4oCd5aSP6L+R
-5Lic5Z2Q5Zyo5a+56Z2i5rKZ5Y+R5LiK77yM57+755yL552A5oql6KGo44CCICAgIOKAnOS9oOec
-i+eci+ebtOaOpeW9kuWOv+aUv+W6nOeuoeeahOmCo+S6m+S4quWOguacieWHoOS4quaYr+i1mumS
-seeahO+8n+KAnSAgICDigJzov5jnnJ/mmK/vvIzlhpzmnLrljoLljrvlubTkuo/mjZ/kuoYxMDDl
-pJrkuIDotbfvvIzogIzkuI3mmK/ov5nlh6DlpKnvvIzov5nlh6DkuKrmnIjvvIznlJroh7Pov5nk
-uInlubTjgILmiJHnrYnkvaDvvIznm7TliLDpgqPlpKnkvaDop4nlvpflkozmiJHlnKjkuIDotbfl
-j6rmnInlubjnpo/vvIzogIzmsqHmnInotJ/nvarmhJ/jgILigJ0gICAg5L2V6K+X6Z+156yR5LqG
-77yM5aW55pSl57Sn5LqG5bCP5omL77yM5ZGK6K+J6Ieq5bex77ya4oCc5LiA5a6a6KaB5Yqq5Yqb
-77yM5pyJ5aSp5Y+v5Lul5LiN6YKjCQ0K5YeG55yf6YC8552A6Ieq5bex54is6YKj5LiA5q616Lev
-77yM6Ium5Lmf77yBICAgIOS7luW3sue7j+WQrOivtOWkj+Wwj+a0m+aIkOe7qeeqgemjnueMm+i/
-m++8jOWJjeWHoOWkqeaooeaLn+iAg+ivleaIkOe7qei2hei2iuS6huiHquW3se+8jOW5tuS4jeaY
-r+mdoOi/kOawlO+8jOiAjOaYr+mdoOWunuWKm+OAguW/g+mBk++8muKAnOaXoOiuuuWmguS9leS5
-n+S4jeiDveiuqeS7luiAg+S4iuesrOS4gOmrmOS4re+8geWIsOS6hui/meS4quWls+eUn++8jOWl
-ueS8vOS5juacieS4gOenjemavuS7peiogOivtOeahOmtheWKm++8jOiDveWkn+WQuOW8leeUt+eU
-n+OAgeeUmuiHs+aYr+Wls+eUn+WbtOe7leWcqOWlueeahOWRqOWbtO+8jOW9ouaIkOS4gOS4quS8
-l+aYn+aNp+aciOS4gOiIrOeahOWwj+WciOWtkO+8jOiAjOWlueaXoOeWkeWImeaYr+WFtuS4reea
-hOaguOW/g+OAgiAgICDkvZXor5fpn7XkuIDnm7TlnKjmg7Pov5nnp43prYXlipvvvIzliLDmrKLp
-h5HlurjvvIzmiJHkuZ/mmK/llInvvIzmiJHov5jllpzmrKLnkLznkbbvvIHigJ3pgqPkuKrlpbPl
-ranlpoLojrfoh7Plrp3lnLDmirHnnYDlm77kuabvvIzmrKLlkbzpm4Dot4PlnLDljrvkuobjgIIg
-ICAgMTk5MOW5tO+8jOWPsOa5vuWls+S9nOWutueQvOeRtueahOiogOaDheWwj+ivtOWSjOmmmea4
-r+S9nOWutumHkeW6uOeahOatpuS+oOWwj+ivtO+8jOaIkOS4uuS4reWtpueUn+acgOWWnOasouea
-hOaWh+WtpuS9nOWTgeeUt+eUn++8jOawlOi0qOWEkumbhe+8jOiEuOiJsuWotOmdme+8jOiCpOiJ
-sueZveeame+8jOeUmuiHs+aYvuW+l+acieWHoOWIhuWls+eUn+S4gOiIrOeahOengOawlOOAgiAg
-ICDlpI/lsI/mtJvlvq7lvq7nrJHpgZPvvJrigJzmm7nmtanmmoTigKbigKbigJ0gICAg5pu55rWp
-5pqE54K55aS056yR6YGT77ya4oCc5L2g6L+Y6K6w5b6X5oiR44CC4oCdICAgIOS4pOS6uumdouWv
-ueWNg+WGm+S4h+mprO+8jOWNtOS+neeEtuawlOWkquWlveOAgiAgICDlpI/kuozni5fpgZPvvJri
-gJzlmL/vvIzmn7PmnIjlp5DvvIzkvaDlm57lrrbkuobvvIzmiJHku6zkuInkuKrlpKfnlLfkurrl
-sLHmsqHmnInlpKfljqjkuobvvIzmgLvkuI3og73miormiJHlpbblpbblj6votbfmnaXnu5nmiJHk
-u6zlgZrlkKfvvJ/igJ3pmaLnnIvnnIvlkKfjgILigJ0gICAg5aSP5bCP5rSb5Zyo5pW05Liq5Y2r
-55Sf5bGA5a625bGe6Zmi55qE5a2p5a2Q5Lit5piv5YWs6K6k55qE5pm65Yqb5ZKM5oiQ57up5pyA
-5beu55qE77yM5Zub5bKB5omN5a2m5Lya6K+06K+d77yM5oiQ57up5LiA55u05Zyo54+t6YeM5Z6r
-5bqV77yM5ZCM6b6E55qE5ZCR6Ziz5Lit5a2m55qE5a2m55Sf5LqM6IOW57uP5bi46K+077ya4oCc
-5ZSJ77yM5pyJ5LqG5aSP5bCP5rSb5oiR5Lus5bCx5a6JCQ0K
+On Tuesday, September 23, 2014 09:17:24 AM Dmitry Torokhov wrote:
+> On Tue, Sep 23, 2014 at 06:52:02PM +0300, Mika Westerberg wrote:
+> > On Tue, Sep 23, 2014 at 05:45:57PM +0200, Arnd Bergmann wrote:
+> > > On Tuesday 23 September 2014 17:25:50 Linus Walleij wrote:
+> > > > On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
+> > > > <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> > > > 
+> > > > > Some drivers need to deal with only firmware representation of its
+> > > > > GPIOs. An example would be a GPIO button array driver where each button
+> > > > > is described as a separate firmware node in device tree. Typically these
+> > > > > child nodes do not have physical representation in the Linux device
+> > > > > model.
+> > > > >
+> > > > > In order to help device drivers to handle such firmware child nodes we
+> > > > > add dev[m]_node_get_named_gpiod() that takes a firmware node pointer as
+> > > > > parameter, finds the GPIO using whatever is the underlying firmware
+> > > > > method, and requests the GPIO properly.
+> > > > >
+> > > > > Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > > > 
+> > > > I have a hard time figuring out if this is what we want for common
+> > > > accessors between DT and ACPI.
+> > > > 
+> > > > Can I get some input from Grant, Arnd, Mark, Darren...?
+> > > 
+> > > I just took a brief look at this. My first impression is that the
+> > > fw_dev_node structure is weird when all callers just do (in patch 2)
+> > > 
+> > > +	struct fw_dev_node fdn = {
+> > > +		.of_node = dev->of_node,
+> > > +		.acpi_node = ACPI_COMPANION(dev),
+> > > +	};
+> > > 
+> > > I'd much rather see an interface that passes the 'struct device'
+> > > pointer down to dev_get_named_gpiod() and all other exported
+> > > functions, and then internally does the conversion at the point
+> > > where the access is done.
+> > 
+> > Problem is that if you don't have the dev pointer in the first place.
+> > Please look how leds-gpio.c or gpio_keys_polled.c are using this.
+> > 
+> > Of course you have the first level device but when you need to iterate
+> > "leds" or "buttons" below where there is no Linux device available we
+> > need something like this.
+> 
+> Maybe we should be passing the parent/owner device to the iterator
+> functions?
 
+Yes, we can do that.  That's one alternative for what we have in the current
+set.
 
+Rafael
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
