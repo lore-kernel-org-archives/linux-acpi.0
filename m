@@ -1,64 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [PATCH 2/4] ACPI / platform: provide default DMA mask
-Date: Tue, 23 Sep 2014 09:52:21 -0500
-Message-ID: <20140923145221.GC28592@saruman>
-References: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1408535728-10518-3-git-send-email-heikki.krogerus@linux.intel.com>
- <20140923121712.GD18814@xps8300>
- <1487657.QLes1WRKBI@vostro.rjw.lan>
-Reply-To: <balbi@ti.com>
+Date: Tue, 23 Sep 2014 17:17:03 +0200
+Message-ID: <2422219.EN0C5cKd3e@vostro.rjw.lan>
+References: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com> <1487657.QLes1WRKBI@vostro.rjw.lan> <20140923145221.GC28592@saruman>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WfZ7S8PLGjBY9Voh"
+Content-Type: multipart/signed; boundary="nextPart2055055.yTBpTG64FJ"; micalg="pgp-sha256"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1487657.QLes1WRKBI@vostro.rjw.lan>
+In-Reply-To: <20140923145221.GC28592@saruman>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Felipe Balbi <balbi@ti.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: balbi@ti.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
---WfZ7S8PLGjBY9Voh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+
+--nextPart2055055.yTBpTG64FJ
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 
-On Tue, Sep 23, 2014 at 04:52:01PM +0200, Rafael J. Wysocki wrote:
-> On Tuesday, September 23, 2014 03:17:12 PM Heikki Krogerus wrote:
-> > On Wed, Aug 20, 2014 at 02:55:26PM +0300, Heikki Krogerus wrote:
-> > > Most devices are configured for 32-bit DMA addresses.
-> > > Setting the mask to 32-bit here removes the need for the
-> > > drivers to do it separately.
+On Tuesday, September 23, 2014 09:52:21 AM Felipe Balbi wrote:
+> On Tue, Sep 23, 2014 at 04:52:01PM +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, September 23, 2014 03:17:12 PM Heikki Krogerus wrote:
+> > > On Wed, Aug 20, 2014 at 02:55:26PM +0300, Heikki Krogerus wrote:
+> > > > Most devices are configured for 32-bit DMA addresses.
+> > > > Setting the mask to 32-bit here removes the need for the
+> > > > drivers to do it separately.
+> > >=20
+> > > Rafael, is this OK?
 > >=20
-> > Rafael, is this OK?
+> > Fine by me, but it should go in via dwc3 I think.
 >=20
-> Fine by me, but it should go in via dwc3 I think.
+> huh ? Seems like there's no direct dependency.
 
-huh ? Seems like there's no direct dependency.
+Well, it's part of a series where all of the other patches touch dwc3.
+Doesn't anything in that series depend on this patch?
 
---=20
-balbi
-
---WfZ7S8PLGjBY9Voh
+=2D-=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--nextPart2055055.yTBpTG64FJ
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJUIYklAAoJEIaOsuA1yqREUrwP/ja40yNX+TPE6j4qKTTd+vQA
-NLG2ieiriRWKpk0Qw0mtrUnAqaGxAXFatan2inF1N66NGuPboAqLxLqqQ8cNY7zH
-ZreS7ut28m2hHllYS08XPivV6NOpBNDftn0t4CLH3RVE7HjZEGchYxvN0gxwPiyW
-PLEOuMM2vWxLlYBUGUhlOwXu9ICau9NAOHEXRt44VbnPa6b8ShCTO8JouVHYUYbD
-R6VQnSJ47CRW8puIwcVE7gU7VuTaWN3YLGhaIKI/H/9rk2fASVCY8hpsILKQwGoJ
-ZSiMjuWb+vlge1T2hq74twVP/y1GRBMa+veUW98fpHyVFC1rCpYQBq6zqaRgvkH0
-R1rTB1tDvQRHtg2+VQaQJTuKIVFgPkpAtP1uD+nBmGh0wMzJIodh8NAXTwmTlPep
-kclHvWu2i1ZE2ujpjqwE5i9OtD/td0ZrGMHmdiRMnmBipq0QfYHYWFjx3QKaM8HC
-veFAU8lJF0UgVki7w4bQJ+EeqnTh+jdhjZhxME1vIOis8Da5hvDOT6nOYF/YiSqF
-8d0uu+hA/WEPo5rgfIgD0cLTgLfHU/YzqQovuQGql+UODLUSKMR682Xrnun1H7QM
-VEGeL6T4iQ6ZoUVzsZQMt5agmHCiCVlz9IYNuGGEehvsSNer3exJWkyWwYZPqP2W
-kX6fkfboke72UIquMVCb
-=ng59
+iQIcBAABCAAGBQJUIY72AAoJEILEb/54YlRxE+oQAKMio6jzsP/Q/CUahFQTXwq9
+dM24cN3XV3OaGnQdsAjln9cMjJArBYCoFzIVpONtaVrr5byy/Z2rYTLIKvGTBjV1
+7Dfs+RLSCKkCSuwveCInWHkE+VOAL3jvDs+xbRS/w9FKmu+BzZAv36cQkkyy9U+9
+36oSroXctm3BHlgOq0tm9tIDvx7bQJRlByEySqXr8JyXA97CLWpkpsnmP3e01FhH
+SvChwJa4F71qRu95lHfdb7R+XZsy6lpyeOEq8VLJCOWH3fQrljYNvQC1tkl1xwtS
+ufn/bamkjF118zuQLud+rAmf8U+8EUbC3Q/tc60GYwB5yaSBajJQilAES5bjWOm8
+PIRUZb6GgZuSwuv9Qh/vX0LZXLGKzYSmOxKRCb1XLCxTAwWeuNmAU+zZFVn255aR
+BX9DMzW/oPINd9w8ar8eAf1I2jxNADhSTPXj/iwzKwKavZd04IpJrSrw9tm3J7P1
+E7HmPASi/lwLDxnXw718mcoClt0KDuQN9b1Zwvwr+4zMKRAW6huZ8xpT6WASky2G
+ujlbZWUgHQGgRUH0P/MqfX9rdp56OYxJRD8Y4Qp0sfCxwLKK/JQSli8puPWcIY6X
+4isHHs6oxREh+aQoSgk7MSPDlcC8V17PqtqQyPjXNyPtzgBJgHapgD6gHp0ukXhU
+30u4YBuTnMLb37nanP1B
+=Hz0k
 -----END PGP SIGNATURE-----
 
---WfZ7S8PLGjBY9Voh--
+--nextPart2055055.yTBpTG64FJ--
