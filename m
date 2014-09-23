@@ -1,63 +1,93 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/4] ACPI / platform: provide default DMA mask
-Date: Tue, 23 Sep 2014 17:17:03 +0200
-Message-ID: <2422219.EN0C5cKd3e@vostro.rjw.lan>
-References: <1408535728-10518-1-git-send-email-heikki.krogerus@linux.intel.com> <1487657.QLes1WRKBI@vostro.rjw.lan> <20140923145221.GC28592@saruman>
+Subject: Re: [PATCH 2/2] gpio / ACPI: Use pin index and bit length
+Date: Tue, 23 Sep 2014 17:32:02 +0200
+Message-ID: <6093416.FMcGNUEiEQ@vostro.rjw.lan>
+References: <715ed7865378d29b78003c710d50dba77b2cb9bb.1411439631.git.lv.zheng@intel.com> <7b41a3ca1f673c6e3d6e6b7c94c0792c7b18badf.1411439632.git.lv.zheng@intel.com> <20140923102728.GK1786@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2055055.yTBpTG64FJ"; micalg="pgp-sha256"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140923145221.GC28592@saruman>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
-
---nextPart2055055.yTBpTG64FJ
-Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62420 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753971AbaIWPMP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 11:12:15 -0400
+In-Reply-To: <20140923102728.GK1786@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, September 23, 2014 09:52:21 AM Felipe Balbi wrote:
-> On Tue, Sep 23, 2014 at 04:52:01PM +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, September 23, 2014 03:17:12 PM Heikki Krogerus wrote:
-> > > On Wed, Aug 20, 2014 at 02:55:26PM +0300, Heikki Krogerus wrote:
-> > > > Most devices are configured for 32-bit DMA addresses.
-> > > > Setting the mask to 32-bit here removes the need for the
-> > > > drivers to do it separately.
-> > >=20
-> > > Rafael, is this OK?
-> >=20
-> > Fine by me, but it should go in via dwc3 I think.
->=20
-> huh ? Seems like there's no direct dependency.
+On Tuesday, September 23, 2014 01:27:28 PM Mika Westerberg wrote:
+> On Tue, Sep 23, 2014 at 10:35:54AM +0800, Lv Zheng wrote:
+> > From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> > 
+> > Fix code when the operation region callback is for an gpio, which
+> > is not at index 0 and for partial pins in a GPIO definition.
+> > For example:
+> > Name (GMOD, ResourceTemplate ()
+> > {
+> > 	//3 Outputs that define the Power mode of the device
+> > 	GpioIo (Exclusive, PullDown, , , , "\\_SB.GPI2") {10, 11, 12}
+> > 	})
+> > }
+> > 
+> > If opregion callback calls is for:
+> > - Set pin 10, then address = 0 and bit length = 1
+> > - Set pin 11, then address = 1 and bit length = 1
+> > - Set for both pin 11 and pin 12, then address = 1, bit length = 2
+> > 
+> > This change requires updated ACPICA gpio operation handler code to
+> > send the pin index and bit length.
+> > 
+> > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> Adding the GPIO maintainers since we need their ACK to get this merged
+> through ACPI tree.
 
-Well, it's part of a series where all of the other patches touch dwc3.
-Doesn't anything in that series depend on this patch?
+Actually, it would be good to say that the ACPICA change mentioned in the
+changelog above is made by patch [1/2] in this series.
 
-=2D-=20
+Linus, Alexandre, please let us know if you need the whole series to be
+resent for context. This is quite urgent, as we need that fixed in 3.18,
+because there are systems out there where it doesn't work already.
+
+Mika, Srinivas, I suppose that we need this in -stable?  Which one if so?
+
+> > ---
+> >  drivers/gpio/gpiolib-acpi.c |    5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> > index d62eaaa..687476f 100644
+> > --- a/drivers/gpio/gpiolib-acpi.c
+> > +++ b/drivers/gpio/gpiolib-acpi.c
+> > @@ -377,8 +377,10 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+> >  	struct gpio_chip *chip = achip->chip;
+> >  	struct acpi_resource_gpio *agpio;
+> >  	struct acpi_resource *ares;
+> > +	int pin_index = (int)address;
+> >  	acpi_status status;
+> >  	bool pull_up;
+> > +	int length;
+> >  	int i;
+> >  
+> >  	status = acpi_buffer_to_resource(achip->conn_info.connection,
+> > @@ -400,7 +402,8 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+> >  		return AE_BAD_PARAMETER;
+> >  	}
+> >  
+> > -	for (i = 0; i < agpio->pin_table_length; i++) {
+> > +	length = min(agpio->pin_table_length, (u16)(pin_index + bits));
+> > +	for (i = pin_index; i < length; ++i) {
+> >  		unsigned pin = agpio->pin_table[i];
+> >  		struct acpi_gpio_connection *conn;
+> >  		struct gpio_desc *desc;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---nextPart2055055.yTBpTG64FJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAABCAAGBQJUIY72AAoJEILEb/54YlRxE+oQAKMio6jzsP/Q/CUahFQTXwq9
-dM24cN3XV3OaGnQdsAjln9cMjJArBYCoFzIVpONtaVrr5byy/Z2rYTLIKvGTBjV1
-7Dfs+RLSCKkCSuwveCInWHkE+VOAL3jvDs+xbRS/w9FKmu+BzZAv36cQkkyy9U+9
-36oSroXctm3BHlgOq0tm9tIDvx7bQJRlByEySqXr8JyXA97CLWpkpsnmP3e01FhH
-SvChwJa4F71qRu95lHfdb7R+XZsy6lpyeOEq8VLJCOWH3fQrljYNvQC1tkl1xwtS
-ufn/bamkjF118zuQLud+rAmf8U+8EUbC3Q/tc60GYwB5yaSBajJQilAES5bjWOm8
-PIRUZb6GgZuSwuv9Qh/vX0LZXLGKzYSmOxKRCb1XLCxTAwWeuNmAU+zZFVn255aR
-BX9DMzW/oPINd9w8ar8eAf1I2jxNADhSTPXj/iwzKwKavZd04IpJrSrw9tm3J7P1
-E7HmPASi/lwLDxnXw718mcoClt0KDuQN9b1Zwvwr+4zMKRAW6huZ8xpT6WASky2G
-ujlbZWUgHQGgRUH0P/MqfX9rdp56OYxJRD8Y4Qp0sfCxwLKK/JQSli8puPWcIY6X
-4isHHs6oxREh+aQoSgk7MSPDlcC8V17PqtqQyPjXNyPtzgBJgHapgD6gHp0ukXhU
-30u4YBuTnMLb37nanP1B
-=Hz0k
------END PGP SIGNATURE-----
-
---nextPart2055055.yTBpTG64FJ--
