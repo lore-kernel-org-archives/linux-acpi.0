@@ -1,93 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] gpio / ACPI: Use pin index and bit length
-Date: Tue, 23 Sep 2014 17:32:02 +0200
-Message-ID: <6093416.FMcGNUEiEQ@vostro.rjw.lan>
-References: <715ed7865378d29b78003c710d50dba77b2cb9bb.1411439631.git.lv.zheng@intel.com> <7b41a3ca1f673c6e3d6e6b7c94c0792c7b18badf.1411439632.git.lv.zheng@intel.com> <20140923102728.GK1786@lahna.fi.intel.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device
+ properties interface
+Date: Tue, 23 Sep 2014 17:25:50 +0200
+Message-ID: <CACRpkdaZJt_6cd1vtDw-Ys+YqUhNb0aXazUxGCX8mk4=6EmdHw@mail.gmail.com>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1410868367-11056-8-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62420 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753971AbaIWPMP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 11:12:15 -0400
-In-Reply-To: <20140923102728.GK1786@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1410868367-11056-8-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, September 23, 2014 01:27:28 PM Mika Westerberg wrote:
-> On Tue, Sep 23, 2014 at 10:35:54AM +0800, Lv Zheng wrote:
-> > From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > 
-> > Fix code when the operation region callback is for an gpio, which
-> > is not at index 0 and for partial pins in a GPIO definition.
-> > For example:
-> > Name (GMOD, ResourceTemplate ()
-> > {
-> > 	//3 Outputs that define the Power mode of the device
-> > 	GpioIo (Exclusive, PullDown, , , , "\\_SB.GPI2") {10, 11, 12}
-> > 	})
-> > }
-> > 
-> > If opregion callback calls is for:
-> > - Set pin 10, then address = 0 and bit length = 1
-> > - Set pin 11, then address = 1 and bit length = 1
-> > - Set for both pin 11 and pin 12, then address = 1, bit length = 2
-> > 
-> > This change requires updated ACPICA gpio operation handler code to
-> > send the pin index and bit length.
-> > 
-> > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> Adding the GPIO maintainers since we need their ACK to get this merged
-> through ACPI tree.
+On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
+<mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
 
-Actually, it would be good to say that the ACPICA change mentioned in the
-changelog above is made by patch [1/2] in this series.
+> Some drivers need to deal with only firmware representation of its
+> GPIOs. An example would be a GPIO button array driver where each button
+> is described as a separate firmware node in device tree. Typically these
+> child nodes do not have physical representation in the Linux device
+> model.
+>
+> In order to help device drivers to handle such firmware child nodes we
+> add dev[m]_node_get_named_gpiod() that takes a firmware node pointer as
+> parameter, finds the GPIO using whatever is the underlying firmware
+> method, and requests the GPIO properly.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Linus, Alexandre, please let us know if you need the whole series to be
-resent for context. This is quite urgent, as we need that fixed in 3.18,
-because there are systems out there where it doesn't work already.
+I have a hard time figuring out if this is what we want for common
+accessors between DT and ACPI.
 
-Mika, Srinivas, I suppose that we need this in -stable?  Which one if so?
+Can I get some input from Grant, Arnd, Mark, Darren...?
 
-> > ---
-> >  drivers/gpio/gpiolib-acpi.c |    5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> > index d62eaaa..687476f 100644
-> > --- a/drivers/gpio/gpiolib-acpi.c
-> > +++ b/drivers/gpio/gpiolib-acpi.c
-> > @@ -377,8 +377,10 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
-> >  	struct gpio_chip *chip = achip->chip;
-> >  	struct acpi_resource_gpio *agpio;
-> >  	struct acpi_resource *ares;
-> > +	int pin_index = (int)address;
-> >  	acpi_status status;
-> >  	bool pull_up;
-> > +	int length;
-> >  	int i;
-> >  
-> >  	status = acpi_buffer_to_resource(achip->conn_info.connection,
-> > @@ -400,7 +402,8 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
-> >  		return AE_BAD_PARAMETER;
-> >  	}
-> >  
-> > -	for (i = 0; i < agpio->pin_table_length; i++) {
-> > +	length = min(agpio->pin_table_length, (u16)(pin_index + bits));
-> > +	for (i = pin_index; i < length; ++i) {
-> >  		unsigned pin = agpio->pin_table[i];
-> >  		struct acpi_gpio_connection *conn;
-> >  		struct gpio_desc *desc;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
