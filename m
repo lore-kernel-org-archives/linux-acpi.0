@@ -1,72 +1,106 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Tue, 23 Sep 2014 22:31:27 +0200
-Message-ID: <2531965.8yTKWbxWX4@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20140923155202.GT1786@lahna.fi.intel.com> <20140923161724.GA40700@core.coreip.homeip.net>
+Date: Tue, 23 Sep 2014 22:47:36 +0200
+Message-ID: <1579761.oeYleOAY1N@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2895905.coa5UvrkJk@vostro.rjw.lan> <2809308.3y5s7TV5Ip@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140923161724.GA40700-WlK9ik9hQGAhIp7JRqBPierSzoNAToWh@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62234 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753947AbaIWU1y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 16:27:54 -0400
+In-Reply-To: <2809308.3y5s7TV5Ip@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Tuesday, September 23, 2014 09:17:24 AM Dmitry Torokhov wrote:
-> On Tue, Sep 23, 2014 at 06:52:02PM +0300, Mika Westerberg wrote:
-> > On Tue, Sep 23, 2014 at 05:45:57PM +0200, Arnd Bergmann wrote:
-> > > On Tuesday 23 September 2014 17:25:50 Linus Walleij wrote:
-> > > > On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
-> > > > <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> > > > 
-> > > > > Some drivers need to deal with only firmware representation of its
-> > > > > GPIOs. An example would be a GPIO button array driver where each button
-> > > > > is described as a separate firmware node in device tree. Typically these
-> > > > > child nodes do not have physical representation in the Linux device
-> > > > > model.
-> > > > >
-> > > > > In order to help device drivers to handle such firmware child nodes we
-> > > > > add dev[m]_node_get_named_gpiod() that takes a firmware node pointer as
-> > > > > parameter, finds the GPIO using whatever is the underlying firmware
-> > > > > method, and requests the GPIO properly.
-> > > > >
-> > > > > Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> > > > 
-> > > > I have a hard time figuring out if this is what we want for common
-> > > > accessors between DT and ACPI.
-> > > > 
-> > > > Can I get some input from Grant, Arnd, Mark, Darren...?
-> > > 
-> > > I just took a brief look at this. My first impression is that the
-> > > fw_dev_node structure is weird when all callers just do (in patch 2)
-> > > 
-> > > +	struct fw_dev_node fdn = {
-> > > +		.of_node = dev->of_node,
-> > > +		.acpi_node = ACPI_COMPANION(dev),
-> > > +	};
-> > > 
-> > > I'd much rather see an interface that passes the 'struct device'
-> > > pointer down to dev_get_named_gpiod() and all other exported
-> > > functions, and then internally does the conversion at the point
-> > > where the access is done.
+On Tuesday, September 23, 2014 06:26:07 PM Arnd Bergmann wrote:
+> On Tuesday 23 September 2014 18:25:01 Rafael J. Wysocki wrote:
+> > The problem is iteration over child nodes of a given one where there
+> > may not be struct device objects.
 > > 
-> > Problem is that if you don't have the dev pointer in the first place.
-> > Please look how leds-gpio.c or gpio_keys_polled.c are using this.
+> > For example (from patch [2/16]):
 > > 
-> > Of course you have the first level device but when you need to iterate
-> > "leds" or "buttons" below where there is no Linux device available we
-> > need something like this.
+> > +int acpi_for_each_child_node(struct acpi_device *adev,
+> > +                             int (*fn)(struct fw_dev_node *fdn, void *data),
+> > +                             void *data)
+> > +{
+> > +       struct acpi_device *child;
+> > +       int ret = 0;
+> > +
+> > +       list_for_each_entry(child, &adev->children, node) {
+> > +               struct fw_dev_node fdn = { .acpi_node = child, };
+> > +
+> > +               ret = fn(&fdn, data);
+> > +               if (ret)
+> > +                       break;
+> > +       }
+> > +       return ret;
+> > +}
+> > 
+> > and then fn() can be made work for both DTs and ACPI.  Without this we'd
+> > need to have two versions of fn(), one for DTs and one for ACPI (and possibly
+> > more for some other FW protocols), which isn't necessary in general (and
+> > duplicates code etc.). 
+> > 
+> > That actually is used by some patches down in the series (eg. [10/16]).
+> > 
 > 
-> Maybe we should be passing the parent/owner device to the iterator
-> functions?
+> Ok, I understand what you are doing now.
+> 
+> Looking at the example you point to (http://www.spinics.net/lists/devicetree/msg49502.html), I still feel
+> that this is adding more abstraction than what is good for us, and
+> I'd be happier with an implementation of gpio_leds_create() that
+> has a bit more duplication and less abstraction.
+> 
+> The important part should be that the driver-side interface is
+> sensible, other than that an implementation like
+> 
+> static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
+> {
+> 	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
+> 		return gpio_leds_create_of(pdev);
+> 	else if (IS_ENABLED(CONFIG_ACPI))
+> 		return gpio_leds_create_of(acpi);
+> 	return ERR_PTR(-ENXIO);
+> }
+> 
+> would keep either side of it relatively simple, by leaving out the
+> indirect function calls and new for_each_available_child_of_node()
+> macro.
 
-Yes, we can do that.  That's one alternative for what we have in the current
-set.
+Quite frankly, I'm not sure what you're asking for.
+
+It seems to mean "I kind of don't like the current implementation", but
+then the last part is quite unclear to me.  Are you suggesting to add more
+"if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) etc" type of checks to
+device drivers?  That I'd like to avoid to be honest.
+
+Instead of the current proposal we can introduce something like
+
+int device_get_child_property(struct device *dev, void *child_node,
+                              const char *propname, void **valptr);
+
+(and analogously for device_read_property*) and use that in the drivers that
+need to iterate over child nodes of a device.  Quite along the lines of what
+Dmitry is suggesting.
+
+Then, fn() in acpi_for_each_child_node() (and the of_ counterpart of it)
+would become
+
+int (*fn)(struct device *dev, void *child_node, void *data)
+
+and so on.
+
+Would you prefer that?
+
+
+> How many other users of fw_dev_node do you have at the moment?
+
+One more, gpio_keys_polled in patch [13/16] (https://patchwork.kernel.org/patch/4917311/).
 
 Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
