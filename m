@@ -1,154 +1,93 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] i2c: move acpi code back into the core
-Date: Tue, 23 Sep 2014 17:14:14 +0800
-Message-ID: <542139E6.2030806@intel.com>
-References: <1411420006-4713-1-git-send-email-wsa@the-dreams.de> <5420CEC9.1030400@intel.com> <20140923053951.GA1411@katana> <54211C96.3030608@intel.com>
+From: Joe.C <srv_yingjoe.chen@mediatek.com>
+Subject: Re: [Patch] irqdomain: Introduce new interfaces to support
+ hierarchy irqdomains
+Date: Tue, 23 Sep 2014 17:43:22 +0800
+Message-ID: <1411465402.8922.126.camel@mtksdaap41>
+References: <alpine.DEB.2.10.1409160859080.4247@nanos>
+ <1411373856-9669-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54211C96.3030608@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.de>, "Wu, Fengguang" <fengguang.wu@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1411373856-9669-1-git-send-email-jiang.liu@linux.intel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: x86@kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Joerg Roedel <joro@8bytes.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B409=E6=9C=8823=E6=97=A5 15:09, Lan Tianyu wrote:
-> On 2014=E5=B9=B409=E6=9C=8823=E6=97=A5 13:39, Wolfram Sang wrote:
->>
->>> Sorry for later response due to sickness. I can't write this patch =
-in
->>> time. Sorry again. I will test it soon.
->>
->> Oh, get well soon! Please say so next time, so I know.
->>
->=20
-> Thanks. OK.
-> I have put the patch into test system and need to wait some time.
->=20
+On Mon, 2014-09-22 at 16:17 +0800, Jiang Liu wrote:
+> @@ -388,7 +389,6 @@ EXPORT_SYMBOL_GPL(irq_create_direct_mapping);
+>  unsigned int irq_create_mapping(struct irq_domain *domain,
+>  				irq_hw_number_t hwirq)
+>  {
+> -	unsigned int hint;
+>  	int virq;
+>  
+>  	pr_debug("irq_create_mapping(0x%p, 0x%lx)\n", domain, hwirq);
+> @@ -410,12 +410,8 @@ unsigned int irq_create_mapping(struct irq_domain *domain,
+>  	}
+>  
+>  	/* Allocate a virtual interrupt number */
+> -	hint = hwirq % nr_irqs;
+> -	if (hint == 0)
+> -		hint++;
+> -	virq = irq_alloc_desc_from(hint, of_node_to_nid(domain->of_node));
+> -	if (virq <= 0)
+> -		virq = irq_alloc_desc_from(1, of_node_to_nid(domain->of_node));
+> +	virq = irq_domain_alloc_descs(-1, 1, hwirq,
+> +				      of_node_to_nid(domain->of_node));
 
-Hi Wolfram:
-The patch passed through the following 110 configure build test in the
-0-day build test system.
+If I read this correct, the resulting virq is different after your
+change.
 
+>  	if (virq <= 0) {
+>  		pr_debug("-> virq allocation failed\n");
+>  		return 0;
+> @@ -490,7 +486,10 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
+>  	}
+>  
+>  	/* Create mapping */
+> -	virq = irq_create_mapping(domain, hwirq);
+> +	if (irq_domain_is_hierarchy(domain))
+> +		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, irq_data);
+> +	else
+> +		virq = irq_create_mapping(domain, hwirq);
+>  	if (!virq)
+>  		return virq;
 
-configs tested: 110
+hwirq returned from xlat above is lost. Without hwirq or virq, how do we
+know which irq are we working for?
+Also, if the irq_desc/irq_data was already created, this will create
+another one. Should we do irq_find_mapping just like irq_create_mapping?
 
-mips                             allmodconfig
-mips                                   jz4740
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                     txx9
-x86_64                            allnoconfig
-sh                            titan_defconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                                allnoconfig
-x86_64                     randconfig-c3-0923
-x86_64                     randconfig-c1-0923
-x86_64                     randconfig-c2-0923
-x86_64                     randconfig-c0-0923
-arm                       omap2plus_defconfig
-arm                                    sa1100
-arm                              allmodconfig
-arm                          prima2_defconfig
-arm                         at91_dt_defconfig
-arm                               allnoconfig
-arm                                   samsung
-arm                       spear13xx_defconfig
-arm                         s3c2410_defconfig
-arm                                  iop-adma
-arm                       imx_v6_v7_defconfig
-arm                                       mmp
-arm                           tegra_defconfig
-arm                                      arm5
-arm                          marzen_defconfig
-arm                                  at_hdmac
-arm                                    ep93xx
-arm                                        sh
-arm                                     arm67
-parisc                        c3000_defconfig
-parisc                         b180_defconfig
-parisc                              defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-powerpc                  iss476-smp_defconfig
-powerpc                 mpc8315_rdb_defconfig
-mips                          ath79_defconfig
-arm                             bcm_defconfig
-powerpc                   gef_ppc9a_defconfig
-i386                      randconfig-ha0-0923
-i386                      randconfig-ha1-0923
-i386                      randconfig-ha2-0923
-i386                      randconfig-ha3-0923
-ia64                             allmodconfig
-ia64                              allnoconfig
-ia64                                defconfig
-ia64                             alldefconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-microblaze                       allyesconfig
-s390                             allmodconfig
-s390                              allnoconfig
-s390                                defconfig
-x86_64                    randconfig-ha1-0923
-x86_64                    randconfig-ha3-0923
-x86_64                    randconfig-ha0-0923
-x86_64                    randconfig-ha2-0923
-xtensa                       common_defconfig
-m32r                       m32104ut_defconfig
-xtensa                          iss_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-m32r                     mappi3.smp_defconfig
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-i386                             allyesconfig
-cris                 etrax-100lx_v2_defconfig
-blackfin                  TCM-BF537_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin                BF526-EZBRD_defconfig
-i386                       randconfig-r0-0923
-i386                       randconfig-r2-0923
-i386                       randconfig-r3-0923
-i386                       randconfig-r1-0923
-x86_64                 randconfig-s0-09231616
-x86_64                 randconfig
-Hi Wolfram:
-	The patch passed through the following 110 configure build test in the
-0-day build test system.-s1-09231616
-x86_64                           allmodconfig
-i386                             alldefconfig
-i386                             allmodconfig
-i386                              allnoconfig
-i386                                defconfig
-i386                     randconfig-x009-0922
-x86_64                   randconfig-x003-0922
-x86_64                   randconfig-x004-0922
-i386                     randconfig-x006-0922
-x86_64                   randconfig-x001-0922
-i386                     randconfig-x005-0922
-x86_64                   randconfig-x006-0922
-i386                     randconfig-x001-0922
-i386                     randconfig-x004-0922
-i386                     randconfig-x003-0922
-i386                     randconfig-x000-0922
-x86_64                   randconfig-x002-0922
-x86_64                   randconfig-x008-0922
-i386                     randconfig-x008-0922
-i386                     randconfig-x007-0922
-x86_64                   randconfig-x009-0922
-x86_64                   randconfig-x000-0922
-x86_64                   randconfig-x007-0922
-i386                     randconfig-x002-0922
-x86_64                   randconfig-x005-0922
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
+> +int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
+> +			    unsigned int nr_irqs, int node, void *arg,
+> +			    bool realloc)
+> +{
+> +	int i, ret, virq;
+> +
+> +	if (domain == NULL) {
+> +		domain = irq_default_domain;
+> +		if (WARN(!domain, "domain is NULL; cannot allocate IRQ\n"))
+> +			return -EINVAL;
+> +	}
+> +
+> +	if (!domain->ops->alloc) {
+> +		pr_debug("domain->ops->alloc() is NULL\n");
+> +		return -ENOSYS;
+> +	}
+> +
+> +	if (realloc && irq_base >= 0) {
+> +		virq =  irq_base;
+                         ^
+extra space here.
 
-
---=20
-Best regards
-Tianyu Lan
+Joe.C
