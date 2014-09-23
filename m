@@ -1,143 +1,81 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: ACPI/i915: Cannot configure display brightness on Dell Latitude E6440
-Date: Tue, 23 Sep 2014 22:06:02 +0200
-Message-ID: <201409232206.02819@pali>
+From: =?utf-8?B?5bCP6IOh?= <miguel@ubannet.com.br>
+Subject: =?utf-8?B?55So6L+Z5Liq5bmz5Y+w5Y+R55+t5L+h77yM6L+Z5bCx5a+55LqGICAgICAgIA==?=
+	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
+	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
+	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
+	=?utf-8?B?ICBia3dtaQ==?=
+Date: Tue, 23 Sep 2014 22:32:52 +0800
+Message-ID: <20140923223303755621@ubannet.com.br>
+Reply-To: <dingxj8@aliyun.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1629955.uH7RlRkzQB";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:58165 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790AbaIWUGH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 16:06:07 -0400
+Received: from ip-177.53.74.146.ubannet.com.br ([177.53.74.146]:41501 "EHLO
+	srv01.ubannet.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755540AbaIWUIB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 16:08:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
+To: linusi@163.com, linuton@hotmail.com.tw, linuwa@yeah.net, linux-acpi@vger.kernel.org
 
---nextPart1629955.uH7RlRkzQB
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+DQogIOWbveWGheacgOWlveeUqOeahOefreS/oeW5s+WPsO+8jOmAiei/meS4qui/meWwseWvueS6
+huOAguato+inhOWGheWuuemDveWPr+S7peWPke+8jOWIsOi+vumrmO+8jOS4jeWxj+iUveOAguWS
+qOivouivt+WKoFFRMTkzOTg5NzI177yM5Y+v5Lul5rWL6K+V5ZOm44CCDQoNCg0KDQoNCg0KIA0K
+DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
+Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
+DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
+Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCuS7heiusuaEj+Wig++8jOabtOim
+geiusumfteW+i++8jOinhOWImeS4peagvOWIsOiLm+WIu++8jOWPr+iwk+aItOedgOmVo+mTkOi3
+s+iInuOAgiAgICDoh6rigJzkupTlm5vpnanlkb3igJ3mtYHooYznmb3or53mlofku6XmnaXvvIzl
+pKflrrbpg73miorov5nkuJzopb/lvZPlgZrns5/nspXkuKLlvIPkuobvvIzku6XkuLrlroPpmLvn
+oo3mhJ/mg4XnmoTooajovr7vvIzmlrDor5fliJnlpKflhbTlhbbpgZPjgIIgICAg6ZmI5Yas5Ly4
+5LqG5Liq5oeS6IWw77yM6YGT77ya4oCc5pON77yM5pS55LiN5a6M55qE5Y235a2Q77yB5L2g6K+0
+5bCx5LiN6IO95bCR6ICD5Lik5qyh5LmI77yf5L2g54i95oiR5Lmf54i977yM5a2m55Sf54i977yM
+6ICB5biI5Lmf54i944CC4oCd6Iul5peg5YW25LqL5Zyw5Z2Q5Yiw5Yqe5YWs5qGM5YmN5byA5aeL
+5om55pS56K+V5Y2344CCICAgIOadqOaZr+WInei1sOWIsOiHquW3seeahOWKnuWFrOWMuu+8jOWd
+kOS6huS4i+adpei/h+adpe+8jOeci+eci+S9oOi/mOiupOivhuaIkeS4je+8n+KAnSAgICDpqazo
+g5blq4LlrZDmmK/mnZHph4zmr5TovoPms7zovqPnmoTlpoflpbPvvIzkuInljYHlpJrlsoHvvIzo
+g73or7TkvJrpgZPvvIzlvpfnkIbkuI3ppbbkurrjgIIgICAg5L2G5piv5ZKM6Ieq5bex5a6255qE
+5YWz57O754m55Yir5aW977yM5Lmf54m55Yir55a854ix6Ieq5bex77yM5Lul5YmN5LuW5q+P5qyh
+5pqR5YGH44CB5a+S5YGH5Zue6ICB5a62546p5rSb6IKv5a6a5LiN6IO96LWw5byA5LqG77yM5LuW
+6L+Y6KaB6K+05LiA5Lqb5oSf6LCi55qE6K+d77yM5o6l5Y+X5aSn5a6255qE56Wd6LS677yM5bGI
+5bCP5YWD5Yeg5Liq5Z2P5a2p5a2Q5LiA5omv5LuW55qE6IOz6IaK77yM5oyk55yJ5byE55y85Zyw
+6YGT77ya4oCc5oiR5Zyo5qW85LiL562J5L2g5ZWK44CC4oCdICAgIOWkj+Wwj+a0m+efpemBk+S7
+luiCr+WumuWcqOaJk+S7gOS5iOWdj+S4u+aEj+OAgiAgICDlnKjkvJrorq7mmK/ng5/nq5nkuZ/o
+tZrkuI3liLDpkrHjgILigJ0gICAg4oCc5piv77yM6L+Y5b6X6Z2g5bel5Lia44CC4oCd5aSP6L+R
+5Lic5Z2Q5Zyo5a+56Z2i5rKZ5Y+R5LiK77yM57+755yL552A5oql6KGo44CCICAgIOKAnOS9oOec
+i+eci+ebtOaOpeW9kuWOv+aUv+W6nOeuoeeahOmCo+S6m+S4quWOguacieWHoOS4quaYr+i1mumS
+seeahO+8n+KAnSAgICDigJzov5jnnJ/mmK/vvIzlhpzmnLrljoLljrvlubTkuo/mjZ/kuoYxMDDl
+pJrkuIDotbfvvIzogIzkuI3mmK/ov5nlh6DlpKnvvIzov5nlh6DkuKrmnIjvvIznlJroh7Pov5nk
+uInlubTjgILmiJHnrYnkvaDvvIznm7TliLDpgqPlpKnkvaDop4nlvpflkozmiJHlnKjkuIDotbfl
+j6rmnInlubjnpo/vvIzogIzmsqHmnInotJ/nvarmhJ/jgILigJ0gICAg5L2V6K+X6Z+156yR5LqG
+77yM5aW55pSl57Sn5LqG5bCP5omL77yM5ZGK6K+J6Ieq5bex77ya4oCc5LiA5a6a6KaB5Yqq5Yqb
+77yM5pyJ5aSp5Y+v5Lul5LiN6YKjCQ0K5YeG55yf6YC8552A6Ieq5bex54is6YKj5LiA5q616Lev
+77yM6Ium5Lmf77yBICAgIOS7luW3sue7j+WQrOivtOWkj+Wwj+a0m+aIkOe7qeeqgemjnueMm+i/
+m++8jOWJjeWHoOWkqeaooeaLn+iAg+ivleaIkOe7qei2hei2iuS6huiHquW3se+8jOW5tuS4jeaY
+r+mdoOi/kOawlO+8jOiAjOaYr+mdoOWunuWKm+OAguW/g+mBk++8muKAnOaXoOiuuuWmguS9leS5
+n+S4jeiDveiuqeS7luiAg+S4iuesrOS4gOmrmOS4re+8geWIsOS6hui/meS4quWls+eUn++8jOWl
+ueS8vOS5juacieS4gOenjemavuS7peiogOivtOeahOmtheWKm++8jOiDveWkn+WQuOW8leeUt+eU
+n+OAgeeUmuiHs+aYr+Wls+eUn+WbtOe7leWcqOWlueeahOWRqOWbtO+8jOW9ouaIkOS4gOS4quS8
+l+aYn+aNp+aciOS4gOiIrOeahOWwj+WciOWtkO+8jOiAjOWlueaXoOeWkeWImeaYr+WFtuS4reea
+hOaguOW/g+OAgiAgICDkvZXor5fpn7XkuIDnm7TlnKjmg7Pov5nnp43prYXlipvvvIzliLDmrKLp
+h5HlurjvvIzmiJHkuZ/mmK/llInvvIzmiJHov5jllpzmrKLnkLznkbbvvIHigJ3pgqPkuKrlpbPl
+ranlpoLojrfoh7Plrp3lnLDmirHnnYDlm77kuabvvIzmrKLlkbzpm4Dot4PlnLDljrvkuobjgIIg
+ICAgMTk5MOW5tO+8jOWPsOa5vuWls+S9nOWutueQvOeRtueahOiogOaDheWwj+ivtOWSjOmmmea4
+r+S9nOWutumHkeW6uOeahOatpuS+oOWwj+ivtO+8jOaIkOS4uuS4reWtpueUn+acgOWWnOasouea
+hOaWh+WtpuS9nOWTgeeUt+eUn++8jOawlOi0qOWEkumbhe+8jOiEuOiJsuWotOmdme+8jOiCpOiJ
+sueZveeame+8jOeUmuiHs+aYvuW+l+acieWHoOWIhuWls+eUn+S4gOiIrOeahOengOawlOOAgiAg
+ICDlpI/lsI/mtJvlvq7lvq7nrJHpgZPvvJrigJzmm7nmtanmmoTigKbigKbigJ0gICAg5pu55rWp
+5pqE54K55aS056yR6YGT77ya4oCc5L2g6L+Y6K6w5b6X5oiR44CC4oCdICAgIOS4pOS6uumdouWv
+ueWNg+WGm+S4h+mprO+8jOWNtOS+neeEtuawlOWkquWlveOAgiAgICDlpI/kuozni5fpgZPvvJri
+gJzlmL/vvIzmn7PmnIjlp5DvvIzkvaDlm57lrrbkuobvvIzmiJHku6zkuInkuKrlpKfnlLfkurrl
+sLHmsqHmnInlpKfljqjkuobvvIzmgLvkuI3og73miormiJHlpbblpbblj6votbfmnaXnu5nmiJHk
+u6zlgZrlkKfvvJ/igJ3pmaLnnIvnnIvlkKfjgILigJ0gICAg5aSP5bCP5rSb5Zyo5pW05Liq5Y2r
+55Sf5bGA5a625bGe6Zmi55qE5a2p5a2Q5Lit5piv5YWs6K6k55qE5pm65Yqb5ZKM5oiQ57up5pyA
+5beu55qE77yM5Zub5bKB5omN5a2m5Lya6K+06K+d77yM5oiQ57up5LiA55u05Zyo54+t6YeM5Z6r
+5bqV77yM5ZCM6b6E55qE5ZCR6Ziz5Lit5a2m55qE5a2m55Sf5LqM6IOW57uP5bi46K+077ya4oCc
+5ZSJ77yM5pyJ5LqG5aSP5bCP5rSb5oiR5Lus5bCx5a6JCQ0K
 
-Hello,
 
-after big changes in acpi video/i915 code I cannot change display=20
-brightness on my Dell Latitude E6440 with kernel 3.17-rc6. With=20
-kernel 3.13 everything worked fine.
-
-More information about this problem:
-
-=46or configuring brightness on Dell laptops there are 4 ways:
-1) via acpi video driver
-2) via dell-laptop driver
-3) via i915 drm driver
-4) from userspace with special dell SMI call
-   (e.g with program dellLcdBrightness from libsmbios package)
-
-Methods 2) and 4) are same, both making special SMI call and Bios=20
-handing this request (just 2 is from kernel and 4 from userspace)
-
-Method 1) via acpi video driver working, but is not perfect.=20
-Driver can be used to change brightness (but only some levels,=20
-probably this depends on acpi/DSDT tables), but cannot be used to=20
-retrieve current brightness (when BIOS/SMI change brightness acpi=20
-driver report old incorrect value). So I prefer dell-laptop=20
-driver instead acpi video.
-
-Method 3) working even with 3.17-rc6 kernel but because that=20
-backlight device exported by i915 is marked as raw, desktop=20
-programs prefer to use other devices.
-
-Moreover it looks like that methods 1) 2) and 4) just forward=20
-request to method 3). So in any cased brightness is changed by=20
-i915 drm driver.
-
-I'm not sure (correct me if I'm wrong!) but I think that intel=20
-i915 drm driver accept changes (file intel_opregion.c) only if=20
-acpi function acpi_video_verify_backlight_support() returns true.
-
-=46unction acpi_video_verify_backlight_support() returns true iff:
-function acpi_video_backlight_support() returns true AND at least=20
-one of these functions returns false:
-acpi_osi_is_win8()
-acpi_video_use_native_backlight()=20
-backlight_device_registered(BACKLIGHT_RAW)
-
-On my notebook acpi_osi_is_win8() returns true (as is win8=20
-compliant), backlight_device_registered(BACKLIGHT_RAW) returns=20
-true as I'm using intel i915 drm driver with raw backlight device=20
-and acpi_video_use_native_backlight() returns true/false=20
-depending on "video.use_native_backlight" kernel param. Default=20
-is true.
-
-So if I want to have working acpi video driver with display=20
-brightness support I need to boot kernel with param:=20
-"video.use_native_backlight=3D0". I tested it with kernel 3.17-rc6=20
-and this param really enabled display brightness support via acpi=20
-video driver -- which is good.
-
-Driver dell-laptop creating backligh device for brightness=20
-control only if acpi_video_backlight_support() returns false.=20
-There is complicated condition for it and when kernel is booted=20
-with "video.use_native_backlight=3D0" that function returns true.
-
-So conclusion is: With current code in kernel 3.17-rc6 it is not=20
-possible to control brightness of display with native driver=20
-dell-laptop on Dell Latitude E6440 (and probably on others=20
-too)!!!
-
-And Because laptop is win8 compliant and you create decision to=20
-use native driver (instead acpi one) it is not possible to=20
-control display brightness without tweeks in kernel cmdline.
-
-As I wrote I would rather to use native dell-laptop driver for=20
-controlling brightness, but it is not possible.
-
-So how to solve this problem?
-
-Quick solution would be to set use_native_backlight false for=20
-some Dell laptops which means, that acpi video will be used and=20
-in this case intel i915 driver will *not* drop backlight change=20
-request.
-
-Another solution could be to disable check in dell_laptop driver=20
-and add use_native_backlight=3D0 to hooks. But this create two=20
-backlight interfaces (which is not good), but only way (for now)=20
-how to make dell_laptop working again.
-
-Better and maybe only one proper solution would be to teach intel=20
-drm i915 driver to not drop backlight change request for Dell=20
-laptops (or all??). (This allows to work both acpi video and=20
-dell_laptop drivers without any change and with *any* value in=20
-param use_native_backlight). I think that problematic code is in=20
-function asle_set_backlight() in file intel_opregion.c (but I'm=20
-not sure). My idea is that "drop" event function it is caused by=20
-this commit 0b9f7d93ca6109048a4eb06332b666b6e29df4fe (but I'm not=20
-sure).
-
-At least something must be done as I think that I'm not only one=20
-who has Dell laptop and brightness configuration is really=20
-important...
-
-Thanks.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1629955.uH7RlRkzQB
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlQh0qoACgkQi/DJPQPkQ1Ks+gCeK9xnXepc3dAyp0BOP+IJhXmf
-mwMAoJduky6C8mkj5e/XaJ795wj7pXnH
-=BRDv
------END PGP SIGNATURE-----
-
---nextPart1629955.uH7RlRkzQB--
