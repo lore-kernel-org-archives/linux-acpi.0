@@ -1,76 +1,143 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Tue, 23 Sep 2014 18:26:07 +0200
-Message-ID: <2809308.3y5s7TV5Ip@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <12538216.vu4CbU01qP@wuerfel> <2895905.coa5UvrkJk@vostro.rjw.lan>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: ACPI/i915: Cannot configure display brightness on Dell Latitude E6440
+Date: Tue, 23 Sep 2014 22:06:02 +0200
+Message-ID: <201409232206.02819@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2895905.coa5UvrkJk-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed;
+  boundary="nextPart1629955.uH7RlRkzQB";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:58165 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790AbaIWUGH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 16:06:07 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
 
-On Tuesday 23 September 2014 18:25:01 Rafael J. Wysocki wrote:
-> The problem is iteration over child nodes of a given one where there
-> may not be struct device objects.
-> 
-> For example (from patch [2/16]):
-> 
-> +int acpi_for_each_child_node(struct acpi_device *adev,
-> +                             int (*fn)(struct fw_dev_node *fdn, void *data),
-> +                             void *data)
-> +{
-> +       struct acpi_device *child;
-> +       int ret = 0;
-> +
-> +       list_for_each_entry(child, &adev->children, node) {
-> +               struct fw_dev_node fdn = { .acpi_node = child, };
-> +
-> +               ret = fn(&fdn, data);
-> +               if (ret)
-> +                       break;
-> +       }
-> +       return ret;
-> +}
-> 
-> and then fn() can be made work for both DTs and ACPI.  Without this we'd
-> need to have two versions of fn(), one for DTs and one for ACPI (and possibly
-> more for some other FW protocols), which isn't necessary in general (and
-> duplicates code etc.). 
-> 
-> That actually is used by some patches down in the series (eg. [10/16]).
-> 
+--nextPart1629955.uH7RlRkzQB
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Ok, I understand what you are doing now.
+Hello,
 
-Looking at the example you point to (http://www.spinics.net/lists/devicetree/msg49502.html), I still feel
-that this is adding more abstraction than what is good for us, and
-I'd be happier with an implementation of gpio_leds_create() that
-has a bit more duplication and less abstraction.
+after big changes in acpi video/i915 code I cannot change display=20
+brightness on my Dell Latitude E6440 with kernel 3.17-rc6. With=20
+kernel 3.13 everything worked fine.
 
-The important part should be that the driver-side interface is
-sensible, other than that an implementation like
+More information about this problem:
 
-static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
-{
-	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-		return gpio_leds_create_of(pdev);
-	else if (IS_ENABLED(CONFIG_ACPI))
-		return gpio_leds_create_of(acpi);
-	return ERR_PTR(-ENXIO);
-}
+=46or configuring brightness on Dell laptops there are 4 ways:
+1) via acpi video driver
+2) via dell-laptop driver
+3) via i915 drm driver
+4) from userspace with special dell SMI call
+   (e.g with program dellLcdBrightness from libsmbios package)
 
-would keep either side of it relatively simple, by leaving out the
-indirect function calls and new for_each_available_child_of_node()
-macro.
+Methods 2) and 4) are same, both making special SMI call and Bios=20
+handing this request (just 2 is from kernel and 4 from userspace)
 
-How many other users of fw_dev_node do you have at the moment?
+Method 1) via acpi video driver working, but is not perfect.=20
+Driver can be used to change brightness (but only some levels,=20
+probably this depends on acpi/DSDT tables), but cannot be used to=20
+retrieve current brightness (when BIOS/SMI change brightness acpi=20
+driver report old incorrect value). So I prefer dell-laptop=20
+driver instead acpi video.
 
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Method 3) working even with 3.17-rc6 kernel but because that=20
+backlight device exported by i915 is marked as raw, desktop=20
+programs prefer to use other devices.
+
+Moreover it looks like that methods 1) 2) and 4) just forward=20
+request to method 3). So in any cased brightness is changed by=20
+i915 drm driver.
+
+I'm not sure (correct me if I'm wrong!) but I think that intel=20
+i915 drm driver accept changes (file intel_opregion.c) only if=20
+acpi function acpi_video_verify_backlight_support() returns true.
+
+=46unction acpi_video_verify_backlight_support() returns true iff:
+function acpi_video_backlight_support() returns true AND at least=20
+one of these functions returns false:
+acpi_osi_is_win8()
+acpi_video_use_native_backlight()=20
+backlight_device_registered(BACKLIGHT_RAW)
+
+On my notebook acpi_osi_is_win8() returns true (as is win8=20
+compliant), backlight_device_registered(BACKLIGHT_RAW) returns=20
+true as I'm using intel i915 drm driver with raw backlight device=20
+and acpi_video_use_native_backlight() returns true/false=20
+depending on "video.use_native_backlight" kernel param. Default=20
+is true.
+
+So if I want to have working acpi video driver with display=20
+brightness support I need to boot kernel with param:=20
+"video.use_native_backlight=3D0". I tested it with kernel 3.17-rc6=20
+and this param really enabled display brightness support via acpi=20
+video driver -- which is good.
+
+Driver dell-laptop creating backligh device for brightness=20
+control only if acpi_video_backlight_support() returns false.=20
+There is complicated condition for it and when kernel is booted=20
+with "video.use_native_backlight=3D0" that function returns true.
+
+So conclusion is: With current code in kernel 3.17-rc6 it is not=20
+possible to control brightness of display with native driver=20
+dell-laptop on Dell Latitude E6440 (and probably on others=20
+too)!!!
+
+And Because laptop is win8 compliant and you create decision to=20
+use native driver (instead acpi one) it is not possible to=20
+control display brightness without tweeks in kernel cmdline.
+
+As I wrote I would rather to use native dell-laptop driver for=20
+controlling brightness, but it is not possible.
+
+So how to solve this problem?
+
+Quick solution would be to set use_native_backlight false for=20
+some Dell laptops which means, that acpi video will be used and=20
+in this case intel i915 driver will *not* drop backlight change=20
+request.
+
+Another solution could be to disable check in dell_laptop driver=20
+and add use_native_backlight=3D0 to hooks. But this create two=20
+backlight interfaces (which is not good), but only way (for now)=20
+how to make dell_laptop working again.
+
+Better and maybe only one proper solution would be to teach intel=20
+drm i915 driver to not drop backlight change request for Dell=20
+laptops (or all??). (This allows to work both acpi video and=20
+dell_laptop drivers without any change and with *any* value in=20
+param use_native_backlight). I think that problematic code is in=20
+function asle_set_backlight() in file intel_opregion.c (but I'm=20
+not sure). My idea is that "drop" event function it is caused by=20
+this commit 0b9f7d93ca6109048a4eb06332b666b6e29df4fe (but I'm not=20
+sure).
+
+At least something must be done as I think that I'm not only one=20
+who has Dell laptop and brightness configuration is really=20
+important...
+
+Thanks.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1629955.uH7RlRkzQB
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlQh0qoACgkQi/DJPQPkQ1Ks+gCeK9xnXepc3dAyp0BOP+IJhXmf
+mwMAoJduky6C8mkj5e/XaJ795wj7pXnH
+=BRDv
+-----END PGP SIGNATURE-----
+
+--nextPart1629955.uH7RlRkzQB--
