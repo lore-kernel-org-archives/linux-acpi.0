@@ -1,93 +1,45 @@
-From: Joe.C <srv_yingjoe.chen@mediatek.com>
-Subject: Re: [Patch] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Tue, 23 Sep 2014 17:43:22 +0800
-Message-ID: <1411465402.8922.126.camel@mtksdaap41>
-References: <alpine.DEB.2.10.1409160859080.4247@nanos>
- <1411373856-9669-1-git-send-email-jiang.liu@linux.intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/2] gpio / CrystalCove: support virtual GPIO
+Date: Tue, 23 Sep 2014 12:13:55 +0200
+Message-ID: <CACRpkdZZ-8MAXQ_T2CYyUb0pcdS707G+NCWTc0oHJ2eqr-dcUA@mail.gmail.com>
+References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
+	<1410229968-11638-2-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1411373856-9669-1-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: x86@kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Joerg Roedel <joro@8bytes.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:61330 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754797AbaIWKN4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 06:13:56 -0400
+Received: by mail-ie0-f177.google.com with SMTP id x19so9031115ier.22
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2014 03:13:55 -0700 (PDT)
+In-Reply-To: <1410229968-11638-2-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@linux.intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, =?UTF-8?Q?Daniel_Gl=C3=B6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Mon, 2014-09-22 at 16:17 +0800, Jiang Liu wrote:
-> @@ -388,7 +389,6 @@ EXPORT_SYMBOL_GPL(irq_create_direct_mapping);
->  unsigned int irq_create_mapping(struct irq_domain *domain,
->  				irq_hw_number_t hwirq)
->  {
-> -	unsigned int hint;
->  	int virq;
->  
->  	pr_debug("irq_create_mapping(0x%p, 0x%lx)\n", domain, hwirq);
-> @@ -410,12 +410,8 @@ unsigned int irq_create_mapping(struct irq_domain *domain,
->  	}
->  
->  	/* Allocate a virtual interrupt number */
-> -	hint = hwirq % nr_irqs;
-> -	if (hint == 0)
-> -		hint++;
-> -	virq = irq_alloc_desc_from(hint, of_node_to_nid(domain->of_node));
-> -	if (virq <= 0)
-> -		virq = irq_alloc_desc_from(1, of_node_to_nid(domain->of_node));
-> +	virq = irq_domain_alloc_descs(-1, 1, hwirq,
-> +				      of_node_to_nid(domain->of_node));
+On Tue, Sep 9, 2014 at 4:32 AM, Aaron Lu <aaron.lu@intel.com> wrote:
 
-If I read this correct, the resulting virq is different after your
-change.
+> The virtual GPIO introduced in ACPI table of Baytrail-T based system is
+> used to solve a problem under Windows. We do not have such problems
+> under Linux so we do not actually need them. But we have to tell GPIO
+> library that the Crystal Cove GPIO chip has this many GPIO pins or the
+> common GPIO handler will refuse any access to those high number GPIO
+> pins, which will resulted in a failure evaluation of every ACPI control
+> method that is used to turn on/off power resource and/or report sensor
+> temperatures.
+>
+> Due to the high number of virtual GPIOs, the value of ARCH_NR_GPIOS is
+> bumped from 256 to 512 to avoid failures on platforms that have various
+> GPIO controllers.
+>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
->  	if (virq <= 0) {
->  		pr_debug("-> virq allocation failed\n");
->  		return 0;
-> @@ -490,7 +486,10 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
->  	}
->  
->  	/* Create mapping */
-> -	virq = irq_create_mapping(domain, hwirq);
-> +	if (irq_domain_is_hierarchy(domain))
-> +		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, irq_data);
-> +	else
-> +		virq = irq_create_mapping(domain, hwirq);
->  	if (!virq)
->  		return virq;
+I have some other patch pending increasing the default GPIO# to
+512, but anyhow: this needs review from someone. Where is
+Lejun? Mika also reviewed last time. Someone I trust to understand
+ACPI need to be involved, Rafael, Darren....
 
-hwirq returned from xlat above is lost. Without hwirq or virq, how do we
-know which irq are we working for?
-Also, if the irq_desc/irq_data was already created, this will create
-another one. Should we do irq_find_mapping just like irq_create_mapping?
-
-> +int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
-> +			    unsigned int nr_irqs, int node, void *arg,
-> +			    bool realloc)
-> +{
-> +	int i, ret, virq;
-> +
-> +	if (domain == NULL) {
-> +		domain = irq_default_domain;
-> +		if (WARN(!domain, "domain is NULL; cannot allocate IRQ\n"))
-> +			return -EINVAL;
-> +	}
-> +
-> +	if (!domain->ops->alloc) {
-> +		pr_debug("domain->ops->alloc() is NULL\n");
-> +		return -ENOSYS;
-> +	}
-> +
-> +	if (realloc && irq_base >= 0) {
-> +		virq =  irq_base;
-                         ^
-extra space here.
-
-Joe.C
+Yours,
+Linus Walleij
