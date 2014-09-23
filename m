@@ -1,45 +1,83 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/2] gpio / CrystalCove: support virtual GPIO
-Date: Tue, 23 Sep 2014 12:13:55 +0200
-Message-ID: <CACRpkdZZ-8MAXQ_T2CYyUb0pcdS707G+NCWTc0oHJ2eqr-dcUA@mail.gmail.com>
-References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
-	<1410229968-11638-2-git-send-email-aaron.lu@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] gpio / ACPI: Use pin index and bit length
+Date: Tue, 23 Sep 2014 13:27:28 +0300
+Message-ID: <20140923102728.GK1786@lahna.fi.intel.com>
+References: <715ed7865378d29b78003c710d50dba77b2cb9bb.1411439631.git.lv.zheng@intel.com>
+ <7b41a3ca1f673c6e3d6e6b7c94c0792c7b18badf.1411439632.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:61330 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754797AbaIWKN4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 06:13:56 -0400
-Received: by mail-ie0-f177.google.com with SMTP id x19so9031115ier.22
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2014 03:13:55 -0700 (PDT)
-In-Reply-To: <1410229968-11638-2-git-send-email-aaron.lu@intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:47667 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754466AbaIWK1d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Sep 2014 06:27:33 -0400
+Content-Disposition: inline
+In-Reply-To: <7b41a3ca1f673c6e3d6e6b7c94c0792c7b18badf.1411439632.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@linux.intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, =?UTF-8?Q?Daniel_Gl=C3=B6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>
 
-On Tue, Sep 9, 2014 at 4:32 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+On Tue, Sep 23, 2014 at 10:35:54AM +0800, Lv Zheng wrote:
+> From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> 
+> Fix code when the operation region callback is for an gpio, which
+> is not at index 0 and for partial pins in a GPIO definition.
+> For example:
+> Name (GMOD, ResourceTemplate ()
+> {
+> 	//3 Outputs that define the Power mode of the device
+> 	GpioIo (Exclusive, PullDown, , , , "\\_SB.GPI2") {10, 11, 12}
+> 	})
+> }
+> 
+> If opregion callback calls is for:
+> - Set pin 10, then address = 0 and bit length = 1
+> - Set pin 11, then address = 1 and bit length = 1
+> - Set for both pin 11 and pin 12, then address = 1, bit length = 2
+> 
+> This change requires updated ACPICA gpio operation handler code to
+> send the pin index and bit length.
+> 
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-> The virtual GPIO introduced in ACPI table of Baytrail-T based system is
-> used to solve a problem under Windows. We do not have such problems
-> under Linux so we do not actually need them. But we have to tell GPIO
-> library that the Crystal Cove GPIO chip has this many GPIO pins or the
-> common GPIO handler will refuse any access to those high number GPIO
-> pins, which will resulted in a failure evaluation of every ACPI control
-> method that is used to turn on/off power resource and/or report sensor
-> temperatures.
->
-> Due to the high number of virtual GPIOs, the value of ARCH_NR_GPIOS is
-> bumped from 256 to 512 to avoid failures on platforms that have various
-> GPIO controllers.
->
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Adding the GPIO maintainers since we need their ACK to get this merged
+through ACPI tree.
 
-I have some other patch pending increasing the default GPIO# to
-512, but anyhow: this needs review from someone. Where is
-Lejun? Mika also reviewed last time. Someone I trust to understand
-ACPI need to be involved, Rafael, Darren....
-
-Yours,
-Linus Walleij
+> ---
+>  drivers/gpio/gpiolib-acpi.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index d62eaaa..687476f 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -377,8 +377,10 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+>  	struct gpio_chip *chip = achip->chip;
+>  	struct acpi_resource_gpio *agpio;
+>  	struct acpi_resource *ares;
+> +	int pin_index = (int)address;
+>  	acpi_status status;
+>  	bool pull_up;
+> +	int length;
+>  	int i;
+>  
+>  	status = acpi_buffer_to_resource(achip->conn_info.connection,
+> @@ -400,7 +402,8 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+>  		return AE_BAD_PARAMETER;
+>  	}
+>  
+> -	for (i = 0; i < agpio->pin_table_length; i++) {
+> +	length = min(agpio->pin_table_length, (u16)(pin_index + bits));
+> +	for (i = pin_index; i < length; ++i) {
+>  		unsigned pin = agpio->pin_table[i];
+>  		struct acpi_gpio_connection *conn;
+>  		struct gpio_desc *desc;
+> -- 
+> 1.7.10
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
