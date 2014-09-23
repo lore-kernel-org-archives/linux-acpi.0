@@ -1,106 +1,131 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Tue, 23 Sep 2014 22:47:36 +0200
-Message-ID: <1579761.oeYleOAY1N@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2895905.coa5UvrkJk@vostro.rjw.lan> <2809308.3y5s7TV5Ip@wuerfel>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: ACPI/i915: Cannot configure display brightness on Dell Latitude
+ E6440
+Date: Tue, 23 Sep 2014 22:31:31 +0200
+Message-ID: <5421D8A3.3090502@redhat.com>
+References: <201409232206.02819@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62234 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753947AbaIWU1y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 16:27:54 -0400
-In-Reply-To: <2809308.3y5s7TV5Ip@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201409232206.02819@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Tuesday, September 23, 2014 06:26:07 PM Arnd Bergmann wrote:
-> On Tuesday 23 September 2014 18:25:01 Rafael J. Wysocki wrote:
-> > The problem is iteration over child nodes of a given one where there
-> > may not be struct device objects.
-> > 
-> > For example (from patch [2/16]):
-> > 
-> > +int acpi_for_each_child_node(struct acpi_device *adev,
-> > +                             int (*fn)(struct fw_dev_node *fdn, void *data),
-> > +                             void *data)
-> > +{
-> > +       struct acpi_device *child;
-> > +       int ret = 0;
-> > +
-> > +       list_for_each_entry(child, &adev->children, node) {
-> > +               struct fw_dev_node fdn = { .acpi_node = child, };
-> > +
-> > +               ret = fn(&fdn, data);
-> > +               if (ret)
-> > +                       break;
-> > +       }
-> > +       return ret;
-> > +}
-> > 
-> > and then fn() can be made work for both DTs and ACPI.  Without this we'd
-> > need to have two versions of fn(), one for DTs and one for ACPI (and possibly
-> > more for some other FW protocols), which isn't necessary in general (and
-> > duplicates code etc.). 
-> > 
-> > That actually is used by some patches down in the series (eg. [10/16]).
-> > 
-> 
-> Ok, I understand what you are doing now.
-> 
-> Looking at the example you point to (http://www.spinics.net/lists/devicetree/msg49502.html), I still feel
-> that this is adding more abstraction than what is good for us, and
-> I'd be happier with an implementation of gpio_leds_create() that
-> has a bit more duplication and less abstraction.
-> 
-> The important part should be that the driver-side interface is
-> sensible, other than that an implementation like
-> 
-> static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
-> {
-> 	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
-> 		return gpio_leds_create_of(pdev);
-> 	else if (IS_ENABLED(CONFIG_ACPI))
-> 		return gpio_leds_create_of(acpi);
-> 	return ERR_PTR(-ENXIO);
-> }
-> 
-> would keep either side of it relatively simple, by leaving out the
-> indirect function calls and new for_each_available_child_of_node()
-> macro.
+Hi,
 
-Quite frankly, I'm not sure what you're asking for.
+On 09/23/2014 10:06 PM, Pali Roh=C3=A1r wrote:
+> Hello,
+>
+> after big changes in acpi video/i915 code I cannot change display
+> brightness on my Dell Latitude E6440 with kernel 3.17-rc6. With
+> kernel 3.13 everything worked fine.
+>
+> More information about this problem:
+>
+> For configuring brightness on Dell laptops there are 4 ways:
+> 1) via acpi video driver
+> 2) via dell-laptop driver
+> 3) via i915 drm driver
+> 4) from userspace with special dell SMI call
+>     (e.g with program dellLcdBrightness from libsmbios package)
+>
+> Methods 2) and 4) are same, both making special SMI call and Bios
+> handing this request (just 2 is from kernel and 4 from userspace)
+>
+> Method 1) via acpi video driver working, but is not perfect.
+> Driver can be used to change brightness (but only some levels,
+> probably this depends on acpi/DSDT tables), but cannot be used to
+> retrieve current brightness (when BIOS/SMI change brightness acpi
+> driver report old incorrect value). So I prefer dell-laptop
+> driver instead acpi video.
+>
+> Method 3) working even with 3.17-rc6 kernel but because that
+> backlight device exported by i915 is marked as raw, desktop
+> programs prefer to use other devices.
+>
+> Moreover it looks like that methods 1) 2) and 4) just forward
+> request to method 3). So in any cased brightness is changed by
+> i915 drm driver.
+>
+> I'm not sure (correct me if I'm wrong!) but I think that intel
+> i915 drm driver accept changes (file intel_opregion.c) only if
+> acpi function acpi_video_verify_backlight_support() returns true.
+>
+> Function acpi_video_verify_backlight_support() returns true iff:
+> function acpi_video_backlight_support() returns true AND at least
+> one of these functions returns false:
+> acpi_osi_is_win8()
+> acpi_video_use_native_backlight()
+> backlight_device_registered(BACKLIGHT_RAW)
+>
+> On my notebook acpi_osi_is_win8() returns true (as is win8
+> compliant), backlight_device_registered(BACKLIGHT_RAW) returns
+> true as I'm using intel i915 drm driver with raw backlight device
+> and acpi_video_use_native_backlight() returns true/false
+> depending on "video.use_native_backlight" kernel param. Default
+> is true.
+>
+> So if I want to have working acpi video driver with display
+> brightness support I need to boot kernel with param:
+> "video.use_native_backlight=3D0". I tested it with kernel 3.17-rc6
+> and this param really enabled display brightness support via acpi
+> video driver -- which is good.
+>
+> Driver dell-laptop creating backligh device for brightness
+> control only if acpi_video_backlight_support() returns false.
+> There is complicated condition for it and when kernel is booted
+> with "video.use_native_backlight=3D0" that function returns true.
+>
+> So conclusion is: With current code in kernel 3.17-rc6 it is not
+> possible to control brightness of display with native driver
+> dell-laptop on Dell Latitude E6440 (and probably on others
+> too)!!!
+>
+> And Because laptop is win8 compliant and you create decision to
+> use native driver (instead acpi one) it is not possible to
+> control display brightness without tweeks in kernel cmdline.
+>
+> As I wrote I would rather to use native dell-laptop driver for
+> controlling brightness, but it is not possible.
+>
+> So how to solve this problem?
+>
+> Quick solution would be to set use_native_backlight false for
+> some Dell laptops which means, that acpi video will be used and
+> in this case intel i915 driver will *not* drop backlight change
+> request.
+>
+> Another solution could be to disable check in dell_laptop driver
+> and add use_native_backlight=3D0 to hooks. But this create two
+> backlight interfaces (which is not good), but only way (for now)
+> how to make dell_laptop working again.
+>
+> Better and maybe only one proper solution would be to teach intel
+> drm i915 driver to not drop backlight change request for Dell
+> laptops (or all??). (This allows to work both acpi video and
+> dell_laptop drivers without any change and with *any* value in
+> param use_native_backlight). I think that problematic code is in
+> function asle_set_backlight() in file intel_opregion.c (but I'm
+> not sure). My idea is that "drop" event function it is caused by
+> this commit 0b9f7d93ca6109048a4eb06332b666b6e29df4fe (but I'm not
+> sure).
+>
+> At least something must be done as I think that I'm not only one
+> who has Dell laptop and brightness configuration is really
+> important...
 
-It seems to mean "I kind of don't like the current implementation", but
-then the last part is quite unclear to me.  Are you suggesting to add more
-"if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) etc" type of checks to
-device drivers?  That I'd like to avoid to be honest.
+I don't understand your problem, the kernel is selecting the
+i915 backlight driver, making that the only one available to
+userspace, so the one problem you state with the i915 driver, that
+it is "raw" is not an issue, as userspace will pick it when it is
+the only one.
 
-Instead of the current proposal we can introduce something like
+Why would you want to use dell-laptop despite the i915 driver
+working fine ?
 
-int device_get_child_property(struct device *dev, void *child_node,
-                              const char *propname, void **valptr);
+Regards,
 
-(and analogously for device_read_property*) and use that in the drivers that
-need to iterate over child nodes of a device.  Quite along the lines of what
-Dmitry is suggesting.
-
-Then, fn() in acpi_for_each_child_node() (and the of_ counterpart of it)
-would become
-
-int (*fn)(struct device *dev, void *child_node, void *data)
-
-and so on.
-
-Would you prefer that?
-
-
-> How many other users of fw_dev_node do you have at the moment?
-
-One more, gpio_keys_polled in patch [13/16] (https://patchwork.kernel.org/patch/4917311/).
-
-Rafael
-
+Hans
