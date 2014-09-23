@@ -1,43 +1,85 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device
- properties interface
-Date: Tue, 23 Sep 2014 17:25:50 +0200
-Message-ID: <CACRpkdaZJt_6cd1vtDw-Ys+YqUhNb0aXazUxGCX8mk4=6EmdHw@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH v2 06/16] gpio / ACPI: Add support for _DSD device properties
+Date: Tue, 23 Sep 2014 17:27:19 +0200
+Message-ID: <CACRpkdaMboJa4e7PyxDQCFX_+a0Odr57i-00qs0bJePkBqfaYQ@mail.gmail.com>
 References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
-	<1410868367-11056-8-git-send-email-mika.westerberg@linux.intel.com>
+	<1410868367-11056-7-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1410868367-11056-8-git-send-email-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:44496 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754470AbaIWP1U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Sep 2014 11:27:20 -0400
+Received: by mail-ie0-f171.google.com with SMTP id rd18so4891101iec.30
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Sep 2014 08:27:19 -0700 (PDT)
+In-Reply-To: <1410868367-11056-7-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
 On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
-<mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+<mika.westerberg@linux.intel.com> wrote:
 
-> Some drivers need to deal with only firmware representation of its
-> GPIOs. An example would be a GPIO button array driver where each button
-> is described as a separate firmware node in device tree. Typically these
-> child nodes do not have physical representation in the Linux device
-> model.
+> With release of ACPI 5.1 and _DSD method we can finally name GPIOs (and
+> other things as well) returned by _CRS. Previously we were only able to
+> use integer index to find the corresponding GPIO, which is pretty error
+> prone if the order changes.
 >
-> In order to help device drivers to handle such firmware child nodes we
-> add dev[m]_node_get_named_gpiod() that takes a firmware node pointer as
-> parameter, finds the GPIO using whatever is the underlying firmware
-> method, and requests the GPIO properly.
+> With _DSD we can now query GPIOs using name instead of an integer index,
+> like the below example shows:
 >
-> Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>   // Bluetooth device with reset and shutdown GPIOs
+>   Device (BTH)
+>   {
+>       Name (_HID, ...)
+>
+>       Name (_CRS, ResourceTemplate ()
+>       {
+>           GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+>                   "\\_SB.GPO0", 0, ResourceConsumer) {15}
+>           GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+>                   "\\_SB.GPO0", 0, ResourceConsumer) {27, 31}
+>       })
+>
+>       Name (_DSD, Package ()
+>       {
+>           ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>           Package ()
+>           {
+>               Package () {"reset-gpio", Package() {^BTH, 1, 1, 0 }},
+>               Package () {"shutdown-gpio", Package() {^BTH, 0, 0, 0 }},
+>           }
+>       })
+>   }
+>
+> The format of the supported GPIO property is:
+>
+>   Package () { "name", Package () { ref, index, pin, active_low }}
+>
+>   ref - The device that has _CRS containing GpioIo()/GpioInt() resources,
+>         typically this is the device itself (BTH in our case).
+>   index - Index of the GpioIo()/GpioInt() resource in _CRS starting from zero.
+>   pin - Pin in the GpioIo()/GpioInt() resource. Typically this is zero.
+>   active_low - If 1 the GPIO is marked as active_low.
+>
+> Since ACPI GpioIo() resource does not have field saying whether it is
+> active low or high, the "active_low" argument can be used here. Setting
+> it to 1 marks the GPIO as active low.
+>
+> In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
+> resource, second pin in that resource with the GPIO number of 31.
+>
+> This patch implements necessary support to gpiolib for extracting GPIOs
+> using _DSD device properties.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-I have a hard time figuring out if this is what we want for common
-accessors between DT and ACPI.
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-Can I get some input from Grant, Arnd, Mark, Darren...?
+If Rafael is happy with this approach, and you decide to take it
+through the ACPI tree.
 
 Yours,
 Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
