@@ -1,58 +1,64 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/2] gpio / ACPI: Use pin index and bit length
-Date: Wed, 24 Sep 2014 13:25:03 +0200
-Message-ID: <CACRpkdbdY2JFDbYWaqZ2KepKUv8fQnNAR4bH0KVjVS8zcMbFoA@mail.gmail.com>
-References: <715ed7865378d29b78003c710d50dba77b2cb9bb.1411439631.git.lv.zheng@intel.com>
-	<7b41a3ca1f673c6e3d6e6b7c94c0792c7b18badf.1411439632.git.lv.zheng@intel.com>
-	<20140923102728.GK1786@lahna.fi.intel.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCH v2 05/16] mfd: Add ACPI support
+Date: Wed, 24 Sep 2014 13:00:56 +0100
+Message-ID: <20140924120056.GB32069@lee--X1>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1410868367-11056-6-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:38090 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbaIXLZF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 07:25:05 -0400
-Received: by mail-ig0-f175.google.com with SMTP id h18so6316204igc.14
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Sep 2014 04:25:04 -0700 (PDT)
-In-Reply-To: <20140923102728.GK1786@lahna.fi.intel.com>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:51026 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753186AbaIXMBD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 08:01:03 -0400
+Received: by mail-ie0-f171.google.com with SMTP id rd18so6571565iec.2
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Sep 2014 05:01:03 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1410868367-11056-6-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Tue, Sep 23, 2014 at 12:27 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Sep 23, 2014 at 10:35:54AM +0800, Lv Zheng wrote:
->> From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
->>
->> Fix code when the operation region callback is for an gpio, which
->> is not at index 0 and for partial pins in a GPIO definition.
->> For example:
->> Name (GMOD, ResourceTemplate ()
->> {
->>       //3 Outputs that define the Power mode of the device
->>       GpioIo (Exclusive, PullDown, , , , "\\_SB.GPI2") {10, 11, 12}
->>       })
->> }
->>
->> If opregion callback calls is for:
->> - Set pin 10, then address = 0 and bit length = 1
->> - Set pin 11, then address = 1 and bit length = 1
->> - Set for both pin 11 and pin 12, then address = 1, bit length = 2
->>
->> This change requires updated ACPICA gpio operation handler code to
->> send the pin index and bit length.
->>
->> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
->> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->
-> Adding the GPIO maintainers since we need their ACK to get this merged
-> through ACPI tree.
+On Tue, 16 Sep 2014, Mika Westerberg wrote:
+> If an MFD device is backed by ACPI namespace, we should allow subdevi=
+ce
+> drivers to access their corresponding ACPI companion devices through =
+normal
+> means (e.g using ACPI_COMPANION()).
+>=20
+> This patch adds such support to the MFD core. If the MFD parent devic=
+e
+> does not specify any ACPI _HID/_CID for the child device, the child
+> device will share the parent ACPI companion device. Otherwise the chi=
+ld
+> device will be assigned with the corresponding ACPI companion, if fou=
+nd
+> in the namespace below the parent.
+>=20
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+> ---
+> Lee, I tried to get rid of #ifdefs in the below patch but it wasn't
+> possible because we are using functions that are not available when
+> !CONFIG_ACPI.
+>=20
+>  Documentation/acpi/enumeration.txt | 27 +++++++++++++++++++++++++
+>  drivers/mfd/mfd-core.c             | 40 ++++++++++++++++++++++++++++=
+++++++++++
+>  include/linux/mfd/core.h           |  3 +++
+>  3 files changed, 70 insertions(+)
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Applied, thanks.
 
-When it comes to ACPI GPIO stuff I basically trust Rafael, Mika
-and Darren to do the right thing. I'm trying to learn a bit as we go.
-
-Yours,
-Linus Walleij
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
