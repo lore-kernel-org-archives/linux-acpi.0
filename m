@@ -1,55 +1,65 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [resend PATCH 3/3] usb: dwc3: add ACPI support
-Date: Wed, 24 Sep 2014 11:00:39 +0300
-Message-ID: <1411545639-18741-4-git-send-email-heikki.krogerus@linux.intel.com>
-References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH v2 12/16] input: gpio_keys_polled - Add support for
+ GPIO descriptors
+Date: Wed, 24 Sep 2014 10:02:41 +0200
+Message-ID: <CACRpkdaQNjeL5sQNO24xPzR-PJk_emBmrUgx40x7fMP9oogqGQ@mail.gmail.com>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1410868367-11056-13-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com>
+In-Reply-To: <1410868367-11056-13-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Adds ACPI ID used on newer Intel SoCs.
+On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/usb/dwc3/core.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+> From: Aaron Lu <aaron.lu@intel.com>
+>
+> GPIO descriptors are the preferred way over legacy GPIO numbers
+> nowadays. Convert the driver to use GPIO descriptors internally but
+> still allow passing legacy GPIO numbers from platform data to support
+> existing platforms.
+>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index d08cac5..c2cf2d8 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -32,6 +32,7 @@
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
- #include <linux/of.h>
-+#include <linux/acpi.h>
- 
- #include <linux/usb/ch9.h>
- #include <linux/usb/gadget.h>
-@@ -960,12 +961,21 @@ static const struct of_device_id of_dwc3_match[] = {
- MODULE_DEVICE_TABLE(of, of_dwc3_match);
- #endif
- 
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id dwc3_acpi_match[] = {
-+	{ "808622B7", 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, dwc3_acpi_match);
-+#endif
-+
- static struct platform_driver dwc3_driver = {
- 	.probe		= dwc3_probe,
- 	.remove		= dwc3_remove,
- 	.driver		= {
- 		.name	= "dwc3",
- 		.of_match_table	= of_match_ptr(of_dwc3_match),
-+		.acpi_match_table = ACPI_PTR(dwc3_acpi_match),
- 		.pm	= DWC3_PM_OPS,
- 	},
- };
--- 
-2.1.0
+Great!
+
+>  #include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
+
+Again <linux/gpio.h> should not be needed anymore.
+
+> +               /*
+> +                * Legacy GPIO number so request the GPIO here and
+> +                * convert it to descriptor.
+> +                */
+> +               if (!button->gpiod && gpio_is_valid(button->gpio)) {
+> +                       unsigned flags = 0;
+> +
+> +                       if (button->active_low)
+> +                               flags |= GPIOF_ACTIVE_LOW;
+> +
+> +                       error = devm_gpio_request_one(&pdev->dev, button->gpio,
+> +                                       flags, button->desc ? : DRV_NAME);
+> +                       if (error) {
+> +                               dev_err(dev, "unable to claim gpio %u, err=%d\n",
+> +                                       button->gpio, error);
+> +                               return error;
+> +                       }
+> +
+> +                       button->gpiod = gpio_to_desc(button->gpio);
+
+So the field button->gpio is still there, this is a bit disturbing, but when
+I grep for it I see there is a multitude of users :-/
+
+OK I guess these users have to be fixed one by one.
+
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
