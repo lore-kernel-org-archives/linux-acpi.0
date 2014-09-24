@@ -1,70 +1,61 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Wed, 24 Sep 2014 09:55:12 +0200
-Message-ID: <4515093.TGIQh7cBOD@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2809308.3y5s7TV5Ip@wuerfel> <1579761.oeYleOAY1N@vostro.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH v2 09/16] leds: leds-gpio: Add support for GPIO descriptors
+Date: Wed, 24 Sep 2014 09:55:48 +0200
+Message-ID: <CACRpkdY9enL9v=-e3W8Mqw+RFeTM8pjAPW_sF050sCVCsrJWHQ@mail.gmail.com>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1410868367-11056-10-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1579761.oeYleOAY1N-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1410868367-11056-10-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 23 September 2014 22:47:36 Rafael J. Wysocki wrote:
-> Quite frankly, I'm not sure what you're asking for.
-> 
-> It seems to mean "I kind of don't like the current implementation", but
-> then the last part is quite unclear to me.  Are you suggesting to add more
-> "if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) etc" type of checks to
-> device drivers?  That I'd like to avoid to be honest.
+On Tue, Sep 16, 2014 at 1:52 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-No, that is not what I want. Device drivers should ideally call interfaces
-that just take a 'struct device' or 'struct platform_device' pointer,
-and those should be implemented in an appropriate way.
+> GPIO descriptors are the preferred way over legacy GPIO numbers
+> nowadays. Convert the driver to use GPIO descriptors internally but
+> still allow passing legacy GPIO numbers from platform data to support
+> existing platforms.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-> Instead of the current proposal we can introduce something like
-> 
-> int device_get_child_property(struct device *dev, void *child_node,
->                               const char *propname, void **valptr);
-> 
-> (and analogously for device_read_property*) and use that in the drivers that
-> need to iterate over child nodes of a device.  Quite along the lines of what
-> Dmitry is suggesting.
-> 
-> Then, fn() in acpi_for_each_child_node() (and the of_ counterpart of it)
-> would become
-> 
-> int (*fn)(struct device *dev, void *child_node, void *data)
-> 
-> and so on.
-> 
-> Would you prefer that?
+Great!
 
-I must still be missing part of what you are trying to achieve above.
-We definitely need an interface to get properties from the device itself,
-like
+>  #include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
 
-int device_get_property(struct device *dev, const char *propname, void **valptr);
+You should not need to include <linux/gpio.h> at all after this change.
 
-(whatever valptr ends up being, that would be a separate discussion).
+> @@ -85,9 +91,10 @@ static int gpio_blink_set(struct led_classdev *led_cdev,
+>  {
+>         struct gpio_led_data *led_dat =
+>                 container_of(led_cdev, struct gpio_led_data, cdev);
+> +       int gpio = desc_to_gpio(led_dat->gpiod);
+>
+>         led_dat->blinking = 1;
+> -       return led_dat->platform_gpio_blink_set(led_dat->gpio, GPIO_LED_BLINK,
+> +       return led_dat->platform_gpio_blink_set(gpio, GPIO_LED_BLINK,
+>                                                 delay_on, delay_off);
+>  }
 
-As soon as it comes to devices that have child nodes, I don't see a
-necessity to have a generic abstraction for them, as this is typically
-only done for some of the more obscure bindings, or for child nodes that
-are defined in a subsystem-wide binding rather than a device private
-binding.
+While this is a nice first step, it must be possible to patch all in-kernel
+users of this callback to take a gpiod too...
 
-For the former case, I think they are indeed better left in drivers that
-actively know the difference between DT and ACPI, and that don't necessarily
-use the same binding for both. In the latter case, I'd leave the
-implementation up to subsystem code, which again would know what
-interface it is using.
+It's actually just:
 
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+$ git grep gpio_blink_set
+arch/arm/mach-orion5x/dns323-setup.c:   .gpio_blink_set =
+orion_gpio_led_blink_set,
+arch/arm/mach-orion5x/dns323-setup.c:   .gpio_blink_set =
+orion_gpio_led_blink_set,
+arch/arm/mach-s3c24xx/mach-h1940.c:     .gpio_blink_set = h1940_led_blink_set,
+arch/arm/mach-s3c24xx/mach-rx1950.c:    .gpio_blink_set = rx1950_led_blink_set,
+
+However we can do that as a follow-up patch. (Add to TODO...)
+
+Yours,
+Linus Walleij
