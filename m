@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v6 11/15] x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from hotplug
-Date: Wed, 24 Sep 2014 16:59:32 +0800
-Message-ID: <1411549176-30780-12-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v6 14/15] x86, irq: Introduce helper to check whether an IOAPIC has been registered
+Date: Wed, 24 Sep 2014 16:59:35 +0800
+Message-ID: <1411549176-30780-15-git-send-email-jiang.liu@linux.intel.com>
 References: <1411549176-30780-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411549176-30780-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,84 +10,95 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-We are going to support ACPI based IOAPIC hotplug, so introduce a rwsem
-to protect IOAPIC data structures from IOAPIC hotplug. We choose to
-serialize in ACPI instead of in the IOAPIC core because:
-1) currently we are only plan to support ACPI based IOAPIC hotplug
-2) it's much more cleaner and easier
-3) It does't affect IOAPIC discovered by devicetree, SFI and mpparse.
+Introduce acpi_ioapic_registered() to check whether an IOAPIC has already
+been registered, it will be used when enabling IOAPIC hotplug.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/acpi/boot.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/io_apic.h |    1 +
+ arch/x86/kernel/acpi/boot.c    |   22 ++++++++++++++++++++++
+ arch/x86/kernel/apic/io_apic.c |   11 +++++++++++
+ include/linux/acpi.h           |    1 +
+ 4 files changed, 35 insertions(+)
 
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index 7c04b8ec22a4..ca742d5249db 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -191,6 +191,7 @@ extern void mp_unmap_irq(int irq);
+ extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 			      struct ioapic_domain_cfg *cfg);
+ extern int mp_unregister_ioapic(u32 gsi_base);
++extern int mp_ioapic_registered(u32 gsi_base);
+ extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 			    irq_hw_number_t hwirq);
+ extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
 diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index b436fc735aa4..c598fd7604d5 100644
+index 0e67d792741d..5a69df5dba56 100644
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
-@@ -76,6 +76,19 @@ int acpi_fix_pin2_polarity __initdata;
- static u64 acpi_lapic_addr __initdata = APIC_DEFAULT_PHYS_BASE;
- #endif
+@@ -821,6 +821,28 @@ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
+ }
+ EXPORT_SYMBOL(acpi_unregister_ioapic);
  
-+/*
-+ * Locks related to IOAPIC hotplug
-+ * Hotplug side:
-+ * 	->lock_device_hotplug()	//device_hotplug_lock
-+ *		->acpi_ioapic_rwsem
-+ *			->ioapic_lock
-+ * Interrupt mapping side:
-+ *	->acpi_ioapic_rwsem
-+ *		->ioapic_mutex
-+ *			->ioapic_lock
++/**
++ * acpi_ioapic_registered - Check whether IOAPIC assoicatied with @gsi_base
++ *			    has been registered
++ * @handle:	ACPI handle of the IOAPIC deivce
++ * @gsi_base:	GSI base associated with the IOAPIC
++ *
++ * Assume caller holds some type of lock to serialize acpi_ioapic_registered()
++ * with acpi_register_ioapic()/acpi_unregister_ioapic().
 + */
-+static DECLARE_RWSEM(acpi_ioapic_rwsem);
++int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base)
++{
++	int ret = 0;
 +
- /* --------------------------------------------------------------------------
-                               Boot-time Configuration
-    -------------------------------------------------------------------------- */
-@@ -604,8 +617,11 @@ void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger)
- 
- int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
++#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
++	down_read(&acpi_ioapic_rwsem);
++	ret  = mp_ioapic_registered(gsi_base);
++	up_read(&acpi_ioapic_rwsem);
++#endif
++
++	return ret;
++}
++
+ static int __init acpi_parse_sbf(struct acpi_table_header *table)
  {
--	int irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK);
-+	int irq;
- 
-+	down_read(&acpi_ioapic_rwsem);
-+	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK);
-+	up_read(&acpi_ioapic_rwsem);
- 	if (irq >= 0) {
- 		*irqp = irq;
- 		return 0;
-@@ -646,7 +662,9 @@ static int acpi_register_gsi_ioapic(struct device *dev, u32 gsi,
- 	int irq = gsi;
- 
- #ifdef CONFIG_X86_IO_APIC
-+	down_read(&acpi_ioapic_rwsem);
- 	irq = mp_register_gsi(dev, gsi, trigger, polarity);
-+	up_read(&acpi_ioapic_rwsem);
- #endif
- 
- 	return irq;
-@@ -655,7 +673,9 @@ static int acpi_register_gsi_ioapic(struct device *dev, u32 gsi,
- static void acpi_unregister_gsi_ioapic(u32 gsi)
- {
- #ifdef CONFIG_X86_IO_APIC
-+	down_read(&acpi_ioapic_rwsem);
- 	mp_unregister_gsi(gsi);
-+	up_read(&acpi_ioapic_rwsem);
- #endif
+ 	struct acpi_table_boot *sb;
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 7fec2a8f72f3..eba25bccefd2 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -4013,6 +4013,17 @@ int mp_unregister_ioapic(u32 gsi_base)
+ 	return 0;
  }
  
-@@ -1181,7 +1201,9 @@ static void __init acpi_process_madt(void)
- 			/*
- 			 * Parse MADT IO-APIC entries
- 			 */
-+			down_write(&acpi_ioapic_rwsem);
- 			error = acpi_parse_madt_ioapic_entries();
-+			up_write(&acpi_ioapic_rwsem);
- 			if (!error) {
- 				acpi_set_irq_model_ioapic();
++int mp_ioapic_registered(u32 gsi_base)
++{
++	int ioapic;
++
++	for_each_ioapic(ioapic)
++		if (ioapics[ioapic].gsi_config.gsi_base == gsi_base)
++			return 1;
++
++	return 0;
++}
++
+ int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 		     irq_hw_number_t hwirq)
+ {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 3574f137242e..e916cc9ca5a8 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -152,6 +152,7 @@ int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
  
+ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
+ int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
++int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base);
+ void acpi_irq_stats_init(void);
+ extern u32 acpi_irq_handled;
+ extern u32 acpi_irq_not_handled;
 -- 
 1.7.10.4
