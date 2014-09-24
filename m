@@ -1,56 +1,71 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: move acpi code back into the core
-Date: Wed, 24 Sep 2014 17:44:58 +0200
-Message-ID: <20140924154457.GB1283@katana>
-References: <1411420006-4713-1-git-send-email-wsa@the-dreams.de>
- <5420CEC9.1030400@intel.com>
- <20140923053951.GA1411@katana>
- <54211C96.3030608@intel.com>
- <542139E6.2030806@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 0/4] Extending the first version of the patch to the
+ entire directory
+Date: Wed, 24 Sep 2014 11:42:01 -0600
+Message-ID: <20140924174201.GB20416@google.com>
+References: <20140907180023.GA1849@greed>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LpQ9ahxlCli8rRTG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <542139E6.2030806@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.de>, "Wu, Fengguang" <fengguang.wu@intel.com>
+In-Reply-To: <20140907180023.GA1849@greed>
+Sender: linux-pci-owner@vger.kernel.org
+To: Quentin Lambert <lambert.quentin@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Scott Murray <scott@spiteful.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, Sep 07, 2014 at 08:00:23PM +0200, Quentin Lambert wrote:
+> Patch 1 and 2 are straight forward extension from the previous version
+> of the patch.
+> 
+> Patch 3 introduces checkpatch warning due to lines surpassing 80
+> characters. Another warning concerning too many preceding tabs
+> is not fixed either.
+> 
+> Patch 4 are less straight forward similar modifications
+> the modification made to ibmphp_res.c change the value of len_tmp
+> when the first condition in if statement is not met.
+> I wasn't quite sure how to solve elegantly the checkpatch error for
+> slot.c, I chose to use a label and gotos since it was already used
+> and allowed for a slight code factorisation. This being my first patch I
+> understand that this may not be the best solution.
 
---LpQ9ahxlCli8rRTG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks for splitting out patch 4 from 3; it definitely made it easier to
+review.
 
-> Hi Wolfram:
-> The patch passed through the following 110 configure build test in the
-> 0-day build test system.
+I dropped a couple bits from patch 4 that I'll mention in a reply to that patch.
 
-Thanks, but my tree gets checked automatically anyhow. What I'd need is
-functional tests because I don't have hardware to test.
+I applied the rest to pci/cleanup and plan to merge it toward the end of
+the v3.18 merge window, thanks!
 
+Bjorn
 
---LpQ9ahxlCli8rRTG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUIub5AAoJEBQN5MwUoCm2vkEP/3JCSxcOmGYXL9OOCFPDLk2h
-JsdsiTtfjMdb7Yrr6gM3OsK9Dp2N/06kOX+7c7SkvHe9mQW4OyfW3LYzHcC4Qmks
-VpIOT3RpWAbffGGpPXmcLizRHMP+irhhFhpNxTANKNHkCRmBEgSsAQuwjGnoJi8Q
-Riiz1udc1AviIdg0bpAINijwIeMliKN2H9dPSDRIOqebS+zEI0e86lPGcMa4ZkhV
-F2VDRF1B9jAg5kXJGi7XYtYovfBTPDhzPQcrSLzYwuADNGmBlNcazrlzB79Qo2ZH
-5T+wkvGpfyV1oletDaWmxanT1wDcwQIiaPUy7djPu30WRm0rqpto630uWhDgkIn6
-UJdeFd4QMdyzCxwhqR1LmfIoz7lST8B2JpzZvDfLB2of2oW9YKaTI3ZwQ2SxiYnA
-B/QEW/QJJVtKF4GFc7tBu75M+EdWy1hEHO3nmS+iljToaSx72Br8TR4J/6FUDwkh
-q4kOQfVr33ovYXAamVMqYFjbvDZzV9xV28+LvN3h8Gp/3B4nSmg9dVfE2USBUE2O
-ZNvbMINdyCHYYiG16Cz2xXEFtMbYOQk9xyVBCcPAhG8+FRKVIAHT/fTSk1J+ysrT
-mEZLRzK3MY+oz1l6YZTcjX4rkd+s9tx3kVMQ5UV+FLY7PzQHR651ffnDlPphZ8kX
-PKpZartgjc3dakoDos0U
-=NC45
------END PGP SIGNATURE-----
-
---LpQ9ahxlCli8rRTG--
+> Quentin Lambert (4):
+>   PCI: fix a missing space coding style issue
+>   PCI: fix a simple if coding style issue
+>   PCI: remove assignement from if conditions
+>   PCI: remove assignement in non straight forward if condition
+> 
+>  drivers/pci/hotplug/acpi_pcihp.c        |  3 ++-
+>  drivers/pci/hotplug/acpiphp_ibm.c       |  2 +-
+>  drivers/pci/hotplug/cpci_hotplug_core.c | 13 ++++++----
+>  drivers/pci/hotplug/cpcihp_generic.c    | 28 ++++++++++-----------
+>  drivers/pci/hotplug/cpcihp_zt5550.c     | 44 ++++++++++++++++-----------------
+>  drivers/pci/hotplug/cpqphp.h            |  2 +-
+>  drivers/pci/hotplug/cpqphp_core.c       |  3 +--
+>  drivers/pci/hotplug/cpqphp_ctrl.c       | 19 ++++++--------
+>  drivers/pci/hotplug/cpqphp_nvram.c      | 13 ++++------
+>  drivers/pci/hotplug/ibmphp_core.c       | 19 ++++++++------
+>  drivers/pci/hotplug/ibmphp_ebda.c       |  3 +--
+>  drivers/pci/hotplug/ibmphp_hpc.c        |  3 +--
+>  drivers/pci/hotplug/ibmphp_pci.c        |  6 +++--
+>  drivers/pci/hotplug/ibmphp_res.c        | 43 ++++++++++++++++++++++----------
+>  drivers/pci/hotplug/shpchp_ctrl.c       | 12 ++++++---
+>  drivers/pci/hotplug/shpchp_hpc.c        |  3 ++-
+>  drivers/pci/pci.c                       | 19 +++++++++++---
+>  drivers/pci/slot.c                      | 12 +++++++--
+>  18 files changed, 143 insertions(+), 104 deletions(-)
+> 
+> -- 
+> 1.9.1
+> 
