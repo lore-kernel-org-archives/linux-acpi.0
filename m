@@ -1,74 +1,70 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Part2 v1 01/21] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Wed, 24 Sep 2014 15:23:18 +0800
-Message-ID: <54227166.7010901@linux.intel.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <1410444228-3134-2-git-send-email-jiang.liu@linux.intel.com> <54226AE1.4000603@jp.fujitsu.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
+Date: Wed, 24 Sep 2014 09:55:12 +0200
+Message-ID: <4515093.TGIQh7cBOD@wuerfel>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2809308.3y5s7TV5Ip@wuerfel> <1579761.oeYleOAY1N@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29176 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750717AbaIXHX3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Sep 2014 03:23:29 -0400
-In-Reply-To: <54226AE1.4000603@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1579761.oeYleOAY1N-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Tuesday 23 September 2014 22:47:36 Rafael J. Wysocki wrote:
+> Quite frankly, I'm not sure what you're asking for.
+> 
+> It seems to mean "I kind of don't like the current implementation", but
+> then the last part is quite unclear to me.  Are you suggesting to add more
+> "if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) etc" type of checks to
+> device drivers?  That I'd like to avoid to be honest.
 
+No, that is not what I want. Device drivers should ideally call interfaces
+that just take a 'struct device' or 'struct platform_device' pointer,
+and those should be implemented in an appropriate way.
 
-On 2014/9/24 14:55, Yasuaki Ishimatsu wrote:
-> (2014/09/11 23:03), Jiang Liu wrote:
->> +static void irq_domain_free_irq_data(unsigned int virq, unsigned int nr_irqs)
->> +{
->> +	int i;
->> +	struct irq_data *irq_data, *tmp;
->> +
->> +	for (i = 0; i < nr_irqs; i++) {
+> Instead of the current proposal we can introduce something like
 > 
->> +		irq_data = irq_get_irq_data(virq + i);
->> +		tmp = irq_data->parent_data;
+> int device_get_child_property(struct device *dev, void *child_node,
+>                               const char *propname, void **valptr);
 > 
-> Why don't you care NULL condition?
-Yeah, there's an explicitly assumption that, irq_get_irq_data()
-always return valid pointer once we have allocated the irq number
-and associated irq_desc. If preferred, I will add a check here.
+> (and analogously for device_read_property*) and use that in the drivers that
+> need to iterate over child nodes of a device.  Quite along the lines of what
+> Dmitry is suggesting.
+> 
+> Then, fn() in acpi_for_each_child_node() (and the of_ counterpart of it)
+> would become
+> 
+> int (*fn)(struct device *dev, void *child_node, void *data)
+> 
+> and so on.
+> 
+> Would you prefer that?
 
-> 
->> +		irq_data->parent_data = NULL;
->> +		irq_data->domain = NULL;
->> +
->> +		while (tmp) {
->> +			irq_data = tmp;
->> +			tmp = tmp->parent_data;
->> +			kfree(irq_data);
->> +		}
->> +	}
->> +}
->> +
->> +static int irq_domain_alloc_irq_data(struct irq_domain *domain,
->> +				     unsigned int virq, unsigned int nr_irqs)
->> +{
->> +	int i;
->> +	struct irq_data *irq_data;
->> +	struct irq_domain *parent;
->> +
->> +	/* The outmost irq_data is embedded in struct irq_desc */
->> +	for (i = 0; i < nr_irqs; i++) {
-> 
-> 
->> +		irq_data = irq_get_irq_data(virq + i);
->> +		irq_data->domain = domain;
-> 
-> ditto.
-Seems as above.
-Regards!
-Gerry
+I must still be missing part of what you are trying to achieve above.
+We definitely need an interface to get properties from the device itself,
+like
 
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
+int device_get_property(struct device *dev, const char *propname, void **valptr);
+
+(whatever valptr ends up being, that would be a separate discussion).
+
+As soon as it comes to devices that have child nodes, I don't see a
+necessity to have a generic abstraction for them, as this is typically
+only done for some of the more obscure bindings, or for child nodes that
+are defined in a subsystem-wide binding rather than a device private
+binding.
+
+For the former case, I think they are indeed better left in drivers that
+actively know the difference between DT and ACPI, and that don't necessarily
+use the same binding for both. In the latter case, I'd leave the
+implementation up to subsystem code, which again would know what
+interface it is using.
+
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
