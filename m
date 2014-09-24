@@ -1,170 +1,138 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: ACPI/i915: Cannot configure display brightness on
- Dell Latitude E6440
-Date: Wed, 24 Sep 2014 10:19:38 +0200
-Message-ID: <54227E9A.7080107@redhat.com>
-References: <201409232206.02819@pali> <5421D8A3.3090502@redhat.com>
- <201409232244.19104@pali>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCH v2 00/16] Add ACPI _DSD and unified device properties
+ support
+Date: Wed, 24 Sep 2014 09:34:18 +0100
+Message-ID: <20140924083418.GH17801@lee--X1>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1582936.0FiE8Cvqie@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <201409232244.19104@pali>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1582936.0FiE8Cvqie@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAwOS8yMy8yMDE0IDEwOjQ0IFBNLCBQYWxpIFJvaMOhciB3cm90ZToKPiBPbiBUdWVz
-ZGF5IDIzIFNlcHRlbWJlciAyMDE0IDIyOjMxOjMxIHlvdSB3cm90ZToKPj4gSGksCj4+Cj4+IE9u
-IDA5LzIzLzIwMTQgMTA6MDYgUE0sIFBhbGkgUm9ow6FyIHdyb3RlOgo+Pj4gSGVsbG8sCj4+Pgo+
-Pj4gYWZ0ZXIgYmlnIGNoYW5nZXMgaW4gYWNwaSB2aWRlby9pOTE1IGNvZGUgSSBjYW5ub3QgY2hh
-bmdlCj4+PiBkaXNwbGF5IGJyaWdodG5lc3Mgb24gbXkgRGVsbCBMYXRpdHVkZSBFNjQ0MCB3aXRo
-IGtlcm5lbAo+Pj4gMy4xNy1yYzYuIFdpdGgga2VybmVsIDMuMTMgZXZlcnl0aGluZyB3b3JrZWQg
-ZmluZS4KPj4+Cj4+PiBNb3JlIGluZm9ybWF0aW9uIGFib3V0IHRoaXMgcHJvYmxlbToKPj4+Cj4+
-PiBGb3IgY29uZmlndXJpbmcgYnJpZ2h0bmVzcyBvbiBEZWxsIGxhcHRvcHMgdGhlcmUgYXJlIDQg
-d2F5czoKPj4+IDEpIHZpYSBhY3BpIHZpZGVvIGRyaXZlcgo+Pj4gMikgdmlhIGRlbGwtbGFwdG9w
-IGRyaXZlcgo+Pj4gMykgdmlhIGk5MTUgZHJtIGRyaXZlcgo+Pj4gNCkgZnJvbSB1c2Vyc3BhY2Ug
-d2l0aCBzcGVjaWFsIGRlbGwgU01JIGNhbGwKPj4+Cj4+PiAgICAgKGUuZyB3aXRoIHByb2dyYW0g
-ZGVsbExjZEJyaWdodG5lc3MgZnJvbSBsaWJzbWJpb3MKPj4+ICAgICBwYWNrYWdlKQo+Pj4KPj4+
-IE1ldGhvZHMgMikgYW5kIDQpIGFyZSBzYW1lLCBib3RoIG1ha2luZyBzcGVjaWFsIFNNSSBjYWxs
-IGFuZAo+Pj4gQmlvcyBoYW5kaW5nIHRoaXMgcmVxdWVzdCAoanVzdCAyIGlzIGZyb20ga2VybmVs
-IGFuZCA0IGZyb20KPj4+IHVzZXJzcGFjZSkKPj4+Cj4+PiBNZXRob2QgMSkgdmlhIGFjcGkgdmlk
-ZW8gZHJpdmVyIHdvcmtpbmcsIGJ1dCBpcyBub3QgcGVyZmVjdC4KPj4+IERyaXZlciBjYW4gYmUg
-dXNlZCB0byBjaGFuZ2UgYnJpZ2h0bmVzcyAoYnV0IG9ubHkgc29tZQo+Pj4gbGV2ZWxzLCBwcm9i
-YWJseSB0aGlzIGRlcGVuZHMgb24gYWNwaS9EU0RUIHRhYmxlcyksIGJ1dAo+Pj4gY2Fubm90IGJl
-IHVzZWQgdG8gcmV0cmlldmUgY3VycmVudCBicmlnaHRuZXNzICh3aGVuCj4+PiBCSU9TL1NNSSBj
-aGFuZ2UgYnJpZ2h0bmVzcyBhY3BpIGRyaXZlciByZXBvcnQgb2xkIGluY29ycmVjdAo+Pj4gdmFs
-dWUpLiBTbyBJIHByZWZlciBkZWxsLWxhcHRvcCBkcml2ZXIgaW5zdGVhZCBhY3BpIHZpZGVvLgo+
-Pj4KPj4+IE1ldGhvZCAzKSB3b3JraW5nIGV2ZW4gd2l0aCAzLjE3LXJjNiBrZXJuZWwgYnV0IGJl
-Y2F1c2UgdGhhdAo+Pj4gYmFja2xpZ2h0IGRldmljZSBleHBvcnRlZCBieSBpOTE1IGlzIG1hcmtl
-ZCBhcyByYXcsIGRlc2t0b3AKPj4+IHByb2dyYW1zIHByZWZlciB0byB1c2Ugb3RoZXIgZGV2aWNl
-cy4KPj4+Cj4+PiBNb3Jlb3ZlciBpdCBsb29rcyBsaWtlIHRoYXQgbWV0aG9kcyAxKSAyKSBhbmQg
-NCkganVzdAo+Pj4gZm9yd2FyZCByZXF1ZXN0IHRvIG1ldGhvZCAzKS4gU28gaW4gYW55IGNhc2Vk
-IGJyaWdodG5lc3MgaXMKPj4+IGNoYW5nZWQgYnkgaTkxNSBkcm0gZHJpdmVyLgo+Pj4KPj4+IEkn
-bSBub3Qgc3VyZSAoY29ycmVjdCBtZSBpZiBJJ20gd3JvbmchKSBidXQgSSB0aGluayB0aGF0Cj4+
-PiBpbnRlbCBpOTE1IGRybSBkcml2ZXIgYWNjZXB0IGNoYW5nZXMgKGZpbGUKPj4+IGludGVsX29w
-cmVnaW9uLmMpIG9ubHkgaWYgYWNwaSBmdW5jdGlvbgo+Pj4gYWNwaV92aWRlb192ZXJpZnlfYmFj
-a2xpZ2h0X3N1cHBvcnQoKSByZXR1cm5zIHRydWUuCj4+Pgo+Pj4gRnVuY3Rpb24gYWNwaV92aWRl
-b192ZXJpZnlfYmFja2xpZ2h0X3N1cHBvcnQoKSByZXR1cm5zIHRydWUKPj4+IGlmZjogZnVuY3Rp
-b24gYWNwaV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCgpIHJldHVybnMgdHJ1ZQo+Pj4gQU5EIGF0
-IGxlYXN0IG9uZSBvZiB0aGVzZSBmdW5jdGlvbnMgcmV0dXJucyBmYWxzZToKPj4+IGFjcGlfb3Np
-X2lzX3dpbjgoKQo+Pj4gYWNwaV92aWRlb191c2VfbmF0aXZlX2JhY2tsaWdodCgpCj4+PiBiYWNr
-bGlnaHRfZGV2aWNlX3JlZ2lzdGVyZWQoQkFDS0xJR0hUX1JBVykKPj4+Cj4+PiBPbiBteSBub3Rl
-Ym9vayBhY3BpX29zaV9pc193aW44KCkgcmV0dXJucyB0cnVlIChhcyBpcyB3aW44Cj4+PiBjb21w
-bGlhbnQpLCBiYWNrbGlnaHRfZGV2aWNlX3JlZ2lzdGVyZWQoQkFDS0xJR0hUX1JBVykKPj4+IHJl
-dHVybnMgdHJ1ZSBhcyBJJ20gdXNpbmcgaW50ZWwgaTkxNSBkcm0gZHJpdmVyIHdpdGggcmF3Cj4+
-PiBiYWNrbGlnaHQgZGV2aWNlIGFuZCBhY3BpX3ZpZGVvX3VzZV9uYXRpdmVfYmFja2xpZ2h0KCkK
-Pj4+IHJldHVybnMgdHJ1ZS9mYWxzZSBkZXBlbmRpbmcgb24KPj4+ICJ2aWRlby51c2VfbmF0aXZl
-X2JhY2tsaWdodCIga2VybmVsIHBhcmFtLiBEZWZhdWx0IGlzIHRydWUuCj4+Pgo+Pj4gU28gaWYg
-SSB3YW50IHRvIGhhdmUgd29ya2luZyBhY3BpIHZpZGVvIGRyaXZlciB3aXRoIGRpc3BsYXkKPj4+
-IGJyaWdodG5lc3Mgc3VwcG9ydCBJIG5lZWQgdG8gYm9vdCBrZXJuZWwgd2l0aCBwYXJhbToKPj4+
-ICJ2aWRlby51c2VfbmF0aXZlX2JhY2tsaWdodD0wIi4gSSB0ZXN0ZWQgaXQgd2l0aCBrZXJuZWwK
-Pj4+IDMuMTctcmM2IGFuZCB0aGlzIHBhcmFtIHJlYWxseSBlbmFibGVkIGRpc3BsYXkgYnJpZ2h0
-bmVzcwo+Pj4gc3VwcG9ydCB2aWEgYWNwaSB2aWRlbyBkcml2ZXIgLS0gd2hpY2ggaXMgZ29vZC4K
-Pj4+Cj4+PiBEcml2ZXIgZGVsbC1sYXB0b3AgY3JlYXRpbmcgYmFja2xpZ2ggZGV2aWNlIGZvciBi
-cmlnaHRuZXNzCj4+PiBjb250cm9sIG9ubHkgaWYgYWNwaV92aWRlb19iYWNrbGlnaHRfc3VwcG9y
-dCgpIHJldHVybnMKPj4+IGZhbHNlLiBUaGVyZSBpcyBjb21wbGljYXRlZCBjb25kaXRpb24gZm9y
-IGl0IGFuZCB3aGVuCj4+PiBrZXJuZWwgaXMgYm9vdGVkIHdpdGggInZpZGVvLnVzZV9uYXRpdmVf
-YmFja2xpZ2h0PTAiIHRoYXQKPj4+IGZ1bmN0aW9uIHJldHVybnMgdHJ1ZS4KPj4+Cj4+PiBTbyBj
-b25jbHVzaW9uIGlzOiBXaXRoIGN1cnJlbnQgY29kZSBpbiBrZXJuZWwgMy4xNy1yYzYgaXQgaXMK
-Pj4+IG5vdCBwb3NzaWJsZSB0byBjb250cm9sIGJyaWdodG5lc3Mgb2YgZGlzcGxheSB3aXRoIG5h
-dGl2ZQo+Pj4gZHJpdmVyIGRlbGwtbGFwdG9wIG9uIERlbGwgTGF0aXR1ZGUgRTY0NDAgKGFuZCBw
-cm9iYWJseSBvbgo+Pj4gb3RoZXJzIHRvbykhISEKPj4+Cj4+PiBBbmQgQmVjYXVzZSBsYXB0b3Ag
-aXMgd2luOCBjb21wbGlhbnQgYW5kIHlvdSBjcmVhdGUgZGVjaXNpb24KPj4+IHRvIHVzZSBuYXRp
-dmUgZHJpdmVyIChpbnN0ZWFkIGFjcGkgb25lKSBpdCBpcyBub3QgcG9zc2libGUKPj4+IHRvIGNv
-bnRyb2wgZGlzcGxheSBicmlnaHRuZXNzIHdpdGhvdXQgdHdlZWtzIGluIGtlcm5lbAo+Pj4gY21k
-bGluZS4KPj4+Cj4+PiBBcyBJIHdyb3RlIEkgd291bGQgcmF0aGVyIHRvIHVzZSBuYXRpdmUgZGVs
-bC1sYXB0b3AgZHJpdmVyCj4+PiBmb3IgY29udHJvbGxpbmcgYnJpZ2h0bmVzcywgYnV0IGl0IGlz
-IG5vdCBwb3NzaWJsZS4KPj4+Cj4+PiBTbyBob3cgdG8gc29sdmUgdGhpcyBwcm9ibGVtPwo+Pj4K
-Pj4+IFF1aWNrIHNvbHV0aW9uIHdvdWxkIGJlIHRvIHNldCB1c2VfbmF0aXZlX2JhY2tsaWdodCBm
-YWxzZQo+Pj4gZm9yIHNvbWUgRGVsbCBsYXB0b3BzIHdoaWNoIG1lYW5zLCB0aGF0IGFjcGkgdmlk
-ZW8gd2lsbCBiZQo+Pj4gdXNlZCBhbmQgaW4gdGhpcyBjYXNlIGludGVsIGk5MTUgZHJpdmVyIHdp
-bGwgKm5vdCogZHJvcAo+Pj4gYmFja2xpZ2h0IGNoYW5nZSByZXF1ZXN0Lgo+Pj4KPj4+IEFub3Ro
-ZXIgc29sdXRpb24gY291bGQgYmUgdG8gZGlzYWJsZSBjaGVjayBpbiBkZWxsX2xhcHRvcAo+Pj4g
-ZHJpdmVyIGFuZCBhZGQgdXNlX25hdGl2ZV9iYWNrbGlnaHQ9MCB0byBob29rcy4gQnV0IHRoaXMK
-Pj4+IGNyZWF0ZSB0d28gYmFja2xpZ2h0IGludGVyZmFjZXMgKHdoaWNoIGlzIG5vdCBnb29kKSwg
-YnV0Cj4+PiBvbmx5IHdheSAoZm9yIG5vdykgaG93IHRvIG1ha2UgZGVsbF9sYXB0b3Agd29ya2lu
-ZyBhZ2Fpbi4KPj4+Cj4+PiBCZXR0ZXIgYW5kIG1heWJlIG9ubHkgb25lIHByb3BlciBzb2x1dGlv
-biB3b3VsZCBiZSB0byB0ZWFjaAo+Pj4gaW50ZWwgZHJtIGk5MTUgZHJpdmVyIHRvIG5vdCBkcm9w
-IGJhY2tsaWdodCBjaGFuZ2UgcmVxdWVzdAo+Pj4gZm9yIERlbGwgbGFwdG9wcyAob3IgYWxsPz8p
-LiAoVGhpcyBhbGxvd3MgdG8gd29yayBib3RoIGFjcGkKPj4+IHZpZGVvIGFuZCBkZWxsX2xhcHRv
-cCBkcml2ZXJzIHdpdGhvdXQgYW55IGNoYW5nZSBhbmQgd2l0aAo+Pj4gKmFueSogdmFsdWUgaW4g
-cGFyYW0gdXNlX25hdGl2ZV9iYWNrbGlnaHQpLiBJIHRoaW5rIHRoYXQKPj4+IHByb2JsZW1hdGlj
-IGNvZGUgaXMgaW4gZnVuY3Rpb24gYXNsZV9zZXRfYmFja2xpZ2h0KCkgaW4KPj4+IGZpbGUgaW50
-ZWxfb3ByZWdpb24uYyAoYnV0IEknbSBub3Qgc3VyZSkuIE15IGlkZWEgaXMgdGhhdAo+Pj4gImRy
-b3AiIGV2ZW50IGZ1bmN0aW9uIGl0IGlzIGNhdXNlZCBieSB0aGlzIGNvbW1pdAo+Pj4gMGI5Zjdk
-OTNjYTYxMDkwNDhhNGViMDYzMzJiNjY2YjZlMjlkZjRmZSAoYnV0IEknbSBub3QKPj4+IHN1cmUp
-Lgo+Pj4KPj4+IEF0IGxlYXN0IHNvbWV0aGluZyBtdXN0IGJlIGRvbmUgYXMgSSB0aGluayB0aGF0
-IEknbSBub3Qgb25seQo+Pj4gb25lIHdobyBoYXMgRGVsbCBsYXB0b3AgYW5kIGJyaWdodG5lc3Mg
-Y29uZmlndXJhdGlvbiBpcwo+Pj4gcmVhbGx5IGltcG9ydGFudC4uLgo+Pgo+PiBJIGRvbid0IHVu
-ZGVyc3RhbmQgeW91ciBwcm9ibGVtLCB0aGUga2VybmVsIGlzIHNlbGVjdGluZyB0aGUKPj4gaTkx
-NSBiYWNrbGlnaHQgZHJpdmVyLCBtYWtpbmcgdGhhdCB0aGUgb25seSBvbmUgYXZhaWxhYmxlIHRv
-Cj4+IHVzZXJzcGFjZSwgc28gdGhlIG9uZSBwcm9ibGVtIHlvdSBzdGF0ZSB3aXRoIHRoZSBpOTE1
-IGRyaXZlciwKPj4gdGhhdCBpdCBpcyAicmF3IiBpcyBub3QgYW4gaXNzdWUsIGFzIHVzZXJzcGFj
-ZSB3aWxsIHBpY2sgaXQKPj4gd2hlbiBpdCBpcyB0aGUgb25seSBvbmUuCj4+Cj4gCj4gSXQgaXMg
-bm90IG9ubHkgb25lLgoKQXJlIHlvdSBzdXJlLCBpZiB5b3UgZG8gbm90IHNwZWNpZnkgYW55IGNv
-bW1hbmRsaW5lIHBhcmFtZXRlcnMsIHRoZW4KbmVpdGhlciBkZWxsLWxhcHRvcCBub3IgYWNwaS12
-aWRlbyBzaG91bGQgcmVnaXN0ZXIgYSBiYWNrbGlnaHQgaW50ZXJmYWNlLgoKZGVsbC1sYXB0b3Au
-YyBoYXM6CgojaWZkZWYgQ09ORklHX0FDUEkKICAgICAgICAvKiBJbiB0aGUgZXZlbnQgb2YgYW4g
-QUNQSSBiYWNrbGlnaHQgYmVpbmcgYXZhaWxhYmxlLCBkb24ndAogICAgICAgICAqIHJlZ2lzdGVy
-IHRoZSBwbGF0Zm9ybSBjb250cm9sbGVyLgogICAgICAgICAqLwogICAgICAgIGlmIChhY3BpX3Zp
-ZGVvX2JhY2tsaWdodF9zdXBwb3J0KCkpCiAgICAgICAgICAgICAgICByZXR1cm4gMDsKI2VuZGlm
-CgpBbmQgYWNwaV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCgpIHdpbGwgKG5vcm1hbGx5KSByZXR1
-cm4gdHJ1ZSBvbgphY3BpLWJhY2tsaWdodCBjYXBhYmxlIHN5c3RlbXMgaW5kZXBlbmRlbnQgb2Yg
-dXNlX25hdGl2ZV9iYWNrbGlnaHQuCgpBbmQgZHJpdmVycy9hY3BpL3ZpZGVvLmMgaGFzIHRoaXM6
-CgogICAgICAgIC8qIG5vIHdhcm5pbmcgbWVzc2FnZSBpZiBhY3BpX2JhY2tsaWdodD12ZW5kb3Ig
-b3IgYSBxdWlyayBpcyB1c2VkICovCiAgICAgICAgaWYgKCFhY3BpX3ZpZGVvX3ZlcmlmeV9iYWNr
-bGlnaHRfc3VwcG9ydCgpKQogICAgICAgICAgICAgICAgcmV0dXJuOwoKLi4uCgpib29sIGFjcGlf
-dmlkZW9fdmVyaWZ5X2JhY2tsaWdodF9zdXBwb3J0KHZvaWQpCnsKICAgICAgICBpZiAoYWNwaV9v
-c2lfaXNfd2luOCgpICYmIGFjcGlfdmlkZW9fdXNlX25hdGl2ZV9iYWNrbGlnaHQoKSAmJgogICAg
-ICAgICAgICBiYWNrbGlnaHRfZGV2aWNlX3JlZ2lzdGVyZWQoQkFDS0xJR0hUX1JBVykpCiAgICAg
-ICAgICAgICAgICByZXR1cm4gZmFsc2U7CiAgICAgICAgcmV0dXJuIGFjcGlfdmlkZW9fYmFja2xp
-Z2h0X3N1cHBvcnQoKTsKfQoKU28gdW5saWtlIHRoZSBjaGVjayBpbiBkZWxsLWxhcHRvcCB0aGlz
-IG9uZSBkb2VzIGRlcGVuZCBvbiB0aGUKdXNlX25hdGl2ZV9iYWNrbGlnaHQgc2V0dGluZy4KCkkn
-dmUganVzdCBjaGVja2VkIDMuMTcgb24gbXkgRTY0MzAgYW5kIHRoZXJlIHRoaXMgd29ya3MgYXMg
-aXQgc2hvdWxkLApJIG9ubHkgZ2V0IHRoZSBpbnRlbF9iYWNrbGlnaHQgaW4gL3N5cy9jbGFzcy9i
-YWNrbGlnaHQKCj4gQWxzbyBkZWxsLWxhcHRvcCAob3IgYWNwaSB2aWRlbykgYmFja2xpZ2h0IAo+
-IGludGVyZmFjZSBpcyBjcmVhdGVkIChkZXBlbmRzIG9uIHVzZV9uYXRpdmVfYmFja2xpZ2h0IHBh
-cmFtKS4gQW5kIAo+IHVzZXJzcGFjZSB3aWxsIHBpY2sgZGVsbC1sYXB0b3AgKG9yIGFjcGkgdmlk
-ZW8pIHRvIHVzZSAod2hpY2ggCj4gY2Fubm90IGNoYW5nZSBicmlnaHRuZXNzKS4KPiAKPj4gV2h5
-IHdvdWxkIHlvdSB3YW50IHRvIHVzZSBkZWxsLWxhcHRvcCBkZXNwaXRlIHRoZSBpOTE1IGRyaXZl
-cgo+PiB3b3JraW5nIGZpbmUgPwo+Pgo+IAo+IGk5MTUgd29ya2luZyBvbmx5IGlmIEkgY29tcGls
-ZSBrZXJuZWwgd2l0aG91dCBhY3BpIHZpZGVvIGRlbGwtCj4gbGFwdG9wIHN1cHBvcnQgKGRpc3Ry
-aWJ1dGlvbnMgY29tcGlsZSBrZXJuZWwgd2l0aCB0aGVzZSBkcml2ZXJzKSAKPiBhbmQgaTkxNSBp
-cyBub3QgZ29vZCBmb3IgdXNhZ2UuIEZpcnN0IGl0IHByb3ZpZGVzIG1vcmUgdGhlbiAKPiB0aG91
-c2FuZCBicmlnaHRuZXNzIGxldmVscyBhbmQgbG90IG9mICh3aXRoIGxvdyBudW1iZXJzKSAKPiBj
-b21wbGV0ZWx5IHR1cm4gZGlzcGxheSBvZmYuIEFuZCBpZiB1c2Vyc3BhY2UgbWFwIHRoZXNlIHRo
-b3VzYW5kIAo+IGxldmVscyBpbnRvIDUtMTAgbGV2ZWxzIChhcyBub2JvZHkgd2FudCB0byBwcmVz
-cyBicmlnaHRuZXNzIGtleSAKPiB1cC9kb3duIDEwMDB4KSB0d28gbG93ZXN0IGxldmVscyBjYXVz
-ZSBkaXNwbGF5IG9mZi4KCk1vcmUgYW5kIG1vcmUgbGFwdG9wcyB3aWxsIG9ubHkgaGF2ZSB3b3Jr
-aW5nIGJhY2tsaWdodCBjb250cm9sIGF0IGFsbAp3aGVuIHVzaW5nIGk5MTUsIHNvIHVzZXJzcGFj
-ZSB3aWxsIG5lZWQgdG8gbGVhcm4gdG8gYmV0dGVyIGRlYWwgd2l0aApiYWNrbGlnaHQgY29udHJv
-bHMgd2l0aCB0aGVzZSByYW5nZXMuIEFuZCBsb3cgcHdtIGxldmVscyB0dXJuaW5nCnRoZSBiYWNr
-bGlnaHQgb2YgaXMgbm9ybWFsIGZvciByYXcgaW50ZXJmYWNlcywgaWYgdXNlcnNwYWNlIGRvZXMK
-bm90IHdhbnQgdGhpcywgdGhlbiB0aGV5IHNob3VsZCBub3QgZ28gc28gbG93LgoKSSBzdWdnZXN0
-IHRoYXQgeW91IGZpbGUgYSBidWcgYWdhaW5zdCB5b3VyIGRlc2t0b3AgZW52aXJvbm1lbnQKdGhh
-dCBpdCBpcyBub3QgdXNpbmcgdGhlIGJhY2tsaWdodCBjb250cm9scyBpbiBhbiBvcHRpbWFsIG1h
-bm5lciwKZnJvbSB0aGUga2VybmVsIHBvdiBldmVyeXRoaW5nIGlzIHdvcmtpbmcgZmluZS4KCj4g
-V2l0aCBhY3BpIAo+IHZpZGVvIGFuZCBkZWxsLWxhcHRvcCBkcml2ZXIgbGV2ZWxzIGFyZSBtYXBw
-ZWQgaW50byBzbWFsbCBsZXZlbCAKPiBzcGFjZSBpbiBwZXJmZWN0IHdheS4gU28gdGhpcyBpcyBy
-ZWFzb24gSSB3YW50IHRvIHVzZSBkZWxsLWxhcHRvcCAKPiBmb3IgY29udHJvbGxpbmcgYnJpZ2h0
-bmVzcy4KCklmIHlvdSB3YW50IHRvIHVzZSBkZWxsLWxhcHRvcCwgc3BlY2lmeSBhY3BpX2JhY2ts
-aWdodD12ZW5kb3Igb24KdGhlIGtlcm5lbCBjb21tYW5kbGluZSwgdGhhdCB3aWxsIGdpdmUgeW91
-IGRlbGxfbGFwdG9wICsKaW50ZWxfYmFja2xpZ2h0IGFzIGJhY2tsaWdodCBpbnRlcmZhY2VzLCBh
-bmQgdXNlcnNwYWNlIHNob3VsZCBwcmVmZXIKZGVsbF9sYXB0b3AuIEJ1dCBJTUhPIGl0IHdvdWxk
-IGJlIGJldHRlciB0byBmaWxlIGEgYnVnIHdpdGggeW91cgpkZXNrdG9wIGVudmlyb25tZW50LCBh
-bmQgZ2V0IHRoYXQgZml4ZWQgdG8gd29yayBwcm9wZXJseSB3aXRoCmludGVsX2JhY2tsaWdodCAo
-b3Igd2l0aCByYXcgYmFja2xpZ2h0IGludGVyZmFjZXMgaW4gZ2VuZXJhbCkuCgpSZWdhcmRzLAoK
-SGFucwoKCgo+IAo+PiBSZWdhcmRzLAo+Pgo+PiBIYW5zCj4gCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwt
-Z2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Sun, 21 Sep 2014, Rafael J. Wysocki wrote:
+
+> On Tuesday, September 16, 2014 02:52:31 PM Mika Westerberg wrote:
+> > This is a second revision of the patches first submitted here [1].
+> >=20
+> > The recent publication of the ACPI 5.1 specification [2] adds a res=
+erved name
+> > for Device Specific Data (_DSD, Section 6.2.5). This mechanism allo=
+ws for
+> > passing arbitrary hardware description data to the OS. The exact fo=
+rmat of the
+> > _DSD data is specific to the UUID paired with it [3].  =20
+> >=20
+> > An ACPI Device Properties UUID has been defined [4] to provide a fo=
+rmat
+> > compatible with existing device tree schemas. The purpose for this =
+was to
+> > allow for the reuse of the existing schemas and encourage the devel=
+opment
+> > of firmware agnostic device drivers.
+> >=20
+> > This series accomplishes the following (as well as some other depen=
+dencies):
+> >=20
+> >  * Add _DSD support to the ACPI core
+> >    This simply reads the UUID and the accompanying Package
+> >=20
+> >  * Add ACPI Device Properties _DSD format support
+> >    This understands the hierarchical key:value pair structure
+> >    defined by the Device Properties UUID
+> >=20
+> >  * Add a unified device properties API with ACPI and OF backends
+> >    This provides for the firmware agnostic device properties
+> >    Interface to be used by drivers
+> >=20
+> >  * Provides 3 example drivers that were previously Device Tree awar=
+e that
+> >    can now be used with either Device Tree or ACPI Device Propertie=
+s. The
+> >    drivers use "PRP0001" as their _HID which means that the match s=
+hould be
+> >    done using driver's .of_match_table instead.
+> >=20
+> > The patch series has been tested on Minnoboard and Minnowboard MAX =
+and the
+> > relevant part of DSDTs are at the end of this cover letter.
+> >=20
+> > This series does not provide for a means to append to a system DSDT=
+=2E That
+> > will ultimately be required to make the most effective use of the _=
+DSD
+> > mechanism. Work is underway on that as a separate effort.
+> >=20
+> > Most important changes to the previous RFC version:
+> >=20
+> >   * Added wrapper functions for most used property types
+> >   * Return -EOVERFLOW in case integer would not fit to a type
+> >   * Dropped dev_prop_ops
+> >   * We now have dev_node_xxx() functions to access firmware node
+> >     properties without dev pointer
+> >   * The accessor function names try to be close to their correspond=
+ing of_*
+> >     counterpart
+> >   * Tried to have a bit better examples in the documentation patch
+> >   * gpiolib got support for _DSD and also it now understand firmwar=
+e node
+> >     properties with dev_node_get_named_gpiod() that requests the GP=
+IO
+> >     properly.
+> >   * Support for "PRP0001" _HID/_CID. This means that the match shou=
+ld be
+> >     done using driver .of_match_table instead.
+> >   * Add unified property support for at25 SPI eeprom driver as well=
+=2E
+> >=20
+> > [1] https://lkml.org/lkml/2014/8/17/10
+> > [2] http://www.uefi.org/sites/default/files/resources/ACPI_5_1relea=
+se.pdf
+> > [3] http://www.uefi.org/sites/default/files/resources/_DSD-implemen=
+tation-guide-toplevel.htm
+> > [4] http://www.uefi.org/sites/default/files/resources/_DSD-device-p=
+roperties-UUID.pdf
+> >=20
+> > Aaron Lu (2):
+> >   input: gpio_keys_polled - Add support for GPIO descriptors
+> >   input: gpio_keys_polled - Make use of device property API
+> >=20
+> > Max Eliaser (2):
+> >   leds: leds-gpio: Make use of device property API
+> >   leds: leds-gpio: Add ACPI probing support
+> >=20
+> > Mika Westerberg (11):
+> >   ACPI: Add support for device specific properties
+> >   ACPI: Allow drivers to match using Device Tree compatible propert=
+y
+> >   ACPI: Document ACPI device specific properties
+> >   mfd: Add ACPI support
+> >   gpio / ACPI: Add support for _DSD device properties
+> >   gpio: Add support for unified device properties interface
+> >   gpio: sch: Consolidate core and resume banks
+> >   leds: leds-gpio: Add support for GPIO descriptors
+> >   input: gpio_keys_polled - Add ACPI probing support
+> >   misc: at25: Make use of device property API
+> >   misc: at25: Add ACPI probing support
+>=20
+> Given the ACKs that we've got already (the Greg's one in particular) =
+and
+> the apparent lack of objections (or indeed any comments at all), I'm =
+about
+> to queue this up for 3.18 next week.
+
+I'd prefer to take the MFD patch through the MFD tree if that's
+possible.  Are there any technical reasons why this would prove
+difficult?
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
