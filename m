@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v6 02/15] ACPI: Correct return value of acpi_dev_resource_address_space()
-Date: Wed, 24 Sep 2014 16:59:23 +0800
-Message-ID: <1411549176-30780-3-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v6 01/15] x86, PCI, ACPI: Kill private function resource_to_addr() in arch/x86/pci/acpi.c
+Date: Wed, 24 Sep 2014 16:59:22 +0800
+Message-ID: <1411549176-30780-2-git-send-email-jiang.liu@linux.intel.com>
 References: <1411549176-30780-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411549176-30780-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,27 +10,185 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Change acpi_dev_resource_address_space() to return failure if the
-acpi_resource structure can't be converted to an ACPI address64
-structure, so caller could correctly detect failure.
+Private function resource_to_addr() is used to parse ACPI resources
+for PCI host bridge. There are public interfaces available for that
+purpose, so replace resource_to_addr() with public interfaces.
 
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/pci/acpi.c |  142 ++++++++++++++++++---------------------------------
+ 1 file changed, 51 insertions(+), 91 deletions(-)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 2ba8f02ced36..782a0d15c25f 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -200,7 +200,7 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index cfd1b132b8e3..0e716fa56ae5 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -218,114 +218,74 @@ static void teardown_mcfg_map(struct pci_root_info *info)
+ }
+ #endif
  
- 	status = acpi_resource_to_address64(ares, &addr);
- 	if (ACPI_FAILURE(status))
--		return true;
-+		return false;
+-static acpi_status resource_to_addr(struct acpi_resource *resource,
+-				    struct acpi_resource_address64 *addr)
+-{
+-	acpi_status status;
+-	struct acpi_resource_memory24 *memory24;
+-	struct acpi_resource_memory32 *memory32;
+-	struct acpi_resource_fixed_memory32 *fixed_memory32;
+-
+-	memset(addr, 0, sizeof(*addr));
+-	switch (resource->type) {
+-	case ACPI_RESOURCE_TYPE_MEMORY24:
+-		memory24 = &resource->data.memory24;
+-		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->minimum = memory24->minimum;
+-		addr->address_length = memory24->address_length;
+-		addr->maximum = addr->minimum + addr->address_length - 1;
+-		return AE_OK;
+-	case ACPI_RESOURCE_TYPE_MEMORY32:
+-		memory32 = &resource->data.memory32;
+-		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->minimum = memory32->minimum;
+-		addr->address_length = memory32->address_length;
+-		addr->maximum = addr->minimum + addr->address_length - 1;
+-		return AE_OK;
+-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+-		fixed_memory32 = &resource->data.fixed_memory32;
+-		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->minimum = fixed_memory32->address;
+-		addr->address_length = fixed_memory32->address_length;
+-		addr->maximum = addr->minimum + addr->address_length - 1;
+-		return AE_OK;
+-	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		status = acpi_resource_to_address64(resource, addr);
+-		if (ACPI_SUCCESS(status) &&
+-		    (addr->resource_type == ACPI_MEMORY_RANGE ||
+-		    addr->resource_type == ACPI_IO_RANGE) &&
+-		    addr->address_length > 0) {
+-			return AE_OK;
+-		}
+-		break;
+-	}
+-	return AE_ERROR;
+-}
+-
+ static acpi_status count_resource(struct acpi_resource *acpi_res, void *data)
+ {
+ 	struct pci_root_info *info = data;
+-	struct acpi_resource_address64 addr;
+-	acpi_status status;
++	struct resource r = {
++		.flags = 0
++	};
  
- 	res->start = addr.minimum;
- 	res->end = addr.maximum;
+-	status = resource_to_addr(acpi_res, &addr);
+-	if (ACPI_SUCCESS(status))
++	if (!acpi_dev_resource_memory(acpi_res, &r) &&
++	    !acpi_dev_resource_address_space(acpi_res, &r))
++		return AE_OK;
++
++	if ((r.flags & (IORESOURCE_IO | IORESOURCE_MEM)) && resource_size(&r))
+ 		info->res_num++;
++
+ 	return AE_OK;
+ }
+ 
+ static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
+ {
+ 	struct pci_root_info *info = data;
+-	struct resource *res;
+-	struct acpi_resource_address64 addr;
+-	acpi_status status;
+-	unsigned long flags;
+-	u64 start, orig_end, end;
++	struct resource *res = &info->res[info->res_num];
++	u64 translation_offset = 0;
++
++	memset(res, 0, sizeof(*res));
++	if (acpi_dev_resource_memory(acpi_res, res)) {
++		res->flags &= IORESOURCE_MEM | IORESOURCE_IO;
++	} else if (acpi_dev_resource_address_space(acpi_res, res)) {
++		u64 orig_end;
++		struct acpi_resource_address64 addr;
++
++		res->flags &= IORESOURCE_MEM | IORESOURCE_IO;
++		if (res->flags == 0)
++			return AE_OK;
+ 
+-	status = resource_to_addr(acpi_res, &addr);
+-	if (!ACPI_SUCCESS(status))
+-		return AE_OK;
++		if (ACPI_FAILURE(acpi_resource_to_address64(acpi_res, &addr)))
++			return AE_OK;
+ 
+-	if (addr.resource_type == ACPI_MEMORY_RANGE) {
+-		flags = IORESOURCE_MEM;
+-		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+-			flags |= IORESOURCE_PREFETCH;
+-	} else if (addr.resource_type == ACPI_IO_RANGE) {
+-		flags = IORESOURCE_IO;
+-	} else
+-		return AE_OK;
++		if (addr.resource_type == ACPI_MEMORY_RANGE &&
++		    addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
++			res->flags |= IORESOURCE_PREFETCH;
+ 
+-	start = addr.minimum + addr.translation_offset;
+-	orig_end = end = addr.maximum + addr.translation_offset;
++		translation_offset = addr.translation_offset;
++		orig_end = res->end;
++		res->start += translation_offset;
++		res->end += translation_offset;
+ 
+-	/* Exclude non-addressable range or non-addressable portion of range */
+-	end = min(end, (u64)iomem_resource.end);
+-	if (end <= start) {
+-		dev_info(&info->bridge->dev,
+-			"host bridge window [%#llx-%#llx] "
+-			"(ignored, not CPU addressable)\n", start, orig_end);
+-		return AE_OK;
+-	} else if (orig_end != end) {
+-		dev_info(&info->bridge->dev,
+-			"host bridge window [%#llx-%#llx] "
+-			"([%#llx-%#llx] ignored, not CPU addressable)\n", 
+-			start, orig_end, end + 1, orig_end);
++		/* Exclude non-addressable range or non-addressable portion of range */
++		res->end = min(res->end, (u64)iomem_resource.end);
++		if (res->end <= res->start) {
++			dev_info(&info->bridge->dev,
++				"host bridge window [%#llx-%#llx] (ignored, not CPU addressable)\n",
++				 res->start, orig_end);
++			return AE_OK;
++		} else if (orig_end != res->end) {
++			dev_info(&info->bridge->dev,
++				"host bridge window [%#llx-%#llx] ([%#llx-%#llx] ignored, not CPU addressable)\n",
++				res->start, orig_end, res->end + 1, orig_end);
++		}
+ 	}
+ 
+-	res = &info->res[info->res_num];
+-	res->name = info->name;
+-	res->flags = flags;
+-	res->start = start;
+-	res->end = end;
+-	info->res_offset[info->res_num] = addr.translation_offset;
+-	info->res_num++;
+-
+-	if (!pci_use_crs)
+-		dev_printk(KERN_DEBUG, &info->bridge->dev,
+-			   "host bridge window %pR (ignored)\n", res);
++	if (res->flags && resource_size(res)) {
++		res->name = info->name;
++		info->res_offset[info->res_num] = translation_offset;
++		info->res_num++;
++		if (!pci_use_crs)
++			dev_printk(KERN_DEBUG, &info->bridge->dev,
++				   "host bridge window %pR (ignored)\n", res);
++	}
+ 
+ 	return AE_OK;
+ }
 -- 
 1.7.10.4
