@@ -1,41 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Wed, 24 Sep 2014 16:11:33 +0200
-Message-ID: <1965808.H15Dedhqve@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <6744174.JquHLt80n3@wuerfel> <20140924093823.GW1786@lahna.fi.intel.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
+Date: Wed, 24 Sep 2014 16:59:57 +0300
+Message-ID: <5422CE5D.4010003@ti.com>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+ <2161168.GXttgFlE1X@vostro.rjw.lan> <5422BC97.6080608@ti.com>
+ <1724421.fbdO6SWIjA@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140924093823.GW1786@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Darren Hart <dvhart@infradead.org>, David Woodhouse <david.woodhouse@intel.com>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1724421.fbdO6SWIjA@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Pavel Machek <pavel@ucw.cz>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Philipp Zabel <philipp.zabel@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Len Brown <len.brown@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, linux-acpi@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, linux-pm@vger.kernel.org, Chris Ball <chris@printf.net>, Simon Horman <horms@verge.net.au>, Ben Dooks <ben-linux@fluff.org>, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Stephen Boyd <sboyd@codeaurora.org>Ma
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, September 24, 2014 12:38:23 PM Mika Westerberg wrote:
-> On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
-> > As a start, we could probably take the proposed device_for_each_child_node
-> > and move that into the leds-core, changing the fw_dev_node argument
-> > for an led_classdev with the addition of the of_node and acpi_object
-> > members. It would still leave it up to the gpio-leds driver to do
-> > 
-> > 	if (led_cdev->of_node)
-> > 		gpiod = devm_of_get_gpiod(led_cdev->of_node, ...);
-> > 	else
-> > 		gpiod = devm_acpi_get_gpiod(led_cdev->acpi_object, ...);
-> > 
-> > but there seems little benefit in abstracting this because there is
-> > only one driver that needs it.
-> 
-> The same interface is used also in gpio_keys_polled.c driver so if we
-> want to avoid duplicating code this needs to be abstracted away from the
-> drivers.
+On 09/24/2014 04:51 PM, Rafael J. Wysocki wrote:
+> On Wednesday, September 24, 2014 03:44:07 PM Grygorii Strashko wrote:
+>> Hi Rafael,
+>>
+>> On 09/22/2014 05:19 PM, Rafael J. Wysocki wrote:
+>>> On Friday, September 19, 2014 11:48:49 AM Dmitry Torokhov wrote:
+>>>> Hi Ulf,
+>>>>
+>>>> On Fri, Sep 19, 2014 at 08:27:33PM +0200, Ulf Hansson wrote:
+>>>>> Changes in v5:
+>>>>> 	- Converted dev_pm_domain_detach() to a void function
+>>>>> 	- Added a ->detach() callback to the PM domain struct, invoked from the
+>>>>> 	  dev_pm_domain_detach().
+>>>>> 	- Make ACPI and genpd both assign the ->detach() callback at successfull
+>>>>> 	  attachment.
+>>>>> 	- The above changes made it possible to make acpi_pm_domain_detach() to
+>>>>> 	  be static, added a separate patch for that.
+>>>>
+>>>> Thank you for making these changes. For the series:
+>>>>
+>>>> Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+>>>
+>>> I've queued up this patchset for 3.18 (I fixed up the two minor issues pointed
+>>> to by Geert in the process).
+>>>
+>>
+>> Could you point me on branch where I can find these patches?
+>> Also, are there any chances to have these patches  in next/linux-next.git,
+>> so they will become available for testing and re-using?
+>
+> It is in the bleeding-edge branch of the linux-pm.git tree at the moment,
+> which is rebased quite often, but you can use it for testing.
+>
+> It should appear in linux-next tomorrow.
+>
 
-Well, precisely.
+Thank you.
 
-Moving it to the leds-core doesn't buy us anything.
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards,
+- grygorii
