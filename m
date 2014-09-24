@@ -1,93 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Wed, 24 Sep 2014 16:08:15 +0200
-Message-ID: <3464697.XblUcyRfDp@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <1579761.oeYleOAY1N@vostro.rjw.lan> <4515093.TGIQh7cBOD@wuerfel>
+Date: Wed, 24 Sep 2014 16:11:33 +0200
+Message-ID: <1965808.H15Dedhqve@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <6744174.JquHLt80n3@wuerfel> <20140924093823.GW1786@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49284 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751969AbaIXNs1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 09:48:27 -0400
-In-Reply-To: <4515093.TGIQh7cBOD@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140924093823.GW1786@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Darren Hart <dvhart@infradead.org>, David Woodhouse <david.woodhouse@intel.com>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Wednesday, September 24, 2014 09:55:12 AM Arnd Bergmann wrote:
-> On Tuesday 23 September 2014 22:47:36 Rafael J. Wysocki wrote:
-> > Quite frankly, I'm not sure what you're asking for.
+On Wednesday, September 24, 2014 12:38:23 PM Mika Westerberg wrote:
+> On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
+> > As a start, we could probably take the proposed device_for_each_child_node
+> > and move that into the leds-core, changing the fw_dev_node argument
+> > for an led_classdev with the addition of the of_node and acpi_object
+> > members. It would still leave it up to the gpio-leds driver to do
 > > 
-> > It seems to mean "I kind of don't like the current implementation", but
-> > then the last part is quite unclear to me.  Are you suggesting to add more
-> > "if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) etc" type of checks to
-> > device drivers?  That I'd like to avoid to be honest.
+> > 	if (led_cdev->of_node)
+> > 		gpiod = devm_of_get_gpiod(led_cdev->of_node, ...);
+> > 	else
+> > 		gpiod = devm_acpi_get_gpiod(led_cdev->acpi_object, ...);
+> > 
+> > but there seems little benefit in abstracting this because there is
+> > only one driver that needs it.
 > 
-> No, that is not what I want. Device drivers should ideally call interfaces
-> that just take a 'struct device' or 'struct platform_device' pointer,
-> and those should be implemented in an appropriate way.
+> The same interface is used also in gpio_keys_polled.c driver so if we
+> want to avoid duplicating code this needs to be abstracted away from the
+> drivers.
 
-But then you have drivers that access properties of their child nodes which
-have no corresponding struct device(s).
+Well, precisely.
 
-> > Instead of the current proposal we can introduce something like
-> > 
-> > int device_get_child_property(struct device *dev, void *child_node,
-> >                               const char *propname, void **valptr);
-> > 
-> > (and analogously for device_read_property*) and use that in the drivers that
-> > need to iterate over child nodes of a device.  Quite along the lines of what
-> > Dmitry is suggesting.
-> > 
-> > Then, fn() in acpi_for_each_child_node() (and the of_ counterpart of it)
-> > would become
-> > 
-> > int (*fn)(struct device *dev, void *child_node, void *data)
-> > 
-> > and so on.
-> > 
-> > Would you prefer that?
-> 
-> I must still be missing part of what you are trying to achieve above.
-> We definitely need an interface to get properties from the device itself,
-> like
-> 
-> int device_get_property(struct device *dev, const char *propname, void **valptr);
-> 
-> (whatever valptr ends up being, that would be a separate discussion).
-> 
-> As soon as it comes to devices that have child nodes, I don't see a
-> necessity to have a generic abstraction for them, as this is typically
-> only done for some of the more obscure bindings, or for child nodes that
-> are defined in a subsystem-wide binding rather than a device private
-> binding.
-
-Well, I don't really agree here.
-
-We can demonstrably reduce code duplication (and therefore complexity too) in
-at least two drivers by doing that at a reasonably low cost, which is
-simply exposing the API for child nodes and adding helpers for iterating
-over them.
-
-We don't have to use struct fw_dev_node (or similar) for that if that's what
-bothers you, but in my opinion something like "get me a property of this thing
-which may be either a device tree node or an ACPI object" (ie. what the current
-dev_node_get_property() does) is more straightforwad than "get me a property
-of that child of this device which may be either a device tree node or an ACPI
-object" (ie. what device_get_child_property() as described above would do).
-
-> For the former case, I think they are indeed better left in drivers that
-> actively know the difference between DT and ACPI, and that don't necessarily
-> use the same binding for both. In the latter case, I'd leave the
-> implementation up to subsystem code, which again would know what
-> interface it is using.
-
-The case in question is drivers that need not know the difference between DT and
-ACPI and do use the same binding for both.  It seems quite clear what needs to
-be done in the other cases.
+Moving it to the leds-core doesn't buy us anything.
 
 -- 
 I speak only for myself.
