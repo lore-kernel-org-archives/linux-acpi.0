@@ -1,71 +1,81 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 0/4] Extending the first version of the patch to the
- entire directory
-Date: Wed, 24 Sep 2014 11:42:01 -0600
-Message-ID: <20140924174201.GB20416@google.com>
-References: <20140907180023.GA1849@greed>
+Subject: Re: [PATCH v2 4/4] PCI: remove assignement in non straight forward
+ if condition
+Date: Wed, 24 Sep 2014 11:48:01 -0600
+Message-ID: <20140924174801.GC20416@google.com>
+References: <20140907180428.GA12424@greed>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140907180023.GA1849@greed>
-Sender: linux-pci-owner@vger.kernel.org
+In-Reply-To: <20140907180428.GA12424@greed>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Quentin Lambert <lambert.quentin@gmail.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Scott Murray <scott@spiteful.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 07, 2014 at 08:00:23PM +0200, Quentin Lambert wrote:
-> Patch 1 and 2 are straight forward extension from the previous version
-> of the patch.
+On Sun, Sep 07, 2014 at 08:04:28PM +0200, Quentin Lambert wrote:
+> The modifications effectively change the value of len_tmp
+> in the case where the first condition is not met.
 > 
-> Patch 3 introduces checkpatch warning due to lines surpassing 80
-> characters. Another warning concerning too many preceding tabs
-> is not fixed either.
-> 
-> Patch 4 are less straight forward similar modifications
-> the modification made to ibmphp_res.c change the value of len_tmp
-> when the first condition in if statement is not met.
-> I wasn't quite sure how to solve elegantly the checkpatch error for
-> slot.c, I chose to use a label and gotos since it was already used
-> and allowed for a slight code factorisation. This being my first patch I
-> understand that this may not be the best solution.
+> Signed-off-by: Quentin Lambert <lambert.quentin@gmail.com>
+> ---
+>  drivers/pci/hotplug/ibmphp_res.c | 13 +++++++++----
+>  drivers/pci/pci.c                |  6 +++++-
+>  drivers/pci/slot.c               | 12 ++++++++++--
+>  3 files changed, 24 insertions(+), 7 deletions(-)
+> ...
 
-Thanks for splitting out patch 4 from 3; it definitely made it easier to
-review.
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 8b63a5b..4c3ef21 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -4434,9 +4434,13 @@ static int __init pci_setup(char *str)
+>  {
+>  	while (str) {
+>  		char *k = strchr(str, ',');
+> +		char tmp = *str;
+> +
+>  		if (k)
+>  			*k++ = 0;
+> -		if (*str && (str = pcibios_setup(str)) && *str) {
+> +
+> +		str = pcibios_setup(str);
+> +		if (tmp && str && *str) {
 
-I dropped a couple bits from patch 4 that I'll mention in a reply to that patch.
+I dropped this change  because I don't think the replacement is quite
+equivalent.  Previously, we only called pcibios_setup() if "*str".  The new
+code calls it even if "!*str".
 
-I applied the rest to pci/cleanup and plan to merge it toward the end of
-the v3.18 merge window, thanks!
+>  			if (!strcmp(str, "nomsi")) {
+>  				pci_no_msi();
+>  			} else if (!strcmp(str, "noaer")) {
+> diff --git a/drivers/pci/slot.c b/drivers/pci/slot.c
+> index 396c200..22d20db 100644
+> --- a/drivers/pci/slot.c
+> +++ b/drivers/pci/slot.c
+> @@ -265,8 +265,16 @@ struct pci_slot *pci_create_slot(struct pci_bus *parent, int slot_nr,
+>  	slot = get_slot(parent, slot_nr);
+>  	if (slot) {
+>  		if (hotplug) {
+> -			if ((err = slot->hotplug ? -EBUSY : 0)
+> -			     || (err = rename_slot(slot, name))) {
+> +			err = slot->hotplug ? -EBUSY : 0;
+> +			if (err)
+> +				goto hotplugerror;
+> +
+> +			err = rename_slot(slot, name);
+> +			if (err)
+> +				goto hotplugerror;
+> +
+> +			if (0) {
+> +hotplugerror:
+>  				kobject_put(&slot->kobj);
+>  				slot = NULL;
+>  				goto err;
+
+And I dropped this one because the code is too ugly.  Granted, the
+original is probably even uglier, but if we're going to change it, I'm
+going to hold out for a prettier restructuring.
 
 Bjorn
-
-> Quentin Lambert (4):
->   PCI: fix a missing space coding style issue
->   PCI: fix a simple if coding style issue
->   PCI: remove assignement from if conditions
->   PCI: remove assignement in non straight forward if condition
-> 
->  drivers/pci/hotplug/acpi_pcihp.c        |  3 ++-
->  drivers/pci/hotplug/acpiphp_ibm.c       |  2 +-
->  drivers/pci/hotplug/cpci_hotplug_core.c | 13 ++++++----
->  drivers/pci/hotplug/cpcihp_generic.c    | 28 ++++++++++-----------
->  drivers/pci/hotplug/cpcihp_zt5550.c     | 44 ++++++++++++++++-----------------
->  drivers/pci/hotplug/cpqphp.h            |  2 +-
->  drivers/pci/hotplug/cpqphp_core.c       |  3 +--
->  drivers/pci/hotplug/cpqphp_ctrl.c       | 19 ++++++--------
->  drivers/pci/hotplug/cpqphp_nvram.c      | 13 ++++------
->  drivers/pci/hotplug/ibmphp_core.c       | 19 ++++++++------
->  drivers/pci/hotplug/ibmphp_ebda.c       |  3 +--
->  drivers/pci/hotplug/ibmphp_hpc.c        |  3 +--
->  drivers/pci/hotplug/ibmphp_pci.c        |  6 +++--
->  drivers/pci/hotplug/ibmphp_res.c        | 43 ++++++++++++++++++++++----------
->  drivers/pci/hotplug/shpchp_ctrl.c       | 12 ++++++---
->  drivers/pci/hotplug/shpchp_hpc.c        |  3 ++-
->  drivers/pci/pci.c                       | 19 +++++++++++---
->  drivers/pci/slot.c                      | 12 +++++++--
->  18 files changed, 143 insertions(+), 104 deletions(-)
-> 
-> -- 
-> 1.9.1
-> 
