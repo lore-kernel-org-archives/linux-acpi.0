@@ -1,64 +1,64 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH] [REGRESSION] i2c-acpi: Fix NULL Pointer dereference
-Date: Wed, 24 Sep 2014 23:27:51 +0200
-Message-ID: <20140924212751.GB1947@katana>
-References: <1410548987-3558-1-git-send-email-peterhuewe@gmx.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 02/19] ACPI: make acpi_create_platform_device() an external API
+Date: Wed, 24 Sep 2014 23:55:22 +0200
+Message-ID: <1979074.zrlxj1J4Ov@vostro.rjw.lan>
+References: <1411005230-2227-1-git-send-email-rui.zhang@intel.com> <1411005230-2227-3-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1410548987-3558-1-git-send-email-peterhuewe-Mmb7MZpHnFY@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1411005230-2227-3-git-send-email-rui.zhang@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, eduardo.valentin@ti.com
 List-Id: linux-acpi@vger.kernel.org
 
+On Thursday, September 18, 2014 09:53:33 AM Zhang Rui wrote:
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/acpi_platform.c | 1 +
+>  include/linux/acpi.h         | 7 +++++++
+>  2 files changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index 2bf9082..a3c89a1 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -113,3 +113,4 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>  	kfree(resources);
+>  	return pdev;
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_create_platform_device);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 807cbc4..3dd743d 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -432,6 +432,7 @@ static inline bool acpi_driver_match_device(struct device *dev,
+>  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+>  int acpi_device_modalias(struct device *, char *, int);
+>  
+> +struct platform_device *acpi_create_platform_device(struct acpi_device *);
 
---A6N2fC+uXW/VQSAv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+But then please drop the header from internal.h.
 
-On Fri, Sep 12, 2014 at 09:09:47PM +0200, Peter Huewe wrote:
-> If adapter->dev.parent =3D=3D NULL there is a NULL pointer dereference in
-> acpi_i2c_install_space_handler and acpi_i2c_remove_space_handler.
->=20
-> This is present since introduction of this code:
-> 366047515c6e "i2c: rework kernel config I2C_ACPI" or even
-> da3c6647ee08 "I2C/ACPI: Clean up I2C ACPI code and Add CONFIG_I2C_ACPI"
->=20
-> The adapter->dev.parent =3D=3D NULL case is valid for the i2c_stub,
-> so loading i2c_stub with ACPI_I2C_OPREGION enabled results in an oops.
-> This is also valid at least for i2c_tiny_usb and i2c_robotfuzz_osif.
->=20
-> Fix by checking whether it is null before calling ACPI_HANDLE.
->=20
-> Signed-off-by: Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>
+>  #define ACPI_PTR(_ptr)	(_ptr)
+>  
+>  #else	/* !CONFIG_ACPI */
+> @@ -523,6 +524,12 @@ static inline int acpi_device_modalias(struct device *dev,
+>  	return -ENODEV;
+>  }
+>  
+> +static inline struct platform_device *acpi_create_platform_device(
+> +				struct acpi_device *)
+> +{
+> +	return NULL;
+> +}
+> +
+>  #define ACPI_PTR(_ptr)	(NULL)
+>  
+>  #endif	/* !CONFIG_ACPI */
+> 
 
-Applied to for-current, thanks!
-
-
---A6N2fC+uXW/VQSAv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUIzdXAAoJEBQN5MwUoCm2OTQQAKJ0941rmfFm3+tOic0u/Shy
-lLxFULNHQ/q2scOWcAqTN1+iN8CgBRoUJ3zVP+LZaZo95MQQfwJRfwXG2Xh6WbU8
-V+N7+DdGL0dODGdp+P6f0wNOocGhGA6K8ykafSsTMnvLrkfIwjzBesgHH5+h+h4b
-6ObLr9F/77UfZJWsp+DII25MzzpmMI7SLOPYO2tzogFY/Bld4S5B8f/+WGlfBIaK
-H0zb3jjBircMKpy+6WNlyWqmWKuHHWnBarW4N3stfvKJgRD8sikMgR7XbkFbdjLH
-4IZubAh6KwahruJOiufvjQTOp9kdY0TDWrf1PnJkJU/JTgckg587ZqF5VXcQWs9O
-0tLuNyj4reGgrvW66itQDPVxk5fiTPfVQb1vuASGEkY8Zo0Ww/IBKYyqAhWIwyLG
-+icgiZlbDZTdstCcmCTiRMcHZfyiCx3JkuE3H0Tm7kelVZGW17PDRK6VKvWlFLbs
-ZXg0765imkwuSi62QlTdUZiVxJveAVTmThiwvXznjVFSTu5R7+4TL+CYbcW3XWyV
-Pw742M0UJXEB+rgqZmiv3ZUUTvB7QZgWj0HYx/TVGHY+tiKNAmx9ghWgOxtn4+J0
-kKZkBf22Ph0YKDIqIgH5jNH2jq0HTYLBCIoAE5D9iWvs+pi8Jxq2ZuR0JSx/nhJz
-n2XmZtQFSdkC48hKKfdg
-=DHEV
------END PGP SIGNATURE-----
-
---A6N2fC+uXW/VQSAv--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
