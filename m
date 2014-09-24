@@ -1,40 +1,58 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/2] gpio / CrystalCove: support virtual GPIO
-Date: Wed, 24 Sep 2014 13:18:52 +0200
-Message-ID: <CACRpkdaJjqs9WNcVvjsSWhzLD2QpcyR11MVm4xhm4GqB28eOCA@mail.gmail.com>
-References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
-	<1410229968-11638-2-git-send-email-aaron.lu@intel.com>
+Subject: Re: [PATCH 2/2] gpio / ACPI: Use pin index and bit length
+Date: Wed, 24 Sep 2014 13:25:03 +0200
+Message-ID: <CACRpkdbdY2JFDbYWaqZ2KepKUv8fQnNAR4bH0KVjVS8zcMbFoA@mail.gmail.com>
+References: <715ed7865378d29b78003c710d50dba77b2cb9bb.1411439631.git.lv.zheng@intel.com>
+	<7b41a3ca1f673c6e3d6e6b7c94c0792c7b18badf.1411439632.git.lv.zheng@intel.com>
+	<20140923102728.GK1786@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:37233 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbaIXLSw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 07:18:52 -0400
-Received: by mail-ig0-f177.google.com with SMTP id h3so6281643igd.10
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Sep 2014 04:18:52 -0700 (PDT)
-In-Reply-To: <1410229968-11638-2-git-send-email-aaron.lu@intel.com>
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:38090 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750772AbaIXLZF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 07:25:05 -0400
+Received: by mail-ig0-f175.google.com with SMTP id h18so6316204igc.14
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Sep 2014 04:25:04 -0700 (PDT)
+In-Reply-To: <20140923102728.GK1786@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, =?UTF-8?Q?Daniel_Gl=C3=B6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>
 
-On Tue, Sep 9, 2014 at 4:32 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-
-> diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
-> index c1d4105e1c1d..383ade1a211b 100644
-> --- a/include/asm-generic/gpio.h
-> +++ b/include/asm-generic/gpio.h
-> @@ -27,7 +27,7 @@
->   */
+On Tue, Sep 23, 2014 at 12:27 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Tue, Sep 23, 2014 at 10:35:54AM +0800, Lv Zheng wrote:
+>> From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+>>
+>> Fix code when the operation region callback is for an gpio, which
+>> is not at index 0 and for partial pins in a GPIO definition.
+>> For example:
+>> Name (GMOD, ResourceTemplate ()
+>> {
+>>       //3 Outputs that define the Power mode of the device
+>>       GpioIo (Exclusive, PullDown, , , , "\\_SB.GPI2") {10, 11, 12}
+>>       })
+>> }
+>>
+>> If opregion callback calls is for:
+>> - Set pin 10, then address = 0 and bit length = 1
+>> - Set pin 11, then address = 1 and bit length = 1
+>> - Set for both pin 11 and pin 12, then address = 1, bit length = 2
+>>
+>> This change requires updated ACPICA gpio operation handler code to
+>> send the pin index and bit length.
+>>
+>> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+>> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 >
->  #ifndef ARCH_NR_GPIOS
-> -#define ARCH_NR_GPIOS          256
-> +#define ARCH_NR_GPIOS          512
->  #endif
+> Adding the GPIO maintainers since we need their ACK to get this merged
+> through ACPI tree.
 
-I have applied another patch from Mika for this, so remove this
-hunk of the patch.
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+
+When it comes to ACPI GPIO stuff I basically trust Rafael, Mika
+and Darren to do the right thing. I'm trying to learn a bit as we go.
 
 Yours,
 Linus Walleij
