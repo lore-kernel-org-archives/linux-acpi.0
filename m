@@ -1,39 +1,40 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH v4 01/11 UPDATE] cpumask: factor out show_cpumap into
- separate helper function
-Date: Wed, 24 Sep 2014 12:20:16 +0200
-Message-ID: <20140924102016.GW16043@twins.programming.kicks-ass.net>
-References: <1409763617-17074-2-git-send-email-sudeep.holla@arm.com>
- <1409845592-27739-1-git-send-email-sudeep.holla@arm.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/2] gpio / CrystalCove: support virtual GPIO
+Date: Wed, 24 Sep 2014 13:18:52 +0200
+Message-ID: <CACRpkdaJjqs9WNcVvjsSWhzLD2QpcyR11MVm4xhm4GqB28eOCA@mail.gmail.com>
+References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
+	<1410229968-11638-2-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36478 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753858AbaIXKU2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 06:20:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1409845592-27739-1-git-send-email-sudeep.holla@arm.com>
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:37233 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750772AbaIXLSw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 07:18:52 -0400
+Received: by mail-ig0-f177.google.com with SMTP id h3so6281643igd.10
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Sep 2014 04:18:52 -0700 (PDT)
+In-Reply-To: <1410229968-11638-2-git-send-email-aaron.lu@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, =?UTF-8?Q?Daniel_Gl=C3=B6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Thu, Sep 04, 2014 at 04:46:32PM +0100, Sudeep Holla wrote:
-> From: Sudeep Holla <sudeep.holla@arm.com>
-> 
-> Many sysfs *_show function use cpu{list,mask}_scnprintf to copy cpumap
-> to the buffer aligned to PAGE_SIZE, append '\n' and '\0' to return null
-> terminated buffer with newline.
-> 
-> This patch creates a new helper function cpumap_print_to_pagebuf in
-> cpumask.h using newly added bitmap_print_to_pagebuf and consolidates
-> most of those sysfs functions using the new helper function.
-> 
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> Suggested-by: Stephen Boyd <sboyd@codeaurora.org>
-> Acked-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+On Tue, Sep 9, 2014 at 4:32 AM, Aaron Lu <aaron.lu@intel.com> wrote:
 
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
+> index c1d4105e1c1d..383ade1a211b 100644
+> --- a/include/asm-generic/gpio.h
+> +++ b/include/asm-generic/gpio.h
+> @@ -27,7 +27,7 @@
+>   */
+>
+>  #ifndef ARCH_NR_GPIOS
+> -#define ARCH_NR_GPIOS          256
+> +#define ARCH_NR_GPIOS          512
+>  #endif
+
+I have applied another patch from Mika for this, so remove this
+hunk of the patch.
+
+Yours,
+Linus Walleij
