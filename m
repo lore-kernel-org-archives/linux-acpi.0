@@ -1,55 +1,94 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
-Date: Wed, 24 Sep 2014 15:51:18 +0200
-Message-ID: <1724421.fbdO6SWIjA@vostro.rjw.lan>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org> <2161168.GXttgFlE1X@vostro.rjw.lan> <5422BC97.6080608@ti.com>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
+Date: Wed, 24 Sep 2014 16:08:15 +0200
+Message-ID: <3464697.XblUcyRfDp@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <1579761.oeYleOAY1N@vostro.rjw.lan> <4515093.TGIQh7cBOD@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61916 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49284 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752174AbaIXNba (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 09:31:30 -0400
-In-Reply-To: <5422BC97.6080608@ti.com>
+	with SMTP id S1751969AbaIXNs1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 09:48:27 -0400
+In-Reply-To: <4515093.TGIQh7cBOD@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>, Pavel Machek <pavel@ucw.cz>, Geert Uytterhoeven <geert+renesas@glider.be>, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Philipp Zabel <philipp.zabel@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Daniel Lezcano <daniel.lezcano@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, linux-acpi@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@linaro.org>, linux-pm@vger.kernel.org, Chris Ball <chris@printf.net>, Simon Horman <horms@verge.net.au>, Ben Dooks <ben-linux@fluff.org>, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Stephen Boyd <sboyd@codeaurora.>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Wednesday, September 24, 2014 03:44:07 PM Grygorii Strashko wrote:
-> Hi Rafael,
-> 
-> On 09/22/2014 05:19 PM, Rafael J. Wysocki wrote:
-> > On Friday, September 19, 2014 11:48:49 AM Dmitry Torokhov wrote:
-> >> Hi Ulf,
-> >>
-> >> On Fri, Sep 19, 2014 at 08:27:33PM +0200, Ulf Hansson wrote:
-> >>> Changes in v5:
-> >>> 	- Converted dev_pm_domain_detach() to a void function
-> >>> 	- Added a ->detach() callback to the PM domain struct, invoked from the
-> >>> 	  dev_pm_domain_detach().
-> >>> 	- Make ACPI and genpd both assign the ->detach() callback at successfull
-> >>> 	  attachment.
-> >>> 	- The above changes made it possible to make acpi_pm_domain_detach() to
-> >>> 	  be static, added a separate patch for that.
-> >>
-> >> Thank you for making these changes. For the series:
-> >>
-> >> Reviewed-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+On Wednesday, September 24, 2014 09:55:12 AM Arnd Bergmann wrote:
+> On Tuesday 23 September 2014 22:47:36 Rafael J. Wysocki wrote:
+> > Quite frankly, I'm not sure what you're asking for.
 > > 
-> > I've queued up this patchset for 3.18 (I fixed up the two minor issues pointed
-> > to by Geert in the process).
-> > 
+> > It seems to mean "I kind of don't like the current implementation", but
+> > then the last part is quite unclear to me.  Are you suggesting to add more
+> > "if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) etc" type of checks to
+> > device drivers?  That I'd like to avoid to be honest.
 > 
-> Could you point me on branch where I can find these patches?
-> Also, are there any chances to have these patches  in next/linux-next.git,
-> so they will become available for testing and re-using?
+> No, that is not what I want. Device drivers should ideally call interfaces
+> that just take a 'struct device' or 'struct platform_device' pointer,
+> and those should be implemented in an appropriate way.
 
-It is in the bleeding-edge branch of the linux-pm.git tree at the moment,
-which is rebased quite often, but you can use it for testing.
+But then you have drivers that access properties of their child nodes which
+have no corresponding struct device(s).
 
-It should appear in linux-next tomorrow.
+> > Instead of the current proposal we can introduce something like
+> > 
+> > int device_get_child_property(struct device *dev, void *child_node,
+> >                               const char *propname, void **valptr);
+> > 
+> > (and analogously for device_read_property*) and use that in the drivers that
+> > need to iterate over child nodes of a device.  Quite along the lines of what
+> > Dmitry is suggesting.
+> > 
+> > Then, fn() in acpi_for_each_child_node() (and the of_ counterpart of it)
+> > would become
+> > 
+> > int (*fn)(struct device *dev, void *child_node, void *data)
+> > 
+> > and so on.
+> > 
+> > Would you prefer that?
+> 
+> I must still be missing part of what you are trying to achieve above.
+> We definitely need an interface to get properties from the device itself,
+> like
+> 
+> int device_get_property(struct device *dev, const char *propname, void **valptr);
+> 
+> (whatever valptr ends up being, that would be a separate discussion).
+> 
+> As soon as it comes to devices that have child nodes, I don't see a
+> necessity to have a generic abstraction for them, as this is typically
+> only done for some of the more obscure bindings, or for child nodes that
+> are defined in a subsystem-wide binding rather than a device private
+> binding.
 
-Rafael
+Well, I don't really agree here.
 
+We can demonstrably reduce code duplication (and therefore complexity too) in
+at least two drivers by doing that at a reasonably low cost, which is
+simply exposing the API for child nodes and adding helpers for iterating
+over them.
+
+We don't have to use struct fw_dev_node (or similar) for that if that's what
+bothers you, but in my opinion something like "get me a property of this thing
+which may be either a device tree node or an ACPI object" (ie. what the current
+dev_node_get_property() does) is more straightforwad than "get me a property
+of that child of this device which may be either a device tree node or an ACPI
+object" (ie. what device_get_child_property() as described above would do).
+
+> For the former case, I think they are indeed better left in drivers that
+> actively know the difference between DT and ACPI, and that don't necessarily
+> use the same binding for both. In the latter case, I'd leave the
+> implementation up to subsystem code, which again would know what
+> interface it is using.
+
+The case in question is drivers that need not know the difference between DT and
+ACPI and do use the same binding for both.  It seems quite clear what needs to
+be done in the other cases.
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
