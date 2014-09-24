@@ -1,24 +1,39 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC PATCH v2 00/16] Add ACPI _DSD and unified device properties
- support
-Date: Wed, 24 Sep 2014 12:45:01 +0300
-Message-ID: <20140924094501.GY1786@lahna.fi.intel.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1582936.0FiE8Cvqie@vostro.rjw.lan>
- <20140924083418.GH17801@lee--X1>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v4 01/11 UPDATE] cpumask: factor out show_cpumap into
+ separate helper function
+Date: Wed, 24 Sep 2014 12:20:16 +0200
+Message-ID: <20140924102016.GW16043@twins.programming.kicks-ass.net>
+References: <1409763617-17074-2-git-send-email-sudeep.holla@arm.com>
+ <1409845592-27739-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:36478 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753858AbaIXKU2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 06:20:28 -0400
 Content-Disposition: inline
-In-Reply-To: <20140924083418.GH17801@lee--X1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+In-Reply-To: <1409845592-27739-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Wed, Sep 24, 2014 at 09:34:18AM +0100, Lee Jones wrote:
-> I'd prefer to take the MFD patch through the MFD tree if that's
-> possible.  Are there any technical reasons why this would prove
-> difficult?
+On Thu, Sep 04, 2014 at 04:46:32PM +0100, Sudeep Holla wrote:
+> From: Sudeep Holla <sudeep.holla@arm.com>
+> 
+> Many sysfs *_show function use cpu{list,mask}_scnprintf to copy cpumap
+> to the buffer aligned to PAGE_SIZE, append '\n' and '\0' to return null
+> terminated buffer with newline.
+> 
+> This patch creates a new helper function cpumap_print_to_pagebuf in
+> cpumask.h using newly added bitmap_print_to_pagebuf and consolidates
+> most of those sysfs functions using the new helper function.
+> 
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> Suggested-by: Stephen Boyd <sboyd@codeaurora.org>
+> Acked-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-I don't see any reasons why it cannot be taken via MFD tree.
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
