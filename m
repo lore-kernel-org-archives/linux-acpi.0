@@ -1,57 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 10/22] ACPI / battery: Replace strnicmp with strncasecmp
-Date: Fri, 26 Sep 2014 01:46:08 +0200
-Message-ID: <1916199.r47gMNIv64@vostro.rjw.lan>
-References: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk> <1410900696-6481-11-git-send-email-linux@rasmusvillemoes.dk>
+Subject: Re: [PATCH] ACPI: Update acpi_check_dsm() comments
+Date: Fri, 26 Sep 2014 01:46:48 +0200
+Message-ID: <1874259.SO0gRfFCMH@vostro.rjw.lan>
+References: <1410781013-16673-1-git-send-email-wangyijing@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60711 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49583 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751981AbaIYX0S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:26:18 -0400
-In-Reply-To: <1410900696-6481-11-git-send-email-linux@rasmusvillemoes.dk>
+	with SMTP id S1752598AbaIYX06 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:26:58 -0400
+In-Reply-To: <1410781013-16673-1-git-send-email-wangyijing@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Yijing Wang <wangyijing@huawei.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, September 16, 2014 10:51:24 PM Rasmus Villemoes wrote:
-> The kernel used to contain two functions for length-delimited,
-> case-insensitive string comparison, strnicmp with correct semantics
-> and a slightly buggy strncasecmp. The latter is the POSIX name, so
-> strnicmp was renamed to strncasecmp, and strnicmp made into a wrapper
-> for the new strncasecmp to avoid breaking existing users.
+On Monday, September 15, 2014 07:36:53 PM Yijing Wang wrote:
+> Update function comments.
 > 
-> To allow the compat wrapper strnicmp to be removed at some point in
-> the future, and to avoid the extra indirection cost, do
-> s/strnicmp/strncasecmp/g.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 
 Queued up for 3.18, thanks!
 
 > ---
->  drivers/acpi/battery.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/acpi/utils.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 5fdfe65..8ec8a89 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -695,7 +695,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
->  	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
->  		const char *s;
->  		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
-> -		if (s && !strnicmp(s, "ThinkPad", 8)) {
-> +		if (s && !strncasecmp(s, "ThinkPad", 8)) {
->  			dmi_walk(find_battery, battery);
->  			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
->  				     &battery->flags) &&
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 07c8c5a..834f35c 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -661,7 +661,6 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+>   * @uuid: UUID of requested functions, should be 16 bytes at least
+>   * @rev: revision number of requested functions
+>   * @funcs: bitmap of requested functions
+> - * @exclude: excluding special value, used to support i915 and nouveau
+>   *
+>   * Evaluate device's _DSM method to check whether it supports requested
+>   * functions. Currently only support 64 functions at maximum, should be
 > 
 
 -- 
