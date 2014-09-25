@@ -1,44 +1,79 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC Part2 v1 00/21] Enable hierarchy irqdomian on x86 platforms
-Date: Thu, 25 Sep 2014 17:15:55 +0900
-Message-ID: <5423CF3B.4050107@jp.fujitsu.com>
-References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <542279D0.1040603@jp.fujitsu.com> <alpine.DEB.2.10.1409242122380.4604@nanos>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2] i2c: move acpi code back into the core
+Date: Thu, 25 Sep 2014 12:02:27 +0300
+Message-ID: <20140925090227.GE1786@lahna.fi.intel.com>
+References: <1411594591-5048-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1409242122380.4604@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:63296 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977AbaIYJDA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Sep 2014 05:03:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1411594591-5048-1-git-send-email-wsa@the-dreams.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>, Jean Delvare <jdelvare@suse.de>
 
-(2014/09/25 4:25), Thomas Gleixner wrote:
-> On Wed, 24 Sep 2014, Yasuaki Ishimatsu wrote:
->> I cannot imagine why the feature makes x86 irq architecture much more clear
->> and more easy to maintain in this description. Of course, I have read the
->> following threads:
->>
->> https://lkml.org/lkml/2014/9/11/101
->
+On Wed, Sep 24, 2014 at 11:36:31PM +0200, Wolfram Sang wrote:
+> Commit 5d98e61d337c ("I2C/ACPI: Add i2c ACPI operation region support")
+> renamed the i2c-core module. This may cause regressions for
+> distributions, so put the ACPI code back into the core.
+> 
+> Reported-by: Jean Delvare <jdelvare@suse.de>
+> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-> Here is the long version of the idea:
->
->       https://lkml.org/lkml/2014/8/26/707
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-This is very helpful for the understanding of this feature.
+One comment though,
 
-Thanks,
-Yasuaki Ishimatsu
+> Cc: Lan Tianyu <tianyu.lan@intel.com>
+> Cc: Jean Delvare <jdelvare@suse.de>
+> ---
+> +#if defined(CONFIG_ACPI)
+> +struct acpi_i2c_handler_data {
+> +	struct acpi_connection_info info;
+> +	struct i2c_adapter *adapter;
+> +};
+> +
+> +struct gsb_buffer {
+> +	u8	status;
+> +	u8	len;
+> +	union {
+> +		u16	wdata;
+> +		u8	bdata;
+> +		u8	data[0];
+> +	};
+> +} __packed;
 
->
-> Short version is:
->
-> Separate the irq handling entities in a clear layered way instead of
-> having vector/[io]apic specific knowledge/data in places like msi,
-> remap etc.
->
-> Thanks,
->
-> 	tglx
->
+These two structures should be inside CONFIG_ACPI_I2C_OPREGION because
+they are used in that code. However, this still works fine now as you
+can't select CONFIG_ACPI_I2C_OPREGION without CONFIG_ACPI.
+
+> +
+> +static int acpi_i2c_add_resource(struct acpi_resource *ares, void *data)
+> +{
+> +	struct i2c_board_info *info = data;
+> +
+> +	if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+> +		struct acpi_resource_i2c_serialbus *sb;
+> +
+> +		sb = &ares->data.i2c_serial_bus;
+> +		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_I2C) {
+> +			info->addr = sb->slave_address;
+> +			if (sb->access_mode == ACPI_I2C_10BIT_MODE)
+> +				info->flags |= I2C_CLIENT_TEN;
+> +		}
+> +	} else if (info->irq < 0) {
+> +		struct resource r;
+> +
+> +		if (acpi_dev_resource_interrupt(ares, 0, &r))
+> +			info->irq = r.start;
+> +	}
+> +
+> +	/* Tell the ACPI core to skip this resource */
+> +	return 1;
+> +}
