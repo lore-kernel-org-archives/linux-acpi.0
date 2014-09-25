@@ -1,49 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/3] ACPI: Improve behaviour on Apple hardware
-Date: Fri, 26 Sep 2014 01:45:23 +0200
-Message-ID: <3743885.VmnRMnvucd@vostro.rjw.lan>
-References: <cover.1411211725.git.andreas.noever@gmail.com>
+Subject: Re: [PATCH 10/22] ACPI / battery: Replace strnicmp with strncasecmp
+Date: Fri, 26 Sep 2014 01:46:08 +0200
+Message-ID: <1916199.r47gMNIv64@vostro.rjw.lan>
+References: <1410900696-6481-1-git-send-email-linux@rasmusvillemoes.dk> <1410900696-6481-11-git-send-email-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: andreas.noever@gmail.com
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.or, linux-pci@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60711 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751981AbaIYX0S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:26:18 -0400
+In-Reply-To: <1410900696-6481-11-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Saturday, September 20, 2014 01:19:44 PM andreas.noever@gmail.com wrote:
-> From: Andreas Noever <andreas.noever@gmail.com>
+On Tuesday, September 16, 2014 10:51:24 PM Rasmus Villemoes wrote:
+> The kernel used to contain two functions for length-delimited,
+> case-insensitive string comparison, strnicmp with correct semantics
+> and a slightly buggy strncasecmp. The latter is the POSIX name, so
+> strnicmp was renamed to strncasecmp, and strnicmp made into a wrapper
+> for the new strncasecmp to avoid breaking existing users.
 > 
-> This is a resend of Matthew's patches from https://lkml.org/lkml/2014/6/1/165
-> which are needed to fully support Thunderbolt on Apple hardware:
-> > Apple hardware behaves differently depending on whether or not the OS claims
-> > to be Darwin. Failing to report Darwin results in some hardware being
-> > disabled.  However, claiming to be Darwin also alters the behaviour of
-> > battery reporting and PCI handling. These patches add support for reporting
-> > Darwin support and fixing up the behavioural quirks that are exposed as a
-> > result.
-> Without these patches the firmware will cut power to the controller after
-> suspend (at the latest) and the thunderbolt driver will fail.
+> To allow the compat wrapper strnicmp to be removed at some point in
+> the future, and to avoid the extra indirection cost, do
+> s/strnicmp/strncasecmp/g.
 > 
-> I have reordered them such that the two battery fixes/quirks come before the
-> _OSI change that breaks battery reporting. I have also merged "ACPI: Don't call
-> PCI OSC on Apple hardware when claiming to be Darwin" into "ACPI: Support
-> _OSI("Darwin") correctly" to avoid (temporarily) breaking hotplug events and
-> modified the patch to not touch ACPICA, as requested by Rafael.
-> 
-> Matthew Garrett (3):
->   ACPI: Don't assume the existence of an SBS charger
->   ACPI: Disable smart battery manager on Apple
->   ACPI: Support _OSI("Darwin") correctly
-> 
->  drivers/acpi/osl.c      | 10 +++++++
->  drivers/acpi/pci_root.c | 14 +++++++++
->  drivers/acpi/sbs.c      | 80 +++++++++++++++++++++++++++++++++++++++----------
->  3 files changed, 89 insertions(+), 15 deletions(-)
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
-I've queued up this series for 3.18, thanks!
+Queued up for 3.18, thanks!
+
+> ---
+>  drivers/acpi/battery.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 5fdfe65..8ec8a89 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -695,7 +695,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+>  	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
+>  		const char *s;
+>  		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
+> -		if (s && !strnicmp(s, "ThinkPad", 8)) {
+> +		if (s && !strncasecmp(s, "ThinkPad", 8)) {
+>  			dmi_walk(find_battery, battery);
+>  			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
+>  				     &battery->flags) &&
+> 
 
 -- 
 I speak only for myself.
