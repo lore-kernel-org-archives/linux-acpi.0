@@ -1,63 +1,44 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCHv2 3/3] usb: dwc3: add ACPI support
-Date: Thu, 25 Sep 2014 10:57:02 +0300
-Message-ID: <1411631822-3177-1-git-send-email-heikki.krogerus@linux.intel.com>
-References: <20140924145053.GC17997@saruman>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47474 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752187AbaIYH5c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Sep 2014 03:57:32 -0400
-In-Reply-To: <20140924145053.GC17997@saruman>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC Part2 v1 00/21] Enable hierarchy irqdomian on x86 platforms
+Date: Thu, 25 Sep 2014 17:15:55 +0900
+Message-ID: <5423CF3B.4050107@jp.fujitsu.com>
+References: <1410444228-3134-1-git-send-email-jiang.liu@linux.intel.com> <542279D0.1040603@jp.fujitsu.com> <alpine.DEB.2.10.1409242122380.4604@nanos>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1409242122380.4604@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Adding ACPI ID used on newer Intel SoCs.
+(2014/09/25 4:25), Thomas Gleixner wrote:
+> On Wed, 24 Sep 2014, Yasuaki Ishimatsu wrote:
+>> I cannot imagine why the feature makes x86 irq architecture much more clear
+>> and more easy to maintain in this description. Of course, I have read the
+>> following threads:
+>>
+>> https://lkml.org/lkml/2014/9/11/101
+>
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/usb/dwc3/core.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+> Here is the long version of the idea:
+>
+>       https://lkml.org/lkml/2014/8/26/707
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index d08cac5..88e29f5 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -32,6 +32,7 @@
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
- #include <linux/of.h>
-+#include <linux/acpi.h>
- 
- #include <linux/usb/ch9.h>
- #include <linux/usb/gadget.h>
-@@ -960,12 +961,24 @@ static const struct of_device_id of_dwc3_match[] = {
- MODULE_DEVICE_TABLE(of, of_dwc3_match);
- #endif
- 
-+#ifdef CONFIG_ACPI
-+
-+#define ACPI_ID_INTEL_BSW	"808622B7"
-+
-+static const struct acpi_device_id dwc3_acpi_match[] = {
-+	{ ACPI_ID_INTEL_BSW, 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, dwc3_acpi_match);
-+#endif
-+
- static struct platform_driver dwc3_driver = {
- 	.probe		= dwc3_probe,
- 	.remove		= dwc3_remove,
- 	.driver		= {
- 		.name	= "dwc3",
- 		.of_match_table	= of_match_ptr(of_dwc3_match),
-+		.acpi_match_table = ACPI_PTR(dwc3_acpi_match),
- 		.pm	= DWC3_PM_OPS,
- 	},
- };
--- 
-2.1.0
+This is very helpful for the understanding of this feature.
 
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> Short version is:
+>
+> Separate the irq handling entities in a clear layered way instead of
+> having vector/[io]apic specific knowledge/data in places like msi,
+> remap etc.
+>
+> Thanks,
+>
+> 	tglx
+>
