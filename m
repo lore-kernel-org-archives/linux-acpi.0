@@ -1,45 +1,96 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Update acpi_check_dsm() comments
-Date: Fri, 26 Sep 2014 01:46:48 +0200
-Message-ID: <1874259.SO0gRfFCMH@vostro.rjw.lan>
-References: <1410781013-16673-1-git-send-email-wangyijing@huawei.com>
+Subject: Re: [PATCH] ACPI: blacklist Win8 OSI for some Dell laptop models
+Date: Fri, 26 Sep 2014 01:47:23 +0200
+Message-ID: <2514282.oiYJkEh4jk@vostro.rjw.lan>
+References: <1410753372-10912-1-git-send-email-yidi.lin@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49583 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58527 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752598AbaIYX06 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:26:58 -0400
-In-Reply-To: <1410781013-16673-1-git-send-email-wangyijing@huawei.com>
+	with SMTP id S1751875AbaIYX1d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:27:33 -0400
+In-Reply-To: <1410753372-10912-1-git-send-email-yidi.lin@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yijing Wang <wangyijing@huawei.com>
-Cc: linux-acpi@vger.kernel.org
+To: Edward Lin <yidi.lin@canonical.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, yk@canonical.com
 
-On Monday, September 15, 2014 07:36:53 PM Yijing Wang wrote:
-> Update function comments.
+On Monday, September 15, 2014 11:56:12 AM Edward Lin wrote:
+> The wireless hotkey of those machines does not work with Win8 OSI.
+> Due to insufficient documentation for the driver implementation,
+> blacklist those machines as a workaround.
 > 
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+> "audo wake on after shutdown" bug on Dell Inspiron 7737 is fixed by BIOS[1].
+> But this machine still suffers the hotkey issue. So keep the quirk for the
+> wireless hotkey issue.
+> 
+> [1]:
+> http://www.dell.com/support/home/us/en/19/Drivers/DriversDetails?driverId=MJWNX
+> 
+> Signed-off-by: Edward Lin <yidi.lin@canonical.com>
 
 Queued up for 3.18, thanks!
 
 > ---
->  drivers/acpi/utils.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
+>  drivers/acpi/blacklist.c | 36 ++++++++++++++++++++++++++++++++++--
+>  1 file changed, 34 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 07c8c5a..834f35c 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -661,7 +661,6 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
->   * @uuid: UUID of requested functions, should be 16 bytes at least
->   * @rev: revision number of requested functions
->   * @funcs: bitmap of requested functions
-> - * @exclude: excluding special value, used to support i915 and nouveau
->   *
->   * Evaluate device's _DSM method to check whether it supports requested
->   * functions. Currently only support 64 functions at maximum, should be
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index 36eb42e..ed122e1 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -247,8 +247,8 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  	},
+>  
+>  	/*
+> -	 * These machines will power on immediately after shutdown when
+> -	 * reporting the Windows 2012 OSI.
+> +	 * The wireless hotkey does not work on those machines when
+> +	 * returning true for _OSI("Windows 2012")
+>  	 */
+>  	{
+>  	.callback = dmi_disable_osi_win8,
+> @@ -258,6 +258,38 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7737"),
+>  		},
+>  	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Dell Inspiron 7537",
+> +	.matches = {
+> +		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7537"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Dell Inspiron 5437",
+> +	.matches = {
+> +		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5437"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Dell Inspiron 3437",
+> +	.matches = {
+> +		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 3437"),
+> +		},
+> +	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Dell Vostro 3446",
+> +	.matches = {
+> +		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3446"),
+> +		},
+> +	},
+>  
+>  	/*
+>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 > 
 
 -- 
