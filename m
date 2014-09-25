@@ -1,61 +1,112 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] acpi : Add container online uevent to acpi_bus_attach
-Date: Thu, 25 Sep 2014 11:23:27 +0900
-Message-ID: <54237C9F.4030307@jp.fujitsu.com>
-References: <54095EE7.3080302@jp.fujitsu.com> <2311044.Mgki24rmc5@vostro.rjw.lan> <541BC4F7.9020602@jp.fujitsu.com> <2640711.2x3ddJGmzs@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v2 1/2] gpio / CrystalCove: support virtual GPIO
+Date: Thu, 25 Sep 2014 10:57:26 +0800
+Message-ID: <54238496.70505@intel.com>
+References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>	<1410229968-11638-2-git-send-email-aaron.lu@intel.com> <CACRpkdaJjqs9WNcVvjsSWhzLD2QpcyR11MVm4xhm4GqB28eOCA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:57792 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbaIYCY1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Sep 2014 22:24:27 -0400
-Received: from kw-mxauth.gw.nic.fujitsu.com (unknown [10.0.237.134])
-	by fgwmail5.fujitsu.co.jp (Postfix) with ESMTP id B137F3EE168
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2014 11:24:25 +0900 (JST)
-Received: from s2.gw.fujitsu.co.jp (s2.gw.fujitsu.co.jp [10.0.50.92])
-	by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id BFCBBAC07B8
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2014 11:24:24 +0900 (JST)
-Received: from g01jpfmpwkw01.exch.g01.fujitsu.local (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
-	by s2.gw.fujitsu.co.jp (Postfix) with ESMTP id 76AA01DB8038
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Sep 2014 11:24:24 +0900 (JST)
-In-Reply-To: <2640711.2x3ddJGmzs@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdaJjqs9WNcVvjsSWhzLD2QpcyR11MVm4xhm4GqB28eOCA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, =?windows-1252?Q?Dani?= =?windows-1252?Q?el_Gl=F6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: joeyli <jlee@suse.com>, rafael.j.wysocki@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
 
-(2014/09/21 9:01), Rafael J. Wysocki wrote:
-> On Friday, September 19, 2014 02:53:59 PM Yasuaki Ishimatsu wrote:
->> Hi Rafael,
->>
->>>>>> So feel free to  add "Tested-by : Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>"
->>>>>> to the patch.
->>>>>
->>>>> Thanks!
->>>>>
->>>>
->>>> I just tested your new patch, it works on my side as Yasuaki's patch.
->>>>
->>>> Tested-by: Lee, Chun-Yi <jlee@suse.com>
->>
->> Hi Rafael,
->>
->> When will you merge the patch into your tree?
->> I would like you to do it soon.
->
-> I'm going to push it for 3.17-rc7 next week.
+The virtual GPIO introduced in ACPI table of Baytrail-T based system is
+used to solve a problem under Windows. We do not have such problems
+under Linux so we do not actually need them. But we have to tell GPIO
+library that the Crystal Cove GPIO chip has this many GPIO pins or the
+common GPIO handler will refuse any access to those high number GPIO
+pins, which will resulted in a failure evaluation of every ACPI control
+method that is used to turn on/off power resource and/or report sensor
+temperatures.
 
-Thank you for your cooperation.
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+v2: remove the hunk to increase NR_GPIO to 512.
 
-I confirmed that the patch is merged into bleeding-dege now.
+ drivers/gpio/gpio-crystalcove.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-Thanks,
-Yasuaki Ishimatsu
-
->
-> Rafael
->
-
-
+diff --git a/drivers/gpio/gpio-crystalcove.c b/drivers/gpio/gpio-crystalcove.c
+index e3712f0e51ab..186b76ef71a1 100644
+--- a/drivers/gpio/gpio-crystalcove.c
++++ b/drivers/gpio/gpio-crystalcove.c
+@@ -24,6 +24,7 @@
+ #include <linux/mfd/intel_soc_pmic.h>
+ 
+ #define CRYSTALCOVE_GPIO_NUM	16
++#define CRYSTALCOVE_VGPIO_NUM	0x5e
+ 
+ #define UPDATE_IRQ_TYPE		BIT(0)
+ #define UPDATE_IRQ_MASK		BIT(1)
+@@ -130,6 +131,9 @@ static int crystalcove_gpio_dir_in(struct gpio_chip *chip, unsigned gpio)
+ {
+ 	struct crystalcove_gpio *cg = to_cg(chip);
+ 
++	if (gpio > CRYSTALCOVE_VGPIO_NUM)
++		return 0;
++
+ 	return regmap_write(cg->regmap, to_reg(gpio, CTRL_OUT),
+ 			    CTLO_INPUT_SET);
+ }
+@@ -139,6 +143,9 @@ static int crystalcove_gpio_dir_out(struct gpio_chip *chip, unsigned gpio,
+ {
+ 	struct crystalcove_gpio *cg = to_cg(chip);
+ 
++	if (gpio > CRYSTALCOVE_VGPIO_NUM)
++		return 0;
++
+ 	return regmap_write(cg->regmap, to_reg(gpio, CTRL_OUT),
+ 			    CTLO_OUTPUT_SET | value);
+ }
+@@ -149,6 +156,9 @@ static int crystalcove_gpio_get(struct gpio_chip *chip, unsigned gpio)
+ 	int ret;
+ 	unsigned int val;
+ 
++	if (gpio > CRYSTALCOVE_VGPIO_NUM)
++		return 0;
++
+ 	ret = regmap_read(cg->regmap, to_reg(gpio, CTRL_IN), &val);
+ 	if (ret)
+ 		return ret;
+@@ -161,6 +171,9 @@ static void crystalcove_gpio_set(struct gpio_chip *chip,
+ {
+ 	struct crystalcove_gpio *cg = to_cg(chip);
+ 
++	if (gpio > CRYSTALCOVE_VGPIO_NUM)
++		return;
++
+ 	if (value)
+ 		regmap_update_bits(cg->regmap, to_reg(gpio, CTRL_OUT), 1, 1);
+ 	else
+@@ -256,7 +269,7 @@ static irqreturn_t crystalcove_gpio_irq_handler(int irq, void *data)
+ 
+ 	pending = p0 | p1 << 8;
+ 
+-	for (gpio = 0; gpio < cg->chip.ngpio; gpio++) {
++	for (gpio = 0; gpio < CRYSTALCOVE_GPIO_NUM; gpio++) {
+ 		if (pending & BIT(gpio)) {
+ 			virq = irq_find_mapping(cg->chip.irqdomain, gpio);
+ 			generic_handle_irq(virq);
+@@ -273,7 +286,7 @@ static void crystalcove_gpio_dbg_show(struct seq_file *s,
+ 	int gpio, offset;
+ 	unsigned int ctlo, ctli, mirqs0, mirqsx, irq;
+ 
+-	for (gpio = 0; gpio < cg->chip.ngpio; gpio++) {
++	for (gpio = 0; gpio < CRYSTALCOVE_GPIO_NUM; gpio++) {
+ 		regmap_read(cg->regmap, to_reg(gpio, CTRL_OUT), &ctlo);
+ 		regmap_read(cg->regmap, to_reg(gpio, CTRL_IN), &ctli);
+ 		regmap_read(cg->regmap, gpio < 8 ? MGPIO0IRQS0 : MGPIO1IRQS0,
+@@ -320,7 +333,7 @@ static int crystalcove_gpio_probe(struct platform_device *pdev)
+ 	cg->chip.get = crystalcove_gpio_get;
+ 	cg->chip.set = crystalcove_gpio_set;
+ 	cg->chip.base = -1;
+-	cg->chip.ngpio = CRYSTALCOVE_GPIO_NUM;
++	cg->chip.ngpio = CRYSTALCOVE_VGPIO_NUM;
+ 	cg->chip.can_sleep = true;
+ 	cg->chip.dev = dev;
+ 	cg->chip.dbg_show = crystalcove_gpio_dbg_show;
+-- 
+1.9.3
