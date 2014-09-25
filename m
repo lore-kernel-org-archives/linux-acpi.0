@@ -1,67 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1 linux-next] ACPI: processor: use container_of to resolve acpi_madt_local_apic/sapic/x2apic from acpi_subtable_header
-Date: Fri, 26 Sep 2014 01:48:06 +0200
-Message-ID: <2501224.1N8WbXDNS5@vostro.rjw.lan>
-References: <1410700363-17939-1-git-send-email-fabf@skynet.be>
+Subject: Re: [PATCH] ACPI / LPSS: not using UART RTS override with Auto Flow Control
+Date: Fri, 26 Sep 2014 01:48:37 +0200
+Message-ID: <2707641.kPQ3p3SNoy@vostro.rjw.lan>
+References: <1410437973-16873-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55937 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54552 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751875AbaIYX2Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:28:16 -0400
-In-Reply-To: <1410700363-17939-1-git-send-email-fabf@skynet.be>
+	with SMTP id S1752603AbaIYX2r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:28:47 -0400
+In-Reply-To: <1410437973-16873-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Sunday, September 14, 2014 03:12:43 PM Fabian Frederick wrote:
-> Use container_of instead of casting first structure member.
+On Thursday, September 11, 2014 03:19:33 PM Heikki Krogerus wrote:
+> Adding a check for UART Auto Flow Control feature and only
+> enabling the RTS override when it's not supported. RTS
+> override is not needed when Auto Flow Control is used and
+> they shouldn't be used together.
 > 
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
 Queued up for 3.18, thanks!
 
 > ---
+>  drivers/acpi/acpi_lpss.c | 22 +++++++++++++++-------
+>  1 file changed, 15 insertions(+), 7 deletions(-)
 > 
-> Compiled but untested.
-> 
->  drivers/acpi/processor_core.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index e32321c..ef58f46 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -16,7 +16,7 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
->  		 u32 acpi_id, int *apic_id)
->  {
->  	struct acpi_madt_local_apic *lapic =
-> -		(struct acpi_madt_local_apic *)entry;
-> +		container_of(entry, struct acpi_madt_local_apic, header);
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 1951b59..76cc698 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -83,18 +83,26 @@ struct lpss_private_data {
+>  	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
+>  };
 >  
->  	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
->  		return -ENODEV;
-> @@ -32,7 +32,7 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
->  			 int device_declaration, u32 acpi_id, int *apic_id)
+> +/* UART Component Parameter Register */
+> +#define LPSS_UART_CPR			0xF4
+> +#define LPSS_UART_CPR_AFCE		BIT(4)
+> +
+>  static void lpss_uart_setup(struct lpss_private_data *pdata)
 >  {
->  	struct acpi_madt_local_x2apic *apic =
-> -		(struct acpi_madt_local_x2apic *)entry;
-> +		container_of(entry, struct acpi_madt_local_x2apic, header);
+>  	unsigned int offset;
+> -	u32 reg;
+> +	u32 val;
 >  
->  	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
->  		return -ENODEV;
-> @@ -49,7 +49,7 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  		int device_declaration, u32 acpi_id, int *apic_id)
->  {
->  	struct acpi_madt_local_sapic *lsapic =
-> -		(struct acpi_madt_local_sapic *)entry;
-> +		container_of(entry, struct acpi_madt_local_sapic, header);
+>  	offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
+> -	reg = readl(pdata->mmio_base + offset);
+> -	writel(reg | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
+> -
+> -	offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
+> -	reg = readl(pdata->mmio_base + offset);
+> -	writel(reg | LPSS_GENERAL_UART_RTS_OVRD, pdata->mmio_base + offset);
+> +	val = readl(pdata->mmio_base + offset);
+> +	writel(val | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
+> +
+> +	val = readl(pdata->mmio_base + LPSS_UART_CPR);
+> +	if (!(val & LPSS_UART_CPR_AFCE)) {
+> +		offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
+> +		val = readl(pdata->mmio_base + offset);
+> +		val |= LPSS_GENERAL_UART_RTS_OVRD;
+> +		writel(val, pdata->mmio_base + offset);
+> +	}
+>  }
 >  
->  	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
->  		return -ENODEV;
+>  static void byt_i2c_setup(struct lpss_private_data *pdata)
 > 
 
 -- 
