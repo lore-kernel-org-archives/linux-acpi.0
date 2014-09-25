@@ -1,112 +1,126 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v2 1/2] gpio / CrystalCove: support virtual GPIO
-Date: Thu, 25 Sep 2014 10:57:26 +0800
-Message-ID: <54238496.70505@intel.com>
-References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>	<1410229968-11638-2-git-send-email-aaron.lu@intel.com> <CACRpkdaJjqs9WNcVvjsSWhzLD2QpcyR11MVm4xhm4GqB28eOCA@mail.gmail.com>
+Subject: Re: ACPI/i915: Cannot configure display brightness on
+ Dell Latitude E6440
+Date: Thu, 25 Sep 2014 11:15:35 +0800
+Message-ID: <542388D7.1010008@intel.com>
+References: <201409232206.02819@pali> <201409241453.46756@pali>
+ <5422D66D.6090903@redhat.com> <201409242021.10107@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdaJjqs9WNcVvjsSWhzLD2QpcyR11MVm4xhm4GqB28eOCA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, =?windows-1252?Q?Dani?= =?windows-1252?Q?el_Gl=F6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <201409242021.10107@pali>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Hans de Goede <hdegoede@redhat.com>
+Cc: David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The virtual GPIO introduced in ACPI table of Baytrail-T based system is
-used to solve a problem under Windows. We do not have such problems
-under Linux so we do not actually need them. But we have to tell GPIO
-library that the Crystal Cove GPIO chip has this many GPIO pins or the
-common GPIO handler will refuse any access to those high number GPIO
-pins, which will resulted in a failure evaluation of every ACPI control
-method that is used to turn on/off power resource and/or report sensor
-temperatures.
+Hi Hans,
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
-v2: remove the hunk to increase NR_GPIO to 512.
+Thanks for following up and explaining the situation to Pali.
 
- drivers/gpio/gpio-crystalcove.c | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+On 09/25/2014 02:21 AM, Pali Roh=E1r wrote:
+> On Wednesday 24 September 2014 16:34:21 Hans de Goede wrote:
+>> Ok, so the dell-laptop interface is just an obsolete wrapper
+>> around the i915 opregion code, which shows that the right
+>> interface to use is the i915 one, which we do if you don't
+>> specify any kernel commandline parameters, case closed.
+>>
+>> Regards,
+>>
+>> Hans
+> =
 
-diff --git a/drivers/gpio/gpio-crystalcove.c b/drivers/gpio/gpio-crystalcove.c
-index e3712f0e51ab..186b76ef71a1 100644
---- a/drivers/gpio/gpio-crystalcove.c
-+++ b/drivers/gpio/gpio-crystalcove.c
-@@ -24,6 +24,7 @@
- #include <linux/mfd/intel_soc_pmic.h>
- 
- #define CRYSTALCOVE_GPIO_NUM	16
-+#define CRYSTALCOVE_VGPIO_NUM	0x5e
- 
- #define UPDATE_IRQ_TYPE		BIT(0)
- #define UPDATE_IRQ_MASK		BIT(1)
-@@ -130,6 +131,9 @@ static int crystalcove_gpio_dir_in(struct gpio_chip *chip, unsigned gpio)
- {
- 	struct crystalcove_gpio *cg = to_cg(chip);
- 
-+	if (gpio > CRYSTALCOVE_VGPIO_NUM)
-+		return 0;
-+
- 	return regmap_write(cg->regmap, to_reg(gpio, CTRL_OUT),
- 			    CTLO_INPUT_SET);
+> Nope, its not closed.
+> =
+
+> Still i915 interface has problem with setting backlight. It =
+
+> exports lot of levels which turning display off. Which breaking =
+
+> exiting applications for configuring display brightness. This is =
+
+> still big regression as black screen is not want people want to =
+
+> see.
+> =
+
+> Driver dell-laptop has exported only few - not thousands level =
+
+> (which is insane) and only usefull levels (not lot of levels =
+
+> which turn display off).
+> =
+
+> So for this reason using i915 backlight interface is not possible =
+
+> and also Dell (for E6440) set kernel param acpi_backlight=3Dvendor =
+
+> to use dell_laptop module for controlling brightness.
+> =
+
+> On my laptop E6440 is better for using dell-laptop and not acpi =
+
+> or i915.
+
+Hi Pali,
+
+Please test this patch:
+
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/i=
+ntel_opregion.c
+index ca52ad2ae7d1..15534345bd57 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -396,6 +396,24 @@ int intel_opregion_notify_adapter(struct drm_device *d=
+ev, pci_power_t state)
+ 	return -EINVAL;
  }
-@@ -139,6 +143,9 @@ static int crystalcove_gpio_dir_out(struct gpio_chip *chip, unsigned gpio,
+ =
+
++/*
++ * Some of the Thinkpads' firmware will issue a backlight change operation
++ * region request unconditionally on AC plug/unplug, this is undesirable a=
+nd
++ * should be ignored. Then there is a Dell laptop whose vendor backlight
++ * interface also makes use of operation region request to change backlight
++ * level and we have to keep it work. The rule used here is: if the vendor
++ * backlight interface is not in use and the ACPI backlight interface is
++ * broken, we ignore the requests; oterwise, we keep processing them.
++ */
++static bool should_ignore_backlight_request(void)
++{
++	if (acpi_video_backlight_support() &&
++	    !acpi_video_verify_backlight_support())
++		return true;
++
++	return false;
++}
++
+ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
  {
- 	struct crystalcove_gpio *cg = to_cg(chip);
- 
-+	if (gpio > CRYSTALCOVE_VGPIO_NUM)
-+		return 0;
-+
- 	return regmap_write(cg->regmap, to_reg(gpio, CTRL_OUT),
- 			    CTLO_OUTPUT_SET | value);
- }
-@@ -149,6 +156,9 @@ static int crystalcove_gpio_get(struct gpio_chip *chip, unsigned gpio)
- 	int ret;
- 	unsigned int val;
- 
-+	if (gpio > CRYSTALCOVE_VGPIO_NUM)
-+		return 0;
-+
- 	ret = regmap_read(cg->regmap, to_reg(gpio, CTRL_IN), &val);
- 	if (ret)
- 		return ret;
-@@ -161,6 +171,9 @@ static void crystalcove_gpio_set(struct gpio_chip *chip,
- {
- 	struct crystalcove_gpio *cg = to_cg(chip);
- 
-+	if (gpio > CRYSTALCOVE_VGPIO_NUM)
-+		return;
-+
- 	if (value)
- 		regmap_update_bits(cg->regmap, to_reg(gpio, CTRL_OUT), 1, 1);
- 	else
-@@ -256,7 +269,7 @@ static irqreturn_t crystalcove_gpio_irq_handler(int irq, void *data)
- 
- 	pending = p0 | p1 << 8;
- 
--	for (gpio = 0; gpio < cg->chip.ngpio; gpio++) {
-+	for (gpio = 0; gpio < CRYSTALCOVE_GPIO_NUM; gpio++) {
- 		if (pending & BIT(gpio)) {
- 			virq = irq_find_mapping(cg->chip.irqdomain, gpio);
- 			generic_handle_irq(virq);
-@@ -273,7 +286,7 @@ static void crystalcove_gpio_dbg_show(struct seq_file *s,
- 	int gpio, offset;
- 	unsigned int ctlo, ctli, mirqs0, mirqsx, irq;
- 
--	for (gpio = 0; gpio < cg->chip.ngpio; gpio++) {
-+	for (gpio = 0; gpio < CRYSTALCOVE_GPIO_NUM; gpio++) {
- 		regmap_read(cg->regmap, to_reg(gpio, CTRL_OUT), &ctlo);
- 		regmap_read(cg->regmap, to_reg(gpio, CTRL_IN), &ctli);
- 		regmap_read(cg->regmap, gpio < 8 ? MGPIO0IRQS0 : MGPIO1IRQS0,
-@@ -320,7 +333,7 @@ static int crystalcove_gpio_probe(struct platform_device *pdev)
- 	cg->chip.get = crystalcove_gpio_get;
- 	cg->chip.set = crystalcove_gpio_set;
- 	cg->chip.base = -1;
--	cg->chip.ngpio = CRYSTALCOVE_GPIO_NUM;
-+	cg->chip.ngpio = CRYSTALCOVE_VGPIO_NUM;
- 	cg->chip.can_sleep = true;
- 	cg->chip.dev = dev;
- 	cg->chip.dbg_show = crystalcove_gpio_dbg_show;
--- 
-1.9.3
+ 	struct drm_i915_private *dev_priv =3D dev->dev_private;
+@@ -404,11 +422,7 @@ static u32 asle_set_backlight(struct drm_device *dev, =
+u32 bclp)
+ =
+
+ 	DRM_DEBUG_DRIVER("bclp =3D 0x%08x\n", bclp);
+ =
+
+-	/*
+-	 * If the acpi_video interface is not supposed to be used, don't
+-	 * bother processing backlight level change requests from firmware.
+-	 */
+-	if (!acpi_video_verify_backlight_support()) {
++	if (should_ignore_backlight_request()) {
+ 		DRM_DEBUG_KMS("opregion backlight request ignored\n");
+ 		return 0;
+ 	}
