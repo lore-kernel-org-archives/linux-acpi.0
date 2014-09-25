@@ -1,376 +1,90 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [RFC PATCH] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
-Date: Thu, 25 Sep 2014 21:27:25 +0200
-Message-ID: <2232717.X50lT6IYgQ@vostro.rjw.lan>
-References: <1411456003-29541-1-git-send-email-tianyu.lan@intel.com> <5595235.8OhLbSk3cf@vostro.rjw.lan> <5423E40B.8010302@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI/i915: Cannot configure display brightness on
+	Dell Latitude E6440
+Date: Thu, 25 Sep 2014 21:58:48 +0200
+Message-ID: <1481425.msp1jP3vqe@vostro.rjw.lan>
+References: <201409232206.02819@pali> <201409242021.10107@pali>
+ <542388D7.1010008@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5423E40B.8010302-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <542388D7.1010008@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: linux-acpi@vger.kernel.org, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, September 25, 2014 05:44:43 PM Lan Tianyu wrote:
-> On 2014=E5=B9=B409=E6=9C=8825=E6=97=A5 06:27, Rafael J. Wysocki wrote=
-:
-> > On Tuesday, September 23, 2014 03:06:43 PM Lan Tianyu wrote:
-> >> ACPI 5.0 introduces _DEP to designate device objects that OSPM sho=
-uld
-> >> assign a higher priority in start ordering due to future operation=
- region
-> >> accesses.
-> >>
-> >> On Asus T100TA, ACPI battery info are read from a I2C slave device=
- via
-> >> I2C operation region. Before I2C operation region handler is insta=
-lled,
-> >> battery _STA always returns 0. There is a _DEP method of designati=
-ng
-> >> start order under battery device node.
-> >>
-> >> This patch is to implement _DEP feature to fix battery issue on th=
-e Asus T100TA.
-> >> Introducing acpi_bus_dep_device_list and adding dep_present flags =
-in the struct
-> >> acpi_device. During ACPI namespace scan, all devices with _DEP sup=
-port will be put
-> >> into the new list and those devices' dep_present flag will be set.=
- Driver's probe()
-> >> should return EPROBE_DEFER when find dep_present is set. When I2C =
-operation
-> >> region handler is installed, check all devices on the new list. Re=
-move the one from
-> >> list if _DEP condition is met and clear its dep_present flag and d=
-o acpi_bus_attch()
-> >> for the device in order to resolve battery _STA issue on the Asus =
-T100TA.
-> >>
-> >> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >=20
-> > This is going in the right direction in my view, but isn't there ju=
-st yet.
-> >=20
-> > Details below.
->=20
-> Thanks for review.
->=20
-> >=20
-> >> ---
-> >>  drivers/acpi/battery.c  |  4 +++
-> >>  drivers/acpi/scan.c     | 84 ++++++++++++++++++++++++++++++++++++=
-+++++++++++++
-> >>  drivers/i2c/i2c-acpi.c  |  1 +
-> >>  include/acpi/acpi_bus.h |  2 ++
-> >>  include/linux/acpi.h    |  3 ++
-> >>  5 files changed, 94 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> >> index 1c162e7..c0a68ce 100644
-> >> --- a/drivers/acpi/battery.c
-> >> +++ b/drivers/acpi/battery.c
-> >> @@ -1194,6 +1194,10 @@ static int acpi_battery_add(struct acpi_dev=
-ice *device)
-> >> =20
-> >>  	if (!device)
-> >>  		return -EINVAL;
-> >> +
-> >> +	if (device->dep_present)
-> >=20
-> > device->flags.dep_present would be better.  Or even call the flag d=
-ep_unmet.
->=20
-> Ok. Will update.
->=20
-> >=20
-> >> +		return -EPROBE_DEFER;
-> >> +
-> >>  	battery =3D kzalloc(sizeof(struct acpi_battery), GFP_KERNEL);
-> >>  	if (!battery)
-> >>  		return -ENOMEM;
-> >> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> >> index 3bf7764..a26dbb3 100644
-> >> --- a/drivers/acpi/scan.c
-> >> +++ b/drivers/acpi/scan.c
-> >> @@ -36,6 +36,7 @@ bool acpi_force_hot_remove;
-> >> =20
-> >>  static const char *dummy_hid =3D "device";
-> >> =20
-> >> +static LIST_HEAD(acpi_bus_dep_device_list);
-> >>  static LIST_HEAD(acpi_bus_id_list);
-> >>  static DEFINE_MUTEX(acpi_scan_lock);
-> >>  static LIST_HEAD(acpi_scan_handlers_list);
-> >> @@ -43,6 +44,11 @@ DEFINE_MUTEX(acpi_device_lock);
-> >>  LIST_HEAD(acpi_wakeup_device_list);
-> >>  static DEFINE_MUTEX(acpi_hp_context_lock);
-> >> =20
-> >> +struct acpi_dep_data {
-> >> +	struct list_head node;
-> >> +	struct acpi_device *adev;
-> >> +};
-> >> +
-> >>  struct acpi_device_bus_id{
-> >>  	char bus_id[15];
-> >>  	unsigned int instance_no;
-> >> @@ -2048,6 +2054,32 @@ static void acpi_scan_init_hotplug(struct a=
-cpi_device *adev)
-> >>  	}
-> >>  }
-> >> =20
-> >> +static void acpi_device_dep_initialize(struct acpi_device * adev)
-> >> +{
-> >> +	struct acpi_dep_data *dep;
-> >> +	acpi_status status;
-> >> +
-> >> +	if (!acpi_has_method(adev->handle, "_DEP"))
-> >> +		return;
-> >> +
-> >> +	status =3D acpi_evaluate_reference(adev->handle, "_DEP", NULL,
-> >> +					&adev->dep_devices);
-> >> +	if (ACPI_FAILURE(status)) {
-> >> +		dev_err(&adev->dev, "Fail to evaluate _DEP.\n");
-> >=20
-> > "Failed"
-> >=20
-> >> +		return;
-> >> +	}
-> >> +
-> >> +	dep =3D kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
-> >> +	if (!dep) {
-> >> +		dev_err(&adev->dev, "Memory allocation error.\n");
-> >=20
-> > "Not enough memory for _DEP list entry\n"
-> >=20
-> >> +		return;
-> >> +	}
-> >> +
-> >> +	dep->adev =3D adev;
-> >> +	adev->dep_present =3D true;
-> >> +	list_add_tail(&dep->node , &acpi_bus_dep_device_list);
-> >> +}
-> >> +
-> >>  static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl=
-_not_used,
-> >>  				      void *not_used, void **return_value)
-> >>  {
-> >> @@ -2074,6 +2106,7 @@ static acpi_status acpi_bus_check_add(acpi_h=
-andle handle, u32 lvl_not_used,
-> >>  		return AE_CTRL_DEPTH;
-> >> =20
-> >>  	acpi_scan_init_hotplug(device);
-> >> +	acpi_device_dep_initialize(device);
-> >> =20
-> >>   out:
-> >>  	if (!*return_value)
-> >> @@ -2191,6 +2224,57 @@ static void acpi_bus_attach(struct acpi_dev=
-ice *device)
-> >>  		acpi_bus_attach(child);
-> >>  }
-> >> =20
-> >> +static int acpi_device_dep_check(struct acpi_device *adev)
-> >> +{
-> >> +	struct acpi_device *dep_adev;
-> >> +	struct acpi_device_physical_node *pn;
-> >> +	int i;
-> >> +
-> >> +	for (i =3D 0; i < adev->dep_devices.count; i++) {
-> >> +		dep_adev =3D acpi_bus_get_acpi_device(
-> >> +				adev->dep_devices.handles[i]);
-> >> +
-> >> +		if (!dep_adev)
-> >> +			return -ENODEV;
-> >> +
-> >> +		/* Check acpi device driver probing */
-> >> +		if (dep_adev->dev.driver)
-> >> +			continue;
-> >=20
-> > This check isn't sufficient, because _DEP is supposed to be about o=
-peration
-> > regions being present, not about drivers being present.  Same for t=
-he driver
-> > check below.
-> >=20
-> > I wouldn't bother to check drivers in this stub implementation. ->
->=20
-> Sounds like we need to check whether the dependent device node has be=
-en
-> attached with operation region handler and this needs ACPICA to expos=
-e
-> such function, right?
-
-Yes.  That's why I suggested to do the check in the function that insta=
-lls
-the operation region handler.  This way we are sure that the handler is
-already present.
-
-> >=20
-> >> +
-> >> +		if (!dep_adev->physical_node_count)
-> >> +			return -ENODEV;
-> >> +
-> >> +		/* Check physcial device node driver probing */
-> >> +		mutex_lock(&dep_adev->physical_node_lock);
-> >> +		list_for_each_entry(pn, &dep_adev->physical_node_list, node) {
-> >> +			if (pn->dev->driver) {
-> >> +				mutex_unlock(&dep_adev->physical_node_lock);
-> >> +				continue;
-> >> +			}
-> >> +		}
-> >> +		mutex_unlock(&dep_adev->physical_node_lock);
-> >> +		return -EFAULT;
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +int acpi_walk_dep_device_list(void)
-> >=20
-> > -> I'd pass the operation region device to that (and I'd call the f=
-unction
-> > differently, but that's a detail).  Then, I'd just clear flags.dep_=
-unmet
-> > for all devices having that operation region device in their dep_de=
-vices
-> > (and drop their entries from the list).  It wouldn't cover the case=
- when
-> > one device depends on two operation regions at the same time (in a =
-meaningful
-> > way), but should be sufficient to address the battery problem at ha=
-nd.=20
-> >=20
->=20
-> This requires the dependent devices have a list to record devices whi=
-ch
-> depends on them, right? Create such lists during ACPI namespace scan.
-
-I'm not sure what you mean.  "Dependent" means "depending on something"=
-, so the
-question reads "This requires the devices with _DEP to have a list of d=
-evices
-that depend on them" which is probably not what you meant.
-
-=46or each device with _DEP we have dep_devices, so if you pass a point=
-er
-(opregion_adev) to the device that has just installed an operation regi=
-on
-handler to acpi_walk_dep_device_list() as an argument, then you can do
-
-	for (i =3D 0; i < adev->dep_devices.count; i++)
-		if (opregion_adev->handle =3D=3D adev->dep_devices.handles[i]) {
-			adev->dep_unmet =3D false;
-			acpi_bus_attach(adev);
-			list_del(&dep->node);
-			kfree(dep);
-		}
-
-and of course appropriate locking needs to be there in case this races =
-with
-enumeration during hotplug after loading a new ACPI table on demand).
-
-I think you can even define
- =20
-struct acpi_dep_data {
-	struct list_head node;
-	struct acpi_device *master;
-	struct acpi_device *slave;
-};
-
-and create that for every valid pair of master (device pointed to by _D=
-EP)/slave
-(device with _DEP) and create a list of these.  Then, you won't need de=
-p_devices
-in struct acpi_device any more and your acpi_walk_dep_device_list() wil=
-l only
-need to walk the list until it finds the matching master/slave pair.
-
-That will handle the case when one device depends on multiple other dev=
-ices too
-I think.
-
-> >> +		dep_adev =3D acpi_bus_get_acpi_device(
-> >> +				adev->dep_devices.handles[i]);
-
->=20
->=20
-> >> +{
-> >> +	struct acpi_dep_data *dep, *tmp;
-> >> +
-> >> +	list_for_each_entry_safe(dep, tmp, &acpi_bus_dep_device_list, no=
-de) {
-> >> +		if (!acpi_device_dep_check(dep->adev)) {
-> >> +			dep->adev->dep_present =3D false;
-> >> +			acpi_bus_attach(dep->adev);
-> >> +			list_del(&dep->node);
-> >> +			kfree(dep);
-> >> +		}
-> >> +	}
-> >> +	return 0;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(acpi_walk_dep_device_list);
-> >> +
-> >>  /**
-> >>   * acpi_bus_scan - Add ACPI device node objects in a given namesp=
-ace scope.
-> >>   * @handle: Root of the namespace scope to scan.
-> >> diff --git a/drivers/i2c/i2c-acpi.c b/drivers/i2c/i2c-acpi.c
-> >> index 0dbc18c..fdc8dc8 100644
-> >> --- a/drivers/i2c/i2c-acpi.c
-> >> +++ b/drivers/i2c/i2c-acpi.c
-> >> @@ -339,6 +339,7 @@ int acpi_i2c_install_space_handler(struct i2c_=
-adapter *adapter)
-> >>  		return -ENOMEM;
-> >>  	}
-> >> =20
-> >> +	acpi_walk_dep_device_list();
-> >>  	return 0;
-> >>  }
-> >> =20
-> >> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> >> index c1c9de1..c1e7055 100644
-> >> --- a/include/acpi/acpi_bus.h
-> >> +++ b/include/acpi/acpi_bus.h
-> >> @@ -357,7 +357,9 @@ struct acpi_device {
-> >>  	struct acpi_hotplug_context *hp;
-> >>  	struct acpi_driver *driver;
-> >>  	void *driver_data;
-> >> +	bool dep_present;
-> >>  	struct device dev;
-> >> +	struct acpi_handle_list dep_devices;
-> >>  	unsigned int physical_node_count;
-> >>  	struct list_head physical_node_list;
-> >>  	struct mutex physical_node_lock;
-> >> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> >> index 807cbc4..c9a504b 100644
-> >> --- a/include/linux/acpi.h
-> >> +++ b/include/linux/acpi.h
-> >> @@ -431,6 +431,7 @@ static inline bool acpi_driver_match_device(st=
-ruct device *dev,
-> >> =20
-> >>  int acpi_device_uevent_modalias(struct device *, struct kobj_ueve=
-nt_env *);
-> >>  int acpi_device_modalias(struct device *, char *, int);
-> >> +int acpi_walk_dep_device_list(void);
-> >> =20
-> >>  #define ACPI_PTR(_ptr)	(_ptr)
-> >> =20
-> >> @@ -449,6 +450,8 @@ static inline const char *acpi_dev_name(struct=
- acpi_device *adev)
-> >> =20
-> >>  static inline void acpi_early_init(void) { }
-> >> =20
-> >> +static inline int acpi_walk_dep_device_list(void) { }
-> >> +
-> >>  static inline int early_acpi_boot_init(void)
-> >>  {
-> >>  	return 0;
-> >>
-> >=20
->=20
->=20
->=20
-
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+T24gVGh1cnNkYXksIFNlcHRlbWJlciAyNSwgMjAxNCAxMToxNTozNSBBTSBBYXJvbiBMdSB3cm90
+ZToKPiBIaSBIYW5zLAo+IAo+IFRoYW5rcyBmb3IgZm9sbG93aW5nIHVwIGFuZCBleHBsYWluaW5n
+IHRoZSBzaXR1YXRpb24gdG8gUGFsaS4KPiAKPiBPbiAwOS8yNS8yMDE0IDAyOjIxIEFNLCBQYWxp
+IFJvaMOhciB3cm90ZToKPiA+IE9uIFdlZG5lc2RheSAyNCBTZXB0ZW1iZXIgMjAxNCAxNjozNDoy
+MSBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+ID4+IE9rLCBzbyB0aGUgZGVsbC1sYXB0b3AgaW50ZXJm
+YWNlIGlzIGp1c3QgYW4gb2Jzb2xldGUgd3JhcHBlcgo+ID4+IGFyb3VuZCB0aGUgaTkxNSBvcHJl
+Z2lvbiBjb2RlLCB3aGljaCBzaG93cyB0aGF0IHRoZSByaWdodAo+ID4+IGludGVyZmFjZSB0byB1
+c2UgaXMgdGhlIGk5MTUgb25lLCB3aGljaCB3ZSBkbyBpZiB5b3UgZG9uJ3QKPiA+PiBzcGVjaWZ5
+IGFueSBrZXJuZWwgY29tbWFuZGxpbmUgcGFyYW1ldGVycywgY2FzZSBjbG9zZWQuCj4gPj4KPiA+
+PiBSZWdhcmRzLAo+ID4+Cj4gPj4gSGFucwo+ID4gCj4gPiBOb3BlLCBpdHMgbm90IGNsb3NlZC4K
+PiA+IAo+ID4gU3RpbGwgaTkxNSBpbnRlcmZhY2UgaGFzIHByb2JsZW0gd2l0aCBzZXR0aW5nIGJh
+Y2tsaWdodC4gSXQgCj4gPiBleHBvcnRzIGxvdCBvZiBsZXZlbHMgd2hpY2ggdHVybmluZyBkaXNw
+bGF5IG9mZi4gV2hpY2ggYnJlYWtpbmcgCj4gPiBleGl0aW5nIGFwcGxpY2F0aW9ucyBmb3IgY29u
+ZmlndXJpbmcgZGlzcGxheSBicmlnaHRuZXNzLiBUaGlzIGlzIAo+ID4gc3RpbGwgYmlnIHJlZ3Jl
+c3Npb24gYXMgYmxhY2sgc2NyZWVuIGlzIG5vdCB3YW50IHBlb3BsZSB3YW50IHRvIAo+ID4gc2Vl
+Lgo+ID4gCj4gPiBEcml2ZXIgZGVsbC1sYXB0b3AgaGFzIGV4cG9ydGVkIG9ubHkgZmV3IC0gbm90
+IHRob3VzYW5kcyBsZXZlbCAKPiA+ICh3aGljaCBpcyBpbnNhbmUpIGFuZCBvbmx5IHVzZWZ1bGwg
+bGV2ZWxzIChub3QgbG90IG9mIGxldmVscyAKPiA+IHdoaWNoIHR1cm4gZGlzcGxheSBvZmYpLgo+
+ID4gCj4gPiBTbyBmb3IgdGhpcyByZWFzb24gdXNpbmcgaTkxNSBiYWNrbGlnaHQgaW50ZXJmYWNl
+IGlzIG5vdCBwb3NzaWJsZSAKPiA+IGFuZCBhbHNvIERlbGwgKGZvciBFNjQ0MCkgc2V0IGtlcm5l
+bCBwYXJhbSBhY3BpX2JhY2tsaWdodD12ZW5kb3IgCj4gPiB0byB1c2UgZGVsbF9sYXB0b3AgbW9k
+dWxlIGZvciBjb250cm9sbGluZyBicmlnaHRuZXNzLgo+ID4gCj4gPiBPbiBteSBsYXB0b3AgRTY0
+NDAgaXMgYmV0dGVyIGZvciB1c2luZyBkZWxsLWxhcHRvcCBhbmQgbm90IGFjcGkgCj4gPiBvciBp
+OTE1Lgo+IAo+IEhpIFBhbGksCj4gCj4gUGxlYXNlIHRlc3QgdGhpcyBwYXRjaDoKPiAKPiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfb3ByZWdpb24uYyBiL2RyaXZlcnMv
+Z3B1L2RybS9pOTE1L2ludGVsX29wcmVnaW9uLmMKPiBpbmRleCBjYTUyYWQyYWU3ZDEuLjE1NTM0
+MzQ1YmQ1NyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9vcHJlZ2lv
+bi5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfb3ByZWdpb24uYwo+IEBAIC0z
+OTYsNiArMzk2LDI0IEBAIGludCBpbnRlbF9vcHJlZ2lvbl9ub3RpZnlfYWRhcHRlcihzdHJ1Y3Qg
+ZHJtX2RldmljZSAqZGV2LCBwY2lfcG93ZXJfdCBzdGF0ZSkKPiAgCXJldHVybiAtRUlOVkFMOwo+
+ICB9Cj4gIAo+ICsvKgo+ICsgKiBTb21lIG9mIHRoZSBUaGlua3BhZHMnIGZpcm13YXJlIHdpbGwg
+aXNzdWUgYSBiYWNrbGlnaHQgY2hhbmdlIG9wZXJhdGlvbgo+ICsgKiByZWdpb24gcmVxdWVzdCB1
+bmNvbmRpdGlvbmFsbHkgb24gQUMgcGx1Zy91bnBsdWcsIHRoaXMgaXMgdW5kZXNpcmFibGUgYW5k
+Cj4gKyAqIHNob3VsZCBiZSBpZ25vcmVkLiBUaGVuIHRoZXJlIGlzIGEgRGVsbCBsYXB0b3Agd2hv
+c2UgdmVuZG9yIGJhY2tsaWdodAo+ICsgKiBpbnRlcmZhY2UgYWxzbyBtYWtlcyB1c2Ugb2Ygb3Bl
+cmF0aW9uIHJlZ2lvbiByZXF1ZXN0IHRvIGNoYW5nZSBiYWNrbGlnaHQKPiArICogbGV2ZWwgYW5k
+IHdlIGhhdmUgdG8ga2VlcCBpdCB3b3JrLiBUaGUgcnVsZSB1c2VkIGhlcmUgaXM6IGlmIHRoZSB2
+ZW5kb3IKPiArICogYmFja2xpZ2h0IGludGVyZmFjZSBpcyBub3QgaW4gdXNlIGFuZCB0aGUgQUNQ
+SSBiYWNrbGlnaHQgaW50ZXJmYWNlIGlzCj4gKyAqIGJyb2tlbiwgd2UgaWdub3JlIHRoZSByZXF1
+ZXN0czsgb3Rlcndpc2UsIHdlIGtlZXAgcHJvY2Vzc2luZyB0aGVtLgo+ICsgKi8KPiArc3RhdGlj
+IGJvb2wgc2hvdWxkX2lnbm9yZV9iYWNrbGlnaHRfcmVxdWVzdCh2b2lkKQo+ICt7Cj4gKwlpZiAo
+YWNwaV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCgpICYmCj4gKwkgICAgIWFjcGlfdmlkZW9fdmVy
+aWZ5X2JhY2tsaWdodF9zdXBwb3J0KCkpCj4gKwkJcmV0dXJuIHRydWU7Cj4gKwo+ICsJcmV0dXJu
+IGZhbHNlOwo+ICt9CgpXZWxsLCB3aGF0IGFib3V0CgoJcmV0dXJuIGFjcGlfdmlkZW9fYmFja2xp
+Z2h0X3N1cHBvcnQoKSAmJiAhYWNwaV92aWRlb192ZXJpZnlfYmFja2xpZ2h0X3N1cHBvcnQoKTsK
+Cj8KCj4gKwo+ICBzdGF0aWMgdTMyIGFzbGVfc2V0X2JhY2tsaWdodChzdHJ1Y3QgZHJtX2Rldmlj
+ZSAqZGV2LCB1MzIgYmNscCkKPiAgewo+ICAJc3RydWN0IGRybV9pOTE1X3ByaXZhdGUgKmRldl9w
+cml2ID0gZGV2LT5kZXZfcHJpdmF0ZTsKPiBAQCAtNDA0LDExICs0MjIsNyBAQCBzdGF0aWMgdTMy
+IGFzbGVfc2V0X2JhY2tsaWdodChzdHJ1Y3QgZHJtX2RldmljZSAqZGV2LCB1MzIgYmNscCkKPiAg
+Cj4gIAlEUk1fREVCVUdfRFJJVkVSKCJiY2xwID0gMHglMDh4XG4iLCBiY2xwKTsKPiAgCj4gLQkv
+Kgo+IC0JICogSWYgdGhlIGFjcGlfdmlkZW8gaW50ZXJmYWNlIGlzIG5vdCBzdXBwb3NlZCB0byBi
+ZSB1c2VkLCBkb24ndAo+IC0JICogYm90aGVyIHByb2Nlc3NpbmcgYmFja2xpZ2h0IGxldmVsIGNo
+YW5nZSByZXF1ZXN0cyBmcm9tIGZpcm13YXJlLgo+IC0JICovCj4gLQlpZiAoIWFjcGlfdmlkZW9f
+dmVyaWZ5X2JhY2tsaWdodF9zdXBwb3J0KCkpIHsKPiArCWlmIChzaG91bGRfaWdub3JlX2JhY2ts
+aWdodF9yZXF1ZXN0KCkpIHsKPiAgCQlEUk1fREVCVUdfS01TKCJvcHJlZ2lvbiBiYWNrbGlnaHQg
+cmVxdWVzdCBpZ25vcmVkXG4iKTsKPiAgCQlyZXR1cm4gMDsKPiAgCX0KPiAtLQo+IFRvIHVuc3Vi
+c2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1r
+ZXJuZWwiIGluCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
+bC5vcmcKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21h
+am9yZG9tby1pbmZvLmh0bWwKPiBQbGVhc2UgcmVhZCB0aGUgRkFRIGF0ICBodHRwOi8vd3d3LnR1
+eC5vcmcvbGttbC8KCi0tIApJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4KUmFmYWVsIEouIFd5c29j
+a2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0Cklu
+dGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
