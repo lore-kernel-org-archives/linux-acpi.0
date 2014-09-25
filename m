@@ -1,90 +1,113 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI/i915: Cannot configure display brightness on
-	Dell Latitude E6440
-Date: Thu, 25 Sep 2014 21:58:48 +0200
-Message-ID: <1481425.msp1jP3vqe@vostro.rjw.lan>
-References: <201409232206.02819@pali> <201409242021.10107@pali>
- <542388D7.1010008@intel.com>
+Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+Date: Thu, 25 Sep 2014 22:08:46 +0200
+Message-ID: <2215516.KXo7vMZKRh@vostro.rjw.lan>
+References: <540E91F0.2060306@linux.intel.com> <13208235.eyDL0NsKvo@vostro.rjw.lan> <542378F0.6070303@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <542388D7.1010008@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: linux-acpi@vger.kernel.org, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:49989 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752114AbaIYTs4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 15:48:56 -0400
+In-Reply-To: <542378F0.6070303@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Cc: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-T24gVGh1cnNkYXksIFNlcHRlbWJlciAyNSwgMjAxNCAxMToxNTozNSBBTSBBYXJvbiBMdSB3cm90
-ZToKPiBIaSBIYW5zLAo+IAo+IFRoYW5rcyBmb3IgZm9sbG93aW5nIHVwIGFuZCBleHBsYWluaW5n
-IHRoZSBzaXR1YXRpb24gdG8gUGFsaS4KPiAKPiBPbiAwOS8yNS8yMDE0IDAyOjIxIEFNLCBQYWxp
-IFJvaMOhciB3cm90ZToKPiA+IE9uIFdlZG5lc2RheSAyNCBTZXB0ZW1iZXIgMjAxNCAxNjozNDoy
-MSBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+ID4+IE9rLCBzbyB0aGUgZGVsbC1sYXB0b3AgaW50ZXJm
-YWNlIGlzIGp1c3QgYW4gb2Jzb2xldGUgd3JhcHBlcgo+ID4+IGFyb3VuZCB0aGUgaTkxNSBvcHJl
-Z2lvbiBjb2RlLCB3aGljaCBzaG93cyB0aGF0IHRoZSByaWdodAo+ID4+IGludGVyZmFjZSB0byB1
-c2UgaXMgdGhlIGk5MTUgb25lLCB3aGljaCB3ZSBkbyBpZiB5b3UgZG9uJ3QKPiA+PiBzcGVjaWZ5
-IGFueSBrZXJuZWwgY29tbWFuZGxpbmUgcGFyYW1ldGVycywgY2FzZSBjbG9zZWQuCj4gPj4KPiA+
-PiBSZWdhcmRzLAo+ID4+Cj4gPj4gSGFucwo+ID4gCj4gPiBOb3BlLCBpdHMgbm90IGNsb3NlZC4K
-PiA+IAo+ID4gU3RpbGwgaTkxNSBpbnRlcmZhY2UgaGFzIHByb2JsZW0gd2l0aCBzZXR0aW5nIGJh
-Y2tsaWdodC4gSXQgCj4gPiBleHBvcnRzIGxvdCBvZiBsZXZlbHMgd2hpY2ggdHVybmluZyBkaXNw
-bGF5IG9mZi4gV2hpY2ggYnJlYWtpbmcgCj4gPiBleGl0aW5nIGFwcGxpY2F0aW9ucyBmb3IgY29u
-ZmlndXJpbmcgZGlzcGxheSBicmlnaHRuZXNzLiBUaGlzIGlzIAo+ID4gc3RpbGwgYmlnIHJlZ3Jl
-c3Npb24gYXMgYmxhY2sgc2NyZWVuIGlzIG5vdCB3YW50IHBlb3BsZSB3YW50IHRvIAo+ID4gc2Vl
-Lgo+ID4gCj4gPiBEcml2ZXIgZGVsbC1sYXB0b3AgaGFzIGV4cG9ydGVkIG9ubHkgZmV3IC0gbm90
-IHRob3VzYW5kcyBsZXZlbCAKPiA+ICh3aGljaCBpcyBpbnNhbmUpIGFuZCBvbmx5IHVzZWZ1bGwg
-bGV2ZWxzIChub3QgbG90IG9mIGxldmVscyAKPiA+IHdoaWNoIHR1cm4gZGlzcGxheSBvZmYpLgo+
-ID4gCj4gPiBTbyBmb3IgdGhpcyByZWFzb24gdXNpbmcgaTkxNSBiYWNrbGlnaHQgaW50ZXJmYWNl
-IGlzIG5vdCBwb3NzaWJsZSAKPiA+IGFuZCBhbHNvIERlbGwgKGZvciBFNjQ0MCkgc2V0IGtlcm5l
-bCBwYXJhbSBhY3BpX2JhY2tsaWdodD12ZW5kb3IgCj4gPiB0byB1c2UgZGVsbF9sYXB0b3AgbW9k
-dWxlIGZvciBjb250cm9sbGluZyBicmlnaHRuZXNzLgo+ID4gCj4gPiBPbiBteSBsYXB0b3AgRTY0
-NDAgaXMgYmV0dGVyIGZvciB1c2luZyBkZWxsLWxhcHRvcCBhbmQgbm90IGFjcGkgCj4gPiBvciBp
-OTE1Lgo+IAo+IEhpIFBhbGksCj4gCj4gUGxlYXNlIHRlc3QgdGhpcyBwYXRjaDoKPiAKPiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfb3ByZWdpb24uYyBiL2RyaXZlcnMv
-Z3B1L2RybS9pOTE1L2ludGVsX29wcmVnaW9uLmMKPiBpbmRleCBjYTUyYWQyYWU3ZDEuLjE1NTM0
-MzQ1YmQ1NyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9vcHJlZ2lv
-bi5jCj4gKysrIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfb3ByZWdpb24uYwo+IEBAIC0z
-OTYsNiArMzk2LDI0IEBAIGludCBpbnRlbF9vcHJlZ2lvbl9ub3RpZnlfYWRhcHRlcihzdHJ1Y3Qg
-ZHJtX2RldmljZSAqZGV2LCBwY2lfcG93ZXJfdCBzdGF0ZSkKPiAgCXJldHVybiAtRUlOVkFMOwo+
-ICB9Cj4gIAo+ICsvKgo+ICsgKiBTb21lIG9mIHRoZSBUaGlua3BhZHMnIGZpcm13YXJlIHdpbGwg
-aXNzdWUgYSBiYWNrbGlnaHQgY2hhbmdlIG9wZXJhdGlvbgo+ICsgKiByZWdpb24gcmVxdWVzdCB1
-bmNvbmRpdGlvbmFsbHkgb24gQUMgcGx1Zy91bnBsdWcsIHRoaXMgaXMgdW5kZXNpcmFibGUgYW5k
-Cj4gKyAqIHNob3VsZCBiZSBpZ25vcmVkLiBUaGVuIHRoZXJlIGlzIGEgRGVsbCBsYXB0b3Agd2hv
-c2UgdmVuZG9yIGJhY2tsaWdodAo+ICsgKiBpbnRlcmZhY2UgYWxzbyBtYWtlcyB1c2Ugb2Ygb3Bl
-cmF0aW9uIHJlZ2lvbiByZXF1ZXN0IHRvIGNoYW5nZSBiYWNrbGlnaHQKPiArICogbGV2ZWwgYW5k
-IHdlIGhhdmUgdG8ga2VlcCBpdCB3b3JrLiBUaGUgcnVsZSB1c2VkIGhlcmUgaXM6IGlmIHRoZSB2
-ZW5kb3IKPiArICogYmFja2xpZ2h0IGludGVyZmFjZSBpcyBub3QgaW4gdXNlIGFuZCB0aGUgQUNQ
-SSBiYWNrbGlnaHQgaW50ZXJmYWNlIGlzCj4gKyAqIGJyb2tlbiwgd2UgaWdub3JlIHRoZSByZXF1
-ZXN0czsgb3Rlcndpc2UsIHdlIGtlZXAgcHJvY2Vzc2luZyB0aGVtLgo+ICsgKi8KPiArc3RhdGlj
-IGJvb2wgc2hvdWxkX2lnbm9yZV9iYWNrbGlnaHRfcmVxdWVzdCh2b2lkKQo+ICt7Cj4gKwlpZiAo
-YWNwaV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCgpICYmCj4gKwkgICAgIWFjcGlfdmlkZW9fdmVy
-aWZ5X2JhY2tsaWdodF9zdXBwb3J0KCkpCj4gKwkJcmV0dXJuIHRydWU7Cj4gKwo+ICsJcmV0dXJu
-IGZhbHNlOwo+ICt9CgpXZWxsLCB3aGF0IGFib3V0CgoJcmV0dXJuIGFjcGlfdmlkZW9fYmFja2xp
-Z2h0X3N1cHBvcnQoKSAmJiAhYWNwaV92aWRlb192ZXJpZnlfYmFja2xpZ2h0X3N1cHBvcnQoKTsK
-Cj8KCj4gKwo+ICBzdGF0aWMgdTMyIGFzbGVfc2V0X2JhY2tsaWdodChzdHJ1Y3QgZHJtX2Rldmlj
-ZSAqZGV2LCB1MzIgYmNscCkKPiAgewo+ICAJc3RydWN0IGRybV9pOTE1X3ByaXZhdGUgKmRldl9w
-cml2ID0gZGV2LT5kZXZfcHJpdmF0ZTsKPiBAQCAtNDA0LDExICs0MjIsNyBAQCBzdGF0aWMgdTMy
-IGFzbGVfc2V0X2JhY2tsaWdodChzdHJ1Y3QgZHJtX2RldmljZSAqZGV2LCB1MzIgYmNscCkKPiAg
-Cj4gIAlEUk1fREVCVUdfRFJJVkVSKCJiY2xwID0gMHglMDh4XG4iLCBiY2xwKTsKPiAgCj4gLQkv
-Kgo+IC0JICogSWYgdGhlIGFjcGlfdmlkZW8gaW50ZXJmYWNlIGlzIG5vdCBzdXBwb3NlZCB0byBi
-ZSB1c2VkLCBkb24ndAo+IC0JICogYm90aGVyIHByb2Nlc3NpbmcgYmFja2xpZ2h0IGxldmVsIGNo
-YW5nZSByZXF1ZXN0cyBmcm9tIGZpcm13YXJlLgo+IC0JICovCj4gLQlpZiAoIWFjcGlfdmlkZW9f
-dmVyaWZ5X2JhY2tsaWdodF9zdXBwb3J0KCkpIHsKPiArCWlmIChzaG91bGRfaWdub3JlX2JhY2ts
-aWdodF9yZXF1ZXN0KCkpIHsKPiAgCQlEUk1fREVCVUdfS01TKCJvcHJlZ2lvbiBiYWNrbGlnaHQg
-cmVxdWVzdCBpZ25vcmVkXG4iKTsKPiAgCQlyZXR1cm4gMDsKPiAgCX0KPiAtLQo+IFRvIHVuc3Vi
-c2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1r
-ZXJuZWwiIGluCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
-bC5vcmcKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21h
-am9yZG9tby1pbmZvLmh0bWwKPiBQbGVhc2UgcmVhZCB0aGUgRkFRIGF0ICBodHRwOi8vd3d3LnR1
-eC5vcmcvbGttbC8KCi0tIApJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4KUmFmYWVsIEouIFd5c29j
-a2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0Cklu
-dGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+On Thursday, September 25, 2014 10:07:44 AM Li, Aubrey wrote:
+> On 2014/9/25 4:32, Rafael J. Wysocki wrote:
+> > On Wednesday, September 24, 2014 11:19:22 PM Fu, Zhonghui wrote:
+> >> This is a multi-part message in MIME format.
+> >> --------------040808000309050202010005
+> >> Content-Type: text/plain; charset=UTF-8
+> >> Content-Transfer-Encoding: 7bit
+> >>
+> >>
+> >> On 2014/9/23 7:17, Rafael J. Wysocki wrote:
+> >>> On Monday, September 22, 2014 10:45:42 PM Fu, Zhonghui wrote:
+> >>> [cut]
+> >>>
+> >>>>>>> This operation is reading data from Operation Region of one operand object in name space. I don't know the reason of hang at this point. Could you please give out some explanation about this?
+> >>>>>> I don't know the exact reason why this particular read hangs, but this means
+> >>>>>> that, perhaps, instead of disabling async suspend/resume for all LPSS devices
+> >>>>>> altogether, perhaps we can serialize their acpi_dev_resume_early()?
+> >>>>>>
+> >>>>>> Rafael
+> >>>>> Do you mean keeping other phases(prepare, suspend, suspend_late, suspend_noirq, resume_noirq, resume, complete) of suspend/resume asynchronous, and only serializing "resume_early" phase for all LPSS devices?
+> >>>>>
+> >>>>> Thanks,
+> >>>>> Zhonghui
+> >>>> Hi, Rafael
+> >>>>
+> >>>> Could you please confirm my understanding?
+> >>> This is not what I meant.
+> >>>
+> >>> Since we have a PM domain for the LPSS devices already, why don't we add an
+> >>> internal lock to that PM domain and acquire it over executing either
+> >>> acpi_dev_suspend_late() (during suspend) or acpi_dev_resume_early() (during
+> >>> resume) for all of them?
+> >> I seem find the root cause of this issue. Because this "hang" issue is occurred on ASUS T100(Baytrail-T platform), so I checked its DSDT and found that URT and I2C controllers depend on(_DEP) PEPD device(description in Windows is "power engine plug-in"). That is, URT and I2C controllers can not transition to ACPI_STATE_D0 state until PEPD device has completed this transition during resuming. But, the ACPI subsystem in the 3.16 kernel doesn't support "_DEP" feature. So, if enabling async suspend/resume for LPSS devices, their "_DEP" relationship with PEPD device will be broken and incur "hang" during the transition to ACPI_STATE_D0, please see the following code, it is from dpm_resume_early function in drivers/base/power/main.c file:
+> >>
+> >> list_for_each_entry(dev, &dpm_late_early_list, power.entry) {
+> >>                 reinit_completion(&dev->power.completion);
+> >>                 if (is_async(dev)) {
+> >>                         get_device(dev);
+> >>                         async_schedule(async_resume_early, dev);
+> >>                 }
+> >>         }
+> >>
+> >>         while (!list_empty(&dpm_late_early_list)) {
+> >>                 dev = to_device(dpm_late_early_list.next);
+> >>                 get_device(dev);
+> >>                 list_move_tail(&dev->power.entry, &dpm_suspended_list);
+> >>                 mutex_unlock(&dpm_list_mtx);
+> >>
+> >>                 if (!is_async(dev)) {    // PEPD is not configured as async device now.
+> >>                         int error;
+> >>
+> >>                         error = device_resume_early(dev, state, false);
+> >>                         if (error) {
+> >>                                 suspend_stats.failed_resume_early++;
+> >>                                 dpm_save_failed_step(SUSPEND_RESUME_EARLY);
+> >>                                 dpm_save_failed_dev(dev_name(dev));
+> >>                                 pm_dev_err(dev, state, " early", error);
+> >>                         }
+> >>                 }
+> >>                 mutex_lock(&dpm_list_mtx);
+> >>                 put_device(dev);
+> >>         }
+> >>
+> >>
+> >> Based on the above analysis,I move the resume_early operation of PEPD device to head of dpm_resume_early function and "hang" did not occur any more during resuming(I tested this 10 times).
+> >>
+> >> If disabling async suspend/resume for LPSS devices, PEPD device will be prior to UART and I2C controllers in dpm_late_early_list list and the "_DEP" relationship can be kept. Maybe,the "_DEP" ACPI feature will be supported in future kernel, so, I think simply disabling async suspend/resume for LPSS devices is a acceptable workaround now, and need not add new mechanism to deal with this issue.
+> >>
+> >> BTW, I will take two week's leave and can't reply email during this time. Sorry.
+> > 
+> > OK, thanks for the analysis.  In that case we really may be better off by
+> > disabling the runtime PM of LPSS devices for now until we figure out how this
+> > can be addressed properly.
+> 
+> Please let me know if the patch need to be refined, I can do it before
+> October 1st, then one-week Chinese National holiday.
+
+The patch is fine.  In fact, I'm going to push it to Linus shortly.
+
+> Besides this patch, we leave the non-LPSS devices as async
+> suspend/resume, the risk is unknown.
+
+No, we don't in general.  That is an opt-in, usually on a per-subsystem basis.
+
+> I wonder if we need to make
+> pm_async parameter configurable thru kernel command line to make android
+> userspace happy?
+
+There is a sysfs switch for disabling async suspend/resume (/sys/power/pm_async).
+That has to suffice.
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
