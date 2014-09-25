@@ -1,140 +1,74 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: ACPI/i915: Cannot configure display brightness on Dell Latitude E6440
-Date: Thu, 25 Sep 2014 16:23:45 +0200
-Message-ID: <201409251623.45636@pali>
-References: <201409232206.02819@pali> <201409242021.10107@pali> <542388D7.1010008@intel.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
+Date: Thu, 25 Sep 2014 17:29:10 +0200
+Message-ID: <CAPDyKFp8oK6KAujU44NEwT2vL2_BBPSMuGPkyppHdonPfOmUrQ@mail.gmail.com>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+	<20140925112122.GA22753@ulmo>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart282337937.isauQXBJ55";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:50072 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574AbaIYOXt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 10:23:49 -0400
-In-Reply-To: <542388D7.1010008@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20140925112122.GA22753@ulmo>
+Sender: linux-pm-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>Mark Brown <br>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
 
---nextPart282337937.isauQXBJ55
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 25 September 2014 13:21, Thierry Reding <thierry.reding@gmail.com> wrote:
+> I just noticed these patches because they conflicted with some of the
+> local patches I had to add a very similar framework. One of the reasons
+> why I hadn't posted these publicly yet is because the platform where I
+> want to use this (Tegra) is somewhat quirky when it comes to power
+> domains.
 
-On Thursday 25 September 2014 05:15:35 Aaron Lu wrote:
-> Hi Hans,
->=20
-> Thanks for following up and explaining the situation to Pali.
->=20
-> On 09/25/2014 02:21 AM, Pali Roh=C3=A1r wrote:
-> > On Wednesday 24 September 2014 16:34:21 Hans de Goede wrote:
-> >> Ok, so the dell-laptop interface is just an obsolete
-> >> wrapper around the i915 opregion code, which shows that
-> >> the right interface to use is the i915 one, which we do if
-> >> you don't specify any kernel commandline parameters, case
-> >> closed.
-> >>=20
-> >> Regards,
-> >>=20
-> >> Hans
-> >=20
-> > Nope, its not closed.
-> >=20
-> > Still i915 interface has problem with setting backlight. It
-> > exports lot of levels which turning display off. Which
-> > breaking exiting applications for configuring display
-> > brightness. This is still big regression as black screen is
-> > not want people want to see.
-> >=20
-> > Driver dell-laptop has exported only few - not thousands
-> > level (which is insane) and only usefull levels (not lot of
-> > levels which turn display off).
-> >=20
-> > So for this reason using i915 backlight interface is not
-> > possible and also Dell (for E6440) set kernel param
-> > acpi_backlight=3Dvendor to use dell_laptop module for
-> > controlling brightness.
-> >=20
-> > On my laptop E6440 is better for using dell-laptop and not
-> > acpi or i915.
->=20
-> Hi Pali,
->=20
-> Please test this patch:
->=20
+It's great that more things goes on in this area. :-)
 
-Hi! this patch fixing this problem. With acpi_backlight=3Dvendor=20
-dell-laptop will register backlight interface which is working=20
-again. Also userspace application dellLcdBrightness is working=20
-now without problem.
+>
+> On Tegra these domains are called power gates and they currently have
+> their own API. We've been looking at migrating things over to some
+> generic framework for some time and PM domains do seem like a good fit.
+> However one of the quirks regarding these domains on Tegra is that a
+> fixed sequence exists that needs to be respected when enabling or
+> disabling a power partition. The exact sequence can be found in the
+> drivers/soc/tegra/pmc.c driver's tegra_powergate_sequence_power_up()
+> function. Essentially we need to call into the clock and reset drivers
+> at very specific moments during the operations that the PMC does.
 
-Can you going to send this patch also to stable 3.16 branch? As=20
-it fixing commit 0b9f7d93ca6109048a4eb06332b666b6e29df4fe.
+I am not sure I fully understand how the power gating actually
+happens. How is it triggered?
 
-> diff --git a/drivers/gpu/drm/i915/intel_opregion.c
-> b/drivers/gpu/drm/i915/intel_opregion.c index
-> ca52ad2ae7d1..15534345bd57 100644
-> --- a/drivers/gpu/drm/i915/intel_opregion.c
-> +++ b/drivers/gpu/drm/i915/intel_opregion.c
-> @@ -396,6 +396,24 @@ int intel_opregion_notify_adapter(struct
-> drm_device *dev, pci_power_t state) return -EINVAL;
->  }
->=20
-> +/*
-> + * Some of the Thinkpads' firmware will issue a backlight
-> change operation + * region request unconditionally on AC
-> plug/unplug, this is undesirable and + * should be ignored.
-> Then there is a Dell laptop whose vendor backlight + *
-> interface also makes use of operation region request to
-> change backlight + * level and we have to keep it work. The
-> rule used here is: if the vendor + * backlight interface is
-> not in use and the ACPI backlight interface is + * broken, we
-> ignore the requests; oterwise, we keep processing them. + */
-> +static bool should_ignore_backlight_request(void)
-> +{
-> +	if (acpi_video_backlight_support() &&
-> +	    !acpi_video_verify_backlight_support())
-> +		return true;
-> +
-> +	return false;
-> +}
-> +
->  static u32 asle_set_backlight(struct drm_device *dev, u32
-> bclp) {
->  	struct drm_i915_private *dev_priv =3D dev->dev_private;
-> @@ -404,11 +422,7 @@ static u32 asle_set_backlight(struct
-> drm_device *dev, u32 bclp)
->=20
->  	DRM_DEBUG_DRIVER("bclp =3D 0x%08x\n", bclp);
->=20
-> -	/*
-> -	 * If the acpi_video interface is not supposed to be used,
-> don't -	 * bother processing backlight level change requests
-> from firmware. -	 */
-> -	if (!acpi_video_verify_backlight_support()) {
-> +	if (should_ignore_backlight_request()) {
->  		DRM_DEBUG_KMS("opregion backlight request ignored\n");
->  		return 0;
->  	}
+>
+> One solution to this would be to make the needed clocks and resets
+> available to the power domain driver via DT, but then we have the
+> problem that two drivers would be controlling the same resources. For
+> example drivers could still want to disable the clock for more fine-
+> grained power management.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Sorry, but I think I need a better understanding to be able to comment.
 
---nextPart282337937.isauQXBJ55
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+But maybe, drivers could implement runtime PM support and define
+runtime PM callbacks. From the callbacks those will handle clocks and
+resets, is not that enough? What more is needed from a PM domain point
+of view?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> Furthermore for some devices it may turn out
+> that turning the domain off and on introduces too much latency to be
+> useful.
 
-iEYEABECAAYFAlQkJXEACgkQi/DJPQPkQ1LiowCfSmnMdeKrRqf1YTTj0CglrAOb
-oqQAn1nc2qMmAf6BYqYbL1KQFTkBSD9a
-=MLL4
------END PGP SIGNATURE-----
+This should be handled by the generic PM domain governor. Through the
+per device QOS, you are able to set latencies constraints which could
+prevent a PM domain from being gated.
 
---nextPart282337937.isauQXBJ55--
+>
+> Does anyone have any better ideas on how to make that work with this
+> generic PM domain framework? Or is Tegra just too special to be a good
+> fit?
+
+I certainly think it's worth a try, I would be surprised if we
+shouldn't be able to address requirements from Tegra.
+
+As you might have figured out, I am dedicated to improve the generic
+power domain such it could fit more SOCs than today, thus I am also
+hoping for more SOC to start to convert to it.
+
+Kind regards
+Uffe
