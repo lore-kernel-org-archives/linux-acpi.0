@@ -1,56 +1,50 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
-Date: Thu, 25 Sep 2014 15:45:11 -0700
-Message-ID: <7hppej8glk.fsf@deeprootsystems.com>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
-	<20140925112122.GA22753@ulmo>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 0/3] ACPI: Improve behaviour on Apple hardware
+Date: Fri, 26 Sep 2014 01:45:23 +0200
+Message-ID: <3743885.VmnRMnvucd@vostro.rjw.lan>
+References: <cover.1411211725.git.andreas.noever@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20140925112122.GA22753@ulmo> (Thierry Reding's message of "Thu,
-	25 Sep 2014 13:21:24 +0200")
-Sender: linux-pm-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <cover.1411211725.git.andreas.noever@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: andreas.noever@gmail.com
+Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.or, linux-pci@vger.kernel.org, bhelgaas@google.com, matthew.garrett@nebula.com
 List-Id: linux-acpi@vger.kernel.org
 
-Thierry Reding <thierry.reding@gmail.com> writes:
+On Saturday, September 20, 2014 01:19:44 PM andreas.noever@gmail.com wrote:
+> From: Andreas Noever <andreas.noever@gmail.com>
+> 
+> This is a resend of Matthew's patches from https://lkml.org/lkml/2014/6/1/165
+> which are needed to fully support Thunderbolt on Apple hardware:
+> > Apple hardware behaves differently depending on whether or not the OS claims
+> > to be Darwin. Failing to report Darwin results in some hardware being
+> > disabled.  However, claiming to be Darwin also alters the behaviour of
+> > battery reporting and PCI handling. These patches add support for reporting
+> > Darwin support and fixing up the behavioural quirks that are exposed as a
+> > result.
+> Without these patches the firmware will cut power to the controller after
+> suspend (at the latest) and the thunderbolt driver will fail.
+> 
+> I have reordered them such that the two battery fixes/quirks come before the
+> _OSI change that breaks battery reporting. I have also merged "ACPI: Don't call
+> PCI OSC on Apple hardware when claiming to be Darwin" into "ACPI: Support
+> _OSI("Darwin") correctly" to avoid (temporarily) breaking hotplug events and
+> modified the patch to not touch ACPICA, as requested by Rafael.
+> 
+> Matthew Garrett (3):
+>   ACPI: Don't assume the existence of an SBS charger
+>   ACPI: Disable smart battery manager on Apple
+>   ACPI: Support _OSI("Darwin") correctly
+> 
+>  drivers/acpi/osl.c      | 10 +++++++
+>  drivers/acpi/pci_root.c | 14 +++++++++
+>  drivers/acpi/sbs.c      | 80 +++++++++++++++++++++++++++++++++++++++----------
+>  3 files changed, 89 insertions(+), 15 deletions(-)
 
-> I just noticed these patches because they conflicted with some of the
-> local patches I had to add a very similar framework. One of the reasons
-> why I hadn't posted these publicly yet is because the platform where I
-> want to use this (Tegra) is somewhat quirky when it comes to power
-> domains.
->
-> On Tegra these domains are called power gates and they currently have
-> their own API. We've been looking at migrating things over to some
-> generic framework for some time and PM domains do seem like a good fit.
-> However one of the quirks regarding these domains on Tegra is that a
-> fixed sequence exists that needs to be respected when enabling or
-> disabling a power partition. The exact sequence can be found in the
-> drivers/soc/tegra/pmc.c driver's tegra_powergate_sequence_power_up()
-> function. Essentially we need to call into the clock and reset drivers
-> at very specific moments during the operations that the PMC does.
->
-> One solution to this would be to make the needed clocks and resets
-> available to the power domain driver via DT, but then we have the
-> problem that two drivers would be controlling the same resources. For
-> example drivers could still want to disable the clock for more fine-
-> grained power management. 
+I've queued up this series for 3.18, thanks!
 
-I think you're on the right path here.  You can get rid of this conflict
-by removing the direct/manual clock management from the drivers, and
-using runtime PM instead: s/clk_enable/pm_runtime_get_sync/,
-s/clk_disable/pm_runtime_put_sync/.  When using runtime PM, those calls
-trickle down through the power domain driver, which can manage the
-device clocks, as well as any additional clocks and resets needed for
-power gating.
-
-> Furthermore for some devices it may turn out that turning the domain
-> off and on introduces too much latency to be useful.
-
-In these cases, you should use the per-device PM QoS framework to set
-per-device latencies.  Then your power-domain can look up these
-latencies and decide whether or not to actually power gate or not.
-
-Kevin
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
