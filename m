@@ -1,74 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: not using UART RTS override with Auto Flow Control
-Date: Fri, 26 Sep 2014 01:48:37 +0200
-Message-ID: <2707641.kPQ3p3SNoy@vostro.rjw.lan>
-References: <1410437973-16873-1-git-send-email-heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH] ACPI: force vendor backlight on Lenovo Ideapad Z570
+Date: Fri, 26 Sep 2014 01:49:11 +0200
+Message-ID: <1616866.vGbjHjdjvK@vostro.rjw.lan>
+References: <1410363883-6327-1-git-send-email-stepanbujnak@fastmail.fm>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54552 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50038 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752603AbaIYX2r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:28:47 -0400
-In-Reply-To: <1410437973-16873-1-git-send-email-heikki.krogerus@linux.intel.com>
+	with SMTP id S1753086AbaIYX3V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 19:29:21 -0400
+In-Reply-To: <1410363883-6327-1-git-send-email-stepanbujnak@fastmail.fm>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Stepan Bujnak <stepanbujnak@fastmail.fm>
+Cc: linux-acpi@vger.kernel.org
 
-On Thursday, September 11, 2014 03:19:33 PM Heikki Krogerus wrote:
-> Adding a check for UART Auto Flow Control feature and only
-> enabling the RTS override when it's not supported. RTS
-> override is not needed when Auto Flow Control is used and
-> they shouldn't be used together.
+On Wednesday, September 10, 2014 05:44:43 PM Stepan Bujnak wrote:
+> Lenovo Ideapad 570 is a pre-win8 laptop where not using vendor backlight causes the backlight controls not to work.
 > 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Signed-off-by: Stepan Bujnak <stepanbujnak@fastmail.fm>
 
 Queued up for 3.18, thanks!
 
 > ---
->  drivers/acpi/acpi_lpss.c | 22 +++++++++++++++-------
->  1 file changed, 15 insertions(+), 7 deletions(-)
+>  drivers/acpi/video_detect.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 1951b59..76cc698 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -83,18 +83,26 @@ struct lpss_private_data {
->  	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index c42feb2..27c4349 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -174,6 +174,14 @@ static struct dmi_system_id video_detect_dmi_table[] = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5737"),
+>  		},
+>  	},
+> +	{
+> +	.callback = video_detect_force_vendor,
+> +	.ident = "Lenovo IdeaPad Z570",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +		DMI_MATCH(DMI_PRODUCT_VERSION, "Ideapad Z570"),
+> +		},
+> +	},
+>  	{ },
 >  };
 >  
-> +/* UART Component Parameter Register */
-> +#define LPSS_UART_CPR			0xF4
-> +#define LPSS_UART_CPR_AFCE		BIT(4)
-> +
->  static void lpss_uart_setup(struct lpss_private_data *pdata)
->  {
->  	unsigned int offset;
-> -	u32 reg;
-> +	u32 val;
->  
->  	offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
-> -	reg = readl(pdata->mmio_base + offset);
-> -	writel(reg | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
-> -
-> -	offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
-> -	reg = readl(pdata->mmio_base + offset);
-> -	writel(reg | LPSS_GENERAL_UART_RTS_OVRD, pdata->mmio_base + offset);
-> +	val = readl(pdata->mmio_base + offset);
-> +	writel(val | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
-> +
-> +	val = readl(pdata->mmio_base + LPSS_UART_CPR);
-> +	if (!(val & LPSS_UART_CPR_AFCE)) {
-> +		offset = pdata->dev_desc->prv_offset + LPSS_GENERAL;
-> +		val = readl(pdata->mmio_base + offset);
-> +		val |= LPSS_GENERAL_UART_RTS_OVRD;
-> +		writel(val, pdata->mmio_base + offset);
-> +	}
->  }
->  
->  static void byt_i2c_setup(struct lpss_private_data *pdata)
 > 
 
 -- 
