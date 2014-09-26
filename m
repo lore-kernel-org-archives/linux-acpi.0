@@ -1,92 +1,274 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part3 v1 00/28] Enable hierarchy irqdomian on x86 platforms
-Date: Fri, 26 Sep 2014 22:57:30 +0800
-Message-ID: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Subject: [RFC v1 02/28] x86, irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
+Date: Fri, 26 Sep 2014 22:57:32 +0800
+Message-ID: <1411743478-31435-3-git-send-email-jiang.liu@linux.intel.com>
+References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is the last part to enable support of hierarchy domain on x86
-platforms.
+Introduce helper functions to manipulate struct irq_alloc_info for IOAPIC.
+Also add extra parameter to IOAPIC interfaces to prepare for hierarchy
+irqdomain. Function mp_set_gsi_attr() will be killed once we have
+switched to hierarchy irqdomain.
 
-It first converts IOAPIC to support hierarchy irqdomain, then cleans
-up all unused code and interfaces. It also introduces a kernel boot
-parameter to configure CPU vector allocation policies.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/include/asm/hw_irq.h                      |    2 ++
+ arch/x86/include/asm/io_apic.h                     |   14 +++++++++--
+ arch/x86/kernel/acpi/boot.c                        |    8 ++++---
+ arch/x86/kernel/apic/io_apic.c                     |   25 +++++++++++++++-----
+ arch/x86/pci/intel_mid_pci.c                       |    4 +++-
+ .../platform/intel-mid/device_libs/platform_wdt.c  |    4 +++-
+ arch/x86/platform/intel-mid/sfi.c                  |    5 +++-
+ 7 files changed, 48 insertions(+), 14 deletions(-)
 
-It's based on my previous patch set at:
-https://lkml.org/lkml/2014/9/26/538
-And you may access it at:
-https://github.com/jiangliu/linux.git irqdomain/p3v1
-
-It has been tested on Intel 64-bit server and 32-bit laptop. It also
-passes Fengguang's 0day tests. Helps are welcomed for testing:
-1) Intel MID platform
-2) Intel CE or OLPC platforms
-
-Patch 1-6 convert IOAPIC to support hierarchy irqdomain.
-Patch 7-16,22 clean up unused code, x86_io_apic_ops and header files.
-Patch 17-20 simplify struct irq_cfg.
-Patch 21, 23-26 clean up code and interfaces further.
-Patch 27-28 introduces a mechanism to configure CPU vector allocation
-	policies.
-
-Jiang Liu (28):
-  x86, irq: Kill unused setup_timer_IRQ0_pin()
-  x86, irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
-  x86, irq: Implement callbacks to enable hierarchy irqdomain on
-    IOAPICs
-  x86, irq: Refine the way to allocate irq_cfg for legacy IRQs
-  x86, irq: Convert IOAPIC to use hierarchy irqdomain interfaces
-  x86, irq: Kill unused old IOAPIC irqdomain interfaces
-  x86, irq: Kill x86_io_apic_ops.print_entries and related interfaces
-  x86, irq: Kill x86_io_apic_ops.setup_entry and related interfaces
-  x86, irq: Kill x86_io_apic_ops.set_affinity and related interfaces
-  x86, irq: Kill x86_io_apic_ops.eoi_ioapic_pin and related interfaces
-  x86, irq: Kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
-  x86: Clean up unused forward declarations in x86_init.h
-  x86: irq_remapping: Clean up unsued code
-  iommu/vt-d: Clean up unsued code
-  iommu/amd: Clean up unsued code
-  x86: irq_remapping: Clean up unused interfaces
-  x86, irq: Kill irq_cfg.irq_remapped
-  iommu/vt-d: Move struct irq_2_iommu into intel_irq_remapping.c
-  iommu/amd: Move struct irq_2_irte into amd_iommu.c
-  x86, irq: Move irq_cfg.irq_2_pin into io_apic.c
-  x86, irq: Kill struct io_apic_irq_attr
-  x86, irq: Kill x86_io_apic_ops.write and x86_io_apic_ops.modify
-  x86, irq: Clean up io_apic.h
-  x86, irq: Kill unused alloc_irq_and_cfg_at()
-  x86, irq: Change functions only used in vector.c as static
-  x86, irq: Kill function apic_set_affinity()
-  x86, irq: Introduce mechanism to support different vector allocation
-    policies
-  x86, irq: Add kernel parameter vector_alloc to set CPU vector
-    allocation policy
-
- Documentation/kernel-parameters.txt                |    6 +
- arch/x86/Kconfig                                   |    1 -
- arch/x86/include/asm/hw_irq.h                      |   50 +-
- arch/x86/include/asm/io_apic.h                     |   81 +-
- arch/x86/include/asm/irq_remapping.h               |   36 -
- arch/x86/include/asm/x86_init.h                    |   16 -
- arch/x86/kernel/acpi/boot.c                        |   19 +-
- arch/x86/kernel/apic/io_apic.c                     |  926 +++++++++++---------
- arch/x86/kernel/apic/vector.c                      |  226 ++---
- arch/x86/kernel/devicetree.c                       |   39 +-
- arch/x86/kernel/mpparse.c                          |    6 +-
- arch/x86/kernel/x86_init.c                         |    6 -
- arch/x86/pci/intel_mid_pci.c                       |    6 +-
- .../platform/intel-mid/device_libs/platform_wdt.c  |    5 +-
- arch/x86/platform/intel-mid/intel-mid.c            |    2 +
- arch/x86/platform/intel-mid/sfi.c                  |    6 +-
- arch/x86/platform/sfi/sfi.c                        |    5 +-
- drivers/iommu/amd_iommu.c                          |  150 +---
- drivers/iommu/intel_irq_remapping.c                |  202 +----
- drivers/iommu/irq_remapping.c                      |   84 --
- drivers/iommu/irq_remapping.h                      |   16 -
- 21 files changed, 709 insertions(+), 1179 deletions(-)
-
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index 1cb6687375f8..ceb0244c3454 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -147,8 +147,10 @@ struct irq_alloc_info {
+ 		struct {
+ 			int		ioapic_id;
+ 			int		ioapic_pin;
++			int		ioapic_node;
+ 			u32		ioapic_trigger : 1;
+ 			u32		ioapic_polarity : 1;
++			u32		ioapic_valid : 1;
+ 		};
+ #endif
+ #ifdef	CONFIG_DMAR_TABLE
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index f9a99bc28981..bfab460f6e2c 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -95,6 +95,8 @@ struct IR_IO_APIC_route_entry {
+ 		index		: 15;
+ } __attribute__ ((packed));
+ 
++struct irq_alloc_info;
++
+ #define IOAPIC_AUTO     -1
+ #define IOAPIC_EDGE     0
+ #define IOAPIC_LEVEL    1
+@@ -194,7 +196,8 @@ extern u32 gsi_top;
+ extern int mp_find_ioapic(u32 gsi);
+ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
+ extern u32 mp_pin_to_gsi(int ioapic, int pin);
+-extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags);
++extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
++			     struct irq_alloc_info *info);
+ extern void mp_unmap_irq(int irq);
+ extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 			      struct ioapic_domain_cfg *cfg);
+@@ -203,6 +206,8 @@ extern int mp_ioapic_registered(u32 gsi_base);
+ extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 			    irq_hw_number_t hwirq);
+ extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
++extern void ioapic_set_alloc_attr(struct irq_alloc_info *info,
++				  int node, int trigger, int polarity);
+ extern int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node);
+ 
+ extern void mp_save_irq(struct mpc_intsrc *m);
+@@ -254,7 +259,12 @@ static inline void print_IO_APICs(void) {}
+ #define gsi_top (NR_IRQS_LEGACY)
+ static inline int mp_find_ioapic(u32 gsi) { return 0; }
+ static inline u32 mp_pin_to_gsi(int ioapic, int pin) { return UINT_MAX; }
+-static inline int mp_map_gsi_to_irq(u32 gsi, unsigned int flags) { return gsi; }
++static inline int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
++				    struct irq_alloc_info *info)
++{
++	return gsi;
++}
++
+ static inline void mp_unmap_irq(int irq) { }
+ static inline bool mp_should_keep_irq(struct device *dev) { return 1; }
+ 
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 0e54a67b5cd6..a3511606a40d 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -404,6 +404,7 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 			   int polarity)
+ {
+ 	int irq, node;
++	struct irq_alloc_info info;
+ 
+ 	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
+ 		return gsi;
+@@ -420,7 +421,8 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 		return -1;
+ 	}
+ 
+-	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC);
++	ioapic_set_alloc_attr(&info, node, trigger, polarity);
++	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info);
+ 	if (irq < 0)
+ 		return irq;
+ 
+@@ -440,7 +442,7 @@ static void mp_unregister_gsi(u32 gsi)
+ 	if (acpi_gbl_FADT.sci_interrupt == gsi)
+ 		return;
+ 
+-	irq = mp_map_gsi_to_irq(gsi, 0);
++	irq = mp_map_gsi_to_irq(gsi, 0, NULL);
+ 	if (irq > 0)
+ 		mp_unmap_irq(irq);
+ }
+@@ -620,7 +622,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
+ 	int irq;
+ 
+ 	down_read(&acpi_ioapic_rwsem);
+-	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK);
++	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK, NULL);
+ 	up_read(&acpi_ioapic_rwsem);
+ 	if (irq >= 0) {
+ 		*irqp = irq;
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 5cccf8989507..d17a71679775 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -938,7 +938,19 @@ static int irq_trigger(int idx)
+ 	return trigger;
+ }
+ 
+-static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
++void ioapic_set_alloc_attr(struct irq_alloc_info *info, int node,
++			   int trigger, int polarity)
++{
++	init_irq_alloc_info(info, NULL);
++	info->type = X86_IRQ_ALLOC_TYPE_IOAPIC;
++	info->ioapic_node = node;
++	info->ioapic_trigger = trigger;
++	info->ioapic_polarity = polarity;
++	info->ioapic_valid = 1;
++}
++
++static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin,
++				 struct irq_alloc_info *info)
+ {
+ 	int irq = -1;
+ 	int ioapic = (int)(long)domain->host_data;
+@@ -971,7 +983,7 @@ static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
+ }
+ 
+ static int mp_map_pin_to_irq(u32 gsi, int idx, int ioapic, int pin,
+-			     unsigned int flags)
++			     unsigned int flags, struct irq_alloc_info *ainfo)
+ {
+ 	int irq;
+ 	struct irq_domain *domain = mp_ioapic_irqdomain(ioapic);
+@@ -1008,7 +1020,7 @@ static int mp_map_pin_to_irq(u32 gsi, int idx, int ioapic, int pin,
+ 	} else {
+ 		irq = irq_find_mapping(domain, pin);
+ 		if (irq <= 0 && (flags & IOAPIC_MAP_ALLOC))
+-			irq = alloc_irq_from_domain(domain, gsi, pin);
++			irq = alloc_irq_from_domain(domain, gsi, pin, ainfo);
+ 	}
+ 
+ 	if (flags & IOAPIC_MAP_ALLOC) {
+@@ -1058,10 +1070,11 @@ static int pin_2_irq(int idx, int ioapic, int pin, unsigned int flags)
+ 	}
+ #endif
+ 
+-	return  mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags);
++	return  mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags, NULL);
+ }
+ 
+-int mp_map_gsi_to_irq(u32 gsi, unsigned int flags)
++int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
++		      struct irq_alloc_info *info)
+ {
+ 	int ioapic, pin, idx;
+ 
+@@ -1074,7 +1087,7 @@ int mp_map_gsi_to_irq(u32 gsi, unsigned int flags)
+ 	if ((flags & IOAPIC_MAP_CHECK) && idx < 0)
+ 		return -1;
+ 
+-	return mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags);
++	return mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags, info);
+ }
+ 
+ void mp_unmap_irq(int irq)
+diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
+index 44b9271580b5..fd9c4223acba 100644
+--- a/arch/x86/pci/intel_mid_pci.c
++++ b/arch/x86/pci/intel_mid_pci.c
+@@ -208,6 +208,7 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
+ 
+ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ {
++	struct irq_alloc_info info;
+ 	int polarity;
+ 
+ 	if (dev->irq_managed && dev->irq > 0)
+@@ -217,6 +218,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 		polarity = 0; /* active high */
+ 	else
+ 		polarity = 1; /* active low */
++	ioapic_set_alloc_attr(&info, dev_to_node(&dev->dev), 1, polarity);
+ 
+ 	/*
+ 	 * MRST only have IOAPIC, the PCI irq lines are 1:1 mapped to
+@@ -224,7 +226,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 	 */
+ 	if (mp_set_gsi_attr(dev->irq, 1, polarity, dev_to_node(&dev->dev)))
+ 		return -EBUSY;
+-	if (mp_map_gsi_to_irq(dev->irq, IOAPIC_MAP_ALLOC) < 0)
++	if (mp_map_gsi_to_irq(dev->irq, IOAPIC_MAP_ALLOC, &info) < 0)
+ 		return -EBUSY;
+ 
+ 	dev->irq_managed = 1;
+diff --git a/arch/x86/platform/intel-mid/device_libs/platform_wdt.c b/arch/x86/platform/intel-mid/device_libs/platform_wdt.c
+index 0b283d4d0ad7..de0009f6d555 100644
+--- a/arch/x86/platform/intel-mid/device_libs/platform_wdt.c
++++ b/arch/x86/platform/intel-mid/device_libs/platform_wdt.c
+@@ -27,6 +27,7 @@ static struct platform_device wdt_dev = {
+ static int tangier_probe(struct platform_device *pdev)
+ {
+ 	int gsi;
++	struct irq_alloc_info info;
+ 	struct intel_mid_wdt_pdata *pdata = pdev->dev.platform_data;
+ 
+ 	if (!pdata)
+@@ -34,8 +35,9 @@ static int tangier_probe(struct platform_device *pdev)
+ 
+ 	/* IOAPIC builds identity mapping between GSI and IRQ on MID */
+ 	gsi = pdata->irq;
++	ioapic_set_alloc_attr(&info, cpu_to_node(0), 1, 0);
+ 	if (mp_set_gsi_attr(gsi, 1, 0, cpu_to_node(0)) ||
+-	    mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC) <= 0) {
++	    mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info) <= 0) {
+ 		dev_warn(&pdev->dev, "cannot find interrupt %d in ioapic\n",
+ 			 gsi);
+ 		return -EINVAL;
+diff --git a/arch/x86/platform/intel-mid/sfi.c b/arch/x86/platform/intel-mid/sfi.c
+index 3c53a90fdb18..5ae60c295fd8 100644
+--- a/arch/x86/platform/intel-mid/sfi.c
++++ b/arch/x86/platform/intel-mid/sfi.c
+@@ -434,6 +434,7 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
+ 	struct devs_id *dev = NULL;
+ 	int num, i, ret;
+ 	int polarity;
++	struct irq_alloc_info info;
+ 
+ 	sb = (struct sfi_table_simple *)table;
+ 	num = SFI_GET_NUM_ENTRIES(sb, struct sfi_device_table_entry);
+@@ -467,9 +468,11 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
+ 				polarity = 1;
+ 			}
+ 
++			ioapic_set_alloc_attr(&info, NUMA_NO_NODE, 1, polarity);
+ 			ret = mp_set_gsi_attr(irq, 1, polarity, NUMA_NO_NODE);
+ 			if (ret == 0)
+-				ret = mp_map_gsi_to_irq(irq, IOAPIC_MAP_ALLOC);
++				ret = mp_map_gsi_to_irq(irq, IOAPIC_MAP_ALLOC,
++							&info);
+ 			WARN_ON(ret < 0);
+ 		}
+ 
 -- 
 1.7.10.4
