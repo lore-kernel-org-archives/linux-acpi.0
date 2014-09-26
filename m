@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 24/28] x86, irq: Kill unused alloc_irq_and_cfg_at()
-Date: Fri, 26 Sep 2014 22:57:54 +0800
-Message-ID: <1411743478-31435-25-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 25/28] x86, irq: Change functions only used in vector.c as static
+Date: Fri, 26 Sep 2014 22:57:55 +0800
+Message-ID: <1411743478-31435-26-git-send-email-jiang.liu@linux.intel.com>
 References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,57 +10,64 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There's no caller of alloc_irq_and_cfg_at() anymore, so kill it.
+Function {assign|clear}_irq_vector() and apic_retrigger_irq() are only
+used in file vector.c, so change them as static.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/hw_irq.h |    1 -
- arch/x86/kernel/apic/vector.c |   21 ---------------------
- 2 files changed, 22 deletions(-)
+ arch/x86/include/asm/hw_irq.h |    3 ---
+ arch/x86/kernel/apic/vector.c |    7 ++++---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 4e46427f7945..9f8436fb3770 100644
+index 9f8436fb3770..fdf8300dcc29 100644
 --- a/arch/x86/include/asm/hw_irq.h
 +++ b/arch/x86/include/asm/hw_irq.h
-@@ -178,7 +178,6 @@ extern void copy_irq_alloc_info(struct irq_alloc_info *dst,
- 				struct irq_alloc_info *src);
- extern struct irq_cfg *irq_cfg(unsigned int irq);
+@@ -180,13 +180,10 @@ extern struct irq_cfg *irq_cfg(unsigned int irq);
  extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
--extern struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node);
  extern void lock_vector_lock(void);
  extern void unlock_vector_lock(void);
- extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
+-extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
+-extern void clear_irq_vector(int irq, struct irq_cfg *cfg);
+ extern void setup_vector_irq(int cpu);
+ extern void send_cleanup_vector(struct irq_cfg *);
+ extern void irq_complete_move(struct irq_cfg *cfg);
+ 
+-extern int apic_retrigger_irq(struct irq_data *data);
+ extern void apic_ack_edge(struct irq_data *data);
+ extern int apic_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 			     unsigned int *dest_id);
 diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 89a57f3e353c..f21820622edf 100644
+index f21820622edf..ec2b991884f2 100644
 --- a/arch/x86/kernel/apic/vector.c
 +++ b/arch/x86/kernel/apic/vector.c
-@@ -76,27 +76,6 @@ out_cfg:
- 	return NULL;
+@@ -185,7 +185,8 @@ next:
+ 	return err;
  }
  
--struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node)
--{
--	int res = irq_alloc_desc_at(at, node);
--	struct irq_cfg *cfg;
--
--	if (res < 0) {
--		if (res != -EEXIST)
--			return NULL;
--		cfg = irq_cfg(at);
--		if (cfg)
--			return cfg;
--	}
--
--	cfg = alloc_irq_cfg(node);
--	if (cfg)
--		irq_set_chip_data(at, cfg);
--	else
--		irq_free_desc(at);
--	return cfg;
--}
--
- static void free_irq_cfg(struct irq_cfg *cfg)
+-int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
++static int assign_irq_vector(int irq, struct irq_cfg *cfg,
++			     const struct cpumask *mask)
  {
- 	if (cfg) {
+ 	int err;
+ 	unsigned long flags;
+@@ -196,7 +197,7 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
+ 	return err;
+ }
+ 
+-void clear_irq_vector(int irq, struct irq_cfg *cfg)
++static void clear_irq_vector(int irq, struct irq_cfg *cfg)
+ {
+ 	int cpu, vector;
+ 	unsigned long flags;
+@@ -435,7 +436,7 @@ void setup_vector_irq(int cpu)
+ 	__setup_vector_irq(cpu);
+ }
+ 
+-int apic_retrigger_irq(struct irq_data *data)
++static int apic_retrigger_irq(struct irq_data *data)
+ {
+ 	struct irq_cfg *cfg = irqd_cfg(data);
+ 	unsigned long flags;
 -- 
 1.7.10.4
