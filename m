@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 21/28] x86, irq: Kill struct io_apic_irq_attr
-Date: Fri, 26 Sep 2014 22:57:51 +0800
-Message-ID: <1411743478-31435-22-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 24/28] x86, irq: Kill unused alloc_irq_and_cfg_at()
+Date: Fri, 26 Sep 2014 22:57:54 +0800
+Message-ID: <1411743478-31435-25-git-send-email-jiang.liu@linux.intel.com>
 References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,52 +10,57 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now there's no user of struct io_apic_irq_attr anymore, so kill it.
+There's no caller of alloc_irq_and_cfg_at() anymore, so kill it.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/io_apic.h |    7 -------
- arch/x86/kernel/apic/io_apic.c |   10 ----------
- 2 files changed, 17 deletions(-)
+ arch/x86/include/asm/hw_irq.h |    1 -
+ arch/x86/kernel/apic/vector.c |   21 ---------------------
+ 2 files changed, 22 deletions(-)
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index f58cf21ced59..c2c1a8b7f39d 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -157,13 +157,6 @@ extern int restore_ioapic_entries(void);
- extern void setup_ioapic_ids_from_mpc(void);
- extern void setup_ioapic_ids_from_mpc_nocheck(void);
- 
--struct io_apic_irq_attr {
--	int ioapic;
--	int ioapic_pin;
--	int trigger;
--	int polarity;
--};
--
- enum ioapic_domain_type {
- 	IOAPIC_DOMAIN_INVALID,
- 	IOAPIC_DOMAIN_LEGACY,
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index ffa87ef3a2aa..2ccccfdbb682 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -2953,16 +2953,6 @@ int mp_ioapic_registered(u32 gsi_base)
- 	return 0;
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index 4e46427f7945..9f8436fb3770 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -178,7 +178,6 @@ extern void copy_irq_alloc_info(struct irq_alloc_info *dst,
+ 				struct irq_alloc_info *src);
+ extern struct irq_cfg *irq_cfg(unsigned int irq);
+ extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
+-extern struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node);
+ extern void lock_vector_lock(void);
+ extern void unlock_vector_lock(void);
+ extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
+diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+index 89a57f3e353c..f21820622edf 100644
+--- a/arch/x86/kernel/apic/vector.c
++++ b/arch/x86/kernel/apic/vector.c
+@@ -76,27 +76,6 @@ out_cfg:
+ 	return NULL;
  }
  
--static inline void set_io_apic_irq_attr(struct io_apic_irq_attr *irq_attr,
--					int ioapic, int ioapic_pin,
--					int trigger, int polarity)
+-struct irq_cfg *alloc_irq_and_cfg_at(unsigned int at, int node)
 -{
--	irq_attr->ioapic	= ioapic;
--	irq_attr->ioapic_pin	= ioapic_pin;
--	irq_attr->trigger	= trigger;
--	irq_attr->polarity	= polarity;
+-	int res = irq_alloc_desc_at(at, node);
+-	struct irq_cfg *cfg;
+-
+-	if (res < 0) {
+-		if (res != -EEXIST)
+-			return NULL;
+-		cfg = irq_cfg(at);
+-		if (cfg)
+-			return cfg;
+-	}
+-
+-	cfg = alloc_irq_cfg(node);
+-	if (cfg)
+-		irq_set_chip_data(at, cfg);
+-	else
+-		irq_free_desc(at);
+-	return cfg;
 -}
 -
- static int mp_irqdomain_get_attr(int irq, u32 gsi, struct mp_pin_info *pinfo,
- 				 struct irq_alloc_info *info)
+ static void free_irq_cfg(struct irq_cfg *cfg)
  {
+ 	if (cfg) {
 -- 
 1.7.10.4
