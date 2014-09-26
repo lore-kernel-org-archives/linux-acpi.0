@@ -1,124 +1,119 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device
- properties interface
-Date: Thu, 25 Sep 2014 20:21:32 -0700
-Message-ID: <20140926032131.GC40523@vmdeb7>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <2809308.3y5s7TV5Ip@wuerfel>
- <D04730D8.A9DB0%dvhart@linux.intel.com>
- <6744174.JquHLt80n3@wuerfel>
+From: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume
+ of LPSS devices
+Date: Fri, 26 Sep 2014 11:54:42 +0800
+Message-ID: <5424E382.6060403@linux.intel.com>
+References: <540E91F0.2060306@linux.intel.com> <13208235.eyDL0NsKvo@vostro.rjw.lan> <542378F0.6070303@linux.intel.com> <2215516.KXo7vMZKRh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45352 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875AbaIZDVf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 23:21:35 -0400
-Content-Disposition: inline
-In-Reply-To: <6744174.JquHLt80n3@wuerfel>
+Received: from mga09.intel.com ([134.134.136.24]:56256 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752961AbaIZDyq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Sep 2014 23:54:46 -0400
+In-Reply-To: <2215516.KXo7vMZKRh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <david.woodhouse@intel.com>, Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
-> On Tuesday 23 September 2014 14:15:47 Darren Hart wrote:
-> > Arnd, I think you meant:
-> > 
-> >         Return gpio_leds_create_acpi(pdev) ?
+On 2014/9/26 4:08, Rafael J. Wysocki wrote:
+> On Thursday, September 25, 2014 10:07:44 AM Li, Aubrey wrote:
+>> On 2014/9/25 4:32, Rafael J. Wysocki wrote:
+>>> On Wednesday, September 24, 2014 11:19:22 PM Fu, Zhonghui wrote:
+>>>> This is a multi-part message in MIME format.
+>>>> --------------040808000309050202010005
+>>>> Content-Type: text/plain; charset=UTF-8
+>>>> Content-Transfer-Encoding: 7bit
+>>>>
+>>>>
+>>>> On 2014/9/23 7:17, Rafael J. Wysocki wrote:
+>>>>> On Monday, September 22, 2014 10:45:42 PM Fu, Zhonghui wrote:
+>>>>> [cut]
+>>>>>
+>>>>>>>>> This operation is reading data from Operation Region of one operand object in name space. I don't know the reason of hang at this point. Could you please give out some explanation about this?
+>>>>>>>> I don't know the exact reason why this particular read hangs, but this means
+>>>>>>>> that, perhaps, instead of disabling async suspend/resume for all LPSS devices
+>>>>>>>> altogether, perhaps we can serialize their acpi_dev_resume_early()?
+>>>>>>>>
+>>>>>>>> Rafael
+>>>>>>> Do you mean keeping other phases(prepare, suspend, suspend_late, suspend_noirq, resume_noirq, resume, complete) of suspend/resume asynchronous, and only serializing "resume_early" phase for all LPSS devices?
+>>>>>>>
+>>>>>>> Thanks,
+>>>>>>> Zhonghui
+>>>>>> Hi, Rafael
+>>>>>>
+>>>>>> Could you please confirm my understanding?
+>>>>> This is not what I meant.
+>>>>>
+>>>>> Since we have a PM domain for the LPSS devices already, why don't we add an
+>>>>> internal lock to that PM domain and acquire it over executing either
+>>>>> acpi_dev_suspend_late() (during suspend) or acpi_dev_resume_early() (during
+>>>>> resume) for all of them?
+>>>> I seem find the root cause of this issue. Because this "hang" issue is occurred on ASUS T100(Baytrail-T platform), so I checked its DSDT and found that URT and I2C controllers depend on(_DEP) PEPD device(description in Windows is "power engine plug-in"). That is, URT and I2C controllers can not transition to ACPI_STATE_D0 state until PEPD device has completed this transition during resuming. But, the ACPI subsystem in the 3.16 kernel doesn't support "_DEP" feature. So, if enabling async suspend/resume for LPSS devices, their "_DEP" relationship with PEPD device will be broken and incur "hang" during the transition to ACPI_STATE_D0, please see the following code, it is from dpm_resume_early function in drivers/base/power/main.c file:
+>>>>
+>>>> list_for_each_entry(dev, &dpm_late_early_list, power.entry) {
+>>>>                 reinit_completion(&dev->power.completion);
+>>>>                 if (is_async(dev)) {
+>>>>                         get_device(dev);
+>>>>                         async_schedule(async_resume_early, dev);
+>>>>                 }
+>>>>         }
+>>>>
+>>>>         while (!list_empty(&dpm_late_early_list)) {
+>>>>                 dev = to_device(dpm_late_early_list.next);
+>>>>                 get_device(dev);
+>>>>                 list_move_tail(&dev->power.entry, &dpm_suspended_list);
+>>>>                 mutex_unlock(&dpm_list_mtx);
+>>>>
+>>>>                 if (!is_async(dev)) {    // PEPD is not configured as async device now.
+>>>>                         int error;
+>>>>
+>>>>                         error = device_resume_early(dev, state, false);
+>>>>                         if (error) {
+>>>>                                 suspend_stats.failed_resume_early++;
+>>>>                                 dpm_save_failed_step(SUSPEND_RESUME_EARLY);
+>>>>                                 dpm_save_failed_dev(dev_name(dev));
+>>>>                                 pm_dev_err(dev, state, " early", error);
+>>>>                         }
+>>>>                 }
+>>>>                 mutex_lock(&dpm_list_mtx);
+>>>>                 put_device(dev);
+>>>>         }
+>>>>
+>>>>
+>>>> Based on the above analysis,I move the resume_early operation of PEPD device to head of dpm_resume_early function and "hang" did not occur any more during resuming(I tested this 10 times).
+>>>>
+>>>> If disabling async suspend/resume for LPSS devices, PEPD device will be prior to UART and I2C controllers in dpm_late_early_list list and the "_DEP" relationship can be kept. Maybe,the "_DEP" ACPI feature will be supported in future kernel, so, I think simply disabling async suspend/resume for LPSS devices is a acceptable workaround now, and need not add new mechanism to deal with this issue.
+>>>>
+>>>> BTW, I will take two week's leave and can't reply email during this time. Sorry.
+>>>
+>>> OK, thanks for the analysis.  In that case we really may be better off by
+>>> disabling the runtime PM of LPSS devices for now until we figure out how this
+>>> can be addressed properly.
+>>
+>> Please let me know if the patch need to be refined, I can do it before
+>> October 1st, then one-week Chinese National holiday.
 > 
-> Yes, sorry for the confusion on my part.
+> The patch is fine.  In fact, I'm going to push it to Linus shortly.
+> 
+>> Besides this patch, we leave the non-LPSS devices as async
+>> suspend/resume, the risk is unknown.
+> 
+> No, we don't in general.  That is an opt-in, usually on a per-subsystem basis.
+> 
+>> I wonder if we need to make
+>> pm_async parameter configurable thru kernel command line to make android
+>> userspace happy?
+> 
+> There is a sysfs switch for disabling async suspend/resume (/sys/power/pm_async).
+> That has to suffice.
+> 
+Like what you did to pretend echo mem > /sys/power/state, it's hard to
+visit sysfs switch from android UI, we want to disable async
+suspend/resume from kernel command line, so that we can bypass this
+feature after boot.
 
-Hi Arnd,
-
-No problem, just wanted to make sure I knew what you meant.
-
-> 
-> > This is what we did early on to prototype this concept, but the problem
-> > with this approach we duplicate all of the creation code, which leads to
-> > maintenance errors, and is inconsistent with the goals of the _DSD which
-> > is to reuse the same schemas for ACPI and FDT. If we have separate pdata
-> > creation functions anyway, we are leaving much of the advantage of the
-> > common schema on the table. Namely the ability to reuse drivers relatively
-> > easily across firmware implementations. We don't want driver authors to
-> > have to care if it's ACPI or FDT.
-> 
-> I think we are absolutely in agreement about the basic principle here,
-> but disagree on how far we'd want to take the abstraction.
-> 
-> I got a little confused by the leds-gpio example, as I initially saw
-> that as generic infrastructure rather than a specific driver. As I just
-> wrote in my reply to Rafael, I generally believe we should strive to
-> have generic driver-side interfaces so drivers don't have to care,
-> but keep the differences in subsystem specific code.
-> 
-> > We would have preferred to have deprecated the of property interface in
-> > favor of the new generic device_property interface, but Grant specifically
-> > requested that we update drivers individually rather than all at once,
-> > which means we can't just kill the OF interface.
-> 
-> I don't actually have a strong opinion on that matter, having only the
-> device property interface does have some advantages as well, but I also
-> agree that we are somewhat better off not having to change all the drivers.
-> 
-> > We agreed to that, somewhat reluctantly as it adds more work in updating
-> > the drivers over time which will slow adoption, but I understand the
-> > desire not to make large sweeping changes due to the risk of breaking
-> > things inadvertently as we cannot expect to be able to test all of them.
-> > That said, I don't want to forget that the goal is to use the common
-> > interface over time as we convert individual drivers, and using the common
-> > interface means we need a common iterator function and that we not have fw
-> > implementation specific pdata create functions.
-> 
-> I've looked a bit closer at how the LED subsystem handles sub-nodes
-> in DT at the moment. It seems that there is some duplication between
-> the drivers already, as they all implement a variation of the sub-node
-> parsing code.
-> 
-> There are other non-LED drivers with similar loops, but they seem to be
-> either very specialized, or explicitly for DT abstractions, so I'm still
-> not convinced we need a generic loop-through-child-nodes-and-parse-properties
-> interface.
-> 
-> How would you feel about a more general way of probing LED, using
-> a new helper in the leds-core that iterates over the child nodes
-> and parses the standard properties but calls into a driver specific
-> callback to parse the specific properties?
-> It's probably much more work than your current approach, but it seems
-> to me that there is more to gain by solving the problem for LED
-> drivers in particular to cut down the per-driver duplication
-> at the same time as the per-firmware-interface duplication.
-> 
-> As a start, we could probably take the proposed device_for_each_child_node
-> and move that into the leds-core, changing the fw_dev_node argument
-> for an led_classdev with the addition of the of_node and acpi_object
-> members. It would still leave it up to the gpio-leds driver to do
-> 
-> 	if (led_cdev->of_node)
-> 		gpiod = devm_of_get_gpiod(led_cdev->of_node, ...);
-> 	else
-> 		gpiod = devm_acpi_get_gpiod(led_cdev->acpi_object, ...);
-
-So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
-will need to walk through non-device child nodes, and it seems to me that having
-a firmware-independent mechanism to do so benefits the drivers by both making
-them smaller and by increasing the reusability of new drivers and drivers
-updated to use the new API across platforms.
-
-I fear we might be entering bike shed territory as we seem to be repeating
-points now. Can you restate your concern with the interface and why this level
-of abstraction is worse for the kernel? I'm not seeing this point, so I'm not
-sure what to address in my response.
-
-Grant, Linus W? Thoughts?
-
-> 
-> but there seems little benefit in abstracting this because there is
-> only one driver that needs it.
-> 
-> 	Arnd
-> 
-
--- 
-Darren Hart
-Intel Open Source Technology Center
+Thanks,
+-Aubrey
