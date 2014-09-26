@@ -1,83 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Fri, 26 Sep 2014 16:42:28 +0200
-Message-ID: <4111948.OqsXPJi3b5@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20140926032131.GC40523@vmdeb7> <1957255.2hxfTldm4Q@wuerfel>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFT Part2 v2 00/24] Enable hierarchy irqdomian on x86 platforms
+Date: Fri, 26 Sep 2014 16:29:31 +0200
+Message-ID: <20140926142931.GA10066@nazgul.tnic>
+References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51953 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753458AbaIZOWi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2014 10:22:38 -0400
-In-Reply-To: <1957255.2hxfTldm4Q@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Darren Hart <dvhart@infradead.org>, David Woodhouse <david.woodhouse@intel.com>, Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Friday, September 26, 2014 10:36:06 AM Arnd Bergmann wrote:
-> On Thursday 25 September 2014 20:21:32 Darren Hart wrote:
-> > On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
-> > > How would you feel about a more general way of probing LED, using
-> > > a new helper in the leds-core that iterates over the child nodes
-> > > and parses the standard properties but calls into a driver specific
-> > > callback to parse the specific properties?
-> > > It's probably much more work than your current approach, but it seems
-> > > to me that there is more to gain by solving the problem for LED
-> > > drivers in particular to cut down the per-driver duplication
-> > > at the same time as the per-firmware-interface duplication.
-> > > 
-> > > As a start, we could probably take the proposed device_for_each_child_node
-> > > and move that into the leds-core, changing the fw_dev_node argument
-> > > for an led_classdev with the addition of the of_node and acpi_object
-> > > members. It would still leave it up to the gpio-leds driver to do
-> > > 
-> > > 	if (led_cdev->of_node)
-> > > 		gpiod = devm_of_get_gpiod(led_cdev->of_node, ...);
-> > > 	else
-> > > 		gpiod = devm_acpi_get_gpiod(led_cdev->acpi_object, ...);
-> > 
-> > So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
-> > will need to walk through non-device child nodes, and it seems to me that having
-> > a firmware-independent mechanism to do so benefits the drivers by both making
-> > them smaller and by increasing the reusability of new drivers and drivers
-> > updated to use the new API across platforms.
-> > 
-> > I fear we might be entering bike shed territory as we seem to be repeating
-> > points now. Can you restate your concern with the interface and why this level
-> > of abstraction is worse for the kernel? I'm not seeing this point, so I'm not
-> > sure what to address in my response.
+On Fri, Sep 26, 2014 at 10:02:01PM +0800, Jiang Liu wrote:
+> We plan to restructure x86 interrupt code based on hierarchy irqdomain,
+> that is to build irqdomains for CPU vector, interrupt remapping unit,
+> IOAPIC, MSI and HPET etc and organize those irqdomains in hierarchy mode.
+> Each irqdomain manages corresponding interrupt controller and talks to
+> parent interrupt controller through public irqdomain interfaces. We also
+> support stacked irq_chip based on hierarchy irqdomain. It will make the
+> x86 interrupt architecture much more clear and more easy to maintain
+> with hierarchy irqdomain and stacked irq_chip. It may also help ARM
+> interrupt management architecture too.
 > 
-> I think we should have abstractions for all common interfaces but make
-> them as simple as possible. In the discussions at the kernel summit,
-> everyone agreed that we should have common accessors for simple properties
-> (bool, int, string, ...) based on device pointers, as well as subsystem
-> specific accessors to handle the high-level abstractions (registers,
-> interrupts, gpio, regulator, pinctrl, dma, reset, pwm, ...).
+> This is the second patch set to enable support of hierarchy irqdomain
+> on x86 platforms. It depends on the first part at:
+> https://lkml.org/lkml/2014/9/26/501
+> And you may access it at:
+> https://github.com/jiangliu/linux.git irqdomain/p2v2
 > 
-> Having generalized accessors for the same properties in child nodes of
-> the device goes beyond that, and I think this is the wrong trade-off
-> between interface simplicity and generality since only few drivers will
-> be able to use those. I think we will always have to live with a leaky
-> abstraction because some drivers need to do things beyond what we can
-> do with a common API.
+> And there will be a third patch set to convert IOAPIC driver to support
+> hierarchy irqdomain and clean up code.
+> 
+> The first patch extends irqdomain interfaces to support hierarchy
+> irqdomain. Hope this interface could be used by other architectures too,
+> such as ARM/ARM64.
+> The second patch introduces two helper functions to support stacked
+> irq_chip.
+> Patch 3-9 implements an irqdomain to manange CPU interrupt vectors, and
+> it's the root irqdomain for x86 platforms.
+> Patch 10-13 converts Intel and AMD interrupt remapping drivers to
+> support hierarchy irqdomain.
+> Patch 14-16 converts HPET and MSI to support hierarchy irqdomain.
+> Patch 17-20 cleans up unsued code in x86 arch and interrupt remapping
+> drivers.
+> Patch 21-24 converts DMAR, HTIRQ and UV to support hierarchy irqdomain.
+> 
+> We have tested this patchset on Intel 32-bit and 64-bit systems. And it
+> also passes Fengguang's 0day tests. But helps are need for testing:
+> 1) AMD interrupt remapping 
+> 2) AMD HT_IRQ
 
-Some drivers do, but then we can avoid adding DT/ACPI knowledge to some
-drivers by adding general accessors for properties in child nodes.  In my
-opinion, drivers should not do things specific to DT/ACPI unless that is
-unavoidable.
+Adding Aravind.
 
-> 
-> > Grant, Linus W? Thoughts?
-> 
-> I definitely want to hear other voices on this too. This is really not
-> a fundamental debate I think, but more a question of how far the abstraction
-> should go.
+@Aravind: you might want to give that patchset a run just in case, to
+make sure it doesn't break anything on AMD. You'll need the previous
+patchset to go before too, though:
 
-Right.
+https://lkml.kernel.org/r/1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com
+
+I'm sure Jiang will help you if you have more questions.
+
+Thanks.
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards/Gruss,
+    Boris.
+--
