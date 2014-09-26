@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 08/28] x86, irq: Kill x86_io_apic_ops.setup_entry and related interfaces
-Date: Fri, 26 Sep 2014 22:57:38 +0800
-Message-ID: <1411743478-31435-9-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 11/28] x86, irq: Kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
+Date: Fri, 26 Sep 2014 22:57:41 +0800
+Message-ID: <1411743478-31435-12-git-send-email-jiang.liu@linux.intel.com>
 References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,161 +10,72 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now there is no user of x86_io_apic_ops.setup_entry anymore, so kill it.
+There's no user of irq_alloc_hwirqs(), irq_alloc_hwirq(), irq_free_hwirqs()
+and irq_free_hwirq() anymore, so kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ and
+related code.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/io_apic.h       |    4 ----
- arch/x86/include/asm/irq_remapping.h |   13 -------------
- arch/x86/include/asm/x86_init.h      |    3 ---
- arch/x86/kernel/apic/io_apic.c       |   24 ------------------------
- arch/x86/kernel/x86_init.c           |    1 -
- drivers/iommu/irq_remapping.c        |   13 -------------
- 6 files changed, 58 deletions(-)
+ arch/x86/Kconfig              |    1 -
+ arch/x86/kernel/apic/vector.c |   34 ----------------------------------
+ 2 files changed, 35 deletions(-)
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index fb501ec46ee8..f9f316b2ec1e 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -150,9 +150,6 @@ struct irq_cfg;
- extern void ioapic_insert_resources(void);
- extern int arch_early_ioapic_init(void);
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index f057a53b19a8..9d378c23a6a9 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -837,7 +837,6 @@ config X86_UP_IOAPIC
+ config X86_LOCAL_APIC
+ 	def_bool y
+ 	depends on X86_64 || SMP || X86_32_NON_STANDARD || X86_UP_APIC || PCI_MSI
+-	select GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
+ 	select IRQ_DOMAIN
+ 	select IRQ_DOMAIN_HIERARCHY
  
--extern int native_setup_ioapic_entry(int, struct IO_APIC_route_entry *,
--				     unsigned int, int,
--				     struct io_apic_irq_attr *);
- extern void eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg);
- 
- extern void native_eoi_ioapic_pin(int apic, int pin, int vector);
-@@ -291,7 +288,6 @@ static inline void disable_ioapic_support(void) { }
- #define native_io_apic_modify		NULL
- #define native_disable_io_apic		NULL
- #define native_ioapic_set_affinity	NULL
--#define native_setup_ioapic_entry	NULL
- #define native_eoi_ioapic_pin		NULL
+diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+index 1fb9e602e3ae..a149a6b37efe 100644
+--- a/arch/x86/kernel/apic/vector.c
++++ b/arch/x86/kernel/apic/vector.c
+@@ -656,40 +656,6 @@ void irq_force_complete_move(int irq)
+ void irq_complete_move(struct irq_cfg *cfg) { }
  #endif
  
-diff --git a/arch/x86/include/asm/irq_remapping.h b/arch/x86/include/asm/irq_remapping.h
-index de1a5d3277e2..9ed7e2d5fd7d 100644
---- a/arch/x86/include/asm/irq_remapping.h
-+++ b/arch/x86/include/asm/irq_remapping.h
-@@ -43,11 +43,6 @@ extern int irq_remapping_enable(void);
- extern void irq_remapping_disable(void);
- extern int irq_remapping_reenable(int);
- extern int irq_remap_enable_fault_handling(void);
--extern int setup_ioapic_remapped_entry(int irq,
--				       struct IO_APIC_route_entry *entry,
--				       unsigned int destination,
--				       int vector,
--				       struct io_apic_irq_attr *attr);
- extern void free_remapped_irq(int irq);
- extern void panic_if_irq_remap(const char *msg);
- extern bool setup_remapped_irq(int irq,
-@@ -98,14 +93,6 @@ static inline int irq_remapping_enable(void) { return -ENODEV; }
- static inline void irq_remapping_disable(void) { }
- static inline int irq_remapping_reenable(int eim) { return -ENODEV; }
- static inline int irq_remap_enable_fault_handling(void) { return -ENODEV; }
--static inline int setup_ioapic_remapped_entry(int irq,
--					      struct IO_APIC_route_entry *entry,
--					      unsigned int destination,
--					      int vector,
--					      struct io_apic_irq_attr *attr)
+-/*
+- * Dynamic irq allocate and deallocation. Should be replaced by irq domains!
+- */
+-int arch_setup_hwirq(unsigned int irq, int node)
 -{
--	return -ENODEV;
--}
- static inline void free_remapped_irq(int irq) { }
- 
- static inline void panic_if_irq_remap(const char *msg)
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index d49791d2aacf..7de44a329028 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -197,9 +197,6 @@ struct x86_io_apic_ops {
- 	int		(*set_affinity)(struct irq_data *data,
- 					const struct cpumask *mask,
- 					bool force);
--	int		(*setup_entry)(int irq, struct IO_APIC_route_entry *entry,
--				       unsigned int destination, int vector,
--				       struct io_apic_irq_attr *attr);
- 	void		(*eoi_ioapic_pin)(int apic, int pin, int vector);
- };
- 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index d6df6da203f6..e3628c3b6b07 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1288,30 +1288,6 @@ static inline int IO_APIC_irq_trigger(int irq)
- }
- #endif
- 
--int native_setup_ioapic_entry(int irq, struct IO_APIC_route_entry *entry,
--			      unsigned int destination, int vector,
--			      struct io_apic_irq_attr *attr)
--{
--	memset(entry, 0, sizeof(*entry));
+-	struct irq_cfg *cfg;
+-	unsigned long flags;
+-	int ret;
 -
--	entry->delivery_mode = apic->irq_delivery_mode;
--	entry->dest_mode     = apic->irq_dest_mode;
--	entry->dest	     = destination;
--	entry->vector	     = vector;
--	entry->mask	     = 0;			/* enable IRQ */
--	entry->trigger	     = attr->trigger;
--	entry->polarity	     = attr->polarity;
+-	cfg = alloc_irq_cfg(node);
+-	if (!cfg)
+-		return -ENOMEM;
 -
--	/*
--	 * Mask level triggered irqs.
--	 * Use IRQ_DELAYED_DISABLE for edge triggered irqs.
--	 */
--	if (attr->trigger)
--		entry->mask = 1;
+-	raw_spin_lock_irqsave(&vector_lock, flags);
+-	ret = __assign_irq_vector(irq, cfg, apic->target_cpus());
+-	raw_spin_unlock_irqrestore(&vector_lock, flags);
 -
--	return 0;
+-	if (!ret)
+-		irq_set_chip_data(irq, cfg);
+-	else
+-		free_irq_cfg(cfg);
+-	return ret;
 -}
 -
- static void __init setup_IO_APIC_irqs(void)
- {
- 	unsigned int ioapic, pin;
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index ba5ab975bb5b..77d0ea3dd1ea 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -155,6 +155,5 @@ struct x86_io_apic_ops x86_io_apic_ops = {
- 	.modify			= native_io_apic_modify,
- 	.disable		= native_disable_io_apic,
- 	.set_affinity		= native_ioapic_set_affinity,
--	.setup_entry		= native_setup_ioapic_entry,
- 	.eoi_ioapic_pin		= native_eoi_ioapic_pin,
- };
-diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-index d72094e01dec..0486a123c29b 100644
---- a/drivers/iommu/irq_remapping.c
-+++ b/drivers/iommu/irq_remapping.c
-@@ -62,7 +62,6 @@ static void __init irq_remapping_modify_x86_ops(void)
- {
- 	x86_io_apic_ops.disable		= irq_remapping_disable_io_apic;
- 	x86_io_apic_ops.set_affinity	= set_remapped_irq_affinity;
--	x86_io_apic_ops.setup_entry	= setup_ioapic_remapped_entry;
- 	x86_io_apic_ops.eoi_ioapic_pin	= eoi_ioapic_pin_remapped;
- }
- 
-@@ -177,18 +176,6 @@ int __init irq_remap_enable_fault_handling(void)
- 	return remap_ops->enable_faulting();
- }
- 
--int setup_ioapic_remapped_entry(int irq,
--				struct IO_APIC_route_entry *entry,
--				unsigned int destination, int vector,
--				struct io_apic_irq_attr *attr)
+-void arch_teardown_hwirq(unsigned int irq)
 -{
--	if (!remap_ops || !remap_ops->setup_ioapic_entry)
--		return -ENODEV;
+-	struct irq_cfg *cfg = irq_cfg(irq);
 -
--	return remap_ops->setup_ioapic_entry(irq, entry, destination,
--					     vector, attr);
+-	free_remapped_irq(irq);
+-	clear_irq_vector(irq, cfg);
+-	irq_set_chip_data(irq, NULL);
+-	free_irq_cfg(cfg);
 -}
 -
- static int set_remapped_irq_affinity(struct irq_data *data,
- 				     const struct cpumask *mask, bool force)
+ static void __init print_APIC_field(int base)
  {
+ 	int i;
 -- 
 1.7.10.4
