@@ -1,97 +1,123 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH] ACPI: Add _DEP(Operation Region Dependencies) support
- to fix battery issue on the Asus T100TA
-Date: Fri, 26 Sep 2014 13:23:29 +0800
-Message-ID: <5424F851.1020809@intel.com>
-References: <1411456003-29541-1-git-send-email-tianyu.lan@intel.com> <5595235.8OhLbSk3cf@vostro.rjw.lan> <5423E40B.8010302@intel.com> <2232717.X50lT6IYgQ@vostro.rjw.lan>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
+Date: Fri, 26 Sep 2014 09:31:27 +0200
+Message-ID: <20140926073125.GB31106@ulmo>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+ <20140925112122.GA22753@ulmo>
+ <7hppej8glk.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12982 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752718AbaIZF1p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Sep 2014 01:27:45 -0400
-In-Reply-To: <2232717.X50lT6IYgQ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="v9Ux+11Zm5mwPlX6"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7hppej8glk.fsf@deeprootsystems.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, mika.westerberg@linux.intel.com, wsa@the-dreams.de, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org
 
-On 2014=E5=B9=B409=E6=9C=8826=E6=97=A5 03:27, Rafael J. Wysocki wrote:
-> I'm not sure what you mean.  "Dependent" means "depending on somethin=
-g", so the
-> question reads "This requires the devices with _DEP to have a list of=
- devices
-> that depend on them" which is probably not what you meant.
+
+--v9Ux+11Zm5mwPlX6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Sep 25, 2014 at 03:45:11PM -0700, Kevin Hilman wrote:
+> Thierry Reding <thierry.reding@gmail.com> writes:
 >=20
-
-Sorry, I didn't say clearly. The "dependent device" I meant is device
-pointed to by _DEP(the master you mentioned at the bottom). I thought
-master also needed a list to find its slave(device with _DEP).
-
-> For each device with _DEP we have dep_devices, so if you pass a point=
-er
-> (opregion_adev) to the device that has just installed an operation re=
-gion
-> handler to acpi_walk_dep_device_list() as an argument, then you can d=
-o
+> > I just noticed these patches because they conflicted with some of the
+> > local patches I had to add a very similar framework. One of the reasons
+> > why I hadn't posted these publicly yet is because the platform where I
+> > want to use this (Tegra) is somewhat quirky when it comes to power
+> > domains.
+> >
+> > On Tegra these domains are called power gates and they currently have
+> > their own API. We've been looking at migrating things over to some
+> > generic framework for some time and PM domains do seem like a good fit.
+> > However one of the quirks regarding these domains on Tegra is that a
+> > fixed sequence exists that needs to be respected when enabling or
+> > disabling a power partition. The exact sequence can be found in the
+> > drivers/soc/tegra/pmc.c driver's tegra_powergate_sequence_power_up()
+> > function. Essentially we need to call into the clock and reset drivers
+> > at very specific moments during the operations that the PMC does.
+> >
+> > One solution to this would be to make the needed clocks and resets
+> > available to the power domain driver via DT, but then we have the
+> > problem that two drivers would be controlling the same resources. For
+> > example drivers could still want to disable the clock for more fine-
+> > grained power management.=20
 >=20
-> 	for (i =3D 0; i < adev->dep_devices.count; i++)
-> 		if (opregion_adev->handle =3D=3D adev->dep_devices.handles[i]) {
-> 			adev->dep_unmet =3D false;
-> 			acpi_bus_attach(adev);
-> 			list_del(&dep->node);
-> 			kfree(dep);
-> 		}
+> I think you're on the right path here.  You can get rid of this conflict
+> by removing the direct/manual clock management from the drivers, and
+> using runtime PM instead: s/clk_enable/pm_runtime_get_sync/,
+> s/clk_disable/pm_runtime_put_sync/.  When using runtime PM, those calls
+> trickle down through the power domain driver, which can manage the
+> device clocks, as well as any additional clocks and resets needed for
+> power gating.
+
+Okay. The DT part of it is going to be pretty nasty (as usual) because
+we currently have the clocks and resets within the device's device tree
+node (which I think is where they really belong).
+
+So one possibility would be to move the clocks and resets to the power
+domain controller's node, like so:
+
+	pmc@... {
+		power-domains {
+			...
+
+			sata@... {
+				clocks =3D <&tegra_car 124>;
+				resets =3D <&tegra_car 124>;
+			};
+		};
+	};
+
+An alternative would be to make the power-domain controller look up the
+clock within the user's device tree node. That could be problematic,
+because while the module clock is always the first clock in current
+device trees, there aren't ordering guarantees, so we'd have to rely on
+the clock name.
+
+> > Furthermore for some devices it may turn out that turning the domain
+> > off and on introduces too much latency to be useful.
 >=20
-> and of course appropriate locking needs to be there in case this race=
-s with
-> enumeration during hotplug after loading a new ACPI table on demand).
->=20
+> In these cases, you should use the per-device PM QoS framework to set
+> per-device latencies.  Then your power-domain can look up these
+> latencies and decide whether or not to actually power gate or not.
 
-Yes, we can scan all devices on the list and match the opregion_adev
-with adev->dep_devices. This is comparatively simple solution.
+Does this allow fine-grained control over what parts of the "power
+domain" get disabled? For example some drivers may want to only turn off
+the clock under some circumstances, which would keep the hardware state,
+whereas in other situations or drivers it might be fine to completely
+turn off the power partition and reset the hardware block (loosing all
+hardware state).
 
-> I think you can even define
->  =20
-> struct acpi_dep_data {
-> 	struct list_head node;
-> 	struct acpi_device *master;
-> 	struct acpi_device *slave;
-> };
->=20
-> and create that for every valid pair of master (device pointed to by =
-_DEP)/slave
-> (device with _DEP) and create a list of these.  Then, you won't need =
-dep_devices
-> in struct acpi_device any more and your acpi_walk_dep_device_list() w=
-ill only
-> need to walk the list until it finds the matching master/slave pair.
+Keeping a reference to the clock in the power domain will prevent that
+=66rom working since the driver itself won't be able to disable the
+hardware clock.
 
-One question is that when create struct acpi_dep_data for the dependenc=
-y
-relationship between master and slave. If do this when slave's ACPI
-device is created during ACPI namespace scan, master's ACPI device mayb=
-e
-not created at that point. So acpi_handle maybe more suitable than
-struct acpi_device here.
+Thierry
 
->=20
-> That will handle the case when one device depends on multiple other d=
-evices too
-> I think.
->=20
->>>> > >> +		dep_adev =3D acpi_bus_get_acpi_device(
->>>> > >> +				adev->dep_devices.handles[i]);
->> >=20
+--v9Ux+11Zm5mwPlX6
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJUJRZNAAoJEN0jrNd/PrOhV1cP/AgoqP3z/kEQZmWJyEsXN0qU
+6QGSGqWVtbk5axHq4f+INc2SiU0KPakYSgaJqHwNVYFXPAYG4REoNzxopTZFBEFM
+s9zipWqEFwRSxSgR0tr7LFHmkQ2++lmBObQg6QSXz3SFyi4WJZUiJFXZIfJadFVr
+T4OTsC4eNnIJIZD5zd+K0IVL7tjPdEcCdgGKnXwgp1wWHc68IDPeGG5aqZ0aEuqj
+bj9lVkyxiOQyNJt3NvLVC51yB67o1K0w7Ea0Q+0b1gJNh0L998ZJkO2Pbmbavvgl
+evxrljN7eK9yVbNDYIFZXM6dbJND76FvbOwIHw0CHcpMR/hmBqNDnGcIOm+ai3eD
+LMqQHDcuy70xYvM8GhqC7il0mAcFbcf1r1Q6wpc9qAP17f0h2ZU+XAMjyC9d9EhY
+i2NzzyhdCBmQUGoDl3SYbOP+8HiX96vkTwclZu+PNeFEfhvj0HNxmWPKWiQ+jIDS
+bMbPZmvCsn6JV7Q9r9ciQvJ28A8rRWYZL+qv0/rfuXUlXQzWOQRJZUbP9iEw3IVp
++ORji8peGOIpjvGsrHwFhV2Xa8XEO6vZDYaHhWU4aUMsjj5oNG5xpvgdiqhqv/qN
+ynLcNLpaou65G3hzAB5PIup8UPV8rtbCtKKt0a8wqVP3l5+0vicUd+ppa7UZF5j1
+lg51bYDfTg+zDr4hxPIb
+=/2sV
+-----END PGP SIGNATURE-----
+
+--v9Ux+11Zm5mwPlX6--
