@@ -1,121 +1,127 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
-Date: Fri, 26 Sep 2014 16:06:35 +0200
-Message-ID: <1911582.jhO9HBSx8Y@vostro.rjw.lan>
-References: <540E91F0.2060306@linux.intel.com> <2215516.KXo7vMZKRh@vostro.rjw.lan> <5424E382.6060403@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5424E382.6060403@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Cc: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFT Part2 v2 00/24] Enable hierarchy irqdomian on x86 platforms
+Date: Fri, 26 Sep 2014 22:02:01 +0800
+Message-ID: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:41377 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751753AbaIZN7z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Sep 2014 09:59:55 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday, September 26, 2014 11:54:42 AM Li, Aubrey wrote:
-> On 2014/9/26 4:08, Rafael J. Wysocki wrote:
-> > On Thursday, September 25, 2014 10:07:44 AM Li, Aubrey wrote:
-> >> On 2014/9/25 4:32, Rafael J. Wysocki wrote:
-> >>> On Wednesday, September 24, 2014 11:19:22 PM Fu, Zhonghui wrote:
-> >>>> This is a multi-part message in MIME format.
-> >>>> --------------040808000309050202010005
-> >>>> Content-Type: text/plain; charset=UTF-8
-> >>>> Content-Transfer-Encoding: 7bit
-> >>>>
-> >>>>
-> >>>> On 2014/9/23 7:17, Rafael J. Wysocki wrote:
-> >>>>> On Monday, September 22, 2014 10:45:42 PM Fu, Zhonghui wrote:
-> >>>>> [cut]
-> >>>>>
-> >>>>>>>>> This operation is reading data from Operation Region of one operand object in name space. I don't know the reason of hang at this point. Could you please give out some explanation about this?
-> >>>>>>>> I don't know the exact reason why this particular read hangs, but this means
-> >>>>>>>> that, perhaps, instead of disabling async suspend/resume for all LPSS devices
-> >>>>>>>> altogether, perhaps we can serialize their acpi_dev_resume_early()?
-> >>>>>>>>
-> >>>>>>>> Rafael
-> >>>>>>> Do you mean keeping other phases(prepare, suspend, suspend_late, suspend_noirq, resume_noirq, resume, complete) of suspend/resume asynchronous, and only serializing "resume_early" phase for all LPSS devices?
-> >>>>>>>
-> >>>>>>> Thanks,
-> >>>>>>> Zhonghui
-> >>>>>> Hi, Rafael
-> >>>>>>
-> >>>>>> Could you please confirm my understanding?
-> >>>>> This is not what I meant.
-> >>>>>
-> >>>>> Since we have a PM domain for the LPSS devices already, why don't we add an
-> >>>>> internal lock to that PM domain and acquire it over executing either
-> >>>>> acpi_dev_suspend_late() (during suspend) or acpi_dev_resume_early() (during
-> >>>>> resume) for all of them?
-> >>>> I seem find the root cause of this issue. Because this "hang" issue is occurred on ASUS T100(Baytrail-T platform), so I checked its DSDT and found that URT and I2C controllers depend on(_DEP) PEPD device(description in Windows is "power engine plug-in"). That is, URT and I2C controllers can not transition to ACPI_STATE_D0 state until PEPD device has completed this transition during resuming. But, the ACPI subsystem in the 3.16 kernel doesn't support "_DEP" feature. So, if enabling async suspend/resume for LPSS devices, their "_DEP" relationship with PEPD device will be broken and incur "hang" during the transition to ACPI_STATE_D0, please see the following code, it is from dpm_resume_early function in drivers/base/power/main.c file:
-> >>>>
-> >>>> list_for_each_entry(dev, &dpm_late_early_list, power.entry) {
-> >>>>                 reinit_completion(&dev->power.completion);
-> >>>>                 if (is_async(dev)) {
-> >>>>                         get_device(dev);
-> >>>>                         async_schedule(async_resume_early, dev);
-> >>>>                 }
-> >>>>         }
-> >>>>
-> >>>>         while (!list_empty(&dpm_late_early_list)) {
-> >>>>                 dev = to_device(dpm_late_early_list.next);
-> >>>>                 get_device(dev);
-> >>>>                 list_move_tail(&dev->power.entry, &dpm_suspended_list);
-> >>>>                 mutex_unlock(&dpm_list_mtx);
-> >>>>
-> >>>>                 if (!is_async(dev)) {    // PEPD is not configured as async device now.
-> >>>>                         int error;
-> >>>>
-> >>>>                         error = device_resume_early(dev, state, false);
-> >>>>                         if (error) {
-> >>>>                                 suspend_stats.failed_resume_early++;
-> >>>>                                 dpm_save_failed_step(SUSPEND_RESUME_EARLY);
-> >>>>                                 dpm_save_failed_dev(dev_name(dev));
-> >>>>                                 pm_dev_err(dev, state, " early", error);
-> >>>>                         }
-> >>>>                 }
-> >>>>                 mutex_lock(&dpm_list_mtx);
-> >>>>                 put_device(dev);
-> >>>>         }
-> >>>>
-> >>>>
-> >>>> Based on the above analysis,I move the resume_early operation of PEPD device to head of dpm_resume_early function and "hang" did not occur any more during resuming(I tested this 10 times).
-> >>>>
-> >>>> If disabling async suspend/resume for LPSS devices, PEPD device will be prior to UART and I2C controllers in dpm_late_early_list list and the "_DEP" relationship can be kept. Maybe,the "_DEP" ACPI feature will be supported in future kernel, so, I think simply disabling async suspend/resume for LPSS devices is a acceptable workaround now, and need not add new mechanism to deal with this issue.
-> >>>>
-> >>>> BTW, I will take two week's leave and can't reply email during this time. Sorry.
-> >>>
-> >>> OK, thanks for the analysis.  In that case we really may be better off by
-> >>> disabling the runtime PM of LPSS devices for now until we figure out how this
-> >>> can be addressed properly.
-> >>
-> >> Please let me know if the patch need to be refined, I can do it before
-> >> October 1st, then one-week Chinese National holiday.
-> > 
-> > The patch is fine.  In fact, I'm going to push it to Linus shortly.
-> > 
-> >> Besides this patch, we leave the non-LPSS devices as async
-> >> suspend/resume, the risk is unknown.
-> > 
-> > No, we don't in general.  That is an opt-in, usually on a per-subsystem basis.
-> > 
-> >> I wonder if we need to make
-> >> pm_async parameter configurable thru kernel command line to make android
-> >> userspace happy?
-> > 
-> > There is a sysfs switch for disabling async suspend/resume (/sys/power/pm_async).
-> > That has to suffice.
-> > 
-> Like what you did to pretend echo mem > /sys/power/state,
+We plan to restructure x86 interrupt code based on hierarchy irqdomain,
+that is to build irqdomains for CPU vector, interrupt remapping unit,
+IOAPIC, MSI and HPET etc and organize those irqdomains in hierarchy mode.
+Each irqdomain manages corresponding interrupt controller and talks to
+parent interrupt controller through public irqdomain interfaces. We also
+support stacked irq_chip based on hierarchy irqdomain. It will make the
+x86 interrupt architecture much more clear and more easy to maintain
+with hierarchy irqdomain and stacked irq_chip. It may also help ARM
+interrupt management architecture too.
 
-That was supposed to be an exception.
+This is the second patch set to enable support of hierarchy irqdomain
+on x86 platforms. It depends on the first part at:
+https://lkml.org/lkml/2014/9/26/501
+And you may access it at:
+https://github.com/jiangliu/linux.git irqdomain/p2v2
 
-> it's hard to
-> visit sysfs switch from android UI, we want to disable async
-> suspend/resume from kernel command line, so that we can bypass this
-> feature after boot.
+And there will be a third patch set to convert IOAPIC driver to support
+hierarchy irqdomain and clean up code.
 
-Please feel free to submit a patch adding a command line switch to set the
-initial value of /sys/power/pm_async.  Maybe people won't complain about it.
+The first patch extends irqdomain interfaces to support hierarchy
+irqdomain. Hope this interface could be used by other architectures too,
+such as ARM/ARM64.
+The second patch introduces two helper functions to support stacked
+irq_chip.
+Patch 3-9 implements an irqdomain to manange CPU interrupt vectors, and
+it's the root irqdomain for x86 platforms.
+Patch 10-13 converts Intel and AMD interrupt remapping drivers to
+support hierarchy irqdomain.
+Patch 14-16 converts HPET and MSI to support hierarchy irqdomain.
+Patch 17-20 cleans up unsued code in x86 arch and interrupt remapping
+drivers.
+Patch 21-24 converts DMAR, HTIRQ and UV to support hierarchy irqdomain.
 
-Rafael
+We have tested this patchset on Intel 32-bit and 64-bit systems. And it
+also passes Fengguang's 0day tests. But helps are need for testing:
+1) AMD interrupt remapping 
+2) AMD HT_IRQ
+3) UV platform
+
+V1->V2
+1) Add hierarchy iredomain support of DMAR IRQ and UV IRQ.
+2) Fix bugs reported by Joe C.
+3) Address all review comments from Thomas
+4) Fix a bug found during tests
+5) Fix errors and warning found by 0day tests
+
+Jiang Liu (24):
+  irqdomain: Introduce new interfaces to support hierarchy irqdomains
+  genirq: Introduce helper functions to support stacked irq_chip
+  x86, irq: Save destination CPU ID in irq_cfg
+  x86, irq: Use hierarchy irqdomain to manage CPU interrupt vectors
+  x86, hpet: Use new irqdomain interfaces to allocate/free IRQ
+  x86, MSI: Use new irqdomain interfaces to allocate/free IRQ
+  x86, uv: Use new irqdomain interfaces to allocate/free IRQ
+  x86, htirq: Use new irqdomain interfaces to allocate/free IRQ
+  x86, dmar: Use new irqdomain interfaces to allocate/free IRQ
+  x86: irq_remapping: Introduce new interfaces to support hierarchy
+    irqdomain
+  iommu/vt-d: Change prototypes to prepare for enabling hierarchy
+    irqdomain
+  iommu/vt-d: Enhance Intel IR driver to suppport hierarchy irqdomain
+  iommu/amd: Enhance AMD IR driver to suppport hierarchy irqdomain
+  x86, hpet: Enhance HPET IRQ to support hierarchy irqdomain
+  x86, MSI: Use hierarchy irqdomain to manage MSI interrupts
+  x86, irq: Directly call native_compose_msi_msg() for DMAR IRQ
+  iommu/vt-d: Clean up unused MSI related code
+  iommu/amd: Clean up unused MSI related code
+  x86: irq_remapping: Clean up unused MSI related code
+  x86, irq: Clean up unused MSI related code and interfaces
+  iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
+  x86, irq: Use hierarchy irqdomain to manage DMAR interrupts
+  x86, htirq: Use hierarchy irqdomain to manage Hypertransport
+    interrupts
+  x86, uv: Use hierarchy irqdomain to manage UV interrupts
+
+ Documentation/IRQ-domain.txt          |   71 +++++
+ arch/ia64/include/asm/irq_remapping.h |    2 -
+ arch/ia64/kernel/msi_ia64.c           |   30 +-
+ arch/x86/Kconfig                      |    3 +-
+ arch/x86/include/asm/hpet.h           |   16 +-
+ arch/x86/include/asm/hw_irq.h         |   81 +++++
+ arch/x86/include/asm/irq_remapping.h  |   84 ++++-
+ arch/x86/include/asm/pci.h            |    5 -
+ arch/x86/include/asm/x86_init.h       |    4 -
+ arch/x86/kernel/apic/htirq.c          |  178 ++++++++---
+ arch/x86/kernel/apic/io_apic.c        |    3 -
+ arch/x86/kernel/apic/msi.c            |  538 +++++++++++++++++++++++++--------
+ arch/x86/kernel/apic/vector.c         |  160 +++++++++-
+ arch/x86/kernel/hpet.c                |   57 +---
+ arch/x86/kernel/x86_init.c            |    2 -
+ arch/x86/platform/uv/uv_irq.c         |  301 +++++++-----------
+ drivers/iommu/amd_iommu.c             |  388 ++++++++++++++++++------
+ drivers/iommu/amd_iommu_init.c        |    4 +
+ drivers/iommu/amd_iommu_proto.h       |    9 +
+ drivers/iommu/amd_iommu_types.h       |    5 +
+ drivers/iommu/dmar.c                  |   19 +-
+ drivers/iommu/intel_irq_remapping.c   |  471 ++++++++++++++++++++---------
+ drivers/iommu/irq_remapping.c         |  221 +++++---------
+ drivers/iommu/irq_remapping.h         |   22 +-
+ drivers/pci/htirq.c                   |   48 +--
+ include/linux/dmar.h                  |    3 +-
+ include/linux/htirq.h                 |   22 +-
+ include/linux/intel-iommu.h           |    4 +
+ include/linux/irq.h                   |   10 +
+ include/linux/irqdomain.h             |   81 +++++
+ kernel/irq/Kconfig                    |    3 +
+ kernel/irq/chip.c                     |   20 ++
+ kernel/irq/irqdomain.c                |  372 ++++++++++++++++++++++-
+ 33 files changed, 2311 insertions(+), 926 deletions(-)
+
+-- 
+1.7.10.4
+
