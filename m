@@ -1,54 +1,83 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 16/24] x86,
- irq: Directly call native_compose_msi_msg() for DMAR IRQ
-Date: Fri, 26 Sep 2014 22:02:17 +0800
-Message-ID: <1411740145-30626-17-git-send-email-jiang.liu@linux.intel.com>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
+Date: Fri, 26 Sep 2014 16:42:28 +0200
+Message-ID: <4111948.OqsXPJi3b5@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20140926032131.GC40523@vmdeb7> <1957255.2hxfTldm4Q@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51953 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753458AbaIZOWi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Sep 2014 10:22:38 -0400
+In-Reply-To: <1957255.2hxfTldm4Q@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Darren Hart <dvhart@infradead.org>, David Woodhouse <david.woodhouse@intel.com>, Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-DMAR interrupt won't be remapped by interrupt remapping hardware,
-so directly call native_compose_msi_msg() for DMAR IRQ to compose MSI
-message data. This will help to simplify MSI code later.
+On Friday, September 26, 2014 10:36:06 AM Arnd Bergmann wrote:
+> On Thursday 25 September 2014 20:21:32 Darren Hart wrote:
+> > On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
+> > > How would you feel about a more general way of probing LED, using
+> > > a new helper in the leds-core that iterates over the child nodes
+> > > and parses the standard properties but calls into a driver specific
+> > > callback to parse the specific properties?
+> > > It's probably much more work than your current approach, but it seems
+> > > to me that there is more to gain by solving the problem for LED
+> > > drivers in particular to cut down the per-driver duplication
+> > > at the same time as the per-firmware-interface duplication.
+> > > 
+> > > As a start, we could probably take the proposed device_for_each_child_node
+> > > and move that into the leds-core, changing the fw_dev_node argument
+> > > for an led_classdev with the addition of the of_node and acpi_object
+> > > members. It would still leave it up to the gpio-leds driver to do
+> > > 
+> > > 	if (led_cdev->of_node)
+> > > 		gpiod = devm_of_get_gpiod(led_cdev->of_node, ...);
+> > > 	else
+> > > 		gpiod = devm_acpi_get_gpiod(led_cdev->acpi_object, ...);
+> > 
+> > So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
+> > will need to walk through non-device child nodes, and it seems to me that having
+> > a firmware-independent mechanism to do so benefits the drivers by both making
+> > them smaller and by increasing the reusability of new drivers and drivers
+> > updated to use the new API across platforms.
+> > 
+> > I fear we might be entering bike shed territory as we seem to be repeating
+> > points now. Can you restate your concern with the interface and why this level
+> > of abstraction is worse for the kernel? I'm not seeing this point, so I'm not
+> > sure what to address in my response.
+> 
+> I think we should have abstractions for all common interfaces but make
+> them as simple as possible. In the discussions at the kernel summit,
+> everyone agreed that we should have common accessors for simple properties
+> (bool, int, string, ...) based on device pointers, as well as subsystem
+> specific accessors to handle the high-level abstractions (registers,
+> interrupts, gpio, regulator, pinctrl, dma, reset, pwm, ...).
+> 
+> Having generalized accessors for the same properties in child nodes of
+> the device goes beyond that, and I think this is the wrong trade-off
+> between interface simplicity and generality since only few drivers will
+> be able to use those. I think we will always have to live with a leaky
+> abstraction because some drivers need to do things beyond what we can
+> do with a common API.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/apic/msi.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Some drivers do, but then we can avoid adding DT/ACPI knowledge to some
+drivers by adding general accessors for properties in child nodes.  In my
+opinion, drivers should not do things specific to DT/ACPI unless that is
+unavoidable.
 
-diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
-index 7a6c2710de40..514e19e19b99 100644
---- a/arch/x86/kernel/apic/msi.c
-+++ b/arch/x86/kernel/apic/msi.c
-@@ -391,12 +391,10 @@ static struct irq_chip dmar_msi_type = {
- 
- int arch_setup_dmar_msi(unsigned int irq)
- {
--	int ret;
- 	struct msi_msg msg;
-+	struct irq_cfg *cfg = irq_cfg(irq);
- 
--	ret = msi_compose_msg(NULL, irq, &msg, -1);
--	if (ret < 0)
--		return ret;
-+	native_compose_msi_msg(NULL, irq, cfg->dest_apicid, &msg, -1);
- 	dmar_msi_write(irq, &msg);
- 	irq_set_chip_and_handler_name(irq, &dmar_msi_type, handle_edge_irq,
- 				      "edge");
+> 
+> > Grant, Linus W? Thoughts?
+> 
+> I definitely want to hear other voices on this too. This is really not
+> a fundamental debate I think, but more a question of how far the abstraction
+> should go.
+
+Right.
+
 -- 
-1.7.10.4
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
