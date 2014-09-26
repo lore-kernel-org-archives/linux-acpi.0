@@ -1,102 +1,76 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 07/24] x86, uv: Use new irqdomain interfaces to allocate/free IRQ
-Date: Fri, 26 Sep 2014 22:02:08 +0800
-Message-ID: <1411740145-30626-8-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 02/24] genirq: Introduce helper functions to support stacked
+ irq_chip
+Date: Fri, 26 Sep 2014 22:02:03 +0800
+Message-ID: <1411740145-30626-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use new irqdomain interfaces to allocate/free IRQ, so we could
-kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ later.
+Now we already support hierarchy irq_datas, so introduce several helpers
+to support stacked irq_chips.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/platform/uv/uv_irq.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ include/linux/irq.h |    5 +++++
+ kernel/irq/chip.c   |   17 +++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
-index 0ce673645432..474912d03f40 100644
---- a/arch/x86/platform/uv/uv_irq.c
-+++ b/arch/x86/platform/uv/uv_irq.c
-@@ -12,6 +12,7 @@
- #include <linux/rbtree.h>
- #include <linux/slab.h>
- #include <linux/irq.h>
-+#include <linux/irqdomain.h>
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index b1aa23eea711..07abf5a1cd8e 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -435,6 +435,11 @@ extern void handle_percpu_devid_irq(unsigned int irq, struct irq_desc *desc);
+ extern void handle_bad_irq(unsigned int irq, struct irq_desc *desc);
+ extern void handle_nested_irq(unsigned int irq);
  
- #include <asm/apic.h>
- #include <asm/uv/uv_irq.h>
-@@ -130,24 +131,14 @@ static int
- arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
- 		       unsigned long mmr_offset, int limit)
- {
--	const struct cpumask *eligible_cpu = cpumask_of(cpu);
- 	struct irq_cfg *cfg = irq_cfg(irq);
- 	unsigned long mmr_value;
- 	struct uv_IO_APIC_route_entry *entry;
--	int mmr_pnode, err;
--	unsigned int dest;
-+	int mmr_pnode;
- 
- 	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
- 			sizeof(unsigned long));
- 
--	err = assign_irq_vector(irq, cfg, eligible_cpu);
--	if (err != 0)
--		return err;
--
--	err = apic->cpu_mask_to_apicid_and(eligible_cpu, eligible_cpu, &dest);
--	if (err != 0)
--		return err;
--
- 	if (limit == UV_AFFINITY_CPU)
- 		irq_set_status_flags(irq, IRQ_NO_BALANCING);
- 	else
-@@ -164,7 +155,7 @@ arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
- 	entry->polarity		= 0;
- 	entry->trigger		= 0;
- 	entry->mask		= 0;
--	entry->dest		= dest;
-+	entry->dest		= cfg->dest_apicid;
- 
- 	mmr_pnode = uv_blade_to_pnode(mmr_blade);
- 	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
-@@ -238,9 +229,13 @@ uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
- int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
- 		 unsigned long mmr_offset, int limit)
- {
--	int ret, irq = irq_alloc_hwirq(uv_blade_to_memory_nid(mmr_blade));
-+	int ret, irq;
-+	struct irq_alloc_info info;
- 
--	if (!irq)
-+	init_irq_alloc_info(&info, cpumask_of(cpu));
-+	irq = irq_domain_alloc_irqs(NULL, 1, uv_blade_to_memory_nid(mmr_blade),
-+				    &info);
-+	if (irq <= 0)
- 		return -EBUSY;
- 
- 	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
-@@ -248,7 +243,7 @@ int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
- 	if (ret == irq)
- 		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
- 	else
--		irq_free_hwirq(irq);
-+		irq_domain_free_irqs(irq, 1);
- 
- 	return ret;
- }
-@@ -283,6 +278,6 @@ void uv_teardown_irq(unsigned int irq)
- 			n = n->rb_right;
++#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
++extern void irq_chip_ack_parent(struct irq_data *data);
++extern int irq_chip_retrigger_hierarchy(struct irq_data *data);
++#endif
++
+ /* Handling of unhandled and spurious interrupts: */
+ extern void note_interrupt(unsigned int irq, struct irq_desc *desc,
+ 			   irqreturn_t action_ret);
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 46bd5e2190c3..58ed9eda091e 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -821,3 +821,20 @@ void irq_cpu_offline(void)
+ 		raw_spin_unlock_irqrestore(&desc->lock, flags);
  	}
- 	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
--	irq_free_hwirq(irq);
-+	irq_domain_free_irqs(irq, 1);
  }
- EXPORT_SYMBOL_GPL(uv_teardown_irq);
++
++#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
++void irq_chip_ack_parent(struct irq_data *data)
++{
++	data = data->parent_data;
++	data->chip->irq_ack(data);
++}
++
++int irq_chip_retrigger_hierarchy(struct irq_data *data)
++{
++	for (data = data->parent_data; data; data = data->parent_data)
++		if (data->chip && data->chip->irq_retrigger)
++			return data->chip->irq_retrigger(data);
++
++	return -ENOSYS;
++}
++#endif
 -- 
 1.7.10.4
