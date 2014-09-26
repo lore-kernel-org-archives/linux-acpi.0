@@ -1,124 +1,92 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
-Date: Fri, 26 Sep 2014 07:50:08 -0700
-Message-ID: <7hoau25tcv.fsf@deeprootsystems.com>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
-	<20140925112122.GA22753@ulmo> <7hppej8glk.fsf@deeprootsystems.com>
-	<20140926073125.GB31106@ulmo>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:36768 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753908AbaIZOuM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Sep 2014 10:50:12 -0400
-In-Reply-To: <20140926073125.GB31106@ulmo> (Thierry Reding's message of "Fri,
-	26 Sep 2014 09:31:27 +0200")
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Part3 v1 00/28] Enable hierarchy irqdomian on x86 platforms
+Date: Fri, 26 Sep 2014 22:57:30 +0800
+Message-ID: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 
-Thierry Reding <thierry.reding@gmail.com> writes:
+This is the last part to enable support of hierarchy domain on x86
+platforms.
 
-> On Thu, Sep 25, 2014 at 03:45:11PM -0700, Kevin Hilman wrote:
->> Thierry Reding <thierry.reding@gmail.com> writes:
->> 
->> > I just noticed these patches because they conflicted with some of the
->> > local patches I had to add a very similar framework. One of the reasons
->> > why I hadn't posted these publicly yet is because the platform where I
->> > want to use this (Tegra) is somewhat quirky when it comes to power
->> > domains.
->> >
->> > On Tegra these domains are called power gates and they currently have
->> > their own API. We've been looking at migrating things over to some
->> > generic framework for some time and PM domains do seem like a good fit.
->> > However one of the quirks regarding these domains on Tegra is that a
->> > fixed sequence exists that needs to be respected when enabling or
->> > disabling a power partition. The exact sequence can be found in the
->> > drivers/soc/tegra/pmc.c driver's tegra_powergate_sequence_power_up()
->> > function. Essentially we need to call into the clock and reset drivers
->> > at very specific moments during the operations that the PMC does.
->> >
->> > One solution to this would be to make the needed clocks and resets
->> > available to the power domain driver via DT, but then we have the
->> > problem that two drivers would be controlling the same resources. For
->> > example drivers could still want to disable the clock for more fine-
->> > grained power management. 
->> 
->> I think you're on the right path here.  You can get rid of this conflict
->> by removing the direct/manual clock management from the drivers, and
->> using runtime PM instead: s/clk_enable/pm_runtime_get_sync/,
->> s/clk_disable/pm_runtime_put_sync/.  When using runtime PM, those calls
->> trickle down through the power domain driver, which can manage the
->> device clocks, as well as any additional clocks and resets needed for
->> power gating.
->
-> Okay. The DT part of it is going to be pretty nasty (as usual) because
-> we currently have the clocks and resets within the device's device tree
-> node (which I think is where they really belong).
->
-> So one possibility would be to move the clocks and resets to the power
-> domain controller's node, like so:
->
-> 	pmc@... {
-> 		power-domains {
-> 			...
->
-> 			sata@... {
-> 				clocks = <&tegra_car 124>;
-> 				resets = <&tegra_car 124>;
-> 			};
-> 		};
-> 	};
->
-> An alternative would be to make the power-domain controller look up the
-> clock within the user's device tree node. That could be problematic,
-> because while the module clock is always the first clock in current
-> device trees, there aren't ordering guarantees, so we'd have to rely on
-> the clock name.
->
->> > Furthermore for some devices it may turn out that turning the domain
->> > off and on introduces too much latency to be useful.
->> 
->> In these cases, you should use the per-device PM QoS framework to set
->> per-device latencies.  Then your power-domain can look up these
->> latencies and decide whether or not to actually power gate or not.
->
-> Does this allow fine-grained control over what parts of the "power
-> domain" get disabled? 
+It first converts IOAPIC to support hierarchy irqdomain, then cleans
+up all unused code and interfaces. It also introduces a kernel boot
+parameter to configure CPU vector allocation policies.
 
-Sure.  Your power-domain can have control over this, and can make
-decisions based on QoS constraints or other considerations.
+It's based on my previous patch set at:
+https://lkml.org/lkml/2014/9/26/538
+And you may access it at:
+https://github.com/jiangliu/linux.git irqdomain/p3v1
 
-> For example some drivers may want to only turn off
-> the clock under some circumstances, which would keep the hardware state,
-> whereas in other situations or drivers it might be fine to completely
-> turn off the power partition and reset the hardware block (loosing all
-> hardware state).
+It has been tested on Intel 64-bit server and 32-bit laptop. It also
+passes Fengguang's 0day tests. Helps are welcomed for testing:
+1) Intel MID platform
+2) Intel CE or OLPC platforms
 
-Well, IMO, it shouldn't be the drivers making these decisions, because
-the "circumstances" around these decisions typically are related to QoS
-constraints that affect the whole power domain, not just that device.
+Patch 1-6 convert IOAPIC to support hierarchy irqdomain.
+Patch 7-16,22 clean up unused code, x86_io_apic_ops and header files.
+Patch 17-20 simplify struct irq_cfg.
+Patch 21, 23-26 clean up code and interfaces further.
+Patch 27-28 introduces a mechanism to configure CPU vector allocation
+	policies.
 
-Part of the benefit of moving direct clock management out of the
-drivers, and into some pm_domain/genpd logic is that you put them in the
-place that is has enough information to make decision based on the whole
-power domain.  e.g. a specific device driver doesn't know (and shouldn't
-know, IMO) about the what other devices might be in the same power
-domain.  Only the power-domain logic has enough of a "big picture" to
-make the right decisions.  The wakeup latency and the save/restore
-context needs of a device depend on other factors in the power domain,
-like whether that device is the last one to be idle, or whether the
-power domain is going to be power gated due to constraints set by some
-other device. 
+Jiang Liu (28):
+  x86, irq: Kill unused setup_timer_IRQ0_pin()
+  x86, irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
+  x86, irq: Implement callbacks to enable hierarchy irqdomain on
+    IOAPICs
+  x86, irq: Refine the way to allocate irq_cfg for legacy IRQs
+  x86, irq: Convert IOAPIC to use hierarchy irqdomain interfaces
+  x86, irq: Kill unused old IOAPIC irqdomain interfaces
+  x86, irq: Kill x86_io_apic_ops.print_entries and related interfaces
+  x86, irq: Kill x86_io_apic_ops.setup_entry and related interfaces
+  x86, irq: Kill x86_io_apic_ops.set_affinity and related interfaces
+  x86, irq: Kill x86_io_apic_ops.eoi_ioapic_pin and related interfaces
+  x86, irq: Kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
+  x86: Clean up unused forward declarations in x86_init.h
+  x86: irq_remapping: Clean up unsued code
+  iommu/vt-d: Clean up unsued code
+  iommu/amd: Clean up unsued code
+  x86: irq_remapping: Clean up unused interfaces
+  x86, irq: Kill irq_cfg.irq_remapped
+  iommu/vt-d: Move struct irq_2_iommu into intel_irq_remapping.c
+  iommu/amd: Move struct irq_2_irte into amd_iommu.c
+  x86, irq: Move irq_cfg.irq_2_pin into io_apic.c
+  x86, irq: Kill struct io_apic_irq_attr
+  x86, irq: Kill x86_io_apic_ops.write and x86_io_apic_ops.modify
+  x86, irq: Clean up io_apic.h
+  x86, irq: Kill unused alloc_irq_and_cfg_at()
+  x86, irq: Change functions only used in vector.c as static
+  x86, irq: Kill function apic_set_affinity()
+  x86, irq: Introduce mechanism to support different vector allocation
+    policies
+  x86, irq: Add kernel parameter vector_alloc to set CPU vector
+    allocation policy
 
-> Keeping a reference to the clock in the power domain will prevent that
-> from working since the driver itself won't be able to disable the
-> hardware clock.
+ Documentation/kernel-parameters.txt                |    6 +
+ arch/x86/Kconfig                                   |    1 -
+ arch/x86/include/asm/hw_irq.h                      |   50 +-
+ arch/x86/include/asm/io_apic.h                     |   81 +-
+ arch/x86/include/asm/irq_remapping.h               |   36 -
+ arch/x86/include/asm/x86_init.h                    |   16 -
+ arch/x86/kernel/acpi/boot.c                        |   19 +-
+ arch/x86/kernel/apic/io_apic.c                     |  926 +++++++++++---------
+ arch/x86/kernel/apic/vector.c                      |  226 ++---
+ arch/x86/kernel/devicetree.c                       |   39 +-
+ arch/x86/kernel/mpparse.c                          |    6 +-
+ arch/x86/kernel/x86_init.c                         |    6 -
+ arch/x86/pci/intel_mid_pci.c                       |    6 +-
+ .../platform/intel-mid/device_libs/platform_wdt.c  |    5 +-
+ arch/x86/platform/intel-mid/intel-mid.c            |    2 +
+ arch/x86/platform/intel-mid/sfi.c                  |    6 +-
+ arch/x86/platform/sfi/sfi.c                        |    5 +-
+ drivers/iommu/amd_iommu.c                          |  150 +---
+ drivers/iommu/intel_irq_remapping.c                |  202 +----
+ drivers/iommu/irq_remapping.c                      |   84 --
+ drivers/iommu/irq_remapping.h                      |   16 -
+ 21 files changed, 709 insertions(+), 1179 deletions(-)
 
-IMO, the driver itself shouldn't be disabling the hardware clock in the
-first place.  That should be left up to the domain logic.
-
-Kevin
-
+-- 
+1.7.10.4
