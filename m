@@ -1,180 +1,116 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 27/28] x86, irq: Introduce mechanism to support different vector allocation policies
-Date: Fri, 26 Sep 2014 22:57:57 +0800
-Message-ID: <1411743478-31435-28-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 22/28] x86, irq: Kill x86_io_apic_ops.write and x86_io_apic_ops.modify
+Date: Fri, 26 Sep 2014 22:57:52 +0800
+Message-ID: <1411743478-31435-23-git-send-email-jiang.liu@linux.intel.com>
 References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Introduce mechanism to support different vector allocation policies,
-so platform or user may choose the best suitable CPU vector allocation
-policy. Currently two policies are supported:
-1) allocate CPU vector from cpumask_of_node(dev_to_node(dev))
-2) allocate from apic->target_cpus(), this is the default policy
+x86_io_apic_ops.write is always set to native_io_apic_write(),
+and nobody overrides it. So get rid of the indirection by changing
+native_io_apic_write() as io_apic_write() and killing
+x86_io_apic_ops.write.
 
-Platform driver may call set_vector_alloc_policy() to choose the
-preferred policies.
-
-This mechanism may be used to support NumaConnect systems to allocate
-CPU vectors from device local node.
-
-We may also enhance to support per-cpu vector allocation if it's needed.
+Do the same for x86_io_apic_ops.modify and native_io_apic_modify().
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Daniel J Blueman <daniel@numascale.com>
 ---
- arch/x86/include/asm/hw_irq.h |   12 ++++++++
- arch/x86/kernel/apic/vector.c |   66 +++++++++++++++++++++++++++++++++++------
- 2 files changed, 69 insertions(+), 9 deletions(-)
+ arch/x86/include/asm/io_apic.h  |   13 -------------
+ arch/x86/include/asm/x86_init.h |    2 --
+ arch/x86/kernel/apic/io_apic.c  |    6 ++++--
+ arch/x86/kernel/x86_init.c      |    2 --
+ 4 files changed, 4 insertions(+), 19 deletions(-)
 
-diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 6c6002e386d4..9e811d9b147b 100644
---- a/arch/x86/include/asm/hw_irq.h
-+++ b/arch/x86/include/asm/hw_irq.h
-@@ -162,6 +162,17 @@ struct irq_alloc_info {
- 	};
- };
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index c2c1a8b7f39d..e978dc335eea 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -209,8 +209,6 @@ extern void disable_ioapic_support(void);
  
-+enum {
-+	/* Allocate vector from cpumask_of_node(dev_to_node(dev)) */
-+	X86_VECTOR_POL_NODE = 0x1,
-+	/* Allocate vector from apic->target_cpus() */
-+	X86_VECTOR_POL_DEFAULT = 0x2,
-+	/* Allocate vector from cpumask assigned by caller */
-+	X86_VECTOR_POL_CALLER = 0x4,
-+	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
-+	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
-+};
-+
- struct irq_cfg {
- 	cpumask_var_t		domain;
- 	cpumask_var_t		old_domain;
-@@ -180,6 +191,7 @@ extern struct irq_cfg *irq_cfg(unsigned int irq);
- extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
- extern void lock_vector_lock(void);
- extern void unlock_vector_lock(void);
-+extern void set_vector_alloc_policy(unsigned int policy);
- extern void setup_vector_irq(int cpu);
- extern void send_cleanup_vector(struct irq_cfg *);
- extern void irq_complete_move(struct irq_cfg *cfg);
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 01311ddec2de..4a16e0a5ae0f 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -21,6 +21,8 @@
- #include <asm/desc.h>
- #include <asm/irq_remapping.h>
+ extern void __init native_io_apic_init_mappings(void);
+ extern unsigned int native_io_apic_read(unsigned int apic, unsigned int reg);
+-extern void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int val);
+-extern void native_io_apic_modify(unsigned int apic, unsigned int reg, unsigned int val);
+ extern void native_disable_io_apic(void);
  
-+static unsigned int x86_vector_alloc_policy = X86_VECTOR_POL_DEFAULT |
-+					      X86_VECTOR_POL_CALLER;
- struct irq_domain *x86_vector_domain;
- static DEFINE_RAW_SPINLOCK(vector_lock);
- static struct irq_chip vector_chip;
-@@ -57,6 +59,12 @@ struct irq_cfg *irqd_cfg(struct irq_data *irq_data)
- 	return irq_data->chip_data;
+ static inline unsigned int io_apic_read(unsigned int apic, unsigned int reg)
+@@ -218,15 +216,6 @@ static inline unsigned int io_apic_read(unsigned int apic, unsigned int reg)
+ 	return x86_io_apic_ops.read(apic, reg);
  }
  
-+void set_vector_alloc_policy(unsigned int policy)
-+{
-+	if (!WARN_ON((policy & (X86_VECTOR_POL_MAX - 1)) == 0))
-+		x86_vector_alloc_policy = policy | X86_VECTOR_POL_CALLER;
-+}
-+
- static struct irq_cfg *alloc_irq_cfg(int node)
- {
- 	struct irq_cfg *cfg;
-@@ -245,12 +253,6 @@ void copy_irq_alloc_info(struct irq_alloc_info *dst, struct irq_alloc_info *src)
- 		memset(dst, 0, sizeof(*dst));
- }
- 
--static inline const struct cpumask *
--irq_alloc_info_get_mask(struct irq_alloc_info *info)
+-static inline void io_apic_write(unsigned int apic, unsigned int reg, unsigned int value)
 -{
--	return (!info || !info->mask) ? apic->target_cpus() : info->mask;
+-	x86_io_apic_ops.write(apic, reg, value);
+-}
+-static inline void io_apic_modify(unsigned int apic, unsigned int reg, unsigned int value)
+-{
+-	x86_io_apic_ops.modify(apic, reg, value);
 -}
 -
- static void x86_vector_free_irqs(struct irq_domain *domain,
- 				 unsigned int virq, unsigned int nr_irqs)
- {
-@@ -271,18 +273,64 @@ static void x86_vector_free_irqs(struct irq_domain *domain,
- 	}
+ extern void setup_IO_APIC(void);
+ extern void enable_IO_APIC(void);
+ extern void disable_IO_APIC(void);
+@@ -268,8 +257,6 @@ static inline void mp_save_irq(struct mpc_intsrc *m) { };
+ static inline void disable_ioapic_support(void) { }
+ #define native_io_apic_init_mappings	NULL
+ #define native_io_apic_read		NULL
+-#define native_io_apic_write		NULL
+-#define native_io_apic_modify		NULL
+ #define native_disable_io_apic		NULL
+ #endif
+ 
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index 3755cd2bbb94..398717e7493d 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -185,8 +185,6 @@ struct x86_msi_ops {
+ struct x86_io_apic_ops {
+ 	void		(*init)   (void);
+ 	unsigned int	(*read)   (unsigned int apic, unsigned int reg);
+-	void		(*write)  (unsigned int apic, unsigned int reg, unsigned int value);
+-	void		(*modify) (unsigned int apic, unsigned int reg, unsigned int value);
+ 	void		(*disable)(void);
+ };
+ 
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 2ccccfdbb682..f55ab3a8de08 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -299,7 +299,8 @@ unsigned int native_io_apic_read(unsigned int apic, unsigned int reg)
+ 	return readl(&io_apic->data);
  }
  
-+static int assign_irq_vector_policy(int irq, int node, struct irq_cfg *cfg,
-+				    struct irq_alloc_info *info)
-+{
-+	int err = -EBUSY;
-+	unsigned int policy;
-+	const struct cpumask *mask;
-+
-+	if (info && info->mask) {
-+		policy = X86_VECTOR_POL_CALLER;
-+	} else {
-+		policy = X86_VECTOR_POL_MIN;
-+	}
-+
-+	for (; policy <= X86_VECTOR_POL_MAX; policy <<= 1) {
-+		if (!(x86_vector_alloc_policy & policy))
-+			continue;
-+
-+		switch (policy) {
-+		case X86_VECTOR_POL_NODE:
-+			if (node >= 0)
-+				mask = cpumask_of_node(node);
-+			else
-+				mask = NULL;
-+			break;
-+		case X86_VECTOR_POL_DEFAULT:
-+			mask = apic->target_cpus();
-+			break;
-+		case X86_VECTOR_POL_CALLER:
-+			if (info && info->mask)
-+				mask = info->mask;
-+			else
-+				mask = NULL;
-+			break;
-+		default:
-+			mask = NULL;
-+			break;
-+		}
-+		if (mask) {
-+			err = assign_irq_vector(irq, cfg, mask);
-+			if (!err)
-+				return 0;
-+		}
-+	}
-+
-+	return err;
-+}
-+
- static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 				 unsigned int nr_irqs, void *arg)
+-void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int value)
++static void io_apic_write(unsigned int apic, unsigned int reg,
++			  unsigned int value)
  {
- 	int i, err;
- 	struct irq_cfg *cfg;
- 	struct irq_data *irq_data;
--	const struct cpumask *mask;
-+	struct irq_alloc_info *info = arg;
+ 	struct io_apic __iomem *io_apic = io_apic_base(apic);
  
- 	if (disable_apic)
- 		return -ENXIO;
+@@ -313,7 +314,8 @@ void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int valu
+  *
+  * Older SiS APIC requires we rewrite the index register
+  */
+-void native_io_apic_modify(unsigned int apic, unsigned int reg, unsigned int value)
++static void io_apic_modify(unsigned int apic, unsigned int reg,
++			   unsigned int value)
+ {
+ 	struct io_apic __iomem *io_apic = io_apic_base(apic);
  
--	mask = irq_alloc_info_get_mask(arg);
- 	for (i = 0; i < nr_irqs; i++) {
- 		irq_data = irq_domain_get_irq_data(domain, virq + i);
- 		BUG_ON(!irq_data);
-@@ -299,7 +347,7 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 		irq_data->chip = &vector_chip;
- 		irq_data->chip_data = cfg;
- 		irq_data->hwirq = virq + i;
--		err = assign_irq_vector(virq, cfg, mask);
-+		err = assign_irq_vector_policy(virq, irq_data->node, cfg, info);
- 		if (err)
- 			goto error;
- 	}
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index ac2b604c00ec..30140bdf6d62 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -151,7 +151,5 @@ u32 arch_msix_mask_irq(struct msi_desc *desc, u32 flag)
+ struct x86_io_apic_ops x86_io_apic_ops = {
+ 	.init			= native_io_apic_init_mappings,
+ 	.read			= native_io_apic_read,
+-	.write			= native_io_apic_write,
+-	.modify			= native_io_apic_modify,
+ 	.disable		= native_disable_io_apic,
+ };
 -- 
 1.7.10.4
