@@ -1,116 +1,115 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 22/28] x86, irq: Kill x86_io_apic_ops.write and x86_io_apic_ops.modify
-Date: Fri, 26 Sep 2014 22:57:52 +0800
-Message-ID: <1411743478-31435-23-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 23/28] x86, irq: Clean up io_apic.h
+Date: Fri, 26 Sep 2014 22:57:53 +0800
+Message-ID: <1411743478-31435-24-git-send-email-jiang.liu@linux.intel.com>
 References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-x86_io_apic_ops.write is always set to native_io_apic_write(),
-and nobody overrides it. So get rid of the indirection by changing
-native_io_apic_write() as io_apic_write() and killing
-x86_io_apic_ops.write.
-
-Do the same for x86_io_apic_ops.modify and native_io_apic_modify().
+Clean up io_apic.h by:
+1) moving definition of struct mp_ioapic_gsi into io_apic.c
+2) changing mp_pin_to_gsi() and mp_ioapic_gsi_routing() as static
+3) killing unused MP_MAX_IOAPIC_PIN
+4) killing useless forward declaration
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/io_apic.h  |   13 -------------
- arch/x86/include/asm/x86_init.h |    2 --
- arch/x86/kernel/apic/io_apic.c  |    6 ++++--
- arch/x86/kernel/x86_init.c      |    2 --
- 4 files changed, 4 insertions(+), 19 deletions(-)
+ arch/x86/include/asm/io_apic.h |   14 ++------------
+ arch/x86/kernel/apic/io_apic.c |    9 +++++++--
+ 2 files changed, 9 insertions(+), 14 deletions(-)
 
 diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index c2c1a8b7f39d..e978dc335eea 100644
+index e978dc335eea..840e366ea0d3 100644
 --- a/arch/x86/include/asm/io_apic.h
 +++ b/arch/x86/include/asm/io_apic.h
-@@ -209,8 +209,6 @@ extern void disable_ioapic_support(void);
+@@ -113,9 +113,6 @@ extern int nr_ioapics;
  
- extern void __init native_io_apic_init_mappings(void);
- extern unsigned int native_io_apic_read(unsigned int apic, unsigned int reg);
--extern void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int val);
--extern void native_io_apic_modify(unsigned int apic, unsigned int reg, unsigned int val);
- extern void native_disable_io_apic(void);
- 
- static inline unsigned int io_apic_read(unsigned int apic, unsigned int reg)
-@@ -218,15 +216,6 @@ static inline unsigned int io_apic_read(unsigned int apic, unsigned int reg)
- 	return x86_io_apic_ops.read(apic, reg);
- }
- 
--static inline void io_apic_write(unsigned int apic, unsigned int reg, unsigned int value)
--{
--	x86_io_apic_ops.write(apic, reg, value);
--}
--static inline void io_apic_modify(unsigned int apic, unsigned int reg, unsigned int value)
--{
--	x86_io_apic_ops.modify(apic, reg, value);
--}
+ extern int mpc_ioapic_id(int ioapic);
+ extern unsigned int mpc_ioapic_addr(int ioapic);
+-extern struct mp_ioapic_gsi *mp_ioapic_gsi_routing(int ioapic);
 -
- extern void setup_IO_APIC(void);
- extern void enable_IO_APIC(void);
- extern void disable_IO_APIC(void);
-@@ -268,8 +257,6 @@ static inline void mp_save_irq(struct mpc_intsrc *m) { };
- static inline void disable_ioapic_support(void) { }
- #define native_io_apic_init_mappings	NULL
- #define native_io_apic_read		NULL
--#define native_io_apic_write		NULL
--#define native_io_apic_modify		NULL
- #define native_disable_io_apic		NULL
- #endif
+-#define MP_MAX_IOAPIC_PIN 127
  
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index 3755cd2bbb94..398717e7493d 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -185,8 +185,6 @@ struct x86_msi_ops {
- struct x86_io_apic_ops {
- 	void		(*init)   (void);
- 	unsigned int	(*read)   (unsigned int apic, unsigned int reg);
--	void		(*write)  (unsigned int apic, unsigned int reg, unsigned int value);
--	void		(*modify) (unsigned int apic, unsigned int reg, unsigned int value);
- 	void		(*disable)(void);
+ /* # of MP IRQ source entries */
+ extern int mp_irq_entries;
+@@ -135,6 +132,8 @@ extern int noioapicquirk;
+ /* -1 if "noapic" boot option passed */
+ extern int noioapicreroute;
+ 
++extern u32 gsi_top;
++
+ extern unsigned long io_apic_irqs;
+ 
+ #define IO_APIC_IRQ(x) (((x) >= NR_IRQS_LEGACY) || ((1 << (x)) & io_apic_irqs))
+@@ -146,7 +145,6 @@ extern unsigned long io_apic_irqs;
+ #define io_apic_assign_pci_irqs \
+ 	(mp_irq_entries && !skip_ioapic_setup && io_apic_irqs)
+ 
+-struct irq_cfg;
+ extern void ioapic_insert_resources(void);
+ extern int arch_early_ioapic_init(void);
+ 
+@@ -174,15 +172,8 @@ struct ioapic_domain_cfg {
+ 	struct device_node		*dev;
  };
  
+-struct mp_ioapic_gsi{
+-	u32 gsi_base;
+-	u32 gsi_end;
+-};
+-extern u32 gsi_top;
+-
+ extern int mp_find_ioapic(u32 gsi);
+ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
+-extern u32 mp_pin_to_gsi(int ioapic, int pin);
+ extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
+ 			     struct irq_alloc_info *info);
+ extern void mp_unmap_irq(int irq);
+@@ -232,7 +223,6 @@ static inline int arch_early_ioapic_init(void) { return 0; }
+ static inline void print_IO_APICs(void) {}
+ #define gsi_top (NR_IRQS_LEGACY)
+ static inline int mp_find_ioapic(u32 gsi) { return 0; }
+-static inline u32 mp_pin_to_gsi(int ioapic, int pin) { return UINT_MAX; }
+ static inline int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
+ 				    struct irq_alloc_info *info)
+ {
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 2ccccfdbb682..f55ab3a8de08 100644
+index f55ab3a8de08..4c8c22171f43 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -299,7 +299,8 @@ unsigned int native_io_apic_read(unsigned int apic, unsigned int reg)
- 	return readl(&io_apic->data);
+@@ -98,6 +98,11 @@ struct mp_pin_info {
+ 	u32 count;
+ };
+ 
++struct mp_ioapic_gsi{
++	u32 gsi_base;
++	u32 gsi_end;
++};
++
+ static struct ioapic {
+ 	/*
+ 	 * # of IRQ routing registers
+@@ -129,7 +134,7 @@ unsigned int mpc_ioapic_addr(int ioapic_idx)
+ 	return ioapics[ioapic_idx].mp_config.apicaddr;
  }
  
--void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int value)
-+static void io_apic_write(unsigned int apic, unsigned int reg,
-+			  unsigned int value)
+-struct mp_ioapic_gsi *mp_ioapic_gsi_routing(int ioapic_idx)
++static struct mp_ioapic_gsi *mp_ioapic_gsi_routing(int ioapic_idx)
  {
- 	struct io_apic __iomem *io_apic = io_apic_base(apic);
+ 	return &ioapics[ioapic_idx].gsi_config;
+ }
+@@ -141,7 +146,7 @@ static inline int mp_ioapic_pin_count(int ioapic)
+ 	return gsi_cfg->gsi_end - gsi_cfg->gsi_base + 1;
+ }
  
-@@ -313,7 +314,8 @@ void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int valu
-  *
-  * Older SiS APIC requires we rewrite the index register
-  */
--void native_io_apic_modify(unsigned int apic, unsigned int reg, unsigned int value)
-+static void io_apic_modify(unsigned int apic, unsigned int reg,
-+			   unsigned int value)
+-u32 mp_pin_to_gsi(int ioapic, int pin)
++static u32 mp_pin_to_gsi(int ioapic, int pin)
  {
- 	struct io_apic __iomem *io_apic = io_apic_base(apic);
- 
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index ac2b604c00ec..30140bdf6d62 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -151,7 +151,5 @@ u32 arch_msix_mask_irq(struct msi_desc *desc, u32 flag)
- struct x86_io_apic_ops x86_io_apic_ops = {
- 	.init			= native_io_apic_init_mappings,
- 	.read			= native_io_apic_read,
--	.write			= native_io_apic_write,
--	.modify			= native_io_apic_modify,
- 	.disable		= native_disable_io_apic,
- };
+ 	return mp_ioapic_gsi_routing(ioapic)->gsi_base + pin;
+ }
 -- 
 1.7.10.4
