@@ -1,15 +1,15 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: ACPI/i915: Cannot configure display brightness on
- Dell Latitude E6440
-Date: Fri, 26 Sep 2014 10:20:49 +0800
-Message-ID: <5424CD81.2030305@intel.com>
+Subject: [PATCH] ACPI / i915: Update the condition to ignore
+ firmware backlight change request
+Date: Fri, 26 Sep 2014 10:30:08 +0800
+Message-ID: <5424CFB0.4080102@intel.com>
 References: <201409232206.02819@pali> <201409242021.10107@pali>
- <542388D7.1010008@intel.com> <1481425.msp1jP3vqe@vostro.rjw.lan>
+ <542388D7.1010008@intel.com> <201409251623.45636@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <1481425.msp1jP3vqe@vostro.rjw.lan>
+In-Reply-To: <201409251623.45636@pali>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
@@ -19,133 +19,72 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: intel-gfx-bounces@lists.freedesktop.org
 Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+To: =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-acpi@vger.kernel.org, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/26/2014 03:58 AM, Rafael J. Wysocki wrote:
-> On Thursday, September 25, 2014 11:15:35 AM Aaron Lu wrote:
->> Hi Hans,
->>
->> Thanks for following up and explaining the situation to Pali.
->>
->> On 09/25/2014 02:21 AM, Pali Roh=E1r wrote:
->>> On Wednesday 24 September 2014 16:34:21 Hans de Goede wrote:
->>>> Ok, so the dell-laptop interface is just an obsolete wrapper
->>>> around the i915 opregion code, which shows that the right
->>>> interface to use is the i915 one, which we do if you don't
->>>> specify any kernel commandline parameters, case closed.
->>>>
->>>> Regards,
->>>>
->>>> Hans
->>>
->>> Nope, its not closed.
->>>
->>> Still i915 interface has problem with setting backlight. It =
+Some of the Thinkpads' firmware will issue a backlight change request
+through i915 operation region unconditionally on AC plug/unplug, the
+backlight level used is arbitrary and thus should be ignored. This is
+handled by commit 0b9f7d93ca61 (ACPI / i915: ignore firmware requests
+for backlight change). Then there is a Dell laptop whose vendor backlight
+interface also makes use of operation region to change backlight level
+and with the above commit, that interface no long works. The condition
+used to ignore the backlight change request from firmware is thus
+changed to: if the vendor backlight interface is not in use and the ACPI
+backlight interface is broken, we ignore the requests; oterwise, we keep
+processing them.
 
->>> exports lot of levels which turning display off. Which breaking =
+Reference: https://lkml.org/lkml/2014/9/23/854
+Reported-and-tested-by: Pali Roh=E1r <pali.rohar@gmail.com>
+Cc: <stable@vger.kernel.org> # v3.16 and later
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/gpu/drm/i915/intel_opregion.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
->>> exiting applications for configuring display brightness. This is =
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/i=
+ntel_opregion.c
+index ca52ad2ae7d1..d8de1d5140a7 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -396,6 +396,16 @@ int intel_opregion_notify_adapter(struct drm_device *d=
+ev, pci_power_t state)
+ 	return -EINVAL;
+ }
+ =
 
->>> still big regression as black screen is not want people want to =
++/*
++ * If the vendor backlight interface is not in use and ACPI backlight inte=
+rface
++ * is broken, do not bother processing backlight change requests from firm=
+ware.
++ */
++static bool should_ignore_backlight_request(void)
++{
++	return acpi_video_backlight_support() &&
++	       !acpi_video_verify_backlight_support();
++}
++
+ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+ {
+ 	struct drm_i915_private *dev_priv =3D dev->dev_private;
+@@ -404,11 +414,7 @@ static u32 asle_set_backlight(struct drm_device *dev, =
+u32 bclp)
+ =
 
->>> see.
->>>
->>> Driver dell-laptop has exported only few - not thousands level =
+ 	DRM_DEBUG_DRIVER("bclp =3D 0x%08x\n", bclp);
+ =
 
->>> (which is insane) and only usefull levels (not lot of levels =
+-	/*
+-	 * If the acpi_video interface is not supposed to be used, don't
+-	 * bother processing backlight level change requests from firmware.
+-	 */
+-	if (!acpi_video_verify_backlight_support()) {
++	if (should_ignore_backlight_request()) {
+ 		DRM_DEBUG_KMS("opregion backlight request ignored\n");
+ 		return 0;
+ 	}
+-- =
 
->>> which turn display off).
->>>
->>> So for this reason using i915 backlight interface is not possible =
-
->>> and also Dell (for E6440) set kernel param acpi_backlight=3Dvendor =
-
->>> to use dell_laptop module for controlling brightness.
->>>
->>> On my laptop E6440 is better for using dell-laptop and not acpi =
-
->>> or i915.
->>
->> Hi Pali,
->>
->> Please test this patch:
->>
->> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i91=
-5/intel_opregion.c
->> index ca52ad2ae7d1..15534345bd57 100644
->> --- a/drivers/gpu/drm/i915/intel_opregion.c
->> +++ b/drivers/gpu/drm/i915/intel_opregion.c
->> @@ -396,6 +396,24 @@ int intel_opregion_notify_adapter(struct drm_device=
- *dev, pci_power_t state)
->>  	return -EINVAL;
->>  }
->>  =
-
->> +/*
->> + * Some of the Thinkpads' firmware will issue a backlight change operat=
-ion
->> + * region request unconditionally on AC plug/unplug, this is undesirabl=
-e and
->> + * should be ignored. Then there is a Dell laptop whose vendor backlight
->> + * interface also makes use of operation region request to change backl=
-ight
->> + * level and we have to keep it work. The rule used here is: if the ven=
-dor
->> + * backlight interface is not in use and the ACPI backlight interface is
->> + * broken, we ignore the requests; oterwise, we keep processing them.
->> + */
->> +static bool should_ignore_backlight_request(void)
->> +{
->> +	if (acpi_video_backlight_support() &&
->> +	    !acpi_video_verify_backlight_support())
->> +		return true;
->> +
->> +	return false;
->> +}
-> =
-
-> Well, what about
-> =
-
-> 	return acpi_video_backlight_support() && !acpi_video_verify_backlight_su=
-pport();
-> =
-
-> ?
-
-Yes that's better.
-Will send out a patch with this change, thanks for the suggestion.
-
--Aaron
-
-> =
-
->> +
->>  static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
->>  {
->>  	struct drm_i915_private *dev_priv =3D dev->dev_private;
->> @@ -404,11 +422,7 @@ static u32 asle_set_backlight(struct drm_device *de=
-v, u32 bclp)
->>  =
-
->>  	DRM_DEBUG_DRIVER("bclp =3D 0x%08x\n", bclp);
->>  =
-
->> -	/*
->> -	 * If the acpi_video interface is not supposed to be used, don't
->> -	 * bother processing backlight level change requests from firmware.
->> -	 */
->> -	if (!acpi_video_verify_backlight_support()) {
->> +	if (should_ignore_backlight_request()) {
->>  		DRM_DEBUG_KMS("opregion backlight request ignored\n");
->>  		return 0;
->>  	}
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" =
-in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
-> =
+1.9.3
