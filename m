@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 15/28] iommu/amd: Clean up unsued code
-Date: Fri, 26 Sep 2014 22:57:45 +0800
-Message-ID: <1411743478-31435-16-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 19/28] iommu/amd: Move struct irq_2_irte into amd_iommu.c
+Date: Fri, 26 Sep 2014 22:57:49 +0800
+Message-ID: <1411743478-31435-20-git-send-email-jiang.liu@linux.intel.com>
 References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,181 +10,61 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now we have converted to hierarchy irqdomain, so clean up unused code.
+Now only amd_iommu.c access irq_2_irte, so move it from hw_irq.h into
+amd_iommu.c.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/iommu/amd_iommu.c |  144 ---------------------------------------------
- 1 file changed, 144 deletions(-)
+ arch/x86/include/asm/hw_irq.h |   13 -------------
+ drivers/iommu/amd_iommu.c     |    5 +++++
+ 2 files changed, 5 insertions(+), 13 deletions(-)
 
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index 185c5889daa1..68412c2f97cd 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -94,14 +94,6 @@ extern void trace_call_function_single_interrupt(void);
+ #define trace_kvm_posted_intr_ipi kvm_posted_intr_ipi
+ #endif /* CONFIG_TRACING */
+ 
+-#ifdef CONFIG_IRQ_REMAP
+-/* AMD specific interrupt remapping information */
+-struct irq_2_irte {
+-	u16 devid; /* Device ID for IRTE table */
+-	u16 index; /* Index into IRTE table*/
+-};
+-#endif	/* CONFIG_IRQ_REMAP */
+-
+ struct irq_domain;
+ #ifdef	CONFIG_X86_LOCAL_APIC
+ struct irq_data;
+@@ -176,11 +168,6 @@ struct irq_cfg {
+ 	unsigned int		dest_apicid;
+ 	u8			vector;
+ 	u8			move_in_progress : 1;
+-#ifdef CONFIG_IRQ_REMAP
+-	union {
+-		struct irq_2_irte  irq_2_irte;
+-	};
+-#endif
+ 	union {
+ #ifdef CONFIG_X86_IO_APIC
+ 		struct {
 diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
-index f0695e3e2af6..21f8edcc0635 100644
+index 28d1cd404ff1..fc7363eb29b9 100644
 --- a/drivers/iommu/amd_iommu.c
 +++ b/drivers/iommu/amd_iommu.c
-@@ -3978,22 +3978,6 @@ out:
- 	return index;
- }
+@@ -3836,6 +3836,11 @@ union irte {
+ 	} fields;
+ };
  
--static int get_irte(u16 devid, int index, union irte *irte)
--{
--	struct irq_remap_table *table;
--	unsigned long flags;
--
--	table = get_irq_table(devid, false);
--	if (!table)
--		return -ENOMEM;
--
--	spin_lock_irqsave(&table->lock, flags);
--	irte->val = table->table[index];
--	spin_unlock_irqrestore(&table->lock, flags);
--
--	return 0;
--}
--
- static int modify_irte(u16 devid, int index, union irte irte)
- {
- 	struct irq_remap_table *table;
-@@ -4040,131 +4024,6 @@ static void free_irte(u16 devid, int index)
- 	iommu_completion_wait(iommu);
- }
- 
--static int setup_ioapic_entry(int irq, struct IO_APIC_route_entry *entry,
--			      unsigned int destination, int vector,
--			      struct io_apic_irq_attr *attr)
--{
--	struct irq_remap_table *table;
--	struct irq_2_irte *irte_info;
--	struct irq_cfg *cfg;
--	union irte irte;
--	int ioapic_id;
--	int index;
--	int devid;
--	int ret;
--
--	cfg = irq_cfg(irq);
--	if (!cfg)
--		return -EINVAL;
--
--	irte_info = &cfg->irq_2_irte;
--	ioapic_id = mpc_ioapic_id(attr->ioapic);
--	devid     = get_ioapic_devid(ioapic_id);
--
--	if (devid < 0)
--		return devid;
--
--	table = get_irq_table(devid, true);
--	if (table == NULL)
--		return -ENOMEM;
--
--	index = attr->ioapic_pin;
--
--	/* Setup IRQ remapping info */
--	cfg->remapped	      = 1;
--	irte_info->devid      = devid;
--	irte_info->index      = index;
--
--	/* Setup IRTE for IOMMU */
--	irte.val		= 0;
--	irte.fields.vector      = vector;
--	irte.fields.int_type    = apic->irq_delivery_mode;
--	irte.fields.destination = destination;
--	irte.fields.dm          = apic->irq_dest_mode;
--	irte.fields.valid       = 1;
--
--	ret = modify_irte(devid, index, irte);
--	if (ret)
--		return ret;
--
--	/* Setup IOAPIC entry */
--	memset(entry, 0, sizeof(*entry));
--
--	entry->vector        = index;
--	entry->mask          = 0;
--	entry->trigger       = attr->trigger;
--	entry->polarity      = attr->polarity;
--
--	/*
--	 * Mask level triggered irqs.
--	 */
--	if (attr->trigger)
--		entry->mask = 1;
--
--	return 0;
--}
--
--static int set_affinity(struct irq_data *data, const struct cpumask *mask,
--			bool force)
--{
--	struct irq_2_irte *irte_info;
--	unsigned int dest, irq;
--	struct irq_cfg *cfg;
--	union irte irte;
--	int err;
--
--	if (!config_enabled(CONFIG_SMP))
--		return -1;
--
--	cfg       = irqd_cfg(data);
--	irq       = data->irq;
--	irte_info = &cfg->irq_2_irte;
--
--	if (!cpumask_intersects(mask, cpu_online_mask))
--		return -EINVAL;
--
--	if (get_irte(irte_info->devid, irte_info->index, &irte))
--		return -EBUSY;
--
--	if (assign_irq_vector(irq, cfg, mask))
--		return -EBUSY;
--
--	err = apic->cpu_mask_to_apicid_and(cfg->domain, mask, &dest);
--	if (err) {
--		if (assign_irq_vector(irq, cfg, data->affinity))
--			pr_err("AMD-Vi: Failed to recover vector for irq %d\n", irq);
--		return err;
--	}
--
--	irte.fields.vector      = cfg->vector;
--	irte.fields.destination = dest;
--
--	modify_irte(irte_info->devid, irte_info->index, irte);
--
--	if (cfg->move_in_progress)
--		send_cleanup_vector(cfg);
--
--	cpumask_copy(data->affinity, mask);
--
--	return 0;
--}
--
--static int free_irq(int irq)
--{
--	struct irq_2_irte *irte_info;
--	struct irq_cfg *cfg;
--
--	cfg = irq_cfg(irq);
--	if (!cfg)
--		return -EINVAL;
--
--	irte_info = &cfg->irq_2_irte;
--
--	free_irte(irte_info->devid, irte_info->index);
--
--	return 0;
--}
--
- static int get_devid(struct irq_alloc_info *info)
- {
- 	int devid = -1;
-@@ -4257,9 +4116,6 @@ struct irq_remap_ops amd_iommu_irq_ops = {
- 	.disable		= amd_iommu_disable,
- 	.reenable		= amd_iommu_reenable,
- 	.enable_faulting	= amd_iommu_enable_faulting,
--	.setup_ioapic_entry	= setup_ioapic_entry,
--	.set_affinity		= set_affinity,
--	.free_irq		= free_irq,
- 	.get_ir_irq_domain	= get_ir_irq_domain,
- 	.get_irq_domain		= get_irq_domain,
- 	.get_ioapic_entry	= get_ioapic_entry,
++struct irq_2_irte {
++	u16 devid; /* Device ID for IRTE table */
++	u16 index; /* Index into IRTE table*/
++};
++
+ struct amd_ir_data {
+ 	struct irq_2_irte			irq_2_irte;
+ 	union irte				irte_entry;
 -- 
 1.7.10.4
