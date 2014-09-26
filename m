@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 04/18] x86, irq: Refine hw_irq.h to prepare for irqdomain support
-Date: Fri, 26 Sep 2014 21:29:41 +0800
-Message-ID: <1411738196-29958-5-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 06/18] x86, irq: Protect __clear_irq_vector() with vector_lock
+Date: Fri, 26 Sep 2014 21:29:43 +0800
+Message-ID: <1411738196-29958-7-git-send-email-jiang.liu@linux.intel.com>
 References: <1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,155 +10,84 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Refine hw_irq.h to prepare for irqdomain support by:
-1) guarding common APIC related interfaces with CONFIG_X86_LOCAL_APIC
-2) guarding interrupt remapping related interfaces with CONFIG_IRQ_REMAP
-3) guarding IOAPIC related interfaces with CONFIG_X86_IO_APIC
-
-There should be no functional changes.
+Function __clear_irq_vector() accesses vector related data structure,
+so protect it with vector_lock. Also rename it as clear_irq_vector().
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/hw_irq.h |   94 ++++++++++++++++++++++-------------------
- 1 file changed, 51 insertions(+), 43 deletions(-)
+ arch/x86/kernel/apic/io_apic.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 28f283988c8e..8188d648d48c 100644
---- a/arch/x86/include/asm/hw_irq.h
-+++ b/arch/x86/include/asm/hw_irq.h
-@@ -94,30 +94,7 @@ extern void trace_call_function_single_interrupt(void);
- #define trace_kvm_posted_intr_ipi kvm_posted_intr_ipi
- #endif /* CONFIG_TRACING */
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 50681c97b4cd..0022a0c2faac 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -1349,10 +1349,12 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
+ 	return err;
+ }
  
--/* IOAPIC */
--#define IO_APIC_IRQ(x) (((x) >= NR_IRQS_LEGACY) || ((1<<(x)) & io_apic_irqs))
--extern unsigned long io_apic_irqs;
--
--extern void setup_IO_APIC(void);
--extern void disable_IO_APIC(void);
--
--struct io_apic_irq_attr {
--	int ioapic;
--	int ioapic_pin;
--	int trigger;
--	int polarity;
--};
--
--static inline void set_io_apic_irq_attr(struct io_apic_irq_attr *irq_attr,
--					int ioapic, int ioapic_pin,
--					int trigger, int polarity)
--{
--	irq_attr->ioapic	= ioapic;
--	irq_attr->ioapic_pin	= ioapic_pin;
--	irq_attr->trigger	= trigger;
--	irq_attr->polarity	= polarity;
--}
--
-+#ifdef CONFIG_IRQ_REMAP
- /* Intel specific interrupt remapping information */
- struct irq_2_iommu {
- 	struct intel_iommu *iommu;
-@@ -131,14 +108,10 @@ struct irq_2_irte {
- 	u16 devid; /* Device ID for IRTE table */
- 	u16 index; /* Index into IRTE table*/
- };
-+#endif	/* CONFIG_IRQ_REMAP */
+-static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
++static void clear_irq_vector(int irq, struct irq_cfg *cfg)
+ {
+ 	int cpu, vector;
++	unsigned long flags;
  
--/*
-- * This is performance-critical, we want to do it O(1)
-- *
-- * Most irqs are mapped 1:1 with pins.
-- */
-+#ifdef	CONFIG_X86_LOCAL_APIC
- struct irq_cfg {
--	struct list_head	irq_2_pin;
- 	cpumask_var_t		domain;
- 	cpumask_var_t		old_domain;
- 	u8			vector;
-@@ -150,18 +123,64 @@ struct irq_cfg {
- 		struct irq_2_irte  irq_2_irte;
- 	};
- #endif
-+	union {
-+#ifdef CONFIG_X86_IO_APIC
-+		struct {
-+			struct list_head	irq_2_pin;
-+		};
-+#endif
-+	};
- };
++	raw_spin_lock_irqsave(&vector_lock, flags);
+ 	BUG_ON(!cfg->vector);
  
-+extern void setup_vector_irq(int cpu);
- extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
- extern void send_cleanup_vector(struct irq_cfg *);
+ 	vector = cfg->vector;
+@@ -1362,8 +1364,11 @@ static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
+ 	cfg->vector = 0;
+ 	cpumask_clear(cfg->domain);
  
- struct irq_data;
- int __ioapic_set_affinity(struct irq_data *, const struct cpumask *,
- 			  unsigned int *dest_id);
--extern int IO_APIC_get_PCI_irq_vector(int bus, int devfn, int pin);
--extern void setup_ioapic_dest(void);
-+#endif	/* CONFIG_X86_LOCAL_APIC */
+-	if (likely(!cfg->move_in_progress))
++	if (likely(!cfg->move_in_progress)) {
++		raw_spin_unlock_irqrestore(&vector_lock, flags);
+ 		return;
++	}
 +
-+#ifdef CONFIG_X86_IO_APIC
-+extern void lock_vector_lock(void);
-+extern void unlock_vector_lock(void);
-+extern void __setup_vector_irq(int cpu);
-+#else
-+static inline void lock_vector_lock(void) {}
-+static inline void unlock_vector_lock(void) {}
-+static inline void __setup_vector_irq(int cpu) {}
-+#endif
-+
-+/* IOAPIC */
-+#ifdef CONFIG_X86_IO_APIC
-+struct io_apic_irq_attr {
-+	int ioapic;
-+	int ioapic_pin;
-+	int trigger;
-+	int polarity;
-+};
-+
-+static inline void set_io_apic_irq_attr(struct io_apic_irq_attr *irq_attr,
-+					int ioapic, int ioapic_pin,
-+					int trigger, int polarity)
-+{
-+	irq_attr->ioapic	= ioapic;
-+	irq_attr->ioapic_pin	= ioapic_pin;
-+	irq_attr->trigger	= trigger;
-+	irq_attr->polarity	= polarity;
-+}
+ 	for_each_cpu_and(cpu, cfg->old_domain, cpu_online_mask) {
+ 		for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++) {
+ 			if (per_cpu(vector_irq, cpu)[vector] != irq)
+@@ -1373,6 +1378,7 @@ static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
+ 		}
+ 	}
+ 	cfg->move_in_progress = 0;
++	raw_spin_unlock_irqrestore(&vector_lock, flags);
+ }
  
-+extern void setup_IO_APIC(void);
- extern void enable_IO_APIC(void);
-+extern void disable_IO_APIC(void);
-+extern void setup_ioapic_dest(void);
-+extern int IO_APIC_get_PCI_irq_vector(int bus, int devfn, int pin);
-+
-+extern unsigned long io_apic_irqs;
-+#define IO_APIC_IRQ(x) (((x) >= NR_IRQS_LEGACY) || ((1 << (x)) & io_apic_irqs))
-+#else	/* CONFIG_X86_IO_APIC */
-+#define IO_APIC_IRQ(x)	0
-+#endif	/* CONFIG_X86_IO_APIC */
+ void __setup_vector_irq(int cpu)
+@@ -1499,7 +1505,7 @@ static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
+ 					 &dest)) {
+ 		pr_warn("Failed to obtain apicid for ioapic %d, pin %d\n",
+ 			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
+-		__clear_irq_vector(irq, cfg);
++		clear_irq_vector(irq, cfg);
  
- /* Statistics */
- extern atomic_t irq_err_count;
-@@ -195,17 +214,6 @@ extern void (*__initconst interrupt[NR_VECTORS-FIRST_EXTERNAL_VECTOR])(void);
+ 		return;
+ 	}
+@@ -1513,7 +1519,7 @@ static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
+ 	if (x86_io_apic_ops.setup_entry(irq, &entry, dest, cfg->vector, attr)) {
+ 		pr_warn("Failed to setup ioapic entry for ioapic  %d, pin %d\n",
+ 			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
+-		__clear_irq_vector(irq, cfg);
++		clear_irq_vector(irq, cfg);
  
- typedef int vector_irq_t[NR_VECTORS];
- DECLARE_PER_CPU(vector_irq_t, vector_irq);
--extern void setup_vector_irq(int cpu);
--
--#ifdef CONFIG_X86_IO_APIC
--extern void lock_vector_lock(void);
--extern void unlock_vector_lock(void);
--extern void __setup_vector_irq(int cpu);
--#else
--static inline void lock_vector_lock(void) {}
--static inline void unlock_vector_lock(void) {}
--static inline void __setup_vector_irq(int cpu) {}
--#endif
+ 		return;
+ 	}
+@@ -3082,12 +3088,9 @@ int arch_setup_hwirq(unsigned int irq, int node)
+ void arch_teardown_hwirq(unsigned int irq)
+ {
+ 	struct irq_cfg *cfg = irq_cfg(irq);
+-	unsigned long flags;
  
- #endif /* !ASSEMBLY_ */
+ 	free_remapped_irq(irq);
+-	raw_spin_lock_irqsave(&vector_lock, flags);
+-	__clear_irq_vector(irq, cfg);
+-	raw_spin_unlock_irqrestore(&vector_lock, flags);
++	clear_irq_vector(irq, cfg);
+ 	free_irq_cfg(irq, cfg);
+ }
  
 -- 
 1.7.10.4
