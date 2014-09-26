@@ -1,135 +1,151 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
-Date: Thu, 25 Sep 2014 17:27:57 -0700
-Message-ID: <20140926002757.GJ10233@codeaurora.org>
-References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
- <20140925112122.GA22753@ulmo>
- <CAPDyKFp8oK6KAujU44NEwT2vL2_BBPSMuGPkyppHdonPfOmUrQ@mail.gmail.com>
- <20140925165625.GC30382@ulmo>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: ACPI/i915: Cannot configure display brightness on
+ Dell Latitude E6440
+Date: Fri, 26 Sep 2014 10:20:49 +0800
+Message-ID: <5424CD81.2030305@intel.com>
+References: <201409232206.02819@pali> <201409242021.10107@pali>
+ <542388D7.1010008@intel.com> <1481425.msp1jP3vqe@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:51136 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518AbaIZA17 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Sep 2014 20:27:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20140925165625.GC30382@ulmo>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <1481425.msp1jP3vqe@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Philipp Zabel <philipp.zabel@gmail.com>Mark Brown <b>
 
-On 09/25, Thierry Reding wrote:
-> On Thu, Sep 25, 2014 at 05:29:10PM +0200, Ulf Hansson wrote:
-> > On 25 September 2014 13:21, Thierry Reding <thierry.reding@gmail.com> wrote:
-> > > I just noticed these patches because they conflicted with some of the
-> > > local patches I had to add a very similar framework. One of the reasons
-> > > why I hadn't posted these publicly yet is because the platform where I
-> > > want to use this (Tegra) is somewhat quirky when it comes to power
-> > > domains.
-> > 
-> > It's great that more things goes on in this area. :-)
-> > 
-> > >
-> > > On Tegra these domains are called power gates and they currently have
-> > > their own API. We've been looking at migrating things over to some
-> > > generic framework for some time and PM domains do seem like a good fit.
-> > > However one of the quirks regarding these domains on Tegra is that a
-> > > fixed sequence exists that needs to be respected when enabling or
-> > > disabling a power partition. The exact sequence can be found in the
-> > > drivers/soc/tegra/pmc.c driver's tegra_powergate_sequence_power_up()
-> > > function. Essentially we need to call into the clock and reset drivers
-> > > at very specific moments during the operations that the PMC does.
-> > 
-> > I am not sure I fully understand how the power gating actually
-> > happens. How is it triggered?
-> 
-> Drivers explicitly call the custom API. So all drivers that need to turn
-> on power partitions have a call to tegra_powergate_sequence_power_up()
-> in .probe() and tegra_powergate_power_off() in .remove().
-> 
-> > > One solution to this would be to make the needed clocks and resets
-> > > available to the power domain driver via DT, but then we have the
-> > > problem that two drivers would be controlling the same resources. For
-> > > example drivers could still want to disable the clock for more fine-
-> > > grained power management.
-> > 
-> > Sorry, but I think I need a better understanding to be able to comment.
-> > 
-> > But maybe, drivers could implement runtime PM support and define
-> > runtime PM callbacks. From the callbacks those will handle clocks and
-> > resets, is not that enough? What more is needed from a PM domain point
-> > of view?
-> 
-> Let me quote the actual power up sequence code:
-> 
-> 	int tegra_powergate_sequence_power_up(int id, struct clk *clk,
-> 					      struct reset_control *rst)
-> 	{
-> 		int ret;
-> 
-> 		reset_control_assert(rst);
-> 
-> 		ret = tegra_powergate_power_on(id);
-> 		if (ret)
-> 			goto err_power;
-> 
-> 		ret = clk_prepare_enable(clk);
-> 		if (ret)
-> 			goto err_clk;
-> 
-> 		usleep_range(10, 20);
-> 
-> 		ret = tegra_powergate_remove_clamping(id);
-> 		if (ret)
-> 			goto err_clamp;
-> 
-> 		usleep_range(10, 20);
-> 		reset_control_deassert(rst);
-> 
-> 		return 0;
-> 
-> 	err_clamp:
-> 		clk_disable_unprepare(clk);
-> 	err_clk:
-> 		tegra_powergate_power_off(id);
-> 	err_power:
-> 		return ret;
-> 	}
-> 	EXPORT_SYMBOL(tegra_powergate_sequence_power_up);
-> 
-> The critical part is that we need to enable the clock after the
-> partition has been powered, but before the clamps are removed.
-> Implementing this with runtime PM support in drivers won't work
-> because the power domain driver has to do both the powering up
-> and removing the clamps, so there's no place to inject the call
-> to enable the clock.
+On 09/26/2014 03:58 AM, Rafael J. Wysocki wrote:
+> On Thursday, September 25, 2014 11:15:35 AM Aaron Lu wrote:
+>> Hi Hans,
+>>
+>> Thanks for following up and explaining the situation to Pali.
+>>
+>> On 09/25/2014 02:21 AM, Pali Roh=E1r wrote:
+>>> On Wednesday 24 September 2014 16:34:21 Hans de Goede wrote:
+>>>> Ok, so the dell-laptop interface is just an obsolete wrapper
+>>>> around the i915 opregion code, which shows that the right
+>>>> interface to use is the i915 one, which we do if you don't
+>>>> specify any kernel commandline parameters, case closed.
+>>>>
+>>>> Regards,
+>>>>
+>>>> Hans
+>>>
+>>> Nope, its not closed.
+>>>
+>>> Still i915 interface has problem with setting backlight. It =
 
-FWIW, Qualcomm platforms have pretty much the same design. Our
-power domain controls live in the same register space as the
-clocks and resets. Is Tegra the same way? To power on/off a
-domain we need to go and forcefully turn a clock on and assert a
-reset or perhaps we need the clock to be off and assert a reset.
-It depends on the domain.
+>>> exports lot of levels which turning display off. Which breaking =
 
-Historically we've supported this by requiring all drivers to
-disable their clocks and deassert any resets before calling into
-this code (we put this behind the regulator API). Then we're free
-to do whatever is necessary to power on/off, eventally leaving
-the clocks off if they were forced on and finally giving control
-to the drivers so they can manage their own clocks and resets. It
-would be better for us to take ownership of the clocks and resets
-in the domain so we don't have this prerequisite of clocks being
-off before calling into the domain code. I plan to do pretty much
-Kevin outlined and use runtime PM, power domains, and per-device
-pm QoS to figure out if we should gate clocks (clk_disable), or
-if we go to a lower power mode where we unprepare clocks
-(clk_unprepare), or if we go to the lowest power mode where we
-apply clamps, etc. (called power collapse for us). Then the
-drivers just interact with runtime PM and QoS and they aren't
-aware of all this SoC glue.
+>>> exiting applications for configuring display brightness. This is =
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+>>> still big regression as black screen is not want people want to =
+
+>>> see.
+>>>
+>>> Driver dell-laptop has exported only few - not thousands level =
+
+>>> (which is insane) and only usefull levels (not lot of levels =
+
+>>> which turn display off).
+>>>
+>>> So for this reason using i915 backlight interface is not possible =
+
+>>> and also Dell (for E6440) set kernel param acpi_backlight=3Dvendor =
+
+>>> to use dell_laptop module for controlling brightness.
+>>>
+>>> On my laptop E6440 is better for using dell-laptop and not acpi =
+
+>>> or i915.
+>>
+>> Hi Pali,
+>>
+>> Please test this patch:
+>>
+>> diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i91=
+5/intel_opregion.c
+>> index ca52ad2ae7d1..15534345bd57 100644
+>> --- a/drivers/gpu/drm/i915/intel_opregion.c
+>> +++ b/drivers/gpu/drm/i915/intel_opregion.c
+>> @@ -396,6 +396,24 @@ int intel_opregion_notify_adapter(struct drm_device=
+ *dev, pci_power_t state)
+>>  	return -EINVAL;
+>>  }
+>>  =
+
+>> +/*
+>> + * Some of the Thinkpads' firmware will issue a backlight change operat=
+ion
+>> + * region request unconditionally on AC plug/unplug, this is undesirabl=
+e and
+>> + * should be ignored. Then there is a Dell laptop whose vendor backlight
+>> + * interface also makes use of operation region request to change backl=
+ight
+>> + * level and we have to keep it work. The rule used here is: if the ven=
+dor
+>> + * backlight interface is not in use and the ACPI backlight interface is
+>> + * broken, we ignore the requests; oterwise, we keep processing them.
+>> + */
+>> +static bool should_ignore_backlight_request(void)
+>> +{
+>> +	if (acpi_video_backlight_support() &&
+>> +	    !acpi_video_verify_backlight_support())
+>> +		return true;
+>> +
+>> +	return false;
+>> +}
+> =
+
+> Well, what about
+> =
+
+> 	return acpi_video_backlight_support() && !acpi_video_verify_backlight_su=
+pport();
+> =
+
+> ?
+
+Yes that's better.
+Will send out a patch with this change, thanks for the suggestion.
+
+-Aaron
+
+> =
+
+>> +
+>>  static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
+>>  {
+>>  	struct drm_i915_private *dev_priv =3D dev->dev_private;
+>> @@ -404,11 +422,7 @@ static u32 asle_set_backlight(struct drm_device *de=
+v, u32 bclp)
+>>  =
+
+>>  	DRM_DEBUG_DRIVER("bclp =3D 0x%08x\n", bclp);
+>>  =
+
+>> -	/*
+>> -	 * If the acpi_video interface is not supposed to be used, don't
+>> -	 * bother processing backlight level change requests from firmware.
+>> -	 */
+>> -	if (!acpi_video_verify_backlight_support()) {
+>> +	if (should_ignore_backlight_request()) {
+>>  		DRM_DEBUG_KMS("opregion backlight request ignored\n");
+>>  		return 0;
+>>  	}
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" =
+in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+> =
