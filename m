@@ -1,83 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
-Date: Fri, 26 Sep 2014 15:48:51 +0200
-Message-ID: <2646100.uUyj9r3K3o@vostro.rjw.lan>
-References: <1411456003-29541-1-git-send-email-tianyu.lan@intel.com> <2232717.X50lT6IYgQ@vostro.rjw.lan> <5424F851.1020809@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v2 18/18] iommu/amd: Use helpers to access irq_cfg data structure associated with IRQ
+Date: Fri, 26 Sep 2014 21:29:55 +0800
+Message-ID: <1411738196-29958-19-git-send-email-jiang.liu@linux.intel.com>
+References: <1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5424F851.1020809@intel.com>
+In-Reply-To: <1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, mika.westerberg@linux.intel.com, wsa@the-dreams.de, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, September 26, 2014 01:23:29 PM Lan Tianyu wrote:
-> On 2014=E5=B9=B409=E6=9C=8826=E6=97=A5 03:27, Rafael J. Wysocki wrote=
-:
-> > I'm not sure what you mean.  "Dependent" means "depending on someth=
-ing", so the
-> > question reads "This requires the devices with _DEP to have a list =
-of devices
-> > that depend on them" which is probably not what you meant.
-> >=20
->=20
-> Sorry, I didn't say clearly. The "dependent device" I meant is device
-> pointed to by _DEP(the master you mentioned at the bottom). I thought
-> master also needed a list to find its slave(device with _DEP).
->=20
-> > For each device with _DEP we have dep_devices, so if you pass a poi=
-nter
-> > (opregion_adev) to the device that has just installed an operation =
-region
-> > handler to acpi_walk_dep_device_list() as an argument, then you can=
- do
-> >=20
-> > 	for (i =3D 0; i < adev->dep_devices.count; i++)
-> > 		if (opregion_adev->handle =3D=3D adev->dep_devices.handles[i]) {
-> > 			adev->dep_unmet =3D false;
-> > 			acpi_bus_attach(adev);
-> > 			list_del(&dep->node);
-> > 			kfree(dep);
-> > 		}
-> >=20
-> > and of course appropriate locking needs to be there in case this ra=
-ces with
-> > enumeration during hotplug after loading a new ACPI table on demand=
-).
-> >=20
->=20
-> Yes, we can scan all devices on the list and match the opregion_adev
-> with adev->dep_devices. This is comparatively simple solution.
->=20
-> > I think you can even define
-> >  =20
-> > struct acpi_dep_data {
-> > 	struct list_head node;
-> > 	struct acpi_device *master;
-> > 	struct acpi_device *slave;
-> > };
-> >=20
-> > and create that for every valid pair of master (device pointed to b=
-y _DEP)/slave
-> > (device with _DEP) and create a list of these.  Then, you won't nee=
-d dep_devices
-> > in struct acpi_device any more and your acpi_walk_dep_device_list()=
- will only
-> > need to walk the list until it finds the matching master/slave pair=
-=2E
->=20
-> One question is that when create struct acpi_dep_data for the depende=
-ncy
-> relationship between master and slave. If do this when slave's ACPI
-> device is created during ACPI namespace scan, master's ACPI device ma=
-ybe
-> not created at that point. So acpi_handle maybe more suitable than
-> struct acpi_device here.
+Use helpers to access irq_cfg data structure associated with IRQ,
+instead of accessing irq_data->chip_data directly. Later we could
+rewrite those helpers to support hierarchy irqdomain.
 
-Right.  The handle is fine too and should be sufficient.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/iommu/amd_iommu.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index ecb0109a5360..e0def6249284 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -4049,7 +4049,7 @@ static int setup_ioapic_entry(int irq, struct IO_APIC_route_entry *entry,
+ 	int devid;
+ 	int ret;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 	if (!cfg)
+ 		return -EINVAL;
+ 
+@@ -4112,7 +4112,7 @@ static int set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 	if (!config_enabled(CONFIG_SMP))
+ 		return -1;
+ 
+-	cfg       = data->chip_data;
++	cfg       = irqd_cfg(data);
+ 	irq       = data->irq;
+ 	irte_info = &cfg->irq_2_irte;
+ 
+@@ -4150,7 +4150,7 @@ static int free_irq(int irq)
+ 	struct irq_2_irte *irte_info;
+ 	struct irq_cfg *cfg;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 	if (!cfg)
+ 		return -EINVAL;
+ 
+@@ -4169,7 +4169,7 @@ static void compose_msi_msg(struct pci_dev *pdev,
+ 	struct irq_cfg *cfg;
+ 	union irte irte;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 	if (!cfg)
+ 		return;
+ 
+@@ -4198,7 +4198,7 @@ static int msi_alloc_irq(struct pci_dev *pdev, int irq, int nvec)
+ 	if (!pdev)
+ 		return -EINVAL;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 	if (!cfg)
+ 		return -EINVAL;
+ 
+@@ -4218,7 +4218,7 @@ static int msi_setup_irq(struct pci_dev *pdev, unsigned int irq,
+ 	if (!pdev)
+ 		return -EINVAL;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 	if (!cfg)
+ 		return -EINVAL;
+ 
+@@ -4241,7 +4241,7 @@ static int setup_hpet_msi(unsigned int irq, unsigned int id)
+ 	struct irq_cfg *cfg;
+ 	int index, devid;
+ 
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 	if (!cfg)
+ 		return -EINVAL;
+ 
+-- 
+1.7.10.4
