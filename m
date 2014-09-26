@@ -1,119 +1,83 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume
- of LPSS devices
-Date: Fri, 26 Sep 2014 11:54:42 +0800
-Message-ID: <5424E382.6060403@linux.intel.com>
-References: <540E91F0.2060306@linux.intel.com> <13208235.eyDL0NsKvo@vostro.rjw.lan> <542378F0.6070303@linux.intel.com> <2215516.KXo7vMZKRh@vostro.rjw.lan>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
+Date: Thu, 25 Sep 2014 22:08:03 -0700
+Message-ID: <7hvbob6kb0.fsf@deeprootsystems.com>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+	<20140925112122.GA22753@ulmo>
+	<CAPDyKFp8oK6KAujU44NEwT2vL2_BBPSMuGPkyppHdonPfOmUrQ@mail.gmail.com>
+	<20140925165625.GC30382@ulmo> <20140926002757.GJ10233@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56256 "EHLO mga09.intel.com"
+Received: from mail.kernel.org ([198.145.19.201]:57449 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752961AbaIZDyq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Sep 2014 23:54:46 -0400
-In-Reply-To: <2215516.KXo7vMZKRh@vostro.rjw.lan>
+	id S1751835AbaIZFIF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Sep 2014 01:08:05 -0400
+In-Reply-To: <20140926002757.GJ10233@codeaurora.org> (Stephen Boyd's message
+	of "Thu, 25 Sep 2014 17:27:57 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Philipp Zabel <philipp.zabel@gmail.com>Ma
 
-On 2014/9/26 4:08, Rafael J. Wysocki wrote:
-> On Thursday, September 25, 2014 10:07:44 AM Li, Aubrey wrote:
->> On 2014/9/25 4:32, Rafael J. Wysocki wrote:
->>> On Wednesday, September 24, 2014 11:19:22 PM Fu, Zhonghui wrote:
->>>> This is a multi-part message in MIME format.
->>>> --------------040808000309050202010005
->>>> Content-Type: text/plain; charset=UTF-8
->>>> Content-Transfer-Encoding: 7bit
->>>>
->>>>
->>>> On 2014/9/23 7:17, Rafael J. Wysocki wrote:
->>>>> On Monday, September 22, 2014 10:45:42 PM Fu, Zhonghui wrote:
->>>>> [cut]
->>>>>
->>>>>>>>> This operation is reading data from Operation Region of one operand object in name space. I don't know the reason of hang at this point. Could you please give out some explanation about this?
->>>>>>>> I don't know the exact reason why this particular read hangs, but this means
->>>>>>>> that, perhaps, instead of disabling async suspend/resume for all LPSS devices
->>>>>>>> altogether, perhaps we can serialize their acpi_dev_resume_early()?
->>>>>>>>
->>>>>>>> Rafael
->>>>>>> Do you mean keeping other phases(prepare, suspend, suspend_late, suspend_noirq, resume_noirq, resume, complete) of suspend/resume asynchronous, and only serializing "resume_early" phase for all LPSS devices?
->>>>>>>
->>>>>>> Thanks,
->>>>>>> Zhonghui
->>>>>> Hi, Rafael
->>>>>>
->>>>>> Could you please confirm my understanding?
->>>>> This is not what I meant.
->>>>>
->>>>> Since we have a PM domain for the LPSS devices already, why don't we add an
->>>>> internal lock to that PM domain and acquire it over executing either
->>>>> acpi_dev_suspend_late() (during suspend) or acpi_dev_resume_early() (during
->>>>> resume) for all of them?
->>>> I seem find the root cause of this issue. Because this "hang" issue is occurred on ASUS T100(Baytrail-T platform), so I checked its DSDT and found that URT and I2C controllers depend on(_DEP) PEPD device(description in Windows is "power engine plug-in"). That is, URT and I2C controllers can not transition to ACPI_STATE_D0 state until PEPD device has completed this transition during resuming. But, the ACPI subsystem in the 3.16 kernel doesn't support "_DEP" feature. So, if enabling async suspend/resume for LPSS devices, their "_DEP" relationship with PEPD device will be broken and incur "hang" during the transition to ACPI_STATE_D0, please see the following code, it is from dpm_resume_early function in drivers/base/power/main.c file:
->>>>
->>>> list_for_each_entry(dev, &dpm_late_early_list, power.entry) {
->>>>                 reinit_completion(&dev->power.completion);
->>>>                 if (is_async(dev)) {
->>>>                         get_device(dev);
->>>>                         async_schedule(async_resume_early, dev);
->>>>                 }
->>>>         }
->>>>
->>>>         while (!list_empty(&dpm_late_early_list)) {
->>>>                 dev = to_device(dpm_late_early_list.next);
->>>>                 get_device(dev);
->>>>                 list_move_tail(&dev->power.entry, &dpm_suspended_list);
->>>>                 mutex_unlock(&dpm_list_mtx);
->>>>
->>>>                 if (!is_async(dev)) {    // PEPD is not configured as async device now.
->>>>                         int error;
->>>>
->>>>                         error = device_resume_early(dev, state, false);
->>>>                         if (error) {
->>>>                                 suspend_stats.failed_resume_early++;
->>>>                                 dpm_save_failed_step(SUSPEND_RESUME_EARLY);
->>>>                                 dpm_save_failed_dev(dev_name(dev));
->>>>                                 pm_dev_err(dev, state, " early", error);
->>>>                         }
->>>>                 }
->>>>                 mutex_lock(&dpm_list_mtx);
->>>>                 put_device(dev);
->>>>         }
->>>>
->>>>
->>>> Based on the above analysis,I move the resume_early operation of PEPD device to head of dpm_resume_early function and "hang" did not occur any more during resuming(I tested this 10 times).
->>>>
->>>> If disabling async suspend/resume for LPSS devices, PEPD device will be prior to UART and I2C controllers in dpm_late_early_list list and the "_DEP" relationship can be kept. Maybe,the "_DEP" ACPI feature will be supported in future kernel, so, I think simply disabling async suspend/resume for LPSS devices is a acceptable workaround now, and need not add new mechanism to deal with this issue.
->>>>
->>>> BTW, I will take two week's leave and can't reply email during this time. Sorry.
->>>
->>> OK, thanks for the analysis.  In that case we really may be better off by
->>> disabling the runtime PM of LPSS devices for now until we figure out how this
->>> can be addressed properly.
->>
->> Please let me know if the patch need to be refined, I can do it before
->> October 1st, then one-week Chinese National holiday.
-> 
-> The patch is fine.  In fact, I'm going to push it to Linus shortly.
-> 
->> Besides this patch, we leave the non-LPSS devices as async
->> suspend/resume, the risk is unknown.
-> 
-> No, we don't in general.  That is an opt-in, usually on a per-subsystem basis.
-> 
->> I wonder if we need to make
->> pm_async parameter configurable thru kernel command line to make android
->> userspace happy?
-> 
-> There is a sysfs switch for disabling async suspend/resume (/sys/power/pm_async).
-> That has to suffice.
-> 
-Like what you did to pretend echo mem > /sys/power/state, it's hard to
-visit sysfs switch from android UI, we want to disable async
-suspend/resume from kernel command line, so that we can bypass this
-feature after boot.
+Stephen Boyd <sboyd@codeaurora.org> writes:
 
-Thanks,
--Aubrey
+> On 09/25, Thierry Reding wrote:
+
+[...]
+
+>> The critical part is that we need to enable the clock after the
+>> partition has been powered, but before the clamps are removed.
+>> Implementing this with runtime PM support in drivers won't work
+>> because the power domain driver has to do both the powering up
+>> and removing the clamps, so there's no place to inject the call
+>> to enable the clock.
+>
+> FWIW, Qualcomm platforms have pretty much the same design. Our
+> power domain controls live in the same register space as the
+> clocks and resets. Is Tegra the same way? To power on/off a
+> domain we need to go and forcefully turn a clock on and assert a
+> reset or perhaps we need the clock to be off and assert a reset.
+> It depends on the domain.
+>
+
+> Historically we've supported this by requiring all drivers to
+> disable their clocks and deassert any resets before calling into
+> this code (we put this behind the regulator API). Then we're free
+> to do whatever is necessary to power on/off, eventally leaving
+> the clocks off if they were forced on and finally giving control
+> to the drivers so they can manage their own clocks and resets. It
+> would be better for us to take ownership of the clocks and resets
+> in the domain so we don't have this prerequisite of clocks being
+> off before calling into the domain code. I plan to do pretty much
+> Kevin outlined and use runtime PM, power domains, and per-device
+> pm QoS to figure out if we should gate clocks (clk_disable), or
+> if we go to a lower power mode where we unprepare clocks
+> (clk_unprepare), or if we go to the lowest power mode where we
+> apply clamps, etc. (called power collapse for us). Then the
+> drivers just interact with runtime PM and QoS and they aren't
+> aware of all this SoC glue.
+
+Excellent!  I'm glad you're heading in that direction.  One other
+important point here is that keeping drivers "simple" like this makes it
+much easier for them to stay portable across SoCs.
+
+Also, neither tegra or qcom are unique here.
+
+FWIW, OMAP has similar ordering requirements, and quite a bit of "stuff"
+to properly get a device and powerdomain to actually power down (and
+power up) properly.  The OMAP implementation pre-dates runtime PM, power
+domains etc. so we hid all of this behind the omap_hwmod abstraction and
+the omap_device API where all clocks, resets, and various other magic is
+handled, and so that device drivers didn't have to care about the details.
+
+These days, those APIs are now used by the OMAP pm_domain implementation
+(which pre-dates genpd), so drivers (still) don't have to care about the
+details only have to care about runtime PM and QoS.  After genpd came
+along, the goal was to convert OMAP to it, but well, other circumstances
+have changed things such that those working in that area are, um...,
+somewhat less focused on OMAP. ;)
+
+Kevin
+
+
