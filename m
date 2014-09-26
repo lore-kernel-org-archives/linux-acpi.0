@@ -1,118 +1,121 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 02/18] x86, irq: Kill fourth parameter of IO_APIC_get_PCI_irq_vector()
-Date: Fri, 26 Sep 2014 21:29:39 +0800
-Message-ID: <1411738196-29958-3-git-send-email-jiang.liu@linux.intel.com>
-References: <1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / platform / LPSS: disable async suspend/resume of LPSS devices
+Date: Fri, 26 Sep 2014 16:06:35 +0200
+Message-ID: <1911582.jhO9HBSx8Y@vostro.rjw.lan>
+References: <540E91F0.2060306@linux.intel.com> <2215516.KXo7vMZKRh@vostro.rjw.lan> <5424E382.6060403@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <5424E382.6060403@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Cc: "Fu, Zhonghui" <zhonghui.fu@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now the fourth parameter of IO_APIC_get_PCI_irq_vector() is useless,
-so kill it.  Assume it's only used by ibmphp PCI hotplug driver
-though IO_APIC_get_PCI_irq_vector() has been exported,
+On Friday, September 26, 2014 11:54:42 AM Li, Aubrey wrote:
+> On 2014/9/26 4:08, Rafael J. Wysocki wrote:
+> > On Thursday, September 25, 2014 10:07:44 AM Li, Aubrey wrote:
+> >> On 2014/9/25 4:32, Rafael J. Wysocki wrote:
+> >>> On Wednesday, September 24, 2014 11:19:22 PM Fu, Zhonghui wrote:
+> >>>> This is a multi-part message in MIME format.
+> >>>> --------------040808000309050202010005
+> >>>> Content-Type: text/plain; charset=UTF-8
+> >>>> Content-Transfer-Encoding: 7bit
+> >>>>
+> >>>>
+> >>>> On 2014/9/23 7:17, Rafael J. Wysocki wrote:
+> >>>>> On Monday, September 22, 2014 10:45:42 PM Fu, Zhonghui wrote:
+> >>>>> [cut]
+> >>>>>
+> >>>>>>>>> This operation is reading data from Operation Region of one operand object in name space. I don't know the reason of hang at this point. Could you please give out some explanation about this?
+> >>>>>>>> I don't know the exact reason why this particular read hangs, but this means
+> >>>>>>>> that, perhaps, instead of disabling async suspend/resume for all LPSS devices
+> >>>>>>>> altogether, perhaps we can serialize their acpi_dev_resume_early()?
+> >>>>>>>>
+> >>>>>>>> Rafael
+> >>>>>>> Do you mean keeping other phases(prepare, suspend, suspend_late, suspend_noirq, resume_noirq, resume, complete) of suspend/resume asynchronous, and only serializing "resume_early" phase for all LPSS devices?
+> >>>>>>>
+> >>>>>>> Thanks,
+> >>>>>>> Zhonghui
+> >>>>>> Hi, Rafael
+> >>>>>>
+> >>>>>> Could you please confirm my understanding?
+> >>>>> This is not what I meant.
+> >>>>>
+> >>>>> Since we have a PM domain for the LPSS devices already, why don't we add an
+> >>>>> internal lock to that PM domain and acquire it over executing either
+> >>>>> acpi_dev_suspend_late() (during suspend) or acpi_dev_resume_early() (during
+> >>>>> resume) for all of them?
+> >>>> I seem find the root cause of this issue. Because this "hang" issue is occurred on ASUS T100(Baytrail-T platform), so I checked its DSDT and found that URT and I2C controllers depend on(_DEP) PEPD device(description in Windows is "power engine plug-in"). That is, URT and I2C controllers can not transition to ACPI_STATE_D0 state until PEPD device has completed this transition during resuming. But, the ACPI subsystem in the 3.16 kernel doesn't support "_DEP" feature. So, if enabling async suspend/resume for LPSS devices, their "_DEP" relationship with PEPD device will be broken and incur "hang" during the transition to ACPI_STATE_D0, please see the following code, it is from dpm_resume_early function in drivers/base/power/main.c file:
+> >>>>
+> >>>> list_for_each_entry(dev, &dpm_late_early_list, power.entry) {
+> >>>>                 reinit_completion(&dev->power.completion);
+> >>>>                 if (is_async(dev)) {
+> >>>>                         get_device(dev);
+> >>>>                         async_schedule(async_resume_early, dev);
+> >>>>                 }
+> >>>>         }
+> >>>>
+> >>>>         while (!list_empty(&dpm_late_early_list)) {
+> >>>>                 dev = to_device(dpm_late_early_list.next);
+> >>>>                 get_device(dev);
+> >>>>                 list_move_tail(&dev->power.entry, &dpm_suspended_list);
+> >>>>                 mutex_unlock(&dpm_list_mtx);
+> >>>>
+> >>>>                 if (!is_async(dev)) {    // PEPD is not configured as async device now.
+> >>>>                         int error;
+> >>>>
+> >>>>                         error = device_resume_early(dev, state, false);
+> >>>>                         if (error) {
+> >>>>                                 suspend_stats.failed_resume_early++;
+> >>>>                                 dpm_save_failed_step(SUSPEND_RESUME_EARLY);
+> >>>>                                 dpm_save_failed_dev(dev_name(dev));
+> >>>>                                 pm_dev_err(dev, state, " early", error);
+> >>>>                         }
+> >>>>                 }
+> >>>>                 mutex_lock(&dpm_list_mtx);
+> >>>>                 put_device(dev);
+> >>>>         }
+> >>>>
+> >>>>
+> >>>> Based on the above analysis,I move the resume_early operation of PEPD device to head of dpm_resume_early function and "hang" did not occur any more during resuming(I tested this 10 times).
+> >>>>
+> >>>> If disabling async suspend/resume for LPSS devices, PEPD device will be prior to UART and I2C controllers in dpm_late_early_list list and the "_DEP" relationship can be kept. Maybe,the "_DEP" ACPI feature will be supported in future kernel, so, I think simply disabling async suspend/resume for LPSS devices is a acceptable workaround now, and need not add new mechanism to deal with this issue.
+> >>>>
+> >>>> BTW, I will take two week's leave and can't reply email during this time. Sorry.
+> >>>
+> >>> OK, thanks for the analysis.  In that case we really may be better off by
+> >>> disabling the runtime PM of LPSS devices for now until we figure out how this
+> >>> can be addressed properly.
+> >>
+> >> Please let me know if the patch need to be refined, I can do it before
+> >> October 1st, then one-week Chinese National holiday.
+> > 
+> > The patch is fine.  In fact, I'm going to push it to Linus shortly.
+> > 
+> >> Besides this patch, we leave the non-LPSS devices as async
+> >> suspend/resume, the risk is unknown.
+> > 
+> > No, we don't in general.  That is an opt-in, usually on a per-subsystem basis.
+> > 
+> >> I wonder if we need to make
+> >> pm_async parameter configurable thru kernel command line to make android
+> >> userspace happy?
+> > 
+> > There is a sysfs switch for disabling async suspend/resume (/sys/power/pm_async).
+> > That has to suffice.
+> > 
+> Like what you did to pretend echo mem > /sys/power/state,
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/include/asm/hw_irq.h     |    2 +-
- arch/x86/kernel/apic/io_apic.c    |   13 +++----------
- arch/x86/pci/irq.c                |    6 ++----
- drivers/pci/hotplug/ibmphp_core.c |    5 +----
- 4 files changed, 7 insertions(+), 19 deletions(-)
+That was supposed to be an exception.
 
-diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 4615906d83df..64330c2e172e 100644
---- a/arch/x86/include/asm/hw_irq.h
-+++ b/arch/x86/include/asm/hw_irq.h
-@@ -158,7 +158,7 @@ extern void send_cleanup_vector(struct irq_cfg *);
- struct irq_data;
- int __ioapic_set_affinity(struct irq_data *, const struct cpumask *,
- 			  unsigned int *dest_id);
--extern int IO_APIC_get_PCI_irq_vector(int bus, int devfn, int pin, struct io_apic_irq_attr *irq_attr);
-+extern int IO_APIC_get_PCI_irq_vector(int bus, int devfn, int pin);
- extern void setup_ioapic_dest(void);
- 
- extern void enable_IO_APIC(void);
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index eba25bccefd2..bad3b1268070 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1179,8 +1179,7 @@ void mp_unmap_irq(int irq)
-  * Find a specific PCI IRQ entry.
-  * Not an __init, possibly needed by modules
-  */
--int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
--				struct io_apic_irq_attr *irq_attr)
-+int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin)
- {
- 	int irq, i, best_ioapic = -1, best_idx = -1;
- 
-@@ -1234,14 +1233,8 @@ int IO_APIC_get_PCI_irq_vector(int bus, int slot, int pin,
- 		return -1;
- 
- out:
--	irq = pin_2_irq(best_idx, best_ioapic, mp_irqs[best_idx].dstirq,
--			IOAPIC_MAP_ALLOC);
--	if (irq > 0)
--		set_io_apic_irq_attr(irq_attr, best_ioapic,
--				     mp_irqs[best_idx].dstirq,
--				     irq_trigger(best_idx),
--				     irq_polarity(best_idx));
--	return irq;
-+	return pin_2_irq(best_idx, best_ioapic, mp_irqs[best_idx].dstirq,
-+			 IOAPIC_MAP_ALLOC);
- }
- EXPORT_SYMBOL(IO_APIC_get_PCI_irq_vector);
- 
-diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
-index a47e2dea0972..7765b3facd4b 100644
---- a/arch/x86/pci/irq.c
-+++ b/arch/x86/pci/irq.c
-@@ -1200,14 +1200,12 @@ static int pirq_enable_irq(struct pci_dev *dev)
- #ifdef CONFIG_X86_IO_APIC
- 			struct pci_dev *temp_dev;
- 			int irq;
--			struct io_apic_irq_attr irq_attr;
- 
- 			if (dev->irq_managed && dev->irq > 0)
- 				return 0;
- 
- 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
--						PCI_SLOT(dev->devfn),
--						pin - 1, &irq_attr);
-+						PCI_SLOT(dev->devfn), pin - 1);
- 			/*
- 			 * Busses behind bridges are typically not listed in the MP-table.
- 			 * In this case we have to look up the IRQ based on the parent bus,
-@@ -1221,7 +1219,7 @@ static int pirq_enable_irq(struct pci_dev *dev)
- 				pin = pci_swizzle_interrupt_pin(dev, pin);
- 				irq = IO_APIC_get_PCI_irq_vector(bridge->bus->number,
- 						PCI_SLOT(bridge->devfn),
--						pin - 1, &irq_attr);
-+						pin - 1);
- 				if (irq >= 0)
- 					dev_warn(&dev->dev, "using bridge %s "
- 						 "INT %c to get IRQ %d\n",
-diff --git a/drivers/pci/hotplug/ibmphp_core.c b/drivers/pci/hotplug/ibmphp_core.c
-index f7b8684a7739..adb85e1726d1 100644
---- a/drivers/pci/hotplug/ibmphp_core.c
-+++ b/drivers/pci/hotplug/ibmphp_core.c
-@@ -155,13 +155,10 @@ int ibmphp_init_devno(struct slot **cur_slot)
- 	for (loop = 0; loop < len; loop++) {
- 		if ((*cur_slot)->number == rtable->slots[loop].slot &&
- 		    (*cur_slot)->bus == rtable->slots[loop].bus) {
--			struct io_apic_irq_attr irq_attr;
--
- 			(*cur_slot)->device = PCI_SLOT(rtable->slots[loop].devfn);
- 			for (i = 0; i < 4; i++)
- 				(*cur_slot)->irq[i] = IO_APIC_get_PCI_irq_vector((int) (*cur_slot)->bus,
--						(int) (*cur_slot)->device, i,
--						&irq_attr);
-+						(int) (*cur_slot)->device, i);
- 
- 			debug("(*cur_slot)->irq[0] = %x\n",
- 					(*cur_slot)->irq[0]);
--- 
-1.7.10.4
+> it's hard to
+> visit sysfs switch from android UI, we want to disable async
+> suspend/resume from kernel command line, so that we can bypass this
+> feature after boot.
+
+Please feel free to submit a patch adding a command line switch to set the
+initial value of /sys/power/pm_async.  Maybe people won't complain about it.
+
+Rafael
