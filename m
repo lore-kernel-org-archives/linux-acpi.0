@@ -1,70 +1,124 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFT Part2 v2 00/24] Enable hierarchy irqdomian on x86 platforms
-Date: Fri, 26 Sep 2014 16:29:31 +0200
-Message-ID: <20140926142931.GA10066@nazgul.tnic>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH v5 00/11] PM / Domains: Generic OF-based support
+Date: Fri, 26 Sep 2014 07:50:08 -0700
+Message-ID: <7hoau25tcv.fsf@deeprootsystems.com>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+	<20140925112122.GA22753@ulmo> <7hppej8glk.fsf@deeprootsystems.com>
+	<20140926073125.GB31106@ulmo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.19.201]:36768 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753908AbaIZOuM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Sep 2014 10:50:12 -0400
+In-Reply-To: <20140926073125.GB31106@ulmo> (Thierry Reding's message of "Fri,
+	26 Sep 2014 09:31:27 +0200")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>
 
-On Fri, Sep 26, 2014 at 10:02:01PM +0800, Jiang Liu wrote:
-> We plan to restructure x86 interrupt code based on hierarchy irqdomain,
-> that is to build irqdomains for CPU vector, interrupt remapping unit,
-> IOAPIC, MSI and HPET etc and organize those irqdomains in hierarchy mode.
-> Each irqdomain manages corresponding interrupt controller and talks to
-> parent interrupt controller through public irqdomain interfaces. We also
-> support stacked irq_chip based on hierarchy irqdomain. It will make the
-> x86 interrupt architecture much more clear and more easy to maintain
-> with hierarchy irqdomain and stacked irq_chip. It may also help ARM
-> interrupt management architecture too.
-> 
-> This is the second patch set to enable support of hierarchy irqdomain
-> on x86 platforms. It depends on the first part at:
-> https://lkml.org/lkml/2014/9/26/501
-> And you may access it at:
-> https://github.com/jiangliu/linux.git irqdomain/p2v2
-> 
-> And there will be a third patch set to convert IOAPIC driver to support
-> hierarchy irqdomain and clean up code.
-> 
-> The first patch extends irqdomain interfaces to support hierarchy
-> irqdomain. Hope this interface could be used by other architectures too,
-> such as ARM/ARM64.
-> The second patch introduces two helper functions to support stacked
-> irq_chip.
-> Patch 3-9 implements an irqdomain to manange CPU interrupt vectors, and
-> it's the root irqdomain for x86 platforms.
-> Patch 10-13 converts Intel and AMD interrupt remapping drivers to
-> support hierarchy irqdomain.
-> Patch 14-16 converts HPET and MSI to support hierarchy irqdomain.
-> Patch 17-20 cleans up unsued code in x86 arch and interrupt remapping
-> drivers.
-> Patch 21-24 converts DMAR, HTIRQ and UV to support hierarchy irqdomain.
-> 
-> We have tested this patchset on Intel 32-bit and 64-bit systems. And it
-> also passes Fengguang's 0day tests. But helps are need for testing:
-> 1) AMD interrupt remapping 
-> 2) AMD HT_IRQ
+Thierry Reding <thierry.reding@gmail.com> writes:
 
-Adding Aravind.
+> On Thu, Sep 25, 2014 at 03:45:11PM -0700, Kevin Hilman wrote:
+>> Thierry Reding <thierry.reding@gmail.com> writes:
+>> 
+>> > I just noticed these patches because they conflicted with some of the
+>> > local patches I had to add a very similar framework. One of the reasons
+>> > why I hadn't posted these publicly yet is because the platform where I
+>> > want to use this (Tegra) is somewhat quirky when it comes to power
+>> > domains.
+>> >
+>> > On Tegra these domains are called power gates and they currently have
+>> > their own API. We've been looking at migrating things over to some
+>> > generic framework for some time and PM domains do seem like a good fit.
+>> > However one of the quirks regarding these domains on Tegra is that a
+>> > fixed sequence exists that needs to be respected when enabling or
+>> > disabling a power partition. The exact sequence can be found in the
+>> > drivers/soc/tegra/pmc.c driver's tegra_powergate_sequence_power_up()
+>> > function. Essentially we need to call into the clock and reset drivers
+>> > at very specific moments during the operations that the PMC does.
+>> >
+>> > One solution to this would be to make the needed clocks and resets
+>> > available to the power domain driver via DT, but then we have the
+>> > problem that two drivers would be controlling the same resources. For
+>> > example drivers could still want to disable the clock for more fine-
+>> > grained power management. 
+>> 
+>> I think you're on the right path here.  You can get rid of this conflict
+>> by removing the direct/manual clock management from the drivers, and
+>> using runtime PM instead: s/clk_enable/pm_runtime_get_sync/,
+>> s/clk_disable/pm_runtime_put_sync/.  When using runtime PM, those calls
+>> trickle down through the power domain driver, which can manage the
+>> device clocks, as well as any additional clocks and resets needed for
+>> power gating.
+>
+> Okay. The DT part of it is going to be pretty nasty (as usual) because
+> we currently have the clocks and resets within the device's device tree
+> node (which I think is where they really belong).
+>
+> So one possibility would be to move the clocks and resets to the power
+> domain controller's node, like so:
+>
+> 	pmc@... {
+> 		power-domains {
+> 			...
+>
+> 			sata@... {
+> 				clocks = <&tegra_car 124>;
+> 				resets = <&tegra_car 124>;
+> 			};
+> 		};
+> 	};
+>
+> An alternative would be to make the power-domain controller look up the
+> clock within the user's device tree node. That could be problematic,
+> because while the module clock is always the first clock in current
+> device trees, there aren't ordering guarantees, so we'd have to rely on
+> the clock name.
+>
+>> > Furthermore for some devices it may turn out that turning the domain
+>> > off and on introduces too much latency to be useful.
+>> 
+>> In these cases, you should use the per-device PM QoS framework to set
+>> per-device latencies.  Then your power-domain can look up these
+>> latencies and decide whether or not to actually power gate or not.
+>
+> Does this allow fine-grained control over what parts of the "power
+> domain" get disabled? 
 
-@Aravind: you might want to give that patchset a run just in case, to
-make sure it doesn't break anything on AMD. You'll need the previous
-patchset to go before too, though:
+Sure.  Your power-domain can have control over this, and can make
+decisions based on QoS constraints or other considerations.
 
-https://lkml.kernel.org/r/1411738196-29958-1-git-send-email-jiang.liu@linux.intel.com
+> For example some drivers may want to only turn off
+> the clock under some circumstances, which would keep the hardware state,
+> whereas in other situations or drivers it might be fine to completely
+> turn off the power partition and reset the hardware block (loosing all
+> hardware state).
 
-I'm sure Jiang will help you if you have more questions.
+Well, IMO, it shouldn't be the drivers making these decisions, because
+the "circumstances" around these decisions typically are related to QoS
+constraints that affect the whole power domain, not just that device.
 
-Thanks.
+Part of the benefit of moving direct clock management out of the
+drivers, and into some pm_domain/genpd logic is that you put them in the
+place that is has enough information to make decision based on the whole
+power domain.  e.g. a specific device driver doesn't know (and shouldn't
+know, IMO) about the what other devices might be in the same power
+domain.  Only the power-domain logic has enough of a "big picture" to
+make the right decisions.  The wakeup latency and the save/restore
+context needs of a device depend on other factors in the power domain,
+like whether that device is the last one to be idle, or whether the
+power domain is going to be power gated due to constraints set by some
+other device. 
 
--- 
-Regards/Gruss,
-    Boris.
---
+> Keeping a reference to the clock in the power domain will prevent that
+> from working since the driver itself won't be able to disable the
+> hardware clock.
+
+IMO, the driver itself shouldn't be disabling the hardware clock in the
+first place.  That should be left up to the domain logic.
+
+Kevin
+
