@@ -1,45 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / SBS: Fix check in acpi_ac_get_present()
-Date: Sun, 28 Sep 2014 01:28:43 +0200
-Message-ID: <1539043.bcCaecDElK@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFT Part2 v2 00/24] Enable hierarchy irqdomian on x86 platforms
+Date: Sun, 28 Sep 2014 13:05:31 +0200
+Message-ID: <20140928110531.GB7351@pd.tnic>
+References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
+ <20140926142931.GA10066@nazgul.tnic>
+ <542594A6.4040504@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54850 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753224AbaI0XIv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Sep 2014 19:08:51 -0400
+Received: from mail.skyhub.de ([78.46.96.112]:53437 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753411AbaI1LFj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Sep 2014 07:05:39 -0400
+Content-Disposition: inline
+In-Reply-To: <542594A6.4040504@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Garrett <matthew.garrett@nebula.com>, Andreas Noever <andreas.noever@gmail.com>
+To: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Sep 26, 2014 at 11:30:30AM -0500, Aravind Gopalakrishnan wrote:
+> Okay, I shall start looking into the patches and RFH as needed.
 
-Parentheses are missing under an if () statement in
-acpi_ac_get_present() which makes the check work differently
-from what was intended (at least according to the comment right
-above it).  Add the missing parens.
+Btw, apparently, there's a third patchset too:
 
-The problem was found by sparse.
+https://lkml.kernel.org/r/1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/sbs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Jiang, do you have a tree which has all required patches for testing so
+that people don't have to go hunting for them..?
 
-Index: linux-pm/drivers/acpi/sbs.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sbs.c
-+++ linux-pm/drivers/acpi/sbs.c
-@@ -441,7 +441,7 @@ static int acpi_ac_get_present(struct ac
- 	 * The spec requires that bit 4 always be 1. If it's not set, assume
- 	 * that the implementation doesn't support an SBS charger
- 	 */
--	if (!(status >> 4) & 0x1)
-+	if (!((status >> 4) & 0x1))
- 		return -ENODEV;
- 
- 	sbs->charger_present = (status >> 15) & 0x1;
+Thanks.
 
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
