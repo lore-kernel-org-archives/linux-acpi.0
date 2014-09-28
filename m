@@ -1,42 +1,39 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFT Part2 v2 00/24] Enable hierarchy irqdomian on x86 platforms
-Date: Sun, 28 Sep 2014 19:15:03 +0800
-Message-ID: <5427EDB7.9060002@linux.intel.com>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com> <20140926142931.GA10066@nazgul.tnic> <542594A6.4040504@amd.com> <20140928110531.GB7351@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH 1/1 linux-next] ACPI / SBS: fix sparse warning
+Date: Sun, 28 Sep 2014 20:44:47 +0200
+Message-ID: <1411929887-2440-1-git-send-email-fabf@skynet.be>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2140 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751940AbaI1LPK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Sep 2014 07:15:10 -0400
-In-Reply-To: <20140928110531.GB7351@pd.tnic>
+Received: from mailrelay008.isp.belgacom.be ([195.238.6.174]:62292 "EHLO
+	mailrelay008.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750837AbaI1So5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Sep 2014 14:44:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Borislav,
-	I have prepared a git tree at:
-https://github.com/jiangliu/linux.git irqdomain/p1v2
-https://github.com/jiangliu/linux.git irqdomain/p2v2
-https://github.com/jiangliu/linux.git irqdomain/p3v1
+Adding parentheses around expression to avoid:
+drivers/acpi/sbs.c:444:28: warning: dubious: !x & y
 
-Branch irqdomain/p3v1 also includes all changes in p1v2/p2v2.
-Regards!
-Gerry
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/acpi/sbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2014/9/28 19:05, Borislav Petkov wrote:
-> On Fri, Sep 26, 2014 at 11:30:30AM -0500, Aravind Gopalakrishnan wrote:
->> Okay, I shall start looking into the patches and RFH as needed.
-> 
-> Btw, apparently, there's a third patchset too:
-> 
-> https://lkml.kernel.org/r/1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com
-> 
-> Jiang, do you have a tree which has all required patches for testing so
-> that people don't have to go hunting for them..?
-> 
-> Thanks.
-> 
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 32aecea..a7a3edd 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -441,7 +441,7 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ 	 * The spec requires that bit 4 always be 1. If it's not set, assume
+ 	 * that the implementation doesn't support an SBS charger
+ 	 */
+-	if (!(status >> 4) & 0x1)
++	if (!((status >> 4) & 0x1))
+ 		return -ENODEV;
+ 
+ 	sbs->charger_present = (status >> 15) & 0x1;
+-- 
+1.9.1
+
