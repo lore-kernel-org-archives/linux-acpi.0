@@ -1,86 +1,71 @@
-From: Fabian Frederick <fabf@skynet.be>
-Subject: Re: [PATCH 1/1 linux-next] ACPI / SBS: fix sparse warning
-Date: Mon, 29 Sep 2014 18:30:13 +0200 (CEST)
-Message-ID: <1643816105.31300.1412008213769.open-xchange@webmail.nmp.skynet.be>
-References: <1411929887-2440-1-git-send-email-fabf@skynet.be> <20140929054004.GA4144@sudip-PC>
-Reply-To: Fabian Frederick <fabf@skynet.be>
+From: Orion Poplawski <orion@cora.nwra.com>
+Subject: ACPI Log messages level
+Date: Mon, 29 Sep 2014 11:59:14 -0600
+Message-ID: <54299DF2.2070709@cora.nwra.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140929054004.GA4144@sudip-PC>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mercury.cora.nwra.com ([4.28.99.165]:36349 "EHLO
+	mail.cora.nwra.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754876AbaI2SFd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Sep 2014 14:05:33 -0400
+Received: from [10.10.20.7] (barry.cora.nwra.com [10.10.20.7])
+	(authenticated bits=0)
+	by mail.cora.nwra.com (8.14.4/8.14.4) with ESMTP id s8THxEBs010690
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Mon, 29 Sep 2014 11:59:15 -0600
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+I'm trying to just look at just "warning" level messages and above with
+"journalctl --priority 0..4", but am seeing the following which appear to be
+informational only:
 
+Sep 29 11:10:24 barry kernel: ACPI: RSDP 0x00000000000FEC30 000024 (v02 DELL  )
+Sep 29 11:10:24 barry kernel: ACPI: XSDT 0x00000000000FCCC7 000074 (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: FACP 0x00000000000FCDB7 0000F4 (v03 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: DSDT 0x00000000FFE9E952 004A74 (v01 DELL
+ dt_ex    00001000
+Sep 29 11:10:24 barry kernel: ACPI: FACS 0x00000000DFDF9C00 000040
+Sep 29 11:10:24 barry kernel: ACPI: SSDT 0x00000000FFEA33C6 000089 (v01 DELL
+ st_ex    00001000
+Sep 29 11:10:24 barry kernel: ACPI: APIC 0x00000000000FCEAB 00015E (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: BOOT 0x00000000000FD009 000028 (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: ASF! 0x00000000000FD031 000096 (v32 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: MCFG 0x00000000000FD0C7 00003C (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: HPET 0x00000000000FD103 000038 (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: TCPA 0x00000000000FD35F 000032 (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: DMAR 0x00000000000FD391 0000B8 (v01 DELL
+ B10K     00000015
+Sep 29 11:10:24 barry kernel: ACPI: SSDT 0x00000000DFE4DC00 002454 (v01 INTEL
+ PPM RCM  80000001
+Sep 29 11:10:24 barry kernel:   DMA      [mem 0x00001000-0x00ffffff]
+Sep 29 11:10:24 barry kernel:   DMA32    [mem 0x01000000-0xffffffff]
+Sep 29 11:10:24 barry kernel:   Normal   [mem 0x100000000-0x61fffffff]
+Sep 29 11:10:24 barry kernel: ACPI: All ACPI Tables successfully acquired
+Sep 29 11:10:24 barry kernel: ACPI: Enabled 3 GPEs in block 00 to 3F
 
-> On 29 September 2014 at 07:40 Sudip Mukherjee <sudipm.mukherjee@gmail=
-=2Ecom>
-> wrote:
->
->
-> On Sun, Sep 28, 2014 at 08:44:47PM +0200, Fabian Frederick wrote:
-> > Adding parentheses around expression to avoid:
-> > drivers/acpi/sbs.c:444:28: warning: dubious: !x & y
-> >
-> > Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> > ---
-> >=C2=A0 drivers/acpi/sbs.c | 2 +-
-> >=C2=A0 1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-> > index 32aecea..a7a3edd 100644
-> > --- a/drivers/acpi/sbs.c
-> > +++ b/drivers/acpi/sbs.c
-> > @@ -441,7 +441,7 @@ static int acpi_ac_get_present(struct acpi_sbs =
-*sbs)
-> >=C2=A0 =C2=A0 =C2=A0 * The spec requires that bit 4 always be 1. If =
-it's not set, assume
-> >=C2=A0 =C2=A0 =C2=A0 * that the implementation doesn't support an SB=
-S charger
-> >=C2=A0 =C2=A0 =C2=A0 */
-> > -=C2=A0 =C2=A0if (!(status >> 4) & 0x1)
-> > +=C2=A0 =C2=A0if (!((status >> 4) & 0x1))
->
-> i think the logic changed over here.
-> it was !x & y , but now it has become !(x & y)
-> ! is having higher priority than & so !x & y will mean ((!x) & y)
->
-> thanks
-> sudip
-Hello Sudip,
+I see this:
+./drivers/acpi/acpica/tbxfload.c:
+        ACPI_INFO((AE_INFO, "All ACPI Tables successfully acquired"));
 
-You're right, logic has changed but IMHO expression was wrong.
+which would appear to be sending the message with INFO priority, so I don't
+understand why this is appearing here.  This is with kernel
+3.16.3-200.fc20.x86_64.
 
-Let's take value 100, decimal.
-Binary: 0110>0<100
-
-Spec states that bit 4 must be 1 so value is wrong.
-
-We don't go in
-if (!(status>>4) & 0x1)
-
-but
-
-if (!((status>>4) & 0x1))
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 return -ENODEV;
-
-is triggered.
-
-Regards,
-=46abian
-> >=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -ENODEV;
-> >=C2=A0
-> >=C2=A0 =C2=A0 =C2=A0sbs->charger_present =3D (status >> 15) & 0x1;
-> > --
-> > 1.9.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-ker=
-nel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at=C2=A0 http://vger.kernel.org/majordomo-info.=
-html
-> > Please read the FAQ at=C2=A0 http://www.tux.org/lkml/
+-- 
+Orion Poplawski
+Technical Manager                     303-415-9701 x222
+NWRA, Boulder/CoRA Office             FAX: 303-415-9702
+3380 Mitchell Lane                       orion@nwra.com
+Boulder, CO 80301                   http://www.nwra.com
