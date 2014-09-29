@@ -1,115 +1,86 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFT v2 01/24] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Mon, 29 Sep 2014 17:53:01 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1409291707410.22082@ionos.tec.linutronix.de>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com> <1411740145-30626-2-git-send-email-jiang.liu@linux.intel.com> <54294F1C.30606@huawei.com>
+From: Fabian Frederick <fabf@skynet.be>
+Subject: Re: [PATCH 1/1 linux-next] ACPI / SBS: fix sparse warning
+Date: Mon, 29 Sep 2014 18:30:13 +0200 (CEST)
+Message-ID: <1643816105.31300.1412008213769.open-xchange@webmail.nmp.skynet.be>
+References: <1411929887-2440-1-git-send-email-fabf@skynet.be> <20140929054004.GA4144@sudip-PC>
+Reply-To: Fabian Frederick <fabf@skynet.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54294F1C.30606@huawei.com>
+In-Reply-To: <20140929054004.GA4144@sudip-PC>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Abel <wuyun.wu@huawei.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 29 Sep 2014, Abel wrote:
-> On 2014/9/26 22:02, Jiang Liu wrote:
-> > +static void irq_domain_free_descs(unsigned int virq, unsigned int nr_irqs)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < nr_irqs; i++)
-> > +		irq_free_desc(virq + i);
-> > +}
-> 
-> I am not sure why this function is needed, since it works in the exact same
-> way as irq_free_descs(virq, nr_irqs).
 
-Indeed.
- 
-> I've been through your patches and noticed that the only domain
-> which does not call irq_domain_alloc_irqs_parent() is
-> x86_vector_domain. And this makes sense *if* we already knew which
-> domain is the nearest one to the CPU.
 
-Right, and in case of x86 the vector domain _IS_ the one which is
-always the nearest one to the cpu.
+> On 29 September 2014 at 07:40 Sudip Mukherjee <sudipm.mukherjee@gmail=
+=2Ecom>
+> wrote:
+>
+>
+> On Sun, Sep 28, 2014 at 08:44:47PM +0200, Fabian Frederick wrote:
+> > Adding parentheses around expression to avoid:
+> > drivers/acpi/sbs.c:444:28: warning: dubious: !x & y
+> >
+> > Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> > ---
+> >=C2=A0 drivers/acpi/sbs.c | 2 +-
+> >=C2=A0 1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> > index 32aecea..a7a3edd 100644
+> > --- a/drivers/acpi/sbs.c
+> > +++ b/drivers/acpi/sbs.c
+> > @@ -441,7 +441,7 @@ static int acpi_ac_get_present(struct acpi_sbs =
+*sbs)
+> >=C2=A0 =C2=A0 =C2=A0 * The spec requires that bit 4 always be 1. If =
+it's not set, assume
+> >=C2=A0 =C2=A0 =C2=A0 * that the implementation doesn't support an SB=
+S charger
+> >=C2=A0 =C2=A0 =C2=A0 */
+> > -=C2=A0 =C2=A0if (!(status >> 4) & 0x1)
+> > +=C2=A0 =C2=A0if (!((status >> 4) & 0x1))
+>
+> i think the logic changed over here.
+> it was !x & y , but now it has become !(x & y)
+> ! is having higher priority than & so !x & y will mean ((!x) & y)
+>
+> thanks
+> sudip
+Hello Sudip,
 
-> But I don't think a well implemented device driver should assume
-> itself be in a particular position of the interrupt delivery path.
+You're right, logic has changed but IMHO expression was wrong.
 
-The device driver has no knowledge of this. The irq domain driver
-definitely has to know to some extent.
+Let's take value 100, decimal.
+Binary: 0110>0<100
 
-> Actually it should be guaranteed by the core infrastructure that all
-> the domains in the interrupt delivery path should allocate a
-> hardware interrupt for the interrupt source.
+Spec states that bit 4 must be 1 so value is wrong.
 
-Well, that's what we do. We allocate down the irq domain hierarchy. If
-one level fails the whole operation fails.
+We don't go in
+if (!(status>>4) & 0x1)
 
-> And besides the comments/questions I mentioned above, I am also curious about
-> how the chained interrupts been processed.
-> 
-> Let's take a 3-level-chained-domains for example.
-> Given 3 interrupt controllers A, B and C, and the interrupt delivery path is:
-> 
-> DEV -> A -> B -> C -> CPU
-> 
-> After the hierarchy irqdomains are established, the unique linux interrupt of
-> DEV will be mapped with a hardware interrupt in each domain:
-> 
-> DomainA: HWIRQ_A => VIRQ_DEV
-> DomainB: HWIRQ_B => VIRQ_DEV
-> DomainC: HWIRQ_C => VIRQ_DEV
-> 
-> When the DEV triggered an interrupt signal, the CPU will acknowledge HWIRQ_C,
+but
 
-Not necessarily. The CPU will process HWIRQ_C. The acknowledge
-mechanism depends on the implementation details of the hierarchy.
+if (!((status>>4) & 0x1))
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 return -ENODEV;
 
-> and then irq_find_mapping(DomainC, HWIRQ_C) will be called to get the linux
-> interrupt VIRQ_DEV, and after the handler of the VIRQ_DEV has been processed,
-> the interrupt will end with the level (if have) uncleared on B, which will
-> result in the interrupt of DEV cannot be processed again.
-> 
-> Or is there anything I misunderstand?
+is triggered.
 
-This heavily depends on the properties of the stacked domains.
-
-It depends on the hardware requirements and the implementation of
-domain A and B how this is handled.
-
-It might be sufficient to have the following code in the irq_ack()
-callback of domain A:
-
-irq_ack_A(struct irq_data *d)
-{
-	ack_hw_A();
-}
-
-Another HW or stacking scenario requires
-
-irq_ack_A(struct irq_data *d)
-{
-	ack_hw_A();
-	ack_parent();
-}
-
-where ack_parent() does:
-
-      if (d->parent_data)
-      	 d->parent_data->chip->ack(d->parent_data);
-
-and ack_hw_A() can be anything from a nop to some more or less complex
-hw access.
-
-So we cannot define upfront how deep an ack/mask/unmask/... has to be
-propagated down the chain. This needs a careful consideration in terms
-of functionality and we want to be able to do performance shortcuts as
-well.
-
-Thanks,
-
-	tglx
+Regards,
+=46abian
+> >=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -ENODEV;
+> >=C2=A0
+> >=C2=A0 =C2=A0 =C2=A0sbs->charger_present =3D (status >> 15) & 0x1;
+> > --
+> > 1.9.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-ker=
+nel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at=C2=A0 http://vger.kernel.org/majordomo-info.=
+html
+> > Please read the FAQ at=C2=A0 http://www.tux.org/lkml/
