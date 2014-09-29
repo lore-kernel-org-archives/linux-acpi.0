@@ -1,64 +1,81 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] dell-smo8800: Add more acpi ids and change description
- of driver
-Date: Mon, 29 Sep 2014 13:56:04 -0700
-Message-ID: <20140929205604.GA34181@vmdeb7>
-References: <1411994748-11229-1-git-send-email-pali.rohar@gmail.com>
+Subject: Re: [PATCH] dell-wmi: Fix access out of memory
+Date: Mon, 29 Sep 2014 14:30:29 -0700
+Message-ID: <20140929213028.GB34181@vmdeb7>
+References: <1411996251-13455-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39627 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbaI2U4H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Sep 2014 16:56:07 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1411994748-11229-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1411996251-13455-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 29, 2014 at 02:45:48PM +0200, Pali Roh=E1r wrote:
-
-Please see Documentation/SubmittingPatches, 15) The canonical patch for=
-mat, and
-provide a complete message body.
-
-Have you validated each of the 6 ACPI IDs added to the driver?
-
-
-> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> ---
->  drivers/platform/x86/Kconfig        |    4 ++--
->  drivers/platform/x86/dell-smo8800.c |   10 ++++++++--
->  2 files changed, 10 insertions(+), 4 deletions(-)
+On Mon, Sep 29, 2014 at 03:10:51PM +0200, Pali Roh=E1r wrote:
+> Without this patch driver dell-wmi is trying to access elements of dy=
+namically
+> allocated array without checking array size. This can lead to memory =
+corruption
+> or kernel panic. This patch adds missing checks for array size.
 >=20
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kcon=
-fig
-> index 3bbcbf1..ba9ee4f 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -128,10 +128,10 @@ config DELL_WMI_AIO
->  	  be called dell-wmi-aio.
+> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+
+Looks good to me. Rafael, any concerns?
+
+Cc: linux-acpi
+
+> ---
+> This patch should be probably applied to stable kernel trees as it fi=
+xing
+> possible memory corruption.
+> ---
+>  drivers/platform/x86/dell-wmi.c |   12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/d=
+ell-wmi.c
+> index 390e8e3..25721bf 100644
+> --- a/drivers/platform/x86/dell-wmi.c
+> +++ b/drivers/platform/x86/dell-wmi.c
+> @@ -163,18 +163,24 @@ static void dell_wmi_notify(u32 value, void *co=
+ntext)
+>  		const struct key_entry *key;
+>  		int reported_key;
+>  		u16 *buffer_entry =3D (u16 *)obj->buffer.pointer;
+> +		int buffer_size =3D obj->buffer.length/2;
 > =20
->  config DELL_SMO8800
-> -	tristate "Dell Latitude freefall driver (ACPI SMO8800/SMO8810)"
-> +	tristate "Dell Latitude freefall driver (ACPI SMO88XX)"
->  	depends on ACPI
->  	---help---
-> -	  Say Y here if you want to support SMO8800/SMO8810 freefall device
-> +	  Say Y here if you want to support SMO88XX freefall device
-
-"devices" now that multiple are supported.
-
-Thanks,
+> -		if (dell_new_hk_type && (buffer_entry[1] !=3D 0x10)) {
+> +		if (buffer_size >=3D 2 && dell_new_hk_type && buffer_entry[1] !=3D=
+ 0x10) {
+>  			pr_info("Received unknown WMI event (0x%x)\n",
+>  				buffer_entry[1]);
+>  			kfree(obj);
+>  			return;
+>  		}
+> =20
+> -		if (dell_new_hk_type || buffer_entry[1] =3D=3D 0x0)
+> +		if (buffer_size >=3D 3 && (dell_new_hk_type || buffer_entry[1] =3D=
+=3D 0x0))
+>  			reported_key =3D (int)buffer_entry[2];
+> -		else
+> +		else if (buffer_size >=3D 2)
+>  			reported_key =3D (int)buffer_entry[1] & 0xffff;
+> +		else {
+> +			pr_info("Received unknown WMI event\n");
+> +			kfree(obj);
+> +			return;
+> +		}
+> =20
+>  		key =3D sparse_keymap_entry_from_scancode(dell_wmi_input_dev,
+>  							reported_key);
+> --=20
+> 1.7.9.5
+>=20
+>=20
 
 --=20
 Darren Hart
 Intel Open Source Technology Center
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
