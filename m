@@ -1,70 +1,26 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 4/5] ACPICA: Introduce acpi_enable_all_wakeup_gpes()
-Date: Tue, 30 Sep 2014 15:52:16 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D20AA35@ORSMSX112.amr.corp.intel.com>
-References: <1622293.rpSt5UtDk3@vostro.rjw.lan>
- <4021848.ZWdxDcq97A@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2] i2c: move acpi code back into the core
+Date: Tue, 30 Sep 2014 19:03:52 +0300
+Message-ID: <20140930160352.GV1786@lahna.fi.intel.com>
+References: <1411594591-5048-1-git-send-email-wsa@the-dreams.de>
+ <20140930125520.61b57882@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4021848.ZWdxDcq97A@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140930125520.61b57882-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SWYgeW91IG5lZWQgaXQsIHN1cmUuDQpMZXQgbWUga25vdyB3aGVuIHRoZXJlIGlzIGFuIEFDUElD
-QSB2ZXJzaW9uDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZh
-ZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBTZW50OiBNb25kYXks
-IFNlcHRlbWJlciAyOSwgMjAxNCA1OjI2IFBNDQo+IFRvOiBBQ1BJIERldmVsIE1hbGluZyBMaXN0
-OyBNb29yZSwgUm9iZXJ0DQo+IENjOiBMaW51eCBLZXJuZWwgTWFpbGluZyBMaXN0OyBaaGFuZywg
-UnVpOyBMaW51eCBQTSBsaXN0DQo+IFN1YmplY3Q6IFtQQVRDSCA0LzVdIEFDUElDQTogSW50cm9k
-dWNlIGFjcGlfZW5hYmxlX2FsbF93YWtldXBfZ3BlcygpDQo+IA0KPiBGcm9tOiBSYWZhZWwgSi4g
-V3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+IA0KPiBBZGQgYSByb3V0aW5l
-IGZvciBob3N0IE9TZXMgdG8gZW5hYmxlIGFsbCB3YWtldXAgR1BFcyBhbmQgZGlzYWJsZSBhbGwg
-b2YNCj4gdGhlIG5vbi13YWtldXAgb25lcyBhdCB0aGUgc2FtZSB0aW1lLg0KPiANCj4gSXQgd2ls
-bCBiZSB1c2VkIGZvciB0aGUgaGFuZGxpbmcgb2YgR1BFIHdha2V1cCBmcm9tIHN1c3BlbmQtdG8t
-aWRsZSBpbg0KPiBMaW51eC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFJhZmFlbCBKLiBXeXNvY2tp
-IDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4NCj4gLS0tDQo+IA0KPiBCb2IsIHBsZWFzZSBs
-ZXQgbWUga25vdyBpZiBJIGNhbiBmYXN0LXRyYWNrIHRoaXMgb25lLg0KPiANCj4gLS0tDQo+ICBk
-cml2ZXJzL2FjcGkvYWNwaWNhL2V2eGZncGUuYyB8ICAgMzIgKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysNCj4gIGluY2x1ZGUvYWNwaS9hY3BpeGYuaCAgICAgICAgIHwgICAgMSArDQo+
-ICAyIGZpbGVzIGNoYW5nZWQsIDMzIGluc2VydGlvbnMoKykNCj4gDQo+IEluZGV4OiBsaW51eC1w
-bS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V2eGZncGUuYw0KPiA9PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+IC0tLSBsaW51
-eC1wbS5vcmlnL2RyaXZlcnMvYWNwaS9hY3BpY2EvZXZ4ZmdwZS5jDQo+ICsrKyBsaW51eC1wbS9k
-cml2ZXJzL2FjcGkvYWNwaWNhL2V2eGZncGUuYw0KPiBAQCAtNTk2LDYgKzU5NiwzOCBAQCBhY3Bp
-X3N0YXR1cyBhY3BpX2VuYWJsZV9hbGxfcnVudGltZV9ncGVzDQo+IA0KPiAgQUNQSV9FWFBPUlRf
-U1lNQk9MKGFjcGlfZW5hYmxlX2FsbF9ydW50aW1lX2dwZXMpDQo+IA0KPiArLyoqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioNCj4gKyoqKioqKioqDQo+ICsgKg0KPiArICogRlVOQ1RJT046ICAgIGFjcGlfZW5hYmxlX2Fs
-bF93YWtldXBfZ3Blcw0KPiArICoNCj4gKyAqIFBBUkFNRVRFUlM6ICBOb25lDQo+ICsgKg0KPiAr
-ICogUkVUVVJOOiAgICAgIFN0YXR1cw0KPiArICoNCj4gKyAqIERFU0NSSVBUSU9OOiBFbmFibGUg
-YWxsICJ3YWtldXAiIEdQRXMgYW5kIGRpc2FibGUgYWxsIG9mIHRoZSBvdGhlcg0KPiBHUEVzLCBp
-bg0KPiArICogICAgICAgICAgICAgIGFsbCBHUEUgYmxvY2tzLg0KPiArICoNCj4gKw0KPiArKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioNCj4gKyoqKioqKiovDQo+ICsNCj4gK2FjcGlfc3RhdHVzIGFjcGlfZW5hYmxl
-X2FsbF93YWtldXBfZ3Blcyh2b2lkKSB7DQo+ICsJYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiArDQo+
-ICsJQUNQSV9GVU5DVElPTl9UUkFDRShhY3BpX2VuYWJsZV9hbGxfd2FrZXVwX2dwZXMpOw0KPiAr
-DQo+ICsJc3RhdHVzID0gYWNwaV91dF9hY3F1aXJlX211dGV4KEFDUElfTVRYX0VWRU5UUyk7DQo+
-ICsJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKSB7DQo+ICsJCXJldHVybl9BQ1BJX1NUQVRVUyhz
-dGF0dXMpOw0KPiArCX0NCj4gKw0KPiArCXN0YXR1cyA9IGFjcGlfaHdfZW5hYmxlX2FsbF93YWtl
-dXBfZ3BlcygpOw0KPiArCSh2b2lkKWFjcGlfdXRfcmVsZWFzZV9tdXRleChBQ1BJX01UWF9FVkVO
-VFMpOw0KPiArDQo+ICsJcmV0dXJuX0FDUElfU1RBVFVTKHN0YXR1cyk7DQo+ICt9DQo+ICsNCj4g
-K0FDUElfRVhQT1JUX1NZTUJPTChhY3BpX2VuYWJsZV9hbGxfd2FrZXVwX2dwZXMpDQo+ICsNCj4g
-DQo+IC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqDQo+ICoqKioqKg0KPiAgICoNCj4gICAqIEZVTkNUSU9OOiAg
-ICBhY3BpX2luc3RhbGxfZ3BlX2Jsb2NrDQo+IEluZGV4OiBsaW51eC1wbS9pbmNsdWRlL2FjcGkv
-YWNwaXhmLmgNCj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PQ0KPiAtLS0gbGludXgtcG0ub3JpZy9pbmNsdWRlL2FjcGkv
-YWNwaXhmLmgNCj4gKysrIGxpbnV4LXBtL2luY2x1ZGUvYWNwaS9hY3BpeGYuaA0KPiBAQCAtNjky
-LDYgKzY5Miw3IEBAIEFDUElfSFdfREVQRU5ERU5UX1JFVFVSTl9TVEFUVVMoYWNwaV9zdGENCj4g
-IAkJCQkJCSAgICAgKmV2ZW50X3N0YXR1cykpDQo+ICBBQ1BJX0hXX0RFUEVOREVOVF9SRVRVUk5f
-U1RBVFVTKGFjcGlfc3RhdHVzIGFjcGlfZGlzYWJsZV9hbGxfZ3Blcyh2b2lkKSkNCj4gQUNQSV9I
-V19ERVBFTkRFTlRfUkVUVVJOX1NUQVRVUyhhY3BpX3N0YXR1cw0KPiBhY3BpX2VuYWJsZV9hbGxf
-cnVudGltZV9ncGVzKHZvaWQpKQ0KPiArQUNQSV9IV19ERVBFTkRFTlRfUkVUVVJOX1NUQVRVUyhh
-Y3BpX3N0YXR1cw0KPiArYWNwaV9lbmFibGVfYWxsX3dha2V1cF9ncGVzKHZvaWQpKQ0KPiANCj4g
-IEFDUElfSFdfREVQRU5ERU5UX1JFVFVSTl9TVEFUVVMoYWNwaV9zdGF0dXMNCj4gIAkJCQlhY3Bp
-X2dldF9ncGVfZGV2aWNlKHUzMiBncGVfaW5kZXgsDQoNCg==
+On Tue, Sep 30, 2014 at 12:55:20PM +0200, Jean Delvare wrote:
+> The only thing which I find curious is that ACPI_I2C_OPREGION depends
+> on I2C=y. Is this limitation a leftover from when the code was split to
+> a separate file? It builds just fine with I2C=m, and I can't see why it
+> wouldn't work. I have a patch to enable that, I can send it if it is
+> the right thing to do. But maybe I'm missing something?
+
+I think reason for the limitation is that if there happens to be some
+AML code that is currently using the I2C operation region and the user
+decides to unload the i2c-core.ko module or along those lines.
