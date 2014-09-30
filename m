@@ -1,43 +1,82 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/5]: ACPI / PM: Rework wakeup GPE handling for suspend-to-idle
-Date: Tue, 30 Sep 2014 02:20:30 +0200
-Message-ID: <1622293.rpSt5UtDk3@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / video: check _DOD list when creating backlight device
+Date: Tue, 30 Sep 2014 14:10:17 +0800
+Message-ID: <542A4949.2020208@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux PM list <linux-pm@vger.kernel.org>, Robert Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:35226 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751715AbaI3GKU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Sep 2014 02:10:20 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ntrrgc@gmail.com
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-Hi,
+The _DOD method lists which video output device is currently attached so
+we should only care about them and ignore others. An user recently
+reported that there are two acpi_video interfaces appeared on his system
+and one of them doesn't work. From the acpidump, it is found that there
+are more than one video output devices that have _BCM control method but
+the _DOD lists only one of them. So this patch checks if the video output
+device is in the _DOD list and will not create backlight device if it is
+not in the list. Also, we consider the broken _DOD case(reflected by the
+video->attached_count is 0) and do not change behaviour for those broken
+_DOD systems.
 
-This series is based on the pm-genirq branch of linux-pm.git which has been
-included into linux-next for a few weeks.  That branch reworks the handling
-of wakeup interrupts in general so that enable_irq_wake() can be used to
-indicate that the given interrupt is to be used to wake up from suspend-to-idle
-as well as from the other sleep states.  At the same time, using IRQF_NO_SUSPEND
-with wakeup interrupts is not regarded as correct any more.
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84111
+Reported-and-tested-by: ntrrgc@gmail.com
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/video.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-Along these lines, rework the handling of wakeup GPEs for suspend-to-idle so as
-to make use of the new mechanism.
-
-This has been tested on Toshiba Portege R500 with ACPI button wakeup and with
-ACPI-based PCI Wake-on-LAN.
-
-[1/5] Export dpm_suspend_late(), dpm_suspend_noirq(), dpm_resume_noirq() and
-      dpm_resume_early() from the PM core.
-[2/5] Rename local functions in the suspend core to better reflect their purpose.
-[3/5] Rework ACPICA's acpi_hw_enable_wakeup_gpe_block() to disable all non-wakeup
-      GPEs along with enabling the wakeup ones.
-[4/5] Introduce acpi_enable_all_wakeup_gpes() in ACPICA (along the lines of the
-      analogous function for runtime GPEs).
-[5/5] Modify the handling of wakeup GPEs for suspend-to-idle.
-
-Thanks!
-
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 7285c7f9a935..807a88a0f394 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1154,6 +1154,23 @@ acpi_video_device_bind(struct acpi_video_bus *video,
+ 	}
+ }
+ 
++static bool acpi_video_device_in_dod(struct acpi_video_device *device)
++{
++	struct acpi_video_bus *video = device->video;
++	int i;
++
++	/* If we have a broken _DOD, no need to test */
++	if (!video->attached_count)
++		return true;
++
++	for (i = 0; i < video->attached_count; i++) {
++		if (video->attached_array[i].bind_info == device)
++			return true;
++	}
++
++	return false;
++}
++
+ /*
+  *  Arg:
+  *	video	: video bus device
+@@ -1593,6 +1610,15 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+ 	static int count;
+ 	char *name;
+ 
++	/*
++	 * Do not create backlight device for video output
++	 * device that is not in the enumerated list.
++	 */
++	if (!acpi_video_device_in_dod(device)) {
++		dev_dbg(&device->dev->dev, "not in _DOD list, ignore\n");
++		return;
++	}
++
+ 	result = acpi_video_init_brightness(device);
+ 	if (result)
+ 		return;
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.9.3
+
