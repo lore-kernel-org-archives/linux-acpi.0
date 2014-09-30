@@ -1,82 +1,55 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / video: check _DOD list when creating backlight device
-Date: Tue, 30 Sep 2014 14:10:17 +0800
-Message-ID: <542A4949.2020208@intel.com>
+From: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH v2] i2c: move acpi code back into the core
+Date: Tue, 30 Sep 2014 12:55:20 +0200
+Message-ID: <20140930125520.61b57882@endymion.delvare>
+References: <1411594591-5048-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:35226 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751715AbaI3GKU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Sep 2014 02:10:20 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1411594591-5048-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ntrrgc@gmail.com
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-The _DOD method lists which video output device is currently attached so
-we should only care about them and ignore others. An user recently
-reported that there are two acpi_video interfaces appeared on his system
-and one of them doesn't work. From the acpidump, it is found that there
-are more than one video output devices that have _BCM control method but
-the _DOD lists only one of them. So this patch checks if the video output
-device is in the _DOD list and will not create backlight device if it is
-not in the list. Also, we consider the broken _DOD case(reflected by the
-video->attached_count is 0) and do not change behaviour for those broken
-_DOD systems.
+Hi Wolfram,
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84111
-Reported-and-tested-by: ntrrgc@gmail.com
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/video.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+Sorry for the late reply, I was on the road for most of the past 2
+weeks.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 7285c7f9a935..807a88a0f394 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1154,6 +1154,23 @@ acpi_video_device_bind(struct acpi_video_bus *video,
- 	}
- }
- 
-+static bool acpi_video_device_in_dod(struct acpi_video_device *device)
-+{
-+	struct acpi_video_bus *video = device->video;
-+	int i;
-+
-+	/* If we have a broken _DOD, no need to test */
-+	if (!video->attached_count)
-+		return true;
-+
-+	for (i = 0; i < video->attached_count; i++) {
-+		if (video->attached_array[i].bind_info == device)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- /*
-  *  Arg:
-  *	video	: video bus device
-@@ -1593,6 +1610,15 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
- 	static int count;
- 	char *name;
- 
-+	/*
-+	 * Do not create backlight device for video output
-+	 * device that is not in the enumerated list.
-+	 */
-+	if (!acpi_video_device_in_dod(device)) {
-+		dev_dbg(&device->dev->dev, "not in _DOD list, ignore\n");
-+		return;
-+	}
-+
- 	result = acpi_video_init_brightness(device);
- 	if (result)
- 		return;
+On Wed, 24 Sep 2014 23:36:31 +0200, Wolfram Sang wrote:
+> Commit 5d98e61d337c ("I2C/ACPI: Add i2c ACPI operation region support")
+> renamed the i2c-core module. This may cause regressions for
+> distributions, so put the ACPI code back into the core.
+> 
+> Reported-by: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+> ---
+> 
+> v2: - make all acpi functions static
+>     - annotate #endif
+>     - remove declarations in i2c.h
+>     - add dummy functions to i2c-core.c
+>     - make two seperate #ifdef blocks instead of two nested ones
+>       (otherwise build errors due to no external decl. anymore)
+> 
+> Mika, Lan, Jean: please test/review. I am still waiting for some testbot
+> results, yet your audit is very wanted.
+
+I see that the patch is already upstream. Nevertheless I reviewed the
+integration part of it and it looks OK to me. Thanks for doing that!
+
+The only thing which I find curious is that ACPI_I2C_OPREGION depends
+on I2C=y. Is this limitation a leftover from when the code was split to
+a separate file? It builds just fine with I2C=m, and I can't see why it
+wouldn't work. I have a patch to enable that, I can send it if it is
+the right thing to do. But maybe I'm missing something?
+
+Thanks again,
 -- 
-1.9.3
-
+Jean Delvare
+SUSE L3 Support
