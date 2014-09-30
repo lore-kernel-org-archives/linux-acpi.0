@@ -1,95 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / video: check _DOD list when creating backlight device
-Date: Tue, 30 Sep 2014 22:18 +0200
-Message-ID: <1648939.GaN1bonAuX@vostro.rjw.lan>
-References: <542A4949.2020208@intel.com>
+Subject: Re: [PATCH v2] i2c: move acpi code back into the core
+Date: Tue, 30 Sep 2014 22:34:07 +0200
+Message-ID: <1773097.ooYUbTzKBv@vostro.rjw.lan>
+References: <1411594591-5048-1-git-send-email-wsa@the-dreams.de> <20140930160352.GV1786@lahna.fi.intel.com> <20140930204607.2ab3baed@endymion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54940 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64836 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751405AbaI3T6D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2014 15:58:03 -0400
-In-Reply-To: <542A4949.2020208@intel.com>
+	with SMTP id S1750935AbaI3UOL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2014 16:14:11 -0400
+In-Reply-To: <20140930204607.2ab3baed@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: ntrrgc@gmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>
 
-On Tuesday, September 30, 2014 02:10:17 PM Aaron Lu wrote:
-> The _DOD method lists which video output device is currently attached so
-> we should only care about them and ignore others. An user recently
-> reported that there are two acpi_video interfaces appeared on his system
-> and one of them doesn't work. From the acpidump, it is found that there
-> are more than one video output devices that have _BCM control method but
-> the _DOD lists only one of them. So this patch checks if the video output
-> device is in the _DOD list and will not create backlight device if it is
-> not in the list. Also, we consider the broken _DOD case(reflected by the
-> video->attached_count is 0) and do not change behaviour for those broken
-> _DOD systems.
+On Tuesday, September 30, 2014 08:46:07 PM Jean Delvare wrote:
+> On Tue, 30 Sep 2014 19:03:52 +0300, Mika Westerberg wrote:
+> > On Tue, Sep 30, 2014 at 12:55:20PM +0200, Jean Delvare wrote:
+> > > The only thing which I find curious is that ACPI_I2C_OPREGION depends
+> > > on I2C=y. Is this limitation a leftover from when the code was split to
+> > > a separate file? It builds just fine with I2C=m, and I can't see why it
+> > > wouldn't work. I have a patch to enable that, I can send it if it is
+> > > the right thing to do. But maybe I'm missing something?
+> > 
+> > I think reason for the limitation is that if there happens to be some
+> > AML code that is currently using the I2C operation region and the user
+> > decides to unload the i2c-core.ko module or along those lines.
 > 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84111
-> Reported-and-tested-by: ntrrgc@gmail.com
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> If that's the reason then shouldn't it be addressed by proper reference
+> counting instead? We could simply increase the module reference count
+> when entering the critical section, and decrease it when we're done.
 
-This looks reasonable to me, but I'm a little afraid that it may break
-systems which forget to list valid interfaces in the _DOD.
-
-For this reason, I'm queuing this up for 3.18, but not for -stable.
-
-We can request a backport after a while when we're reasonably sure that
-there are no regressions resulting from this.
-
-> ---
->  drivers/acpi/video.c | 26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 7285c7f9a935..807a88a0f394 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1154,6 +1154,23 @@ acpi_video_device_bind(struct acpi_video_bus *video,
->  	}
->  }
->  
-> +static bool acpi_video_device_in_dod(struct acpi_video_device *device)
-> +{
-> +	struct acpi_video_bus *video = device->video;
-> +	int i;
-> +
-> +	/* If we have a broken _DOD, no need to test */
-> +	if (!video->attached_count)
-> +		return true;
-> +
-> +	for (i = 0; i < video->attached_count; i++) {
-> +		if (video->attached_array[i].bind_info == device)
-> +			return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +
->  /*
->   *  Arg:
->   *	video	: video bus device
-> @@ -1593,6 +1610,15 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
->  	static int count;
->  	char *name;
->  
-> +	/*
-> +	 * Do not create backlight device for video output
-> +	 * device that is not in the enumerated list.
-> +	 */
-> +	if (!acpi_video_device_in_dod(device)) {
-> +		dev_dbg(&device->dev->dev, "not in _DOD list, ignore\n");
-> +		return;
-> +	}
-> +
->  	result = acpi_video_init_brightness(device);
->  	if (result)
->  		return;
-> 
+That is not so simple in practice, because the code containing the
+critical sections in question is AML and not part of the kernel.
 
 -- 
 I speak only for myself.
