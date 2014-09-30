@@ -1,40 +1,124 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [PATCH v2] i2c: move acpi code back into the core
-Date: Tue, 30 Sep 2014 20:46:07 +0200
-Message-ID: <20140930204607.2ab3baed@endymion.delvare>
-References: <1411594591-5048-1-git-send-email-wsa@the-dreams.de>
-	<20140930125520.61b57882@endymion.delvare>
-	<20140930160352.GV1786@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 4/5] ACPICA: Introduce acpi_enable_all_wakeup_gpes()
+Date: Tue, 30 Sep 2014 21:52:28 +0200
+Message-ID: <3883340.iE5nWN8xny@vostro.rjw.lan>
+References: <1622293.rpSt5UtDk3@vostro.rjw.lan> <4021848.ZWdxDcq97A@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E37D20AA35@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43923 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117AbaI3SqL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Sep 2014 14:46:11 -0400
-In-Reply-To: <20140930160352.GV1786@lahna.fi.intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:58239 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752239AbaI3Tcc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2014 15:32:32 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D20AA35@ORSMSX112.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lan Tianyu <tianyu.lan@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Tue, 30 Sep 2014 19:03:52 +0300, Mika Westerberg wrote:
-> On Tue, Sep 30, 2014 at 12:55:20PM +0200, Jean Delvare wrote:
-> > The only thing which I find curious is that ACPI_I2C_OPREGION depends
-> > on I2C=y. Is this limitation a leftover from when the code was split to
-> > a separate file? It builds just fine with I2C=m, and I can't see why it
-> > wouldn't work. I have a patch to enable that, I can send it if it is
-> > the right thing to do. But maybe I'm missing something?
+On Tuesday, September 30, 2014 03:52:16 PM Moore, Robert wrote:
+> If you need it, sure.
+
+Thanks!
+
+I hope this applies to https://patchwork.kernel.org/patch/4999321/ too?
+
+> Let me know when there is an ACPICA version
+
+OK
+
+
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Monday, September 29, 2014 5:26 PM
+> > To: ACPI Devel Maling List; Moore, Robert
+> > Cc: Linux Kernel Mailing List; Zhang, Rui; Linux PM list
+> > Subject: [PATCH 4/5] ACPICA: Introduce acpi_enable_all_wakeup_gpes()
+> > 
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Add a routine for host OSes to enable all wakeup GPEs and disable all of
+> > the non-wakeup ones at the same time.
+> > 
+> > It will be used for the handling of GPE wakeup from suspend-to-idle in
+> > Linux.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> > 
+> > Bob, please let me know if I can fast-track this one.
+> > 
+> > ---
+> >  drivers/acpi/acpica/evxfgpe.c |   32 ++++++++++++++++++++++++++++++++
+> >  include/acpi/acpixf.h         |    1 +
+> >  2 files changed, 33 insertions(+)
+> > 
+> > Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
+> > +++ linux-pm/drivers/acpi/acpica/evxfgpe.c
+> > @@ -596,6 +596,38 @@ acpi_status acpi_enable_all_runtime_gpes
+> > 
+> >  ACPI_EXPORT_SYMBOL(acpi_enable_all_runtime_gpes)
+> > 
+> > +/**********************************************************************
+> > +********
+> > + *
+> > + * FUNCTION:    acpi_enable_all_wakeup_gpes
+> > + *
+> > + * PARAMETERS:  None
+> > + *
+> > + * RETURN:      Status
+> > + *
+> > + * DESCRIPTION: Enable all "wakeup" GPEs and disable all of the other
+> > GPEs, in
+> > + *              all GPE blocks.
+> > + *
+> > +
+> > +***********************************************************************
+> > +*******/
+> > +
+> > +acpi_status acpi_enable_all_wakeup_gpes(void) {
+> > +	acpi_status status;
+> > +
+> > +	ACPI_FUNCTION_TRACE(acpi_enable_all_wakeup_gpes);
+> > +
+> > +	status = acpi_ut_acquire_mutex(ACPI_MTX_EVENTS);
+> > +	if (ACPI_FAILURE(status)) {
+> > +		return_ACPI_STATUS(status);
+> > +	}
+> > +
+> > +	status = acpi_hw_enable_all_wakeup_gpes();
+> > +	(void)acpi_ut_release_mutex(ACPI_MTX_EVENTS);
+> > +
+> > +	return_ACPI_STATUS(status);
+> > +}
+> > +
+> > +ACPI_EXPORT_SYMBOL(acpi_enable_all_wakeup_gpes)
+> > +
+> > 
+> > /*************************************************************************
+> > ******
+> >   *
+> >   * FUNCTION:    acpi_install_gpe_block
+> > Index: linux-pm/include/acpi/acpixf.h
+> > ===================================================================
+> > --- linux-pm.orig/include/acpi/acpixf.h
+> > +++ linux-pm/include/acpi/acpixf.h
+> > @@ -692,6 +692,7 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_sta
+> >  						     *event_status))
+> >  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_disable_all_gpes(void))
+> > ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> > acpi_enable_all_runtime_gpes(void))
+> > +ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> > +acpi_enable_all_wakeup_gpes(void))
+> > 
+> >  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> >  				acpi_get_gpe_device(u32 gpe_index,
 > 
-> I think reason for the limitation is that if there happens to be some
-> AML code that is currently using the I2C operation region and the user
-> decides to unload the i2c-core.ko module or along those lines.
-
-If that's the reason then shouldn't it be addressed by proper reference
-counting instead? We could simply increase the module reference count
-when entering the critical section, and decrease it when we're done.
+> 
 
 -- 
-Jean Delvare
-SUSE L3 Support
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
