@@ -1,54 +1,119 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: [PATCH v3 15/15] misc: at25: Add ACPI probing support
-Date: Wed, 01 Oct 2014 04:22:27 +0200
-Message-ID: <2551386.HUYYQnE3a6@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH v3 14/15] misc: at25: Make use of device property API
+Date: Wed, 01 Oct 2014 04:21:18 +0200
+Message-ID: <2074642.sV7QBxD3Ne@vostro.rjw.lan>
 References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <1852462.V1jlbi8OPt@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1852462.V1jlbi8OPt-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1852462.V1jlbi8OPt@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Add support for matching using DT compatible string from ACPI _DSD.
+Make use of device property API in this driver so that both DT and ACPI
+based systems can use this driver.
 
-Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
-drivers/misc/eeprom/at25.c | 7 +++++++
- drivers/misc/eeprom/at25.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/misc/eeprom/at25.c | 34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
 
-Index: linux-pm/drivers/misc/eeprom/at25.c
-===================================================================
---- linux-pm.orig/drivers/misc/eeprom/at25.c
-+++ linux-pm/drivers/misc/eeprom/at25.c
-@@ -459,11 +459,18 @@ static const struct of_device_id at25_of
- };
- MODULE_DEVICE_TABLE(of, at25_of_match);
+diff --git a/drivers/misc/eeprom/at25.c b/drivers/misc/eeprom/at25.c
+index 634f72929e12..58f6cdd2551c 100644
+--- a/drivers/misc/eeprom/at25.c
++++ b/drivers/misc/eeprom/at25.c
+@@ -18,7 +18,7 @@
  
-+static const struct acpi_device_id at25_acpi_match[] = {
-+	{ "PRP0001" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, at25_acpi_match);
-+
- static struct spi_driver at25_driver = {
- 	.driver = {
- 		.name		= "at25",
- 		.owner		= THIS_MODULE,
- 		.of_match_table = at25_of_match,
-+		.acpi_match_table = at25_acpi_match,
- 	},
- 	.probe		= at25_probe,
- 	.remove		= at25_remove,
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ #include <linux/spi/spi.h>
+ #include <linux/spi/eeprom.h>
+-#include <linux/of.h>
++#include <linux/property.h>
+ 
+ /*
+  * NOTE: this is an *EEPROM* driver.  The vagaries of product naming
+@@ -301,35 +301,33 @@ static ssize_t at25_mem_write(struct memory_accessor *mem, const char *buf,
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static int at25_np_to_chip(struct device *dev,
+-			   struct device_node *np,
+-			   struct spi_eeprom *chip)
++static int at25_fw_to_chip(struct device *dev, struct spi_eeprom *chip)
+ {
+ 	u32 val;
+ 
+ 	memset(chip, 0, sizeof(*chip));
+-	strncpy(chip->name, np->name, sizeof(chip->name));
++	strncpy(chip->name, "at25", sizeof(chip->name));
+ 
+-	if (of_property_read_u32(np, "size", &val) == 0 ||
+-	    of_property_read_u32(np, "at25,byte-len", &val) == 0) {
++	if (device_property_read_u32(dev, "size", &val) == 0 ||
++	    device_property_read_u32(dev, "at25,byte-len", &val) == 0) {
+ 		chip->byte_len = val;
+ 	} else {
+ 		dev_err(dev, "Error: missing \"size\" property\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	if (of_property_read_u32(np, "pagesize", &val) == 0 ||
+-	    of_property_read_u32(np, "at25,page-size", &val) == 0) {
++	if (device_property_read_u32(dev, "pagesize", &val) == 0 ||
++	    device_property_read_u32(dev, "at25,page-size", &val) == 0) {
+ 		chip->page_size = (u16)val;
+ 	} else {
+ 		dev_err(dev, "Error: missing \"pagesize\" property\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	if (of_property_read_u32(np, "at25,addr-mode", &val) == 0) {
++	if (device_property_read_u32(dev, "at25,addr-mode", &val) == 0) {
+ 		chip->flags = (u16)val;
+ 	} else {
+-		if (of_property_read_u32(np, "address-width", &val)) {
++		if (device_property_read_u32(dev, "address-width", &val)) {
+ 			dev_err(dev,
+ 				"Error: missing \"address-width\" property\n");
+ 			return -ENODEV;
+@@ -350,7 +348,7 @@ static int at25_np_to_chip(struct device *dev,
+ 				val);
+ 			return -ENODEV;
+ 		}
+-		if (of_find_property(np, "read-only", NULL))
++		if (!device_get_property(dev, "read-only", NULL))
+ 			chip->flags |= EE_READONLY;
+ 	}
+ 	return 0;
+@@ -360,21 +358,15 @@ static int at25_probe(struct spi_device *spi)
+ {
+ 	struct at25_data	*at25 = NULL;
+ 	struct spi_eeprom	chip;
+-	struct device_node	*np = spi->dev.of_node;
+ 	int			err;
+ 	int			sr;
+ 	int			addrlen;
+ 
+ 	/* Chip description */
+ 	if (!spi->dev.platform_data) {
+-		if (np) {
+-			err = at25_np_to_chip(&spi->dev, np, &chip);
+-			if (err)
+-				return err;
+-		} else {
+-			dev_err(&spi->dev, "Error: no chip description\n");
+-			return -ENODEV;
+-		}
++		err = at25_fw_to_chip(&spi->dev, &chip);
++		if (err)
++			return err;
+ 	} else
+ 		chip = *(struct spi_eeprom *)spi->dev.platform_data;
+ 
+-- 
+1.8.4.5
