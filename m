@@ -1,69 +1,47 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 13/15] input: gpio_keys_polled - Add ACPI probing
- support
-Date: Wed, 1 Oct 2014 12:15:35 +0300
-Message-ID: <20141001091535.GZ1786@lahna.fi.intel.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1852462.V1jlbi8OPt@vostro.rjw.lan>
- <17237242.r7oKCjnQJM@vostro.rjw.lan>
- <20141001074846.GA17700@dtor-glaptop>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v3 10/15] leds: leds-gpio: Add ACPI probing support
+Date: Wed, 01 Oct 2014 12:01:34 +0200
+Message-ID: <5364565.aEcZqpzdLW@wuerfel>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2780318.hxubhI9Rvq@wuerfel> <20141001091309.GY1786@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:46078 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751047AbaJAJPl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Oct 2014 05:15:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20141001074846.GA17700@dtor-glaptop>
+Received: from mout.kundenserver.de ([212.227.126.131]:50820 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbaJAKBo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2014 06:01:44 -0400
+In-Reply-To: <20141001091309.GY1786@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Wed, Oct 01, 2014 at 12:48:46AM -0700, Dmitry Torokhov wrote:
-> On Wed, Oct 01, 2014 at 04:20:43AM +0200, Rafael J. Wysocki wrote:
-> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > 
-> > Allow the driver to probe from ACPI namespace.
-> > 
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/input/keyboard/gpio_keys_polled.c |    7 +++++++
-> >  1 file changed, 7 insertions(+)
-> > 
-> > Index: linux-pm/drivers/input/keyboard/gpio_keys_polled.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/input/keyboard/gpio_keys_polled.c
-> > +++ linux-pm/drivers/input/keyboard/gpio_keys_polled.c
-> > @@ -181,6 +181,12 @@ static const struct of_device_id gpio_ke
-> >  };
-> >  MODULE_DEVICE_TABLE(of, gpio_keys_polled_of_match);
-> >  
-> > +static const struct acpi_device_id gpio_keys_polled_acpi_match[] = {
-> > +	{ "PRP0001" }, /* Device Tree shoehorned into ACPI */
-> > +	{ },
-> > +};
-> > +MODULE_DEVICE_TABLE(acpi, gpio_keys_polled_acpi_match);
-> > +
-> >  static int gpio_keys_polled_probe(struct platform_device *pdev)
-> >  {
-> >  	struct device *dev = &pdev->dev;
-> > @@ -309,6 +315,7 @@ static struct platform_driver gpio_keys_
-> >  		.name	= DRV_NAME,
-> >  		.owner	= THIS_MODULE,
-> >  		.of_match_table = gpio_keys_polled_of_match,
-> > +		.acpi_match_table = gpio_keys_polled_acpi_match,
-> o
-> Hmm, why do we need the generic "PRP0001" in every driver? The ACPI device
-> should have PRP0001 and ACPI bus should know to look into OF matching table
-> for such devices.
+On Wednesday 01 October 2014 12:13:09 Mika Westerberg wrote:
+> 
+> > Regarding the MODULE_DEVICE_TABLE, I suspect the above won't work the
+> > way you are hoping for, because once you get to dozens or hundreds of
+> > drivers doing this, each device will show up with the same string,
+> > so udev will try to load all the modules that list "PRP0001". That
+> > doesn't look right. With the code from patch 3, you can probably drop
+> > the acpi MODULE_DEVICE_TABLE() entirely and get the correct behavior.
+> 
+> It actually works like this now:
+> 
+>  # cd /sys/bus/platform/devices/PRP0001\:00/
+>  DRIVER=leds-gpio
+>  MODALIAS=of:Nprp0001TacpiCgpio-leds
+> 
+>  # cat modalias 
+>  of:Nprp0001TacpiCgpio-leds
+> 
+> In other words the modalias changes to be of:Nprp0001Tacpi, e.g
+> name=prp0001, type=acpi and then list of compatible values.
+> 
+> Udev then loads only module that matches the modalias so it should not
+> load everything listing PRP0001 in their MODULE_DEVICE_TABLE().
 
-Arnd had a good idea for this. How about,
+I'm not completely following yet. I can see how this works now, but
+how is this better than just using the existing modalias for OF?
 
-	.acpi_match_table = acpi_match_by_of_compatible,
-
-where acpi_match_by_of_compatible is provided by ACPI core? Does that
-work better for you?
+	Arnd
