@@ -1,57 +1,54 @@
-From: Joe.C <yingjoe.chen@mediatek.com>
-Subject: Re: [RFT v2 01/24] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Wed, 1 Oct 2014 22:23:38 +0800
-Message-ID: <1412173418.24931.3514.camel@mtksdaap41>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com>
- <1411740145-30626-2-git-send-email-jiang.liu@linux.intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v7 1/2] Mailbox: Add support for Platform Communication
+ Channel
+Date: Wed, 1 Oct 2014 17:00:11 +0100
+Message-ID: <20141001160011.GB4273@sirena.org.uk>
+References: <1410369619-2570-1-git-send-email-ashwin.chaugule@linaro.org>
+ <1410369619-2570-2-git-send-email-ashwin.chaugule@linaro.org>
+ <20140916174035.GT7960@sirena.org.uk>
+ <CAJ5Y-eak5iMak6vqTBNYdWz1tKFRjGUfD7cZor+uHKknwYNhoQ@mail.gmail.com>
+ <CAJ5Y-ebOd1wN+FFH4BSB7JgvEqLi_5fq_FFmVD_i50cpoWjKXQ@mail.gmail.com>
+ <CAJ5Y-eaL_O5_FFgpMZZnzXMf6o3iduCkaPuJL66RAsnzaHSrJw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1411740145-30626-2-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: x86@kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Joerg Roedel <joro@8bytes.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iNKvvK4J48bNrWSb"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57021 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752794AbaJAQAS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2014 12:00:18 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ5Y-eaL_O5_FFgpMZZnzXMf6o3iduCkaPuJL66RAsnzaHSrJw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>
 
-On Fri, 2014-09-26 at 22:02 +0800, Jiang Liu wrote:
-> @@ -480,6 +478,11 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
->  		return 0;
->  	}
->  
-> +	if (irq_domain_is_hierarchy(domain)) {
-> +		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, irq_data);
-> +		return virq <= 0 ? 0 : virq;
-> +	}
-> +
->  	/* If domain has no translation, then we assume interrupt line */
->  	if (domain->ops->xlate == NULL)
->  		hwirq = irq_data->args[0];
 
-Hi Jiang,
+--iNKvvK4J48bNrWSb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-You'll need this change, otherwise <0 part of the check will always be
-false.
+On Tue, Sep 30, 2014 at 01:23:30PM -0400, Ashwin Chaugule wrote:
 
-@@ -467,7 +467,7 @@ unsigned int irq_create_of_mapping(struct
-of_phandle_args *irq_data)
- 	struct irq_domain *domain;
- 	irq_hw_number_t hwirq;
- 	unsigned int type = IRQ_TYPE_NONE;
--	unsigned int virq;
-+	int virq;
- 
- 	domain = irq_data->np ? irq_find_host(irq_data->np) :
-irq_default_domain;
- 	if (!domain) {
+> Can I add the above snippet to V8 with your Reviewed-by tag?
 
-Joe.C
+Post the new code and I'll review that.
+
+--iNKvvK4J48bNrWSb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJULCUKAAoJECTWi3JdVIfQGUoH/267aGUEFiYg8smiE8agthqT
+mgutWd9dWH2Iqy3PDG+vAFSNkAEZR+3qJBx5goqtDAa7ROvZ1VUmp9hUzoy12U+1
+Xb7GY9y90E1ulix7R7lJe0zpfywgUM1W4nE9bdvgy/gx6WUJDHuNeKcI56QknK8M
+wxCRhOPkuQDPQPAX5mtxKqEsV1Nry4Sa8jlIhKA4L7V1ZmBGtReD/KmByzNMq08E
+kN40UuijvFh/UW9DPK55iiffrGge1gUWSXIIpDX6QXduivajKDaLu0JTpOL0m32I
+dxXaXI4njdeS3mlgmju5ut0LvIX5QL64MH3OVUMVwzoQiXzCnDiqwmMZyay+KSo=
+=HGQR
+-----END PGP SIGNATURE-----
+
+--iNKvvK4J48bNrWSb--
