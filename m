@@ -1,42 +1,80 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 10/15] leds: leds-gpio: Add ACPI probing support
-Date: Wed, 01 Oct 2014 20:22:36 +0200
-Message-ID: <15084898.uePkciO2J1@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20141001163025.GE23115@dtor-glaptop> <D05191AB.AB380%dvhart@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v8 0/2] PCC: Platform Communication Channel
+Date: Wed,  1 Oct 2014 16:46:11 -0400
+Message-ID: <1412196373-7794-1-git-send-email-ashwin.chaugule@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:58428 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbaJASWt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2014 14:22:49 -0400
-In-Reply-To: <D05191AB.AB380%dvhart@linux.intel.com>
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:56426 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005AbaJAUqW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2014 16:46:22 -0400
+Received: by mail-yk0-f179.google.com with SMTP id 131so356842ykp.24
+        for <linux-acpi@vger.kernel.org>; Wed, 01 Oct 2014 13:46:21 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@linux.intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>
+To: broonie@kernel.org
+Cc: lv.zheng@intel.com, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, arnd@arndb.de, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On Wednesday 01 October 2014 11:11:46 Darren Hart wrote:
-> >
-> >No, I think in absence of drv->acpi_match_table ACPI core should just go
-> >and
-> >use drv->of_match_table to do the matching and be done with it.
-> 
-> But then you will match drivers that have of-only support that don't know
-> anything about ACPI and haven't been updated to use the new API. Worse,
-> some of those drivers will assume of node structs and such and potentially
-> panic. Unless I'm sorry mistaken here....
-> 
+Changes since V7:
+- Added timeout to tx method in case the remote dies.
+- Restructured usage of acpi_status. Had inverted logic previously.
 
-I don't think that is a huge danger: most drivers tend to check for
-the presence of dev->of_node before calling any of the DT interfaces,
-you'd only ever enter the probe function if the compatible string matches
-(i.e. an old kernel with a new ACPI table), and most users of ACPI
-systems will disable CONFIG_OF at compile time, so the accessors looking
-at the of_node are not there.
+Changes since V6:
+- Cosmetic changes based on Lv's suggestions
 
-In theory it's possible that something goes wrong here, but it's not
-very likely to ever cause problems.
+Changes since V5:
+- Optimize loop that matches channel request.
+- Use platform_create_bundle.
+- Replace ioread/writes.
+- Remove redundant code and headers.
+- Restructure common mailbox macros.
+- Reformat PCC cmd parsing.
 
-	Arnd
+Changes since V4:
+- Folded PCC Mailbox helpers into pcc.c
+
+Changes since V3:
+- Added PCC helper functions to work around "struct device" limitations.
+- PCC driver changes to work with PCC specific Mailbox helpers.
+
+Changes since V2:
+- Rebased on top of git://git.linaro.org/landing-teams/working/fujitsu/integration.git
+        branch mailbox-for-3.17
+- Added PCC API to mailbox framework as per Arnd's suggestion to allow usage without ACPI.
+
+Changes since V1:
+- Integration with Mailbox framework - https://lkml.org/lkml/2014/5/15/49
+
+This patchset adds support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0 spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details
+on how PCC works.
+
+In brief PCC is a generic means for PCC clients, to talk to the firmware. The
+PCC register space is typically memory mapped IO and uses a doorbell mechanism
+to communicate synchronously from the OS to the firmware. The PCC driver is
+completely agnostic to the protocol implemented by the PCC clients. It only
+implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
+
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
+
+Ashwin Chaugule (2):
+  Mailbox: Add support for Platform Communication Channel
+  PCC test
+
+ drivers/mailbox/Kconfig    |  12 ++
+ drivers/mailbox/Makefile   |   2 +
+ drivers/mailbox/mailbox.c  |   4 +-
+ drivers/mailbox/mailbox.h  |  16 +++
+ drivers/mailbox/pcc-test.c | 204 +++++++++++++++++++++++++++++++
+ drivers/mailbox/pcc.c      | 292 +++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 527 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/mailbox/mailbox.h
+ create mode 100644 drivers/mailbox/pcc-test.c
+ create mode 100644 drivers/mailbox/pcc.c
+
+-- 
+1.9.1
+
