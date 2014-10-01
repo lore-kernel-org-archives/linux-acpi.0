@@ -1,54 +1,76 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v7 1/2] Mailbox: Add support for Platform Communication
- Channel
-Date: Wed, 1 Oct 2014 17:00:11 +0100
-Message-ID: <20141001160011.GB4273@sirena.org.uk>
-References: <1410369619-2570-1-git-send-email-ashwin.chaugule@linaro.org>
- <1410369619-2570-2-git-send-email-ashwin.chaugule@linaro.org>
- <20140916174035.GT7960@sirena.org.uk>
- <CAJ5Y-eak5iMak6vqTBNYdWz1tKFRjGUfD7cZor+uHKknwYNhoQ@mail.gmail.com>
- <CAJ5Y-ebOd1wN+FFH4BSB7JgvEqLi_5fq_FFmVD_i50cpoWjKXQ@mail.gmail.com>
- <CAJ5Y-eaL_O5_FFgpMZZnzXMf6o3iduCkaPuJL66RAsnzaHSrJw@mail.gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 13/15] input: gpio_keys_polled - Add ACPI probing
+ support
+Date: Wed, 1 Oct 2014 09:28:02 -0700
+Message-ID: <20141001162802.GD23115@dtor-glaptop>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1852462.V1jlbi8OPt@vostro.rjw.lan>
+ <17237242.r7oKCjnQJM@vostro.rjw.lan>
+ <20141001074846.GA17700@dtor-glaptop>
+ <20141001091535.GZ1786@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iNKvvK4J48bNrWSb"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57021 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752794AbaJAQAS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2014 12:00:18 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJ5Y-eaL_O5_FFgpMZZnzXMf6o3iduCkaPuJL66RAsnzaHSrJw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>
-
-
---iNKvvK4J48bNrWSb
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20141001091535.GZ1786@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 30, 2014 at 01:23:30PM -0400, Ashwin Chaugule wrote:
+On Wed, Oct 01, 2014 at 12:15:35PM +0300, Mika Westerberg wrote:
+> On Wed, Oct 01, 2014 at 12:48:46AM -0700, Dmitry Torokhov wrote:
+> > On Wed, Oct 01, 2014 at 04:20:43AM +0200, Rafael J. Wysocki wrote:
+> > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > 
+> > > Allow the driver to probe from ACPI namespace.
+> > > 
+> > > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > ---
+> > >  drivers/input/keyboard/gpio_keys_polled.c |    7 +++++++
+> > >  1 file changed, 7 insertions(+)
+> > > 
+> > > Index: linux-pm/drivers/input/keyboard/gpio_keys_polled.c
+> > > ===================================================================
+> > > --- linux-pm.orig/drivers/input/keyboard/gpio_keys_polled.c
+> > > +++ linux-pm/drivers/input/keyboard/gpio_keys_polled.c
+> > > @@ -181,6 +181,12 @@ static const struct of_device_id gpio_ke
+> > >  };
+> > >  MODULE_DEVICE_TABLE(of, gpio_keys_polled_of_match);
+> > >  
+> > > +static const struct acpi_device_id gpio_keys_polled_acpi_match[] = {
+> > > +	{ "PRP0001" }, /* Device Tree shoehorned into ACPI */
+> > > +	{ },
+> > > +};
+> > > +MODULE_DEVICE_TABLE(acpi, gpio_keys_polled_acpi_match);
+> > > +
+> > >  static int gpio_keys_polled_probe(struct platform_device *pdev)
+> > >  {
+> > >  	struct device *dev = &pdev->dev;
+> > > @@ -309,6 +315,7 @@ static struct platform_driver gpio_keys_
+> > >  		.name	= DRV_NAME,
+> > >  		.owner	= THIS_MODULE,
+> > >  		.of_match_table = gpio_keys_polled_of_match,
+> > > +		.acpi_match_table = gpio_keys_polled_acpi_match,
+> > o
+> > Hmm, why do we need the generic "PRP0001" in every driver? The ACPI device
+> > should have PRP0001 and ACPI bus should know to look into OF matching table
+> > for such devices.
+> 
+> Arnd had a good idea for this. How about,
+> 
+> 	.acpi_match_table = acpi_match_by_of_compatible,
+> 
+> where acpi_match_by_of_compatible is provided by ACPI core? Does that
+> work better for you?
 
-> Can I add the above snippet to V8 with your Reviewed-by tag?
+I still do not see the point. ACPI core knows how to handle
+drv->of_match_table, so unless we need to support ACPI_only binding in a
+given driver I do not understand why we need to add boilerplate code.
 
-Post the new code and I'll review that.
+Thanks.
 
---iNKvvK4J48bNrWSb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJULCUKAAoJECTWi3JdVIfQGUoH/267aGUEFiYg8smiE8agthqT
-mgutWd9dWH2Iqy3PDG+vAFSNkAEZR+3qJBx5goqtDAa7ROvZ1VUmp9hUzoy12U+1
-Xb7GY9y90E1ulix7R7lJe0zpfywgUM1W4nE9bdvgy/gx6WUJDHuNeKcI56QknK8M
-wxCRhOPkuQDPQPAX5mtxKqEsV1Nry4Sa8jlIhKA4L7V1ZmBGtReD/KmByzNMq08E
-kN40UuijvFh/UW9DPK55iiffrGge1gUWSXIIpDX6QXduivajKDaLu0JTpOL0m32I
-dxXaXI4njdeS3mlgmju5ut0LvIX5QL64MH3OVUMVwzoQiXzCnDiqwmMZyay+KSo=
-=HGQR
------END PGP SIGNATURE-----
-
---iNKvvK4J48bNrWSb--
+-- 
+Dmitry
