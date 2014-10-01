@@ -1,447 +1,567 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v3 07/15] gpio: sch: Consolidate core and resume banks
-Date: Wed, 01 Oct 2014 04:15:01 +0200
-Message-ID: <2042155.vjJYp9Phiy@vostro.rjw.lan>
+Subject: [PATCH v3 01/15] ACPI: Add support for device specific properties
+Date: Wed, 01 Oct 2014 04:08:56 +0200
+Message-ID: <1630006.5YHObY0h44@vostro.rjw.lan>
 References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <1852462.V1jlbi8OPt@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64818 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751738AbaJACDT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Sep 2014 22:03:19 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1852462.V1jlbi8OPt@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-This is actually a single device with two sets of identical registers,
-which just happen to start from a different offset. Instead of having
-separate GPIO chips created we consolidate them to be single GPIO chip.
+Device Tree is used in many embedded systems to describe the system
+configuration to the OS. It supports attaching properties or name-value
+pairs to the devices it describe. With these properties one can pass
+additional information to the drivers that would not be available
+otherwise.
 
-In addition having a single GPIO chip allows us to handle ACPI GPIO
-translation in the core in a more generic way, since the two GPIO chips
-share the same parent ACPI device.
+ACPI is another configuration mechanism (among other things) typically
+seen, but not limited to, x86 machines. ACPI allows passing arbitrary
+data from methods but there has not been mechanism equivalent to Device
+Tree until the introduction of _DSD in the recent publication of the
+ACPI 5.1 specification.
 
+In order to facilitate ACPI usage in systems where Device Tree is
+typically used, it would be beneficial to standardize a way to retrieve
+Device Tree style properties from ACPI devices, which is what we do in
+this patch.
+
+If a given device described in ACPI namespace wants to export properties it
+must implement _DSD method (Device Specific Data, introduced with ACPI 5.1)
+that returns the properties in a package of packages. For example:
+
+	Name (_DSD, Package () {
+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+		Package () {
+			Package () {"name1", <VALUE1>},
+			Package () {"name2", <VALUE2>},
+			...
+		}
+	})
+
+The UUID reserved for properties is daffd814-6eba-4d8c-8a91-bc9bbf4aa301
+and is documented in the ACPI 5.1 companion document called "_DSD
+Implementation Guide" [1], [2].
+
+We add several helper functions that can be used to extract these
+properties and convert them to different Linux data types.
+
+The ultimate goal is that we only have one device property API that
+retrieves the requested properties from Device Tree or from ACPI
+transparent to the caller.
+
+[1] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+[2] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Darren Hart <dvhart@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/gpio/gpio-sch.c | 293 ++++++++++++++++++------------------------------
- 1 file changed, 112 insertions(+), 181 deletions(-)
+ drivers/acpi/Makefile   |    1 
+ drivers/acpi/internal.h |    6 
+ drivers/acpi/property.c |  364 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c     |    2 
+ include/acpi/acpi_bus.h |    7 
+ include/linux/acpi.h    |   40 +++++
+ 6 files changed, 420 insertions(+)
+ create mode 100644 drivers/acpi/property.c
 
-diff --git a/drivers/gpio/gpio-sch.c b/drivers/gpio/gpio-sch.c
-index 41e91d70301e..99720c8bc8ed 100644
---- a/drivers/gpio/gpio-sch.c
-+++ b/drivers/gpio/gpio-sch.c
-@@ -29,290 +29,221 @@
+Index: linux-pm/drivers/acpi/Makefile
+===================================================================
+--- linux-pm.orig/drivers/acpi/Makefile
++++ linux-pm/drivers/acpi/Makefile
+@@ -46,6 +46,7 @@ acpi-y				+= acpi_pnp.o
+ acpi-y				+= power.o
+ acpi-y				+= event.o
+ acpi-y				+= sysfs.o
++acpi-y				+= property.o
+ acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
+ acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -181,4 +181,10 @@ struct platform_device *acpi_create_plat
+ bool acpi_osi_is_win8(void);
+ #endif
  
- #include <linux/gpio.h>
- 
--static DEFINE_SPINLOCK(gpio_lock);
--
--#define CGEN	(0x00)
--#define CGIO	(0x04)
--#define CGLV	(0x08)
--
--#define RGEN	(0x20)
--#define RGIO	(0x24)
--#define RGLV	(0x28)
--
--static unsigned short gpio_ba;
--
--static int sch_gpio_core_direction_in(struct gpio_chip *gc, unsigned  gpio_num)
--{
--	u8 curr_dirs;
--	unsigned short offset, bit;
--
--	spin_lock(&gpio_lock);
--
--	offset = CGIO + gpio_num / 8;
--	bit = gpio_num % 8;
--
--	curr_dirs = inb(gpio_ba + offset);
--
--	if (!(curr_dirs & (1 << bit)))
--		outb(curr_dirs | (1 << bit), gpio_ba + offset);
-+#define GEN	0x00
-+#define GIO	0x04
-+#define GLV	0x08
++/*--------------------------------------------------------------------------
++				Device properties
++  -------------------------------------------------------------------------- */
++void acpi_init_properties(struct acpi_device *adev);
++void acpi_free_properties(struct acpi_device *adev);
 +
-+struct sch_gpio {
-+	struct gpio_chip chip;
-+	spinlock_t lock;
-+	unsigned short iobase;
-+	unsigned short core_base;
-+	unsigned short resume_base;
+ #endif /* _ACPI_INTERNAL_H_ */
+Index: linux-pm/drivers/acpi/property.c
+===================================================================
+--- /dev/null
++++ linux-pm/drivers/acpi/property.c
+@@ -0,0 +1,364 @@
++/*
++ * ACPI device specific properties support.
++ *
++ * Copyright (C) 2014, Intel Corporation
++ * All rights reserved.
++ *
++ * Authors: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *          Darren Hart <dvhart@linux.intel.com>
++ *          Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/acpi.h>
++#include <linux/device.h>
++#include <linux/export.h>
++
++#include "internal.h"
++
++/* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
++static const u8 prp_uuid[16] = {
++	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
++	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
 +};
- 
--	spin_unlock(&gpio_lock);
--	return 0;
--}
-+#define to_sch_gpio(c)	container_of(c, struct sch_gpio, chip)
- 
--static int sch_gpio_core_get(struct gpio_chip *gc, unsigned gpio_num)
-+static unsigned sch_gpio_offset(struct sch_gpio *sch, unsigned gpio,
-+				unsigned reg)
- {
--	int res;
--	unsigned short offset, bit;
-+	unsigned base = 0;
- 
--	offset = CGLV + gpio_num / 8;
--	bit = gpio_num % 8;
-+	if (gpio >= sch->resume_base) {
-+		gpio -= sch->resume_base;
-+		base += 0x20;
-+	}
- 
--	res = !!(inb(gpio_ba + offset) & (1 << bit));
--	return res;
-+	return base + reg + gpio / 8;
- }
- 
--static void sch_gpio_core_set(struct gpio_chip *gc, unsigned gpio_num, int val)
-+static unsigned sch_gpio_bit(struct sch_gpio *sch, unsigned gpio)
- {
--	u8 curr_vals;
--	unsigned short offset, bit;
--
--	spin_lock(&gpio_lock);
--
--	offset = CGLV + gpio_num / 8;
--	bit = gpio_num % 8;
--
--	curr_vals = inb(gpio_ba + offset);
--
--	if (val)
--		outb(curr_vals | (1 << bit), gpio_ba + offset);
--	else
--		outb((curr_vals & ~(1 << bit)), gpio_ba + offset);
--	spin_unlock(&gpio_lock);
-+	if (gpio >= sch->resume_base)
-+		gpio -= sch->resume_base;
-+	return gpio % 8;
- }
- 
--static int sch_gpio_core_direction_out(struct gpio_chip *gc,
--					unsigned gpio_num, int val)
-+static void sch_gpio_enable(struct sch_gpio *sch, unsigned gpio)
- {
--	u8 curr_dirs;
- 	unsigned short offset, bit;
-+	u8 enable;
- 
--	spin_lock(&gpio_lock);
-+	spin_lock(&sch->lock);
- 
--	offset = CGIO + gpio_num / 8;
--	bit = gpio_num % 8;
--
--	curr_dirs = inb(gpio_ba + offset);
--	if (curr_dirs & (1 << bit))
--		outb(curr_dirs & ~(1 << bit), gpio_ba + offset);
-+	offset = sch_gpio_offset(sch, gpio, GEN);
-+	bit = sch_gpio_bit(sch, gpio);
- 
--	spin_unlock(&gpio_lock);
-+	enable = inb(sch->iobase + offset);
-+	if (!(enable & (1 << bit)))
-+		outb(enable | (1 << bit), sch->iobase + offset);
- 
--	/*
--	 * according to the datasheet, writing to the level register has no
--	 * effect when GPIO is programmed as input.
--	 * Actually the the level register is read-only when configured as input.
--	 * Thus presetting the output level before switching to output is _NOT_ possible.
--	 * Hence we set the level after configuring the GPIO as output.
--	 * But we cannot prevent a short low pulse if direction is set to high
--	 * and an external pull-up is connected.
--	 */
--	sch_gpio_core_set(gc, gpio_num, val);
--	return 0;
-+	spin_unlock(&sch->lock);
- }
- 
--static struct gpio_chip sch_gpio_core = {
--	.label			= "sch_gpio_core",
--	.owner			= THIS_MODULE,
--	.direction_input	= sch_gpio_core_direction_in,
--	.get			= sch_gpio_core_get,
--	.direction_output	= sch_gpio_core_direction_out,
--	.set			= sch_gpio_core_set,
--};
--
--static int sch_gpio_resume_direction_in(struct gpio_chip *gc,
--					unsigned gpio_num)
-+static int sch_gpio_direction_in(struct gpio_chip *gc, unsigned  gpio_num)
- {
-+	struct sch_gpio *sch = to_sch_gpio(gc);
- 	u8 curr_dirs;
- 	unsigned short offset, bit;
- 
--	spin_lock(&gpio_lock);
-+	spin_lock(&sch->lock);
- 
--	offset = RGIO + gpio_num / 8;
--	bit = gpio_num % 8;
-+	offset = sch_gpio_offset(sch, gpio_num, GIO);
-+	bit = sch_gpio_bit(sch, gpio_num);
- 
--	curr_dirs = inb(gpio_ba + offset);
-+	curr_dirs = inb(sch->iobase + offset);
- 
- 	if (!(curr_dirs & (1 << bit)))
--		outb(curr_dirs | (1 << bit), gpio_ba + offset);
-+		outb(curr_dirs | (1 << bit), sch->iobase + offset);
- 
--	spin_unlock(&gpio_lock);
-+	spin_unlock(&sch->lock);
- 	return 0;
- }
- 
--static int sch_gpio_resume_get(struct gpio_chip *gc, unsigned gpio_num)
-+static int sch_gpio_get(struct gpio_chip *gc, unsigned gpio_num)
- {
-+	struct sch_gpio *sch = to_sch_gpio(gc);
-+	int res;
- 	unsigned short offset, bit;
- 
--	offset = RGLV + gpio_num / 8;
--	bit = gpio_num % 8;
-+	offset = sch_gpio_offset(sch, gpio_num, GLV);
-+	bit = sch_gpio_bit(sch, gpio_num);
 +
-+	res = !!(inb(sch->iobase + offset) & (1 << bit));
- 
--	return !!(inb(gpio_ba + offset) & (1 << bit));
-+	return res;
- }
- 
--static void sch_gpio_resume_set(struct gpio_chip *gc,
--				unsigned gpio_num, int val)
-+static void sch_gpio_set(struct gpio_chip *gc, unsigned gpio_num, int val)
- {
-+	struct sch_gpio *sch = to_sch_gpio(gc);
- 	u8 curr_vals;
- 	unsigned short offset, bit;
- 
--	spin_lock(&gpio_lock);
-+	spin_lock(&sch->lock);
- 
--	offset = RGLV + gpio_num / 8;
--	bit = gpio_num % 8;
-+	offset = sch_gpio_offset(sch, gpio_num, GLV);
-+	bit = sch_gpio_bit(sch, gpio_num);
- 
--	curr_vals = inb(gpio_ba + offset);
-+	curr_vals = inb(sch->iobase + offset);
- 
- 	if (val)
--		outb(curr_vals | (1 << bit), gpio_ba + offset);
-+		outb(curr_vals | (1 << bit), sch->iobase + offset);
- 	else
--		outb((curr_vals & ~(1 << bit)), gpio_ba + offset);
-+		outb((curr_vals & ~(1 << bit)), sch->iobase + offset);
- 
--	spin_unlock(&gpio_lock);
-+	spin_unlock(&sch->lock);
- }
- 
--static int sch_gpio_resume_direction_out(struct gpio_chip *gc,
--					unsigned gpio_num, int val)
-+static int sch_gpio_direction_out(struct gpio_chip *gc, unsigned gpio_num,
-+				  int val)
- {
-+	struct sch_gpio *sch = to_sch_gpio(gc);
- 	u8 curr_dirs;
- 	unsigned short offset, bit;
- 
--	offset = RGIO + gpio_num / 8;
--	bit = gpio_num % 8;
-+	spin_lock(&sch->lock);
- 
--	spin_lock(&gpio_lock);
-+	offset = sch_gpio_offset(sch, gpio_num, GIO);
-+	bit = sch_gpio_bit(sch, gpio_num);
- 
--	curr_dirs = inb(gpio_ba + offset);
-+	curr_dirs = inb(sch->iobase + offset);
- 	if (curr_dirs & (1 << bit))
--		outb(curr_dirs & ~(1 << bit), gpio_ba + offset);
-+		outb(curr_dirs & ~(1 << bit), sch->iobase + offset);
- 
--	spin_unlock(&gpio_lock);
-+	spin_unlock(&sch->lock);
- 
- 	/*
--	* according to the datasheet, writing to the level register has no
--	* effect when GPIO is programmed as input.
--	* Actually the the level register is read-only when configured as input.
--	* Thus presetting the output level before switching to output is _NOT_ possible.
--	* Hence we set the level after configuring the GPIO as output.
--	* But we cannot prevent a short low pulse if direction is set to high
--	* and an external pull-up is connected.
--	*/
--	sch_gpio_resume_set(gc, gpio_num, val);
-+	 * according to the datasheet, writing to the level register has no
-+	 * effect when GPIO is programmed as input.
-+	 * Actually the the level register is read-only when configured as input.
-+	 * Thus presetting the output level before switching to output is _NOT_ possible.
-+	 * Hence we set the level after configuring the GPIO as output.
-+	 * But we cannot prevent a short low pulse if direction is set to high
-+	 * and an external pull-up is connected.
++static bool acpi_property_value_ok(const union acpi_object *value)
++{
++	int j;
++
++	/*
++	 * The value must be an integer, a string, a reference, or a package
++	 * whose every element must be an integer, a string, or a reference.
 +	 */
-+	sch_gpio_set(gc, gpio_num, val);
- 	return 0;
- }
++	switch (value->type) {
++	case ACPI_TYPE_INTEGER:
++	case ACPI_TYPE_STRING:
++	case ACPI_TYPE_LOCAL_REFERENCE:
++		return true;
++
++	case ACPI_TYPE_PACKAGE:
++		for (j = 0; j < value->package.count; j++)
++			switch (value->package.elements[j].type) {
++			case ACPI_TYPE_INTEGER:
++			case ACPI_TYPE_STRING:
++			case ACPI_TYPE_LOCAL_REFERENCE:
++				continue;
++
++			default:
++				return false;
++			}
++
++		return true;
++	}
++	return false;
++}
++
++static bool acpi_properties_format_valid(const union acpi_object *properties)
++{
++	int i;
++
++	for (i = 0; i < properties->package.count; i++) {
++		const union acpi_object *property;
++
++		property = &properties->package.elements[i];
++		/*
++		 * Only two elements allowed, the first one must be a string and
++		 * the second one has to satisfy certain conditions.
++		 */
++		if (property->package.count != 2
++		    || property->package.elements[0].type != ACPI_TYPE_STRING
++		    || !acpi_property_value_ok(&property->package.elements[1]))
++			return false;
++	}
++	return true;
++}
++
++void acpi_init_properties(struct acpi_device *adev)
++{
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
++	const union acpi_object *desc;
++	acpi_status status;
++	int i;
++
++	status = acpi_evaluate_object_typed(adev->handle, "_DSD", NULL, &buf,
++					    ACPI_TYPE_PACKAGE);
++	if (ACPI_FAILURE(status))
++		return;
++
++	desc = buf.pointer;
++	if (desc->package.count % 2)
++		goto fail;
++
++	/* Look for the device properties UUID. */
++	for (i = 0; i < desc->package.count; i += 2) {
++		const union acpi_object *uuid, *properties;
++
++		uuid = &desc->package.elements[i];
++		properties = &desc->package.elements[i + 1];
++
++		/*
++		 * The first element must be a UUID and the second one must be
++		 * a package.
++		 */
++		if (uuid->type != ACPI_TYPE_BUFFER || uuid->buffer.length != 16
++		    || properties->type != ACPI_TYPE_PACKAGE)
++			break;
++
++		if (memcmp(uuid->buffer.pointer, prp_uuid, sizeof(prp_uuid)))
++			continue;
++
++		/*
++		 * We found the matching UUID. Now validate the format of the
++		 * package immediately following it.
++		 */
++		if (!acpi_properties_format_valid(properties))
++			break;
++
++		adev->data.pointer = buf.pointer;
++		adev->data.properties = properties;
++		return;
++	}
++
++ fail:
++	dev_warn(&adev->dev, "Returned _DSD data is not valid, skipping\n");
++	ACPI_FREE(buf.pointer);
++}
++
++void acpi_free_properties(struct acpi_device *adev)
++{
++	ACPI_FREE((void *)adev->data.pointer);
++	adev->data.pointer = NULL;
++	adev->data.properties = NULL;
++}
++
++/**
++ * acpi_dev_get_property - return an ACPI property with given name
++ * @adev: ACPI device to get property
++ * @name: Name of the property
++ * @type: Expected property type
++ * @obj: Location to store the property value (if not %NULL)
++ *
++ * Look up a property with @name and store a pointer to the resulting ACPI
++ * object at the location pointed to by @obj if found.
++ *
++ * Callers must not attempt to free the returned objects.  These objects will be
++ * freed by the ACPI core automatically during the removal of @adev.
++ *
++ * Return: %0 if property with @name has been found (success),
++ *         %-EINVAL if the arguments are invalid,
++ *         %-ENODATA if the property doesn't exist,
++ *         %-EPROTO if the property value type doesn't match @type.
++ */
++int acpi_dev_get_property(struct acpi_device *adev, const char *name,
++			  acpi_object_type type, const union acpi_object **obj)
++{
++	const union acpi_object *properties;
++	int i;
++
++	if (!adev || !name)
++		return -EINVAL;
++
++	if (!adev->data.pointer || !adev->data.properties)
++		return -ENODATA;
++
++	properties = adev->data.properties;
++	for (i = 0; i < properties->package.count; i++) {
++		const union acpi_object *propname, *propvalue;
++		const union acpi_object *property;
++
++		property = &properties->package.elements[i];
++
++		propname = &property->package.elements[0];
++		propvalue = &property->package.elements[1];
++
++		if (!strcmp(name, propname->string.pointer)) {
++			if (type != ACPI_TYPE_ANY && propvalue->type != type)
++				return -EPROTO;
++			else if (obj)
++				*obj = propvalue;
++
++			return 0;
++		}
++	}
++	return -ENODATA;
++}
++EXPORT_SYMBOL_GPL(acpi_dev_get_property);
++
++/**
++ * acpi_dev_get_property_array - return an ACPI array property with given name
++ * @adev: ACPI device to get property
++ * @name: Name of the property
++ * @type: Expected type of array elements
++ * @obj: Location to store a pointer to the property value (if not NULL)
++ *
++ * Look up an array property with @name and store a pointer to the resulting
++ * ACPI object at the location pointed to by @obj if found.
++ *
++ * Callers must not attempt to free the returned objects.  Those objects will be
++ * freed by the ACPI core automatically during the removal of @adev.
++ *
++ * Return: %0 if array property (package) with @name has been found (success),
++ *         %-EINVAL if the arguments are invalid,
++ *         %-ENODATA if the property doesn't exist,
++ *         %-EPROTO if the property is not a package or the type of its elements
++ *           doesn't match @type.
++ */
++int acpi_dev_get_property_array(struct acpi_device *adev, const char *name,
++				acpi_object_type type,
++				const union acpi_object **obj)
++{
++	const union acpi_object *prop;
++	int ret, i;
++
++	ret = acpi_dev_get_property(adev, name, ACPI_TYPE_PACKAGE, &prop);
++	if (ret)
++		return ret;
++
++	if (type != ACPI_TYPE_ANY) {
++		/* Check that all elements are of correct type. */
++		for (i = 0; i < prop->package.count; i++)
++			if (prop->package.elements[i].type != type)
++				return -EPROTO;
++	}
++	if (obj)
++		*obj = prop;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_dev_get_property_array);
++
++/**
++ * acpi_dev_get_property_reference - returns handle to the referenced object
++ * @adev: ACPI device to get property
++ * @name: Name of the property
++ * @size_prop: Name of the "size" property in referenced object
++ * @index: Index of the reference to return
++ * @args: Location to store the returned reference with optional arguments
++ *
++ * Find property with @name, verifify that it is a package containing at least
++ * one object reference and if so, store the ACPI device object pointer to the
++ * target object in @args->adev.
++ *
++ * If the reference includes arguments (@size_prop is not %NULL) follow the
++ * reference and check whether or not there is an integer property @size_prop
++ * under the target object and if so, whether or not its value matches the
++ * number of arguments that follow the reference.  If there's more than one
++ * reference in the property value package, @index is used to select the one to
++ * return.
++ *
++ * Return: %0 on success, negative error code on failure.
++ */
++int acpi_dev_get_property_reference(struct acpi_device *adev, const char *name,
++				    const char *size_prop, size_t index,
++				    struct acpi_reference_args *args)
++{
++	const union acpi_object *element, *end;
++	const union acpi_object *obj;
++	struct acpi_device *device;
++	int ret, idx = 0;
++
++	ret = acpi_dev_get_property(adev, name, ACPI_TYPE_ANY, &obj);
++	if (ret)
++		return ret;
++
++	/*
++	 * The simplest case is when the value is a single reference.  Just
++	 * return that reference then.
++	 */
++	if (obj->type == ACPI_TYPE_LOCAL_REFERENCE) {
++		if (size_prop || index)
++			return -EINVAL;
++
++		ret = acpi_bus_get_device(obj->reference.handle, &device);
++		if (ret)
++			return ret;
++
++		args->adev = device;
++		args->nargs = 0;
++		return 0;
++	}
++
++	/*
++	 * If it is not a single reference, then it is a package of
++	 * references followed by number of ints as follows:
++	 *
++	 *  Package () { REF, INT, REF, INT, INT }
++	 *
++	 * The index argument is then used to determine which reference
++	 * the caller wants (along with the arguments).
++	 */
++	if (obj->type != ACPI_TYPE_PACKAGE || index >= obj->package.count)
++		return -EPROTO;
++
++	element = obj->package.elements;
++	end = element + obj->package.count;
++
++	while (element < end) {
++		u32 nargs, i;
++
++		if (element->type != ACPI_TYPE_LOCAL_REFERENCE)
++			return -EPROTO;
++
++		ret = acpi_bus_get_device(element->reference.handle, &device);
++		if (ret)
++			return -ENODEV;
++
++		element++;
++		nargs = 0;
++
++		if (size_prop) {
++			const union acpi_object *prop;
++
++			/*
++			 * Find out how many arguments the refenced object
++			 * expects by reading its size_prop property.
++			 */
++			ret = acpi_dev_get_property(device, size_prop,
++						    ACPI_TYPE_INTEGER, &prop);
++			if (ret)
++				return ret;
++
++			nargs = prop->integer.value;
++			if (nargs > MAX_ACPI_REFERENCE_ARGS
++			    || element + nargs > end)
++				return -EPROTO;
++
++			/*
++			 * Skip to the start of the arguments and verify
++			 * that they all are in fact integers.
++			 */
++			for (i = 0; i < nargs; i++)
++				if (element[i].type != ACPI_TYPE_INTEGER)
++					return -EPROTO;
++		} else {
++			/* assume following integer elements are all args */
++			for (i = 0; element + i < end; i++) {
++				int type = element[i].type;
++
++				if (type == ACPI_TYPE_INTEGER)
++					nargs++;
++				else if (type == ACPI_TYPE_LOCAL_REFERENCE)
++					break;
++				else
++					return -EPROTO;
++			}
++		}
++
++		if (idx++ == index) {
++			args->adev = device;
++			args->nargs = nargs;
++			for (i = 0; i < nargs; i++)
++				args->args[i] = element[i].integer.value;
++
++			return 0;
++		}
++
++		element += nargs;
++	}
++
++	return -EPROTO;
++}
++EXPORT_SYMBOL_GPL(acpi_dev_get_property_reference);
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -884,6 +884,7 @@ static void acpi_device_release(struct d
+ {
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
  
--static struct gpio_chip sch_gpio_resume = {
--	.label			= "sch_gpio_resume",
-+static struct gpio_chip sch_gpio_chip = {
-+	.label			= "sch_gpio",
- 	.owner			= THIS_MODULE,
--	.direction_input	= sch_gpio_resume_direction_in,
--	.get			= sch_gpio_resume_get,
--	.direction_output	= sch_gpio_resume_direction_out,
--	.set			= sch_gpio_resume_set,
-+	.direction_input	= sch_gpio_direction_in,
-+	.get			= sch_gpio_get,
-+	.direction_output	= sch_gpio_direction_out,
-+	.set			= sch_gpio_set,
++	acpi_free_properties(acpi_dev);
+ 	acpi_free_pnp_ids(&acpi_dev->pnp);
+ 	acpi_free_power_resources_lists(acpi_dev);
+ 	kfree(acpi_dev);
+@@ -1888,6 +1889,7 @@ void acpi_init_device_object(struct acpi
+ 	acpi_set_device_status(device, sta);
+ 	acpi_device_get_busid(device);
+ 	acpi_set_pnp_ids(handle, &device->pnp, type);
++	acpi_init_properties(device);
+ 	acpi_bus_get_flags(device);
+ 	device->flags.match_driver = false;
+ 	device->flags.initialized = true;
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -337,6 +337,12 @@ struct acpi_device_physical_node {
+ 	bool put_online:1;
  };
  
- static int sch_gpio_probe(struct platform_device *pdev)
- {
-+	struct sch_gpio *sch;
- 	struct resource *res;
--	int err, id;
- 
--	id = pdev->id;
--	if (!id)
--		return -ENODEV;
-+	sch = devm_kzalloc(&pdev->dev, sizeof(*sch), GFP_KERNEL);
-+	if (!sch)
-+		return -ENOMEM;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	if (!res)
- 		return -EBUSY;
- 
--	if (!request_region(res->start, resource_size(res), pdev->name))
-+	if (!devm_request_region(&pdev->dev, res->start, resource_size(res),
-+				 pdev->name))
- 		return -EBUSY;
- 
--	gpio_ba = res->start;
-+	spin_lock_init(&sch->lock);
-+	sch->iobase = res->start;
-+	sch->chip = sch_gpio_chip;
-+	sch->chip.label = dev_name(&pdev->dev);
-+	sch->chip.dev = &pdev->dev;
- 
--	switch (id) {
-+	switch (pdev->id) {
- 	case PCI_DEVICE_ID_INTEL_SCH_LPC:
--		sch_gpio_core.base = 0;
--		sch_gpio_core.ngpio = 10;
--		sch_gpio_resume.base = 10;
--		sch_gpio_resume.ngpio = 4;
-+		sch->core_base = 0;
-+		sch->resume_base = 10;
-+		sch->chip.ngpio = 14;
++/* ACPI Device Specific Data (_DSD) */
++struct acpi_device_data {
++	const union acpi_object *pointer;
++	const union acpi_object *properties;
++};
 +
- 		/*
- 		 * GPIO[6:0] enabled by default
- 		 * GPIO7 is configured by the CMC as SLPIOVR
- 		 * Enable GPIO[9:8] core powered gpios explicitly
- 		 */
--		outb(0x3, gpio_ba + CGEN + 1);
-+		sch_gpio_enable(sch, 8);
-+		sch_gpio_enable(sch, 9);
- 		/*
- 		 * SUS_GPIO[2:0] enabled by default
- 		 * Enable SUS_GPIO3 resume powered gpio explicitly
- 		 */
--		outb(0x8, gpio_ba + RGEN);
-+		sch_gpio_enable(sch, 13);
- 		break;
+ /* Device */
+ struct acpi_device {
+ 	int device_type;
+@@ -353,6 +359,7 @@ struct acpi_device {
+ 	struct acpi_device_wakeup wakeup;
+ 	struct acpi_device_perf performance;
+ 	struct acpi_device_dir dir;
++	struct acpi_device_data data;
+ 	struct acpi_scan_handler *handler;
+ 	struct acpi_hotplug_context *hp;
+ 	struct acpi_driver *driver;
+Index: linux-pm/include/linux/acpi.h
+===================================================================
+--- linux-pm.orig/include/linux/acpi.h
++++ linux-pm/include/linux/acpi.h
+@@ -658,4 +658,44 @@ do {									\
+ #endif
+ #endif
  
- 	case PCI_DEVICE_ID_INTEL_ITC_LPC:
--		sch_gpio_core.base = 0;
--		sch_gpio_core.ngpio = 5;
--		sch_gpio_resume.base = 5;
--		sch_gpio_resume.ngpio = 9;
-+		sch->core_base = 0;
-+		sch->resume_base = 5;
-+		sch->chip.ngpio = 14;
- 		break;
- 
- 	case PCI_DEVICE_ID_INTEL_CENTERTON_ILB:
--		sch_gpio_core.base = 0;
--		sch_gpio_core.ngpio = 21;
--		sch_gpio_resume.base = 21;
--		sch_gpio_resume.ngpio = 9;
-+		sch->core_base = 0;
-+		sch->resume_base = 21;
-+		sch->chip.ngpio = 30;
- 		break;
- 
- 	default:
--		err = -ENODEV;
--		goto err_sch_gpio_core;
-+		return -ENODEV;
- 	}
- 
--	sch_gpio_core.dev = &pdev->dev;
--	sch_gpio_resume.dev = &pdev->dev;
--
--	err = gpiochip_add(&sch_gpio_core);
--	if (err < 0)
--		goto err_sch_gpio_core;
-+	platform_set_drvdata(pdev, sch);
- 
--	err = gpiochip_add(&sch_gpio_resume);
--	if (err < 0)
--		goto err_sch_gpio_resume;
--
--	return 0;
--
--err_sch_gpio_resume:
--	gpiochip_remove(&sch_gpio_core);
--
--err_sch_gpio_core:
--	release_region(res->start, resource_size(res));
--	gpio_ba = 0;
--
--	return err;
-+	return gpiochip_add(&sch->chip);
- }
- 
- static int sch_gpio_remove(struct platform_device *pdev)
- {
--	struct resource *res;
--	if (gpio_ba) {
--
--		gpiochip_remove(&sch_gpio_core);
--		gpiochip_remove(&sch_gpio_resume);
--
--		res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--
--		release_region(res->start, resource_size(res));
--		gpio_ba = 0;
--	}
-+	struct sch_gpio *sch = platform_get_drvdata(pdev);
- 
-+	gpiochip_remove(&sch->chip);
- 	return 0;
- }
- 
--- 
-1.8.4.5
-
-
++/* Device properties */
++
++#define MAX_ACPI_REFERENCE_ARGS	8
++struct acpi_reference_args {
++	struct acpi_device *adev;
++	size_t nargs;
++	u64 args[MAX_ACPI_REFERENCE_ARGS];
++};
++
++#ifdef CONFIG_ACPI
++int acpi_dev_get_property(struct acpi_device *adev, const char *name,
++			  acpi_object_type type, const union acpi_object **obj);
++int acpi_dev_get_property_array(struct acpi_device *adev, const char *name,
++				acpi_object_type type,
++				const union acpi_object **obj);
++int acpi_dev_get_property_reference(struct acpi_device *adev, const char *name,
++				    const char *cells_name, size_t index,
++				    struct acpi_reference_args *args);
++#else
++static inline int acpi_dev_get_property(struct acpi_device *adev,
++					const char *name, acpi_object_type type,
++					const union acpi_object **obj)
++{
++	return -ENXIO;
++}
++static inline int acpi_dev_get_property_array(struct acpi_device *adev,
++					      const char *name,
++					      acpi_object_type type,
++					      const union acpi_object **obj)
++{
++	return -ENXIO;
++}
++static inline int acpi_dev_get_property_reference(struct acpi_device *adev,
++				const char *name, const char *cells_name,
++				size_t index, struct acpi_reference_args *args)
++{
++	return -ENXIO;
++}
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
