@@ -1,62 +1,47 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFT v2 01/24] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Tue, 30 Sep 2014 23:49:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1409302337130.4455@nanos>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com> <1411740145-30626-2-git-send-email-jiang.liu@linux.intel.com> <54294F1C.30606@huawei.com> <alpine.DEB.2.02.1409291707410.22082@ionos.tec.linutronix.de> <542A8C5E.3040901@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 3/3] toshiba_acpi: Change HCI/SCI functions return code type
+Date: Wed, 01 Oct 2014 03:58:34 +0200
+Message-ID: <2951962.6yqkWfcajp@vostro.rjw.lan>
+References: <1412044809-3366-1-git-send-email-coproscefalo@gmail.com> <1412044809-3366-4-git-send-email-coproscefalo@gmail.com> <20140930205814.GB47302@vmdeb7>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <542A8C5E.3040901@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Abel <wuyun.wu@huawei.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20140930205814.GB47302@vmdeb7>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Azael Avalos <coproscefalo@gmail.com>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Sep 2014, Abel wrote:
-> On 2014/9/29 23:53, Thomas Gleixner wrote:
-> What I suggest is something like:
-> 
-> for (iter = domain; iter; iter = iter->parent) {
-> 	ret = iter->ops->alloc(iter, virq, nr_irqs, arg);
-> 	if (ret < 0) {
-> 		mutex_unlock(&irq_domain_mutex);
-> 		goto out_free_irq_data;
-> 	}
-> }
-> 
-> in this way, the core infrastructure guarantees allocating down the
-> irqdomain hierarchy, and the implementers of domain_ops->alloc()
-> need not to call irq_domain_alloc_irqs_parent() any longer, just do
-> the things they have to.
-
-That makes sense. I misunderstood you then.
-
-> > So we cannot define upfront how deep an ack/mask/unmask/... has to be
-> > propagated down the chain. This needs a careful consideration in terms
-> > of functionality and we want to be able to do performance shortcuts as
-> > well.
+On Tuesday, September 30, 2014 01:58:14 PM Darren Hart wrote:
+> On Mon, Sep 29, 2014 at 08:40:09PM -0600, Azael Avalos wrote:
+> > Currently the HCI/SCI read/write functions are returning
+> > the status of the ACPI call and also assigning the
+> > returned value of the HCI/SCI function, however, only
+> > the HCI/SCI status is being checked.
 > > 
+> > This patch changes such functions, returning the value
+> > of the HCI/SCI function instead of the ACPI call status,
+> > eliminating one parameter, and returning something
+> > useful that indeed is being checked.
+> > 
+> > Signed-off-by: Azael Avalos <coproscefalo@gmail.com>
 > 
-> Yes, I got it. And one more thing I concerned is that when hierarchy
-> irqdomains is enabled, shouldn't the ack_parent() be called by default
-> by the irqchip->irq_ack() of each domain to ensure all the domains in
-> the delivery path ack this interrupt?
+> Cc linux-acpi
+> 
+> Rafael,
+> 
+> This follows a couple patches renaming interfaces and error codes. While
+> there is some information to be had in checking for ACPI specific errors, I
+> don't think it's significant to warrant asking Azael to go the other way and
+> check for them specifically and add errorcodes to the interface rather than
+> cleanup the functionality as it stands today and simplifiy the code as he does
+> here.
+> 
+> Any objection?
 
-In the pure theory of design, yes. But that will cause pointless
-overhead on particular systems.
+Nope.
 
-On a particular system the ack of the top level domain C, i.e. the one
-which is facing the device and is handled by the core irq flow
-handler, might be enough because B does not require an ack and A is
-implicitely acked by iret or some other magic instruction in the low
-level entry path. And because we know that C can only be on top of B
-and B is on top of A we want the flexibility to avoid going down the
-full chain for nothing in the interrupt hot path.
-
-So yes, in theory it should go down all levels, but in practice we
-dont want to enforce it :)
-
-Thanks,
-
-	tglx
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
