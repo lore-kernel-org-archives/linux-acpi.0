@@ -1,38 +1,108 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
-Date: Thu, 02 Oct 2014 16:55:56 +0200
-Message-ID: <2072038.Vir4futZot@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <3986527.L7rDZAb4g5@wuerfel> <20141002143809.GQ1786@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 02/15] Driver core: Unified device properties interface for platform firmware
+Date: Thu, 02 Oct 2014 18:50:05 +0200
+Message-ID: <3362983.vANcYgNxxP@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <4390403.PNxQqnBDGX@vostro.rjw.lan> <6092163.dWXI6rWTCu@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:63799 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752446AbaJBO4B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Oct 2014 10:56:01 -0400
-In-Reply-To: <20141002143809.GQ1786@lahna.fi.intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:58310 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751473AbaJBQaH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Oct 2014 12:30:07 -0400
+In-Reply-To: <6092163.dWXI6rWTCu@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Thursday 02 October 2014 17:38:09 Mika Westerberg wrote:
-> On Thu, Oct 02, 2014 at 04:29:03PM +0200, Arnd Bergmann wrote:
-> > Is this a limitation in the way that the AML syntax and compiler works,
-> > or is this a decision you made specifically for the _DSD syntax and that
-> > could still be changed if there is an overwhelming interest?
+On Thursday, October 02, 2014 09:46:29 AM Arnd Bergmann wrote:
+> On Thursday 02 October 2014 00:09:44 Rafael J. Wysocki wrote:
+> > On Wednesday, October 01, 2014 09:47:40 AM Arnd Bergmann wrote:
+> > > On Wednesday 01 October 2014 04:10:03 Rafael J. Wysocki wrote:
+> > > I still have my reservations against the child accessors, and would
+> > > like to hear what other people think. Passing a void pointer rather
+> > > than struct fw_dev_node has both advantages and disadvantages, and
+> > > I won't complain about either one if enough other people on the DT
+> > > side would like to see the addition of the child functions.
+> > 
+> > I actually would rather like to know if the people on the DT side have any
+> > problems with the child functions.
 > 
-> It is only limitation of the _DSD device property UUID specification and
-> our implementation. It can be changed if needed.
+> Sure, any kind of feedback would be helpful really. 
+> 
+> > Because, suppose that they wouldn't like those functions at all.  What are we
+> > supposed to do, then, honestly?  Add the whole DT vs ACPI logic to the leds-gpio
+> > and gpio_keys_polled drivers?  But these drivers have no reason whatsoever
+> > to include that.  Zero.
+> > 
+> > So suggestions welcome.
+> > 
+> > [BTW, In principle we also could use something like
+> > 
+> > typedef union dev_node {
+> > 	struct acpi_device *acpi_node;
+> > 	struct device_node *of_node;
+> > } dev_node_t;
+> > 
+> > instead of the (void *) for more type safety.  It still is useful to pass the
+> > parent pointer along with that, though.]
+> 
+> Yes, I'm not worried about the implementation details.
+> 
+> > > > Finally, device_for_each_child_node() is added for iterating over
+> > > > the children of the device description object associated with a
+> > > > given device.
+> > > > 
+> > > > The interface covers both ACPI and Device Trees.
+> > > > 
+> > > > This change set includes material from Mika Westerberg and Aaron Lu.
+> > > > 
+> > > 
+> > > Regarding device_for_each_child_node(), the syntax is inconsistent
+> > > with what we normally use, which can probably be changed. All of the
+> > > DT for_each_* helpers are macros that are used like
+> > > 
+> > > 	struct device *dev = ...;
+> > > 	void *child; /* iterator */
+> > > 
+> > > 	device_for_each_child_node(dev, child) {
+> > > 		u32 something;
+> > > 		device_child_property_read_u32(dev, child, "propname", &something);
+> > > 
+> > > 		do_something(dev, something);
+> > > 	}
+> > > 
+> > > If we get a consensus on having the child interfaces, I'd rather see
+> > > them done this way than with a callback pointer, for consistency
+> > > reasons.
+> > 
+> > That certainly is doable, although the resulting macro would generate a rather
+> > large chunk of code each time it is used.
+> 
+> 
+> #define device_for_each_child_node(dev, child) \
+> 	for (child = device_get_next_child_node(dev, NULL), child, \
+> 	     child = device_get_next_child_node(dev, child))
+> 
+> void *device_get_next_child_node(struct device *dev, void *child)
+> {
+> 	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+> 		return of_get_next_child(dev->of_node, child);
+> 	else if (IS_ENABLED(CONFIG_ACPI) && ...)
+> 		return acpi_get_next_child(dev, child);
+> 	return NULL;
+> }
+> 
+> Not any more code than what we have today for the DT-only case, and it's
+> really just a function call in a loop.
 
-Ok, I see. I think it would be nice if this could be changed in order
-to avoid having to copy the #xxx-cells and xxx-names properties from
-DT, by providing a more natural syntax.
+OK, I see what you mean.
 
-I'm not blaming you though if you don't want to go through the pain of
-updating the spec though, and I won't complain loudly if you don't.
+Now we have the if () on every iteration instead of just doing that once
+upfront.  Not a big deal I suppose, but slightly ugly to me.
 
-Maybe someone else has an opinion on the matter.
-
-	Arnd
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
