@@ -1,100 +1,69 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 02/15] Driver core: Unified device properties interface for platform firmware
-Date: Thu, 02 Oct 2014 09:46:29 +0200
-Message-ID: <6092163.dWXI6rWTCu@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <7365448.TlsV4zB2It@wuerfel> <4390403.PNxQqnBDGX@vostro.rjw.lan>
+Subject: Re: [PATCH 1/4] ata: ahci_platform: Add ACPI support for AMD Seattle SATA controller
+Date: Thu, 02 Oct 2014 10:39:18 +0200
+Message-ID: <4872185.h11DQxW6kP@wuerfel>
+References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com> <20140917012614.GA31214@srcf.ucam.org> <542C6FE9.10903@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:65487 "EHLO
+Received: from mout.kundenserver.de ([212.227.17.13]:62228 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbaJBHqh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Oct 2014 03:46:37 -0400
-In-Reply-To: <4390403.PNxQqnBDGX@vostro.rjw.lan>
+	with ESMTP id S1751319AbaJBIje (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Oct 2014 04:39:34 -0400
+In-Reply-To: <542C6FE9.10903@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, catalin.marinas@arm.com, will.deacon@arm.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, graeme.gregory@linaro.org, marc.zyngier@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, astone@redhat.com, grant.likely@linaro.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com, olof@lixom.net, jason@lakedaemon.net, "Duran, Leo" <leo.duran@amd.com>, Jon Masters <jcm@redhat.com>
 
-On Thursday 02 October 2014 00:09:44 Rafael J. Wysocki wrote:
-> On Wednesday, October 01, 2014 09:47:40 AM Arnd Bergmann wrote:
-> > On Wednesday 01 October 2014 04:10:03 Rafael J. Wysocki wrote:
-> > I still have my reservations against the child accessors, and would
-> > like to hear what other people think. Passing a void pointer rather
-> > than struct fw_dev_node has both advantages and disadvantages, and
-> > I won't complain about either one if enough other people on the DT
-> > side would like to see the addition of the child functions.
+On Wednesday 01 October 2014 16:19:37 Suravee Suthikulanit wrote:
+> On 9/16/2014 8:26 PM, Matthew Garrett wrote:
+> > On Mon, Sep 15, 2014 at 07:47:23PM -0500, suravee.suthikulpanit@amd.com wrote:
+> >> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> >>
+> >> This patch adds ACPI match table in ahci_platform. The table includes
+> >> the acpi_device_id to match AMD Seattle SATA controller with following
+> >> asl structure in DSDT:
+> >>
+> >>      Device (SATA0)
+> >>      {
+> >>        Name(_HID, "AMDI0600")        // Seattle AHSATA
+> >
+> > There really ought to be a well-defined PNPID for AHCI, so you can _HID
+> > to AMD and _CID to something generic. That way we won't have:
+> >
+> >> +#ifdef CONFIG_ATA_ACPI
+> >> +static const struct acpi_device_id ahci_acpi_match[] = {
+> >> +    { "AMDI0600", 0 }, /* AMD Seattle AHCI */
+> >> +    { },
+> >> +};
+> >
+> > utter sadness here. Really, please don't end up in a situation where we
+> > need to add device-specific IDs to a generic driver.
+> >
+> Matthew,
 > 
-> I actually would rather like to know if the people on the DT side have any
-> problems with the child functions.
-
-Sure, any kind of feedback would be helpful really. 
-
-> Because, suppose that they wouldn't like those functions at all.  What are we
-> supposed to do, then, honestly?  Add the whole DT vs ACPI logic to the leds-gpio
-> and gpio_keys_polled drivers?  But these drivers have no reason whatsoever
-> to include that.  Zero.
+> Currently, there is no _CID defined for generic AHCI. We will work on 
+> proposing one, and provide update patches for including the new ID.
 > 
-> So suggestions welcome.
-> 
-> [BTW, In principle we also could use something like
-> 
-> typedef union dev_node {
-> 	struct acpi_device *acpi_node;
-> 	struct device_node *of_node;
-> } dev_node_t;
-> 
-> instead of the (void *) for more type safety.  It still is useful to pass the
-> parent pointer along with that, though.]
 
-Yes, I'm not worried about the implementation details.
+I think part of the problem is that there is no specification for what
+an AHCI device should look like when it's not connected to a PCI
+bus, the AHCI document published by Intel just states:
 
-> > > Finally, device_for_each_child_node() is added for iterating over
-> > > the children of the device description object associated with a
-> > > given device.
-> > > 
-> > > The interface covers both ACPI and Device Trees.
-> > > 
-> > > This change set includes material from Mika Westerberg and Aaron Lu.
-> > > 
-> > 
-> > Regarding device_for_each_child_node(), the syntax is inconsistent
-> > with what we normally use, which can probably be changed. All of the
-> > DT for_each_* helpers are macros that are used like
-> > 
-> > 	struct device *dev = ...;
-> > 	void *child; /* iterator */
-> > 
-> > 	device_for_each_child_node(dev, child) {
-> > 		u32 something;
-> > 		device_child_property_read_u32(dev, child, "propname", &something);
-> > 
-> > 		do_something(dev, something);
-> > 	}
-> > 
-> > If we get a consensus on having the child interfaces, I'd rather see
-> > them done this way than with a callback pointer, for consistency
-> > reasons.
-> 
-> That certainly is doable, although the resulting macro would generate a rather
-> large chunk of code each time it is used.
+"AHCI is a PCI class device that acts as a data movement engine
+between system memory and Serial ATA devices."
 
+It also requires the PCI config space to have the PM capability
+registers and (optionally) the MSI capability registers.
+There are lots of chips we support in Linux with the ahci-platform
+driver, but they are not actually compliant because they cannot
+use the pmcap registers but instead typically rely on setting
+external clock/phy/regulator/pinctrl registers.
 
-#define device_for_each_child_node(dev, child) \
-	for (child = device_get_next_child_node(dev, NULL), child, \
-	     child = device_get_next_child_node(dev, child))
-
-void *device_get_next_child_node(struct device *dev, void *child)
-{
-	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
-		return of_get_next_child(dev->of_node, child);
-	else if (IS_ENABLED(CONFIG_ACPI) && ...)
-		return acpi_get_next_child(dev, child);
-	return NULL;
-}
-
-Not any more code than what we have today for the DT-only case, and it's
-really just a function call in a loop.
+The ARM SBSA document just requires any SATA controller to be AHCI
+compliant but does not explain what that means in the case where
+it's not a PCI device.
 
 	Arnd
