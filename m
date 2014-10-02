@@ -1,74 +1,57 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v3 02/15] Driver core: Unified device properties
- interface for platform firmware
-Date: Wed, 1 Oct 2014 17:03:25 -0700
-Message-ID: <20141002000325.GC17093@kroah.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1852462.V1jlbi8OPt@vostro.rjw.lan>
- <7184313.9OdTqVa2eQ@vostro.rjw.lan>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v5 07/11] mmc: sdio: Convert to
+ dev_pm_domain_attach|detach()
+Date: Wed, 1 Oct 2014 17:27:05 -0700
+Message-ID: <20141002002705.GA29177@dtor-ws>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org>
+ <1411151264-16245-8-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45596 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbaJBAEV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Oct 2014 20:04:21 -0400
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7184313.9OdTqVa2eQ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1411151264-16245-8-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>li
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Wed, Oct 01, 2014 at 04:10:03AM +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi Ulf,
+
+On Fri, Sep 19, 2014 at 08:27:40PM +0200, Ulf Hansson wrote:
+> Previously only the ACPI PM domain was supported by the sdio bus.
 > 
-> Add a uniform interface by which device drivers can request device
-> properties from the platform firmware by providing a property name
-> and the corresponding data type.  The purpose of it is to help to
-> write portable code that won't depend on any particular platform
-> firmware interface.
+> Let's convert to the common attach/detach functions for PM domains,
+> which currently means we are extending the support to include the
+> generic PM domain as well.
 > 
-> Three general helper functions, device_get_property(),
-> device_read_property() and device_read_property_array() are provided.
-> The first one allows the raw value of a given device property to be
-> accessed.  The remaining two allow the value of a numeric or string
-> property and multiple numeric or string values of one array
-> property to be acquired, respectively.  Static inline wrappers are also
-> provided for the various property data types that can be passed to
-> device_read_property() or device_read_property_array() for extra type
-> checking.
-> 
-> In addition to that, new generic routines are provided for retrieving
-> properties from device description objects in the platform firmware
-> in case a device driver needs/wants to access properties of a child
-> object of a given device object.  There are cases in which there is
-> no struct device representation of such child objects and this
-> additional API is useful then.  Again, three functions are provided,
-> device_get_child_property(), device_read_child_property(),
-> device_read_child_property_array(), in analogy with device_get_property(),
-> device_read_property() and device_read_property_array() described above,
-> respectively, along with static inline wrappers for all of the propery
-> data types that can be used.  For all of them, the first argument is
-> a struct device pointer to the parent device object and the second
-> argument is a (void *) pointer to the child description provided by
-> the platform firmware (either ACPI or FDT).
-> 
-> Finally, device_for_each_child_node() is added for iterating over
-> the children of the device description object associated with a
-> given device.
-> 
-> The interface covers both ACPI and Device Trees.
-> 
-> This change set includes material from Mika Westerberg and Aaron Lu.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: linux-mmc@vger.kernel.org
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> Reviewed-by: Kevin Hilman <khilman@linaro.org>
 > ---
+>  drivers/mmc/core/sdio_bus.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> Greg, please let me know if you're fine with this one.
+> diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
+> index 4fa8fef9..1df0fc6 100644
+> --- a/drivers/mmc/core/sdio_bus.c
+> +++ b/drivers/mmc/core/sdio_bus.c
+> @@ -315,7 +315,7 @@ int sdio_add_func(struct sdio_func *func)
+>  	ret = device_add(&func->dev);
+>  	if (ret == 0) {
+>  		sdio_func_set_present(func);
+> -		acpi_dev_pm_attach(&func->dev, false);
+> +		dev_pm_domain_attach(&func->dev, false);
 
-Looks good to me:
+Admittedly it is not brought in by your change, but I am a bit worried
+about this code. In all other busses we attach power domain to a device
+before probing it (and detach if probe fails). Why here we only attach
+it to power domain after adding the device to the bus? If driver for the
+function has already been loaded the probe() would run without device
+being attached to a power domain...
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Adding Aaron as he's the author of the original change.
+
+Thanks.
+
+-- 
+Dmitry
