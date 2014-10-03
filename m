@@ -1,39 +1,76 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v8 1/2] Mailbox: Add support for Platform Communication Channel
-Date: Thu, 2 Oct 2014 13:59:26 -0400
-Message-ID: <CAJ5Y-eZYK7+wKfmAJJmAqVZAFMoxDaH0DLR0p5_wPG+ft5x3yA@mail.gmail.com>
-References: <1412196373-7794-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1412196373-7794-2-git-send-email-ashwin.chaugule@linaro.org>
-	<20141002172530.GW4273@sirena.org.uk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for final 3.17
+Date: Fri, 3 Oct 2014 03:37:02 +0200
+Message-ID: <CAJZ5v0j0msewTyUSkgFPap03BtjCxmVQABg61X_QVR6u-QtXFg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:57694 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbaJBR71 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Oct 2014 13:59:27 -0400
-Received: by mail-wi0-f171.google.com with SMTP id em10so2264648wid.10
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Oct 2014 10:59:26 -0700 (PDT)
-In-Reply-To: <20141002172530.GW4273@sirena.org.uk>
+Received: from mail-qg0-f48.google.com ([209.85.192.48]:36999 "EHLO
+	mail-qg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751815AbaJCBhE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Oct 2014 21:37:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 2 October 2014 13:25, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, Oct 01, 2014 at 04:46:12PM -0400, Ashwin Chaugule wrote:
->> ACPI 5.0+ spec defines a generic mode of communication
->> between the OS and a platform such as the BMC. This medium
->> (PCC) is typically used by CPPC (ACPI CPU Performance management),
->> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
->> states).
->
-> Reviewed-by: Mark Brown <broonie@kernel.org>
+Hi Linus,
 
-Thanks for the quick turn Mark!
+Please pull from
 
-Arnd, Lv, since you both helped a lot as well, let me know if I can
-add your Reviewed-by tags to this patch set.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.17-final
 
-Thanks,
-Ashwin
+to receive ACPI and power management fixes for final v3.17
+with top-most commit abcadddc85a4c9595b0a5ede34f2ee876fe4155f
+
+ Merge branches 'pm-cpufreq' and 'acpi-video'
+
+on top of commit fe82dcec644244676d55a1384c958d5f67979adb
+
+ Linux 3.17-rc7
+
+These are three regression fixes (cpufreq core, pcc-cpufreq,
+i915 / ACPI) and one trivial fix for a callback return value
+mismatch in the cpufreq integrator driver.
+
+Specifics:
+
+ - A recent cpufreq core fix went too far and introduced a regression
+   in the system suspend code path.  Fix from Viresh Kumar.
+
+ - An ACPI-related commit in the i915 driver that fixed backlight
+   problems for some Thinkpads inadvertently broke a Dell machine
+   (in 3.16).  Fix from Aaron Lu.
+
+ - The pcc-cpufreq driver was broken during the 3.15 cycle by a
+   commit that put wait_event() under a spinlock by mistake.  Fix
+   that (Rafael J Wysocki).
+
+ - The return value type of integrator_cpufreq_remove() is void, but
+   should be int.  Fix from Arnd Bergmann.
+
+Thanks!
+
+---------------
+
+Aaron Lu (1):
+      ACPI / i915: Update the condition to ignore firmware backlight
+change request
+
+Arnd Bergmann (1):
+      cpufreq: integrator: fix integrator_cpufreq_remove return type
+
+Rafael J. Wysocki (1):
+      cpufreq: pcc-cpufreq: Fix wait_event() under spinlock
+
+Viresh Kumar (1):
+      cpufreq: update 'cpufreq_suspended' after stopping governors
+
+---------------
+
+ drivers/cpufreq/cpufreq.c             |  7 ++++---
+ drivers/cpufreq/integrator-cpufreq.c  |  4 ++--
+ drivers/cpufreq/pcc-cpufreq.c         |  2 +-
+ drivers/gpu/drm/i915/intel_opregion.c | 16 +++++++++++-----
+ 4 files changed, 18 insertions(+), 11 deletions(-)
