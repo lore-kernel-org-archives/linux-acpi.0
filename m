@@ -1,70 +1,88 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v3 03/15] ACPI: Allow drivers to match using Device Tree
- compatible property
-Date: Fri, 3 Oct 2014 10:59:10 -0700
-Message-ID: <20141003175910.GB7507@dtor-ws>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1852462.V1jlbi8OPt@vostro.rjw.lan>
- <3582127.hCPY12ZqpT@vostro.rjw.lan>
- <20141003134303.GK26643@leverpostej>
+From: Thomas Richter <thor@math.tu-berlin.de>
+Subject: [Patch] Fujitsu extra buttons not working on S6010
+Date: Fri, 03 Oct 2014 21:42:08 +0200
+Message-ID: <542EFC10.7020508@math.tu-berlin.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:37858 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290AbaJCR7P (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Oct 2014 13:59:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20141003134303.GK26643@leverpostej>
+Received: from mail.alumni.tu-berlin.de ([130.149.5.29]:43171 "EHLO
+	mail-2.alumni.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751372AbaJCT6s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Oct 2014 15:58:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+To: tianyu.lan@intel.com, paul.s.diefenbaugh@intel.com, jun.nakajima@intel.com, gjohnson@austin.ibm.com, lenb@kernel.org, rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-On Fri, Oct 03, 2014 at 02:43:03PM +0100, Mark Rutland wrote:
-> Hi Rafael,
-> 
-> On Wed, Oct 01, 2014 at 03:10:40AM +0100, Rafael J. Wysocki wrote:
-> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > 
-> > We have lots of existing Device Tree enabled drivers and allocating
-> > separate _HID for each is not feasible. Instead we allocate special
-> > _HID "PRP0001" that means that the match should be done using Device
-> > Tree compatible property using driver's .of_match_table instead.
-> 
-> That's hopefully not the precise meaning of "PRP0001" unless we're
-> attempting no semblance of OS independence here?
-> 
-> I'm still of the opinion that marrying ACPI to existing (and often
-> ill-defined) DT bindings is a bad idea. While it's expedient, I believe
-> this is going to be a long-term maintenance nightmare.
-> 
-> I'm very concerned with the prospect of model mismatch between the two
-> (e.g. DT clocks properties where ACPI has traditionally been in charge
-> of clock management). I've not seen any high-level guidelines w.r.t.
-> what should live in _DSD properties and what should not (at least not in
-> the ACPI spec itself). There are almost certainly properties that only
-> make sense if !ACPI, and likely there will be some that only make sense
-> if ACPI.
-> 
-> So I think that in its current level of standardisation, _DSD only makes
-> sense for simple device properties, and not relationships between
-> devices, except where ACPI already has some kind of a model (which
-> currently seems to cover interrupts and GPIOs). I'd also hope that we
-> could expose a 'clean' subset of DT bidnings (i.e. those which aren't
-> known to be kept around only for compatibility with legacy DTBs).
-> 
-> I do not believe it makes sense to share such a low-level interface.
-> Given the aforementioned model differences, and the fact that we don't
-> need to support _every_ device tree binding, I don't see why this can't
-> be handled with separate probe paths in the drivers we care about (as we
-> already do for DT vs platform data).
+Dear experts,
 
-Because as a driver writer I do not want to implement N+1 ways of
-getting device configuration. I want one API that works independently of
-the underlying platform. The DT vs platform data is bad enough already.
+following the bug report on bugzilla
 
-Thanks.
+https://bugzilla.kernel.org/show_bug.cgi?id=84381
 
--- 
-Dmitry
+the extra buttons (ACPI-driven buttons) on the R31 laptop do not work 
+since kernel 3.17.0.
+Kernel 3.16.x worked fine. The same problem (or at least a very similar 
+problem) exists
+on the Fujitsu-S6010 laptop.
+
+After debugging for a while, the culprit seems to be in 
+arch/x86/kernel/acpi/boot.c, in specific
+in acpi_gsi_to_irq(). The following changes fix this problem for at 
+least the S6010:
+
+static unsigned int gsi_to_irq(unsigned int gsi)
+{
+	unsigned int irq = gsi + NR_IRQS_LEGACY;
+	unsigned int i;
+
+	for (i = 0; i<  NR_IRQS_LEGACY; i++) {
+		if (isa_irq_to_gsi[i] == gsi) {
+			return i;
+		}
+	}
+
+	/* Provide an identity mapping of gsi == irq
+	 * except on truly weird platforms that have
+	 * non isa irqs in the first 16 gsis.
+	 */
+	if (gsi>= NR_IRQS_LEGACY)
+		irq = gsi;
+	else
+		irq = gsi_top + gsi;
+
+	return irq;
+}
+/* THOR: Experimental end */
+
+int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
+{
+	int irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK);
+
+	if (irq>= 0) {
+		*irqp = irq;
+		return 0;
+	}
+
+	/* THOR: Experimental start */
+	irq = gsi_to_irq(gsi);
+	if (irq>= 0) {
+	  *irqp = irq;
+	  return 0;
+	}
+	/* THOR Experimental end */
+
+	return -1;
+}
+
+Whether this works on the R31 is yet to be determined.
+
+It would be great if you could integrate this patch into the next kernel release to get the laptop
+buttons working again. With this patch, both the ACPI-buttons as well as the backlight control
+device in sys/class/backlight/fujitsu-laptop works.
+
+Thanks,
+	Thomas
+
+
+
