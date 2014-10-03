@@ -1,69 +1,81 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
-Date: Fri, 3 Oct 2014 14:58:26 +0100
-Message-ID: <20141003135826.GN26643@leverpostej>
+Subject: Re: [PATCH v3 09/15] leds: leds-gpio: Make use of device property API
+Date: Fri, 3 Oct 2014 15:07:28 +0100
+Message-ID: <20141003140728.GO26643@leverpostej>
 References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <15893883.nvuW3ndylz@wuerfel>
- <20141002133654.GP1786@lahna.fi.intel.com>
- <26673925.fa6Qhdm5sV@vostro.rjw.lan>
+ <1852462.V1jlbi8OPt@vostro.rjw.lan>
+ <83082601.pjR7TmeO0m@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:64620 "EHLO
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:64776 "EHLO
 	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752469AbaJCN6b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Oct 2014 09:58:31 -0400
+	by vger.kernel.org with ESMTP id S1752498AbaJCOHd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Oct 2014 10:07:33 -0400
 Content-Disposition: inline
-In-Reply-To: <26673925.fa6Qhdm5sV@vostro.rjw.lan>
+In-Reply-To: <83082601.pjR7TmeO0m@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Fri, Oct 03, 2014 at 03:03:51AM +0100, Rafael J. Wysocki wrote:
-> On Thursday, October 02, 2014 04:36:54 PM Mika Westerberg wrote:
-> > On Thu, Oct 02, 2014 at 02:46:30PM +0200, Arnd Bergmann wrote:
-> > > On Thursday 02 October 2014 15:15:08 Mika Westerberg wrote:
+On Wed, Oct 01, 2014 at 03:16:25AM +0100, Rafael J. Wysocki wrote:
+> From: Max Eliaser <max@meliaserlow.dyndns.tv>
 > 
-> [cut]
+> Make use of device property API in this driver so that both OF and ACPI
+> based system can use the same driver.
 > 
-> > 
-> > Putting everything to a single package results this:
-> > 
-> > 		Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
-> > 
-> > But I think the below looks better:
+> Signed-off-by: Max Eliaser <max.eliaser@intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/leds/leds-gpio.c |   99 +++++++++++++++++++----------------------------
+>  1 file changed, 42 insertions(+), 57 deletions(-)
 > 
-> I agree.
-> 
-> > 		Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
-> > 		Package () { "pwm-names", Package () {"led-red", "led-green"}}
-> > 
-> > and it is trivial to match with the corresponding DT fragment.
-> > 
-> > > 	}
-> > > 
-> > > vs.
-> > > 
-> > > 	pwm-slave {
-> > > 		pwms = <&pwm0 0 10>, <&pwm1 1 20>;
-> > > 		pwm-names = "led-red", "led-green";
-> > > 	};
-> > > 
-> > 
-> > I don't have strong feelings which way it should be. The current
-> > implementation limits references so that you can have only integer
-> > arguments, like {ref0, int, int, ref1, int} but if people think it is
-> > better to allow strings there as well, it can be changed.
-> > 
-> > I would like to get comments from Darren and Rafael about this, though.
-> 
-> In my opinion there needs to be a "canonical" representation of the
-> binding that people always can expect to work.  It seems reasonable to
-> use the one exactly matching the DT representation for that.
+> Index: linux-pm/drivers/leds/leds-gpio.c
+> ===================================================================
+> --- linux-pm.orig/drivers/leds/leds-gpio.c
+> +++ linux-pm/drivers/leds/leds-gpio.c
+> @@ -15,13 +15,11 @@
+>  #include <linux/gpio.h>
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/leds.h>
+> -#include <linux/of.h>
+> -#include <linux/of_platform.h>
+> -#include <linux/of_gpio.h>
+>  #include <linux/slab.h>
+>  #include <linux/workqueue.h>
+>  #include <linux/module.h>
+>  #include <linux/err.h>
+> +#include <linux/property.h>
+>  
+>  struct gpio_led_data {
+>  	struct led_classdev cdev;
+> @@ -171,65 +169,59 @@ static inline int sizeof_gpio_leds_priv(
+>  		(sizeof(struct gpio_led_data) * num_leds);
+>  }
+>  
+> -/* Code to create from OpenFirmware platform devices */
+> -#ifdef CONFIG_OF_GPIO
+> -static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
+> +static int gpio_leds_create_led(struct device *dev, void *child, void *data)
+> +{
+> +	struct gpio_leds_priv *priv = data;
+> +	struct gpio_led led = {};
+> +	const char *state = NULL;
+> +
+> +	led.gpiod = devm_get_named_gpiod_from_child(dev, child, "gpios", 0);
+> +	if (IS_ERR(led.gpiod))
+> +		return PTR_ERR(led.gpiod);
+> +
+> +	device_child_property_read_string(dev, child, "label", &led.name);
+> +	device_child_property_read_string(dev, child, "linux,default-trigger",
+> +					  &led.default_trigger);
+> +
+> +	device_child_property_read_string(dev, child, "linux,default_state",
+> +					  &state);
 
-I don't follow. The two forms would share the same high-level accessors,
-but the binary representation is already different. Why should we choose
-the inferior layout given they are already different binary formats?
+Do we really want "linux," properties in ACPI tables?
 
+Thanks,
 Mark.
