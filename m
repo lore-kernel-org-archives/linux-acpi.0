@@ -1,66 +1,70 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
-Date: Fri, 03 Oct 2014 17:02:13 +0200
-Message-ID: <2784760.Rf0vOml5OQ@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2072038.Vir4futZot@wuerfel> <20141003135610.GM26643@leverpostej>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 03/15] ACPI: Allow drivers to match using Device Tree
+ compatible property
+Date: Fri, 3 Oct 2014 10:59:10 -0700
+Message-ID: <20141003175910.GB7507@dtor-ws>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1852462.V1jlbi8OPt@vostro.rjw.lan>
+ <3582127.hCPY12ZqpT@vostro.rjw.lan>
+ <20141003134303.GK26643@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:59855 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbaJCPC3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Oct 2014 11:02:29 -0400
-In-Reply-To: <20141003135610.GM26643@leverpostej>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:37858 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbaJCR7P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Oct 2014 13:59:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20141003134303.GK26643@leverpostej>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mark Rutland <mark.rutland@arm.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Friday 03 October 2014 14:56:10 Mark Rutland wrote:
-> On Thu, Oct 02, 2014 at 03:55:56PM +0100, Arnd Bergmann wrote:
-> > On Thursday 02 October 2014 17:38:09 Mika Westerberg wrote:
-> > > On Thu, Oct 02, 2014 at 04:29:03PM +0200, Arnd Bergmann wrote:
-> > > > Is this a limitation in the way that the AML syntax and compiler works,
-> > > > or is this a decision you made specifically for the _DSD syntax and that
-> > > > could still be changed if there is an overwhelming interest?
-> > > 
-> > > It is only limitation of the _DSD device property UUID specification and
-> > > our implementation. It can be changed if needed.
+On Fri, Oct 03, 2014 at 02:43:03PM +0100, Mark Rutland wrote:
+> Hi Rafael,
+> 
+> On Wed, Oct 01, 2014 at 03:10:40AM +0100, Rafael J. Wysocki wrote:
+> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
 > > 
-> > Ok, I see. I think it would be nice if this could be changed in order
-> > to avoid having to copy the #xxx-cells and xxx-names properties from
-> > DT, by providing a more natural syntax.
+> > We have lots of existing Device Tree enabled drivers and allocating
+> > separate _HID for each is not feasible. Instead we allocate special
+> > _HID "PRP0001" that means that the match should be done using Device
+> > Tree compatible property using driver's .of_match_table instead.
 > 
-> I'd certainly not like to see #foo-cells in _DSD given it should be
-> possible with a package to have a package description like the
-> following:
+> That's hopefully not the precise meaning of "PRP0001" unless we're
+> attempting no semblance of OS independence here?
 > 
->         Package () {
->                 Package () { ^ref1, data, data }, 
->                 Package () { ^ref2, dta, data, data },
->         }
+> I'm still of the opinion that marrying ACPI to existing (and often
+> ill-defined) DT bindings is a bad idea. While it's expedient, I believe
+> this is going to be a long-term maintenance nightmare.
 > 
-> Where the #foo-cells is implicit in each instance. That makes variadic
-> properties possible, and makes it possible to perform validation on each
-> tuple even in the binary format, which we can't do with a DTB
+> I'm very concerned with the prospect of model mismatch between the two
+> (e.g. DT clocks properties where ACPI has traditionally been in charge
+> of clock management). I've not seen any high-level guidelines w.r.t.
+> what should live in _DSD properties and what should not (at least not in
+> the ACPI spec itself). There are almost certainly properties that only
+> make sense if !ACPI, and likely there will be some that only make sense
+> if ACPI.
 > 
-> I'm not so sure on foo-names unless we made names an explicit
-> requirement from the start (which I wish was the case on the DT side).
-> Even then we might need other parallel properties anyway (think
-> clock-indicies).
+> So I think that in its current level of standardisation, _DSD only makes
+> sense for simple device properties, and not relationships between
+> devices, except where ACPI already has some kind of a model (which
+> currently seems to cover interrupts and GPIOs). I'd also hope that we
+> could expose a 'clean' subset of DT bidnings (i.e. those which aren't
+> known to be kept around only for compatibility with legacy DTBs).
+> 
+> I do not believe it makes sense to share such a low-level interface.
+> Given the aforementioned model differences, and the fact that we don't
+> need to support _every_ device tree binding, I don't see why this can't
+> be handled with separate probe paths in the drivers we care about (as we
+> already do for DT vs platform data).
 
-I suppose it might even be possible to define the ACPI references to
-have an optional string, so you can do
+Because as a driver writer I do not want to implement N+1 ways of
+getting device configuration. I want one API that works independently of
+the underlying platform. The DT vs platform data is bad enough already.
 
-         Package () {
-                 Package () { ^ref1, data, data }, 
-                 Package () { "foo", ^ref2, data, data, data },
-         }
+Thanks.
 
-The parser should be able to interpret both anonymous and named
-references just by looking at the type of the first member.
-You might not want to allow mixing them in a single property, but
-that is more a style question than a technical requirement.
-
-	Arnd
+-- 
+Dmitry
