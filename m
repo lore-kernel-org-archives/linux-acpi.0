@@ -1,70 +1,66 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
-Date: Sat, 04 Oct 2014 12:56:21 +0200
-Message-ID: <25153910.sxFpRXQ3aL@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2784760.Rf0vOml5OQ@wuerfel> <1817639.W8PYrU1iOP@vostro.rjw.lan>
+From: Kieran Clancy <clancy.kieran@gmail.com>
+Subject: [REGRESSION] ACPI / EC: Events not being cleared on Samsung series 9 laptop
+Date: Sat, 4 Oct 2014 20:28:14 +0930
+Message-ID: <CAGf84QKbuC7KNcG1GhUJyRktwekVg8HV7zLCv7wbx6qjjJXxSw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:62392 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751922AbaJDK4k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Oct 2014 06:56:40 -0400
-In-Reply-To: <1817639.W8PYrU1iOP@vostro.rjw.lan>
+Received: from mail-yk0-f175.google.com ([209.85.160.175]:40197 "EHLO
+	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727AbaJDK6p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Oct 2014 06:58:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mark Rutland <mark.rutland@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+To: "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>
 
-On Saturday 04 October 2014 01:58:30 Rafael J. Wysocki wrote:
-> On Friday, October 03, 2014 05:02:13 PM Arnd Bergmann wrote:
-> > On Friday 03 October 2014 14:56:10 Mark Rutland wrote:
-> > > On Thu, Oct 02, 2014 at 03:55:56PM +0100, Arnd Bergmann wrote:
-> > > I'd certainly not like to see #foo-cells in _DSD given it should be
-> > > possible with a package to have a package description like the
-> > > following:
-> > > 
-> > >         Package () {
-> > >                 Package () { ^ref1, data, data }, 
-> > >                 Package () { ^ref2, dta, data, data },
-> > >         }
-> > > 
-> > > Where the #foo-cells is implicit in each instance. That makes variadic
-> > > properties possible, and makes it possible to perform validation on each
-> > > tuple even in the binary format, which we can't do with a DTB
-> > > 
-> > > I'm not so sure on foo-names unless we made names an explicit
-> > > requirement from the start (which I wish was the case on the DT side).
-> > > Even then we might need other parallel properties anyway (think
-> > > clock-indicies).
-> > 
-> > I suppose it might even be possible to define the ACPI references to
-> > have an optional string, so you can do
-> > 
-> >          Package () {
-> >                  Package () { ^ref1, data, data }, 
-> >                  Package () { "foo", ^ref2, data, data, data },
-> >          }
-> > 
-> > The parser should be able to interpret both anonymous and named
-> > references just by looking at the type of the first member.
-> > You might not want to allow mixing them in a single property, but
-> > that is more a style question than a technical requirement.
-> 
-> Yes, that only is a matter of implementing the parser.
-> 
-> For now, it simply is easier for us to parse the
-> 
->         Package () { ^ref1, data, data }
-> 
-> format only, because we have functions for parsing lists of strings,
-> lists of numbers etc. for other purposes anyway and we can re-use them
-> for the names etc.  I don't see a reason why the parser cannot be extended in
-> the future to handle "all in one" packages, but not necessarily at the moment.
+Since updating to kernel 3.16.3 I have noticed that an old bug has
+returned where EC events like lid open/close and ambient light change
+are no longer being processed on my Samsung notebook (900X3C).
 
-It only really makes sense to do it that way though if it's used
-consistently, and all references do naming like this rather than
-the foo-names method.
+Most of this was previously documented in:
 
-	Arnd
+Samsung Series 9 np900x4b: ACPI does not seem to reflect charging/discharging...
+https://bugzilla.kernel.org/show_bug.cgi?id=44161
+
+A workaround was added to the kernel at the time:
+
+ad332c8a45330d170bb38b95209de449b31cd1b4
+ACPI / EC: Clear stale EC events on Samsung systems
+
+3eba563e280101209bad27d40bfc83ddf1489234
+ACPI / EC: Process rather than discard events in acpi_ec_clear
+
+That seemed to have solved the problem, but it seems that a recent
+change between
+
+66b42b78bc1e816f92b662e8888c89195e4199e1
+ACPI / EC: Avoid race condition related to advance_transaction()
+
+and
+
+558e4736f2e1b0e6323adf7a5e4df77ed6cfc1a4
+ACPI / EC: Add support to disallow QR_EC to be issued before
+completing previous QR_EC
+
+Has reintroduced this bug. I have not had time to fully test this
+myself, but someone else who noticed the same regression has now
+posted in the kernel bugzilla link above reporting that:
+
+> I've narrowed it down to the following commits:
+>
+> ACPI / EC: Add support to disallow QR_EC to be issued when SCI_EVT isn't set
+> 3afcf2ece453e1a8c2c6de19cdf06da3772a1b08
+>
+> ACPI / EC: Add support to disallow QR_EC to be issued before completing previous QR_EC
+> 558e4736f2e1b0e6323adf7a5e4df77ed6cfc1a4
+>
+> On 3.17rc7, reverting the latter seems to solve the issue for acpi events related to
+> the power supply, however LID switch is still broken.
+> Reverting both seems to resolve the issue completely.
+
+Can anyone (Lv Zheng) think of why these patches have caused this
+issue on this hardware? Maybe we need to modify the patches above to
+do something different in case EC_FLAGS_CLEAR_ON_RESUME is set?
+
+Regards,
+Kieran Clancy
