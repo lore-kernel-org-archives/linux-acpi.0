@@ -1,66 +1,71 @@
-From: Kieran Clancy <clancy.kieran@gmail.com>
-Subject: [REGRESSION] ACPI / EC: Events not being cleared on Samsung series 9 laptop
-Date: Sat, 4 Oct 2014 20:28:14 +0930
-Message-ID: <CAGf84QKbuC7KNcG1GhUJyRktwekVg8HV7zLCv7wbx6qjjJXxSw@mail.gmail.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
+Date: Sat, 04 Oct 2014 12:59:59 +0200
+Message-ID: <8634377.yRllsv0gms@wuerfel>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20141003143547.GP26643@leverpostej> <6568619.UkU5qISONv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f175.google.com ([209.85.160.175]:40197 "EHLO
-	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727AbaJDK6p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Oct 2014 06:58:45 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6568619.UkU5qISONv-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-kernel@vger kernel org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>
 
-Since updating to kernel 3.16.3 I have noticed that an old bug has
-returned where EC events like lid open/close and ambient light change
-are no longer being processed on my Samsung notebook (900X3C).
+On Saturday 04 October 2014 02:13:23 Rafael J. Wysocki wrote:
+> > Because people get the format wrong regardless of documentation. The
+> > format:
+> > 
+> > Package () {
+> >       Package () { ^ref1, data, data },
+> >       Package () { ^ref2, data },
+> >       Package () { ^ref3, data, data, data },
+> > }
+> > 
+> > Is superior to the format:
+> > 
+> > Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
+> > 
+> > Because in the former you have delimiters that can be used to verify
+> > each tuple. Imagine someone misses a data element for one of these
+> > tuples. In the former layout you can detect this easily while in the
+> > latter you cannot.
+> 
+> I agree with this particular thing (although other people seem to have
+> problems with too many package nesting levels) but I'm not sure what that
+> has to do with the example given above (let me quote again):
+> 
+> > Putting everything to a single package results this:
+> > 
+> >       Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
+> > 
+> > But I think the below looks better:
+> > 
+> >       Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
+> >       Package () { "pwm-names", Package () {"led-red", "led-green"}}
+> > 
+> > and it is trivial to match with the corresponding DT fragment.
+> 
+> that I was commenting.  Both cases contains the
+> 
+>         Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
+> 
+> format that you don't like, don't they?
+> 
 
-Most of this was previously documented in:
+There are two independent issues:
 
-Samsung Series 9 np900x4b: ACPI does not seem to reflect charging/discharging...
-https://bugzilla.kernel.org/show_bug.cgi?id=44161
+a) avoiding the need for "pwm-names" by embedding the name in the
+   "pwms" property
 
-A workaround was added to the kernel at the time:
+b) avoiding the need for "#pwm-cells" by having explicit separators between
+   entries in a "pwms" property.
 
-ad332c8a45330d170bb38b95209de449b31cd1b4
-ACPI / EC: Clear stale EC events on Samsung systems
+It would be possible to do one but not the other.
 
-3eba563e280101209bad27d40bfc83ddf1489234
-ACPI / EC: Process rather than discard events in acpi_ec_clear
-
-That seemed to have solved the problem, but it seems that a recent
-change between
-
-66b42b78bc1e816f92b662e8888c89195e4199e1
-ACPI / EC: Avoid race condition related to advance_transaction()
-
-and
-
-558e4736f2e1b0e6323adf7a5e4df77ed6cfc1a4
-ACPI / EC: Add support to disallow QR_EC to be issued before
-completing previous QR_EC
-
-Has reintroduced this bug. I have not had time to fully test this
-myself, but someone else who noticed the same regression has now
-posted in the kernel bugzilla link above reporting that:
-
-> I've narrowed it down to the following commits:
->
-> ACPI / EC: Add support to disallow QR_EC to be issued when SCI_EVT isn't set
-> 3afcf2ece453e1a8c2c6de19cdf06da3772a1b08
->
-> ACPI / EC: Add support to disallow QR_EC to be issued before completing previous QR_EC
-> 558e4736f2e1b0e6323adf7a5e4df77ed6cfc1a4
->
-> On 3.17rc7, reverting the latter seems to solve the issue for acpi events related to
-> the power supply, however LID switch is still broken.
-> Reverting both seems to resolve the issue completely.
-
-Can anyone (Lv Zheng) think of why these patches have caused this
-issue on this hardware? Maybe we need to modify the patches above to
-do something different in case EC_FLAGS_CLEAR_ON_RESUME is set?
-
-Regards,
-Kieran Clancy
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
