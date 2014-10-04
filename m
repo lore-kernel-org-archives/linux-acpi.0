@@ -1,129 +1,86 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
-Date: Sat, 04 Oct 2014 02:13:23 +0200
-Message-ID: <6568619.UkU5qISONv@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <7198018.2Bqkjlecz2@vostro.rjw.lan> <20141003143547.GP26643@leverpostej>
+Date: Sat, 04 Oct 2014 02:16:24 +0200
+Message-ID: <9976166.0Y4SbhjXQK@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20141002121508.GM1786@lahna.fi.intel.com> <20141003134849.GL26643@leverpostej>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141003143547.GP26643@leverpostej>
+In-Reply-To: <20141003134849.GL26643@leverpostej>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Rutland <mark.rutland@arm.com>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 03, 2014 03:35:47 PM Mark Rutland wrote:
-> On Fri, Oct 03, 2014 at 03:38:49PM +0100, Rafael J. Wysocki wrote:
-> > On Friday, October 03, 2014 02:58:26 PM Mark Rutland wrote:
-> > > On Fri, Oct 03, 2014 at 03:03:51AM +0100, Rafael J. Wysocki wrote:
-> > > > On Thursday, October 02, 2014 04:36:54 PM Mika Westerberg wrote:
-> > > > > On Thu, Oct 02, 2014 at 02:46:30PM +0200, Arnd Bergmann wrote:
-> > > > > > On Thursday 02 October 2014 15:15:08 Mika Westerberg wrote:
+On Friday, October 03, 2014 02:48:49 PM Mark Rutland wrote:
+> On Thu, Oct 02, 2014 at 01:15:08PM +0100, Mika Westerberg wrote:
+> > On Thu, Oct 02, 2014 at 01:51:24PM +0200, Arnd Bergmann wrote:
+> > > On Thursday 02 October 2014 13:41:23 Mika Westerberg wrote:
+> > > > On Wed, Oct 01, 2014 at 09:59:14AM +0200, Arnd Bergmann wrote:
+> > > > > On Wednesday 01 October 2014 04:11:20 Rafael J. Wysocki wrote:
+> > > > > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
 > > > > 
-> > > > [cut]
+> > > > > > +The referenced ACPI device is returned in args->adev if found.
+> > > > > > +
+> > > > > > +In addition to simple object references it is also possible to have object
+> > > > > > +references with arguments. These are represented in ASL as follows:
+> > > > > > +
+> > > > > > +	Device (\_SB.PCI0.PWM)
+> > > > > > +	{
+> > > > > > +		Name (_DSD, Package () {
+> > > > > > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > > > > > +			Package () {
+> > > > > > +				Package () {"#pwm-cells", 2}
+> > > > > > +			}
+> > > > > > +		})
+> > > > > > +	}
+> > > > > > +
+> > > > > 
+> > > > > Similarly, the "#foo-cells" syntax is an artifact of the limitations of the
+> > > > > DT syntax, and I'd assume there would be a better way to encode this
+> > > > > in ACPI. Also, a "cell" in Open Firmware is defined as a big-endian
+> > > > > 32-bit value, which doesn't directly correspond to something in ACPI,
+> > > > > and the '#' character is an artifact of the use of the Forth language
+> > > > > in Open Firmware, which you also don't have here.
 > > > > 
-> > > > > 
-> > > > > Putting everything to a single package results this:
-> > > > > 
-> > > > > 		Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
-> > > > > 
-> > > > > But I think the below looks better:
+> > > > Same here, we tried to make it follow closely the DT description. It is
+> > > > probably not the best/optimal encoding for ACPI but it is documented
+> > > > well in Documentation/devicetree/bindings so why not use it.
 > > > > 
-> > > > I agree.
+> > > > The summary email from Darren at KS also mentions that for the existing
+> > > > drivers, the existing schemas should be common for both implementations [1].
 > > > > 
-> > > > > 		Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
-> > > > > 		Package () { "pwm-names", Package () {"led-red", "led-green"}}
-> > > > > 
-> > > > > and it is trivial to match with the corresponding DT fragment.
-> > > > > 
-> > > > > > 	}
-> > > > > > 
-> > > > > > vs.
-> > > > > > 
-> > > > > > 	pwm-slave {
-> > > > > > 		pwms = <&pwm0 0 10>, <&pwm1 1 20>;
-> > > > > > 		pwm-names = "led-red", "led-green";
-> > > > > > 	};
-> > > > > > 
-> > > > > 
-> > > > > I don't have strong feelings which way it should be. The current
-> > > > > implementation limits references so that you can have only integer
-> > > > > arguments, like {ref0, int, int, ref1, int} but if people think it is
-> > > > > better to allow strings there as well, it can be changed.
-> > > > > 
-> > > > > I would like to get comments from Darren and Rafael about this, though.
+> > > > For new bindings we probably should look out if they can be better
+> > > > represented using ACPI types.
 > > > > 
-> > > > In my opinion there needs to be a "canonical" representation of the
-> > > > binding that people always can expect to work.  It seems reasonable to
-> > > > use the one exactly matching the DT representation for that.
+> > > > [1] http://lwn.net/Articles/609373/
 > > > 
-> > > I don't follow. The two forms would share the same high-level accessors,
-> > > but the binary representation is already different. Why should we choose
-> > > the inferior layout given they are already different binary formats?
+> > > I thought when we had discussed the subsystem specific bindings, the
+> > > consensus there was to have subsystem specific accessors and
+> > > properties/tables.
+> > > 
+> > > I would argue that for everything that ACPI already has (interrupts,
+> > > registers, gpio, dmaengine, ...) the native method should be used,
+> > > possibly using _DSD to provide naming for otherwise anonymous references.
 > > 
-> > Well, why is it inferior in the first place?  It represents the same information
-> > and I'm not sure why the binary formats matter here?
+> > Absolutely. That's precisely what we do in the GPIO patch of this
+> > series. E.g we use ACPI GpioIo/GpioInt _CRS resources but give name to
+> > the GPIOs with the help of _DSD.
+> > 
+> > For things that don't have correspondence in ACPI but have well defined
+> > existing DT schema, like PWMs, we should follow that.
 > 
-> Because people get the format wrong regardless of documentation. The
-> format:
-> 
-> Package () {
-> 	Package () { ^ref1, data, data },
-> 	Package () { ^ref2, data },
-> 	Package () { ^ref3, data, data, data },
-> }
-> 
-> Is superior to the format:
-> 
-> Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
-> 
-> Because in the former you have delimiters that can be used to verify
-> each tuple. Imagine someone misses a data element for one of these
-> tuples. In the former layout you can detect this easily while in the
-> latter you cannot.
+> I'm rather concerned that while that's expedient for us, that's going to
+> end up in the creation of Linux-only ACPI tables. If any other OS vendor
+> decides they need to model this information and doesn't wnat to pick up
+> Linux _DSD bindings, what happens if they try to get an explicit object
+> model defined in ACPI for those objects?
 
-I agree with this particular thing (although other people seem to have
-problems with too many package nesting levels) but I'm not sure what that
-has to do with the example given above (let me quote again):
+That depends on whether or not systems with that model show up in the market.
+If they do, we will do our best to support them.
 
-> Putting everything to a single package results this:
-> 
-> 	Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
-> 
-> But I think the below looks better:
-> 
-> 	Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
-> 	Package () { "pwm-names", Package () {"led-red", "led-green"}}
-> 
-> and it is trivial to match with the corresponding DT fragment.
-
-that I was commenting.  Both cases contains the
-
-	Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
-
-format that you don't like, don't they?
-
-> Additionally, the former can represent variadic phandle/reference + args
-> formats, which the latter cannot. The DT pinctrl bindings look the way
-> they do because we can't represent variadic args in DT due to a lack of
-> delimiters.
-> 
-> You have the ability to embed structure in the binary format. Throwing
-> this away because it doesn't quite match DT does not to me sounds like
-> the right tradeoff.
-> 
-> > If I'm to create a _DSD with that information and have a DT template, it
-> > surely is easier to copy it exactly than to figure out how to resolve it
-> > to represent something I can actually put in there. 
-> 
-> Sure, you can put something together fast. However, that doesn't make it
-> necessarily better.
-> 
-> If you want to make reusing DT templates easier, why not just embed a
-> DTB and be done with it?
-
-Because that sucks?
+We do that for Apple already as much as we practically can.
 
 -- 
 I speak only for myself.
