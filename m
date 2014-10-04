@@ -1,68 +1,130 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v3 03/15] ACPI: Allow drivers to match using Device Tree compatible property
-Date: Sat, 04 Oct 2014 02:02:17 +0200
-Message-ID: <1573401.WKjUTvdzsT@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20141003134303.GK26643@leverpostej> <20141003175910.GB7507@dtor-ws>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
+Date: Sat, 04 Oct 2014 02:13:23 +0200
+Message-ID: <6568619.UkU5qISONv@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <7198018.2Bqkjlecz2@vostro.rjw.lan> <20141003143547.GP26643@leverpostej>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141003175910.GB7507@dtor-ws>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141003143547.GP26643@leverpostej>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, October 03, 2014 10:59:10 AM Dmitry Torokhov wrote:
-> On Fri, Oct 03, 2014 at 02:43:03PM +0100, Mark Rutland wrote:
-> > Hi Rafael,
-> > 
-> > On Wed, Oct 01, 2014 at 03:10:40AM +0100, Rafael J. Wysocki wrote:
-> > > From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+On Friday, October 03, 2014 03:35:47 PM Mark Rutland wrote:
+> On Fri, Oct 03, 2014 at 03:38:49PM +0100, Rafael J. Wysocki wrote:
+> > On Friday, October 03, 2014 02:58:26 PM Mark Rutland wrote:
+> > > On Fri, Oct 03, 2014 at 03:03:51AM +0100, Rafael J. Wysocki wrote:
+> > > > On Thursday, October 02, 2014 04:36:54 PM Mika Westerberg wrote:
+> > > > > On Thu, Oct 02, 2014 at 02:46:30PM +0200, Arnd Bergmann wrote:
+> > > > > > On Thursday 02 October 2014 15:15:08 Mika Westerberg wrote:
+> > > > 
+> > > > [cut]
+> > > > 
+> > > > > 
+> > > > > Putting everything to a single package results this:
+> > > > > 
+> > > > > 		Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
+> > > > > 
+> > > > > But I think the below looks better:
+> > > > 
+> > > > I agree.
+> > > > 
+> > > > > 		Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
+> > > > > 		Package () { "pwm-names", Package () {"led-red", "led-green"}}
+> > > > > 
+> > > > > and it is trivial to match with the corresponding DT fragment.
+> > > > > 
+> > > > > > 	}
+> > > > > > 
+> > > > > > vs.
+> > > > > > 
+> > > > > > 	pwm-slave {
+> > > > > > 		pwms = <&pwm0 0 10>, <&pwm1 1 20>;
+> > > > > > 		pwm-names = "led-red", "led-green";
+> > > > > > 	};
+> > > > > > 
+> > > > > 
+> > > > > I don't have strong feelings which way it should be. The current
+> > > > > implementation limits references so that you can have only integer
+> > > > > arguments, like {ref0, int, int, ref1, int} but if people think it is
+> > > > > better to allow strings there as well, it can be changed.
+> > > > > 
+> > > > > I would like to get comments from Darren and Rafael about this, though.
+> > > > 
+> > > > In my opinion there needs to be a "canonical" representation of the
+> > > > binding that people always can expect to work.  It seems reasonable to
+> > > > use the one exactly matching the DT representation for that.
 > > > 
-> > > We have lots of existing Device Tree enabled drivers and allocating
-> > > separate _HID for each is not feasible. Instead we allocate special
-> > > _HID "PRP0001" that means that the match should be done using Device
-> > > Tree compatible property using driver's .of_match_table instead.
+> > > I don't follow. The two forms would share the same high-level accessors,
+> > > but the binary representation is already different. Why should we choose
+> > > the inferior layout given they are already different binary formats?
 > > 
-> > That's hopefully not the precise meaning of "PRP0001" unless we're
-> > attempting no semblance of OS independence here?
-> > 
-> > I'm still of the opinion that marrying ACPI to existing (and often
-> > ill-defined) DT bindings is a bad idea. While it's expedient, I believe
-> > this is going to be a long-term maintenance nightmare.
-> > 
-> > I'm very concerned with the prospect of model mismatch between the two
-> > (e.g. DT clocks properties where ACPI has traditionally been in charge
-> > of clock management). I've not seen any high-level guidelines w.r.t.
-> > what should live in _DSD properties and what should not (at least not in
-> > the ACPI spec itself). There are almost certainly properties that only
-> > make sense if !ACPI, and likely there will be some that only make sense
-> > if ACPI.
-> > 
-> > So I think that in its current level of standardisation, _DSD only makes
-> > sense for simple device properties, and not relationships between
-> > devices, except where ACPI already has some kind of a model (which
-> > currently seems to cover interrupts and GPIOs). I'd also hope that we
-> > could expose a 'clean' subset of DT bidnings (i.e. those which aren't
-> > known to be kept around only for compatibility with legacy DTBs).
-> > 
-> > I do not believe it makes sense to share such a low-level interface.
-> > Given the aforementioned model differences, and the fact that we don't
-> > need to support _every_ device tree binding, I don't see why this can't
-> > be handled with separate probe paths in the drivers we care about (as we
-> > already do for DT vs platform data).
+> > Well, why is it inferior in the first place?  It represents the same information
+> > and I'm not sure why the binary formats matter here?
 > 
-> Because as a driver writer I do not want to implement N+1 ways of
-> getting device configuration. I want one API that works independently of
-> the underlying platform. The DT vs platform data is bad enough already.
+> Because people get the format wrong regardless of documentation. The
+> format:
+> 
+> Package () {
+> 	Package () { ^ref1, data, data },
+> 	Package () { ^ref2, data },
+> 	Package () { ^ref3, data, data, data },
+> }
+> 
+> Is superior to the format:
+> 
+> Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
+> 
+> Because in the former you have delimiters that can be used to verify
+> each tuple. Imagine someone misses a data element for one of these
+> tuples. In the former layout you can detect this easily while in the
+> latter you cannot.
 
-Well stated, thanks!
+I agree with this particular thing (although other people seem to have
+problems with too many package nesting levels) but I'm not sure what that
+has to do with the example given above (let me quote again):
+
+> Putting everything to a single package results this:
+> 
+> 	Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
+> 
+> But I think the below looks better:
+> 
+> 	Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
+> 	Package () { "pwm-names", Package () {"led-red", "led-green"}}
+> 
+> and it is trivial to match with the corresponding DT fragment.
+
+that I was commenting.  Both cases contains the
+
+	Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
+
+format that you don't like, don't they?
+
+> Additionally, the former can represent variadic phandle/reference + args
+> formats, which the latter cannot. The DT pinctrl bindings look the way
+> they do because we can't represent variadic args in DT due to a lack of
+> delimiters.
+> 
+> You have the ability to embed structure in the binary format. Throwing
+> this away because it doesn't quite match DT does not to me sounds like
+> the right tradeoff.
+> 
+> > If I'm to create a _DSD with that information and have a DT template, it
+> > surely is easier to copy it exactly than to figure out how to resolve it
+> > to represent something I can actually put in there. 
+> 
+> Sure, you can put something together fast. However, that doesn't make it
+> necessarily better.
+> 
+> If you want to make reusing DT templates easier, why not just embed a
+> DTB and be done with it?
+
+Because that sucks?
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
