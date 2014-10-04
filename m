@@ -1,81 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 09/15] leds: leds-gpio: Make use of device property API
-Date: Sat, 04 Oct 2014 02:18:10 +0200
-Message-ID: <3474649.PYuASxQ0V3@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <83082601.pjR7TmeO0m@vostro.rjw.lan> <20141003140728.GO26643@leverpostej>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
+Date: Sat, 04 Oct 2014 12:56:21 +0200
+Message-ID: <25153910.sxFpRXQ3aL@wuerfel>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <2784760.Rf0vOml5OQ@wuerfel> <1817639.W8PYrU1iOP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141003140728.GO26643@leverpostej>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.130]:62392 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922AbaJDK4k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Oct 2014 06:56:40 -0400
+In-Reply-To: <1817639.W8PYrU1iOP@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mark Rutland <mark.rutland@arm.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Friday, October 03, 2014 03:07:28 PM Mark Rutland wrote:
-> On Wed, Oct 01, 2014 at 03:16:25AM +0100, Rafael J. Wysocki wrote:
-> > From: Max Eliaser <max@meliaserlow.dyndns.tv>
+On Saturday 04 October 2014 01:58:30 Rafael J. Wysocki wrote:
+> On Friday, October 03, 2014 05:02:13 PM Arnd Bergmann wrote:
+> > On Friday 03 October 2014 14:56:10 Mark Rutland wrote:
+> > > On Thu, Oct 02, 2014 at 03:55:56PM +0100, Arnd Bergmann wrote:
+> > > I'd certainly not like to see #foo-cells in _DSD given it should be
+> > > possible with a package to have a package description like the
+> > > following:
+> > > 
+> > >         Package () {
+> > >                 Package () { ^ref1, data, data }, 
+> > >                 Package () { ^ref2, dta, data, data },
+> > >         }
+> > > 
+> > > Where the #foo-cells is implicit in each instance. That makes variadic
+> > > properties possible, and makes it possible to perform validation on each
+> > > tuple even in the binary format, which we can't do with a DTB
+> > > 
+> > > I'm not so sure on foo-names unless we made names an explicit
+> > > requirement from the start (which I wish was the case on the DT side).
+> > > Even then we might need other parallel properties anyway (think
+> > > clock-indicies).
 > > 
-> > Make use of device property API in this driver so that both OF and ACPI
-> > based system can use the same driver.
+> > I suppose it might even be possible to define the ACPI references to
+> > have an optional string, so you can do
 > > 
-> > Signed-off-by: Max Eliaser <max.eliaser@intel.com>
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/leds/leds-gpio.c |   99 +++++++++++++++++++----------------------------
-> >  1 file changed, 42 insertions(+), 57 deletions(-)
+> >          Package () {
+> >                  Package () { ^ref1, data, data }, 
+> >                  Package () { "foo", ^ref2, data, data, data },
+> >          }
 > > 
-> > Index: linux-pm/drivers/leds/leds-gpio.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/leds/leds-gpio.c
-> > +++ linux-pm/drivers/leds/leds-gpio.c
-> > @@ -15,13 +15,11 @@
-> >  #include <linux/gpio.h>
-> >  #include <linux/gpio/consumer.h>
-> >  #include <linux/leds.h>
-> > -#include <linux/of.h>
-> > -#include <linux/of_platform.h>
-> > -#include <linux/of_gpio.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/workqueue.h>
-> >  #include <linux/module.h>
-> >  #include <linux/err.h>
-> > +#include <linux/property.h>
-> >  
-> >  struct gpio_led_data {
-> >  	struct led_classdev cdev;
-> > @@ -171,65 +169,59 @@ static inline int sizeof_gpio_leds_priv(
-> >  		(sizeof(struct gpio_led_data) * num_leds);
-> >  }
-> >  
-> > -/* Code to create from OpenFirmware platform devices */
-> > -#ifdef CONFIG_OF_GPIO
-> > -static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
-> > +static int gpio_leds_create_led(struct device *dev, void *child, void *data)
-> > +{
-> > +	struct gpio_leds_priv *priv = data;
-> > +	struct gpio_led led = {};
-> > +	const char *state = NULL;
-> > +
-> > +	led.gpiod = devm_get_named_gpiod_from_child(dev, child, "gpios", 0);
-> > +	if (IS_ERR(led.gpiod))
-> > +		return PTR_ERR(led.gpiod);
-> > +
-> > +	device_child_property_read_string(dev, child, "label", &led.name);
-> > +	device_child_property_read_string(dev, child, "linux,default-trigger",
-> > +					  &led.default_trigger);
-> > +
-> > +	device_child_property_read_string(dev, child, "linux,default_state",
-> > +					  &state);
+> > The parser should be able to interpret both anonymous and named
+> > references just by looking at the type of the first member.
+> > You might not want to allow mixing them in a single property, but
+> > that is more a style question than a technical requirement.
 > 
-> Do we really want "linux," properties in ACPI tables?
+> Yes, that only is a matter of implementing the parser.
+> 
+> For now, it simply is easier for us to parse the
+> 
+>         Package () { ^ref1, data, data }
+> 
+> format only, because we have functions for parsing lists of strings,
+> lists of numbers etc. for other purposes anyway and we can re-use them
+> for the names etc.  I don't see a reason why the parser cannot be extended in
+> the future to handle "all in one" packages, but not necessarily at the moment.
 
-Yes, we do.
+It only really makes sense to do it that way though if it's used
+consistently, and all references do naming like this rather than
+the foo-names method.
 
-"linux" here need not mean this is Linux-specific.
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+	Arnd
