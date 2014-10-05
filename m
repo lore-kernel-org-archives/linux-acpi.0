@@ -1,71 +1,57 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v3 04/15] ACPI: Document ACPI device specific properties
-Date: Sat, 04 Oct 2014 12:59:59 +0200
-Message-ID: <8634377.yRllsv0gms@wuerfel>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20141003143547.GP26643@leverpostej> <6568619.UkU5qISONv@vostro.rjw.lan>
+From: Alexandre Courbot <gnurou@gmail.com>
+Subject: Re: [PATCH v3 05/15] gpio / ACPI: Add support for _DSD device properties
+Date: Sun, 5 Oct 2014 19:36:04 +0900
+Message-ID: <CAAVeFuLH8mh_qo86Pyt+VqWwS16sqoPnYrpfmC4jMu-QdrfqtQ@mail.gmail.com>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1852462.V1jlbi8OPt@vostro.rjw.lan> <4786851.38d7sjpzag@vostro.rjw.lan> <5364540.jzXqjZX0yp@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6568619.UkU5qISONv-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:65046 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019AbaJEKgZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Oct 2014 06:36:25 -0400
+In-Reply-To: <5364540.jzXqjZX0yp@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Grant Likely <grant.likely@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Darren Hart <dvhart@linux.intel.com>
 
-On Saturday 04 October 2014 02:13:23 Rafael J. Wysocki wrote:
-> > Because people get the format wrong regardless of documentation. The
-> > format:
-> > 
-> > Package () {
-> >       Package () { ^ref1, data, data },
-> >       Package () { ^ref2, data },
-> >       Package () { ^ref3, data, data, data },
-> > }
-> > 
-> > Is superior to the format:
-> > 
-> > Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
-> > 
-> > Because in the former you have delimiters that can be used to verify
-> > each tuple. Imagine someone misses a data element for one of these
-> > tuples. In the former layout you can detect this easily while in the
-> > latter you cannot.
-> 
-> I agree with this particular thing (although other people seem to have
-> problems with too many package nesting levels) but I'm not sure what that
-> has to do with the example given above (let me quote again):
-> 
-> > Putting everything to a single package results this:
-> > 
-> >       Package () { "pwms", Package () {"led-red", ^PWM0, 0, 10, "led-green", ^PWM0, 1, 10 }}
-> > 
-> > But I think the below looks better:
-> > 
-> >       Package () { "pwms", Package () {^PWM0, 0, 10, ^PWM0, 1, 10 }}
-> >       Package () { "pwm-names", Package () {"led-red", "led-green"}}
-> > 
-> > and it is trivial to match with the corresponding DT fragment.
-> 
-> that I was commenting.  Both cases contains the
-> 
->         Package () { ^ref1, data, data, ^ref2, data, ^ref3, data, data, data }
-> 
-> format that you don't like, don't they?
-> 
+On Wed, Oct 1, 2014 at 5:03 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 01 October 2014 04:12:41 Rafael J. Wysocki wrote:
+>> +       static const char * const suffixes[] = { "gpios", "gpio" };
+>> +       struct acpi_device *adev = ACPI_COMPANION(dev);
+>>         struct acpi_gpio_info info;
+>>         struct gpio_desc *desc;
+>> +       char propname[32];
+>> +       int i;
+>>
+>> -       desc = acpi_get_gpiod_by_index(dev, idx, &info);
+>> -       if (IS_ERR(desc))
+>> -               return desc;
+>> +       /* Try first from _DSD */
+>> +       for (i = 0; i < ARRAY_SIZE(suffixes); i++) {
+>> +               if (con_id && strcmp(con_id, "gpios")) {
+>> +                       snprintf(propname, sizeof(propname), "%s-%s",
+>> +                                con_id, suffixes[i]);
+>> +               } else {
+>> +                       snprintf(propname, sizeof(propname), "%s",
+>> +                                suffixes[i]);
+>> +               }
+>
+> The general interface seems fine, but I'd be happier if you didn't
+> try to support all four of the possible syntaxes we have in DT.
+> It would be much better to have only "gpios" and not "gpio", and
+> the "foo-gpios" syntax should be replaced with whatever method you
+> use to name other subsystem specific links. For most subsystems
+> we now use something like "gpio-names", but unfortunately the GPIO
+> binding goes back to the time before we had come to that agreement.
+> The same applies to regulators.
 
-There are two independent issues:
+Wouldn't restricting the naming scheme cause problems for ACPI drivers
+that want to reuse existing DT bindings? Since DT bindings are set in
+stone, this means we would have to use different properties for DT and
+ACPI.
 
-a) avoiding the need for "pwm-names" by embedding the name in the
-   "pwms" property
-
-b) avoiding the need for "#pwm-cells" by having explicit separators between
-   entries in a "pwms" property.
-
-It would be possible to do one but not the other.
-
-	Arnd
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I agree that there are too much ways to define GPIOs, but I'm afraid
+we will have to carry them over for the sake of consistency.
