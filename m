@@ -1,41 +1,66 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 1/4] ata: ahci_platform: Add ACPI support for AMD Seattle
- SATA controller
-Date: Mon, 6 Oct 2014 19:47:25 +0100
-Message-ID: <20141006184725.GA1152@srcf.ucam.org>
-References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com>
- <2026795.jAP8HDLAZo@wuerfel>
- <20141006182153.GA31521@srcf.ucam.org>
- <2046349.jdtgG25KJR@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: minyard@acm.org
+Subject: [PATCH] Change ACPI IPMI support to "default y"
+Date: Mon,  6 Oct 2014 14:23:11 -0500
+Message-ID: <1412623391-1923-1-git-send-email-minyard@acm.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:53583 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036AbaJFSrh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 14:47:37 -0400
-Content-Disposition: inline
-In-Reply-To: <2046349.jdtgG25KJR@wuerfel>
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:49368 "EHLO
+	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809AbaJFTXi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 15:23:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, catalin.marinas@arm.com, will.deacon@arm.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, graeme.gregory@linaro.org, marc.zyngier@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, astone@redhat.com, grant.likely@linaro.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com, olof@lixom.net, jason@lakedaemon.net, "Duran, Leo" <leo.duran@amd.com>, Jon Masters <jcm@redhat.com>
+To: linux-acpi@vger.kernel.org
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, OpenIPMI Developers <openipmi-developer@lists.sourceforge.net>, Matthew Garrett <matthew.garrett@nebula.com>, Corey Minyard <cminyard@mvista.com>
 
-On Mon, Oct 06, 2014 at 08:44:35PM +0200, Arnd Bergmann wrote:
-> On Monday 06 October 2014 19:21:53 Matthew Garrett wrote:
-> > Unfortunately not. I'd assume that PM registers are expected to be 
-> > accessed via the _PS* methods instead. Does MSI make sense outside the 
-> > context of PCI interrupts?
-> 
-> Yes, the ARM GIC has a weird sense of what MSI is used for, and
-> apparently some SoC vendors have started using MSI by default for
-> all on-chip peripherals.
-> 
-> A patch series to extend MSI to platform devices is currently
-> under review.
+From: Matthew Garrett <matthew.garrett@nebula.com>
 
-Mm. Yeah, it doesn't seem like there's any ACPI-defined mechanism for 
-MSI control. Let's chat about this next week?
+The ACPI IPMI driver implements IPMI operation region support for the ACPI
+core. Systems that declare ACPI operation regions may reference them at any
+time, including during kernel initialisation. These accesses will fail
+unless the ACPI IPMI driver is present, and undesirable system behaviour
+may result. Set the default to Y in order to encourage distributions and
+users to configure kernels to avoid awkward surprises.
 
+Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+---
+ drivers/acpi/Kconfig      | 2 +-
+ drivers/char/ipmi/Kconfig | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index d0f3265..21d384d 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -176,7 +176,7 @@ config ACPI_PROCESSOR
+ config ACPI_IPMI
+ 	tristate "IPMI"
+ 	depends on IPMI_SI
+-	default n
++	default y
+ 	help
+ 	  This driver enables the ACPI to access the BMC controller. And it
+ 	  uses the IPMI request/response message to communicate with BMC
+diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
+index db1c9b7..e0d688a 100644
+--- a/drivers/char/ipmi/Kconfig
++++ b/drivers/char/ipmi/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig IPMI_HANDLER
+        tristate 'IPMI top-level message handler'
+        depends on HAS_IOMEM
++       default y if ACPI
+        help
+          This enables the central IPMI message handler, required for IPMI
+ 	 to work.
+@@ -45,6 +46,7 @@ config IPMI_DEVICE_INTERFACE
+ 
+ config IPMI_SI
+        tristate 'IPMI System Interface handler'
++       default y if ACPI
+        help
+          Provides a driver for System Interfaces (KCS, SMIC, BT).
+ 	 Currently, only KCS and SMIC are supported.  If
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.8.3.1
+
