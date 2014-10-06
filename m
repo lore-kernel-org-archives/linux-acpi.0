@@ -1,57 +1,38 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [RFC PATCH v2 01/16] ACPI: Add support for device specific
- properties
-Date: Mon, 06 Oct 2014 09:25:35 -0700
-Message-ID: <D058106C.ABC8C%dvhart@linux.intel.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
- <1410868367-11056-2-git-send-email-mika.westerberg@linux.intel.com>
- <20141006135021.0EB04C43FBE@trevor.secretlab.ca>
- <20141006143248.GE1583@lahna.fi.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 1/4] ata: ahci_platform: Add ACPI support for AMD Seattle
+ SATA controller
+Date: Mon, 6 Oct 2014 17:31:47 +0100
+Message-ID: <20141006163147.GA22482@srcf.ucam.org>
+References: <1410828446-28502-1-git-send-email-suravee.suthikulpanit@amd.com>
+ <20140917012614.GA31214@srcf.ucam.org>
+ <542C6FE9.10903@amd.com>
+ <4872185.h11DQxW6kP@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17905 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750888AbaJFQZc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Oct 2014 12:25:32 -0400
-In-Reply-To: <20141006143248.GE1583@lahna.fi.intel.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:52123 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842AbaJFQcE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 12:32:04 -0400
+Content-Disposition: inline
+In-Reply-To: <4872185.h11DQxW6kP@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Aaron Lu <aaron.lu@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, catalin.marinas@arm.com, will.deacon@arm.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, graeme.gregory@linaro.org, marc.zyngier@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, astone@redhat.com, grant.likely@linaro.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com, olof@lixom.net, jason@lakedaemon.net, "Duran, Leo" <leo.duran@amd.com>, Jon Masters <jcm@redhat.com>
 
-On 10/6/14, 7:32, "Mika Westerberg" <mika.westerberg@linux.intel.com>
-wrote:
+On Thu, Oct 02, 2014 at 10:39:18AM +0200, Arnd Bergmann wrote:
 
->On Mon, Oct 06, 2014 at 02:50:21PM +0100, Grant Likely wrote:
->>
->> > +/* ACPI _DSD device properties UUID:
->>daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
->> > +static const u8 prp_uuid[16] = {
->> > +	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
->> > +	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
->> > +};
->> 
->> ?
->> 
->> What is the encoding used here? I see the first 4 bytes for "daffd814"
->> encoded in little endian (0x14 first), and then the remaining values
->> encoded in big-endian for each number. Is this typical for UUID values?
->
->The buffer format is explained in ACPI 5.1 spec, page 823.
->
->I generated the above so that I compiled a _DSD with correct UUID using
->iASL and then disassambled it with the same tool.
->
+> I think part of the problem is that there is no specification for what
+> an AHCI device should look like when it's not connected to a PCI
+> bus, the AHCI document published by Intel just states:
 
-I bugged Mika with the same question, it's a fairly non-intuitive encoding
-:-)
+One thing that has come out of further discussion on this - ACPI defines 
+a _CLS object, which allows ACPI devices to declare compatibility with a 
+PCI class device. We don't have support for it at the moment, but it 
+would be easy enough to add this to the kernel and then just expose the 
+AHCI PCI class via _CLS. That would avoid us having problems with people 
+doing similar things with USB hosts.
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
-
-
-
+Matthew Garrett | mjg59@srcf.ucam.org
