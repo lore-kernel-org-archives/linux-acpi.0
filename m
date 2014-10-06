@@ -1,66 +1,97 @@
-From: minyard@acm.org
-Subject: [PATCH] Change ACPI IPMI support to "default y"
-Date: Mon,  6 Oct 2014 14:23:11 -0500
-Message-ID: <1412623391-1923-1-git-send-email-minyard@acm.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Patch] Fujitsu extra buttons not working on S6010
+Date: Tue, 07 Oct 2014 00:47:09 +0200
+Message-ID: <8031540.z3p2ny3Gns@vostro.rjw.lan>
+References: <29964_1412366647_542F0137_29964_4513_9_542EFC10.7020508@math.tu-berlin.de> <5432A957.2030205@math.tu-berlin.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:49368 "EHLO
-	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809AbaJFTXi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 15:23:38 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:62604 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751988AbaJFW1F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 18:27:05 -0400
+In-Reply-To: <5432A957.2030205@math.tu-berlin.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, OpenIPMI Developers <openipmi-developer@lists.sourceforge.net>, Matthew Garrett <matthew.garrett@nebula.com>, Corey Minyard <cminyard@mvista.com>
+To: Thomas Richter <thor@math.tu-berlin.de>
+Cc: tianyu.lan@intel.com, paul.s.diefenbaugh@intel.com, jun.nakajima@intel.com, gjohnson@austin.ibm.com, lenb@kernel.org, rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-From: Matthew Garrett <matthew.garrett@nebula.com>
+On Monday, October 06, 2014 04:38:15 PM Thomas Richter wrote:
+> Dear experts,
+> >
+> > following the bug report on bugzilla
+> >
+> > https://bugzilla.kernel.org/show_bug.cgi?id=84381
+> >
+> > the extra buttons (ACPI-driven buttons) on the R31 laptop do not work 
+> > since kernel 3.17.0.
+> > Kernel 3.16.x worked fine. The same problem (or at least a very 
+> > similar problem) exists
+> > on the Fujitsu-S6010 laptop.
+> >
+> > After debugging for a while, the culprit seems to be in 
+> > arch/x86/kernel/acpi/boot.c, in specific
+> > in acpi_gsi_to_irq(). The following changes fix this problem for at 
+> > least the S6010:
+> >
+> > static unsigned int gsi_to_irq(unsigned int gsi)
+> > {
+> >     unsigned int irq = gsi + NR_IRQS_LEGACY;
+> >     unsigned int i;
+> >
+> >     for (i = 0; i<  NR_IRQS_LEGACY; i++) {
+> >         if (isa_irq_to_gsi[i] == gsi) {
+> >             return i;
+> >         }
+> >     }
+> >
+> >     /* Provide an identity mapping of gsi == irq
+> >      * except on truly weird platforms that have
+> >      * non isa irqs in the first 16 gsis.
+> >      */
+> >     if (gsi>= NR_IRQS_LEGACY)
+> >         irq = gsi;
+> >     else
+> >         irq = gsi_top + gsi;
+> >
+> >     return irq;
+> > }
+> > /* THOR: Experimental end */
+> >
+> > int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
+> > {
+> >     int irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | 
+> > IOAPIC_MAP_CHECK);
+> >
+> >     if (irq>= 0) {
+> >         *irqp = irq;
+> >         return 0;
+> >     }
+> >
+> >     /* THOR: Experimental start */
+> >     irq = gsi_to_irq(gsi);
+> >     if (irq>= 0) {
+> >       *irqp = irq;
+> >       return 0;
+> >     }
+> >     /* THOR Experimental end */
+> >
+> >     return -1;
+> > }
+> >
+> > Whether this works on the R31 is yet to be determined.
+> 
+> 
+> The above patch has now also been tested on the IBM R31, and yes, it 
+> also fixes the system keys there: Thinklight, volume up & down and
+> various other system-driven key-combinations now work again.
+> 
+> Could you please pick this patch up or comment on better alternatives?
 
-The ACPI IPMI driver implements IPMI operation region support for the ACPI
-core. Systems that declare ACPI operation regions may reference them at any
-time, including during kernel initialisation. These accesses will fail
-unless the ACPI IPMI driver is present, and undesirable system behaviour
-may result. Set the default to Y in order to encourage distributions and
-users to configure kernels to avoid awkward surprises.
+And can you please actually post a patch?  The above is just a piece of C code
+entirely out of context.
 
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
----
- drivers/acpi/Kconfig      | 2 +-
- drivers/char/ipmi/Kconfig | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index d0f3265..21d384d 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -176,7 +176,7 @@ config ACPI_PROCESSOR
- config ACPI_IPMI
- 	tristate "IPMI"
- 	depends on IPMI_SI
--	default n
-+	default y
- 	help
- 	  This driver enables the ACPI to access the BMC controller. And it
- 	  uses the IPMI request/response message to communicate with BMC
-diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
-index db1c9b7..e0d688a 100644
---- a/drivers/char/ipmi/Kconfig
-+++ b/drivers/char/ipmi/Kconfig
-@@ -5,6 +5,7 @@
- menuconfig IPMI_HANDLER
-        tristate 'IPMI top-level message handler'
-        depends on HAS_IOMEM
-+       default y if ACPI
-        help
-          This enables the central IPMI message handler, required for IPMI
- 	 to work.
-@@ -45,6 +46,7 @@ config IPMI_DEVICE_INTERFACE
- 
- config IPMI_SI
-        tristate 'IPMI System Interface handler'
-+       default y if ACPI
-        help
-          Provides a driver for System Interfaces (KCS, SMIC, BT).
- 	 Currently, only KCS and SMIC are supported.  If
 -- 
-1.8.3.1
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
