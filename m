@@ -1,427 +1,370 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 1/2] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 07 Oct 2014 01:00:34 +0200
-Message-ID: <1530727.bPy8iOHXgP@vostro.rjw.lan>
-References: <1412196373-7794-1-git-send-email-ashwin.chaugule@linaro.org> <1412196373-7794-2-git-send-email-ashwin.chaugule@linaro.org>
+Subject: [Notice] ACPI+PM commit queue for 3.18 (first pull request)
+Date: Tue, 07 Oct 2014 01:33:17 +0200
+Message-ID: <1504818.BmyUiDHnvP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52415 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58834 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751098AbaJFWk2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 18:40:28 -0400
-In-Reply-To: <1412196373-7794-2-git-send-email-ashwin.chaugule@linaro.org>
+	with SMTP id S1750780AbaJFXNN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 19:13:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: broonie@kernel.org, lv.zheng@intel.com, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, arnd@arndb.de
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wednesday, October 01, 2014 04:46:12 PM Ashwin Chaugule wrote:
-> ACPI 5.0+ spec defines a generic mode of communication
-> between the OS and a platform such as the BMC. This medium
-> (PCC) is typically used by CPPC (ACPI CPU Performance management),
-> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-> states).
-> 
-> This patch adds PCC support as a Mailbox Controller.
-> 
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> ---
->  drivers/mailbox/Kconfig   |  12 ++
->  drivers/mailbox/Makefile  |   2 +
->  drivers/mailbox/mailbox.c |   4 +-
->  drivers/mailbox/mailbox.h |  16 +++
->  drivers/mailbox/pcc.c     | 292 ++++++++++++++++++++++++++++++++++++++++++++++
+Hi Everyone,
 
-I'd prefer this new file to be called acpi_pcc.c ->
+Below is a summary of the current ACPI core and PM core commit queue
+for 3.18.  This is the material I'm going to include into my first
+pull request for 3.18 and I'm not likely to add anything to that.
 
->  5 files changed, 323 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/mailbox/mailbox.h
->  create mode 100644 drivers/mailbox/pcc.c
-> 
-> diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-> index c8b5c13..e08cc83 100644
-> --- a/drivers/mailbox/Kconfig
-> +++ b/drivers/mailbox/Kconfig
-> @@ -50,4 +50,16 @@ config OMAP_MBOX_KFIFO_SIZE
->  	  Specify the default size of mailbox's kfifo buffers (bytes).
->  	  This can also be changed at runtime (via the mbox_kfifo_size
->  	  module parameter).
-> +
-> +config PCC
+If anything is missing, please let me know and I'll queue it up
+for subsequent pull requests.
 
--> and this new symbol to be called ACPI_PCC.
+Of course, as usual, fixes are always welcome, so please post them
+if you have any (but please make sure that the problems being fixed
+haven't been addressed already).
 
-> +	bool "Platform Communication Channel Driver"
-> +	depends on ACPI
-> +	help
-> +		ACPI 5.0+ spec defines a generic mode of communication
-> +		between the OS and a platform such as the BMC. This medium
-> +		(PCC) is typically used by CPPC (ACPI CPU Performance management),
-> +		RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-> +		states). Select this driver if your platform implements the
-> +		PCC clients mentioned above.
-> +
->  endif
-> diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-> index 2fa343a..0b09d6f 100644
-> --- a/drivers/mailbox/Makefile
-> +++ b/drivers/mailbox/Makefile
-> @@ -9,3 +9,5 @@ obj-$(CONFIG_OMAP1_MBOX)	+= mailbox_omap1.o
->  mailbox_omap1-objs		:= mailbox-omap1.o
->  obj-$(CONFIG_OMAP2PLUS_MBOX)	+= mailbox_omap2.o
->  mailbox_omap2-objs		:= mailbox-omap2.o
-> +
-> +obj-$(CONFIG_PCC)			+= pcc.o
-> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-> index 63ecc17..9d9366a 100644
-> --- a/drivers/mailbox/mailbox.c
-> +++ b/drivers/mailbox/mailbox.c
-> @@ -21,9 +21,7 @@
->  #include <linux/mailbox_client.h>
->  #include <linux/mailbox_controller.h>
->  
-> -#define TXDONE_BY_IRQ	BIT(0) /* controller has remote RTR irq */
-> -#define TXDONE_BY_POLL	BIT(1) /* controller can read status of last TX */
-> -#define TXDONE_BY_ACK	BIT(2) /* S/W ACK recevied by Client ticks the TX */
-> +#include "mailbox.h"
->  
->  static LIST_HEAD(mbox_cons);
->  static DEFINE_MUTEX(con_mutex);
-> diff --git a/drivers/mailbox/mailbox.h b/drivers/mailbox/mailbox.h
-> new file mode 100644
-> index 0000000..5a15a25
-> --- /dev/null
-> +++ b/drivers/mailbox/mailbox.h
-> @@ -0,0 +1,16 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef __MAILBOX_H
-> +#define __MAILBOX_H
-> +
-> +#define TXDONE_BY_IRQ	BIT(0) /* controller has remote RTR irq */
-> +#define TXDONE_BY_POLL	BIT(1) /* controller can read status of last TX */
-> +#define TXDONE_BY_ACK	BIT(2) /* S/W ACK recevied by Client ticks the TX */
-> +
-> +#endif /* __MAILBOX_H */
-> +
-> +
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> new file mode 100644
-> index 0000000..a16991e
-> --- /dev/null
-> +++ b/drivers/mailbox/pcc.c
-> @@ -0,0 +1,292 @@
-> +/*
-> + *	Copyright (C) 2014 Linaro Ltd.
-> + *	Author:	Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + */
+Kind regards,
+Rafael
 
-Any chance to say something about what this file provides, what the PCC
-is and so on?  Any pointers to the relevant part of the spec in case
-people want to see themselves?
 
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/cpufreq.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/init.h>
-> +#include <linux/ioctl.h>
-> +#include <linux/module.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/vmalloc.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/mailbox_controller.h>
-> +#include <linux/mailbox_client.h>
+---------------
 
-Do you really need all these headers?
+Aaron Lu (1):
+      ACPI / video: check _DOD list when creating backlight devices
 
-> +
-> +#include "mailbox.h"
-> +
-> +#define MAX_PCC_SUBSPACES	256
-> +#define PCCS_SS_SIG_MAGIC	0x50434300
-> +#define PCC_CMD_COMPLETE	0x1
-> +
-> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
-> +static struct mbox_controller pcc_mbox_ctrl = {};
-> +
-> +struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
-> +		int index)
-> +{
-> +	struct device *dev = pcc_mbox_ctrl.dev;
-> +	struct mbox_chan *chan;
-> +	unsigned long flags;
-> +
-> +	/*
-> +	 * Each PCC Subspace is a Mailbox Channel.
-> +	 * The PCC Clients get their PCC Subspace ID
-> +	 * from their own tables and pass it here.
-> +	 * This returns a pointer to the PCC subspace
-> +	 * for the Client to operate on.
-> +	 */
-> +	chan = &pcc_mbox_chan[index];
-> +
-> +	if (!chan || chan->cl) {
-> +		dev_err(dev, "%s: PCC mailbox not free\n", __func__);
-> +		return ERR_PTR(-EBUSY);
-> +	}
-> +
-> +	spin_lock_irqsave(&chan->lock, flags);
-> +	chan->msg_free = 0;
-> +	chan->msg_count = 0;
-> +	chan->active_req = NULL;
-> +	chan->cl = cl;
-> +	init_completion(&chan->tx_complete);
-> +
-> +	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
-> +		chan->txdone_method |= TXDONE_BY_ACK;
-> +
-> +	spin_unlock_irqrestore(&chan->lock, flags);
-> +
-> +	return chan;
-> +}
-> +EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
-> +
-> +void pcc_mbox_free_channel(struct mbox_chan *chan)
-> +{
-> +	unsigned long flags;
-> +
-> +	if (!chan || !chan->cl)
-> +		return;
-> +
-> +	spin_lock_irqsave(&chan->lock, flags);
-> +	chan->cl = NULL;
-> +	chan->active_req = NULL;
-> +	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
-> +		chan->txdone_method = TXDONE_BY_POLL;
-> +
-> +	spin_unlock_irqrestore(&chan->lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
-> +
-> +static bool pcc_tx_done(struct mbox_chan *chan)
-> +{
-> +	struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-> +	struct acpi_pcct_shared_memory *generic_comm_base =
-> +		(struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-> +	u16 cmd_delay = pcct_ss->min_turnaround_time;
-> +	unsigned int retries = 0;
-> +
-> +	/* Try a few times while waiting for platform to consume */
-> +	while (!(readw_relaxed(&generic_comm_base->status)
-> +		    & PCC_CMD_COMPLETE)) {
-> +
-> +		if (retries++ < 5)
-> +			udelay(cmd_delay);
-> +		else {
-> +			/*
-> +			 * If the remote is dead, this will cause the Mbox
-> +			 * controller to timeout after mbox client.tx_tout
-> +			 * msecs.
-> +			 */
-> +			pr_err("PCC platform did not respond.\n");
-> +			return false;
-> +		}
-> +	}
-> +	return true;
-> +}
-> +
-> +static int get_subspace_id(struct mbox_chan *chan)
-> +{
-> +	int id = chan - pcc_mbox_chan;
-> +
-> +	if (id < 0 || id > pcc_mbox_ctrl.num_chans)
-> +		return -ENOENT;
-> +
-> +	return id;
-> +}
-> +
-> +/* Channel lock is already held by mbox controller code. */
-> +static int pcc_send_data(struct mbox_chan *chan, void *data)
-> +{
-> +	struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-> +	struct acpi_pcct_shared_memory *generic_comm_base =
-> +		(struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-> +	struct acpi_generic_address doorbell;
-> +	u64 doorbell_preserve;
-> +	u64 doorbell_val;
-> +	u64 doorbell_write;
-> +	u16 cmd = *(u16 *) data;
-> +	u16 ss_idx = -1;
-> +	int ret = 0;
-> +
-> +	ss_idx = get_subspace_id(chan);
-> +
-> +	if (ss_idx < 0) {
-> +		pr_err("Invalid Subspace ID from PCC client\n");
-> +		ret = -EINVAL;
-> +		goto out_err;
-> +	}
-> +
-> +	doorbell = pcct_ss->doorbell_register;
-> +	doorbell_preserve = pcct_ss->preserve_mask;
-> +	doorbell_write = pcct_ss->write_mask;
-> +
-> +	/* Write to the shared comm region. */
-> +	writew(cmd, &generic_comm_base->command);
-> +
-> +	/* Write Subspace MAGIC value so platform can identify destination. */
-> +	writel((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
-> +
-> +	/* Flip CMD COMPLETE bit */
-> +	writew(0, &generic_comm_base->status);
-> +
-> +	/* Sync notification from OSPM to Platform. */
-> +	acpi_read(&doorbell_val, &doorbell);
-> +	acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
-> +			&doorbell);
-> +
-> +out_err:
-> +	return ret;
-> +}
-> +
-> +static struct mbox_chan_ops pcc_chan_ops = {
-> +	.send_data = pcc_send_data,
-> +	.last_tx_done = pcc_tx_done,
-> +};
-> +
-> +static int parse_pcc_subspace(struct acpi_subtable_header *header,
-> +		const unsigned long end)
-> +{
-> +	struct acpi_pcct_subspace *pcct_ss;
-> +
-> +	if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
-> +		pcct_ss = (struct acpi_pcct_subspace *) header;
-> +
-> +		if (pcct_ss->header.type != ACPI_PCCT_TYPE_GENERIC_SUBSPACE) {
-> +			pr_err("Incorrect PCC Subspace type detected\n");
-> +			return -EINVAL;
-> +		}
-> +
-> +		/* New mbox channel entry for each PCC subspace detected. */
-> +		pcc_mbox_chan[pcc_mbox_ctrl.num_chans].con_priv = pcct_ss;
-> +		pcc_mbox_ctrl.num_chans++;
-> +
-> +	} else {
-> +		pr_err("No more space for PCC subspaces.\n");
-> +		return -ENOSPC;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init acpi_pcc_probe(void)
-> +{
-> +	acpi_status status = AE_OK;
-> +	acpi_size pcct_tbl_header_size;
-> +	int count;
-> +	struct acpi_table_pcct *pcct_tbl;
-> +
-> +	/* Search for PCCT */
-> +	status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
-> +			(struct acpi_table_header **)&pcct_tbl,
-> +			&pcct_tbl_header_size);
-> +
-> +	if (ACPI_FAILURE(status) || !pcct_tbl) {
-> +		pr_warn("PCCT header not found.\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
-> +			sizeof(struct acpi_table_pcct),
-> +			ACPI_PCCT_TYPE_GENERIC_SUBSPACE,
-> +			parse_pcc_subspace, MAX_PCC_SUBSPACES);
-> +
-> +	if (count <= 0) {
-> +		pr_err("Error parsing PCC subspaces from PCCT\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
-> +
-> +	return 0;
-> +}
-> +
-> +static int pcc_mbox_probe(struct platform_device *pdev)
-> +{
-> +	int ret = 0;
-> +
-> +	pcc_mbox_ctrl.chans = pcc_mbox_chan;
-> +	pcc_mbox_ctrl.ops = &pcc_chan_ops;
-> +	pcc_mbox_ctrl.txdone_poll = true;
-> +	pcc_mbox_ctrl.txpoll_period = 10;
-> +	pcc_mbox_ctrl.dev = &pdev->dev;
-> +
-> +	pr_info("Registering PCC driver as Mailbox controller\n");
-> +	ret = mbox_controller_register(&pcc_mbox_ctrl);
-> +
-> +	if (ret) {
-> +		pr_err("Err registering PCC as Mailbox controller: %d\n", ret);
-> +		ret = -ENODEV;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +struct platform_driver pcc_mbox_driver = {
-> +	.probe = pcc_mbox_probe,
-> +	.driver = {
-> +		.name = "PCCT",
-> +		.owner = THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init pcc_init(void)
-> +{
-> +	int ret;
-> +	struct platform_device *pcc_pdev;
-> +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
-> +
-> +	/* Check if PCC support is available. */
-> +	ret = acpi_pcc_probe();
-> +
-> +	if (ret) {
-> +		pr_err("ACPI PCC probe failed.\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	pcc_pdev = platform_create_bundle(&pcc_mbox_driver,
-> +			pcc_mbox_probe, NULL, 0, NULL, 0);
-> +
-> +	if (!pcc_pdev) {
-> +		pr_err("Err creating PCC platform bundle\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +device_initcall(pcc_init);
-> 
+Bob Moore (3):
+      ACPICA: Add _PSx names to the METHOD_NAME list.
+      ACPICA: Disassembler: Fix for gpio_int interrupt polarity flags.
+      ACPICA: Update version to 20140828.
 
-Care to add some kerneldoc comments to the functions?  Especially the ones
-that are then used as callbacks.
+Edward Lin (1):
+      ACPI / blacklist: add Win8 OSI quirks for some Dell laptop models
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+=46abian Frederick (1):
+      ACPI / processor: use container_of instead of casting first struc=
+ture member
+
+Geert Uytterhoeven (3):
+      PM / domains: Spelling s/domian/domain/
+      PM / Domains: Add genpd attach/detach callbacks
+      PM / clk: Fix crash in clocks management code if !CONFIG_PM_RUNTI=
+ME
+
+Hanjun Guo (2):
+      ACPICA: ACPI 5.1/Disassembler: Add GICC affinity subtable to SRAT=
+ table.
+      ACPICA: Headers: Add GTDT flag definitions for the timer subtable=
+=2E
+
+Hans de Goede (1):
+      ACPI / video: Remove video_set_use_native_backlight quirk
+
+Heikki Krogerus (5):
+      ACPI / LPSS: introduce flags
+      ACPI / LPSS: drop clkdev_name member from lpss_device_desc
+      ACPI / LPSS: support for 133MHz I2C source clock on Baytrail
+      ACPI / LPSS: remove struct lpss_shared_clock
+      ACPI / LPSS: not using UART RTS override with Auto Flow Control
+
+Heiko St=C3=BCbner (2):
+      regulator: core: Add REGULATOR_EVENT_PRE_VOLTAGE_CHANGE (and ABOR=
+T)
+      PM / AVS: rockchip-io: add driver handling Rockchip io domains
+
+Joerg Roedel (1):
+      PM / hibernate: Iterate over set bits instead of PFNs in swsusp_f=
+ree()
+
+Johannes Berg (1):
+      PM / sysfs: avoid shadowing variables
+
+Kevin Hilman (2):
+      cpuidle: big.LITTLE: add Exynos5800 compatible string
+      MAINTAINERS: update entry for drivers/power/avs
+
+Lorenzo Pieralisi (7):
+      Documentation: arm: define DT idle states bindings
+      arm64: kernel: refactor the CPU suspend API for retention states
+      arm64: kernel: introduce cpu_init_idle CPU operation
+      arm64: add PSCI CPU_SUSPEND based cpu_suspend support
+      drivers: cpuidle: implement DT based idle states infrastructure
+      drivers: cpuidle: CPU idle ARM64 driver
+      drivers: cpuidle: initialize big.LITTLE driver through DT
+
+Lucas Stach (1):
+      cpufreq: cpufreq-dt: fix potential double put of cpu OF node
+
+Maciej Matraszek (1):
+      PM / Domains: add debugfs listing of struct generic_pm_domain-s
+
+Matthew Garrett (3):
+      ACPI / SBS: Don't assume the existence of an SBS charger
+      ACPI / SBS: Disable smart battery manager on Apple
+      ACPI: Support _OSI("Darwin") correctly
+
+Paul Bolle (1):
+      PM / devfreq: Remove ARCH_HAS_OPP completely
+
+Preeti U Murthy (2):
+      cpufreq: Allow stop CPU callback to be used by all cpufreq driver=
+s
+      cpufreq: powernv: Set the pstate of the last hotplugged out cpu i=
+n policy->cpus to minimum
+
+Punit Agrawal (1):
+      PM / devfreq: exynos: Enable building exynos PPMU as module
+
+Rafael J. Wysocki (10):
+      PM / sleep: Mechanism for aborting system suspends unconditionall=
+y
+      x86 / PM: Set IRQCHIP_SKIP_SET_WAKE for IOAPIC IRQ chip objects
+      PCI / PM: Make PCIe PME interrupts wake up from suspend-to-idle
+      PM / genirq: Document rules related to system suspend and interru=
+pts
+      ACPI / SBS: Fix check in acpi_ac_get_present()
+      ACPICA: Clear all non-wakeup GPEs in acpi_hw_enable_wakeup_gpe_bl=
+ock()
+      ACPICA: Introduce acpi_enable_all_wakeup_gpes()
+      PM / sleep: Export dpm_suspend_late/noirq() and dpm_resume_early/=
+noirq()
+      PM / sleep: Rename platform suspend/resume functions in suspend.c
+      ACPI / sleep: Rework the handling of ACPI GPE wakeup from suspend=
+-to-idle
+
+Rasmus Villemoes (3):
+      ACPI / battery: Replace strnicmp with strncasecmp
+      cpuidle: Replace strnicmp with strncasecmp
+      cpufreq: Replace strnicmp with strncasecmp
+
+Shilpasri G Bhat (1):
+      cpufreq: powernv: Set the cpus to nominal frequency during reboot=
+/kexec
+
+Srinivas Pandruvada (3):
+      PM / sleep: Support freeze as test_suspend option
+      PM / sleep: Enhance test_suspend option with repeat capability
+      PM / sleep: Update test_suspend option documentation
+
+Stepan Bujnak (1):
+      ACPI / video: force vendor backlight on Lenovo Ideapad Z570
+
+Sudip Mukherjee (1):
+      ACPI / fan: printk replacement
+
+Thomas Gleixner (9):
+      genirq: Move suspend/resume logic into irq/pm code
+      genirq: Add sanity checks for PM options on shared interrupt line=
+s
+      genirq: Make use of pm misfeature accounting
+      genirq: Move MASK_ON_SUSPEND handling into suspend_device_irqs()
+      genirq: Avoid double loop on suspend
+      genirq: Distangle edge handler entry
+      genirq: Create helper for flow handler entry check
+      genirq: Mark wakeup sources as armed on suspend
+      genirq: Simplify wakeup mechanism
+
+Todd E Brandt (1):
+      PM / sleep: new suspend_resume trace event for console resume
+
+Tomasz Figa (2):
+      PM / Domains: Add generic OF-based PM domain look-up
+      ARM: exynos: Move to generic PM domain DT bindings
+
+Ulf Hansson (27):
+      PM / domains: Remove the pm_genpd_add|remove_callbacks APIs
+      PM / domains: Ignore callbacks for subsys generic_pm_domain_data
+      PM / domains: Remove system PM callbacks from gpd_dev_ops
+      ARM: shmobile: Drop dev_irq_safe from r8a7779 genpd config
+      ARM: shmobile: Drop dev_irq_safe from R-mobile genpd config
+      PM / domains: Remove dev_irq_safe from genpd config
+      PM / domains: Remove redundant check for CONFIG_PM
+      PM / domains: Remove pm_genpd_syscore_switch() API
+      PM / domains: Remove genpd_queue_power_off_work() API
+      PM / domains: Add late_initcall to disable unused PM domains
+      ARM: exynos: Leave disabling of unused PM domains to genpd
+      ARM: s3c64xx: Leave disabling of unused PM domains to genpd
+      drivers: sh: Leave disabling of unused PM domains to genpd
+      PM / domains: Remove default_stop_ok() API
+      PM / domains: Keep declaration of dev_power_governors together
+      PM / Domains: Add a detach callback to the struct dev_pm_domain
+      ACPI / PM: Assign the ->detach() callback when attaching the PM d=
+omain
+      PM / Domains: Add APIs to attach/detach a PM domain for a device
+      drivercore / platform: Convert to dev_pm_domain_attach|detach()
+      i2c: core: Convert to dev_pm_domain_attach|detach()
+      mmc: sdio: Convert to dev_pm_domain_attach|detach()
+      spi: core: Convert to dev_pm_domain_attach|detach()
+      amba: Add support for attach/detach of PM domains
+      ACPI / PM: Convert acpi_dev_pm_detach() into a static function
+      PM / Domains: Remove legacy API for adding devices through DT
+      PM / Domains: Move dev_pm_domain_attach|detach() to pm_domain.h
+      PM / Domains: Rename cpu_data to cpuidle_data
+
+Viresh Kumar (10):
+      cpufreq: Add support for per-policy driver data
+      cpufreq: cpu0: Update Module Author
+      cpufreq: cpu0: don't validate clock on clk_put()
+      cpufreq: cpu0: print relevant error when we defer probe
+      cpufreq: cpu0: use dev_{err|warn|dbg} instead of pr_{err|warn|deb=
+ug}
+      cpufreq: cpu0: Move per-cluster initialization code to ->init()
+      cpufreq: cpu0: try regulators with name "cpu-supply"
+      cpufreq: cpu0: Make allocate_resources() work for any CPU
+      cpufreq: ppc-corenet: remove duplicate update of cpu_data
+      cpufreq: cpu0: rename driver and internals to 'cpufreq_dt'
+
+Yijing Wang (1):
+      ACPI / utils: Update acpi_check_dsm() comments
+
+Zhang Rui (1):
+      ACPI / PNP: remove Fujitsu device IDs from ACPI PNP ID list
+
+=C3=83rjan Eide (1):
+      PM / devfreq: Export helper functions for drivers
+
+---------------
+
+ Documentation/devicetree/bindings/arm/cpus.txt     |   8 +
+ .../bindings/arm/exynos/power_domain.txt           |  13 +-
+ .../devicetree/bindings/arm/idle-states.txt        | 679 +++++++++++++=
++++
+ Documentation/devicetree/bindings/arm/psci.txt     |  14 +-
+ .../cpufreq/{cpufreq-cpu0.txt =3D> cpufreq-dt.txt}   |   8 +-
+ .../devicetree/bindings/power/power_domain.txt     |  49 ++
+ .../bindings/power/rockchip-io-domain.txt          |  83 ++
+ Documentation/kernel-parameters.txt                |  10 +-
+ Documentation/power/suspend-and-interrupts.txt     | 123 +++
+ MAINTAINERS                                        |   4 +-
+ arch/arm/boot/dts/vexpress-v2p-ca15_a7.dts         |  23 +
+ arch/arm/configs/mvebu_v7_defconfig                |   2 +-
+ arch/arm/mach-exynos/exynos.c                      |   1 -
+ arch/arm/mach-exynos/pm_domains.c                  |  78 +-
+ arch/arm/mach-imx/imx27-dt.c                       |   2 +-
+ arch/arm/mach-imx/mach-imx51.c                     |   2 +-
+ arch/arm/mach-mvebu/pmsu.c                         |   2 +-
+ arch/arm/mach-omap2/pm.c                           |   2 +-
+ arch/arm/mach-s3c64xx/common.c                     |   5 -
+ arch/arm/mach-s3c64xx/common.h                     |   7 -
+ arch/arm/mach-s3c64xx/mach-anw6410.c               |   1 -
+ arch/arm/mach-s3c64xx/mach-crag6410.c              |   1 -
+ arch/arm/mach-s3c64xx/mach-hmt.c                   |   1 -
+ arch/arm/mach-s3c64xx/mach-mini6410.c              |   1 -
+ arch/arm/mach-s3c64xx/mach-ncp.c                   |   1 -
+ arch/arm/mach-s3c64xx/mach-real6410.c              |   1 -
+ arch/arm/mach-s3c64xx/mach-smartq5.c               |   1 -
+ arch/arm/mach-s3c64xx/mach-smartq7.c               |   1 -
+ arch/arm/mach-s3c64xx/mach-smdk6400.c              |   1 -
+ arch/arm/mach-s3c64xx/mach-smdk6410.c              |   1 -
+ arch/arm/mach-s3c64xx/pm.c                         |   7 -
+ arch/arm/mach-shmobile/board-ape6evm-reference.c   |   2 +-
+ arch/arm/mach-shmobile/cpufreq.c                   |   2 +-
+ arch/arm/mach-shmobile/pm-r8a7779.c                |   1 -
+ arch/arm/mach-shmobile/pm-rmobile.c                |   1 -
+ arch/arm/mach-shmobile/setup-sh73a0.c              |   4 +-
+ arch/arm/mach-zynq/common.c                        |   2 +-
+ arch/arm64/include/asm/cpu_ops.h                   |   3 +
+ arch/arm64/include/asm/cpuidle.h                   |  13 +
+ arch/arm64/include/asm/suspend.h                   |   1 +
+ arch/arm64/kernel/Makefile                         |   1 +
+ arch/arm64/kernel/cpuidle.c                        |  31 +
+ arch/arm64/kernel/psci.c                           | 104 +++
+ arch/arm64/kernel/sleep.S                          |  47 +-
+ arch/arm64/kernel/suspend.c                        |  48 +-
+ arch/x86/kernel/apic/io_apic.c                     |   5 +
+ drivers/acpi/acpi_lpss.c                           | 167 ++--
+ drivers/acpi/acpi_pnp.c                            |   4 -
+ drivers/acpi/acpica/evxfgpe.c                      |  32 +
+ drivers/acpi/acpica/hwgpe.c                        |   8 +-
+ drivers/acpi/acpica/utresrc.c                      |   4 +-
+ drivers/acpi/battery.c                             |   2 +-
+ drivers/acpi/blacklist.c                           |  36 +-
+ drivers/acpi/device_pm.c                           |  71 +-
+ drivers/acpi/fan.c                                 |  18 +-
+ drivers/acpi/osl.c                                 |  12 +-
+ drivers/acpi/pci_root.c                            |  14 +
+ drivers/acpi/processor_core.c                      |   6 +-
+ drivers/acpi/sbs.c                                 |  80 +-
+ drivers/acpi/sleep.c                               |  16 +
+ drivers/acpi/utils.c                               |   1 -
+ drivers/acpi/video.c                               | 291 +------
+ drivers/acpi/video_detect.c                        |   8 +
+ drivers/amba/bus.c                                 |  11 +-
+ drivers/base/platform.c                            |  16 +-
+ drivers/base/power/clock_ops.c                     |  19 +-
+ drivers/base/power/common.c                        |  52 ++
+ drivers/base/power/domain.c                        | 865 ++++++++++++-=
+--------
+ drivers/base/power/domain_governor.c               |   7 +-
+ drivers/base/power/main.c                          |   8 +-
+ drivers/base/power/sysfs.c                         |  24 +-
+ drivers/base/power/wakeup.c                        |  16 +-
+ drivers/base/syscore.c                             |   7 +-
+ drivers/cpufreq/Kconfig                            |   8 +-
+ drivers/cpufreq/Kconfig.arm                        |   2 +-
+ drivers/cpufreq/Makefile                           |   2 +-
+ drivers/cpufreq/cpufreq-cpu0.c                     | 248 ------
+ drivers/cpufreq/cpufreq-dt.c                       | 364 +++++++++
+ drivers/cpufreq/cpufreq.c                          |   8 +-
+ drivers/cpufreq/exynos4210-cpufreq.c               |   2 +-
+ drivers/cpufreq/exynos4x12-cpufreq.c               |   2 +-
+ drivers/cpufreq/exynos5250-cpufreq.c               |   2 +-
+ drivers/cpufreq/highbank-cpufreq.c                 |   6 +-
+ drivers/cpufreq/powernv-cpufreq.c                  |  44 ++
+ drivers/cpufreq/ppc-corenet-cpufreq.c              |   1 -
+ drivers/cpufreq/s5pv210-cpufreq.c                  |   2 +-
+ drivers/cpuidle/Kconfig                            |   8 +
+ drivers/cpuidle/Kconfig.arm                        |   1 +
+ drivers/cpuidle/Kconfig.arm64                      |  14 +
+ drivers/cpuidle/Makefile                           |   5 +
+ drivers/cpuidle/cpuidle-arm64.c                    | 133 ++++
+ drivers/cpuidle/cpuidle-big_little.c               |  20 +
+ drivers/cpuidle/dt_idle_states.c                   | 213 +++++
+ drivers/cpuidle/dt_idle_states.h                   |   7 +
+ drivers/cpuidle/governor.c                         |   2 +-
+ drivers/devfreq/Kconfig                            |   3 +-
+ drivers/devfreq/devfreq.c                          |   3 +
+ drivers/devfreq/exynos/exynos_ppmu.c               |   3 +
+ drivers/i2c/i2c-core.c                             |  14 +-
+ drivers/mmc/core/sdio_bus.c                        |   5 +-
+ drivers/pci/pcie/pme.c                             |  61 +-
+ drivers/platform/x86/fujitsu-laptop.c              |  16 +-
+ drivers/power/avs/Kconfig                          |   8 +
+ drivers/power/avs/Makefile                         |   1 +
+ drivers/power/avs/rockchip-io-domain.c             | 351 +++++++++
+ drivers/regulator/core.c                           |  63 +-
+ drivers/sh/pm_runtime.c                            |  11 -
+ drivers/spi/spi.c                                  |  13 +-
+ include/acpi/acnames.h                             |   4 +
+ include/acpi/acpixf.h                              |   3 +-
+ include/acpi/actbl1.h                              |  19 +-
+ include/acpi/actbl3.h                              |   9 +-
+ include/linux/acpi.h                               |   2 -
+ include/linux/cpufreq.h                            |   3 +
+ include/linux/interrupt.h                          |   5 -
+ include/linux/irq.h                                |   8 +
+ include/linux/irqdesc.h                            |  10 +
+ include/linux/pm.h                                 |   5 +
+ include/linux/pm_domain.h                          | 130 ++--
+ include/linux/regulator/consumer.h                 |  20 +
+ include/linux/suspend.h                            |   6 +
+ kernel/irq/chip.c                                  |  85 +-
+ kernel/irq/internals.h                             |  16 +-
+ kernel/irq/manage.c                                |  32 +-
+ kernel/irq/pm.c                                    | 159 ++--
+ kernel/power/Kconfig                               |   4 +
+ kernel/power/process.c                             |   1 +
+ kernel/power/snapshot.c                            |  54 +-
+ kernel/power/suspend.c                             |  51 +-
+ kernel/power/suspend_test.c                        |  32 +-
+ 130 files changed, 3968 insertions(+), 1528 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
