@@ -1,158 +1,59 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFT v2 01/24] irqdomain: Introduce new interfaces to support
- hierarchy irqdomains
-Date: Tue, 07 Oct 2014 09:50:05 +0800
-Message-ID: <543346CD.4070308@linux.intel.com>
-References: <1411740145-30626-1-git-send-email-jiang.liu@linux.intel.com> <1411740145-30626-2-git-send-email-jiang.liu@linux.intel.com> <54294F1C.30606@huawei.com> <alpine.DEB.2.02.1409291707410.22082@ionos.tec.linutronix.de> <542A8C5E.3040901@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v4 00/13] Add ACPI _DSD and unified device properties
+ support
+Date: Mon, 6 Oct 2014 19:28:55 -0700
+Message-ID: <20141007022855.GA14466@kroah.com>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18218 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbaJGBu3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Oct 2014 21:50:29 -0400
-In-Reply-To: <542A8C5E.3040901@huawei.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54648 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbaJGC3y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 22:29:54 -0400
+Content-Disposition: inline
+In-Reply-To: <2660541.BycO7TFnA2@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Abel <wuyun.wu@huawei.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
+On Tue, Oct 07, 2014 at 02:10:56AM +0200, Rafael J. Wysocki wrote:
+> Hi Everyone,
+> 
+> This is version 4 of the unified device properties interface patchset.
+> 
+> The original cover letter from Mika is here:
+> 
+> http://marc.info/?l=devicetree&m=141087052200600&w=4
+> 
+> My cover letter for version 3 is here:
+> 
+> http://marc.info/?l=linux-acpi&m=141212903816560&w=4
+> 
+> One major change from the previous iteration is that now we will
+> use the "compatible" property to match drivers to devices having
+> "PRP0001" as their _HID, so for example the at25 driver doesn't
+> have to add the extra ACPI match table as part of the conversion
+> to the unified interface (patch [05/13] in this series).
+> 
+> The second major change is that I've split the driver core patch
+> in two, where the first one ([02/13]) does not contain any stuff
+> related to iterating over the child nodes of a given device.
+> Accordingly, the whole patch series has been rearranged so that
+> the relatively non-controversial patches [01-09/13], most of which
+> have been ACKed already, go first and then goes the second driver
+> core patch ([10/13]) and the other patches related to it.
+> 
+> In patches [10-13/13] I used the Arnd's suggestion to implement
+> device_for_each_child_node() as a macro which makes the changes
+> in patches [12-13/13] look more straightforward among other things.
+> 
+> I've retained the Greg's ACKs on patches [02/13] and [10/13], because
+> the first of them is things ACKed by Greg only and the change in the
+> second one is just an implementation detail in my opinion (Greg, please
+> let me know if that's inappropriate).
 
+No objection from me, looks good.
 
-On 2014/9/30 18:56, Abel wrote:
-> Hi Thomas,
-> On 2014/9/29 23:53, Thomas Gleixner wrote:
-> 
->> On Mon, 29 Sep 2014, Abel wrote:
->>> I've been through your patches and noticed that the only domain
->>> which does not call irq_domain_alloc_irqs_parent() is
->>> x86_vector_domain. And this makes sense *if* we already knew which
->>> domain is the nearest one to the CPU.
->>
->> Right, and in case of x86 the vector domain _IS_ the one which is
->> always the nearest one to the cpu.
-> 
-> Yes, I know that. :)
-> What I meant is... (please see below)
-> 
->>
->>> But I don't think a well implemented device driver should assume
->>> itself be in a particular position of the interrupt delivery path.
->>
->> The device driver has no knowledge of this. The irq domain driver
->> definitely has to know to some extent.
->>
->>> Actually it should be guaranteed by the core infrastructure that all
->>> the domains in the interrupt delivery path should allocate a
->>> hardware interrupt for the interrupt source.
->>
->> Well, that's what we do. We allocate down the irq domain hierarchy. If
->> one level fails the whole operation fails.
-> 
-> Actually the core infrastructure just calls domain->ops->alloc() which is
-> the one who really guarantees it by calling irq_domain_alloc_irqs_parent().
-> I think it's enough for a particular domain to pick a hwirq from itself for
-> that linux irq, and need not to care about its parent.
-> What I suggest is something like:
-> 
-> for (iter = domain; iter; iter = iter->parent) {
-> 	ret = iter->ops->alloc(iter, virq, nr_irqs, arg);
-> 	if (ret < 0) {
-> 		mutex_unlock(&irq_domain_mutex);
-> 		goto out_free_irq_data;
-> 	}
-> }
-> 
-> in this way, the core infrastructure guarantees allocating down the irqdomain
-> hierarchy, and the implementers of domain_ops->alloc() need not to call
-> irq_domain_alloc_irqs_parent() any longer, just do the things they have to.
-Hi Abel,
-	We have considered the above design when implementing hierarchy
-irqdomain, but adopted the irq_domain_alloc_irqs_parent().
-The core could only support pre-order or post-order processing,
-it could support pre-order, post-order, pre-/post-order processing by
-using irq_domain_alloc_irqs_parent(). So we choose it for flexibility.
-Regards!
-Gerry
-> 
->>
->>> And besides the comments/questions I mentioned above, I am also curious about
->>> how the chained interrupts been processed.
->>>
->>> Let's take a 3-level-chained-domains for example.
->>> Given 3 interrupt controllers A, B and C, and the interrupt delivery path is:
->>>
->>> DEV -> A -> B -> C -> CPU
->>>
->>> After the hierarchy irqdomains are established, the unique linux interrupt of
->>> DEV will be mapped with a hardware interrupt in each domain:
->>>
->>> DomainA: HWIRQ_A => VIRQ_DEV
->>> DomainB: HWIRQ_B => VIRQ_DEV
->>> DomainC: HWIRQ_C => VIRQ_DEV
->>>
->>> When the DEV triggered an interrupt signal, the CPU will acknowledge HWIRQ_C,
->>
->> Not necessarily. The CPU will process HWIRQ_C. The acknowledge
->> mechanism depends on the implementation details of the hierarchy.
-> 
-> Yes, you are right. Thanks for pointing out.
-> 
->>
->>> and then irq_find_mapping(DomainC, HWIRQ_C) will be called to get the linux
->>> interrupt VIRQ_DEV, and after the handler of the VIRQ_DEV has been processed,
->>> the interrupt will end with the level (if have) uncleared on B, which will
->>> result in the interrupt of DEV cannot be processed again.
->>>
->>> Or is there anything I misunderstand?
->>
->> This heavily depends on the properties of the stacked domains.
->>
->> It depends on the hardware requirements and the implementation of
->> domain A and B how this is handled.
->>
->> It might be sufficient to have the following code in the irq_ack()
->> callback of domain A:
->>
->> irq_ack_A(struct irq_data *d)
->> {
->> 	ack_hw_A();
->> }
->>
->> Another HW or stacking scenario requires
->>
->> irq_ack_A(struct irq_data *d)
->> {
->> 	ack_hw_A();
->> 	ack_parent();
->> }
->>
->> where ack_parent() does:
->>
->>       if (d->parent_data)
->>       	 d->parent_data->chip->ack(d->parent_data);
->>
->> and ack_hw_A() can be anything from a nop to some more or less complex
->> hw access.
->>
->> So we cannot define upfront how deep an ack/mask/unmask/... has to be
->> propagated down the chain. This needs a careful consideration in terms
->> of functionality and we want to be able to do performance shortcuts as
->> well.
->>
-> 
-> Yes, I got it. And one more thing I concerned is that when hierarchy
-> irqdomains is enabled, shouldn't the ack_parent() be called by default
-> by the irqchip->irq_ack() of each domain to ensure all the domains in
-> the delivery path ack this interrupt?
-> 
-> Thanks,
-> 	Abel.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+greg k-h
