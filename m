@@ -1,67 +1,69 @@
-From: Thomas Richter <thor@math.tu-berlin.de>
-Subject: =?UTF-8?B?W1BBVENIXcKgRnVqaXRzdSBleHRyYSBidXR0b25zIG5vdCB3b3JraW4=?=
- =?UTF-8?B?ZyBvbiBTNjAxMCwgVGhpbmtwYWQgRXh0cmEgYnV0dG9ucyBub3Qgd29ya2luZyA=?=
- =?UTF-8?B?b24gUjMx?=
-Date: Tue, 07 Oct 2014 16:17:36 +0200
-Message-ID: <5433F600.6010002@math.tu-berlin.de>
-References: <29964_1412366647_542F0137_29964_4513_9_542EFC10.7020508@math.tu-berlin.de> <5432A957.2030205@math.tu-berlin.de> <29964_1412634435_54331741_29964_16384_1_8031540.z3p2ny3Gns@vostro.rjw.lan>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device
+ properties interface
+Date: Tue, 07 Oct 2014 18:37:46 +0300
+Message-ID: <1412696266.7701.5.camel@linux.intel.com>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
+	 <2809308.3y5s7TV5Ip@wuerfel> <D04730D8.A9DB0%dvhart@linux.intel.com>
+	 <6744174.JquHLt80n3@wuerfel> <20140926032131.GC40523@vmdeb7>
+	 <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-2.alumni.tu-berlin.de ([130.149.5.29]:33897 "EHLO
-	mail-2.alumni.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753921AbaJGORm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Oct 2014 10:17:42 -0400
-In-Reply-To: <29964_1412634435_54331741_29964_16384_1_8031540.z3p2ny3Gns@vostro.rjw.lan>
+Received: from mga11.intel.com ([192.55.52.93]:55480 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753242AbaJGPiQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Oct 2014 11:38:16 -0400
+In-Reply-To: <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: tianyu.lan@intel.com, paul.s.diefenbaugh@intel.com, jun.nakajima@intel.com, gjohnson@austin.ibm.com, lenb@kernel.org, rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Darren Hart <dvhart@infradead.org>, Len Brown <Len.Brown@intel.com>, Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <david.woodhouse@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-Hi Rafael,
+On Tue, 2014-10-07 at 15:37 +0200, Linus Walleij wrote:
+> On Fri, Sep 26, 2014 at 5:21 AM, Darren Hart <dvhart@infradead.org> wrote:
+> > On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
+> 
+> > So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
+> > will need to walk through non-device child nodes, and it seems to me that having
+> > a firmware-independent mechanism to do so benefits the drivers by both making
+> > them smaller and by increasing the reusability of new drivers and drivers
+> > updated to use the new API across platforms.
+> 
+> In a recent round of reviews, for the OF case, that led to drivers
+> which used device_initcall() without being a module, getting a match
+> and handle to the parent device, and then walking over the nodes
+> and instantiating child objects (Linux devices usually) in the process.
+> 
+> It was done as a response to the remark from Rob Herring that
+> we were modeling things in the device tree as devices when they
+> really weren't, we were just doing it that way because it fits the
+> Linux device model and it's easier.
+> 
+> So we have that case too.
+> 
+> The question is if it's anything close to generalizable.
+> 
+> > Grant, Linus W? Thoughts?
+> 
+> I'm uncertain on the whole subject, I called on the others
+> because of that...
+> 
+> For a while I had Andy Schevenko patch the GPIO and
+> SFI core too, but it timed out due to no response from Len
+> Brown. (Maybe I should just merge that stuff!) Do you (Intel) also
+> want to unify the Medfield SFI thing into this or have you
+> given up on it?
 
-> And can you please actually post a patch?  The above is just a piece of C code
-> entirely out of context.
-Actually, it was rather supposed to start a discussion because I have 
-almost no experience with the ACPI subsystem.
+I think SFI is quite outdated stuff, though I have still Medfield device
+close to me.
 
-Anyhow, here is the same in a (hopefully) well-formed patch file, tested 
-on a Fujitsu S6010 and an IBM R31 running
-the 3.17 kernel.
+I don't think there will be any new platform with SFI (on the other hand
+we never know :-) ). Thus, my opinion you may go ahead without worrying
+about SFI.
 
-Thanks,
-     Thomas
-
-
-Signed-off-by: Thomas Richter <thor@math.tu-berlin.de>
---- linux-3.17/arch/x86/kernel/acpi/boot.c.old  2014-10-07 
-15:43:44.000000000 +0200
-+++ linux-3.17/arch/x86/kernel/acpi/boot.c      2014-10-07 
-16:04:33.000000000 +0200
-@@ -609,9 +609,23 @@
-         if (irq >= 0) {
-                 *irqp = irq;
-                 return 0;
--       }
-+       } else {
-+               unsigned int i;
-+
-+               for (i = 0; i < NR_IRQS_LEGACY; i++) {
-+                       if (isa_irq_to_gsi[i] == gsi) {
-+                               *irqp = i;
-+                               return 0;
-+                       }
-+               }
-+
-+               if (gsi >= NR_IRQS_LEGACY)
-+                       *irqp = gsi;
-+               else
-+                       *irqp = gsi_top + gsi;
-
--       return -1;
-+               return 0;
-+       }
-  }
-  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+-- 
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
 
