@@ -1,146 +1,119 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: [PATCH 09/12] input: gpio_keys_polled - Add support for GPIO descriptors
-Date: Tue, 07 Oct 2014 02:16:47 +0200
-Message-ID: <1740633.d3tSWZ2Q0u@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 05/13] misc: at25: Make use of device property API
+Date: Tue, 07 Oct 2014 02:14:44 +0200
+Message-ID: <1443736.WYtVLjNfzc@vostro.rjw.lan>
 References: <2660541.BycO7TFnA2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2660541.BycO7TFnA2-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2660541.BycO7TFnA2@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-GPIO descriptors are the preferred way over legacy GPIO numbers
-nowadays. Convert the driver to use GPIO descriptors internally but
-still allow passing legacy GPIO numbers from platform data to support
-existing platforms.
+Make use of device property API in this driver so that both DT and ACPI
+based systems can use this driver.
 
-Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Acked-by: Alexandre Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/input/keyboard/gpio_keys_polled.c | 39 +++++++++++++++++++++----------
- include/linux/gpio_keys.h                 |  3 +++
- 2 files changed, 30 insertions(+), 12 deletions(-)
+ drivers/misc/eeprom/at25.c | 34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/input/keyboard/gpio_keys_polled.c b/drivers/input/keyboard/gpio_keys_polled.c
-index 432d363..b7a514c 100644
---- a/drivers/input/keyboard/gpio_keys_polled.c
-+++ b/drivers/input/keyboard/gpio_keys_polled.c
-@@ -23,6 +23,7 @@
- #include <linux/ioport.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/gpio_keys.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-@@ -51,15 +52,14 @@ static void gpio_keys_polled_check_state(struct input_dev *input,
- 	int state;
+diff --git a/drivers/misc/eeprom/at25.c b/drivers/misc/eeprom/at25.c
+index 634f729..58f6cdd 100644
+--- a/drivers/misc/eeprom/at25.c
++++ b/drivers/misc/eeprom/at25.c
+@@ -18,7 +18,7 @@
  
- 	if (bdata->can_sleep)
--		state = !!gpio_get_value_cansleep(button->gpio);
-+		state = !!gpiod_get_value_cansleep(button->gpiod);
- 	else
--		state = !!gpio_get_value(button->gpio);
-+		state = !!gpiod_get_value(button->gpiod);
+ #include <linux/spi/spi.h>
+ #include <linux/spi/eeprom.h>
+-#include <linux/of.h>
++#include <linux/property.h>
  
- 	if (state != bdata->last_state) {
- 		unsigned int type = button->type ?: EV_KEY;
+ /*
+  * NOTE: this is an *EEPROM* driver.  The vagaries of product naming
+@@ -301,35 +301,33 @@ static ssize_t at25_mem_write(struct memory_accessor *mem, const char *buf,
  
--		input_event(input, type, button->code,
--			    !!(state ^ button->active_low));
-+		input_event(input, type, button->code, state);
- 		input_sync(input);
- 		bdata->count = 0;
- 		bdata->last_state = state;
-@@ -259,7 +259,6 @@ static int gpio_keys_polled_probe(struct platform_device *pdev)
- 	for (i = 0; i < pdata->nbuttons; i++) {
- 		struct gpio_keys_button *button = &pdata->buttons[i];
- 		struct gpio_keys_button_data *bdata = &bdev->data[i];
--		unsigned int gpio = button->gpio;
- 		unsigned int type = button->type ?: EV_KEY;
+ /*-------------------------------------------------------------------------*/
  
- 		if (button->wakeup) {
-@@ -267,15 +266,31 @@ static int gpio_keys_polled_probe(struct platform_device *pdev)
- 			return -EINVAL;
+-static int at25_np_to_chip(struct device *dev,
+-			   struct device_node *np,
+-			   struct spi_eeprom *chip)
++static int at25_fw_to_chip(struct device *dev, struct spi_eeprom *chip)
+ {
+ 	u32 val;
+ 
+ 	memset(chip, 0, sizeof(*chip));
+-	strncpy(chip->name, np->name, sizeof(chip->name));
++	strncpy(chip->name, "at25", sizeof(chip->name));
+ 
+-	if (of_property_read_u32(np, "size", &val) == 0 ||
+-	    of_property_read_u32(np, "at25,byte-len", &val) == 0) {
++	if (device_property_read_u32(dev, "size", &val) == 0 ||
++	    device_property_read_u32(dev, "at25,byte-len", &val) == 0) {
+ 		chip->byte_len = val;
+ 	} else {
+ 		dev_err(dev, "Error: missing \"size\" property\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	if (of_property_read_u32(np, "pagesize", &val) == 0 ||
+-	    of_property_read_u32(np, "at25,page-size", &val) == 0) {
++	if (device_property_read_u32(dev, "pagesize", &val) == 0 ||
++	    device_property_read_u32(dev, "at25,page-size", &val) == 0) {
+ 		chip->page_size = (u16)val;
+ 	} else {
+ 		dev_err(dev, "Error: missing \"pagesize\" property\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	if (of_property_read_u32(np, "at25,addr-mode", &val) == 0) {
++	if (device_property_read_u32(dev, "at25,addr-mode", &val) == 0) {
+ 		chip->flags = (u16)val;
+ 	} else {
+-		if (of_property_read_u32(np, "address-width", &val)) {
++		if (device_property_read_u32(dev, "address-width", &val)) {
+ 			dev_err(dev,
+ 				"Error: missing \"address-width\" property\n");
+ 			return -ENODEV;
+@@ -350,7 +348,7 @@ static int at25_np_to_chip(struct device *dev,
+ 				val);
+ 			return -ENODEV;
  		}
+-		if (of_find_property(np, "read-only", NULL))
++		if (!device_get_property(dev, "read-only", NULL))
+ 			chip->flags |= EE_READONLY;
+ 	}
+ 	return 0;
+@@ -360,21 +358,15 @@ static int at25_probe(struct spi_device *spi)
+ {
+ 	struct at25_data	*at25 = NULL;
+ 	struct spi_eeprom	chip;
+-	struct device_node	*np = spi->dev.of_node;
+ 	int			err;
+ 	int			sr;
+ 	int			addrlen;
  
--		error = devm_gpio_request_one(&pdev->dev, gpio, GPIOF_IN,
--					      button->desc ? : DRV_NAME);
--		if (error) {
--			dev_err(dev, "unable to claim gpio %u, err=%d\n",
--				gpio, error);
--			return error;
-+		/*
-+		 * Legacy GPIO number so request the GPIO here and
-+		 * convert it to descriptor.
-+		 */
-+		if (!button->gpiod && gpio_is_valid(button->gpio)) {
-+			unsigned flags = 0;
-+
-+			if (button->active_low)
-+				flags |= GPIOF_ACTIVE_LOW;
-+
-+			error = devm_gpio_request_one(&pdev->dev, button->gpio,
-+					flags, button->desc ? : DRV_NAME);
-+			if (error) {
-+				dev_err(dev, "unable to claim gpio %u, err=%d\n",
-+					button->gpio, error);
-+				return error;
-+			}
-+
-+			button->gpiod = gpio_to_desc(button->gpio);
- 		}
+ 	/* Chip description */
+ 	if (!spi->dev.platform_data) {
+-		if (np) {
+-			err = at25_np_to_chip(&spi->dev, np, &chip);
+-			if (err)
+-				return err;
+-		} else {
+-			dev_err(&spi->dev, "Error: no chip description\n");
+-			return -ENODEV;
+-		}
++		err = at25_fw_to_chip(&spi->dev, &chip);
++		if (err)
++			return err;
+ 	} else
+ 		chip = *(struct spi_eeprom *)spi->dev.platform_data;
  
--		bdata->can_sleep = gpio_cansleep(gpio);
-+		if (IS_ERR(button->gpiod))
-+			return PTR_ERR(button->gpiod);
-+
-+		bdata->can_sleep = gpiod_cansleep(button->gpiod);
- 		bdata->last_state = -1;
- 		bdata->threshold = DIV_ROUND_UP(button->debounce_interval,
- 						pdata->poll_interval);
-diff --git a/include/linux/gpio_keys.h b/include/linux/gpio_keys.h
-index 8b62246..ee2d8c6 100644
---- a/include/linux/gpio_keys.h
-+++ b/include/linux/gpio_keys.h
-@@ -2,6 +2,7 @@
- #define _GPIO_KEYS_H
- 
- struct device;
-+struct gpio_desc;
- 
- /**
-  * struct gpio_keys_button - configuration parameters
-@@ -17,6 +18,7 @@ struct device;
-  *			disable button via sysfs
-  * @value:		axis value for %EV_ABS
-  * @irq:		Irq number in case of interrupt keys
-+ * @gpiod:		GPIO descriptor
-  */
- struct gpio_keys_button {
- 	unsigned int code;
-@@ -29,6 +31,7 @@ struct gpio_keys_button {
- 	bool can_disable;
- 	int value;
- 	unsigned int irq;
-+	struct gpio_desc *gpiod;
- };
- 
- /**
 -- 
 1.9.3
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
