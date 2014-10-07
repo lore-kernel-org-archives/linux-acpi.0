@@ -1,69 +1,72 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device
- properties interface
-Date: Tue, 07 Oct 2014 18:37:46 +0300
-Message-ID: <1412696266.7701.5.camel@linux.intel.com>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com>
-	 <2809308.3y5s7TV5Ip@wuerfel> <D04730D8.A9DB0%dvhart@linux.intel.com>
-	 <6744174.JquHLt80n3@wuerfel> <20140926032131.GC40523@vmdeb7>
-	 <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
+From: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
+Subject: Re: [PATCH 06/44] gpio-poweroff: Drop reference to pm_power_off from
+ devicetree bindings
+Date: Tue, 7 Oct 2014 17:50:44 +0200
+Message-ID: <20141007155044.GA19005@lunn.ch>
+References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
+ <1412659726-29957-7-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:55480 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753242AbaJGPiQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Oct 2014 11:38:16 -0400
-In-Reply-To: <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1412659726-29957-7-git-send-email-linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m32r-ja-rQhvJZKUsGBRYuoOT4C5/9i2O/JbrIOy@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lguest-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, openipmi-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, Rob
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Darren Hart <dvhart@infradead.org>, Len Brown <Len.Brown@intel.com>, Arnd Bergmann <arnd@arndb.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Woodhouse <david.woodhouse@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Tue, 2014-10-07 at 15:37 +0200, Linus Walleij wrote:
-> On Fri, Sep 26, 2014 at 5:21 AM, Darren Hart <dvhart@infradead.org> wrote:
-> > On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
+On Mon, Oct 06, 2014 at 10:28:08PM -0700, Guenter Roeck wrote:
+> pm_power_off is an implementation detail. Replace it with a more generic
+> description of the driver's functionality.
 > 
-> > So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
-> > will need to walk through non-device child nodes, and it seems to me that having
-> > a firmware-independent mechanism to do so benefits the drivers by both making
-> > them smaller and by increasing the reusability of new drivers and drivers
-> > updated to use the new API across platforms.
-> 
-> In a recent round of reviews, for the OF case, that led to drivers
-> which used device_initcall() without being a module, getting a match
-> and handle to the parent device, and then walking over the nodes
-> and instantiating child objects (Linux devices usually) in the process.
-> 
-> It was done as a response to the remark from Rob Herring that
-> we were modeling things in the device tree as devices when they
-> really weren't, we were just doing it that way because it fits the
-> Linux device model and it's easier.
-> 
-> So we have that case too.
-> 
-> The question is if it's anything close to generalizable.
-> 
-> > Grant, Linus W? Thoughts?
-> 
-> I'm uncertain on the whole subject, I called on the others
-> because of that...
-> 
-> For a while I had Andy Schevenko patch the GPIO and
-> SFI core too, but it timed out due to no response from Len
-> Brown. (Maybe I should just merge that stuff!) Do you (Intel) also
-> want to unify the Medfield SFI thing into this or have you
-> given up on it?
+> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
+> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+> Signed-off-by: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
 
-I think SFI is quite outdated stuff, though I have still Medfield device
-close to me.
+Acked-by: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
 
-I don't think there will be any new platform with SFI (on the other hand
-we never know :-) ). Thus, my opinion you may go ahead without worrying
-about SFI.
-
--- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
-
+Thanks
+	Andrew
+> ---
+>  Documentation/devicetree/bindings/gpio/gpio-poweroff.txt | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/gpio/gpio-poweroff.txt b/Documentation/devicetree/bindings/gpio/gpio-poweroff.txt
+> index d4eab92..c95a1a6 100644
+> --- a/Documentation/devicetree/bindings/gpio/gpio-poweroff.txt
+> +++ b/Documentation/devicetree/bindings/gpio/gpio-poweroff.txt
+> @@ -2,12 +2,12 @@ Driver a GPIO line that can be used to turn the power off.
+>  
+>  The driver supports both level triggered and edge triggered power off.
+>  At driver load time, the driver will request the given gpio line and
+> -install a pm_power_off handler. If the optional properties 'input' is
+> -not found, the GPIO line will be driven in the inactive
+> +install a handler to power off the system. If the optional properties
+> +'input' is not found, the GPIO line will be driven in the inactive
+>  state. Otherwise its configured as an input.
+>  
+> -When the pm_power_off is called, the gpio is configured as an output,
+> -and drive active, so triggering a level triggered power off
+> +When the the poweroff handler is called, the gpio is configured as an
+> +output, and drive active, so triggering a level triggered power off
+>  condition. This will also cause an inactive->active edge condition, so
+>  triggering positive edge triggered power off. After a delay of 100ms,
+>  the GPIO is set to inactive, thus causing an active->inactive edge,
+> @@ -24,7 +24,7 @@ Required properties:
+>  
+>  Optional properties:
+>  - input : Initially configure the GPIO line as an input. Only reconfigure
+> -  it to an output when the pm_power_off function is called. If this optional
+> +  it to an output when the poweroff handler is called. If this optional
+>    property is not specified, the GPIO is initialized as an output in its
+>    inactive state.
+>  
+> -- 
+> 1.9.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
