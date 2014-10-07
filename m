@@ -1,43 +1,36 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 05/13] misc: at25: Make use of device property API
-Date: Tue, 7 Oct 2014 11:10:23 +0200
-Message-ID: <CAMuHMdXHRbbjf8WJHwtZEgdctmVSMzjOKXfd9a1YcHundBG4-Q@mail.gmail.com>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan>
-	<1443736.WYtVLjNfzc@vostro.rjw.lan>
+Subject: Re: [PATCH 35/44] m68k: Register with kernel poweroff handler
+Date: Tue, 7 Oct 2014 11:19:36 +0200
+Message-ID: <CAMuHMdVZmsjK9FdK0T6mWwrnNc=Xc97B7ynm+QbWUMBCnvQB_g@mail.gmail.com>
+References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
+	<1412659726-29957-36-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:39074 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbaJGJKZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Oct 2014 05:10:25 -0400
-In-Reply-To: <1443736.WYtVLjNfzc@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-m68k-owner@vger.kernel.org>
+In-Reply-To: <1412659726-29957-36-git-send-email-linux@roeck-us.net>
+Sender: linux-m68k-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "adi-buildroot-devel@lists.sourceforge.net" <adi-buildroot-devel@lists.sourceforge.net>, driverdevel <devel@driverdev.osuosl.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, lguest@lists.ozlabs.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, alpha <linux-alpha@vger.kernel.org>, "moderated list:PANASONIC MN10300..." <linux-am33-list@redhat.com>, Cris <linux-cris-kernel@axis.com>, linux-efi@vger.kernel.org, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, linux-m32r-ja@ml.linux-m32r.org, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, linux-tegra@vger.kernel.org, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, openipmi-developer@lists.sourceforge.net, uml-devel <user-mode-linux-devel@lists.s>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Tue, Oct 7, 2014 at 2:14 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> @@ -301,35 +301,33 @@ static ssize_t at25_mem_write(struct memory_accessor *mem, const char *buf,
+On Tue, Oct 7, 2014 at 7:28 AM, Guenter Roeck <linux@roeck-us.net> wrote:
+> Register with kernel poweroff handler instead of setting pm_power_off
+> directly.
 >
->  /*-------------------------------------------------------------------------*/
->
-> -static int at25_np_to_chip(struct device *dev,
-> -                          struct device_node *np,
-> -                          struct spi_eeprom *chip)
-> +static int at25_fw_to_chip(struct device *dev, struct spi_eeprom *chip)
->  {
->         u32 val;
->
->         memset(chip, 0, sizeof(*chip));
-> -       strncpy(chip->name, np->name, sizeof(chip->name));
-> +       strncpy(chip->name, "at25", sizeof(chip->name));
+> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Joshua Thompson <funaho@jurai.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-So this changes chip->name from "eeprom" (or whatever name the DTS
-writer used; "eeprom" is the ePAPR-compliant name) to "at25"?
+As someone already mentioned, having #defines instead of hardcoded
+numbers for the priorities would be nice.
 
-Note:The example in Documentation/devicetree/bindings/misc/at25.txt
-uses "at25", not "eeprom".
+Apart from that:
+
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+
+> +       register_poweroff_handler_simple(nf_poweroff, 128);
+
+> +       register_poweroff_handler_simple(mac_poweroff, 128);
 
 Gr{oetje,eeting}s,
 
