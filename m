@@ -1,80 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 44/44] kernel: Remove pm_power_off
-Date: Wed, 08 Oct 2014 01:43:07 +0200
-Message-ID: <1469166.g4FqVc5SJX@vostro.rjw.lan>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net> <1412659726-29957-45-git-send-email-linux@roeck-us.net>
+Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
+Date: Wed, 08 Oct 2014 01:57:11 +0200
+Message-ID: <2748359.x48UaePcbM@vostro.rjw.lan>
+References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20140926032131.GC40523@vmdeb7> <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-m68k-owner@vger.kernel.org>
-In-Reply-To: <1412659726-29957-45-git-send-email-linux@roeck-us.net>
-Sender: linux-m68k-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, lguest@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-alpha@vger.kernel.org, linux-am33-list@redhat.com, linux-cris-kernel@axis.com, linux-efi@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-m32r-ja@ml.linux-m32r.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-tegra@vger.kernel.org, linux-xtensa@linux-xtensa.org, openipmi-developer@lists.sourceforge.net, user-mode-linux-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-pm@vger.kernel.org, linux-sh@vger.kernel.org, xen-devel@lists.xenproject.org, Pavel Machek <pave>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:57789 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755795AbaJGXhF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Oct 2014 19:37:05 -0400
+In-Reply-To: <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <Len.Brown@intel.com>, Arnd Bergmann <arnd@arndb.de>, David Woodhouse <david.woodhouse@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Monday, October 06, 2014 10:28:46 PM Guenter Roeck wrote:
-> No users of pm_power_off are left, so it is safe to remove the function.
+On Tuesday, October 07, 2014 03:37:04 PM Linus Walleij wrote:
+> On Fri, Sep 26, 2014 at 5:21 AM, Darren Hart <dvhart@infradead.org> wrote:
+> > On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
 > 
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Len Brown <len.brown@intel.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
+> > will need to walk through non-device child nodes, and it seems to me that having
+> > a firmware-independent mechanism to do so benefits the drivers by both making
+> > them smaller and by increasing the reusability of new drivers and drivers
+> > updated to use the new API across platforms.
+> 
+> In a recent round of reviews, for the OF case, that led to drivers
+> which used device_initcall() without being a module, getting a match
+> and handle to the parent device, and then walking over the nodes
+> and instantiating child objects (Linux devices usually) in the process.
+> 
+> It was done as a response to the remark from Rob Herring that
+> we were modeling things in the device tree as devices when they
+> really weren't, we were just doing it that way because it fits the
+> Linux device model and it's easier.
+> 
+> So we have that case too.
+> 
+> The question is if it's anything close to generalizable.
 
-ACK
+Well, OK.
 
-> ---
->  include/linux/pm.h              |  1 -
->  kernel/power/poweroff_handler.c | 10 +---------
->  2 files changed, 1 insertion(+), 10 deletions(-)
-> 
-> diff --git a/include/linux/pm.h b/include/linux/pm.h
-> index 45271b5..fce7645 100644
-> --- a/include/linux/pm.h
-> +++ b/include/linux/pm.h
-> @@ -31,7 +31,6 @@
->  /*
->   * Callbacks for platform drivers to implement.
->   */
-> -extern void (*pm_power_off)(void);
->  extern void (*pm_power_off_prepare)(void);
->  
->  /*
-> diff --git a/kernel/power/poweroff_handler.c b/kernel/power/poweroff_handler.c
-> index 96f59ef..01a3a39 100644
-> --- a/kernel/power/poweroff_handler.c
-> +++ b/kernel/power/poweroff_handler.c
-> @@ -20,12 +20,6 @@
->  #include <linux/types.h>
->  
->  /*
-> - * If set, calling this function will power off the system immediately.
-> - */
-> -void (*pm_power_off)(void);
-> -EXPORT_SYMBOL(pm_power_off);
-> -
-> -/*
->   *	Notifier list for kernel code which wants to be called
->   *	to power off the system.
->   */
-> @@ -163,8 +157,6 @@ int register_poweroff_handler_simple(void (*handler)(void), int priority)
->   */
->  void do_kernel_poweroff(void)
->  {
-> -	if (pm_power_off)
-> -		pm_power_off();
->  	atomic_notifier_call_chain(&poweroff_handler_list, 0, NULL);
->  }
->  
-> @@ -175,6 +167,6 @@ void do_kernel_poweroff(void)
->   */
->  bool have_kernel_poweroff(void)
->  {
-> -	return pm_power_off != NULL || poweroff_handler_list.head != NULL;
-> +	return poweroff_handler_list.head != NULL;
->  }
->  EXPORT_SYMBOL(have_kernel_poweroff);
-> 
+Can you please have a look at these patchse in v4:
+
+https://patchwork.kernel.org/patch/5040161/
+https://patchwork.kernel.org/patch/5040081/
+https://patchwork.kernel.org/patch/5040061/
+
+We now have an ACK from Dmitry on the gpio_keys_polled thing and Bryan
+said he was OK with the leds changes already in v2 (IIRC).
+
+Also Alexandre is saying that he's not opposed to the changes in
+https://patchwork.kernel.org/patch/5040161/, although there may be a better
+way.
+
+And we have AKCs from Greg on the driver core changes, so it looks like
+GPIO really is the only missing thing and we need that code to support
+our hardware.
 
 -- 
 I speak only for myself.
