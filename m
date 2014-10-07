@@ -1,37 +1,43 @@
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 08/44] kernel: Move pm_power_off to common code
-Date: Tue, 7 Oct 2014 10:32:44 +0200
-Message-ID: <CAMuHMdXQfYqhHnVKLHZvTyqE8Ke7jWEu7LKLR9ZfVQaO8mNtBw@mail.gmail.com>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
- <1412659726-29957-9-git-send-email-linux@roeck-us.net>
+Subject: Re: [PATCH 05/13] misc: at25: Make use of device property API
+Date: Tue, 7 Oct 2014 11:10:23 +0200
+Message-ID: <CAMuHMdXHRbbjf8WJHwtZEgdctmVSMzjOKXfd9a1YcHundBG4-Q@mail.gmail.com>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
+	<1443736.WYtVLjNfzc@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1412659726-29957-9-git-send-email-linux@roeck-us.net>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-m32r-ja@ml.linux-m32r.org, Linux MIPS Mailing List <linux-mips@linux-mips.org>, linux-efi@vger.kernel.org, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Steven Miao <realmz6@gmail.com>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, David Howells <dhowells@redhat.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Thomas Gleixner <tglx@linutronix.de>, Lennox Wu <lennox.wu@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, driverdevel <devel@driverdev.osuosl.org>, linux-s390 <linux-s390@vger.kernel.org>, Jesper Nilsson <jesper.nilsson@axis.com>, lgue
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:39074 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825AbaJGJKZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Oct 2014 05:10:25 -0400
+In-Reply-To: <1443736.WYtVLjNfzc@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Tue, Oct 7, 2014 at 7:28 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-> pm_power_off is defined for all architectures. Move it to common code.
+On Tue, Oct 7, 2014 at 2:14 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> @@ -301,35 +301,33 @@ static ssize_t at25_mem_write(struct memory_accessor *mem, const char *buf,
 >
-> Have all architectures call do_kernel_poweroff instead of pm_power_off.
-> Some architectures point pm_power_off to machine_power_off. For those,
-> call do_kernel_poweroff from machine_power_off instead.
+>  /*-------------------------------------------------------------------------*/
+>
+> -static int at25_np_to_chip(struct device *dev,
+> -                          struct device_node *np,
+> -                          struct spi_eeprom *chip)
+> +static int at25_fw_to_chip(struct device *dev, struct spi_eeprom *chip)
+>  {
+>         u32 val;
+>
+>         memset(chip, 0, sizeof(*chip));
+> -       strncpy(chip->name, np->name, sizeof(chip->name));
+> +       strncpy(chip->name, "at25", sizeof(chip->name));
 
->  arch/m68k/kernel/process.c         |  6 +-----
+So this changes chip->name from "eeprom" (or whatever name the DTS
+writer used; "eeprom" is the ePAPR-compliant name) to "at25"?
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Note:The example in Documentation/devicetree/bindings/misc/at25.txt
+uses "at25", not "eeprom".
 
 Gr{oetje,eeting}s,
 
