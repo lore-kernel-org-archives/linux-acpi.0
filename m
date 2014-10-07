@@ -1,63 +1,157 @@
-From: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH 05/44] mfd: as3722: Drop reference to pm_power_off from
- devicetree bindings
-Date: Tue, 07 Oct 2014 12:10:58 -0500
-Message-ID: <54341EA2.6010806@landley.net>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net> <1412659726-29957-6-git-send-email-linux@roeck-us.net> <543412F7.8040909@landley.net> <20141007163131.GE28835@roeck-us.net> <54341BF1.9020001@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 09/12] input: gpio_keys_polled - Add support for GPIO
+ descriptors
+Date: Tue, 7 Oct 2014 10:29:47 -0700
+Message-ID: <20141007172947.GH16469@dtor-ws>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
+ <1740633.d3tSWZ2Q0u@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-metag-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54341BF1.9020001-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-metag-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Daney <ddaney.cavm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lguest-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m32r-ja-rQhvJZKUsGBRYuoOT4C5/9i2O/JbrIOy@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, openipmi-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Rob Herring <robh+>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1740633.d3tSWZ2Q0u-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/07/14 11:59, David Daney wrote:
-> On 10/07/2014 09:31 AM, Guenter Roeck wrote:
->> On Tue, Oct 07, 2014 at 11:21:11AM -0500, Rob Landley wrote:
->>> On 10/07/14 00:28, Guenter Roeck wrote:
->>>> Devicetree bindings are supposed to be operating system independent
->>>> and should thus not describe how a specific functionality is
->>>> implemented
->>>> in Linux.
->>>
->>> So your argument is that linux/Documentation/devicetree/bindings should
->>> not be specific to Linux. Merely hosted in the Linux kernel source
->>> repository.
->>>
->>> Well that's certainly a point of view.
->>>
->> Not specifically my argument, really, and nothing new either. But,
->> yes, I do
->> think that devicetree bindings descriptions should not include
->> implementation
->> details, especially since those may change over time (as is the case
->> here).
->>
+On Tue, Oct 07, 2014 at 02:16:47AM +0200, Rafael J. Wysocki wrote:
+> From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> I fully agree.
+> GPIO descriptors are the preferred way over legacy GPIO numbers
+> nowadays. Convert the driver to use GPIO descriptors internally but
+> still allow passing legacy GPIO numbers from platform data to support
+> existing platforms.
 > 
-> Many device trees come from outside the kernel (i.e. they are supplied
-> by the system boot environment).  Obviously these device trees cannot be
-> changed at the whim of kernel developers, *and* it is perfectly
-> reasonable to think that software other than the Linux kernel will run
-> on this type of system too.
+> Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Acked-by: Alexandre Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+
+Acked-by: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+
+> ---
+>  drivers/input/keyboard/gpio_keys_polled.c | 39 +++++++++++++++++++++----------
+>  include/linux/gpio_keys.h                 |  3 +++
+>  2 files changed, 30 insertions(+), 12 deletions(-)
 > 
-> So yes, it is really true, device trees are not a Linux kernel private
-> implementation detail, they are really an external ABI that, although
-> documented in the kernel source tree, cannot be changed in incompatible
-> ways as time progresses.
+> diff --git a/drivers/input/keyboard/gpio_keys_polled.c b/drivers/input/keyboard/gpio_keys_polled.c
+> index 432d363..b7a514c 100644
+> --- a/drivers/input/keyboard/gpio_keys_polled.c
+> +++ b/drivers/input/keyboard/gpio_keys_polled.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/gpio_keys.h>
+>  #include <linux/of.h>
+>  #include <linux/of_platform.h>
+> @@ -51,15 +52,14 @@ static void gpio_keys_polled_check_state(struct input_dev *input,
+>  	int state;
+>  
+>  	if (bdata->can_sleep)
+> -		state = !!gpio_get_value_cansleep(button->gpio);
+> +		state = !!gpiod_get_value_cansleep(button->gpiod);
+>  	else
+> -		state = !!gpio_get_value(button->gpio);
+> +		state = !!gpiod_get_value(button->gpiod);
+>  
+>  	if (state != bdata->last_state) {
+>  		unsigned int type = button->type ?: EV_KEY;
+>  
+> -		input_event(input, type, button->code,
+> -			    !!(state ^ button->active_low));
+> +		input_event(input, type, button->code, state);
+>  		input_sync(input);
+>  		bdata->count = 0;
+>  		bdata->last_state = state;
+> @@ -259,7 +259,6 @@ static int gpio_keys_polled_probe(struct platform_device *pdev)
+>  	for (i = 0; i < pdata->nbuttons; i++) {
+>  		struct gpio_keys_button *button = &pdata->buttons[i];
+>  		struct gpio_keys_button_data *bdata = &bdev->data[i];
+> -		unsigned int gpio = button->gpio;
+>  		unsigned int type = button->type ?: EV_KEY;
+>  
+>  		if (button->wakeup) {
+> @@ -267,15 +266,31 @@ static int gpio_keys_polled_probe(struct platform_device *pdev)
+>  			return -EINVAL;
+>  		}
+>  
+> -		error = devm_gpio_request_one(&pdev->dev, gpio, GPIOF_IN,
+> -					      button->desc ? : DRV_NAME);
+> -		if (error) {
+> -			dev_err(dev, "unable to claim gpio %u, err=%d\n",
+> -				gpio, error);
+> -			return error;
+> +		/*
+> +		 * Legacy GPIO number so request the GPIO here and
+> +		 * convert it to descriptor.
+> +		 */
+> +		if (!button->gpiod && gpio_is_valid(button->gpio)) {
+> +			unsigned flags = 0;
+> +
+> +			if (button->active_low)
+> +				flags |= GPIOF_ACTIVE_LOW;
+> +
+> +			error = devm_gpio_request_one(&pdev->dev, button->gpio,
+> +					flags, button->desc ? : DRV_NAME);
+> +			if (error) {
+> +				dev_err(dev, "unable to claim gpio %u, err=%d\n",
+> +					button->gpio, error);
+> +				return error;
+> +			}
+> +
+> +			button->gpiod = gpio_to_desc(button->gpio);
+>  		}
+>  
+> -		bdata->can_sleep = gpio_cansleep(gpio);
+> +		if (IS_ERR(button->gpiod))
+> +			return PTR_ERR(button->gpiod);
+> +
+> +		bdata->can_sleep = gpiod_cansleep(button->gpiod);
+>  		bdata->last_state = -1;
+>  		bdata->threshold = DIV_ROUND_UP(button->debounce_interval,
+>  						pdata->poll_interval);
+> diff --git a/include/linux/gpio_keys.h b/include/linux/gpio_keys.h
+> index 8b62246..ee2d8c6 100644
+> --- a/include/linux/gpio_keys.h
+> +++ b/include/linux/gpio_keys.h
+> @@ -2,6 +2,7 @@
+>  #define _GPIO_KEYS_H
+>  
+>  struct device;
+> +struct gpio_desc;
+>  
+>  /**
+>   * struct gpio_keys_button - configuration parameters
+> @@ -17,6 +18,7 @@ struct device;
+>   *			disable button via sysfs
+>   * @value:		axis value for %EV_ABS
+>   * @irq:		Irq number in case of interrupt keys
+> + * @gpiod:		GPIO descriptor
+>   */
+>  struct gpio_keys_button {
+>  	unsigned int code;
+> @@ -29,6 +31,7 @@ struct gpio_keys_button {
+>  	bool can_disable;
+>  	int value;
+>  	unsigned int irq;
+> +	struct gpio_desc *gpiod;
+>  };
+>  
+>  /**
+> -- 
+> 1.9.3
+> 
+> 
 
-Ah. Existing thing with backstory among the in-crowd, so I'll assume
-"git subtree" was previously suggested and you had that discussion
-already and decided against it.
-
-Carry on,
-
-Rob
+-- 
+Dmitry
 --
-To unsubscribe from this list: send the line "unsubscribe linux-metag" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
