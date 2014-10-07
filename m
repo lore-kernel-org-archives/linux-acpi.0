@@ -1,166 +1,146 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 12/13] leds: leds-gpio: Make use of device property API
-Date: Tue, 07 Oct 2014 02:18:45 +0200
-Message-ID: <1997643.hzLDnYTZoH@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: [PATCH 09/12] input: gpio_keys_polled - Add support for GPIO descriptors
+Date: Tue, 07 Oct 2014 02:16:47 +0200
+Message-ID: <1740633.d3tSWZ2Q0u@vostro.rjw.lan>
 References: <2660541.BycO7TFnA2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64420 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751290AbaJFX7o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Oct 2014 19:59:44 -0400
-In-Reply-To: <2660541.BycO7TFnA2@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2660541.BycO7TFnA2-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Darren Hart <dvhart-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bryan Wu <cooloney@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Make use of device property API in this driver so that both OF and ACPI
-based system can use the same driver.
+GPIO descriptors are the preferred way over legacy GPIO numbers
+nowadays. Convert the driver to use GPIO descriptors internally but
+still allow passing legacy GPIO numbers from platform data to support
+existing platforms.
 
-This change contains material from Max Eliaser and Mika Westerberg.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Acked-by: Alexandre Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/leds/leds-gpio.c |   67 +++++++++++++++++++++--------------------------
- 1 file changed, 30 insertions(+), 37 deletions(-)
+ drivers/input/keyboard/gpio_keys_polled.c | 39 +++++++++++++++++++++----------
+ include/linux/gpio_keys.h                 |  3 +++
+ 2 files changed, 30 insertions(+), 12 deletions(-)
 
-Index: linux-pm/drivers/leds/leds-gpio.c
-===================================================================
---- linux-pm.orig/drivers/leds/leds-gpio.c
-+++ linux-pm/drivers/leds/leds-gpio.c
-@@ -15,13 +15,11 @@
+diff --git a/drivers/input/keyboard/gpio_keys_polled.c b/drivers/input/keyboard/gpio_keys_polled.c
+index 432d363..b7a514c 100644
+--- a/drivers/input/keyboard/gpio_keys_polled.c
++++ b/drivers/input/keyboard/gpio_keys_polled.c
+@@ -23,6 +23,7 @@
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
  #include <linux/gpio.h>
- #include <linux/gpio/consumer.h>
- #include <linux/leds.h>
--#include <linux/of.h>
--#include <linux/of_platform.h>
--#include <linux/of_gpio.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
- #include <linux/module.h>
- #include <linux/err.h>
-+#include <linux/property.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+@@ -51,15 +52,14 @@ static void gpio_keys_polled_check_state(struct input_dev *input,
+ 	int state;
  
- struct gpio_led_data {
- 	struct led_classdev cdev;
-@@ -171,40 +169,41 @@ static inline int sizeof_gpio_leds_priv(
- 		(sizeof(struct gpio_led_data) * num_leds);
- }
+ 	if (bdata->can_sleep)
+-		state = !!gpio_get_value_cansleep(button->gpio);
++		state = !!gpiod_get_value_cansleep(button->gpiod);
+ 	else
+-		state = !!gpio_get_value(button->gpio);
++		state = !!gpiod_get_value(button->gpiod);
  
--/* Code to create from OpenFirmware platform devices */
--#ifdef CONFIG_OF_GPIO
--static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
-+static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
- {
--	struct device_node *np = pdev->dev.of_node, *child;
-+	struct device *dev = &pdev->dev;
- 	struct gpio_leds_priv *priv;
- 	int count, ret;
-+	void *child;
+ 	if (state != bdata->last_state) {
+ 		unsigned int type = button->type ?: EV_KEY;
  
--	/* count LEDs in this device, so we know how much to allocate */
--	count = of_get_available_child_count(np);
-+	count = device_get_child_node_count(dev);
- 	if (!count)
- 		return ERR_PTR(-ENODEV);
+-		input_event(input, type, button->code,
+-			    !!(state ^ button->active_low));
++		input_event(input, type, button->code, state);
+ 		input_sync(input);
+ 		bdata->count = 0;
+ 		bdata->last_state = state;
+@@ -259,7 +259,6 @@ static int gpio_keys_polled_probe(struct platform_device *pdev)
+ 	for (i = 0; i < pdata->nbuttons; i++) {
+ 		struct gpio_keys_button *button = &pdata->buttons[i];
+ 		struct gpio_keys_button_data *bdata = &bdev->data[i];
+-		unsigned int gpio = button->gpio;
+ 		unsigned int type = button->type ?: EV_KEY;
  
--	for_each_available_child_of_node(np, child)
--		if (of_get_gpio(child, 0) == -EPROBE_DEFER)
--			return ERR_PTR(-EPROBE_DEFER);
--
--	priv = devm_kzalloc(&pdev->dev, sizeof_gpio_leds_priv(count),
--			GFP_KERNEL);
-+	priv = devm_kzalloc(dev, sizeof_gpio_leds_priv(count), GFP_KERNEL);
- 	if (!priv)
- 		return ERR_PTR(-ENOMEM);
- 
--	for_each_available_child_of_node(np, child) {
-+	device_for_each_child_node(dev, child) {
- 		struct gpio_led led = {};
--		enum of_gpio_flags flags;
--		const char *state;
-+		const char *state = NULL;
-+
-+		led.gpiod = devm_get_named_gpiod_from_child(dev, child,
-+							    "gpios", 0);
-+		if (IS_ERR(led.gpiod)) {
-+			device_put_child_node(dev, child);
-+			goto err;
-+		}
- 
--		led.gpio = of_get_gpio_flags(child, 0, &flags);
--		led.active_low = flags & OF_GPIO_ACTIVE_LOW;
--		led.name = of_get_property(child, "label", NULL) ? : child->name;
--		led.default_trigger =
--			of_get_property(child, "linux,default-trigger", NULL);
--		state = of_get_property(child, "default-state", NULL);
--		if (state) {
-+		device_child_property_read_string(dev, child,
-+						  "label", &led.name);
-+		device_child_property_read_string(dev, child,
-+						  "linux,default-trigger",
-+						  &led.default_trigger);
-+
-+		if (!device_child_property_read_string(dev, child,
-+						       "linux,default_state",
-+						       &state)) {
- 			if (!strcmp(state, "keep"))
- 				led.default_state = LEDS_GPIO_DEFSTATE_KEEP;
- 			else if (!strcmp(state, "on"))
-@@ -213,13 +212,14 @@ static struct gpio_leds_priv *gpio_leds_
- 				led.default_state = LEDS_GPIO_DEFSTATE_OFF;
+ 		if (button->wakeup) {
+@@ -267,15 +266,31 @@ static int gpio_keys_polled_probe(struct platform_device *pdev)
+ 			return -EINVAL;
  		}
  
--		if (of_get_property(child, "retain-state-suspended", NULL))
-+		if (!device_get_child_property(dev, child,
-+					       "retain-state-suspended", NULL))
- 			led.retain_state_suspended = 1;
- 
- 		ret = create_gpio_led(&led, &priv->leds[priv->num_leds++],
--				      &pdev->dev, NULL);
-+				      dev, NULL);
- 		if (ret < 0) {
--			of_node_put(child);
-+			device_put_child_node(dev, child);
- 			goto err;
+-		error = devm_gpio_request_one(&pdev->dev, gpio, GPIOF_IN,
+-					      button->desc ? : DRV_NAME);
+-		if (error) {
+-			dev_err(dev, "unable to claim gpio %u, err=%d\n",
+-				gpio, error);
+-			return error;
++		/*
++		 * Legacy GPIO number so request the GPIO here and
++		 * convert it to descriptor.
++		 */
++		if (!button->gpiod && gpio_is_valid(button->gpio)) {
++			unsigned flags = 0;
++
++			if (button->active_low)
++				flags |= GPIOF_ACTIVE_LOW;
++
++			error = devm_gpio_request_one(&pdev->dev, button->gpio,
++					flags, button->desc ? : DRV_NAME);
++			if (error) {
++				dev_err(dev, "unable to claim gpio %u, err=%d\n",
++					button->gpio, error);
++				return error;
++			}
++
++			button->gpiod = gpio_to_desc(button->gpio);
  		}
- 	}
-@@ -238,13 +238,6 @@ static const struct of_device_id of_gpio
+ 
+-		bdata->can_sleep = gpio_cansleep(gpio);
++		if (IS_ERR(button->gpiod))
++			return PTR_ERR(button->gpiod);
++
++		bdata->can_sleep = gpiod_cansleep(button->gpiod);
+ 		bdata->last_state = -1;
+ 		bdata->threshold = DIV_ROUND_UP(button->debounce_interval,
+ 						pdata->poll_interval);
+diff --git a/include/linux/gpio_keys.h b/include/linux/gpio_keys.h
+index 8b62246..ee2d8c6 100644
+--- a/include/linux/gpio_keys.h
++++ b/include/linux/gpio_keys.h
+@@ -2,6 +2,7 @@
+ #define _GPIO_KEYS_H
+ 
+ struct device;
++struct gpio_desc;
+ 
+ /**
+  * struct gpio_keys_button - configuration parameters
+@@ -17,6 +18,7 @@ struct device;
+  *			disable button via sysfs
+  * @value:		axis value for %EV_ABS
+  * @irq:		Irq number in case of interrupt keys
++ * @gpiod:		GPIO descriptor
+  */
+ struct gpio_keys_button {
+ 	unsigned int code;
+@@ -29,6 +31,7 @@ struct gpio_keys_button {
+ 	bool can_disable;
+ 	int value;
+ 	unsigned int irq;
++	struct gpio_desc *gpiod;
  };
  
- MODULE_DEVICE_TABLE(of, of_gpio_leds_match);
--#else /* CONFIG_OF_GPIO */
--static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
--{
--	return ERR_PTR(-ENODEV);
--}
--#endif /* CONFIG_OF_GPIO */
--
- 
- static int gpio_led_probe(struct platform_device *pdev)
- {
-@@ -273,7 +266,7 @@ static int gpio_led_probe(struct platfor
- 			}
- 		}
- 	} else {
--		priv = gpio_leds_create_of(pdev);
-+		priv = gpio_leds_create(pdev);
- 		if (IS_ERR(priv))
- 			return PTR_ERR(priv);
- 	}
-@@ -300,7 +293,7 @@ static struct platform_driver gpio_led_d
- 	.driver		= {
- 		.name	= "leds-gpio",
- 		.owner	= THIS_MODULE,
--		.of_match_table = of_match_ptr(of_gpio_leds_match),
-+		.of_match_table = of_gpio_leds_match,
- 	},
- };
- 
+ /**
+-- 
+1.9.3
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
