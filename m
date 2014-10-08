@@ -1,68 +1,97 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 2/2] PMIC / opregion: support PMIC customized operation
- region for CrystalCove
-Date: Wed, 8 Oct 2014 13:54:29 +0100
-Message-ID: <20141008125429.GX4609@sirena.org.uk>
-References: <1410229968-11638-1-git-send-email-aaron.lu@intel.com>
- <1410229968-11638-3-git-send-email-aaron.lu@intel.com>
- <20141008080515.GC20647@lee--X1>
- <CACRpkdaPFzq=Qya_UoZpxHom+VcynTwQL9EfdLb_Vpr=g6+Prg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 11/13] gpio: Support for unified device properties interface
+Date: Wed, 08 Oct 2014 16:01:45 +0200
+Message-ID: <2049741.HkpnzptfyW@vostro.rjw.lan>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan> <1693047.RuqBhhrutB@vostro.rjw.lan> <CAAVeFu+MvBUZTrRWB008rcsMzPvEb81TEg=L8RqBz=PJ9J6bwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WiuFC6bSmcjanUfV"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdaPFzq=Qya_UoZpxHom+VcynTwQL9EfdLb_Vpr=g6+Prg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>, Alexandre Courbot <gnurou@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Lejun Zhu <lejun.zhu@intel.com>, Radivoje Jovanovic <radivoje.jovanovic@intel.com>, Daniel =?iso-8859-1?Q?Gl=F6ckner?= <dg@emlix.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:57816 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753859AbaJHNlj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Oct 2014 09:41:39 -0400
+In-Reply-To: <CAAVeFu+MvBUZTrRWB008rcsMzPvEb81TEg=L8RqBz=PJ9J6bwQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
+On Wednesday, October 08, 2014 11:55:08 AM Alexandre Courbot wrote:
+> On Wed, Oct 8, 2014 at 9:09 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, October 07, 2014 07:52:02 PM Alexandre Courbot wrote:
+> >> On Tue, Oct 7, 2014 at 7:40 PM, Mika Westerberg
+> >> <mika.westerberg@linux.intel.com> wrote:
+> >> > On Tue, Oct 07, 2014 at 07:22:13PM +0900, Alexandre Courbot wrote:
+> >> >> On Tue, Oct 7, 2014 at 9:18 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> >> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> >> >
+> >> >> > Some drivers need to deal with only firmware representation of its
+> >> >> > GPIOs. An example would be a GPIO button array driver where each button
+> >> >> > is described as a separate firmware node in device tree. Typically these
+> >> >> > child nodes do not have physical representation in the Linux device
+> >> >> > model.
+> >> >> >
+> >> >> > In order to help device drivers to handle such firmware child nodes we
+> >> >> > add dev[m]_get_named_gpiod_from_child() that takes a child firmware
+> >> >> > node pointer as its second argument (the first one is the parent device
+> >> >> > itself), finds the GPIO using whatever is the underlying firmware
+> >> >> > method, and requests the GPIO properly.
+> >> >> >
+> >> >> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> >> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> >>
+> >> >> ...
+> >> >>
+> >> >> > +/* Child properties interface */
+> >> >> > +struct gpio_desc *dev_get_named_gpiod_from_child(struct device *dev, void *child,
+> >> >> > +                                                const char *propname, int index);
+> >> >> > +struct gpio_desc *devm_get_named_gpiod_from_child(struct device *dev, void *child,
+> >> >> > +                                                 const char *propname, int index);
+> >> >>
+> >> >> I see the reason for these functions and am not opposed to them.
+> >> >> However, I wonder if we could not replace propname by a con_id that
+> >> >> would be resolved to one of con_id-gpio for DT and whatever naming
+> >> >> convention ACPI is using?
+> >> >
+> >> > The code in gpio-leds.c and gpio_keys_polled.c refers to "gpios" as the
+> >> > property name. If we can change that somehow to work with con_id-gpio
+> >> > instead without breaking things, then why not.
+> >> >
+> >> >> This would prevent users to name GPIOs outside of the conventions
+> >> >> defined in the bindings and be generally safer. Is there a particular
+> >> >> reason (used by some old code?) for the current direct property
+> >> >> access? If not, maybe we could call a slightly-modified of_find_gpio()
+> >> >> to resolve the GPIO property for DT, and the equivalent function for
+> >> >> ACPI?
+> >> >
+> >> > Only reason I can think of is support for the existing properties that
+> >> > are used directly. Drivers using gpiod_get() and friends do not need
+> >> > dev_get_named_gpiod_from_child() anyway.
+> >>
+> >> Right. Another thing is that the property handling code (active low
+> >> only for now) is duplicated again, but that can be addressed
+> >> separately.
+> >>
+> >> I will have a look at gpio-leds and gpio_keys_polled to see if we
+> >> cannot make this work at a higher level. It's easier to have the
+> >> bindings respected if the code itself enforces them.
+> >
+> > I'm wondering if that can be done after merging the current work?
+> >
+> > We'll be able to use the drivers in question with our hardware in the
+> > meantime then ...
+> 
+> Yeah, that's probably ok. The properties in question already exist so
+> we will have to support them anyway ; it's just a matter of seeing
+> whether we can improve the proposed way.
+> 
+> So for now:
+> 
+> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 
---WiuFC6bSmcjanUfV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks!
 
-On Wed, Oct 08, 2014 at 11:16:11AM +0200, Linus Walleij wrote:
-> On Wed, Oct 8, 2014 at 10:05 AM, Lee Jones <lee.jones@linaro.org> wrote:
-
-Please don't send upstream mail to my work account (which I've never
-used for upstream mail and isn't advertised in MAINTAINERS), it mostly
-gets deleted unread.
-
-> > With the influx of new same-chip devices, I think the MFD subsystem is
-> > fast becoming overloaded.  I think all of the PMIC handling should in
-> > fact either live in Regulators or have its own subsystem.
-
-> You have a valid point, and it's been raised before that MFD risk being
-> a dumping ground of the same kind that drivers/misc used to be (is?).
-
-> If they shall live in MFD the driver there should (IMHO) just be
-> an exchange station, multiplexing messages and spawning
-> MFD cells into platform devices for respective *real* subsystem,
-> various misc stuff should not be allowed to be shoehorned
-> into MFD just because there is no other place to put it.
-
-Right, there's a very clear role for MFD in multiplexing the various
-functions of the device and dealing with any core behaviour it needs for
-bootstrapping or things like chip level suspend and resume.  Dumping
-that into some random subsystem doesn't seem to make any sense, but
-doing things that fall outside that remit also don't seem clever.
-
---WiuFC6bSmcjanUfV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUNTQEAAoJECTWi3JdVIfQvqsH/R3Ib9aqPHFEIMXn4xjG5rIJ
-iLpASimgXCZZv/n9JJ7e1ajnKHmp0BnlT6R6EHjsRvKb5+r6yfUmfpo33xmHlkzh
-BDsD/6eWpi62TOxQl0r/bVW49OCvzsqy307In0a0uiUZqkhCTnpxwSV54QuT1kJC
-06Y95UlMmDLTaoLnwlU57VeCyfYhIAXyzxQRJpOz3pOJeqkaXQQeM5qU3JBPg5Se
-IowyiTlRanAv4rulyDfxYhghQxw+fKP+nEFgEgjK8Vsyx9YlcUTMBREHo7VsQec6
-Gj+Uxo5wU3V8yZxdvVrWW4hJ6JLLiwyXqCILyi3MF1uuJohDbGg2DTSncKZ9eMg=
-=8Q4j
------END PGP SIGNATURE-----
-
---WiuFC6bSmcjanUfV--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
