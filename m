@@ -1,64 +1,80 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v2 07/16] gpio: Add support for unified device properties interface
-Date: Wed, 08 Oct 2014 01:57:11 +0200
-Message-ID: <2748359.x48UaePcbM@vostro.rjw.lan>
-References: <1410868367-11056-1-git-send-email-mika.westerberg@linux.intel.com> <20140926032131.GC40523@vmdeb7> <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
+Subject: Re: [PATCH 11/13] gpio: Support for unified device properties interface
+Date: Wed, 08 Oct 2014 02:09:26 +0200
+Message-ID: <1693047.RuqBhhrutB@vostro.rjw.lan>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan> <20141007104021.GN1583@lahna.fi.intel.com> <CAAVeFuL_fNdavtAnG9fWOo6Qin8YG+f1x1QG-5Z37YRC4nQByQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57789 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755795AbaJGXhF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Oct 2014 19:37:05 -0400
-In-Reply-To: <CACRpkdbehhsDxikCV1bJjBm581MCcu2DRSmiQQXHG09EmjLNBQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAAVeFuL_fNdavtAnG9fWOo6Qin8YG+f1x1QG-5Z37YRC4nQByQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <Len.Brown@intel.com>, Arnd Bergmann <arnd@arndb.de>, David Woodhouse <david.woodhouse@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Lee Jones <lee.jones@linaro.org>, Aaron Lu <aaron.lu@intel.com>
 
-On Tuesday, October 07, 2014 03:37:04 PM Linus Walleij wrote:
-> On Fri, Sep 26, 2014 at 5:21 AM, Darren Hart <dvhart@infradead.org> wrote:
-> > On Wed, Sep 24, 2014 at 11:12:36AM +0200, Arnd Bergmann wrote:
+On Tuesday, October 07, 2014 07:52:02 PM Alexandre Courbot wrote:
+> On Tue, Oct 7, 2014 at 7:40 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > On Tue, Oct 07, 2014 at 07:22:13PM +0900, Alexandre Courbot wrote:
+> >> On Tue, Oct 7, 2014 at 9:18 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> >
+> >> > Some drivers need to deal with only firmware representation of its
+> >> > GPIOs. An example would be a GPIO button array driver where each button
+> >> > is described as a separate firmware node in device tree. Typically these
+> >> > child nodes do not have physical representation in the Linux device
+> >> > model.
+> >> >
+> >> > In order to help device drivers to handle such firmware child nodes we
+> >> > add dev[m]_get_named_gpiod_from_child() that takes a child firmware
+> >> > node pointer as its second argument (the first one is the parent device
+> >> > itself), finds the GPIO using whatever is the underlying firmware
+> >> > method, and requests the GPIO properly.
+> >> >
+> >> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>
+> >> ...
+> >>
+> >> > +/* Child properties interface */
+> >> > +struct gpio_desc *dev_get_named_gpiod_from_child(struct device *dev, void *child,
+> >> > +                                                const char *propname, int index);
+> >> > +struct gpio_desc *devm_get_named_gpiod_from_child(struct device *dev, void *child,
+> >> > +                                                 const char *propname, int index);
+> >>
+> >> I see the reason for these functions and am not opposed to them.
+> >> However, I wonder if we could not replace propname by a con_id that
+> >> would be resolved to one of con_id-gpio for DT and whatever naming
+> >> convention ACPI is using?
+> >
+> > The code in gpio-leds.c and gpio_keys_polled.c refers to "gpios" as the
+> > property name. If we can change that somehow to work with con_id-gpio
+> > instead without breaking things, then why not.
+> >
+> >> This would prevent users to name GPIOs outside of the conventions
+> >> defined in the bindings and be generally safer. Is there a particular
+> >> reason (used by some old code?) for the current direct property
+> >> access? If not, maybe we could call a slightly-modified of_find_gpio()
+> >> to resolve the GPIO property for DT, and the equivalent function for
+> >> ACPI?
+> >
+> > Only reason I can think of is support for the existing properties that
+> > are used directly. Drivers using gpiod_get() and friends do not need
+> > dev_get_named_gpiod_from_child() anyway.
 > 
-> > So as Mika has pointed out, LEDs aren't the only ones affected. Several drivers
-> > will need to walk through non-device child nodes, and it seems to me that having
-> > a firmware-independent mechanism to do so benefits the drivers by both making
-> > them smaller and by increasing the reusability of new drivers and drivers
-> > updated to use the new API across platforms.
+> Right. Another thing is that the property handling code (active low
+> only for now) is duplicated again, but that can be addressed
+> separately.
 > 
-> In a recent round of reviews, for the OF case, that led to drivers
-> which used device_initcall() without being a module, getting a match
-> and handle to the parent device, and then walking over the nodes
-> and instantiating child objects (Linux devices usually) in the process.
-> 
-> It was done as a response to the remark from Rob Herring that
-> we were modeling things in the device tree as devices when they
-> really weren't, we were just doing it that way because it fits the
-> Linux device model and it's easier.
-> 
-> So we have that case too.
-> 
-> The question is if it's anything close to generalizable.
+> I will have a look at gpio-leds and gpio_keys_polled to see if we
+> cannot make this work at a higher level. It's easier to have the
+> bindings respected if the code itself enforces them.
 
-Well, OK.
+I'm wondering if that can be done after merging the current work?
 
-Can you please have a look at these patchse in v4:
-
-https://patchwork.kernel.org/patch/5040161/
-https://patchwork.kernel.org/patch/5040081/
-https://patchwork.kernel.org/patch/5040061/
-
-We now have an ACK from Dmitry on the gpio_keys_polled thing and Bryan
-said he was OK with the leds changes already in v2 (IIRC).
-
-Also Alexandre is saying that he's not opposed to the changes in
-https://patchwork.kernel.org/patch/5040161/, although there may be a better
-way.
-
-And we have AKCs from Greg on the driver core changes, so it looks like
-GPIO really is the only missing thing and we need that code to support
-our hardware.
+We'll be able to use the drivers in question with our hardware in the
+meantime then ...
 
 -- 
 I speak only for myself.
