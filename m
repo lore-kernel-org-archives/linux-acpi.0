@@ -1,96 +1,108 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v1 01/28] x86, irq: Kill unused setup_timer_IRQ0_pin()
-Date: Thu, 09 Oct 2014 10:16:41 +0800
-Message-ID: <5435F009.1010602@linux.intel.com>
-References: <1411743478-31435-1-git-send-email-jiang.liu@linux.intel.com> <1411743478-31435-2-git-send-email-jiang.liu@linux.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / video: check _DOD list when creating backlight
+ device
+Date: Thu, 09 Oct 2014 16:27:55 +0800
+Message-ID: <5436470B.3030306@intel.com>
+References: <542A4949.2020208@intel.com> <1648939.GaN1bonAuX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6753 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:5399 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751249AbaJICRU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Oct 2014 22:17:20 -0400
-In-Reply-To: <1411743478-31435-2-git-send-email-jiang.liu@linux.intel.com>
+	id S1750824AbaJII15 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2014 04:27:57 -0400
+In-Reply-To: <1648939.GaN1bonAuX@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ntrrgc@gmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-Hi Thomas,
-	This patch has dependency on your patchset to remove
-the last caller of setup_timer_IRQ0_pin(). What's the best
-way to solve this dependency? Should I pull your patches or
-just keeping the temporary "#if 0"?
-Regards!
-Gerry
+On 10/01/2014 04:18 AM, Rafael J. Wysocki wrote:
+> On Tuesday, September 30, 2014 02:10:17 PM Aaron Lu wrote:
+>> The _DOD method lists which video output device is currently attached so
+>> we should only care about them and ignore others. An user recently
+>> reported that there are two acpi_video interfaces appeared on his system
+>> and one of them doesn't work. From the acpidump, it is found that there
+>> are more than one video output devices that have _BCM control method but
+>> the _DOD lists only one of them. So this patch checks if the video output
+>> device is in the _DOD list and will not create backlight device if it is
+>> not in the list. Also, we consider the broken _DOD case(reflected by the
+>> video->attached_count is 0) and do not change behaviour for those broken
+>> _DOD systems.
+>>
+>> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84111
+>> Reported-and-tested-by: ntrrgc@gmail.com
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> 
+> This looks reasonable to me, but I'm a little afraid that it may break
+> systems which forget to list valid interfaces in the _DOD.
 
-On 2014/9/26 22:57, Jiang Liu wrote:
-> Now there's no user of setup_timer_IRQ0_pin(), so kill it.
+Indeed, this is possible.
+
 > 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
-> Hi all,
-> 	This patch depends on Thomas' work to remove the last caller of
-> setup_timer_IRQ0_pin(). So the "#if 0" is intended, so it won't block
-> following up patches.
-> Regards!
-> Gerry
-> ---
->  arch/x86/include/asm/io_apic.h          |    1 -
->  arch/x86/kernel/apic/io_apic.c          |   17 -----------------
->  arch/x86/platform/intel-mid/intel-mid.c |    2 ++
->  3 files changed, 2 insertions(+), 18 deletions(-)
+> For this reason, I'm queuing this up for 3.18, but not for -stable.
+
+Agree.
+
 > 
-> diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-> index 7bf86bfe05b1..f9a99bc28981 100644
-> --- a/arch/x86/include/asm/io_apic.h
-> +++ b/arch/x86/include/asm/io_apic.h
-> @@ -204,7 +204,6 @@ extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
->  			    irq_hw_number_t hwirq);
->  extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
->  extern int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node);
-> -extern void __init pre_init_apic_IRQ0(void);
->  
->  extern void mp_save_irq(struct mpc_intsrc *m);
->  extern bool mp_should_keep_irq(struct device *dev);
-> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-> index 37796fcd33e2..5cccf8989507 100644
-> --- a/arch/x86/kernel/apic/io_apic.c
-> +++ b/arch/x86/kernel/apic/io_apic.c
-> @@ -3091,20 +3091,3 @@ bool mp_should_keep_irq(struct device *dev)
->  
->  	return false;
->  }
-> -
-> -/* Enable IOAPIC early just for system timer */
-> -void __init pre_init_apic_IRQ0(void)
-> -{
-> -	struct io_apic_irq_attr attr = { 0, 0, 0, 0 };
-> -
-> -	printk(KERN_INFO "Early APIC setup for system timer0\n");
-> -#ifndef CONFIG_SMP
-> -	physid_set_mask_of_physid(boot_cpu_physical_apicid,
-> -					 &phys_cpu_present_map);
-> -#endif
-> -	setup_local_APIC();
-> -
-> -	io_apic_setup_irq_pin(0, 0, &attr);
-> -	irq_set_chip_and_handler_name(0, &ioapic_chip, handle_edge_irq,
-> -				      "edge");
-> -}
-> diff --git a/arch/x86/platform/intel-mid/intel-mid.c b/arch/x86/platform/intel-mid/intel-mid.c
-> index 1bbedc4b0f88..f8855b703cab 100644
-> --- a/arch/x86/platform/intel-mid/intel-mid.c
-> +++ b/arch/x86/platform/intel-mid/intel-mid.c
-> @@ -99,7 +99,9 @@ static void __init intel_mid_time_init(void)
->  		return;
->  	}
->  	/* we need at least one APB timer */
-> +#if 0
->  	pre_init_apic_IRQ0();
-> +#endif
->  	apbt_time_init();
->  }
->  
+> We can request a backport after a while when we're reasonably sure that
+> there are no regressions resulting from this.
+
+Sounds good, thanks for taking care of this!
+
+Regards,
+Aaron
+
 > 
+>> ---
+>>  drivers/acpi/video.c | 26 ++++++++++++++++++++++++++
+>>  1 file changed, 26 insertions(+)
+>>
+>> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+>> index 7285c7f9a935..807a88a0f394 100644
+>> --- a/drivers/acpi/video.c
+>> +++ b/drivers/acpi/video.c
+>> @@ -1154,6 +1154,23 @@ acpi_video_device_bind(struct acpi_video_bus *video,
+>>  	}
+>>  }
+>>  
+>> +static bool acpi_video_device_in_dod(struct acpi_video_device *device)
+>> +{
+>> +	struct acpi_video_bus *video = device->video;
+>> +	int i;
+>> +
+>> +	/* If we have a broken _DOD, no need to test */
+>> +	if (!video->attached_count)
+>> +		return true;
+>> +
+>> +	for (i = 0; i < video->attached_count; i++) {
+>> +		if (video->attached_array[i].bind_info == device)
+>> +			return true;
+>> +	}
+>> +
+>> +	return false;
+>> +}
+>> +
+>>  /*
+>>   *  Arg:
+>>   *	video	: video bus device
+>> @@ -1593,6 +1610,15 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>>  	static int count;
+>>  	char *name;
+>>  
+>> +	/*
+>> +	 * Do not create backlight device for video output
+>> +	 * device that is not in the enumerated list.
+>> +	 */
+>> +	if (!acpi_video_device_in_dod(device)) {
+>> +		dev_dbg(&device->dev->dev, "not in _DOD list, ignore\n");
+>> +		return;
+>> +	}
+>> +
+>>  	result = acpi_video_init_brightness(device);
+>>  	if (result)
+>>  		return;
+>>
+> 
+
