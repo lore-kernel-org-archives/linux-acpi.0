@@ -1,275 +1,57 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/10] ACPICA: Events: Reduce indent divergences of events files.
-Date: Fri, 10 Oct 2014 10:39:39 +0800
-Message-ID: <28e2b86ab89540dc46ec4196723149abbd6ad319.1412907188.git.lv.zheng@intel.com>
+Subject: [PATCH 04/10] ACPICA: Events: Reduce source code difference in acpi_install_gpe_handler().
+Date: Fri, 10 Oct 2014 10:39:45 +0800
+Message-ID: <4832e98fb5408c18fcee694a94e41c9044665703.1412907188.git.lv.zheng@intel.com>
 References: <cover.1412907188.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:36386 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:7929 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751064AbaJJCjm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Oct 2014 22:39:42 -0400
+	id S1751064AbaJJCjs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2014 22:39:48 -0400
 In-Reply-To: <cover.1412907188.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-This patch reduces indent divergences first in order to reduce human
-intervention work for the follow-up linuxized event patches.
+There is a sanity check in ACPICA upstream, complaining mis-matched
+interrupt type for originally enabled GPEs that are going to be dispatched
+by OSPM handlers. This is only a warning message noting developers such
+conflict between BIOS and OSPM. This patch ports this warning message from
+ACPICA upstream to reduce source code difference between Linux and ACPICA
+upstream.
 
-This patch only reduces source code differences in indentation. Though the
-divergence report doesn't care about these differences, they do hurt patch
-maintanence. We need them to be reduced before applying the follow-up
-linuxized event patches.
+This patch is required before applying a follow-up linuxized event patch in
+20140926 release. It also contains one line divergence reduction to make
+the follow-up change simpler and easier to be maintained.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/achware.h   |    2 +-
- drivers/acpi/acpica/aclocal.h   |    4 ++--
- drivers/acpi/acpica/evgpe.c     |   23 ++++++++++++-----------
- drivers/acpi/acpica/evgpeinit.c |    1 +
- drivers/acpi/acpica/evxface.c   |    9 ++++-----
- drivers/acpi/acpica/evxfgpe.c   |    9 ++++-----
- drivers/acpi/acpica/hwgpe.c     |    2 +-
- 7 files changed, 25 insertions(+), 25 deletions(-)
+ drivers/acpi/acpica/evxface.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-index 2ad2351..c318d3e 100644
---- a/drivers/acpi/acpica/achware.h
-+++ b/drivers/acpi/acpica/achware.h
-@@ -127,7 +127,7 @@ acpi_hw_clear_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 
- acpi_status
- acpi_hw_get_gpe_status(struct acpi_gpe_event_info *gpe_event_info,
--		       acpi_event_status * event_status);
-+		       acpi_event_status *event_status);
- 
- acpi_status acpi_hw_disable_all_gpes(void);
- 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 2747279..c00e7e4 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -413,8 +413,8 @@ struct acpi_gpe_handler_info {
- 	acpi_gpe_handler address;	/* Address of handler, if any */
- 	void *context;		/* Context to be passed to handler */
- 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level (saved) */
--	u8 original_flags;      /* Original (pre-handler) GPE info */
--	u8 originally_enabled;  /* True if GPE was originally enabled */
-+	u8 original_flags;	/* Original (pre-handler) GPE info */
-+	u8 originally_enabled;	/* True if GPE was originally enabled */
- };
- 
- /* Notify info for implicit notify, multiple device objects */
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index e4ba4de..2095dfb 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -100,13 +100,14 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
-  *
-  * FUNCTION:    acpi_ev_enable_gpe
-  *
-- * PARAMETERS:  gpe_event_info  - GPE to enable
-+ * PARAMETERS:  gpe_event_info          - GPE to enable
-  *
-  * RETURN:      Status
-  *
-  * DESCRIPTION: Clear a GPE of stale events and enable it.
-  *
-  ******************************************************************************/
-+
- acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
- {
- 	acpi_status status;
-@@ -125,6 +126,7 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
- 	}
- 
- 	/* Clear the GPE (of stale events) */
-+
- 	status = acpi_hw_clear_gpe(gpe_event_info);
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
-@@ -136,7 +138,6 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
- 	return_ACPI_STATUS(status);
- }
- 
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ev_add_gpe_reference
-@@ -212,7 +213,7 @@ acpi_ev_remove_gpe_reference(struct acpi_gpe_event_info *gpe_event_info)
- 		if (ACPI_SUCCESS(status)) {
- 			status =
- 			    acpi_hw_low_set_gpe(gpe_event_info,
--						     ACPI_GPE_DISABLE);
-+						ACPI_GPE_DISABLE);
- 		}
- 
- 		if (ACPI_FAILURE(status)) {
-@@ -334,7 +335,7 @@ struct acpi_gpe_event_info *acpi_ev_get_gpe_event_info(acpi_handle gpe_device,
-  *
-  ******************************************************************************/
- 
--u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
-+u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info *gpe_xrupt_list)
- {
- 	acpi_status status;
- 	struct acpi_gpe_block_info *gpe_block;
-@@ -427,7 +428,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
- 
- 			/* Check if there is anything active at all in this register */
- 
--			enabled_status_byte = (u8) (status_reg & enable_reg);
-+			enabled_status_byte = (u8)(status_reg & enable_reg);
- 			if (!enabled_status_byte) {
- 
- 				/* No active GPEs in this register, move on */
-@@ -450,7 +451,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
- 					    acpi_ev_gpe_dispatch(gpe_block->
- 								 node,
- 								 &gpe_block->
--						event_info[((acpi_size) i * ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
-+								 event_info[((acpi_size) i * ACPI_GPE_REGISTER_WIDTH) + j], j + gpe_register_info->base_gpe_number);
- 				}
- 			}
- 		}
-@@ -636,7 +637,7 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context)
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info *gpe_event_info)
-+acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info * gpe_event_info)
- {
- 	acpi_status status;
- 
-@@ -666,9 +667,9 @@ acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info *gpe_event_info)
-  *
-  * FUNCTION:    acpi_ev_gpe_dispatch
-  *
-- * PARAMETERS:  gpe_device      - Device node. NULL for GPE0/GPE1
-- *              gpe_event_info  - Info for this GPE
-- *              gpe_number      - Number relative to the parent GPE block
-+ * PARAMETERS:  gpe_device          - Device node. NULL for GPE0/GPE1
-+ *              gpe_event_info      - Info for this GPE
-+ *              gpe_number          - Number relative to the parent GPE block
-  *
-  * RETURN:      INTERRUPT_HANDLED or INTERRUPT_NOT_HANDLED
-  *
-@@ -681,7 +682,7 @@ acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info *gpe_event_info)
- 
- u32
- acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
--		    struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
-+		     struct acpi_gpe_event_info *gpe_event_info, u32 gpe_number)
- {
- 	acpi_status status;
- 	u32 return_value;
-diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
-index 49fc7ef..7be9283 100644
---- a/drivers/acpi/acpica/evgpeinit.c
-+++ b/drivers/acpi/acpica/evgpeinit.c
-@@ -424,6 +424,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
- 	}
- 
- 	/* Disable the GPE in case it's been enabled already. */
-+
- 	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_DISABLE);
- 
- 	/*
 diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index 11e5803..935fd76 100644
+index 935fd76..79b6ed2 100644
 --- a/drivers/acpi/acpica/evxface.c
 +++ b/drivers/acpi/acpica/evxface.c
-@@ -786,14 +786,13 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
- 	handler->method_node = gpe_event_info->dispatch.method_node;
- 	handler->original_flags = (u8)(gpe_event_info->flags &
- 				       (ACPI_GPE_XRUPT_TYPE_MASK |
--				        ACPI_GPE_DISPATCH_MASK));
-+					ACPI_GPE_DISPATCH_MASK));
- 
- 	/*
- 	 * If the GPE is associated with a method, it may have been enabled
- 	 * automatically during initialization, in which case it has to be
- 	 * disabled now to avoid spurious execution of the handler.
+@@ -795,8 +795,16 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
  	 */
--
  	if ((handler->original_flags & ACPI_GPE_DISPATCH_METHOD)
  	    && gpe_event_info->runtime_count) {
- 		handler->originally_enabled = 1;
-@@ -808,7 +807,7 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
+-		handler->originally_enabled = 1;
++		handler->originally_enabled = TRUE;
+ 		(void)acpi_ev_remove_gpe_reference(gpe_event_info);
++
++		/* Sanity check of original type against new type */
++
++		if (type !=
++		    (u32)(gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK)) {
++			ACPI_WARNING((AE_INFO,
++				      "GPE type mismatch (level/edge)"));
++		}
+ 	}
  
- 	gpe_event_info->flags &=
- 	    ~(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
--	gpe_event_info->flags |= (u8) (type | ACPI_GPE_DISPATCH_HANDLER);
-+	gpe_event_info->flags |= (u8)(type | ACPI_GPE_DISPATCH_HANDLER);
- 
- 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
- 
-@@ -893,7 +892,7 @@ acpi_remove_gpe_handler(acpi_handle gpe_device,
- 
- 	gpe_event_info->dispatch.method_node = handler->method_node;
- 	gpe_event_info->flags &=
--		~(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
-+	    ~(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
- 	gpe_event_info->flags |= handler->original_flags;
- 
- 	/*
-@@ -946,7 +945,7 @@ ACPI_EXPORT_SYMBOL(acpi_remove_gpe_handler)
-  * handle is returned.
-  *
-  ******************************************************************************/
--acpi_status acpi_acquire_global_lock(u16 timeout, u32 * handle)
-+acpi_status acpi_acquire_global_lock(u16 timeout, u32 *handle)
- {
- 	acpi_status status;
- 
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index 56710a0..2529d3c 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -106,8 +106,8 @@ ACPI_EXPORT_SYMBOL(acpi_update_all_gpes)
-  *
-  * FUNCTION:    acpi_enable_gpe
-  *
-- * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
-- *              gpe_number      - GPE level within the GPE block
-+ * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for GPE0/GPE1
-+ *              gpe_number          - GPE level within the GPE block
-  *
-  * RETURN:      Status
-  *
-@@ -115,7 +115,6 @@ ACPI_EXPORT_SYMBOL(acpi_update_all_gpes)
-  *              hardware-enabled.
-  *
-  ******************************************************************************/
--
- acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
- {
- 	acpi_status status = AE_BAD_PARAMETER;
-@@ -490,8 +489,8 @@ ACPI_EXPORT_SYMBOL(acpi_clear_gpe)
-  *
-  * FUNCTION:    acpi_get_gpe_status
-  *
-- * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
-- *              gpe_number      - GPE level within the GPE block
-+ * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for GPE0/GPE1
-+ *              gpe_number          - GPE level within the GPE block
-  *              event_status        - Where the current status of the event
-  *                                    will be returned
-  *
-diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-index ea62d40..aa884d4 100644
---- a/drivers/acpi/acpica/hwgpe.c
-+++ b/drivers/acpi/acpica/hwgpe.c
-@@ -202,7 +202,7 @@ acpi_status acpi_hw_clear_gpe(struct acpi_gpe_event_info * gpe_event_info)
- 
- acpi_status
- acpi_hw_get_gpe_status(struct acpi_gpe_event_info * gpe_event_info,
--		       acpi_event_status * event_status)
-+		       acpi_event_status *event_status)
- {
- 	u32 in_byte;
- 	u32 register_bit;
+ 	/* Install the handler */
 -- 
 1.7.10
 
