@@ -1,46 +1,84 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH 08/44] kernel: Move pm_power_off to common code
-Date: Fri, 10 Oct 2014 09:53:52 -0700
-Message-ID: <54380F20.3060800@roeck-us.net>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net> <1412659726-29957-9-git-send-email-linux@roeck-us.net> <20141009103847.GC6787@amd> <54368A30.9070101@roeck-us.net> <20141009202419.GA16885@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <20141009202419.GA16885@amd>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Pavel Machek <pavel@denx.de>
-Cc: linux-kernel@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, lguest@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-alpha@vger.kernel.org, linux-am33-list@redhat.com, linux-cris-kernel@axis.com, linux-efi@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-m32r-ja@ml.linux-m32r.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-tegra@vger.kernel.org, linux-xtensa@linux-xtensa.org, openipmi-developer@lists.sourceforge.net, user-mode-linux-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.orglinux-
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v9] PCC: Platform Communication Channel
+Date: Fri, 10 Oct 2014 16:13:56 -0400
+Message-ID: <1412972037-12793-1-git-send-email-ashwin.chaugule@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:61460 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbaJJUOM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Oct 2014 16:14:12 -0400
+Received: by mail-qc0-f173.google.com with SMTP id x13so2539073qcv.32
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Oct 2014 13:14:11 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: broonie@kernel.org
+Cc: lv.zheng@intel.com, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, arnd@arndb.de, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On 10/09/2014 01:24 PM, Pavel Machek wrote:
-> Hi!
->
->>>> @@ -184,6 +179,8 @@ machine_halt(void)
->>>>   void
->>>>   machine_power_off(void)
->>>>   {
->>>> +	do_kernel_poweroff();
->>>> +
->>>
->>> poweroff -> power_off for consistency.
->>>
->> Dunno; matter of personal preference. I started with that, but ultimately went
->> with poweroff to distinguish poweroff handler functions from existing code,
->> specifically kernel_power_off().
->
-> That works for you, but once it is merged, it is ugly/confusing typo.
-> 									Pavel
->
+Changes since V8:
+- Removed unncessary header files.
+- Added kerneldoc comments.
+- Added intro about PCC in pcc.c
 
-Ok, no problem, I'll change it.
+Changes since V7:
+- Added timeout to tx method in case the remote dies.
+- Restructured usage of acpi_status. Had inverted logic previously.
 
-Guenter
+Changes since V6:
+- Cosmetic changes based on Lv's suggestions
+
+Changes since V5:
+- Optimize loop that matches channel request.
+- Use platform_create_bundle.
+- Replace ioread/writes.
+- Remove redundant code and headers.
+- Restructure common mailbox macros.
+- Reformat PCC cmd parsing.
+
+Changes since V4:
+- Folded PCC Mailbox helpers into pcc.c
+
+Changes since V3:
+- Added PCC helper functions to work around "struct device" limitations.
+- PCC driver changes to work with PCC specific Mailbox helpers.
+
+Changes since V2:
+- Rebased on top of git://git.linaro.org/landing-teams/working/fujitsu/integration.git
+        branch mailbox-for-3.17
+- Added PCC API to mailbox framework as per Arnd's suggestion to allow usage without ACPI.
+
+Changes since V1:
+- Integration with Mailbox framework - https://lkml.org/lkml/2014/5/15/49
+
+This patchset adds support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0 spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details
+on how PCC works.
+
+In brief PCC is a generic means for PCC clients, to talk to the firmware. The
+PCC register space is typically memory mapped IO and uses a doorbell mechanism
+to communicate synchronously from the OS to the firmware. The PCC driver is
+completely agnostic to the protocol implemented by the PCC clients. It only
+implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
+
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
+
+
+
+Ashwin Chaugule (1):
+  Mailbox: Add support for Platform Communication Channel
+
+ drivers/mailbox/Kconfig   |  12 ++
+ drivers/mailbox/Makefile  |   2 +
+ drivers/mailbox/mailbox.c |   4 +-
+ drivers/mailbox/mailbox.h |  16 ++
+ drivers/mailbox/pcc.c     | 369 ++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 400 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/mailbox/mailbox.h
+ create mode 100644 drivers/mailbox/pcc.c
+
+-- 
+1.9.1
+
