@@ -1,47 +1,41 @@
-From: Pavel Machek <pavel@denx.de>
-Subject: Re: [PATCH 08/44] kernel: Move pm_power_off to common code
-Date: Thu, 9 Oct 2014 22:24:19 +0200
-Message-ID: <20141009202419.GA16885@amd>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
- <1412659726-29957-9-git-send-email-linux@roeck-us.net>
- <20141009103847.GC6787@amd> <54368A30.9070101@roeck-us.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <54368A30.9070101@roeck-us.net>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-m32r-ja@ml.linux-m32r.org, linux-mips@linux-mips.org, linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org, Steven Miao <realmz6@gmail.com>, linux-xtensa@linux-xtensa.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, David Howells <dhowells@redhat.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, "H. Peter Anvin" <hpa@zytor.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Thomas Gleixner <tglx@linutronix.de>, Lennox Wu <lennox.wu@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, lguest@lists.ozlabs.org, Russell King <linux@arm.linux.org.uk>, linux-c6x-dev@linux-c6x.org, Len Brown <len.brown@intel.com>, "David S. Miller" <davem@d>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 01/10] ACPICA: Add string for _DDN method name.
+Date: Fri, 10 Oct 2014 10:39:24 +0800
+Message-ID: <646ac2fc2c4f63afe6b655ebb52baca31924969b.1412907188.git.lv.zheng@intel.com>
+References: <cover.1412907188.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:26546 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751064AbaJJCja (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Oct 2014 22:39:30 -0400
+In-Reply-To: <cover.1412907188.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-Hi!
+From: Bob Moore <robert.moore@intel.com>
 
-> >>@@ -184,6 +179,8 @@ machine_halt(void)
-> >>  void
-> >>  machine_power_off(void)
-> >>  {
-> >>+	do_kernel_poweroff();
-> >>+
-> >
-> >poweroff -> power_off for consistency.
-> >
-> Dunno; matter of personal preference. I started with that, but ultimately went
-> with poweroff to distinguish poweroff handler functions from existing code,
-> specifically kernel_power_off().
+The _DDN method will be used internally.
 
-That works for you, but once it is merged, it is ugly/confusing typo.
-									Pavel
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ include/acpi/acnames.h |    1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
+index f97804b..7461327 100644
+--- a/include/acpi/acnames.h
++++ b/include/acpi/acnames.h
+@@ -52,6 +52,7 @@
+ #define METHOD_NAME__CBA        "_CBA"
+ #define METHOD_NAME__CID        "_CID"
+ #define METHOD_NAME__CRS        "_CRS"
++#define METHOD_NAME__DDN        "_DDN"
+ #define METHOD_NAME__HID        "_HID"
+ #define METHOD_NAME__INI        "_INI"
+ #define METHOD_NAME__PLD        "_PLD"
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.10
+
