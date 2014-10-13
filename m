@@ -1,64 +1,59 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Reducing dependence on BIOS for allocating memory at PCI root port?
-Date: Mon, 13 Oct 2014 14:07:15 -0600
-Message-ID: <CAErSpo4ROmCtdy+y-g4bZJmZKyCXjs6Hi28kHmeEp+QDmNHA1g@mail.gmail.com>
+From: Rajat Jain <rajatjain@juniper.net>
+Subject: RE: Reducing dependence on BIOS for allocating memory at PCI root
+ port?
+Date: Mon, 13 Oct 2014 20:20:14 +0000
+Message-ID: <fbfab85e74a4439c903b9b3d91acad94@DM2PR05MB671.namprd05.prod.outlook.com>
 References: <e192566903fe4b5eb9903e3b6c49a2e8@DM2PR05MB671.namprd05.prod.outlook.com>
+ <CAErSpo4ROmCtdy+y-g4bZJmZKyCXjs6Hi28kHmeEp+QDmNHA1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:63498 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689AbaJMUHg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Oct 2014 16:07:36 -0400
-Received: by mail-qa0-f42.google.com with SMTP id j7so4945887qaq.15
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Oct 2014 13:07:35 -0700 (PDT)
-In-Reply-To: <e192566903fe4b5eb9903e3b6c49a2e8@DM2PR05MB671.namprd05.prod.outlook.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Rajat Jain <rajatjain@juniper.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo4ROmCtdy+y-g4bZJmZKyCXjs6Hi28kHmeEp+QDmNHA1g@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-x86_64@vger.kernel.org" <linux-x86_64@vger.kernel.org>, Guenter Roeck <groeck@juniper.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-[+cc linux-acpi]
-
-On Mon, Oct 13, 2014 at 12:32 PM, Rajat Jain <rajatjain@juniper.net> wrote:
-> Hello,
->
-> I have huge hot-plug systems that can have hundreds of hot plug PCI slots that may not be populated at the boot time. Since BIOS doesn't see all devices could be plugged in, so we ask it to hard code and allocate a fixed chunk of memory space (say 4 GB) for PCI at the root port.
->
-> Now as we keep on developing new add-on cards with more PCI memory requirements - we have a problem because we need to increase that root port allocation. While asking the BIOS vendor to increase the memory for new releases is an option, I am in general thinking if there is a way to do this without depending on the BIOS allocation at all. We don't want to upgrade BIOS for just this. I'm hopeful this is a common problem - so I wanted to ask if there are there existing mechanisms that allow / instruct the kernel to ignore the BIOS allocations, and reprogram the PCI host controllers, (by maybe a kernel configuration or command line parameters etc for example).
-
-As you know, the transition from CPU address space to PCI address
-space is in the host bridge.  For PCIe, this is logically part of the
-Root Complex and is logically upstream from the Root Ports.  If  you
-want to reallocate space between Root Ports, i.e., remove space from
-one and add it to another port below the same Root Complex, that's
-strictly a PCI thing and is at least conceptually possible today with
-no new firmware or DT support.
-
-But you're probably asking about increasing the space assigned to the
-Root Complex itself.  The ACPI model supports that -- the PNP0A08 host
-bridge device could advertise a _PRS that shows how much space could
-potentially be assigned to the bridge, and we could use _SRS to assign
-more space (possibly after using _SRS on a different bridge to make
-space available).  There is no Linux code to do this today, so at this
-point it's just a theoretical possibility.  And, of course, it
-requires BIOS support.
-
-The ACPI driver (drivers/acpi/pci_root.c) is generic, so it doesn't
-know how to reprogram the host controller except by using _PRS and
-_SRS (and even that isn't implemented yet).
-
-> PS: The immediate thought of device tree comes to mind - but what about architectures that don't support it yet. (FWIW - I'm using x86 - and I do not know if its host controller driver supports / will support any device tree options to specify PCI windows)
-
-If you have DT and a native host controller driver, the driver may
-know how to reprogram the host controller.  Then you would just have
-to work out how to manage the address space you want to assign to the
-controller.
-
-If you're using the generic DT driver
-(drivers/pci/host/pci-host-generic.c), it's in the same situation as
-the ACPI driver: it doesn't know how to reprogram the windows.  And as
-far as I know there's no DT mechanism similar to _PRS/_SRS.
-
-Bjorn
+SGVsbG8sDQoNCj4gDQo+IEFzIHlvdSBrbm93LCB0aGUgdHJhbnNpdGlvbiBmcm9tIENQVSBhZGRy
+ZXNzIHNwYWNlIHRvIFBDSSBhZGRyZXNzIHNwYWNlIGlzDQo+IGluIHRoZSBob3N0IGJyaWRnZS4g
+IEZvciBQQ0llLCB0aGlzIGlzIGxvZ2ljYWxseSBwYXJ0IG9mIHRoZSBSb290IENvbXBsZXggYW5k
+IGlzDQo+IGxvZ2ljYWxseSB1cHN0cmVhbSBmcm9tIHRoZSBSb290IFBvcnRzLiAgSWYgIHlvdSB3
+YW50IHRvIHJlYWxsb2NhdGUgc3BhY2UNCj4gYmV0d2VlbiBSb290IFBvcnRzLCBpLmUuLCByZW1v
+dmUgc3BhY2UgZnJvbSBvbmUgYW5kIGFkZCBpdCB0byBhbm90aGVyIHBvcnQNCj4gYmVsb3cgdGhl
+IHNhbWUgUm9vdCBDb21wbGV4LCB0aGF0J3Mgc3RyaWN0bHkgYSBQQ0kgdGhpbmcgYW5kIGlzIGF0
+IGxlYXN0DQo+IGNvbmNlcHR1YWxseSBwb3NzaWJsZSB0b2RheSB3aXRoIG5vIG5ldyBmaXJtd2Fy
+ZSBvciBEVCBzdXBwb3J0Lg0KPiANCg0KWWVzLCBJIHVuZGVyc3RhbmQuDQoNCj4gQnV0IHlvdSdy
+ZSBwcm9iYWJseSBhc2tpbmcgYWJvdXQgaW5jcmVhc2luZyB0aGUgc3BhY2UgYXNzaWduZWQgdG8g
+dGhlIFJvb3QNCj4gQ29tcGxleCBpdHNlbGYuDQoNCkJpbmdvISBUaGF0J3MgdGhlIHByb2JsZW0g
+SSBhbSBib3RoZXJlZCBhYm91dC4NCg0KPiAgVGhlIEFDUEkgbW9kZWwgc3VwcG9ydHMgdGhhdCAt
+LSB0aGUgUE5QMEEwOCBob3N0IGJyaWRnZQ0KPiBkZXZpY2UgY291bGQgYWR2ZXJ0aXNlIGEgX1BS
+UyB0aGF0IHNob3dzIGhvdyBtdWNoIHNwYWNlIGNvdWxkIHBvdGVudGlhbGx5DQo+IGJlIGFzc2ln
+bmVkIHRvIHRoZSBicmlkZ2UsIGFuZCB3ZSBjb3VsZCB1c2UgX1NSUyB0byBhc3NpZ24gbW9yZSBz
+cGFjZQ0KPiAocG9zc2libHkgYWZ0ZXIgdXNpbmcgX1NSUyBvbiBhIGRpZmZlcmVudCBicmlkZ2Ug
+dG8gbWFrZSBzcGFjZSBhdmFpbGFibGUpLg0KPiBUaGVyZSBpcyBubyBMaW51eCBjb2RlIHRvIGRv
+IHRoaXMgdG9kYXksIHNvIGF0IHRoaXMgcG9pbnQgaXQncyBqdXN0IGEgdGhlb3JldGljYWwNCj4g
+cG9zc2liaWxpdHkuICBBbmQsIG9mIGNvdXJzZSwgaXQgcmVxdWlyZXMgQklPUyBzdXBwb3J0Lg0K
+DQpUaGFua3MgYSBsb3QgZm9yIHRoZSBwb2ludGVycywgSSdsbCBsb29rIGl0IHVwLg0KDQo+IA0K
+PiBUaGUgQUNQSSBkcml2ZXIgKGRyaXZlcnMvYWNwaS9wY2lfcm9vdC5jKSBpcyBnZW5lcmljLCBz
+byBpdCBkb2Vzbid0IGtub3cgaG93IHRvDQo+IHJlcHJvZ3JhbSB0aGUgaG9zdCBjb250cm9sbGVy
+IGV4Y2VwdCBieSB1c2luZyBfUFJTIGFuZCBfU1JTIChhbmQgZXZlbiB0aGF0DQo+IGlzbid0IGlt
+cGxlbWVudGVkIHlldCkuDQo+IA0KPiA+IFBTOiBUaGUgaW1tZWRpYXRlIHRob3VnaHQgb2YgZGV2
+aWNlIHRyZWUgY29tZXMgdG8gbWluZCAtIGJ1dCB3aGF0DQo+ID4gYWJvdXQgYXJjaGl0ZWN0dXJl
+cyB0aGF0IGRvbid0IHN1cHBvcnQgaXQgeWV0LiAoRldJVyAtIEknbSB1c2luZyB4ODYgLQ0KPiA+
+IGFuZCBJIGRvIG5vdCBrbm93IGlmIGl0cyBob3N0IGNvbnRyb2xsZXIgZHJpdmVyIHN1cHBvcnRz
+IC8gd2lsbA0KPiA+IHN1cHBvcnQgYW55IGRldmljZSB0cmVlIG9wdGlvbnMgdG8gc3BlY2lmeSBQ
+Q0kgd2luZG93cykNCj4gDQo+IElmIHlvdSBoYXZlIERUIGFuZCBhIG5hdGl2ZSBob3N0IGNvbnRy
+b2xsZXIgZHJpdmVyLCB0aGUgZHJpdmVyIG1heSBrbm93IGhvdw0KPiB0byByZXByb2dyYW0gdGhl
+IGhvc3QgY29udHJvbGxlci4gIFRoZW4geW91IHdvdWxkIGp1c3QgaGF2ZSB0byB3b3JrIG91dCBo
+b3cNCj4gdG8gbWFuYWdlIHRoZSBhZGRyZXNzIHNwYWNlIHlvdSB3YW50IHRvIGFzc2lnbiB0byB0
+aGUgY29udHJvbGxlci4NCj4gDQo+IElmIHlvdSdyZSB1c2luZyB0aGUgZ2VuZXJpYyBEVCBkcml2
+ZXINCj4gKGRyaXZlcnMvcGNpL2hvc3QvcGNpLWhvc3QtZ2VuZXJpYy5jKSwgaXQncyBpbiB0aGUg
+c2FtZSBzaXR1YXRpb24gYXMgdGhlIEFDUEkNCj4gZHJpdmVyOiBpdCBkb2Vzbid0IGtub3cgaG93
+IHRvIHJlcHJvZ3JhbSB0aGUgd2luZG93cy4gIEFuZCBhcyBmYXIgYXMgSSBrbm93DQo+IHRoZXJl
+J3Mgbm8gRFQgbWVjaGFuaXNtIHNpbWlsYXIgdG8gX1BSUy9fU1JTLg0KPiANCg0KT0ssIHVuZGVy
+c3RhbmQuIEkgZ3Vlc3MgdGhlcmUgaXMgd29yayB0aGF0IG5lZWRzIHRvIGJlIGRvbmUgdGhlcmUu
+IFllcywgV2UgYXJlIGluIHRoZSBwcm9jZXNzIG9mIGFkb3B0aW5nIGRldmljZSB0cmVlcyBmb3Ig
+eDg2LiBJJ2xsIGRpZyBpbnRvIGlmIHdlIGNhbiB1c2UgdGhhdC4NCg0KVGhhbmtzIGFnYWluLA0K
+DQpSYWphdA0K
