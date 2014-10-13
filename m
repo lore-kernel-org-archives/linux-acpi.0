@@ -1,69 +1,71 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] dell-wmi: Fix access out of memory
-Date: Sun, 12 Oct 2014 15:32:38 -0700
-Message-ID: <20141012223238.GA28031@vmdeb7>
-References: <1411996251-13455-1-git-send-email-pali.rohar@gmail.com>
- <3073358.myrKz9QbdW@vostro.rjw.lan>
- <55C20A75-AB0A-4A4E-9E91-3428B5F868BB@infradead.org>
- <201410121845.07303@pali>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v5 07/11] mmc: sdio: Convert to dev_pm_domain_attach|detach()
+Date: Mon, 13 Oct 2014 10:48:32 +0800
+Message-ID: <543B3D80.1010704@intel.com>
+References: <1411151264-16245-1-git-send-email-ulf.hansson@linaro.org> <1411151264-16245-8-git-send-email-ulf.hansson@linaro.org> <20141002002705.GA29177@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201410121845.07303@pali>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20141002002705.GA29177@dtor-ws>
+Sender: linux-pm-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Lezcano <daniel.lezcano@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Philipp Zabel <philipp.zabel@gmail.com>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Chris Ball <chris@printf.net>, Russell King <linux@arm.linux.org.uk>li
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Oct 12, 2014 at 06:45:06PM +0200, Pali Roh=E1r wrote:
-> On Tuesday 30 September 2014 01:16:23 Darren Hart wrote:
-> > On September 29, 2014 4:26:03 PM PDT, "Rafael J. Wysocki"=20
-> <rjw@rjwysocki.net> wrote:
-> > >On Monday, September 29, 2014 02:30:29 PM Darren Hart wrote:
-> > >> On Mon, Sep 29, 2014 at 03:10:51PM +0200, Pali Roh=E1r wrote:
-> > >> > Without this patch driver dell-wmi is trying to access
-> > >> > elements of
-> > >
-> > >dynamically
-> > >
-> > >> > allocated array without checking array size. This can
-> > >> > lead to
-> > >
-> > >memory corruption
-> > >
-> > >> > or kernel panic. This patch adds missing checks for array
-> > >> > size.
-> > >> >=20
-> > >> > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> > >>=20
-> > >> Looks good to me. Rafael, any concerns?
-> > >
-> > >Not anything obvious.
-> >=20
-> > Queued, thanks.
-> >=20
-> > >> Cc: linux-acpi
-> > >
-> > >Thanks!
-> > >
->=20
-> Now I see that this patch is in linus tree. Can you sent it to=20
-> stable trees too?
+On 10/02/2014 08:27 AM, Dmitry Torokhov wrote:
+> Hi Ulf,
+> 
+> On Fri, Sep 19, 2014 at 08:27:40PM +0200, Ulf Hansson wrote:
+>> Previously only the ACPI PM domain was supported by the sdio bus.
+>>
+>> Let's convert to the common attach/detach functions for PM domains,
+>> which currently means we are extending the support to include the
+>> generic PM domain as well.
+>>
+>> Cc: linux-mmc@vger.kernel.org
+>> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+>> Reviewed-by: Kevin Hilman <khilman@linaro.org>
+>> ---
+>>  drivers/mmc/core/sdio_bus.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
+>> index 4fa8fef9..1df0fc6 100644
+>> --- a/drivers/mmc/core/sdio_bus.c
+>> +++ b/drivers/mmc/core/sdio_bus.c
+>> @@ -315,7 +315,7 @@ int sdio_add_func(struct sdio_func *func)
+>>  	ret = device_add(&func->dev);
+>>  	if (ret == 0) {
+>>  		sdio_func_set_present(func);
+>> -		acpi_dev_pm_attach(&func->dev, false);
+>> +		dev_pm_domain_attach(&func->dev, false);
+> 
+> Admittedly it is not brought in by your change, but I am a bit worried
+> about this code. In all other busses we attach power domain to a device
+> before probing it (and detach if probe fails). Why here we only attach
+> it to power domain after adding the device to the bus? If driver for the
+> function has already been loaded the probe() would run without device
+> being attached to a power domain...
 
-Hi Pali,
+Sorry for replying late...
 
-Please see Documentation/stable_kernel_rules.txt for details on how to =
-mark
-patches for stable when you submit them. Now that it is in mainline, th=
-e process
-is a bit more manual, you'll find instructions for how to go about that=
- in the
-same document.
+I see your concern, but it should be safe here. The dev_pm_domain_attach
+does primarily two things(for ACPI based system): assign the pm_domian
+field so that later system and runtime PM transitions we have proper
+callbacks for this device; power on the device if needed.
+
+I was using Broadcom BCM43241 SDIO wifi card when developing the code,
+it doesn't need the pm_domain set in its probe function and since the
+SDIO wifi card is powered on after system boot, no power on is needed
+either. That's why I added the attach function after device_add to save
+a little code(detach if probe fails).
+
+Feel free to change the sequence if the current one is a bad one, I'm OK
+with either case.
+
+> 
+> Adding Aaron as he's the author of the original change.
 
 Thanks,
-
---=20
-Darren Hart
-Intel Open Source Technology Center
+Aaron
