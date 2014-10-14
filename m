@@ -1,182 +1,251 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 04/13] ACPI: Document ACPI device specific properties
-Date: Tue, 14 Oct 2014 12:42:06 +0300
-Message-ID: <20141014094206.GD2255@lahna.fi.intel.com>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH 03/13] ACPI: Allow drivers to match using Device Tree
+ compatible property
+Date: Tue, 14 Oct 2014 15:38:00 +0200
+Message-ID: <20141014133800.0A733C40815@trevor.secretlab.ca>
 References: <2660541.BycO7TFnA2@vostro.rjw.lan>
- <4876377.qMEam54Cox@vostro.rjw.lan>
- <20141013124132.4E08BC408F6@trevor.secretlab.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	<2116772.Bh1c7fVdla@vostro.rjw.lan>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141013124132.4E08BC408F6@trevor.secretlab.ca>
+In-Reply-To: <2116772.Bh1c7fVdla@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 13, 2014 at 02:41:32PM +0200, Grant Likely wrote:
-> On Tue, 07 Oct 2014 02:14:06 +0200
-> , "Rafael J. Wysocki" <rjw@rjwysocki.net>
->  wrote:
-> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > 
-> > This document describes the data format and interfaces of ACPI device
-> > specific properties.
-> > 
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Signed-off-by: Darren Hart <dvhart@linux.intel.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  Documentation/acpi/properties.txt |  376 ++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 376 insertions(+)
-> >  create mode 100644 Documentation/acpi/properties.txt
-> > 
-> > Index: linux-pm/Documentation/acpi/properties.txt
-> > ===================================================================
-> > --- /dev/null
-> > +++ linux-pm/Documentation/acpi/properties.txt
-> > @@ -0,0 +1,376 @@
-> > +ACPI device properties
-> > +======================
-> > +This document describes the format and interfaces of ACPI device
-> > +properties as specified in "Device Properties UUID For _DSD" available
-> > +here:
-> > +
-> > +http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-> > +
-> > +1. Introduction
-> > +---------------
-> > +In systems that use ACPI and want to take advantage of device specific
-> > +properties, there needs to be a standard way to return and extract
-> > +name-value pairs for a given ACPI device.
-> > +
-> > +An ACPI device that wants to export its properties must implement a
-> > +static name called _DSD that takes no arguments and returns a package of
-> > +packages:
-> > +
-> > +	Name (_DSD, Package () {
-> > +		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > +		Package () {
-> > +			Package () {"name1", <VALUE1>},
-> > +			Package () {"name2", <VALUE2>}
-> > +		}
-> > +	})
-> > +
-> > +The UUID identifies contents of the following package. In case of ACPI
-> > +device properties it is daffd814-6eba-4d8c-8a91-bc9bbf4aa301.
-> > +
-> > +In each returned package, the first item is the name and must be a string.
-> > +The corresponding value can be a string, integer, reference, or package. If
-> > +a package it may only contain strings, integers, and references.
-> > +
-> > +An example device where we might need properties is a device that uses
-> > +GPIOs. In addition to the GpioIo/GpioInt resources the driver needs to
-> > +know which GPIO is used for which purpose.
-> > +
-> > +To solve this we add the following ACPI device properties to the device:
-> > +
-> > +	Device (DEV0)
-> > +	{
-> > +		Name (_CRS, ResourceTemplate () {
-> > +			GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
-> > +				"\\_SB.PCI0.LPC", 0, ResourceConsumer) {0}
-> > +			GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
-> > +				"\\_SB.PCI0.LPC", 0, ResourceConsumer) {1}
-> > +			...
-> > +		})
-> > +
-> > +		Name (_DSD, Package () {
-> > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > +			Package () {
-> > +				Package () {"reset-gpio", {^DEV0, 0, 0, 0}},
-> > +				Package () {"shutdown-gpio", {^DEV0, 1, 0, 0}},
-> > +			}
-> > +		})
-> > +	}
-> > +
-> > +Now the device driver can reference the GPIOs using names instead of
-> > +using indexes.
+On Tue, 07 Oct 2014 02:13:29 +0200
+, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+ wrote:
+> From: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> Ummm... so this is kind of odd. Why would arguments be needed for the
-> gpio reference, or a device trying to reference itself (^DEV0) within
-> it's own device.
-
-The reference doesn't need to be the device itself. It can be the parent
-device for example.
-
-Also arguments contain information that is not available in ACPI GpioIo
-resources:
-
- - Name of the GPIO
- - Is the GPIO active low
-
-Remember that we can write the above also like:
-
-		Name (_CRS, ResourceTemplate () {
-			GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
-				"\\_SB.PCI0.LPC", 0, ResourceConsumer) {0, 1}
-			...
-		})
-
-		Name (_DSD, Package () {
-			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-			Package () {
-				Package () {"reset-gpio", {^DEV0, 0, 0, 0}},
-				Package () {"shutdown-gpio", {^DEV0, 0, 1, 0}},
-			}
-		})
-
-So the first two integers are used as indexes in _CRS and in the
-pinlist.
-
-> It looks like it is trying to shoehorn DT design patterns into the ACPI
-> tables when ACPI already has a native method for doing the same thing.
-> That concerns me.
-
-There is no native method in ACPI to do what we are doing.
-
-> [...]
-> > +In addition to simple object references it is also possible to have object
-> > +references with arguments. These are represented in ASL as follows:
-> > +
-> > +	Device (\_SB.PCI0.PWM)
-> > +	{
-> > +		Name (_DSD, Package () {
-> > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > +			Package () {
-> > +				Package () {"#pwm-cells", 2}
-> > +			}
-> > +		})
-> > +	}
-> > +
-> > +	Device (\_SB.PCI0.BL)
-> > +	{
-> > +		Name (_DSD, Package () {
-> > +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > +			Package () {
-> > +				Package () {
-> > +					"pwms",
-> > +					Package () {
-> > +						\_SB.PCI0.PWM, 0, 5000000,
-> > +						\_SB.PCI0.PWM, 1, 4500000,
-> > +					}
-> > +				}
-> > +			}
-> > +		})
-> > +	}
+> We have lots of existing Device Tree enabled drivers and allocating
+> separate _HID for each is not feasible. Instead we allocate special _HID
+> "PRP0001" that means that the match should be done using Device Tree
+> compatible property using driver's .of_match_table instead if the driver
+> is missing .acpi_match_table.
 > 
-> This worries me even more. #x-cells is a very devicetree oriented
-> pattern that looks wrong for ACPI data. I would expect PWM resources in
-> ACPI to look much like ACPI GPIO resources or Serial bus resources.
+> If there is a need to distinguish from where the device is enumerated
+> (DT/ACPI) driver can check dev->of_node or ACPI_COMPATION(dev).
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This was already discussed in v3 version of the series and our argument
-here is that we should be able to reuse the existing DT schemas as much
-as possible as long as ACPI does not have a native method to describe
-the thing (and it makes sense in general).
+Looks okay to me.
 
-However, nothing prevents us to extend the
-acpi_dev_get_property_reference() in future to support a more ACPI style
-way of doing things:
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
 
-http://www.spinics.net/lists/linux-acpi/msg53367.html
+> ---
+>  drivers/acpi/property.c | 34 +++++++++++++++++
+>  drivers/acpi/scan.c     | 97 +++++++++++++++++++++++++++++++++++++++++++------
+>  include/acpi/acpi_bus.h |  1 +
+>  include/linux/acpi.h    |  8 +---
+>  4 files changed, 123 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 680f7f1..ff53eb8 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -76,6 +76,37 @@ static bool acpi_properties_format_valid(const union acpi_object *properties)
+>  	return true;
+>  }
+>  
+> +static void acpi_init_of_compatible(struct acpi_device *adev)
+> +{
+> +	const union acpi_object *of_compatible;
+> +	struct acpi_hardware_id *hwid;
+> +	bool acpi_of = false;
+> +
+> +	/*
+> +	 * Check if the special PRP0001 ACPI ID is present and in that
+> +	 * case we fill in Device Tree compatible properties for this
+> +	 * device.
+> +	 */
+> +	list_for_each_entry(hwid, &adev->pnp.ids, list) {
+> +		if (!strcmp(hwid->id, "PRP0001")) {
+> +			acpi_of = true;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!acpi_of)
+> +		return;
+> +
+> +	if (acpi_dev_get_property_array(adev, "compatible", ACPI_TYPE_STRING,
+> +					&of_compatible)) {
+> +		acpi_handle_warn(adev->handle,
+> +				 "PRP0001 requires compatible property\n");
+> +		return;
+> +	}
+> +
+> +	adev->data.of_compatible = of_compatible;
+> +}
+> +
+>  void acpi_init_properties(struct acpi_device *adev)
+>  {
+>  	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
+> @@ -119,6 +150,8 @@ void acpi_init_properties(struct acpi_device *adev)
+>  
+>  		adev->data.pointer = buf.pointer;
+>  		adev->data.properties = properties;
+> +
+> +		acpi_init_of_compatible(adev);
+>  		return;
+>  	}
+>  
+> @@ -130,6 +163,7 @@ void acpi_init_properties(struct acpi_device *adev)
+>  void acpi_free_properties(struct acpi_device *adev)
+>  {
+>  	ACPI_FREE((void *)adev->data.pointer);
+> +	adev->data.of_compatible = NULL;
+>  	adev->data.pointer = NULL;
+>  	adev->data.properties = NULL;
+>  }
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 1979ab3..bc999f1 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -124,17 +124,51 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+>  	if (list_empty(&acpi_dev->pnp.ids))
+>  		return 0;
+>  
+> -	len = snprintf(modalias, size, "acpi:");
+> -	size -= len;
+> -
+> -	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
+> -		count = snprintf(&modalias[len], size, "%s:", id->id);
+> -		if (count < 0)
+> -			return -EINVAL;
+> -		if (count >= size)
+> -			return -ENOMEM;
+> -		len += count;
+> -		size -= count;
+> +	/*
+> +	 * If the device has PRP0001 we expose DT compatible modalias
+> +	 * instead in form of of:NnameTCcompatible.
+> +	 */
+> +	if (acpi_dev->data.of_compatible) {
+> +		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
+> +		const union acpi_object *of_compatible, *obj;
+> +		char *c;
+> +		int i;
+> +
+> +		acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
+> +		/* DT strings are all in lower case */
+> +		for (c = buf.pointer; *c != '\0'; c++)
+> +			*c = tolower(*c);
+> +
+> +		len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
+> +		ACPI_FREE(buf.pointer);
+> +
+> +		of_compatible = acpi_dev->data.of_compatible;
+> +		for (i = 0; i < of_compatible->package.count; i++) {
+> +			obj = &of_compatible->package.elements[i];
+> +
+> +			count = snprintf(&modalias[len], size, "C%s",
+> +					 obj->string.pointer);
+> +			if (count < 0)
+> +				return -EINVAL;
+> +			if (count >= size)
+> +				return -ENOMEM;
+> +
+> +			len += count;
+> +			size -= count;
+> +		}
+> +	} else {
+> +		len = snprintf(modalias, size, "acpi:");
+> +		size -= len;
+> +
+> +		list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
+> +			count = snprintf(&modalias[len], size, "%s:", id->id);
+> +			if (count < 0)
+> +				return -EINVAL;
+> +			if (count >= size)
+> +				return -ENOMEM;
+> +			len += count;
+> +			size -= count;
+> +		}
+>  	}
+>  
+>  	modalias[len] = '\0';
+> @@ -864,6 +898,47 @@ int acpi_match_device_ids(struct acpi_device *device,
+>  }
+>  EXPORT_SYMBOL(acpi_match_device_ids);
+>  
+> +/* Performs match against special "PRP0001" shoehorn ACPI ID */
+> +static bool acpi_of_driver_match_device(struct device *dev,
+> +					const struct device_driver *drv)
+> +{
+> +	const union acpi_object *of_compatible;
+> +	struct acpi_device *adev;
+> +	int i;
+> +
+> +	adev = ACPI_COMPANION(dev);
+> +	if (!adev)
+> +		return false;
+> +
+> +	of_compatible = adev->data.of_compatible;
+> +	if (!drv->of_match_table || !of_compatible)
+> +		return false;
+> +
+> +	/* Now we can look for the driver DT compatible strings */
+> +	for (i = 0; i < of_compatible->package.count; i++) {
+> +		const struct of_device_id *id;
+> +		const union acpi_object *obj;
+> +
+> +		obj = &of_compatible->package.elements[i];
+> +
+> +		for (id = drv->of_match_table; id->compatible[0]; id++)
+> +			if (!strcasecmp(obj->string.pointer, id->compatible))
+> +				return true;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+> +bool acpi_driver_match_device(struct device *dev,
+> +			      const struct device_driver *drv)
+> +{
+> +	if (!drv->acpi_match_table)
+> +		return acpi_of_driver_match_device(dev, drv);
+> +
+> +	return !!acpi_match_device(drv->acpi_match_table, dev);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_driver_match_device);
+> +
+>  static void acpi_free_power_resources_lists(struct acpi_device *device)
+>  {
+>  	int i;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index f9734fa..98cd723 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -341,6 +341,7 @@ struct acpi_device_physical_node {
+>  struct acpi_device_data {
+>  	const union acpi_object *pointer;
+>  	const union acpi_object *properties;
+> +	const union acpi_object *of_compatible;
+>  };
+>  
+>  /* Device */
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 18c1bc3..11aa6b8 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -424,12 +424,8 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+>  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+>  					       const struct device *dev);
+>  
+> -static inline bool acpi_driver_match_device(struct device *dev,
+> -					    const struct device_driver *drv)
+> -{
+> -	return !!acpi_match_device(drv->acpi_match_table, dev);
+> -}
+> -
+> +extern bool acpi_driver_match_device(struct device *dev,
+> +				     const struct device_driver *drv);
+>  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+>  int acpi_device_modalias(struct device *, char *, int);
+>  
+> -- 
+> 1.9.3
+> 
+> 
