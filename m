@@ -1,250 +1,298 @@
 From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH 03/13] ACPI: Allow drivers to match using Device Tree
- compatible property
-Date: Tue, 14 Oct 2014 15:38:00 +0200
-Message-ID: <20141014133800.0A733C40815@trevor.secretlab.ca>
+Subject: Re: [PATCH 06/13] gpio / ACPI: Add support for _DSD device
+ properties
+Date: Tue, 14 Oct 2014 15:44:03 +0200
+Message-ID: <20141014134403.66480C408A6@trevor.secretlab.ca>
 References: <2660541.BycO7TFnA2@vostro.rjw.lan>
-	<2116772.Bh1c7fVdla@vostro.rjw.lan>
+	<1651636.CsIdshL7Av@vostro.rjw.lan>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2116772.Bh1c7fVdla@vostro.rjw.lan>
+In-Reply-To: <1651636.CsIdshL7Av@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 07 Oct 2014 02:13:29 +0200
+On Tue, 07 Oct 2014 02:15:18 +0200
 , "Rafael J. Wysocki" <rjw@rjwysocki.net>
  wrote:
 > From: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> We have lots of existing Device Tree enabled drivers and allocating
-> separate _HID for each is not feasible. Instead we allocate special _HID
-> "PRP0001" that means that the match should be done using Device Tree
-> compatible property using driver's .of_match_table instead if the driver
-> is missing .acpi_match_table.
+> With release of ACPI 5.1 and _DSD method we can finally name GPIOs (and
+> other things as well) returned by _CRS. Previously we were only able to
+> use integer index to find the corresponding GPIO, which is pretty error
+> prone if the order changes.
 > 
-> If there is a need to distinguish from where the device is enumerated
-> (DT/ACPI) driver can check dev->of_node or ACPI_COMPATION(dev).
+> With _DSD we can now query GPIOs using name instead of an integer index,
+> like the below example shows:
+> 
+>   // Bluetooth device with reset and shutdown GPIOs
+>   Device (BTH)
+>   {
+>       Name (_HID, ...)
+> 
+>       Name (_CRS, ResourceTemplate ()
+>       {
+>           GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+>                   "\\_SB.GPO0", 0, ResourceConsumer) {15}
+>           GpioIo (Exclusive, PullUp, 0, 0, IoRestrictionInputOnly,
+>                   "\\_SB.GPO0", 0, ResourceConsumer) {27, 31}
+>       })
+> 
+>       Name (_DSD, Package ()
+>       {
+>           ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>           Package ()
+> 	  {
+>               Package () {"reset-gpio", Package() {^BTH, 1, 1, 0 }},
+>               Package () {"shutdown-gpio", Package() {^BTH, 0, 0, 0 }},
+>           }
+>       })
+>   }
+> 
+> The format of the supported GPIO property is:
+> 
+>   Package () { "name", Package () { ref, index, pin, active_low }}
+> 
+>   ref - The device that has _CRS containing GpioIo()/GpioInt() resources,
+>         typically this is the device itself (BTH in our case).
+>   index - Index of the GpioIo()/GpioInt() resource in _CRS starting from zero.
+>   pin - Pin in the GpioIo()/GpioInt() resource. Typically this is zero.
+>   active_low - If 1 the GPIO is marked as active_low.
+> 
+> Since ACPI GpioIo() resource does not have field saying whether it is
+> active low or high, the "active_low" argument can be used here. Setting
+> it to 1 marks the GPIO as active low.
+> 
+> In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
+> resource, second pin in that resource with the GPIO number of 31.
+> 
+> This patch implements necessary support to gpiolib for extracting GPIOs
+> using _DSD device properties.
+
+Patch looks good, but please put the above description into
+/Documentation until we've got a better place to document extra bindings.
+
+g.
+
 > 
 > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Looks okay to me.
-
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-
 > ---
->  drivers/acpi/property.c | 34 +++++++++++++++++
->  drivers/acpi/scan.c     | 97 +++++++++++++++++++++++++++++++++++++++++++------
->  include/acpi/acpi_bus.h |  1 +
->  include/linux/acpi.h    |  8 +---
->  4 files changed, 123 insertions(+), 17 deletions(-)
+>  drivers/gpio/gpiolib-acpi.c | 78 +++++++++++++++++++++++++++++++++++++--------
+>  drivers/gpio/gpiolib.c      | 30 ++++++++++++++---
+>  drivers/gpio/gpiolib.h      |  7 ++--
+>  3 files changed, 94 insertions(+), 21 deletions(-)
 > 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 680f7f1..ff53eb8 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -76,6 +76,37 @@ static bool acpi_properties_format_valid(const union acpi_object *properties)
->  	return true;
->  }
->  
-> +static void acpi_init_of_compatible(struct acpi_device *adev)
-> +{
-> +	const union acpi_object *of_compatible;
-> +	struct acpi_hardware_id *hwid;
-> +	bool acpi_of = false;
-> +
-> +	/*
-> +	 * Check if the special PRP0001 ACPI ID is present and in that
-> +	 * case we fill in Device Tree compatible properties for this
-> +	 * device.
-> +	 */
-> +	list_for_each_entry(hwid, &adev->pnp.ids, list) {
-> +		if (!strcmp(hwid->id, "PRP0001")) {
-> +			acpi_of = true;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (!acpi_of)
-> +		return;
-> +
-> +	if (acpi_dev_get_property_array(adev, "compatible", ACPI_TYPE_STRING,
-> +					&of_compatible)) {
-> +		acpi_handle_warn(adev->handle,
-> +				 "PRP0001 requires compatible property\n");
-> +		return;
-> +	}
-> +
-> +	adev->data.of_compatible = of_compatible;
-> +}
-> +
->  void acpi_init_properties(struct acpi_device *adev)
->  {
->  	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
-> @@ -119,6 +150,8 @@ void acpi_init_properties(struct acpi_device *adev)
->  
->  		adev->data.pointer = buf.pointer;
->  		adev->data.properties = properties;
-> +
-> +		acpi_init_of_compatible(adev);
->  		return;
->  	}
->  
-> @@ -130,6 +163,7 @@ void acpi_init_properties(struct acpi_device *adev)
->  void acpi_free_properties(struct acpi_device *adev)
->  {
->  	ACPI_FREE((void *)adev->data.pointer);
-> +	adev->data.of_compatible = NULL;
->  	adev->data.pointer = NULL;
->  	adev->data.properties = NULL;
->  }
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 1979ab3..bc999f1 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -124,17 +124,51 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
->  	if (list_empty(&acpi_dev->pnp.ids))
->  		return 0;
->  
-> -	len = snprintf(modalias, size, "acpi:");
-> -	size -= len;
-> -
-> -	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
-> -		count = snprintf(&modalias[len], size, "%s:", id->id);
-> -		if (count < 0)
-> -			return -EINVAL;
-> -		if (count >= size)
-> -			return -ENOMEM;
-> -		len += count;
-> -		size -= count;
-> +	/*
-> +	 * If the device has PRP0001 we expose DT compatible modalias
-> +	 * instead in form of of:NnameTCcompatible.
-> +	 */
-> +	if (acpi_dev->data.of_compatible) {
-> +		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
-> +		const union acpi_object *of_compatible, *obj;
-> +		char *c;
-> +		int i;
-> +
-> +		acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
-> +		/* DT strings are all in lower case */
-> +		for (c = buf.pointer; *c != '\0'; c++)
-> +			*c = tolower(*c);
-> +
-> +		len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
-> +		ACPI_FREE(buf.pointer);
-> +
-> +		of_compatible = acpi_dev->data.of_compatible;
-> +		for (i = 0; i < of_compatible->package.count; i++) {
-> +			obj = &of_compatible->package.elements[i];
-> +
-> +			count = snprintf(&modalias[len], size, "C%s",
-> +					 obj->string.pointer);
-> +			if (count < 0)
-> +				return -EINVAL;
-> +			if (count >= size)
-> +				return -ENOMEM;
-> +
-> +			len += count;
-> +			size -= count;
-> +		}
-> +	} else {
-> +		len = snprintf(modalias, size, "acpi:");
-> +		size -= len;
-> +
-> +		list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
-> +			count = snprintf(&modalias[len], size, "%s:", id->id);
-> +			if (count < 0)
-> +				return -EINVAL;
-> +			if (count >= size)
-> +				return -ENOMEM;
-> +			len += count;
-> +			size -= count;
-> +		}
->  	}
->  
->  	modalias[len] = '\0';
-> @@ -864,6 +898,47 @@ int acpi_match_device_ids(struct acpi_device *device,
->  }
->  EXPORT_SYMBOL(acpi_match_device_ids);
->  
-> +/* Performs match against special "PRP0001" shoehorn ACPI ID */
-> +static bool acpi_of_driver_match_device(struct device *dev,
-> +					const struct device_driver *drv)
-> +{
-> +	const union acpi_object *of_compatible;
-> +	struct acpi_device *adev;
-> +	int i;
-> +
-> +	adev = ACPI_COMPANION(dev);
-> +	if (!adev)
-> +		return false;
-> +
-> +	of_compatible = adev->data.of_compatible;
-> +	if (!drv->of_match_table || !of_compatible)
-> +		return false;
-> +
-> +	/* Now we can look for the driver DT compatible strings */
-> +	for (i = 0; i < of_compatible->package.count; i++) {
-> +		const struct of_device_id *id;
-> +		const union acpi_object *obj;
-> +
-> +		obj = &of_compatible->package.elements[i];
-> +
-> +		for (id = drv->of_match_table; id->compatible[0]; id++)
-> +			if (!strcasecmp(obj->string.pointer, id->compatible))
-> +				return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +
-> +bool acpi_driver_match_device(struct device *dev,
-> +			      const struct device_driver *drv)
-> +{
-> +	if (!drv->acpi_match_table)
-> +		return acpi_of_driver_match_device(dev, drv);
-> +
-> +	return !!acpi_match_device(drv->acpi_match_table, dev);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_driver_match_device);
-> +
->  static void acpi_free_power_resources_lists(struct acpi_device *device)
->  {
->  	int i;
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index f9734fa..98cd723 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -341,6 +341,7 @@ struct acpi_device_physical_node {
->  struct acpi_device_data {
->  	const union acpi_object *pointer;
->  	const union acpi_object *properties;
-> +	const union acpi_object *of_compatible;
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index 687476f..b14c045 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -293,6 +293,7 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
+>  struct acpi_gpio_lookup {
+>  	struct acpi_gpio_info info;
+>  	int index;
+> +	int pin_index;
+>  	struct gpio_desc *desc;
+>  	int n;
 >  };
+> @@ -306,13 +307,24 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
 >  
->  /* Device */
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 18c1bc3..11aa6b8 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -424,12 +424,8 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
->  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
->  					       const struct device *dev);
+>  	if (lookup->n++ == lookup->index && !lookup->desc) {
+>  		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
+> +		int pin_index = lookup->pin_index;
+> +
+> +		if (pin_index >= agpio->pin_table_length)
+> +			return 1;
 >  
-> -static inline bool acpi_driver_match_device(struct device *dev,
-> -					    const struct device_driver *drv)
-> -{
-> -	return !!acpi_match_device(drv->acpi_match_table, dev);
-> -}
+>  		lookup->desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
+> -					      agpio->pin_table[0]);
+> +					      agpio->pin_table[pin_index]);
+>  		lookup->info.gpioint =
+>  			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
+> -		lookup->info.active_low =
+> -			agpio->polarity == ACPI_ACTIVE_LOW;
+> +
+> +		/*
+> +		 * ActiveLow is only specified for GpioInt resource. If
+> +		 * GpioIo is used then the only way to set the flag is
+> +		 * to use _DSD "gpios" property.
+> +		 */
+> +		if (lookup->info.gpioint)
+> +			lookup->info.active_low =
+> +				agpio->polarity == ACPI_ACTIVE_LOW;
+>  	}
+>  
+>  	return 1;
+> @@ -320,40 +332,75 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
+>  
+>  /**
+>   * acpi_get_gpiod_by_index() - get a GPIO descriptor from device resources
+> - * @dev: pointer to a device to get GPIO from
+> + * @adev: pointer to a ACPI device to get GPIO from
+> + * @propname: Property name of the GPIO (optional)
+>   * @index: index of GpioIo/GpioInt resource (starting from %0)
+>   * @info: info pointer to fill in (optional)
+>   *
+> - * Function goes through ACPI resources for @dev and based on @index looks
+> + * Function goes through ACPI resources for @adev and based on @index looks
+>   * up a GpioIo/GpioInt resource, translates it to the Linux GPIO descriptor,
+>   * and returns it. @index matches GpioIo/GpioInt resources only so if there
+>   * are total %3 GPIO resources, the index goes from %0 to %2.
+>   *
+> + * If @propname is specified the GPIO is looked using device property. In
+> + * that case @index is used to select the GPIO entry in the property value
+> + * (in case of multiple).
+> + *
+>   * If the GPIO cannot be translated or there is an error an ERR_PTR is
+>   * returned.
+>   *
+>   * Note: if the GPIO resource has multiple entries in the pin list, this
+>   * function only returns the first.
+>   */
+> -struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+> +struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
+> +					  const char *propname, int index,
+>  					  struct acpi_gpio_info *info)
+>  {
+>  	struct acpi_gpio_lookup lookup;
+>  	struct list_head resource_list;
+> -	struct acpi_device *adev;
+> -	acpi_handle handle;
+> +	bool active_low = false;
+>  	int ret;
+>  
+> -	if (!dev)
+> -		return ERR_PTR(-EINVAL);
 > -
-> +extern bool acpi_driver_match_device(struct device *dev,
-> +				     const struct device_driver *drv);
->  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
->  int acpi_device_modalias(struct device *, char *, int);
+> -	handle = ACPI_HANDLE(dev);
+> -	if (!handle || acpi_bus_get_device(handle, &adev))
+> +	if (!adev)
+>  		return ERR_PTR(-ENODEV);
 >  
+>  	memset(&lookup, 0, sizeof(lookup));
+>  	lookup.index = index;
+>  
+> +	if (propname) {
+> +		struct acpi_reference_args args;
+> +
+> +		dev_dbg(&adev->dev, "GPIO: looking up %s\n", propname);
+> +
+> +		memset(&args, 0, sizeof(args));
+> +		ret = acpi_dev_get_property_reference(adev, propname, NULL,
+> +						      index, &args);
+> +		if (ret)
+> +			return ERR_PTR(ret);
+> +
+> +		/*
+> +		 * The property was found and resolved so need to
+> +		 * lookup the GPIO based on returned args instead.
+> +		 */
+> +		adev = args.adev;
+> +		if (args.nargs >= 2) {
+> +			lookup.index = args.args[0];
+> +			lookup.pin_index = args.args[1];
+> +			/*
+> +			 * 3rd argument, if present is used to
+> +			 * specify active_low.
+> +			 */
+> +			if (args.nargs >= 3)
+> +				active_low = !!args.args[2];
+> +		}
+> +
+> +		dev_dbg(&adev->dev, "GPIO: _DSD returned %s %zd %llu %llu %llu\n",
+> +			dev_name(&adev->dev), args.nargs,
+> +			args.args[0], args.args[1], args.args[2]);
+> +	} else {
+> +		dev_dbg(&adev->dev, "GPIO: looking up %d in _CRS\n", index);
+> +	}
+> +
+>  	INIT_LIST_HEAD(&resource_list);
+>  	ret = acpi_dev_get_resources(adev, &resource_list, acpi_find_gpio,
+>  				     &lookup);
+> @@ -362,8 +409,11 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+>  
+>  	acpi_dev_free_resource_list(&resource_list);
+>  
+> -	if (lookup.desc && info)
+> +	if (lookup.desc && info) {
+>  		*info = lookup.info;
+> +		if (active_low)
+> +			info->active_low = active_low;
+> +	}
+>  
+>  	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
+>  }
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index c68d037..4c86601 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -1487,14 +1487,36 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
+>  					unsigned int idx,
+>  					enum gpio_lookup_flags *flags)
+>  {
+> +	static const char * const suffixes[] = { "gpios", "gpio" };
+> +	struct acpi_device *adev = ACPI_COMPANION(dev);
+>  	struct acpi_gpio_info info;
+>  	struct gpio_desc *desc;
+> +	char propname[32];
+> +	int i;
+>  
+> -	desc = acpi_get_gpiod_by_index(dev, idx, &info);
+> -	if (IS_ERR(desc))
+> -		return desc;
+> +	/* Try first from _DSD */
+> +	for (i = 0; i < ARRAY_SIZE(suffixes); i++) {
+> +		if (con_id && strcmp(con_id, "gpios")) {
+> +			snprintf(propname, sizeof(propname), "%s-%s",
+> +				 con_id, suffixes[i]);
+> +		} else {
+> +			snprintf(propname, sizeof(propname), "%s",
+> +				 suffixes[i]);
+> +		}
+> +
+> +		desc = acpi_get_gpiod_by_index(adev, propname, 0, &info);
+> +		if (!IS_ERR(desc) || (PTR_ERR(desc) == -EPROBE_DEFER))
+> +			break;
+> +	}
+> +
+> +	/* Then from plain _CRS GPIOs */
+> +	if (IS_ERR(desc)) {
+> +		desc = acpi_get_gpiod_by_index(adev, NULL, idx, &info);
+> +		if (IS_ERR(desc))
+> +			return desc;
+> +	}
+>  
+> -	if (info.gpioint && info.active_low)
+> +	if (info.active_low)
+>  		*flags |= GPIO_ACTIVE_LOW;
+>  
+>  	return desc;
+> diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
+> index 9db2b6a..e3a5211 100644
+> --- a/drivers/gpio/gpiolib.h
+> +++ b/drivers/gpio/gpiolib.h
+> @@ -34,7 +34,8 @@ void acpi_gpiochip_remove(struct gpio_chip *chip);
+>  void acpi_gpiochip_request_interrupts(struct gpio_chip *chip);
+>  void acpi_gpiochip_free_interrupts(struct gpio_chip *chip);
+>  
+> -struct gpio_desc *acpi_get_gpiod_by_index(struct device *dev, int index,
+> +struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
+> +					  const char *propname, int index,
+>  					  struct acpi_gpio_info *info);
+>  #else
+>  static inline void acpi_gpiochip_add(struct gpio_chip *chip) { }
+> @@ -47,8 +48,8 @@ static inline void
+>  acpi_gpiochip_free_interrupts(struct gpio_chip *chip) { }
+>  
+>  static inline struct gpio_desc *
+> -acpi_get_gpiod_by_index(struct device *dev, int index,
+> -			struct acpi_gpio_info *info)
+> +acpi_get_gpiod_by_index(struct acpi_device *adev, const char *propname,
+> +			int index, struct acpi_gpio_info *info)
+>  {
+>  	return ERR_PTR(-ENOSYS);
+>  }
 > -- 
 > 1.9.3
 > 
