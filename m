@@ -1,59 +1,41 @@
-From: Darren Hart <dvhart@linux.intel.com>
+From: "David Woodhouse" <dwmw2@infradead.org>
 Subject: Re: [PATCH v4 00/13] Add ACPI _DSD and unified device properties
  support
-Date: Wed, 15 Oct 2014 16:46:39 +0200
-Message-ID: <543E88CF.5060504@linux.intel.com>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan>    <1413378271.2762.77.camel@infradead.org>    <20141015131551.GC20034@leverpostej>    <1413379736.2762.79.camel@infradead.org>    <20141015134209.GD20034@leverpostej> <db4038336b5e165b8b61eda064b10eeb.squirrel@twosheds.infradead.org>
+Date: Wed, 15 Oct 2014 15:11:18 -0000
+Message-ID: <7ce75234f8b2dd8bcc747f296f626487.squirrel@twosheds.infradead.org>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
+    <1413378271.2762.77.camel@infradead.org>
+    <20141015131551.GC20034@leverpostej>
+    <1413379736.2762.79.camel@infradead.org>
+    <20141015134209.GD20034@leverpostej>
+    <db4038336b5e165b8b61eda064b10eeb.squirrel@twosheds.infradead.org>
+    <543E88CF.5060504@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45798 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751214AbaJOOqm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Oct 2014 10:46:42 -0400
-In-Reply-To: <db4038336b5e165b8b61eda064b10eeb.squirrel@twosheds.infradead.org>
+Received: from twosheds.infradead.org ([90.155.92.209]:45238 "EHLO
+	twosheds.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751736AbaJOPL2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Oct 2014 11:11:28 -0400
+In-Reply-To: <543E88CF.5060504@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, dvhart@infradead.org
+To: Darren Hart <dvhart@linux.intel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, dvhart@infradead.org
 
 
+> My comment was going to be along the same lines. It is an optional
+> parameter, which is what I would expect for a firmware-specific type of
+> property.
 
-On 10/15/14 16:08, David Woodhouse wrote:
-> 
->> We have been checking for all DT platforms, and that's a bug for DT.
->> Copying that bug to ACPI is inexcusable given we know it's a bug to do
->> so.
-> 
-> We'll, perhaps it should be named 'used-by-firmware' and actually it's
-> just as valid under ACPI as it is on RTAS systems. All it does is stop the
-> OS from using the port.
-> 
->> I understand that. However, where a binding doesn't make sense (as in
->> this case), it shouldn't be enabled for ACPI as it provides a larger
->> surface area for misuse, for no benefit.
-> 
-> These are *optional* properties. They were optional precisely *because*
-> they only make sense in some cases. I don't know that it makes sense to
-> take them away. The benefit we get is *consistency*. For example if
-> someone *does* use the property in question as 'used-by-firmware' and
-> expects the OS not to touch it, we don't want that to change behaviour
-> between ACPI and fdt boots.
-
-My comment was going to be along the same lines. It is an optional
-parameter, which is what I would expect for a firmware-specific type of
-property.
-
-I also don't agree that this is "copying that bug to ACPI". This line of
-code has no impact to ACPI. No ACPI implementation should add this,
-certainly not if it was actually tested as it would not run if it was
-present in the _DSD. So... what's the problem exactly? Or perhaps more
-specifically:
-
-Mark, what would you propose we do differently to enable this driver to
-be firmware-type agnostic?
+Right. Fundamentally, device properties (in DT or ACPI) exist to describe
+the hardware in a generic and abstract fashion. It's a slippery slope from
+saying "you don't need this property because you know you whether you are
+on the *foo* architecture", to saying "you don't this property because you
+know whether you're on a Assabet or not." I think it's wrong to go down
+that path.
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
+dwmw2
+
