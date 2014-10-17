@@ -1,94 +1,53 @@
-From: Dmitry Torokhov <dtor@chromium.org>
-Subject: Re: [PATCH] ACPI: do not fail suspend if unable to configure wakeup
-Date: Thu, 16 Oct 2014 09:05:55 -0700
-Message-ID: <20141016160555.GA3255@dtor-ws>
-References: <20141015225657.GA818@dtor-ws>
- <CAJZ5v0jAe9npr-4U+CGCQWfZ8bQ988z+_pRjUiMN871kP-39FQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 00/12] Add ACPI _DSD and unified device properties support
+Date: Fri, 17 Oct 2014 14:22:48 +0200
+Message-ID: <61463835.95KdD3U9mE@vostro.rjw.lan>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan> <11223831.j9KAEfSQsY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jAe9npr-4U+CGCQWfZ8bQ988z+_pRjUiMN871kP-39FQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Benson Leung <bleung@chromium.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59383 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751664AbaJQMD3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Oct 2014 08:03:29 -0400
+In-Reply-To: <11223831.j9KAEfSQsY@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-Hi Rafael,
-
-On Thu, Oct 16, 2014 at 10:10:20AM +0200, Rafael J. Wysocki wrote:
-> Hi,
+On Friday, October 17, 2014 02:01:33 PM Rafael J. Wysocki wrote:
+> Hi Everyone,
 > 
-> On Thu, Oct 16, 2014 at 12:56 AM, Dmitry Torokhov <dtor@chromium.org> wrote:
-> > Newer kernels put i2c devices with ACPI companion in ACPI power domain and
-> > then ACPI will try to configure them for wakeup (if requested).
-> > Unfortunately on some Chromebooks firmware separates wakeup GPIO into a
-> > completely separate device (which is handled by the kernel as a sleep
-> > button), leaving the touchpads themselves not wakeup capable (as far as
-> > ACPI is concerned). This causes ACPI late suspend code to fail to configure
-> > them as wakeup sources and aborts entire suspend.
-> >
-> > To work around this issues let's not abort entire suspend process if
-> > driver asked to be a wakeup source but ACPI can not satisfy that
-> > request.
-> >
-> > Note that originally I tried to simply change the driver to not mark
-> > device as wakeup source, unfortunately then we do not know that we
-> > should not be powering down the device completely, otherwise we can't
-> > wake up.
-> >
-> > Verified by making sure that "echo mem > /sys/power/state" works on
-> > Squawks.
-> >
-> > Reviewed-by: Benson Leung <bleung@chromium.org>
-> > Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
-> > ---
-> >  drivers/acpi/device_pm.c | 16 ++++++++++++----
-> >  1 file changed, 12 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-> > index 67075f8..440bc3d 100644
-> > --- a/drivers/acpi/device_pm.c
-> > +++ b/drivers/acpi/device_pm.c
-> > @@ -871,6 +871,7 @@ int acpi_dev_suspend_late(struct device *dev)
-> >         struct acpi_device *adev = ACPI_COMPANION(dev);
-> >         u32 target_state;
-> >         bool wakeup;
-> > +       bool can_wakeup;
-> >         int error;
-> >
-> >         if (!adev)
-> > @@ -878,12 +879,19 @@ int acpi_dev_suspend_late(struct device *dev)
-> >
-> >         target_state = acpi_target_system_state();
-> >         wakeup = device_may_wakeup(dev);
-> > -       error = acpi_device_wakeup(adev, target_state, wakeup);
-> > -       if (wakeup && error)
-> > -               return error;
-> > +       can_wakeup = acpi_device_can_wakeup(adev);
-> > +
-> > +       if (can_wakeup) {
-> > +               error = acpi_device_wakeup(adev, target_state, wakeup);
-> > +               if (wakeup && error)
-> > +                       return error;
-> > +       } else if (wakeup) {
+> Hving had a couple of chats with Grant and Arnd during LinuxCon EU/LPC, we
+> now have version 5 taking all feedback into account (hopefully).
 > 
-> I think we just need to return an error code in that case, because otherwise
+> Changes have been made to patch [02/12] and to patches [09-12/12], although
+> in patches [10-12/12] they are fairly minor.  I have retained the Greg's
+> ACK on patch [02/12], because it is essentially the same that have been
+> posted aleady and ACKed by him (Greg, please let me know if I shouldn't
+> do that) and all the ACKs on the remaining patches except for patch [09/12]
+> which is substantially different.  Still, if reviewers think that their
+> ACKs don't apply any more, please let me know and I'll remove them.
+> 
+> Patch [02/12] now contains helper functions for all proprerty data types
+> that can be accessed which call the existing of_ functions, because Grant
+> preferred that.
+> 
+> Patch [09/12] introduces quite a new concept, which is the struct fwnode_handle
+> structure containing one field (type) and embedded in struct device_node
+> (type==FWNODE_OF) and struct acpi_device (type==FWNODE_ACPI).  In short, if
+> we are passed a struct fwnode_handle pointer, we can get from it to the
+> appropriate device node pointer (either struct acpi_device or struct device_node)
+> using container_of() after we've checked the type.  This is needed for the code
+> that needs to access child nodes of a device in case when they don't have
+> struct device representations (whatever the reason).  This has been suggested
+> by Grant and pretty much everyone involved agrees that it's better that the
+> alternatives presented so far.
 
-We used to return error and that error aborted the suspend altogether,
-which prompted creating this patch.
+While at it, many thanks to Mika for testing the patches on MinnowBoard 1 and
+MinnowBoard Max and fixing build problems with them while we've been having
+fun at the conferences!  I wouldn't have been able to prepare the patchset
+for posting without that work.
 
-> this is potentially dangerous (worst case, it may be impossible to wake up
-> the machine at all after that).
-
-Yes, there is such potential, but that kind of error (no working wakeup
-sources) will be discovered before a box is shipped. Right now we have
-boxes in the wild that suspend fine with 3.10 and refuse to suspend with
-3.14 because between 3.10 and 3.14 we started placing i2c devices with
-ACPI companions into ACPI power domain and ACPI power domain is now
-trying to configure them as wakeup sources and fails.
-
-Thanks.
-
--- 
-Dmitry
