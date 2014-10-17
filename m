@@ -1,45 +1,43 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v5 00/12] Add ACPI _DSD and unified device properties support
-Date: Fri, 17 Oct 2014 20:04:52 +0200
-Message-ID: <D04C5E60-527A-4CA9-954D-60A82AF0413A@arndb.de>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan> <11223831.j9KAEfSQsY@vostro.rjw.lan>
+From: Darren Hart <dvhart@linux.intel.com>
+Subject: Re: [PATCH v5 00/12] Add ACPI _DSD and unified device properties
+ support
+Date: Fri, 17 Oct 2014 21:23:14 +0200
+Message-ID: <54416CA2.2010701@linux.intel.com>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan> <11223831.j9KAEfSQsY@vostro.rjw.lan> <20141017154007.GB29643@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <11223831.j9KAEfSQsY@vostro.rjw.lan>
+In-Reply-To: <20141017154007.GB29643@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On October 17, 2014 2:01:33 PM CEST, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
->Hi Everyone,
->
->Hving had a couple of chats with Grant and Arnd during LinuxCon EU/LPC,
->we
->now have version 5 taking all feedback into account (hopefully).
+On 10/17/14 17:40, Greg Kroah-Hartman wrote:
+> On Fri, Oct 17, 2014 at 02:01:33PM +0200, Rafael J. Wysocki wrote:
+>> Hi Everyone,
+>>
+>> Hving had a couple of chats with Grant and Arnd during LinuxCon EU/LPC, we
+>> now have version 5 taking all feedback into account (hopefully).
+>>
+>> Changes have been made to patch [02/12] and to patches [09-12/12], although
+>> in patches [10-12/12] they are fairly minor.  I have retained the Greg's
+>> ACK on patch [02/12], because it is essentially the same that have been
+>> posted aleady and ACKed by him (Greg, please let me know if I shouldn't
+>> do that) and all the ACKs on the remaining patches except for patch [09/12]
+>> which is substantially different.  Still, if reviewers think that their
+>> ACKs don't apply any more, please let me know and I'll remove them.
+> 
+> No objection from me to keep my ACK on those patches, thanks for asking.
+> 
+> greg k-h
+> 
 
-Awesome, that was really fast. I'm currently on my way his me in the train, replying from my phone, but it looks good now. I'll have a more detailed look next week but I'm definitely happy to see this go in (to next and 3.19) now, any details we still find can be fixed on top.
+Mine certainly still apply as well.
 
-> In
->short, if
->we are passed a struct fwnode_handle pointer, we can get from it to the
->appropriate device node pointer (either struct acpi_device or struct
->device_node)
->using container_of() after we've checked the type.  This is needed for
->the code
->that needs to access child nodes of a device in case when they don't
->have
->struct device representations (whatever the reason).  This has been
->suggested
->by Grant and pretty much everyone involved agrees that it's better that
->the
->alternatives presented so far.
-
-Yes, it's nice enough that I now take back all the objections I had for the child accessory API.
-
-        Arnd
+-- 
+Darren Hart
+Intel Open Source Technology Center
