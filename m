@@ -1,46 +1,57 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v5 00/12] Add ACPI _DSD and unified device properties
- support
-Date: Mon, 20 Oct 2014 06:14:12 +0800
-Message-ID: <20141019221412.GA7387@kroah.com>
+Subject: Re: [PATCH v5 09/12] Driver core: Unified interface for firmware
+ node properties
+Date: Mon, 20 Oct 2014 06:14:34 +0800
+Message-ID: <20141019221434.GA7674@kroah.com>
 References: <2660541.BycO7TFnA2@vostro.rjw.lan>
  <11223831.j9KAEfSQsY@vostro.rjw.lan>
- <20141017154007.GB29643@kroah.com>
- <1787777.qrmnDZUWyu@vostro.rjw.lan>
+ <1628104.Ek1EGbdVha@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43432 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747AbaJSWPS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Oct 2014 18:15:18 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1787777.qrmnDZUWyu@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1628104.Ek1EGbdVha@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 17, 2014 at 11:49:45PM +0200, Rafael J. Wysocki wrote:
-> On Friday, October 17, 2014 05:40:07 PM Greg Kroah-Hartman wrote:
-> > On Fri, Oct 17, 2014 at 02:01:33PM +0200, Rafael J. Wysocki wrote:
-> > > Hi Everyone,
-> > > 
-> > > Hving had a couple of chats with Grant and Arnd during LinuxCon EU/LPC, we
-> > > now have version 5 taking all feedback into account (hopefully).
-> > > 
-> > > Changes have been made to patch [02/12] and to patches [09-12/12], although
-> > > in patches [10-12/12] they are fairly minor.  I have retained the Greg's
-> > > ACK on patch [02/12], because it is essentially the same that have been
-> > > posted aleady and ACKed by him (Greg, please let me know if I shouldn't
-> > > do that) and all the ACKs on the remaining patches except for patch [09/12]
-> > > which is substantially different.  Still, if reviewers think that their
-> > > ACKs don't apply any more, please let me know and I'll remove them.
-> > 
-> > No objection from me to keep my ACK on those patches, thanks for asking.
+On Fri, Oct 17, 2014 at 02:14:53PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Well, that's just fair IMO. :-)
+> Add new generic routines are provided for retrieving properties from
+> device description objects in the platform firmware in case there are
+> no struct device objects for them (either those objects have not been
+> created yet or they do not exist at all).
 > 
-> Does [09/12] look good too in particular?
+> The following functions are provided:
+> 
+> fwnode_property_present()
+> fwnode_property_read_u8()
+> fwnode_property_read_u16()
+> fwnode_property_read_u32()
+> fwnode_property_read_u64()
+> fwnode_property_read_string()
+> fwnode_property_read_u8_array()
+> fwnode_property_read_u16_array()
+> fwnode_property_read_u32_array()
+> fwnode_property_read_u64_array()
+> fwnode_property_read_string_array()
+> 
+> in analogy with the corresponding functions for struct device added
+> previously.  For all of them, the first argument is a pointer to struct
+> fwnode_handle (new type) that allows a device description object
+> (depending on what platform firmware interface is in use) to be
+> obtained.
+> 
+> Add a new macro device_for_each_child_node() for iterating over the
+> children of the device description object associated with a given
+> device and a new function device_get_child_node_count() returning the
+> number of a given device's child nodes.
+> 
+> The interface covers both ACPI and Device Trees.
+> 
+> Suggested-by: Grant Likely <grant.likely@linaro.org>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Yes, I have no objections to it.
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
