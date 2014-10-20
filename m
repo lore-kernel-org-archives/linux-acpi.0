@@ -1,93 +1,58 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v5 10/12] gpio: Support for unified device properties interface
-Date: Mon, 20 Oct 2014 16:26:30 +0200
-Message-ID: <12255408.hd0Fqgc3mD@wuerfel>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan> <2997291.LjjH2RgEUW@wuerfel> <CAAVeFuKoGfkUXPZWt0Xy1jW-zGCUEzbzQ8W7_RVyetG9++uDHw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAVeFuKoGfkUXPZWt0Xy1jW-zGCUEzbzQ8W7_RVyetG9++uDHw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch] ACPI, irq: fix regression casued by 6b9fb7082409
+Date: Mon, 20 Oct 2014 22:45:27 +0800
+Message-ID: <1413816327-12850-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:53040 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751749AbaJTOm3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Oct 2014 10:42:29 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Richter <thor@math.tu-berlin.de>, rui.zhang@intel.com
 
-On Monday 20 October 2014 15:12:50 Alexandre Courbot wrote:
-> On Sat, Oct 18, 2014 at 6:47 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Friday 17 October 2014 20:09:51 Arnd Bergmann wrote:
-> >> On October 17, 2014 2:16:00 PM CEST, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
-> >> >From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >> >
-> >> >Some drivers need to deal with only firmware representation of its
-> >> >GPIOs. An example would be a GPIO button array driver where each button
-> >> >is described as a separate firmware node in device tree. Typically
-> >> >these
-> >> >child nodes do not have physical representation in the Linux device
-> >> >model.
-> >> >
-> >> >In order to help device drivers to handle such firmware child nodes we
-> >> >add dev[m]_get_named_gpiod_from_child() that takes a child firmware
-> >> >node pointer as its second argument (the first one is the parent device
-> >> >itself), finds the GPIO using whatever is the underlying firmware
-> >> >method, and requests the GPIO properly.
-> >>
-> >> Could we also have a wrapper around this function without a "name" argument,
-> >> using just the index?
-> >
-> > Expanding on this thought: I think we should mandate for new bindings
-> > that they use either a name and no index, or an index but not name,
-> 
-> I'm afraid this could forbid some useful use-cases, namely the ones
-> where several GPIOs serve the same function (and are typically set
-> together). We had a few patch proposals to handle such GPIO groups,
-> and even though one was in pretty good shape the submitter did not
-> push it until the end. :/
-> 
-> But my concern is that instead of having this:
-> 
-> enable-gpio = <&gpio 0 GPIO_ACTIVE_HIGH>;
-> value-gpios = <&gpio 1 GPIO_ACTIVE_HIGH ... &gpio 8 GPIO_ACTIVE_HIGH>;
-> 
-> We would force this:
-> 
-> enable-gpio = <&gpio 0 GPIO_ACTIVE_HIGH>;
-> value0-gpio = <&gpio 1 GPIO_ACTIVE_HIGH>;
-> ...
-> value7-gpio = <&gpio 8 GPIO_ACTIVE_HIGH>;
-> 
-> Or this:
-> 
-> // First GPIO is enable, other GPIOs are value
-> gpios = <&gpio 0 GPIO_ACTIVE_HIGH &gpio 1 GPIO_ACTIVE_HIGH ... &gpio 8
-> GPIO_ACTIVE_HIGH>;
-> 
-> Most bindings don't need that much sophistication, and for these we
-> should indeed make sure that they stick to using either the names or
-> index (and in a consistent manner), but closing the possibility to use
-> both together may bite us in the end.
+When IOAPIC is disabled, acpi_gsi_to_irq() should return gsi directly
+instead of calling mp_map_gsi_to_irq() to translate gsi to IRQ by IOAPIC.
+It fixes https://bugzilla.kernel.org/show_bug.cgi?id=84381.
 
-I would actually prefer the single-property case here, but I see your
-point. Could we make it a strong suggestion rather than a mandatory
-requirement for new bindings then?
+Reported-and-Tested-by: Thomas Richter <thor@math.tu-berlin.de>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Richter <thor@math.tu-berlin.de>
+Cc: rui.zhang@intel.com
+Cc: <stable@vger.kernel.org> # 3.17
+---
+ arch/x86/kernel/acpi/boot.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-> > and I also think that for named gpios, we should try to converge on a
-> > common naming scheme. As discussed, we will probably want to support all
-> > the existing ways to do this even with ACPI and with the unified
-> > interface, but it doesn't have to be the obvious way.
-> 
-> Personally, I like the idea that each GPIO has a function, so now that
-> ACPI fully supports this I'd suggest the policy of using names for
-> each GPIO (e.g. never use the fallback "gpios" or "gpio" property),
-> and only ressort to indexes if several GPIOs happen to serve the same
-> function. I know we haven't reached consensus about this so far, but
-> it would be nice it we could discuss this point again in the light of
-> the new ACPI capabilities and come with something to write as a
-> guideline in the GPIO documentation.
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index b436fc735aa4..eceba9d9e116 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -604,14 +604,19 @@ void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger)
+ 
+ int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
+ {
+-	int irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK);
++	int irq;
+ 
+-	if (irq >= 0) {
++	if (acpi_irq_model == ACPI_IRQ_MODEL_PIC) {
++		*irqp = gsi;
++	} else {
++		irq = mp_map_gsi_to_irq(gsi,
++					IOAPIC_MAP_ALLOC | IOAPIC_MAP_CHECK);
++		if (irq < 0)
++			return -1;
+ 		*irqp = irq;
+-		return 0;
+ 	}
+ 
+-	return -1;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+ 
+-- 
+1.7.10.4
 
-We have enforced naming things for the dmaengine binding, which has
-just led to everyone calling things "rx" and "tx". My fear is that
-if we start to enforce giving a name, we'd end up with lots of
-drivers that use a "gpio-gpios" property or something silly.
-
-	Arnd
