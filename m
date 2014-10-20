@@ -1,86 +1,263 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH v5 10/12] gpio: Support for unified device properties interface
-Date: Mon, 20 Oct 2014 15:12:50 +0900
-Message-ID: <CAAVeFuKoGfkUXPZWt0Xy1jW-zGCUEzbzQ8W7_RVyetG9++uDHw@mail.gmail.com>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan> <1510578.dSiEYPPI9m@vostro.rjw.lan>
- <E99B44D9-C9E3-4C0B-8B18-450121793EB5@arndb.de> <2997291.LjjH2RgEUW@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v5 03/12] ACPI: Allow drivers to match using Device Tree
+ compatible property
+Date: Mon, 20 Oct 2014 16:05:01 +0200
+Message-ID: <20141020140501.D10A5C40982@trevor.secretlab.ca>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
+	<11223831.j9KAEfSQsY@vostro.rjw.lan> <3167500.xrhugPHshV@vostro.rjw.lan>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:61648 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115AbaJTGNL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2014 02:13:11 -0400
-In-Reply-To: <2997291.LjjH2RgEUW@wuerfel>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:62123 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752345AbaJTOFN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2014 10:05:13 -0400
+Received: by mail-wi0-f169.google.com with SMTP id h11so9145643wiw.4
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Oct 2014 07:05:12 -0700 (PDT)
+In-Reply-To: <3167500.xrhugPHshV@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Sat, Oct 18, 2014 at 6:47 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 17 October 2014 20:09:51 Arnd Bergmann wrote:
->> On October 17, 2014 2:16:00 PM CEST, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
->> >From: Mika Westerberg <mika.westerberg@linux.intel.com>
->> >
->> >Some drivers need to deal with only firmware representation of its
->> >GPIOs. An example would be a GPIO button array driver where each button
->> >is described as a separate firmware node in device tree. Typically
->> >these
->> >child nodes do not have physical representation in the Linux device
->> >model.
->> >
->> >In order to help device drivers to handle such firmware child nodes we
->> >add dev[m]_get_named_gpiod_from_child() that takes a child firmware
->> >node pointer as its second argument (the first one is the parent device
->> >itself), finds the GPIO using whatever is the underlying firmware
->> >method, and requests the GPIO properly.
->>
->> Could we also have a wrapper around this function without a "name" argument,
->> using just the index?
->
-> Expanding on this thought: I think we should mandate for new bindings
-> that they use either a name and no index, or an index but not name,
+On Fri, 17 Oct 2014 14:05:59 +0200
+, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+ wrote:
+> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> We have lots of existing Device Tree enabled drivers and allocating
+> separate _HID for each is not feasible. Instead we allocate special _HID
+> "PRP0001" that means that the match should be done using Device Tree
+> compatible property using driver's .of_match_table instead if the driver
+> is missing .acpi_match_table.
 
-I'm afraid this could forbid some useful use-cases, namely the ones
-where several GPIOs serve the same function (and are typically set
-together). We had a few patch proposals to handle such GPIO groups,
-and even though one was in pretty good shape the submitter did not
-push it until the end. :/
+(Not a critique of this patch, but merely a helpful comment; my previous
+ack remains intact) :-)
 
-But my concern is that instead of having this:
+It would be useful for the code to point at some document that describes
+the semantics of the PRP0001 binding.
 
-enable-gpio = <&gpio 0 GPIO_ACTIVE_HIGH>;
-value-gpios = <&gpio 1 GPIO_ACTIVE_HIGH ... &gpio 8 GPIO_ACTIVE_HIGH>;
+g.
 
-We would force this:
+> 
+> If there is a need to distinguish from where the device is enumerated
+> (DT/ACPI) driver can check dev->of_node or ACPI_COMPATION(dev).
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/property.c | 34 +++++++++++++++++
+>  drivers/acpi/scan.c     | 97 +++++++++++++++++++++++++++++++++++++++++++------
+>  include/acpi/acpi_bus.h |  1 +
+>  include/linux/acpi.h    |  8 +---
+>  4 files changed, 123 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 680f7f1..ff53eb8 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -76,6 +76,37 @@ static bool acpi_properties_format_valid(const union acpi_object *properties)
+>  	return true;
+>  }
+>  
+> +static void acpi_init_of_compatible(struct acpi_device *adev)
+> +{
+> +	const union acpi_object *of_compatible;
+> +	struct acpi_hardware_id *hwid;
+> +	bool acpi_of = false;
+> +
+> +	/*
+> +	 * Check if the special PRP0001 ACPI ID is present and in that
+> +	 * case we fill in Device Tree compatible properties for this
+> +	 * device.
+> +	 */
+> +	list_for_each_entry(hwid, &adev->pnp.ids, list) {
+> +		if (!strcmp(hwid->id, "PRP0001")) {
+> +			acpi_of = true;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!acpi_of)
+> +		return;
+> +
+> +	if (acpi_dev_get_property_array(adev, "compatible", ACPI_TYPE_STRING,
+> +					&of_compatible)) {
+> +		acpi_handle_warn(adev->handle,
+> +				 "PRP0001 requires compatible property\n");
+> +		return;
+> +	}
+> +
+> +	adev->data.of_compatible = of_compatible;
+> +}
+> +
+>  void acpi_init_properties(struct acpi_device *adev)
+>  {
+>  	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
+> @@ -119,6 +150,8 @@ void acpi_init_properties(struct acpi_device *adev)
+>  
+>  		adev->data.pointer = buf.pointer;
+>  		adev->data.properties = properties;
+> +
+> +		acpi_init_of_compatible(adev);
+>  		return;
+>  	}
+>  
+> @@ -130,6 +163,7 @@ void acpi_init_properties(struct acpi_device *adev)
+>  void acpi_free_properties(struct acpi_device *adev)
+>  {
+>  	ACPI_FREE((void *)adev->data.pointer);
+> +	adev->data.of_compatible = NULL;
+>  	adev->data.pointer = NULL;
+>  	adev->data.properties = NULL;
+>  }
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 1979ab3..bc999f1 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -124,17 +124,51 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+>  	if (list_empty(&acpi_dev->pnp.ids))
+>  		return 0;
+>  
+> -	len = snprintf(modalias, size, "acpi:");
+> -	size -= len;
+> -
+> -	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
+> -		count = snprintf(&modalias[len], size, "%s:", id->id);
+> -		if (count < 0)
+> -			return -EINVAL;
+> -		if (count >= size)
+> -			return -ENOMEM;
+> -		len += count;
+> -		size -= count;
+> +	/*
+> +	 * If the device has PRP0001 we expose DT compatible modalias
+> +	 * instead in form of of:NnameTCcompatible.
+> +	 */
+> +	if (acpi_dev->data.of_compatible) {
+> +		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
+> +		const union acpi_object *of_compatible, *obj;
+> +		char *c;
+> +		int i;
+> +
+> +		acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
+> +		/* DT strings are all in lower case */
+> +		for (c = buf.pointer; *c != '\0'; c++)
+> +			*c = tolower(*c);
+> +
+> +		len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
+> +		ACPI_FREE(buf.pointer);
+> +
+> +		of_compatible = acpi_dev->data.of_compatible;
+> +		for (i = 0; i < of_compatible->package.count; i++) {
+> +			obj = &of_compatible->package.elements[i];
+> +
+> +			count = snprintf(&modalias[len], size, "C%s",
+> +					 obj->string.pointer);
+> +			if (count < 0)
+> +				return -EINVAL;
+> +			if (count >= size)
+> +				return -ENOMEM;
+> +
+> +			len += count;
+> +			size -= count;
+> +		}
+> +	} else {
+> +		len = snprintf(modalias, size, "acpi:");
+> +		size -= len;
+> +
+> +		list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
+> +			count = snprintf(&modalias[len], size, "%s:", id->id);
+> +			if (count < 0)
+> +				return -EINVAL;
+> +			if (count >= size)
+> +				return -ENOMEM;
+> +			len += count;
+> +			size -= count;
+> +		}
+>  	}
+>  
+>  	modalias[len] = '\0';
+> @@ -864,6 +898,47 @@ int acpi_match_device_ids(struct acpi_device *device,
+>  }
+>  EXPORT_SYMBOL(acpi_match_device_ids);
+>  
+> +/* Performs match against special "PRP0001" shoehorn ACPI ID */
+> +static bool acpi_of_driver_match_device(struct device *dev,
+> +					const struct device_driver *drv)
+> +{
+> +	const union acpi_object *of_compatible;
+> +	struct acpi_device *adev;
+> +	int i;
+> +
+> +	adev = ACPI_COMPANION(dev);
+> +	if (!adev)
+> +		return false;
+> +
+> +	of_compatible = adev->data.of_compatible;
+> +	if (!drv->of_match_table || !of_compatible)
+> +		return false;
+> +
+> +	/* Now we can look for the driver DT compatible strings */
+> +	for (i = 0; i < of_compatible->package.count; i++) {
+> +		const struct of_device_id *id;
+> +		const union acpi_object *obj;
+> +
+> +		obj = &of_compatible->package.elements[i];
+> +
+> +		for (id = drv->of_match_table; id->compatible[0]; id++)
+> +			if (!strcasecmp(obj->string.pointer, id->compatible))
+> +				return true;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+> +bool acpi_driver_match_device(struct device *dev,
+> +			      const struct device_driver *drv)
+> +{
+> +	if (!drv->acpi_match_table)
+> +		return acpi_of_driver_match_device(dev, drv);
+> +
+> +	return !!acpi_match_device(drv->acpi_match_table, dev);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_driver_match_device);
+> +
+>  static void acpi_free_power_resources_lists(struct acpi_device *device)
+>  {
+>  	int i;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index f9734fa..98cd723 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -341,6 +341,7 @@ struct acpi_device_physical_node {
+>  struct acpi_device_data {
+>  	const union acpi_object *pointer;
+>  	const union acpi_object *properties;
+> +	const union acpi_object *of_compatible;
+>  };
+>  
+>  /* Device */
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 18c1bc3..11aa6b8 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -424,12 +424,8 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+>  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+>  					       const struct device *dev);
+>  
+> -static inline bool acpi_driver_match_device(struct device *dev,
+> -					    const struct device_driver *drv)
+> -{
+> -	return !!acpi_match_device(drv->acpi_match_table, dev);
+> -}
+> -
+> +extern bool acpi_driver_match_device(struct device *dev,
+> +				     const struct device_driver *drv);
+>  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+>  int acpi_device_modalias(struct device *, char *, int);
+>  
+> -- 
+> 1.9.3
+> 
+> 
 
-enable-gpio = <&gpio 0 GPIO_ACTIVE_HIGH>;
-value0-gpio = <&gpio 1 GPIO_ACTIVE_HIGH>;
-...
-value7-gpio = <&gpio 8 GPIO_ACTIVE_HIGH>;
-
-Or this:
-
-// First GPIO is enable, other GPIOs are value
-gpios = <&gpio 0 GPIO_ACTIVE_HIGH &gpio 1 GPIO_ACTIVE_HIGH ... &gpio 8
-GPIO_ACTIVE_HIGH>;
-
-Most bindings don't need that much sophistication, and for these we
-should indeed make sure that they stick to using either the names or
-index (and in a consistent manner), but closing the possibility to use
-both together may bite us in the end.
-
-
-> and I also think that for named gpios, we should try to converge on a
-> common naming scheme. As discussed, we will probably want to support all
-> the existing ways to do this even with ACPI and with the unified
-> interface, but it doesn't have to be the obvious way.
-
-Personally, I like the idea that each GPIO has a function, so now that
-ACPI fully supports this I'd suggest the policy of using names for
-each GPIO (e.g. never use the fallback "gpios" or "gpio" property),
-and only ressort to indexes if several GPIOs happen to serve the same
-function. I know we haven't reached consensus about this so far, but
-it would be nice it we could discuss this point again in the light of
-the new ACPI capabilities and come with something to write as a
-guideline in the GPIO documentation.
