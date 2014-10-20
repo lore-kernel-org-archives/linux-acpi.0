@@ -1,263 +1,74 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v5 03/12] ACPI: Allow drivers to match using Device Tree
- compatible property
-Date: Mon, 20 Oct 2014 16:05:01 +0200
-Message-ID: <20141020140501.D10A5C40982@trevor.secretlab.ca>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan>
-	<11223831.j9KAEfSQsY@vostro.rjw.lan> <3167500.xrhugPHshV@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v5 09/12] Driver core: Unified interface for firmware node properties
+Date: Mon, 20 Oct 2014 16:14:35 +0200
+Message-ID: <2472256.PcjMGW56U7@wuerfel>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan> <1979177.qygBOVQh8h@wuerfel> <2095758.cxee3gtjhK@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:62123 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752345AbaJTOFN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2014 10:05:13 -0400
-Received: by mail-wi0-f169.google.com with SMTP id h11so9145643wiw.4
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Oct 2014 07:05:12 -0700 (PDT)
-In-Reply-To: <3167500.xrhugPHshV@vostro.rjw.lan>
+Received: from mout.kundenserver.de ([212.227.126.130]:51254 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751177AbaJTOOu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Oct 2014 10:14:50 -0400
+In-Reply-To: <2095758.cxee3gtjhK@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Fri, 17 Oct 2014 14:05:59 +0200
-, "Rafael J. Wysocki" <rjw@rjwysocki.net>
- wrote:
-> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Monday 20 October 2014 01:30:47 Rafael J. Wysocki wrote:
+> On Saturday, October 18, 2014 11:35:21 AM Arnd Bergmann wrote:
+> > On Friday 17 October 2014 14:14:53 Rafael J. Wysocki wrote:
+> > > +/**
+> > > + * fwnode_property_present - check if a property of a firmware node is present
+> > > + * @fwnode: Firmware node whose property to check
+> > > + * @propname: Name of the property
+> > > + */
+> > > +bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+> > > +{
+> > > +       if (is_of_node(fwnode))
+> > > +               return of_property_read_bool(of_node(fwnode), propname);
+> > > +       else if (is_acpi_node(fwnode))
+> > > +               return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
+> > > +
+> > > +       return false;
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(fwnode_property_present);
+> > > 
+> > 
+> > Should this be
+> > 
+> >               return acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
+> > 
+> > without the '!'?
 > 
-> We have lots of existing Device Tree enabled drivers and allocating
-> separate _HID for each is not feasible. Instead we allocate special _HID
-> "PRP0001" that means that the match should be done using Device Tree
-> compatible property using driver's .of_match_table instead if the driver
-> is missing .acpi_match_table.
+> No, acpi_dev_prop_get() returns 0 on success. 
 
-(Not a critique of this patch, but merely a helpful comment; my previous
-ack remains intact) :-)
+Ah, got it now.
 
-It would be useful for the code to point at some document that describes
-the semantics of the PRP0001 binding.
+> > I'm also unsure about the '_present' vs '_read_bool' naming. IIRC we had
+> > a long debate about this before we decided on 'read_bool' for DT, and
+> > I don't really want to start a new debate, but being consistent would
+> > be nice.
+> > 
+> > We could of course have
+> > 
+> > static inline bool fwnode_property_read_bool(struct fwnode_handle *fwnode, const char *propname)
+> > {
+> >       return fwnode_property_present(fwnode, propname);
+> > }
+> > 
+> > which is completely redundant, but would help for drivers using the
+> > interface to document whether we are checking for bool property that
+> > we expect to be either empty or absent (_get_bool), vs checking for
+> > the presence of a non-empty property (_present).
+> 
+> I'm fine with that, so I'll add fwnode_property_read_bool() (and an analogous
+> wrapper for device_) to patches [02/12] and [09/12].
+> 
+> I'll be sending updates of them shortly, so please have a look at those.
 
-g.
+Ok, will do.
 
-> 
-> If there is a need to distinguish from where the device is enumerated
-> (DT/ACPI) driver can check dev->of_node or ACPI_COMPATION(dev).
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/property.c | 34 +++++++++++++++++
->  drivers/acpi/scan.c     | 97 +++++++++++++++++++++++++++++++++++++++++++------
->  include/acpi/acpi_bus.h |  1 +
->  include/linux/acpi.h    |  8 +---
->  4 files changed, 123 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 680f7f1..ff53eb8 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -76,6 +76,37 @@ static bool acpi_properties_format_valid(const union acpi_object *properties)
->  	return true;
->  }
->  
-> +static void acpi_init_of_compatible(struct acpi_device *adev)
-> +{
-> +	const union acpi_object *of_compatible;
-> +	struct acpi_hardware_id *hwid;
-> +	bool acpi_of = false;
-> +
-> +	/*
-> +	 * Check if the special PRP0001 ACPI ID is present and in that
-> +	 * case we fill in Device Tree compatible properties for this
-> +	 * device.
-> +	 */
-> +	list_for_each_entry(hwid, &adev->pnp.ids, list) {
-> +		if (!strcmp(hwid->id, "PRP0001")) {
-> +			acpi_of = true;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (!acpi_of)
-> +		return;
-> +
-> +	if (acpi_dev_get_property_array(adev, "compatible", ACPI_TYPE_STRING,
-> +					&of_compatible)) {
-> +		acpi_handle_warn(adev->handle,
-> +				 "PRP0001 requires compatible property\n");
-> +		return;
-> +	}
-> +
-> +	adev->data.of_compatible = of_compatible;
-> +}
-> +
->  void acpi_init_properties(struct acpi_device *adev)
->  {
->  	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
-> @@ -119,6 +150,8 @@ void acpi_init_properties(struct acpi_device *adev)
->  
->  		adev->data.pointer = buf.pointer;
->  		adev->data.properties = properties;
-> +
-> +		acpi_init_of_compatible(adev);
->  		return;
->  	}
->  
-> @@ -130,6 +163,7 @@ void acpi_init_properties(struct acpi_device *adev)
->  void acpi_free_properties(struct acpi_device *adev)
->  {
->  	ACPI_FREE((void *)adev->data.pointer);
-> +	adev->data.of_compatible = NULL;
->  	adev->data.pointer = NULL;
->  	adev->data.properties = NULL;
->  }
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 1979ab3..bc999f1 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -124,17 +124,51 @@ static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
->  	if (list_empty(&acpi_dev->pnp.ids))
->  		return 0;
->  
-> -	len = snprintf(modalias, size, "acpi:");
-> -	size -= len;
-> -
-> -	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
-> -		count = snprintf(&modalias[len], size, "%s:", id->id);
-> -		if (count < 0)
-> -			return -EINVAL;
-> -		if (count >= size)
-> -			return -ENOMEM;
-> -		len += count;
-> -		size -= count;
-> +	/*
-> +	 * If the device has PRP0001 we expose DT compatible modalias
-> +	 * instead in form of of:NnameTCcompatible.
-> +	 */
-> +	if (acpi_dev->data.of_compatible) {
-> +		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
-> +		const union acpi_object *of_compatible, *obj;
-> +		char *c;
-> +		int i;
-> +
-> +		acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
-> +		/* DT strings are all in lower case */
-> +		for (c = buf.pointer; *c != '\0'; c++)
-> +			*c = tolower(*c);
-> +
-> +		len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
-> +		ACPI_FREE(buf.pointer);
-> +
-> +		of_compatible = acpi_dev->data.of_compatible;
-> +		for (i = 0; i < of_compatible->package.count; i++) {
-> +			obj = &of_compatible->package.elements[i];
-> +
-> +			count = snprintf(&modalias[len], size, "C%s",
-> +					 obj->string.pointer);
-> +			if (count < 0)
-> +				return -EINVAL;
-> +			if (count >= size)
-> +				return -ENOMEM;
-> +
-> +			len += count;
-> +			size -= count;
-> +		}
-> +	} else {
-> +		len = snprintf(modalias, size, "acpi:");
-> +		size -= len;
-> +
-> +		list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
-> +			count = snprintf(&modalias[len], size, "%s:", id->id);
-> +			if (count < 0)
-> +				return -EINVAL;
-> +			if (count >= size)
-> +				return -ENOMEM;
-> +			len += count;
-> +			size -= count;
-> +		}
->  	}
->  
->  	modalias[len] = '\0';
-> @@ -864,6 +898,47 @@ int acpi_match_device_ids(struct acpi_device *device,
->  }
->  EXPORT_SYMBOL(acpi_match_device_ids);
->  
-> +/* Performs match against special "PRP0001" shoehorn ACPI ID */
-> +static bool acpi_of_driver_match_device(struct device *dev,
-> +					const struct device_driver *drv)
-> +{
-> +	const union acpi_object *of_compatible;
-> +	struct acpi_device *adev;
-> +	int i;
-> +
-> +	adev = ACPI_COMPANION(dev);
-> +	if (!adev)
-> +		return false;
-> +
-> +	of_compatible = adev->data.of_compatible;
-> +	if (!drv->of_match_table || !of_compatible)
-> +		return false;
-> +
-> +	/* Now we can look for the driver DT compatible strings */
-> +	for (i = 0; i < of_compatible->package.count; i++) {
-> +		const struct of_device_id *id;
-> +		const union acpi_object *obj;
-> +
-> +		obj = &of_compatible->package.elements[i];
-> +
-> +		for (id = drv->of_match_table; id->compatible[0]; id++)
-> +			if (!strcasecmp(obj->string.pointer, id->compatible))
-> +				return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +
-> +bool acpi_driver_match_device(struct device *dev,
-> +			      const struct device_driver *drv)
-> +{
-> +	if (!drv->acpi_match_table)
-> +		return acpi_of_driver_match_device(dev, drv);
-> +
-> +	return !!acpi_match_device(drv->acpi_match_table, dev);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_driver_match_device);
-> +
->  static void acpi_free_power_resources_lists(struct acpi_device *device)
->  {
->  	int i;
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index f9734fa..98cd723 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -341,6 +341,7 @@ struct acpi_device_physical_node {
->  struct acpi_device_data {
->  	const union acpi_object *pointer;
->  	const union acpi_object *properties;
-> +	const union acpi_object *of_compatible;
->  };
->  
->  /* Device */
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 18c1bc3..11aa6b8 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -424,12 +424,8 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
->  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
->  					       const struct device *dev);
->  
-> -static inline bool acpi_driver_match_device(struct device *dev,
-> -					    const struct device_driver *drv)
-> -{
-> -	return !!acpi_match_device(drv->acpi_match_table, dev);
-> -}
-> -
-> +extern bool acpi_driver_match_device(struct device *dev,
-> +				     const struct device_driver *drv);
->  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
->  int acpi_device_modalias(struct device *, char *, int);
->  
-> -- 
-> 1.9.3
-> 
-> 
-
+	Arnd
