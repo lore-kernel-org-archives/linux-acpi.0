@@ -1,56 +1,86 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio: Support for unified device properties interface)
-Date: Tue, 21 Oct 2014 09:54:45 +0200
-Message-ID: <4582579.9WMrIMALsy@wuerfel>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 34/47] acpi: Register poweroff handler with kernel poweroff handler
+Date: Tue, 21 Oct 2014 14:27 +0200
+Message-ID: <1453445.HGtlG6JTvO@vostro.rjw.lan>
+References: <1413864783-3271-1-git-send-email-linux@roeck-us.net> <1413864783-3271-35-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1413864783-3271-35-git-send-email-linux@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 21 October 2014 14:14:02 Alexandre Courbot wrote:
-> >
-> > We have enforced naming things for the dmaengine binding, which has
-> > just led to everyone calling things "rx" and "tx". My fear is that
-> > if we start to enforce giving a name, we'd end up with lots of
-> > drivers that use a "gpio-gpios" property or something silly.
+On Monday, October 20, 2014 09:12:50 PM Guenter Roeck wrote:
+> Register with kernel poweroff handler instead of setting pm_power_off
+> directly. Register with high priority to reflect that the driver explicitly
+> overrides existing poweroff handlers.
 > 
-> Checking the bindings is also part of the review process.  Things
-> like "gpio-gpios" should simply not be accepted to begin with.
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2:
+> - Use define to specify poweroff handler priority
+> - Use pr_warn instead of pr_err
 > 
-> This sounds like a good chance to finally land some guidelines
-> regarding GPIO bindings. Let's summarize the situation:
-> - GPIO bindings can be defined using both DT and ACPI (both interfaces
-> nicely abstracted by the interface introduced by this series)
-> - Both firmware interfaces support indexed GPIOs
-> - Both firmware interfaces support named GPIO properties, with an
-> optional index (can we absolutely take this for granted on ACPI now?)
+>  drivers/acpi/sleep.c | 15 +++++++++++++--
+>  1 file changed, 13 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 05a31b5..1eba563 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -16,6 +16,8 @@
+>  #include <linux/device.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/suspend.h>
+> +#include <linux/notifier.h>
+> +#include <linux/pm.h>
+>  #include <linux/reboot.h>
+>  #include <linux/acpi.h>
+>  #include <linux/module.h>
+> @@ -827,14 +829,22 @@ static void acpi_power_off_prepare(void)
+>  	acpi_disable_all_gpes();
+>  }
+>  
+> -static void acpi_power_off(void)
+> +static int acpi_power_off(struct notifier_block *this,
+> +			  unsigned long unused1, void *unused2)
+>  {
+>  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+>  	printk(KERN_DEBUG "%s called\n", __func__);
+>  	local_irq_disable();
+>  	acpi_enter_sleep_state(ACPI_STATE_S5);
+> +
+> +	return NOTIFY_DONE;
+>  }
+>  
+> +static struct notifier_block acpi_poweroff_nb = {
+> +	.notifier_call = acpi_power_off,
+> +	.priority = POWEROFF_PRIORITY_HIGH,
+> +};
+> +
+>  int __init acpi_sleep_init(void)
+>  {
+>  	char supported[ACPI_S_STATE_COUNT * 3 + 1];
+> @@ -851,7 +861,8 @@ int __init acpi_sleep_init(void)
+>  	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+>  		sleep_states[ACPI_STATE_S5] = 1;
+>  		pm_power_off_prepare = acpi_power_off_prepare;
+> -		pm_power_off = acpi_power_off;
+> +		if (register_power_off_handler(&acpi_poweroff_nb))
+> +			pr_warn("acpi: Failed to register poweroff handler\n");
 
-The developers working on it have said that they definitely want to
-be compatible with the existing bindings, so the answer to your question
-is yes.
+Please always spell "ACPI" in capitals in kernel messages.
 
-> - For DT bindings, both foo-gpio and foo-gpios are valid properties
-> for the GPIO "foo".
+>  	}
+>  
+>  	supported[0] = 0;
+> 
 
-I would like to see the documentation recommend one over the other for
-new bindings. Most other subsystems use the plural form even for
-properties that only have one entry, so I'd like to see "foo-gpios"
-become the canonical form for named gpio lines. Drivers that use
-existing bindings with the "foo-gpio" form (or worse, "foo-somethingelse"
-can use the same internal interface as the drivers that use name plus
-index. Do you see a problem using what I suggested for the combined
-API:
-
-__gpiod_get(dev, propname, index); // use property name plus index
-gpiod_get(dev, index); // use "gpios" plus index
-gpiod_get_named(dev, "name"); use "name-gpios" with index 0
-
-plus all fwprop/devm/flags/of/... variations of that
-
-	Arnd
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
