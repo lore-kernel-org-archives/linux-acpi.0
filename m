@@ -1,167 +1,180 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v6 11/12] leds: leds-gpio: Make use of device property API
-Date: Tue, 21 Oct 2014 23:35:19 +0200
-Message-ID: <1594102.O17O2sudrH@vostro.rjw.lan>
+Subject: [PATCH v6 10/12] gpio: Support for unified device properties interface
+Date: Tue, 21 Oct 2014 23:33:48 +0200
+Message-ID: <2352441.eF6l9XxxSb@vostro.rjw.lan>
 References: <13750506.S2yVlRRDa2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63210 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61604 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933708AbaJUVRr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Oct 2014 17:17:47 -0400
+	with SMTP id S933709AbaJUVRs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Oct 2014 17:17:48 -0400
 In-Reply-To: <13750506.S2yVlRRDa2@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <darren.hart@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <darren.hart@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Make use of device property API in this driver so that both OF and ACPI
-based system can use the same driver.
+Some drivers need to deal with only firmware representation of its
+GPIOs. An example would be a GPIO button array driver where each button
+is described as a separate firmware node in device tree. Typically these
+child nodes do not have physical representation in the Linux device
+model.
 
-This change contains material from Max Eliaser and Mika Westerberg.
+In order to help device drivers to handle such firmware child nodes we
+add dev[m]_get_named_gpiod_from_child() that takes a child firmware
+node pointer as its second argument (the first one is the parent device
+itself), finds the GPIO using whatever is the underlying firmware
+method, and requests the GPIO properly.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Bryan Wu <cooloney@gmail.com>
+Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
 
 Changes from v5:
-- Use devm_get_gpiod_from_child() with 2 arguments (dev, child).
+- fwnode_get_named_gpiod() takes 2 arguments (instead of 3; index has been
+  dropped).
+- devm_get_gpiod_from_child() (renamed from devm_get_named_gpiod_from_child())
+  takes 2 arguments (instead of 4; the name and index have been dropped).  It
+  passes "gpios" to fwnode_get_named_gpiod() as the name, because both its
+  callers in the subsequent patches would do that anyway.
 
 ---
- drivers/leds/leds-gpio.c |   62 ++++++++++++++++++-----------------------------
- 1 file changed, 25 insertions(+), 37 deletions(-)
+ drivers/gpio/devres.c         |   32 ++++++++++++++++++++++++
+ drivers/gpio/gpiolib.c        |   55 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/gpio/consumer.h |    7 +++++
+ 3 files changed, 94 insertions(+)
 
-Index: linux-pm/drivers/leds/leds-gpio.c
+Index: linux-pm/drivers/gpio/devres.c
 ===================================================================
---- linux-pm.orig/drivers/leds/leds-gpio.c
-+++ linux-pm/drivers/leds/leds-gpio.c
-@@ -15,13 +15,11 @@
- #include <linux/gpio.h>
- #include <linux/gpio/consumer.h>
- #include <linux/leds.h>
--#include <linux/of.h>
--#include <linux/of_platform.h>
--#include <linux/of_gpio.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
- #include <linux/module.h>
- #include <linux/err.h>
-+#include <linux/property.h>
+--- linux-pm.orig/drivers/gpio/devres.c
++++ linux-pm/drivers/gpio/devres.c
+@@ -109,6 +109,38 @@ struct gpio_desc *__must_check __devm_gp
+ EXPORT_SYMBOL(__devm_gpiod_get_index);
  
- struct gpio_led_data {
- 	struct led_classdev cdev;
-@@ -171,40 +169,37 @@ static inline int sizeof_gpio_leds_priv(
- 		(sizeof(struct gpio_led_data) * num_leds);
- }
- 
--/* Code to create from OpenFirmware platform devices */
--#ifdef CONFIG_OF_GPIO
--static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
-+static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
- {
--	struct device_node *np = pdev->dev.of_node, *child;
-+	struct device *dev = &pdev->dev;
-+	struct fwnode_handle *child;
- 	struct gpio_leds_priv *priv;
- 	int count, ret;
- 
--	/* count LEDs in this device, so we know how much to allocate */
--	count = of_get_available_child_count(np);
-+	count = device_get_child_node_count(dev);
- 	if (!count)
- 		return ERR_PTR(-ENODEV);
- 
--	for_each_available_child_of_node(np, child)
--		if (of_get_gpio(child, 0) == -EPROBE_DEFER)
--			return ERR_PTR(-EPROBE_DEFER);
--
--	priv = devm_kzalloc(&pdev->dev, sizeof_gpio_leds_priv(count),
--			GFP_KERNEL);
-+	priv = devm_kzalloc(dev, sizeof_gpio_leds_priv(count), GFP_KERNEL);
- 	if (!priv)
- 		return ERR_PTR(-ENOMEM);
- 
--	for_each_available_child_of_node(np, child) {
-+	device_for_each_child_node(dev, child) {
- 		struct gpio_led led = {};
--		enum of_gpio_flags flags;
--		const char *state;
-+		const char *state = NULL;
+ /**
++ * devm_get_gpiod_from_child - get a GPIO descriptor from a device's child node
++ * @dev:	GPIO consumer
++ * @child:	firmware node (child of @dev)
++ *
++ * GPIO descriptors returned from this function are automatically disposed on
++ * driver detach.
++ */
++struct gpio_desc *devm_get_gpiod_from_child(struct device *dev,
++					    struct fwnode_handle *child)
++{
++	struct gpio_desc **dr;
++	struct gpio_desc *desc;
 +
-+		led.gpiod = devm_get_gpiod_from_child(dev, child);
-+		if (IS_ERR(led.gpiod)) {
-+			fwnode_handle_put(child);
-+			goto err;
-+		}
++	dr = devres_alloc(devm_gpiod_release, sizeof(struct gpio_desc *),
++			  GFP_KERNEL);
++	if (!dr)
++		return ERR_PTR(-ENOMEM);
 +
-+		fwnode_property_read_string(child, "label", &led.name);
-+		fwnode_property_read_string(child, "linux,default-trigger",
-+					    &led.default_trigger);
++	desc = fwnode_get_named_gpiod(child, "gpios");
++	if (IS_ERR(desc)) {
++		devres_free(dr);
++		return desc;
++	}
++
++	*dr = desc;
++	devres_add(dev, dr);
++
++	return desc;
++}
++EXPORT_SYMBOL(devm_get_gpiod_from_child);
++
++/**
+  * devm_gpiod_get_index_optional - Resource-managed gpiod_get_index_optional()
+  * @dev: GPIO consumer
+  * @con_id: function within the GPIO consumer
+Index: linux-pm/drivers/gpio/gpiolib.c
+===================================================================
+--- linux-pm.orig/drivers/gpio/gpiolib.c
++++ linux-pm/drivers/gpio/gpiolib.c
+@@ -1735,6 +1735,61 @@ struct gpio_desc *__must_check __gpiod_g
+ EXPORT_SYMBOL_GPL(__gpiod_get_index);
  
--		led.gpio = of_get_gpio_flags(child, 0, &flags);
--		led.active_low = flags & OF_GPIO_ACTIVE_LOW;
--		led.name = of_get_property(child, "label", NULL) ? : child->name;
--		led.default_trigger =
--			of_get_property(child, "linux,default-trigger", NULL);
--		state = of_get_property(child, "default-state", NULL);
--		if (state) {
-+		if (!fwnode_property_read_string(child, "linux,default_state",
-+						 &state)) {
- 			if (!strcmp(state, "keep"))
- 				led.default_state = LEDS_GPIO_DEFSTATE_KEEP;
- 			else if (!strcmp(state, "on"))
-@@ -213,13 +208,13 @@ static struct gpio_leds_priv *gpio_leds_
- 				led.default_state = LEDS_GPIO_DEFSTATE_OFF;
- 		}
+ /**
++ * fwnode_get_named_gpiod - obtain a GPIO from firmware node
++ * @fwnode:	handle of the firmware node
++ * @propname:	name of the firmware property representing the GPIO
++ *
++ * This function can be used for drivers that get their configuration
++ * from firmware.
++ *
++ * Function properly finds the corresponding GPIO using whatever is the
++ * underlying firmware interface and then makes sure that the GPIO
++ * descriptor is requested before it is returned to the caller.
++ *
++ * In case of error an ERR_PTR() is returned.
++ */
++struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
++					 const char *propname)
++{
++	struct gpio_desc *desc = ERR_PTR(-ENODEV);
++	bool active_low = false;
++	int ret;
++
++	if (!fwnode)
++		return ERR_PTR(-EINVAL);
++
++	if (is_of_node(fwnode)) {
++		enum of_gpio_flags flags;
++
++		desc = of_get_named_gpiod_flags(of_node(fwnode), propname, 0,
++						&flags);
++		if (!IS_ERR(desc))
++			active_low = flags & OF_GPIO_ACTIVE_LOW;
++	} else if (is_acpi_node(fwnode)) {
++		struct acpi_gpio_info info;
++
++		desc = acpi_get_gpiod_by_index(acpi_node(fwnode), propname, 0,
++					       &info);
++		if (!IS_ERR(desc))
++			active_low = info.active_low;
++	}
++
++	if (IS_ERR(desc))
++		return desc;
++
++	ret = gpiod_request(desc, NULL);
++	if (ret)
++		return ERR_PTR(ret);
++
++	/* Only value flag can be set from both DT and ACPI is active_low */
++	if (active_low)
++		set_bit(FLAG_ACTIVE_LOW, &desc->flags);
++
++	return desc;
++}
++EXPORT_SYMBOL_GPL(fwnode_get_named_gpiod);
++
++/**
+  * gpiod_get_index_optional - obtain an optional GPIO from a multi-index GPIO
+  *                            function
+  * @dev: GPIO consumer, can be NULL for system-global GPIOs
+Index: linux-pm/include/linux/gpio/consumer.h
+===================================================================
+--- linux-pm.orig/include/linux/gpio/consumer.h
++++ linux-pm/include/linux/gpio/consumer.h
+@@ -94,6 +94,13 @@ int gpiod_to_irq(const struct gpio_desc
+ struct gpio_desc *gpio_to_desc(unsigned gpio);
+ int desc_to_gpio(const struct gpio_desc *desc);
  
--		if (of_get_property(child, "retain-state-suspended", NULL))
-+		if (fwnode_property_present(child, "retain-state-suspended"))
- 			led.retain_state_suspended = 1;
++/* Child properties interface */
++struct fwnode_handle;
++
++struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
++					 const char *propname);
++struct gpio_desc *devm_get_gpiod_from_child(struct device *dev,
++					    struct fwnode_handle *child);
+ #else /* CONFIG_GPIOLIB */
  
- 		ret = create_gpio_led(&led, &priv->leds[priv->num_leds++],
--				      &pdev->dev, NULL);
-+				      dev, NULL);
- 		if (ret < 0) {
--			of_node_put(child);
-+			fwnode_handle_put(child);
- 			goto err;
- 		}
- 	}
-@@ -238,13 +233,6 @@ static const struct of_device_id of_gpio
- };
- 
- MODULE_DEVICE_TABLE(of, of_gpio_leds_match);
--#else /* CONFIG_OF_GPIO */
--static struct gpio_leds_priv *gpio_leds_create_of(struct platform_device *pdev)
--{
--	return ERR_PTR(-ENODEV);
--}
--#endif /* CONFIG_OF_GPIO */
--
- 
- static int gpio_led_probe(struct platform_device *pdev)
- {
-@@ -273,7 +261,7 @@ static int gpio_led_probe(struct platfor
- 			}
- 		}
- 	} else {
--		priv = gpio_leds_create_of(pdev);
-+		priv = gpio_leds_create(pdev);
- 		if (IS_ERR(priv))
- 			return PTR_ERR(priv);
- 	}
-@@ -300,7 +288,7 @@ static struct platform_driver gpio_led_d
- 	.driver		= {
- 		.name	= "leds-gpio",
- 		.owner	= THIS_MODULE,
--		.of_match_table = of_match_ptr(of_gpio_leds_match),
-+		.of_match_table = of_gpio_leds_match,
- 	},
- };
- 
+ static inline struct gpio_desc *__must_check __gpiod_get(struct device *dev,
 
