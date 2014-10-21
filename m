@@ -1,86 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 34/47] acpi: Register poweroff handler with kernel poweroff handler
-Date: Tue, 21 Oct 2014 14:27 +0200
-Message-ID: <1453445.HGtlG6JTvO@vostro.rjw.lan>
-References: <1413864783-3271-1-git-send-email-linux@roeck-us.net> <1413864783-3271-35-git-send-email-linux@roeck-us.net>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
+Date: Tue, 21 Oct 2014 15:27:45 +0300
+Message-ID: <54465141.1080408@intel.com>
+References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com> <1411545639-18741-2-git-send-email-heikki.krogerus@linux.intel.com> <2261149.pJ2DW810R9@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1413864783-3271-35-git-send-email-linux@roeck-us.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:43477 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755191AbaJUM3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Oct 2014 08:29:14 -0400
+In-Reply-To: <2261149.pJ2DW810R9@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, October 20, 2014 09:12:50 PM Guenter Roeck wrote:
-> Register with kernel poweroff handler instead of setting pm_power_off
-> directly. Register with high priority to reflect that the driver explicitly
-> overrides existing poweroff handlers.
+On 24/09/14 16:49, Rafael J. Wysocki wrote:
+> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
+>> Most devices are configured for 32-bit DMA addresses.
+>> Setting the mask to 32-bit here removes the need for the
+>> drivers to do it separately.
+>>
+>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 > 
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2:
-> - Use define to specify poweroff handler priority
-> - Use pr_warn instead of pr_err
-> 
->  drivers/acpi/sleep.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 05a31b5..1eba563 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -16,6 +16,8 @@
->  #include <linux/device.h>
->  #include <linux/interrupt.h>
->  #include <linux/suspend.h>
-> +#include <linux/notifier.h>
-> +#include <linux/pm.h>
->  #include <linux/reboot.h>
->  #include <linux/acpi.h>
->  #include <linux/module.h>
-> @@ -827,14 +829,22 @@ static void acpi_power_off_prepare(void)
->  	acpi_disable_all_gpes();
->  }
->  
-> -static void acpi_power_off(void)
-> +static int acpi_power_off(struct notifier_block *this,
-> +			  unsigned long unused1, void *unused2)
->  {
->  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
->  	printk(KERN_DEBUG "%s called\n", __func__);
->  	local_irq_disable();
->  	acpi_enter_sleep_state(ACPI_STATE_S5);
-> +
-> +	return NOTIFY_DONE;
->  }
->  
-> +static struct notifier_block acpi_poweroff_nb = {
-> +	.notifier_call = acpi_power_off,
-> +	.priority = POWEROFF_PRIORITY_HIGH,
-> +};
-> +
->  int __init acpi_sleep_init(void)
->  {
->  	char supported[ACPI_S_STATE_COUNT * 3 + 1];
-> @@ -851,7 +861,8 @@ int __init acpi_sleep_init(void)
->  	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
->  		sleep_states[ACPI_STATE_S5] = 1;
->  		pm_power_off_prepare = acpi_power_off_prepare;
-> -		pm_power_off = acpi_power_off;
-> +		if (register_power_off_handler(&acpi_poweroff_nb))
-> +			pr_warn("acpi: Failed to register poweroff handler\n");
+> ACK
 
-Please always spell "ACPI" in capitals in kernel messages.
+Hi
 
->  	}
->  
->  	supported[0] = 0;
+I need this for another driver.  Did this patch go anywhere?
+Note Heikki is away at the moment.
+
+Regards
+Adrian
+
+> 
+>> ---
+>>  drivers/acpi/acpi_platform.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+>> index 2bf9082..8d099e6 100644
+>> --- a/drivers/acpi/acpi_platform.c
+>> +++ b/drivers/acpi/acpi_platform.c
+>> @@ -16,6 +16,7 @@
+>>  #include <linux/err.h>
+>>  #include <linux/kernel.h>
+>>  #include <linux/module.h>
+>> +#include <linux/dma-mapping.h>
+>>  #include <linux/platform_device.h>
+>>  
+>>  #include "internal.h"
+>> @@ -102,6 +103,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>>  	pdevinfo.res = resources;
+>>  	pdevinfo.num_res = count;
+>>  	pdevinfo.acpi_node.companion = adev;
+>> +	pdevinfo.dma_mask = DMA_BIT_MASK(32);
+>>  	pdev = platform_device_register_full(&pdevinfo);
+>>  	if (IS_ERR(pdev))
+>>  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+>>
 > 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
