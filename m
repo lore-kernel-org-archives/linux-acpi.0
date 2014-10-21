@@ -1,78 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 09/12] Driver core: Unified interface for firmware node properties
-Date: Tue, 21 Oct 2014 00:22:09 +0200
-Message-ID: <5981363.HuOrK2kMZG@vostro.rjw.lan>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan> <7821406.D7i8JfDpzX@vostro.rjw.lan> <3213594.3tCDm06Aee@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3213594.3tCDm06Aee@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH v2 34/47] acpi: Register poweroff handler with kernel poweroff handler
+Date: Mon, 20 Oct 2014 21:12:50 -0700
+Message-ID: <1413864783-3271-35-git-send-email-linux@roeck-us.net>
+References: <1413864783-3271-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1413864783-3271-1-git-send-email-linux@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, October 20, 2014 04:19:57 PM Arnd Bergmann wrote:
-> On Monday 20 October 2014 01:46:00 Rafael J. Wysocki wrote:
-> > 
-> > > Something like:
-> > > 
-> > > #define define_fwnode_accessors(__type, __devprop_type) \
-> > > int device_property_read_##__type(struct device *dev, \
-> > >                               const char *propname, __type *val) \
-> > > { \
-> > >       if (IS_ENABLED(CONFIG_OF) && dev->of_node) \
-> > >               return of_property_read_##__type(dev->of_node, propname, val); \
-> > >       return acpi_dev_prop_read(ACPI_COMPANION(dev), propname, \
-> > >                                 __devprop_type, val); \
-> > > } \
-> > > int fwnode_property_read_##__type(struct fwnode_handle *fwnode, \
-> > >                               const char *propname, __type *val) \
-> > > { \
-> > >       if (IS_ENABLED(CONFIG_OF) && is_of_node(fwnode)) \
-> > >               return of_property_read_##__type(of_node(fwnode), propname, val); \
-> > >       else if (IS_ENABLED(CONFIG_ACPI) && is_acpi_node(fwnode)) \
-> > >               return acpi_dev_prop_read(acpi_node(fwnode), propname, \
-> > >                                         __devprop_type, val); \
-> > >       return -ENXIO; \
-> > > }
-> > > 
-> > > define_fwnode_accessors(u8, DEV_PROP_U8);
-> > > define_fwnode_accessors(u16, DEV_PROP_U16);
-> > > define_fwnode_accessors(u32, DEV_PROP_U32);
-> > > define_fwnode_accessors(u64, DEV_PROP_U64);
-> > > 
-> > > That significantly reduces the code size for these things.
-> > 
-> > So I was considering to do that, but eventually decided not to, because (1)
-> > adding kerneldoc comments to such things looks odd and (2) (which IMO is
-> > more important) this breaks LXR (for example, the thing at lxr.free-electrons.com
-> > that some people, including me in particular, occasionally use to check how things
-> > are defined).  And even if you used the old good grep to look for a definition of
-> > fwnode_property_read_u8, say, this wouldn't work exactly as expected I'm afraid. 
-> 
-> Agreed, I'd also prefer your proposed code over Grant's macros.
-> 
-> > I would very much like to retain the headers at least for this reason, if that's
-> > not a big deal.
-> > 
-> > What I can do, however, is to use macros for generating the bodies of those
-> > functions.
-> 
-> Yes, just don't do any concatenation to generate the names of the called
-> functions, i.e.
-> 
-> 	return fwnode_call(of_property_read_u32, acpi_dev_prop_read, DEV_PROP_U32, node, propname, val);
-> 
-> is better than
-> 
-> 	return fwnode_call(u32, DEV_PROP_U32, node, propname, val);
-> 
-> because it's easier to understand the call chain.
+Register with kernel poweroff handler instead of setting pm_power_off
+directly. Register with high priority to reflect that the driver explicitly
+overrides existing poweroff handlers.
 
-There is one concatenation like that in the code I have today, but it was
-already present in the $subject series, in the of_dev_prop_read_array macro
-in patch #2 (and it actually makes sense to me).
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2:
+- Use define to specify poweroff handler priority
+- Use pr_warn instead of pr_err
 
-Rafael
+ drivers/acpi/sleep.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 05a31b5..1eba563 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -16,6 +16,8 @@
+ #include <linux/device.h>
+ #include <linux/interrupt.h>
+ #include <linux/suspend.h>
++#include <linux/notifier.h>
++#include <linux/pm.h>
+ #include <linux/reboot.h>
+ #include <linux/acpi.h>
+ #include <linux/module.h>
+@@ -827,14 +829,22 @@ static void acpi_power_off_prepare(void)
+ 	acpi_disable_all_gpes();
+ }
+ 
+-static void acpi_power_off(void)
++static int acpi_power_off(struct notifier_block *this,
++			  unsigned long unused1, void *unused2)
+ {
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk(KERN_DEBUG "%s called\n", __func__);
+ 	local_irq_disable();
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
++
++	return NOTIFY_DONE;
+ }
+ 
++static struct notifier_block acpi_poweroff_nb = {
++	.notifier_call = acpi_power_off,
++	.priority = POWEROFF_PRIORITY_HIGH,
++};
++
+ int __init acpi_sleep_init(void)
+ {
+ 	char supported[ACPI_S_STATE_COUNT * 3 + 1];
+@@ -851,7 +861,8 @@ int __init acpi_sleep_init(void)
+ 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+ 		sleep_states[ACPI_STATE_S5] = 1;
+ 		pm_power_off_prepare = acpi_power_off_prepare;
+-		pm_power_off = acpi_power_off;
++		if (register_power_off_handler(&acpi_poweroff_nb))
++			pr_warn("acpi: Failed to register poweroff handler\n");
+ 	}
+ 
+ 	supported[0] = 0;
+-- 
+1.9.1
+
