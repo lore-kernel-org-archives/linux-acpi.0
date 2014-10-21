@@ -1,70 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
-Date: Tue, 21 Oct 2014 15:08:44 +0200
-Message-ID: <1885056.A9IZAntn96@vostro.rjw.lan>
-References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com> <2261149.pJ2DW810R9@vostro.rjw.lan> <54465141.1080408@intel.com>
+Subject: Re: [PATCH 0/5] ACPI/EC: Cleanup debugging messages and coding styles.
+Date: Tue, 21 Oct 2014 15:26:58 +0200
+Message-ID: <2133206.nBnraRj3x0@vostro.rjw.lan>
+References: <cover.1413267704.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54465141.1080408@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58684 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932170AbaJUNGf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Oct 2014 09:06:35 -0400
+In-Reply-To: <cover.1413267704.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
-> On 24/09/14 16:49, Rafael J. Wysocki wrote:
-> > On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
-> >> Most devices are configured for 32-bit DMA addresses.
-> >> Setting the mask to 32-bit here removes the need for the
-> >> drivers to do it separately.
-> >>
-> >> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > 
-> > ACK
+On Tuesday, October 14, 2014 02:23:33 PM Lv Zheng wrote:
+> This patchset contains trivial cleanup code to make it easier to search in
+> the EC debugging messages.
+> It also includes a patch to correct coding style issues that detected by
+> recent scripts/checkpatch.pl.
 > 
-> Hi
+> No functional changes. This patchset can only make remote debugging more
+> efficient.
 > 
-> I need this for another driver.  Did this patch go anywhere?
-
-It's not in 3.18-rc1 as far as I can say.
-
-> Note Heikki is away at the moment.
-
-That's OK.  I guess I can queue up this one for you.
-
-When do you need this to get into the Linus' tree?
-
-
-> >> ---
-> >>  drivers/acpi/acpi_platform.c | 2 ++
-> >>  1 file changed, 2 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> >> index 2bf9082..8d099e6 100644
-> >> --- a/drivers/acpi/acpi_platform.c
-> >> +++ b/drivers/acpi/acpi_platform.c
-> >> @@ -16,6 +16,7 @@
-> >>  #include <linux/err.h>
-> >>  #include <linux/kernel.h>
-> >>  #include <linux/module.h>
-> >> +#include <linux/dma-mapping.h>
-> >>  #include <linux/platform_device.h>
-> >>  
-> >>  #include "internal.h"
-> >> @@ -102,6 +103,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
-> >>  	pdevinfo.res = resources;
-> >>  	pdevinfo.num_res = count;
-> >>  	pdevinfo.acpi_node.companion = adev;
-> >> +	pdevinfo.dma_mask = DMA_BIT_MASK(32);
-> >>  	pdev = platform_device_register_full(&pdevinfo);
-> >>  	if (IS_ERR(pdev))
-> >>  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
-> >>
-> > 
+> Lv Zheng (5):
+>   ACPI/EC: Add CPU ID to debugging messages.
+>   ACPI/EC: Enhance the logs to apply to QR_EC transactions.
+>   ACPI/EC: Add detailed command/query debugging information.
+>   ACPI/EC: Refine event/query debugging messages.
+>   ACPI/EC: Cleanup coding style.
 > 
+>  drivers/acpi/ec.c |  109 ++++++++++++++++++++++++++++++++++-------------------
+>  1 file changed, 70 insertions(+), 39 deletions(-)
+
+Applied, except for one thing (please see the comment on patch [5/5]).
+
 
 -- 
 I speak only for myself.
