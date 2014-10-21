@@ -1,77 +1,58 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
-Date: Tue, 21 Oct 2014 16:13:50 +0300
-Message-ID: <54465C0E.50801@intel.com>
-References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com> <2261149.pJ2DW810R9@vostro.rjw.lan> <54465141.1080408@intel.com> <1885056.A9IZAntn96@vostro.rjw.lan>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: pnp bus disables serial console despite no_console_suspend
+Date: Tue, 21 Oct 2014 15:05:50 -0400
+Message-ID: <5446AE8E.8010904@hurleysoftware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:41157 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754764AbaJUShy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Oct 2014 14:37:54 -0400
-In-Reply-To: <1885056.A9IZAntn96@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Felipe Balbi <balbi@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg KH <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux kernel <linux-kernel@vger.kernel.org>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+List-Id: linux-acpi@vger.kernel.org
 
-On 21/10/14 16:08, Rafael J. Wysocki wrote:
-> On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
->> On 24/09/14 16:49, Rafael J. Wysocki wrote:
->>> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
->>>> Most devices are configured for 32-bit DMA addresses.
->>>> Setting the mask to 32-bit here removes the need for the
->>>> drivers to do it separately.
->>>>
->>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>>
->>> ACK
->>
->> Hi
->>
->> I need this for another driver.  Did this patch go anywhere?
-> 
-> It's not in 3.18-rc1 as far as I can say.
-> 
->> Note Heikki is away at the moment.
-> 
-> That's OK.  I guess I can queue up this one for you.
-> 
-> When do you need this to get into the Linus' tree?
+Hi,
 
-My patches are aiming for 3.19
+I'm looking into a cpu lockup while resuming from S3.
 
-> 
-> 
->>>> ---
->>>>  drivers/acpi/acpi_platform.c | 2 ++
->>>>  1 file changed, 2 insertions(+)
->>>>
->>>> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
->>>> index 2bf9082..8d099e6 100644
->>>> --- a/drivers/acpi/acpi_platform.c
->>>> +++ b/drivers/acpi/acpi_platform.c
->>>> @@ -16,6 +16,7 @@
->>>>  #include <linux/err.h>
->>>>  #include <linux/kernel.h>
->>>>  #include <linux/module.h>
->>>> +#include <linux/dma-mapping.h>
->>>>  #include <linux/platform_device.h>
->>>>  
->>>>  #include "internal.h"
->>>> @@ -102,6 +103,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
->>>>  	pdevinfo.res = resources;
->>>>  	pdevinfo.num_res = count;
->>>>  	pdevinfo.acpi_node.companion = adev;
->>>> +	pdevinfo.dma_mask = DMA_BIT_MASK(32);
->>>>  	pdev = platform_device_register_full(&pdevinfo);
->>>>  	if (IS_ERR(pdev))
->>>>  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
->>>>
->>>
->>
-> 
+I can't paste the warning here because the serial console comes back
+scrambled. There are two issues:
+1. The 16550A serial port is a pnp device that the pnp bus disables
+on suspend, despite having no_console_suspend set, and
+2. ACPI suspend powers off the device anyway.
 
+I've managed to workaround these 2 issues by brute force hack,
+but I think that it's worthwhile to consider making no_console_suspend
+work properly in mainline.
+
+Not disabling the pnp device of the serial console is trivial:
+option 1 is to special case some return value from pnp_dev->suspend()
+which prevent further action by the pnp bus but does not error out
+of suspending, or
+option 2 is for the device to override pnp_dev->capabilities and
+turn off PNP_DISABLE. This option also requires a new capability to
+prevent the pnpacpi protocol from powering off the device.
+Option 2 is the workaround I'm using right now and it's pretty messy.
+
+The second issue is less straightforward.
+
+Since ACPI powers off the device anyway, on return from
+acpi_suspend_lowlevel(), the device needs some minimal re-programming.
+The workaround right now is to re-check a device register on every
+console write, and perform the re-programming if it's been cleared.
+This is not very robust or desirable; the power-on register value is
+a valid (but unlikely) state for the device.
+
+What's needed is a way to distinguish between a console write immediately
+before and immediately after resume, before resume starts using printk :)
+Ideally, consoles would get a notification before being used; optionally,
+a system-wide value which identifies power transition states could work.
+
+Thoughts?
+
+Regards,
+Peter Hurley
+
+PS - This situation is not limited to pnpacpi on x86. Several ARM designs
+power off the serial port, and require explicit re-programming for resume
+using no_console_suspend.
