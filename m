@@ -1,100 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/10] ACPICA: 20140926 Release
-Date: Tue, 21 Oct 2014 15:29:56 +0200
-Message-ID: <1798245.6E7rCk8WjK@vostro.rjw.lan>
-References: <cover.1412907188.git.lv.zheng@intel.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
+Date: Tue, 21 Oct 2014 16:13:50 +0300
+Message-ID: <54465C0E.50801@intel.com>
+References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com> <2261149.pJ2DW810R9@vostro.rjw.lan> <54465141.1080408@intel.com> <1885056.A9IZAntn96@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59097 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932503AbaJUNJb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Oct 2014 09:09:31 -0400
-In-Reply-To: <cover.1412907188.git.lv.zheng@intel.com>
+Received: from mga03.intel.com ([134.134.136.65]:41157 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754764AbaJUShy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Oct 2014 14:37:54 -0400
+In-Reply-To: <1885056.A9IZAntn96@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Felipe Balbi <balbi@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, October 10, 2014 10:39:17 AM Lv Zheng wrote:
-> The 20140926 ACPICA kernel-resident subsystem updates are linuxized based
-> on the pm/linux-next branch to form this patchset.
+On 21/10/14 16:08, Rafael J. Wysocki wrote:
+> On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
+>> On 24/09/14 16:49, Rafael J. Wysocki wrote:
+>>> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
+>>>> Most devices are configured for 32-bit DMA addresses.
+>>>> Setting the mask to 32-bit here removes the need for the
+>>>> drivers to do it separately.
+>>>>
+>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>>
+>>> ACK
+>>
+>> Hi
+>>
+>> I need this for another driver.  Did this patch go anywhere?
 > 
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. i386 + allyes + CONFIG_ACPI=y
-> 3. i386 + default + COFNIG_ACPI=n
-> 4. i386 + allyes + CONFIG_ACPI=n
-> 5. x86_64 + default + COFNIG_ACPI=y
-> 6. x86_64 + allyes + CONFIG_ACPI=y
-> 7. x86_64 + default + COFNIG_ACPI=n
-> 8. x86_64 + allyes + CONFIG_ACPI=n
-> Boot tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. x86_64 + default + COFNIG_ACPI=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All drivers/acpi configurations
->    All platform drivers
+> It's not in 3.18-rc1 as far as I can say.
 > 
-> The divergences checking result:
-> Before applying (20140828 Release):
->   848 lines (962 lines)
-> After applying (20140926 Release):
->   852 lines
-> PS:
-> 1. The indication of 710 lines in the last release cover has wrongly
->    included unmerged divergence reductions, it should be 848 lines.
-> 2. The indication of 852 lines shows an increment of divergence by applying
->    this release, this is actually because there is a new API
->    acpi_enable_all_wakeup_gpes() introduced in the recent linux-pm branch
->    that hasn't been back ported to the ACPICA upstream yet. If this is
->    included for re-counting 20140828 release, the 848 lines should be 962
->    lines. So this release has reduced 110 lines of divergence.
+>> Note Heikki is away at the moment.
 > 
-> Bob Moore (4):
->   ACPICA: Add string for _DDN method name.
->   ACPICA: iASL/Disassembler: Add support for hardware summary mapfiles.
->   ACPICA: acpiexec: Do not put STDIN into raw mode unless it is a
->     terminal.
->   ACPICA: Update version to 20140926.
+> That's OK.  I guess I can queue up this one for you.
 > 
-> Lv Zheng (6):
->   ACPICA: acpidump: Add ACPI 1.0 RSDP support.
->   ACPICA: Events: Reduce indent divergences of events files.
->   ACPICA: Events: Reduce source code difference in
->     acpi_install_gpe_handler().
->   ACPICA: Events: Update GPE handler removal, match behavior of handler
->     install.
->   ACPICA: Events: Reduce source code difference for the
->     ACPI_EVENT_FLAG_HANDLE support.
->   ACPICA: Events: Reduce source code difference for the
->     ACPI_EVENT_FLAG_HANDLE renaming.
-> 
->  drivers/acpi/acpica/achware.h                      |    2 +-
->  drivers/acpi/acpica/aclocal.h                      |    4 +-
->  drivers/acpi/acpica/actables.h                     |    2 +
->  drivers/acpi/acpica/amlresrc.h                     |   34 +++++++++++++++++
->  drivers/acpi/acpica/evgpe.c                        |   23 +++++------
->  drivers/acpi/acpica/evgpeinit.c                    |    1 +
->  drivers/acpi/acpica/evxface.c                      |   27 ++++++++-----
->  drivers/acpi/acpica/evxfevnt.c                     |   40 +++++++++++++-------
->  drivers/acpi/acpica/evxfgpe.c                      |   12 ++----
->  drivers/acpi/acpica/hwgpe.c                        |    9 ++++-
->  drivers/acpi/acpica/tbxfroot.c                     |   33 +++++++++++++++-
->  drivers/acpi/scan.c                                |    2 +-
->  drivers/acpi/sysfs.c                               |    4 +-
->  include/acpi/acnames.h                             |    1 +
->  include/acpi/acpixf.h                              |    2 +-
->  include/acpi/actypes.h                             |    4 +-
->  .../acpi/os_specific/service_layers/osunixxf.c     |    8 ++++
->  tools/power/acpi/tools/acpidump/apdump.c           |    2 +-
->  18 files changed, 156 insertions(+), 54 deletions(-)
+> When do you need this to get into the Linus' tree?
 
-Whole series applied, thanks Lv!
+My patches are aiming for 3.19
+
+> 
+> 
+>>>> ---
+>>>>  drivers/acpi/acpi_platform.c | 2 ++
+>>>>  1 file changed, 2 insertions(+)
+>>>>
+>>>> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+>>>> index 2bf9082..8d099e6 100644
+>>>> --- a/drivers/acpi/acpi_platform.c
+>>>> +++ b/drivers/acpi/acpi_platform.c
+>>>> @@ -16,6 +16,7 @@
+>>>>  #include <linux/err.h>
+>>>>  #include <linux/kernel.h>
+>>>>  #include <linux/module.h>
+>>>> +#include <linux/dma-mapping.h>
+>>>>  #include <linux/platform_device.h>
+>>>>  
+>>>>  #include "internal.h"
+>>>> @@ -102,6 +103,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>>>>  	pdevinfo.res = resources;
+>>>>  	pdevinfo.num_res = count;
+>>>>  	pdevinfo.acpi_node.companion = adev;
+>>>> +	pdevinfo.dma_mask = DMA_BIT_MASK(32);
+>>>>  	pdev = platform_device_register_full(&pdevinfo);
+>>>>  	if (IS_ERR(pdev))
+>>>>  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+>>>>
+>>>
+>>
+> 
 
