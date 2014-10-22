@@ -1,52 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
-Date: Wed, 22 Oct 2014 16:19:45 +0200
-Message-ID: <2473176.cCrEmjuJQD@vostro.rjw.lan>
-References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com> <54465C0E.50801@intel.com> <54475DB4.5000005@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio:
+ Support for unified device properties interface)
+Date: Wed, 22 Oct 2014 17:56:51 +0300
+Message-ID: <20141022145651.GH1484@lahna.fi.intel.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+ <20141022085140.GF1484@lahna.fi.intel.com>
+ <2466280.tMTA38OpXD@wuerfel>
+ <1971792.8pKYWlGxB9@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54475DB4.5000005@intel.com>
+Content-Disposition: inline
+In-Reply-To: <1971792.8pKYWlGxB9@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, October 22, 2014 10:33:08 AM Adrian Hunter wrote:
-> On 21/10/14 16:13, Adrian Hunter wrote:
-> > On 21/10/14 16:08, Rafael J. Wysocki wrote:
-> >> On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
-> >>> On 24/09/14 16:49, Rafael J. Wysocki wrote:
-> >>>> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
-> >>>>> Most devices are configured for 32-bit DMA addresses.
-> >>>>> Setting the mask to 32-bit here removes the need for the
-> >>>>> drivers to do it separately.
-> >>>>>
-> >>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> >>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >>>>
-> >>>> ACK
-> >>>
-> >>> Hi
-> >>>
-> >>> I need this for another driver.  Did this patch go anywhere?
-> >>
-> >> It's not in 3.18-rc1 as far as I can say.
-> >>
-> >>> Note Heikki is away at the moment.
-> >>
-> >> That's OK.  I guess I can queue up this one for you.
-> >>
-> >> When do you need this to get into the Linus' tree?
-> > 
-> > My patches are aiming for 3.19
+On Wed, Oct 22, 2014 at 04:07:08PM +0200, Rafael J. Wysocki wrote:
+> Moreover, we need to clarify what situation we're really talking about.
 > 
-> Actually it would be easier for me if Heikki's patch is already in
-> 3.18, but all I need to know is when it will hit?
+> For one, drivers using the unified interface only will always use names for
+> GPIOs, because they have to assume that either a DT or ACPI w/ _DSD is present.
+> This is the cost of keeping those drivers firmware interface agnostic.
+> 
+> So it looks like we're not talking about this case here.
 
-I've applied the Heiki's patch and I'm going to push it for 3.18-rc2.
+We are talking about the case of rfkill-gpio.c where it definitely wants
+to use properties for the GPIOs but it cannot be sure if the underlying
+firmware provides _DSD or not.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> Now, if there's no DT or no _DSD in the ACPI tables for the given device
+> *and* the driver wants to use its GPIOs anyway, it has to be ACPI-aware to
+> some extent, because in that case the device ID it has been matched against
+> tells it what the meaning of the GpioIo resources in the _CRS is.
+> 
+> Then, the driver needs to do something like:
+> 
+> 	if (!device_property_present(dev, "known_property_that_should_be_present")
+> 	    && ACPI_COMPANION(dev))
+> 		acpi_probe_gpios(dev);
+
+Indeed we can use similar pattern to detect if we have _DSD present or
+not.
+
+> and in the acpi_probe_gpios() routine there may be checks like:
+> 
+> 	if (device_has_id(dev, "MARY0001")) {
+> 		The first pin in the first GpioIo resource in _CRS is "fred" and
+> 		it is active-low.
+> 		The third pin in the second GpioIo resource in _CRS is "steve"
+> 		and it is not active-low.
+> 	} else if (device_has_id(dev, "JANE0002")) {
+> 		The first pin in the second GpioIo resource in _CRS is "fred" and
+> 		it is not active-low.
+> 		The second pin in the first GpioIo resource in _CRS is "steve"
+> 		and it is active-low.
+> 	}
+> 
+> and so on.  Of course, there may be drivers knowing that the meaning of the
+> GpioIo resources in _CRS is the same for all devices handled by them, in which
+> case they will not need to check device IDs, but the core has now way of
+> knowing that.  Only the drivers have that information and the core has now
+> way to figure out what to do for a given specific device.
+> 
+> So here's a radical idea: Why don't we introduce something like
+> 
+> 	acpi_enumerate_gpio(dev, name, GpioIo_index, pin_index, active_low)
+> 
+> such that after calling, say, acpi_enumerate_gpio(dev, "fred", 0, 0, true) the
+> driver can do something like:
+> 
+> 	desc = get_gpiod_by_name(dev, "fred");
+> 
+> and it'll all work.  Then, the only part of the driver that really needs to be
+> ACPI-specific will be the acpi_probe_gpios() function calling acpi_enumerate_gpio()
+> in accordance with what the device ID is.
+> 
+> Thoughts?
+
+I think this is good idea. It solves the rfkill-gpio.c problem with just
+small amount of ACPI specific code.
