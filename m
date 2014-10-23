@@ -1,117 +1,94 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio:
- Support for unified device properties interface)
-Date: Thu, 23 Oct 2014 15:56:55 +0300
-Message-ID: <20141023125655.GJ1484@lahna.fi.intel.com>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
- <1971792.8pKYWlGxB9@vostro.rjw.lan>
- <20141022145651.GH1484@lahna.fi.intel.com>
- <13758254.acHP1NJN1b@vostro.rjw.lan>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
+Date: Thu, 23 Oct 2014 10:06:05 -0500
+Message-ID: <20141023150605.GJ13573@saruman>
+References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <54465C0E.50801@intel.com>
+ <54475DB4.5000005@intel.com>
+ <2473176.cCrEmjuJQD@vostro.rjw.lan>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HSQ3hISbU3Um6hch"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:64308 "EHLO mga02.intel.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60385 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755648AbaJWM5Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Oct 2014 08:57:16 -0400
+	id S1753761AbaJWPG0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Oct 2014 11:06:26 -0400
 Content-Disposition: inline
-In-Reply-To: <13758254.acHP1NJN1b@vostro.rjw.lan>
+In-Reply-To: <2473176.cCrEmjuJQD@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>, Felipe Balbi <balbi@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Oct 23, 2014 at 01:21:06AM +0200, Rafael J. Wysocki wrote:
-> OK, would the below make sense, then (completely untested, on top of the v6
-> of the device properties patchset)?
+--HSQ3hISbU3Um6hch
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes it does :-)
+On Wed, Oct 22, 2014 at 04:19:45PM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, October 22, 2014 10:33:08 AM Adrian Hunter wrote:
+> > On 21/10/14 16:13, Adrian Hunter wrote:
+> > > On 21/10/14 16:08, Rafael J. Wysocki wrote:
+> > >> On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
+> > >>> On 24/09/14 16:49, Rafael J. Wysocki wrote:
+> > >>>> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
+> > >>>>> Most devices are configured for 32-bit DMA addresses.
+> > >>>>> Setting the mask to 32-bit here removes the need for the
+> > >>>>> drivers to do it separately.
+> > >>>>>
+> > >>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > >>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > >>>>
+> > >>>> ACK
+> > >>>
+> > >>> Hi
+> > >>>
+> > >>> I need this for another driver.  Did this patch go anywhere?
+> > >>
+> > >> It's not in 3.18-rc1 as far as I can say.
+> > >>
+> > >>> Note Heikki is away at the moment.
+> > >>
+> > >> That's OK.  I guess I can queue up this one for you.
+> > >>
+> > >> When do you need this to get into the Linus' tree?
+> > >=20
+> > > My patches are aiming for 3.19
+> >=20
+> > Actually it would be easier for me if Heikki's patch is already in
+> > 3.18, but all I need to know is when it will hit?
+>=20
+> I've applied the Heiki's patch and I'm going to push it for 3.18-rc2.
 
-With the the below fix it works nicely with the modified rfkill-gpio.c
-driver.
+I had this queued for v3.19 with your Ack. It didn't feel like it should
+be in v3.18-rc as it's not really fixing any bug. In any case, fine by
+me; I'll drop it from my queue.
 
-> +static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
-> +				      const char *name,
-> +				      struct acpi_reference_args *args)
-> +{
-> +	struct acpi_gpio_data *gd;
-> +
-> +	mutex_lock(&driver_gpio_data_lock);
-> +
-> +	list_for_each_entry(gd, &adev->driver_gpios, item)
-> +		if (!strcmp(name, gd->name)) {
-> +			args->adev = adev;
-> +			args->args[0] = gd->entry_index;
-> +			args->args[1] = gd->pin_index;
-> +			args->args[2] = gd->active_low;
-> +			args->nargs = 3;
+--=20
+balbi
 
-			mutex_unlock(&driver_gpio_data_lock);
+--HSQ3hISbU3Um6hch
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +			return true;
-> +		}
-> +
-> +	mutex_unlock(&driver_gpio_data_lock);
-> +
-> +	return false;
-> +}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Also I think the two functions should be exported to modules as well.
+iQIcBAEBAgAGBQJUSRldAAoJEIaOsuA1yqREbfUP/3MAGasxNzH9LxTuMYGYaZAU
+KNkFZLVo0FHOQVtUf2zquQEgkn0FN3wY+QxVyeyeGtsqW7uUBIqJdFf2k9XSGL5E
+wQO7bour4aMd2Mex5k/nUBfNciSn1MNrnB7WqVnGENZ9VJNI1pGiHM9b4bqsT91q
+Ibz1diOCL9NMluGxrHqqXicMZclcpCud+XgkmWTeqozjzkrjj4sssyfsuzh5E3au
+erqZaiqRobqCaiMrNGm0/wfuKg1mE744jPD8R4aEEWcpu0RkwqjxLgw83uwrvRu9
+1u5WGbJoOd4zgYvlxviPJ1DplFVyRJCZCPPrWNDU984EhUFs5ssUgvbM8uJPEkWR
+271lc5XncXkKAsk6IE7ymyxXKJwqQS6kvHlyhYfC/CbJnFkxfLfcQ53+1QKtwOOV
+bDK4jqAgS4y1Bbv227823USZ2mFphaJQSBXRnWon3UICcvwePgBvNYKpu86lSEbJ
+jB8F8HVn24FjspAle2ZepVMVIS6r66eHE+EsE+X9XpraZiZk2t/2LWpvO5rBXFaF
+kSLPtojJwtTMfvIfpEdKGezBu0xJ/ew0P4CIqtOs9rEszmSdCnFKi5E8nShM3zlk
+0MfSzrZA5dxvsAD5aTJ2b+/etL07ViHgaD3bTz7V7UikK2XttkTJZFGww9GVcg4E
+KyoDg7Y44QfflnFbzmGF
+=wMkX
+-----END PGP SIGNATURE-----
 
-Here are the modifications needed for rfkill-gpio.c driver. I think it
-is not that bad considering that now the driver supports both ACPI _DSD
-and non-_DSD at the same time.
-
-diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
-index 0f62326c0f5e..f8754e7d81ea 100644
---- a/net/rfkill/rfkill-gpio.c
-+++ b/net/rfkill/rfkill-gpio.c
-@@ -67,6 +67,8 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
- 				  struct rfkill_gpio_data *rfkill)
- {
- 	const struct acpi_device_id *id;
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	int ret;
- 
- 	id = acpi_match_device(dev->driver->acpi_match_table, dev);
- 	if (!id)
-@@ -75,6 +77,20 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
- 	rfkill->name = dev_name(dev);
- 	rfkill->type = (unsigned)id->driver_data;
- 
-+	/*
-+	 * Add default mapping for ACPI _DSD properties now just in case
-+	 * there is no _DSD for this device.
-+	 */
-+	ret = acpi_dev_add_driver_gpio(adev, "reset-gpios", 0, 0, false);
-+	if (ret)
-+		return ret;
-+
-+	ret = acpi_dev_add_driver_gpio(adev, "shutdown-gpios", 1, 0, false);
-+	if (ret) {
-+		acpi_dev_remove_driver_gpios(adev);
-+		return ret;
-+	}
-+
- 	return 0;
- }
- 
-@@ -110,7 +126,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 		rfkill->reset_gpio = gpio;
- 	}
- 
--	gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 1);
-+	gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 0);
- 	if (!IS_ERR(gpio)) {
- 		ret = gpiod_direction_output(gpio, 0);
- 		if (ret)
-@@ -150,6 +166,9 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
- 	rfkill_unregister(rfkill->rfkill_dev);
- 	rfkill_destroy(rfkill->rfkill_dev);
- 
-+	if (ACPI_COMPANION(&pdev->dev))
-+		acpi_dev_remove_driver_gpios(ACPI_COMPANION(&pdev->dev));
-+
- 	return 0;
- }
- 
+--HSQ3hISbU3Um6hch--
