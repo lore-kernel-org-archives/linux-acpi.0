@@ -1,52 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: invoke acpi_device_wakeup() with correct parameters
-Date: Thu, 23 Oct 2014 23:17:12 +0200
-Message-ID: <12772278.iba2CloSMG@vostro.rjw.lan>
-References: <1414067127.13162.43.camel@rzhang1-toshiba>
+Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
+Date: Thu, 23 Oct 2014 23:29:14 +0200
+Message-ID: <1722133.hMugdLeoUT@vostro.rjw.lan>
+References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com> <2473176.cCrEmjuJQD@vostro.rjw.lan> <20141023150605.GJ13573@saruman>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55033 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64442 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752511AbaJWU4o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2014 16:56:44 -0400
-In-Reply-To: <1414067127.13162.43.camel@rzhang1-toshiba>
+	with SMTP id S932129AbaJWVIq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2014 17:08:46 -0400
+In-Reply-To: <20141023150605.GJ13573@saruman>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: balbi@ti.com
+Cc: Adrian Hunter <adrian.hunter@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, October 23, 2014 08:25:27 PM Zhang Rui wrote:
-> From f0d75284074478790a50655bf3cc1096f5f943fa Mon Sep 17 00:00:00 2001
-> From: Zhang Rui <rui.zhang@intel.com>
-> Date: Thu, 23 Oct 2014 20:20:00 +0800
-> Subject: [PATCH] ACPI: invoke acpi_device_wakeup() with correct parameters
+On Thursday, October 23, 2014 10:06:05 AM Felipe Balbi wrote:
 > 
-> Fix a bug that invokes acpi_device_wakeup() with wrong parameters.
+> --HSQ3hISbU3Um6hch
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> Content-Transfer-Encoding: quoted-printable
 > 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> On Wed, Oct 22, 2014 at 04:19:45PM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, October 22, 2014 10:33:08 AM Adrian Hunter wrote:
+> > > On 21/10/14 16:13, Adrian Hunter wrote:
+> > > > On 21/10/14 16:08, Rafael J. Wysocki wrote:
+> > > >> On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
+> > > >>> On 24/09/14 16:49, Rafael J. Wysocki wrote:
+> > > >>>> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
+> > > >>>>> Most devices are configured for 32-bit DMA addresses.
+> > > >>>>> Setting the mask to 32-bit here removes the need for the
+> > > >>>>> drivers to do it separately.
+> > > >>>>>
+> > > >>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > > >>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > > >>>>
+> > > >>>> ACK
+> > > >>>
+> > > >>> Hi
+> > > >>>
+> > > >>> I need this for another driver.  Did this patch go anywhere?
+> > > >>
+> > > >> It's not in 3.18-rc1 as far as I can say.
+> > > >>
+> > > >>> Note Heikki is away at the moment.
+> > > >>
+> > > >> That's OK.  I guess I can queue up this one for you.
+> > > >>
+> > > >> When do you need this to get into the Linus' tree?
+> > > >=20
+> > > > My patches are aiming for 3.19
+> > >=20
+> > > Actually it would be easier for me if Heikki's patch is already in
+> > > 3.18, but all I need to know is when it will hit?
+> >=20
+> > I've applied the Heiki's patch and I'm going to push it for 3.18-rc2.
+> 
+> I had this queued for v3.19 with your Ack. It didn't feel like it should
+> be in v3.18-rc as it's not really fixing any bug. In any case, fine by
+> me; I'll drop it from my queue.
 
-Applied, thanks!
-
-> ---
->  drivers/acpi/device_pm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-> index 9177547..b4743d4 100644
-> --- a/drivers/acpi/device_pm.c
-> +++ b/drivers/acpi/device_pm.c
-> @@ -711,7 +711,7 @@ int acpi_pm_device_run_wake(struct device *phys_dev, bool enable)
->  		return -ENODEV;
->  	}
->  
-> -	return acpi_device_wakeup(adev, enable, ACPI_STATE_S0);
-> +	return acpi_device_wakeup(adev, ACPI_STATE_S0, enable);
->  }
->  EXPORT_SYMBOL(acpi_pm_device_run_wake);
->  #endif /* CONFIG_PM_RUNTIME */
-> 
+OK, thanks!
 
 -- 
 I speak only for myself.
