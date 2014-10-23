@@ -1,94 +1,171 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [resend PATCH 1/3] ACPI / platform: provide default DMA mask
-Date: Thu, 23 Oct 2014 10:06:05 -0500
-Message-ID: <20141023150605.GJ13573@saruman>
-References: <1411545639-18741-1-git-send-email-heikki.krogerus@linux.intel.com>
- <54465C0E.50801@intel.com>
- <54475DB4.5000005@intel.com>
- <2473176.cCrEmjuJQD@vostro.rjw.lan>
-Reply-To: <balbi@ti.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v9] Mailbox: Add support for Platform Communication Channel
+Date: Thu, 23 Oct 2014 11:36:42 -0400
+Message-ID: <CAJ5Y-eY5XtViMjU4FC-q1vCSgFa69DLGFeRr2GTmEO0CtnZPtA@mail.gmail.com>
+References: <1412972037-12793-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1412972037-12793-2-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HSQ3hISbU3Um6hch"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60385 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753761AbaJWPG0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Oct 2014 11:06:26 -0400
-Content-Disposition: inline
-In-Reply-To: <2473176.cCrEmjuJQD@vostro.rjw.lan>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:38893 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755415AbaJWPgo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2014 11:36:44 -0400
+Received: by mail-wg0-f52.google.com with SMTP id a1so1396935wgh.11
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2014 08:36:43 -0700 (PDT)
+In-Reply-To: <1412972037-12793-2-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Adrian Hunter <adrian.hunter@intel.com>, Felipe Balbi <balbi@ti.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
---HSQ3hISbU3Um6hch
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On Wed, Oct 22, 2014 at 04:19:45PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, October 22, 2014 10:33:08 AM Adrian Hunter wrote:
-> > On 21/10/14 16:13, Adrian Hunter wrote:
-> > > On 21/10/14 16:08, Rafael J. Wysocki wrote:
-> > >> On Tuesday, October 21, 2014 03:27:45 PM Adrian Hunter wrote:
-> > >>> On 24/09/14 16:49, Rafael J. Wysocki wrote:
-> > >>>> On Wednesday, September 24, 2014 11:00:37 AM Heikki Krogerus wrote:
-> > >>>>> Most devices are configured for 32-bit DMA addresses.
-> > >>>>> Setting the mask to 32-bit here removes the need for the
-> > >>>>> drivers to do it separately.
-> > >>>>>
-> > >>>>> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > >>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > >>>>
-> > >>>> ACK
-> > >>>
-> > >>> Hi
-> > >>>
-> > >>> I need this for another driver.  Did this patch go anywhere?
-> > >>
-> > >> It's not in 3.18-rc1 as far as I can say.
-> > >>
-> > >>> Note Heikki is away at the moment.
-> > >>
-> > >> That's OK.  I guess I can queue up this one for you.
-> > >>
-> > >> When do you need this to get into the Linus' tree?
-> > >=20
-> > > My patches are aiming for 3.19
-> >=20
-> > Actually it would be easier for me if Heikki's patch is already in
-> > 3.18, but all I need to know is when it will hit?
->=20
-> I've applied the Heiki's patch and I'm going to push it for 3.18-rc2.
+On 10 October 2014 16:13, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> ACPI 5.0+ spec defines a generic mode of communication
+> between the OS and a platform such as the BMC. This medium
+> (PCC) is typically used by CPPC (ACPI CPU Performance management),
+> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
+> states).
+>
+> This patch adds PCC support as a Mailbox Controller.
+>
+> Reviewed-by: Mark Brown <broonie@kernel.org>
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> ---
+>  drivers/mailbox/Kconfig   |  12 ++
+>  drivers/mailbox/Makefile  |   2 +
+>  drivers/mailbox/mailbox.c |   4 +-
+>  drivers/mailbox/mailbox.h |  16 ++
+>  drivers/mailbox/pcc.c     | 369 ++++++++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 400 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/mailbox/mailbox.h
+>  create mode 100644 drivers/mailbox/pcc.c
+>
+> diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
+> index 9fd9c67..c04fed9 100644
+> --- a/drivers/mailbox/Kconfig
+> +++ b/drivers/mailbox/Kconfig
+> @@ -33,4 +33,16 @@ config OMAP_MBOX_KFIFO_SIZE
+>           Specify the default size of mailbox's kfifo buffers (bytes).
+>           This can also be changed at runtime (via the mbox_kfifo_size
+>           module parameter).
+> +
+> +config PCC
+> +       bool "Platform Communication Channel Driver"
+> +       depends on ACPI
+> +       help
+> +         ACPI 5.0+ spec defines a generic mode of communication
+> +         between the OS and a platform such as the BMC. This medium
+> +         (PCC) is typically used by CPPC (ACPI CPU Performance management),
+> +         RAS (ACPI reliability protocol) and MPST (ACPI Memory power
+> +         states). Select this driver if your platform implements the
+> +         PCC clients mentioned above.
+> +
+>  endif
 
-I had this queued for v3.19 with your Ack. It didn't feel like it should
-be in v3.18-rc as it's not really fixing any bug. In any case, fine by
-me; I'll drop it from my queue.
+Looks like Linus has agreed to pull in the Mailbox framework in 3.18
+[1], so I was hoping we could move this patch forward.
 
---=20
-balbi
+When I started working on the PCC driver, I based it off of ACPI v5.0.
+Since then the spec moved to v5.1 and added a trivial change to the
+PCC section. This change adds a new subtable to support systems that
+dont have an SCI for the doorbell irq. The new structure declaration
+is already in mainline [2]. Given that there were no existing users of
+PCC so far and that the future users are more likely to use the new
+subtable, I'd like to include it here and make it the default from the
+start. SCI support can be added later if it is needed. The change to
+do this is also trivial and the diff is below.
 
---HSQ3hISbU3Um6hch
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Mark, are you okay with squashing this diff into the original patch
+[v9] and keeping your reviewed-by tag? I can then send a git pull
+request.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Arnd, Rafael, if there are no further comments on this patch, kindly
+advise which tree to rebase on for the git pull.
 
-iQIcBAEBAgAGBQJUSRldAAoJEIaOsuA1yqREbfUP/3MAGasxNzH9LxTuMYGYaZAU
-KNkFZLVo0FHOQVtUf2zquQEgkn0FN3wY+QxVyeyeGtsqW7uUBIqJdFf2k9XSGL5E
-wQO7bour4aMd2Mex5k/nUBfNciSn1MNrnB7WqVnGENZ9VJNI1pGiHM9b4bqsT91q
-Ibz1diOCL9NMluGxrHqqXicMZclcpCud+XgkmWTeqozjzkrjj4sssyfsuzh5E3au
-erqZaiqRobqCaiMrNGm0/wfuKg1mE744jPD8R4aEEWcpu0RkwqjxLgw83uwrvRu9
-1u5WGbJoOd4zgYvlxviPJ1DplFVyRJCZCPPrWNDU984EhUFs5ssUgvbM8uJPEkWR
-271lc5XncXkKAsk6IE7ymyxXKJwqQS6kvHlyhYfC/CbJnFkxfLfcQ53+1QKtwOOV
-bDK4jqAgS4y1Bbv227823USZ2mFphaJQSBXRnWon3UICcvwePgBvNYKpu86lSEbJ
-jB8F8HVn24FjspAle2ZepVMVIS6r66eHE+EsE+X9XpraZiZk2t/2LWpvO5rBXFaF
-kSLPtojJwtTMfvIfpEdKGezBu0xJ/ew0P4CIqtOs9rEszmSdCnFKi5E8nShM3zlk
-0MfSzrZA5dxvsAD5aTJ2b+/etL07ViHgaD3bTz7V7UikK2XttkTJZFGww9GVcg4E
-KyoDg7Y44QfflnFbzmGF
-=wMkX
------END PGP SIGNATURE-----
+--------------------8<-----------------------
 
---HSQ3hISbU3Um6hch--
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 0006fc3..592c6fa 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -130,7 +130,7 @@ EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
+  */
+ static bool pcc_tx_done(struct mbox_chan *chan)
+ {
+-    struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
++    struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+     struct acpi_pcct_shared_memory *generic_comm_base =
+         (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+     u16 cmd_delay = pcct_ss->min_turnaround_time;
+@@ -182,7 +182,7 @@ static int get_subspace_id(struct mbox_chan *chan)
+  */
+ static int pcc_send_data(struct mbox_chan *chan, void *data)
+ {
+-    struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
++    struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+     struct acpi_pcct_shared_memory *generic_comm_base =
+         (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+     struct acpi_generic_address doorbell;
+@@ -191,14 +191,12 @@ static int pcc_send_data(struct mbox_chan *chan,
+void *data)
+     u64 doorbell_write;
+     u16 cmd = *(u16 *) data;
+     u16 ss_idx = -1;
+-    int ret = 0;
+
+     ss_idx = get_subspace_id(chan);
+
+     if (ss_idx < 0) {
+         pr_err("Invalid Subspace ID from PCC client\n");
+-        ret = -EINVAL;
+-        goto out_err;
++        return -EINVAL;
+     }
+
+     doorbell = pcct_ss->doorbell_register;
+@@ -219,8 +217,7 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
+     acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
+             &doorbell);
+
+-out_err:
+-    return ret;
++    return 0;
+ }
+
+ static struct mbox_chan_ops pcc_chan_ops = {
+@@ -241,12 +238,12 @@ static struct mbox_chan_ops pcc_chan_ops = {
+ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+         const unsigned long end)
+ {
+-    struct acpi_pcct_subspace *pcct_ss;
++    struct acpi_pcct_hw_reduced *pcct_ss;
+
+     if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
+-        pcct_ss = (struct acpi_pcct_subspace *) header;
++        pcct_ss = (struct acpi_pcct_hw_reduced *) header;
+
+-        if (pcct_ss->header.type != ACPI_PCCT_TYPE_GENERIC_SUBSPACE) {
++        if (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
+             pr_err("Incorrect PCC Subspace type detected\n");
+             return -EINVAL;
+         }
+@@ -287,7 +284,7 @@ static int __init acpi_pcc_probe(void)
+
+     count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+             sizeof(struct acpi_table_pcct),
+-            ACPI_PCCT_TYPE_GENERIC_SUBSPACE,
++            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+             parse_pcc_subspace, MAX_PCC_SUBSPACES);
+
+     if (count <= 0) {
+
+---------------8------------------------
+
+
+Thanks,
+Ashwin
+
+[1] - https://lkml.org/lkml/2014/10/21/660
+[2] - https://lkml.org/lkml/2014/7/30/9
