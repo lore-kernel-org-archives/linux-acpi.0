@@ -1,63 +1,117 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio: Support for unified device properties interface)
-Date: Thu, 23 Oct 2014 14:25:19 +0200
-Message-ID: <2964475.27LDgQTJ7C@wuerfel>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <4582579.9WMrIMALsy@wuerfel> <CAAVeFuJzZJdh+Z7hY-Ws3orxyO=PSqCB_eBphbWk3nRb15op2w@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio:
+ Support for unified device properties interface)
+Date: Thu, 23 Oct 2014 15:56:55 +0300
+Message-ID: <20141023125655.GJ1484@lahna.fi.intel.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+ <1971792.8pKYWlGxB9@vostro.rjw.lan>
+ <20141022145651.GH1484@lahna.fi.intel.com>
+ <13758254.acHP1NJN1b@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:63510 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932143AbaJWMZd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2014 08:25:33 -0400
-In-Reply-To: <CAAVeFuJzZJdh+Z7hY-Ws3orxyO=PSqCB_eBphbWk3nRb15op2w@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:64308 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755648AbaJWM5Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Oct 2014 08:57:16 -0400
+Content-Disposition: inline
+In-Reply-To: <13758254.acHP1NJN1b@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Thursday 23 October 2014 15:02:46 Alexandre Courbot wrote:
-> On Tue, Oct 21, 2014 at 4:54 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Tuesday 21 October 2014 14:14:02 Alexandre Courbot wrote:
+On Thu, Oct 23, 2014 at 01:21:06AM +0200, Rafael J. Wysocki wrote:
+> OK, would the below make sense, then (completely untested, on top of the v6
+> of the device properties patchset)?
 
-> > Drivers that use
-> > existing bindings with the "foo-gpio" form (or worse, "foo-somethingelse"
-> > can use the same internal interface as the drivers that use name plus
-> > index. Do you see a problem using what I suggested for the combined
-> > API:
-> >
-> > __gpiod_get(dev, propname, index); // use property name plus index
-> > gpiod_get(dev, index); // use "gpios" plus index
-> > gpiod_get_named(dev, "name"); use "name-gpios" with index 0
-> 
-> Apart from the loosy naming practices which we sometimes see (and
-> which should be caught during review), do you have something against
-> requiring a name for all new GPIO bindings, i.e. for ensuring that all
-> new properties are "name-gpio" and forbidding "gpios"?
+Yes it does :-)
 
-Most other subsystems don't require a name, and traditionally we only
-had anonymous indexed properties for a lot of things (registers, 
-interrupts, ...).
+With the the below fix it works nicely with the modified rfkill-gpio.c
+driver.
 
-I still like the idea of using anonymous references for simple things,
-but if you and Linus feel that it's better to mandate names from now on,
-I won't complain.
+> +static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
+> +				      const char *name,
+> +				      struct acpi_reference_args *args)
+> +{
+> +	struct acpi_gpio_data *gd;
+> +
+> +	mutex_lock(&driver_gpio_data_lock);
+> +
+> +	list_for_each_entry(gd, &adev->driver_gpios, item)
+> +		if (!strcmp(name, gd->name)) {
+> +			args->adev = adev;
+> +			args->args[0] = gd->entry_index;
+> +			args->args[1] = gd->pin_index;
+> +			args->args[2] = gd->active_low;
+> +			args->nargs = 3;
 
-> Requiring a proper name for all GPIOs makes a lot of sense IMHO, it
-> makes drivers easier to understand and is less error-prone than long
-> arrays of GPIOs. The API would then be basically what we have today:
-> 
-> gpiod_get(dev, name) // use "name-gpios" with index 0
-> gpiod_get_index(dev, name, index) // for the rare case where several
-> GPIOs serve the same function. Not to be used lightly.
-> 
-> ... with stronger guidelines for the definition of new bindings, and a
-> big warning in the kerneldoc of gpiod_get_index().
-> 
-> ACPI drivers that may use tables without _DSD should then use a way to
-> bind GPIO names to indexes as a fallback for older hardware.
+			mutex_unlock(&driver_gpio_data_lock);
 
-Ok.
+> +			return true;
+> +		}
+> +
+> +	mutex_unlock(&driver_gpio_data_lock);
+> +
+> +	return false;
+> +}
 
-	Arnd
+Also I think the two functions should be exported to modules as well.
+
+Here are the modifications needed for rfkill-gpio.c driver. I think it
+is not that bad considering that now the driver supports both ACPI _DSD
+and non-_DSD at the same time.
+
+diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
+index 0f62326c0f5e..f8754e7d81ea 100644
+--- a/net/rfkill/rfkill-gpio.c
++++ b/net/rfkill/rfkill-gpio.c
+@@ -67,6 +67,8 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
+ 				  struct rfkill_gpio_data *rfkill)
+ {
+ 	const struct acpi_device_id *id;
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	int ret;
+ 
+ 	id = acpi_match_device(dev->driver->acpi_match_table, dev);
+ 	if (!id)
+@@ -75,6 +77,20 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
+ 	rfkill->name = dev_name(dev);
+ 	rfkill->type = (unsigned)id->driver_data;
+ 
++	/*
++	 * Add default mapping for ACPI _DSD properties now just in case
++	 * there is no _DSD for this device.
++	 */
++	ret = acpi_dev_add_driver_gpio(adev, "reset-gpios", 0, 0, false);
++	if (ret)
++		return ret;
++
++	ret = acpi_dev_add_driver_gpio(adev, "shutdown-gpios", 1, 0, false);
++	if (ret) {
++		acpi_dev_remove_driver_gpios(adev);
++		return ret;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -110,7 +126,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
+ 		rfkill->reset_gpio = gpio;
+ 	}
+ 
+-	gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 1);
++	gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 0);
+ 	if (!IS_ERR(gpio)) {
+ 		ret = gpiod_direction_output(gpio, 0);
+ 		if (ret)
+@@ -150,6 +166,9 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
+ 	rfkill_unregister(rfkill->rfkill_dev);
+ 	rfkill_destroy(rfkill->rfkill_dev);
+ 
++	if (ACPI_COMPANION(&pdev->dev))
++		acpi_dev_remove_driver_gpios(ACPI_COMPANION(&pdev->dev));
++
+ 	return 0;
+ }
+ 
