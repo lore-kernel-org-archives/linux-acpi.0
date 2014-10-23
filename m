@@ -1,171 +1,53 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v9] Mailbox: Add support for Platform Communication Channel
-Date: Thu, 23 Oct 2014 11:36:42 -0400
-Message-ID: <CAJ5Y-eY5XtViMjU4FC-q1vCSgFa69DLGFeRr2GTmEO0CtnZPtA@mail.gmail.com>
-References: <1412972037-12793-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1412972037-12793-2-git-send-email-ashwin.chaugule@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: invoke acpi_device_wakeup() with correct parameters
+Date: Thu, 23 Oct 2014 23:17:12 +0200
+Message-ID: <12772278.iba2CloSMG@vostro.rjw.lan>
+References: <1414067127.13162.43.camel@rzhang1-toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:38893 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755415AbaJWPgo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2014 11:36:44 -0400
-Received: by mail-wg0-f52.google.com with SMTP id a1so1396935wgh.11
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Oct 2014 08:36:43 -0700 (PDT)
-In-Reply-To: <1412972037-12793-2-git-send-email-ashwin.chaugule@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55033 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752511AbaJWU4o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Oct 2014 16:56:44 -0400
+In-Reply-To: <1414067127.13162.43.camel@rzhang1-toshiba>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hello,
+On Thursday, October 23, 2014 08:25:27 PM Zhang Rui wrote:
+> From f0d75284074478790a50655bf3cc1096f5f943fa Mon Sep 17 00:00:00 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Thu, 23 Oct 2014 20:20:00 +0800
+> Subject: [PATCH] ACPI: invoke acpi_device_wakeup() with correct parameters
+> 
+> Fix a bug that invokes acpi_device_wakeup() with wrong parameters.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-On 10 October 2014 16:13, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> ACPI 5.0+ spec defines a generic mode of communication
-> between the OS and a platform such as the BMC. This medium
-> (PCC) is typically used by CPPC (ACPI CPU Performance management),
-> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-> states).
->
-> This patch adds PCC support as a Mailbox Controller.
->
-> Reviewed-by: Mark Brown <broonie@kernel.org>
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Applied, thanks!
+
 > ---
->  drivers/mailbox/Kconfig   |  12 ++
->  drivers/mailbox/Makefile  |   2 +
->  drivers/mailbox/mailbox.c |   4 +-
->  drivers/mailbox/mailbox.h |  16 ++
->  drivers/mailbox/pcc.c     | 369 ++++++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 400 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/mailbox/mailbox.h
->  create mode 100644 drivers/mailbox/pcc.c
->
-> diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-> index 9fd9c67..c04fed9 100644
-> --- a/drivers/mailbox/Kconfig
-> +++ b/drivers/mailbox/Kconfig
-> @@ -33,4 +33,16 @@ config OMAP_MBOX_KFIFO_SIZE
->           Specify the default size of mailbox's kfifo buffers (bytes).
->           This can also be changed at runtime (via the mbox_kfifo_size
->           module parameter).
-> +
-> +config PCC
-> +       bool "Platform Communication Channel Driver"
-> +       depends on ACPI
-> +       help
-> +         ACPI 5.0+ spec defines a generic mode of communication
-> +         between the OS and a platform such as the BMC. This medium
-> +         (PCC) is typically used by CPPC (ACPI CPU Performance management),
-> +         RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-> +         states). Select this driver if your platform implements the
-> +         PCC clients mentioned above.
-> +
->  endif
+>  drivers/acpi/device_pm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+> index 9177547..b4743d4 100644
+> --- a/drivers/acpi/device_pm.c
+> +++ b/drivers/acpi/device_pm.c
+> @@ -711,7 +711,7 @@ int acpi_pm_device_run_wake(struct device *phys_dev, bool enable)
+>  		return -ENODEV;
+>  	}
+>  
+> -	return acpi_device_wakeup(adev, enable, ACPI_STATE_S0);
+> +	return acpi_device_wakeup(adev, ACPI_STATE_S0, enable);
+>  }
+>  EXPORT_SYMBOL(acpi_pm_device_run_wake);
+>  #endif /* CONFIG_PM_RUNTIME */
+> 
 
-Looks like Linus has agreed to pull in the Mailbox framework in 3.18
-[1], so I was hoping we could move this patch forward.
-
-When I started working on the PCC driver, I based it off of ACPI v5.0.
-Since then the spec moved to v5.1 and added a trivial change to the
-PCC section. This change adds a new subtable to support systems that
-dont have an SCI for the doorbell irq. The new structure declaration
-is already in mainline [2]. Given that there were no existing users of
-PCC so far and that the future users are more likely to use the new
-subtable, I'd like to include it here and make it the default from the
-start. SCI support can be added later if it is needed. The change to
-do this is also trivial and the diff is below.
-
-Mark, are you okay with squashing this diff into the original patch
-[v9] and keeping your reviewed-by tag? I can then send a git pull
-request.
-
-Arnd, Rafael, if there are no further comments on this patch, kindly
-advise which tree to rebase on for the git pull.
-
---------------------8<-----------------------
-
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 0006fc3..592c6fa 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -130,7 +130,7 @@ EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
-  */
- static bool pcc_tx_done(struct mbox_chan *chan)
- {
--    struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-+    struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
-     struct acpi_pcct_shared_memory *generic_comm_base =
-         (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-     u16 cmd_delay = pcct_ss->min_turnaround_time;
-@@ -182,7 +182,7 @@ static int get_subspace_id(struct mbox_chan *chan)
-  */
- static int pcc_send_data(struct mbox_chan *chan, void *data)
- {
--    struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-+    struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
-     struct acpi_pcct_shared_memory *generic_comm_base =
-         (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-     struct acpi_generic_address doorbell;
-@@ -191,14 +191,12 @@ static int pcc_send_data(struct mbox_chan *chan,
-void *data)
-     u64 doorbell_write;
-     u16 cmd = *(u16 *) data;
-     u16 ss_idx = -1;
--    int ret = 0;
-
-     ss_idx = get_subspace_id(chan);
-
-     if (ss_idx < 0) {
-         pr_err("Invalid Subspace ID from PCC client\n");
--        ret = -EINVAL;
--        goto out_err;
-+        return -EINVAL;
-     }
-
-     doorbell = pcct_ss->doorbell_register;
-@@ -219,8 +217,7 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
-     acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
-             &doorbell);
-
--out_err:
--    return ret;
-+    return 0;
- }
-
- static struct mbox_chan_ops pcc_chan_ops = {
-@@ -241,12 +238,12 @@ static struct mbox_chan_ops pcc_chan_ops = {
- static int parse_pcc_subspace(struct acpi_subtable_header *header,
-         const unsigned long end)
- {
--    struct acpi_pcct_subspace *pcct_ss;
-+    struct acpi_pcct_hw_reduced *pcct_ss;
-
-     if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
--        pcct_ss = (struct acpi_pcct_subspace *) header;
-+        pcct_ss = (struct acpi_pcct_hw_reduced *) header;
-
--        if (pcct_ss->header.type != ACPI_PCCT_TYPE_GENERIC_SUBSPACE) {
-+        if (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
-             pr_err("Incorrect PCC Subspace type detected\n");
-             return -EINVAL;
-         }
-@@ -287,7 +284,7 @@ static int __init acpi_pcc_probe(void)
-
-     count = acpi_table_parse_entries(ACPI_SIG_PCCT,
-             sizeof(struct acpi_table_pcct),
--            ACPI_PCCT_TYPE_GENERIC_SUBSPACE,
-+            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
-             parse_pcc_subspace, MAX_PCC_SUBSPACES);
-
-     if (count <= 0) {
-
----------------8------------------------
-
-
-Thanks,
-Ashwin
-
-[1] - https://lkml.org/lkml/2014/10/21/660
-[2] - https://lkml.org/lkml/2014/7/30/9
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
