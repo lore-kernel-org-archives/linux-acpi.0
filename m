@@ -1,223 +1,179 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Use ACPI companion to match only the first physical device
-Date: Fri, 24 Oct 2014 16:57:17 +0200
-Message-ID: <6871118.LYO2moLKYB@vostro.rjw.lan>
-References: <1414141950-228930-1-git-send-email-mika.westerberg@linux.intel.com> <1442328.iYt6Cj5IOV@vostro.rjw.lan> <20141024141051.GT1484@lahna.fi.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v5 12/18] ACPI / processor: Make it possible to get CPU
+ hardware ID via GICC
+Date: Fri, 24 Oct 2014 18:39:20 +0100
+Message-ID: <20141024173920.GB8303@red-moon>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
+ <1413553034-20956-13-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62904 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752127AbaJXOgt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2014 10:36:49 -0400
-In-Reply-To: <20141024141051.GT1484@lahna.fi.intel.com>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:48436 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756015AbaJXRjd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2014 13:39:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1413553034-20956-13-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawei.co
 
-On Friday, October 24, 2014 05:10:51 PM Mika Westerberg wrote:
-> On Fri, Oct 24, 2014 at 04:20:41PM +0200, Rafael J. Wysocki wrote:
-> > > +static bool acpi_companion_match(const struct device *dev)
-> > > +{
-> > > +	struct acpi_device *adev;
-> > > +	bool ret;
-> > > +
-> > > +	adev = ACPI_COMPANION(dev);
-> > > +	if (!adev)
-> > > +		return false;
-> > > +
-> > > +	if (list_empty(&adev->pnp.ids))
-> > > +		return false;
-> > > +
-> > > +	ret = true;
-> > 
-> > On a second thought, should we return true if the list of physical devices is
-> > empty?  That surely means ACPI_COMPANION(dev) lied to us?
+On Fri, Oct 17, 2014 at 02:37:08PM +0100, Hanjun Guo wrote:
+> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
+> from the GICC Structure introduced by ACPI 5.1.
 > 
-> I didn't consider that it is even possible but yes, in that case we
-> should not return true here.
-
-Well, that why did you check if the list is not empty at all? :-)
-
-It is possible if someone sets the ACPI companion before calling acpi_bind_one()
-(some pieces of code do that).  It may not be relevant here, but it won't hurt
-to be on the safe side.
-
-> > 
-> > > +	mutex_lock(&adev->physical_node_lock);
-> > > +	if (!list_empty(&adev->physical_node_list)) {
-> > > +		const struct acpi_device_physical_node *node;
-> > > +
-> > > +		node = list_first_entry(&adev->physical_node_list,
-> > > +					struct acpi_device_physical_node, node);
-> > > +		if (node->dev != dev)
-> > > +			ret = false;
-> > 
-> > And that may be simply
-> > 
-> > 		ret = node->dev == dev;
+> MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
+> MPIDR not the GIC CPU interface ID to identify CPUs.
 > 
-> OK.
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h |   29 +++++++++++++++++++++++++++++
+>  arch/arm64/kernel/acpi.c      |    1 -
+>  drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 66 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index c82d4a1..483ff45 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -12,6 +12,8 @@
+>  #ifndef _ASM_ACPI_H
+>  #define _ASM_ACPI_H
+>  
+> +#include <asm/smp_plat.h>
+> +
+>  /* Basic configuration for ACPI */
+>  #ifdef	CONFIG_ACPI
+>  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
+> @@ -45,6 +47,33 @@ static inline void enable_acpi(void)
+>  	acpi_noirq = 0;
+>  }
+>  
+> +/* MPIDR value provided in GICC structure is 64 bits, but the
+> + * existing apic_id (CPU hardware ID) using in acpi processor
+> + * driver is 32-bit, to conform to the same datatype we need
+> + * to repack the GICC structure MPIDR.
+> + *
+> + * Only 32 bits of MPIDR are used:
+> + * 
+> + * Bits [0:7] Aff0;
+> + * Bits [8:15] Aff1;
+> + * Bits [16:23] Aff2;
+> + * Bits [32:39] Aff3;
+> + */
+> +static inline u32 pack_mpidr(u64 mpidr)
+> +{
+> +	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+> +}
+> +
+> +/*
+> + * The ACPI processor driver for ACPI core code needs this macro
+> + * to find out this cpu was already mapped (mapping from CPU hardware
+> + * ID to CPU logical ID) or not.
+> + *
+> + * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
+> + * and MPIDR is the cpu hardware ID we needed to pack.
+> + */
+> +#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
+> +
+>  /*
+>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+>   * with this check the ACPI core will not override the CPU index
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 34837e0..e91ec76 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -24,7 +24,6 @@
+>  #include <linux/bootmem.h>
+>  #include <linux/smp.h>
+>  
+> -#include <asm/smp_plat.h>
+>  #include <asm/cputype.h>
+>  #include <asm/cpu_ops.h>
+>  
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index e32321c..4007313 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>  	return 0;
+>  }
+>  
+> +/*
+> + * On ARM platform, MPIDR value is the hardware ID as apic ID
+> + * on Intel platforms
+> + */
+> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+> +		int device_declaration, u32 acpi_id, int *mpidr)
+> +{
+> +	struct acpi_madt_generic_interrupt *gicc =
+> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+> +
+> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
+> +		return -ENODEV;
+> +
+> +	/* In the GIC interrupt model, logical processors are
+> +	 * required to have a Processor Device object in the DSDT,
+> +	 * so we should check device_declaration here
+> +	 */
+> +	if (device_declaration && (gicc->uid == acpi_id)) {
+> +		/*
+> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
+> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
+> +		 * fields into a single 32 bit identifier to accommodate the
+> +		 * acpi processor drivers.
+> +		 */
+> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
+> +			 | gicc->arm_mpidr;
 
-So what about the following modified version?
+The simple fact that you define a function to pack the mpidr value and
+you can't use it here because this is *generic* code is telling, and
+a very bad omen. At the cost of sounding like a broken record, I do not
+like this mpidr->apic->logical_cpu song and dance at all.
+ACPI is peppered with code (eg hotplug is another example, CPUidle driver
+even worse) that is supposed to be generic but contains x86 code to carry
+out this cpuid conversion, I really think that in order to start an ARM64
+ACPI port properly we should at least try to factor out this physical to
+logical cpu id conversion, and it is not the first time that I mention this
+on the lists.
 
-Rafael
+I will also talk to Rafael about this at the earliest opportunity, I
+guess that x86 code relies on apic-id because some ACPI versions could
+not rely on the acpi-id or some other reasons I have to investigate.
 
----
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI: Use ACPI companion to match only the first physical device
+Thanks,
+Lorenzo
 
-Commit 6ab3430129e2 ("mfd: Add ACPI support") made the MFD subdevices
-share the parent MFD ACPI companion if no _HID/_CID is specified for
-the subdevice in mfd_cell description. However, since all the subdevices
-share the ACPI companion, the match and modalias generation logic started
-to use the ACPI companion as well resulting this:
-
-  # cat /sys/bus/platform/devices/HID-SENSOR-200041.6.auto/modalias
-  acpi:INT33D1:PNP0C50:
-
-instead of the expected one
-
-  # cat /sys/bus/platform/devices/HID-SENSOR-200041.6.auto/modalias
-  platform:HID-SENSOR-200041
-
-In other words the subdevice modalias is overwritten by the one taken from
-ACPI companion. This causes udev not to load the driver anymore.
-
-It is useful to be able to share the ACPI companion so that MFD subdevices
-(and possibly other devices as well) can access the ACPI resources even if
-they do not have ACPI representation in the namespace themselves.
-
-An example where this is used is Minnowboard LPC driver that creates GPIO
-as a subdevice among other things. Without the ACPI companion gpiolib is
-not able to lookup the corresponding GPIO controller from ACPI GpioIo
-resource.
-
-To fix this, restrict the match and modalias logic to be limited to the
-first (primary) physical device associated with the given ACPI comapnion.
-The secondary devices will still be able to access the ACPI companion,
-but they will be matched in a different way.
-
-Fixes: 6ab3430129e2 (mfd: Add ACPI support)
-Reported-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |   70 ++++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 54 insertions(+), 16 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -181,6 +181,53 @@ static int create_modalias(struct acpi_d
- }
- 
- /*
-+ * acpi_companion_match() - Can we match via ACPI companion device
-+ * @dev: Device in question
-+ *
-+ * Check if the given device has an ACPI companion and if that companion has
-+ * a valid list of PNP IDs, and if the device is the first (primary) physical
-+ * device associated with it.
-+ *
-+ * If multiple physical devices are attached to a single ACPI companion, we need
-+ * to be careful.  The usage scenario for this kind of relationship is that all
-+ * of the physical devices in question use resources provided by the ACPI
-+ * companion.  A typical case is an MFD device where all the sub-devices share
-+ * the parent's ACPI companion.  In such cases we can only allow the primary
-+ * (first) physical device to be matched with the help of the companion's PNP
-+ * IDs.
-+ *
-+ * Additional physical devices sharing the ACPI companion can still use
-+ * resources available from it but they will be matched normally using functions
-+ * provided by their bus types (and analogously for their modalias).
-+ */
-+static bool acpi_companion_match(const struct device *dev)
-+{
-+	struct acpi_device *adev;
-+	bool ret;
-+
-+	adev = ACPI_COMPANION(dev);
-+	if (!adev)
-+		return false;
-+
-+	if (list_empty(&adev->pnp.ids))
-+		return false;
-+
-+	mutex_lock(&adev->physical_node_lock);
-+	if (list_empty(&adev->physical_node_list)) {
-+		ret = false;
-+	} else {
-+		const struct acpi_device_physical_node *node;
-+
-+		node = list_first_entry(&adev->physical_node_list,
-+					struct acpi_device_physical_node, node);
-+		ret = node->dev == dev;
-+	}
-+	mutex_unlock(&adev->physical_node_lock);
-+
-+	return ret;
-+}
-+
-+/*
-  * Creates uevent modalias field for ACPI enumerated devices.
-  * Because the other buses does not support ACPI HIDs & CIDs.
-  * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
-@@ -188,20 +235,14 @@ static int create_modalias(struct acpi_d
-  */
- int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
- {
--	struct acpi_device *acpi_dev;
- 	int len;
- 
--	acpi_dev = ACPI_COMPANION(dev);
--	if (!acpi_dev)
--		return -ENODEV;
--
--	/* Fall back to bus specific way of modalias exporting */
--	if (list_empty(&acpi_dev->pnp.ids))
-+	if (!acpi_companion_match(dev))
- 		return -ENODEV;
- 
- 	if (add_uevent_var(env, "MODALIAS="))
- 		return -ENOMEM;
--	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
-+	len = create_modalias(ACPI_COMPANION(dev), &env->buf[env->buflen - 1],
- 				sizeof(env->buf) - env->buflen);
- 	if (len <= 0)
- 		return len;
-@@ -218,18 +259,12 @@ EXPORT_SYMBOL_GPL(acpi_device_uevent_mod
-  */
- int acpi_device_modalias(struct device *dev, char *buf, int size)
- {
--	struct acpi_device *acpi_dev;
- 	int len;
- 
--	acpi_dev = ACPI_COMPANION(dev);
--	if (!acpi_dev)
--		return -ENODEV;
--
--	/* Fall back to bus specific way of modalias exporting */
--	if (list_empty(&acpi_dev->pnp.ids))
-+	if (!acpi_companion_match(dev))
- 		return -ENODEV;
- 
--	len = create_modalias(acpi_dev, buf, size -1);
-+	len = create_modalias(ACPI_COMPANION(dev), buf, size -1);
- 	if (len <= 0)
- 		return len;
- 	buf[len++] = '\n';
-@@ -892,6 +927,9 @@ const struct acpi_device_id *acpi_match_
- 	if (!ids || !handle || acpi_bus_get_device(handle, &adev))
- 		return NULL;
- 
-+	if (!acpi_companion_match(dev))
-+		return NULL;
-+
- 	return __acpi_match_device(adev, ids);
- }
- EXPORT_SYMBOL_GPL(acpi_match_device);
-
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+>  static int map_madt_entry(int type, u32 acpi_id)
+>  {
+>  	unsigned long madt_end, entry;
+> @@ -99,6 +131,9 @@ static int map_madt_entry(int type, u32 acpi_id)
+>  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+>  			if (!map_lsapic_id(header, type, acpi_id, &apic_id))
+>  				break;
+> +		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+> +			if (!map_gicc_mpidr(header, type, acpi_id, &apic_id))
+> +				break;
+>  		}
+>  		entry += header->length;
+>  	}
+> @@ -131,6 +166,8 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+>  		map_lsapic_id(header, type, acpi_id, &apic_id);
+>  	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
+>  		map_x2apic_id(header, type, acpi_id, &apic_id);
+> +	} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+> +		map_gicc_mpidr(header, type, acpi_id, &apic_id);
+>  	}
+>  
+>  exit:
+> -- 
+> 1.7.9.5
+> 
+> 
