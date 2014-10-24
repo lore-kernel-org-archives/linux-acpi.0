@@ -1,149 +1,168 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio: Support
- for unified device properties interface)
-Date: Fri, 24 Oct 2014 16:15:32 +0900
-Message-ID: <CAAVeFuKyUok2yNwKmn0UtEufJRXgX7D0Ls5Pg_doVqCSDL1Riw@mail.gmail.com>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
- <13758254.acHP1NJN1b@vostro.rjw.lan> <20141023125655.GJ1484@lahna.fi.intel.com>
- <1581499.2RkCnyfbq6@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [GIT PULL] Thermal management updates for 3.18-rc2
+Date: Fri, 24 Oct 2014 15:30:11 +0800
+Message-ID: <1414135811.16559.4.camel@rzhang1-toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:59679 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbaJXHPx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2014 03:15:53 -0400
-In-Reply-To: <1581499.2RkCnyfbq6@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Fri, Oct 24, 2014 at 6:51 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, October 23, 2014 03:56:55 PM Mika Westerberg wrote:
->> On Thu, Oct 23, 2014 at 01:21:06AM +0200, Rafael J. Wysocki wrote:
->> > OK, would the below make sense, then (completely untested, on top of the v6
->> > of the device properties patchset)?
->>
->> Yes it does :-)
->>
->> With the the below fix it works nicely with the modified rfkill-gpio.c
->> driver.
->>
->> > +static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
->> > +                                 const char *name,
->> > +                                 struct acpi_reference_args *args)
->> > +{
->> > +   struct acpi_gpio_data *gd;
->> > +
->> > +   mutex_lock(&driver_gpio_data_lock);
->> > +
->> > +   list_for_each_entry(gd, &adev->driver_gpios, item)
->> > +           if (!strcmp(name, gd->name)) {
->> > +                   args->adev = adev;
->> > +                   args->args[0] = gd->entry_index;
->> > +                   args->args[1] = gd->pin_index;
->> > +                   args->args[2] = gd->active_low;
->> > +                   args->nargs = 3;
->>
->>                       mutex_unlock(&driver_gpio_data_lock);
->>
->> > +                   return true;
->> > +           }
->> > +
->> > +   mutex_unlock(&driver_gpio_data_lock);
->> > +
->> > +   return false;
->> > +}
->>
->> Also I think the two functions should be exported to modules as well.
->>
->> Here are the modifications needed for rfkill-gpio.c driver. I think it
->> is not that bad considering that now the driver supports both ACPI _DSD
->> and non-_DSD at the same time.
->
-> OK, let's try to take that a bit farther. :-)
->
-> With the (untested) patch below applied (which is a replacement for the one
-> sent previously), the driver can use static tables like these:
->
-> static struct acpi_gpio_params reset_gpios = { 0, 0, false };
-> statuc struct acpi_gpio_params shutdown_gpios = { 1, 0, false };
->
-> static struct acpi_gpio_mapping my_gpio_mapping[] = {
->         { "reset-gpios", &reset_gpios, 1 },
->         { "shutdown-gpios", &shutdown_gpios, 1 },
->         NULL,
-> };
->
-> ->
->
->>
->> diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
->> index 0f62326c0f5e..f8754e7d81ea 100644
->> --- a/net/rfkill/rfkill-gpio.c
->> +++ b/net/rfkill/rfkill-gpio.c
->> @@ -67,6 +67,8 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
->>                                 struct rfkill_gpio_data *rfkill)
->>  {
->>       const struct acpi_device_id *id;
->> +     struct acpi_device *adev = ACPI_COMPANION(dev);
->> +     int ret;
->>
->>       id = acpi_match_device(dev->driver->acpi_match_table, dev);
->>       if (!id)
->> @@ -75,6 +77,20 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
->>       rfkill->name = dev_name(dev);
->>       rfkill->type = (unsigned)id->driver_data;
->>
->> +     /*
->> +      * Add default mapping for ACPI _DSD properties now just in case
->> +      * there is no _DSD for this device.
->> +      */
->> +     ret = acpi_dev_add_driver_gpio(adev, "reset-gpios", 0, 0, false);
->> +     if (ret)
->> +             return ret;
->> +
->> +     ret = acpi_dev_add_driver_gpio(adev, "shutdown-gpios", 1, 0, false);
->> +     if (ret) {
->> +             acpi_dev_remove_driver_gpios(adev);
->> +             return ret;
->> +     }
->
-> -> and then simply do
->
->         ret = acpi_dev_add_driver_gpios(ACPI_COMPANION(dev), &my_gpio_mapping);
->
-> instead of the above.
->
->>       return 0;
->>  }
->>
->> @@ -110,7 +126,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
->>               rfkill->reset_gpio = gpio;
->>       }
->>
->> -     gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 1);
->> +     gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 0);
->>       if (!IS_ERR(gpio)) {
->>               ret = gpiod_direction_output(gpio, 0);
->>               if (ret)
->> @@ -150,6 +166,9 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
->>       rfkill_unregister(rfkill->rfkill_dev);
->>       rfkill_destroy(rfkill->rfkill_dev);
->>
->> +     if (ACPI_COMPANION(&pdev->dev))
->> +             acpi_dev_remove_driver_gpios(ACPI_COMPANION(&pdev->dev));
->> +
->
-> And here simply
->
->         acpi_dev_remove_driver_gpios(ACPI_COMPANION(&pdev->dev));
->
->>       return 0;
->>  }
->
-> and then we can even cover situations in which there is one name for a list of
-> GPIOs.
+Hi, Linus,
 
-That looks just perfect.
+Sorry that I missed the merge window as there is a bug found in the last
+minute, and I have to fix it and wait for the code to be tested in
+linux-next tree for a few days. Now the buggy patch has been dropped
+entirely from my next branch. Thus I hope those changes can still be
+merged in 3.18-rc2 as most of them are platform thermal driver changes.
+
+Please pull from
+git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git next
+to receive Thermal Management updates for 3.18-rc2 with top-most commit
+
+6ceaf58abe25e86292152005c51169796bad3407:
+
+  Merge branch 'int340x-thermal' of .git into next (2014-10-17 14:30:58
++0800)
+
+on top of commit 52addcf9d6669fa439387610bc65c92fa0980cef:
+
+  Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
+
+
+Specifics:
+
+- introduce ACPI INT340X thermal drivers. Newer laptops and tablets may
+have thermal sensors and other devices with thermal control capabilities
+that are exposed for the OS to use via the ACPI INT340x device objects.
+Several drivers are introduced to expose the temperature information and
+cooling ability from these objects to user-space via the normal thermal
+framework. From: Lu Aaron, Lan Tianyu, Jacob Pan and Zhang Rui.
+
+- introduce a new thermal governor, which just uses a hysteresis to
+switch abruptly on/off a cooling device. This governor can be used to
+control certain fan devices that can not be throttled but just switched on or
+off. From: Peter Feuerer.
+
+- introduce support for some new thermal interrupt functions on i.MX6SX,
+in IMX thermal driver. From: Anson, Huang.
+
+- introduce tracing support on thermal framework. From: Punit Agrawal.
+
+- small fixes in OF thermal and thermal step_wise governor.
+
+thanks,
+rui
+
+----------------------------------------------------------------
+
+Aaron Lu (8):
+      ACPI / fan: remove unused macro
+      ACPI / fan: remove no need check for device pointer
+      ACPI / fan: use acpi_device_xxx_power instead of acpi_bus
+equivelant
+      ACPI / fan: convert to platform driver
+      ACPI / Fan: add ACPI 4.0 style fan support
+      ACPI / Fan: support INT3404 thermal device
+      Thermal: move the KELVIN_TO_MILLICELSIUS macro to thermal.h
+      Thermal: introduce INT3402 thermal driver
+
+Anson Huang (1):
+      Thermal: imx: add i.mx6sx thermal support
+
+Jacob Pan (2):
+      Thermal: int340x_thermal: expose acpi thermal relationship tables
+      Thermal: int3400_thermal: use acpi_thermal_rel parsing APIs
+
+Lan Tianyu (1):
+      Thermal: introduce int3403 thermal driver
+
+Laxman Dewangan (1):
+      thermal: add support to disable thermal zone from DTS
+
+Lukasz Majewski (1):
+      thermal: step_wise: fix: Prevent from binary overflow when trend
+is dropping
+
+Peter Feuerer (1):
+      thermal: Added Bang-bang thermal governor
+
+Punit Agrawal (3):
+      thermal: trace: Trace temperature changes
+      thermal: trace: Trace when a cooling device's state is updated
+      thermal: trace: Trace when temperature is above a trip point
+
+Zhang Rui (11):
+      Merge branch 'next' of
+git://git.kernel.org/.../evalenti/linux-soc-thermal into eduardo-soc
+      ACPI: introduce ACPI int340x thermal scan handler
+      Merge branches 'eduardo-soc' and 'bang-bang-governor' of .git into
+next
+      ACPI: make acpi_create_platform_device() an external API
+      ACPI: add ACPI_TYPE_LOCAL_REFERENCE support to
+acpi_extract_package()
+      Thermal: introduce int3400 thermal driver
+      Thermal: int3400 thermal: add capability to detect supporting
+UUIDs
+      Thermal: int3400 thermal: register to thermal framework
+      Merge branch 'thermal-core-fix' of .git into next
+      Thermal: int340x thermal: select ACPI fan driver
+      Merge branch 'int340x-thermal' of .git into next
+
+ Documentation/devicetree/bindings/thermal/imx-thermal.txt |   5 +-
+ drivers/acpi/Kconfig                                      |   2 +-
+ drivers/acpi/Makefile                                     |   1 +
+ drivers/acpi/acpi_platform.c                              |   1 +
+ drivers/acpi/device_pm.c                                  |   1 +
+ drivers/acpi/fan.c                                        | 341
+++++++++++++++++++++++++++++++++++++++++++-------------
+ drivers/acpi/int340x_thermal.c                            |  51
++++++++++
+ drivers/acpi/internal.h                                   |  10 +-
+ drivers/acpi/scan.c                                       |   1 +
+ drivers/acpi/thermal.c                                    |  18 +--
+ drivers/acpi/utils.c                                      |  28 ++++-
+ drivers/thermal/Kconfig                                   |  49
++++++---
+ drivers/thermal/Makefile                                  |   3 +-
+ drivers/thermal/fair_share.c                              |  12 ++
+ drivers/thermal/gov_bang_bang.c                           | 131
++++++++++++++++++++++
+ drivers/thermal/imx_thermal.c                             |  91
+++++++++++++---
+ drivers/thermal/int3403_thermal.c                         | 296
+------------------------------------------------
+ drivers/thermal/int340x_thermal/Makefile                  |   4 +
+ drivers/thermal/int340x_thermal/acpi_thermal_rel.c        | 400
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/int340x_thermal/acpi_thermal_rel.h        |  84
+++++++++++++++
+ drivers/thermal/int340x_thermal/int3400_thermal.c         | 271
+++++++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/int340x_thermal/int3402_thermal.c         | 242
++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/int340x_thermal/int3403_thermal.c         | 477
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/of-thermal.c                              |  12 ++
+ drivers/thermal/step_wise.c                               |   7 +-
+ drivers/thermal/thermal_core.c                            |  12 ++
+ drivers/thermal/thermal_core.h                            |   8 ++
+ include/acpi/acpi_bus.h                                   |   1 +
+ include/linux/acpi.h                                      |   1 +
+ include/linux/thermal.h                                   |   4 +
+ include/trace/events/thermal.h                            |  83
+++++++++++++++
+ 31 files changed, 2223 insertions(+), 424 deletions(-)
+ create mode 100644 drivers/acpi/int340x_thermal.c
+ create mode 100644 drivers/thermal/gov_bang_bang.c
+ delete mode 100644 drivers/thermal/int3403_thermal.c
+ create mode 100644 drivers/thermal/int340x_thermal/Makefile
+ create mode 100644 drivers/thermal/int340x_thermal/acpi_thermal_rel.c
+ create mode 100644 drivers/thermal/int340x_thermal/acpi_thermal_rel.h
+ create mode 100644 drivers/thermal/int340x_thermal/int3400_thermal.c
+ create mode 100644 drivers/thermal/int340x_thermal/int3402_thermal.c
+ create mode 100644 drivers/thermal/int340x_thermal/int3403_thermal.c
+ create mode 100644 include/trace/events/thermal.h
