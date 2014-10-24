@@ -1,202 +1,215 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management updates for 3.18-rc1
-Date: Fri, 24 Oct 2014 14:38:17 +0200
-Message-ID: <CAJZ5v0jo9hABMsOC0JUi=A+Sxj9g_JP3fMX5_Gj+pEkeAeQ3yQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Use ACPI companion to match only the first physical device
+Date: Fri, 24 Oct 2014 15:55:34 +0200
+Message-ID: <2356721.6lgfg38MC8@vostro.rjw.lan>
+References: <1414141950-228930-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:49333 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756288AbaJXMiS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Oct 2014 08:38:18 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1414141950-228930-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Darren Hart <dvhart@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On Friday, October 24, 2014 12:12:30 PM Mika Westerberg wrote:
+> Commit 6ab3430129e2 ("mfd: Add ACPI support") made the MFD subdevices to
+> share the parent MFD ACPI companion device if no _HID/_CID is specified for
+> the subdevice in mfd_cell description. However, since all the subdevices
+> share the ACPI companion, the match and modalias generation logic started
+> to use the ACPI companion as well resulting this:
+> 
+>   # cat /sys/bus/platform/devices/HID-SENSOR-200041.6.auto/modalias
+>   acpi:INT33D1:PNP0C50:
+> 
+> instead of the expected one
+> 
+>   # cat /sys/bus/platform/devices/HID-SENSOR-200041.6.auto/modalias
+>   platform:HID-SENSOR-200041
+> 
+> In other words the subdevice modalias is overwritten by the one taken from
+> ACPI companion. This causes udev not to load the driver anymore.
+> 
+> It is useful to be able to share the ACPI companion so that MFD subdevices
+> (and possibly other devices as well) can access the ACPI resources even if
+> they do not have ACPI representation in the namespace themselves.
+> 
+> An example where this is used is Minnowboard LPC driver that creates GPIO
+> as a subdevice among other things. Without the ACPI companion gpiolib is
+> not is not able to lookup the corresponding GPIO controller from ACPI
+> GpioIo resource.
+> 
+> To fix this we restrict the match and modalias logic to be limited to the
+> first physical device. The secondary devices will still be able to access
+> the ACPI companion but they will be matched using traditional way.
+> 
+> Reported-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Please pull from
+So I've applied it, although it didn't make it to the mailing lists for an
+unknown reason, but I modified it slightly.  My version is below for
+completness (it's in bleeding-edge for now).
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.18-rc2
+I'm a bit concerned that it will break something obscure I can't recall
+ATM, but since I can't recall it may not be that important (or even non-existent
+at all).  In any case, we may need to go back all the way to reverting the
+MFD commit if that happens.
 
-to receive ACPI and power management updates for v3.18-rc2 with
-top-most commit a91e99e27a683608d221fb18b70d7de9d801de4a
-
- Merge branches 'pm-cpuidle' and 'pm-cpufreq'
-
-on top of commit f114040e3ea6e07372334ade75d1ee0775c355e1
-
- Linux 3.18-rc1
-
-This is material that didn't make it to my 3.18-rc1 pull request
-for various reasons, mostly related to timing and travel
-(LinuxCon EU / LPC) plus a couple of fixes for recent bugs.
-The only really new thing here is the PM QoS class for memory
-bandwidth, but it is simple enough and users of it will be added
-in the next cycle.  One major change in behavior is that platform
-devices enumerated by ACPI will use 32-bit DMA mask by default.
-Also included is an ACPICA update to a new upstream release,
-but that's mostly cleanups, changes in tools and similar.  The
-rest is fixes and cleanups mostly.
-
-Specifics:
-
- - Fix for a recent PCI power management change that overlooked
-   the fact that some IRQ chips might not be able to configure
-   PCIe PME for system wakeup from Lucas Stach.
-
- - Fix for a bug introduced in 3.17 where acpi_device_wakeup()
-   is called with a wrong ordering of arguments from Zhang Rui.
-
- - A bunch of intel_pstate driver fixes (all -stable candidates)
-   from Dirk Brandewie, Gabriele Mazzotta and Pali Roh=C3=A1r.
-
- - Fixes for a rather long-standing problem with the OOM killer
-   and the freezer that frozen processes killed by the OOM do
-   not actually release any memory until they are thawed, so
-   OOM-killing them is rather pointless, with a couple of
-   cleanups on top (Michal Hocko, Cong Wang, Rafael J Wysocki).
-
- - ACPICA update to upstream release 20140926, inlcuding mostly
-   cleanups reducing differences between the upstream ACPICA and
-   the kernel code, tools changes (acpidump, acpiexec) and
-   support for the _DDN object (Bob Moore, Lv Zheng).
-
- - New PM QoS class for memory bandwidth from Tomeu Vizoso.
-
- - Default 32-bit DMA mask for platform devices enumerated by ACPI
-   (this change is mostly needed for some drivers development in
-   progress targeted at 3.19) from Heikki Krogerus.
-
- - ACPI EC driver cleanups, mostly related to debugging, from
-   Lv Zheng.
-
- - cpufreq-dt driver updates from Thomas Petazzoni.
-
- - powernv cpuidle driver update from Preeti U Murthy.
-
-Thanks!
+Rafael
 
 
----------------
+---
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI: Use ACPI companion to match only the first physical device
 
-Bob Moore (4):
-      ACPICA: Add string for _DDN method name.
-      ACPICA: iASL/Disassembler: Add support for hardware summary mapfi=
-les.
-      ACPICA: acpiexec: Do not put STDIN into raw mode unless it is a t=
-erminal.
-      ACPICA: Update version to 20140926.
+Commit 6ab3430129e2 ("mfd: Add ACPI support") made the MFD subdevices
+share the parent MFD ACPI companion if no _HID/_CID is specified for
+the subdevice in mfd_cell description. However, since all the subdevices
+share the ACPI companion, the match and modalias generation logic started
+to use the ACPI companion as well resulting this:
 
-Cong Wang (2):
-      freezer: Do not freeze tasks killed by OOM killer
-      freezer: remove obsolete comments in __thaw_task()
+  # cat /sys/bus/platform/devices/HID-SENSOR-200041.6.auto/modalias
+  acpi:INT33D1:PNP0C50:
 
-Dirk Brandewie (4):
-      cpufreq: expose scaling_cur_freq sysfs file for set_policy() driv=
-ers
-      intel_pstate: Don't lose sysfs settings during cpu offline
-      intel_pstate: Fix BYT frequency reporting
-      intel_pstate: Correct BYT VID values.
+instead of the expected one
 
-Gabriele Mazzotta (1):
-      cpufreq: intel_pstate: Reflect current no_turbo state correctly
+  # cat /sys/bus/platform/devices/HID-SENSOR-200041.6.auto/modalias
+  platform:HID-SENSOR-200041
 
-Heikki Krogerus (1):
-      ACPI / platform: provide default DMA mask
+In other words the subdevice modalias is overwritten by the one taken from
+ACPI companion. This causes udev not to load the driver anymore.
 
-Lucas Stach (1):
-      PCI / PM: handle failure to enable wakeup on PCIe PME
+It is useful to be able to share the ACPI companion so that MFD subdevices
+(and possibly other devices as well) can access the ACPI resources even if
+they do not have ACPI representation in the namespace themselves.
 
-Lv Zheng (11):
-      ACPICA: acpidump: Add ACPI 1.0 RSDP support.
-      ACPICA: Events: Reduce indent divergences of events files.
-      ACPICA: Events: Reduce source code difference in
-acpi_install_gpe_handler().
-      ACPICA: Events: Update GPE handler removal, match behavior of
-handler install.
-      ACPICA: Events: Reduce source code difference for the
-ACPI_EVENT_FLAG_HANDLE support.
-      ACPICA: Events: Reduce source code difference for the
-ACPI_EVENT_FLAG_HANDLE renaming.
-      ACPI / EC: Add CPU ID to debugging messages.
-      ACPI / EC: Enhance the logs to apply to QR_EC transactions.
-      ACPI / EC: Add detailed command/query debugging information.
-      ACPI / EC: Refine event/query debugging messages.
-      ACPI / EC: Cleanup coding style.
+An example where this is used is Minnowboard LPC driver that creates GPIO
+as a subdevice among other things. Without the ACPI companion gpiolib is
+not able to lookup the corresponding GPIO controller from ACPI GpioIo
+resource.
 
-Michal Hocko (2):
-      OOM, PM: OOM killed task shouldn't escape PM suspend
-      PM: convert do_each_thread to for_each_process_thread
+To fix this, restrict the match and modalias logic to be limited to the
+first (primary) physical device associated with the given ACPI comapnion.
+The secondary devices will still be able to access the ACPI companion,
+but they will be matched in a different way.
 
-Pali Roh=C3=A1r (1):
-      cpufreq: intel_pstate: Fix setting max_perf_pct in performance po=
-licy
-
-Preeti U. Murthy (1):
-      cpuidle: powernv: Populate cpuidle state details by querying the
-device-tree
-
-Rafael J. Wysocki (1):
-      PM / freezer: Clean up code after recent fixes
-
-Thomas Petazzoni (3):
-      cpufreq: allow driver-specific data
-      cpufreq: cpufreq-dt: extend with platform_data
-      cpufreq: cpufreq-dt: adjust message related to regulators
-
-Tomeu Vizoso (1):
-      PM / QoS: Add PM_QOS_MEMORY_BANDWIDTH class
-
-Zhang Rui (1):
-      ACPI: invoke acpi_device_wakeup() with correct parameters
-
----------------
-
- Documentation/power/pm_qos_interface.txt           |   4 +-
- drivers/acpi/acpi_platform.c                       |   2 +
- drivers/acpi/acpica/achware.h                      |   2 +-
- drivers/acpi/acpica/aclocal.h                      |   4 +-
- drivers/acpi/acpica/actables.h                     |   2 +
- drivers/acpi/acpica/amlresrc.h                     |  34 +++++++
- drivers/acpi/acpica/evgpe.c                        |  23 ++---
- drivers/acpi/acpica/evgpeinit.c                    |   1 +
- drivers/acpi/acpica/evxface.c                      |  27 +++--
- drivers/acpi/acpica/evxfevnt.c                     |  40 +++++---
- drivers/acpi/acpica/evxfgpe.c                      |  12 +--
- drivers/acpi/acpica/hwgpe.c                        |   9 +-
- drivers/acpi/acpica/tbxfroot.c                     |  33 ++++++-
- drivers/acpi/device_pm.c                           |   2 +-
- drivers/acpi/ec.c                                  | 107 +++++++++++++=
--------
- drivers/acpi/scan.c                                |   2 +-
- drivers/acpi/sysfs.c                               |   4 +-
- drivers/cpufreq/cpufreq-dt.c                       |  21 +++-
- drivers/cpufreq/cpufreq.c                          |  38 +++++--
- drivers/cpufreq/intel_pstate.c                     | 110 +++++++++++++=
-+++-----
- drivers/cpuidle/cpuidle-powernv.c                  |  27 ++++-
- drivers/pci/pcie/pme.c                             |   6 +-
- include/acpi/acnames.h                             |   1 +
- include/acpi/acpixf.h                              |   2 +-
- include/acpi/actypes.h                             |   4 +-
- include/linux/cpufreq-dt.h                         |  22 +++++
- include/linux/cpufreq.h                            |   2 +
- include/linux/oom.h                                |   3 +
- include/linux/pm_qos.h                             |   5 +-
- kernel/freezer.c                                   |   9 +-
- kernel/power/process.c                             |  57 +++++++++--
- kernel/power/qos.c                                 |  27 ++++-
- mm/oom_kill.c                                      |  17 ++++
- mm/page_alloc.c                                    |   8 ++
- .../acpi/os_specific/service_layers/osunixxf.c     |   8 ++
- tools/power/acpi/tools/acpidump/apdump.c           |   2 +-
- 36 files changed, 527 insertions(+), 150 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: 6ab3430129e2 (mfd: Add ACPI support)
+Reported-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+[ rjw: Change the name of the new function to acpi_companion_match()
+  and modify the kerneldoc comment for it, changelog fixups. ]
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -181,6 +181,53 @@ static int create_modalias(struct acpi_d
+ }
+ 
+ /*
++ * acpi_companion_match() - Can we match via ACPI companion device
++ * @dev: Device in question
++ *
++ * Check if the given device has an ACPI companion and if that companion has
++ * a valid list of PNP IDs, and if the device is the first (primary) physical
++ * device associated with it.
++ *
++ * If multiple physical devices are attached to a single ACPI companion, we need
++ * to be careful.  The usage scenario for this kind of relationship is that all
++ * of the physical devices in question use resources provided by the ACPI
++ * companion.  A typical case is an MFD device where all the sub-devices share
++ * the parent's ACPI companion.  In such cases we can only allow the primary
++ * (first) physical device to be matched with the help of the companion's PNP
++ * IDs.
++ *
++ * Additional physical devices sharing the ACPI companion can still use
++ * resources available from it but they will be matched normally using functions
++ * provided by their bus types (and analogously for their modalias).
++ */
++static bool acpi_companion_match(const struct device *dev)
++{
++	struct acpi_device *adev;
++	bool ret;
++
++	adev = ACPI_COMPANION(dev);
++	if (!adev)
++		return false;
++
++	if (list_empty(&adev->pnp.ids))
++		return false;
++
++	ret = true;
++	mutex_lock(&adev->physical_node_lock);
++	if (!list_empty(&adev->physical_node_list)) {
++		const struct acpi_device_physical_node *node;
++
++		node = list_first_entry(&adev->physical_node_list,
++					struct acpi_device_physical_node, node);
++		if (node->dev != dev)
++			ret = false;
++	}
++	mutex_unlock(&adev->physical_node_lock);
++
++	return ret;
++}
++
++/*
+  * Creates uevent modalias field for ACPI enumerated devices.
+  * Because the other buses does not support ACPI HIDs & CIDs.
+  * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
+@@ -188,20 +235,14 @@ static int create_modalias(struct acpi_d
+  */
+ int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
+ {
+-	struct acpi_device *acpi_dev;
+ 	int len;
+ 
+-	acpi_dev = ACPI_COMPANION(dev);
+-	if (!acpi_dev)
+-		return -ENODEV;
+-
+-	/* Fall back to bus specific way of modalias exporting */
+-	if (list_empty(&acpi_dev->pnp.ids))
++	if (!acpi_companion_match(dev))
+ 		return -ENODEV;
+ 
+ 	if (add_uevent_var(env, "MODALIAS="))
+ 		return -ENOMEM;
+-	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
++	len = create_modalias(ACPI_COMPANION(dev), &env->buf[env->buflen - 1],
+ 				sizeof(env->buf) - env->buflen);
+ 	if (len <= 0)
+ 		return len;
+@@ -218,18 +259,12 @@ EXPORT_SYMBOL_GPL(acpi_device_uevent_mod
+  */
+ int acpi_device_modalias(struct device *dev, char *buf, int size)
+ {
+-	struct acpi_device *acpi_dev;
+ 	int len;
+ 
+-	acpi_dev = ACPI_COMPANION(dev);
+-	if (!acpi_dev)
+-		return -ENODEV;
+-
+-	/* Fall back to bus specific way of modalias exporting */
+-	if (list_empty(&acpi_dev->pnp.ids))
++	if (!acpi_companion_match(dev))
+ 		return -ENODEV;
+ 
+-	len = create_modalias(acpi_dev, buf, size -1);
++	len = create_modalias(ACPI_COMPANION(dev), buf, size -1);
+ 	if (len <= 0)
+ 		return len;
+ 	buf[len++] = '\n';
+@@ -892,6 +927,9 @@ const struct acpi_device_id *acpi_match_
+ 	if (!ids || !handle || acpi_bus_get_device(handle, &adev))
+ 		return NULL;
+ 
++	if (!acpi_companion_match(dev))
++		return NULL;
++
+ 	return __acpi_match_device(adev, ids);
+ }
+ EXPORT_SYMBOL_GPL(acpi_match_device);
