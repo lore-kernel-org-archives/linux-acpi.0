@@ -1,68 +1,109 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ACPI regression: New Acer workarounds break Samsung NP900X
-Date: Mon, 27 Oct 2014 03:08:28 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026882DB@SHSMSX101.ccr.corp.intel.com>
-References: <544CE637.7000406@odi.ch>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v7 00/18] Enable support of IOAPIC hotplug on x86 platforms
+Date: Mon, 27 Oct 2014 13:20:53 +0800
+Message-ID: <1414387271-27057-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:19064 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751957AbaJ0DJf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Oct 2014 23:09:35 -0400
-In-Reply-To: <544CE637.7000406@odi.ch>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?B?T3J0d2luIEdsw7xjaw==?= <odi@odi.ch>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksDQoNClRoYW5rcyBmb3IgbGV0dGluZyBtZSBrbm93Lg0KDQpUaG91Z2ggSU1PIHRoZSBBQ0VS
-IGJlaGF2aW9yIGlzIG5vdCBBQ1BJIHNwZWMgY29tcGxpYW50LCBidXQgZm9sbG93aW5nIGl0IHN0
-aWxsIHNob3VsZG4ndCBicmVhayB0aGUgb3RoZXJzLg0KQmVjYXVzZSBpdCBqdXN0IHJlcXVpcmVz
-IEVDIGZpcm13YXJlIHRvIGFsd2F5cyBmbGFnIFNDSV9FVlQgd2hlbiB0aGVyZSBpcyBhbiBldmVu
-dCBxdWV1ZWQgdXAuDQpJIGNvdWxkbid0IHNlZSBhIHNwZWNpYWwgcmVhc29uIHRoYXQgYSBjb3Jy
-ZWN0IEVDIGZpcm13YXJlIHNob3VsZCBzdG9wIGRvaW5nIHRoaXMuDQpTbyBJIGRpZG4ndCBtYWtl
-IGl0IGEgcXVpcmsgdGhhdCBjYW4gb25seSBhcHBseSBmb3IgdGhlIEFDRVIgZmlybXdhcmUuDQoN
-CkkgcmVhZCB0aGUgd2hvbGUgYnVnIGxvZywgZm9yIG1lIGl0IGxvb2tzIGxpa2UgdGhhdCB0aGUg
-U2Ftc3VuZyBmaXJtd2FyZSBuZWVkIGEgc3BlY2lhbCBFQyBkcml2ZXIgZmVhdHVyZSB3aGljaCBp
-cyBjdXJyZW50bHkgbm90IGluIHRoZSBMaW51eCBrZXJuZWwuDQpBY2NvcmRpbmcgdG8gdGhlIHJv
-b3QgY2F1c2U6DQpDb21tZW50IDEwMC0xMDMgYXQgaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQv
-dWJ1bnR1Lytzb3VyY2UvbGludXgvK2J1Zy85NzEwNjEvDQpTYW1zdW5nIGxhcHRvcHMgbmVlZCBh
-IFNDSV9FVlQgcG9sbGluZyBtb2RlIHRvIGJlIGltcGxlbWVudGVkIGluIHRoZSBrZXJuZWwuDQoN
-CkZvcnR1bmF0ZWx5LCBJIGhhZCB0aGlzIGFscmVhZHkgaW1wbGVtZW50ZWQsIHlvdSBjYW4gZmlu
-ZCBpdCBoZXJlOg0KaHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cvbGludXgvY29tbWl0LzBmZTk0
-MDZkIDwtIGl0IGltcGxlbWVudHMgYSBwb2xsaW5nIHRocmVhZCBpbiB0aGUga2VybmVsIHRvIHBv
-bGwgU0NJX0VWVC4NCmh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4L2NvbW1pdC8yOGVm
-MDU3NiA8LSBpdCBhZGRzIGEgcXVpcmsgbWVjaGFuaXNtIHRvIGFsbG93IExpbnV4IHRvIGFsd2F5
-cyBwb2xsIFNDSV9FVlQgKEkgbmVlZCB0byBpbXByb3ZlIGl0IGFjY29yZGluZyB0byB5b3VyIHJl
-cG9ydCkuDQoNCkl0IGp1c3QgdGFrZXMgdGltZSB0byBtYWtlIGl0IHVwc3RyZWFtIGJlY2F1c2Ug
-dGhlcmUgaXMgYSBjbGVhbnVwIGluIGl0IHRvIGNvcnJlY3QgdGhlIHN0b3JtaW5nIHByZXZlbnRp
-b24gY3JhcHMgaW4gdGhlIHNhbWUgc2VyaWVzOg0KaHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cv
-bGludXgvY29tbWl0L2ZhNDAyNGM4DQp3aGljaCBkZXBlbmRzIG9uIGFuIEFDUElDQSBjb21taXQs
-IHRoZSBjb21taXQgaGFzIGJlZW4gdW5kZXIgZGlzY3Vzc2lvbiBmb3IgbW9yZSB0aGFuIDMgbW9u
-dGhzOg0KaHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cvbGludXgvY29tbWl0L2UyMGUwZmRlDQoN
-CkxldCBtZSB0cnkgdG8gcmViYXNlIHRoZSBzZXJpZXMgYW5kIG1ha2UgdGhlIFNDSV9FVlQgcG9s
-bGluZyB0aHJlYWQgaW5kZXBlbmRlbnQgb2YgdGhlIHN0b3JtaW5nIHByZXZlbnRpb24gY2xlYW51
-cHMuDQpTbyB0aGF0IEkgY2FuIG1ha2UgaXQgdXBzdHJlYW0gZmlyc3QgdG8gcGVybWFuZW50bHkg
-Zml4IHRoZSBTYW1zdW5nIGxhcHRvcCBwcm9ibGVtcyBpbiB0aGUga2VybmVsLg0KSSBtYXkgYXNr
-IHlvdSBmb3IgaGVscCB0byB0ZXN0IHRoZSBuZXcgZmVhdHVyZSBhZnRlciBpdCBpcyByZWFkeS4N
-Cg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IEZyb206IE9ydHdpbiBHbMO8Y2sg
-W21haWx0bzpvZGlAb2RpLmNoXQ0KPiBTZW50OiBTdW5kYXksIE9jdG9iZXIgMjYsIDIwMTQgODox
-NyBQTQ0KPiANCj4gTHYsDQo+IA0KPiBUaGVzZSB0d28gcGF0Y2hlcyBpbnRyb2R1Y2UgYSByZWdy
-ZXNzaW9uIGZvciBTYW1zdW5nIG5vdGVib29rcyBhbmQgdGhleSBubw0KPiBsb25nZXIgZ2V0IEFD
-UEkgaW50ZXJydXB0cyBmb3IgcGx1Z2dpbmcgdGhlIHBvd2VyIGFkYXB0ZXIgb3IgTElEIHN3aXRj
-aGVzLg0KPiANCj4gTXVsdGlwbGUgcGVvcGxlIGhhdmUgdmVyaWZpZWQgdGhhdCByZXZlcnRpbmcg
-dGhlc2UgcGF0Y2hlcyBtYWtlcyB0aGUgcmVncmVzc2lvbg0KPiBnbyBhd2F5Lg0KPiANCj4gUGxl
-YXNlIHNlZSBuZXcgY29tbWVudHMgaW46DQo+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9z
-aG93X2J1Zy5jZ2k/aWQ9NDQxNjEjYzE4NA0KPiANCj4gIEZyb20gM2FmY2YyZWNlNDUzZTFhOGMy
-YzZkZTE5Y2RmMDZkYTM3NzJhMWIwOCBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gRnJvbTog
-THYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gRGF0ZTogVGh1LCAyMSBBdWcgMjAxNCAx
-NDo0MToxMyArMDgwMA0KPiBTdWJqZWN0OiBbUEFUQ0hdIEFDUEkgLyBFQzogQWRkIHN1cHBvcnQg
-dG8gZGlzYWxsb3cgUVJfRUMgdG8gYmUgaXNzdWVkIHdoZW4NCj4gICBTQ0lfRVZUIGlzbid0IHNl
-dA0KPiANCj4gIEZyb20gNTU4ZTQ3MzZmMmUxYjBlNjMyM2FkZjdhNWU0ZGY3N2VkNmNmYzFhNCBN
-b24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gRnJvbTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVs
-LmNvbT4NCj4gRGF0ZTogVGh1LCAyMSBBdWcgMjAxNCAxNDo0MToyNiArMDgwMA0KPiBTdWJqZWN0
-OiBbUEFUQ0hdIEFDUEkgLyBFQzogQWRkIHN1cHBvcnQgdG8gZGlzYWxsb3cgUVJfRUMgdG8gYmUg
-aXNzdWVkIGJlZm9yZQ0KPiAgIGNvbXBsZXRpbmcgcHJldmlvdXMgUVJfRUMNCj4gDQo+IA0KPiBU
-aGFua3MsDQo+IA0KPiBPcnR3aW4NCj4gDQoNCg==
+This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
+hotplug on x86 platforms. It's based on v3.18-rc2 at
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+You may pull it from 
+https://github.com/jiangliu/linux.git ioapic/hotplug_v7
+
+We have pick up several patches from Yinghai's original IOAPIC hotplug
+patch set and reimplemented IOAPIC driver as an ACPI driver instead of
+a PCI driver.
+
+It has been tested on a 4-socket Intel SDV with socket hot-addition
+capability. Any suggestions are welcomed!
+
+Patch 1-3 are bugfixes against v3.17 and should target v3.18. Patch 1
+has been merged into tip/x86/urgent.
+Patch 4-7 are bugfixes and enhancements to ACPI subsystem
+Patch 8 killes PCI IOAPIC driver
+Patch 9-17 enhances IOAPIC core to support IOAPIC hotplug
+Patch 18 reimplements ACPI IOAPIC driver and enables IOAPIC hotplug
+
+V6->V7:
+1) Rebase to v3.18-rc2
+2) Three bugfixes for v3.18
+V5->V6:
+1) Rebase to the latest v3.17-16
+2) Minor fixes for comments
+V4->V5:
+1) Fix a building error
+2) Don't rename processor_core.c as apic_id.c
+3) Improve comments
+4) Reorder patches to get rid of some temporary code
+V3->V4:
+1) Fix a bug in manage IOAPIC reference count
+2) Rebase to v3.17-rc2
+3) Refine commit messages
+V2->V3:
+1) Refine ACPI resource walk functions for PCI root bus and IOAPIC
+2) Improve commit messages
+3) Reorder patch order for better maintenence
+
+Jiang Liu (15):
+  ACPI, irq: fix regression casued by 6b9fb7082409
+  x86, intel-mid: Create IRQs for APB timers and RTC timers
+  ACPI, irq, x86: Return IRQ instead of GSI in mp_register_gsi()
+  x86, PCI, ACPI: Kill private function resource_to_addr() in
+    arch/x86/pci/acpi.c
+  ACPI: Correct return value of acpi_dev_resource_address_space()
+  ACPI: Fix minor syntax issues in processor_core.c
+  PCI: Remove PCI ioapic driver
+  x86, irq: Remove __init marker for functions will be used by IOAPIC
+    hotplug
+  x86, irq: Keep balance of IOAPIC pin reference count
+  x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+  x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from
+    hotplug
+  x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
+    hot-addition
+  x86, irq, ACPI: Implement interfaces to support ACPI based IOAPIC
+    hot-removal
+  x86, irq: Introduce helper to check whether an IOAPIC has been
+    registered
+  x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
+
+Yinghai Lu (3):
+  ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
+  x86, irq: Split out alloc_ioapic_save_registers()
+  x86, irq: Prefer assigned ID in APIC ID register for x86_64
+
+ arch/x86/include/asm/io_apic.h    |    6 +-
+ arch/x86/kernel/acpi/boot.c       |  102 ++++++++++++++--
+ arch/x86/kernel/apb_timer.c       |    2 -
+ arch/x86/kernel/apic/io_apic.c    |  234 +++++++++++++++++++++++++++++-------
+ arch/x86/pci/acpi.c               |  144 +++++++++--------------
+ arch/x86/pci/intel_mid_pci.c      |   10 +-
+ arch/x86/pci/irq.c                |    7 +-
+ arch/x86/platform/intel-mid/sfi.c |    2 +
+ drivers/acpi/Kconfig              |    6 +
+ drivers/acpi/Makefile             |    1 +
+ drivers/acpi/internal.h           |    7 ++
+ drivers/acpi/ioapic.c             |  235 +++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_irq.c            |   11 +-
+ drivers/acpi/pci_root.c           |    3 +
+ drivers/acpi/processor_core.c     |  131 ++++++++++++++++++---
+ drivers/acpi/resource.c           |    2 +-
+ drivers/pci/Kconfig               |    7 --
+ drivers/pci/Makefile              |    2 -
+ drivers/pci/ioapic.c              |  121 -------------------
+ include/linux/acpi.h              |    5 +
+ include/linux/pci.h               |    1 +
+ 21 files changed, 739 insertions(+), 300 deletions(-)
+ create mode 100644 drivers/acpi/ioapic.c
+ delete mode 100644 drivers/pci/ioapic.c
+
+-- 
+1.7.10.4
