@@ -1,39 +1,68 @@
-From: =?UTF-8?B?T3J0d2luIEdsw7xjaw==?= <odi@odi.ch>
-Subject: ACPI regression: New Acer workarounds break Samsung NP900X
-Date: Sun, 26 Oct 2014 13:16:55 +0100
-Message-ID: <544CE637.7000406@odi.ch>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: ACPI regression: New Acer workarounds break Samsung NP900X
+Date: Mon, 27 Oct 2014 03:08:28 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026882DB@SHSMSX101.ccr.corp.intel.com>
+References: <544CE637.7000406@odi.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:19064 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751957AbaJ0DJf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Oct 2014 23:09:35 -0400
+In-Reply-To: <544CE637.7000406@odi.ch>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?utf-8?B?T3J0d2luIEdsw7xjaw==?= <odi@odi.ch>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Lv,
-
-These two patches introduce a regression for Samsung notebooks and they no 
-longer get ACPI interrupts for plugging the power adapter or LID switches.
-
-Multiple people have verified that reverting these patches makes the regression 
-go away.
-
-Please see new comments in:
-https://bugzilla.kernel.org/show_bug.cgi?id=44161#c184
-
- From 3afcf2ece453e1a8c2c6de19cdf06da3772a1b08 Mon Sep 17 00:00:00 2001
-From: Lv Zheng <lv.zheng@intel.com>
-Date: Thu, 21 Aug 2014 14:41:13 +0800
-Subject: [PATCH] ACPI / EC: Add support to disallow QR_EC to be issued when
-  SCI_EVT isn't set
-
- From 558e4736f2e1b0e6323adf7a5e4df77ed6cfc1a4 Mon Sep 17 00:00:00 2001
-From: Lv Zheng <lv.zheng@intel.com>
-Date: Thu, 21 Aug 2014 14:41:26 +0800
-Subject: [PATCH] ACPI / EC: Add support to disallow QR_EC to be issued before
-  completing previous QR_EC
-
-
-Thanks,
-
-Ortwin
+SGksDQoNClRoYW5rcyBmb3IgbGV0dGluZyBtZSBrbm93Lg0KDQpUaG91Z2ggSU1PIHRoZSBBQ0VS
+IGJlaGF2aW9yIGlzIG5vdCBBQ1BJIHNwZWMgY29tcGxpYW50LCBidXQgZm9sbG93aW5nIGl0IHN0
+aWxsIHNob3VsZG4ndCBicmVhayB0aGUgb3RoZXJzLg0KQmVjYXVzZSBpdCBqdXN0IHJlcXVpcmVz
+IEVDIGZpcm13YXJlIHRvIGFsd2F5cyBmbGFnIFNDSV9FVlQgd2hlbiB0aGVyZSBpcyBhbiBldmVu
+dCBxdWV1ZWQgdXAuDQpJIGNvdWxkbid0IHNlZSBhIHNwZWNpYWwgcmVhc29uIHRoYXQgYSBjb3Jy
+ZWN0IEVDIGZpcm13YXJlIHNob3VsZCBzdG9wIGRvaW5nIHRoaXMuDQpTbyBJIGRpZG4ndCBtYWtl
+IGl0IGEgcXVpcmsgdGhhdCBjYW4gb25seSBhcHBseSBmb3IgdGhlIEFDRVIgZmlybXdhcmUuDQoN
+CkkgcmVhZCB0aGUgd2hvbGUgYnVnIGxvZywgZm9yIG1lIGl0IGxvb2tzIGxpa2UgdGhhdCB0aGUg
+U2Ftc3VuZyBmaXJtd2FyZSBuZWVkIGEgc3BlY2lhbCBFQyBkcml2ZXIgZmVhdHVyZSB3aGljaCBp
+cyBjdXJyZW50bHkgbm90IGluIHRoZSBMaW51eCBrZXJuZWwuDQpBY2NvcmRpbmcgdG8gdGhlIHJv
+b3QgY2F1c2U6DQpDb21tZW50IDEwMC0xMDMgYXQgaHR0cHM6Ly9idWdzLmxhdW5jaHBhZC5uZXQv
+dWJ1bnR1Lytzb3VyY2UvbGludXgvK2J1Zy85NzEwNjEvDQpTYW1zdW5nIGxhcHRvcHMgbmVlZCBh
+IFNDSV9FVlQgcG9sbGluZyBtb2RlIHRvIGJlIGltcGxlbWVudGVkIGluIHRoZSBrZXJuZWwuDQoN
+CkZvcnR1bmF0ZWx5LCBJIGhhZCB0aGlzIGFscmVhZHkgaW1wbGVtZW50ZWQsIHlvdSBjYW4gZmlu
+ZCBpdCBoZXJlOg0KaHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cvbGludXgvY29tbWl0LzBmZTk0
+MDZkIDwtIGl0IGltcGxlbWVudHMgYSBwb2xsaW5nIHRocmVhZCBpbiB0aGUga2VybmVsIHRvIHBv
+bGwgU0NJX0VWVC4NCmh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2xpbnV4L2NvbW1pdC8yOGVm
+MDU3NiA8LSBpdCBhZGRzIGEgcXVpcmsgbWVjaGFuaXNtIHRvIGFsbG93IExpbnV4IHRvIGFsd2F5
+cyBwb2xsIFNDSV9FVlQgKEkgbmVlZCB0byBpbXByb3ZlIGl0IGFjY29yZGluZyB0byB5b3VyIHJl
+cG9ydCkuDQoNCkl0IGp1c3QgdGFrZXMgdGltZSB0byBtYWtlIGl0IHVwc3RyZWFtIGJlY2F1c2Ug
+dGhlcmUgaXMgYSBjbGVhbnVwIGluIGl0IHRvIGNvcnJlY3QgdGhlIHN0b3JtaW5nIHByZXZlbnRp
+b24gY3JhcHMgaW4gdGhlIHNhbWUgc2VyaWVzOg0KaHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cv
+bGludXgvY29tbWl0L2ZhNDAyNGM4DQp3aGljaCBkZXBlbmRzIG9uIGFuIEFDUElDQSBjb21taXQs
+IHRoZSBjb21taXQgaGFzIGJlZW4gdW5kZXIgZGlzY3Vzc2lvbiBmb3IgbW9yZSB0aGFuIDMgbW9u
+dGhzOg0KaHR0cHM6Ly9naXRodWIuY29tL3pldGFsb2cvbGludXgvY29tbWl0L2UyMGUwZmRlDQoN
+CkxldCBtZSB0cnkgdG8gcmViYXNlIHRoZSBzZXJpZXMgYW5kIG1ha2UgdGhlIFNDSV9FVlQgcG9s
+bGluZyB0aHJlYWQgaW5kZXBlbmRlbnQgb2YgdGhlIHN0b3JtaW5nIHByZXZlbnRpb24gY2xlYW51
+cHMuDQpTbyB0aGF0IEkgY2FuIG1ha2UgaXQgdXBzdHJlYW0gZmlyc3QgdG8gcGVybWFuZW50bHkg
+Zml4IHRoZSBTYW1zdW5nIGxhcHRvcCBwcm9ibGVtcyBpbiB0aGUga2VybmVsLg0KSSBtYXkgYXNr
+IHlvdSBmb3IgaGVscCB0byB0ZXN0IHRoZSBuZXcgZmVhdHVyZSBhZnRlciBpdCBpcyByZWFkeS4N
+Cg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IEZyb206IE9ydHdpbiBHbMO8Y2sg
+W21haWx0bzpvZGlAb2RpLmNoXQ0KPiBTZW50OiBTdW5kYXksIE9jdG9iZXIgMjYsIDIwMTQgODox
+NyBQTQ0KPiANCj4gTHYsDQo+IA0KPiBUaGVzZSB0d28gcGF0Y2hlcyBpbnRyb2R1Y2UgYSByZWdy
+ZXNzaW9uIGZvciBTYW1zdW5nIG5vdGVib29rcyBhbmQgdGhleSBubw0KPiBsb25nZXIgZ2V0IEFD
+UEkgaW50ZXJydXB0cyBmb3IgcGx1Z2dpbmcgdGhlIHBvd2VyIGFkYXB0ZXIgb3IgTElEIHN3aXRj
+aGVzLg0KPiANCj4gTXVsdGlwbGUgcGVvcGxlIGhhdmUgdmVyaWZpZWQgdGhhdCByZXZlcnRpbmcg
+dGhlc2UgcGF0Y2hlcyBtYWtlcyB0aGUgcmVncmVzc2lvbg0KPiBnbyBhd2F5Lg0KPiANCj4gUGxl
+YXNlIHNlZSBuZXcgY29tbWVudHMgaW46DQo+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9z
+aG93X2J1Zy5jZ2k/aWQ9NDQxNjEjYzE4NA0KPiANCj4gIEZyb20gM2FmY2YyZWNlNDUzZTFhOGMy
+YzZkZTE5Y2RmMDZkYTM3NzJhMWIwOCBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gRnJvbTog
+THYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gRGF0ZTogVGh1LCAyMSBBdWcgMjAxNCAx
+NDo0MToxMyArMDgwMA0KPiBTdWJqZWN0OiBbUEFUQ0hdIEFDUEkgLyBFQzogQWRkIHN1cHBvcnQg
+dG8gZGlzYWxsb3cgUVJfRUMgdG8gYmUgaXNzdWVkIHdoZW4NCj4gICBTQ0lfRVZUIGlzbid0IHNl
+dA0KPiANCj4gIEZyb20gNTU4ZTQ3MzZmMmUxYjBlNjMyM2FkZjdhNWU0ZGY3N2VkNmNmYzFhNCBN
+b24gU2VwIDE3IDAwOjAwOjAwIDIwMDENCj4gRnJvbTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVs
+LmNvbT4NCj4gRGF0ZTogVGh1LCAyMSBBdWcgMjAxNCAxNDo0MToyNiArMDgwMA0KPiBTdWJqZWN0
+OiBbUEFUQ0hdIEFDUEkgLyBFQzogQWRkIHN1cHBvcnQgdG8gZGlzYWxsb3cgUVJfRUMgdG8gYmUg
+aXNzdWVkIGJlZm9yZQ0KPiAgIGNvbXBsZXRpbmcgcHJldmlvdXMgUVJfRUMNCj4gDQo+IA0KPiBU
+aGFua3MsDQo+IA0KPiBPcnR3aW4NCj4gDQoNCg==
