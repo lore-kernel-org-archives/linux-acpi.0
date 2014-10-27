@@ -1,93 +1,64 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v3 07/20] x86, irq: Protect __clear_irq_vector() with vector_lock
-Date: Mon, 27 Oct 2014 16:11:58 +0800
-Message-ID: <1414397531-28254-8-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v3 08/20] x86, irq: Introduce helpers to access struct irq_cfg
+Date: Mon, 27 Oct 2014 16:11:59 +0800
+Message-ID: <1414397531-28254-9-git-send-email-jiang.liu@linux.intel.com>
 References: <1414397531-28254-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:3415 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752887AbaJ0IKu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Oct 2014 04:10:50 -0400
 In-Reply-To: <1414397531-28254-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Prarit Bhargava <prarit@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>, Grant Likely <grant.likely@linaro.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Function __clear_irq_vector() accesses vector related data structure,
-so protect it with vector_lock. Also rename it as clear_irq_vector().
+Change irq_cfg() from static to extern, also introduce helper function
+irqd_cfg(). Later we could rewrite these two helpers when enabling
+hierarchy irqdomain.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/hw_irq.h  |    2 ++
+ arch/x86/kernel/apic/io_apic.c |    7 ++++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index 18e8717bf644..f457fcd0f3ba 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -132,6 +132,8 @@ struct irq_cfg {
+ 	};
+ };
+ 
++extern struct irq_cfg *irq_cfg(unsigned int irq);
++extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
+ extern void setup_vector_irq(int cpu);
+ extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
+ extern void send_cleanup_vector(struct irq_cfg *);
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index c8be3fa0844d..2de22ddf215a 100644
+index 2de22ddf215a..c44d74fbab95 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1349,10 +1349,12 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
- 	return err;
+@@ -281,11 +281,16 @@ int __init arch_early_irq_init(void)
+ 	return 0;
  }
  
--static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
-+static void clear_irq_vector(int irq, struct irq_cfg *cfg)
+-static inline struct irq_cfg *irq_cfg(unsigned int irq)
++struct irq_cfg *irq_cfg(unsigned int irq)
  {
- 	int cpu, vector;
-+	unsigned long flags;
+ 	return irq_get_chip_data(irq);
+ }
  
-+	raw_spin_lock_irqsave(&vector_lock, flags);
- 	BUG_ON(!cfg->vector);
- 
- 	vector = cfg->vector;
-@@ -1362,8 +1364,11 @@ static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
- 	cfg->vector = 0;
- 	cpumask_clear(cfg->domain);
- 
--	if (likely(!cfg->move_in_progress))
-+	if (likely(!cfg->move_in_progress)) {
-+		raw_spin_unlock_irqrestore(&vector_lock, flags);
- 		return;
-+	}
++struct irq_cfg *irqd_cfg(struct irq_data *irq_data)
++{
++	return irq_data->chip_data;
++}
 +
- 	for_each_cpu_and(cpu, cfg->old_domain, cpu_online_mask) {
- 		for (vector = FIRST_EXTERNAL_VECTOR; vector < NR_VECTORS; vector++) {
- 			if (per_cpu(vector_irq, cpu)[vector] != irq)
-@@ -1373,6 +1378,7 @@ static void __clear_irq_vector(int irq, struct irq_cfg *cfg)
- 		}
- 	}
- 	cfg->move_in_progress = 0;
-+	raw_spin_unlock_irqrestore(&vector_lock, flags);
- }
- 
- void __setup_vector_irq(int cpu)
-@@ -1499,7 +1505,7 @@ static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
- 					 &dest)) {
- 		pr_warn("Failed to obtain apicid for ioapic %d, pin %d\n",
- 			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
--		__clear_irq_vector(irq, cfg);
-+		clear_irq_vector(irq, cfg);
- 
- 		return;
- 	}
-@@ -1513,7 +1519,7 @@ static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
- 	if (x86_io_apic_ops.setup_entry(irq, &entry, dest, cfg->vector, attr)) {
- 		pr_warn("Failed to setup ioapic entry for ioapic  %d, pin %d\n",
- 			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
--		__clear_irq_vector(irq, cfg);
-+		clear_irq_vector(irq, cfg);
- 
- 		return;
- 	}
-@@ -3083,12 +3089,9 @@ int arch_setup_hwirq(unsigned int irq, int node)
- void arch_teardown_hwirq(unsigned int irq)
+ static struct irq_cfg *alloc_irq_cfg(unsigned int irq, int node)
  {
- 	struct irq_cfg *cfg = irq_cfg(irq);
--	unsigned long flags;
- 
- 	free_remapped_irq(irq);
--	raw_spin_lock_irqsave(&vector_lock, flags);
--	__clear_irq_vector(irq, cfg);
--	raw_spin_unlock_irqrestore(&vector_lock, flags);
-+	clear_irq_vector(irq, cfg);
- 	free_irq_cfg(irq, cfg);
- }
- 
+ 	struct irq_cfg *cfg;
 -- 
 1.7.10.4
+
