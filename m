@@ -1,123 +1,84 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v3 14/20] x86, irq: Move IRQ initialization routines from io_apic.c into vector.c
-Date: Mon, 27 Oct 2014 16:12:05 +0800
-Message-ID: <1414397531-28254-15-git-send-email-jiang.liu@linux.intel.com>
+From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [Patch Part1 v3 18/20] iommu/vt-d: Use helpers to access irq_cfg data
+	structure associated with IRQ
+Date: Mon, 27 Oct 2014 16:12:09 +0800
+Message-ID: <1414397531-28254-19-git-send-email-jiang.liu@linux.intel.com>
 References: <1414397531-28254-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1414397531-28254-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Prarit Bhargava <prarit@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1414397531-28254-1-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Move IRQ initialization routines from io_apic.c into vector.c,
-preparing for enabling hierarchy irqdomain.
+Use helpers to access irq_cfg data structure associated with IRQ,
+instead of accessing irq_data->chip_data directly. Later we could
+rewrite those helpers to support hierarchy irqdomain.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- arch/x86/include/asm/io_apic.h |    2 ++
- arch/x86/kernel/apic/io_apic.c |   22 +---------------------
- arch/x86/kernel/apic/vector.c  |   28 ++++++++++++++++++++++++++++
- 3 files changed, 31 insertions(+), 21 deletions(-)
+ drivers/iommu/intel_irq_remapping.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 533803dc3733..7bf86bfe05b1 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -145,6 +145,7 @@ extern unsigned long io_apic_irqs;
+diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
+index 7c80661b35c1..fd181cf8a589 100644
+--- a/drivers/iommu/intel_irq_remapping.c
++++ b/drivers/iommu/intel_irq_remapping.c
+@@ -55,7 +55,7 @@ static int __init parse_ioapics_under_ir(void);
  
- struct irq_cfg;
- extern void ioapic_insert_resources(void);
-+extern int arch_early_ioapic_init(void);
- 
- extern int native_setup_ioapic_entry(int, struct IO_APIC_route_entry *,
- 				     unsigned int, int,
-@@ -249,6 +250,7 @@ extern void print_IO_APICs(void);
- #define io_apic_assign_pci_irqs 0
- #define setup_ioapic_ids_from_mpc x86_init_noop
- static inline void ioapic_insert_resources(void) { }
-+static inline int arch_early_ioapic_init(void) { return 0; }
- static inline void print_IO_APICs(void) {}
- #define gsi_top (NR_IRQS_LEGACY)
- static inline int mp_find_ioapic(u32 gsi) { return 0; }
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index b6f249ac5d20..f94094a0b00d 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -245,7 +245,7 @@ static void free_ioapic_saved_registers(int idx)
- 	ioapics[idx].saved_registers = NULL;
+ static struct irq_2_iommu *irq_2_iommu(unsigned int irq)
+ {
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	return cfg ? &cfg->irq_2_iommu : NULL;
  }
  
--int __init arch_early_irq_init(void)
-+int __init arch_early_ioapic_init(void)
+@@ -86,7 +86,7 @@ static int alloc_irte(struct intel_iommu *iommu, int irq, u16 count)
  {
- 	struct irq_cfg *cfg;
- 	int i, node = cpu_to_node(0);
-@@ -2487,26 +2487,6 @@ unsigned int arch_dynirq_lower_bound(unsigned int from)
- 	return ioapic_initialized ? ioapic_dynirq_base : gsi_top;
- }
+ 	struct ir_table *table = iommu->ir_table;
+ 	struct irq_2_iommu *irq_iommu = irq_2_iommu(irq);
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	unsigned int mask = 0;
+ 	unsigned long flags;
+ 	int index;
+@@ -154,7 +154,7 @@ static int map_irq_to_irte_handle(int irq, u16 *sub_handle)
+ static int set_irte_irq(int irq, struct intel_iommu *iommu, u16 index, u16 subhandle)
+ {
+ 	struct irq_2_iommu *irq_iommu = irq_2_iommu(irq);
+-	struct irq_cfg *cfg = irq_get_chip_data(irq);
++	struct irq_cfg *cfg = irq_cfg(irq);
+ 	unsigned long flags;
  
--int __init arch_probe_nr_irqs(void)
--{
--	int nr;
--
--	if (nr_irqs > (NR_VECTORS * nr_cpu_ids))
--		nr_irqs = NR_VECTORS * nr_cpu_ids;
--
--	nr = (gsi_top + nr_legacy_irqs()) + 8 * nr_cpu_ids;
--#if defined(CONFIG_PCI_MSI) || defined(CONFIG_HT_IRQ)
--	/*
--	 * for MSI and HT dyn irq
--	 */
--	nr += gsi_top * 16;
--#endif
--	if (nr < nr_irqs)
--		nr_irqs = nr;
--
--	return 0;
--}
--
- #ifdef CONFIG_X86_32
- static int io_apic_get_unique_id(int ioapic, int apic_id)
+ 	if (!irq_iommu)
+@@ -1008,7 +1008,7 @@ static int
+ intel_ioapic_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 			  bool force)
  {
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index f728cbfc29a9..2d778f508f65 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -235,6 +235,34 @@ void clear_irq_vector(int irq, struct irq_cfg *cfg)
- 	raw_spin_unlock_irqrestore(&vector_lock, flags);
- }
+-	struct irq_cfg *cfg = data->chip_data;
++	struct irq_cfg *cfg = irqd_cfg(data);
+ 	unsigned int dest, irq = data->irq;
+ 	struct irte irte;
+ 	int err;
+@@ -1063,7 +1063,7 @@ static void intel_compose_msi_msg(struct pci_dev *pdev,
+ 	u16 sub_handle = 0;
+ 	int ir_index;
  
-+int __init arch_probe_nr_irqs(void)
-+{
-+	int nr;
-+
-+	if (nr_irqs > (NR_VECTORS * nr_cpu_ids))
-+		nr_irqs = NR_VECTORS * nr_cpu_ids;
-+
-+	nr = (gsi_top + nr_legacy_irqs()) + 8 * nr_cpu_ids;
-+#if defined(CONFIG_PCI_MSI) || defined(CONFIG_HT_IRQ)
-+	/*
-+	 * for MSI and HT dyn irq
-+	 */
-+	if (gsi_top <= NR_IRQS_LEGACY)
-+		nr +=  8 * nr_cpu_ids;
-+	else
-+		nr += gsi_top * 16;
-+#endif
-+	if (nr < nr_irqs)
-+		nr_irqs = nr;
-+
-+	return nr_legacy_irqs();
-+}
-+
-+int __init arch_early_irq_init(void)
-+{
-+	return arch_early_ioapic_init();
-+}
-+
- static void __setup_vector_irq(int cpu)
- {
- 	/* Initialize vector_irq on a new cpu */
+-	cfg = irq_get_chip_data(irq);
++	cfg = irq_cfg(irq);
+ 
+ 	ir_index = map_irq_to_irte_handle(irq, &sub_handle);
+ 	BUG_ON(ir_index == -1);
 -- 
 1.7.10.4
