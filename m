@@ -1,51 +1,47 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v7 06/18] ACPI: Fix minor syntax issues in processor_core.c
-Date: Mon, 27 Oct 2014 13:21:36 +0800
-Message-ID: <1414387308-27148-7-git-send-email-jiang.liu@linux.intel.com>
-References: <1414387308-27148-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1414387308-27148-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Adam Lee <adam.lee@canonical.com>
+Subject: [PATCH] ACPI: blacklist Win8 OSI for Dell Vostro 3546
+Date: Mon, 27 Oct 2014 13:55:45 +0800
+Message-ID: <1414389345-4723-1-git-send-email-adam.lee@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:50640 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959AbaJ0Fzb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Oct 2014 01:55:31 -0400
+Received: by mail-pa0-f41.google.com with SMTP id rd3so4826174pab.0
+        for <linux-acpi@vger.kernel.org>; Sun, 26 Oct 2014 22:55:30 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-Fix minor syntax issues in processor_core.c to follow coding styles.
+The wireless hotkey of Dell Vostro 3546 does not work with Win8 OSI. Due
+to insufficient documentation for the driver implementation, blacklist
+it as a workaround.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Adam Lee <adam.lee@canonical.com>
 ---
- drivers/acpi/processor_core.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/acpi/blacklist.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index ef58f46c8442..342942f90a10 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -125,13 +125,12 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 	}
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index ed122e1..7556e7c 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -290,6 +290,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3446"),
+ 		},
+ 	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "Dell Vostro 3546",
++	.matches = {
++		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3546"),
++		},
++	},
  
- 	header = (struct acpi_subtable_header *)obj->buffer.pointer;
--	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
-+	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
- 		map_lapic_id(header, acpi_id, &apic_id);
--	} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
-+	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
- 		map_lsapic_id(header, type, acpi_id, &apic_id);
--	} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
-+	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
- 		map_x2apic_id(header, type, acpi_id, &apic_id);
--	}
- 
- exit:
- 	kfree(buffer.pointer);
-@@ -164,7 +163,7 @@ int acpi_map_cpuid(int apic_id, u32 acpi_id)
- 		 * For example,
- 		 *
- 		 * Scope (_PR)
--                 * {
-+		 * {
- 		 *     Processor (CPU0, 0x00, 0x00000410, 0x06) {}
- 		 *     Processor (CPU1, 0x01, 0x00000410, 0x06) {}
- 		 *     Processor (CPU2, 0x02, 0x00000410, 0x06) {}
+ 	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
 -- 
-1.7.10.4
+2.1.1
+
