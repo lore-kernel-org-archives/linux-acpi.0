@@ -1,47 +1,36 @@
-From: Adam Lee <adam.lee@canonical.com>
-Subject: [PATCH] ACPI: blacklist Win8 OSI for Dell Vostro 3546
-Date: Mon, 27 Oct 2014 13:55:45 +0800
-Message-ID: <1414389345-4723-1-git-send-email-adam.lee@canonical.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio:
+ Support for unified device properties interface)
+Date: Mon, 27 Oct 2014 09:50:04 +0200
+Message-ID: <20141027075004.GW1484@lahna.fi.intel.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+ <1581499.2RkCnyfbq6@vostro.rjw.lan>
+ <20141024073436.GN1484@lahna.fi.intel.com>
+ <1971306.rIA5QAW7ve@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:50640 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbaJ0Fzb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Oct 2014 01:55:31 -0400
-Received: by mail-pa0-f41.google.com with SMTP id rd3so4826174pab.0
-        for <linux-acpi@vger.kernel.org>; Sun, 26 Oct 2014 22:55:30 -0700 (PDT)
+Received: from mga11.intel.com ([192.55.52.93]:1865 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751711AbaJ0HuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Oct 2014 03:50:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1971306.rIA5QAW7ve@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-The wireless hotkey of Dell Vostro 3546 does not work with Win8 OSI. Due
-to insufficient documentation for the driver implementation, blacklist
-it as a workaround.
+On Sat, Oct 25, 2014 at 12:00:33AM +0200, Rafael J. Wysocki wrote:
+> I folded your fixes into my patch and I'm going to send the result, with a
+> changelog, in a reply to this message.
 
-Signed-off-by: Adam Lee <adam.lee@canonical.com>
----
- drivers/acpi/blacklist.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Thanks!
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index ed122e1..7556e7c 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -290,6 +290,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3446"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Vostro 3546",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3546"),
-+		},
-+	},
- 
- 	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
--- 
-2.1.1
+> If everyone is happy with it, I'll add it to the device properties patch
+> series as it depends on those.
+> 
+> I guess you can add a changelog to your rfkill changes and then we could
+> add them to that series too if there are no objections.
 
+OK, I'll do that today.
