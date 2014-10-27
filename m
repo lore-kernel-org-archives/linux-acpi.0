@@ -1,15 +1,19 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: [Patch v7 00/18] Enable support of IOAPIC hotplug on x86 platforms
-Date: Mon, 27 Oct 2014 13:20:53 +0800
-Message-ID: <1414387271-27057-1-git-send-email-jiang.liu@linux.intel.com>
+Date: Mon, 27 Oct 2014 13:21:30 +0800
+Message-ID: <1414387308-27148-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:27123 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751616AbaJ0FSx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Oct 2014 01:18:53 -0400
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
 hotplug on x86 platforms. It's based on v3.18-rc2 at
@@ -107,3 +111,4 @@ Yinghai Lu (3):
 
 -- 
 1.7.10.4
+
