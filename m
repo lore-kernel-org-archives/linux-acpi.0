@@ -1,50 +1,62 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Patch v7 05/18] ACPI: Correct return value of acpi_dev_resource_address_space()
-Date: Mon, 27 Oct 2014 23:30:40 +0100
-Message-ID: <2575568.AkFDcf4v5G@vostro.rjw.lan>
-References: <1414387308-27148-1-git-send-email-jiang.liu@linux.intel.com> <1414387308-27148-6-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Mon, 27 Oct 2014 23:34:35 +0100
+Message-ID: <3242497.urQmuvpeyA@vostro.rjw.lan>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <2758495.RYBbleVHkC@vostro.rjw.lan> <CAAVeFuK2sBC2n5TdMwEbhi3gq7DqQm-3h-esQpoQd3U1jDJxpg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55233 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752302AbaJ0WKH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Oct 2014 18:10:07 -0400
-In-Reply-To: <1414387308-27148-6-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAAVeFuK2sBC2n5TdMwEbhi3gq7DqQm-3h-esQpoQd3U1jDJxpg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, October 27, 2014 01:21:35 PM Jiang Liu wrote:
-> Change acpi_dev_resource_address_space() to return failure if the
-> acpi_resource structure can't be converted to an ACPI address64
-> structure, so caller could correctly detect failure.
+On Monday, October 27, 2014 02:21:23 PM Alexandre Courbot wrote:
+> On Sat, Oct 25, 2014 at 7:05 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Provide a way for device drivers using GPIOs described by ACPI
+> > GpioIo resources in _CRS to tell the GPIO subsystem what names
+> > (connection IDs) to associate with specific GPIO pins defined
+> > in there.
+> >
+> > To do that, a driver needs to define a mapping table as a
+> > NULL-terminated array of struct acpi_gpio_mapping objects
+> > that each contain a name, a pointer to an array of pin data
+> > (struct acpi_gpio_params) objects and the size of that array.
+> >
+> > Each struct acpi_gpio_params object consists of three fields,
+> > crs_entry_index, pin_index, active_low, representing the index of
+> > the target GpioIo()/GpioInt() resource in _CRS starting from zero,
+> > the index of the target pin in that resource starting from zero,
+> > and the active-low flag for that pin, respectively.
+> >
+> > Next, the mapping table needs to be passed as the second argument to
+> > acpi_dev_add_driver_gpios() that will register it with the ACPI device
+> > object pointed to by its first argument.  That object must represent
+> > the ACPI namespace node containing the _CRS object referred to by the
+> > GPIO mapping.  That should be done in the driver's .probe() routine.
+> >
+> > On removal, the driver should unregister its GPIO mapping table
+> > by calling acpi_dev_remove_driver_gpios() on the ACPI device
+> > object where that table was previously registered.
+> >
+> > Included are fixes from Mika Westerberg.
 > 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-
-ACK
-
-> ---
->  drivers/acpi/resource.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 > 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 2ba8f02ced36..782a0d15c25f 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -200,7 +200,7 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
->  
->  	status = acpi_resource_to_address64(ares, &addr);
->  	if (ACPI_FAILURE(status))
-> -		return true;
-> +		return false;
->  
->  	res->start = addr.minimum;
->  	res->end = addr.maximum;
-> 
+> As we discussed already, this is a great idea. The only thing that is
+> missing is a paragraph in Documentation/gpio/consumer.txt with an
+> explanation of the global mechanism and a simple example to illustrate
+> how and when this should be used.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Yes, I'm going to provide documentation.
+
+One question, though.  We're already adding gpio-properties.txt under
+Documentation/acpi/ containing analogous information for _DSD-based
+mappings.  I thought I'd add a section to that file and a short paragraph
+pointing to it into consumer.txt, would that work?
+
+Rafael
