@@ -1,54 +1,148 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / GPIO: Pass index to acpi_get_gpiod_by_index() when using properties
-Date: Tue, 28 Oct 2014 13:15:27 +0200
-Message-ID: <1414494927-204923-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO descriptors
+Date: Tue, 28 Oct 2014 16:26:25 +0100
+Message-ID: <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
+	<11223831.j9KAEfSQsY@vostro.rjw.lan>
+	<3395005.IveyhHQnye@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:54930 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750727AbaJ1P00 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Oct 2014 11:26:26 -0400
+Received: by mail-ie0-f178.google.com with SMTP id rl12so876802iec.23
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Oct 2014 08:26:25 -0700 (PDT)
+In-Reply-To: <3395005.IveyhHQnye@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-acpi_dev_add_driver_gpios() makes it possible to set up mapping between
-properties and ACPI GpioIo resources in a driver, so we can take index
-parameter in acpi_find_gpio() into use with _DSD device properties now.
+On Fri, Oct 17, 2014 at 2:11 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 
-This index can be used to select a GPIO from a property with multiple
-GPIOs:
+> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+>
+> GPIO descriptors are the preferred way over legacy GPIO numbers
+> nowadays. Convert the driver to use GPIO descriptors internally but
+> still allow passing legacy GPIO numbers from platform data to support
+> existing platforms.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+> Acked-by: Bryan Wu <cooloney@gmail.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+(...)
 
-  Package () {
-  	"data-gpios",
-  	Package () {
-  		\_SB.GPIO, 0, 0, 0,
-  		\_SB.GPIO, 1, 0, 0,
-  		\_SB.GPIO, 2, 0, 1,
-  	}
-  }
+>         if (led_dat->blinking) {
+> -               led_dat->platform_gpio_blink_set(led_dat->gpio,
+> -                                                led_dat->new_level,
+> -                                                NULL, NULL);
+> +               int gpio = desc_to_gpio(led_dat->gpiod);
+> +               int level = led_dat->new_level;
 
-In order to retrieve the last GPIO from a driver we can simply do:
+So this desc_to_gpio() is done only to call the legacy callback below?
 
-  desc = devm_gpiod_get_index(dev, "data", 2);
+> +               if (gpiod_is_active_low(led_dat->gpiod))
+> +                       level = !level;
 
-and so on.
+And that leads to making it necessary to have this helper variable
+to invert the level since that callback does not pass a descriptor
+(which would inherently know if it's active low)....
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-This is on top of latest linux-pm/device-properties.
+> +
+> +               led_dat->platform_gpio_blink_set(gpio, level, NULL, NULL);
 
- drivers/gpio/gpiolib.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Is it *really* impossible to change all the users of this callback?
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index fbf717a56b0a..58659dbe702a 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1522,7 +1522,7 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
- 				 suffixes[i]);
- 		}
- 
--		desc = acpi_get_gpiod_by_index(adev, propname, 0, &info);
-+		desc = acpi_get_gpiod_by_index(adev, propname, idx, &info);
- 		if (!IS_ERR(desc) || (PTR_ERR(desc) == -EPROBE_DEFER))
- 			break;
- 	}
--- 
-2.1.1
+>                 led_dat->blinking = 0;
+>         } else
+> -               gpio_set_value_cansleep(led_dat->gpio, led_dat->new_level);
+> +               gpiod_set_value_cansleep(led_dat->gpiod, led_dat->new_level);
+
+(...)
+>         /* Setting GPIOs with I2C/etc requires a task context, and we don't
+>          * seem to have a reliable way to know if we're already in one; so
+>          * let's just assume the worst.
+> @@ -72,11 +73,16 @@ static void gpio_led_set(struct led_clas
+>                 schedule_work(&led_dat->work);
+>         } else {
+>                 if (led_dat->blinking) {
+> -                       led_dat->platform_gpio_blink_set(led_dat->gpio, level,
+> -                                                        NULL, NULL);
+> +                       int gpio = desc_to_gpio(led_dat->gpiod);
+> +
+> +                       if (gpiod_is_active_low(led_dat->gpiod))
+> +                               level = !level;
+> +
+> +                       led_dat->platform_gpio_blink_set(gpio, level, NULL,
+> +                                                        NULL);
+
+Same comment.
+
+> @@ -85,9 +91,10 @@ static int gpio_blink_set(struct led_cla
+>  {
+>         struct gpio_led_data *led_dat =
+>                 container_of(led_cdev, struct gpio_led_data, cdev);
+> +       int gpio = desc_to_gpio(led_dat->gpiod);
+>
+>         led_dat->blinking = 1;
+> -       return led_dat->platform_gpio_blink_set(led_dat->gpio, GPIO_LED_BLINK,
+> +       return led_dat->platform_gpio_blink_set(gpio, GPIO_LED_BLINK,
+>                                                 delay_on, delay_off);
+
+Same comment.
+
+> @@ -97,24 +104,33 @@ static int create_gpio_led(const struct
+>  {
+>         int ret, state;
+>
+> -       led_dat->gpio = -1;
+> +       if (!template->gpiod) {
+> +               unsigned long flags = 0;
+>
+> -       /* skip leds that aren't available */
+> -       if (!gpio_is_valid(template->gpio)) {
+> -               dev_info(parent, "Skipping unavailable LED gpio %d (%s)\n",
+> -                               template->gpio, template->name);
+> -               return 0;
+> +               /* skip leds that aren't available */
+> +               if (!gpio_is_valid(template->gpio)) {
+> +                       dev_info(parent, "Skipping unavailable LED gpio %d (%s)\n",
+> +                                       template->gpio, template->name);
+> +                       return 0;
+> +               }
+> +
+> +               if (template->active_low)
+> +                       flags |= GPIOF_ACTIVE_LOW;
+> +
+> +               ret = devm_gpio_request_one(parent, template->gpio, flags,
+> +                                           template->name);
+> +               if (ret < 0)
+> +                       return ret;
+> +
+> +               led_dat->gpiod = gpio_to_desc(template->gpio);
+> +               if (IS_ERR(led_dat->gpiod))
+> +                       return PTR_ERR(led_dat->gpiod);
+>         }
+
+OK so this is the legacy codepath: point it out in a big fat
+comment that this is the legacy codepath.
+
+> Index: linux-pm/include/linux/leds.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/leds.h
+> +++ linux-pm/include/linux/leds.h
+> @@ -251,6 +251,7 @@ struct gpio_led {
+>         unsigned        retain_state_suspended : 1;
+>         unsigned        default_state : 2;
+>         /* default_state should be one of LEDS_GPIO_DEFSTATE_(ON|OFF|KEEP) */
+> +       struct gpio_desc *gpiod;
+
+Put the new struct member right below the current "gpio"
+member, and add comments saying that either needs to be
+specified but "gpio" is deprecated for "gpiod".
+
+Yours,
+Linus Walleij
