@@ -1,102 +1,54 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH RESEND] net: rfkill: gpio: Add ACPI default GPIO driver mappings
-Date: Tue, 28 Oct 2014 12:03:48 +0200
-Message-ID: <1414490628-107823-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19196 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752758AbaJ1KDw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Oct 2014 06:03:52 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH] ACPI / GPIO: Pass index to acpi_get_gpiod_by_index() when using properties
+Date: Tue, 28 Oct 2014 13:15:27 +0200
+Message-ID: <1414494927-204923-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Johannes Berg <johannes@sipsolutions.net>, "John W. Linville" <linville@tuxdriver.com>, Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Darren Hart <dvhart@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The driver uses devm_gpiod_get_index(..., index) so that the index refers
-directly to the GpioIo resource under the ACPI device. The problem with
-this is that if the ordering changes we get wrong GPIOs.
+acpi_dev_add_driver_gpios() makes it possible to set up mapping between
+properties and ACPI GpioIo resources in a driver, so we can take index
+parameter in acpi_find_gpio() into use with _DSD device properties now.
 
-With ACPI 5.1 _DSD we can now use names instead to reference GPIOs
-analogous to Device Tree. However, we still have systems out there that do
-not provide _DSD at all. These systems must be supported as well.
+This index can be used to select a GPIO from a property with multiple
+GPIOs:
 
-Luckily we now have acpi_dev_add_driver_gpios() that can be used to provide
-mappings for systems where _DSD is not provided and still take advantage of
-_DSD if it exists.
+  Package () {
+  	"data-gpios",
+  	Package () {
+  		\_SB.GPIO, 0, 0, 0,
+  		\_SB.GPIO, 1, 0, 0,
+  		\_SB.GPIO, 2, 0, 1,
+  	}
+  }
 
-This patch converts the rfkill-gpio.c driver to create default GPIO
-mappings to the two GPIOs in case we are running on ACPI system.
+In order to retrieve the last GPIO from a driver we can simply do:
 
-While there we can drop the indices completely.
+  desc = devm_gpiod_get_index(dev, "data", 2);
+
+and so on.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: John W. Linville <linville@tuxdriver.com>
 ---
-Resending with linux-acpi included. I also added ACKs from Johannes and
-John. The patch itself is intact.
+This is on top of latest linux-pm/device-properties.
 
- net/rfkill/rfkill-gpio.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/gpio/gpiolib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/rfkill/rfkill-gpio.c b/net/rfkill/rfkill-gpio.c
-index 0f62326c0f5e..2a4717967502 100644
---- a/net/rfkill/rfkill-gpio.c
-+++ b/net/rfkill/rfkill-gpio.c
-@@ -63,6 +63,15 @@ static const struct rfkill_ops rfkill_gpio_ops = {
- 	.set_block = rfkill_gpio_set_power,
- };
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index fbf717a56b0a..58659dbe702a 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1522,7 +1522,7 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
+ 				 suffixes[i]);
+ 		}
  
-+static const struct acpi_gpio_params reset_gpios = { 0, 0, false };
-+static const struct acpi_gpio_params shutdown_gpios = { 1, 0, false };
-+
-+static const struct acpi_gpio_mapping acpi_rfkill_default_gpios[] = {
-+	{ "reset-gpios", &reset_gpios, 1 },
-+	{ "shutdown-gpios", &shutdown_gpios, 1 },
-+	{ },
-+};
-+
- static int rfkill_gpio_acpi_probe(struct device *dev,
- 				  struct rfkill_gpio_data *rfkill)
- {
-@@ -75,7 +84,8 @@ static int rfkill_gpio_acpi_probe(struct device *dev,
- 	rfkill->name = dev_name(dev);
- 	rfkill->type = (unsigned)id->driver_data;
- 
--	return 0;
-+	return acpi_dev_add_driver_gpios(ACPI_COMPANION(dev),
-+					 acpi_rfkill_default_gpios);
- }
- 
- static int rfkill_gpio_probe(struct platform_device *pdev)
-@@ -102,7 +112,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 
- 	rfkill->clk = devm_clk_get(&pdev->dev, NULL);
- 
--	gpio = devm_gpiod_get_index(&pdev->dev, "reset", 0);
-+	gpio = devm_gpiod_get(&pdev->dev, "reset");
- 	if (!IS_ERR(gpio)) {
- 		ret = gpiod_direction_output(gpio, 0);
- 		if (ret)
-@@ -110,7 +120,7 @@ static int rfkill_gpio_probe(struct platform_device *pdev)
- 		rfkill->reset_gpio = gpio;
+-		desc = acpi_get_gpiod_by_index(adev, propname, 0, &info);
++		desc = acpi_get_gpiod_by_index(adev, propname, idx, &info);
+ 		if (!IS_ERR(desc) || (PTR_ERR(desc) == -EPROBE_DEFER))
+ 			break;
  	}
- 
--	gpio = devm_gpiod_get_index(&pdev->dev, "shutdown", 1);
-+	gpio = devm_gpiod_get(&pdev->dev, "shutdown");
- 	if (!IS_ERR(gpio)) {
- 		ret = gpiod_direction_output(gpio, 0);
- 		if (ret)
-@@ -150,6 +160,8 @@ static int rfkill_gpio_remove(struct platform_device *pdev)
- 	rfkill_unregister(rfkill->rfkill_dev);
- 	rfkill_destroy(rfkill->rfkill_dev);
- 
-+	acpi_dev_remove_driver_gpios(ACPI_COMPANION(&pdev->dev));
-+
- 	return 0;
- }
- 
 -- 
 2.1.1
-
