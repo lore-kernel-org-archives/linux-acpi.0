@@ -1,69 +1,162 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch Part2 v3 01/24] irqdomain: Introduce new interfaces to
- support hierarchy irqdomains
-Date: Tue, 28 Oct 2014 21:23:11 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1410282116220.5308@nanos>
-References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com>  <1414484803-10311-2-git-send-email-jiang.liu@linux.intel.com> <1414489711.32399.53.camel@mtksdaap41> <alpine.DEB.2.11.1410282010340.5308@nanos> <544FF900.4020601@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO descriptors
+Date: Tue, 28 Oct 2014 22:56:09 +0100
+Message-ID: <17483842.EFni4iQX1H@vostro.rjw.lan>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan> <3395005.IveyhHQnye@vostro.rjw.lan> <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <544FF900.4020601@arm.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Yingjoe Chen <yingjoe.chen@mediatek.com>, Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kern>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 28 Oct 2014, Marc Zyngier wrote:
-> On 28/10/14 19:37, Thomas Gleixner wrote:
-> > So while we are at it:
-> > 
-> >> +	if (irq_domain_is_hierarchy(domain)) {
-> >> +		if (domain->ops->xlate) {
-> >> +			/*
-> >> +			 * If we've already configured this interrupt,
-> >> +			 * don't do it again, or hell will break loose.
-> >> +			 */
-> >> +			virq = irq_find_mapping(domain, hwirq);
-> >> +			if (virq)
-> >> +				return virq;
-> > 
-> > I can understand that it is an issue if the mapping exists already,
-> > but I have to ask WHY is it correct behaviour to call into that code
-> > for an existing mapping.
+On Tuesday, October 28, 2014 04:26:25 PM Linus Walleij wrote:
+> On Fri, Oct 17, 2014 at 2:11 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 > 
-> As I have originally looked at this, I'll answer the question:
+> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >
+> > GPIO descriptors are the preferred way over legacy GPIO numbers
+> > nowadays. Convert the driver to use GPIO descriptors internally but
+> > still allow passing legacy GPIO numbers from platform data to support
+> > existing platforms.
+> >
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+> > Acked-by: Bryan Wu <cooloney@gmail.com>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> (...)
 > 
-> The generic DT code parses the whole tree, and generates platform
-> devices as it goes. As part of the platform device creation, it
-> populates the IRQ resources, which translates into calling into
-> irq_create_of_mapping(). You could argue that this behaviour is crazy,
-> and I wouldn't disagree.
-
-Mooo.
-
-> See http://www.spinics.net/lists/devicetree/msg53164.html for more gory
-> details.
+> >         if (led_dat->blinking) {
+> > -               led_dat->platform_gpio_blink_set(led_dat->gpio,
+> > -                                                led_dat->new_level,
+> > -                                                NULL, NULL);
+> > +               int gpio = desc_to_gpio(led_dat->gpiod);
+> > +               int level = led_dat->new_level;
 > 
-> > And why would this check only apply if domain->ops->xlate is set?
-> > irq_create_mapping() does it unconditionally.
+> So this desc_to_gpio() is done only to call the legacy callback below?
 > 
-> My original code used the xlate callback to parse the opaque irq_data,
-> computing hwirq, and I suspect this is a leftover of it. The above code
-> seems to pull hwirq out of thin air, which is probably not the intended
-> behaviour. Joe?
+> > +               if (gpiod_is_active_low(led_dat->gpiod))
+> > +                       level = !level;
+> 
+> And that leads to making it necessary to have this helper variable
+> to invert the level since that callback does not pass a descriptor
+> (which would inherently know if it's active low)....
+> 
+> > +
+> > +               led_dat->platform_gpio_blink_set(gpio, level, NULL, NULL);
+> 
+> Is it *really* impossible to change all the users of this callback?
 
-No. Here is the full patch from Joe:
+You said it could be done in a followup patch.  Here:
+http://marc.info/?l=linux-acpi&m=141154536921643&w=4
 
-  http://lists.infradead.org/pipermail/linux-arm-kernel/2014-October/296543.html
+And Mika said he would add that to his TODO list:
+http://marc.info/?l=linux-acpi&m=141155173924101&w=4
 
-hwirq gets either set from hwirq = irq_data->args[0] or from the xlate
-call.
+I suppose that is still valid.
 
-But my question still stands:
+> 
+> >                 led_dat->blinking = 0;
+> >         } else
+> > -               gpio_set_value_cansleep(led_dat->gpio, led_dat->new_level);
+> > +               gpiod_set_value_cansleep(led_dat->gpiod, led_dat->new_level);
+> 
+> (...)
+> >         /* Setting GPIOs with I2C/etc requires a task context, and we don't
+> >          * seem to have a reliable way to know if we're already in one; so
+> >          * let's just assume the worst.
+> > @@ -72,11 +73,16 @@ static void gpio_led_set(struct led_clas
+> >                 schedule_work(&led_dat->work);
+> >         } else {
+> >                 if (led_dat->blinking) {
+> > -                       led_dat->platform_gpio_blink_set(led_dat->gpio, level,
+> > -                                                        NULL, NULL);
+> > +                       int gpio = desc_to_gpio(led_dat->gpiod);
+> > +
+> > +                       if (gpiod_is_active_low(led_dat->gpiod))
+> > +                               level = !level;
+> > +
+> > +                       led_dat->platform_gpio_blink_set(gpio, level, NULL,
+> > +                                                        NULL);
+> 
+> Same comment.
+> 
+> > @@ -85,9 +91,10 @@ static int gpio_blink_set(struct led_cla
+> >  {
+> >         struct gpio_led_data *led_dat =
+> >                 container_of(led_cdev, struct gpio_led_data, cdev);
+> > +       int gpio = desc_to_gpio(led_dat->gpiod);
+> >
+> >         led_dat->blinking = 1;
+> > -       return led_dat->platform_gpio_blink_set(led_dat->gpio, GPIO_LED_BLINK,
+> > +       return led_dat->platform_gpio_blink_set(gpio, GPIO_LED_BLINK,
+> >                                                 delay_on, delay_off);
+> 
+> Same comment.
+> 
+> > @@ -97,24 +104,33 @@ static int create_gpio_led(const struct
+> >  {
+> >         int ret, state;
+> >
+> > -       led_dat->gpio = -1;
+> > +       if (!template->gpiod) {
+> > +               unsigned long flags = 0;
+> >
+> > -       /* skip leds that aren't available */
+> > -       if (!gpio_is_valid(template->gpio)) {
+> > -               dev_info(parent, "Skipping unavailable LED gpio %d (%s)\n",
+> > -                               template->gpio, template->name);
+> > -               return 0;
+> > +               /* skip leds that aren't available */
+> > +               if (!gpio_is_valid(template->gpio)) {
+> > +                       dev_info(parent, "Skipping unavailable LED gpio %d (%s)\n",
+> > +                                       template->gpio, template->name);
+> > +                       return 0;
+> > +               }
+> > +
+> > +               if (template->active_low)
+> > +                       flags |= GPIOF_ACTIVE_LOW;
+> > +
+> > +               ret = devm_gpio_request_one(parent, template->gpio, flags,
+> > +                                           template->name);
+> > +               if (ret < 0)
+> > +                       return ret;
+> > +
+> > +               led_dat->gpiod = gpio_to_desc(template->gpio);
+> > +               if (IS_ERR(led_dat->gpiod))
+> > +                       return PTR_ERR(led_dat->gpiod);
+> >         }
+> 
+> OK so this is the legacy codepath: point it out in a big fat
+> comment that this is the legacy codepath.
 
-Why would this check only apply if domain->ops->xlate is set?
-irq_create_mapping() does it unconditionally.
+That looks like it could be done in a followup patch too.
 
-Thanks,
+Since the series is in my linux-next branch at this point, I really wouldn't
+like to reshuffle commits in it if that can be avoided.
 
-	tglx
+> > Index: linux-pm/include/linux/leds.h
+> > ===================================================================
+> > --- linux-pm.orig/include/linux/leds.h
+> > +++ linux-pm/include/linux/leds.h
+> > @@ -251,6 +251,7 @@ struct gpio_led {
+> >         unsigned        retain_state_suspended : 1;
+> >         unsigned        default_state : 2;
+> >         /* default_state should be one of LEDS_GPIO_DEFSTATE_(ON|OFF|KEEP) */
+> > +       struct gpio_desc *gpiod;
+> 
+> Put the new struct member right below the current "gpio"
+> member,
+
+It was done like that in previous versions, but turned out to cause problems
+to happen in testing.  Unfortunately, I don't seem to be able to find a pointer
+to the original report ATM, but perhaps Mika can.  Mika?
+
+> and add comments saying that either needs to be
+> specified but "gpio" is deprecated for "gpiod".
+
+Kind regards,
+Rafael
