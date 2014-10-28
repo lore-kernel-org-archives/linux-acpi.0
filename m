@@ -1,120 +1,64 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v3 34/47] acpi: Register power-off handler with kernel
- power-off handler
-Date: Mon, 27 Oct 2014 19:10:26 -0700
-Message-ID: <544EFB12.1090901@roeck-us.net>
-References: <1414425354-10359-1-git-send-email-linux@roeck-us.net> <1414425354-10359-35-git-send-email-linux@roeck-us.net> <5416859.0WlfjKo7zJ@vostro.rjw.lan>
+From: Alexandre Courbot <gnurou@gmail.com>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Tue, 28 Oct 2014 13:11:50 +0900
+Message-ID: <CAAVeFuKStrzzwW7s37y7-a8y+j1gD-EzAYfc1h2KTo8uyd+dSA@mail.gmail.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+ <2758495.RYBbleVHkC@vostro.rjw.lan> <CAAVeFuK2sBC2n5TdMwEbhi3gq7DqQm-3h-esQpoQd3U1jDJxpg@mail.gmail.com>
+ <3242497.urQmuvpeyA@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:33848 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbaJ1CKb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Oct 2014 22:10:31 -0400
-Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
-	(envelope-from <linux@roeck-us.net>)
-	id 1XiwEv-001jsu-1x
-	for linux-acpi@vger.kernel.org; Tue, 28 Oct 2014 02:10:29 +0000
-In-Reply-To: <5416859.0WlfjKo7zJ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3242497.urQmuvpeyA@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On 10/27/2014 05:26 PM, Rafael J. Wysocki wrote:
-> On Monday, October 27, 2014 08:55:41 AM Guenter Roeck wrote:
->> Register with kernel power-off handler instead of setting pm_power_off
->> directly. Register with high priority to reflect that the driver explicitly
->> overrides existing power-off handlers.
->
-> Well, I'm still rather unconvinced that notifiers are particularly suitable for
-> this purpose.
->
-> Specifically ->
->
-
-Fine.
-
->> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->> Cc: Len Brown <lenb@kernel.org>
->> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> ---
->> v3:
->> - Replace poweroff in all newly introduced variables and in text
->>    with power_off or power-off as appropriate
->> - Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
->> - Replace acpi: with ACPI: in log message
->> v2:
->> - Use define to specify poweroff handler priority
->> - Use pr_warn instead of pr_err
+On Tue, Oct 28, 2014 at 7:34 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, October 27, 2014 02:21:23 PM Alexandre Courbot wrote:
+>> On Sat, Oct 25, 2014 at 7:05 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> >
+>> > Provide a way for device drivers using GPIOs described by ACPI
+>> > GpioIo resources in _CRS to tell the GPIO subsystem what names
+>> > (connection IDs) to associate with specific GPIO pins defined
+>> > in there.
+>> >
+>> > To do that, a driver needs to define a mapping table as a
+>> > NULL-terminated array of struct acpi_gpio_mapping objects
+>> > that each contain a name, a pointer to an array of pin data
+>> > (struct acpi_gpio_params) objects and the size of that array.
+>> >
+>> > Each struct acpi_gpio_params object consists of three fields,
+>> > crs_entry_index, pin_index, active_low, representing the index of
+>> > the target GpioIo()/GpioInt() resource in _CRS starting from zero,
+>> > the index of the target pin in that resource starting from zero,
+>> > and the active-low flag for that pin, respectively.
+>> >
+>> > Next, the mapping table needs to be passed as the second argument to
+>> > acpi_dev_add_driver_gpios() that will register it with the ACPI device
+>> > object pointed to by its first argument.  That object must represent
+>> > the ACPI namespace node containing the _CRS object referred to by the
+>> > GPIO mapping.  That should be done in the driver's .probe() routine.
+>> >
+>> > On removal, the driver should unregister its GPIO mapping table
+>> > by calling acpi_dev_remove_driver_gpios() on the ACPI device
+>> > object where that table was previously registered.
+>> >
+>> > Included are fixes from Mika Westerberg.
 >>
->>   drivers/acpi/sleep.c | 15 +++++++++++++--
->>   1 file changed, 13 insertions(+), 2 deletions(-)
+>> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 >>
->> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
->> index 05a31b5..7875b92 100644
->> --- a/drivers/acpi/sleep.c
->> +++ b/drivers/acpi/sleep.c
->> @@ -16,6 +16,8 @@
->>   #include <linux/device.h>
->>   #include <linux/interrupt.h>
->>   #include <linux/suspend.h>
->> +#include <linux/notifier.h>
->> +#include <linux/pm.h>
->>   #include <linux/reboot.h>
->>   #include <linux/acpi.h>
->>   #include <linux/module.h>
->> @@ -827,14 +829,22 @@ static void acpi_power_off_prepare(void)
->>   	acpi_disable_all_gpes();
->>   }
->>
->> -static void acpi_power_off(void)
->> +static int acpi_power_off(struct notifier_block *this,
->> +			  unsigned long unused1, void *unused2)
->>   {
+>> As we discussed already, this is a great idea. The only thing that is
+>> missing is a paragraph in Documentation/gpio/consumer.txt with an
+>> explanation of the global mechanism and a simple example to illustrate
+>> how and when this should be used.
 >
-> -> Is there any reason why any notifier in the new chain would use the
-> second argument for anything meaningful?  And the third argument for
-> that matter?
+> Yes, I'm going to provide documentation.
 >
->>   	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
->>   	printk(KERN_DEBUG "%s called\n", __func__);
->>   	local_irq_disable();
->>   	acpi_enter_sleep_state(ACPI_STATE_S5);
->> +
->> +	return NOTIFY_DONE;
->
-> Also is there any reason for any notifier in the new chain to return anything
-> different from NOTIFY_DONE and if so, then what happens when anything else
-> is returned?
->
+> One question, though.  We're already adding gpio-properties.txt under
+> Documentation/acpi/ containing analogous information for _DSD-based
+> mappings.  I thought I'd add a section to that file and a short paragraph
+> pointing to it into consumer.txt, would that work?
 
-As mentioned earlier, notifiers just come handy. That is all.
-
-Having said that, I don't have a strong opinion either way. If you want me
-to implement a priority based callback handler with a single argument,
-just let me know and I'll be happy to implement it. It is not worth arguing
-about.
-
-Would something like
-
-struct power_off_block {
-	void (*power_off_call)(struct power_off_block *);
-	struct power_off_block __rcu *next;
-	int priority;
-};
-
-for the data structure be acceptable ? The power-off handler code would then
-be something like
-
-static void acpi_power_off(struct power_off_block *this)
-{
-}
-
-ie quite similar to the current power-off handler code, with an added argument.
-The API would, except for the structure argument, pretty much stay the same.
-
-Thanks,
-Guenter
-
+Definitely yes, since this is ACPI-specific. Thanks!
