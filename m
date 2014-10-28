@@ -1,162 +1,185 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO descriptors
-Date: Tue, 28 Oct 2014 22:56:09 +0100
-Message-ID: <17483842.EFni4iQX1H@vostro.rjw.lan>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan> <3395005.IveyhHQnye@vostro.rjw.lan> <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
+From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [Patch Part2 v3 15/24] x86, MSI: Use hierarchy irqdomain to
+	manage MSI interrupts
+Date: Tue, 28 Oct 2014 22:37:17 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1410282046120.5308@nanos>
+References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com>
+	<1414484803-10311-16-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1414484803-10311-16-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Yingjoe Chen <yingjoe.chen-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, October 28, 2014 04:26:25 PM Linus Walleij wrote:
-> On Fri, Oct 17, 2014 at 2:11 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> 
-> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> >
-> > GPIO descriptors are the preferred way over legacy GPIO numbers
-> > nowadays. Convert the driver to use GPIO descriptors internally but
-> > still allow passing legacy GPIO numbers from platform data to support
-> > existing platforms.
-> >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Acked-by: Alexandre Courbot <acourbot@nvidia.com>
-> > Acked-by: Bryan Wu <cooloney@gmail.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> (...)
-> 
-> >         if (led_dat->blinking) {
-> > -               led_dat->platform_gpio_blink_set(led_dat->gpio,
-> > -                                                led_dat->new_level,
-> > -                                                NULL, NULL);
-> > +               int gpio = desc_to_gpio(led_dat->gpiod);
-> > +               int level = led_dat->new_level;
-> 
-> So this desc_to_gpio() is done only to call the legacy callback below?
-> 
-> > +               if (gpiod_is_active_low(led_dat->gpiod))
-> > +                       level = !level;
-> 
-> And that leads to making it necessary to have this helper variable
-> to invert the level since that callback does not pass a descriptor
-> (which would inherently know if it's active low)....
-> 
-> > +
-> > +               led_dat->platform_gpio_blink_set(gpio, level, NULL, NULL);
-> 
-> Is it *really* impossible to change all the users of this callback?
+On Tue, 28 Oct 2014, Jiang Liu wrote:
+> +static int msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
+> +			    bool force)
+> +{
+> +	struct irq_data *parent = data->parent_data;
+> +	int ret;
+>  
+> -	msg.data &= ~MSI_DATA_VECTOR_MASK;
+> -	msg.data |= MSI_DATA_VECTOR(cfg->vector);
+> -	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
+> -	msg.address_lo |= MSI_ADDR_DEST_ID(dest);
+> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
+> +	/* No need to reprogram MSI registers if interrupt is remapped */
+> +	if (ret >= 0 && !msi_irq_remapped(data)) {
+> +		struct msi_msg msg;
+>  
+> -	__write_msi_msg(data->msi_desc, &msg);
+> +		__get_cached_msi_msg(data->msi_desc, &msg);
+> +		msi_update_msg(&msg, data);
+> +		__write_msi_msg(data->msi_desc, &msg);
+> +	}
 
-You said it could be done in a followup patch.  Here:
-http://marc.info/?l=linux-acpi&m=141154536921643&w=4
+I'm not too happy about the msi_irq_remapped() conditional here. It
+violates the whole concept of domain stacking somewhat.
 
-And Mika said he would add that to his TODO list:
-http://marc.info/?l=linux-acpi&m=141155173924101&w=4
+A better separation would be to add a callback to the irq chip:
 
-I suppose that is still valid.
+  	void (*irq_write_msi_msg)(struct irq_data *data, struct msi_desc *msi_desc, bool cached);
 
-> 
-> >                 led_dat->blinking = 0;
-> >         } else
-> > -               gpio_set_value_cansleep(led_dat->gpio, led_dat->new_level);
-> > +               gpiod_set_value_cansleep(led_dat->gpiod, led_dat->new_level);
-> 
-> (...)
-> >         /* Setting GPIOs with I2C/etc requires a task context, and we don't
-> >          * seem to have a reliable way to know if we're already in one; so
-> >          * let's just assume the worst.
-> > @@ -72,11 +73,16 @@ static void gpio_led_set(struct led_clas
-> >                 schedule_work(&led_dat->work);
-> >         } else {
-> >                 if (led_dat->blinking) {
-> > -                       led_dat->platform_gpio_blink_set(led_dat->gpio, level,
-> > -                                                        NULL, NULL);
-> > +                       int gpio = desc_to_gpio(led_dat->gpiod);
-> > +
-> > +                       if (gpiod_is_active_low(led_dat->gpiod))
-> > +                               level = !level;
-> > +
-> > +                       led_dat->platform_gpio_blink_set(gpio, level, NULL,
-> > +                                                        NULL);
-> 
-> Same comment.
-> 
-> > @@ -85,9 +91,10 @@ static int gpio_blink_set(struct led_cla
-> >  {
-> >         struct gpio_led_data *led_dat =
-> >                 container_of(led_cdev, struct gpio_led_data, cdev);
-> > +       int gpio = desc_to_gpio(led_dat->gpiod);
-> >
-> >         led_dat->blinking = 1;
-> > -       return led_dat->platform_gpio_blink_set(led_dat->gpio, GPIO_LED_BLINK,
-> > +       return led_dat->platform_gpio_blink_set(gpio, GPIO_LED_BLINK,
-> >                                                 delay_on, delay_off);
-> 
-> Same comment.
-> 
-> > @@ -97,24 +104,33 @@ static int create_gpio_led(const struct
-> >  {
-> >         int ret, state;
-> >
-> > -       led_dat->gpio = -1;
-> > +       if (!template->gpiod) {
-> > +               unsigned long flags = 0;
-> >
-> > -       /* skip leds that aren't available */
-> > -       if (!gpio_is_valid(template->gpio)) {
-> > -               dev_info(parent, "Skipping unavailable LED gpio %d (%s)\n",
-> > -                               template->gpio, template->name);
-> > -               return 0;
-> > +               /* skip leds that aren't available */
-> > +               if (!gpio_is_valid(template->gpio)) {
-> > +                       dev_info(parent, "Skipping unavailable LED gpio %d (%s)\n",
-> > +                                       template->gpio, template->name);
-> > +                       return 0;
-> > +               }
-> > +
-> > +               if (template->active_low)
-> > +                       flags |= GPIOF_ACTIVE_LOW;
-> > +
-> > +               ret = devm_gpio_request_one(parent, template->gpio, flags,
-> > +                                           template->name);
-> > +               if (ret < 0)
-> > +                       return ret;
-> > +
-> > +               led_dat->gpiod = gpio_to_desc(template->gpio);
-> > +               if (IS_ERR(led_dat->gpiod))
-> > +                       return PTR_ERR(led_dat->gpiod);
-> >         }
-> 
-> OK so this is the legacy codepath: point it out in a big fat
-> comment that this is the legacy codepath.
+and change this code to:
 
-That looks like it could be done in a followup patch too.
+    	if (ret >= 0)
+	   	parent->chip->irq_write_msi_msg(parent, data->msi-desc, true);
+  
+> -	return IRQ_SET_MASK_OK_NOCOPY;
+> +	return ret;
+>  }
 
-Since the series is in my linux-next branch at this point, I really wouldn't
-like to reshuffle commits in it if that can be avoided.
+And do the same here:
 
-> > Index: linux-pm/include/linux/leds.h
-> > ===================================================================
-> > --- linux-pm.orig/include/linux/leds.h
-> > +++ linux-pm/include/linux/leds.h
-> > @@ -251,6 +251,7 @@ struct gpio_led {
-> >         unsigned        retain_state_suspended : 1;
-> >         unsigned        default_state : 2;
-> >         /* default_state should be one of LEDS_GPIO_DEFSTATE_(ON|OFF|KEEP) */
-> > +       struct gpio_desc *gpiod;
-> 
-> Put the new struct member right below the current "gpio"
-> member,
+> +static int msi_domain_activate(struct irq_domain *domain,
+> +			       struct irq_data *irq_data)
+> +{
+> +	struct msi_msg msg;
+> +	struct irq_cfg *cfg = irqd_cfg(irq_data);
+> +
+> +	/*
+> +	 * irq_data->chip_data is MSI/MSIx offset.
+> +	 * MSI-X message is written per-IRQ, the offset is always 0.
+> +	 * MSI message denotes a contiguous group of IRQs, written for 0th IRQ.
+> +	 */
+> +	if (irq_data->chip_data)
+> +		return 0;
 
-It was done like that in previous versions, but turned out to cause problems
-to happen in testing.  Unfortunately, I don't seem to be able to find a pointer
-to the original report ATM, but perhaps Mika can.  Mika?
+        parent->chip->irq_write_msi_msg(parent, data->msi_desc, false);  		
 
-> and add comments saying that either needs to be
-> specified but "gpio" is deprecated for "gpiod".
+> +	if (msi_irq_remapped(irq_data))
+> +		irq_remapping_get_msi_entry(irq_data->parent_data, &msg);
+> +	else
+> +		native_compose_msi_msg(NULL, irq_data->irq, cfg->dest_apicid,
+> +				       &msg, 0);
+> +	write_msi_msg(irq_data->irq, &msg);
+> +
+> +	return 0;
+> +}
 
-Kind regards,
-Rafael
+And here:
+
+> +static int msi_domain_deactivate(struct irq_domain *domain,
+> +				 struct irq_data *irq_data)
+> +{
+> +	struct msi_msg msg;
+> +
+> +	if (irq_data->chip_data)
+> +		return 0;
+> +
+> +	memset(&msg, 0, sizeof(msg));
+> +	write_msi_msg(irq_data->irq, &msg);
+
+  	parent->chip->irq_write_msi_msg(parent, NULL, false);
+
+> +	return 0;
+> +}
+
+And let the vector and the remapping domain deal with it in their callbacks.
+
+> @@ -166,25 +264,59 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+>  
+>  int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+>  {
+> -	struct msi_desc *msidesc;
+> -	int irq, ret;
+> +	int irq, cnt, nvec_pow2;
+> +	struct irq_domain *domain;
+> +	struct msi_desc *msidesc, *iter;
+> +	struct irq_alloc_info info;
+> +	int node = dev_to_node(&dev->dev);
+>  
+> -	/* Multiple MSI vectors only supported with interrupt remapping */
+> -	if (type == PCI_CAP_ID_MSI && nvec > 1)
+> -		return 1;
+> +	if (disable_apic)
+> +		return -ENOSYS;
+>  
+> -	list_for_each_entry(msidesc, &dev->msi_list, list) {
+> -		irq = irq_domain_alloc_irqs(NULL, 1, NUMA_NO_NODE, NULL);
+> +	init_irq_alloc_info(&info, NULL);
+> +	info.msi_dev = dev;
+> +	if (type == PCI_CAP_ID_MSI) {
+> +		msidesc = list_first_entry(&dev->msi_list,
+> +					   struct msi_desc, list);
+> +		WARN_ON(!list_is_singular(&dev->msi_list));
+> +		WARN_ON(msidesc->irq);
+> +		WARN_ON(msidesc->msi_attrib.multiple);
+> +		WARN_ON(msidesc->nvec_used);
+> +		info.type = X86_IRQ_ALLOC_TYPE_MSI;
+> +		cnt = nvec;
+> +	} else {
+> +		info.type = X86_IRQ_ALLOC_TYPE_MSIX;
+> +		cnt = 1;
+> +	}
+
+We have a similar issue here.
+
+> +	domain = irq_remapping_get_irq_domain(&info);
+
+We add domain specific knowledge to the MSI implementation. Not
+necessary at all.
+
+Again MSI is not an x86 problem and we really can move most of that to
+the core code. The above sanity checks and the distinction between MSI
+and MSIX can be handled in the core code. And every domain involved in
+the MSI chain would need a alloc_msi() callback.
+
+So native_setup_msi_irqs() would boil down to:
++ {
++	if (disable_apic)
++		return -ENOSYS;
++ 
++	return irq_domain_alloc_msi(msi_domain, dev, nvec, type);   
++ }
+
+Now that core function performs the sanity checks for the MSI case. In
+fact it should not proceed when a warning condition is detected. Not a
+x86 issue at all, its true for every MSI implementation.
+
+Then it calls down the domain allocation chain. x86_msi_domain would
+simply hand down to the parent domain. That would either be the remap
+domain or the vector domain.
+
+The reject for the multi MSI would only be implemented in the vector
+domain callback, while the remap domain can handle it. Once we gain
+support for allocating consecutive vectors for multi-MSI in the vector
+domain we would not have to change any of the MSI code at all. 
+
+Thoughts?
+
+Thanks,
+
+	tglx
