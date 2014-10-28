@@ -1,39 +1,87 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch v7 01/18] ACPI, irq: fix regression casued by
- 6b9fb7082409
-Date: Tue, 28 Oct 2014 19:45:32 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1410281943100.5308@nanos>
-References: <1414387308-27148-1-git-send-email-jiang.liu@linux.intel.com> <1414387308-27148-2-git-send-email-jiang.liu@linux.intel.com> <CAErSpo5Dh8rx42HkS3cPoJ1=oQq2qsFAut5LK83obbghy+OsFA@mail.gmail.com>
+Subject: Re: [Patch Part2 v3 01/24] irqdomain: Introduce new interfaces to
+ support hierarchy irqdomains
+Date: Tue, 28 Oct 2014 20:37:17 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1410282010340.5308@nanos>
+References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com>  <1414484803-10311-2-git-send-email-jiang.liu@linux.intel.com> <1414489711.32399.53.camel@mtksdaap41>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5Dh8rx42HkS3cPoJ1=oQq2qsFAut5LK83obbghy+OsFA@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "x86@kernel.org" <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1414489711.32399.53.camel@mtksdaap41>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yingjoe Chen <yingjoe.chen@mediatek.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 28 Oct 2014, Bjorn Helgaas wrote:
-> The subject should describe the change you're making.  "Fix regression
-> caused by xxx" doesn't say anything about what the patch does.
+On Tue, 28 Oct 2014, Yingjoe Chen wrote:
+> On Tue, 2014-10-28 at 16:26 +0800, Jiang Liu wrote:
+> <deleted...>
+> > @@ -471,7 +469,7 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
+> >  	struct irq_domain *domain;
+> >  	irq_hw_number_t hwirq;
+> >  	unsigned int type = IRQ_TYPE_NONE;
+> > -	unsigned int virq;
+> > +	int virq;
+> >  
+> >  	domain = irq_data->np ? irq_find_host(irq_data->np) : irq_default_domain;
+> >  	if (!domain) {
+> > @@ -480,6 +478,11 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
+> >  		return 0;
+> >  	}
+> >  
+> > +	if (irq_domain_is_hierarchy(domain)) {
+> > +		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, irq_data);
+> > +		return virq <= 0 ? 0 : virq;
+> > +	}
+> > +
+> >  	/* If domain has no translation, then we assume interrupt line */
+> >  	if (domain->ops->xlate == NULL)
+> >  		hwirq = irq_data->args[0];
+> > @@ -540,8 +543,8 @@ unsigned int irq_find_mapping(struct irq_domain *domain,
+> >  		return 0;
+> >  
+> >  	if (hwirq < domain->revmap_direct_max_irq) {
+> > -		data = irq_get_irq_data(hwirq);
+> > -		if (data && (data->domain == domain) && (data->hwirq == hwirq))
+> > +		data = irq_domain_get_irq_data(domain, hwirq);
+> > +		if (data && data->hwirq == hwirq)
+> >  			return hwirq;
+> >  	}
 > 
-> On Sun, Oct 26, 2014 at 11:21 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> > When IOAPIC is disabled, acpi_gsi_to_irq() should return gsi directly
-> > instead of calling mp_map_gsi_to_irq() to translate gsi to IRQ by IOAPIC.
-> 
-> I don't know what the convention is or if there even is one, but "GSI"
-> is even more of an acronym than "IRQ", so I'd capitalize it.
-> 
-> > It fixes https://bugzilla.kernel.org/show_bug.cgi?id=84381.
-> 
-> A line like the following may be useful to those who have to backport this.
-> 
-> Fixes: 6b9fb7082409 ("x86, ACPI, irq: Consolidate algorithm of mapping
-> (ioapic, pin) to IRQ number")
+> Why do you want to move irq_domain_alloc_irqs up there?
 
-The patch is already queued in tip x86/urgent with a proper changelog.
+That's the wrong question. The proper question is whether we can move
+it after the xlate part. I don't see a reason why we cannot do that.
 
-http://git.kernel.org/cgit/linux/kernel/git/tip/tip.git/commit/?id=961b6a7003acec4f9d70dabc1a253b783cb74272
+Jiang was right not to incorporate your patch to do that simply
+because we want to keep the history of the evolution of this
+code. Your patch is an enhancement and it needs to be discussed and
+applied seperately.
+
+So while we are at it:
+
+> +	if (irq_domain_is_hierarchy(domain)) {
+> +		if (domain->ops->xlate) {
+> +			/*
+> +			 * If we've already configured this interrupt,
+> +			 * don't do it again, or hell will break loose.
+> +			 */
+> +			virq = irq_find_mapping(domain, hwirq);
+> +			if (virq)
+> +				return virq;
+
+I can understand that it is an issue if the mapping exists already,
+but I have to ask WHY is it correct behaviour to call into that code
+for an existing mapping.
+
+And why would this check only apply if domain->ops->xlate is set?
+irq_create_mapping() does it unconditionally.
+
+> Joe.C
+> >  
+> > @@ -709,3 +712,341 @@ const struct irq_domain_ops irq_domain_simple_ops = {
+
+Please remove the rest of the mail to which you are not answering next time.
 
 Thanks,
 
