@@ -1,103 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 34/47] acpi: Register power-off handler with kernel power-off handler
-Date: Tue, 28 Oct 2014 01:26:06 +0100
-Message-ID: <5416859.0WlfjKo7zJ@vostro.rjw.lan>
-References: <1414425354-10359-1-git-send-email-linux@roeck-us.net> <1414425354-10359-35-git-send-email-linux@roeck-us.net>
+From: Azael Avalos <coproscefalo@gmail.com>
+Subject: Re: PROBLEM: Toshiba R700 backlight control lost on resume
+Date: Mon, 27 Oct 2014 18:15:30 -0600
+Message-ID: <CAGdLNWEr0SLF596EDeb6Nr6g7P6ZbLOt5fpudLmvmZqezo9mEw@mail.gmail.com>
+References: <CAN4ACkZtQvHCTikvz5Kh9Sk7s+88Aw9-D-XgfMJ7XbuBs+_70Q@mail.gmail.com>
+	<CAGdLNWGuosjFf-DZet2XrgPiSCq-Ap9qW6GuJZ7-7QYwxjTVQw@mail.gmail.com>
+	<CAN4ACka7uCuwM8AiB-r_zodjb1xtsr7r_fw0+nKtqtP-sBQx2w@mail.gmail.com>
+	<CAGdLNWHY6M8TB7ekQEW3=1JUAogLN6zbmsmSXqHYXtRVUUXf7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1414425354-10359-35-git-send-email-linux@roeck-us.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:48026 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650AbaJ1APc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Oct 2014 20:15:32 -0400
+Received: by mail-wi0-f179.google.com with SMTP id h11so90868wiw.12
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Oct 2014 17:15:30 -0700 (PDT)
+In-Reply-To: <CAGdLNWHY6M8TB7ekQEW3=1JUAogLN6zbmsmSXqHYXtRVUUXf7w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Pater <alan.pater@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Monday, October 27, 2014 08:55:41 AM Guenter Roeck wrote:
-> Register with kernel power-off handler instead of setting pm_power_off
-> directly. Register with high priority to reflect that the driver explicitly
-> overrides existing power-off handlers.
+@Alan Pater
 
-Well, I'm still rather unconvinced that notifiers are particularly suitable for
-this purpose.
+http://pastebin.com/k3DpPaPJ <- toshiba_acpi
+http://pastebin.com/Jv0YWma3 <- Makefile
 
-Specifically ->
+Please get the two files from the pastebin links and simply do:
 
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v3:
-> - Replace poweroff in all newly introduced variables and in text
->   with power_off or power-off as appropriate
-> - Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
-> - Replace acpi: with ACPI: in log message
-> v2:
-> - Use define to specify poweroff handler priority
-> - Use pr_warn instead of pr_err
-> 
->  drivers/acpi/sleep.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 05a31b5..7875b92 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -16,6 +16,8 @@
->  #include <linux/device.h>
->  #include <linux/interrupt.h>
->  #include <linux/suspend.h>
-> +#include <linux/notifier.h>
-> +#include <linux/pm.h>
->  #include <linux/reboot.h>
->  #include <linux/acpi.h>
->  #include <linux/module.h>
-> @@ -827,14 +829,22 @@ static void acpi_power_off_prepare(void)
->  	acpi_disable_all_gpes();
->  }
->  
-> -static void acpi_power_off(void)
-> +static int acpi_power_off(struct notifier_block *this,
-> +			  unsigned long unused1, void *unused2)
->  {
+make
+sudo make install
+sudo make load
 
--> Is there any reason why any notifier in the new chain would use the
-second argument for anything meaningful?  And the third argument for
-that matter?
+Once the modified module is installed and loaded, try to change
+the brightness (via hotkeys and /sys), suspend, resume, try
+changing the brightness (again, via hotkeys and /sys) and
+provide me the output of "dmesg | grep toshiba_acpi"
 
->  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
->  	printk(KERN_DEBUG "%s called\n", __func__);
->  	local_irq_disable();
->  	acpi_enter_sleep_state(ACPI_STATE_S5);
-> +
-> +	return NOTIFY_DONE;
 
-Also is there any reason for any notifier in the new chain to return anything
-different from NOTIFY_DONE and if so, then what happens when anything else
-is returned?
+Cheers
+Azael
 
->  }
->  
-> +static struct notifier_block acpi_power_off_nb = {
-> +	.notifier_call = acpi_power_off,
-> +	.priority = POWER_OFF_PRIORITY_HIGH,
-> +};
-> +
->  int __init acpi_sleep_init(void)
->  {
->  	char supported[ACPI_S_STATE_COUNT * 3 + 1];
-> @@ -851,7 +861,8 @@ int __init acpi_sleep_init(void)
->  	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
->  		sleep_states[ACPI_STATE_S5] = 1;
->  		pm_power_off_prepare = acpi_power_off_prepare;
-> -		pm_power_off = acpi_power_off;
-> +		if (register_power_off_handler(&acpi_power_off_nb))
-> +			pr_warn("ACPI: Failed to register power-off handler\n");
->  	}
->  
->  	supported[0] = 0;
-> 
+
+2014-10-27 11:02 GMT-06:00 Azael Avalos <coproscefalo@gmail.com>:
+> Hi there,
+>
+>
+> After reading (quite a lot of) posts linked on the bug reports,
+> I'll try to make a patch for you to test later today when I'm
+> back home. Which, let's hope it solves your issues.
+>
+>
+> Cheers
+> Azael
+>
+>
+> 2014-10-27 9:46 GMT-06:00 Alan Pater <alan.pater@gmail.com>:
+>> No, I need to use /sys/class/backlight/intel_backlight/brightness to
+>> control the backlight after resume.
+>>
+>> On Mon, Oct 27, 2014 at 10:39 AM, Azael Avalos <coproscefalo@gmail.com> wrote:
+>>>
+>>> So, the backlight device (/sys/class/backlight/toshiba/brightness) can still
+>>> be used to change brightness, but not via the hotkeys on resume?
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+> --
+> -- El mundo apesta y vosotros apestais tambien --
+
+
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+-- El mundo apesta y vosotros apestais tambien --
