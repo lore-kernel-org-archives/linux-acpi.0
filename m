@@ -1,89 +1,82 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch Part2 v3 15/24] x86, MSI: Use hierarchy irqdomain to
- manage MSI interrupts
-Date: Wed, 29 Oct 2014 10:19:15 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1410291017180.5308@nanos>
-References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com> <1414484803-10311-16-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1410282046120.5308@nanos> <5450A9D8.108@linux.intel.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [Patch Part2 v3 01/24] irqdomain: Introduce new interfaces to
+ support hierarchy irqdomains
+Date: Wed, 29 Oct 2014 09:27:37 +0000
+Message-ID: <5450B309.4040607@arm.com>
+References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com>  <1414484803-10311-2-git-send-email-jiang.liu@linux.intel.com> <1414489711.32399.53.camel@mtksdaap41> <alpine.DEB.2.11.1410282010340.5308@nanos> <544FF900.4020601@arm.com> <alpine.DEB.2.11.1410282116220.5308@nanos>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:55024 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699AbaJ2JT5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 05:19:57 -0400
-In-Reply-To: <5450A9D8.108@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1410282116220.5308@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yingjoe Chen <yingjoe.chen@mediatek.com>, Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kern>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
 
-On Wed, 29 Oct 2014, Jiang Liu wrote:
-> On 2014/10/29 5:37, Thomas Gleixner wrote:
-> > On Tue, 28 Oct 2014, Jiang Liu wrote:
-> >> +static int msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
-> >> +			    bool force)
-> >> +{
-> >> +	struct irq_data *parent = data->parent_data;
-> >> +	int ret;
-> >>  
-> >> -	msg.data &= ~MSI_DATA_VECTOR_MASK;
-> >> -	msg.data |= MSI_DATA_VECTOR(cfg->vector);
-> >> -	msg.address_lo &= ~MSI_ADDR_DEST_ID_MASK;
-> >> -	msg.address_lo |= MSI_ADDR_DEST_ID(dest);
-> >> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
-> >> +	/* No need to reprogram MSI registers if interrupt is remapped */
-> >> +	if (ret >= 0 && !msi_irq_remapped(data)) {
-> >> +		struct msi_msg msg;
-> >>  
-> >> -	__write_msi_msg(data->msi_desc, &msg);
-> >> +		__get_cached_msi_msg(data->msi_desc, &msg);
-> >> +		msi_update_msg(&msg, data);
-> >> +		__write_msi_msg(data->msi_desc, &msg);
-> >> +	}
-> > 
-> > I'm not too happy about the msi_irq_remapped() conditional here. It
-> > violates the whole concept of domain stacking somewhat.
-> > 
-> > A better separation would be to add a callback to the irq chip:
-> > 
-> >   	void (*irq_write_msi_msg)(struct irq_data *data, struct msi_desc *msi_desc, bool cached);
-> > 
-> > and change this code to:
-> > 
-> >     	if (ret >= 0)
-> > 	   	parent->chip->irq_write_msi_msg(parent, data->msi-desc, true);
-> >   
-> Hi Thomas,
-> 	Thanks for your great suggestion and I have worked out a draft
-> patch to achieve what you want:)
-> 	I have made following changes to irq core to get rid of remapped
-> irq logic from msi.c:
-> 1) Add IRQ_SET_MASK_OK_DONE in addition to IRQ_SET_MASK_OK and
-> IRQ_SET_MASK_OK_NOCOPY. IRQ_SET_MASK_OK_DONE is the same as
-> IRQ_SET_MASK_OK for irq core and indicates to stacked irqchip that
-> parent irqchips have done all work and skip any handling in descendant
-> irqchips.
-> 2) Add int (*irq_compose_msi_msg)(struct irq_data *data, struct msi_msg
-> *msg) into struct irq_chip. I'm still hesitating to return void or int
-> here. By returning void, irq_chip_compose_msi_msg() will be simpler,
-> but it loses flexibility.
+On 28/10/14 20:23, Thomas Gleixner wrote:
+> On Tue, 28 Oct 2014, Marc Zyngier wrote:
+>> On 28/10/14 19:37, Thomas Gleixner wrote:
+>>> So while we are at it:
+>>>
+>>>> +	if (irq_domain_is_hierarchy(domain)) {
+>>>> +		if (domain->ops->xlate) {
+>>>> +			/*
+>>>> +			 * If we've already configured this interrupt,
+>>>> +			 * don't do it again, or hell will break loose.
+>>>> +			 */
+>>>> +			virq = irq_find_mapping(domain, hwirq);
+>>>> +			if (virq)
+>>>> +				return virq;
+>>>
+>>> I can understand that it is an issue if the mapping exists already,
+>>> but I have to ask WHY is it correct behaviour to call into that code
+>>> for an existing mapping.
+>>
+>> As I have originally looked at this, I'll answer the question:
+>>
+>> The generic DT code parses the whole tree, and generates platform
+>> devices as it goes. As part of the platform device creation, it
+>> populates the IRQ resources, which translates into calling into
+>> irq_create_of_mapping(). You could argue that this behaviour is crazy,
+>> and I wouldn't disagree.
+> 
+> Mooo.
 
-void should be sufficient. If the chip advertises this function it
-better can provide a proper msi msg :)
- 
-> With above changes to core, we could remove all knowledge of irq
-> remapping from msi.c and the irq remapping interfaces get simpler too.
-> Please refer to following patch for details. The patch passes basic
-> booting tests with irq remapping enabled. If it's OK, I will fold
-> it into the patch set.
+Quite.
 
-Yes. That looks reasonable. 
- 
-> IOAPIC runs into the same situation, but I need some more time
-> to find a solution:)
+>> See http://www.spinics.net/lists/devicetree/msg53164.html for more gory
+>> details.
+>>
+>>> And why would this check only apply if domain->ops->xlate is set?
+>>> irq_create_mapping() does it unconditionally.
+>>
+>> My original code used the xlate callback to parse the opaque irq_data,
+>> computing hwirq, and I suspect this is a leftover of it. The above code
+>> seems to pull hwirq out of thin air, which is probably not the intended
+>> behaviour. Joe?
+> 
+> No. Here is the full patch from Joe:
+> 
+>   http://lists.infradead.org/pipermail/linux-arm-kernel/2014-October/296543.html
+> 
+> hwirq gets either set from hwirq = irq_data->args[0] or from the xlate
+> call.
 
-I'm sure you will!
+Ah, that makes a lot more sense.
+
+> But my question still stands:
+> 
+> Why would this check only apply if domain->ops->xlate is set?
+> irq_create_mapping() does it unconditionally.
+
+I don't think we should consider xlate at all. We already resolved hwirq
+(either directly or through a xlate call), and the check should always
+be performed (otherwise we're likely to fall into the same trap again).
+Looks like a bug to me.
 
 Thanks,
 
-	tglx
+	M.
+-- 
+Jazz is not dead. It just smells funny...
