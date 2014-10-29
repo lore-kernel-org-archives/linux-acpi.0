@@ -1,188 +1,173 @@
-From: Alan Pater <alan.pater@gmail.com>
-Subject: Re: PROBLEM: Toshiba R700 backlight control lost on resume
-Date: Wed, 29 Oct 2014 14:43:01 -0500
-Message-ID: <CAN4ACkbCuxwaRuX0T1VQatF3g=8UikgS_ECfRMbeNgvbYNGxEQ@mail.gmail.com>
-References: <CAN4ACkZtQvHCTikvz5Kh9Sk7s+88Aw9-D-XgfMJ7XbuBs+_70Q@mail.gmail.com>
- <CAGdLNWGuosjFf-DZet2XrgPiSCq-Ap9qW6GuJZ7-7QYwxjTVQw@mail.gmail.com>
- <CAN4ACka7uCuwM8AiB-r_zodjb1xtsr7r_fw0+nKtqtP-sBQx2w@mail.gmail.com>
- <CAGdLNWHY6M8TB7ekQEW3=1JUAogLN6zbmsmSXqHYXtRVUUXf7w@mail.gmail.com> <CAGdLNWEr0SLF596EDeb6Nr6g7P6ZbLOt5fpudLmvmZqezo9mEw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 12/18] ACPI / processor: Make it possible to get CPU hardware ID via GICC
+Date: Wed, 29 Oct 2014 22:33:06 +0100
+Message-ID: <4773594.btHp9vXayV@vostro.rjw.lan>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <20141024173920.GB8303@red-moon> <544E1732.5090902@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:33688 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226AbaJ2TnX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 15:43:23 -0400
-Received: by mail-la0-f52.google.com with SMTP id pv20so1377181lab.11
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Oct 2014 12:43:22 -0700 (PDT)
-In-Reply-To: <CAGdLNWEr0SLF596EDeb6Nr6g7P6ZbLOt5fpudLmvmZqezo9mEw@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:61090 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756966AbaJ2VMc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 17:12:32 -0400
+In-Reply-To: <544E1732.5090902@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@hua
 
-The modified module did not make any difference.
+On Monday, October 27, 2014 05:58:10 PM Hanjun Guo wrote:
+> On 2014-10-25 1:39, Lorenzo Pieralisi wrote:
+> > On Fri, Oct 17, 2014 at 02:37:08PM +0100, Hanjun Guo wrote:
+> >> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
+> >> from the GICC Structure introduced by ACPI 5.1.
+> >>
+> >> MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
+> >> MPIDR not the GIC CPU interface ID to identify CPUs.
+> >>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> ---
+> >>  arch/arm64/include/asm/acpi.h |   29 +++++++++++++++++++++++++++++
+> >>  arch/arm64/kernel/acpi.c      |    1 -
+> >>  drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
+> >>  3 files changed, 66 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> >> index c82d4a1..483ff45 100644
+> >> --- a/arch/arm64/include/asm/acpi.h
+> >> +++ b/arch/arm64/include/asm/acpi.h
+> >> @@ -12,6 +12,8 @@
+> >>  #ifndef _ASM_ACPI_H
+> >>  #define _ASM_ACPI_H
+> >>  
+> >> +#include <asm/smp_plat.h>
+> >> +
+> >>  /* Basic configuration for ACPI */
+> >>  #ifdef	CONFIG_ACPI
+> >>  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
+> >> @@ -45,6 +47,33 @@ static inline void enable_acpi(void)
+> >>  	acpi_noirq = 0;
+> >>  }
+> >>  
+> >> +/* MPIDR value provided in GICC structure is 64 bits, but the
+> >> + * existing apic_id (CPU hardware ID) using in acpi processor
+> >> + * driver is 32-bit, to conform to the same datatype we need
+> >> + * to repack the GICC structure MPIDR.
+> >> + *
+> >> + * Only 32 bits of MPIDR are used:
+> >> + * 
+> >> + * Bits [0:7] Aff0;
+> >> + * Bits [8:15] Aff1;
+> >> + * Bits [16:23] Aff2;
+> >> + * Bits [32:39] Aff3;
+> >> + */
+> >> +static inline u32 pack_mpidr(u64 mpidr)
+> >> +{
+> >> +	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+> >> +}
+> >> +
+> >> +/*
+> >> + * The ACPI processor driver for ACPI core code needs this macro
+> >> + * to find out this cpu was already mapped (mapping from CPU hardware
+> >> + * ID to CPU logical ID) or not.
+> >> + *
+> >> + * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
+> >> + * and MPIDR is the cpu hardware ID we needed to pack.
+> >> + */
+> >> +#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
+> >> +
+> >>  /*
+> >>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+> >>   * with this check the ACPI core will not override the CPU index
+> >> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> >> index 34837e0..e91ec76 100644
+> >> --- a/arch/arm64/kernel/acpi.c
+> >> +++ b/arch/arm64/kernel/acpi.c
+> >> @@ -24,7 +24,6 @@
+> >>  #include <linux/bootmem.h>
+> >>  #include <linux/smp.h>
+> >>  
+> >> -#include <asm/smp_plat.h>
+> >>  #include <asm/cputype.h>
+> >>  #include <asm/cpu_ops.h>
+> >>  
+> >> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> >> index e32321c..4007313 100644
+> >> --- a/drivers/acpi/processor_core.c
+> >> +++ b/drivers/acpi/processor_core.c
+> >> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+> >>  	return 0;
+> >>  }
+> >>  
+> >> +/*
+> >> + * On ARM platform, MPIDR value is the hardware ID as apic ID
+> >> + * on Intel platforms
+> >> + */
+> >> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+> >> +		int device_declaration, u32 acpi_id, int *mpidr)
+> >> +{
+> >> +	struct acpi_madt_generic_interrupt *gicc =
+> >> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+> >> +
+> >> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
+> >> +		return -ENODEV;
+> >> +
+> >> +	/* In the GIC interrupt model, logical processors are
+> >> +	 * required to have a Processor Device object in the DSDT,
+> >> +	 * so we should check device_declaration here
+> >> +	 */
+> >> +	if (device_declaration && (gicc->uid == acpi_id)) {
+> >> +		/*
+> >> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
+> >> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
+> >> +		 * fields into a single 32 bit identifier to accommodate the
+> >> +		 * acpi processor drivers.
+> >> +		 */
+> >> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
+> >> +			 | gicc->arm_mpidr;
+> > 
+> > The simple fact that you define a function to pack the mpidr value and
+> > you can't use it here because this is *generic* code is telling, and
+> > a very bad omen. At the cost of sounding like a broken record, I do not
+> > like this mpidr->apic->logical_cpu song and dance at all.
+> > ACPI is peppered with code (eg hotplug is another example, CPUidle driver
+> > even worse) that is supposed to be generic but contains x86 code to carry
+> > out this cpuid conversion, I really think that in order to start an ARM64
+> > ACPI port properly we should at least try to factor out this physical to
+> > logical cpu id conversion, and it is not the first time that I mention this
+> > on the lists.
+> 
+> I know, thanks for pointing this out. As I replied in previous version
+> of this patch set, apic_id is x86/ia64 specific, but the meaning behind
+> it is not. It means the CPU hardware id to identify itself in the system,
+> it just like MPIDR on ARM.
+> 
+> I will send out a patch for RFC to convert apic_id to physid which
+> is generic for all platforms.
+> 
+> > 
+> > I will also talk to Rafael about this at the earliest opportunity, I
+> > guess that x86 code relies on apic-id because some ACPI versions could
+> > not rely on the acpi-id or some other reasons I have to investigate.
+> 
+> As ACPI spec (section 8.4, Declaring Processors) said, Each processor
+> in the system must be declared in the ACPI namespace, so each cpu will
+> have acpi_id in all ACPI versions, and in theory we can map acpi_id to
+> logical cpu id if we want to.
+> 
+> But things are complicated, apic_id is connected to many
+> tables, MADT for smp init, DSDT for device driver, and SRAT for NUMA (there
+> is no acpi_id in it, ONLY has apic_id in the table for x86/ia64), so if we
+> want to factor the code to map acpi_id to logical cpu id, we need to modify:
+> 
+>  - ACPI drivers;
+>  - SMP init for x86 and ia64
+>  - the mappings for NUMA init for x86 and ia64
+> that will be lots of work I think.
 
-~$ dmesg | grep toshiba_acpi
-[   15.974235] toshiba_acpi: module verification failed: signature
-and/or  required key missing - tainting kernel
-[   15.974808] toshiba_acpi: Toshiba Laptop ACPI Extras version 0.20
-[   15.974839] toshiba_acpi: Using INFO method for hotkeys
-[   16.196131] toshiba_acpi: Illumination device not available
-[   16.200080] toshiba_acpi: Keyboard illumination not available
-[   72.106437] toshiba_acpi: Got hotkey 1ff
-[   72.485125] toshiba_acpi: Got hotkey 141
-[   72.564089] toshiba_acpi: Got hotkey 1c1
-[   72.863130] toshiba_acpi: Got hotkey 141
-[   72.962669] toshiba_acpi: Got hotkey 1c1
-[   73.660179] toshiba_acpi: Got hotkey 141
-[   73.780039] toshiba_acpi: Got hotkey 1c1
-[   74.916406] toshiba_acpi: Got hotkey 141
-[   75.036200] toshiba_acpi: Got hotkey 1c1
-[   75.354115] toshiba_acpi: Got hotkey 100
-[  725.333981] toshiba_acpi: Got hotkey 1ff
-[  725.595286] toshiba_acpi: Got hotkey 141
-[  725.695038] toshiba_acpi: Got hotkey 1c1
-[  726.036854] toshiba_acpi: Got hotkey 141
-[  726.136572] toshiba_acpi: Got hotkey 1c1
-[  726.518754] toshiba_acpi: Got hotkey 141
-[  726.639480] toshiba_acpi: Got hotkey 1c1
-[  727.221559] toshiba_acpi: Got hotkey 100
-[ 1532.028295] toshiba_acpi: Got hotkey 1ff
-[ 1532.851650] toshiba_acpi: Got hotkey 140
-[ 1532.953734] toshiba_acpi: Got hotkey 1c0
-[ 1533.092683] toshiba_acpi: Got hotkey 140
-[ 1533.132363] toshiba_acpi: Got hotkey 1c0
-[ 1533.253140] toshiba_acpi: Got hotkey 140
-[ 1533.313907] toshiba_acpi: Got hotkey 1c0
-[ 1533.433710] toshiba_acpi: Got hotkey 140
-[ 1533.494675] toshiba_acpi: Got hotkey 1c0
-[ 1533.614536] toshiba_acpi: Got hotkey 140
-[ 1533.674901] toshiba_acpi: Got hotkey 1c0
-[ 1533.855708] toshiba_acpi: Got hotkey 140
-[ 1533.916778] toshiba_acpi: Got hotkey 1c0
-[ 1534.297382] toshiba_acpi: Got hotkey 140
-[ 1534.397266] toshiba_acpi: Got hotkey 1c0
-[ 1535.160886] toshiba_acpi: Got hotkey 141
-[ 1535.261978] toshiba_acpi: Got hotkey 1c1
-[ 1535.401869] toshiba_acpi: Got hotkey 141
-[ 1535.483247] toshiba_acpi: Got hotkey 1c1
-[ 1535.622713] toshiba_acpi: Got hotkey 141
-[ 1535.683797] toshiba_acpi: Got hotkey 1c1
-[ 1535.803424] toshiba_acpi: Got hotkey 141
-[ 1535.883102] toshiba_acpi: Got hotkey 1c1
-[ 1536.004233] toshiba_acpi: Got hotkey 141
-[ 1536.085126] toshiba_acpi: Got hotkey 1c1
-[ 1536.405763] toshiba_acpi: Got hotkey 141
-[ 1536.527208] toshiba_acpi: Got hotkey 1c1
-[ 1536.787229] toshiba_acpi: Got hotkey 141
-[ 1536.907873] toshiba_acpi: Got hotkey 1c1
-[ 1537.148843] toshiba_acpi: Got hotkey 141
-[ 1537.270166] toshiba_acpi: Got hotkey 1c1
-[ 1538.032373] toshiba_acpi: Got hotkey 100
-[ 1538.830857] toshiba_acpi: Got hotkey 1ff
-[ 1539.111732] toshiba_acpi: Got hotkey 140
-[ 1539.193322] toshiba_acpi: Got hotkey 1c0
-[ 1540.095516] toshiba_acpi: Got hotkey 140
-[ 1540.217071] toshiba_acpi: Got hotkey 1c0
-[ 1540.798195] toshiba_acpi: Got hotkey 140
-[ 1540.898581] toshiba_acpi: Got hotkey 1c0
-[ 1541.440809] toshiba_acpi: Got hotkey 100
-[ 1548.512637] toshiba_acpi: Got hotkey e00
-[ 1548.512669] toshiba_acpi: Unknown key e00
-[ 1563.322557] toshiba_acpi: Got hotkey 1ff
-[ 1563.921601] toshiba_acpi: Got hotkey 140
-[ 1564.020985] toshiba_acpi: Got hotkey 1c0
-[ 1564.520534] toshiba_acpi: Got hotkey 140
-[ 1564.640430] toshiba_acpi: Got hotkey 1c0
-[ 1564.780130] toshiba_acpi: Got hotkey 140
-[ 1564.859874] toshiba_acpi: Got hotkey 1c0
-[ 1564.979960] toshiba_acpi: Got hotkey 140
-[ 1565.039127] toshiba_acpi: Got hotkey 1c0
-[ 1565.138875] toshiba_acpi: Got hotkey 140
-[ 1565.239265] toshiba_acpi: Got hotkey 1c0
-[ 1565.918103] toshiba_acpi: Got hotkey 141
-[ 1566.037873] toshiba_acpi: Got hotkey 1c1
-[ 1566.136989] toshiba_acpi: Got hotkey 141
-[ 1566.237915] toshiba_acpi: Got hotkey 1c1
-[ 1566.337554] toshiba_acpi: Got hotkey 141
-[ 1566.417600] toshiba_acpi: Got hotkey 1c1
-[ 1566.497223] toshiba_acpi: Got hotkey 141
-[ 1566.597385] toshiba_acpi: Got hotkey 1c1
-[ 1566.677053] toshiba_acpi: Got hotkey 141
-[ 1566.757165] toshiba_acpi: Got hotkey 1c1
-[ 1566.856564] toshiba_acpi: Got hotkey 141
-[ 1566.936449] toshiba_acpi: Got hotkey 1c1
-[ 1567.016564] toshiba_acpi: Got hotkey 141
-[ 1567.097151] toshiba_acpi: Got hotkey 1c1
-[ 1567.216246] toshiba_acpi: Got hotkey 141
-[ 1567.316287] toshiba_acpi: Got hotkey 1c1
-[ 1567.735848] toshiba_acpi: Got hotkey 140
-[ 1567.815149] toshiba_acpi: Got hotkey 1c0
-[ 1567.914885] toshiba_acpi: Got hotkey 140
-[ 1567.995160] toshiba_acpi: Got hotkey 1c0
-[ 1568.114652] toshiba_acpi: Got hotkey 140
-[ 1568.174968] toshiba_acpi: Got hotkey 1c0
-[ 1568.294403] toshiba_acpi: Got hotkey 140
-[ 1568.354433] toshiba_acpi: Got hotkey 1c0
-[ 1568.454532] toshiba_acpi: Got hotkey 140
-[ 1568.534092] toshiba_acpi: Got hotkey 1c0
-[ 1568.793627] toshiba_acpi: Got hotkey 100
+And error prone for that matter.
 
-On Mon, Oct 27, 2014 at 7:15 PM, Azael Avalos <coproscefalo@gmail.com> wrote:
-> @Alan Pater
->
-> http://pastebin.com/k3DpPaPJ <- toshiba_acpi
-> http://pastebin.com/Jv0YWma3 <- Makefile
->
-> Please get the two files from the pastebin links and simply do:
->
-> make
-> sudo make install
-> sudo make load
->
-> Once the modified module is installed and loaded, try to change
-> the brightness (via hotkeys and /sys), suspend, resume, try
-> changing the brightness (again, via hotkeys and /sys) and
-> provide me the output of "dmesg | grep toshiba_acpi"
->
->
-> Cheers
-> Azael
->
->
-> 2014-10-27 11:02 GMT-06:00 Azael Avalos <coproscefalo@gmail.com>:
->> Hi there,
->>
->>
->> After reading (quite a lot of) posts linked on the bug reports,
->> I'll try to make a patch for you to test later today when I'm
->> back home. Which, let's hope it solves your issues.
->>
->>
->> Cheers
->> Azael
->>
->>
->> 2014-10-27 9:46 GMT-06:00 Alan Pater <alan.pater@gmail.com>:
->>> No, I need to use /sys/class/backlight/intel_backlight/brightness to
->>> control the backlight after resume.
->>>
->>> On Mon, Oct 27, 2014 at 10:39 AM, Azael Avalos <coproscefalo@gmail.com> wrote:
->>>>
->>>> So, the backlight device (/sys/class/backlight/toshiba/brightness) can still
->>>> be used to change brightness, but not via the hotkeys on resume?
->>>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->> --
->> -- El mundo apesta y vosotros apestais tambien --
->
->
->
-> --
-> -- El mundo apesta y vosotros apestais tambien --
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
