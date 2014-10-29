@@ -1,103 +1,70 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v5 12/18] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Wed, 29 Oct 2014 10:43:22 +0000
-Message-ID: <20141029104321.GA8896@e102568-lin.cambridge.arm.com>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1413553034-20956-13-git-send-email-hanjun.guo@linaro.org>
- <20141024173920.GB8303@red-moon>
- <544E1732.5090902@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / GPIO: Pass index to acpi_get_gpiod_by_index() when using properties
+Date: Wed, 29 Oct 2014 15:42:23 +0100
+Message-ID: <1738599.RytCx391OM@vostro.rjw.lan>
+References: <1414494927-204923-1-git-send-email-mika.westerberg@linux.intel.com> <54509A3B.5090709@nvidia.com> <20141029085429.GJ1304@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <544E1732.5090902@linaro.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawei.co
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52941 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932903AbaJ2OVu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 10:21:50 -0400
+In-Reply-To: <20141029085429.GJ1304@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Oct 27, 2014 at 09:58:10AM +0000, Hanjun Guo wrote:
-
-[...]
-
-> >> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-> >> +		int device_declaration, u32 acpi_id, int *mpidr)
-> >> +{
-> >> +	struct acpi_madt_generic_interrupt *gicc =
-> >> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-> >> +
-> >> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
-> >> +		return -ENODEV;
-> >> +
-> >> +	/* In the GIC interrupt model, logical processors are
-> >> +	 * required to have a Processor Device object in the DSDT,
-> >> +	 * so we should check device_declaration here
-> >> +	 */
-> >> +	if (device_declaration && (gicc->uid == acpi_id)) {
-> >> +		/*
-> >> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
-> >> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
-> >> +		 * fields into a single 32 bit identifier to accommodate the
-> >> +		 * acpi processor drivers.
-> >> +		 */
-> >> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
-> >> +			 | gicc->arm_mpidr;
+On Wednesday, October 29, 2014 10:54:29 AM Mika Westerberg wrote:
+> On Wed, Oct 29, 2014 at 04:41:47PM +0900, Alexandre Courbot wrote:
+> > On 10/29/2014 06:59 AM, Rafael J. Wysocki wrote:
+> > >On Tuesday, October 28, 2014 01:15:27 PM Mika Westerberg wrote:
+> > >>acpi_dev_add_driver_gpios() makes it possible to set up mapping between
+> > >>properties and ACPI GpioIo resources in a driver, so we can take index
+> > >>parameter in acpi_find_gpio() into use with _DSD device properties now.
+> > >>
+> > >>This index can be used to select a GPIO from a property with multiple
+> > >>GPIOs:
+> > >>
+> > >>   Package () {
+> > >>   	"data-gpios",
+> > >>   	Package () {
+> > >>   		\_SB.GPIO, 0, 0, 0,
+> > >>   		\_SB.GPIO, 1, 0, 0,
+> > >>   		\_SB.GPIO, 2, 0, 1,
+> > >>   	}
+> > >>   }
+> > >>
+> > >>In order to retrieve the last GPIO from a driver we can simply do:
+> > >>
+> > >>   desc = devm_gpiod_get_index(dev, "data", 2);
+> > >>
+> > >>and so on.
+> > >>
+> > >>Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > >
+> > >Cool. :-)
+> > >
+> > >Any objections anyone?
 > > 
-> > The simple fact that you define a function to pack the mpidr value and
-> > you can't use it here because this is *generic* code is telling, and
-> > a very bad omen. At the cost of sounding like a broken record, I do not
-> > like this mpidr->apic->logical_cpu song and dance at all.
-> > ACPI is peppered with code (eg hotplug is another example, CPUidle driver
-> > even worse) that is supposed to be generic but contains x86 code to carry
-> > out this cpuid conversion, I really think that in order to start an ARM64
-> > ACPI port properly we should at least try to factor out this physical to
-> > logical cpu id conversion, and it is not the first time that I mention this
-> > on the lists.
+> > Looks good to me!
+> > 
+> > Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 > 
-> I know, thanks for pointing this out. As I replied in previous version
-> of this patch set, apic_id is x86/ia64 specific, but the meaning behind
-> it is not. It means the CPU hardware id to identify itself in the system,
-> it just like MPIDR on ARM.
-
-Yes, except that it is called apic_id.
-
-> I will send out a patch for RFC to convert apic_id to physid which
-> is generic for all platforms.
-
-That seems a good idea to sound out if I am the only one having an issue
-with the current approach.
-
-> > I will also talk to Rafael about this at the earliest opportunity, I
-> > guess that x86 code relies on apic-id because some ACPI versions could
-> > not rely on the acpi-id or some other reasons I have to investigate.
+> Thanks!
 > 
-> As ACPI spec (section 8.4, Declaring Processors) said, Each processor
-> in the system must be declared in the ACPI namespace, so each cpu will
-> have acpi_id in all ACPI versions, and in theory we can map acpi_id to
-> logical cpu id if we want to.
+> > Since this looks like a bug fix, shouldn't this be squashed into the
+> > relevant patch of the device-properties set?
 > 
-> But things are complicated, apic_id is connected to many
-> tables, MADT for smp init, DSDT for device driver, and SRAT for NUMA (there
-> is no acpi_id in it, ONLY has apic_id in the table for x86/ia64), so if we
-> want to factor the code to map acpi_id to logical cpu id, we need to modify:
-> 
->  - ACPI drivers;
->  - SMP init for x86 and ia64
->  - the mappings for NUMA init for x86 and ia64
-> that will be lots of work I think.
-> 
-> I'm willing to discuss this further and come out a solution, please
-> comment on what I said and share your ideas :)
+> I agree.
 
-Factoring out apic_id to a common cpu_physical_id is ok to me, because
-basically that's what you are doing except for the naming. I do not
-have any particular preference for the acpi_id, I mentioned that only
-as a means to implement a generic cpu_physical_id, arch agnostic.
+Well, except that the set is in my linux-next branch now and I very much
+prefer to do fixes on top of it.
 
-Drop the RFC you mentioned above please on the list, we will restart debating
-from there.
+Besides, I'm not sure if that even matters for the current series.
 
-Thanks,
-Lorenzo
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
