@@ -1,133 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
-Date: Thu, 30 Oct 2014 01:45:09 +0100
-Message-ID: <13007048.sH0aJYjMUX@vostro.rjw.lan>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <3242497.urQmuvpeyA@vostro.rjw.lan> <CAAVeFuKStrzzwW7s37y7-a8y+j1gD-EzAYfc1h2KTo8uyd+dSA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / video: Run _BCL before deciding registering backlight
+Date: Thu, 30 Oct 2014 01:49:41 +0100
+Message-ID: <4975279.47tceWMptB@vostro.rjw.lan>
+References: <544F394F.9060005@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61046 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:55077 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756592AbaJ3AYf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 20:24:35 -0400
-In-Reply-To: <CAAVeFuKStrzzwW7s37y7-a8y+j1gD-EzAYfc1h2KTo8uyd+dSA@mail.gmail.com>
+	with SMTP id S1757426AbaJ3A3E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 20:29:04 -0400
+In-Reply-To: <544F394F.9060005@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ralf Jung <post+kernel@ralfj.de>
 
-On Tuesday, October 28, 2014 01:11:50 PM Alexandre Courbot wrote:
-> On Tue, Oct 28, 2014 at 7:34 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Monday, October 27, 2014 02:21:23 PM Alexandre Courbot wrote:
-
-[cut]
-
-> > Yes, I'm going to provide documentation.
-> >
-> > One question, though.  We're already adding gpio-properties.txt under
-> > Documentation/acpi/ containing analogous information for _DSD-based
-> > mappings.  I thought I'd add a section to that file and a short paragraph
-> > pointing to it into consumer.txt, would that work?
+On Tuesday, October 28, 2014 02:35:59 PM Aaron Lu wrote:
+> The ASUS K53SM's ACPI table queries _OSI("Windows 2012") in the video
+> output device's _BCL and _BCM control method instead of the usual _INI
+> functions of the _SB or PCI host bridge PCI0 devices. This made our
+> video module thought this is a pre-Win8 system when deciding if we
+> should register a backlight interface for it and the end result is that
+> a non-working acpi_video interface is registered and user is unable to
+> control backlight from GUI. Solve this problem by evaluating _BCL control
+> method before doing the decision.
 > 
-> Definitely yes, since this is ACPI-specific. Thanks!
+> Note that for some Thinkpad systems, the _BCL is also required to be
+> evaluated for the hotkey event to be generated no matter if we will
+> register an ACPI video backlight interface for it or not. Since the
+> thinkpad_acpi module will do this anyway we didn't add such a thing in
+> the video module previously. But now with this change here, the
+> thinkpad_acpi module is no more necessary for those systems regarding
+> backlight functionality.
+> 
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=85051
+> Reported-and-tested-by: Ralf Jung <post+kernel@ralfj.de>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-OK, so what about this (on top of the device-properties branch at
-http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/log/?h=device-properties):
+Yes, that looks like something we need to do, but I'd be very cautious about
+pushing that for 3.18 at this stage of the cycle.
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / GPIO: Document ACPI GPIO mappings API
+So, I'm going to queue it up for 3.19.
 
-Document the previously introduced method that can be used by device
-drivers to provide the GPIO subsystem with mappings between GPIO names
-(connection IDs) and GpioIo()/GpioInt() resources in _CRS.
+> ---
+>  drivers/acpi/video.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 807a88a0f394..41e6b977ceb2 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -1680,6 +1680,19 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>  		printk(KERN_ERR PREFIX "Create sysfs link\n");
+>  }
+>  
+> +static void acpi_video_run_bcl_for_osi(struct acpi_video_bus *video)
+> +{
+> +	struct acpi_video_device *dev;
+> +	union acpi_object *levels;
+> +
+> +	mutex_lock(&video->device_list_lock);
+> +	list_for_each_entry(dev, &video->video_device_list, entry) {
+> +		if (!acpi_video_device_lcd_query_levels(dev, &levels))
+> +			kfree(levels);
+> +	}
+> +	mutex_unlock(&video->device_list_lock);
+> +}
+> +
+>  static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+>  {
+>  	struct acpi_video_device *dev;
+> @@ -1687,6 +1700,8 @@ static int acpi_video_bus_register_backlight(struct acpi_video_bus *video)
+>  	if (video->backlight_registered)
+>  		return 0;
+>  
+> +	acpi_video_run_bcl_for_osi(video);
+> +
+>  	if (!acpi_video_verify_backlight_support())
+>  		return 0;
+>  
+> 
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- Documentation/acpi/gpio-properties.txt |   44 +++++++++++++++++++++++++++++++++
- Documentation/gpio/consumer.txt        |   18 +++++++++++++
- 2 files changed, 62 insertions(+)
-
-Index: linux-pm/Documentation/acpi/gpio-properties.txt
-===================================================================
---- linux-pm.orig/Documentation/acpi/gpio-properties.txt
-+++ linux-pm/Documentation/acpi/gpio-properties.txt
-@@ -50,3 +50,47 @@ it to 1 marks the GPIO as active low.
- 
- In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
- resource, second pin in that resource with the GPIO number of 31.
-+
-+ACPI GPIO Mappings Provided by Drivers
-+--------------------------------------
-+
-+There are systems in which the ACPI tables do not contain _DSD but provide _CRS
-+with GpioIo()/GpioInt() resources and device drivers still need to work with
-+them.
-+
-+In those cases ACPI device identification objects, _HID, _CID, _CLS, _SUB, _HRV,
-+available to the driver can be used to identify the device and that is supposed
-+to be sufficient to determine the meaning and purpose of all of the GPIO pins
-+listed by the GpioIo()/GpioInt() resources returned by _CRS.  In other words,
-+the driver is supposed to know what to use the GpioIo()/GpioInt() resources for
-+once it has identified the device.  Having done that, it can simply assign names
-+to the GPIO pins it is going to use and provide the GPIO subsystem with a
-+mapping between those names and the ACPI GPIO resources corresponding to them.
-+
-+To do that, the driver needs to define a mapping table as a NULL-terminated
-+array of struct acpi_gpio_mapping objects that each contain a name, a pointer
-+to an array of pin data (struct acpi_gpio_params) objects and the size of that
-+array.  Each struct acpi_gpio_params object consists of three fields,
-+crs_entry_index, pin_index, active_low, representing the index of the target
-+GpioIo()/GpioInt() resource in _CRS starting from zero, the index of the target
-+pin in that resource starting from zero, and the active-low flag for that pin,
-+respectively, in analogy with the _DSD GPIO property format specified above.
-+
-+For the example Bluetooth device discussed previously the data structures in
-+question would look like this:
-+
-+static const struct acpi_gpio_params reset_gpio = { 1, 1, false };
-+static const struct acpi_gpio_params shutdown_gpio = { 0, 0, false };
-+
-+static const struct acpi_gpio_mapping bluetooth_acpi_gpios[] = {
-+  { "reset-gpio", &reset_gpio, 1 },
-+  { "shutdown-gpio", &shutdown_gpio, 1 },
-+  { },
-+};
-+
-+Next, the mapping table needs to be passed as the second argument to
-+acpi_dev_add_driver_gpios() that will register it with the ACPI device object
-+pointed to by its first argument.  That should be done in the driver's .probe()
-+routine.  On removal, the driver should unregister its GPIO mapping table by
-+calling acpi_dev_remove_driver_gpios() on the ACPI device object where that
-+table was previously registered.
-Index: linux-pm/Documentation/gpio/consumer.txt
-===================================================================
---- linux-pm.orig/Documentation/gpio/consumer.txt
-+++ linux-pm/Documentation/gpio/consumer.txt
-@@ -219,6 +219,24 @@ part of the IRQ interface, e.g. IRQF_TRI
- capabilities.
- 
- 
-+GPIOs and ACPI
-+==============
-+
-+On ACPI systems, GPIOs are described by GpioIo()/GpioInt() resources listed by
-+the _CRS configuration objects of devices.  Those resources do not provide
-+connection IDs (names) for GPIOs, so it is necessary to use an additional
-+mechanism for this purpose.
-+
-+Systems compliant with ACPI 5.1 or newer may provide a _DSD configuration object
-+which, among other things, may be used to provide connection IDs for specific
-+GPIOs described by the GpioIo()/GpioInt() resources in _CRS.  If that is the
-+case, it will be handled by the GPIO subsystem automatically.  However, if the
-+_DSD is not present, the mappings between GpioIo()/GpioInt() resources and GPIO
-+connection IDs need to be provided by device drivers.
-+
-+For details refer to Documentation/acpi/gpio-properties.txt
-+
-+
- Interacting With the Legacy GPIO Subsystem
- ==========================================
- Many kernel subsystems still handle GPIOs using the legacy integer-based
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
