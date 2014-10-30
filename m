@@ -1,30 +1,107 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH v5 12/18] ACPI / processor: Make it possible to get CPU
  hardware ID via GICC
-Date: Thu, 30 Oct 2014 16:27:36 +0800
-Message-ID: <5451F678.5090900@linaro.org>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-13-git-send-email-hanjun.guo@linaro.org> <20141024173920.GB8303@red-moon> <544E1732.5090902@linaro.org> <20141029104321.GA8896@e102568-lin.cambridge.arm.com>
+Date: Thu, 30 Oct 2014 16:30:32 +0800
+Message-ID: <5451F728.6060002@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <20141024173920.GB8303@red-moon> <544E1732.5090902@linaro.org> <4773594.btHp9vXayV@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:58269 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756960AbaJ3I37 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2014 04:29:59 -0400
-Received: by mail-pd0-f171.google.com with SMTP id r10so4706495pdi.30
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Oct 2014 01:29:59 -0700 (PDT)
-In-Reply-To: <20141029104321.GA8896@e102568-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4773594.btHp9vXayV@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@hua
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawei.co
 
-On 2014-10-29 18:43, Lorenzo Pieralisi wrote:
-> On Mon, Oct 27, 2014 at 09:58:10AM +0000, Hanjun Guo wrote:
-> 
-> [...]
-> 
+On 2014-10-30 5:33, Rafael J. Wysocki wrote:
+> On Monday, October 27, 2014 05:58:10 PM Hanjun Guo wrote:
+>> On 2014-10-25 1:39, Lorenzo Pieralisi wrote:
+>>> On Fri, Oct 17, 2014 at 02:37:08PM +0100, Hanjun Guo wrote:
+>>>> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
+>>>> from the GICC Structure introduced by ACPI 5.1.
+>>>>
+>>>> MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
+>>>> MPIDR not the GIC CPU interface ID to identify CPUs.
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>  arch/arm64/include/asm/acpi.h |   29 +++++++++++++++++++++++++++++
+>>>>  arch/arm64/kernel/acpi.c      |    1 -
+>>>>  drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
+>>>>  3 files changed, 66 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>>>> index c82d4a1..483ff45 100644
+>>>> --- a/arch/arm64/include/asm/acpi.h
+>>>> +++ b/arch/arm64/include/asm/acpi.h
+>>>> @@ -12,6 +12,8 @@
+>>>>  #ifndef _ASM_ACPI_H
+>>>>  #define _ASM_ACPI_H
+>>>>  
+>>>> +#include <asm/smp_plat.h>
+>>>> +
+>>>>  /* Basic configuration for ACPI */
+>>>>  #ifdef	CONFIG_ACPI
+>>>>  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
+>>>> @@ -45,6 +47,33 @@ static inline void enable_acpi(void)
+>>>>  	acpi_noirq = 0;
+>>>>  }
+>>>>  
+>>>> +/* MPIDR value provided in GICC structure is 64 bits, but the
+>>>> + * existing apic_id (CPU hardware ID) using in acpi processor
+>>>> + * driver is 32-bit, to conform to the same datatype we need
+>>>> + * to repack the GICC structure MPIDR.
+>>>> + *
+>>>> + * Only 32 bits of MPIDR are used:
+>>>> + * 
+>>>> + * Bits [0:7] Aff0;
+>>>> + * Bits [8:15] Aff1;
+>>>> + * Bits [16:23] Aff2;
+>>>> + * Bits [32:39] Aff3;
+>>>> + */
+>>>> +static inline u32 pack_mpidr(u64 mpidr)
+>>>> +{
+>>>> +	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+>>>> +}
+>>>> +
+>>>> +/*
+>>>> + * The ACPI processor driver for ACPI core code needs this macro
+>>>> + * to find out this cpu was already mapped (mapping from CPU hardware
+>>>> + * ID to CPU logical ID) or not.
+>>>> + *
+>>>> + * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
+>>>> + * and MPIDR is the cpu hardware ID we needed to pack.
+>>>> + */
+>>>> +#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
+>>>> +
+>>>>  /*
+>>>>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+>>>>   * with this check the ACPI core will not override the CPU index
+>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>>> index 34837e0..e91ec76 100644
+>>>> --- a/arch/arm64/kernel/acpi.c
+>>>> +++ b/arch/arm64/kernel/acpi.c
+>>>> @@ -24,7 +24,6 @@
+>>>>  #include <linux/bootmem.h>
+>>>>  #include <linux/smp.h>
+>>>>  
+>>>> -#include <asm/smp_plat.h>
+>>>>  #include <asm/cputype.h>
+>>>>  #include <asm/cpu_ops.h>
+>>>>  
+>>>> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+>>>> index e32321c..4007313 100644
+>>>> --- a/drivers/acpi/processor_core.c
+>>>> +++ b/drivers/acpi/processor_core.c
+>>>> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>>>>  	return 0;
+>>>>  }
+>>>>  
+>>>> +/*
+>>>> + * On ARM platform, MPIDR value is the hardware ID as apic ID
+>>>> + * on Intel platforms
+>>>> + */
 >>>> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
 >>>> +		int device_declaration, u32 acpi_id, int *mpidr)
 >>>> +{
@@ -63,15 +140,11 @@ On 2014-10-29 18:43, Lorenzo Pieralisi wrote:
 >> of this patch set, apic_id is x86/ia64 specific, but the meaning behind
 >> it is not. It means the CPU hardware id to identify itself in the system,
 >> it just like MPIDR on ARM.
-> 
-> Yes, except that it is called apic_id.
-> 
+>>
 >> I will send out a patch for RFC to convert apic_id to physid which
 >> is generic for all platforms.
-> 
-> That seems a good idea to sound out if I am the only one having an issue
-> with the current approach.
-> 
+>>
+>>>
 >>> I will also talk to Rafael about this at the earliest opportunity, I
 >>> guess that x86 code relies on apic-id because some ACPI versions could
 >>> not rely on the acpi-id or some other reasons I have to investigate.
@@ -90,20 +163,12 @@ On 2014-10-29 18:43, Lorenzo Pieralisi wrote:
 >>  - SMP init for x86 and ia64
 >>  - the mappings for NUMA init for x86 and ia64
 >> that will be lots of work I think.
->>
->> I'm willing to discuss this further and come out a solution, please
->> comment on what I said and share your ideas :)
 > 
-> Factoring out apic_id to a common cpu_physical_id is ok to me, because
-> basically that's what you are doing except for the naming. I do not
-> have any particular preference for the acpi_id, I mentioned that only
-> as a means to implement a generic cpu_physical_id, arch agnostic.
-> 
-> Drop the RFC you mentioned above please on the list, we will restart debating
-> from there.
+> And error prone for that matter.
 
-Ok, will send out the patch soon.
+Thanks for the clarify, I will send out a patch set to convert apic_id to
+phys_id in ACPI processor driver soon, then we don't need to map acpi_id
+to logical cpu number.
 
 Thanks
 Hanjun
-
