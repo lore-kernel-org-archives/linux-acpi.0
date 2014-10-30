@@ -1,112 +1,63 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO descriptors
-Date: Thu, 30 Oct 2014 16:40:05 +0100
-Message-ID: <CACRpkdaKiz4wODUnH+2+ELY3XGSYYsQ_iFMm+iY=o6rmVcxmSw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO
+ descriptors
+Date: Thu, 30 Oct 2014 18:15:28 +0200
+Message-ID: <20141030161528.GS1304@lahna.fi.intel.com>
 References: <2660541.BycO7TFnA2@vostro.rjw.lan>
-	<3395005.IveyhHQnye@vostro.rjw.lan>
-	<CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
-	<17483842.EFni4iQX1H@vostro.rjw.lan>
-	<20141029085306.GI1304@lahna.fi.intel.com>
+ <3395005.IveyhHQnye@vostro.rjw.lan>
+ <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
+ <17483842.EFni4iQX1H@vostro.rjw.lan>
+ <20141029085306.GI1304@lahna.fi.intel.com>
+ <CACRpkdaKiz4wODUnH+2+ELY3XGSYYsQ_iFMm+iY=o6rmVcxmSw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:48622 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934059AbaJ3PkG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2014 11:40:06 -0400
-Received: by mail-ig0-f176.google.com with SMTP id l13so3866678iga.3
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Oct 2014 08:40:05 -0700 (PDT)
-In-Reply-To: <20141029085306.GI1304@lahna.fi.intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:21888 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751686AbaJ3QQP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Oct 2014 12:16:15 -0400
+Content-Disposition: inline
+In-Reply-To: <CACRpkdaKiz4wODUnH+2+ELY3XGSYYsQ_iFMm+iY=o6rmVcxmSw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Linus Walleij <linus.walleij@linaro.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Wed, Oct 29, 2014 at 9:53 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Oct 28, 2014 at 10:56:09PM +0100, Rafael J. Wysocki wrote:
->> On Tuesday, October 28, 2014 04:26:25 PM Linus Walleij wrote:
->> > On Fri, Oct 17, 2014 at 2:11 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
->> > >
->> > > GPIO descriptors are the preferred way over legacy GPIO numbers
->> > > nowadays. Convert the driver to use GPIO descriptors internally but
->> > > still allow passing legacy GPIO numbers from platform data to support
->> > > existing platforms.
->> > >
->> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> > > Acked-by: Alexandre Courbot <acourbot@nvidia.com>
->> > > Acked-by: Bryan Wu <cooloney@gmail.com>
->> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> > (...)
->> >
->> > >         if (led_dat->blinking) {
->> > > -               led_dat->platform_gpio_blink_set(led_dat->gpio,
->> > > -                                                led_dat->new_level,
->> > > -                                                NULL, NULL);
->> > > +               int gpio = desc_to_gpio(led_dat->gpiod);
->> > > +               int level = led_dat->new_level;
->> >
->> > So this desc_to_gpio() is done only to call the legacy callback below?
->> >
->> > > +               if (gpiod_is_active_low(led_dat->gpiod))
->> > > +                       level = !level;
->> >
->> > And that leads to making it necessary to have this helper variable
->> > to invert the level since that callback does not pass a descriptor
->> > (which would inherently know if it's active low)....
->> >
->> > > +
->> > > +               led_dat->platform_gpio_blink_set(gpio, level, NULL, NULL);
->> >
->> > Is it *really* impossible to change all the users of this callback?
->>
->> You said it could be done in a followup patch.  Here:
->> http://marc.info/?l=linux-acpi&m=141154536921643&w=4
->>
->> And Mika said he would add that to his TODO list:
->> http://marc.info/?l=linux-acpi&m=141155173924101&w=4
->>
->> I suppose that is still valid.
->
-> Yes, I'll just let dust to settle before sending out a patch that
-> converts the existing users of platform_gpio_blink_set() callback to
-> gpio descriptors.
+On Thu, Oct 30, 2014 at 04:40:05PM +0100, Linus Walleij wrote:
+> > Yes, I'll just let dust to settle before sending out a patch that
+> > converts the existing users of platform_gpio_blink_set() callback to
+> > gpio descriptors.
+> 
+> Dust settle = 2 weeks, 18 months, 5 years?
 
-Dust settle = 2 weeks, 18 months, 5 years?
+I started to do the conversion already but then noticed that it is not
+that trivial after all.
 
-Sorry for nagging but I've been *SO* burnt by people in the past
-saying they will "fix things later real soon" and then never get around
-to it.
+For example we have one user in arch/arm/mach-orion5x/dns323-setup.c:
 
-But I guess I'm gonna trust you anyway.
+static struct gpio_led_platform_data dns323ab_led_data = {
+	.num_leds       = ARRAY_SIZE(dns323ab_leds),
+	.leds           = dns323ab_leds,
+	.gpio_blink_set = orion_gpio_led_blink_set,
+};
 
->> > > Index: linux-pm/include/linux/leds.h
->> > > ===================================================================
->> > > --- linux-pm.orig/include/linux/leds.h
->> > > +++ linux-pm/include/linux/leds.h
->> > > @@ -251,6 +251,7 @@ struct gpio_led {
->> > >         unsigned        retain_state_suspended : 1;
->> > >         unsigned        default_state : 2;
->> > >         /* default_state should be one of LEDS_GPIO_DEFSTATE_(ON|OFF|KEEP) */
->> > > +       struct gpio_desc *gpiod;
->> >
->> > Put the new struct member right below the current "gpio"
->> > member,
->>
->> It was done like that in previous versions, but turned out to cause problems
->> to happen in testing.  Unfortunately, I don't seem to be able to find a pointer
->> to the original report ATM, but perhaps Mika can.  Mika?
->
-> It is burried inside this thread:
->
-> http://www.spinics.net/lists/arm-kernel/msg369522.html
+orion_gpio_led_blink_set() is part of orion specific custom GPIO
+"driver" defined in arch/arm/plat-orion/gpio.c and as far as I can tell
+cannot use GPIO descriptors as it directly programs these numbers to the
+hardware.
 
-OK people not using C99 initalizers, sigh.
+We can convert the descriptor to a number in the beginning of
+orion_gpio_led_blink_set() if that helps.
 
-I hope Arnd's complimentary patch gets applied too so we
-can move the member back where it should be, kernel structs
-as ABI isn't really any fun.
+Other two users: rx1950_led_blink_set() and h1940_led_blink_set() seem
+to have similar needs for the numeric value.
 
-Yours,
-Linus Walleij
+> Sorry for nagging but I've been *SO* burnt by people in the past
+> saying they will "fix things later real soon" and then never get around
+> to it.
+
+Understood.
+
+> But I guess I'm gonna trust you anyway.
+
+Thanks :)
