@@ -1,63 +1,117 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO
- descriptors
-Date: Thu, 30 Oct 2014 18:15:28 +0200
-Message-ID: <20141030161528.GS1304@lahna.fi.intel.com>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan>
- <3395005.IveyhHQnye@vostro.rjw.lan>
- <CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
- <17483842.EFni4iQX1H@vostro.rjw.lan>
- <20141029085306.GI1304@lahna.fi.intel.com>
- <CACRpkdaKiz4wODUnH+2+ELY3XGSYYsQ_iFMm+iY=o6rmVcxmSw@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI: fix sriov enabling with virtual bus
+Date: Thu, 30 Oct 2014 11:09:13 -0600
+Message-ID: <20141030170913.GA6982@google.com>
+References: <1414621570-20777-1-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21888 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686AbaJ3QQP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Oct 2014 12:16:15 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdaKiz4wODUnH+2+ELY3XGSYYsQ_iFMm+iY=o6rmVcxmSw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1414621570-20777-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Thu, Oct 30, 2014 at 04:40:05PM +0100, Linus Walleij wrote:
-> > Yes, I'll just let dust to settle before sending out a patch that
-> > converts the existing users of platform_gpio_blink_set() callback to
-> > gpio descriptors.
+[+cc Rafael, linux-acpi]
+
+On Wed, Oct 29, 2014 at 03:26:10PM -0700, Yinghai Lu wrote:
+> While enabling sriov for intel igb device got:
 > 
-> Dust settle = 2 weeks, 18 months, 5 years?
+> sca05-0a81fda5:~ # echo 7 > /sys/bus/pci/devices/0000\:09\:00.0/sriov_numvfs 
+> [  729.612191] pci 0000:0a:10.0: [8086:1520] type 00 class 0x020000
+> [  729.619002] BUG: unable to handle kernel NULL pointer dereference at 00000000000000e8
+> [  729.627767] IP: [<ffffffff815901cb>] pci_get_hp_params+0x5b/0x640
+> [  729.634593] PGD 0 
+> [  729.636844] Oops: 0000 [#1] SMP 
+> [  729.640466] Modules linked in:
+> ...
+> [  729.795268] Call Trace:
+> [  729.798007]  [<ffffffff81ea0843>] ? pci_mmcfg_read+0x123/0x140
+> [  729.804519]  [<ffffffff81ea0770>] ? pci_mmcfg_read+0x50/0x140
+> [  729.810942]  [<ffffffff815692a3>] pci_configure_device+0x33/0x350
+> [  729.817744]  [<ffffffff8156aba4>] pci_device_add+0x24/0x160
+> [  729.823965]  [<ffffffff8158f3bb>] pci_enable_sriov+0x4db/0x7d0
+> [  729.830486]  [<ffffffff81b63f54>] ? igb_pci_enable_sriov+0xe4/0x200
+> [  729.837481]  [<ffffffff81b63f7f>] igb_pci_enable_sriov+0x10f/0x200
+> [  729.844386]  [<ffffffff8155129c>] ? _kstrtoull+0x2c/0x80
+> [  729.850315]  [<ffffffff81b640a5>] igb_pci_sriov_configure+0x35/0x40
+> [  729.857318]  [<ffffffff815752b5>] sriov_numvfs_store+0xe5/0x140
+> [  729.863934]  [<ffffffff817e1f88>] dev_attr_store+0x18/0x30
+> [  729.870063]  [<ffffffff812624d8>] sysfs_kf_write+0x48/0x60
+> [  729.876186]  [<ffffffff812617ef>] ? kernfs_fop_write+0xaf/0x170
+> [  729.882797]  [<ffffffff81261827>] kernfs_fop_write+0xe7/0x170
+> [  729.889222]  [<ffffffff811ef66b>] vfs_write+0xcb/0x1c0
+> [  729.894958]  [<ffffffff811f0019>] SyS_write+0x49/0xb0
+> ...
+> [  729.943531] ---[ end trace 7cf0cdb66637665a ]---
+> 
+> and pci_get_hp_params+0x5b point to
+> 0xffffffff815901cb is in pci_get_hp_params (include/linux/device.h:815).
+> 810	#include <linux/pm_wakeup.h>
+> 811	
+> 812	static inline const char *dev_name(const struct device *dev)
+> 813	{
+> 814		/* Use the init name until the kobject becomes available */
+> 815		if (dev->init_name)
+> 816			return dev->init_name;
+> 817	
+> 818		return kobject_name(&dev->kobj);
+> 
+> The root cause:
+> Now pci_configure_device/pci_get_hp_params will be called for every pci_dev,
+> including VF that is under virtual bus. But virtual bus does not have bridge
+> set. So we can not refer pbus->self->dev directly.
 
-I started to do the conversion already but then noticed that it is not
-that trivial after all.
+This raises the question of what the correct behavior should be.  Your
+patch certainly avoids the NULL pointer dereference.  It does so by making
+acpi_pci_get_bridge_handle() fail gracefully, which means we will not look
+for _HPP/_HPX for VF devices.  Is that what we want?
 
-For example we have one user in arch/arm/mach-orion5x/dns323-setup.c:
+Most of the fields included in _HPX are read-only or not applicable for
+VFs, but we need to at least ask the question of whether we want to
+completely ignore _HPX for VFs.  If we do, I think maybe we should make
+that more explicit in the code, e.g., by adding an explicit test of
+dev->is_virtfn, instead of relying on this special case behavior of
+acpi_pci_get_bridge_handle() that in turn depends on the obscure property
+of a VF not having a bridge device.
 
-static struct gpio_led_platform_data dns323ab_led_data = {
-	.num_leds       = ARRAY_SIZE(dns323ab_leds),
-	.leds           = dns323ab_leds,
-	.gpio_blink_set = orion_gpio_led_blink_set,
-};
+Personally, I think that since the _HPX spec doesn't mention VFs at all, we
+might want to assume that _HPX should apply to VFs, just like it applies to
+PFs.  I can imagine future _HPX record formats, or non-ACPI firmware
+configuration hints, that *would* apply to VFs, so it seems like it would
+be pretty arbitrary to say "we won't configure VF devices at all."
 
-orion_gpio_led_blink_set() is part of orion specific custom GPIO
-"driver" defined in arch/arm/plat-orion/gpio.c and as far as I can tell
-cannot use GPIO descriptors as it directly programs these numbers to the
-hardware.
+> Add checking with pbus->slef and bail out early.
+> 
+> Fixing: commit 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
 
-We can convert the descriptor to a number in the beginning of
-orion_gpio_led_blink_set() if that helps.
+Thanks for including this, but why not use the same format everybody else
+does:
 
-Other two users: rx1950_led_blink_set() and h1940_led_blink_set() seem
-to have similar needs for the numeric value.
+Fixes: 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
 
-> Sorry for nagging but I've been *SO* burnt by people in the past
-> saying they will "fix things later real soon" and then never get around
-> to it.
-
-Understood.
-
-> But I guess I'm gonna trust you anyway.
-
-Thanks :)
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> 
+> ---
+>  include/linux/pci-acpi.h |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+> 
+> Index: linux-2.6/include/linux/pci-acpi.h
+> ===================================================================
+> --- linux-2.6.orig/include/linux/pci-acpi.h
+> +++ linux-2.6/include/linux/pci-acpi.h
+> @@ -44,8 +44,12 @@ static inline acpi_handle acpi_pci_get_b
+>  
+>  	if (pci_is_root_bus(pbus))
+>  		dev = pbus->bridge;
+> -	else
+> +	else {
+> +		if (!pbus->self)
+> +			return NULL;
+> +
+>  		dev = &pbus->self->dev;
+> +	}
+>  
+>  	dev_printk(KERN_DEBUG, &pbus->dev, "  bridge ACPI_HANDLE %p : %s\n",
+>  			 ACPI_HANDLE(dev), dev_name(dev));
