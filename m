@@ -1,137 +1,35 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 3/3] ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
-Date: Thu, 30 Oct 2014 17:53:00 +0800
-Message-ID: <1414662780-2147-3-git-send-email-hanjun.guo@linaro.org>
-References: <1414662780-2147-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1414662780-2147-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Thu, 30 Oct 2014 12:22:34 +0200
+Message-ID: <20141030102234.GP1304@lahna.fi.intel.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+ <3242497.urQmuvpeyA@vostro.rjw.lan>
+ <CAAVeFuKStrzzwW7s37y7-a8y+j1gD-EzAYfc1h2KTo8uyd+dSA@mail.gmail.com>
+ <13007048.sH0aJYjMUX@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:29164 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759124AbaJ3KWk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Oct 2014 06:22:40 -0400
+Content-Disposition: inline
+In-Reply-To: <13007048.sH0aJYjMUX@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-acpi_map_lsapic() will allocate a logical CPU number and map it to
-physical CPU id (such as APIC id) for the hot-added CPU, it will also
-do some mapping for NUMA node id and etc, acpi_unmap_lsapic() will
-do the reverse.
+On Thu, Oct 30, 2014 at 01:45:09AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / GPIO: Document ACPI GPIO mappings API
+> 
+> Document the previously introduced method that can be used by device
+> drivers to provide the GPIO subsystem with mappings between GPIO names
+> (connection IDs) and GpioIo()/GpioInt() resources in _CRS.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-We can see that the name of the function is a little bit confusing and
-arch dependent so rename them as acpi_(un)map_map() to make arch
-agnostic and explicit.
+Looks really good to me,
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/ia64/kernel/acpi.c       |    9 ++++-----
- arch/x86/kernel/acpi/boot.c   |    9 ++++-----
- drivers/acpi/acpi_processor.c |    6 +++---
- include/linux/acpi.h          |    4 ++--
- 4 files changed, 13 insertions(+), 15 deletions(-)
-
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 615ef81..e795cb8 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -893,13 +893,13 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
- }
- 
- /* wrapper to silence section mismatch warning */
--int __ref acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
-+int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
- {
- 	return _acpi_map_lsapic(handle, physid, pcpu);
- }
--EXPORT_SYMBOL(acpi_map_lsapic);
-+EXPORT_SYMBOL(acpi_map_cpu);
- 
--int acpi_unmap_lsapic(int cpu)
-+int acpi_unmap_cpu(int cpu)
- {
- 	ia64_cpu_to_sapicid[cpu] = -1;
- 	set_cpu_present(cpu, false);
-@@ -910,8 +910,7 @@ int acpi_unmap_lsapic(int cpu)
- 
- 	return (0);
- }
--
--EXPORT_SYMBOL(acpi_unmap_lsapic);
-+EXPORT_SYMBOL(acpi_unmap_cpu);
- #endif				/* CONFIG_ACPI_HOTPLUG_CPU */
- 
- #ifdef CONFIG_ACPI_NUMA
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index b436fc7..6a327c6 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -731,13 +731,13 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
- }
- 
- /* wrapper to silence section mismatch warning */
--int __ref acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
-+int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
- {
- 	return _acpi_map_lsapic(handle, physid, pcpu);
- }
--EXPORT_SYMBOL(acpi_map_lsapic);
-+EXPORT_SYMBOL(acpi_map_cpu);
- 
--int acpi_unmap_lsapic(int cpu)
-+int acpi_unmap_cpu(int cpu)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	set_apicid_to_node(per_cpu(x86_cpu_to_apicid, cpu), NUMA_NO_NODE);
-@@ -749,8 +749,7 @@ int acpi_unmap_lsapic(int cpu)
- 
- 	return (0);
- }
--
--EXPORT_SYMBOL(acpi_unmap_lsapic);
-+EXPORT_SYMBOL(acpi_unmap_cpu);
- #endif				/* CONFIG_ACPI_HOTPLUG_CPU */
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index bcf3a3f..c4a8a56 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -180,13 +180,13 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- 	cpu_maps_update_begin();
- 	cpu_hotplug_begin();
- 
--	ret = acpi_map_lsapic(pr->handle, pr->phys_id, &pr->id);
-+	ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
- 	if (ret)
- 		goto out;
- 
- 	ret = arch_register_cpu(pr->id);
- 	if (ret) {
--		acpi_unmap_lsapic(pr->id);
-+		acpi_unmap_cpu(pr->id);
- 		goto out;
- 	}
- 
-@@ -458,7 +458,7 @@ static void acpi_processor_remove(struct acpi_device *device)
- 
- 	/* Remove the CPU. */
- 	arch_unregister_cpu(pr->id);
--	acpi_unmap_lsapic(pr->id);
-+	acpi_unmap_cpu(pr->id);
- 
- 	cpu_hotplug_done();
- 	cpu_maps_update_done();
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 407a12f..4043e77 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -142,8 +142,8 @@ void acpi_numa_arch_fixup(void);
- 
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
--int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
--int acpi_unmap_lsapic(int cpu);
-+int acpi_map_cpu(acpi_handle handle, int physid, int *pcpu);
-+int acpi_unmap_cpu(int cpu);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
--- 
-1.7.9.5
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
