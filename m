@@ -1,64 +1,90 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: GPIO bindings guidelines (Was: Re: [PATCH v5 10/12] gpio: Support
- for unified device properties interface)
-Date: Thu, 30 Oct 2014 16:11:13 +0100
-Message-ID: <CACRpkdYfEgC0iZCb=juBewpnCos+wbDVD14veRxXGSyBExAfEQ@mail.gmail.com>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
-	<4582579.9WMrIMALsy@wuerfel>
-	<CAAVeFuJzZJdh+Z7hY-Ws3orxyO=PSqCB_eBphbWk3nRb15op2w@mail.gmail.com>
-	<2964475.27LDgQTJ7C@wuerfel>
+Subject: Re: [PATCH v5 07/12] leds: leds-gpio: Add support for GPIO descriptors
+Date: Thu, 30 Oct 2014 16:34:53 +0100
+Message-ID: <CACRpkdZNH2NQ_SEFrWf94Jby_YzwfQj0o6zoMmgB5pBRX=Rw1Q@mail.gmail.com>
+References: <2660541.BycO7TFnA2@vostro.rjw.lan>
+	<3395005.IveyhHQnye@vostro.rjw.lan>
+	<CACRpkdYR70Az1uLyjsaujQN-q-4+qRD=GpqJaOuvnKZhypL=cA@mail.gmail.com>
+	<17483842.EFni4iQX1H@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:52588 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760309AbaJ3PLO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2014 11:11:14 -0400
-Received: by mail-ie0-f171.google.com with SMTP id x19so5411388ier.2
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Oct 2014 08:11:14 -0700 (PDT)
-In-Reply-To: <2964475.27LDgQTJ7C@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <17483842.EFni4iQX1H@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Thu, Oct 23, 2014 at 2:25 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thursday 23 October 2014 15:02:46 Alexandre Courbot wrote:
->> On Tue, Oct 21, 2014 at 4:54 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> > On Tuesday 21 October 2014 14:14:02 Alexandre Courbot wrote:
->
->> > Drivers that use
->> > existing bindings with the "foo-gpio" form (or worse, "foo-somethingelse"
->> > can use the same internal interface as the drivers that use name plus
->> > index. Do you see a problem using what I suggested for the combined
->> > API:
->> >
->> > __gpiod_get(dev, propname, index); // use property name plus index
->> > gpiod_get(dev, index); // use "gpios" plus index
->> > gpiod_get_named(dev, "name"); use "name-gpios" with index 0
+On Tue, Oct 28, 2014 at 10:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, October 28, 2014 04:26:25 PM Linus Walleij wrote:
+>> On Fri, Oct 17, 2014 at 2:11 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 >>
->> Apart from the loosy naming practices which we sometimes see (and
->> which should be caught during review), do you have something against
->> requiring a name for all new GPIO bindings, i.e. for ensuring that all
->> new properties are "name-gpio" and forbidding "gpios"?
+>> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> >
+>> > GPIO descriptors are the preferred way over legacy GPIO numbers
+>> > nowadays. Convert the driver to use GPIO descriptors internally but
+>> > still allow passing legacy GPIO numbers from platform data to support
+>> > existing platforms.
+>> >
+>> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> > Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+>> > Acked-by: Bryan Wu <cooloney@gmail.com>
+>> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> (...)
+>>
+>> >         if (led_dat->blinking) {
+>> > -               led_dat->platform_gpio_blink_set(led_dat->gpio,
+>> > -                                                led_dat->new_level,
+>> > -                                                NULL, NULL);
+>> > +               int gpio = desc_to_gpio(led_dat->gpiod);
+>> > +               int level = led_dat->new_level;
+>>
+>> So this desc_to_gpio() is done only to call the legacy callback below?
+>>
+>> > +               if (gpiod_is_active_low(led_dat->gpiod))
+>> > +                       level = !level;
+>>
+>> And that leads to making it necessary to have this helper variable
+>> to invert the level since that callback does not pass a descriptor
+>> (which would inherently know if it's active low)....
+>>
+>> > +
+>> > +               led_dat->platform_gpio_blink_set(gpio, level, NULL, NULL);
+>>
+>> Is it *really* impossible to change all the users of this callback?
 >
-> Most other subsystems don't require a name, and traditionally we only
-> had anonymous indexed properties for a lot of things (registers,
-> interrupts, ...).
+> You said it could be done in a followup patch.  Here:
+> http://marc.info/?l=linux-acpi&m=141154536921643&w=4
 >
-> I still like the idea of using anonymous references for simple things,
-> but if you and Linus feel that it's better to mandate names from now on,
-> I won't complain.
+> And Mika said he would add that to his TODO list:
+> http://marc.info/?l=linux-acpi&m=141155173924101&w=4
+>
+> I suppose that is still valid.
 
-I think names are nice since it appears in <debugfs>/gpio and makes
-device tree using platforms easier to debug.
+Yes, I *can* be done as follow up, and I still *prefer* that it
+be fixed now.
 
-Moving things into DT already made information hard to follow at
-times...
+Otherwise I wouldn't keep commenting on it.
 
-In difference from other things like IRQs or DMAs, GPIOs very often
-have a very specific function, does not repeat itself, and thus can
-be given a suitable name.
+>> > +               led_dat->gpiod = gpio_to_desc(template->gpio);
+>> > +               if (IS_ERR(led_dat->gpiod))
+>> > +                       return PTR_ERR(led_dat->gpiod);
+>> >         }
+>>
+>> OK so this is the legacy codepath: point it out in a big fat
+>> comment that this is the legacy codepath.
+>
+> That looks like it could be done in a followup patch too.
+
+That's not so much work that it can't be done now.
+
+The follow-up patch I mean.
+
+> Since the series is in my linux-next branch at this point, I really wouldn't
+> like to reshuffle commits in it if that can be avoided.
+
+That's OK if we just get the follow-up stuff now (the comment patch
+immediately!), not in 18 months.
 
 Yours,
 Linus Walleij
