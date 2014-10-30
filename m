@@ -1,173 +1,133 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 12/18] ACPI / processor: Make it possible to get CPU hardware ID via GICC
-Date: Wed, 29 Oct 2014 22:33:06 +0100
-Message-ID: <4773594.btHp9vXayV@vostro.rjw.lan>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <20141024173920.GB8303@red-moon> <544E1732.5090902@linaro.org>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Thu, 30 Oct 2014 01:45:09 +0100
+Message-ID: <13007048.sH0aJYjMUX@vostro.rjw.lan>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <3242497.urQmuvpeyA@vostro.rjw.lan> <CAAVeFuKStrzzwW7s37y7-a8y+j1gD-EzAYfc1h2KTo8uyd+dSA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61090 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61046 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756966AbaJ2VMc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 17:12:32 -0400
-In-Reply-To: <544E1732.5090902@linaro.org>
+	with SMTP id S1756592AbaJ3AYf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Oct 2014 20:24:35 -0400
+In-Reply-To: <CAAVeFuKStrzzwW7s37y7-a8y+j1gD-EzAYfc1h2KTo8uyd+dSA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@hua
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Monday, October 27, 2014 05:58:10 PM Hanjun Guo wrote:
-> On 2014-10-25 1:39, Lorenzo Pieralisi wrote:
-> > On Fri, Oct 17, 2014 at 02:37:08PM +0100, Hanjun Guo wrote:
-> >> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-> >> from the GICC Structure introduced by ACPI 5.1.
-> >>
-> >> MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
-> >> MPIDR not the GIC CPU interface ID to identify CPUs.
-> >>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> ---
-> >>  arch/arm64/include/asm/acpi.h |   29 +++++++++++++++++++++++++++++
-> >>  arch/arm64/kernel/acpi.c      |    1 -
-> >>  drivers/acpi/processor_core.c |   37 +++++++++++++++++++++++++++++++++++++
-> >>  3 files changed, 66 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> >> index c82d4a1..483ff45 100644
-> >> --- a/arch/arm64/include/asm/acpi.h
-> >> +++ b/arch/arm64/include/asm/acpi.h
-> >> @@ -12,6 +12,8 @@
-> >>  #ifndef _ASM_ACPI_H
-> >>  #define _ASM_ACPI_H
-> >>  
-> >> +#include <asm/smp_plat.h>
-> >> +
-> >>  /* Basic configuration for ACPI */
-> >>  #ifdef	CONFIG_ACPI
-> >>  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-> >> @@ -45,6 +47,33 @@ static inline void enable_acpi(void)
-> >>  	acpi_noirq = 0;
-> >>  }
-> >>  
-> >> +/* MPIDR value provided in GICC structure is 64 bits, but the
-> >> + * existing apic_id (CPU hardware ID) using in acpi processor
-> >> + * driver is 32-bit, to conform to the same datatype we need
-> >> + * to repack the GICC structure MPIDR.
-> >> + *
-> >> + * Only 32 bits of MPIDR are used:
-> >> + * 
-> >> + * Bits [0:7] Aff0;
-> >> + * Bits [8:15] Aff1;
-> >> + * Bits [16:23] Aff2;
-> >> + * Bits [32:39] Aff3;
-> >> + */
-> >> +static inline u32 pack_mpidr(u64 mpidr)
-> >> +{
-> >> +	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
-> >> +}
-> >> +
-> >> +/*
-> >> + * The ACPI processor driver for ACPI core code needs this macro
-> >> + * to find out this cpu was already mapped (mapping from CPU hardware
-> >> + * ID to CPU logical ID) or not.
-> >> + *
-> >> + * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
-> >> + * and MPIDR is the cpu hardware ID we needed to pack.
-> >> + */
-> >> +#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
-> >> +
-> >>  /*
-> >>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-> >>   * with this check the ACPI core will not override the CPU index
-> >> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> >> index 34837e0..e91ec76 100644
-> >> --- a/arch/arm64/kernel/acpi.c
-> >> +++ b/arch/arm64/kernel/acpi.c
-> >> @@ -24,7 +24,6 @@
-> >>  #include <linux/bootmem.h>
-> >>  #include <linux/smp.h>
-> >>  
-> >> -#include <asm/smp_plat.h>
-> >>  #include <asm/cputype.h>
-> >>  #include <asm/cpu_ops.h>
-> >>  
-> >> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> >> index e32321c..4007313 100644
-> >> --- a/drivers/acpi/processor_core.c
-> >> +++ b/drivers/acpi/processor_core.c
-> >> @@ -64,6 +64,38 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
-> >>  	return 0;
-> >>  }
-> >>  
-> >> +/*
-> >> + * On ARM platform, MPIDR value is the hardware ID as apic ID
-> >> + * on Intel platforms
-> >> + */
-> >> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-> >> +		int device_declaration, u32 acpi_id, int *mpidr)
-> >> +{
-> >> +	struct acpi_madt_generic_interrupt *gicc =
-> >> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-> >> +
-> >> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
-> >> +		return -ENODEV;
-> >> +
-> >> +	/* In the GIC interrupt model, logical processors are
-> >> +	 * required to have a Processor Device object in the DSDT,
-> >> +	 * so we should check device_declaration here
-> >> +	 */
-> >> +	if (device_declaration && (gicc->uid == acpi_id)) {
-> >> +		/*
-> >> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
-> >> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
-> >> +		 * fields into a single 32 bit identifier to accommodate the
-> >> +		 * acpi processor drivers.
-> >> +		 */
-> >> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
-> >> +			 | gicc->arm_mpidr;
-> > 
-> > The simple fact that you define a function to pack the mpidr value and
-> > you can't use it here because this is *generic* code is telling, and
-> > a very bad omen. At the cost of sounding like a broken record, I do not
-> > like this mpidr->apic->logical_cpu song and dance at all.
-> > ACPI is peppered with code (eg hotplug is another example, CPUidle driver
-> > even worse) that is supposed to be generic but contains x86 code to carry
-> > out this cpuid conversion, I really think that in order to start an ARM64
-> > ACPI port properly we should at least try to factor out this physical to
-> > logical cpu id conversion, and it is not the first time that I mention this
-> > on the lists.
-> 
-> I know, thanks for pointing this out. As I replied in previous version
-> of this patch set, apic_id is x86/ia64 specific, but the meaning behind
-> it is not. It means the CPU hardware id to identify itself in the system,
-> it just like MPIDR on ARM.
-> 
-> I will send out a patch for RFC to convert apic_id to physid which
-> is generic for all platforms.
-> 
-> > 
-> > I will also talk to Rafael about this at the earliest opportunity, I
-> > guess that x86 code relies on apic-id because some ACPI versions could
-> > not rely on the acpi-id or some other reasons I have to investigate.
-> 
-> As ACPI spec (section 8.4, Declaring Processors) said, Each processor
-> in the system must be declared in the ACPI namespace, so each cpu will
-> have acpi_id in all ACPI versions, and in theory we can map acpi_id to
-> logical cpu id if we want to.
-> 
-> But things are complicated, apic_id is connected to many
-> tables, MADT for smp init, DSDT for device driver, and SRAT for NUMA (there
-> is no acpi_id in it, ONLY has apic_id in the table for x86/ia64), so if we
-> want to factor the code to map acpi_id to logical cpu id, we need to modify:
-> 
->  - ACPI drivers;
->  - SMP init for x86 and ia64
->  - the mappings for NUMA init for x86 and ia64
-> that will be lots of work I think.
+On Tuesday, October 28, 2014 01:11:50 PM Alexandre Courbot wrote:
+> On Tue, Oct 28, 2014 at 7:34 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Monday, October 27, 2014 02:21:23 PM Alexandre Courbot wrote:
 
-And error prone for that matter.
+[cut]
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > Yes, I'm going to provide documentation.
+> >
+> > One question, though.  We're already adding gpio-properties.txt under
+> > Documentation/acpi/ containing analogous information for _DSD-based
+> > mappings.  I thought I'd add a section to that file and a short paragraph
+> > pointing to it into consumer.txt, would that work?
+> 
+> Definitely yes, since this is ACPI-specific. Thanks!
+
+OK, so what about this (on top of the device-properties branch at
+http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/log/?h=device-properties):
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / GPIO: Document ACPI GPIO mappings API
+
+Document the previously introduced method that can be used by device
+drivers to provide the GPIO subsystem with mappings between GPIO names
+(connection IDs) and GpioIo()/GpioInt() resources in _CRS.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/acpi/gpio-properties.txt |   44 +++++++++++++++++++++++++++++++++
+ Documentation/gpio/consumer.txt        |   18 +++++++++++++
+ 2 files changed, 62 insertions(+)
+
+Index: linux-pm/Documentation/acpi/gpio-properties.txt
+===================================================================
+--- linux-pm.orig/Documentation/acpi/gpio-properties.txt
++++ linux-pm/Documentation/acpi/gpio-properties.txt
+@@ -50,3 +50,47 @@ it to 1 marks the GPIO as active low.
+ 
+ In our Bluetooth example the "reset-gpio" refers to the second GpioIo()
+ resource, second pin in that resource with the GPIO number of 31.
++
++ACPI GPIO Mappings Provided by Drivers
++--------------------------------------
++
++There are systems in which the ACPI tables do not contain _DSD but provide _CRS
++with GpioIo()/GpioInt() resources and device drivers still need to work with
++them.
++
++In those cases ACPI device identification objects, _HID, _CID, _CLS, _SUB, _HRV,
++available to the driver can be used to identify the device and that is supposed
++to be sufficient to determine the meaning and purpose of all of the GPIO pins
++listed by the GpioIo()/GpioInt() resources returned by _CRS.  In other words,
++the driver is supposed to know what to use the GpioIo()/GpioInt() resources for
++once it has identified the device.  Having done that, it can simply assign names
++to the GPIO pins it is going to use and provide the GPIO subsystem with a
++mapping between those names and the ACPI GPIO resources corresponding to them.
++
++To do that, the driver needs to define a mapping table as a NULL-terminated
++array of struct acpi_gpio_mapping objects that each contain a name, a pointer
++to an array of pin data (struct acpi_gpio_params) objects and the size of that
++array.  Each struct acpi_gpio_params object consists of three fields,
++crs_entry_index, pin_index, active_low, representing the index of the target
++GpioIo()/GpioInt() resource in _CRS starting from zero, the index of the target
++pin in that resource starting from zero, and the active-low flag for that pin,
++respectively, in analogy with the _DSD GPIO property format specified above.
++
++For the example Bluetooth device discussed previously the data structures in
++question would look like this:
++
++static const struct acpi_gpio_params reset_gpio = { 1, 1, false };
++static const struct acpi_gpio_params shutdown_gpio = { 0, 0, false };
++
++static const struct acpi_gpio_mapping bluetooth_acpi_gpios[] = {
++  { "reset-gpio", &reset_gpio, 1 },
++  { "shutdown-gpio", &shutdown_gpio, 1 },
++  { },
++};
++
++Next, the mapping table needs to be passed as the second argument to
++acpi_dev_add_driver_gpios() that will register it with the ACPI device object
++pointed to by its first argument.  That should be done in the driver's .probe()
++routine.  On removal, the driver should unregister its GPIO mapping table by
++calling acpi_dev_remove_driver_gpios() on the ACPI device object where that
++table was previously registered.
+Index: linux-pm/Documentation/gpio/consumer.txt
+===================================================================
+--- linux-pm.orig/Documentation/gpio/consumer.txt
++++ linux-pm/Documentation/gpio/consumer.txt
+@@ -219,6 +219,24 @@ part of the IRQ interface, e.g. IRQF_TRI
+ capabilities.
+ 
+ 
++GPIOs and ACPI
++==============
++
++On ACPI systems, GPIOs are described by GpioIo()/GpioInt() resources listed by
++the _CRS configuration objects of devices.  Those resources do not provide
++connection IDs (names) for GPIOs, so it is necessary to use an additional
++mechanism for this purpose.
++
++Systems compliant with ACPI 5.1 or newer may provide a _DSD configuration object
++which, among other things, may be used to provide connection IDs for specific
++GPIOs described by the GpioIo()/GpioInt() resources in _CRS.  If that is the
++case, it will be handled by the GPIO subsystem automatically.  However, if the
++_DSD is not present, the mappings between GpioIo()/GpioInt() resources and GPIO
++connection IDs need to be provided by device drivers.
++
++For details refer to Documentation/acpi/gpio-properties.txt
++
++
+ Interacting With the Legacy GPIO Subsystem
+ ==========================================
+ Many kernel subsystems still handle GPIOs using the legacy integer-based
+
