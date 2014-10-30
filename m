@@ -1,57 +1,33 @@
-From: Yinghai Lu <yinghai@kernel.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH] PCI: fix sriov enabling with virtual bus
-Date: Thu, 30 Oct 2014 11:57:56 -0700
-Message-ID: <CAE9FiQVU7F=MXUVEwmemz61=TbL5imFecHexUik+3DtqWKOHGA@mail.gmail.com>
+Date: Thu, 30 Oct 2014 13:27:15 -0600
+Message-ID: <CAErSpo4E+ObyKb8wggT6rKQsT+VCXyoY4xqSFHitgq2bkSk6Pg@mail.gmail.com>
 References: <1414621570-20777-1-git-send-email-yinghai@kernel.org>
-	<20141030170913.GA6982@google.com>
+ <20141030170913.GA6982@google.com> <CAE9FiQVU7F=MXUVEwmemz61=TbL5imFecHexUik+3DtqWKOHGA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:63022 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbaJ3S55 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2014 14:57:57 -0400
-In-Reply-To: <20141030170913.GA6982@google.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQVU7F=MXUVEwmemz61=TbL5imFecHexUik+3DtqWKOHGA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 30, 2014 at 10:09 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> [+cc Rafael, linux-acpi]
+On Thu, Oct 30, 2014 at 12:57 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Thu, Oct 30, 2014 at 10:09 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
 
-> This raises the question of what the correct behavior should be.  Your
-> patch certainly avoids the NULL pointer dereference.  It does so by making
-> acpi_pci_get_bridge_handle() fail gracefully, which means we will not look
-> for _HPP/_HPX for VF devices.  Is that what we want?
->
-> Most of the fields included in _HPX are read-only or not applicable for
-> VFs, but we need to at least ask the question of whether we want to
-> completely ignore _HPX for VFs.  If we do, I think maybe we should make
-> that more explicit in the code, e.g., by adding an explicit test of
-> dev->is_virtfn, instead of relying on this special case behavior of
-> acpi_pci_get_bridge_handle() that in turn depends on the obscure property
-> of a VF not having a bridge device.
->
-> Personally, I think that since the _HPX spec doesn't mention VFs at all, we
-> might want to assume that _HPX should apply to VFs, just like it applies to
-> PFs.  I can imagine future _HPX record formats, or non-ACPI firmware
-> configuration hints, that *would* apply to VFs, so it seems like it would
-> be pretty arbitrary to say "we won't configure VF devices at all."
-
-Yes, VF should be treated as PF if possible.
-
->
->> Add checking with pbus->slef and bail out early.
+>>> Fixing: commit 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
 >>
->> Fixing: commit 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
+>> Thanks for including this, but why not use the same format everybody else
+>> does:
+>>
+>> Fixes: 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
 >
-> Thanks for including this, but why not use the same format everybody else
-> does:
->
-> Fixes: 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
+> will do that later. Is that formalized ?
 
-will do that later. Is that formalized ?
-checkpatch.pl only need 12 commit code, and (" ..") format.
+I don't know that it's formalized, but it seems to be a common
+convention, and using "Fixing: commit" instead of "Fixes:" doesn't
+seem to add value.  I guess I must spend more time reading git
+logs than most people :)
 
-Yinghai
+> checkpatch.pl only need 12 commit code, and (" ..") format.
