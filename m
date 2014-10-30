@@ -1,101 +1,109 @@
-From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [Patch Part2 v3 15/24] x86, MSI: Use hierarchy irqdomain to manage
-	MSI interrupts
-Date: Thu, 30 Oct 2014 12:50:01 +0800
-Message-ID: <5451C379.1050508@linux.intel.com>
-References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com>
-	<1414484803-10311-16-git-send-email-jiang.liu@linux.intel.com>
-	<alpine.DEB.2.11.1410282046120.5308@nanos>
-	<5450A9D8.108@linux.intel.com>
-	<alpine.DEB.2.11.1410291017180.5308@nanos>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 12/18] ACPI / processor: Make it possible to get CPU
+ hardware ID via GICC
+Date: Thu, 30 Oct 2014 16:27:36 +0800
+Message-ID: <5451F678.5090900@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-13-git-send-email-hanjun.guo@linaro.org> <20141024173920.GB8303@red-moon> <544E1732.5090902@linaro.org> <20141029104321.GA8896@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.11.1410291017180.5308@nanos>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Yingjoe Chen <yingjoe.chen-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:58269 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756960AbaJ3I37 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Oct 2014 04:29:59 -0400
+Received: by mail-pd0-f171.google.com with SMTP id r10so4706495pdi.30
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Oct 2014 01:29:59 -0700 (PDT)
+In-Reply-To: <20141029104321.GA8896@e102568-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawei.co
 
-On 2014/10/29 17:19, Thomas Gleixner wrote:
->> Hi Thomas,
->> 	Thanks for your great suggestion and I have worked out a draft
->> patch to achieve what you want:)
->> 	I have made following changes to irq core to get rid of remapped
->> irq logic from msi.c:
->> 1) Add IRQ_SET_MASK_OK_DONE in addition to IRQ_SET_MASK_OK and
->> IRQ_SET_MASK_OK_NOCOPY. IRQ_SET_MASK_OK_DONE is the same as
->> IRQ_SET_MASK_OK for irq core and indicates to stacked irqchip that
->> parent irqchips have done all work and skip any handling in descendant
->> irqchips.
->> 2) Add int (*irq_compose_msi_msg)(struct irq_data *data, struct msi_msg
->> *msg) into struct irq_chip. I'm still hesitating to return void or int
->> here. By returning void, irq_chip_compose_msi_msg() will be simpler,
->> but it loses flexibility.
+On 2014-10-29 18:43, Lorenzo Pieralisi wrote:
+> On Mon, Oct 27, 2014 at 09:58:10AM +0000, Hanjun Guo wrote:
 > 
-> void should be sufficient. If the chip advertises this function it
-> better can provide a proper msi msg :)
->  
->> With above changes to core, we could remove all knowledge of irq
->> remapping from msi.c and the irq remapping interfaces get simpler too.
->> Please refer to following patch for details. The patch passes basic
->> booting tests with irq remapping enabled. If it's OK, I will fold
->> it into the patch set.
+> [...]
 > 
-> Yes. That looks reasonable. 
->  
->> IOAPIC runs into the same situation, but I need some more time
->> to find a solution:)
+>>>> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+>>>> +		int device_declaration, u32 acpi_id, int *mpidr)
+>>>> +{
+>>>> +	struct acpi_madt_generic_interrupt *gicc =
+>>>> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+>>>> +
+>>>> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
+>>>> +		return -ENODEV;
+>>>> +
+>>>> +	/* In the GIC interrupt model, logical processors are
+>>>> +	 * required to have a Processor Device object in the DSDT,
+>>>> +	 * so we should check device_declaration here
+>>>> +	 */
+>>>> +	if (device_declaration && (gicc->uid == acpi_id)) {
+>>>> +		/*
+>>>> +		 * Only bits [0:7] Aff0, bits [8:15] Aff1, bits [16:23] Aff2
+>>>> +		 * and bits [32:39] Aff3 are meaningful, so pack the Affx
+>>>> +		 * fields into a single 32 bit identifier to accommodate the
+>>>> +		 * acpi processor drivers.
+>>>> +		 */
+>>>> +		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
+>>>> +			 | gicc->arm_mpidr;
+>>>
+>>> The simple fact that you define a function to pack the mpidr value and
+>>> you can't use it here because this is *generic* code is telling, and
+>>> a very bad omen. At the cost of sounding like a broken record, I do not
+>>> like this mpidr->apic->logical_cpu song and dance at all.
+>>> ACPI is peppered with code (eg hotplug is another example, CPUidle driver
+>>> even worse) that is supposed to be generic but contains x86 code to carry
+>>> out this cpuid conversion, I really think that in order to start an ARM64
+>>> ACPI port properly we should at least try to factor out this physical to
+>>> logical cpu id conversion, and it is not the first time that I mention this
+>>> on the lists.
+>>
+>> I know, thanks for pointing this out. As I replied in previous version
+>> of this patch set, apic_id is x86/ia64 specific, but the meaning behind
+>> it is not. It means the CPU hardware id to identify itself in the system,
+>> it just like MPIDR on ARM.
 > 
-> I'm sure you will!
-Hi Thomas,
-	I have reviewed IOAPIC related change again, but the conclusion
-may not be what you expect:(
-	Currently IOAPIC driver detects IRQ remapping for following
-tasks:
-1) Issue different EOI command to IOAPIC chip for unammped and remapped
-   interrupts. It uses pin number instead of vector number for remapped
-   interrupts.
-2) Print different format for IOAPIC entries for unmapped and remapped
-   interrupts.
-3) ioapic_ack_level() uses different method for unmapped and remapped
-   interrupts
-4) create different IOAPIC entry content for unmapped and remapped
-   interrupts
-5) choose different flow handler for unmapped and remapped interrupts
-
-For MSI, it only needs to solve task 4) above. For IOAPIC, it needs
-to solve all five tasks above, which may cause big changes to irq_chip.
-And it even may cause IRQ remapping driver call back into IOAPIC driver,
-which breaks another rules that only the driver touches corresponding
-interrupt controller.
-
-On the other hand, MSI is almost platform independent, so it's
-reasonable to change public struct irq_chip to support MSI.
-But IOAPIC is a sort of platform dependent (x86 and IA64), so it
-doesn't sound good to make great change to struct irq_chip to support
-IOAPIC.
-
-So I prefer keeping IOAPIC driver sensing interrupt remapping and
-acting different for unmapped and remapped interrupts.
-This breaks the layered design, but it does make code simpler.
-
-What's your thoughts?
-Regards!
-Gerry
-
-
+> Yes, except that it is called apic_id.
 > 
-> Thanks,
+>> I will send out a patch for RFC to convert apic_id to physid which
+>> is generic for all platforms.
 > 
-> 	tglx
+> That seems a good idea to sound out if I am the only one having an issue
+> with the current approach.
 > 
+>>> I will also talk to Rafael about this at the earliest opportunity, I
+>>> guess that x86 code relies on apic-id because some ACPI versions could
+>>> not rely on the acpi-id or some other reasons I have to investigate.
+>>
+>> As ACPI spec (section 8.4, Declaring Processors) said, Each processor
+>> in the system must be declared in the ACPI namespace, so each cpu will
+>> have acpi_id in all ACPI versions, and in theory we can map acpi_id to
+>> logical cpu id if we want to.
+>>
+>> But things are complicated, apic_id is connected to many
+>> tables, MADT for smp init, DSDT for device driver, and SRAT for NUMA (there
+>> is no acpi_id in it, ONLY has apic_id in the table for x86/ia64), so if we
+>> want to factor the code to map acpi_id to logical cpu id, we need to modify:
+>>
+>>  - ACPI drivers;
+>>  - SMP init for x86 and ia64
+>>  - the mappings for NUMA init for x86 and ia64
+>> that will be lots of work I think.
+>>
+>> I'm willing to discuss this further and come out a solution, please
+>> comment on what I said and share your ideas :)
+> 
+> Factoring out apic_id to a common cpu_physical_id is ok to me, because
+> basically that's what you are doing except for the naming. I do not
+> have any particular preference for the acpi_id, I mentioned that only
+> as a means to implement a generic cpu_physical_id, arch agnostic.
+> 
+> Drop the RFC you mentioned above please on the list, we will restart debating
+> from there.
+
+Ok, will send out the patch soon.
+
+Thanks
+Hanjun
+
