@@ -1,36 +1,39 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 3/3] ACPI / processor: Rename acpi_(un)map_lsapic() to
- acpi_(un)map_cpu()
-Date: Fri, 31 Oct 2014 07:49:49 +0800
-Message-ID: <5452CE9D.6000403@linaro.org>
-References: <1414662780-2147-1-git-send-email-hanjun.guo@linaro.org> <1414662780-2147-3-git-send-email-hanjun.guo@linaro.org> <2516177.7dftOY8x88@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2516177.7dftOY8x88@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/3] Support PMIC operation region for CrystalCove and XPower
+Date: Fri, 31 Oct 2014 14:08:22 +0800
+Message-ID: <1414735705-18366-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2014=E5=B9=B410=E6=9C=8831=E6=97=A5 04:12, Rafael J. Wysocki wrote:
-> On Thursday, October 30, 2014 05:53:00 PM Hanjun Guo wrote:
->> acpi_map_lsapic() will allocate a logical CPU number and map it to
->> physical CPU id (such as APIC id) for the hot-added CPU, it will als=
-o
->> do some mapping for NUMA node id and etc, acpi_unmap_lsapic() will
->> do the reverse.
->>
->> We can see that the name of the function is a little bit confusing a=
-nd
->> arch dependent so rename them as acpi_(un)map_map() to make arch
->
-> That's acpi_(un)map_cpu() I guess?
+On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
+ACPI operation regions defined for the Power Management Integrated Circuit
+device, one is for power resource handling and one is for thermal: sensor
+temperature reporting, trip point setting, etc. There are different PMIC
+chips used on those platforms and though each has the same two operation
+regions and functionality, their implementation is different so every PMIC
+will need a driver. But since their functionality is similar, some common
+code is abstracted into the intel_soc_pmic_opregion.c.
 
-ah, yes, typos, it should be acpi_(un)map_cpu(), my fault.
-should I send another version?
+The last version is posted here:
+https://lkml.org/lkml/2014/9/8/801
 
-Thanks
-Hanjun
+Changes since then:
+1 Move to drivers/acpi as discussed on the above thread;
+2 Added support for XPower AXP288 PMIC operation region support;
+3 Since operation region handler can not be removed(at the moment at least),
+  use bool for the two operation region driver configs instead of tristate;
+  Another reason to do this is that, with Mika's MFD ACPI support patch, all
+  those MFD cell devices created will have the same modalias as their parent's
+  so it doesn't make much sense to compile these drivers into modules.
+
+Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
+patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
+driver XPower AXP288 and iio driver axp288_adc is located.
+
+Aaron Lu (3):
+  ACPI / pmic_opregion: support PMIC operation region for CrystalCove
+  ACPI / pmic_opregion: support PMIC operation region for XPower AXP288
+  ACPI / pmic_opregion: AXP288: support virtual GPIO in ACPI table
