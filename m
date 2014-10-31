@@ -1,52 +1,107 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch Part2 v3 15/24] x86, MSI: Use hierarchy irqdomain to
- manage MSI interrupts
-Date: Fri, 31 Oct 2014 15:00:50 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1410311340000.5308@nanos>
-References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com> <1414484803-10311-16-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1410282046120.5308@nanos> <54537AC7.90409@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for 3.18-rc3
+Date: Fri, 31 Oct 2014 23:09:52 +0100
+Message-ID: <CAJZ5v0g_imW9B56qZQJBpuYybeEPguybMcnnC5RbAB+fLB5d5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54537AC7.90409@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:59744 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932270AbaJaWJx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2014 18:09:53 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, 31 Oct 2014, Jiang Liu wrote:
-> On 2014/10/29 5:37, Thomas Gleixner wrote:
-> > Then it calls down the domain allocation chain. x86_msi_domain would
-> > simply hand down to the parent domain. That would either be the remap
-> > domain or the vector domain.
-> The issue here is that, the hierarchy irqdomain maintains a tree
-> topology and every irqdomain only supports one parent.
-> 
-> In case of irq remapping, we need to build one irqdomain for each IOMMU
-> unit to support hotplug and simplify the implementation. So we need to
-> build one MSI irqdomain for each IOMMU unit too instead of using a
-> common MSI irqdomain.
+Hi Linus,
 
-That makes indeed a difference.
- 
-> Current design is that, a common MSI irqdomain to support all MSI when
-> irq remapping is disabled, and one MSI irqdomain for each IOMMU unit
-> when irq remapping is enabled.
+Please pull from
 
-> So we have the code below to choose the correct irqdomain for MSI.
->         domain = irq_remapping_get_irq_domain(&info);
->         if (domain == NULL)
->                 domain = msi_default_domain;
->         if (domain == NULL)
->                 return -ENOSYS;
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.18-rc3
 
-Right. I guess we need to keep it that way for now.
+to receive ACPI and power management fixes for v3.18-rc3 with
+top-most commit 7d627280b359a965105bcdd8f08224dfa14a3961
 
-But looking at the code makes me wonder why we actually need to call
-into the remap code and do a list walk to figure the domain out. The
-association of device and iommu should be known at startup/hotplug
-time already. That's out of the scope of this work, but should be
-fixed eventually.
+ Merge branches 'pm-cpufreq' and 'pm-sleep'
 
-Thanks,
+on top of commit cac7f2429872d3733dc3f9915857b1691da2eb2f
 
-	tglx
+ Linux 3.18-rc2
+
+These are fixes received after my previous pull request plus
+one that has been in the works for quite a while, but its
+previous version caused problems to happen, so it's been deferred
+till now.
+
+Fixed are 2 recent regressions (MFD enumeration and cpufreq-dt),
+ACPI EC regression introduced in 3.17, system suspend error code
+path regression introduced in 3.15, an older bug related to
+recovery from failing resume from hibernation and a cpufreq-dt
+driver issue related to operation performance points.
+
+Specifics:
+
+ - Fix a crash on r8a7791/koelsch during resume from system suspend
+   caused by a recent cpufreq-dt commit (Geert Uytterhoeven).
+
+ - Fix an MFD enumeration problem introduced by a recent commit
+   adding ACPI support to the MFD subsystem that exposed a weakness
+   in the ACPI core causing ACPI enumeration to be applied to all
+   devices associated with one ACPI companion object, although it
+   should be used for one of them only (Mika Westerberg).
+
+ - Fix an ACPI EC regression introduced during the 3.17 cycle
+   causing some Samsung laptops to misbehave as a result of a
+   workaround targeted at some Acer machines.  That includes
+   a revert of a commit that went too far and a quirk for the
+   Acer machines in question.  From Lv Zheng.
+
+ - Fix a regression in the system suspend error code path introduced
+   during the 3.15 cycle that causes it to fail to take errors from
+   asychronous execution of "late" suspend callbacks into account
+   (Imre Deak).
+
+ - Fix a long-standing bug in the hibernation resume error code path
+   that fails to roll back everything correcty on "freeze" callback
+   errors and leaves some devices in a "suspended" state causing more
+   breakage to happen subsequently (Imre Deak).
+
+ - Make the cpufreq-dt driver disable operation performance points
+   that are not supported by the VR connected to the CPU voltage
+   plane with acceptable tolerance instead of constantly failing
+   voltage scaling later on (Lucas Stach).
+
+Thanks!
+
+
+---------------
+
+Geert Uytterhoeven (1):
+      cpufreq: cpufreq-dt: Restore default cpumask_setall(policy->cpus)
+
+Imre Deak (2):
+      PM / Sleep: fix async suspend_late/freeze_late error handling
+      PM / Sleep: fix recovery during resuming from hibernation
+
+Lucas Stach (1):
+      cpufreq: cpufreq-dt: disable unsupported OPPs
+
+Lv Zheng (2):
+      Revert "ACPI / EC: Add support to disallow QR_EC to be issued
+before completing previous QR_EC"
+      ACPI / EC: Fix regression due to conflicting firmware behavior
+between Samsung and Acer.
+
+Mika Westerberg (1):
+      ACPI: Use ACPI companion to match only the first physical device
+
+---------------
+
+ drivers/acpi/ec.c            | 31 +++++++++++++-------
+ drivers/acpi/scan.c          | 70 ++++++++++++++++++++++++++++++++++----------
+ drivers/base/power/main.c    |  2 ++
+ drivers/cpufreq/cpufreq-dt.c | 68 ++++++++++++++++++++++++++----------------
+ kernel/power/hibernate.c     |  8 ++++-
+ 5 files changed, 126 insertions(+), 53 deletions(-)
