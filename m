@@ -1,107 +1,48 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for 3.18-rc3
-Date: Fri, 31 Oct 2014 23:09:52 +0100
-Message-ID: <CAJZ5v0g_imW9B56qZQJBpuYybeEPguybMcnnC5RbAB+fLB5d5A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 3/3] ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
+Date: Fri, 31 Oct 2014 23:55:46 +0100
+Message-ID: <10283319.F5QMI6fbWn@vostro.rjw.lan>
+References: <1414662780-2147-1-git-send-email-hanjun.guo@linaro.org> <2516177.7dftOY8x88@vostro.rjw.lan> <5452CE9D.6000403@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:59744 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932270AbaJaWJx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2014 18:09:53 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:56749 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757816AbaJaWfG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Oct 2014 18:35:06 -0400
+In-Reply-To: <5452CE9D.6000403@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi Linus,
+On Friday, October 31, 2014 07:49:49 AM Hanjun Guo wrote:
+> On 2014=E5=B9=B410=E6=9C=8831=E6=97=A5 04:12, Rafael J. Wysocki wrote=
+:
+> > On Thursday, October 30, 2014 05:53:00 PM Hanjun Guo wrote:
+> >> acpi_map_lsapic() will allocate a logical CPU number and map it to
+> >> physical CPU id (such as APIC id) for the hot-added CPU, it will a=
+lso
+> >> do some mapping for NUMA node id and etc, acpi_unmap_lsapic() will
+> >> do the reverse.
+> >>
+> >> We can see that the name of the function is a little bit confusing=
+ and
+> >> arch dependent so rename them as acpi_(un)map_map() to make arch
+> >
+> > That's acpi_(un)map_cpu() I guess?
+>=20
+> ah, yes, typos, it should be acpi_(un)map_cpu(), my fault.
+> should I send another version?
 
-Please pull from
+No, I can fix this up.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.18-rc3
-
-to receive ACPI and power management fixes for v3.18-rc3 with
-top-most commit 7d627280b359a965105bcdd8f08224dfa14a3961
-
- Merge branches 'pm-cpufreq' and 'pm-sleep'
-
-on top of commit cac7f2429872d3733dc3f9915857b1691da2eb2f
-
- Linux 3.18-rc2
-
-These are fixes received after my previous pull request plus
-one that has been in the works for quite a while, but its
-previous version caused problems to happen, so it's been deferred
-till now.
-
-Fixed are 2 recent regressions (MFD enumeration and cpufreq-dt),
-ACPI EC regression introduced in 3.17, system suspend error code
-path regression introduced in 3.15, an older bug related to
-recovery from failing resume from hibernation and a cpufreq-dt
-driver issue related to operation performance points.
-
-Specifics:
-
- - Fix a crash on r8a7791/koelsch during resume from system suspend
-   caused by a recent cpufreq-dt commit (Geert Uytterhoeven).
-
- - Fix an MFD enumeration problem introduced by a recent commit
-   adding ACPI support to the MFD subsystem that exposed a weakness
-   in the ACPI core causing ACPI enumeration to be applied to all
-   devices associated with one ACPI companion object, although it
-   should be used for one of them only (Mika Westerberg).
-
- - Fix an ACPI EC regression introduced during the 3.17 cycle
-   causing some Samsung laptops to misbehave as a result of a
-   workaround targeted at some Acer machines.  That includes
-   a revert of a commit that went too far and a quirk for the
-   Acer machines in question.  From Lv Zheng.
-
- - Fix a regression in the system suspend error code path introduced
-   during the 3.15 cycle that causes it to fail to take errors from
-   asychronous execution of "late" suspend callbacks into account
-   (Imre Deak).
-
- - Fix a long-standing bug in the hibernation resume error code path
-   that fails to roll back everything correcty on "freeze" callback
-   errors and leaves some devices in a "suspended" state causing more
-   breakage to happen subsequently (Imre Deak).
-
- - Make the cpufreq-dt driver disable operation performance points
-   that are not supported by the VR connected to the CPU voltage
-   plane with acceptable tolerance instead of constantly failing
-   voltage scaling later on (Lucas Stach).
-
-Thanks!
-
-
----------------
-
-Geert Uytterhoeven (1):
-      cpufreq: cpufreq-dt: Restore default cpumask_setall(policy->cpus)
-
-Imre Deak (2):
-      PM / Sleep: fix async suspend_late/freeze_late error handling
-      PM / Sleep: fix recovery during resuming from hibernation
-
-Lucas Stach (1):
-      cpufreq: cpufreq-dt: disable unsupported OPPs
-
-Lv Zheng (2):
-      Revert "ACPI / EC: Add support to disallow QR_EC to be issued
-before completing previous QR_EC"
-      ACPI / EC: Fix regression due to conflicting firmware behavior
-between Samsung and Acer.
-
-Mika Westerberg (1):
-      ACPI: Use ACPI companion to match only the first physical device
-
----------------
-
- drivers/acpi/ec.c            | 31 +++++++++++++-------
- drivers/acpi/scan.c          | 70 ++++++++++++++++++++++++++++++++++----------
- drivers/base/power/main.c    |  2 ++
- drivers/cpufreq/cpufreq-dt.c | 68 ++++++++++++++++++++++++++----------------
- kernel/power/hibernate.c     |  8 ++++-
- 5 files changed, 126 insertions(+), 53 deletions(-)
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
