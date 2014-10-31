@@ -1,260 +1,193 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO descriptors
-Date: Fri, 31 Oct 2014 13:40:58 +0200
-Message-ID: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:9873 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758711AbaJaLla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Oct 2014 07:41:30 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [Patch Part2 v3 15/24] x86, MSI: Use hierarchy irqdomain to manage
+	MSI interrupts
+Date: Fri, 31 Oct 2014 20:04:23 +0800
+Message-ID: <54537AC7.90409@linux.intel.com>
+References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com>
+	<1414484803-10311-16-git-send-email-jiang.liu@linux.intel.com>
+	<alpine.DEB.2.11.1410282046120.5308@nanos>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.11.1410282046120.5308@nanos>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Yingjoe Chen <yingjoe.chen-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Commit 21f2aae91e902aad ("leds: leds-gpio: Add support for GPIO
-descriptors") already converted most of the driver to use GPIO descriptors.
-What is still missing is the platform specific hook gpio_blink_set() and
-board files which pass legacy GPIO numbers to this driver in platform data.
 
-In this patch we handle the former and convert gpio_blink_set() to take
-GPIO descriptor instead. In order to do this we convert the existing four
-users to accept GPIO descriptor and translate it to legacy GPIO number in
-the platform code. This effectively "pushes" legacy GPIO number usage from
-the driver to platforms.
 
-Also add comment to the remaining block describing that it is legacy code
-path and we are getting rid of it eventually.
+On 2014/10/29 5:37, Thomas Gleixner wrote:
+> On Tue, 28 Oct 2014, Jiang Liu wrote:
+>> @@ -166,25 +264,59 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+>>  
+>>  int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+>>  {
+>> -	struct msi_desc *msidesc;
+>> -	int irq, ret;
+>> +	int irq, cnt, nvec_pow2;
+>> +	struct irq_domain *domain;
+>> +	struct msi_desc *msidesc, *iter;
+>> +	struct irq_alloc_info info;
+>> +	int node = dev_to_node(&dev->dev);
+>>  
+>> -	/* Multiple MSI vectors only supported with interrupt remapping */
+>> -	if (type == PCI_CAP_ID_MSI && nvec > 1)
+>> -		return 1;
+>> +	if (disable_apic)
+>> +		return -ENOSYS;
+>>  
+>> -	list_for_each_entry(msidesc, &dev->msi_list, list) {
+>> -		irq = irq_domain_alloc_irqs(NULL, 1, NUMA_NO_NODE, NULL);
+>> +	init_irq_alloc_info(&info, NULL);
+>> +	info.msi_dev = dev;
+>> +	if (type == PCI_CAP_ID_MSI) {
+>> +		msidesc = list_first_entry(&dev->msi_list,
+>> +					   struct msi_desc, list);
+>> +		WARN_ON(!list_is_singular(&dev->msi_list));
+>> +		WARN_ON(msidesc->irq);
+>> +		WARN_ON(msidesc->msi_attrib.multiple);
+>> +		WARN_ON(msidesc->nvec_used);
+>> +		info.type = X86_IRQ_ALLOC_TYPE_MSI;
+>> +		cnt = nvec;
+>> +	} else {
+>> +		info.type = X86_IRQ_ALLOC_TYPE_MSIX;
+>> +		cnt = 1;
+>> +	}
+> 
+> We have a similar issue here.
+> 
+>> +	domain = irq_remapping_get_irq_domain(&info);
+> 
+> We add domain specific knowledge to the MSI implementation. Not
+> necessary at all.
+> 
+> Again MSI is not an x86 problem and we really can move most of that to
+> the core code. The above sanity checks and the distinction between MSI
+> and MSIX can be handled in the core code. And every domain involved in
+> the MSI chain would need a alloc_msi() callback.
+Add alloc_msi() callback to irq_domain_ops seems a little overaction.
+I think the main idea is to make MSI code public as much as possible,
+so I have found another solution to move MSI irqdomain code into
+drivers/pci/msi.c and only following code are platform dependent now.
+How about this solution?
+------------------------------------------------------------------------
+int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+{
+        struct irq_domain *domain;
+        struct irq_alloc_info info;
 
-Suggested-by: Linus Walleij <linus.walleij@linaro.org>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-Hi all,
+        init_irq_alloc_info(&info, NULL);
+        info.msi_dev = dev;
+        if (type == PCI_CAP_ID_MSI) {
+                info.type = X86_IRQ_ALLOC_TYPE_MSI;
+                info.flags |= X86_IRQ_ALLOC_CONTIGOUS_VECTORS;
+        } else {
+                info.type = X86_IRQ_ALLOC_TYPE_MSIX;
+        }
 
-This has been discussed in the following thread
+        domain = irq_remapping_get_irq_domain(&info);
+        if (domain == NULL)
+                domain = msi_default_domain;
+        if (domain == NULL)
+                return -ENOSYS;
 
-http://marc.info/?l=devicetree&m=141468331302908&w=4
+        return msi_irq_domain_alloc_irqs(domain, type, dev, &info);
+}
 
-In brief, while making example driver changes for generic device property
-accessors we converted these drivers from legacy GPIO numbers to GPIO
-descriptors. We did this only partially leaving the legacy code path for
-existing users (there are pretty many existing users for this).
+void native_teardown_msi_irq(unsigned int irq)
+{
+        irq_domain_free_irqs(irq, 1);
+}
 
-It turned out that it is pretty simple to go bit further and convert
-gpio_blink_set() to use GPIO descptors as well. This patch does just that.
+irq_hw_number_t arch_msi_irq_domain_get_hwirq(void *arg)
+{
+        struct irq_alloc_info *info = arg;
 
-I have not been able to test the ARM parts on a real hardware so they are
-only compile tested.
+        return info->msi_hwirq;
+}
 
-This patch is on top of Rafael's linux-pm.git/device-properties branch [1]
+void arch_msi_irq_domain_set_hwirq(void *arg, irq_hw_number_t hwirq)
+{
+        struct irq_alloc_info *info = arg;
 
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+        info->msi_hwirq = hwirq;
+}
 
- arch/arm/mach-s3c24xx/h1940-bluetooth.c       |  4 ++--
- arch/arm/mach-s3c24xx/h1940.h                 |  4 +++-
- arch/arm/mach-s3c24xx/mach-h1940.c            |  3 ++-
- arch/arm/mach-s3c24xx/mach-rx1950.c           |  3 ++-
- arch/arm/plat-orion/gpio.c                    |  3 ++-
- arch/arm/plat-orion/include/plat/orion-gpio.h |  5 ++++-
- drivers/leds/leds-gpio.c                      | 31 +++++++++++----------------
- include/linux/leds.h                          |  2 +-
- 8 files changed, 29 insertions(+), 26 deletions(-)
+void arch_init_msi_domain(struct irq_domain *parent)
+{
+        if (disable_apic)
+                return;
 
-diff --git a/arch/arm/mach-s3c24xx/h1940-bluetooth.c b/arch/arm/mach-s3c24xx/h1940-bluetooth.c
-index b4d14b864367..9c8b1279a4ba 100644
---- a/arch/arm/mach-s3c24xx/h1940-bluetooth.c
-+++ b/arch/arm/mach-s3c24xx/h1940-bluetooth.c
-@@ -41,7 +41,7 @@ static void h1940bt_enable(int on)
- 		mdelay(10);
- 		gpio_set_value(S3C2410_GPH(1), 0);
- 
--		h1940_led_blink_set(-EINVAL, GPIO_LED_BLINK, NULL, NULL);
-+		h1940_led_blink_set(NULL, GPIO_LED_BLINK, NULL, NULL);
- 	}
- 	else {
- 		gpio_set_value(S3C2410_GPH(1), 1);
-@@ -50,7 +50,7 @@ static void h1940bt_enable(int on)
- 		mdelay(10);
- 		gpio_set_value(H1940_LATCH_BLUETOOTH_POWER, 0);
- 
--		h1940_led_blink_set(-EINVAL, GPIO_LED_NO_BLINK_LOW, NULL, NULL);
-+		h1940_led_blink_set(NULL, GPIO_LED_NO_BLINK_LOW, NULL, NULL);
- 	}
- }
- 
-diff --git a/arch/arm/mach-s3c24xx/h1940.h b/arch/arm/mach-s3c24xx/h1940.h
-index 2950cc466840..596d9f64c5b6 100644
---- a/arch/arm/mach-s3c24xx/h1940.h
-+++ b/arch/arm/mach-s3c24xx/h1940.h
-@@ -19,8 +19,10 @@
- #define H1940_SUSPEND_RESUMEAT		(0x30081000)
- #define H1940_SUSPEND_CHECK		(0x30080000)
- 
-+struct gpio_desc;
-+
- extern void h1940_pm_return(void);
--extern int h1940_led_blink_set(unsigned gpio, int state,
-+extern int h1940_led_blink_set(struct gpio_desc *desc, int state,
- 			       unsigned long *delay_on,
- 			       unsigned long *delay_off);
- 
-diff --git a/arch/arm/mach-s3c24xx/mach-h1940.c b/arch/arm/mach-s3c24xx/mach-h1940.c
-index d35ddc1d9991..d40d4f5244c6 100644
---- a/arch/arm/mach-s3c24xx/mach-h1940.c
-+++ b/arch/arm/mach-s3c24xx/mach-h1940.c
-@@ -359,10 +359,11 @@ static struct platform_device h1940_battery = {
- 
- static DEFINE_SPINLOCK(h1940_blink_spin);
- 
--int h1940_led_blink_set(unsigned gpio, int state,
-+int h1940_led_blink_set(struct gpio_desc *desc, int state,
- 	unsigned long *delay_on, unsigned long *delay_off)
- {
- 	int blink_gpio, check_gpio1, check_gpio2;
-+	int gpio = desc ? desc_to_gpio(desc) : -EINVAL;
- 
- 	switch (gpio) {
- 	case H1940_LATCH_LED_GREEN:
-diff --git a/arch/arm/mach-s3c24xx/mach-rx1950.c b/arch/arm/mach-s3c24xx/mach-rx1950.c
-index c3f2682d0c62..1d35ff375a01 100644
---- a/arch/arm/mach-s3c24xx/mach-rx1950.c
-+++ b/arch/arm/mach-s3c24xx/mach-rx1950.c
-@@ -250,9 +250,10 @@ static void rx1950_disable_charger(void)
- 
- static DEFINE_SPINLOCK(rx1950_blink_spin);
- 
--static int rx1950_led_blink_set(unsigned gpio, int state,
-+static int rx1950_led_blink_set(struct gpio_desc *desc, int state,
- 	unsigned long *delay_on, unsigned long *delay_off)
- {
-+	int gpio = desc_to_gpio(desc);
- 	int blink_gpio, check_gpio;
- 
- 	switch (gpio) {
-diff --git a/arch/arm/plat-orion/gpio.c b/arch/arm/plat-orion/gpio.c
-index b61a3bcc2fa8..b357053f40d9 100644
---- a/arch/arm/plat-orion/gpio.c
-+++ b/arch/arm/plat-orion/gpio.c
-@@ -306,9 +306,10 @@ EXPORT_SYMBOL(orion_gpio_set_blink);
- 
- #define ORION_BLINK_HALF_PERIOD 100 /* ms */
- 
--int orion_gpio_led_blink_set(unsigned gpio, int state,
-+int orion_gpio_led_blink_set(struct gpio_desc *desc, int state,
- 	unsigned long *delay_on, unsigned long *delay_off)
- {
-+	unsigned gpio = desc_to_gpio(desc);
- 
- 	if (delay_on && delay_off && !*delay_on && !*delay_off)
- 		*delay_on = *delay_off = ORION_BLINK_HALF_PERIOD;
-diff --git a/arch/arm/plat-orion/include/plat/orion-gpio.h b/arch/arm/plat-orion/include/plat/orion-gpio.h
-index e763988b04b9..e856b073a9c8 100644
---- a/arch/arm/plat-orion/include/plat/orion-gpio.h
-+++ b/arch/arm/plat-orion/include/plat/orion-gpio.h
-@@ -14,12 +14,15 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/irqdomain.h>
-+
-+struct gpio_desc;
-+
- /*
-  * Orion-specific GPIO API extensions.
-  */
- void orion_gpio_set_unused(unsigned pin);
- void orion_gpio_set_blink(unsigned pin, int blink);
--int orion_gpio_led_blink_set(unsigned gpio, int state,
-+int orion_gpio_led_blink_set(struct gpio_desc *desc, int state,
- 	unsigned long *delay_on, unsigned long *delay_off);
- 
- #define GPIO_INPUT_OK		(1 << 0)
-diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
-index edd370dbb22f..ba4698c32bb0 100644
---- a/drivers/leds/leds-gpio.c
-+++ b/drivers/leds/leds-gpio.c
-@@ -28,7 +28,7 @@ struct gpio_led_data {
- 	u8 new_level;
- 	u8 can_sleep;
- 	u8 blinking;
--	int (*platform_gpio_blink_set)(unsigned gpio, int state,
-+	int (*platform_gpio_blink_set)(struct gpio_desc *desc, int state,
- 			unsigned long *delay_on, unsigned long *delay_off);
- };
- 
-@@ -38,13 +38,8 @@ static void gpio_led_work(struct work_struct *work)
- 		container_of(work, struct gpio_led_data, work);
- 
- 	if (led_dat->blinking) {
--		int gpio = desc_to_gpio(led_dat->gpiod);
--		int level = led_dat->new_level;
--
--		if (gpiod_is_active_low(led_dat->gpiod))
--			level = !level;
--
--		led_dat->platform_gpio_blink_set(gpio, level, NULL, NULL);
-+		led_dat->platform_gpio_blink_set(led_dat->gpiod,
-+					led_dat->new_level, NULL, NULL);
- 		led_dat->blinking = 0;
- 	} else
- 		gpiod_set_value_cansleep(led_dat->gpiod, led_dat->new_level);
-@@ -71,13 +66,8 @@ static void gpio_led_set(struct led_classdev *led_cdev,
- 		schedule_work(&led_dat->work);
- 	} else {
- 		if (led_dat->blinking) {
--			int gpio = desc_to_gpio(led_dat->gpiod);
--
--			if (gpiod_is_active_low(led_dat->gpiod))
--				level = !level;
--
--			led_dat->platform_gpio_blink_set(gpio, level, NULL,
--							 NULL);
-+			led_dat->platform_gpio_blink_set(led_dat->gpiod, level,
-+							 NULL, NULL);
- 			led_dat->blinking = 0;
- 		} else
- 			gpiod_set_value(led_dat->gpiod, level);
-@@ -89,20 +79,25 @@ static int gpio_blink_set(struct led_classdev *led_cdev,
- {
- 	struct gpio_led_data *led_dat =
- 		container_of(led_cdev, struct gpio_led_data, cdev);
--	int gpio = desc_to_gpio(led_dat->gpiod);
- 
- 	led_dat->blinking = 1;
--	return led_dat->platform_gpio_blink_set(gpio, GPIO_LED_BLINK,
-+	return led_dat->platform_gpio_blink_set(led_dat->gpiod, GPIO_LED_BLINK,
- 						delay_on, delay_off);
- }
- 
- static int create_gpio_led(const struct gpio_led *template,
- 	struct gpio_led_data *led_dat, struct device *parent,
--	int (*blink_set)(unsigned, int, unsigned long *, unsigned long *))
-+	int (*blink_set)(struct gpio_desc *, int, unsigned long *,
-+			 unsigned long *))
- {
- 	int ret, state;
- 
- 	if (!template->gpiod) {
-+		/*
-+		 * This is the legacy code path for platform code that
-+		 * still uses GPIO numbers. Ultimately we would like to get
-+		 * rid of this block completely.
-+		 */
- 		unsigned long flags = 0;
- 
- 		/* skip leds that aren't available */
-diff --git a/include/linux/leds.h b/include/linux/leds.h
-index f3af5c4d9084..361101fef270 100644
---- a/include/linux/leds.h
-+++ b/include/linux/leds.h
-@@ -274,7 +274,7 @@ struct gpio_led_platform_data {
- #define GPIO_LED_NO_BLINK_LOW	0	/* No blink GPIO state low */
- #define GPIO_LED_NO_BLINK_HIGH	1	/* No blink GPIO state high */
- #define GPIO_LED_BLINK		2	/* Please, blink */
--	int		(*gpio_blink_set)(unsigned gpio, int state,
-+	int		(*gpio_blink_set)(struct gpio_desc *desc, int state,
- 					unsigned long *delay_on,
- 					unsigned long *delay_off);
- };
--- 
-2.1.1
+        msi_default_domain = msi_create_irq_domain(parent);
+        if (!msi_default_domain)
+                pr_warn("failed to initialize irqdomain for MSI/MSI-x.\n");
+}
 
+#ifdef CONFIG_IRQ_REMAP
+struct irq_domain *arch_create_msi_irq_domain(struct irq_domain *parent)
+{
+        return msi_create_irq_domain(parent);
+}
+#endif
+-----------------------------------------------------------------
+
+> 
+> So native_setup_msi_irqs() would boil down to:
+> + {
+> +	if (disable_apic)
+> +		return -ENOSYS;
+> + 
+> +	return irq_domain_alloc_msi(msi_domain, dev, nvec, type);   
+> + }
+> 
+> Now that core function performs the sanity checks for the MSI case. In
+> fact it should not proceed when a warning condition is detected. Not a
+> x86 issue at all, its true for every MSI implementation.
+> 
+> Then it calls down the domain allocation chain. x86_msi_domain would
+> simply hand down to the parent domain. That would either be the remap
+> domain or the vector domain.
+The issue here is that, the hierarchy irqdomain maintains a tree
+topology and every irqdomain only supports one parent.
+
+In case of irq remapping, we need to build one irqdomain for each IOMMU
+unit to support hotplug and simplify the implementation. So we need to
+build one MSI irqdomain for each IOMMU unit too instead of using a
+common MSI irqdomain.
+
+Current design is that, a common MSI irqdomain to support all MSI when
+irq remapping is disabled, and one MSI irqdomain for each IOMMU unit
+when irq remapping is enabled.
+
+So we have the code below to choose the correct irqdomain for MSI.
+        domain = irq_remapping_get_irq_domain(&info);
+        if (domain == NULL)
+                domain = msi_default_domain;
+        if (domain == NULL)
+                return -ENOSYS;
+
+> 
+> The reject for the multi MSI would only be implemented in the vector
+> domain callback, while the remap domain can handle it. Once we gain
+> support for allocating consecutive vectors for multi-MSI in the vector
+> domain we would not have to change any of the MSI code at all. 
+I have worked out a working patch to make decision in vector domain,
+as you have suggested.
+
+> 
+> Thoughts?
+> 
+> Thanks,
+> 
+> 	tglx
+> 
