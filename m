@@ -1,41 +1,52 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO
- descriptors
-Date: Fri, 31 Oct 2014 14:41:14 +0100
-Message-ID: <20141031134114.GD32139@lunn.ch>
-References: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch Part2 v3 15/24] x86, MSI: Use hierarchy irqdomain to
+ manage MSI interrupts
+Date: Fri, 31 Oct 2014 15:00:50 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1410311340000.5308@nanos>
+References: <1414484803-10311-1-git-send-email-jiang.liu@linux.intel.com> <1414484803-10311-16-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1410282046120.5308@nanos> <54537AC7.90409@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
+In-Reply-To: <54537AC7.90409@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 31, 2014 at 01:40:58PM +0200, Mika Westerberg wrote:
-> Commit 21f2aae91e902aad ("leds: leds-gpio: Add support for GPIO
-> descriptors") already converted most of the driver to use GPIO descriptors.
-> What is still missing is the platform specific hook gpio_blink_set() and
-> board files which pass legacy GPIO numbers to this driver in platform data.
+On Fri, 31 Oct 2014, Jiang Liu wrote:
+> On 2014/10/29 5:37, Thomas Gleixner wrote:
+> > Then it calls down the domain allocation chain. x86_msi_domain would
+> > simply hand down to the parent domain. That would either be the remap
+> > domain or the vector domain.
+> The issue here is that, the hierarchy irqdomain maintains a tree
+> topology and every irqdomain only supports one parent.
 > 
-> In this patch we handle the former and convert gpio_blink_set() to take
-> GPIO descriptor instead. In order to do this we convert the existing four
-> users to accept GPIO descriptor and translate it to legacy GPIO number in
-> the platform code. This effectively "pushes" legacy GPIO number usage from
-> the driver to platforms.
-> 
-> Also add comment to the remaining block describing that it is legacy code
-> path and we are getting rid of it eventually.
-> 
-> Suggested-by: Linus Walleij <linus.walleij@linaro.org>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> In case of irq remapping, we need to build one irqdomain for each IOMMU
+> unit to support hotplug and simplify the implementation. So we need to
+> build one MSI irqdomain for each IOMMU unit too instead of using a
+> common MSI irqdomain.
 
-Hi Mika
+That makes indeed a difference.
+ 
+> Current design is that, a common MSI irqdomain to support all MSI when
+> irq remapping is disabled, and one MSI irqdomain for each IOMMU unit
+> when irq remapping is enabled.
 
-For the plat-orion parts:
+> So we have the code below to choose the correct irqdomain for MSI.
+>         domain = irq_remapping_get_irq_domain(&info);
+>         if (domain == NULL)
+>                 domain = msi_default_domain;
+>         if (domain == NULL)
+>                 return -ENOSYS;
 
-Acked-by: Andrew Lunn <andrew@lunn.ch>
+Right. I guess we need to keep it that way for now.
 
-	  Andrew
+But looking at the code makes me wonder why we actually need to call
+into the remap code and do a list walk to figure the domain out. The
+association of device and iommu should be known at startup/hotplug
+time already. That's out of the scope of this work, but should be
+fixed eventually.
+
+Thanks,
+
+	tglx
