@@ -1,102 +1,167 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v8 10/18] x86, irq: Prefer assigned ID in APIC ID register for x86_64
-Date: Sun,  2 Nov 2014 14:04:25 +0800
-Message-ID: <1414908273-7552-11-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v8 12/18] x86, irq: Keep balance of IOAPIC pin reference count
+Date: Sun,  2 Nov 2014 14:04:27 +0800
+Message-ID: <1414908273-7552-13-git-send-email-jiang.liu@linux.intel.com>
 References: <1414908273-7552-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:41446 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751796AbaKBGCn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Nov 2014 01:02:43 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1414908273-7552-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Prarit Bhargava <prarit@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Ingo Molnar <mingo@kernel.org>
 
-From: Yinghai Lu <yinghai@kernel.org>
+To keep balance of IOAPIC pin reference count, we need to protect
+pirq_enable_irq(), acpi_pci_irq_enable() and intel_mid_pci_irq_enable()
+from reentrance. There are two cases which will cause reentrance.
 
-Perfer the assigned ID in APIC ID register for x86_64 if it's still
-available.
+The first case is caused by suspend/hibernation. If pcibios_disable_irq
+is called during suspending/hibernating, we don't release the assigned
+IRQ number, otherwise it may break the suspend/hibernation. So late when
+pcibios_enable_irq is called during resume, we shouldn't allocate IRQ
+number again.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+The second case is that function acpi_pci_irq_enable() may be called
+twice for PCI devices present at boot time as below:
+1) pci_acpi_init()
+	--> acpi_pci_irq_enable() if pci_routeirq is true
+2) pci_enable_device()
+	--> pcibios_enable_device()
+		--> acpi_pci_irq_enable()
+We can't kill kernel parameter pci_routeirq yet because it's still
+needed for debugging purpose.
+
+So flag irq_managed is introduced to track whether IRQ number is
+assigned by OS and to protect pirq_enable_irq(), acpi_pci_irq_enable()
+and intel_mid_pci_irq_enable() from reentrance.
+
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c |   35 ++++++++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 5 deletions(-)
+ arch/x86/pci/intel_mid_pci.c |   10 +++++++++-
+ arch/x86/pci/irq.c           |    7 ++++++-
+ drivers/acpi/pci_irq.c       |   11 +++++++++--
+ include/linux/pci.h          |    1 +
+ 4 files changed, 25 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index acaee90fc9cc..eaa7ea385600 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3580,26 +3580,51 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
- 	return apic_id;
- }
- 
--static u8 __init io_apic_unique_id(u8 id)
-+static u8 __init io_apic_unique_id(int idx, u8 id)
+diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
+index b9958c364075..44b9271580b5 100644
+--- a/arch/x86/pci/intel_mid_pci.c
++++ b/arch/x86/pci/intel_mid_pci.c
+@@ -210,6 +210,9 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
  {
- 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
- 	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
--		return io_apic_get_unique_id(nr_ioapics, id);
-+		return io_apic_get_unique_id(idx, id);
+ 	int polarity;
+ 
++	if (dev->irq_managed && dev->irq > 0)
++		return 0;
++
+ 	if (intel_mid_identify_cpu() == INTEL_MID_CPU_CHIP_TANGIER)
+ 		polarity = 0; /* active high */
  	else
- 		return id;
+@@ -224,13 +227,18 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 	if (mp_map_gsi_to_irq(dev->irq, IOAPIC_MAP_ALLOC) < 0)
+ 		return -EBUSY;
+ 
++	dev->irq_managed = 1;
++
+ 	return 0;
  }
- #else
--static u8 __init io_apic_unique_id(u8 id)
-+static u8 __init io_apic_unique_id(int idx, u8 id)
+ 
+ static void intel_mid_pci_irq_disable(struct pci_dev *dev)
  {
- 	int i;
-+	u8 new_id;
-+	unsigned long flags;
- 	DECLARE_BITMAP(used, 256);
-+	union IO_APIC_reg_00 reg_00;
- 
- 	bitmap_zero(used, 256);
- 	for_each_ioapic(i)
- 		__set_bit(mpc_ioapic_id(i), used);
- 	if (!test_bit(id, used))
- 		return id;
--	return find_first_zero_bit(used, 256);
-+
-+	/* check register at first */
-+	raw_spin_lock_irqsave(&ioapic_lock, flags);
-+	reg_00.raw = io_apic_read(idx, 0);
-+	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
-+	new_id = reg_00.bits.ID;
-+	if (!test_bit(new_id, used)) {
-+		apic_printk(APIC_VERBOSE, KERN_INFO
-+			"IOAPIC[%d]: Using reg apic_id %d instead of %d\n",
-+			 idx, new_id, id);
-+		return new_id;
+-	if (!mp_should_keep_irq(&dev->dev) && dev->irq > 0)
++	if (!mp_should_keep_irq(&dev->dev) && dev->irq_managed &&
++	    dev->irq > 0) {
+ 		mp_unmap_irq(dev->irq);
++		dev->irq_managed = 0;
 +	}
-+
-+	new_id = find_first_zero_bit(used, 256);
-+	reg_00.bits.ID = new_id;
-+	raw_spin_lock_irqsave(&ioapic_lock, flags);
-+	io_apic_write(idx, 0, reg_00.raw);
-+	reg_00.raw = io_apic_read(idx, 0);
-+	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
-+	/* Sanity check */
-+	BUG_ON(reg_00.bits.ID != new_id);
-+
-+	return new_id;
  }
- #endif
  
-@@ -3865,7 +3890,7 @@ void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 		return;
+ struct pci_ops intel_mid_pci_ops = {
+diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+index eb500c2592ad..a47e2dea0972 100644
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
+@@ -1202,6 +1202,9 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 			int irq;
+ 			struct io_apic_irq_attr irq_attr;
+ 
++			if (dev->irq_managed && dev->irq > 0)
++				return 0;
++
+ 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
+ 						PCI_SLOT(dev->devfn),
+ 						pin - 1, &irq_attr);
+@@ -1228,6 +1231,7 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 			}
+ 			dev = temp_dev;
+ 			if (irq >= 0) {
++				dev->irq_managed = 1;
+ 				dev->irq = irq;
+ 				dev_info(&dev->dev, "PCI->APIC IRQ transform: "
+ 					 "INT %c -> IRQ %d\n", 'A' + pin - 1, irq);
+@@ -1257,8 +1261,9 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ static void pirq_disable_irq(struct pci_dev *dev)
+ {
+ 	if (io_apic_assign_pci_irqs && !mp_should_keep_irq(&dev->dev) &&
+-	    dev->irq) {
++	    dev->irq_managed && dev->irq) {
+ 		mp_unmap_irq(dev->irq);
+ 		dev->irq = 0;
++		dev->irq_managed = 0;
+ 	}
+ }
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 6e6b80eb0bba..5f1fdca65e5f 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -413,6 +413,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		return 0;
  	}
  
--	ioapics[idx].mp_config.apicid = io_apic_unique_id(id);
-+	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
- 	ioapics[idx].mp_config.apicver = io_apic_get_version(idx);
++	if (dev->irq_managed && dev->irq > 0)
++		return 0;
++
+ 	entry = acpi_pci_irq_lookup(dev, pin);
+ 	if (!entry) {
+ 		/*
+@@ -456,6 +459,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		return rc;
+ 	}
+ 	dev->irq = rc;
++	dev->irq_managed = 1;
  
- 	/*
+ 	if (link)
+ 		snprintf(link_desc, sizeof(link_desc), " -> Link[%s]", link);
+@@ -478,7 +482,7 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	u8 pin;
+ 
+ 	pin = dev->pin;
+-	if (!pin)
++	if (!pin || !dev->irq_managed || dev->irq <= 0)
+ 		return;
+ 
+ 	/* Keep IOAPIC pin configuration when suspending */
+@@ -506,6 +510,9 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	 */
+ 
+ 	dev_dbg(&dev->dev, "PCI INT %c disabled\n", pin_name(pin));
+-	if (gsi >= 0 && dev->irq > 0)
++	if (gsi >= 0) {
+ 		acpi_unregister_gsi(gsi);
++		dev->irq = 0;
++		dev->irq_managed = 0;
++	}
+ }
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 5be8db45e368..2a8c4055ae9d 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -348,6 +348,7 @@ struct pci_dev {
+ 	unsigned int	__aer_firmware_first:1;
+ 	unsigned int	broken_intx_masking:1;
+ 	unsigned int	io_window_1k:1;	/* Intel P2P bridge 1K I/O windows */
++	unsigned int	irq_managed:1;
+ 	pci_dev_flags_t dev_flags;
+ 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
+ 
 -- 
 1.7.10.4
-
