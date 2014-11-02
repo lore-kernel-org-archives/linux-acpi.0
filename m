@@ -1,64 +1,116 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v7 14/18] x86, irq, ACPI: Introduce a rwsem to protect
- IOAPIC operations from hotplug
-Date: Sun, 02 Nov 2014 13:24:04 +0800
-Message-ID: <5455BFF4.6040401@linux.intel.com>
-References: <1414387308-27148-1-git-send-email-jiang.liu@linux.intel.com> <1414387308-27148-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1411011949370.5308@nanos>
+Subject: [Patch v8 00/18] Enable support of IOAPIC hotplug on x86 platforms
+Date: Sun,  2 Nov 2014 14:04:15 +0800
+Message-ID: <1414908273-7552-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:58665 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:26286 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750737AbaKBFYM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Nov 2014 01:24:12 -0400
-In-Reply-To: <alpine.DEB.2.11.1411011949370.5308@nanos>
+	id S1751078AbaKBGBY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Nov 2014 01:01:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2014/11/2 2:59, Thomas Gleixner wrote:
-> On Mon, 27 Oct 2014, Jiang Liu wrote:
->> We are going to support ACPI based IOAPIC hotplug, so introduce a rwsem
->> to protect IOAPIC data structures from IOAPIC hotplug. We choose to
->> serialize in ACPI instead of in the IOAPIC core because:
->> 1) currently we are only plan to support ACPI based IOAPIC hotplug
->> 2) it's much more cleaner and easier
->> 3) It does't affect IOAPIC discovered by devicetree, SFI and mpparse.
-> 
-> I had a last intensive look at this series as I was about to merge
-> it. So I looked at the locking rules here again
->  
->> +/*
->> + * Locks related to IOAPIC hotplug
->> + * Hotplug side:
->> + * 	->lock_device_hotplug()	//device_hotplug_lock
->> + *		->acpi_ioapic_rwsem
->> + *			->ioapic_lock
->> + * Interrupt mapping side:
->> + *	->acpi_ioapic_rwsem
->> + *		->ioapic_mutex
->> + *			->ioapic_lock
->> + */
-> 
-> This looks sane, but I cannot figure out at all why this needs to be a
-> rwsem.
-> 
->> +static DECLARE_RWSEM(acpi_ioapic_rwsem);
-> 
-> I think it should be a simple mutex because the rwsem does not protect
-> against concurrent execution what taken for read.
-> 
-> And the site which takes it for write is in the early boot process
-> where nothing runs in parallel AFAICT.
-Hi Thomas,
-	You are right. It's not on hot path, so a mutex is better than
-a rwsem here. I will send out an updated version soon.
-Regards!
-Gerry
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+This patch set enhances IOAPIC core and ACPI drivers to support IOAPIC
+hotplug on x86 platforms. It's based on v3.18-rc2 at
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+You may pull it from 
+https://github.com/jiangliu/linux.git ioapic/hotplug_v8
+
+We have pick up several patches from Yinghai's original IOAPIC hotplug
+patch set and reimplemented IOAPIC driver as an ACPI driver instead of
+a PCI driver.
+
+It has been tested on a 4-socket Intel SDV with socket hot-addition
+capability. Any suggestions are welcomed!
+
+Patch 1-3 are bugfixes against v3.17 and should target v3.18. Patch 1
+has been merged into tip/x86/urgent.
+Patch 4-7 are bugfixes and enhancements to ACPI subsystem
+Patch 8 killes PCI IOAPIC driver
+Patch 9-17 enhances IOAPIC core to support IOAPIC hotplug
+Patch 18 reimplements ACPI IOAPIC driver and enables IOAPIC hotplug
+
+V7-V8:
+1) Use mutex instead of rwsem to protect IOAPIC from hotplug
+V6->V7:
+1) Rebase to v3.18-rc2
+2) Three bugfixes for v3.18
+V5->V6:
+1) Rebase to the latest v3.17-16
+2) Minor fixes for comments
+V4->V5:
+1) Fix a building error
+2) Don't rename processor_core.c as apic_id.c
+3) Improve comments
+4) Reorder patches to get rid of some temporary code
+V3->V4:
+1) Fix a bug in manage IOAPIC reference count
+2) Rebase to v3.17-rc2
+3) Refine commit messages
+V2->V3:
+1) Refine ACPI resource walk functions for PCI root bus and IOAPIC
+2) Improve commit messages
+3) Reorder patch order for better maintenence
+
+Jiang Liu (15):
+  x86: ACPI: Do not translate GSI number if IOAPIC is disabled
+  x86, intel-mid: Create IRQs for APB timers and RTC timers
+  x86, irq, ACPI: Return IRQ instead of GSI in mp_register_gsi()
+  x86, PCI, ACPI: Kill private function resource_to_addr() in
+    arch/x86/pci/acpi.c
+  ACPI: Correct return value of acpi_dev_resource_address_space()
+  ACPI: Fix minor syntax issues in processor_core.c
+  PCI: Remove PCI ioapic driver
+  x86, irq: Remove __init marker for functions will be used by IOAPIC
+    hotplug
+  x86, irq: Keep balance of IOAPIC pin reference count
+  x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+  x86, irq, ACPI: Introduce a rwsem to protect IOAPIC operations from
+    hotplug
+  x86, irq, ACPI: Implement interface to support ACPI based IOAPIC
+    hot-addition
+  x86, irq, ACPI: Implement interfaces to support ACPI based IOAPIC
+    hot-removal
+  x86, irq: Introduce helper to check whether an IOAPIC has been
+    registered
+  x86, irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
+
+Yinghai Lu (3):
+  ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
+  x86, irq: Split out alloc_ioapic_save_registers()
+  x86, irq: Prefer assigned ID in APIC ID register for x86_64
+
+ arch/x86/include/asm/io_apic.h    |    6 +-
+ arch/x86/kernel/acpi/boot.c       |  102 ++++++++++++++--
+ arch/x86/kernel/apb_timer.c       |    2 -
+ arch/x86/kernel/apic/io_apic.c    |  234 +++++++++++++++++++++++++++++-------
+ arch/x86/pci/acpi.c               |  144 +++++++++--------------
+ arch/x86/pci/intel_mid_pci.c      |   10 +-
+ arch/x86/pci/irq.c                |    7 +-
+ arch/x86/platform/intel-mid/sfi.c |    2 +
+ drivers/acpi/Kconfig              |    6 +
+ drivers/acpi/Makefile             |    1 +
+ drivers/acpi/internal.h           |    7 ++
+ drivers/acpi/ioapic.c             |  235 +++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_irq.c            |   11 +-
+ drivers/acpi/pci_root.c           |    3 +
+ drivers/acpi/processor_core.c     |  131 ++++++++++++++++++---
+ drivers/acpi/resource.c           |    2 +-
+ drivers/pci/Kconfig               |    7 --
+ drivers/pci/Makefile              |    2 -
+ drivers/pci/ioapic.c              |  121 -------------------
+ include/linux/acpi.h              |    5 +
+ include/linux/pci.h               |    1 +
+ 21 files changed, 739 insertions(+), 300 deletions(-)
+ create mode 100644 drivers/acpi/ioapic.c
+ delete mode 100644 drivers/pci/ioapic.c
+
+-- 
+1.7.10.4
+
