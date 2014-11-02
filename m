@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v8 11/18] x86, irq: Remove __init marker for functions will be used by IOAPIC hotplug
-Date: Sun,  2 Nov 2014 14:04:26 +0800
-Message-ID: <1414908273-7552-12-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v8 13/18] x86, irq: Refine mp_register_ioapic() to prepare for IOAPIC hotplug
+Date: Sun,  2 Nov 2014 14:04:28 +0800
+Message-ID: <1414908273-7552-14-git-send-email-jiang.liu@linux.intel.com>
 References: <1414908273-7552-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1414908273-7552-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,107 +10,168 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Remove __init marker for functions which will be used by IOAPIC hotplug
-at runtime.
+Refine mp_register_ioapic() to prepare for IOAPIC hotplug by:
+1) change return value from void to int.
+2) check for gsi range conflicts
+3) check for IOAPIC physical address conflicts
+4) enhance the way to allocate IOAPIC index
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/io_apic.h |    4 ++--
- arch/x86/kernel/apic/io_apic.c |   18 +++++++++---------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/io_apic.h |    4 +-
+ arch/x86/kernel/apic/io_apic.c |   87 ++++++++++++++++++++++++++--------------
+ 2 files changed, 58 insertions(+), 33 deletions(-)
 
 diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 1733ab49ac5e..a666dcdeea67 100644
+index a666dcdeea67..8741c1ea33c3 100644
 --- a/arch/x86/include/asm/io_apic.h
 +++ b/arch/x86/include/asm/io_apic.h
 @@ -188,8 +188,8 @@ extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
  extern u32 mp_pin_to_gsi(int ioapic, int pin);
  extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags);
  extern void mp_unmap_irq(int irq);
--extern void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
--				      struct ioapic_domain_cfg *cfg);
-+extern void mp_register_ioapic(int id, u32 address, u32 gsi_base,
-+			       struct ioapic_domain_cfg *cfg);
+-extern void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+-			       struct ioapic_domain_cfg *cfg);
++extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
++			      struct ioapic_domain_cfg *cfg);
  extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
  			    irq_hw_number_t hwirq);
  extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index eaa7ea385600..581e51728871 100644
+index 581e51728871..59267659e5b1 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3459,7 +3459,7 @@ io_apic_setup_irq_pin(unsigned int irq, int node, struct io_apic_irq_attr *attr)
- 	return ret;
- }
- 
--static int __init io_apic_get_redir_entries(int ioapic)
-+static int io_apic_get_redir_entries(int ioapic)
- {
- 	union IO_APIC_reg_01	reg_01;
- 	unsigned long flags;
-@@ -3505,7 +3505,7 @@ int __init arch_probe_nr_irqs(void)
- }
- 
- #ifdef CONFIG_X86_32
--static int __init io_apic_get_unique_id(int ioapic, int apic_id)
-+static int io_apic_get_unique_id(int ioapic, int apic_id)
- {
- 	union IO_APIC_reg_00 reg_00;
- 	static physid_mask_t apic_id_map = PHYSID_MASK_NONE;
-@@ -3580,7 +3580,7 @@ static int __init io_apic_get_unique_id(int ioapic, int apic_id)
- 	return apic_id;
- }
- 
--static u8 __init io_apic_unique_id(int idx, u8 id)
-+static u8 io_apic_unique_id(int idx, u8 id)
- {
- 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
- 	    !APIC_XAPIC(apic_version[boot_cpu_physical_apicid]))
-@@ -3589,7 +3589,7 @@ static u8 __init io_apic_unique_id(int idx, u8 id)
- 		return id;
- }
- #else
--static u8 __init io_apic_unique_id(int idx, u8 id)
-+static u8 io_apic_unique_id(int idx, u8 id)
- {
- 	int i;
- 	u8 new_id;
-@@ -3628,7 +3628,7 @@ static u8 __init io_apic_unique_id(int idx, u8 id)
- }
- #endif
- 
--static int __init io_apic_get_version(int ioapic)
-+static int io_apic_get_version(int ioapic)
- {
- 	union IO_APIC_reg_01	reg_01;
- 	unsigned long flags;
-@@ -3832,7 +3832,7 @@ int mp_find_ioapic_pin(int ioapic, u32 gsi)
+@@ -3832,20 +3832,6 @@ int mp_find_ioapic_pin(int ioapic, u32 gsi)
  	return gsi - gsi_cfg->gsi_base;
  }
  
--static __init int bad_ioapic(unsigned long address)
-+static int bad_ioapic(unsigned long address)
- {
- 	if (nr_ioapics >= MAX_IO_APICS) {
- 		pr_warn("WARNING: Max # of I/O APICs (%d) exceeded (found %d), skipping\n",
-@@ -3846,7 +3846,7 @@ static __init int bad_ioapic(unsigned long address)
- 	return 0;
- }
- 
--static __init int bad_ioapic_register(int idx)
-+static int bad_ioapic_register(int idx)
+-static int bad_ioapic(unsigned long address)
+-{
+-	if (nr_ioapics >= MAX_IO_APICS) {
+-		pr_warn("WARNING: Max # of I/O APICs (%d) exceeded (found %d), skipping\n",
+-			MAX_IO_APICS, nr_ioapics);
+-		return 1;
+-	}
+-	if (!address) {
+-		pr_warn("WARNING: Bogus (zero) I/O APIC address found in table, skipping!\n");
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+ static int bad_ioapic_register(int idx)
  {
  	union IO_APIC_reg_00 reg_00;
- 	union IO_APIC_reg_01 reg_01;
-@@ -3865,8 +3865,8 @@ static __init int bad_ioapic_register(int idx)
+@@ -3865,29 +3851,51 @@ static int bad_ioapic_register(int idx)
  	return 0;
  }
  
--void __init mp_register_ioapic(int id, u32 address, u32 gsi_base,
--			       struct ioapic_domain_cfg *cfg)
-+void mp_register_ioapic(int id, u32 address, u32 gsi_base,
-+			struct ioapic_domain_cfg *cfg)
+-void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+-			struct ioapic_domain_cfg *cfg)
++static int find_free_ioapic_entry(void)
  {
- 	int idx = 0;
- 	int entries;
+-	int idx = 0;
+-	int entries;
++	return nr_ioapics;
++}
++
++/**
++ * mp_register_ioapic - Register an IOAPIC device
++ * @id:		hardware IOAPIC ID
++ * @address:	physical address of IOAPIC register area
++ * @gsi_base:	base of GSI associated with the IOAPIC
++ * @cfg:	configuration information for the IOAPIC
++ */
++int mp_register_ioapic(int id, u32 address, u32 gsi_base,
++		       struct ioapic_domain_cfg *cfg)
++{
++	u32 gsi_end;
++	int idx, ioapic, entries;
+ 	struct mp_ioapic_gsi *gsi_cfg;
+ 
+-	if (bad_ioapic(address))
+-		return;
++	if (!address) {
++		pr_warn("Bogus (zero) I/O APIC address found, skipping!\n");
++		return -EINVAL;
++	}
++	for_each_ioapic(ioapic)
++		if (ioapics[ioapic].mp_config.apicaddr == address) {
++			pr_warn("address 0x%x conflicts with IOAPIC%d\n",
++				address, ioapic);
++			return -EEXIST;
++		}
+ 
+-	idx = nr_ioapics;
++	idx = find_free_ioapic_entry();
++	if (idx >= MAX_IO_APICS) {
++		pr_warn("Max # of I/O APICs (%d) exceeded (found %d), skipping\n",
++			MAX_IO_APICS, idx);
++		return -ENOSPC;
++	}
+ 
+ 	ioapics[idx].mp_config.type = MP_IOAPIC;
+ 	ioapics[idx].mp_config.flags = MPC_APIC_USABLE;
+ 	ioapics[idx].mp_config.apicaddr = address;
+-	ioapics[idx].irqdomain = NULL;
+-	ioapics[idx].irqdomain_cfg = *cfg;
+ 
+ 	set_fixmap_nocache(FIX_IO_APIC_BASE_0 + idx, address);
+-
+ 	if (bad_ioapic_register(idx)) {
+ 		clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
+-		return;
++		return -ENODEV;
+ 	}
+ 
+ 	ioapics[idx].mp_config.apicid = io_apic_unique_id(idx, id);
+@@ -3898,24 +3906,41 @@ void mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
+ 	 */
+ 	entries = io_apic_get_redir_entries(idx);
++	gsi_end = gsi_base + entries - 1;
++	for_each_ioapic(ioapic) {
++		gsi_cfg = mp_ioapic_gsi_routing(ioapic);
++		if ((gsi_base >= gsi_cfg->gsi_base &&
++		     gsi_base <= gsi_cfg->gsi_end) ||
++		    (gsi_end >= gsi_cfg->gsi_base &&
++		     gsi_end <= gsi_cfg->gsi_end)) {
++			pr_warn("GSI range [%u-%u] for new IOAPIC conflicts with GSI[%u-%u]\n",
++				gsi_base, gsi_end,
++				gsi_cfg->gsi_base, gsi_cfg->gsi_end);
++			clear_fixmap(FIX_IO_APIC_BASE_0 + idx);
++			return -ENOSPC;
++		}
++	}
+ 	gsi_cfg = mp_ioapic_gsi_routing(idx);
+ 	gsi_cfg->gsi_base = gsi_base;
+-	gsi_cfg->gsi_end = gsi_base + entries - 1;
++	gsi_cfg->gsi_end = gsi_end;
+ 
+-	/*
+-	 * The number of IO-APIC IRQ registers (== #pins):
+-	 */
+-	ioapics[idx].nr_registers = entries;
++	ioapics[idx].irqdomain = NULL;
++	ioapics[idx].irqdomain_cfg = *cfg;
+ 
+ 	if (gsi_cfg->gsi_end >= gsi_top)
+ 		gsi_top = gsi_cfg->gsi_end + 1;
++	if (nr_ioapics <= idx)
++		nr_ioapics = idx + 1;
++
++	/* Set nr_registers to mark entry present */
++	ioapics[idx].nr_registers = entries;
+ 
+ 	pr_info("IOAPIC[%d]: apic_id %d, version %d, address 0x%x, GSI %d-%d\n",
+ 		idx, mpc_ioapic_id(idx),
+ 		mpc_ioapic_ver(idx), mpc_ioapic_addr(idx),
+ 		gsi_cfg->gsi_base, gsi_cfg->gsi_end);
+ 
+-	nr_ioapics++;
++	return 0;
+ }
+ 
+ int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
 -- 
 1.7.10.4
