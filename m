@@ -1,75 +1,43 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
-Date: Mon, 3 Nov 2014 14:22:10 +0100
-Message-ID: <CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
-	<20141024073436.GN1484@lahna.fi.intel.com>
-	<1971306.rIA5QAW7ve@vostro.rjw.lan>
-	<2758495.RYBbleVHkC@vostro.rjw.lan>
+Subject: Re: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO descriptors
+Date: Mon, 3 Nov 2014 14:45:43 +0100
+Message-ID: <CACRpkdaeeAg3M-tf+odar3m8nF=T9gQhkPL+xg0t+3JVvmNnuw@mail.gmail.com>
+References: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2758495.RYBbleVHkC@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:52197 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751169AbaKCNpo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2014 08:45:44 -0500
+Received: by mail-ie0-f182.google.com with SMTP id rd18so5325027iec.13
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Nov 2014 05:45:44 -0800 (PST)
+In-Reply-To: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <acourbot@nvidia.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, Oct 25, 2014 at 12:05 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+On Fri, Oct 31, 2014 at 12:40 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Commit 21f2aae91e902aad ("leds: leds-gpio: Add support for GPIO
+> descriptors") already converted most of the driver to use GPIO descriptors.
+> What is still missing is the platform specific hook gpio_blink_set() and
+> board files which pass legacy GPIO numbers to this driver in platform data.
 >
-> Provide a way for device drivers using GPIOs described by ACPI
-> GpioIo resources in _CRS to tell the GPIO subsystem what names
-> (connection IDs) to associate with specific GPIO pins defined
-> in there.
+> In this patch we handle the former and convert gpio_blink_set() to take
+> GPIO descriptor instead. In order to do this we convert the existing four
+> users to accept GPIO descriptor and translate it to legacy GPIO number in
+> the platform code. This effectively "pushes" legacy GPIO number usage from
+> the driver to platforms.
 >
-> To do that, a driver needs to define a mapping table as a
-> NULL-terminated array of struct acpi_gpio_mapping objects
-> that each contain a name, a pointer to an array of pin data
-> (struct acpi_gpio_params) objects and the size of that array.
+> Also add comment to the remaining block describing that it is legacy code
+> path and we are getting rid of it eventually.
 >
-> Each struct acpi_gpio_params object consists of three fields,
-> crs_entry_index, pin_index, active_low, representing the index of
+> Suggested-by: Linus Walleij <linus.walleij@linaro.org>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-I prefer that you call the second thing "line_index" rather than
-"pin_index". Not all GPIOs in the world are tied to physical pins.
-Also it is easy to confuse stuff with the pin control terminology
-if it's called "pin".
-
-> the target GpioIo()/GpioInt() resource in _CRS starting from zero,
-> the index of the target pin in that resource starting from zero,
-> and the active-low flag for that pin, respectively.
->
-> Next, the mapping table needs to be passed as the second argument to
-> acpi_dev_add_driver_gpios() that will register it with the ACPI device
-> object pointed to by its first argument.  That object must represent
-> the ACPI namespace node containing the _CRS object referred to by the
-> GPIO mapping.  That should be done in the driver's .probe() routine.
->
-> On removal, the driver should unregister its GPIO mapping table
-> by calling acpi_dev_remove_driver_gpios() on the ACPI device
-> object where that table was previously registered.
->
-> Included are fixes from Mika Westerberg.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-And "pin" is mentioned several times in the commit message.
-I prefer that we talk about "lines".
-
-(...)
-
-> +struct acpi_gpio_params {
-> +       unsigned int crs_entry_index;
-> +       unsigned int pin_index;
-
-So line_index;
-
-> +       bool active_low;
-> +};
-
-With that change:
 Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
 Yours,
