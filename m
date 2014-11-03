@@ -1,8 +1,11 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 6/6] ACPI/EC: Add GPE reference counting debugging messages.
-Date: Mon,  3 Nov 2014 13:16:43 +0800
-Message-ID: <be7d8548073a305da9f2e995f372783584c85a60.1414988981.git.lv.zheng@intel.com>
+Subject: [PATCH 5/6] ACPI/EC: Cleanup QR_SC command processing by adding a kernel thread to poll EC events.
+Date: Mon,  3 Nov 2014 13:16:37 +0800
+Message-ID: <dc1ae83c60a2b79c8ac7ed633a1519013f3ab635.1414988981.git.lv.zheng@intel.com>
 References: <cover.1414988981.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1414988981.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -10,111 +13,487 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch enhances debugging with the GPE reference count messages added.
-No functional changes.
+There is wait code in the QR_SC command processing, which makes it not
+suitable to be put into a work queue item (see bug 82611). And there is
+case that the SCI_EVT cannot trigger GPE, though all commands have poll=
+ing
+mode implemented, the event cannot be polled (see bug 77431).
 
+So if the QR_SC command can be put into a seperate IRQ thread, then the
+work queue will not be blocked by the QR_SC command processing and we c=
+an
+also trigger polling using the thread. Using IRQ thread also allows us =
+to
+change the EC GPE handler into the threaded IRQ model when possible.
+
+This patch thus adds the IRQ polling thread for SCI_EVT polling and rem=
+oves
+QR_SC processing work item.
+
+The reasons why we do not put a loop in the event poller to poll event
+until the returned query value is 0:
+  Some platforms return non 0 query value even when SCI_EVT=3D0, if we =
+put a
+  loop in the poller, our command flush mechanism could never execute t=
+o
+  an end thus the system suspending process could be blocked. One SCI_E=
+VT
+  triggering one QR_EC is current logic and has been proven to be worki=
+ng
+  for so long time.
+
+The reasons why it is not implemented directly using threaded IRQ are:
+1. ACPICA doesn't support threaded IRQ as not all of the OSPMs support
+   threaded IRQ while GPE handler registerations are done through ACPIC=
+A.
+2. The IRQ processing code need to be identical for both the IRQ handle=
+r
+   and the thread callback, while currently, though the command GPE
+   handling is ready for both IRQ and polling mode, only the event GPE =
+is
+   is polled in the event polling thread and the command is polled in t=
+he
+   user threads.
+So we use a standalone kernel thread, if the above situations are chang=
+ed
+in the future, we can easily convert the code into the threaded IRQ sty=
+le.
+
+The old EC_FLAGS_QUERY_PENDING is converted to EC_FLAGS_EVENT_ENABLED i=
+n
+this patch, so that its naming is consistent with EC_FLAGS_EVENT_PENDIN=
+G.
+The original flag doesn't co-work with SCI_EVT well, this patch refines
+its usage by enforcing a event polling wakeup indication as:
+  EC_FLAGS_EVENT_ENABLED && EC_FLAGS_EVENT_PENDING
+So unless the both of the flags are set, the threaded event poller will
+not be woken up.
+
+This patch invokes acpi_ec_submit_request() after having detected SCI_E=
+VT
+and invokes acpi_ec_complete_request() before having the QR_EC command
+processed. This is useful for implementing GPE storm prevention for
+malicous "level triggered" SCI_EVT. But the storm prevention is not
+implemented in this patch.
+
+Since the acpi_ec_submit_request() invoked after detecting the SCI_EVT =
+is
+paired with acpi_ec_complete_request() invoked after completing QR_EC
+command, acpi_ec_submit_flushable_request() then need to be modified to
+allow QR_EC command to be submitted during this period to revert the
+increased reference count. This period can be determined by the event
+polling indication:
+  EC_FLAGS_EVENT_ENABLED && EC_FLAGS_EVENT_PENDING
+Without enhancing this check in acpi_ec_submit_flushable_request(), QR_=
+EC
+command will not be executed to decrease the reference count added afte=
+r
+detecting the SCI_EVT, thus the system suspending will be blocked becau=
+se
+the reference count equals to 2. Such check is common for flushing code=
+=2E
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=3D82611
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=3D77431
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Tested-by: Ortwin Gl=C3=BCck <odi@odi.ch>
 ---
- drivers/acpi/ec.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/acpi/ec.c       |  194 ++++++++++++++++++++++++++++++++++-----=
+--------
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 144 insertions(+), 51 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7089081..5ac189b 100644
+index a76794a..7089081 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -31,6 +31,7 @@
- 
- /* Uncomment next line to get verbose printout */
- /* #define DEBUG */
-+#define DEBUG_REF 0
- #define pr_fmt(fmt) "ACPI : EC: " fmt
- 
- #include <linux/kernel.h>
-@@ -88,6 +89,13 @@ enum {
- #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
- #define ACPI_EC_COMMAND_COMPLETE	0x02 /* Completed last byte */
- 
-+#define ec_debug_ref(ec, fmt, ...)					\
-+	do {								\
-+		if (DEBUG_REF)						\
-+			pr_debug("%lu: " fmt, ec->reference_count,	\
-+				 ## __VA_ARGS__);			\
-+	} while (0)
+@@ -44,6 +44,7 @@
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
+ #include <linux/dmi.h>
++#include <linux/kthread.h>
+ #include <asm/io.h>
+=20
+ #include "internal.h"
+@@ -75,7 +76,8 @@ enum ec_command {
+ 					 * when trying to clear the EC */
+=20
+ enum {
+-	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
++	EC_FLAGS_EVENT_ENABLED,		/* Event is enabled */
++	EC_FLAGS_EVENT_PENDING,		/* Event is pending */
+ 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
+ 	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
+ 					 * OpReg are installed */
+@@ -124,6 +126,7 @@ struct transaction {
+ static struct acpi_ec_query_handler *
+ acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler);
+ static void acpi_ec_put_query_handler(struct acpi_ec_query_handler *ha=
+ndler);
++static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
+=20
+ struct acpi_ec *boot_ec, *first_ec;
+ EXPORT_SYMBOL(first_ec);
+@@ -149,6 +152,12 @@ static bool acpi_ec_flushed(struct acpi_ec *ec)
+ 	return ec->reference_count =3D=3D 1;
+ }
+=20
++static bool acpi_ec_has_pending_event(struct acpi_ec *ec)
++{
++	return test_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags) &&
++	       test_bit(EC_FLAGS_EVENT_PENDING, &ec->flags);
++}
 +
- /* ec.c is compiled in acpi namespace so this shows up as acpi.ec_delay param */
- static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
- module_param(ec_delay, uint, 0644);
-@@ -218,6 +226,7 @@ static void acpi_ec_enable_event(struct acpi_ec *ec)
- 		spin_unlock_irqrestore(&ec->lock, flags);
- 		return;
- 	}
-+	ec_debug_ref(ec, "Increase poller(enable)\n");
- 	set_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags);
- 	if (test_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
- 		pr_debug("***** Event pending *****\n");
-@@ -226,6 +235,7 @@ static void acpi_ec_enable_event(struct acpi_ec *ec)
- 		return;
- 	}
- 	acpi_ec_complete_request(ec);
-+	ec_debug_ref(ec, "Decrease poller(enable)\n");
- 	spin_unlock_irqrestore(&ec->lock, flags);
+ /* -------------------------------------------------------------------=
+-------
+  *                           GPE Enhancement
+  * -------------------------------------------------------------------=
+------- */
+@@ -177,20 +186,93 @@ static void acpi_ec_complete_request(struct acpi_=
+ec *ec)
+  *                                      the flush operation is not in
+  *                                      progress
+  * @ec: the EC device
++ * @check_event: check whether event is pending
+  *
+  * This function must be used before taking a new action that should h=
+old
+  * the reference count.  If this function returns false, then the acti=
+on
+  * must be discarded or it will prevent the flush operation from being
+  * completed.
++ *
++ * During flushing, QR_EC command need to pass this check when there i=
+s a
++ * pending event, so that the reference count held for the pending eve=
+nt
++ * can be decreased by the completion of the QR_EC command.
+  */
+-static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
++static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec,
++					     bool check_event)
+ {
+-	if (!acpi_ec_started(ec))
+-		return false;
++	if (!acpi_ec_started(ec)) {
++		if (!check_event || !acpi_ec_has_pending_event(ec))
++			return false;
++	}
+ 	acpi_ec_submit_request(ec);
+ 	return true;
  }
- 
-@@ -234,6 +244,7 @@ static void __acpi_ec_set_event(struct acpi_ec *ec)
- 	/* Hold reference for pending event */
- 	if (!acpi_ec_submit_flushable_request(ec, false))
- 		return;
-+	ec_debug_ref(ec, "Increase poller(set)\n");
- 	if (!test_and_set_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
- 		pr_debug("***** Event pending *****\n");
- 		if (test_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags)) {
-@@ -242,6 +253,7 @@ static void __acpi_ec_set_event(struct acpi_ec *ec)
+=20
++static void acpi_ec_enable_event(struct acpi_ec *ec)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&ec->lock, flags);
++	/* Hold reference for pending event */
++	if (!acpi_ec_submit_flushable_request(ec, false)) {
++		spin_unlock_irqrestore(&ec->lock, flags);
++		return;
++	}
++	set_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags);
++	if (test_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
++		pr_debug("***** Event pending *****\n");
++		wake_up_process(ec->thread);
++		spin_unlock_irqrestore(&ec->lock, flags);
++		return;
++	}
++	acpi_ec_complete_request(ec);
++	spin_unlock_irqrestore(&ec->lock, flags);
++}
++
++static void __acpi_ec_set_event(struct acpi_ec *ec)
++{
++	/* Hold reference for pending event */
++	if (!acpi_ec_submit_flushable_request(ec, false))
++		return;
++	if (!test_and_set_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
++		pr_debug("***** Event pending *****\n");
++		if (test_bit(EC_FLAGS_EVENT_ENABLED, &ec->flags)) {
++			wake_up_process(ec->thread);
++			return;
++		}
++	}
++	acpi_ec_complete_request(ec);
++}
++
++static void __acpi_ec_complete_event(struct acpi_ec *ec)
++{
++	if (test_and_clear_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
++		/* Unhold reference for pending event */
++		acpi_ec_complete_request(ec);
++		pr_debug("***** Event running *****\n");
++	}
++}
++
++int acpi_ec_wait_for_event(struct acpi_ec *ec)
++{
++	unsigned long flags;
++
++	set_current_state(TASK_INTERRUPTIBLE);
++	while (!kthread_should_stop()) {
++		spin_lock_irqsave(&ec->lock, flags);
++		if (acpi_ec_has_pending_event(ec)) {
++			spin_unlock_irqrestore(&ec->lock, flags);
++			__set_current_state(TASK_RUNNING);
++			return 0;
++		}
++		spin_unlock_irqrestore(&ec->lock, flags);
++		schedule();
++		set_current_state(TASK_INTERRUPTIBLE);
++	}
++	__set_current_state(TASK_RUNNING);
++	return -1;
++}
++
+ /* -------------------------------------------------------------------=
+-------
+  *                           Transaction Management
+  * -------------------------------------------------------------------=
+------- */
+@@ -298,7 +380,7 @@ static bool advance_transaction(struct acpi_ec *ec)
+ 			t->flags |=3D ACPI_EC_COMMAND_COMPLETE;
+ 			wakeup =3D true;
  		}
+-		return wakeup;
++		goto out;
+ 	} else {
+ 		if (EC_FLAGS_QUERY_HANDSHAKE &&
+ 		    !(status & ACPI_EC_FLAG_SCI) &&
+@@ -312,9 +394,11 @@ static bool advance_transaction(struct acpi_ec *ec=
+)
+ 		} else if ((status & ACPI_EC_FLAG_IBF) =3D=3D 0) {
+ 			acpi_ec_write_cmd(ec, t->command);
+ 			t->flags |=3D ACPI_EC_COMMAND_POLL;
++			if (t->command =3D=3D ACPI_EC_COMMAND_QUERY)
++				__acpi_ec_complete_event(ec);
+ 		} else
+ 			goto err;
+-		return wakeup;
++		goto out;
  	}
- 	acpi_ec_complete_request(ec);
-+	ec_debug_ref(ec, "Decrease poller(set)\n");
- }
- 
- static void __acpi_ec_complete_event(struct acpi_ec *ec)
-@@ -249,6 +261,7 @@ static void __acpi_ec_complete_event(struct acpi_ec *ec)
- 	if (test_and_clear_bit(EC_FLAGS_EVENT_PENDING, &ec->flags)) {
- 		/* Unhold reference for pending event */
- 		acpi_ec_complete_request(ec);
-+		ec_debug_ref(ec, "Decrease poller\n");
- 		pr_debug("***** Event running *****\n");
+ err:
+ 	/*
+@@ -325,6 +409,10 @@ err:
+ 		if (in_interrupt() && t)
+ 			++t->irq_count;
  	}
++out:
++	if (status & ACPI_EC_FLAG_SCI &&
++	    (!t || t->flags & ACPI_EC_COMMAND_COMPLETE))
++		__acpi_ec_set_event(ec);
+ 	return wakeup;
  }
-@@ -471,6 +484,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 		ret = -EINVAL;
+=20
+@@ -335,17 +423,6 @@ static void start_transaction(struct acpi_ec *ec)
+ 	(void)advance_transaction(ec);
+ }
+=20
+-static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
+-
+-static int ec_check_sci_sync(struct acpi_ec *ec, u8 state)
+-{
+-	if (state & ACPI_EC_FLAG_SCI) {
+-		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags))
+-			return acpi_ec_sync_query(ec, NULL);
+-	}
+-	return 0;
+-}
+-
+ static int ec_poll(struct acpi_ec *ec)
+ {
+ 	unsigned long flags;
+@@ -384,12 +461,13 @@ static int acpi_ec_transaction_unlocked(struct ac=
+pi_ec *ec,
+ 	unsigned long tmp;
+ 	int ret =3D 0;
+=20
++	bool is_query =3D !!(t->command =3D=3D ACPI_EC_COMMAND_QUERY);
+ 	if (EC_FLAGS_MSI)
+ 		udelay(ACPI_EC_MSI_UDELAY);
+ 	/* start transaction */
+ 	spin_lock_irqsave(&ec->lock, tmp);
+ 	/* Enable GPE for command processing (IBF=3D0/OBF=3D1) */
+-	if (!acpi_ec_submit_flushable_request(ec)) {
++	if (!acpi_ec_submit_flushable_request(ec, is_query)) {
+ 		ret =3D -EINVAL;
  		goto unlock;
  	}
-+	ec_debug_ref(ec, "Increase command\n");
- 	/* following two actions should be kept atomic */
- 	ec->curr = t;
+@@ -398,10 +476,6 @@ static int acpi_ec_transaction_unlocked(struct acp=
+i_ec *ec,
  	pr_debug("***** Command(%s) started *****\n",
-@@ -484,6 +498,7 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 	ec->curr = NULL;
- 	/* Disable GPE for command processing (IBF=0/OBF=1) */
- 	acpi_ec_complete_request(ec);
-+	ec_debug_ref(ec, "Decrease command\n");
- unlock:
+ 		 acpi_ec_cmd_string(t->command));
+ 	start_transaction(ec);
+-	if (ec->curr->command =3D=3D ACPI_EC_COMMAND_QUERY) {
+-		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+-		pr_debug("***** Event stopped *****\n");
+-	}
  	spin_unlock_irqrestore(&ec->lock, tmp);
- 	return ret;
-@@ -659,6 +674,7 @@ static void acpi_ec_start(struct acpi_ec *ec)
- 		pr_debug("+++++ Starting EC +++++\n");
- 		/* Enable GPE for event processing (SCI_EVT=1) */
- 		acpi_ec_submit_request(ec);
-+		ec_debug_ref(ec, "Increase event\n");
- 		pr_info("+++++ EC started +++++\n");
- 	}
+ 	ret =3D ec_poll(ec);
+ 	spin_lock_irqsave(&ec->lock, tmp);
+@@ -440,8 +514,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, =
+struct transaction *t)
+=20
+ 	status =3D acpi_ec_transaction_unlocked(ec, t);
+=20
+-	/* check if we received SCI during transaction */
+-	ec_check_sci_sync(ec, acpi_ec_read_status(ec));
+ 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
+ 		msleep(1);
+ 		/* It is safe to enable the GPE outside of the transaction. */
+@@ -792,29 +864,6 @@ static int acpi_ec_sync_query(struct acpi_ec *ec, =
+u8 *data)
+ 	return 0;
+ }
+=20
+-static void acpi_ec_gpe_query(void *ec_cxt)
+-{
+-	struct acpi_ec *ec =3D ec_cxt;
+-
+-	if (!ec)
+-		return;
+-	mutex_lock(&ec->mutex);
+-	acpi_ec_sync_query(ec, NULL);
+-	mutex_unlock(&ec->mutex);
+-}
+-
+-static int ec_check_sci(struct acpi_ec *ec, u8 state)
+-{
+-	if (state & ACPI_EC_FLAG_SCI) {
+-		if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+-			pr_debug("***** Event started *****\n");
+-			return acpi_os_execute(OSL_NOTIFY_HANDLER,
+-				acpi_ec_gpe_query, ec);
+-		}
+-	}
+-	return 0;
+-}
+-
+ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+ 	u32 gpe_number, void *data)
+ {
+@@ -825,10 +874,46 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_de=
+vice,
+ 	if (advance_transaction(ec))
+ 		wake_up(&ec->wait);
  	spin_unlock_irqrestore(&ec->lock, flags);
-@@ -688,6 +704,7 @@ static void acpi_ec_stop(struct acpi_ec *ec)
- 		spin_lock_irqsave(&ec->lock, flags);
- 		/* Disable GPE for event processing (SCI_EVT=1) */
- 		acpi_ec_complete_request(ec);
-+		ec_debug_ref(ec, "Decrease event\n");
- 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
- 		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
- 		pr_info("+++++ EC stopped +++++\n");
--- 
+-	ec_check_sci(ec, acpi_ec_read_status(ec));
+ 	return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
+ }
+=20
++static int acpi_ec_event_poller(void *context)
++{
++	struct acpi_ec *ec =3D context;
++
++	while (!acpi_ec_wait_for_event(ec)) {
++		pr_debug("***** Event poller started *****\n");
++		mutex_lock(&ec->mutex);
++		(void)acpi_ec_sync_query(ec, NULL);
++		mutex_unlock(&ec->mutex);
++		pr_debug("***** Event poller stopped *****\n");
++	}
++	return 0;
++}
++
++static int ec_create_event_poller(struct acpi_ec *ec)
++{
++	struct task_struct *t;
++
++	t =3D kthread_run(acpi_ec_event_poller, ec, "ec/gpe-%lu", ec->gpe);
++	if (IS_ERR(t)) {
++		pr_err("failed to create event poller %lu\n", ec->gpe);
++		return PTR_ERR(t);
++	}
++	get_task_struct(t);
++	ec->thread =3D t;
++	return 0;
++}
++
++static void ec_delete_event_poller(struct acpi_ec *ec)
++{
++	struct task_struct *t =3D ec->thread;
++
++	ec->thread =3D NULL;
++	kthread_stop(t);
++	put_task_struct(t);
++}
++
+ /* -------------------------------------------------------------------=
+-------
+  *                           Address Space Management
+  * -------------------------------------------------------------------=
+------- */
+@@ -884,7 +969,6 @@ static struct acpi_ec *make_acpi_ec(void)
+=20
+ 	if (!ec)
+ 		return NULL;
+-	ec->flags =3D 1 << EC_FLAGS_QUERY_PENDING;
+ 	mutex_init(&ec->mutex);
+ 	init_waitqueue_head(&ec->wait);
+ 	INIT_LIST_HEAD(&ec->list);
+@@ -940,15 +1024,21 @@ ec_parse_device(acpi_handle handle, u32 Level, v=
+oid *context, void **retval)
+=20
+ static int ec_install_handlers(struct acpi_ec *ec)
+ {
++	int ret;
+ 	acpi_status status;
+=20
+ 	if (test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
+ 		return 0;
++	ret =3D ec_create_event_poller(ec);
++	if (ret)
++		return ret;
+ 	status =3D acpi_install_gpe_handler(NULL, ec->gpe,
+ 				  ACPI_GPE_EDGE_TRIGGERED,
+ 				  &acpi_ec_gpe_handler, ec);
+-	if (ACPI_FAILURE(status))
++	if (ACPI_FAILURE(status)) {
++		ec_delete_event_poller(ec);
+ 		return -ENODEV;
++	}
+=20
+ 	acpi_ec_start(ec);
+ 	status =3D acpi_install_address_space_handler(ec->handle,
+@@ -968,6 +1058,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 			acpi_ec_stop(ec);
+ 			acpi_remove_gpe_handler(NULL, ec->gpe,
+ 				&acpi_ec_gpe_handler);
++			ec_delete_event_poller(ec);
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -985,6 +1076,7 @@ static void ec_remove_handlers(struct acpi_ec *ec)
+ 	if (ACPI_FAILURE(acpi_remove_gpe_handler(NULL, ec->gpe,
+ 				&acpi_ec_gpe_handler)))
+ 		pr_err("failed to remove gpe handler\n");
++	ec_delete_event_poller(ec);
+ 	clear_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags);
+ }
+=20
+@@ -1032,7 +1124,7 @@ static int acpi_ec_add(struct acpi_device *device=
+)
+ 	ret =3D ec_install_handlers(ec);
+=20
+ 	/* EC is fully operational, allow queries */
+-	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
++	acpi_ec_enable_event(ec);
+=20
+ 	/* Clear stale _Q events if hardware might require that */
+ 	if (EC_FLAGS_CLEAR_ON_RESUME) {
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index bbcfe0b..20a569c 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -128,6 +128,7 @@ struct acpi_ec {
+ 	struct list_head list;
+ 	struct transaction *curr;
+ 	spinlock_t lock;
++	struct task_struct *thread;
+ };
+=20
+ extern struct acpi_ec *first_ec;
+--=20
 1.7.10
