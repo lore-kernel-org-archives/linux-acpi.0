@@ -1,101 +1,43 @@
-From: Darren Hart <dvhart@linux.intel.com>
-Subject: Re: [PATCH] ACPI / GPIO: Pass index to acpi_get_gpiod_by_index()
- when using properties
-Date: Sun, 02 Nov 2014 20:49:37 -0800
-Message-ID: <54570961.1080004@linux.intel.com>
-References: <1414494927-204923-1-git-send-email-mika.westerberg@linux.intel.com>	<2740724.5yjNTKs1RY@vostro.rjw.lan> <20141101111143.86AC1C409FE@trevor.secretlab.ca>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/6] ACPI/EC: Cleanups of command flushing and event polling.
+Date: Mon,  3 Nov 2014 13:16:07 +0800
+Message-ID: <cover.1414988981.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:35066 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750974AbaKCEuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Nov 2014 23:50:05 -0500
-In-Reply-To: <20141101111143.86AC1C409FE@trevor.secretlab.ca>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+This patchset contains 2 cleanups related to the EC driver:
+1. Command flushing
+   This patchset flushes EC commands before suspending/resuming, so that
+   there won't be timeout for the incomplete commands after resuming.
+2. Event polling thread
+   It is not proper to send QR_EC command using the same work queue as
+   the _Qxx/_Lxx/_Exx evaluations. This patchset moves the QR_EC issuing to
+   a seperate thread. This also allows us to extend the EC driver in the
+   future to be aware of the events even when SCI_EVT is failed to be set
+   by the firmware.
 
+This patchset is split from an EC GPE storming prevention enhancement
+series. The original discussion can be found at:
+  http://www.spinics.net/lists/linux-acpi/msg51698.html
 
-On 11/1/14 4:11, Grant Likely wrote:
-> On Tue, 28 Oct 2014 22:59:57 +0100
-> , "Rafael J. Wysocki" <rjw@rjwysocki.net>
->  wrote:
->> On Tuesday, October 28, 2014 01:15:27 PM Mika Westerberg wrote:
->>> acpi_dev_add_driver_gpios() makes it possible to set up mapping between
->>> properties and ACPI GpioIo resources in a driver, so we can take index
->>> parameter in acpi_find_gpio() into use with _DSD device properties now.
->>>
->>> This index can be used to select a GPIO from a property with multiple
->>> GPIOs:
->>>
->>>   Package () {
->>>   	"data-gpios",
->>>   	Package () {
->>>   		\_SB.GPIO, 0, 0, 0,
->>>   		\_SB.GPIO, 1, 0, 0,
->>>   		\_SB.GPIO, 2, 0, 1,
->>>   	}
->>>   }
->>>
->>> In order to retrieve the last GPIO from a driver we can simply do:
->>>
->>>   desc = devm_gpiod_get_index(dev, "data", 2);
->>>
->>> and so on.
->>>
->>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->>
->> Cool. :-)
->>
->> Any objections anyone?
-> 
-> Actually, I do. Not in the idea, but in the implementation. The way this gets encoded:
-> 
-> 	Package () {
-> 		\_SB.GPIO, 0, 0, 0,
-> 		\_SB.GPIO, 1, 0, 0,
-> 		\_SB.GPIO, 2, 0, 1,
-> 	}
-> 
-> Means that decoding each GPIO tuple requires the length of a tuple to be
-> fixed, or to implement a DT-like #gpio-cells. If it is fixed, then there
-> is no way to expand the binding later. Can this be done in the following
-> way instead?
-> 
-> 	Package () {
-> 		Package () { \_SB.GPIO, 0, 0, 0 },
-> 		Package () { \_SB.GPIO, 1, 0, 0 },
-> 		Package () { \_SB.GPIO, 2, 0, 1 },
-> 	}
-> 
-> This is one of the biggest pains in device tree. We don't have any way
-> to group tuples so it requires looking up stuff across the tree to
-> figure out how to parse each multi-item property.
-> 
-> I know that last year we talked about how bios vendors would get
-> complicated properties wrong, but I think there is little risk in this
-> case. If the property is encoded wrong, the driver simply won't work and
-> it is unlikely to get shipped before being fixed.
+Lv Zheng (6):
+  ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
+  ACPI/EC: Enhance the checks to apply to QR_EC transactions.
+  ACPI/EC: Add reference counting for query handlers.
+  ACPI/EC: Add command flushing support.
+  ACPI/EC: Cleanup QR_SC command processing by adding a kernel thread
+    to poll EC events.
+  ACPI/EC: Add GPE reference counting debugging messages.
 
-This particular nesting of Packages is expressly prohibited by the
-Device Properties UUID for the reasons you mention.
-
-http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-
-2.1 Data Format Definition
-...
-" a Package consisting entirely of Integer, String, or Reference objects
-(and
-specifically not containing a nested Package)."
-
-That said, I am not fond of the many properties mixed in as a single
-Package. We discussed this at some length while this was being proposed,
-and this was deemed the lesser evil.
+ drivers/acpi/ec.c       |  379 ++++++++++++++++++++++++++++++++++++++---------
+ drivers/acpi/internal.h |    2 +
+ 2 files changed, 313 insertions(+), 68 deletions(-)
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
+1.7.10
