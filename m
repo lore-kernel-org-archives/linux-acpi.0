@@ -1,56 +1,76 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v8 15/18] x86, irq, ACPI: Implement interface to support
- ACPI based IOAPIC hot-addition
-Date: Mon, 03 Nov 2014 17:51:04 +0800
-Message-ID: <54575008.50307@linux.intel.com>
-References: <1414908273-7552-1-git-send-email-jiang.liu@linux.intel.com> <1414908273-7552-16-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1411031039470.5308@nanos>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Mon, 3 Nov 2014 14:22:10 +0100
+Message-ID: <CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+	<20141024073436.GN1484@lahna.fi.intel.com>
+	<1971306.rIA5QAW7ve@vostro.rjw.lan>
+	<2758495.RYBbleVHkC@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:17730 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751764AbaKCJvL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Nov 2014 04:51:11 -0500
-In-Reply-To: <alpine.DEB.2.11.1411031039470.5308@nanos>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2758495.RYBbleVHkC@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, x86@kernel.org, Grant Likely <grant.likely@linaro.org>, Prarit Bhargava <prarit@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-pm@vger.kernel.org
 
-On 2014/11/3 17:41, Thomas Gleixner wrote:
-> On Sun, 2 Nov 2014, Jiang Liu wrote:
->> +	down_write(&acpi_ioapic_rwsem);
-> 
-> That wants to be acpi_ioapic_lock. Same issue in the following
-> patches. You fixed it up in the last patch.
-> 
-> Please don't resend. I folded the hunks back to the proper places
-> already.
-Thanks, Thomas.
+On Sat, Oct 25, 2014 at 12:05 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 
-There's no changes for the second patch set "[Patch Part1 v3 00/20]
-Prepare for enabling  hierarchy irqdomain on x86" at
-https://lkml.org/lkml/2014/10/27/122.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Provide a way for device drivers using GPIOs described by ACPI
+> GpioIo resources in _CRS to tell the GPIO subsystem what names
+> (connection IDs) to associate with specific GPIO pins defined
+> in there.
+>
+> To do that, a driver needs to define a mapping table as a
+> NULL-terminated array of struct acpi_gpio_mapping objects
+> that each contain a name, a pointer to an array of pin data
+> (struct acpi_gpio_params) objects and the size of that array.
+>
+> Each struct acpi_gpio_params object consists of three fields,
+> crs_entry_index, pin_index, active_low, representing the index of
 
-It should apply cleanly onto this patch set, so I won't resend it.
+I prefer that you call the second thing "line_index" rather than
+"pin_index". Not all GPIOs in the world are tied to physical pins.
+Also it is easy to confuse stuff with the pin control terminology
+if it's called "pin".
 
-I have also solved all issues related to interrupt remapping and
-is testing new implementation for third and fourth patch sets.
-Will send them out once passing all tests.
+> the target GpioIo()/GpioInt() resource in _CRS starting from zero,
+> the index of the target pin in that resource starting from zero,
+> and the active-low flag for that pin, respectively.
+>
+> Next, the mapping table needs to be passed as the second argument to
+> acpi_dev_add_driver_gpios() that will register it with the ACPI device
+> object pointed to by its first argument.  That object must represent
+> the ACPI namespace node containing the _CRS object referred to by the
+> GPIO mapping.  That should be done in the driver's .probe() routine.
+>
+> On removal, the driver should unregister its GPIO mapping table
+> by calling acpi_dev_remove_driver_gpios() on the ACPI device
+> object where that table was previously registered.
+>
+> Included are fixes from Mika Westerberg.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Regards!
-Gerry
+And "pin" is mentioned several times in the commit message.
+I prefer that we talk about "lines".
 
-> 
-> Thanks,
-> 
-> 	tglx
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+(...)
+
+> +struct acpi_gpio_params {
+> +       unsigned int crs_entry_index;
+> +       unsigned int pin_index;
+
+So line_index;
+
+> +       bool active_low;
+> +};
+
+With that change:
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
