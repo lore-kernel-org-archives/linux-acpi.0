@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/6] ACPI/EC: Add reference counting for query handlers.
-Date: Mon,  3 Nov 2014 13:16:25 +0800
-Message-ID: <a2f86ca94eb1bd2a0e1a06ba9486d5daafba7e8b.1414988981.git.lv.zheng@intel.com>
+Subject: [PATCH 4/6] ACPI/EC: Add command flushing support.
+Date: Mon,  3 Nov 2014 13:16:31 +0800
+Message-ID: <b870be347086106c97239781731a805c24967e72.1414988981.git.lv.zheng@intel.com>
 References: <cover.1414988981.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,141 +13,178 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds reference counting for query handlers in order to elimi=
-nate
-kmalloc()/kfree() usage.
+This patch implements command flushing support. It's better to wait all
+command transactions to be completed before disabling the EC GPE when t=
+he
+system is going to be suspended. By doing so, the EC hardware can be
+ensured to be in the idle state when the system is resumed.
+
+There is a good indicator for flush support:
+All acpi_ec_submit_request() is invoked after checking driver state wit=
+h
+acpi_ec_started() except the first one. This means all code paths can b=
+e
+flushed as fast as possible by discarding the requests occurred after t=
+he
+flush operation. The reference increased for such kind of code path is
+wrapped by acpi_ec_submit_flushable_request().
+
+The system suspending/resuming test result is as follows:
+  ACPI : EC: +++++ Stopping EC +++++
+* ACPI : EC: +++++ EC stopped +++++
+  ACPI : EC: +++++ Starting EC +++++
+# ACPI : EC: +++++ EC started +++++
+This is performed by "switching wireless switch on/off" and "plugging p=
+ower
+cord in/out" frequently during the suspending/resuming. The above dmesg
+shows that the EC driver is stopped during suspending (*) and is restar=
+ted
+during resuming (#) correctly.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Steffen Weber <steffen.weber@gmail.com>
 Tested-by: Ortwin Gl=C3=BCck <odi@odi.ch>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/ec.c |   47 +++++++++++++++++++++++++++++++++++++--------=
---
- 1 file changed, 37 insertions(+), 10 deletions(-)
+ drivers/acpi/ec.c       |   72 +++++++++++++++++++++++++++++++++++++++=
+++++++--
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 70 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 9a51f7a..69e4f35 100644
+index 69e4f35..a76794a 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -106,6 +106,7 @@ struct acpi_ec_query_handler {
- 	acpi_handle handle;
- 	void *data;
- 	u8 query_bit;
-+	struct kref kref;
- };
+@@ -144,6 +144,53 @@ static bool acpi_ec_started(struct acpi_ec *ec)
+ 	       !test_bit(EC_FLAGS_STOPPED, &ec->flags);
+ }
 =20
- struct transaction {
-@@ -120,6 +121,10 @@ struct transaction {
- 	u8 flags;
- };
-=20
-+static struct acpi_ec_query_handler *
-+acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler);
-+static void acpi_ec_put_query_handler(struct acpi_ec_query_handler *ha=
-ndler);
++static bool acpi_ec_flushed(struct acpi_ec *ec)
++{
++	return ec->reference_count =3D=3D 1;
++}
 +
- struct acpi_ec *boot_ec, *first_ec;
- EXPORT_SYMBOL(first_ec);
-=20
-@@ -619,6 +624,27 @@ static int acpi_ec_query_unlocked(struct acpi_ec *=
-ec, u8 *data)
++/* -------------------------------------------------------------------=
+-------
++ *                           GPE Enhancement
++ * -------------------------------------------------------------------=
+------- */
++
++static void acpi_ec_submit_request(struct acpi_ec *ec)
++{
++	ec->reference_count++;
++	if (ec->reference_count =3D=3D 1)
++		acpi_enable_gpe(NULL, ec->gpe);
++}
++
++static void acpi_ec_complete_request(struct acpi_ec *ec)
++{
++	bool flushed =3D false;
++
++	ec->reference_count--;
++	if (ec->reference_count =3D=3D 0)
++		acpi_disable_gpe(NULL, ec->gpe);
++	flushed =3D acpi_ec_flushed(ec);
++	if (flushed)
++		wake_up(&ec->wait);
++}
++
++/*
++ * acpi_ec_submit_flushable_request() - Increase the reference count u=
+nless
++ *                                      the flush operation is not in
++ *                                      progress
++ * @ec: the EC device
++ *
++ * This function must be used before taking a new action that should h=
+old
++ * the reference count.  If this function returns false, then the acti=
+on
++ * must be discarded or it will prevent the flush operation from being
++ * completed.
++ */
++static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
++{
++	if (!acpi_ec_started(ec))
++		return false;
++	acpi_ec_submit_request(ec);
++	return true;
++}
++
  /* -------------------------------------------------------------------=
 -------
-                                 Event Management
-    -------------------------------------------------------------------=
+  *                           Transaction Management
+  * -------------------------------------------------------------------=
 ------- */
-+static struct acpi_ec_query_handler *
-+acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler)
-+{
-+	if (handler)
-+		kref_get(&handler->kref);
-+	return handler;
-+}
-+
-+static void acpi_ec_query_handler_release(struct kref *kref)
-+{
-+	struct acpi_ec_query_handler *handler =3D
-+		container_of(kref, struct acpi_ec_query_handler, kref);
-+
-+	kfree(handler);
-+}
-+
-+static void acpi_ec_put_query_handler(struct acpi_ec_query_handler *ha=
-ndler)
-+{
-+	kref_put(&handler->kref, acpi_ec_query_handler_release);
-+}
-+
- int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
- 			      acpi_handle handle, acpi_ec_query_func func,
- 			      void *data)
-@@ -634,6 +660,7 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u=
-8 query_bit,
- 	handler->func =3D func;
- 	handler->data =3D data;
- 	mutex_lock(&ec->mutex);
-+	kref_init(&handler->kref);
- 	list_add(&handler->node, &ec->list);
- 	mutex_unlock(&ec->mutex);
- 	return 0;
-@@ -643,15 +670,18 @@ EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
- void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- {
- 	struct acpi_ec_query_handler *handler, *tmp;
-+	LIST_HEAD(free_list);
-=20
- 	mutex_lock(&ec->mutex);
- 	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
- 		if (query_bit =3D=3D handler->query_bit) {
--			list_del(&handler->node);
--			kfree(handler);
-+			list_del_init(&handler->node);
-+			list_add(&handler->node, &free_list);
- 		}
+@@ -341,7 +388,8 @@ static int acpi_ec_transaction_unlocked(struct acpi=
+_ec *ec,
+ 		udelay(ACPI_EC_MSI_UDELAY);
+ 	/* start transaction */
+ 	spin_lock_irqsave(&ec->lock, tmp);
+-	if (!acpi_ec_started(ec)) {
++	/* Enable GPE for command processing (IBF=3D0/OBF=3D1) */
++	if (!acpi_ec_submit_flushable_request(ec)) {
+ 		ret =3D -EINVAL;
+ 		goto unlock;
  	}
- 	mutex_unlock(&ec->mutex);
-+	list_for_each_entry(handler, &free_list, node)
-+		acpi_ec_put_query_handler(handler);
- }
- EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
-=20
-@@ -667,14 +697,14 @@ static void acpi_ec_run(void *cxt)
- 	else if (handler->handle)
- 		acpi_evaluate_object(handler->handle, NULL, NULL, NULL);
- 	pr_debug("##### Query(0x%02x) stopped #####\n", handler->query_bit);
--	kfree(handler);
-+	acpi_ec_put_query_handler(handler);
+@@ -360,6 +408,8 @@ static int acpi_ec_transaction_unlocked(struct acpi=
+_ec *ec,
+ 	pr_debug("***** Command(%s) stopped *****\n",
+ 		 acpi_ec_cmd_string(t->command));
+ 	ec->curr =3D NULL;
++	/* Disable GPE for command processing (IBF=3D0/OBF=3D1) */
++	acpi_ec_complete_request(ec);
+ unlock:
+ 	spin_unlock_irqrestore(&ec->lock, tmp);
+ 	return ret;
+@@ -535,12 +585,24 @@ static void acpi_ec_start(struct acpi_ec *ec)
+ 	spin_lock_irqsave(&ec->lock, flags);
+ 	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags)) {
+ 		pr_debug("+++++ Starting EC +++++\n");
+-		acpi_enable_gpe(NULL, ec->gpe);
++		/* Enable GPE for event processing (SCI_EVT=3D1) */
++		acpi_ec_submit_request(ec);
+ 		pr_info("+++++ EC started +++++\n");
+ 	}
+ 	spin_unlock_irqrestore(&ec->lock, flags);
  }
 =20
- static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
++static bool acpi_ec_stopped(struct acpi_ec *ec)
++{
++	unsigned long flags;
++	bool flushed;
++
++	spin_lock_irqsave(&ec->lock, flags);
++	flushed =3D acpi_ec_flushed(ec);
++	spin_unlock_irqrestore(&ec->lock, flags);
++	return flushed;
++}
++
+ static void acpi_ec_stop(struct acpi_ec *ec)
  {
- 	u8 value =3D 0;
- 	int status;
--	struct acpi_ec_query_handler *handler, *copy;
-+	struct acpi_ec_query_handler *handler;
-=20
- 	status =3D acpi_ec_query_unlocked(ec, &value);
- 	if (data)
-@@ -685,15 +715,12 @@ static int acpi_ec_sync_query(struct acpi_ec *ec,=
- u8 *data)
- 	list_for_each_entry(handler, &ec->list, node) {
- 		if (value =3D=3D handler->query_bit) {
- 			/* have custom handler for this bit */
--			copy =3D kmalloc(sizeof(*handler), GFP_KERNEL);
--			if (!copy)
--				return -ENOMEM;
--			memcpy(copy, handler, sizeof(*copy));
-+			handler =3D acpi_ec_get_query_handler(handler);
- 			pr_debug("##### Query(0x%02x) scheduled #####\n",
- 				 handler->query_bit);
--			return acpi_os_execute((copy->func) ?
-+			return acpi_os_execute((handler->func) ?
- 				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
--				acpi_ec_run, copy);
-+				acpi_ec_run, handler);
- 		}
- 	}
- 	return 0;
+ 	unsigned long flags;
+@@ -549,7 +611,11 @@ static void acpi_ec_stop(struct acpi_ec *ec)
+ 	if (acpi_ec_started(ec)) {
+ 		pr_debug("+++++ Stopping EC +++++\n");
+ 		set_bit(EC_FLAGS_STOPPED, &ec->flags);
+-		acpi_disable_gpe(NULL, ec->gpe);
++		spin_unlock_irqrestore(&ec->lock, flags);
++		wait_event(ec->wait, acpi_ec_stopped(ec));
++		spin_lock_irqsave(&ec->lock, flags);
++		/* Disable GPE for event processing (SCI_EVT=3D1) */
++		acpi_ec_complete_request(ec);
+ 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
+ 		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
+ 		pr_info("+++++ EC stopped +++++\n");
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 163e82f..bbcfe0b 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -122,6 +122,7 @@ struct acpi_ec {
+ 	unsigned long data_addr;
+ 	unsigned long global_lock;
+ 	unsigned long flags;
++	unsigned long reference_count;
+ 	struct mutex mutex;
+ 	wait_queue_head_t wait;
+ 	struct list_head list;
 --=20
 1.7.10
