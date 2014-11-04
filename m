@@ -1,46 +1,42 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v6 02/12] Driver core: Unified device properties interface for platform firmware
-Date: Tue, 04 Nov 2014 22:29:08 +0100
-Message-ID: <3275773.HN9MNfIOOq@vostro.rjw.lan>
-References: <13750506.S2yVlRRDa2@vostro.rjw.lan> <3645687.BsyGDrJDrU@vostro.rjw.lan> <CACxGe6uv0TmoZivL3ESw+oRW-OjqakLP4KBnDrwJXzQ2ku8ZLA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO descriptors
+Date: Tue, 04 Nov 2014 23:50:33 +0100
+Message-ID: <2455157.3p7mHhT8im@vostro.rjw.lan>
+References: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com> <545843B1.3020101@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACxGe6uv0TmoZivL3ESw+oRW-OjqakLP4KBnDrwJXzQ2ku8ZLA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Darren Hart <darren.hart-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60856 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751303AbaKDW3t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 17:29:49 -0500
+In-Reply-To: <545843B1.3020101@nvidia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexandre Courbot <acourbot@nvidia.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, November 04, 2014 05:01:04 PM Grant Likely wrote:
-> On Mon, Nov 3, 2014 at 10:04 PM, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
-> >> I also found that this parser code doesn't correctly handle malformed
-> >> (unterminated) string properties. It will overflow. The existing
-> >> functions have the same problem, so it isn't something that you've
-> >> added. I've got a fix, and as a side effect the fix creates the _array
-> >> version basically for free as part of reworking
-> >> of_property_count_strings() and of_property_read_string_index()
+On Tuesday, November 04, 2014 12:10:41 PM Alexandre Courbot wrote:
+> On 10/31/2014 08:40 PM, Mika Westerberg wrote:
+> > Commit 21f2aae91e902aad ("leds: leds-gpio: Add support for GPIO
+> > descriptors") already converted most of the driver to use GPIO descriptors.
+> > What is still missing is the platform specific hook gpio_blink_set() and
+> > board files which pass legacy GPIO numbers to this driver in platform data.
 > >
-> > OK
+> > In this patch we handle the former and convert gpio_blink_set() to take
+> > GPIO descriptor instead. In order to do this we convert the existing four
+> > users to accept GPIO descriptor and translate it to legacy GPIO number in
+> > the platform code. This effectively "pushes" legacy GPIO number usage from
+> > the driver to platforms.
 > >
-> > So can you please point me to a git branch containing the fix?  I'll rebase the
-> > patch on top of that then and everything should merge just fine.
+> > Also add comment to the remaining block describing that it is legacy code
+> > path and we are getting rid of it eventually.
+> >
+> > Suggested-by: Linus Walleij <linus.walleij@linaro.org>
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/glikely/linux.git devicetree/merge
-> 
-> I'm going to let the patch sit in there for a few days to get
-> linux-next exposure before I ask Linus to pull. The pull req will go
-> out before the end of the week.
+> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
 
-OK, thanks!
+Patch applied, thanks everyone!
 
-Pulled, rebased my device-properties branch, merged into linux-pm.git/linux-next
-and pushed back.
-
-Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
