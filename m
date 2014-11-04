@@ -1,85 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
-Date: Mon, 03 Nov 2014 23:56:53 +0100
-Message-ID: <1433051.htaUTMPMBY@vostro.rjw.lan>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <2758495.RYBbleVHkC@vostro.rjw.lan> <CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: blacklist Win8 OSI for Dell Vostro 3546
+Date: Tue, 04 Nov 2014 01:55:56 +0100
+Message-ID: <3155964.sJj5L6X0pf@vostro.rjw.lan>
+References: <1414389345-4723-1-git-send-email-adam.lee@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56947 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49814 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751197AbaKCWgJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2014 17:36:09 -0500
-In-Reply-To: <CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
+	with SMTP id S1750770AbaKDAfM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2014 19:35:12 -0500
+In-Reply-To: <1414389345-4723-1-git-send-email-adam.lee@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Adam Lee <adam.lee@canonical.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Monday, November 03, 2014 02:22:10 PM Linus Walleij wrote:
-> On Sat, Oct 25, 2014 at 12:05 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+On Monday, October 27, 2014 01:55:45 PM Adam Lee wrote:
+> The wireless hotkey of Dell Vostro 3546 does not work with Win8 OSI. Due
+> to insufficient documentation for the driver implementation, blacklist
+> it as a workaround.
 > 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > Provide a way for device drivers using GPIOs described by ACPI
-> > GpioIo resources in _CRS to tell the GPIO subsystem what names
-> > (connection IDs) to associate with specific GPIO pins defined
-> > in there.
-> >
-> > To do that, a driver needs to define a mapping table as a
-> > NULL-terminated array of struct acpi_gpio_mapping objects
-> > that each contain a name, a pointer to an array of pin data
-> > (struct acpi_gpio_params) objects and the size of that array.
-> >
-> > Each struct acpi_gpio_params object consists of three fields,
-> > crs_entry_index, pin_index, active_low, representing the index of
-> 
-> I prefer that you call the second thing "line_index" rather than
-> "pin_index". Not all GPIOs in the world are tied to physical pins.
-> Also it is easy to confuse stuff with the pin control terminology
-> if it's called "pin".
-> 
-> > the target GpioIo()/GpioInt() resource in _CRS starting from zero,
-> > the index of the target pin in that resource starting from zero,
-> > and the active-low flag for that pin, respectively.
-> >
-> > Next, the mapping table needs to be passed as the second argument to
-> > acpi_dev_add_driver_gpios() that will register it with the ACPI device
-> > object pointed to by its first argument.  That object must represent
-> > the ACPI namespace node containing the _CRS object referred to by the
-> > GPIO mapping.  That should be done in the driver's .probe() routine.
-> >
-> > On removal, the driver should unregister its GPIO mapping table
-> > by calling acpi_dev_remove_driver_gpios() on the ACPI device
-> > object where that table was previously registered.
-> >
-> > Included are fixes from Mika Westerberg.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> And "pin" is mentioned several times in the commit message.
-> I prefer that we talk about "lines".
-> 
-> (...)
-> 
-> > +struct acpi_gpio_params {
-> > +       unsigned int crs_entry_index;
-> > +       unsigned int pin_index;
-> 
-> So line_index;
-> 
-> > +       bool active_low;
-> > +};
-> 
-> With that change:
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> Signed-off-by: Adam Lee <adam.lee@canonical.com>
 
-OK, made the changes and added your Reviewed-by.
+Applied, thanks!
 
-One semi-related question though.  Alexandre ACKed the patch before, so
-what did that mean from the GPIO subsystem's perspective?  Was the patch
-approved, not approved, semi-approved?
+> ---
+>  drivers/acpi/blacklist.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+> index ed122e1..7556e7c 100644
+> --- a/drivers/acpi/blacklist.c
+> +++ b/drivers/acpi/blacklist.c
+> @@ -290,6 +290,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>  		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3446"),
+>  		},
+>  	},
+> +	{
+> +	.callback = dmi_disable_osi_win8,
+> +	.ident = "Dell Vostro 3546",
+> +	.matches = {
+> +		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3546"),
+> +		},
+> +	},
+>  
+>  	/*
+>  	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+> 
 
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
