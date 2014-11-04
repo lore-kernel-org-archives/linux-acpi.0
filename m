@@ -1,39 +1,75 @@
-From: Alexandre Courbot <acourbot@nvidia.com>
-Subject: Re: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO
- descriptors
-Date: Tue, 4 Nov 2014 12:10:41 +0900
-Message-ID: <545843B1.3020101@nvidia.com>
-References: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] toshiba_acpi: Fix regression caused by backlight extra
+  check code
+Date: Mon, 3 Nov 2014 22:21:37 -0800
+Message-ID: <20141104062137.GC56751@vmdeb7>
+References: <1415073514-12555-1-git-send-email-coproscefalo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:12311 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247AbaKDDLE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Nov 2014 22:11:04 -0500
-In-Reply-To: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:59934 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911AbaKDGWJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 01:22:09 -0500
+Content-Disposition: inline
+In-Reply-To: <1415073514-12555-1-git-send-email-coproscefalo@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Azael Avalos <coproscefalo@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Nuno Lopes <nunoplopes@sapo.pt>
 
-On 10/31/2014 08:40 PM, Mika Westerberg wrote:
-> Commit 21f2aae91e902aad ("leds: leds-gpio: Add support for GPIO
-> descriptors") already converted most of the driver to use GPIO descriptors.
-> What is still missing is the platform specific hook gpio_blink_set() and
-> board files which pass legacy GPIO numbers to this driver in platform data.
->
-> In this patch we handle the former and convert gpio_blink_set() to take
-> GPIO descriptor instead. In order to do this we convert the existing four
-> users to accept GPIO descriptor and translate it to legacy GPIO number in
-> the platform code. This effectively "pushes" legacy GPIO number usage from
-> the driver to platforms.
->
-> Also add comment to the remaining block describing that it is legacy code
-> path and we are getting rid of it eventually.
->
-> Suggested-by: Linus Walleij <linus.walleij@linaro.org>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Mon, Nov 03, 2014 at 08:58:34PM -0700, Azael Avalos wrote:
+> Bug 86521 uncovered that some TOS6208 devices also return
+> non zero values on a write call to the backlight method,
+> thus getting caught and bailed out by the extra check code.
+> 
+> This patch makes sure that the extra check is being done
+> on a TOS1900 device and then make the check for the broken
+> backlight code.
+> 
+> Signed-off-by: Azael Avalos <coproscefalo@gmail.com>
+> ---
+>  drivers/platform/x86/toshiba_acpi.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+> index ef3a190..e3fed12 100644
+> --- a/drivers/platform/x86/toshiba_acpi.c
+> +++ b/drivers/platform/x86/toshiba_acpi.c
+> @@ -944,9 +944,13 @@ static int set_lcd_brightness(struct toshiba_acpi_dev *dev, int value)
+>  	/* Extra check for "incomplete" backlight method, where the AML code
+>  	 * doesn't check for HCI_SET or HCI_GET and returns TOS_SUCCESS,
+>  	 * the actual brightness, and in some cases the max brightness.
+> +	 * Use the SPFC method as an indicator that we're on a TOS1900 device,
+> +	 * otherwise some TOS6208 devices might get bailed out, see bug 86521
 
-Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+This needs a clearer description here in this comment, rather than redirecting
+the reader to a bug report (which may or may not exist when needed).
+
+>  	 */
+> -	if (out[2] > 0  || out[3] == 0xE000)
+> -		return -ENODEV;
+> +	if (acpi_has_method(dev->acpi_dev->handle, "SPFC")) {
+
+Hrm, this checking for the existence of a specific method seems suspect to me.
+We would know if we are on a TOS1900 as we matches the acpi id already. Is the
+SPFC significant here, or is it just a "we only see SPFC on TOS1900 so it's a
+convenient test"? If the latter, it seems rather fragile and prone to other
+breakage to me.
+
+Rafael, any recommendations here?
+
+> +		if (out[2] > 0  || out[3] == 0xE000)
+> +			return -ENODEV;
+> +	}
+>  
+>  	return out[0] == TOS_SUCCESS ? 0 : -EIO;
+>  }
+> -- 
+> 2.1.1
+> 
+> 
+
+-- 
+Darren Hart
+Intel Open Source Technology Center
