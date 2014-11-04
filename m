@@ -1,111 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 00/12] Add ACPI _DSD and unified device properties support
-Date: Tue, 04 Nov 2014 17:20:36 +0100
-Message-ID: <1763231.GI0axx7QAH@vostro.rjw.lan>
-References: <13750506.S2yVlRRDa2@vostro.rjw.lan> <2453849.ZcbreFmRlO@vostro.rjw.lan> <20141104154950.3175EC423D0@trevor.secretlab.ca>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v6 04/12] misc: at25: Make use of device property API
+Date: Tue, 4 Nov 2014 18:07:35 +0200
+Message-ID: <20141104160735.GO1618@lahna.fi.intel.com>
+References: <13750506.S2yVlRRDa2@vostro.rjw.lan>
+ <20141104143801.GM1618@lahna.fi.intel.com>
+ <CACxGe6u5ppSjHc-Wa7K_NWQ9YEZ_V3ys9fdsECss_bPabUTN+g@mail.gmail.com>
+ <4645043.WOkgNMSUuO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54033 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753866AbaKDP7w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 10:59:52 -0500
-In-Reply-To: <20141104154950.3175EC423D0@trevor.secretlab.ca>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4645043.WOkgNMSUuO-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Darren Hart <darren.hart-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <darren.hart@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>
 
-On Tuesday, November 04, 2014 03:49:50 PM Grant Likely wrote:
-> On Sat, 25 Oct 2014 00:10:20 +0200
-> , "Rafael J. Wysocki" <rjw@rjwysocki.net>
->  wrote:
-> > On Tuesday, October 21, 2014 11:08:59 PM Rafael J. Wysocki wrote:
-> > > Hi Everyone,
-> > > 
-> > > This is version 6 of the unified device properties interface patchset.
-> > > 
-> > > The original cover letter from Mika is here:
-> > > 
-> > > http://marc.info/?l=devicetree&m=141087052200600&w=4
-> > > 
-> > > and my cover letters for previous iterations are at:
-> > > 
-> > > http://marc.info/?l=linux-acpi&m=141212903816560&w=4
-> > > http://marc.info/?l=linux-kernel&m=141354745011569&w=4
-> > > 
-> > > There are a few changes with respect to v5 and the affected patches are
-> > > [02-03/12] and [09-12/12].  The remaining ones have not been modified.
-> > > 
-> > > Most importantly, requesting the first element of a list (package) property
-> > > from _DSD is now equivalent to accessing a single-value property of the
-> > > same type, so device_property_read_u8(dev, pname, val) will now be equivalent
-> > > to device_property_read_u8_array(dev, pname, val, 1), for example.
-> > > Consequently, this _DSD definition:
-> > > 
-> > > Name (_DSD, Package () {
-> > >     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > >     Package () {
-> > >         Package () {"blah", "A string"},
-> > >     }
-> > > })
-> > > 
-> > > can be used instead of
-> > > 
-> > > Name (_DSD, Package () {
-> > >     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > >     Package () {
-> > >         Package () {"blah", Package () {"A string"}},
-> > >     }
-> > > })
-> > > 
-> > > and the code will be able to retrieve the property value from the both of
-> > > them just fine.
-> > > 
-> > > This means, among other things, that accessors for single-value properties
-> > > can be implemented in terms of the analogous "array" property accessors
-> > > which allows the code size to be reduced somewhat.
-> > > 
-> > > Patches [02/12] and [09/12] have been modified to achieve that and patch
-> > > [03/12] have been modified accordingly for the "compatible" property in
-> > > _DSD to behave in an analogous way.  Additionally, the bodies of the
-> > > numerical property accessors in patches [02/12] and [09/12] are now
-> > > generated using macros (string property accessors have slightly different
-> > > rules and are simply open coded for that reason).
-> > > 
-> > > Patch [10/12] has been modified to drop function arguments that happened to
-> > > have the same values for both of the current users of those functions and
-> > > patches [11-12/12] have been modified to take that change into account.  If
-> > > the code in question needs to be made more complex in the future, there
-> > > should not be any problems with that.
-> > > 
-> > > Due to the nature of the changes I have retained all ACKs except for the
-> > > Grant's Reviewed-by on patch [03/12] (if that had been Acked-by, I would have
-> > > retained it too, but that didn't feel appropriate for the "reviewed by" thing
-> > > to me).  If any of you think that the ACKs are not applicable any more, please
-> > > let me know and I'll drop them.
-> > > 
-> > > Finally, many thanks to Mika for testing the series on MinnowBoard 1 and
-> > > MinnowBoard Max.  In case anybody else would like to test it, it is available
-> > > from the device-properties branch of the linux-pm.git tree:
-> > > 
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git device-properties
-> > > 
-> > > Thanks!
+On Tue, Nov 04, 2014 at 05:19:02PM +0100, Rafael J. Wysocki wrote:
+> > > I think np->name is "at25" in this case? The binding file
+> > > Documentation/devicetree/bindings/misc/at25.txt also has the same name.
+> > >
+> > > Are you OK, if we add something like below to the changelog?
+> > >
+> > >  In addition we hard-code the name of the chip to be "at25" for the
+> > >  reason that there is no common mechanism to fetch name of the firmware
+> > >  node. The only existing user (arch/arm/boot/dts/phy3250.dts) uses the
+> > >  same name so it should continue to work.
 > > 
-> > Crickets ...
-> > 
-> > OK, so I'm taking the lack of comments as the lack of objections and I'm already
-> > getting merge conflicts for this series.  Moreover, we already have done some
-> > work on top of it.
-> > 
-> > So, if there still are no comments by Sunday evening, I'll add this series to
-> > my linux-next branch with 3.19-rc1 as the target.
+> > Yes. If somebody complains, then we can reinstate the previous
+> > behaviour, but assume it isn't necessary for now.
 > 
-> Aside from the comments I've made elsewhere, you can add my acked by for the whole series.
-> 
-> Acked-by: Grant Likely <grant.likely@linaro.org>
+> OK, done in my tree. 
 
-Thanks!
-
+Thanks Rafael!
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
