@@ -1,90 +1,65 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part2 v4 04/31] genirq: Introduce irq_chip.irq_compose_msi_msg() to support stacked irqchip
-Date: Tue,  4 Nov 2014 20:01:38 +0800
-Message-ID: <1415102525-9898-5-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v4 05/31] genirq: Add IRQ_SET_MASK_OK_DONE to support stacked irqchip
+Date: Tue,  4 Nov 2014 20:01:39 +0800
+Message-ID: <1415102525-9898-6-git-send-email-jiang.liu@linux.intel.com>
 References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34017 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753634AbaKDL7w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Nov 2014 06:59:52 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-Add callback irq_compose_msi_msg to struct irq_chip, which will be used
-to support stacked irqchip.
+Add IRQ_SET_MASK_OK_DONE in addition to IRQ_SET_MASK_OK and
+IRQ_SET_MASK_OK_NOCOPY to support stacked irqchip. IRQ_SET_MASK_OK_DONE
+is the same as IRQ_SET_MASK_OK to irq core. To stacked irqchip, it means
+that ascendant irqchips have done all the work and no more handling
+needed in descendant irqchips.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- include/linux/irq.h |    5 +++++
- kernel/irq/chip.c   |   17 +++++++++++++++++
- 2 files changed, 22 insertions(+)
+ include/linux/irq.h |    4 ++++
+ kernel/irq/manage.c |    2 ++
+ 2 files changed, 6 insertions(+)
 
 diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 0adcbbbf2e87..536b7fc6c8f4 100644
+index 536b7fc6c8f4..041edd6dc409 100644
 --- a/include/linux/irq.h
 +++ b/include/linux/irq.h
-@@ -29,6 +29,7 @@ struct seq_file;
- struct module;
- struct irq_desc;
- struct irq_data;
-+struct msi_msg;
- typedef	void (*irq_flow_handler_t)(unsigned int irq,
- 					    struct irq_desc *desc);
- typedef	void (*irq_preflow_handler_t)(struct irq_data *data);
-@@ -320,6 +321,7 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
-  *				any other callback related to this irq
-  * @irq_release_resources:	optional to release resources acquired with
-  *				irq_request_resources
-+ * @irq_compose_msi_msg:	optional to compose message content for MSI
-  * @flags:		chip specific flags
+@@ -114,10 +114,14 @@ enum {
+  *
+  * IRQ_SET_MASK_OK	- OK, core updates irq_data.affinity
+  * IRQ_SET_MASK_NOCPY	- OK, chip did update irq_data.affinity
++ * IRQ_SET_MASK_OK_DONE	- Same as IRQ_SET_MASK_OK for core. Special code to
++ *			  support stacked irqchips, which indicates skipping
++ *			  all descendent irqchips.
   */
- struct irq_chip {
-@@ -356,6 +358,8 @@ struct irq_chip {
- 	int		(*irq_request_resources)(struct irq_data *data);
- 	void		(*irq_release_resources)(struct irq_data *data);
- 
-+	void		(*irq_compose_msi_msg)(struct irq_data *data, struct msi_msg *msg);
-+
- 	unsigned long	flags;
+ enum {
+ 	IRQ_SET_MASK_OK = 0,
+ 	IRQ_SET_MASK_OK_NOCOPY,
++	IRQ_SET_MASK_OK_DONE,
  };
  
-@@ -443,6 +447,7 @@ extern void handle_percpu_devid_irq(unsigned int irq, struct irq_desc *desc);
- extern void handle_bad_irq(unsigned int irq, struct irq_desc *desc);
- extern void handle_nested_irq(unsigned int irq);
+ struct msi_desc;
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index 0a9104b4608b..80692373abd6 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -183,6 +183,7 @@ int irq_do_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 	ret = chip->irq_set_affinity(data, mask, force);
+ 	switch (ret) {
+ 	case IRQ_SET_MASK_OK:
++	case IRQ_SET_MASK_OK_DONE:
+ 		cpumask_copy(data->affinity, mask);
+ 	case IRQ_SET_MASK_OK_NOCOPY:
+ 		irq_set_thread_affinity(desc);
+@@ -600,6 +601,7 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
  
-+extern int irq_chip_compose_msi_msg(struct irq_data *data, struct msi_msg *msg);
- #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
- extern void irq_chip_ack_parent(struct irq_data *data);
- extern int irq_chip_retrigger_hierarchy(struct irq_data *data);
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 12f3e72449eb..8f362db17a8a 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -867,3 +867,20 @@ int irq_chip_retrigger_hierarchy(struct irq_data *data)
- 	return -ENOSYS;
- }
- #endif
-+
-+int irq_chip_compose_msi_msg(struct irq_data *data, struct msi_msg *msg)
-+{
-+	struct irq_data *pos = NULL;
-+
-+#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
-+	for (; data; data = data->parent_data)
-+#endif
-+		if (data->chip && data->chip->irq_compose_msi_msg)
-+			pos = data;
-+	if (!pos)
-+		return -ENOSYS;
-+
-+	pos->chip->irq_compose_msi_msg(pos, msg);
-+
-+	return 0;
-+}
+ 	switch (ret) {
+ 	case IRQ_SET_MASK_OK:
++	case IRQ_SET_MASK_OK_DONE:
+ 		irqd_clear(&desc->irq_data, IRQD_TRIGGER_MASK);
+ 		irqd_set(&desc->irq_data, flags);
+ 
 -- 
 1.7.10.4
-
