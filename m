@@ -1,75 +1,158 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] toshiba_acpi: Fix regression caused by backlight extra
-  check code
-Date: Mon, 3 Nov 2014 22:21:37 -0800
-Message-ID: <20141104062137.GC56751@vmdeb7>
-References: <1415073514-12555-1-git-send-email-coproscefalo@gmail.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v4 00/31] Enable hierarchy irqdomian on x86 platforms
+Date: Tue,  4 Nov 2014 20:01:34 +0800
+Message-ID: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59934 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbaKDGWJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 01:22:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1415073514-12555-1-git-send-email-coproscefalo@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Azael Avalos <coproscefalo@gmail.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Nuno Lopes <nunoplopes@sapo.pt>
 
-On Mon, Nov 03, 2014 at 08:58:34PM -0700, Azael Avalos wrote:
-> Bug 86521 uncovered that some TOS6208 devices also return
-> non zero values on a write call to the backlight method,
-> thus getting caught and bailed out by the extra check code.
-> 
-> This patch makes sure that the extra check is being done
-> on a TOS1900 device and then make the check for the broken
-> backlight code.
-> 
-> Signed-off-by: Azael Avalos <coproscefalo@gmail.com>
-> ---
->  drivers/platform/x86/toshiba_acpi.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-> index ef3a190..e3fed12 100644
-> --- a/drivers/platform/x86/toshiba_acpi.c
-> +++ b/drivers/platform/x86/toshiba_acpi.c
-> @@ -944,9 +944,13 @@ static int set_lcd_brightness(struct toshiba_acpi_dev *dev, int value)
->  	/* Extra check for "incomplete" backlight method, where the AML code
->  	 * doesn't check for HCI_SET or HCI_GET and returns TOS_SUCCESS,
->  	 * the actual brightness, and in some cases the max brightness.
-> +	 * Use the SPFC method as an indicator that we're on a TOS1900 device,
-> +	 * otherwise some TOS6208 devices might get bailed out, see bug 86521
+We plan to restructure x86 interrupt code based on hierarchy irqdomain,
+that is to build irqdomains for CPU vector, interrupt remapping unit,
+IOAPIC, MSI and HPET etc and organize those irqdomains in hierarchy mode.
+Each irqdomain manages corresponding interrupt controller and talks to
+parent interrupt controller through public irqdomain interfaces. We also
+support stacked irq_chip based on hierarchy irqdomain. It will make the
+x86 interrupt architecture much more clear and more easy to maintain
+with hierarchy irqdomain and stacked irq_chip. It may also help ARM
+interrupt management architecture too.
 
-This needs a clearer description here in this comment, rather than redirecting
-the reader to a bug report (which may or may not exist when needed).
+This is the second patch set to enable support of hierarchy irqdomain
+on x86 platforms. It depends on the first part at:
+https://lkml.org/lkml/2014/10/27/122
+And you may access it at:
+https://github.com/jiangliu/linux.git irqdomain/p2v4
 
->  	 */
-> -	if (out[2] > 0  || out[3] == 0xE000)
-> -		return -ENODEV;
-> +	if (acpi_has_method(dev->acpi_dev->handle, "SPFC")) {
+And there will be a third patch set to convert IOAPIC driver to support
+hierarchy irqdomain and clean up code.
 
-Hrm, this checking for the existence of a specific method seems suspect to me.
-We would know if we are on a TOS1900 as we matches the acpi id already. Is the
-SPFC significant here, or is it just a "we only see SPFC on TOS1900 so it's a
-convenient test"? If the latter, it seems rather fragile and prone to other
-breakage to me.
+Patch 1-5 enhance irqdomain and irq core to support hierarchy irqdomain
+and stacked irqchip.
+Patch 6-12 implement an irqdomain to manange CPU interrupt vectors, and
+it's the root irqdomain for x86 platforms.
+Patch 13-16 converts Intel and AMD interrupt remapping drivers to
+support hierarchy irqdomain.
+Patch 17-23 converts HPET and MSI to support hierarchy irqdomain.
+Patch 24-27 cleans up unsued code in x86 arch and interrupt remapping
+drivers.
+Patch 28-31 converts DMAR, HTIRQ and UV to support hierarchy irqdomain.
 
-Rafael, any recommendations here?
+We have tested this patchset on Intel 32-bit and 64-bit systems. And it
+also passes Fengguang's 0day tests. But helps are need for testing:
+1) AMD interrupt remapping 
+2) AMD HT_IRQ
+3) UV platform
 
-> +		if (out[2] > 0  || out[3] == 0xE000)
-> +			return -ENODEV;
-> +	}
->  
->  	return out[0] == TOS_SUCCESS ? 0 : -EIO;
->  }
-> -- 
-> 2.1.1
-> 
-> 
+V3->V4:
+1) Simplify IRQ remapping interfaces
+2) Hide all IRQ remapping logic from MSI/HPET drivers
+3) Move most MSI irqdomain code to public drivers/pci/msi.c so it could
+   be resued
+4) Improve common PCI MSI code
+5) Rebase to tip/x86/apic
+V2->V3:
+1) Fix bugs in handling OF irqdomain
+2) Add documentation
+3) Rebase to v3.18-rc2
+V1->V2
+1) Add hierarchy iredomain support of DMAR IRQ and UV IRQ.
+2) Fix bugs reported by Joe C.
+3) Address all review comments from Thomas
+4) Fix a bug found during tests
+5) Fix errors and warning found by 0day tests
+
+Jiang Liu (30):
+  irqdomain: Introduce new interfaces to support hierarchy irqdomains
+  genirq: Introduce helper functions to support stacked irq_chip
+  genirq: Introduce irq_chip.irq_compose_msi_msg() to support stacked
+    irqchip
+  genirq: Add IRQ_SET_MASK_OK_DONE to support stacked irqchip
+  x86, irq: Save destination CPU ID in irq_cfg
+  x86, irq: Use hierarchy irqdomain to manage CPU interrupt vectors
+  x86, hpet: Use new irqdomain interfaces to allocate/free IRQ
+  x86, MSI: Use new irqdomain interfaces to allocate/free IRQ
+  x86, uv: Use new irqdomain interfaces to allocate/free IRQ
+  x86, htirq: Use new irqdomain interfaces to allocate/free IRQ
+  x86, dmar: Use new irqdomain interfaces to allocate/free IRQ
+  x86: irq_remapping: Introduce new interfaces to support hierarchy
+    irqdomain
+  iommu/vt-d: Change prototypes to prepare for enabling hierarchy
+    irqdomain
+  iommu/vt-d: Enhance Intel IR driver to suppport hierarchy irqdomain
+  iommu/amd: Enhance AMD IR driver to suppport hierarchy irqdomain
+  x86, hpet: Enhance HPET IRQ to support hierarchy irqdomain
+  PCI/MSI, trivial: Fix minor syntax issues according to coding styles
+  PCI/MSI: Simplify PCI MSI code by initializing msi_desc.nvec_used
+    earlier
+  PCI/MSI: Kill redundant calling for irq_set_msi_desc() for MSIx
+    interrupts
+  PCI/MSI: enhance PCI MSI core to support hierarchy irqdomain
+  x86, PCI, MSI: Use hierarchy irqdomain to manage MSI interrupts
+  x86, irq: Directly call native_compose_msi_msg() for DMAR IRQ
+  iommu/vt-d: Clean up unused MSI related code
+  iommu/amd: Clean up unused MSI related code
+  x86: irq_remapping: Clean up unused MSI related code
+  x86, irq: Clean up unused MSI related code and interfaces
+  iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
+  x86, irq: Use hierarchy irqdomain to manage DMAR interrupts
+  x86, htirq: Use hierarchy irqdomain to manage Hypertransport
+    interrupts
+  x86, uv: Use hierarchy irqdomain to manage UV interrupts
+
+Yingjoe Chen (1):
+  irqdomain: Do irq_find_mapping and set_type for hierarchy irqdomain
+    in case OF
+
+ Documentation/IRQ-domain.txt          |   71 +++++
+ arch/ia64/include/asm/irq_remapping.h |    2 -
+ arch/ia64/kernel/msi_ia64.c           |   30 ++-
+ arch/x86/Kconfig                      |    4 +-
+ arch/x86/include/asm/hpet.h           |   16 +-
+ arch/x86/include/asm/hw_irq.h         |   87 ++++++
+ arch/x86/include/asm/irq_remapping.h  |   50 ++--
+ arch/x86/include/asm/pci.h            |    5 -
+ arch/x86/include/asm/x86_init.h       |    4 -
+ arch/x86/kernel/apic/htirq.c          |  176 +++++++++----
+ arch/x86/kernel/apic/io_apic.c        |    3 -
+ arch/x86/kernel/apic/msi.c            |  432 ++++++++++++++++++++----------
+ arch/x86/kernel/apic/vector.c         |  165 +++++++++++-
+ arch/x86/kernel/hpet.c                |   57 ++--
+ arch/x86/kernel/x86_init.c            |    2 -
+ arch/x86/platform/uv/uv_irq.c         |  299 ++++++++-------------
+ drivers/iommu/amd_iommu.c             |  380 ++++++++++++++++++++------
+ drivers/iommu/amd_iommu_init.c        |    4 +
+ drivers/iommu/amd_iommu_proto.h       |    9 +
+ drivers/iommu/amd_iommu_types.h       |    5 +
+ drivers/iommu/dmar.c                  |   19 +-
+ drivers/iommu/intel_irq_remapping.c   |  469 ++++++++++++++++++++++-----------
+ drivers/iommu/irq_remapping.c         |  197 ++++----------
+ drivers/iommu/irq_remapping.h         |   20 +-
+ drivers/pci/Kconfig                   |    4 +
+ drivers/pci/htirq.c                   |   48 +---
+ drivers/pci/msi.c                     |  176 ++++++++++---
+ include/linux/dmar.h                  |    3 +-
+ include/linux/htirq.h                 |   22 +-
+ include/linux/intel-iommu.h           |    4 +
+ include/linux/irq.h                   |   19 ++
+ include/linux/irqdomain.h             |   86 ++++++
+ include/linux/msi.h                   |   11 +
+ kernel/irq/Kconfig                    |    4 +
+ kernel/irq/chip.c                     |   37 +++
+ kernel/irq/irqdomain.c                |  416 +++++++++++++++++++++++++++--
+ kernel/irq/manage.c                   |    2 +
+ 37 files changed, 2347 insertions(+), 991 deletions(-)
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
+1.7.10.4
