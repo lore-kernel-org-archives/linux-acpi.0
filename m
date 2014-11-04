@@ -1,60 +1,59 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v6 04/12] misc: at25: Make use of device property API
-Date: Tue, 4 Nov 2014 15:04:54 +0000
-Message-ID: <CACxGe6u5ppSjHc-Wa7K_NWQ9YEZ_V3ys9fdsECss_bPabUTN+g@mail.gmail.com>
-References: <13750506.S2yVlRRDa2@vostro.rjw.lan> <5019278.RtDq7RlWqt@vostro.rjw.lan>
- <20141104141826.36F8AC408F6@trevor.secretlab.ca> <20141104143801.GM1618@lahna.fi.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch Part2 v4 00/31] Enable hierarchy irqdomian on x86 platforms
+Date: Tue, 04 Nov 2014 23:12:51 +0800
+Message-ID: <5458ECF3.4040308@linux.intel.com>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <20141104144730.GE14512@8bytes.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:45390 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbaKDPFQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 10:05:16 -0500
-Received: by mail-ie0-f171.google.com with SMTP id x19so7711163ier.30
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Nov 2014 07:05:15 -0800 (PST)
-In-Reply-To: <20141104143801.GM1618@lahna.fi.intel.com>
+Received: from mga03.intel.com ([134.134.136.65]:23124 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754208AbaKDPN2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Nov 2014 10:13:28 -0500
+In-Reply-To: <20141104144730.GE14512@8bytes.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <darren.hart@intel.com>, Aaron Lu <aaron.lu@intel.com>, Arnd Bergmann <arnd@arndb.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 4, 2014 at 2:38 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Nov 04, 2014 at 02:18:26PM +0000, Grant Likely wrote:
->> > -   strncpy(chip->name, np->name, sizeof(chip->name));
->> > +   strncpy(chip->name, "at25", sizeof(chip->name));
->>
->> This line changes behaviour of the driver. It's possibly not a problem,
->> but it should be commented on and whether any due diligance has been
->> done to make sure it there isn't anything that depends on it.
->
-> I found only one user for "atmel,at25" in any of the DT sample files.
->
-> arch/arm/boot/dts/phy3250.dts:
->
->         eeprom: at25@0 {
->                 ...
->                 at25,byte-len = <0x8000>;
->                 at25,addr-mode = <2>;
->                 at25,page-size = <64>;
->
->                 compatible = "atmel,at25";
->                 reg = <0>;
->                 spi-max-frequency = <5000000>;
->         };
->
-> I think np->name is "at25" in this case? The binding file
-> Documentation/devicetree/bindings/misc/at25.txt also has the same name.
->
-> Are you OK, if we add something like below to the changelog?
->
->  In addition we hard-code the name of the chip to be "at25" for the
->  reason that there is no common mechanism to fetch name of the firmware
->  node. The only existing user (arch/arm/boot/dts/phy3250.dts) uses the
->  same name so it should continue to work.
+On 2014/11/4 22:47, Joerg Roedel wrote:
+> Hi Jiang,
+> 
+> On Tue, Nov 04, 2014 at 08:01:34PM +0800, Jiang Liu wrote:
+>> This is the second patch set to enable support of hierarchy irqdomain
+>> on x86 platforms. It depends on the first part at:
+>> https://lkml.org/lkml/2014/10/27/122
+>> And you may access it at:
+>> https://github.com/jiangliu/linux.git irqdomain/p2v4
+> 
+> I gave this some testing on a couple of machines. Unfortunatly it panics
+> on my AMD Kaveri system with IOMMU enabled in drivers/pci/msi.c:
+> 
+> static void msi_set_mask_bit(struct irq_data *data, u32 flag)
+> {
+>         struct msi_desc *desc = irq_data_get_msi(data);
+> 
+>         if (desc->msi_attrib.is_msix) {		<-- at this line something goes wrong
+>                 msix_mask_irq(desc, flag);
+>                 readl(desc->mask_base);         /* Flush write to device */
+>         } else {
+>                 unsigned offset = data->irq - desc->irq;
+>                 msi_mask_irq(desc, 1 << offset, flag << offset);
+>         }
+> }
+> 
+> I am further investigating to find out what went wrong, but maybe you
+> also have an idea?
+Hi Joerg,
+	Thanks for testing:)
+	Do you have the call stack? I have changed the way to call
+irq_set_msi_desc_off() for MSI/MSIx interrupts, which may cause the
+panic. Patch 19-21 changes the PCI MSI code.
+Regards!
+Gerry
 
-Yes. If somebody complains, then we can reinstate the previous
-behaviour, but assume it isn't necessary for now.
-
-g.
+> 
+> 
+> 	Joerg
+> 
