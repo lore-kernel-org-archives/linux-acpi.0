@@ -1,127 +1,58 @@
-From: Grant Likely <grant.likely@linaro.org>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Subject: Re: [PATCH v6 04/12] misc: at25: Make use of device property API
-Date: Tue, 04 Nov 2014 14:18:26 +0000
-Message-ID: <20141104141826.36F8AC408F6@trevor.secretlab.ca>
+Date: Tue, 4 Nov 2014 16:38:01 +0200
+Message-ID: <20141104143801.GM1618@lahna.fi.intel.com>
 References: <13750506.S2yVlRRDa2@vostro.rjw.lan>
-	<5019278.RtDq7RlWqt@vostro.rjw.lan>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5019278.RtDq7RlWqt@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <darren.hart@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Arnd Bergmann <arnd@arndb.de>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>
+ <5019278.RtDq7RlWqt@vostro.rjw.lan>
+ <20141104141826.36F8AC408F6@trevor.secretlab.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141104141826.36F8AC408F6-WNowdnHR2B42iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Darren Hart <darren.hart-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 21 Oct 2014 23:19:56 +0200
-, "Rafael J. Wysocki" <rjw@rjwysocki.net>
- wrote:
-> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Tue, Nov 04, 2014 at 02:18:26PM +0000, Grant Likely wrote:
+> > -	strncpy(chip->name, np->name, sizeof(chip->name));
+> > +	strncpy(chip->name, "at25", sizeof(chip->name));
 > 
-> Make use of device property API in this driver so that both DT and ACPI
-> based systems can use this driver.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/misc/eeprom/at25.c |   34 +++++++++++++---------------------
->  1 file changed, 13 insertions(+), 21 deletions(-)
-> 
-> Index: linux-pm/drivers/misc/eeprom/at25.c
-> ===================================================================
-> --- linux-pm.orig/drivers/misc/eeprom/at25.c
-> +++ linux-pm/drivers/misc/eeprom/at25.c
-> @@ -18,7 +18,7 @@
->  
->  #include <linux/spi/spi.h>
->  #include <linux/spi/eeprom.h>
-> -#include <linux/of.h>
-> +#include <linux/property.h>
->  
->  /*
->   * NOTE: this is an *EEPROM* driver.  The vagaries of product naming
-> @@ -301,35 +301,33 @@ static ssize_t at25_mem_write(struct mem
->  
->  /*-------------------------------------------------------------------------*/
->  
-> -static int at25_np_to_chip(struct device *dev,
-> -			   struct device_node *np,
-> -			   struct spi_eeprom *chip)
-> +static int at25_fw_to_chip(struct device *dev, struct spi_eeprom *chip)
->  {
->  	u32 val;
->  
->  	memset(chip, 0, sizeof(*chip));
-> -	strncpy(chip->name, np->name, sizeof(chip->name));
-> +	strncpy(chip->name, "at25", sizeof(chip->name));
+> This line changes behaviour of the driver. It's possibly not a problem,
+> but it should be commented on and whether any due diligance has been
+> done to make sure it there isn't anything that depends on it.
 
-This line changes behaviour of the driver. It's possibly not a problem,
-but it should be commented on and whether any due diligance has been
-done to make sure it there isn't anything that depends on it.
+I found only one user for "atmel,at25" in any of the DT sample files.
 
-Otherwise:
-Acked-by: Grant Likely <grant.likely@linaro.org>
+arch/arm/boot/dts/phy3250.dts:
 
->  
-> -	if (of_property_read_u32(np, "size", &val) == 0 ||
-> -	    of_property_read_u32(np, "at25,byte-len", &val) == 0) {
-> +	if (device_property_read_u32(dev, "size", &val) == 0 ||
-> +	    device_property_read_u32(dev, "at25,byte-len", &val) == 0) {
->  		chip->byte_len = val;
->  	} else {
->  		dev_err(dev, "Error: missing \"size\" property\n");
->  		return -ENODEV;
->  	}
->  
-> -	if (of_property_read_u32(np, "pagesize", &val) == 0 ||
-> -	    of_property_read_u32(np, "at25,page-size", &val) == 0) {
-> +	if (device_property_read_u32(dev, "pagesize", &val) == 0 ||
-> +	    device_property_read_u32(dev, "at25,page-size", &val) == 0) {
->  		chip->page_size = (u16)val;
->  	} else {
->  		dev_err(dev, "Error: missing \"pagesize\" property\n");
->  		return -ENODEV;
->  	}
->  
-> -	if (of_property_read_u32(np, "at25,addr-mode", &val) == 0) {
-> +	if (device_property_read_u32(dev, "at25,addr-mode", &val) == 0) {
->  		chip->flags = (u16)val;
->  	} else {
-> -		if (of_property_read_u32(np, "address-width", &val)) {
-> +		if (device_property_read_u32(dev, "address-width", &val)) {
->  			dev_err(dev,
->  				"Error: missing \"address-width\" property\n");
->  			return -ENODEV;
-> @@ -350,7 +348,7 @@ static int at25_np_to_chip(struct device
->  				val);
->  			return -ENODEV;
->  		}
-> -		if (of_find_property(np, "read-only", NULL))
-> +		if (device_property_present(dev, "read-only"))
->  			chip->flags |= EE_READONLY;
->  	}
->  	return 0;
-> @@ -360,21 +358,15 @@ static int at25_probe(struct spi_device
->  {
->  	struct at25_data	*at25 = NULL;
->  	struct spi_eeprom	chip;
-> -	struct device_node	*np = spi->dev.of_node;
->  	int			err;
->  	int			sr;
->  	int			addrlen;
->  
->  	/* Chip description */
->  	if (!spi->dev.platform_data) {
-> -		if (np) {
-> -			err = at25_np_to_chip(&spi->dev, np, &chip);
-> -			if (err)
-> -				return err;
-> -		} else {
-> -			dev_err(&spi->dev, "Error: no chip description\n");
-> -			return -ENODEV;
-> -		}
-> +		err = at25_fw_to_chip(&spi->dev, &chip);
-> +		if (err)
-> +			return err;
->  	} else
->  		chip = *(struct spi_eeprom *)spi->dev.platform_data;
->  
-> 
+	eeprom: at25@0 {
+		...
+		at25,byte-len = <0x8000>;
+		at25,addr-mode = <2>;
+		at25,page-size = <64>;
+
+		compatible = "atmel,at25";
+		reg = <0>;
+		spi-max-frequency = <5000000>;
+	};
+
+I think np->name is "at25" in this case? The binding file
+Documentation/devicetree/bindings/misc/at25.txt also has the same name.
+
+Are you OK, if we add something like below to the changelog?
+
+ In addition we hard-code the name of the chip to be "at25" for the
+ reason that there is no common mechanism to fetch name of the firmware
+ node. The only existing user (arch/arm/boot/dts/phy3250.dts) uses the
+ same name so it should continue to work.
+
+> Otherwise:
+> Acked-by: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
