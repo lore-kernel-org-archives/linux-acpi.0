@@ -1,56 +1,36 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part2 v4 18/31] PCI/MSI, trivial: Fix minor syntax issues according to coding styles
-Date: Tue,  4 Nov 2014 20:01:52 +0800
-Message-ID: <1415102525-9898-19-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v4 20/31] PCI/MSI: Kill redundant calling for irq_set_msi_desc() for MSIx interrupts
+Date: Tue,  4 Nov 2014 20:01:54 +0800
+Message-ID: <1415102525-9898-21-git-send-email-jiang.liu@linux.intel.com>
 References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Jiri Kosina <trivial@kernel.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
+It's arch_setup_msi_irq()/arch_setup_msi_irqs()'s responsibility to call
+irq_set_msi_desc() to associate IRQ descriptors and MSI descriptors,
+so kill the redundant call of irq_set_msi_desc() for MSIx interrupts
+in PCI MSI core.
+
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/pci/msi.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/pci/msi.c |    1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 9fab30af0e75..fb2ccb536324 100644
+index afe974600c7d..da181c59394b 100644
 --- a/drivers/pci/msi.c
 +++ b/drivers/pci/msi.c
-@@ -244,9 +244,8 @@ void default_restore_msi_irqs(struct pci_dev *dev)
- {
- 	struct msi_desc *entry;
+@@ -685,7 +685,6 @@ static void msix_program_entries(struct pci_dev *dev,
+ 						PCI_MSIX_ENTRY_VECTOR_CTRL;
  
--	list_for_each_entry(entry, &dev->msi_list, list) {
-+	list_for_each_entry(entry, &dev->msi_list, list)
- 		default_restore_msi_irq(dev, entry->irq);
--	}
- }
- 
- void __read_msi_msg(struct msi_desc *entry, struct msi_msg *msg)
-@@ -451,9 +450,8 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
- 				PCI_MSIX_FLAGS_ENABLE | PCI_MSIX_FLAGS_MASKALL);
- 
- 	arch_restore_msi_irqs(dev);
--	list_for_each_entry(entry, &dev->msi_list, list) {
-+	list_for_each_entry(entry, &dev->msi_list, list)
- 		msix_mask_irq(entry, entry->masked);
--	}
- 
- 	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_MASKALL, 0);
- }
-@@ -497,9 +495,8 @@ static int populate_msi_sysfs(struct pci_dev *pdev)
- 	int count = 0;
- 
- 	/* Determine how many msi entries we have */
--	list_for_each_entry(entry, &pdev->msi_list, list) {
-+	list_for_each_entry(entry, &pdev->msi_list, list)
- 		++num_msi;
--	}
- 	if (!num_msi)
- 		return 0;
- 
+ 		entries[i].vector = entry->irq;
+-		irq_set_msi_desc(entry->irq, entry);
+ 		entry->masked = readl(entry->mask_base + offset);
+ 		msix_mask_irq(entry, 1);
+ 		i++;
 -- 
 1.7.10.4
