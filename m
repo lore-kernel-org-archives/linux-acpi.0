@@ -1,164 +1,60 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] ACPI / GPIO: Pass index to acpi_get_gpiod_by_index() when
- using properties
-Date: Tue, 4 Nov 2014 14:48:40 +0000
-Message-ID: <CACxGe6uXogQaT9m_Zysb+daSHCz2B97OdMBHuCzJvNYj9oNWfQ@mail.gmail.com>
-References: <1414494927-204923-1-git-send-email-mika.westerberg@linux.intel.com>
- <54570961.1080004@linux.intel.com> <4455568.bqAfQGqTU9@vostro.rjw.lan> <2331586.goAnq7FsMG@vostro.rjw.lan>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v6 04/12] misc: at25: Make use of device property API
+Date: Tue, 4 Nov 2014 15:04:54 +0000
+Message-ID: <CACxGe6u5ppSjHc-Wa7K_NWQ9YEZ_V3ys9fdsECss_bPabUTN+g@mail.gmail.com>
+References: <13750506.S2yVlRRDa2@vostro.rjw.lan> <5019278.RtDq7RlWqt@vostro.rjw.lan>
+ <20141104141826.36F8AC408F6@trevor.secretlab.ca> <20141104143801.GM1618@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:33013 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228AbaKDOtB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 09:49:01 -0500
-Received: by mail-ie0-f178.google.com with SMTP id rp18so7391999iec.23
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Nov 2014 06:49:01 -0800 (PST)
-In-Reply-To: <2331586.goAnq7FsMG@vostro.rjw.lan>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:45390 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753301AbaKDPFQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Nov 2014 10:05:16 -0500
+Received: by mail-ie0-f171.google.com with SMTP id x19so7711163ier.30
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Nov 2014 07:05:15 -0800 (PST)
+In-Reply-To: <20141104143801.GM1618@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Darren Hart <darren.hart@intel.com>, Aaron Lu <aaron.lu@intel.com>, Arnd Bergmann <arnd@arndb.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>
 
-On Mon, Nov 3, 2014 at 9:52 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, November 03, 2014 04:25:08 PM Rafael J. Wysocki wrote:
->> On Sunday, November 02, 2014 08:49:37 PM Darren Hart wrote:
->> >
->> > On 11/1/14 4:11, Grant Likely wrote:
->> > > On Tue, 28 Oct 2014 22:59:57 +0100
->> > > , "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> > >  wrote:
->> > >> On Tuesday, October 28, 2014 01:15:27 PM Mika Westerberg wrote:
->> > >>> acpi_dev_add_driver_gpios() makes it possible to set up mapping between
->> > >>> properties and ACPI GpioIo resources in a driver, so we can take index
->> > >>> parameter in acpi_find_gpio() into use with _DSD device properties now.
->> > >>>
->> > >>> This index can be used to select a GPIO from a property with multiple
->> > >>> GPIOs:
->> > >>>
->> > >>>   Package () {
->> > >>>         "data-gpios",
->> > >>>         Package () {
->> > >>>                 \_SB.GPIO, 0, 0, 0,
->> > >>>                 \_SB.GPIO, 1, 0, 0,
->> > >>>                 \_SB.GPIO, 2, 0, 1,
->> > >>>         }
->> > >>>   }
->> > >>>
->> > >>> In order to retrieve the last GPIO from a driver we can simply do:
->> > >>>
->> > >>>   desc = devm_gpiod_get_index(dev, "data", 2);
->> > >>>
->> > >>> and so on.
->> > >>>
->> > >>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> > >>
->> > >> Cool. :-)
->> > >>
->> > >> Any objections anyone?
->> > >
->> > > Actually, I do. Not in the idea, but in the implementation. The way this gets encoded:
->> > >
->> > >   Package () {
->> > >           \_SB.GPIO, 0, 0, 0,
->> > >           \_SB.GPIO, 1, 0, 0,
->> > >           \_SB.GPIO, 2, 0, 1,
->> > >   }
->> > >
->> > > Means that decoding each GPIO tuple requires the length of a tuple to be
->> > > fixed, or to implement a DT-like #gpio-cells. If it is fixed, then there
->> > > is no way to expand the binding later. Can this be done in the following
->> > > way instead?
->> > >
->> > >   Package () {
->> > >           Package () { \_SB.GPIO, 0, 0, 0 },
->> > >           Package () { \_SB.GPIO, 1, 0, 0 },
->> > >           Package () { \_SB.GPIO, 2, 0, 1 },
->> > >   }
->> > >
->> > > This is one of the biggest pains in device tree. We don't have any way
->> > > to group tuples so it requires looking up stuff across the tree to
->> > > figure out how to parse each multi-item property.
->> > >
->> > > I know that last year we talked about how bios vendors would get
->> > > complicated properties wrong, but I think there is little risk in this
->> > > case. If the property is encoded wrong, the driver simply won't work and
->> > > it is unlikely to get shipped before being fixed.
->> >
->> > This particular nesting of Packages is expressly prohibited by the
->> > Device Properties UUID for the reasons you mention.
->> >
->> > http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+On Tue, Nov 4, 2014 at 2:38 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Tue, Nov 04, 2014 at 02:18:26PM +0000, Grant Likely wrote:
+>> > -   strncpy(chip->name, np->name, sizeof(chip->name));
+>> > +   strncpy(chip->name, "at25", sizeof(chip->name));
 >>
->> Also we don't use properties where single name is assigned to multiple GPIOs
->> anywhere in the current device-properties patchset, so this is not relevant at
->> the moment.
->>
->> Moreover, even if we were to use them, we would need to ensure that this:
->>
->>       Package () {
->>               \_SB.GPIO, 0, 0, 0
->>       }
->>
->> was equivalent to
->>
->>       Package () {
->>               Package () { \_SB.GPIO, 0, 0, 0 }
->>       }
->>
->> This is not impossible to do and I suppose we could even explain that in the
->> implementation guide document in a sensible way, but that would require the
->> document linked above to be changed first and *then* we can think about writing
->> kernel code to it.  Not the other way around, please.
->>
->> So Grant, do you want us to proceed with that?
+>> This line changes behaviour of the driver. It's possibly not a problem,
+>> but it should be commented on and whether any due diligance has been
+>> done to make sure it there isn't anything that depends on it.
 >
-> Before you reply, one more observation that seems to be relevant.
+> I found only one user for "atmel,at25" in any of the DT sample files.
 >
-> In ACPI, both this:
+> arch/arm/boot/dts/phy3250.dts:
 >
->         Package () {
->                 \_SB.GPIO, 0, 0, 0,
->                 \_SB.GPIO, 1, 0, 0,
->                 \_SB.GPIO, 2, 0, 1,
->         }
+>         eeprom: at25@0 {
+>                 ...
+>                 at25,byte-len = <0x8000>;
+>                 at25,addr-mode = <2>;
+>                 at25,page-size = <64>;
 >
-> and this:
+>                 compatible = "atmel,at25";
+>                 reg = <0>;
+>                 spi-max-frequency = <5000000>;
+>         };
 >
->         Package () {
->                 Package () { \_SB.GPIO, 0, 0, 0 },
->                 Package () { \_SB.GPIO, 1, 0, 0 },
->                 Package () { \_SB.GPIO, 2, 0, 1 },
->         }
+> I think np->name is "at25" in this case? The binding file
+> Documentation/devicetree/bindings/misc/at25.txt also has the same name.
 >
-> carry the same information, because every element of a package has a type,
-> so there is no danger of confusing an ACPI_TYPE_LOCAL_REFERENCE with
-> ACPI_TYPE_INTEGER.  Thus one can easily count the number of GPIOs represented
-> by the first package by counting the number of reference elements in it.
-> The second one has more structure which in this particular case is arguably
-> redundant.
+> Are you OK, if we add something like below to the changelog?
+>
+>  In addition we hard-code the name of the chip to be "at25" for the
+>  reason that there is no common mechanism to fetch name of the firmware
+>  node. The only existing user (arch/arm/boot/dts/phy3250.dts) uses the
+>  same name so it should continue to work.
 
-Okay, this make sense. I'm okay with this approach, and I would
-recommend making that the only valid method for parsing in
-acpi_dev_get_property_reference(). Get rid of the *size_prop argument
-so that it always behaves the same way and users aren't tempted to do
-something clever.
-
->
-> Of course, that's not the case for list properties where each item consists
-> of a bunch of integers, like
->
->         Package () {
->                 Package () { 0, 0, 0 },
->                 Package () { 1, 0, 0 },
->                 Package () { 2, 0, 1 },
->         }
->
-> but I'm not sure if this is relevant at all.
-
-Probably not. With a pure list it isn't implicitly referencing data in
-another node. In the ref+args pattern the length of each tuple can
-vary based on which node it references, but on a simple list the
-parsing is going to be a lot simpler.
+Yes. If somebody complains, then we can reinstate the previous
+behaviour, but assume it isn't necessary for now.
 
 g.
