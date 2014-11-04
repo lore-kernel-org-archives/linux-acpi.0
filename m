@@ -1,58 +1,46 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v6 04/12] misc: at25: Make use of device property API
-Date: Tue, 4 Nov 2014 16:38:01 +0200
-Message-ID: <20141104143801.GM1618@lahna.fi.intel.com>
-References: <13750506.S2yVlRRDa2@vostro.rjw.lan>
- <5019278.RtDq7RlWqt@vostro.rjw.lan>
- <20141104141826.36F8AC408F6@trevor.secretlab.ca>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [Patch Part2 v4 00/31] Enable hierarchy irqdomian on x86
+ platforms
+Date: Tue, 4 Nov 2014 15:47:30 +0100
+Message-ID: <20141104144730.GE14512@8bytes.org>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141104141826.36F8AC408F6-WNowdnHR2B42iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Darren Hart <darren.hart-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bryan Wu <cooloney-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 04, 2014 at 02:18:26PM +0000, Grant Likely wrote:
-> > -	strncpy(chip->name, np->name, sizeof(chip->name));
-> > +	strncpy(chip->name, "at25", sizeof(chip->name));
-> 
-> This line changes behaviour of the driver. It's possibly not a problem,
-> but it should be commented on and whether any due diligance has been
-> done to make sure it there isn't anything that depends on it.
+Hi Jiang,
 
-I found only one user for "atmel,at25" in any of the DT sample files.
+On Tue, Nov 04, 2014 at 08:01:34PM +0800, Jiang Liu wrote:
+> This is the second patch set to enable support of hierarchy irqdomain
+> on x86 platforms. It depends on the first part at:
+> https://lkml.org/lkml/2014/10/27/122
+> And you may access it at:
+> https://github.com/jiangliu/linux.git irqdomain/p2v4
 
-arch/arm/boot/dts/phy3250.dts:
+I gave this some testing on a couple of machines. Unfortunatly it panics
+on my AMD Kaveri system with IOMMU enabled in drivers/pci/msi.c:
 
-	eeprom: at25@0 {
-		...
-		at25,byte-len = <0x8000>;
-		at25,addr-mode = <2>;
-		at25,page-size = <64>;
+static void msi_set_mask_bit(struct irq_data *data, u32 flag)
+{
+        struct msi_desc *desc = irq_data_get_msi(data);
 
-		compatible = "atmel,at25";
-		reg = <0>;
-		spi-max-frequency = <5000000>;
-	};
+        if (desc->msi_attrib.is_msix) {		<-- at this line something goes wrong
+                msix_mask_irq(desc, flag);
+                readl(desc->mask_base);         /* Flush write to device */
+        } else {
+                unsigned offset = data->irq - desc->irq;
+                msi_mask_irq(desc, 1 << offset, flag << offset);
+        }
+}
 
-I think np->name is "at25" in this case? The binding file
-Documentation/devicetree/bindings/misc/at25.txt also has the same name.
+I am further investigating to find out what went wrong, but maybe you
+also have an idea?
 
-Are you OK, if we add something like below to the changelog?
 
- In addition we hard-code the name of the chip to be "at25" for the
- reason that there is no common mechanism to fetch name of the firmware
- node. The only existing user (arch/arm/boot/dts/phy3250.dts) uses the
- same name so it should continue to work.
-
-> Otherwise:
-> Acked-by: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Joerg
