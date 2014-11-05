@@ -1,113 +1,93 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI/OSL: Add IRQ handler flushing support in the OSL.
-Date: Wed,  5 Nov 2014 15:06:13 +0800
-Message-ID: <454129232241014e949861cc07a7f3ff6c80bd52.1415156960.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:13156 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbaKEHGm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Nov 2014 02:06:42 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [Patch Part2 v4 00/31] Enable hierarchy irqdomian on x86
+ platforms
+Date: Wed, 5 Nov 2014 09:51:54 +0100
+Message-ID: <20141105085154.GG10744@8bytes.org>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
+ <20141104144730.GE14512@8bytes.org>
+ <5458ECF3.4040308@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5458ECF3.4040308@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Corey Minyard <minyard@acm.org>, devel@acpica.org, openipmi-developer@lists.sourceforge.net
 
-It is possible that a GPE handler or a fixed event handler still accessed
-after removing the handlers by invoking acpi_remove_gpe_handler() or
-acpi_remove_fixed_event_handler(), this possibility can crash OPSM after a
-module removal. In the Linux kernel, though all other GPE drivers are not
-modules, since the IPMI_SI (ipmi_si_intf.c) can be compiled as a module, we
-still need to consider a solution for this issue when the driver switches
-to ACPI_GPE_RAW_HANDLER mode in order to invoke GPE APIs.
+On Tue, Nov 04, 2014 at 11:12:51PM +0800, Jiang Liu wrote:
+> 	Do you have the call stack?
 
-ACPICA expects acpi_os_wait_events_complete() to be invoked after GPE
-disabling so that OSPM can ensure all running GPE handlers have exitted.
-But currently acpi_os_wait_events_complete() can only flush _Lxx/_Exx
-evaluation work queue and this philosophy cannot work for drivers that have
-installed a dedicated GPE handler.
+Okay, had some issues with serial setup, but now its working. Here is
+the complete panic msg from the AMD Kaveri box (the panic only occurs
+with IOMMU enabled):
 
-The only way to protect a callback is to perform some state holders
-(reference count, state machine) before invoking the callback. Then this
-issue can only be fixed by the following means:
-1. Flush GPE in ACPICA before invoking the GPE handler. But currently,
-   there is no such implementation in acpi_ev_gpe_dispatch().
-2. Flush GPE in ACPICA OSL before invoking the SCI handler. But currently,
-   there is no such implementation in acpi_irq().
-3. Flush IRQ in OSPM IRQ layer before invoking the IRQ handler. In Linus
-   kernel, this can be done by synchronize_irq().
-4. Flush scheduling in OSPM vector entry layer before invoking the vector.
-   In Linux, this can be done by synchronize_sched().
-
-Since ACPICA expects the GPE handlers to be flushed by the ACPICA OSL or
-the GPE drivers. If it is implemented by the GPE driver, we should see
-synchronize_irq()/synchronize_sched() invoked in such drivers. If it is
-implemented by the ACPICA OSL, ACPICA currently provides
-acpi_os_wait_events_complete() hook to achieve this. After the following
-commit:
-  Commit: 69c841b6dd8313c9a673246cc0e2535174272cab
-  Author: Lv Zheng <lv.zheng@intel.com>
-  Subject: ACPICA: Update use of acpi_os_wait_events_complete interface.
-The OSL acpi_os_wait_events_complete() is invoked after a GPE handler is
-removed from acpi_remove_gpe_handler() or a fixed event handler is removed
-from acpi_remove_fixed_event_handler(). Thus it is possible to implement
-GPE handler flushing using this ACPICA OSL now. So the solution 1 is
-currently not taken into account.
-
-By examining the IPMI_SI driver, we noticed that the IPMI_SI driver:
-1. Uses free_irq() to flush non GPE based IRQ handlers, in free_irq(),
-   synchronize_irq() is invoked, and
-2. Uses acpi_remove_gpe_handler() to flush GPE based IRQ handlers, for such
-   IRQ handlers, there is no synchronize_irq() invoked.
-Since there isn't synchronize_sched() implemented for this driver, from the
-driver's perspective, acpi_remove_gpe_handler() should have properly
-flushed the GPE handlers for it. Since the driver doesn't invoke
-synchronize_irq(), the solution 3 is not what the drivers expect.
-
-This patch implements solution 2. But since given the fact that the GPE is
-managed inside of ACPICA, and implementing the GPE flushing requires to
-implement the whole GPE management code again in the OSL, instead of
-flushing GPE, this patch flushes IRQ in acpi_os_wait_events_complete(). The
-flushing could last longer than expected as though the target GPE/fixed
-event that is removed can be fastly flushed, other GPEs/fix events can still
-be issued during the flushing period.
-
-This patch fixes this issue by invoking synchronize_hardirq() in
-acpi_os_wait_events_complete(). The reason why we don't invoke
-synchronize_irq() is: currently ACPICA is not threaded IRQ capable and the
-only difference between synchronize_irq() and synchronize_hardirq() is
-synchronize_irq() also flushes threaded IRQ handlers. Thus using
-synchronize_hardirq() can help to reduce the overall synchronization time
-for the current ACPICA implementation.
-
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: devel@acpica.org
-Cc: openipmi-developer@lists.sourceforge.net
----
- drivers/acpi/osl.c |    6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 9964f70..2524196 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1188,6 +1188,12 @@ EXPORT_SYMBOL(acpi_os_execute);
- 
- void acpi_os_wait_events_complete(void)
- {
-+	/*
-+	 * Make sure the GPE handler or the fixed event handler is not used
-+	 * on another CPU after removal.
-+	 */
-+	if (acpi_irq_handler)
-+		synchronize_hardirq(acpi_gbl_FADT.sci_interrupt);
- 	flush_workqueue(kacpid_wq);
- 	flush_workqueue(kacpi_notify_wq);
- }
--- 
-1.7.10
-
+[    2.487552] ahci 0000:00:11.0: AHCI 0001.0300 32 slots 8 ports 6 Gbps 0xff impl SATA mode
+[    2.495844] ahci 0000:00:11.0: flags: 64bit ncq sntf ilck pm led clo pmp pio slum part 
+[    2.504592] BUG: unable to handle kernel NULL pointer dereference at           (null)
+[    2.512618] IP: [<ffffffff8136849d>] msi_set_mask_bit+0xd/0x50
+[    2.518556] PGD 0 
+[    2.520672] Oops: 0000 [#1] PREEMPT SMP 
+[    2.524784] Modules linked in:
+[    2.527946] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 3.18.0-rc3+ #4
+[    2.534384] Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./F2A88XM-HD3, BIOS F6 05/28/2014
+[    2.544576] task: ffff88042b54c010 ti: ffff88042b550000 task.ti: ffff88042b550000
+[    2.552170] RIP: 0010:[<ffffffff8136849d>]  [<ffffffff8136849d>] msi_set_mask_bit+0xd/0x50
+[    2.560594] RSP: 0000:ffff88042b5539d8  EFLAGS: 00010096
+[    2.565954] RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff88042b553968
+[    2.573175] RDX: ffffffff81c25f40 RSI: 0000000000000000 RDI: ffff880424c65c00
+[    2.580361] RBP: ffff88042b5539e8 R08: ffff88042b519800 R09: ffff88042b000b20
+[    2.587582] R10: ffff880424c24410 R11: 0000000000000246 R12: 0000000000000001
+[    2.594762] R13: ffff8804253fb2c0 R14: ffff880424c24410 R15: ffff880424c65c98
+[    2.601983] FS:  0000000000000000(0000) GS:ffff88043ed80000(0000) knlGS:0000000000000000
+[    2.610181] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    2.615975] CR2: 0000000000000000 CR3: 0000000001c16000 CR4: 00000000000407e0
+[    2.623197] Stack:
+[    2.625264]  ffff88042b5539f8 ffff880424c65c00 ffff88042b5539f8 ffffffff813688fb
+[    2.632936]  ffff88042b553a18 ffffffff810b0603 ffff880424c65c00 ffff880424c65c00
+[    2.640598]  ffff88042b553a48 ffffffff810b0685 0000000000000000 0000000000000000
+[    2.648261] Call Trace:
+[    2.650768]  [<ffffffff813688fb>] unmask_msi_irq+0xb/0x10
+[    2.656222]  [<ffffffff810b0603>] irq_enable+0x33/0x50
+[    2.661414]  [<ffffffff810b0685>] irq_startup+0x65/0x70
+[    2.666696]  [<ffffffff810af161>] __setup_irq+0x511/0x5a0
+[    2.672152]  [<ffffffff81196326>] ? __kmalloc_track_caller+0x256/0x4b0
+[    2.678733]  [<ffffffff81460a50>] ? ahci_bad_pmp_check_ready+0x60/0x60
+[    2.685347]  [<ffffffff810af34a>] request_threaded_irq+0xca/0x170
+[    2.691529]  [<ffffffff81460a50>] ? ahci_bad_pmp_check_ready+0x60/0x60
+[    2.698110]  [<ffffffff81461ee0>] ? ahci_single_irq_intr+0x110/0x110
+[    2.704517]  [<ffffffff810b102a>] devm_request_threaded_irq+0x5a/0xc0
+[    2.711002]  [<ffffffff81462b93>] ahci_host_activate+0x143/0x220
+[    2.717098]  [<ffffffff814602a8>] ahci_init_one+0x7b8/0xb00
+[    2.722728]  [<ffffffff8134e760>] local_pci_probe+0x40/0xa0
+[    2.728355]  [<ffffffff8134f9b5>] ? pci_match_device+0xe5/0x110
+[    2.734365]  [<ffffffff8134faf1>] pci_device_probe+0xd1/0x130
+[    2.740164]  [<ffffffff81413d9b>] driver_probe_device+0x8b/0x3d0
+[    2.746216]  [<ffffffff814141b3>] __driver_attach+0x93/0xa0
+[    2.751846]  [<ffffffff81414120>] ? __device_attach+0x40/0x40
+[    2.757681]  [<ffffffff81411e13>] bus_for_each_dev+0x63/0xa0
+[    2.763385]  [<ffffffff81413819>] driver_attach+0x19/0x20
+[    2.768842]  [<ffffffff81413430>] bus_add_driver+0x180/0x250
+[    2.774591]  [<ffffffff81d2fd60>] ? ata_sff_init+0x33/0x33
+[    2.780123]  [<ffffffff81414a0f>] driver_register+0x5f/0xf0
+[    2.785751]  [<ffffffff8134e107>] __pci_register_driver+0x47/0x50
+[    2.791892]  [<ffffffff81d2fd79>] ahci_pci_driver_init+0x19/0x1b
+[    2.797954]  [<ffffffff810002f4>] do_one_initcall+0xb4/0x1f0
+[    2.803667]  [<ffffffff81095e23>] ? __wake_up+0x43/0x60
+[    2.808948]  [<ffffffff81ce7248>] kernel_init_freeable+0x197/0x21f
+[    2.815181]  [<ffffffff81ce6983>] ? initcall_blacklist+0xc0/0xc0
+[    2.821280]  [<ffffffff815fe680>] ? rest_init+0x90/0x90
+[    2.826561]  [<ffffffff815fe689>] kernel_init+0x9/0xf0
+[    2.831756]  [<ffffffff8161433c>] ret_from_fork+0x7c/0xb0
+[    2.837211]  [<ffffffff815fe680>] ? rest_init+0x90/0x90
+[    2.842489] Code: c1 83 c9 01 83 c2 0c 85 f6 0f 45 c1 48 63 d2 48 03 57 28 89 02 5d c3 0f 1f 80 00 00 00 00 55 48 89 e5 53 48 83 ec 08 48 8b 5f 40 <f6> 03 01 75 26 8b 4f 04 2b 4b 0c 89 f2 be 01 00 00 00 48 89 df 
+[    2.864562] RIP  [<ffffffff8136849d>] msi_set_mask_bit+0xd/0x50
+[    2.870588]  RSP <ffff88042b5539d8>
+[    2.874127] CR2: 0000000000000000
+[    2.877501] ---[ end trace dd9f8c29b83b2de1 ]---
+[    2.882174] note: swapper/0[1] exited with preempt_count 1
+[    2.887769] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009
+[    2.887769] 
+[    2.897147] Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffff9fffffff)
+[    2.907440] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009
