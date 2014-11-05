@@ -1,153 +1,113 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
- BLOCKED flag.
-Date: Wed, 5 Nov 2014 02:52:36 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1414988981.git.lv.zheng@intel.com>
- <e1228a3433fbbd8448d5522bef4e080763b1c18f.1414988981.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e1228a3433fbbd8448d5522bef4e080763b1c18f.1414988981.git.lv.zheng@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPI/OSL: Add IRQ handler flushing support in the OSL.
+Date: Wed,  5 Nov 2014 15:06:13 +0800
+Message-ID: <454129232241014e949861cc07a7f3ff6c80bd52.1415156960.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:13156 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751440AbaKEHGm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Nov 2014 02:06:42 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Corey Minyard <minyard@acm.org>, devel@acpica.org, openipmi-developer@lists.sourceforge.net
 
-SGksIFJhZmFlbA0KDQpUaGVyZSBpcyBvbmUgdGhpbmcgSSBzaG91bGQgbGV0IHlvdSBrbm93Lg0K
-DQpPcmlnaW5hbGx5IHRoaXMgcGF0Y2hzZXQgaXMgZGVwZW5kZW50IG9uIHRoZSBHUEUgImRlYWQg
-bG9jayIgZml4Lg0KQmVjYXVzZSB0aGlzIHBhdGNoIHdpbGwgaW52b2tlIGFjcGlfZW5hYmxlX2dw
-ZSgpL2FjcGlfZGlzYWJsZV9ncGUoKSB3aXRoIEVDIGxvY2sgaGVsZC4NCg0KSSBzYXcgc3lzdGVt
-IGhhbmcgZHVyaW5nIHN1c3BlbmRpbmcgdXNpbmcgb25seSB0aGlzIHBhdGNoc2V0LCBzbyB3ZSBo
-YXZlIHRvIGZpbmQgYSBzb2x1dGlvbi4NCg0KPiBGcm9tOiBaaGVuZywgTHYNCj4gU2VudDogTW9u
-ZGF5LCBOb3ZlbWJlciAwMywgMjAxNCAxOjE2IFBNDQo+IA0KPiBCeSB1c2luZyB0aGUgMiBmbGFn
-cywgd2UgY2FuIGluZGljYXRlIGFuIGludGVyLW1lZGlhdGUgc3RhdGUgd2hlcmUgdGhlDQo+IGN1
-cnJlbnQgdHJhbnNhY3Rpb25zIHNob3VsZCBiZSBjb21wbGV0ZWQgd2hpbGUgdGhlIG5ldyB0cmFu
-c2FjdGlvbnMgc2hvdWxkDQo+IGJlIGRyb3BwZWQuDQo+IA0KPiBUaGUgY29tcGFyaXNvbiBvZiB0
-aGUgb2xkIGZsYWcgYW5kIHRoZSBuZXcgZmxhZ3M6DQo+ICAgT2xkCQkJTmV3DQo+ICAgYWJvdXQg
-dG8gc2V0IEJMT0NLRUQJU1RPUFBFRCBzZXQgLyBTVEFSVEVEIHNldA0KPiAgIEJMT0NLRUQgc2V0
-CQlTVE9QUEVEIGNsZWFyIC8gU1RBUlRFRCBjbGVhcg0KPiAgIEJMT0NLRUQgY2xlYXIJCVNUT1BQ
-RUQgY2xlYXIgLyBTVEFSVEVEIHNldA0KPiBUaGUgbmV3IHBlcmlvZCBpcyBiZXR3ZWVuIHRoZSBw
-b2ludCB3aGVyZSB3ZSBhcmUgYWJvdXQgdG8gc2V0IEJMT0NLRUQgYW5kDQo+IHRoZSBwb2ludCB3
-aGVuIHRoZSBCTE9DS0VEIGlzIHNldC4gVGhlIEdQRSBpcyBkaXNhYmxlZCBkdXJpbmcgdGhpcyBw
-ZXJpb2QuDQo+IFRoZSBuZXcgZmxhZ3MgYWxsb3cgdXMgdG8gYWRkIGFjcGlfZWNfc3RvcHBlZCgp
-IGNoZWNrIHRvIG9ubHkgY2hlY2sgd2l0aA0KPiBTVE9QUEVEIGZsYWcgdG8gaW1wbGVtZW50IHRy
-YW5zYWN0aW9uIGZsdXNoaW5nLiBUaGlzIGlzIG5vdCBkb25lIGluIHRoaXMNCj4gcGF0Y2guDQo+
-IA0KPiBObyBmdW5jdGlvbmFsIGNoYW5nZXMgZXhjZXB0IHRoYXQgYWZ0ZXIgYXBwbHlpbmcgdGhp
-cyBwYXRjaCwgdGhlIEdQRQ0KPiBlbmFibGluZy9kaXNhYmxpbmcgaXMgcHJvdGVjdGVkIGJ5IHRo
-ZSBFQyBzcGVjaWZpYyBsb2NrLiBXZSBjYW4gZG8gdGhpcw0KPiBiZWNhdXNlIG9mIHJlY2VudCBB
-Q1BJQ0EgR1BFIEFQSSBlbmhhbmNlbWVudC4gVGhpcyBpcyByZWFzb25hYmxlIGFzIHRoZSBHUEUN
-Cj4gZGlzYWJsaW5nL2VuYWJsaW5nIHN0YXRlIHNob3VsZCBvbmx5IGJlIGRldGVybWluZWQgYnkg
-dGhlIEVDIGRyaXZlcidzIHN0YXRlDQo+IG1hY2hpbmUgd2hpY2ggaXMgcHJvdGVjdGVkIGJ5IHRo
-ZSBFQyBzcGlubG9jay4NCg0KVGhpcyBwYXJhZ3JhcGggaXMgdGFsa2luZyBhYm91dCB0aGUgZGVw
-ZW5kZW5jeS4NCg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVs
-LmNvbT4NCj4gVGVzdGVkLWJ5OiBPcnR3aW4gR2zDvGNrIDxvZGlAb2RpLmNoPg0KPiAtLS0NCj4g
-IGRyaXZlcnMvYWNwaS9lYy5jIHwgICA1NiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKystLS0tLS0tLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDQ4IGluc2VydGlvbnMo
-KyksIDggZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2VjLmMg
-Yi9kcml2ZXJzL2FjcGkvZWMuYw0KPiBpbmRleCA1ZjliNzRiLi4xOTJjZDExIDEwMDY0NA0KPiAt
-LS0gYS9kcml2ZXJzL2FjcGkvZWMuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvZWMuYw0KPiBAQCAt
-NzksNyArNzksOCBAQCBlbnVtIHsNCj4gIAlFQ19GTEFHU19HUEVfU1RPUk0sCQkvKiBHUEUgc3Rv
-cm0gZGV0ZWN0ZWQgKi8NCj4gIAlFQ19GTEFHU19IQU5ETEVSU19JTlNUQUxMRUQsCS8qIEhhbmRs
-ZXJzIGZvciBHUEUgYW5kDQo+ICAJCQkJCSAqIE9wUmVnIGFyZSBpbnN0YWxsZWQgKi8NCj4gLQlF
-Q19GTEFHU19CTE9DS0VELAkJLyogVHJhbnNhY3Rpb25zIGFyZSBibG9ja2VkICovDQo+ICsJRUNf
-RkxBR1NfU1RBUlRFRCwJCS8qIERyaXZlciBpcyBzdGFydGVkICovDQo+ICsJRUNfRkxBR1NfU1RP
-UFBFRCwJCS8qIERyaXZlciBpcyBzdG9wcGVkICovDQo+ICB9Ow0KPiANCj4gICNkZWZpbmUgQUNQ
-SV9FQ19DT01NQU5EX1BPTEwJCTB4MDEgLyogQXZhaWxhYmxlIGZvciBjb21tYW5kIGJ5dGUgKi8N
-Cj4gQEAgLTEyOSw2ICsxMzAsMTYgQEAgc3RhdGljIGludCBFQ19GTEFHU19DTEVBUl9PTl9SRVNV
-TUU7IC8qIE5lZWRzIGFjcGlfZWNfY2xlYXIoKSBvbiBib290L3Jlc3VtZSAqLw0KPiAgc3RhdGlj
-IGludCBFQ19GTEFHU19RVUVSWV9IQU5EU0hBS0U7IC8qIE5lZWRzIFFSX0VDIGlzc3VlZCB3aGVu
-IFNDSV9FVlQgc2V0ICovDQo+IA0KPiAgLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gKyAqICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgRGV2aWNlIEZsYWdzDQo+ICsgKiAtLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LSAqLw0KPiArDQo+ICtzdGF0aWMgYm9vbCBhY3BpX2VjX3N0YXJ0ZWQoc3RydWN0IGFjcGlfZWMg
-KmVjKQ0KPiArew0KPiArCXJldHVybiB0ZXN0X2JpdChFQ19GTEFHU19TVEFSVEVELCAmZWMtPmZs
-YWdzKSAmJg0KPiArCSAgICAgICAhdGVzdF9iaXQoRUNfRkxBR1NfU1RPUFBFRCwgJmVjLT5mbGFn
-cyk7DQo+ICt9DQo+ICsNCj4gKy8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ICAgKiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIFRyYW5zYWN0aW9uIE1hbmFnZW1lbnQNCj4gICAqIC0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tICovDQo+IA0KPiBAQCAtMzU0LDcgKzM2NSw3IEBAIHN0YXRpYyBpbnQgYWNwaV9lY190
-cmFuc2FjdGlvbihzdHJ1Y3QgYWNwaV9lYyAqZWMsIHN0cnVjdCB0cmFuc2FjdGlvbiAqdCkNCj4g
-IAlpZiAodC0+cmRhdGEpDQo+ICAJCW1lbXNldCh0LT5yZGF0YSwgMCwgdC0+cmxlbik7DQo+ICAJ
-bXV0ZXhfbG9jaygmZWMtPm11dGV4KTsNCj4gLQlpZiAodGVzdF9iaXQoRUNfRkxBR1NfQkxPQ0tF
-RCwgJmVjLT5mbGFncykpIHsNCj4gKwlpZiAoIWFjcGlfZWNfc3RhcnRlZChlYykpIHsNCj4gIAkJ
-c3RhdHVzID0gLUVJTlZBTDsNCj4gIAkJZ290byB1bmxvY2s7DQo+ICAJfQ0KPiBAQCAtNTExLDYg
-KzUyMiwzNSBAQCBzdGF0aWMgdm9pZCBhY3BpX2VjX2NsZWFyKHN0cnVjdCBhY3BpX2VjICplYykN
-Cj4gIAkJcHJfaW5mbygiJWQgc3RhbGUgRUMgZXZlbnRzIGNsZWFyZWRcbiIsIGkpOw0KPiAgfQ0K
-PiANCj4gK3N0YXRpYyB2b2lkIGFjcGlfZWNfc3RhcnQoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiAr
-ew0KPiArCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+ICsNCj4gKwlzcGluX2xvY2tfaXJxc2F2ZSgm
-ZWMtPmxvY2ssIGZsYWdzKTsNCj4gKwlpZiAoIXRlc3RfYW5kX3NldF9iaXQoRUNfRkxBR1NfU1RB
-UlRFRCwgJmVjLT5mbGFncykpIHsNCj4gKwkJcHJfZGVidWcoIisrKysrIFN0YXJ0aW5nIEVDICsr
-KysrXG4iKTsNCj4gKwkJYWNwaV9lbmFibGVfZ3BlKE5VTEwsIGVjLT5ncGUpOw0KDQpUaGlzIGNh
-biB3b3JrIHdpdGhvdXQgIkdQRSBkZWFkIGxvY2siIGZpeCBhcHBsaWVkIGJlY2F1c2U6DQoxLiBE
-dXJpbmcgYm9vdCwgdGhpcyBBUEkgaXMgY2FsbGVkIHdoZW4gdGhlIEVDIEdQRSBpcyBkaXNhYmxl
-ZC4NCjIuIER1cmluZyByZXN1bWUsIHRoaXMgQVBJIGlzIGNhbGxlZCB3aGVuIHRoZSBFQyBHUEUg
-aXMgZGlzYWJsZWQgKGJlY2F1c2UgRUMgR1BFIGlzIGFsd2F5cyBub3Qgd2FrZSBjYXBhYmxlKS4N
-Cg0KPiArCQlwcl9pbmZvKCIrKysrKyBFQyBzdGFydGVkICsrKysrXG4iKTsNCj4gKwl9DQo+ICsJ
-c3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4gK30NCj4gKw0KPiAr
-c3RhdGljIHZvaWQgYWNwaV9lY19zdG9wKHN0cnVjdCBhY3BpX2VjICplYykNCj4gK3sNCj4gKwl1
-bnNpZ25lZCBsb25nIGZsYWdzOw0KPiArDQo+ICsJc3Bpbl9sb2NrX2lycXNhdmUoJmVjLT5sb2Nr
-LCBmbGFncyk7DQo+ICsJaWYgKGFjcGlfZWNfc3RhcnRlZChlYykpIHsNCj4gKwkJcHJfZGVidWco
-IisrKysrIFN0b3BwaW5nIEVDICsrKysrXG4iKTsNCj4gKwkJc2V0X2JpdChFQ19GTEFHU19TVE9Q
-UEVELCAmZWMtPmZsYWdzKTsNCj4gKwkJYWNwaV9kaXNhYmxlX2dwZShOVUxMLCBlYy0+Z3BlKTsN
-Cg0KQnV0IHRoaXMgY2Fubm90IHdvcmsgd2l0aG91dCAiR1BFIGRlYWQgbG9jayIgZml4IGFwcGxp
-ZWQgYmVjYXVzZToNCg0KSW4gYWNwaV9wbV9mcmVlemUoKSwgdGhlIGNhbGwgZ3JhcGggd291bGQg
-YmU6DQoJYWNwaV9wbV9mcmVlemUoKQ0KCQlhY3BpX2Rpc2FibGVfYWxsX2dwZXMoKQ0KCQlhY3Bp
-X29zX3dhaXRfZXZlbnRzX2NvbXBsZXRlKCkNCgkJYWNwaV9lY19ibG9ja190cmFuc2FjdGlvbnMo
-KQ0KCQkJYWNwaV9lY19zdG9wKCkNCgkJCQlob2xkIEVDIGxvY2sNCgkJCQlhY3BpX2Rpc2FibGVf
-Z3BlKCkNCgkJCQlob2xkIEdQRSBsb2NrDQoNCkFuZCBpbiB0aGUgR1BFIGhhbmRsZXIgYWNwaV9p
-cnEoKSwgdGhlIGNhbGwgZ3JhcGggd291bGQgYmU6DQoJYWNwaV9pcnEoKQ0KCQlhY3BpX2V2X3Nj
-aV94cnVwdF9oYW5kbGVyKCkNCgkJCWFjcGlfZXZfZ3BlX2RldGVjdCgpDQoJCQkJaG9sZCBHUEUg
-bG9jaw0KCQkJCQlhY3BpX2V2X2dwZV9kaXNwYXRjaCgpDQoJCQkJCQlhY3BpX2VjX2dwZV9oYW5k
-bGVyKCkNCgkJCQkJCQlob2xkIEVDIGxvY2sNCg0KU2luY2UgYWNwaV9vc193YWl0X2V2ZW50c19j
-b21wbGV0ZSgpIGNhbm5vdCBmbHVzaCBHUEUgYnV0IGNhbiBvbmx5IGZsdXNoIF9MeHgvX0V4eCBl
-dmFsdWF0aW9uIHdvcmsgcXVldWUgY3VycmVudGx5Lg0KVGhlIHJldmVyc2VkIG9yZGVyZWQgZGVh
-ZCBsb2NrIGNhbiBoYXBwZW4uDQpXZSBuZWVkIHRvIGZpeCB0aGUgYWNwaV9vc193YWl0X2V2ZW50
-c19jb21wbGV0ZSgpIHByaW9yIHRoYW4gdGhpcyBzZXJpZXMuDQpJIGhhdmUgYSBmaXggdG8gaW52
-b2tlIHN5bmNocm9uaXplX2lycSgpIGluIGFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxldGUoKS4N
-CkxldCBtZSBzZW5kIGl0IHRvIHlvdS4NClRoaXMgY2xlYW51cCBzaG91bGQgYmUgYXBwbGllZCBh
-ZnRlciB0aGF0IGZpeC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+ICsJCWNs
-ZWFyX2JpdChFQ19GTEFHU19TVEFSVEVELCAmZWMtPmZsYWdzKTsNCj4gKwkJY2xlYXJfYml0KEVD
-X0ZMQUdTX1NUT1BQRUQsICZlYy0+ZmxhZ3MpOw0KPiArCQlwcl9pbmZvKCIrKysrKyBFQyBzdG9w
-cGVkICsrKysrXG4iKTsNCj4gKwl9DQo+ICsJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxv
-Y2ssIGZsYWdzKTsNCj4gK30NCj4gKw0KPiAgdm9pZCBhY3BpX2VjX2Jsb2NrX3RyYW5zYWN0aW9u
-cyh2b2lkKQ0KPiAgew0KPiAgCXN0cnVjdCBhY3BpX2VjICplYyA9IGZpcnN0X2VjOw0KPiBAQCAt
-NTIwLDcgKzU2MCw3IEBAIHZvaWQgYWNwaV9lY19ibG9ja190cmFuc2FjdGlvbnModm9pZCkNCj4g
-DQo+ICAJbXV0ZXhfbG9jaygmZWMtPm11dGV4KTsNCj4gIAkvKiBQcmV2ZW50IHRyYW5zYWN0aW9u
-cyBmcm9tIGJlaW5nIGNhcnJpZWQgb3V0ICovDQo+IC0Jc2V0X2JpdChFQ19GTEFHU19CTE9DS0VE
-LCAmZWMtPmZsYWdzKTsNCj4gKwlhY3BpX2VjX3N0b3AoZWMpOw0KPiAgCW11dGV4X3VubG9jaygm
-ZWMtPm11dGV4KTsNCj4gIH0NCj4gDQo+IEBAIC01MzMsNyArNTczLDcgQEAgdm9pZCBhY3BpX2Vj
-X3VuYmxvY2tfdHJhbnNhY3Rpb25zKHZvaWQpDQo+IA0KPiAgCW11dGV4X2xvY2soJmVjLT5tdXRl
-eCk7DQo+ICAJLyogQWxsb3cgdHJhbnNhY3Rpb25zIHRvIGJlIGNhcnJpZWQgb3V0IGFnYWluICov
-DQo+IC0JY2xlYXJfYml0KEVDX0ZMQUdTX0JMT0NLRUQsICZlYy0+ZmxhZ3MpOw0KPiArCWFjcGlf
-ZWNfc3RhcnQoZWMpOw0KPiANCj4gIAlpZiAoRUNfRkxBR1NfQ0xFQVJfT05fUkVTVU1FKQ0KPiAg
-CQlhY3BpX2VjX2NsZWFyKGVjKTsNCj4gQEAgLTU0OCw3ICs1ODgsNyBAQCB2b2lkIGFjcGlfZWNf
-dW5ibG9ja190cmFuc2FjdGlvbnNfZWFybHkodm9pZCkNCj4gIAkgKiBhdG9taWMgY29udGV4dCBk
-dXJpbmcgd2FrZXVwLCBzbyB3ZSBkb24ndCBuZWVkIHRvIGFjcXVpcmUgdGhlIG11dGV4KS4NCj4g
-IAkgKi8NCj4gIAlpZiAoZmlyc3RfZWMpDQo+IC0JCWNsZWFyX2JpdChFQ19GTEFHU19CTE9DS0VE
-LCAmZmlyc3RfZWMtPmZsYWdzKTsNCj4gKwkJYWNwaV9lY19zdGFydChmaXJzdF9lYyk7DQo+ICB9
-DQo+IA0KPiAgc3RhdGljIGludCBhY3BpX2VjX3F1ZXJ5X3VubG9ja2VkKHN0cnVjdCBhY3BpX2Vj
-ICplYywgdTggKmRhdGEpDQo+IEBAIC04MTYsNyArODU2LDcgQEAgc3RhdGljIGludCBlY19pbnN0
-YWxsX2hhbmRsZXJzKHN0cnVjdCBhY3BpX2VjICplYykNCj4gIAlpZiAoQUNQSV9GQUlMVVJFKHN0
-YXR1cykpDQo+ICAJCXJldHVybiAtRU5PREVWOw0KPiANCj4gLQlhY3BpX2VuYWJsZV9ncGUoTlVM
-TCwgZWMtPmdwZSk7DQo+ICsJYWNwaV9lY19zdGFydChlYyk7DQo+ICAJc3RhdHVzID0gYWNwaV9p
-bnN0YWxsX2FkZHJlc3Nfc3BhY2VfaGFuZGxlcihlYy0+aGFuZGxlLA0KPiAgCQkJCQkJICAgIEFD
-UElfQURSX1NQQUNFX0VDLA0KPiAgCQkJCQkJICAgICZhY3BpX2VjX3NwYWNlX2hhbmRsZXIsDQo+
-IEBAIC04MzEsNyArODcxLDcgQEAgc3RhdGljIGludCBlY19pbnN0YWxsX2hhbmRsZXJzKHN0cnVj
-dCBhY3BpX2VjICplYykNCj4gIAkJCXByX2VycigiRmFpbCBpbiBldmFsdWF0aW5nIHRoZSBfUkVH
-IG9iamVjdCINCj4gIAkJCQkiIG9mIEVDIGRldmljZS4gQnJva2VuIGJpb3MgaXMgc3VzcGVjdGVk
-LlxuIik7DQo+ICAJCX0gZWxzZSB7DQo+IC0JCQlhY3BpX2Rpc2FibGVfZ3BlKE5VTEwsIGVjLT5n
-cGUpOw0KPiArCQkJYWNwaV9lY19zdG9wKGVjKTsNCj4gIAkJCWFjcGlfcmVtb3ZlX2dwZV9oYW5k
-bGVyKE5VTEwsIGVjLT5ncGUsDQo+ICAJCQkJJmFjcGlfZWNfZ3BlX2hhbmRsZXIpOw0KPiAgCQkJ
-cmV0dXJuIC1FTk9ERVY7DQo+IEBAIC04NDQsNyArODg0LDcgQEAgc3RhdGljIGludCBlY19pbnN0
-YWxsX2hhbmRsZXJzKHN0cnVjdCBhY3BpX2VjICplYykNCj4gDQo+ICBzdGF0aWMgdm9pZCBlY19y
-ZW1vdmVfaGFuZGxlcnMoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiAgew0KPiAtCWFjcGlfZGlzYWJs
-ZV9ncGUoTlVMTCwgZWMtPmdwZSk7DQo+ICsJYWNwaV9lY19zdG9wKGVjKTsNCj4gIAlpZiAoQUNQ
-SV9GQUlMVVJFKGFjcGlfcmVtb3ZlX2FkZHJlc3Nfc3BhY2VfaGFuZGxlcihlYy0+aGFuZGxlLA0K
-PiAgCQkJCUFDUElfQURSX1NQQUNFX0VDLCAmYWNwaV9lY19zcGFjZV9oYW5kbGVyKSkpDQo+ICAJ
-CXByX2VycigiZmFpbGVkIHRvIHJlbW92ZSBzcGFjZSBoYW5kbGVyXG4iKTsNCj4gLS0NCj4gMS43
-LjEwDQoNCg==
+It is possible that a GPE handler or a fixed event handler still accessed
+after removing the handlers by invoking acpi_remove_gpe_handler() or
+acpi_remove_fixed_event_handler(), this possibility can crash OPSM after a
+module removal. In the Linux kernel, though all other GPE drivers are not
+modules, since the IPMI_SI (ipmi_si_intf.c) can be compiled as a module, we
+still need to consider a solution for this issue when the driver switches
+to ACPI_GPE_RAW_HANDLER mode in order to invoke GPE APIs.
+
+ACPICA expects acpi_os_wait_events_complete() to be invoked after GPE
+disabling so that OSPM can ensure all running GPE handlers have exitted.
+But currently acpi_os_wait_events_complete() can only flush _Lxx/_Exx
+evaluation work queue and this philosophy cannot work for drivers that have
+installed a dedicated GPE handler.
+
+The only way to protect a callback is to perform some state holders
+(reference count, state machine) before invoking the callback. Then this
+issue can only be fixed by the following means:
+1. Flush GPE in ACPICA before invoking the GPE handler. But currently,
+   there is no such implementation in acpi_ev_gpe_dispatch().
+2. Flush GPE in ACPICA OSL before invoking the SCI handler. But currently,
+   there is no such implementation in acpi_irq().
+3. Flush IRQ in OSPM IRQ layer before invoking the IRQ handler. In Linus
+   kernel, this can be done by synchronize_irq().
+4. Flush scheduling in OSPM vector entry layer before invoking the vector.
+   In Linux, this can be done by synchronize_sched().
+
+Since ACPICA expects the GPE handlers to be flushed by the ACPICA OSL or
+the GPE drivers. If it is implemented by the GPE driver, we should see
+synchronize_irq()/synchronize_sched() invoked in such drivers. If it is
+implemented by the ACPICA OSL, ACPICA currently provides
+acpi_os_wait_events_complete() hook to achieve this. After the following
+commit:
+  Commit: 69c841b6dd8313c9a673246cc0e2535174272cab
+  Author: Lv Zheng <lv.zheng@intel.com>
+  Subject: ACPICA: Update use of acpi_os_wait_events_complete interface.
+The OSL acpi_os_wait_events_complete() is invoked after a GPE handler is
+removed from acpi_remove_gpe_handler() or a fixed event handler is removed
+from acpi_remove_fixed_event_handler(). Thus it is possible to implement
+GPE handler flushing using this ACPICA OSL now. So the solution 1 is
+currently not taken into account.
+
+By examining the IPMI_SI driver, we noticed that the IPMI_SI driver:
+1. Uses free_irq() to flush non GPE based IRQ handlers, in free_irq(),
+   synchronize_irq() is invoked, and
+2. Uses acpi_remove_gpe_handler() to flush GPE based IRQ handlers, for such
+   IRQ handlers, there is no synchronize_irq() invoked.
+Since there isn't synchronize_sched() implemented for this driver, from the
+driver's perspective, acpi_remove_gpe_handler() should have properly
+flushed the GPE handlers for it. Since the driver doesn't invoke
+synchronize_irq(), the solution 3 is not what the drivers expect.
+
+This patch implements solution 2. But since given the fact that the GPE is
+managed inside of ACPICA, and implementing the GPE flushing requires to
+implement the whole GPE management code again in the OSL, instead of
+flushing GPE, this patch flushes IRQ in acpi_os_wait_events_complete(). The
+flushing could last longer than expected as though the target GPE/fixed
+event that is removed can be fastly flushed, other GPEs/fix events can still
+be issued during the flushing period.
+
+This patch fixes this issue by invoking synchronize_hardirq() in
+acpi_os_wait_events_complete(). The reason why we don't invoke
+synchronize_irq() is: currently ACPICA is not threaded IRQ capable and the
+only difference between synchronize_irq() and synchronize_hardirq() is
+synchronize_irq() also flushes threaded IRQ handlers. Thus using
+synchronize_hardirq() can help to reduce the overall synchronization time
+for the current ACPICA implementation.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: devel@acpica.org
+Cc: openipmi-developer@lists.sourceforge.net
+---
+ drivers/acpi/osl.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 9964f70..2524196 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1188,6 +1188,12 @@ EXPORT_SYMBOL(acpi_os_execute);
+ 
+ void acpi_os_wait_events_complete(void)
+ {
++	/*
++	 * Make sure the GPE handler or the fixed event handler is not used
++	 * on another CPU after removal.
++	 */
++	if (acpi_irq_handler)
++		synchronize_hardirq(acpi_gbl_FADT.sci_interrupt);
+ 	flush_workqueue(kacpid_wq);
+ 	flush_workqueue(kacpi_notify_wq);
+ }
+-- 
+1.7.10
+
