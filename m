@@ -1,143 +1,77 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI: fix sriov enabling with virtual bus
-Date: Wed, 5 Nov 2014 14:57:13 -0700
-Message-ID: <20141105215713.GC6168@google.com>
-References: <1414621570-20777-1-git-send-email-yinghai@kernel.org>
- <20141030170913.GA6982@google.com>
- <20141105202252.GB6168@google.com>
- <1808324.GlBOqbYcPz@vostro.rjw.lan>
+Subject: Re: [Patch Part2 v4 18/31] PCI/MSI, trivial: Fix minor syntax issues
+ according to coding styles
+Date: Wed, 5 Nov 2014 15:10:01 -0700
+Message-ID: <20141105221001.GD6168@google.com>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
+ <1415102525-9898-19-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:58002 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951AbaKEV5S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2014 16:57:18 -0500
-Received: by mail-ie0-f170.google.com with SMTP id tp5so1697108ieb.29
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Nov 2014 13:57:17 -0800 (PST)
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1808324.GlBOqbYcPz@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1415102525-9898-19-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Jiri Kosina <trivial@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Chao Zhou <chao.zhou@intel.com>, Joerg Roedel <joro@8bytes.org>
 
-On Wed, Nov 05, 2014 at 10:44:25PM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, November 05, 2014 01:22:52 PM Bjorn Helgaas wrote:
-> > ...
-> > The acpi_pci_get_bridge_handle(struct pci_bus *) interface niggles at me a
-> > little because I don't think there's any concept of an ACPI device for a
-> > PCI *bus*, so it doesn't seem like a very good fit to say "find the handle
-> > for this bus".  But that's for later.
+On Tue, Nov 04, 2014 at 08:01:52PM +0800, Jiang Liu wrote:
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+
+Needs a changelog, even if it's similar to the topic.
+
+Speaking of the topic, please run "git log --oneline drivers/pci/msi.c" and
+make yours look similar to the others.  This doesn't really fix a syntax
+issue; the existing code is syntactically correct.  It's only a style
+issue.
+
+I'd say something like:
+
+  PCI/MSI: Remove unnecessary braces around single statements
+
+  Per Documentation/CodingStyle, don't use braces around single statements.
+
+> ---
+>  drivers/pci/msi.c |    9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
 > 
-> To me it does what it says: Get me the handle of the bridge leading to
-> this bus.
-
-Yeah, I know, it's a great name because it does *exactly* what the name
-says.  I'm just wondering if there's a nicer way to express what the caller
-needs.
-
-Two of the three callers start with a pci_dev, look up a pci_bus to pass
-in, and get back a handle corresponding to a pci_host_bridge or a pci_dev
-(or a NULL).  It seems a little cluttered because the pci_bus is only
-incidental and the caller doesn't care about it at all except for passing
-it to acpi_pci_get_bridge_handle().
-
-It's relatively common to start with a pci_dev and look for an ACPI handle
-that corresponds to that device or the closest enclosing scope, so maybe
-there should be a way to do that directly.
-
-For pci_get_hp_params(), I think the current code is actually slightly
-buggy because we don't look for _HPP/_HPX on the device itself; we only
-look at the bridges upstream from it.
-
-What I had in mind was something like the following (untested and not for
-application).
-
-Bjorn
-
-
-diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-index 876ccc620440..5e95df56b8ae 100644
---- a/drivers/pci/hotplug/acpi_pcihp.c
-+++ b/drivers/pci/hotplug/acpi_pcihp.c
-@@ -116,20 +116,11 @@ int acpi_get_hp_hw_control_from_firmware(struct pci_dev *pdev, u32 flags)
- 		string = (struct acpi_buffer){ ACPI_ALLOCATE_BUFFER, NULL };
- 	}
- 
--	handle = ACPI_HANDLE(&pdev->dev);
--	if (!handle) {
--		/*
--		 * This hotplug controller was not listed in the ACPI name
--		 * space at all. Try to get acpi handle of parent pci bus.
--		 */
--		struct pci_bus *pbus;
--		for (pbus = pdev->bus; pbus; pbus = pbus->parent) {
--			handle = acpi_pci_get_bridge_handle(pbus);
--			if (handle)
--				break;
--		}
--	}
--
-+	/*
-+	 * We did not find _OSC on the host bridge, so look for any
-+	 * enclosing device with an OSHP method.
-+	 */
-+	handle = pci_find_acpi_handle(pdev);
- 	while (handle) {
- 		acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
- 		dbg("Trying to get hotplug control for %s \n",
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 6ebf8edc5f3c..3b3f0720fff0 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -246,14 +246,8 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
- {
- 	acpi_status status;
- 	acpi_handle handle, phandle;
--	struct pci_bus *pbus;
- 
--	handle = NULL;
--	for (pbus = dev->bus; pbus; pbus = pbus->parent) {
--		handle = acpi_pci_get_bridge_handle(pbus);
--		if (handle)
--			break;
--	}
-+	handle = pci_find_acpi_handle(dev);
- 
- 	/*
- 	 * _HPP settings apply to all child buses, until another _HPP is
-@@ -279,6 +273,33 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
- }
- EXPORT_SYMBOL_GPL(pci_get_hp_params);
- 
-+/*
-+ * Search for an ACPI handle.  The PCI device itself may have one, or an
-+ * upstream device (either a PCI-to-PCI bridge or a PCI host bridge) may
-+ * have one.
-+ */
-+acpi_handle pci_find_acpi_handle(struct pci_dev *pdev)
-+{
-+	struct device *dev;
-+	acpi_handle handle;
-+	struct pci_bus *bus;
-+
-+	dev = &pdev->dev;
-+	handle = ACPI_HANDLE(dev);
-+	while (!handle) {
-+		pdev = pci_physfn(pdev);
-+		bus = pdev->bus;
-+		if (pci_is_root_bus(bus))
-+			dev = bus->bridge;
-+		else {
-+			pdev = bus->self;
-+			dev = &pdev->dev;
-+		}
-+		handle = ACPI_HANDLE(dev);
-+	}
-+	return handle;
-+}
-+
- /**
-  * pci_acpi_wake_bus - Root bus wakeup notification fork function.
-  * @work: Work item to handle.
+> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+> index 9fab30af0e75..fb2ccb536324 100644
+> --- a/drivers/pci/msi.c
+> +++ b/drivers/pci/msi.c
+> @@ -244,9 +244,8 @@ void default_restore_msi_irqs(struct pci_dev *dev)
+>  {
+>  	struct msi_desc *entry;
+>  
+> -	list_for_each_entry(entry, &dev->msi_list, list) {
+> +	list_for_each_entry(entry, &dev->msi_list, list)
+>  		default_restore_msi_irq(dev, entry->irq);
+> -	}
+>  }
+>  
+>  void __read_msi_msg(struct msi_desc *entry, struct msi_msg *msg)
+> @@ -451,9 +450,8 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
+>  				PCI_MSIX_FLAGS_ENABLE | PCI_MSIX_FLAGS_MASKALL);
+>  
+>  	arch_restore_msi_irqs(dev);
+> -	list_for_each_entry(entry, &dev->msi_list, list) {
+> +	list_for_each_entry(entry, &dev->msi_list, list)
+>  		msix_mask_irq(entry, entry->masked);
+> -	}
+>  
+>  	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_MASKALL, 0);
+>  }
+> @@ -497,9 +495,8 @@ static int populate_msi_sysfs(struct pci_dev *pdev)
+>  	int count = 0;
+>  
+>  	/* Determine how many msi entries we have */
+> -	list_for_each_entry(entry, &pdev->msi_list, list) {
+> +	list_for_each_entry(entry, &pdev->msi_list, list)
+>  		++num_msi;
+> -	}
+>  	if (!num_msi)
+>  		return 0;
+>  
+> -- 
+> 1.7.10.4
+> 
