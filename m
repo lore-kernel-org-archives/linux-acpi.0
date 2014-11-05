@@ -1,314 +1,153 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] ACPI / GPIO: Pass index to acpi_get_gpiod_by_index() when
- using properties
-Date: Tue, 4 Nov 2014 22:58:04 +0000
-Message-ID: <CACxGe6uowf4TN+WenJ+f-8AD8g-MW84H5Fu=3oynuYBrirXD1w@mail.gmail.com>
-References: <1414494927-204923-1-git-send-email-mika.westerberg@linux.intel.com>
- <CACxGe6uXogQaT9m_Zysb+daSHCz2B97OdMBHuCzJvNYj9oNWfQ@mail.gmail.com>
- <2107668.8toVpPDgB1@vostro.rjw.lan> <3196606.Sy6xFg88zg@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
+ BLOCKED flag.
+Date: Wed, 5 Nov 2014 02:52:36 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1414988981.git.lv.zheng@intel.com>
+ <e1228a3433fbbd8448d5522bef4e080763b1c18f.1414988981.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3196606.Sy6xFg88zg@vostro.rjw.lan>
+In-Reply-To: <e1228a3433fbbd8448d5522bef4e080763b1c18f.1414988981.git.lv.zheng@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Arnd Bergmann <arnd@arndb.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 4, 2014 at 10:54 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, November 04, 2014 05:06:40 PM Rafael J. Wysocki wrote:
->> On Tuesday, November 04, 2014 02:48:40 PM Grant Likely wrote:
->> > On Mon, Nov 3, 2014 at 9:52 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > > On Monday, November 03, 2014 04:25:08 PM Rafael J. Wysocki wrote:
->> > >> On Sunday, November 02, 2014 08:49:37 PM Darren Hart wrote:
->> > >> >
->> > >> > On 11/1/14 4:11, Grant Likely wrote:
->> > >> > > On Tue, 28 Oct 2014 22:59:57 +0100
->> > >> > > , "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> > >> > >  wrote:
->> > >> > >> On Tuesday, October 28, 2014 01:15:27 PM Mika Westerberg wrote:
->> > >> > >>> acpi_dev_add_driver_gpios() makes it possible to set up mapping between
->> > >> > >>> properties and ACPI GpioIo resources in a driver, so we can take index
->> > >> > >>> parameter in acpi_find_gpio() into use with _DSD device properties now.
->> > >> > >>>
->> > >> > >>> This index can be used to select a GPIO from a property with multiple
->> > >> > >>> GPIOs:
->> > >> > >>>
->> > >> > >>>   Package () {
->> > >> > >>>         "data-gpios",
->> > >> > >>>         Package () {
->> > >> > >>>                 \_SB.GPIO, 0, 0, 0,
->> > >> > >>>                 \_SB.GPIO, 1, 0, 0,
->> > >> > >>>                 \_SB.GPIO, 2, 0, 1,
->> > >> > >>>         }
->> > >> > >>>   }
->> > >> > >>>
->> > >> > >>> In order to retrieve the last GPIO from a driver we can simply do:
->> > >> > >>>
->> > >> > >>>   desc = devm_gpiod_get_index(dev, "data", 2);
->> > >> > >>>
->> > >> > >>> and so on.
->> > >> > >>>
->> > >> > >>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> > >> > >>
->> > >> > >> Cool. :-)
->> > >> > >>
->> > >> > >> Any objections anyone?
->> > >> > >
->> > >> > > Actually, I do. Not in the idea, but in the implementation. The way this gets encoded:
->> > >> > >
->> > >> > >   Package () {
->> > >> > >           \_SB.GPIO, 0, 0, 0,
->> > >> > >           \_SB.GPIO, 1, 0, 0,
->> > >> > >           \_SB.GPIO, 2, 0, 1,
->> > >> > >   }
->> > >> > >
->> > >> > > Means that decoding each GPIO tuple requires the length of a tuple to be
->> > >> > > fixed, or to implement a DT-like #gpio-cells. If it is fixed, then there
->> > >> > > is no way to expand the binding later. Can this be done in the following
->> > >> > > way instead?
->> > >> > >
->> > >> > >   Package () {
->> > >> > >           Package () { \_SB.GPIO, 0, 0, 0 },
->> > >> > >           Package () { \_SB.GPIO, 1, 0, 0 },
->> > >> > >           Package () { \_SB.GPIO, 2, 0, 1 },
->> > >> > >   }
->> > >> > >
->> > >> > > This is one of the biggest pains in device tree. We don't have any way
->> > >> > > to group tuples so it requires looking up stuff across the tree to
->> > >> > > figure out how to parse each multi-item property.
->> > >> > >
->> > >> > > I know that last year we talked about how bios vendors would get
->> > >> > > complicated properties wrong, but I think there is little risk in this
->> > >> > > case. If the property is encoded wrong, the driver simply won't work and
->> > >> > > it is unlikely to get shipped before being fixed.
->> > >> >
->> > >> > This particular nesting of Packages is expressly prohibited by the
->> > >> > Device Properties UUID for the reasons you mention.
->> > >> >
->> > >> > http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
->> > >>
->> > >> Also we don't use properties where single name is assigned to multiple GPIOs
->> > >> anywhere in the current device-properties patchset, so this is not relevant at
->> > >> the moment.
->> > >>
->> > >> Moreover, even if we were to use them, we would need to ensure that this:
->> > >>
->> > >>       Package () {
->> > >>               \_SB.GPIO, 0, 0, 0
->> > >>       }
->> > >>
->> > >> was equivalent to
->> > >>
->> > >>       Package () {
->> > >>               Package () { \_SB.GPIO, 0, 0, 0 }
->> > >>       }
->> > >>
->> > >> This is not impossible to do and I suppose we could even explain that in the
->> > >> implementation guide document in a sensible way, but that would require the
->> > >> document linked above to be changed first and *then* we can think about writing
->> > >> kernel code to it.  Not the other way around, please.
->> > >>
->> > >> So Grant, do you want us to proceed with that?
->> > >
->> > > Before you reply, one more observation that seems to be relevant.
->> > >
->> > > In ACPI, both this:
->> > >
->> > >         Package () {
->> > >                 \_SB.GPIO, 0, 0, 0,
->> > >                 \_SB.GPIO, 1, 0, 0,
->> > >                 \_SB.GPIO, 2, 0, 1,
->> > >         }
->> > >
->> > > and this:
->> > >
->> > >         Package () {
->> > >                 Package () { \_SB.GPIO, 0, 0, 0 },
->> > >                 Package () { \_SB.GPIO, 1, 0, 0 },
->> > >                 Package () { \_SB.GPIO, 2, 0, 1 },
->> > >         }
->> > >
->> > > carry the same information, because every element of a package has a type,
->> > > so there is no danger of confusing an ACPI_TYPE_LOCAL_REFERENCE with
->> > > ACPI_TYPE_INTEGER.  Thus one can easily count the number of GPIOs represented
->> > > by the first package by counting the number of reference elements in it.
->> > > The second one has more structure which in this particular case is arguably
->> > > redundant.
->> >
->> > Okay, this make sense. I'm okay with this approach, and I would
->> > recommend making that the only valid method for parsing in
->> > acpi_dev_get_property_reference(). Get rid of the *size_prop argument
->> > so that it always behaves the same way and users aren't tempted to do
->> > something clever.
->>
->> OK, I'll send a followup patch to remove the size_prop arg from
->> acpi_dev_get_property_reference().
->
-> This:
->
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / property: Drop size_prop from acpi_dev_get_property_reference()
->
-> The size_prop argument of the recently added function
-> acpi_dev_get_property_reference() is not used by the only current
-> caller of that function and is very unlikely to be used at any time
-> going forward.
->
-> Namely, for a property whose value is a list of items each containing
-> a references to a device object possibly accompanied by some integers,
-> the number of items in the list can always be computed as the number
-> of elements of type ACPI_TYPE_LOCAL_REFERENCE in the property package.
-> Thus it should never be necessary to provide an additional "cells"
-> property with a value equal to the number of items in that list.
->
-> For this reason, drop the size_prop argument from
-> acpi_dev_get_property_reference() and update its caller accordingly.
-
-Beautiful.
-
-Acked-by: Grant Likely <grant.likely@linaro.org>
-
->
-> Link: http://marc.info/?l=linux-kernel&m=141511255610556&w=2
-> Suggested-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->
-> On top of
->
-> http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/log/?h=device-properties
->
-> ---
->  drivers/acpi/property.c     |   62 +++++++++++---------------------------------
->  drivers/gpio/gpiolib-acpi.c |    2 -
->  include/linux/acpi.h        |    4 +-
->  3 files changed, 19 insertions(+), 49 deletions(-)
->
-> Index: linux-pm/drivers/acpi/property.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/property.c
-> +++ linux-pm/drivers/acpi/property.c
-> @@ -273,25 +273,21 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_property_
->   * acpi_dev_get_property_reference - returns handle to the referenced object
->   * @adev: ACPI device to get property
->   * @name: Name of the property
-> - * @size_prop: Name of the "size" property in referenced object
->   * @index: Index of the reference to return
->   * @args: Location to store the returned reference with optional arguments
->   *
->   * Find property with @name, verifify that it is a package containing at least
->   * one object reference and if so, store the ACPI device object pointer to the
-> - * target object in @args->adev.
-> + * target object in @args->adev.  If the reference includes arguments, store
-> + * them in the @args->args[] array.
->   *
-> - * If the reference includes arguments (@size_prop is not %NULL) follow the
-> - * reference and check whether or not there is an integer property @size_prop
-> - * under the target object and if so, whether or not its value matches the
-> - * number of arguments that follow the reference.  If there's more than one
-> - * reference in the property value package, @index is used to select the one to
-> - * return.
-> + * If there's more than one reference in the property value package, @index is
-> + * used to select the one to return.
->   *
->   * Return: %0 on success, negative error code on failure.
->   */
-> -int acpi_dev_get_property_reference(struct acpi_device *adev, const char *name,
-> -                                   const char *size_prop, size_t index,
-> +int acpi_dev_get_property_reference(struct acpi_device *adev,
-> +                                   const char *name, size_t index,
->                                     struct acpi_reference_args *args)
->  {
->         const union acpi_object *element, *end;
-> @@ -308,7 +304,7 @@ int acpi_dev_get_property_reference(stru
->          * return that reference then.
->          */
->         if (obj->type == ACPI_TYPE_LOCAL_REFERENCE) {
-> -               if (size_prop || index)
-> +               if (index)
->                         return -EINVAL;
->
->                 ret = acpi_bus_get_device(obj->reference.handle, &device);
-> @@ -348,42 +344,16 @@ int acpi_dev_get_property_reference(stru
->                 element++;
->                 nargs = 0;
->
-> -               if (size_prop) {
-> -                       const union acpi_object *prop;
-> -
-> -                       /*
-> -                        * Find out how many arguments the refenced object
-> -                        * expects by reading its size_prop property.
-> -                        */
-> -                       ret = acpi_dev_get_property(device, size_prop,
-> -                                                   ACPI_TYPE_INTEGER, &prop);
-> -                       if (ret)
-> -                               return ret;
-> -
-> -                       nargs = prop->integer.value;
-> -                       if (nargs > MAX_ACPI_REFERENCE_ARGS
-> -                           || element + nargs > end)
-> +               /* assume following integer elements are all args */
-> +               for (i = 0; element + i < end; i++) {
-> +                       int type = element[i].type;
-> +
-> +                       if (type == ACPI_TYPE_INTEGER)
-> +                               nargs++;
-> +                       else if (type == ACPI_TYPE_LOCAL_REFERENCE)
-> +                               break;
-> +                       else
->                                 return -EPROTO;
-> -
-> -                       /*
-> -                        * Skip to the start of the arguments and verify
-> -                        * that they all are in fact integers.
-> -                        */
-> -                       for (i = 0; i < nargs; i++)
-> -                               if (element[i].type != ACPI_TYPE_INTEGER)
-> -                                       return -EPROTO;
-> -               } else {
-> -                       /* assume following integer elements are all args */
-> -                       for (i = 0; element + i < end; i++) {
-> -                               int type = element[i].type;
-> -
-> -                               if (type == ACPI_TYPE_INTEGER)
-> -                                       nargs++;
-> -                               else if (type == ACPI_TYPE_LOCAL_REFERENCE)
-> -                                       break;
-> -                               else
-> -                                       return -EPROTO;
-> -                       }
->                 }
->
->                 if (idx++ == index) {
-> Index: linux-pm/include/linux/acpi.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/acpi.h
-> +++ linux-pm/include/linux/acpi.h
-> @@ -718,8 +718,8 @@ int acpi_dev_get_property(struct acpi_de
->  int acpi_dev_get_property_array(struct acpi_device *adev, const char *name,
->                                 acpi_object_type type,
->                                 const union acpi_object **obj);
-> -int acpi_dev_get_property_reference(struct acpi_device *adev, const char *name,
-> -                                   const char *cells_name, size_t index,
-> +int acpi_dev_get_property_reference(struct acpi_device *adev,
-> +                                   const char *name, size_t index,
->                                     struct acpi_reference_args *args);
->
->  int acpi_dev_prop_get(struct acpi_device *adev, const char *propname,
-> Index: linux-pm/drivers/gpio/gpiolib-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/gpio/gpiolib-acpi.c
-> +++ linux-pm/drivers/gpio/gpiolib-acpi.c
-> @@ -405,7 +405,7 @@ struct gpio_desc *acpi_get_gpiod_by_inde
->                 dev_dbg(&adev->dev, "GPIO: looking up %s\n", propname);
->
->                 memset(&args, 0, sizeof(args));
-> -               ret = acpi_dev_get_property_reference(adev, propname, NULL,
-> +               ret = acpi_dev_get_property_reference(adev, propname,
->                                                       index, &args);
->                 if (ret) {
->                         bool found = acpi_get_driver_gpio_data(adev, propname,
->
+SGksIFJhZmFlbA0KDQpUaGVyZSBpcyBvbmUgdGhpbmcgSSBzaG91bGQgbGV0IHlvdSBrbm93Lg0K
+DQpPcmlnaW5hbGx5IHRoaXMgcGF0Y2hzZXQgaXMgZGVwZW5kZW50IG9uIHRoZSBHUEUgImRlYWQg
+bG9jayIgZml4Lg0KQmVjYXVzZSB0aGlzIHBhdGNoIHdpbGwgaW52b2tlIGFjcGlfZW5hYmxlX2dw
+ZSgpL2FjcGlfZGlzYWJsZV9ncGUoKSB3aXRoIEVDIGxvY2sgaGVsZC4NCg0KSSBzYXcgc3lzdGVt
+IGhhbmcgZHVyaW5nIHN1c3BlbmRpbmcgdXNpbmcgb25seSB0aGlzIHBhdGNoc2V0LCBzbyB3ZSBo
+YXZlIHRvIGZpbmQgYSBzb2x1dGlvbi4NCg0KPiBGcm9tOiBaaGVuZywgTHYNCj4gU2VudDogTW9u
+ZGF5LCBOb3ZlbWJlciAwMywgMjAxNCAxOjE2IFBNDQo+IA0KPiBCeSB1c2luZyB0aGUgMiBmbGFn
+cywgd2UgY2FuIGluZGljYXRlIGFuIGludGVyLW1lZGlhdGUgc3RhdGUgd2hlcmUgdGhlDQo+IGN1
+cnJlbnQgdHJhbnNhY3Rpb25zIHNob3VsZCBiZSBjb21wbGV0ZWQgd2hpbGUgdGhlIG5ldyB0cmFu
+c2FjdGlvbnMgc2hvdWxkDQo+IGJlIGRyb3BwZWQuDQo+IA0KPiBUaGUgY29tcGFyaXNvbiBvZiB0
+aGUgb2xkIGZsYWcgYW5kIHRoZSBuZXcgZmxhZ3M6DQo+ICAgT2xkCQkJTmV3DQo+ICAgYWJvdXQg
+dG8gc2V0IEJMT0NLRUQJU1RPUFBFRCBzZXQgLyBTVEFSVEVEIHNldA0KPiAgIEJMT0NLRUQgc2V0
+CQlTVE9QUEVEIGNsZWFyIC8gU1RBUlRFRCBjbGVhcg0KPiAgIEJMT0NLRUQgY2xlYXIJCVNUT1BQ
+RUQgY2xlYXIgLyBTVEFSVEVEIHNldA0KPiBUaGUgbmV3IHBlcmlvZCBpcyBiZXR3ZWVuIHRoZSBw
+b2ludCB3aGVyZSB3ZSBhcmUgYWJvdXQgdG8gc2V0IEJMT0NLRUQgYW5kDQo+IHRoZSBwb2ludCB3
+aGVuIHRoZSBCTE9DS0VEIGlzIHNldC4gVGhlIEdQRSBpcyBkaXNhYmxlZCBkdXJpbmcgdGhpcyBw
+ZXJpb2QuDQo+IFRoZSBuZXcgZmxhZ3MgYWxsb3cgdXMgdG8gYWRkIGFjcGlfZWNfc3RvcHBlZCgp
+IGNoZWNrIHRvIG9ubHkgY2hlY2sgd2l0aA0KPiBTVE9QUEVEIGZsYWcgdG8gaW1wbGVtZW50IHRy
+YW5zYWN0aW9uIGZsdXNoaW5nLiBUaGlzIGlzIG5vdCBkb25lIGluIHRoaXMNCj4gcGF0Y2guDQo+
+IA0KPiBObyBmdW5jdGlvbmFsIGNoYW5nZXMgZXhjZXB0IHRoYXQgYWZ0ZXIgYXBwbHlpbmcgdGhp
+cyBwYXRjaCwgdGhlIEdQRQ0KPiBlbmFibGluZy9kaXNhYmxpbmcgaXMgcHJvdGVjdGVkIGJ5IHRo
+ZSBFQyBzcGVjaWZpYyBsb2NrLiBXZSBjYW4gZG8gdGhpcw0KPiBiZWNhdXNlIG9mIHJlY2VudCBB
+Q1BJQ0EgR1BFIEFQSSBlbmhhbmNlbWVudC4gVGhpcyBpcyByZWFzb25hYmxlIGFzIHRoZSBHUEUN
+Cj4gZGlzYWJsaW5nL2VuYWJsaW5nIHN0YXRlIHNob3VsZCBvbmx5IGJlIGRldGVybWluZWQgYnkg
+dGhlIEVDIGRyaXZlcidzIHN0YXRlDQo+IG1hY2hpbmUgd2hpY2ggaXMgcHJvdGVjdGVkIGJ5IHRo
+ZSBFQyBzcGlubG9jay4NCg0KVGhpcyBwYXJhZ3JhcGggaXMgdGFsa2luZyBhYm91dCB0aGUgZGVw
+ZW5kZW5jeS4NCg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVs
+LmNvbT4NCj4gVGVzdGVkLWJ5OiBPcnR3aW4gR2zDvGNrIDxvZGlAb2RpLmNoPg0KPiAtLS0NCj4g
+IGRyaXZlcnMvYWNwaS9lYy5jIHwgICA1NiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKystLS0tLS0tLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDQ4IGluc2VydGlvbnMo
+KyksIDggZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2VjLmMg
+Yi9kcml2ZXJzL2FjcGkvZWMuYw0KPiBpbmRleCA1ZjliNzRiLi4xOTJjZDExIDEwMDY0NA0KPiAt
+LS0gYS9kcml2ZXJzL2FjcGkvZWMuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvZWMuYw0KPiBAQCAt
+NzksNyArNzksOCBAQCBlbnVtIHsNCj4gIAlFQ19GTEFHU19HUEVfU1RPUk0sCQkvKiBHUEUgc3Rv
+cm0gZGV0ZWN0ZWQgKi8NCj4gIAlFQ19GTEFHU19IQU5ETEVSU19JTlNUQUxMRUQsCS8qIEhhbmRs
+ZXJzIGZvciBHUEUgYW5kDQo+ICAJCQkJCSAqIE9wUmVnIGFyZSBpbnN0YWxsZWQgKi8NCj4gLQlF
+Q19GTEFHU19CTE9DS0VELAkJLyogVHJhbnNhY3Rpb25zIGFyZSBibG9ja2VkICovDQo+ICsJRUNf
+RkxBR1NfU1RBUlRFRCwJCS8qIERyaXZlciBpcyBzdGFydGVkICovDQo+ICsJRUNfRkxBR1NfU1RP
+UFBFRCwJCS8qIERyaXZlciBpcyBzdG9wcGVkICovDQo+ICB9Ow0KPiANCj4gICNkZWZpbmUgQUNQ
+SV9FQ19DT01NQU5EX1BPTEwJCTB4MDEgLyogQXZhaWxhYmxlIGZvciBjb21tYW5kIGJ5dGUgKi8N
+Cj4gQEAgLTEyOSw2ICsxMzAsMTYgQEAgc3RhdGljIGludCBFQ19GTEFHU19DTEVBUl9PTl9SRVNV
+TUU7IC8qIE5lZWRzIGFjcGlfZWNfY2xlYXIoKSBvbiBib290L3Jlc3VtZSAqLw0KPiAgc3RhdGlj
+IGludCBFQ19GTEFHU19RVUVSWV9IQU5EU0hBS0U7IC8qIE5lZWRzIFFSX0VDIGlzc3VlZCB3aGVu
+IFNDSV9FVlQgc2V0ICovDQo+IA0KPiAgLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gKyAqICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgRGV2aWNlIEZsYWdzDQo+ICsgKiAtLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LSAqLw0KPiArDQo+ICtzdGF0aWMgYm9vbCBhY3BpX2VjX3N0YXJ0ZWQoc3RydWN0IGFjcGlfZWMg
+KmVjKQ0KPiArew0KPiArCXJldHVybiB0ZXN0X2JpdChFQ19GTEFHU19TVEFSVEVELCAmZWMtPmZs
+YWdzKSAmJg0KPiArCSAgICAgICAhdGVzdF9iaXQoRUNfRkxBR1NfU1RPUFBFRCwgJmVjLT5mbGFn
+cyk7DQo+ICt9DQo+ICsNCj4gKy8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ICAgKiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIFRyYW5zYWN0aW9uIE1hbmFnZW1lbnQNCj4gICAqIC0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tICovDQo+IA0KPiBAQCAtMzU0LDcgKzM2NSw3IEBAIHN0YXRpYyBpbnQgYWNwaV9lY190
+cmFuc2FjdGlvbihzdHJ1Y3QgYWNwaV9lYyAqZWMsIHN0cnVjdCB0cmFuc2FjdGlvbiAqdCkNCj4g
+IAlpZiAodC0+cmRhdGEpDQo+ICAJCW1lbXNldCh0LT5yZGF0YSwgMCwgdC0+cmxlbik7DQo+ICAJ
+bXV0ZXhfbG9jaygmZWMtPm11dGV4KTsNCj4gLQlpZiAodGVzdF9iaXQoRUNfRkxBR1NfQkxPQ0tF
+RCwgJmVjLT5mbGFncykpIHsNCj4gKwlpZiAoIWFjcGlfZWNfc3RhcnRlZChlYykpIHsNCj4gIAkJ
+c3RhdHVzID0gLUVJTlZBTDsNCj4gIAkJZ290byB1bmxvY2s7DQo+ICAJfQ0KPiBAQCAtNTExLDYg
+KzUyMiwzNSBAQCBzdGF0aWMgdm9pZCBhY3BpX2VjX2NsZWFyKHN0cnVjdCBhY3BpX2VjICplYykN
+Cj4gIAkJcHJfaW5mbygiJWQgc3RhbGUgRUMgZXZlbnRzIGNsZWFyZWRcbiIsIGkpOw0KPiAgfQ0K
+PiANCj4gK3N0YXRpYyB2b2lkIGFjcGlfZWNfc3RhcnQoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiAr
+ew0KPiArCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+ICsNCj4gKwlzcGluX2xvY2tfaXJxc2F2ZSgm
+ZWMtPmxvY2ssIGZsYWdzKTsNCj4gKwlpZiAoIXRlc3RfYW5kX3NldF9iaXQoRUNfRkxBR1NfU1RB
+UlRFRCwgJmVjLT5mbGFncykpIHsNCj4gKwkJcHJfZGVidWcoIisrKysrIFN0YXJ0aW5nIEVDICsr
+KysrXG4iKTsNCj4gKwkJYWNwaV9lbmFibGVfZ3BlKE5VTEwsIGVjLT5ncGUpOw0KDQpUaGlzIGNh
+biB3b3JrIHdpdGhvdXQgIkdQRSBkZWFkIGxvY2siIGZpeCBhcHBsaWVkIGJlY2F1c2U6DQoxLiBE
+dXJpbmcgYm9vdCwgdGhpcyBBUEkgaXMgY2FsbGVkIHdoZW4gdGhlIEVDIEdQRSBpcyBkaXNhYmxl
+ZC4NCjIuIER1cmluZyByZXN1bWUsIHRoaXMgQVBJIGlzIGNhbGxlZCB3aGVuIHRoZSBFQyBHUEUg
+aXMgZGlzYWJsZWQgKGJlY2F1c2UgRUMgR1BFIGlzIGFsd2F5cyBub3Qgd2FrZSBjYXBhYmxlKS4N
+Cg0KPiArCQlwcl9pbmZvKCIrKysrKyBFQyBzdGFydGVkICsrKysrXG4iKTsNCj4gKwl9DQo+ICsJ
+c3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4gK30NCj4gKw0KPiAr
+c3RhdGljIHZvaWQgYWNwaV9lY19zdG9wKHN0cnVjdCBhY3BpX2VjICplYykNCj4gK3sNCj4gKwl1
+bnNpZ25lZCBsb25nIGZsYWdzOw0KPiArDQo+ICsJc3Bpbl9sb2NrX2lycXNhdmUoJmVjLT5sb2Nr
+LCBmbGFncyk7DQo+ICsJaWYgKGFjcGlfZWNfc3RhcnRlZChlYykpIHsNCj4gKwkJcHJfZGVidWco
+IisrKysrIFN0b3BwaW5nIEVDICsrKysrXG4iKTsNCj4gKwkJc2V0X2JpdChFQ19GTEFHU19TVE9Q
+UEVELCAmZWMtPmZsYWdzKTsNCj4gKwkJYWNwaV9kaXNhYmxlX2dwZShOVUxMLCBlYy0+Z3BlKTsN
+Cg0KQnV0IHRoaXMgY2Fubm90IHdvcmsgd2l0aG91dCAiR1BFIGRlYWQgbG9jayIgZml4IGFwcGxp
+ZWQgYmVjYXVzZToNCg0KSW4gYWNwaV9wbV9mcmVlemUoKSwgdGhlIGNhbGwgZ3JhcGggd291bGQg
+YmU6DQoJYWNwaV9wbV9mcmVlemUoKQ0KCQlhY3BpX2Rpc2FibGVfYWxsX2dwZXMoKQ0KCQlhY3Bp
+X29zX3dhaXRfZXZlbnRzX2NvbXBsZXRlKCkNCgkJYWNwaV9lY19ibG9ja190cmFuc2FjdGlvbnMo
+KQ0KCQkJYWNwaV9lY19zdG9wKCkNCgkJCQlob2xkIEVDIGxvY2sNCgkJCQlhY3BpX2Rpc2FibGVf
+Z3BlKCkNCgkJCQlob2xkIEdQRSBsb2NrDQoNCkFuZCBpbiB0aGUgR1BFIGhhbmRsZXIgYWNwaV9p
+cnEoKSwgdGhlIGNhbGwgZ3JhcGggd291bGQgYmU6DQoJYWNwaV9pcnEoKQ0KCQlhY3BpX2V2X3Nj
+aV94cnVwdF9oYW5kbGVyKCkNCgkJCWFjcGlfZXZfZ3BlX2RldGVjdCgpDQoJCQkJaG9sZCBHUEUg
+bG9jaw0KCQkJCQlhY3BpX2V2X2dwZV9kaXNwYXRjaCgpDQoJCQkJCQlhY3BpX2VjX2dwZV9oYW5k
+bGVyKCkNCgkJCQkJCQlob2xkIEVDIGxvY2sNCg0KU2luY2UgYWNwaV9vc193YWl0X2V2ZW50c19j
+b21wbGV0ZSgpIGNhbm5vdCBmbHVzaCBHUEUgYnV0IGNhbiBvbmx5IGZsdXNoIF9MeHgvX0V4eCBl
+dmFsdWF0aW9uIHdvcmsgcXVldWUgY3VycmVudGx5Lg0KVGhlIHJldmVyc2VkIG9yZGVyZWQgZGVh
+ZCBsb2NrIGNhbiBoYXBwZW4uDQpXZSBuZWVkIHRvIGZpeCB0aGUgYWNwaV9vc193YWl0X2V2ZW50
+c19jb21wbGV0ZSgpIHByaW9yIHRoYW4gdGhpcyBzZXJpZXMuDQpJIGhhdmUgYSBmaXggdG8gaW52
+b2tlIHN5bmNocm9uaXplX2lycSgpIGluIGFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxldGUoKS4N
+CkxldCBtZSBzZW5kIGl0IHRvIHlvdS4NClRoaXMgY2xlYW51cCBzaG91bGQgYmUgYXBwbGllZCBh
+ZnRlciB0aGF0IGZpeC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+ICsJCWNs
+ZWFyX2JpdChFQ19GTEFHU19TVEFSVEVELCAmZWMtPmZsYWdzKTsNCj4gKwkJY2xlYXJfYml0KEVD
+X0ZMQUdTX1NUT1BQRUQsICZlYy0+ZmxhZ3MpOw0KPiArCQlwcl9pbmZvKCIrKysrKyBFQyBzdG9w
+cGVkICsrKysrXG4iKTsNCj4gKwl9DQo+ICsJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxv
+Y2ssIGZsYWdzKTsNCj4gK30NCj4gKw0KPiAgdm9pZCBhY3BpX2VjX2Jsb2NrX3RyYW5zYWN0aW9u
+cyh2b2lkKQ0KPiAgew0KPiAgCXN0cnVjdCBhY3BpX2VjICplYyA9IGZpcnN0X2VjOw0KPiBAQCAt
+NTIwLDcgKzU2MCw3IEBAIHZvaWQgYWNwaV9lY19ibG9ja190cmFuc2FjdGlvbnModm9pZCkNCj4g
+DQo+ICAJbXV0ZXhfbG9jaygmZWMtPm11dGV4KTsNCj4gIAkvKiBQcmV2ZW50IHRyYW5zYWN0aW9u
+cyBmcm9tIGJlaW5nIGNhcnJpZWQgb3V0ICovDQo+IC0Jc2V0X2JpdChFQ19GTEFHU19CTE9DS0VE
+LCAmZWMtPmZsYWdzKTsNCj4gKwlhY3BpX2VjX3N0b3AoZWMpOw0KPiAgCW11dGV4X3VubG9jaygm
+ZWMtPm11dGV4KTsNCj4gIH0NCj4gDQo+IEBAIC01MzMsNyArNTczLDcgQEAgdm9pZCBhY3BpX2Vj
+X3VuYmxvY2tfdHJhbnNhY3Rpb25zKHZvaWQpDQo+IA0KPiAgCW11dGV4X2xvY2soJmVjLT5tdXRl
+eCk7DQo+ICAJLyogQWxsb3cgdHJhbnNhY3Rpb25zIHRvIGJlIGNhcnJpZWQgb3V0IGFnYWluICov
+DQo+IC0JY2xlYXJfYml0KEVDX0ZMQUdTX0JMT0NLRUQsICZlYy0+ZmxhZ3MpOw0KPiArCWFjcGlf
+ZWNfc3RhcnQoZWMpOw0KPiANCj4gIAlpZiAoRUNfRkxBR1NfQ0xFQVJfT05fUkVTVU1FKQ0KPiAg
+CQlhY3BpX2VjX2NsZWFyKGVjKTsNCj4gQEAgLTU0OCw3ICs1ODgsNyBAQCB2b2lkIGFjcGlfZWNf
+dW5ibG9ja190cmFuc2FjdGlvbnNfZWFybHkodm9pZCkNCj4gIAkgKiBhdG9taWMgY29udGV4dCBk
+dXJpbmcgd2FrZXVwLCBzbyB3ZSBkb24ndCBuZWVkIHRvIGFjcXVpcmUgdGhlIG11dGV4KS4NCj4g
+IAkgKi8NCj4gIAlpZiAoZmlyc3RfZWMpDQo+IC0JCWNsZWFyX2JpdChFQ19GTEFHU19CTE9DS0VE
+LCAmZmlyc3RfZWMtPmZsYWdzKTsNCj4gKwkJYWNwaV9lY19zdGFydChmaXJzdF9lYyk7DQo+ICB9
+DQo+IA0KPiAgc3RhdGljIGludCBhY3BpX2VjX3F1ZXJ5X3VubG9ja2VkKHN0cnVjdCBhY3BpX2Vj
+ICplYywgdTggKmRhdGEpDQo+IEBAIC04MTYsNyArODU2LDcgQEAgc3RhdGljIGludCBlY19pbnN0
+YWxsX2hhbmRsZXJzKHN0cnVjdCBhY3BpX2VjICplYykNCj4gIAlpZiAoQUNQSV9GQUlMVVJFKHN0
+YXR1cykpDQo+ICAJCXJldHVybiAtRU5PREVWOw0KPiANCj4gLQlhY3BpX2VuYWJsZV9ncGUoTlVM
+TCwgZWMtPmdwZSk7DQo+ICsJYWNwaV9lY19zdGFydChlYyk7DQo+ICAJc3RhdHVzID0gYWNwaV9p
+bnN0YWxsX2FkZHJlc3Nfc3BhY2VfaGFuZGxlcihlYy0+aGFuZGxlLA0KPiAgCQkJCQkJICAgIEFD
+UElfQURSX1NQQUNFX0VDLA0KPiAgCQkJCQkJICAgICZhY3BpX2VjX3NwYWNlX2hhbmRsZXIsDQo+
+IEBAIC04MzEsNyArODcxLDcgQEAgc3RhdGljIGludCBlY19pbnN0YWxsX2hhbmRsZXJzKHN0cnVj
+dCBhY3BpX2VjICplYykNCj4gIAkJCXByX2VycigiRmFpbCBpbiBldmFsdWF0aW5nIHRoZSBfUkVH
+IG9iamVjdCINCj4gIAkJCQkiIG9mIEVDIGRldmljZS4gQnJva2VuIGJpb3MgaXMgc3VzcGVjdGVk
+LlxuIik7DQo+ICAJCX0gZWxzZSB7DQo+IC0JCQlhY3BpX2Rpc2FibGVfZ3BlKE5VTEwsIGVjLT5n
+cGUpOw0KPiArCQkJYWNwaV9lY19zdG9wKGVjKTsNCj4gIAkJCWFjcGlfcmVtb3ZlX2dwZV9oYW5k
+bGVyKE5VTEwsIGVjLT5ncGUsDQo+ICAJCQkJJmFjcGlfZWNfZ3BlX2hhbmRsZXIpOw0KPiAgCQkJ
+cmV0dXJuIC1FTk9ERVY7DQo+IEBAIC04NDQsNyArODg0LDcgQEAgc3RhdGljIGludCBlY19pbnN0
+YWxsX2hhbmRsZXJzKHN0cnVjdCBhY3BpX2VjICplYykNCj4gDQo+ICBzdGF0aWMgdm9pZCBlY19y
+ZW1vdmVfaGFuZGxlcnMoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiAgew0KPiAtCWFjcGlfZGlzYWJs
+ZV9ncGUoTlVMTCwgZWMtPmdwZSk7DQo+ICsJYWNwaV9lY19zdG9wKGVjKTsNCj4gIAlpZiAoQUNQ
+SV9GQUlMVVJFKGFjcGlfcmVtb3ZlX2FkZHJlc3Nfc3BhY2VfaGFuZGxlcihlYy0+aGFuZGxlLA0K
+PiAgCQkJCUFDUElfQURSX1NQQUNFX0VDLCAmYWNwaV9lY19zcGFjZV9oYW5kbGVyKSkpDQo+ICAJ
+CXByX2VycigiZmFpbGVkIHRvIHJlbW92ZSBzcGFjZSBoYW5kbGVyXG4iKTsNCj4gLS0NCj4gMS43
+LjEwDQoNCg==
