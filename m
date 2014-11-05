@@ -1,83 +1,143 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH V2] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
-Date: Wed, 05 Nov 2014 22:55:23 +0100
-Message-ID: <7320898.JB9z5hUzdG@vostro.rjw.lan>
-References: <1414422584-2638-1-git-send-email-tianyu.lan@intel.com> <20141105085414.GV1618@lahna.fi.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI: fix sriov enabling with virtual bus
+Date: Wed, 5 Nov 2014 14:57:13 -0700
+Message-ID: <20141105215713.GC6168@google.com>
+References: <1414621570-20777-1-git-send-email-yinghai@kernel.org>
+ <20141030170913.GA6982@google.com>
+ <20141105202252.GB6168@google.com>
+ <1808324.GlBOqbYcPz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50912 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751133AbaKEVei (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2014 16:34:38 -0500
-In-Reply-To: <20141105085414.GV1618@lahna.fi.intel.com>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:58002 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbaKEV5S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2014 16:57:18 -0500
+Received: by mail-ie0-f170.google.com with SMTP id tp5so1697108ieb.29
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Nov 2014 13:57:17 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1808324.GlBOqbYcPz@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, wsa@the-dreams.de, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, devel@acpica.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Chao Zhou <chao.zhou@intel.com>, Joerg Roedel <joro@8bytes.org>
 
-On Wednesday, November 05, 2014 10:54:14 AM Mika Westerberg wrote:
-> On Mon, Oct 27, 2014 at 11:09:44PM +0800, Lan Tianyu wrote:
-> > ACPI 5.0 introduces _DEP to designate device objects that OSPM should
-> > assign a higher priority in start ordering due to future operation region
-> > accesses.
-> > 
-> > On Asus T100TA, ACPI battery info are read from a I2C slave device via
-> > I2C operation region. Before I2C operation region handler is installed,
-> > battery _STA always returns 0. There is a _DEP method of designating
-> > start order under battery device node.
-> > 
-> > This patch is to implement _DEP feature to fix battery issue on the Asus T100TA.
-> > Introducing acpi_dep_list and adding dep_unmet count in the struct
-> > acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
-> > valid pair of master (device pointed to by _DEP)/slave(device with _DEP), record
-> > master's and slave's ACPI handle in it and put it into acpi_dep_list. The dep_unmet
-> > count will increase by one if there is a device under its _DEP. Driver's probe() should
-> > return EPROBE_DEFER when find dep_unmet larger than 0. When I2C operation
-> > region handler is installed, remove all struct acpi_dep_data on the acpi_dep_list
-> > whose master is pointed to I2C host controller and decrease slave's dep_unmet.
-> > When dep_unmet decreases to 0, all _DEP conditions are met and then do acpi_bus_attach()
-> > for the device in order to resolve battery _STA issue on the Asus T100TA.
+On Wed, Nov 05, 2014 at 10:44:25PM +0100, Rafael J. Wysocki wrote:
+> On Wednesday, November 05, 2014 01:22:52 PM Bjorn Helgaas wrote:
+> > ...
+> > The acpi_pci_get_bridge_handle(struct pci_bus *) interface niggles at me a
+> > little because I don't think there's any concept of an ACPI device for a
+> > PCI *bus*, so it doesn't seem like a very good fit to say "find the handle
+> > for this bus".  But that's for later.
 > 
-> Is there a reason why the driver core can't handle this automatically in
-> such way that when there are unmet dependencies, it will not probe the
-> device? Or am I missing something?
+> To me it does what it says: Get me the handle of the bridge leading to
+> this bus.
 
-Yes, there is a reason: There's no way to represent such dependencies in the
-driver core. :-)
+Yeah, I know, it's a great name because it does *exactly* what the name
+says.  I'm just wondering if there's a nicer way to express what the caller
+needs.
 
-That's been discussed for several times (and I've even mentioned _DEP in one
-of those discussions) and it's always ended up being seen as "complexity
-nightmare".
+Two of the three callers start with a pci_dev, look up a pci_bus to pass
+in, and get back a handle corresponding to a pci_host_bridge or a pci_dev
+(or a NULL).  It seems a little cluttered because the pci_bus is only
+incidental and the caller doesn't care about it at all except for passing
+it to acpi_pci_get_bridge_handle().
 
-> Now it looks like the driver itself needs to know about these and handle
-> them somehow.
+It's relatively common to start with a pci_dev and look for an ACPI handle
+that corresponds to that device or the closest enclosing scope, so maybe
+there should be a way to do that directly.
 
-The patch is missing the user of it which is going to be the battery driver
-only for the time being.  Tianyu, can you please include the battery changes
-into the patch at least for now?
+For pci_get_hp_params(), I think the current code is actually slightly
+buggy because we don't look for _HPP/_HPX on the device itself; we only
+look at the bridges upstream from it.
 
-> I'm asking this because there are other things like devices using GPIOs
-> that also take advantage of _DEP, like this on Asus T100:
-> 
->         Device (SDHB)
->         {
->             Name (_ADR, Zero)  // _ADR: Address
->             Name (_HID, "INT33BB")  // _HID: Hardware ID
->             ...
->             Name (_DEP, Package (0x02)  // _DEP: Dependencies
->             {
->                 PEPD,
->                 GPO2
->             })
-> 
-> I don't know what PEPD is but GPO2 is the GPIO controller.
+What I had in mind was something like the following (untested and not for
+application).
 
-Well, if you read the definition of _DEP in ACPI 5.1, it is all about operation
-regions, so this smells like abuse of sorts.  In any case, it is hard to argue
-that _DEP is not internal to ACPI because of that definition.
+Bjorn
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+
+diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
+index 876ccc620440..5e95df56b8ae 100644
+--- a/drivers/pci/hotplug/acpi_pcihp.c
++++ b/drivers/pci/hotplug/acpi_pcihp.c
+@@ -116,20 +116,11 @@ int acpi_get_hp_hw_control_from_firmware(struct pci_dev *pdev, u32 flags)
+ 		string = (struct acpi_buffer){ ACPI_ALLOCATE_BUFFER, NULL };
+ 	}
+ 
+-	handle = ACPI_HANDLE(&pdev->dev);
+-	if (!handle) {
+-		/*
+-		 * This hotplug controller was not listed in the ACPI name
+-		 * space at all. Try to get acpi handle of parent pci bus.
+-		 */
+-		struct pci_bus *pbus;
+-		for (pbus = pdev->bus; pbus; pbus = pbus->parent) {
+-			handle = acpi_pci_get_bridge_handle(pbus);
+-			if (handle)
+-				break;
+-		}
+-	}
+-
++	/*
++	 * We did not find _OSC on the host bridge, so look for any
++	 * enclosing device with an OSHP method.
++	 */
++	handle = pci_find_acpi_handle(pdev);
+ 	while (handle) {
+ 		acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
+ 		dbg("Trying to get hotplug control for %s \n",
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 6ebf8edc5f3c..3b3f0720fff0 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -246,14 +246,8 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+ {
+ 	acpi_status status;
+ 	acpi_handle handle, phandle;
+-	struct pci_bus *pbus;
+ 
+-	handle = NULL;
+-	for (pbus = dev->bus; pbus; pbus = pbus->parent) {
+-		handle = acpi_pci_get_bridge_handle(pbus);
+-		if (handle)
+-			break;
+-	}
++	handle = pci_find_acpi_handle(dev);
+ 
+ 	/*
+ 	 * _HPP settings apply to all child buses, until another _HPP is
+@@ -279,6 +273,33 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+ }
+ EXPORT_SYMBOL_GPL(pci_get_hp_params);
+ 
++/*
++ * Search for an ACPI handle.  The PCI device itself may have one, or an
++ * upstream device (either a PCI-to-PCI bridge or a PCI host bridge) may
++ * have one.
++ */
++acpi_handle pci_find_acpi_handle(struct pci_dev *pdev)
++{
++	struct device *dev;
++	acpi_handle handle;
++	struct pci_bus *bus;
++
++	dev = &pdev->dev;
++	handle = ACPI_HANDLE(dev);
++	while (!handle) {
++		pdev = pci_physfn(pdev);
++		bus = pdev->bus;
++		if (pci_is_root_bus(bus))
++			dev = bus->bridge;
++		else {
++			pdev = bus->self;
++			dev = &pdev->dev;
++		}
++		handle = ACPI_HANDLE(dev);
++	}
++	return handle;
++}
++
+ /**
+  * pci_acpi_wake_bus - Root bus wakeup notification fork function.
+  * @work: Work item to handle.
