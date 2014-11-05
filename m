@@ -1,146 +1,175 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PCI: fix sriov enabling with virtual bus
-Date: Wed, 05 Nov 2014 23:42:18 +0100
-Message-ID: <47200171.c9VM4SY6ci@vostro.rjw.lan>
-References: <1414621570-20777-1-git-send-email-yinghai@kernel.org> <1808324.GlBOqbYcPz@vostro.rjw.lan> <20141105215713.GC6168@google.com>
+From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch Part2 v4 19/31] PCI/MSI: Simplify PCI MSI code by
+	initializing msi_desc.nvec_used earlier
+Date: Wed, 5 Nov 2014 15:35:06 -0700
+Message-ID: <20141105223506.GF6168@google.com>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
+	<1415102525-9898-20-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141105215713.GC6168@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Chao Zhou <chao.zhou@intel.com>, Joerg Roedel <joro@8bytes.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1415102525-9898-20-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Yingjoe Chen <yingjoe.chen-NuS5LvNUpcJWk0Htik3J/w@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, November 05, 2014 02:57:13 PM Bjorn Helgaas wrote:
-> On Wed, Nov 05, 2014 at 10:44:25PM +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, November 05, 2014 01:22:52 PM Bjorn Helgaas wrote:
-> > > ...
-> > > The acpi_pci_get_bridge_handle(struct pci_bus *) interface niggles at me a
-> > > little because I don't think there's any concept of an ACPI device for a
-> > > PCI *bus*, so it doesn't seem like a very good fit to say "find the handle
-> > > for this bus".  But that's for later.
-> > 
-> > To me it does what it says: Get me the handle of the bridge leading to
-> > this bus.
-> 
-> Yeah, I know, it's a great name because it does *exactly* what the name
-> says.  I'm just wondering if there's a nicer way to express what the caller
-> needs.
-> 
-> Two of the three callers start with a pci_dev, look up a pci_bus to pass
-> in, and get back a handle corresponding to a pci_host_bridge or a pci_dev
-> (or a NULL).  It seems a little cluttered because the pci_bus is only
-> incidental and the caller doesn't care about it at all except for passing
-> it to acpi_pci_get_bridge_handle().
-> 
-> It's relatively common to start with a pci_dev and look for an ACPI handle
-> that corresponds to that device or the closest enclosing scope, so maybe
-> there should be a way to do that directly.
+On Tue, Nov 04, 2014 at 08:01:53PM +0800, Jiang Liu wrote:
 
-Well, the bridge in question should be the parent of the device if I'm
-not mistaken.  At least that's the assumption made by acpi_pci_find_companion().
+  PCI/MSI: Initialize msi_desc.nvec_used earlier to simplify code
 
-> For pci_get_hp_params(), I think the current code is actually slightly
-> buggy because we don't look for _HPP/_HPX on the device itself; we only
-> look at the bridges upstream from it.
+> Simplify PCI MSI code by initializing msi_desc.nvec_used and
+> msi_desc.msi_attrib.mutiple when create MSI descriptors.
+
+multiple
+when creating
+
+> Also remove redundant checks in IRQ remapping drivers, PCI MSI core
+> already guarattees these.
+
+guarantees
+
+> Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+
+Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+
+> ---
+>  drivers/iommu/irq_remapping.c |    8 --------
+>  drivers/pci/msi.c             |   40 +++++++++++++++-------------------------
+>  2 files changed, 15 insertions(+), 33 deletions(-)
 > 
-> What I had in mind was something like the following (untested and not for
-> application).
-
-So perhaps pci_find_acpi_handle() below may be somewhat simpler?
-
-> diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-> index 876ccc620440..5e95df56b8ae 100644
-> --- a/drivers/pci/hotplug/acpi_pcihp.c
-> +++ b/drivers/pci/hotplug/acpi_pcihp.c
-> @@ -116,20 +116,11 @@ int acpi_get_hp_hw_control_from_firmware(struct pci_dev *pdev, u32 flags)
->  		string = (struct acpi_buffer){ ACPI_ALLOCATE_BUFFER, NULL };
->  	}
+> diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
+> index 176ff4372b7d..32fe5b1322d0 100644
+> --- a/drivers/iommu/irq_remapping.c
+> +++ b/drivers/iommu/irq_remapping.c
+> @@ -69,19 +69,13 @@ static int do_setup_msi_irqs(struct pci_dev *dev, int nvec)
+>  	unsigned int irq;
+>  	struct msi_desc *msidesc;
 >  
-> -	handle = ACPI_HANDLE(&pdev->dev);
-> -	if (!handle) {
-> -		/*
-> -		 * This hotplug controller was not listed in the ACPI name
-> -		 * space at all. Try to get acpi handle of parent pci bus.
-> -		 */
-> -		struct pci_bus *pbus;
-> -		for (pbus = pdev->bus; pbus; pbus = pbus->parent) {
-> -			handle = acpi_pci_get_bridge_handle(pbus);
-> -			if (handle)
-> -				break;
-> -		}
-> -	}
-> -
-> +	/*
-> +	 * We did not find _OSC on the host bridge, so look for any
-> +	 * enclosing device with an OSHP method.
-> +	 */
-> +	handle = pci_find_acpi_handle(pdev);
->  	while (handle) {
->  		acpi_get_name(handle, ACPI_FULL_PATHNAME, &string);
->  		dbg("Trying to get hotplug control for %s \n",
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 6ebf8edc5f3c..3b3f0720fff0 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -246,14 +246,8 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
->  {
->  	acpi_status status;
->  	acpi_handle handle, phandle;
-> -	struct pci_bus *pbus;
+> -	WARN_ON(!list_is_singular(&dev->msi_list));
+>  	msidesc = list_entry(dev->msi_list.next, struct msi_desc, list);
+> -	WARN_ON(msidesc->irq);
+> -	WARN_ON(msidesc->msi_attrib.multiple);
+> -	WARN_ON(msidesc->nvec_used);
 >  
-> -	handle = NULL;
-> -	for (pbus = dev->bus; pbus; pbus = pbus->parent) {
-> -		handle = acpi_pci_get_bridge_handle(pbus);
-> -		if (handle)
-> -			break;
-> -	}
-> +	handle = pci_find_acpi_handle(dev);
+>  	irq = irq_alloc_hwirqs(nvec, dev_to_node(&dev->dev));
+>  	if (irq == 0)
+>  		return -ENOSPC;
 >  
->  	/*
->  	 * _HPP settings apply to all child buses, until another _HPP is
-> @@ -279,6 +273,33 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
+>  	nvec_pow2 = __roundup_pow_of_two(nvec);
+> -	msidesc->nvec_used = nvec;
+> -	msidesc->msi_attrib.multiple = ilog2(nvec_pow2);
+>  	for (sub_handle = 0; sub_handle < nvec; sub_handle++) {
+>  		if (!sub_handle) {
+>  			index = msi_alloc_remapped_irq(dev, irq, nvec_pow2);
+> @@ -109,8 +103,6 @@ error:
+>  	 * IRQs from tearing down again in default_teardown_msi_irqs()
+>  	 */
+>  	msidesc->irq = 0;
+> -	msidesc->nvec_used = 0;
+> -	msidesc->msi_attrib.multiple = 0;
+>  
+>  	return ret;
 >  }
->  EXPORT_SYMBOL_GPL(pci_get_hp_params);
+> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+> index fb2ccb536324..afe974600c7d 100644
+> --- a/drivers/pci/msi.c
+> +++ b/drivers/pci/msi.c
+> @@ -85,19 +85,13 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+>   */
+>  void default_teardown_msi_irqs(struct pci_dev *dev)
+>  {
+> +	int i;
+>  	struct msi_desc *entry;
 >  
-> +/*
-> + * Search for an ACPI handle.  The PCI device itself may have one, or an
-> + * upstream device (either a PCI-to-PCI bridge or a PCI host bridge) may
-> + * have one.
-> + */
-> +acpi_handle pci_find_acpi_handle(struct pci_dev *pdev)
-> +{
-> +	struct device *dev;
-> +	acpi_handle handle;
-> +	struct pci_bus *bus;
-> +
-> +	dev = &pdev->dev;
-> +	handle = ACPI_HANDLE(dev);
-> +	while (!handle) {
-> +		pdev = pci_physfn(pdev);
-> +		bus = pdev->bus;
-> +		if (pci_is_root_bus(bus))
-> +			dev = bus->bridge;
-> +		else {
-> +			pdev = bus->self;
-> +			dev = &pdev->dev;
-> +		}
-> +		handle = ACPI_HANDLE(dev);
-> +	}
-> +	return handle;
-> +}
-> +
->  /**
->   * pci_acpi_wake_bus - Root bus wakeup notification fork function.
->   * @work: Work item to handle.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> -	list_for_each_entry(entry, &dev->msi_list, list) {
+> -		int i, nvec;
+> -		if (entry->irq == 0)
+> -			continue;
+> -		if (entry->nvec_used)
+> -			nvec = entry->nvec_used;
+> -		else
+> -			nvec = 1 << entry->msi_attrib.multiple;
+> -		for (i = 0; i < nvec; i++)
+> -			arch_teardown_msi_irq(entry->irq + i);
+> -	}
+> +	list_for_each_entry(entry, &dev->msi_list, list)
+> +		if (entry->irq)
+> +			for (i = 0; i < entry->nvec_used; i++)
+> +				arch_teardown_msi_irq(entry->irq + i);
+>  }
+>  
+>  void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
+> @@ -353,19 +347,12 @@ static void free_msi_irqs(struct pci_dev *dev)
+>  	struct msi_desc *entry, *tmp;
+>  	struct attribute **msi_attrs;
+>  	struct device_attribute *dev_attr;
+> -	int count = 0;
+> +	int i, count = 0;
+>  
+> -	list_for_each_entry(entry, &dev->msi_list, list) {
+> -		int i, nvec;
+> -		if (!entry->irq)
+> -			continue;
+> -		if (entry->nvec_used)
+> -			nvec = entry->nvec_used;
+> -		else
+> -			nvec = 1 << entry->msi_attrib.multiple;
+> -		for (i = 0; i < nvec; i++)
+> -			BUG_ON(irq_has_action(entry->irq + i));
+> -	}
+> +	list_for_each_entry(entry, &dev->msi_list, list)
+> +		if (entry->irq)
+> +			for (i = 0; i < entry->nvec_used; i++)
+> +				BUG_ON(irq_has_action(entry->irq + i));
+>  
+>  	arch_teardown_msi_irqs(dev);
+>  
+> @@ -556,7 +543,7 @@ error_attrs:
+>  	return ret;
+>  }
+>  
+> -static struct msi_desc *msi_setup_entry(struct pci_dev *dev)
+> +static struct msi_desc *msi_setup_entry(struct pci_dev *dev, int nvec)
+>  {
+>  	u16 control;
+>  	struct msi_desc *entry;
+> @@ -574,6 +561,8 @@ static struct msi_desc *msi_setup_entry(struct pci_dev *dev)
+>  	entry->msi_attrib.maskbit	= !!(control & PCI_MSI_FLAGS_MASKBIT);
+>  	entry->msi_attrib.default_irq	= dev->irq;	/* Save IOAPIC IRQ */
+>  	entry->msi_attrib.multi_cap	= (control & PCI_MSI_FLAGS_QMASK) >> 1;
+> +	entry->msi_attrib.multiple	= ilog2(__roundup_pow_of_two(nvec));
+> +	entry->nvec_used		= nvec;
+>  
+>  	if (control & PCI_MSI_FLAGS_64BIT)
+>  		entry->mask_pos = dev->msi_cap + PCI_MSI_MASK_64;
+> @@ -606,7 +595,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
+>  
+>  	msi_set_enable(dev, 0);	/* Disable MSI during set up */
+>  
+> -	entry = msi_setup_entry(dev);
+> +	entry = msi_setup_entry(dev, nvec);
+>  	if (!entry)
+>  		return -ENOMEM;
+>  
+> @@ -677,6 +666,7 @@ static int msix_setup_entries(struct pci_dev *dev, void __iomem *base,
+>  		entry->msi_attrib.entry_nr	= entries[i].entry;
+>  		entry->msi_attrib.default_irq	= dev->irq;
+>  		entry->mask_base		= base;
+> +		entry->nvec_used		= 1;
+>  
+>  		list_add_tail(&entry->list, &dev->msi_list);
+>  	}
+> -- 
+> 1.7.10.4
+> 
