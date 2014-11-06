@@ -1,65 +1,111 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO descriptors
-Date: Thu, 6 Nov 2014 12:27:42 +0100
-Message-ID: <CAMuHMdVA=L22R=gDJBHcgGbD5tsTOPpVZHaxeLsaB+mXhQswVg@mail.gmail.com>
-References: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
-	<545843B1.3020101@nvidia.com>
-	<2455157.3p7mHhT8im@vostro.rjw.lan>
-	<CAMuHMdXn9W2S7N+YGfjDxQozMtRZCVdTzzdDps6YfOv2FqVBmw@mail.gmail.com>
-	<20141106103033.GK1618@lahna.fi.intel.com>
-	<CAMuHMdWtcZcpW=r60s9auENZxChiLwr14R0p_soKr7C3yGYOMQ@mail.gmail.com>
-	<20141106105855.GL1618@lahna.fi.intel.com>
-	<CAMuHMdUroLo5SdXrTu+etiW+TwHAWV-Qn9UsVnud+BJ7q6nXjw@mail.gmail.com>
-	<20141106112244.GM1618@lahna.fi.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch Part2 v4 21/31] PCI/MSI: enhance PCI MSI core to support
+ hierarchy irqdomain
+Date: Thu, 06 Nov 2014 19:41:15 +0800
+Message-ID: <545B5E5B.8090300@linux.intel.com>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <1415102525-9898-22-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1411061023400.24960@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20141106112244.GM1618@lahna.fi.intel.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1411061023400.24960@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 6, 2014 at 12:22 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Thu, Nov 06, 2014 at 12:12:04PM +0100, Geert Uytterhoeven wrote:
->> On Thu, Nov 6, 2014 at 11:58 AM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->> > On Thu, Nov 06, 2014 at 11:32:19AM +0100, Geert Uytterhoeven wrote:
->> >> On Thu, Nov 6, 2014 at 11:30 AM, Mika Westerberg
->> >> <mika.westerberg@linux.intel.com> wrote:
->> >> >> "leds: leds-gpio: Add support for GPIO descriptors" broke leds-gpio on
->> >> >> non-DT platforms for me:
->> >> >>
->> >> >>     gpiod_direction_output: invalid GPIO
->> >> >>     leds-gpio: probe of leds-gpio failed with error -22
->> >> >>
->> >> >> (desc is NULL in gpiod_direction_output()).
-
->>     leds-gpio leds-gpio: GPIO 102, ret: 0
->>     leds-gpio leds-gpio: GPIOD: c050e970
->>
->> So led_dat is non-NULL. But it's overwritten by NULL later:
->>
->>     led_dat->gpiod = template->gpiod;
->
-> Ah, that's it. Nice catch!
->
->> Whitespace damaged fix below, to fold into the original.
->> If you prefer a proper separate patch, let me know.
->
-> It is up to Rafael. I think he wants to stabilize this branch so in that
-> case separate patch on top would work better.
-
-I've already sent a patch, as I have to publish the fix in my git tree anyway.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+On 2014/11/6 18:01, Thomas Gleixner wrote:
+> On Tue, 4 Nov 2014, Jiang Liu wrote:
+>> +#ifdef	CONFIG_PCI_MSI_IRQ_DOMAIN
+>> +static inline irq_hw_number_t
+>> +msi_get_hwirq(struct pci_dev *pdev, struct msi_desc *msidesc)
+>> +{
+>> +	return (irq_hw_number_t)msidesc->msi_attrib.entry_nr |
+>> +		PCI_DEVID(pdev->bus->number, pdev->devfn) << 11 |
+>> +		(pci_domain_nr(pdev->bus) & 0xFFFFFFFF) << 27;
+>> +}
+>> +
+>> +static int msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
+>> +			    unsigned int nr_irqs, void *arg)
+>> +{
+>> +	int i, ret;
+>> +	irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
+>> +
+>> +	if (irq_find_mapping(domain, hwirq) > 0)
+>> +		return -EEXIST;
+>> +
+>> +	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
+>> +	if (ret >= 0)
+>> +		for (i = 0; i < nr_irqs; i++) {
+>> +			irq_domain_set_hwirq_and_chip(domain, virq + i,
+>> +					hwirq + i, &msi_chip, (void *)(long)i);
+> 
+> I think msi_chip being a global unique thing is problematic. It does
+> not allow multi platform kernels to select a chip at boot time and it
+> does not allow per domain chip implementations when you have multiple
+> msi domains. Aside of that msi_chip is a pretty bad name for a global.
+> 
+> The solution is rather simple and msi is wide spread enough to justify
+> that.
+> 
+> struct irqdomain_msi_data {
+>        struct irq_chip       *irq_chip;
+> };
+> 
+> We make that a struct so we can accomodate for other special things
+> which might be domain rather than architecture specific. One
+> obvious use case would be to hold the arch_msi_irq_domain_get/set_hwirq
+> callbacks.
+> 
+> struct irq_domain *msi_create_irq_domain(struct irq_domain *parent,
+>        		  			 struct irqdomain_msi_data *data)
+> {
+>         struct irq_domain *domain;
+> 
+>         domain = irq_domain_add_tree(NULL, &msi_domain_ops, NULL);
+>         if (domain) {
+>                 domain->parent = parent;
+> 		domain->msi_data = data;
+> 	}
+>         return domain;
+> }
+> 
+> Now the above becomes:
+> 
+>     	struct irq_chip *msi_chip = domain->msi_data->irq_chip;
+> 
+> 	irq_domain_set_hwirq_and_chip(domain, virq + i,
+> 				      hwirq + i, msi_chip, (void *)(long)i);
+Hi Thomas,
+	Actually I'm working on a patch set to improve MSI support in
+the way you described above this afternoon. And I'm also trying to
+split MSI code into PCI dependent part and PCI independent part.
+I plan to add a file kernel/irq/msi.c to host PCI independent part,
+is that OK? Or should I put it under something like drivers/msi/?
+The PCI indepenent part will be used to support DMAR/HPET/HTIRQ and
+some ARM/ARM64 interrupts.
+Regards!
+Gerry
+> 
+>> +int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
+>> +			      struct pci_dev *dev, void *arg)
+>> +{
+>> +	int i, virq;
+>> +	struct msi_desc *msidesc;
+>> +	int node = dev_to_node(&dev->dev);
+>> +
+>> +	list_for_each_entry(msidesc, &dev->msi_list, list) {
+>> +		arch_msi_irq_domain_set_hwirq(arg, msi_get_hwirq(dev, msidesc));
+> 
+> The arch_xxx callbacks want to be documented. It's not obvious what
+> they are supposed to do.
+> 
+> Thanks,
+> 
+> 	tglx
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
