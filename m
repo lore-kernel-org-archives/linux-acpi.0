@@ -1,84 +1,65 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part2 v5 02/31] irqdomain: Do irq_find_mapping and set_type
- for hierarchy irqdomain in case OF
-Date: Thu,  6 Nov 2014 22:20:15 +0800
-Message-ID: <1415283644-2559-3-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v5 05/31] genirq: Add IRQ_SET_MASK_OK_DONE to support stacked irqchip
+Date: Thu,  6 Nov 2014 22:20:18 +0800
+Message-ID: <1415283644-2559-6-git-send-email-jiang.liu@linux.intel.com>
 References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Joerg Roedel <joro@8bytes.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yingjoe Chen <yingjoe.chen@mediatek.com>
+Add IRQ_SET_MASK_OK_DONE in addition to IRQ_SET_MASK_OK and
+IRQ_SET_MASK_OK_NOCOPY to support stacked irqchip. IRQ_SET_MASK_OK_DONE
+is the same as IRQ_SET_MASK_OK to irq core. To stacked irqchip, it means
+that ascendant irqchips have done all the work and no more handling
+needed in descendant irqchips.
 
-It is possible to call irq_create_of_mapping to create/translate the
-same IRQ from DT for multiple times. Perform irq_find_mapping check
-and set_type for hierarchy irqdomain in irq_create_of_mapping() to
-avoid duplicate these functionality in all outer most irqdomain.
-
-Signed-off-by: Yingjoe Chen <yingjoe.chen@mediatek.com>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- kernel/irq/irqdomain.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ include/linux/irq.h |    4 ++++
+ kernel/irq/manage.c |    2 ++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 610891e63844..4811bee1b8a7 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -478,11 +478,6 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
- 		return 0;
- 	}
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 536b7fc6c8f4..041edd6dc409 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -114,10 +114,14 @@ enum {
+  *
+  * IRQ_SET_MASK_OK	- OK, core updates irq_data.affinity
+  * IRQ_SET_MASK_NOCPY	- OK, chip did update irq_data.affinity
++ * IRQ_SET_MASK_OK_DONE	- Same as IRQ_SET_MASK_OK for core. Special code to
++ *			  support stacked irqchips, which indicates skipping
++ *			  all descendent irqchips.
+  */
+ enum {
+ 	IRQ_SET_MASK_OK = 0,
+ 	IRQ_SET_MASK_OK_NOCOPY,
++	IRQ_SET_MASK_OK_DONE,
+ };
  
--	if (irq_domain_is_hierarchy(domain)) {
--		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, irq_data);
--		return virq <= 0 ? 0 : virq;
--	}
--
- 	/* If domain has no translation, then we assume interrupt line */
- 	if (domain->ops->xlate == NULL)
- 		hwirq = irq_data->args[0];
-@@ -492,10 +487,24 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
- 			return 0;
- 	}
+ struct msi_desc;
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index 0a9104b4608b..80692373abd6 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -183,6 +183,7 @@ int irq_do_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 	ret = chip->irq_set_affinity(data, mask, force);
+ 	switch (ret) {
+ 	case IRQ_SET_MASK_OK:
++	case IRQ_SET_MASK_OK_DONE:
+ 		cpumask_copy(data->affinity, mask);
+ 	case IRQ_SET_MASK_OK_NOCOPY:
+ 		irq_set_thread_affinity(desc);
+@@ -600,6 +601,7 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
  
--	/* Create mapping */
--	virq = irq_create_mapping(domain, hwirq);
--	if (!virq)
--		return virq;
-+	if (irq_domain_is_hierarchy(domain)) {
-+		/*
-+		 * If we've already configured this interrupt,
-+		 * don't do it again, or hell will break loose.
-+		 */
-+		virq = irq_find_mapping(domain, hwirq);
-+		if (virq)
-+			return virq;
-+
-+		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, irq_data);
-+		if (virq <= 0)
-+			return 0;
-+	} else {
-+		/* Create mapping */
-+		virq = irq_create_mapping(domain, hwirq);
-+		if (!virq)
-+			return virq;
-+	}
+ 	switch (ret) {
+ 	case IRQ_SET_MASK_OK:
++	case IRQ_SET_MASK_OK_DONE:
+ 		irqd_clear(&desc->irq_data, IRQD_TRIGGER_MASK);
+ 		irqd_set(&desc->irq_data, flags);
  
- 	/* Set type if specified and different than the current one */
- 	if (type != IRQ_TYPE_NONE &&
 -- 
 1.7.10.4
