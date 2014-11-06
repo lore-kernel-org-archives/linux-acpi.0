@@ -1,28 +1,38 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch Part2 v4 21/31] PCI/MSI: enhance PCI MSI core to support
- hierarchy irqdomain
-Date: Thu, 6 Nov 2014 12:59:25 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1411061258560.24960@nanos>
-References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <1415102525-9898-22-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1411061023400.24960@nanos> <545B5E5B.8090300@linux.intel.com>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [Patch Part2 v4 00/31] Enable hierarchy irqdomian on x86
+ platforms
+Date: Thu, 6 Nov 2014 14:07:53 +0100
+Message-ID: <20141106130753.GN10744@8bytes.org>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <545B5E5B.8090300@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 8bytes.org ([81.169.241.247]:49311 "EHLO theia.8bytes.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750915AbaKFNHz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Nov 2014 08:07:55 -0500
+Content-Disposition: inline
+In-Reply-To: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 6 Nov 2014, Jiang Liu wrote:
-> On 2014/11/6 18:01, Thomas Gleixner wrote:
-> Hi Thomas,
-> 	Actually I'm working on a patch set to improve MSI support in
-> the way you described above this afternoon. And I'm also trying to
-> split MSI code into PCI dependent part and PCI independent part.
-> I plan to add a file kernel/irq/msi.c to host PCI independent part,
+On Tue, Nov 04, 2014 at 08:01:34PM +0800, Jiang Liu wrote:
+> Patch 1-5 enhance irqdomain and irq core to support hierarchy irqdomain
+> and stacked irqchip.
+> Patch 6-12 implement an irqdomain to manange CPU interrupt vectors, and
+> it's the root irqdomain for x86 platforms.
+> Patch 13-16 converts Intel and AMD interrupt remapping drivers to
+> support hierarchy irqdomain.
+> Patch 17-23 converts HPET and MSI to support hierarchy irqdomain.
+> Patch 24-27 cleans up unsued code in x86 arch and interrupt remapping
+> drivers.
+> Patch 28-31 converts DMAR, HTIRQ and UV to support hierarchy irqdomain.
 
-kernel/irq/msi.c is fine.
+Okay, I looked over the IOMMU changes and did some testing. With Jiangs
+fix for the AMD Kaveri boot panic it looks good to me. So for the IOMMU
+parts:
 
-Thanks,
+Acked-by: Joerg Roedel <jroedel@suse.de>
 
-	tglx
