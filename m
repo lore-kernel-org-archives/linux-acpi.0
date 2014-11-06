@@ -1,93 +1,65 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch Part2 v4 21/31] PCI/MSI: enhance PCI MSI core to support
- hierarchy irqdomain
-Date: Thu, 6 Nov 2014 11:01:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1411061023400.24960@nanos>
-References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <1415102525-9898-22-git-send-email-jiang.liu@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] leds: leds-gpio: Convert gpio_blink_set() to use GPIO
+ descriptors
+Date: Thu, 6 Nov 2014 12:30:33 +0200
+Message-ID: <20141106103033.GK1618@lahna.fi.intel.com>
+References: <1414755658-96293-1-git-send-email-mika.westerberg@linux.intel.com>
+ <545843B1.3020101@nvidia.com>
+ <2455157.3p7mHhT8im@vostro.rjw.lan>
+ <CAMuHMdXn9W2S7N+YGfjDxQozMtRZCVdTzzdDps6YfOv2FqVBmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1415102525-9898-22-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdXn9W2S7N+YGfjDxQozMtRZCVdTzzdDps6YfOv2FqVBmw@mail.gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <acourbot@nvidia.com>, Linus Walleij <linus.walleij@linaro.org>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 4 Nov 2014, Jiang Liu wrote:
-> +#ifdef	CONFIG_PCI_MSI_IRQ_DOMAIN
-> +static inline irq_hw_number_t
-> +msi_get_hwirq(struct pci_dev *pdev, struct msi_desc *msidesc)
-> +{
-> +	return (irq_hw_number_t)msidesc->msi_attrib.entry_nr |
-> +		PCI_DEVID(pdev->bus->number, pdev->devfn) << 11 |
-> +		(pci_domain_nr(pdev->bus) & 0xFFFFFFFF) << 27;
-> +}
-> +
-> +static int msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
-> +			    unsigned int nr_irqs, void *arg)
-> +{
-> +	int i, ret;
-> +	irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
-> +
-> +	if (irq_find_mapping(domain, hwirq) > 0)
-> +		return -EEXIST;
-> +
-> +	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
-> +	if (ret >= 0)
-> +		for (i = 0; i < nr_irqs; i++) {
-> +			irq_domain_set_hwirq_and_chip(domain, virq + i,
-> +					hwirq + i, &msi_chip, (void *)(long)i);
+On Thu, Nov 06, 2014 at 10:52:35AM +0100, Geert Uytterhoeven wrote:
+> Hi Mika, Rafael,
+> 
+> On Tue, Nov 4, 2014 at 11:50 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, November 04, 2014 12:10:41 PM Alexandre Courbot wrote:
+> >> On 10/31/2014 08:40 PM, Mika Westerberg wrote:
+> >> > Commit 21f2aae91e902aad ("leds: leds-gpio: Add support for GPIO
+> >> > descriptors") already converted most of the driver to use GPIO descriptors.
+> >> > What is still missing is the platform specific hook gpio_blink_set() and
+> >> > board files which pass legacy GPIO numbers to this driver in platform data.
+> >> >
+> >> > In this patch we handle the former and convert gpio_blink_set() to take
+> >> > GPIO descriptor instead. In order to do this we convert the existing four
+> >> > users to accept GPIO descriptor and translate it to legacy GPIO number in
+> >> > the platform code. This effectively "pushes" legacy GPIO number usage from
+> >> > the driver to platforms.
+> >> >
+> >> > Also add comment to the remaining block describing that it is legacy code
+> >> > path and we are getting rid of it eventually.
+> >> >
+> >> > Suggested-by: Linus Walleij <linus.walleij@linaro.org>
+> >> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >>
+> >> Acked-by: Alexandre Courbot <acourbot@nvidia.com>
+> >
+> > Patch applied, thanks everyone!
+> 
+> "leds: leds-gpio: Add support for GPIO descriptors" broke leds-gpio on
+> non-DT platforms for me:
+> 
+>     gpiod_direction_output: invalid GPIO
+>     leds-gpio: probe of leds-gpio failed with error -22
+> 
+> (desc is NULL in gpiod_direction_output()).
+> 
+> DT shmobile reference/multi-platform are fine.
+> 
+> I noticed the hard way, as I wanted to add some LEDs to a new platform,
+> but couldn't get it work. It turned out it also had stopped working on
+> r8a7740/armadillo-legacy, so I started bisecting...
 
-I think msi_chip being a global unique thing is problematic. It does
-not allow multi platform kernels to select a chip at boot time and it
-does not allow per domain chip implementations when you have multiple
-msi domains. Aside of that msi_chip is a pretty bad name for a global.
+Which board file that is?
 
-The solution is rather simple and msi is wide spread enough to justify
-that.
-
-struct irqdomain_msi_data {
-       struct irq_chip       *irq_chip;
-};
-
-We make that a struct so we can accomodate for other special things
-which might be domain rather than architecture specific. One
-obvious use case would be to hold the arch_msi_irq_domain_get/set_hwirq
-callbacks.
-
-struct irq_domain *msi_create_irq_domain(struct irq_domain *parent,
-       		  			 struct irqdomain_msi_data *data)
-{
-        struct irq_domain *domain;
-
-        domain = irq_domain_add_tree(NULL, &msi_domain_ops, NULL);
-        if (domain) {
-                domain->parent = parent;
-		domain->msi_data = data;
-	}
-        return domain;
-}
-
-Now the above becomes:
-
-    	struct irq_chip *msi_chip = domain->msi_data->irq_chip;
-
-	irq_domain_set_hwirq_and_chip(domain, virq + i,
-				      hwirq + i, msi_chip, (void *)(long)i);
-
-> +int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
-> +			      struct pci_dev *dev, void *arg)
-> +{
-> +	int i, virq;
-> +	struct msi_desc *msidesc;
-> +	int node = dev_to_node(&dev->dev);
-> +
-> +	list_for_each_entry(msidesc, &dev->msi_list, list) {
-> +		arch_msi_irq_domain_set_hwirq(arg, msi_get_hwirq(dev, msidesc));
-
-The arch_xxx callbacks want to be documented. It's not obvious what
-they are supposed to do.
-
-Thanks,
-
-	tglx
+There is a bug that gpio_to_desc() returns NULL instead if ERR_PTR() in
+that patch but I wonder why gpio_is_valid() and devm_gpio_request_one()
+do not complain about that prior.
