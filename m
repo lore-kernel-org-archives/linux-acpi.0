@@ -1,54 +1,64 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part2 v5 06/31] x86, irq: Save destination CPU ID in irq_cfg
-Date: Thu,  6 Nov 2014 22:20:19 +0800
-Message-ID: <1415283644-2559-7-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v5 03/31] genirq: Introduce helper functions to support stacked irq_chip
+Date: Thu,  6 Nov 2014 22:20:16 +0800
+Message-ID: <1415283644-2559-4-git-send-email-jiang.liu@linux.intel.com>
 References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Cache destination CPU APIC ID into struct irq_cfg when assigning vector
-for interrupt. Upper layer just needs to read the cached APIC ID instead
-of calling apic->cpu_mask_to_apicid_and(), it helps to hide APIC driver
-details from IOAPIC/HPET/MSI drivers..
+Now we already support hierarchy irq_data, so introduce several helpers
+to support stacked irq_chips.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/hw_irq.h |    1 +
- arch/x86/kernel/apic/vector.c |    6 ++++++
- 2 files changed, 7 insertions(+)
+ include/linux/irq.h |    5 +++++
+ kernel/irq/chip.c   |   17 +++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 9662290e0b20..b988ddf7434b 100644
---- a/arch/x86/include/asm/hw_irq.h
-+++ b/arch/x86/include/asm/hw_irq.h
-@@ -116,6 +116,7 @@ struct irq_data;
- struct irq_cfg {
- 	cpumask_var_t		domain;
- 	cpumask_var_t		old_domain;
-+	unsigned int		dest_apicid;
- 	u8			vector;
- 	u8			move_in_progress : 1;
- #ifdef CONFIG_IRQ_REMAP
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 6cedd7914581..c724ef6b218c 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -188,6 +188,12 @@ next:
- 	}
- 	free_cpumask_var(tmp_mask);
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 13ba412ce3a0..0adcbbbf2e87 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -443,6 +443,11 @@ extern void handle_percpu_devid_irq(unsigned int irq, struct irq_desc *desc);
+ extern void handle_bad_irq(unsigned int irq, struct irq_desc *desc);
+ extern void handle_nested_irq(unsigned int irq);
  
-+	if (!err) {
-+		/* cache destination APIC IDs into cfg->dest_apicid */
-+		err = apic->cpu_mask_to_apicid_and(mask, cfg->domain,
-+						   &cfg->dest_apicid);
-+	}
++#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
++extern void irq_chip_ack_parent(struct irq_data *data);
++extern int irq_chip_retrigger_hierarchy(struct irq_data *data);
++#endif
 +
- 	return err;
+ /* Handling of unhandled and spurious interrupts: */
+ extern void note_interrupt(unsigned int irq, struct irq_desc *desc,
+ 			   irqreturn_t action_ret);
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 72a93086216b..12f3e72449eb 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -850,3 +850,20 @@ void irq_cpu_offline(void)
+ 		raw_spin_unlock_irqrestore(&desc->lock, flags);
+ 	}
  }
- 
++
++#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
++void irq_chip_ack_parent(struct irq_data *data)
++{
++	data = data->parent_data;
++	data->chip->irq_ack(data);
++}
++
++int irq_chip_retrigger_hierarchy(struct irq_data *data)
++{
++	for (data = data->parent_data; data; data = data->parent_data)
++		if (data->chip && data->chip->irq_retrigger)
++			return data->chip->irq_retrigger(data);
++
++	return -ENOSYS;
++}
++#endif
 -- 
 1.7.10.4
