@@ -1,87 +1,57 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part2 v4 20/31] PCI/MSI: Kill redundant calling for irq_set_msi_desc()
- for MSIx interrupts
-Date: Thu, 06 Nov 2014 12:31:02 +0800
-Message-ID: <545AF986.1040903@linux.intel.com>
-References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <1415102525-9898-21-git-send-email-jiang.liu@linux.intel.com> <20141105224504.GG6168@google.com> <545ACFC7.9090204@huawei.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [Patch Part2 v4 21/31] PCI/MSI: enhance PCI MSI core to support
+ hierarchy irqdomain
+Date: Thu, 6 Nov 2014 12:54:25 +0800
+Message-ID: <545AFF01.8000502@huawei.com>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <1415102525-9898-22-git-send-email-jiang.liu@linux.intel.com> <20141105230952.GH6168@google.com> <545AD5B3.60009@huawei.com> <CAErSpo5PNAQ40-AQZiz_RTU0JKnSAVXO2Wz=XPQ7aMWjm-iaNA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:34721 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750999AbaKFEbK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Nov 2014 23:31:10 -0500
-In-Reply-To: <545ACFC7.9090204@huawei.com>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:11085 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751027AbaKFEzZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2014 23:55:25 -0500
+In-Reply-To: <CAErSpo5PNAQ40-AQZiz_RTU0JKnSAVXO2Wz=XPQ7aMWjm-iaNA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yijing Wang <wangyijing@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Alexander Gordeev <agordeev@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org
 
-On 2014/11/6 9:32, Yijing Wang wrote:
-> On 2014/11/6 6:45, Bjorn Helgaas wrote:
->> On Tue, Nov 04, 2014 at 08:01:54PM +0800, Jiang Liu wrote:
->>> It's arch_setup_msi_irq()/arch_setup_msi_irqs()'s responsibility to call
->>> irq_set_msi_desc() to associate IRQ descriptors and MSI descriptors,
->>> so kill the redundant call of irq_set_msi_desc() for MSIx interrupts
->>> in PCI MSI core.
+On 2014/11/6 12:10, Bjorn Helgaas wrote:
+> On Wed, Nov 5, 2014 at 6:58 PM, Yijing Wang <wangyijing@huawei.com> wrote:
+> 
+>>>> +{
+>>>> +    return (irq_hw_number_t)msidesc->msi_attrib.entry_nr |
+>>>> +            PCI_DEVID(pdev->bus->number, pdev->devfn) << 11 |
+>>>> +            (pci_domain_nr(pdev->bus) & 0xFFFFFFFF) << 27;
+>>>
+>>> Where does this bit layout come from?  Is this defined in the spec
+>>> somewhere?  A reference would help.
 >>
->> "MSI-X" in English text, "msix" in code.
->>
->> The default arch_setup_msi_irq() in drivers/pci/msi.c doesn't call
->> irq_set_msi_desc().  Does it happen somewhere inside chip->setup_irq()?
+>> Currently, more and more Non-PCI device use MSI(or similar MSI mechanism), like DMAR fault irq
+>> and HPET FSB irq. And we have to add additional code to support the MSI capability.
+>> So I hope we can decouple MSI code and PCI code, then we can unify all MSI(or Message Based interrupt)
+>> in one framework.
 > 
-> Yes.
-> 
-> I also found this.
-> http://www.spinics.net/lists/linux-pci/msg34256.html
-> 
->>
->> I don't know how to verify that there are calls in all the places needed.
->> That makes me wonder if the factoring is wrong -- maybe irq_set_msi_desc()
->> could be done in some common place.
-> 
-> In my idea, place the irq_set_msi_desc() in common MSI core is ok, but currently almost
-> all MSI arch code call irq_set_msi_desc() in arch code. So a lot of code need to change.
-> And arch code setup MSI and MSI-X in the same way, so if MSI work happy without irq_set_msi_desc(entry->irq, entry)
-> in common MSI code, MSI-X should be the same.
-Hi Bjorn and Yijing,
-	I originally plan was to move irq_set_msi_desc() into common
-PCI MSI code. But when implementing this, I found every
-arch_setup_msi_irq()/arch_setup_msi_irqs() needs to set msidesc->irq,
-thus need to lock the irq descriptor. So I realized we should
-rely on arch_setup_msi_irq() to call irq_set_msi_desc():)
-Regards!
-Gerry
+> Was that supposed to answer my question?  If so, I didn't understand
+> how it explains where the bit layout came from.
+
+No, that's just my concern. Because this function uses the pci device id,
+but more and more Non-PCI devices use MSI.
 
 > 
->>
->>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>> ---
->>>  drivers/pci/msi.c |    1 -
->>>  1 file changed, 1 deletion(-)
->>>
->>> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
->>> index afe974600c7d..da181c59394b 100644
->>> --- a/drivers/pci/msi.c
->>> +++ b/drivers/pci/msi.c
->>> @@ -685,7 +685,6 @@ static void msix_program_entries(struct pci_dev *dev,
->>>  						PCI_MSIX_ENTRY_VECTOR_CTRL;
->>>  
->>>  		entries[i].vector = entry->irq;
->>> -		irq_set_msi_desc(entry->irq, entry);
->>>  		entry->masked = readl(entry->mask_base + offset);
->>>  		msix_mask_irq(entry, 1);
->>>  		i++;
->>> -- 
->>> 1.7.10.4
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->> .
->>
+> Bjorn
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+> .
 > 
+
+
+-- 
+Thanks!
+Yijing
+
