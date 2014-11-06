@@ -1,218 +1,183 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part2 v5 21/31] PCI/MSI: Enhance core to support hierarchy irqdomain
-Date: Thu,  6 Nov 2014 22:20:34 +0800
-Message-ID: <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v5 27/31] x86, irq: Clean up unused MSI related code and interfaces
+Date: Thu,  6 Nov 2014 22:20:40 +0800
+Message-ID: <1415283644-2559-28-git-send-email-jiang.liu@linux.intel.com>
 References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <jiang.liu@linux.intel.com>, Alexander Gordeev <agordeev@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Enhance PCI MSI core to support hierarchy irqdomain, so the common
-code could be shared among architectures.
+Now MSI interrupt has been converted to new hierarchy irqdomain
+interfaces, so kill legacy MSI related code and interfaces.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
-Hi Thomas,
-	These changes are a temporary solution, I'm working on another
-patch set which will refine these interfaces, especially kill 
-arch_msi_irq_domain_{set|get}_hwirq().
-Regards!
-Gerry
----
- drivers/pci/Kconfig |    4 ++
- drivers/pci/msi.c   |  134 +++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/msi.h |   14 ++++++
- 3 files changed, 152 insertions(+)
+ arch/x86/include/asm/hpet.h     |    9 ------
+ arch/x86/include/asm/x86_init.h |    4 ---
+ arch/x86/kernel/apic/msi.c      |   61 +++++----------------------------------
+ 3 files changed, 7 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index b9db0f2ce11f..022e89745f86 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -16,6 +16,10 @@ config PCI_MSI
+diff --git a/arch/x86/include/asm/hpet.h b/arch/x86/include/asm/hpet.h
+index e87e9faf87a9..5fa9fb0f8809 100644
+--- a/arch/x86/include/asm/hpet.h
++++ b/arch/x86/include/asm/hpet.h
+@@ -85,15 +85,6 @@ extern struct irq_domain *hpet_create_irq_domain(int hpet_id);
+ extern int hpet_assign_irq(struct irq_domain *domain,
+ 			   struct hpet_dev *dev, int dev_num);
  
- 	   If you don't know what to do here, say Y.
+-#ifdef CONFIG_PCI_MSI
+-extern int default_setup_hpet_msi(unsigned int irq, unsigned int id);
+-#else
+-static inline int default_setup_hpet_msi(unsigned int irq, unsigned int id)
+-{
+-	return -EINVAL;
+-}
+-#endif
+-
+ #ifdef CONFIG_HPET_EMULATE_RTC
  
-+config PCI_MSI_IRQ_DOMAIN
-+	bool
-+	depends on PCI_MSI && IRQ_DOMAIN_HIERARCHY
-+
- config PCI_DEBUG
- 	bool "PCI Debugging"
- 	depends on PCI && DEBUG_KERNEL
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index da181c59394b..8de7c8774fd2 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -19,6 +19,7 @@
- #include <linux/errno.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/irqdomain.h>
+ #include <linux/interrupt.h>
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index e45e4da96bf1..9b53cb2acfbb 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -176,13 +176,9 @@ struct msi_desc;
  
- #include "pci.h"
+ struct x86_msi_ops {
+ 	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
+-	void (*compose_msi_msg)(struct pci_dev *dev, unsigned int irq,
+-				unsigned int dest, struct msi_msg *msg,
+-			       u8 hpet_id);
+ 	void (*teardown_msi_irq)(unsigned int irq);
+ 	void (*teardown_msi_irqs)(struct pci_dev *dev);
+ 	void (*restore_msi_irqs)(struct pci_dev *dev);
+-	int  (*setup_hpet_msi)(unsigned int irq, unsigned int id);
+ 	u32 (*msi_mask_irq)(struct msi_desc *desc, u32 mask, u32 flag);
+ 	u32 (*msix_mask_irq)(struct msi_desc *desc, u32 flag);
+ };
+diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
+index 3e0ac4516000..49f02609a7e0 100644
+--- a/arch/x86/kernel/apic/msi.c
++++ b/arch/x86/kernel/apic/msi.c
+@@ -25,16 +25,12 @@
  
-@@ -1098,3 +1099,136 @@ int pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
- 	return nvec;
+ static struct irq_domain *msi_default_domain;
+ 
+-void native_compose_msi_msg(struct pci_dev *pdev,
+-			    unsigned int irq, unsigned int dest,
+-			    struct msi_msg *msg, u8 hpet_id)
++static void native_compose_msi_msg(struct irq_cfg *cfg, struct msi_msg *msg)
+ {
+-	struct irq_cfg *cfg = irq_cfg(irq);
+-
+ 	msg->address_hi = MSI_ADDR_BASE_HI;
+ 
+ 	if (x2apic_enabled())
+-		msg->address_hi |= MSI_ADDR_EXT_DEST_ID(dest);
++		msg->address_hi |= MSI_ADDR_EXT_DEST_ID(cfg->dest_apicid);
+ 
+ 	msg->address_lo =
+ 		MSI_ADDR_BASE_LO |
+@@ -44,7 +40,7 @@ void native_compose_msi_msg(struct pci_dev *pdev,
+ 		((apic->irq_delivery_mode != dest_LowestPrio) ?
+ 			MSI_ADDR_REDIRECTION_CPU :
+ 			MSI_ADDR_REDIRECTION_LOWPRI) |
+-		MSI_ADDR_DEST_ID(dest);
++		MSI_ADDR_DEST_ID(cfg->dest_apicid);
+ 
+ 	msg->data =
+ 		MSI_DATA_TRIGGER_EDGE |
+@@ -55,7 +51,7 @@ void native_compose_msi_msg(struct pci_dev *pdev,
+ 		MSI_DATA_VECTOR(cfg->vector);
  }
- EXPORT_SYMBOL(pci_enable_msix_range);
-+
-+#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-+/*
-+ * Generate a unique ID number for each possible MSI source, the ID number
-+ * is only used within the irqdomain.
-+ */
-+static inline irq_hw_number_t
-+msi_get_hwirq(struct pci_dev *dev, struct msi_desc *desc)
-+{
-+	return (irq_hw_number_t)desc->msi_attrib.entry_nr |
-+		PCI_DEVID(dev->bus->number, dev->devfn) << 11 |
-+		(pci_domain_nr(dev->bus) & 0xFFFFFFFF) << 27;
-+}
-+
-+static int msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
-+			    unsigned int nr_irqs, void *arg)
-+{
-+	int i, ret;
-+	irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
-+
-+	if (irq_find_mapping(domain, hwirq) > 0)
-+		return -EEXIST;
-+
-+	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
-+	if (ret < 0)
-+		return ret;
-+
-+	for (i = 0; i < nr_irqs; i++) {
-+		irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
-+					      domain->host_data,
-+					      (void *)(long)i);
-+		__irq_set_handler(virq + i, handle_edge_irq, 0, "edge");
-+	}
-+
-+	return ret;
-+}
-+
-+static void msi_domain_free(struct irq_domain *domain, unsigned int virq,
-+			    unsigned int nr_irqs)
-+{
-+	int i;
-+
-+	for (i = 0; i < nr_irqs; i++) {
-+		struct msi_desc *desc = irq_get_msi_desc(virq);
-+
-+		if (desc)
-+			desc->irq = 0;
-+	}
-+	irq_domain_free_irqs_top(domain, virq, nr_irqs);
-+}
-+
-+static void msi_domain_activate(struct irq_domain *domain,
-+				struct irq_data *irq_data)
-+{
-+	struct msi_msg msg;
-+
-+	/*
-+	 * irq_data->chip_data is MSI/MSI-X offset.
-+	 * MSI-X message is written per-IRQ, the offset is always 0.
-+	 * MSI message denotes a contiguous group of IRQs, written for 0th IRQ.
-+	 */
-+	if (irq_data->chip_data)
-+		return;
-+
-+	BUG_ON(irq_chip_compose_msi_msg(irq_data, &msg));
-+	__write_msi_msg(irq_data->msi_desc, &msg);
-+}
-+
-+static void msi_domain_deactivate(struct irq_domain *domain,
-+				  struct irq_data *irq_data)
-+{
-+	struct msi_msg msg;
-+
-+	if (!irq_data->chip_data) {
-+		memset(&msg, 0, sizeof(msg));
-+		__write_msi_msg(irq_data->msi_desc, &msg);
-+	}
-+}
-+
-+static struct irq_domain_ops msi_domain_ops = {
-+	.alloc = msi_domain_alloc,
-+	.free = msi_domain_free,
-+	.activate = msi_domain_activate,
-+	.deactivate = msi_domain_deactivate,
-+};
-+
-+struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
-+					 struct irq_chip *chip,
-+					 struct irq_domain *parent)
-+{
-+	struct irq_domain *domain;
-+
-+	domain = irq_domain_add_tree(of_node, &msi_domain_ops, chip);
-+	if (!domain)
-+		return NULL;
-+
-+	domain->parent = parent;
-+
-+	return domain;
-+}
-+
-+int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
-+			      struct pci_dev *dev, void *arg)
-+{
-+	int i, virq;
-+	struct msi_desc *desc;
-+	int node = dev_to_node(&dev->dev);
-+
-+	list_for_each_entry(desc, &dev->msi_list, list) {
-+		arch_msi_irq_domain_set_hwirq(arg, msi_get_hwirq(dev, desc));
-+		virq = irq_domain_alloc_irqs(domain, desc->nvec_used,
-+					     node, arg);
-+		if (virq < 0) {
-+			/* Special handling for pci_enable_msi_range(). */
-+			if (type == PCI_CAP_ID_MSI && desc->nvec_used > 1)
-+				return 1;
-+			else
-+				return -ENOSPC;
-+		}
-+		for (i = 0; i < desc->nvec_used; i++)
-+			irq_set_msi_desc_off(virq, i, desc);
-+	}
-+
-+	list_for_each_entry(desc, &dev->msi_list, list)
-+		if (desc->nvec_used == 1)
-+			dev_dbg(&dev->dev, "irq %d for MSI/MSI-X\n", virq);
-+		else
-+			dev_dbg(&dev->dev, "irq [%d-%d] for MSI/MSI-X\n",
-+				virq, virq + desc->nvec_used - 1);
-+
-+	return 0;
-+}
-+#endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index 44f4746d033b..662c628fc2fa 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -75,4 +75,18 @@ struct msi_chip {
- 	void (*teardown_irq)(struct msi_chip *chip, unsigned int irq);
+ 
+-static void irq_msi_compose_msg(struct irq_data *data, struct msi_msg *msg)
++static void msi_compose_msg(struct irq_data *data, struct msi_msg *msg)
+ {
+ 	struct irq_cfg *cfg = irqd_cfg(data);
+ 
+@@ -93,31 +89,6 @@ static void msi_update_msg(struct msi_msg *msg, struct irq_data *irq_data)
+ 	msg->address_lo |= MSI_ADDR_DEST_ID(cfg->dest_apicid);
+ }
+ 
+-static int msi_compose_msg(struct pci_dev *pdev, unsigned int irq,
+-			   struct msi_msg *msg, u8 hpet_id)
+-{
+-	struct irq_cfg *cfg;
+-	int err;
+-	unsigned dest;
+-
+-	if (disable_apic)
+-		return -ENXIO;
+-
+-	cfg = irq_cfg(irq);
+-	err = assign_irq_vector(irq, cfg, apic->target_cpus());
+-	if (err)
+-		return err;
+-
+-	err = apic->cpu_mask_to_apicid_and(cfg->domain,
+-					   apic->target_cpus(), &dest);
+-	if (err)
+-		return err;
+-
+-	x86_msi.compose_msi_msg(pdev, irq, dest, msg, hpet_id);
+-
+-	return 0;
+-}
+-
+ static int msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 			    bool force)
+ {
+@@ -148,7 +119,7 @@ static struct irq_chip msi_chip = {
+ 	.irq_set_affinity	= msi_set_affinity,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+ 	.irq_print_chip		= irq_remapping_print_chip,
+-	.irq_compose_msi_msg	= irq_msi_compose_msg,
++	.irq_compose_msi_msg	= msi_compose_msg,
+ 	.flags			= IRQCHIP_SKIP_SET_WAKE,
  };
  
-+#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-+struct irq_domain;
-+struct irq_chip;
-+
-+struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
-+					 struct irq_chip *chip,
-+					 struct irq_domain *parent);
-+int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
-+			      struct pci_dev *dev, void *arg);
-+
-+irq_hw_number_t arch_msi_irq_domain_get_hwirq(void *arg);
-+void arch_msi_irq_domain_set_hwirq(void *arg, irq_hw_number_t hwirq);
-+#endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
-+
- #endif /* LINUX_MSI_H */
+@@ -253,7 +224,7 @@ int arch_setup_dmar_msi(unsigned int irq)
+ 	struct msi_msg msg;
+ 	struct irq_cfg *cfg = irq_cfg(irq);
+ 
+-	native_compose_msi_msg(NULL, irq, cfg->dest_apicid, &msg, -1);
++	native_compose_msi_msg(cfg, &msg);
+ 	dmar_msi_write(irq, &msg);
+ 	irq_set_chip_and_handler_name(irq, &dmar_msi_type, handle_edge_irq,
+ 				      "edge");
+@@ -305,28 +276,10 @@ static struct irq_chip hpet_msi_type = {
+ 	.irq_set_affinity = hpet_msi_set_affinity,
+ 	.irq_retrigger = irq_chip_retrigger_hierarchy,
+ 	.irq_print_chip = irq_remapping_print_chip,
+-	.irq_compose_msi_msg = irq_msi_compose_msg,
++	.irq_compose_msi_msg = msi_compose_msg,
+ 	.flags = IRQCHIP_SKIP_SET_WAKE,
+ };
+ 
+-int default_setup_hpet_msi(unsigned int irq, unsigned int id)
+-{
+-	struct irq_chip *chip = &hpet_msi_type;
+-	struct msi_msg msg;
+-	int ret;
+-
+-	ret = msi_compose_msg(NULL, irq, &msg, id);
+-	if (ret < 0)
+-		return ret;
+-
+-	hpet_msi_write(irq_get_handler_data(irq), &msg);
+-	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
+-	setup_remapped_irq(irq, irq_cfg(irq), chip);
+-
+-	irq_set_chip_and_handler_name(irq, chip, handle_edge_irq, "edge");
+-	return 0;
+-}
+-
+ static int hpet_domain_alloc(struct irq_domain *domain, unsigned int virq,
+ 			     unsigned int nr_irqs, void *arg)
+ {
 -- 
 1.7.10.4
