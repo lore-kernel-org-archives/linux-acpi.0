@@ -1,182 +1,81 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v9] Mailbox: Add support for Platform Communication Channel
-Date: Wed, 5 Nov 2014 19:48:40 -0500
-Message-ID: <CAJ5Y-eYXWVm-6HGo-kxuvAqciYqgTOSdkZ8xtVzDwePonvcT9Q@mail.gmail.com>
-References: <1412972037-12793-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1412972037-12793-2-git-send-email-ashwin.chaugule@linaro.org>
-	<CAJ5Y-eY5XtViMjU4FC-q1vCSgFa69DLGFeRr2GTmEO0CtnZPtA@mail.gmail.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Subject: Re: [Patch Part2 v4 20/31] PCI/MSI: Kill redundant calling for irq_set_msi_desc()
+ for MSIx interrupts
+Date: Thu, 6 Nov 2014 09:32:55 +0800
+Message-ID: <545ACFC7.9090204@huawei.com>
+References: <1415102525-9898-1-git-send-email-jiang.liu@linux.intel.com> <1415102525-9898-21-git-send-email-jiang.liu@linux.intel.com> <20141105224504.GG6168@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:51144 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbaKFAsm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2014 19:48:42 -0500
-Received: by mail-wg0-f52.google.com with SMTP id b13so2193672wgh.39
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Nov 2014 16:48:41 -0800 (PST)
-In-Reply-To: <CAJ5Y-eY5XtViMjU4FC-q1vCSgFa69DLGFeRr2GTmEO0CtnZPtA@mail.gmail.com>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:23566 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883AbaKFBdk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Nov 2014 20:33:40 -0500
+In-Reply-To: <20141105224504.GG6168@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On 2014/11/6 6:45, Bjorn Helgaas wrote:
+> On Tue, Nov 04, 2014 at 08:01:54PM +0800, Jiang Liu wrote:
+>> It's arch_setup_msi_irq()/arch_setup_msi_irqs()'s responsibility to call
+>> irq_set_msi_desc() to associate IRQ descriptors and MSI descriptors,
+>> so kill the redundant call of irq_set_msi_desc() for MSIx interrupts
+>> in PCI MSI core.
+> 
+> "MSI-X" in English text, "msix" in code.
+> 
+> The default arch_setup_msi_irq() in drivers/pci/msi.c doesn't call
+> irq_set_msi_desc().  Does it happen somewhere inside chip->setup_irq()?
 
-On 23 October 2014 11:36, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> Hello,
->
-> On 10 October 2014 16:13, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
->> ACPI 5.0+ spec defines a generic mode of communication
->> between the OS and a platform such as the BMC. This medium
->> (PCC) is typically used by CPPC (ACPI CPU Performance management),
->> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
->> states).
->>
->> This patch adds PCC support as a Mailbox Controller.
->>
->> Reviewed-by: Mark Brown <broonie@kernel.org>
->> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Yes.
+
+I also found this.
+http://www.spinics.net/lists/linux-pci/msg34256.html
+
+> 
+> I don't know how to verify that there are calls in all the places needed.
+> That makes me wonder if the factoring is wrong -- maybe irq_set_msi_desc()
+> could be done in some common place.
+
+In my idea, place the irq_set_msi_desc() in common MSI core is ok, but currently almost
+all MSI arch code call irq_set_msi_desc() in arch code. So a lot of code need to change.
+And arch code setup MSI and MSI-X in the same way, so if MSI work happy without irq_set_msi_desc(entry->irq, entry)
+in common MSI code, MSI-X should be the same.
+
+> 
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 >> ---
->>  drivers/mailbox/Kconfig   |  12 ++
->>  drivers/mailbox/Makefile  |   2 +
->>  drivers/mailbox/mailbox.c |   4 +-
->>  drivers/mailbox/mailbox.h |  16 ++
->>  drivers/mailbox/pcc.c     | 369 ++++++++++++++++++++++++++++++++++++++++++++++
->>  5 files changed, 400 insertions(+), 3 deletions(-)
->>  create mode 100644 drivers/mailbox/mailbox.h
->>  create mode 100644 drivers/mailbox/pcc.c
+>>  drivers/pci/msi.c |    1 -
+>>  1 file changed, 1 deletion(-)
 >>
->> diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
->> index 9fd9c67..c04fed9 100644
->> --- a/drivers/mailbox/Kconfig
->> +++ b/drivers/mailbox/Kconfig
->> @@ -33,4 +33,16 @@ config OMAP_MBOX_KFIFO_SIZE
->>           Specify the default size of mailbox's kfifo buffers (bytes).
->>           This can also be changed at runtime (via the mbox_kfifo_size
->>           module parameter).
->> +
->> +config PCC
->> +       bool "Platform Communication Channel Driver"
->> +       depends on ACPI
->> +       help
->> +         ACPI 5.0+ spec defines a generic mode of communication
->> +         between the OS and a platform such as the BMC. This medium
->> +         (PCC) is typically used by CPPC (ACPI CPU Performance management),
->> +         RAS (ACPI reliability protocol) and MPST (ACPI Memory power
->> +         states). Select this driver if your platform implements the
->> +         PCC clients mentioned above.
->> +
->>  endif
->
-> Looks like Linus has agreed to pull in the Mailbox framework in 3.18
-> [1], so I was hoping we could move this patch forward.
->
-> When I started working on the PCC driver, I based it off of ACPI v5.0.
-> Since then the spec moved to v5.1 and added a trivial change to the
-> PCC section. This change adds a new subtable to support systems that
-> dont have an SCI for the doorbell irq. The new structure declaration
-> is already in mainline [2]. Given that there were no existing users of
-> PCC so far and that the future users are more likely to use the new
-> subtable, I'd like to include it here and make it the default from the
-> start. SCI support can be added later if it is needed. The change to
-> do this is also trivial and the diff is below.
->
-> Mark, are you okay with squashing this diff into the original patch
-> [v9] and keeping your reviewed-by tag? I can then send a git pull
-> request.
->
-> Arnd, Rafael, if there are no further comments on this patch, kindly
-> advise which tree to rebase on for the git pull.
+>> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+>> index afe974600c7d..da181c59394b 100644
+>> --- a/drivers/pci/msi.c
+>> +++ b/drivers/pci/msi.c
+>> @@ -685,7 +685,6 @@ static void msix_program_entries(struct pci_dev *dev,
+>>  						PCI_MSIX_ENTRY_VECTOR_CTRL;
+>>  
+>>  		entries[i].vector = entry->irq;
+>> -		irq_set_msi_desc(entry->irq, entry);
+>>  		entry->masked = readl(entry->mask_base + offset);
+>>  		msix_mask_irq(entry, 1);
+>>  		i++;
+>> -- 
+>> 1.7.10.4
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
 
-Guessing there are no objections to this patch and the diff? Can we
-please merge this upstream?
 
-Thanks,
-Ashwin
+-- 
+Thanks!
+Yijing
 
->
-> --------------------8<-----------------------
->
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 0006fc3..592c6fa 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -130,7 +130,7 @@ EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
->   */
->  static bool pcc_tx_done(struct mbox_chan *chan)
->  {
-> -    struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-> +    struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
->      struct acpi_pcct_shared_memory *generic_comm_base =
->          (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
->      u16 cmd_delay = pcct_ss->min_turnaround_time;
-> @@ -182,7 +182,7 @@ static int get_subspace_id(struct mbox_chan *chan)
->   */
->  static int pcc_send_data(struct mbox_chan *chan, void *data)
->  {
-> -    struct acpi_pcct_subspace *pcct_ss = chan->con_priv;
-> +    struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
->      struct acpi_pcct_shared_memory *generic_comm_base =
->          (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
->      struct acpi_generic_address doorbell;
-> @@ -191,14 +191,12 @@ static int pcc_send_data(struct mbox_chan *chan,
-> void *data)
->      u64 doorbell_write;
->      u16 cmd = *(u16 *) data;
->      u16 ss_idx = -1;
-> -    int ret = 0;
->
->      ss_idx = get_subspace_id(chan);
->
->      if (ss_idx < 0) {
->          pr_err("Invalid Subspace ID from PCC client\n");
-> -        ret = -EINVAL;
-> -        goto out_err;
-> +        return -EINVAL;
->      }
->
->      doorbell = pcct_ss->doorbell_register;
-> @@ -219,8 +217,7 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
->      acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
->              &doorbell);
->
-> -out_err:
-> -    return ret;
-> +    return 0;
->  }
->
->  static struct mbox_chan_ops pcc_chan_ops = {
-> @@ -241,12 +238,12 @@ static struct mbox_chan_ops pcc_chan_ops = {
->  static int parse_pcc_subspace(struct acpi_subtable_header *header,
->          const unsigned long end)
->  {
-> -    struct acpi_pcct_subspace *pcct_ss;
-> +    struct acpi_pcct_hw_reduced *pcct_ss;
->
->      if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
-> -        pcct_ss = (struct acpi_pcct_subspace *) header;
-> +        pcct_ss = (struct acpi_pcct_hw_reduced *) header;
->
-> -        if (pcct_ss->header.type != ACPI_PCCT_TYPE_GENERIC_SUBSPACE) {
-> +        if (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
->              pr_err("Incorrect PCC Subspace type detected\n");
->              return -EINVAL;
->          }
-> @@ -287,7 +284,7 @@ static int __init acpi_pcc_probe(void)
->
->      count = acpi_table_parse_entries(ACPI_SIG_PCCT,
->              sizeof(struct acpi_table_pcct),
-> -            ACPI_PCCT_TYPE_GENERIC_SUBSPACE,
-> +            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
->              parse_pcc_subspace, MAX_PCC_SUBSPACES);
->
->      if (count <= 0) {
->
-> ---------------8------------------------
->
->
-> Thanks,
-> Ashwin
->
-> [1] - https://lkml.org/lkml/2014/10/21/660
-> [2] - https://lkml.org/lkml/2014/7/30/9
