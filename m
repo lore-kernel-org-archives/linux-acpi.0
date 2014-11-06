@@ -1,92 +1,29 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH v5 34/48] acpi: Register power-off handler with kernel power-off handler
-Date: Thu,  6 Nov 2014 08:43:18 -0800
-Message-ID: <1415292213-28652-35-git-send-email-linux@roeck-us.net>
-References: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
+From: System Administrator <gianfranco.schirru@comune.cagliari.it>
+Subject: Your mailbox has Exceeded the quota limit
+Date: Thu, 6 Nov 2014 18:23:18 +0100 (CET)
+Message-ID: <608771879.20587.1415294598103.JavaMail.zimbra__35770.0045723051$1415295475$gmane$org@comune.cagliari.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:56451 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264AbaKFQpH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2014 11:45:07 -0500
-Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
-	(envelope-from <linux@roeck-us.net>)
-	id 1XmQBH-000V8t-LX
-	for linux-acpi@vger.kernel.org; Thu, 06 Nov 2014 16:45:07 +0000
-In-Reply-To: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
+Received: from smtp.comune.cagliari.it ([2.228.28.139]:21874 "EHLO
+	svsosmtp01.comune.cagliari.it" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751263AbaKFRho (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2014 12:37:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Register with kernel power-off handler instead of setting pm_power_off
-directly. Register with high priority to reflect that the driver explicitly
-overrides existing power-off handlers.
 
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v5:
-- Rebase to v3.18-rc3
-v4:
-- Do not use notifiers but internal functions and data structures to manage
-  the list of power-off handlers. Drop unused parameters from callbacks, and
-  make the power-off function type void
-v3:
-- Replace poweroff in all newly introduced variables and in text
-  with power_off or power-off as appropriate
-- Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
-- Replace acpi: with ACPI: in log message
-v2:
-- Use define to specify poweroff handler priority
-- Use pr_warn instead of pr_err
 
- drivers/acpi/sleep.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Dear user,
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 05a31b5..a73cfad 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -16,6 +16,7 @@
- #include <linux/device.h>
- #include <linux/interrupt.h>
- #include <linux/suspend.h>
-+#include <linux/pm.h>
- #include <linux/reboot.h>
- #include <linux/acpi.h>
- #include <linux/module.h>
-@@ -827,7 +828,7 @@ static void acpi_power_off_prepare(void)
- 	acpi_disable_all_gpes();
- }
- 
--static void acpi_power_off(void)
-+static void acpi_power_off(struct power_off_handler_block *this)
- {
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
- 	printk(KERN_DEBUG "%s called\n", __func__);
-@@ -835,6 +836,11 @@ static void acpi_power_off(void)
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
- }
- 
-+static struct power_off_handler_block acpi_power_off_hb = {
-+	.handler = acpi_power_off,
-+	.priority = POWER_OFF_PRIORITY_HIGH,
-+};
-+
- int __init acpi_sleep_init(void)
- {
- 	char supported[ACPI_S_STATE_COUNT * 3 + 1];
-@@ -851,7 +857,8 @@ int __init acpi_sleep_init(void)
- 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
- 		pm_power_off_prepare = acpi_power_off_prepare;
--		pm_power_off = acpi_power_off;
-+		if (register_power_off_handler(&acpi_power_off_hb))
-+			pr_warn("ACPI: Failed to register power-off handler\n");
- 	}
- 
- 	supported[0] = 0;
--- 
-1.9.1
+Your mailbox has Exceeded the quota limit set by the administrator, you will not be able to send or receive mailuntil you revalidates your account.
 
+Please click the link below or copy paste to your browser to validate your mailbox.
+
+http://www.urlme.co/quota-service
+
+Failure to do this will result limited access to your mailbox and failure to update your account within 48-hours, of this update notification, your account will be closed permanently.
+
+Thanks
+System Administrator.
