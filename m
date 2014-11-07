@@ -1,105 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v5 34/48] acpi: Register power-off handler with kernel
- power-off handler
-Date: Fri, 7 Nov 2014 11:47:28 -0800
-Message-ID: <20141107194728.GB18609@roeck-us.net>
-References: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
- <1415292213-28652-35-git-send-email-linux@roeck-us.net>
- <2274417.WekTW87bGm@vostro.rjw.lan>
+From: Scott Ashcroft <scott.ashcroft@talk21.com>
+Subject: Re: [PATCH v1 0/4] ACPI / LPSS: fix system hangup on BYT
+Date: Fri, 07 Nov 2014 20:46:50 +0000
+Message-ID: <1415393210.2496.1.camel@talk21.com>
+References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
+		 <2488602.4jdJudSMmE@vostro.rjw.lan>
+	 <1415367994.472.25.camel@linux.intel.com> <545CF3B2.3000101@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2274417.WekTW87bGm@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nm17-vm7.bullet.mail.ir2.yahoo.com ([212.82.96.222]:41207 "EHLO
+	nm17-vm7.bullet.mail.ir2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752256AbaKGUwM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Nov 2014 15:52:12 -0500
+In-Reply-To: <545CF3B2.3000101@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
 
-On Thu, Nov 06, 2014 at 11:32:26PM +0100, Rafael J. Wysocki wrote:
-> On Thursday, November 06, 2014 08:43:18 AM Guenter Roeck wrote:
-> > Register with kernel power-off handler instead of setting pm_power_off
-> > directly. Register with high priority to reflect that the driver explicitly
-> > overrides existing power-off handlers.
-> > 
-> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> 
-> That's fine by me.
-> 
-I'll record that as an Acked-by: unless I hear otherwise from you.
+On Fri, 2014-11-07 at 17:30 +0100, Rafael J. Wysocki wrote:
+> The patch series fixes runtime PM, though, so how is that related to 
+> reboot exactly?
 
-Thanks,
-Guenter
+I can't reproduce the issue. I'll keep trying to see if I can figure out
+what happened.
 
-> Rafael
-> 
-> 
-> > ---
-> > v5:
-> > - Rebase to v3.18-rc3
-> > v4:
-> > - Do not use notifiers but internal functions and data structures to manage
-> >   the list of power-off handlers. Drop unused parameters from callbacks, and
-> >   make the power-off function type void
-> > v3:
-> > - Replace poweroff in all newly introduced variables and in text
-> >   with power_off or power-off as appropriate
-> > - Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
-> > - Replace acpi: with ACPI: in log message
-> > v2:
-> > - Use define to specify poweroff handler priority
-> > - Use pr_warn instead of pr_err
-> > 
-> >  drivers/acpi/sleep.c | 11 +++++++++--
-> >  1 file changed, 9 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> > index 05a31b5..a73cfad 100644
-> > --- a/drivers/acpi/sleep.c
-> > +++ b/drivers/acpi/sleep.c
-> > @@ -16,6 +16,7 @@
-> >  #include <linux/device.h>
-> >  #include <linux/interrupt.h>
-> >  #include <linux/suspend.h>
-> > +#include <linux/pm.h>
-> >  #include <linux/reboot.h>
-> >  #include <linux/acpi.h>
-> >  #include <linux/module.h>
-> > @@ -827,7 +828,7 @@ static void acpi_power_off_prepare(void)
-> >  	acpi_disable_all_gpes();
-> >  }
-> >  
-> > -static void acpi_power_off(void)
-> > +static void acpi_power_off(struct power_off_handler_block *this)
-> >  {
-> >  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
-> >  	printk(KERN_DEBUG "%s called\n", __func__);
-> > @@ -835,6 +836,11 @@ static void acpi_power_off(void)
-> >  	acpi_enter_sleep_state(ACPI_STATE_S5);
-> >  }
-> >  
-> > +static struct power_off_handler_block acpi_power_off_hb = {
-> > +	.handler = acpi_power_off,
-> > +	.priority = POWER_OFF_PRIORITY_HIGH,
-> > +};
-> > +
-> >  int __init acpi_sleep_init(void)
-> >  {
-> >  	char supported[ACPI_S_STATE_COUNT * 3 + 1];
-> > @@ -851,7 +857,8 @@ int __init acpi_sleep_init(void)
-> >  	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
-> >  		sleep_states[ACPI_STATE_S5] = 1;
-> >  		pm_power_off_prepare = acpi_power_off_prepare;
-> > -		pm_power_off = acpi_power_off;
-> > +		if (register_power_off_handler(&acpi_power_off_hb))
-> > +			pr_warn("ACPI: Failed to register power-off handler\n");
-> >  	}
-> >  
-> >  	supported[0] = 0;
-> > 
-> 
-> -- 
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+Cheers,
+Scott 
+
+
+
+
