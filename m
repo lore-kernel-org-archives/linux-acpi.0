@@ -1,48 +1,32 @@
-From: Scott Ashcroft <scott.ashcroft@talk21.com>
-Subject: Re: [PATCH v1 0/4] ACPI / LPSS: fix system hangup on BYT
-Date: Fri, 7 Nov 2014 08:46:14 +0000
-Message-ID: <1415349974.41658.YahooMailNeo@web87404.mail.ir2.yahoo.com>
-References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com> <2488602.4jdJudSMmE@vostro.rjw.lan>
-Reply-To: Scott Ashcroft <scott.ashcroft@talk21.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch Part2 v5 21/31] PCI/MSI: Enhance core to support hierarchy
+ irqdomain
+Date: Fri, 7 Nov 2014 11:40:12 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1411071139260.3789@nanos>
+References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com> <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm31-vm1.bullet.mail.ne1.yahoo.com ([98.138.229.41]:53290 "EHLO
-	nm31-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751302AbaKGItG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Nov 2014 03:49:06 -0500
-In-Reply-To: <2488602.4jdJudSMmE@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradea
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>
 
+On Thu, 6 Nov 2014, Jiang Liu wrote:
 
+> Enhance PCI MSI core to support hierarchy irqdomain, so the common
+> code could be shared among architectures.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+> Hi Thomas,
+> 	These changes are a temporary solution, I'm working on another
+> patch set which will refine these interfaces, especially kill 
+> arch_msi_irq_domain_{set|get}_hwirq().
 
-> I'm essentially fine with this series, but I'm not sure what the stat=
-us of
-> the Scott's testing is.=A0 Can you please tell me and Scott what in p=
-articular
-> you wanted him to test?
+Ok. Please don't forget the irq_chip change :)
 
+Thanks,
 
-Initial testing has not gone well.
-The laptop does power down but it appears not to dismount the file syst=
-ems cleanly.
-Running 'init 0' looks like it is doing a shutdown but the last thing i=
-t logs=20
-is something to do with ntp rather than the normal flushing disks etc.
-It looks like things are powered down too soon.
-
-I'll try and get some logs, tonight
-Are there any debug options I should turn on?
-
-Cheers,
-Scott
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	tglx
