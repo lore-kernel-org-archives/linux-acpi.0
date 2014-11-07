@@ -1,31 +1,30 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 2/4] x86, acpi, pci: Isolate new PCI mmconfig entry insertion.
-Date: Fri, 07 Nov 2014 15:09:10 +0100
-Message-ID: <1927317.6tJuq4S5Om@wuerfel>
-References: <1415366876-30811-1-git-send-email-tomasz.nowicki@linaro.org> <1415366876-30811-3-git-send-email-tomasz.nowicki@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC PATCH 3/4] arm64, acpi, pci: Add arch specific functions for mmconfig driver.
+Date: Fri, 07 Nov 2014 15:12:45 +0100
+Message-ID: <16660879.6KxQndPqBW@wuerfel>
+References: <1415366876-30811-1-git-send-email-tomasz.nowicki@linaro.org> <1415366876-30811-4-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415366876-30811-3-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.24]:62964 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971AbaKGOOn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Nov 2014 09:14:43 -0500
+In-Reply-To: <1415366876-30811-4-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linaro-acpi@lists.linaro.org
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 07 November 2014 14:27:54 Tomasz Nowicki wrote:
-> Add special pci_mmcfg_insert_lock mutex since pci_mmcfg_lock was moved
-> to common file. No functional changes.
+On Friday 07 November 2014 14:27:55 Tomasz Nowicki wrote:
+> These calls allow to map/unmap PCI config space ranges (which are specified in
+> MMCFG ACPI table).
 > 
 > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > 
 
-What is the new lock protecting against? You no longer have a mutual
-exclusion with the other code, which looks like it is a functional
-change, and also incorrect.
-
-It also sounds like the code was broken after the first patch and
-you need this one to make it compile again. You can't do that, and
-instead need to change the locking rules first.
+Nothing in this patch looks arm64 specific, and most of it looks like a
+copy of the x86 code.
 
 	Arnd
