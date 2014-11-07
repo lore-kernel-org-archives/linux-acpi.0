@@ -1,48 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Scott Ashcroft <scott.ashcroft@talk21.com>
 Subject: Re: [PATCH v1 0/4] ACPI / LPSS: fix system hangup on BYT
-Date: Fri, 07 Nov 2014 01:37:32 +0100
-Message-ID: <2488602.4jdJudSMmE@vostro.rjw.lan>
-References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Date: Fri, 7 Nov 2014 08:46:14 +0000
+Message-ID: <1415349974.41658.YahooMailNeo@web87404.mail.ir2.yahoo.com>
+References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com> <2488602.4jdJudSMmE@vostro.rjw.lan>
+Reply-To: Scott Ashcroft <scott.ashcroft@talk21.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54755 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751063AbaKGAQr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Nov 2014 19:16:47 -0500
-In-Reply-To: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from nm31-vm1.bullet.mail.ne1.yahoo.com ([98.138.229.41]:53290 "EHLO
+	nm31-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751302AbaKGItG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Nov 2014 03:49:06 -0500
+In-Reply-To: <2488602.4jdJudSMmE@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Scott Ashcroft <scott.ashcroft@talk21.com>, Mika Westerberg <mika.westerberg@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>
 
-On Wednesday, November 05, 2014 06:34:44 PM Andy Shevchenko wrote:
-> The Intel BayTrail based machines have different configuration of the Low Power
-> Sub System (LPSS) IP. The LPSS contains few host controllers, such as I2C, SPI,
-> I2C and common DMA IP to serve DMA transfers. Unfortunately the DMA IP has no
-> power control accessible for software / OS. It goes automatically down whenever
-> last device goes to sleep and turned on when one of them is turned on. When
-> user tries to access the powered off DMA device the system hangs.
-> 
-> This patch series addressing the issue. Rafael suggested to create a 'proxy'
-> device which makes DMA to be powered on on the certain points of time.
-> 
-> Vinod, we would like to push this via Rafael's tree, so, please Ack or NAck the
-> patch 4/4.
-> 
-> Scott, do you have a chance to test this patch series against last linux-pm
-> tree on HP laptops? I would appreciate your Tested-by tag.
-> 
-> Andy Shevchenko (4):
->   ACPI / LPSS: add all LPSS devices to the specific power domain
->   ACPI / LPSS: allow to use specific PM domain during ->probe()
->   ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA
->   dmaengine: dw: enable runtime PM
 
-I'm essentially fine with this series, but I'm not sure what the status of
-the Scott's testing is.  Can you please tell me and Scott what in particular
-you wanted him to test?
 
-Rafael
+> I'm essentially fine with this series, but I'm not sure what the stat=
+us of
+> the Scott's testing is.=A0 Can you please tell me and Scott what in p=
+articular
+> you wanted him to test?
 
+
+Initial testing has not gone well.
+The laptop does power down but it appears not to dismount the file syst=
+ems cleanly.
+Running 'init 0' looks like it is doing a shutdown but the last thing i=
+t logs=20
+is something to do with ntp rather than the normal flushing disks etc.
+It looks like things are powered down too soon.
+
+I'll try and get some logs, tonight
+Are there any debug options I should turn on?
+
+Cheers,
+Scott
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
