@@ -1,49 +1,49 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [RFC PATCH V2] ACPI: Add _DEP(Operation Region Dependencies)
- support to fix battery issue on the Asus T100TA
-Date: Fri, 7 Nov 2014 13:05:47 +0200
-Message-ID: <20141107110547.GT1618@lahna.fi.intel.com>
-References: <1414422584-2638-1-git-send-email-tianyu.lan@intel.com>
- <7320898.JB9z5hUzdG@vostro.rjw.lan>
- <20141106061952.GC1618@lahna.fi.intel.com>
- <1576552.2oedNFkf9R@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1576552.2oedNFkf9R-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [RFC PATCH 0/4] MMCFG refactoring + PCI ACPI probing for ARM64
+Date: Fri,  7 Nov 2014 14:27:52 +0100
+Message-ID: <1415366876-30811-1-git-send-email-tomasz.nowicki@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 07, 2014 at 12:00:34AM +0100, Rafael J. Wysocki wrote:
-> > So if we have a device, like SDHB above (SDIO controller), that needs
-> > GPIOs for powering the SDIO card and that is done by using GPIO
-> > operation regions how do we ensure that the GPIO controller driver is
-> > there?
-> > 
-> > I think the answer is that we just make sure the the GPIO driver is
-> > there before anything that is going to use it. E.g make it
-> > subsys_initcall() or so?
-> 
-> The current approach, which arguably is lame, has been to (1) compile in
-> all drivers that *may* be depended on (like all drviers registering operation
-> region handlers) and then (2) trick the devices to be registered in the right
-> order.
+The patch set can be break down into two logic parts:
+1. patch 1,2 - MMCONFIG code refacoring. MMCFG ACPI table has no arch
+dependencies so it can be used across other architectures.
+2. patch 3,4 aim for PCI ACPI probing on ARM64
 
-Right, I kind of expected that it be the case :-/
- 
-> I'd rather have a more robust mechanism than that, but so far no one has
-> proposed anything remotely usable.
-> 
-> As far as _DEP is concerned, it seems that in *practice* it is used to
-> reflect functional dependencies between devices rather than the operation
-> regions thing only (as specified).  In that case we may decide to follow
-> the practice rather than the spec (and move to update the spec to reflect
-> the practice at the same time), but that requires some consideration.
+Patches tested on Cavium ThunderX simulator with the latest ACPI ARM64 core set:
+http://www.serverphorums.com/read.php?12,997228
 
-Indeed it looks very much that it contains more than just operation
-depedencies. In T100 for example there is this PEPD device that does not
-have any operation regions and it is still in the _DEP list of the SDIO
-controller device.
+Tomasz Nowicki (4):
+  x86, acpi, pci: Move arch-agnostic MMCFG code out of arch/x86/
+    directory.
+  x86, acpi, pci: Isolate new PCI mmconfig entry insertion.
+  arm64, acpi, pci: Add arch specific functions for mmconfig driver.
+  arm64, acpi, pci: Provide arch-specific calls for PCI host bridge
+    dirver (PNP0A03).
+
+ arch/arm64/Kconfig             |   3 +
+ arch/arm64/include/asm/pci.h   |   8 +
+ arch/arm64/kernel/Makefile     |   1 +
+ arch/arm64/kernel/mmconfig.c   |  69 +++++++
+ arch/arm64/kernel/pci.c        | 401 +++++++++++++++++++++++++++++++++++++++--
+ arch/x86/include/asm/pci_x86.h |  29 ---
+ arch/x86/pci/acpi.c            |   1 +
+ arch/x86/pci/init.c            |   1 +
+ arch/x86/pci/mmconfig-shared.c | 176 +-----------------
+ arch/x86/pci/mmconfig_32.c     |   1 +
+ arch/x86/pci/mmconfig_64.c     |   1 +
+ drivers/acpi/Makefile          |   1 +
+ drivers/acpi/bus.c             |   1 +
+ drivers/acpi/mmconfig.c        | 204 +++++++++++++++++++++
+ include/linux/mmconfig.h       |  57 ++++++
+ include/linux/pci.h            |   8 -
+ 16 files changed, 738 insertions(+), 224 deletions(-)
+ create mode 100644 arch/arm64/kernel/mmconfig.c
+ create mode 100644 drivers/acpi/mmconfig.c
+ create mode 100644 include/linux/mmconfig.h
+
+-- 
+1.9.1
