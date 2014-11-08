@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part3 v3 31/38] x86, irq: Change functions only used in vector.c as static
-Date: Sun,  9 Nov 2014 02:13:31 +0800
-Message-ID: <1415470418-10874-32-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part3 v3 32/38] x86, irq: Kill function apic_set_affinity()
+Date: Sun,  9 Nov 2014 02:13:32 +0800
+Message-ID: <1415470418-10874-33-git-send-email-jiang.liu@linux.intel.com>
 References: <1415470418-10874-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1415470418-10874-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,67 +10,85 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Function {assign|clear}_irq_vector() and apic_retrigger_irq() are only
-used in file vector.c, so change them as static.
+Now there's no user of apic_set_affinity(), so kill it.
+Also rename vector_set_affinity() to apic_set_affinity() for consistency.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/include/asm/hw_irq.h |    3 ---
- arch/x86/kernel/apic/vector.c |    7 ++++---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/hw_irq.h |    2 --
+ arch/x86/kernel/apic/vector.c |   40 +++-------------------------------------
+ 2 files changed, 3 insertions(+), 39 deletions(-)
 
 diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 00d6143affe7..dee2069d7c19 100644
+index dee2069d7c19..c7a616c8f9a1 100644
 --- a/arch/x86/include/asm/hw_irq.h
 +++ b/arch/x86/include/asm/hw_irq.h
-@@ -186,8 +186,6 @@ extern struct irq_cfg *irq_cfg(unsigned int irq);
- extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
- extern void lock_vector_lock(void);
- extern void unlock_vector_lock(void);
--extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
--extern void clear_irq_vector(int irq, struct irq_cfg *cfg);
- extern void setup_vector_irq(int cpu);
- #ifdef CONFIG_SMP
- extern void send_cleanup_vector(struct irq_cfg *);
-@@ -197,7 +195,6 @@ static inline void send_cleanup_vector(struct irq_cfg *c) { }
- static inline void irq_complete_move(struct irq_cfg *c) { }
+@@ -196,8 +196,6 @@ static inline void irq_complete_move(struct irq_cfg *c) { }
  #endif
  
--extern int apic_retrigger_irq(struct irq_data *data);
  extern void apic_ack_edge(struct irq_data *data);
- extern int apic_set_affinity(struct irq_data *data, const struct cpumask *mask,
- 			     unsigned int *dest_id);
+-extern int apic_set_affinity(struct irq_data *data, const struct cpumask *mask,
+-			     unsigned int *dest_id);
+ #else	/*  CONFIG_X86_LOCAL_APIC */
+ static inline void lock_vector_lock(void) {}
+ static inline void unlock_vector_lock(void) {}
 diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 6df30d713f67..4fa940aa24c1 100644
+index 4fa940aa24c1..d56b4611c75a 100644
 --- a/arch/x86/kernel/apic/vector.c
 +++ b/arch/x86/kernel/apic/vector.c
-@@ -185,7 +185,8 @@ next:
- 	return err;
+@@ -463,42 +463,8 @@ void apic_ack_edge(struct irq_data *data)
+ 	ack_APIC_irq();
  }
  
--int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
-+static int assign_irq_vector(int irq, struct irq_cfg *cfg,
-+			     const struct cpumask *mask)
+-/*
+- * Either sets data->affinity to a valid value, and returns
+- * ->cpu_mask_to_apicid of that in dest_id, or returns -1 and
+- * leaves data->affinity untouched.
+- */
+-int apic_set_affinity(struct irq_data *data, const struct cpumask *mask,
+-		      unsigned int *dest_id)
+-{
+-	struct irq_cfg *cfg = irqd_cfg(data);
+-	unsigned int irq = data->irq;
+-	int err;
+-
+-	if (!config_enabled(CONFIG_SMP))
+-		return -EPERM;
+-
+-	if (!cpumask_intersects(mask, cpu_online_mask))
+-		return -EINVAL;
+-
+-	err = assign_irq_vector(irq, cfg, mask);
+-	if (err)
+-		return err;
+-
+-	err = apic->cpu_mask_to_apicid_and(mask, cfg->domain, dest_id);
+-	if (err) {
+-		if (assign_irq_vector(irq, cfg, data->affinity))
+-			pr_err("Failed to recover vector for irq %d\n", irq);
+-		return err;
+-	}
+-
+-	cpumask_copy(data->affinity, mask);
+-
+-	return 0;
+-}
+-
+-static int vector_set_affinity(struct irq_data *irq_data,
+-			       const struct cpumask *dest, bool force)
++static int apic_set_affinity(struct irq_data *irq_data,
++			     const struct cpumask *dest, bool force)
  {
  	int err;
- 	unsigned long flags;
-@@ -196,7 +197,7 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
- 	return err;
- }
+ 	int irq = irq_data->irq;
+@@ -524,7 +490,7 @@ static int vector_set_affinity(struct irq_data *irq_data,
  
--void clear_irq_vector(int irq, struct irq_cfg *cfg)
-+static void clear_irq_vector(int irq, struct irq_cfg *cfg)
- {
- 	int cpu, vector;
- 	unsigned long flags;
-@@ -441,7 +442,7 @@ void setup_vector_irq(int cpu)
- 	__setup_vector_irq(cpu);
- }
+ static struct irq_chip vector_chip = {
+ 	.irq_ack = apic_ack_edge,
+-	.irq_set_affinity = vector_set_affinity,
++	.irq_set_affinity = apic_set_affinity,
+ 	.irq_retrigger = apic_retrigger_irq,
+ };
  
--int apic_retrigger_irq(struct irq_data *data)
-+static int apic_retrigger_irq(struct irq_data *data)
- {
- 	struct irq_cfg *cfg = irqd_cfg(data);
- 	unsigned long flags;
 -- 
 1.7.10.4
