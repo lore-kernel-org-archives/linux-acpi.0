@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part3 v3 16/38] x86, irq: Kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
-Date: Sun,  9 Nov 2014 02:13:16 +0800
-Message-ID: <1415470418-10874-17-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part3 v3 17/38] x86: Clean up unused forward declarations in x86_init.h
+Date: Sun,  9 Nov 2014 02:13:17 +0800
+Message-ID: <1415470418-10874-18-git-send-email-jiang.liu@linux.intel.com>
 References: <1415470418-10874-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1415470418-10874-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,72 +10,34 @@ To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@lin
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There's no user of irq_alloc_hwirqs(), irq_alloc_hwirq(), irq_free_hwirqs()
-and irq_free_hwirq() anymore, so kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ and
-related code.
-
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/Kconfig              |    1 -
- arch/x86/kernel/apic/vector.c |   34 ----------------------------------
- 2 files changed, 35 deletions(-)
+ arch/x86/include/asm/x86_init.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index a3675e4f4342..b83ab49c35a7 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -882,7 +882,6 @@ config X86_UP_IOAPIC
- config X86_LOCAL_APIC
- 	def_bool y
- 	depends on X86_64 || SMP || X86_32_NON_STANDARD || X86_UP_APIC || PCI_MSI
--	select GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
- 	select IRQ_DOMAIN
- 	select IRQ_DOMAIN_HIERARCHY
- 	select PCI_MSI_IRQ_DOMAIN if PCI_MSI
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 2590a4b4179d..1b8e0cdfbdd1 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -660,40 +660,6 @@ void irq_force_complete_move(int irq)
- }
- #endif
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index fa6b1b5128ee..3755cd2bbb94 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -171,7 +171,6 @@ struct x86_platform_ops {
+ };
  
--/*
-- * Dynamic irq allocate and deallocation. Should be replaced by irq domains!
-- */
--int arch_setup_hwirq(unsigned int irq, int node)
--{
--	struct irq_cfg *cfg;
--	unsigned long flags;
--	int ret;
+ struct pci_dev;
+-struct msi_msg;
+ struct msi_desc;
+ 
+ struct x86_msi_ops {
+@@ -183,11 +182,6 @@ struct x86_msi_ops {
+ 	u32 (*msix_mask_irq)(struct msi_desc *desc, u32 flag);
+ };
+ 
+-struct IO_APIC_route_entry;
+-struct io_apic_irq_attr;
+-struct irq_data;
+-struct cpumask;
 -
--	cfg = alloc_irq_cfg(node);
--	if (!cfg)
--		return -ENOMEM;
--
--	raw_spin_lock_irqsave(&vector_lock, flags);
--	ret = __assign_irq_vector(irq, cfg, apic->target_cpus());
--	raw_spin_unlock_irqrestore(&vector_lock, flags);
--
--	if (!ret)
--		irq_set_chip_data(irq, cfg);
--	else
--		free_irq_cfg(cfg);
--	return ret;
--}
--
--void arch_teardown_hwirq(unsigned int irq)
--{
--	struct irq_cfg *cfg = irq_cfg(irq);
--
--	free_remapped_irq(irq);
--	clear_irq_vector(irq, cfg);
--	irq_set_chip_data(irq, NULL);
--	free_irq_cfg(cfg);
--}
--
- static void __init print_APIC_field(int base)
- {
- 	int i;
+ struct x86_io_apic_ops {
+ 	void		(*init)   (void);
+ 	unsigned int	(*read)   (unsigned int apic, unsigned int reg);
 -- 
 1.7.10.4
