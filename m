@@ -1,72 +1,113 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part3 v3 38/38] x86, irq: Add kernel parameter vector_alloc to set CPU vector allocation policy
-Date: Sun,  9 Nov 2014 02:13:38 +0800
-Message-ID: <1415470418-10874-39-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part3 v3 08/38] x86, irq: Introduce helper functions to support hierarchy irqdomain for IOAPIC
+Date: Sun,  9 Nov 2014 02:13:08 +0800
+Message-ID: <1415470418-10874-9-git-send-email-jiang.liu@linux.intel.com>
 References: <1415470418-10874-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1415470418-10874-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jonathan Corbet <corbet@lwn.net>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>, linux-doc@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Parameter vector_alloc should be set to an integer with:
-bit 0:	enable allocating CPU vector from CPUs on device local node.
-	That's to allocate from cpumask_of_node(irq_data->node).
-bit 1: enable the default policy, which is to allocate from
-       apic->target_cpus().
-
-When allocating vectors, it tries all enabled policies from lower bit
-position to higher bit position.
-
-This option could be use to optimize interrupt distribution on large
-system such as NumaChip etc.
+Introduce several helper functions, which will be used to enable
+hierarchy irqdomain for IOAPIC.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Daniel J Blueman <daniel@numascale.com>
 ---
- Documentation/kernel-parameters.txt |    6 ++++++
- arch/x86/kernel/apic/vector.c       |   11 +++++++++++
- 2 files changed, 17 insertions(+)
+ arch/x86/kernel/apic/io_apic.c |   59 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 4c81a860cc2b..a175c5016954 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -3709,6 +3709,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 	vector=		[IA-64,SMP]
- 			vector=percpu: enable percpu vector domain
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index b2618d48d572..721be8ce77c8 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -67,6 +67,8 @@
+ #define for_each_irq_pin(entry, head) \
+ 	list_for_each_entry(entry, &head, list)
  
-+	vector_alloc=	[x86,SMP]
-+			vector_alloc=policy: policy is a bitmap, bit 0
-+			for allocating CPU vector from CPUs on device local
-+			node; bit 1 for the default policy to allocating from
-+			apic->target_cpus(). All higher bits are reserved.
++int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
 +
- 	video=		[FB] Frame buffer configuration
- 			See Documentation/fb/modedb.txt.
+ /*
+  *      Is the SiS APIC rmw bug present ?
+  *      -1 = don't know, 0 = no, 1 = yes
+@@ -82,6 +84,7 @@ struct mp_chip_data {
+ 	struct IO_APIC_route_entry entry;
+ 	int trigger;
+ 	int polarity;
++	u32 count;
+ 	bool isa_irq;
+ };
  
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index a3f640d34b1e..be95846643bf 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -79,6 +79,17 @@ void set_vector_alloc_policy(unsigned int policy)
- 		x86_vector_alloc_policy = policy | X86_VECTOR_POL_CALLER;
+@@ -945,6 +948,42 @@ void ioapic_set_alloc_attr(struct irq_alloc_info *info, int node,
+ 	info->ioapic_valid = 1;
  }
  
-+static int __init apic_parse_vector_policy(char *str)
++static void ioapic_copy_alloc_attr(struct irq_alloc_info *dst,
++				   struct irq_alloc_info *src,
++				   u32 gsi, int ioapic_idx, int pin)
 +{
-+	int policy;
++	int trigger, polarity;
 +
-+	if (get_option(&str, &policy) == 1)
-+		set_vector_alloc_policy(policy);
-+
-+	return 1;
++	copy_irq_alloc_info(dst, src);
++	dst->type = X86_IRQ_ALLOC_TYPE_IOAPIC;
++	dst->ioapic_id = mpc_ioapic_id(ioapic_idx);
++	dst->ioapic_pin = pin;
++	dst->ioapic_valid = 1;
++	if (src && src->ioapic_valid) {
++		dst->ioapic_node = src->ioapic_node;
++		dst->ioapic_trigger = src->ioapic_trigger;
++		dst->ioapic_polarity = src->ioapic_polarity;
++	} else {
++		dst->ioapic_node = NUMA_NO_NODE;
++		if (acpi_get_override_irq(gsi, &trigger, &polarity) >= 0) {
++			dst->ioapic_trigger = trigger;
++			dst->ioapic_polarity = polarity;
++		} else {
++			/*
++			 * PCI interrupts are always polarity one level
++			 * triggered.
++			 */
++			dst->ioapic_trigger = 1;
++			dst->ioapic_polarity = 1;
++		}
++	}
 +}
-+__setup("vector_alloc=", apic_parse_vector_policy);
 +
- static struct apic_chip_data *alloc_apic_chip_data(int node)
++static int ioapic_alloc_attr_node(struct irq_alloc_info *info)
++{
++	return (info && info->ioapic_valid) ? info->ioapic_node : NUMA_NO_NODE;
++}
++
+ static void mp_register_handler(unsigned int irq, unsigned long trigger)
  {
- 	struct apic_chip_data *data;
+ 	irq_flow_handler_t hdl;
+@@ -962,6 +1001,26 @@ static void mp_register_handler(unsigned int irq, unsigned long trigger)
+ 	__irq_set_handler(irq, hdl, 0, fasteoi ? "fasteoi" : "edge");
+ }
+ 
++static bool mp_check_pin_attr(int irq, struct irq_alloc_info *info)
++{
++	struct mp_chip_data *data = irq_get_chip_data(irq);
++
++	/*
++	 * setup_IO_APIC_irqs() programs all legacy IRQs with default trigger
++	 * and polarity attirbutes. So allow the first user to reprogram the
++	 * pin with real trigger and polarity attributes.
++	 */
++	if (irq < nr_legacy_irqs() && data->count == 1) {
++		if (info->ioapic_trigger != data->trigger)
++			mp_register_handler(irq, data->trigger);
++		data->entry.trigger = data->trigger = info->ioapic_trigger;
++		data->entry.polarity = data->polarity = info->ioapic_polarity;
++	}
++
++	return data->trigger == info->ioapic_trigger &&
++	       data->polarity == info->ioapic_polarity;
++}
++
+ static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin,
+ 				 struct irq_alloc_info *info)
+ {
 -- 
 1.7.10.4
