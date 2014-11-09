@@ -1,138 +1,59 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part2 v5 21/31] PCI/MSI: Enhance core to support hierarchy
- irqdomain
-Date: Sun, 09 Nov 2014 15:15:04 +0800
-Message-ID: <545F1478.3040808@linux.intel.com>
-References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com> <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com> <545EED04.4090008@amd.com>
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: [PATCH v2] ACPI/osl: speedup grace period in acpi_os_map_cleanup
+Date: Sun, 09 Nov 2014 13:53:37 +0400
+Message-ID: <20141109105337.4952.36899.stgit@zurg>
+References: <20141108094717.9388.34638.stgit@zurg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <545EED04.4090008@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:47602 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431AbaKIKxm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Nov 2014 05:53:42 -0500
+In-Reply-To: <20141108094717.9388.34638.stgit@zurg>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+Cc: Tom Boshoven <tomboshoven@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, x86@kernel.org, Josh Triplett <josh@joshtriplett.org>, Alexander Monakov <amonakov@gmail.com>
 
-On 2014/11/9 12:26, Suravee Suthikulpanit wrote:
-> Hi Gerry,
-> 
-> Please see my comments / questions below.
-> 
-> On 11/6/14 21:20, Jiang Liu wrote:
->> Enhance PCI MSI core to support hierarchy irqdomain, so the common
->> code could be shared among architectures.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> ---
->> Hi Thomas,
->>     These changes are a temporary solution, I'm working on another
->> patch set which will refine these interfaces, especially kill
->> arch_msi_irq_domain_{set|get}_hwirq().
->> Regards!
->> Gerry
-> 
-> Would the change includes the struct irqdomain_msi_data proposed by
-> Thomas here (https://lkml.org/lkml/2014/11/6/210)?
-Hi Suravee,
-	I'm working on another patch set which will refine the way to
-create irqdomain for MSI. I hope will solve all issues mentioned by
-Thomas. I will post that patch set as RFC within one or two days.
+ACPI maintains cache of ioremap regions to speed up operations and
+access to them from irq context where ioremap() calls aren't allowed.
+This code abuses synchronize_rcu() on unmap path for synchronization
+with fast-path in acpi_os_read/write_memory which uses this cache.
 
-> 
->> [...]
->> +static int msi_domain_alloc(struct irq_domain *domain, unsigned int
->> virq,
->> +                unsigned int nr_irqs, void *arg)
->> +{
->> +    int i, ret;
->> +    irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
->> +
->> +    if (irq_find_mapping(domain, hwirq) > 0)
->> +        return -EEXIST;
->> +
->> +    ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
->> +    if (ret < 0)
->> +        return ret;
->> +
-> 
-> When executing irq_domain_alloc_irqs_parent(), it triggers the following
-> warning message due to
-> 
->     WARN_ON(desc->irq_data.chip == &no_irq_chip)
-> 
-> ------------[ cut here ]------------
-> WARNING: CPU: 2 PID: 912 at kernel/irq/chip.c:734
-> __irq_set_handler+0x138/0x13c()
-> Modules linked in: mlx4_core(+) rtc_efi efivarfs
-> CPU: 2 PID: 912 Comm: modprobe Not tainted 3.18.0-rc3-p2v5+ #53
-> Call trace:
-> [<fffffe00000963d4>] dump_backtrace+0x0/0x16c
-> [<fffffe0000096550>] show_stack+0x10/0x1c
-> [<fffffe000067545c>] dump_stack+0x74/0x98
-> [<fffffe00000b205c>] warn_slowpath_common+0x84/0xac
-> [<fffffe00000b2148>] warn_slowpath_null+0x14/0x20
-> [<fffffe00000ed968>] __irq_set_handler+0x134/0x13c
-> [<fffffe000042af14>] gic_irq_domain_map+0x4c/0xac
-> [<fffffe000042afd4>] gic_irq_domain_alloc+0x60/0x88
-> [<fffffe000042b374>] gicv2m_domain_alloc+0x30/0xa8
-> [<fffffe00000efc1c>] __irq_domain_alloc_irqs+0x144/0x30c
-> [<fffffe000042b58c>] gicv2m_setup_msi_irq+0xc0/0x118
-> [<fffffe000044548c>] arch_setup_msi_irq+0x34/0x60
-> [<fffffe0000445544>] arch_setup_msi_irqs+0x50/0xb0
-> [<fffffe0000445e3c>] pci_enable_msix+0x310/0x39c
-> [<fffffe0000445efc>] pci_enable_msix_range+0x34/0x9c
-> ....
-> 
-> However, I think if we call irq_domain_set_hwirq_and_chip() in the
-> msi_create_irq_domain() as suggested by Thomas, that should also fix
-> this issue.
-We didn't trigger this warning on x86 because only the outer-most
-irqdomain will set irq flow handler. On ARM, the inner GIC domain
-will set irq flow handler, but the irq_data->chip for outer-most
-domain hasn't been set yet.
+Since v3.10 CPUs are allowed to enter idle state even if they have RCU
+callbacks queued, see commit c0f4dfd4f90f1667d234d21f15153ea09a2eaa66
+("rcu: Make RCU_FAST_NO_HZ take advantage of numbered callbacks").
+That change caused problems with nvidia proprietary driver which calls
+acpi_os_map/unmap_generic_address several times during initialization.
+Each unmap calls synchronize_rcu and adds significant delay. Totally
+initialization is slowed for a couple of seconds and that is enough to
+trigger timeout in hardware, gpu decides to "fell off the bus". Widely
+spread workaround is reducing "rcu_idle_gp_delay" from 4 to 1 jiffy.
 
-I'm still find a way out here. Maybe we need to relax the WARN_ON().
+This patch replaces synchronize_rcu() with synchronize_rcu_expedited()
+which is much faster.
 
-> 
->> +    for (i = 0; i < nr_irqs; i++) {
->> +        irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
->> +                          domain->host_data,
->> +                          (void *)(long)i);
->> +        __irq_set_handler(virq + i, handle_edge_irq, 0, "edge");
->> +    }
-> 
-> Is there are a way to specify other type of handler besides edge?
-Yes, the new patch set will address this requirement.
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Reported-and-tested-by: Alexander Monakov <amonakov@gmail.com>
+Cc: Tom Boshoven <tomboshoven@gmail.com>
+Link: https://devtalk.nvidia.com/default/topic/567297/linux/linux-3-10-driver-crash/
+---
+ drivers/acpi/osl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> 
->> [...]
->> +static void msi_domain_activate(struct irq_domain *domain,
->> +                struct irq_data *irq_data)
->> +{
->> +    struct msi_msg msg;
->> +
->> +    /*
->> +     * irq_data->chip_data is MSI/MSI-X offset.
->> +     * MSI-X message is written per-IRQ, the offset is always 0.
->> +     * MSI message denotes a contiguous group of IRQs, written for
->> 0th IRQ.
->> +     */
->> +    if (irq_data->chip_data)
->> +        return;
-> 
-> Actually, I am a bit confused with this comment here.  If you look at
-> "/drivers/pci/msi.c: arch_setup_msi_irq()", it calls
-> irq_set_chip_data(des->irq, chip) where chip is *msi_chip.
-> 
-> It looks like if the arch uses this API, it would conflict with what you
-> have here where the irq_data->chip_data would be not NULL at the logic
-> above, and would always return.
-Good point, it's work on x86, but will break ARM or other platforms.
-Will refine this part.
-Regards!
-Gerry
-> 
-> Thank you,
-> 
-> Suravee
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 9964f70..217713c 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -436,7 +436,7 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+ static void acpi_os_map_cleanup(struct acpi_ioremap *map)
+ {
+ 	if (!map->refcount) {
+-		synchronize_rcu();
++		synchronize_rcu_expedited();
+ 		acpi_unmap(map->phys, map->virt);
+ 		kfree(map);
+ 	}
+
