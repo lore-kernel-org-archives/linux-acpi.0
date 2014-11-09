@@ -1,312 +1,380 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Part4 v1 17/17] x86, htirq: Use common MSI code to manage Hypertransport interrupts
-Date: Sun,  9 Nov 2014 23:10:39 +0800
-Message-ID: <1415545839-28263-18-git-send-email-jiang.liu@linux.intel.com>
-References: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, x86@kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Sun, 9 Nov 2014 10:20:58 -0500
+Message-ID: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJe_ZhcjXD0B9x_dqK8KvpQBUUX7FKZcxGV2MPGjsq2A0DV6Rw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:41195 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbaKIPVA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Nov 2014 10:21:00 -0500
+Received: by mail-wi0-f169.google.com with SMTP id n3so7996911wiv.0
+        for <linux-acpi@vger.kernel.org>; Sun, 09 Nov 2014 07:20:58 -0800 (PST)
+In-Reply-To: <CAJe_ZhcjXD0B9x_dqK8KvpQBUUX7FKZcxGV2MPGjsq2A0DV6Rw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
 
-Hypertransport interrupt is a type of "Message Signalled Interrupt",
-so use common MSI code to manage it.
+Hi Jassi,
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/apic/htirq.c |  134 +++++++++++++++---------------------------
- drivers/pci/Kconfig          |    1 +
- drivers/pci/htirq.c          |   16 ++---
- include/linux/htirq.h        |    5 +-
- 4 files changed, 60 insertions(+), 96 deletions(-)
+On 9 November 2014 08:48, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+> On 7 November 2014 20:22, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>> +
+>> +/**
+>> + * pcc_mbox_request_channel - PCC clients call this function to
+>> + *             request a pointer to their PCC subspace, from which they
+>> + *             can get the details of communicating with the remote.
+>> + * @cl: Pointer to Mailbox client, so we know where to bind the
+>> + *             Channel.
+>> + * @index: The PCC Subspace index as parsed in the PCC client
+>> + *             ACPI package. This is used to lookup the array of PCC
+>> + *             subspaces as parsed by the PCC Mailbox controller.
+>> + *
+>> + * Return: Pointer to the Mailbox Channel if successful or
+>> + *             ERR_PTR.
+>> + */
+>> +struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
+>> +               int index)
+>> +{
+>> +       struct device *dev = pcc_mbox_ctrl.dev;
+>> +       struct mbox_chan *chan;
+>> +       unsigned long flags;
+>> +
+>> +       /*
+>> +        * Each PCC Subspace is a Mailbox Channel.
+>> +        * The PCC Clients get their PCC Subspace ID
+>> +        * from their own tables and pass it here.
+>> +        * This returns a pointer to the PCC subspace
+>> +        * for the Client to operate on.
+>> +        */
+>> +       chan = &pcc_mbox_chan[index];
+>> +
+>> +       if (!chan || chan->cl) {
+>> +               dev_err(dev, "%s: PCC mailbox not free\n", __func__);
+>> +               return ERR_PTR(-EBUSY);
+>> +       }
+>> +
+>> +       spin_lock_irqsave(&chan->lock, flags);
+>> +       chan->msg_free = 0;
+>> +       chan->msg_count = 0;
+>> +       chan->active_req = NULL;
+>> +       chan->cl = cl;
+>> +       init_completion(&chan->tx_complete);
+>> +
+>> +       if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+>> +               chan->txdone_method |= TXDONE_BY_ACK;
+>> +
+>> +       spin_unlock_irqrestore(&chan->lock, flags);
+>> +
+>> +       return chan;
+>> +}
+>> +EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+>
+> I have just sent out a patch https://lkml.org/lkml/2014/11/9/75 and
+> kept same people in CC.
+> That patch keeps the api same for DT and ACPI drivers.
 
-diff --git a/arch/x86/kernel/apic/htirq.c b/arch/x86/kernel/apic/htirq.c
-index b6503510f1af..230e37ab3948 100644
---- a/arch/x86/kernel/apic/htirq.c
-+++ b/arch/x86/kernel/apic/htirq.c
-@@ -17,37 +17,33 @@
- #include <linux/pci.h>
- #include <linux/htirq.h>
- #include <linux/irqdomain.h>
-+#include <linux/msi.h>
- #include <asm/hw_irq.h>
- #include <asm/apic.h>
- #include <asm/hypertransport.h>
- 
- static struct irq_domain *htirq_domain;
- 
--/*
-- * Hypertransport interrupt support
-- */
--static int
--ht_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
-+static void ht_irq_compose_msg(struct irq_data *data, struct msi_msg *msg)
- {
--	struct irq_data *parent = data->parent_data;
--	int ret;
--
--	ret = parent->chip->irq_set_affinity(parent, mask, force);
--	if (ret >= 0) {
--		struct msi_msg msg;
--		struct irq_cfg *cfg = irqd_cfg(data);
--
--		fetch_ht_irq_msg(data->irq, &msg);
--		msg.address_lo &= ~(HT_IRQ_LOW_VECTOR_MASK |
--				    HT_IRQ_LOW_DEST_ID_MASK);
--		msg.address_lo |= HT_IRQ_LOW_VECTOR(cfg->vector) |
--				  HT_IRQ_LOW_DEST_ID(cfg->dest_apicid);
--		msg.address_hi &= ~(HT_IRQ_HIGH_DEST_ID_MASK);
--		msg.address_hi |= HT_IRQ_HIGH_DEST_ID(cfg->dest_apicid);
--		write_ht_irq_msg(data->irq, &msg);
--	}
--
--	return ret;
-+	struct irq_cfg *cfg = irqd_cfg(data);
-+	struct ht_irq_cfg *ht_cfg = data->chip_data;
-+
-+	msg->address_hi = HT_IRQ_HIGH_DEST_ID(cfg->dest_apicid);
-+	msg->address_lo = HT_IRQ_LOW_BASE |
-+			  HT_IRQ_LOW_DEST_ID(cfg->dest_apicid) |
-+			  HT_IRQ_LOW_VECTOR(cfg->vector) |
-+			  HT_IRQ_LOW_RQEOI_EDGE;
-+	if (ht_cfg->masked)
-+		msg->address_lo |= HT_IRQ_LOW_IRQ_MASKED;
-+	if (apic->irq_dest_mode)
-+		msg->address_lo |= HT_IRQ_LOW_DM_LOGICAL;
-+	else
-+		msg->address_lo |= HT_IRQ_LOW_DM_PHYSICAL;
-+	if (apic->irq_delivery_mode == dest_LowestPrio)
-+		msg->address_lo |= HT_IRQ_LOW_MT_ARBITRATED;
-+	else
-+		msg->address_lo |= HT_IRQ_LOW_MT_FIXED;
- }
- 
- static struct irq_chip ht_irq_chip = {
-@@ -55,40 +51,34 @@ static struct irq_chip ht_irq_chip = {
- 	.irq_mask		= mask_ht_irq,
- 	.irq_unmask		= unmask_ht_irq,
- 	.irq_ack		= irq_chip_ack_parent,
--	.irq_set_affinity	= ht_set_affinity,
-+	.irq_set_affinity	= msi_domain_set_affinity,
- 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
-+	.irq_compose_msi_msg	= ht_irq_compose_msg,
-+	.irq_write_msi_msg	= write_ht_irq_msg,
- 	.flags			= IRQCHIP_SKIP_SET_WAKE,
- };
- 
--static int htirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
--			      unsigned int nr_irqs, void *arg)
-+static irq_hw_number_t ht_irq_get_hwirq(struct msi_domain_info *minfo,
-+					void *arg)
- {
--	struct ht_irq_cfg *ht_cfg;
- 	struct irq_alloc_info *info = arg;
--	struct pci_dev *dev;
--	irq_hw_number_t hwirq;
--	int ret;
-+	struct pci_dev *dev = info->ht_dev;
- 
--	if (nr_irqs > 1 || !info)
--		return -EINVAL;
--
--	dev = info->ht_dev;
--	hwirq = (info->ht_idx & 0xFF) |
-+	return (info->ht_idx & 0xFF) |
- 		PCI_DEVID(dev->bus->number, dev->devfn) << 8 |
- 		(pci_domain_nr(dev->bus) & 0xFFFFFFFF) << 24;
--	if (irq_find_mapping(domain, hwirq) > 0)
--		return -EEXIST;
-+}
-+
-+static int ht_irq_init(struct irq_domain *domain, struct msi_domain_info *minfo,
-+		       unsigned int virq, irq_hw_number_t hwirq, void *arg)
-+{
-+	struct ht_irq_cfg *ht_cfg;
-+	struct irq_alloc_info *info = arg;
- 
- 	ht_cfg = kmalloc(sizeof(*ht_cfg), GFP_KERNEL);
- 	if (!ht_cfg)
- 		return -ENOMEM;
- 
--	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, info);
--	if (ret < 0) {
--		kfree(ht_cfg);
--		return ret;
--	}
--
- 	/* Initialize msg to a value that will never match the first write. */
- 	ht_cfg->msg.address_lo = 0xffffffff;
- 	ht_cfg->msg.address_hi = 0xffffffff;
-@@ -96,58 +86,30 @@ static int htirq_domain_alloc(struct irq_domain *domain, unsigned int virq,
- 	ht_cfg->update = info->ht_update;
- 	ht_cfg->pos = info->ht_pos;
- 	ht_cfg->idx = 0x10 + (info->ht_idx * 2);
--	irq_domain_set_info(domain, virq, hwirq, &ht_irq_chip, ht_cfg,
-+	ht_cfg->masked = true;
-+	irq_domain_set_info(domain, virq, hwirq, minfo->chip, ht_cfg,
- 			    handle_edge_irq, NULL, "edge");
- 
- 	return 0;
- }
- 
--static void htirq_domain_free(struct irq_domain *domain, unsigned int virq,
--			      unsigned int nr_irqs)
-+static void ht_irq_free(struct irq_domain *domain, struct msi_domain_info *info,
-+			unsigned int virq)
- {
- 	struct irq_data *irq_data = irq_domain_get_irq_data(domain, virq);
- 
--	BUG_ON(nr_irqs != 1);
- 	kfree(irq_data->chip_data);
--	irq_domain_free_irqs_top(domain, virq, nr_irqs);
--}
--
--static void htirq_domain_activate(struct irq_domain *domain,
--				  struct irq_data *irq_data)
--{
--	struct msi_msg msg;
--	struct irq_cfg *cfg = irqd_cfg(irq_data);
--
--	msg.address_hi = HT_IRQ_HIGH_DEST_ID(cfg->dest_apicid);
--	msg.address_lo =
--		HT_IRQ_LOW_BASE |
--		HT_IRQ_LOW_DEST_ID(cfg->dest_apicid) |
--		HT_IRQ_LOW_VECTOR(cfg->vector) |
--		((apic->irq_dest_mode == 0) ?
--			HT_IRQ_LOW_DM_PHYSICAL :
--			HT_IRQ_LOW_DM_LOGICAL) |
--		HT_IRQ_LOW_RQEOI_EDGE |
--		((apic->irq_delivery_mode != dest_LowestPrio) ?
--			HT_IRQ_LOW_MT_FIXED :
--			HT_IRQ_LOW_MT_ARBITRATED) |
--		HT_IRQ_LOW_IRQ_MASKED;
--	write_ht_irq_msg(irq_data->irq, &msg);
- }
- 
--static void htirq_domain_deactivate(struct irq_domain *domain,
--				    struct irq_data *irq_data)
--{
--	struct msi_msg msg;
--
--	memset(&msg, 0, sizeof(msg));
--	write_ht_irq_msg(irq_data->irq, &msg);
--}
-+static struct msi_domain_ops ht_irq_domain_ops = {
-+	.get_hwirq = ht_irq_get_hwirq,
-+	.msi_init = ht_irq_init,
-+	.msi_free = ht_irq_free,
-+};
- 
--static struct irq_domain_ops htirq_domain_ops = {
--	.alloc = htirq_domain_alloc,
--	.free = htirq_domain_free,
--	.activate = htirq_domain_activate,
--	.deactivate = htirq_domain_deactivate,
-+static struct msi_domain_info ht_irq_domain_info = {
-+	.ops = &ht_irq_domain_ops,
-+	.chip = &ht_irq_chip,
- };
- 
- void arch_init_htirq_domain(struct irq_domain *parent)
-@@ -155,11 +117,9 @@ void arch_init_htirq_domain(struct irq_domain *parent)
- 	if (disable_apic)
- 		return;
- 
--	htirq_domain = irq_domain_add_tree(NULL, &htirq_domain_ops, NULL);
-+	htirq_domain = msi_create_irq_domain(NULL, &ht_irq_domain_info, parent);
- 	if (!htirq_domain)
- 		pr_warn("failed to initialize irqdomain for HTIRQ.\n");
--	else
--		htirq_domain->parent = parent;
- }
- 
- int arch_setup_ht_irq(int idx, int pos, struct pci_dev *dev,
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 7a8f1c5e65af..22f948f9738a 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -68,6 +68,7 @@ config HT_IRQ
- 	bool "Interrupts on hypertransport devices"
- 	default y
- 	depends on PCI && X86_LOCAL_APIC
-+	select GENERIC_MSI_IRQ_DOMAIN
- 	help
- 	   This allows native hypertransport devices to use interrupts.
- 
-diff --git a/drivers/pci/htirq.c b/drivers/pci/htirq.c
-index 3bbbc5cdcb9b..27b09b266bb6 100644
---- a/drivers/pci/htirq.c
-+++ b/drivers/pci/htirq.c
-@@ -23,9 +23,9 @@
-  */
- static DEFINE_SPINLOCK(ht_irq_lock);
- 
--void write_ht_irq_msg(unsigned int irq, struct msi_msg *msg)
-+void write_ht_irq_msg(struct irq_data *data, struct msi_msg *msg)
- {
--	struct ht_irq_cfg *cfg = irq_get_handler_data(irq);
-+	struct ht_irq_cfg *cfg = data->chip_data;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&ht_irq_lock, flags);
-@@ -38,14 +38,14 @@ void write_ht_irq_msg(unsigned int irq, struct msi_msg *msg)
- 		pci_write_config_dword(cfg->dev, cfg->pos + 4, msg->address_hi);
- 	}
- 	if (cfg->update)
--		cfg->update(cfg->dev, irq, msg);
-+		cfg->update(cfg->dev, data->irq, msg);
- 	spin_unlock_irqrestore(&ht_irq_lock, flags);
- 	cfg->msg = *msg;
- }
- 
--void fetch_ht_irq_msg(unsigned int irq, struct msi_msg *msg)
-+void fetch_ht_irq_msg(struct irq_data *data, struct msi_msg *msg)
- {
--	struct ht_irq_cfg *cfg = irq_get_handler_data(irq);
-+	struct ht_irq_cfg *cfg = data->chip_data;
- 
- 	*msg = cfg->msg;
- }
-@@ -56,7 +56,8 @@ void mask_ht_irq(struct irq_data *data)
- 	struct msi_msg msg = cfg->msg;
- 
- 	msg.address_lo |= 1;
--	write_ht_irq_msg(data->irq, &msg);
-+	write_ht_irq_msg(data, &msg);
-+	cfg->masked = true;
- }
- 
- void unmask_ht_irq(struct irq_data *data)
-@@ -65,7 +66,8 @@ void unmask_ht_irq(struct irq_data *data)
- 	struct msi_msg msg = cfg->msg;
- 
- 	msg.address_lo &= ~1;
--	write_ht_irq_msg(data->irq, &msg);
-+	write_ht_irq_msg(data, &msg);
-+	cfg->masked = false;
- }
- 
- /**
-diff --git a/include/linux/htirq.h b/include/linux/htirq.h
-index 98e432f7f9b1..c5d03a81809c 100644
---- a/include/linux/htirq.h
-+++ b/include/linux/htirq.h
-@@ -14,12 +14,13 @@ struct ht_irq_cfg {
- 	ht_irq_update_t *update;
- 	unsigned pos;
- 	unsigned idx;
-+	bool masked;
- 	struct msi_msg msg;
- };
- 
- /* Helper functions.. */
--void fetch_ht_irq_msg(unsigned int irq, struct msi_msg *msg);
--void write_ht_irq_msg(unsigned int irq, struct msi_msg *msg);
-+void fetch_ht_irq_msg(struct irq_data *data, struct msi_msg *msg);
-+void write_ht_irq_msg(struct irq_data *data, struct msi_msg *msg);
- void mask_ht_irq(struct irq_data *data);
- void unmask_ht_irq(struct irq_data *data);
- 
--- 
-1.7.10.4
+Thanks for taking a look.
+
+Your patch looks similar in concept to one of my earlier patches. But
+based on the discussions that followed since, we decided that its best
+to add a separate PCC lookup and registration API. The main reason
+being, we dont have a way to list all mbox providers in ACPI in a way
+that DT does. e.g. in DT, the client->dev is used to look up mbox
+controllers. In ACPI, a client cant specify which mbox controllers to
+associate with, if it can attach to multiple. With the PCC specific
+API, if the client calls it, the controller knows where to look,
+because that lookup is PCC specific.
+
+In your patch, the assumption that PCC is the only ACPI mbox provider,
+maybe true today, but that can change anytime.
+
+>
+>> +
+>> +/**
+>> + * pcc_mbox_free_channel - Clients call this to free their Channel.
+>> + *
+>> + * @chan: Pointer to the mailbox channel as returned by
+>> + *             pcc_mbox_request_channel()
+>> + */
+>> +void pcc_mbox_free_channel(struct mbox_chan *chan)
+>> +{
+>> +       unsigned long flags;
+>> +
+>> +       if (!chan || !chan->cl)
+>> +               return;
+>> +
+>> +       spin_lock_irqsave(&chan->lock, flags);
+>> +       chan->cl = NULL;
+>> +       chan->active_req = NULL;
+>> +       if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
+>> +               chan->txdone_method = TXDONE_BY_POLL;
+>> +
+>> +       spin_unlock_irqrestore(&chan->lock, flags);
+>> +}
+>> +EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
+>> +
+>> +/**
+>> + * pcc_tx_done - Callback from Mailbox controller code to
+>> + *             check if PCC message transmission completed.
+>> + * @chan: Pointer to Mailbox channel on which previous
+>> + *             transmission occurred.
+>> + *
+>> + * Return: TRUE if succeeded.
+>> + */
+>> +static bool pcc_tx_done(struct mbox_chan *chan)
+>> +{
+>> +       struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+>> +       struct acpi_pcct_shared_memory *generic_comm_base =
+>> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+>> +       u16 cmd_delay = pcct_ss->min_turnaround_time;
+>> +       unsigned int retries = 0;
+>> +
+>> +       /* Try a few times while waiting for platform to consume */
+>> +       while (!(readw_relaxed(&generic_comm_base->status)
+>> +                   & PCC_CMD_COMPLETE)) {
+>> +
+>> +               if (retries++ < 5)
+>> +                       udelay(cmd_delay);
+>> +               else {
+>> +                       /*
+>> +                        * If the remote is dead, this will cause the Mbox
+>> +                        * controller to timeout after mbox client.tx_tout
+>> +                        * msecs.
+>> +                        */
+>> +                       pr_err("PCC platform did not respond.\n");
+>> +                       return false;
+>> +               }
+>> +       }
+>> +       return true;
+>> +}
+>> +
+>> +/**
+>> + * get_subspace_id - Given a Mailbox channel, find out the
+>> + *             PCC subspace id.
+>> + * @chan: Pointer to Mailbox Channel from which we want
+>> + *             the index.
+>> + * Return: Errno if not found, else positive index number.
+>> + */
+>> +static int get_subspace_id(struct mbox_chan *chan)
+>> +{
+>> +       int id = chan - pcc_mbox_chan;
+>> +
+>> +       if (id < 0 || id > pcc_mbox_ctrl.num_chans)
+>> +               return -ENOENT;
+>> +
+>> +       return id;
+>> +}
+>> +
+>> +/**
+>> + * pcc_send_data - Called from Mailbox Controller code to finally
+>> + *     transmit data over channel.
+>> + * @chan: Pointer to Mailbox channel over which to send data.
+>> + * @data: Actual data to be written over channel.
+>> + *
+>> + * Return: Err if something failed else 0 for success.
+>> + */
+>> +static int pcc_send_data(struct mbox_chan *chan, void *data)
+>> +{
+>> +       struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+>> +       struct acpi_pcct_shared_memory *generic_comm_base =
+>> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+>> +       struct acpi_generic_address doorbell;
+>> +       u64 doorbell_preserve;
+>> +       u64 doorbell_val;
+>> +       u64 doorbell_write;
+>> +       u16 cmd = *(u16 *) data;
+>> +       u16 ss_idx = -1;
+>> +
+>> +       ss_idx = get_subspace_id(chan);
+>> +
+>> +       if (ss_idx < 0) {
+>> +               pr_err("Invalid Subspace ID from PCC client\n");
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       doorbell = pcct_ss->doorbell_register;
+>> +       doorbell_preserve = pcct_ss->preserve_mask;
+>> +       doorbell_write = pcct_ss->write_mask;
+>> +
+>> +       /* Write to the shared comm region. */
+>> +       writew(cmd, &generic_comm_base->command);
+>> +
+>> +       /* Write Subspace MAGIC value so platform can identify destination. */
+>> +       writel((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
+>> +
+>> +       /* Flip CMD COMPLETE bit */
+>> +       writew(0, &generic_comm_base->status);
+>> +
+>> +       /* Sync notification from OSPM to Platform. */
+>> +       acpi_read(&doorbell_val, &doorbell);
+>> +       acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
+>> +                       &doorbell);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static struct mbox_chan_ops pcc_chan_ops = {
+>> +       .send_data = pcc_send_data,
+>> +       .last_tx_done = pcc_tx_done,
+>> +};
+>> +
+>> +/**
+>> + * parse_pcc_subspace - Parse the PCC table and extract PCC subspace
+>> + *             entries. There should be one entry per PCC client.
+>> + * @header: Pointer to the ACPI subtable header under the PCCT.
+>> + * @end: End of subtable entry.
+>> + *
+>> + * Return: 0 for Success, else errno.
+>> + *
+>> + * This gets called for each entry in the PCC table.
+>> + */
+>> +static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>> +               const unsigned long end)
+>> +{
+>> +       struct acpi_pcct_hw_reduced *pcct_ss;
+>> +
+>> +       if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
+>> +               pcct_ss = (struct acpi_pcct_hw_reduced *) header;
+>> +
+>> +               if (pcct_ss->header.type !=
+>> +                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
+>> +                       pr_err("Incorrect PCC Subspace type detected\n");
+>> +                       return -EINVAL;
+>> +               }
+>> +
+>> +               /* New mbox channel entry for each PCC subspace detected. */
+>> +               pcc_mbox_chan[pcc_mbox_ctrl.num_chans].con_priv = pcct_ss;
+>> +               pcc_mbox_ctrl.num_chans++;
+>> +
+>> +       } else {
+>> +               pr_err("No more space for PCC subspaces.\n");
+>> +               return -ENOSPC;
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +/**
+>> + * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+>> + *
+>> + * Return: 0 for Success, else errno.
+>> + */
+>> +static int __init acpi_pcc_probe(void)
+>> +{
+>> +       acpi_status status = AE_OK;
+>> +       acpi_size pcct_tbl_header_size;
+>> +       int count;
+>> +       struct acpi_table_pcct *pcct_tbl;
+>> +
+>> +       /* Search for PCCT */
+>> +       status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
+>> +                       (struct acpi_table_header **)&pcct_tbl,
+>> +                       &pcct_tbl_header_size);
+>> +
+>> +       if (ACPI_FAILURE(status) || !pcct_tbl) {
+>> +               pr_warn("PCCT header not found.\n");
+>> +               return -ENODEV;
+>> +       }
+>> +
+>> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+>> +                       sizeof(struct acpi_table_pcct),
+>> +                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+>> +                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
+>> +
+>> +       if (count <= 0) {
+>> +               pr_err("Error parsing PCC subspaces from PCCT\n");
+>> +               return -EINVAL;
+>> +       }
+>> +
+>> +       pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +/**
+>> + * pcc_mbox_probe - Called when we find a match for the
+>> + *     PCCT platform device. This is purely used to represent
+>> + *     the PCCT as a virtual device for registering with the
+>> + *     generic Mailbox framework.
+>> + *
+>> + * @pdev: Pointer to platform device returned when a match
+>> + *     is found.
+>> + *
+>> + *     Return: 0 for Success, else errno.
+>> + */
+>> +static int pcc_mbox_probe(struct platform_device *pdev)
+>> +{
+>> +       int ret = 0;
+>> +
+>> +       pcc_mbox_ctrl.chans = pcc_mbox_chan;
+>> +       pcc_mbox_ctrl.ops = &pcc_chan_ops;
+>> +       pcc_mbox_ctrl.txdone_poll = true;
+>> +       pcc_mbox_ctrl.txpoll_period = 10;
+>> +       pcc_mbox_ctrl.dev = &pdev->dev;
+>> +
+>> +       pr_info("Registering PCC driver as Mailbox controller\n");
+>> +       ret = mbox_controller_register(&pcc_mbox_ctrl);
+>> +
+>> +       if (ret) {
+>> +               pr_err("Err registering PCC as Mailbox controller: %d\n", ret);
+>> +               ret = -ENODEV;
+>> +       }
+>> +
+>> +       return ret;
+>> +}
+>> +
+>> +struct platform_driver pcc_mbox_driver = {
+>> +       .probe = pcc_mbox_probe,
+>> +       .driver = {
+>> +               .name = "PCCT",
+>> +               .owner = THIS_MODULE,
+>> +       },
+>> +};
+>> +
+>> +static int __init pcc_init(void)
+>> +{
+>> +       int ret;
+>> +       struct platform_device *pcc_pdev;
+>> +
+>> +       if (acpi_disabled)
+>> +               return -ENODEV;
+>> +
+>> +       /* Check if PCC support is available. */
+>> +       ret = acpi_pcc_probe();
+>> +
+>> +       if (ret) {
+>> +               pr_err("ACPI PCC probe failed.\n");
+>> +               return -ENODEV;
+>> +       }
+>> +
+>> +       pcc_pdev = platform_create_bundle(&pcc_mbox_driver,
+>> +                       pcc_mbox_probe, NULL, 0, NULL, 0);
+>> +
+>> +       if (!pcc_pdev) {
+>> +               pr_err("Err creating PCC platform bundle\n");
+>> +               return -ENODEV;
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +device_initcall(pcc_init);
+>>
+> IMO the PCC platform_device should be populated by ACPI or DT core.
+> This PCC controller driver should parse the PCCT ... so it populates
+> .global_xlate() which expect the 'global_id' of channel requested to
+> be (0x50434300 | Client_Class_Code) as specified by ACPI.
+>
+> It should be possible to have same client and controller driver work
+> for both ACPI and DT.
+
+Any reason why this patch won't work with DT as well? (with the
+requisite DT bindings)
+
+Thanks,
+Ashwin
