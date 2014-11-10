@@ -1,106 +1,140 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [Patch Part2 v5 21/31] PCI/MSI: Enhance core to support hierarchy
- irqdomain
-Date: Mon, 10 Nov 2014 09:03:53 +0700
-Message-ID: <54601D09.3090902@amd.com>
-References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
- <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
- <545EED04.4090008@amd.com> <545F1478.3040808@linux.intel.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Mon, 10 Nov 2014 09:43:07 +0530
+Message-ID: <CAJe_ZhcSTvY=eYx67z=HxQ=VfSYzeKhA3+yhGwvccb208R7UFQ@mail.gmail.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJe_ZhcjXD0B9x_dqK8KvpQBUUX7FKZcxGV2MPGjsq2A0DV6Rw@mail.gmail.com>
+	<CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
+	<CAJe_ZhcMvQyxZTyD+My23-Bi5pbfybCUhxN6PF3KBt8RtAS2iA@mail.gmail.com>
+	<CAJ5Y-eZq7+LsnQSyiJq+rK5ib7uqsJuyx8pJaRXn91ei2aObVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <545F1478.3040808@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:56339 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751095AbaKJENI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Nov 2014 23:13:08 -0500
+Received: by mail-qc0-f181.google.com with SMTP id w7so5088561qcr.40
+        for <linux-acpi@vger.kernel.org>; Sun, 09 Nov 2014 20:13:07 -0800 (PST)
+In-Reply-To: <CAJ5Y-eZq7+LsnQSyiJq+rK5ib7uqsJuyx8pJaRXn91ei2aObVA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
 
-On 11/9/14 14:15, Jiang Liu wrote:
-> On 2014/11/9 12:26, Suravee Suthikulpanit wrote:
->> Hi Gerry,
->>
->> Please see my comments / questions below.
->>
->> On 11/6/14 21:20, Jiang Liu wrote:
->>> Enhance PCI MSI core to support hierarchy irqdomain, so the common
->>> code could be shared among architectures.
+On 9 November 2014 22:52, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> On 9 November 2014 11:18, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+>> On 9 November 2014 20:50, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>>> Hi Jassi,
 >>>
->>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>> ---
->>> Hi Thomas,
->>>      These changes are a temporary solution, I'm working on another
->>> patch set which will refine these interfaces, especially kill
->>> arch_msi_irq_domain_{set|get}_hwirq().
->>> Regards!
->>> Gerry
->>
->> Would the change includes the struct irqdomain_msi_data proposed by
->> Thomas here (https://lkml.org/lkml/2014/11/6/210)?
-> Hi Suravee,
-> 	I'm working on another patch set which will refine the way to
-> create irqdomain for MSI. I hope will solve all issues mentioned by
-> Thomas. I will post that patch set as RFC within one or two days.
-
-Let me know if I can help.
-
->>
->>> [...]
->>> +static int msi_domain_alloc(struct irq_domain *domain, unsigned int
->>> virq,
->>> +                unsigned int nr_irqs, void *arg)
->>> +{
->>> +    int i, ret;
->>> +    irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
->>> +
->>> +    if (irq_find_mapping(domain, hwirq) > 0)
->>> +        return -EEXIST;
->>> +
->>> +    ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
->>> +    if (ret < 0)
->>> +        return ret;
->>> +
->>
->> When executing irq_domain_alloc_irqs_parent(), it triggers the following
->> warning message due to
->>
->>      WARN_ON(desc->irq_data.chip == &no_irq_chip)
->>
->> ------------[ cut here ]------------
->> WARNING: CPU: 2 PID: 912 at kernel/irq/chip.c:734
->> __irq_set_handler+0x138/0x13c()
->> Modules linked in: mlx4_core(+) rtc_efi efivarfs
->> CPU: 2 PID: 912 Comm: modprobe Not tainted 3.18.0-rc3-p2v5+ #53
->> Call trace:
->> [<fffffe00000963d4>] dump_backtrace+0x0/0x16c
->> [<fffffe0000096550>] show_stack+0x10/0x1c
->> [<fffffe000067545c>] dump_stack+0x74/0x98
->> [<fffffe00000b205c>] warn_slowpath_common+0x84/0xac
->> [<fffffe00000b2148>] warn_slowpath_null+0x14/0x20
->> [<fffffe00000ed968>] __irq_set_handler+0x134/0x13c
->> [<fffffe000042af14>] gic_irq_domain_map+0x4c/0xac
->> [<fffffe000042afd4>] gic_irq_domain_alloc+0x60/0x88
->> [<fffffe000042b374>] gicv2m_domain_alloc+0x30/0xa8
->> [<fffffe00000efc1c>] __irq_domain_alloc_irqs+0x144/0x30c
->> [<fffffe000042b58c>] gicv2m_setup_msi_irq+0xc0/0x118
->> [<fffffe000044548c>] arch_setup_msi_irq+0x34/0x60
->> [<fffffe0000445544>] arch_setup_msi_irqs+0x50/0xb0
->> [<fffffe0000445e3c>] pci_enable_msix+0x310/0x39c
->> [<fffffe0000445efc>] pci_enable_msix_range+0x34/0x9c
->> ....
->>
->> However, I think if we call irq_domain_set_hwirq_and_chip() in the
->> msi_create_irq_domain() as suggested by Thomas, that should also fix
->> this issue.
-> We didn't trigger this warning on x86 because only the outer-most
-> irqdomain will set irq flow handler. On ARM, the inner GIC domain
-> will set irq flow handler, but the irq_data->chip for outer-most
-> domain hasn't been set yet.
+>>> On 9 November 2014 08:48, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+>>>> On 7 November 2014 20:22, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>>>>> +
+>>>>> +/**
+>>>>> + * pcc_mbox_request_channel - PCC clients call this function to
+>>>>> + *             request a pointer to their PCC subspace, from which they
+>>>>> + *             can get the details of communicating with the remote.
+>>>>> + * @cl: Pointer to Mailbox client, so we know where to bind the
+>>>>> + *             Channel.
+>>>>> + * @index: The PCC Subspace index as parsed in the PCC client
+>>>>> + *             ACPI package. This is used to lookup the array of PCC
+>>>>> + *             subspaces as parsed by the PCC Mailbox controller.
+>>>>> + *
+>>>>> + * Return: Pointer to the Mailbox Channel if successful or
+>>>>> + *             ERR_PTR.
+>>>>> + */
+>>>>> +struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
+>>>>> +               int index)
+>>>>> +{
+>>>>> +       struct device *dev = pcc_mbox_ctrl.dev;
+>>>>> +       struct mbox_chan *chan;
+>>>>> +       unsigned long flags;
+>>>>> +
+>>>>> +       /*
+>>>>> +        * Each PCC Subspace is a Mailbox Channel.
+>>>>> +        * The PCC Clients get their PCC Subspace ID
+>>>>> +        * from their own tables and pass it here.
+>>>>> +        * This returns a pointer to the PCC subspace
+>>>>> +        * for the Client to operate on.
+>>>>> +        */
+>>>>> +       chan = &pcc_mbox_chan[index];
+>>>>> +
+>>>>> +       if (!chan || chan->cl) {
+>>>>> +               dev_err(dev, "%s: PCC mailbox not free\n", __func__);
+>>>>> +               return ERR_PTR(-EBUSY);
+>>>>> +       }
+>>>>> +
+>>>>> +       spin_lock_irqsave(&chan->lock, flags);
+>>>>> +       chan->msg_free = 0;
+>>>>> +       chan->msg_count = 0;
+>>>>> +       chan->active_req = NULL;
+>>>>> +       chan->cl = cl;
+>>>>> +       init_completion(&chan->tx_complete);
+>>>>> +
+>>>>> +       if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+>>>>> +               chan->txdone_method |= TXDONE_BY_ACK;
+>>>>> +
+>>>>> +       spin_unlock_irqrestore(&chan->lock, flags);
+>>>>> +
+>>>>> +       return chan;
+>>>>> +}
+>>>>> +EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+>>>>
+>>>> I have just sent out a patch https://lkml.org/lkml/2014/11/9/75 and
+>>>> kept same people in CC.
+>>>> That patch keeps the api same for DT and ACPI drivers.
+>>>
+>>> Thanks for taking a look.
+>>>
+>>> Your patch looks similar in concept to one of my earlier patches. But
+>>>
+>> Using ifdefs wasn't the right way to enable ACPI channel mapping. The
+>> mailbox core should be able to work with both DT and ACPI at the same
+>> time.
 >
-> I'm still find a way out here. Maybe we need to relax the WARN_ON().
+> Agreed. But my point there was to add an alternative to the DT
+> specific of_xlate, which is exactly what you've done in global_xlate.
+>
+We all have good intentions, the problem is the code :)
 
-What if we just switch the order and call the 
-irq_domain_alloc_irqs_parent() after the loop? That way we can still 
-keep the WARN_ON().
+>>> based on the discussions that followed since, we decided that its best
+>>> to add a separate PCC lookup and registration API. The main reason
+>>> being, we dont have a way to list all mbox providers in ACPI in a way
+>>> that DT does. e.g. in DT, the client->dev is used to look up mbox
+>>> controllers. In ACPI, a client cant specify which mbox controllers to
+>>> associate with, if it can attach to multiple. With the PCC specific
+>>> API, if the client calls it, the controller knows where to look,
+>>> because that lookup is PCC specific.
+>>>
+>>> In your patch, the assumption that PCC is the only ACPI mbox provider,
+>>> maybe true today, but that can change anytime.
+>>>
+>> Please read my patch again, we can have ACPI as well as DT populated
+>> clients. All that you intend to do with this patch can be done there
+>> and _without_ adding new apis.
+>
+> Read it again. Not arguing that your patch wont work for DT and ACPI,
+> but your assumption that ACPI supports PCC as the only mbox
+> controller, may not hold true. The global_xlate function will work
+> fine for PCC, but may not work for other ACPI (non-DT) mbox
+> controllers. Using the signature field/index byte works only for PCC.
+> We've already been through this discussion with Mark and Arnd and we
+> came up with the PCC API.
+>
+Please read it yet again. There is no assumption that PCC is the only
+mbox in ACPI (though I think that is very likely). The function and
+its argument are both named _global_. 'Signature' is mentioned only as
+an example in case of PCC. The PCC controller driver could expect the
+global_id to be 'signature' of the subspace, similarly another non-DT
+mailbox controller driver will expect its own different 'signature'
+(say 0xdead0000 | id_16bits). In the patch I submitted we try
+.global_xlate() of all such mboxes and only one, which finds its
+id-space specified, will return a channel.
 
-Suravee
+Ideally, global-id space isn't very clean, but for mailbox we anyway
+have to have a direct understanding between controller and client
+drivers. So having global IDs is a great tradeoff if we avoid messing
+up the api.
+
+-Jassi
