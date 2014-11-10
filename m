@@ -1,37 +1,77 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 0/4] ACPI / LPSS: fix system hangup on BYT
-Date: Mon, 10 Nov 2014 15:24:14 +0200
-Message-ID: <1415625854.472.41.camel@linux.intel.com>
-References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1415443880.10538.1.camel@talk21.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Mon, 10 Nov 2014 19:09:16 +0530
+Message-ID: <CAJe_Zhd1q=3r6So7XRYuAi9NSQvabpiuLqPiLpReoiFzUjX9QA@mail.gmail.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJe_ZhcjXD0B9x_dqK8KvpQBUUX7FKZcxGV2MPGjsq2A0DV6Rw@mail.gmail.com>
+	<CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
+	<CAJe_ZhcMvQyxZTyD+My23-Bi5pbfybCUhxN6PF3KBt8RtAS2iA@mail.gmail.com>
+	<CAJ5Y-eZq7+LsnQSyiJq+rK5ib7uqsJuyx8pJaRXn91ei2aObVA@mail.gmail.com>
+	<CAJe_ZhcSTvY=eYx67z=HxQ=VfSYzeKhA3+yhGwvccb208R7UFQ@mail.gmail.com>
+	<CAJ5Y-eaXOq0qYYxGvZafFEoYWpuq7b1xh3jMdCQBkYnpqBgFAw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:32084 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751721AbaKJNYN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Nov 2014 08:24:13 -0500
-In-Reply-To: <1415443880.10538.1.camel@talk21.com>
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:60924 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228AbaKJNjR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2014 08:39:17 -0500
+Received: by mail-qc0-f180.google.com with SMTP id o8so5509710qcw.25
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Nov 2014 05:39:16 -0800 (PST)
+In-Reply-To: <CAJ5Y-eaXOq0qYYxGvZafFEoYWpuq7b1xh3jMdCQBkYnpqBgFAw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Scott Ashcroft <scott.ashcroft@talk21.com>
-Cc: Mika Westerberg <mika.westerberg@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
 
-On Sat, 2014-11-08 at 10:51 +0000, Scott Ashcroft wrote:
-> On Wed, 2014-11-05 at 18:34 +0200, Andy Shevchenko wrote:
-> > Scott, do you have a chance to test this patch series against last linux-pm
-> > tree on HP laptops? I would appreciate your Tested-by tag.
-> 
-> Tested-by: Scott Ashcroft <scott.ashcroft@talk21.com>
+On 10 November 2014 18:27, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> On 9 November 2014 23:13, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+>>
+>>>>> based on the discussions that followed since, we decided that its best
+>>>>> to add a separate PCC lookup and registration API. The main reason
+>>>>> being, we dont have a way to list all mbox providers in ACPI in a way
+>>>>> that DT does. e.g. in DT, the client->dev is used to look up mbox
+>>>>> controllers. In ACPI, a client cant specify which mbox controllers to
+>>>>> associate with, if it can attach to multiple. With the PCC specific
+>>>>> API, if the client calls it, the controller knows where to look,
+>>>>> because that lookup is PCC specific.
+>>>>>
+>>>>> In your patch, the assumption that PCC is the only ACPI mbox provider,
+>>>>> maybe true today, but that can change anytime.
+>>>>>
+>>>> Please read my patch again, we can have ACPI as well as DT populated
+>>>> clients. All that you intend to do with this patch can be done there
+>>>> and _without_ adding new apis.
+>>>
+>>> Read it again. Not arguing that your patch wont work for DT and ACPI,
+>>> but your assumption that ACPI supports PCC as the only mbox
+>>> controller, may not hold true. The global_xlate function will work
+>>> fine for PCC, but may not work for other ACPI (non-DT) mbox
+>>> controllers. Using the signature field/index byte works only for PCC.
+>>> We've already been through this discussion with Mark and Arnd and we
+>>> came up with the PCC API.
+>>>
+>> Please read it yet again. There is no assumption that PCC is the only
+>> mbox in ACPI (though I think that is very likely). The function and
+>> its argument are both named _global_. 'Signature' is mentioned only as
+>> an example in case of PCC. The PCC controller driver could expect the
+>> global_id to be 'signature' of the subspace, similarly another non-DT
+>> mailbox controller driver will expect its own different 'signature'
+>> (say 0xdead0000 | id_16bits). In the patch I submitted we try
+>> .global_xlate() of all such mboxes and only one, which finds its
+>> id-space specified, will return a channel.
+>>
+>> Ideally, global-id space isn't very clean, but for mailbox we anyway
+>> have to have a direct understanding between controller and client
+>> drivers. So having global IDs is a great tradeoff if we avoid messing
+>> up the api.
+>
+> How is this different than expecting the client to pass a string name
+> of the mbox controller it wants?
+>
+Global-ID is ugly, string matching is uglier. String matching requires
+changes to client and provider structures as opposed to simple
+numerical comparison to find a suitable channel.
 
-Thank you!
-
-> It has now survived 20 reboots with no problems.
-
-
-
--- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
-
+-Jassi
