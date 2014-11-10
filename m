@@ -1,76 +1,88 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2] ACPI/osl: speedup grace period in acpi_os_map_cleanup
-Date: Sun, 9 Nov 2014 14:00:38 -0800
-Message-ID: <20141109220038.GH4901@linux.vnet.ibm.com>
-References: <20141108094717.9388.34638.stgit@zurg>
- <20141109105337.4952.36899.stgit@zurg>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e36.co.us.ibm.com ([32.97.110.154]:44467 "EHLO
-	e36.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350AbaKIWEQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Nov 2014 17:04:16 -0500
-Received: from /spool/local
-	by e36.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Sun, 9 Nov 2014 15:04:16 -0700
-Content-Disposition: inline
-In-Reply-To: <20141109105337.4952.36899.stgit@zurg>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH v6 34/48] acpi: Register power-off handler with kernel power-off handler
+Date: Sun,  9 Nov 2014 17:42:51 -0800
+Message-ID: <1415583785-6980-35-git-send-email-linux@roeck-us.net>
+References: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Tom Boshoven <tomboshoven@gmail.com>, x86@kernel.org, Josh Triplett <josh@joshtriplett.org>, Alexander Monakov <amonakov@gmail.com>
 
-On Sun, Nov 09, 2014 at 01:53:37PM +0400, Konstantin Khlebnikov wrote:
-> ACPI maintains cache of ioremap regions to speed up operations and
-> access to them from irq context where ioremap() calls aren't allowed.
-> This code abuses synchronize_rcu() on unmap path for synchronization
-> with fast-path in acpi_os_read/write_memory which uses this cache.
-> 
-> Since v3.10 CPUs are allowed to enter idle state even if they have RCU
-> callbacks queued, see commit c0f4dfd4f90f1667d234d21f15153ea09a2eaa66
-> ("rcu: Make RCU_FAST_NO_HZ take advantage of numbered callbacks").
-> That change caused problems with nvidia proprietary driver which calls
-> acpi_os_map/unmap_generic_address several times during initialization.
-> Each unmap calls synchronize_rcu and adds significant delay. Totally
-> initialization is slowed for a couple of seconds and that is enough to
-> trigger timeout in hardware, gpu decides to "fell off the bus". Widely
-> spread workaround is reducing "rcu_idle_gp_delay" from 4 to 1 jiffy.
-> 
-> This patch replaces synchronize_rcu() with synchronize_rcu_expedited()
-> which is much faster.
-> 
-> Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-> Reported-and-tested-by: Alexander Monakov <amonakov@gmail.com>
-> Cc: Tom Boshoven <tomboshoven@gmail.com>
-> Link: https://devtalk.nvidia.com/default/topic/567297/linux/linux-3-10-driver-crash/
+Register with kernel power-off handler instead of setting pm_power_off
+directly. Register with high priority to reflect that the driver explicitly
+overrides existing power-off handlers.
 
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v6:
+- This patch: No change.
+  Global: Replaced priority defines with enum.
+v5:
+- Rebase to v3.18-rc3
+v4:
+- Do not use notifiers but internal functions and data structures to manage
+  the list of power-off handlers. Drop unused parameters from callbacks, and
+  make the power-off function type void
+v3:
+- Replace poweroff in all newly introduced variables and in text
+  with power_off or power-off as appropriate
+- Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
+- Replace acpi: with ACPI: in log message
+v2:
+- Use define to specify poweroff handler priority
+- Use pr_warn instead of pr_err
 
-> ---
->  drivers/acpi/osl.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 9964f70..217713c 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -436,7 +436,7 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
->  static void acpi_os_map_cleanup(struct acpi_ioremap *map)
->  {
->  	if (!map->refcount) {
-> -		synchronize_rcu();
-> +		synchronize_rcu_expedited();
->  		acpi_unmap(map->phys, map->virt);
->  		kfree(map);
->  	}
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+ drivers/acpi/sleep.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 05a31b5..a73cfad 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -16,6 +16,7 @@
+ #include <linux/device.h>
+ #include <linux/interrupt.h>
+ #include <linux/suspend.h>
++#include <linux/pm.h>
+ #include <linux/reboot.h>
+ #include <linux/acpi.h>
+ #include <linux/module.h>
+@@ -827,7 +828,7 @@ static void acpi_power_off_prepare(void)
+ 	acpi_disable_all_gpes();
+ }
+ 
+-static void acpi_power_off(void)
++static void acpi_power_off(struct power_off_handler_block *this)
+ {
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk(KERN_DEBUG "%s called\n", __func__);
+@@ -835,6 +836,11 @@ static void acpi_power_off(void)
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
+ }
+ 
++static struct power_off_handler_block acpi_power_off_hb = {
++	.handler = acpi_power_off,
++	.priority = POWER_OFF_PRIORITY_HIGH,
++};
++
+ int __init acpi_sleep_init(void)
+ {
+ 	char supported[ACPI_S_STATE_COUNT * 3 + 1];
+@@ -851,7 +857,8 @@ int __init acpi_sleep_init(void)
+ 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+ 		sleep_states[ACPI_STATE_S5] = 1;
+ 		pm_power_off_prepare = acpi_power_off_prepare;
+-		pm_power_off = acpi_power_off;
++		if (register_power_off_handler(&acpi_power_off_hb))
++			pr_warn("ACPI: Failed to register power-off handler\n");
+ 	}
+ 
+ 	supported[0] = 0;
+-- 
+1.9.1
 
