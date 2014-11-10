@@ -1,88 +1,106 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH v6 34/48] acpi: Register power-off handler with kernel power-off handler
-Date: Sun,  9 Nov 2014 17:42:51 -0800
-Message-ID: <1415583785-6980-35-git-send-email-linux@roeck-us.net>
-References: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [Patch Part2 v5 21/31] PCI/MSI: Enhance core to support hierarchy
+ irqdomain
+Date: Mon, 10 Nov 2014 09:03:53 +0700
+Message-ID: <54601D09.3090902@amd.com>
+References: <1415283644-2559-1-git-send-email-jiang.liu@linux.intel.com>
+ <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
+ <545EED04.4090008@amd.com> <545F1478.3040808@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <545F1478.3040808@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Alexander Gordeev <agordeev@redhat.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Register with kernel power-off handler instead of setting pm_power_off
-directly. Register with high priority to reflect that the driver explicitly
-overrides existing power-off handlers.
+On 11/9/14 14:15, Jiang Liu wrote:
+> On 2014/11/9 12:26, Suravee Suthikulpanit wrote:
+>> Hi Gerry,
+>>
+>> Please see my comments / questions below.
+>>
+>> On 11/6/14 21:20, Jiang Liu wrote:
+>>> Enhance PCI MSI core to support hierarchy irqdomain, so the common
+>>> code could be shared among architectures.
+>>>
+>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>>> ---
+>>> Hi Thomas,
+>>>      These changes are a temporary solution, I'm working on another
+>>> patch set which will refine these interfaces, especially kill
+>>> arch_msi_irq_domain_{set|get}_hwirq().
+>>> Regards!
+>>> Gerry
+>>
+>> Would the change includes the struct irqdomain_msi_data proposed by
+>> Thomas here (https://lkml.org/lkml/2014/11/6/210)?
+> Hi Suravee,
+> 	I'm working on another patch set which will refine the way to
+> create irqdomain for MSI. I hope will solve all issues mentioned by
+> Thomas. I will post that patch set as RFC within one or two days.
 
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v6:
-- This patch: No change.
-  Global: Replaced priority defines with enum.
-v5:
-- Rebase to v3.18-rc3
-v4:
-- Do not use notifiers but internal functions and data structures to manage
-  the list of power-off handlers. Drop unused parameters from callbacks, and
-  make the power-off function type void
-v3:
-- Replace poweroff in all newly introduced variables and in text
-  with power_off or power-off as appropriate
-- Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
-- Replace acpi: with ACPI: in log message
-v2:
-- Use define to specify poweroff handler priority
-- Use pr_warn instead of pr_err
+Let me know if I can help.
 
- drivers/acpi/sleep.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+>>
+>>> [...]
+>>> +static int msi_domain_alloc(struct irq_domain *domain, unsigned int
+>>> virq,
+>>> +                unsigned int nr_irqs, void *arg)
+>>> +{
+>>> +    int i, ret;
+>>> +    irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
+>>> +
+>>> +    if (irq_find_mapping(domain, hwirq) > 0)
+>>> +        return -EEXIST;
+>>> +
+>>> +    ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
+>>> +    if (ret < 0)
+>>> +        return ret;
+>>> +
+>>
+>> When executing irq_domain_alloc_irqs_parent(), it triggers the following
+>> warning message due to
+>>
+>>      WARN_ON(desc->irq_data.chip == &no_irq_chip)
+>>
+>> ------------[ cut here ]------------
+>> WARNING: CPU: 2 PID: 912 at kernel/irq/chip.c:734
+>> __irq_set_handler+0x138/0x13c()
+>> Modules linked in: mlx4_core(+) rtc_efi efivarfs
+>> CPU: 2 PID: 912 Comm: modprobe Not tainted 3.18.0-rc3-p2v5+ #53
+>> Call trace:
+>> [<fffffe00000963d4>] dump_backtrace+0x0/0x16c
+>> [<fffffe0000096550>] show_stack+0x10/0x1c
+>> [<fffffe000067545c>] dump_stack+0x74/0x98
+>> [<fffffe00000b205c>] warn_slowpath_common+0x84/0xac
+>> [<fffffe00000b2148>] warn_slowpath_null+0x14/0x20
+>> [<fffffe00000ed968>] __irq_set_handler+0x134/0x13c
+>> [<fffffe000042af14>] gic_irq_domain_map+0x4c/0xac
+>> [<fffffe000042afd4>] gic_irq_domain_alloc+0x60/0x88
+>> [<fffffe000042b374>] gicv2m_domain_alloc+0x30/0xa8
+>> [<fffffe00000efc1c>] __irq_domain_alloc_irqs+0x144/0x30c
+>> [<fffffe000042b58c>] gicv2m_setup_msi_irq+0xc0/0x118
+>> [<fffffe000044548c>] arch_setup_msi_irq+0x34/0x60
+>> [<fffffe0000445544>] arch_setup_msi_irqs+0x50/0xb0
+>> [<fffffe0000445e3c>] pci_enable_msix+0x310/0x39c
+>> [<fffffe0000445efc>] pci_enable_msix_range+0x34/0x9c
+>> ....
+>>
+>> However, I think if we call irq_domain_set_hwirq_and_chip() in the
+>> msi_create_irq_domain() as suggested by Thomas, that should also fix
+>> this issue.
+> We didn't trigger this warning on x86 because only the outer-most
+> irqdomain will set irq flow handler. On ARM, the inner GIC domain
+> will set irq flow handler, but the irq_data->chip for outer-most
+> domain hasn't been set yet.
+>
+> I'm still find a way out here. Maybe we need to relax the WARN_ON().
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 05a31b5..a73cfad 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -16,6 +16,7 @@
- #include <linux/device.h>
- #include <linux/interrupt.h>
- #include <linux/suspend.h>
-+#include <linux/pm.h>
- #include <linux/reboot.h>
- #include <linux/acpi.h>
- #include <linux/module.h>
-@@ -827,7 +828,7 @@ static void acpi_power_off_prepare(void)
- 	acpi_disable_all_gpes();
- }
- 
--static void acpi_power_off(void)
-+static void acpi_power_off(struct power_off_handler_block *this)
- {
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
- 	printk(KERN_DEBUG "%s called\n", __func__);
-@@ -835,6 +836,11 @@ static void acpi_power_off(void)
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
- }
- 
-+static struct power_off_handler_block acpi_power_off_hb = {
-+	.handler = acpi_power_off,
-+	.priority = POWER_OFF_PRIORITY_HIGH,
-+};
-+
- int __init acpi_sleep_init(void)
- {
- 	char supported[ACPI_S_STATE_COUNT * 3 + 1];
-@@ -851,7 +857,8 @@ int __init acpi_sleep_init(void)
- 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
- 		pm_power_off_prepare = acpi_power_off_prepare;
--		pm_power_off = acpi_power_off;
-+		if (register_power_off_handler(&acpi_power_off_hb))
-+			pr_warn("ACPI: Failed to register power-off handler\n");
- 	}
- 
- 	supported[0] = 0;
--- 
-1.9.1
+What if we just switch the order and call the 
+irq_domain_alloc_irqs_parent() after the loop? That way we can still 
+keep the WARN_ON().
 
+Suravee
