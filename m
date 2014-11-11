@@ -1,71 +1,106 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and
- XPower
-Date: Tue, 11 Nov 2014 10:03:01 +0800
-Message-ID: <54616E55.80204@intel.com>
-References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Tue, 11 Nov 2014 09:34:49 +0530
+Message-ID: <CAJe_ZhczyNPjohLErcN63xtc-LrS2DY_Zu9yvXt1xAdCazvjGA@mail.gmail.com>
+References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
+	<CAJe_ZhcMvQyxZTyD+My23-Bi5pbfybCUhxN6PF3KBt8RtAS2iA@mail.gmail.com>
+	<CAJ5Y-eZq7+LsnQSyiJq+rK5ib7uqsJuyx8pJaRXn91ei2aObVA@mail.gmail.com>
+	<CAJe_ZhcSTvY=eYx67z=HxQ=VfSYzeKhA3+yhGwvccb208R7UFQ@mail.gmail.com>
+	<CAJ5Y-eaXOq0qYYxGvZafFEoYWpuq7b1xh3jMdCQBkYnpqBgFAw@mail.gmail.com>
+	<CAJe_Zhd1q=3r6So7XRYuAi9NSQvabpiuLqPiLpReoiFzUjX9QA@mail.gmail.com>
+	<CAJ5Y-eZa4zukM4ai3n7Ei86PLaaCoF_w4PqFzAdrojg_rOGdig@mail.gmail.com>
+	<CAJe_Zhd5DO=5DoQDOJySTseXG97mCYQZvb=yOR5boPBQ5fLR2w@mail.gmail.com>
+	<CAJ5Y-eZhU3wX1bc8NA1ocFj92N=gAvrMOFjcunqPUskLEOOTTA@mail.gmail.com>
+	<CAJe_Zhen65HwdyBPcBCjX7uD9BGBesHbQJeHdRmz3Bw2DdB5sw@mail.gmail.com>
+	<20141110201310.GQ3815@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43203 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750993AbaKKCEr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Nov 2014 21:04:47 -0500
-In-Reply-To: <1414735705-18366-1-git-send-email-aaron.lu@intel.com>
+Received: from mail-qa0-f52.google.com ([209.85.216.52]:47114 "EHLO
+	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbaKKEEw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2014 23:04:52 -0500
+Received: by mail-qa0-f52.google.com with SMTP id u7so6171991qaz.25
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Nov 2014 20:04:49 -0800 (PST)
+In-Reply-To: <20141110201310.GQ3815@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@linux.intel.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
 
-On 10/31/2014 02:08 PM, Aaron Lu wrote:
-> On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
-> ACPI operation regions defined for the Power Management Integrated Circuit
-> device, one is for power resource handling and one is for thermal: sensor
-> temperature reporting, trip point setting, etc. There are different PMIC
-> chips used on those platforms and though each has the same two operation
-> regions and functionality, their implementation is different so every PMIC
-> will need a driver. But since their functionality is similar, some common
-> code is abstracted into the intel_soc_pmic_opregion.c.
-> 
-> The last version is posted here:
-> https://lkml.org/lkml/2014/9/8/801
-> 
-> Changes since then:
-> 1 Move to drivers/acpi as discussed on the above thread;
-> 2 Added support for XPower AXP288 PMIC operation region support;
-> 3 Since operation region handler can not be removed(at the moment at least),
->   use bool for the two operation region driver configs instead of tristate;
->   Another reason to do this is that, with Mika's MFD ACPI support patch, all
->   those MFD cell devices created will have the same modalias as their parent's
->   so it doesn't make much sense to compile these drivers into modules.
-> 
-> Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
-> patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
-> driver XPower AXP288 and iio driver axp288_adc is located.
+On 11 November 2014 01:43, Mark Brown <broonie@kernel.org> wrote:
+> On Mon, Nov 10, 2014 at 11:14:48PM +0530, Jassi Brar wrote:
+>> On 10 November 2014 20:17, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>> > On 10 November 2014 09:16, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+>> >> On 10 November 2014 19:23, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>
+>> > What is there to stop two users from coming up with the same signature
+>> > (0xdeadbeef / "string") for their mbox controllers? Things can break
+>> > at run time, because with your patch, the first mbox controller with
+>> > the duplicate signature/name will return a channel. The client may be
+>> > expecting a channel from the "other" mbox.
+>
+>> Two channels with same signature are supposed to be _identical_ i.e,
+>> either channel could serve any client asking for a channel with that
+>> signature. So even if an "unexpected" instance of the channel is
+>> assigned, the client should still be happy.
+>
+>> If a client differentiates between 2 instances of a channel, that's
+>> probably a sign of bad design. The knowledge behind client's
+>> preference of instance should actually lie on the provider(controller)
+>> side. I am open to some example on the contrary.
+>
+> The problem here is that ACPI isn't defining the context in a way which
+> maps well onto the way Linux looks things up.  We may not like that and
+> think it's a bad design but the spec is a done deal here and we have to
+> address reality.
+>
+I don't mean that by 'bad design'.
+ Ashwin asked what if a client wants the channel from, say, second
+instance of PCC instead of first (both are same controllers because
+they check for same signature).
+ I can not imagine a good reason why would a client want that. If the
+reason is like only the channel of first controller is actually
+connected to remote (while that of second controller is nipped) ... I
+say that kind of board specific knowledge belongs closer to controller
+than the client. The second controller should have known that and not
+even populated the channel.
 
-Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branch, it
-would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
 
-Rafael,
-Can I get your ACK for the three patches?
+>  From an ACPI point of view the context is the fact
+> that this is a PCC channel (there's a globally unique namespace for PCC
+> channels) but Linux wants a struct device for the client to represent
+> the context with a mapping table of some kind behind that to do the
+> lookup.
+>
+> There's nothing in the ACPI description of the channel or controller to
+> tie it to the client device, and there's nothing preventing some other
+> mailbox mechanism that gets added to an ACPI system from reusing similar
+> names (bear in mind that idiomatic naming for ACPI appears to be three
+> or four character strings).  If we have a PCC channel "FOO" and some new
+> mailbox type which also defines "FOO" the controllers aren't really
+> going to be able to tell them apart just on the string.
+>
+ACPI does specify a PCC specific signature (0x50434300) for its
+channels. Any channel is identified by doing OR of that signature and
+the index of channel/subspace in the array of 256.
 
-Lee,
-Can you please take the series if Rafael gives it ack?
+IF another class of controllers is given the same name "_PCC", the
+ACPI will atleast assign it a different signature (if not ACPI, the
+controller driver for Linux). So we need not even think about using
+strings.
 
-Thanks,
-Aaron
 
-> 
-> Aaron Lu (3):
->   ACPI / pmic_opregion: support PMIC operation region for CrystalCove
->   ACPI / pmic_opregion: support PMIC operation region for XPower AXP288
->   ACPI / pmic_opregion: AXP288: support virtual GPIO in ACPI table
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> We could fit the maping into Linux a bit by having a struct device
+> representing the PCC controller that you use to do the lookup but at
+> that point you may as well have a PCC specific request function that
+> knows that device and does the lookup which is approximately what we
+> have in Ashwin's patch.  We could also require that the lookup be
+> something like "PCC:FOO" and use a global_xlate() but it's not clear to
+> me that this is making things clearer.
+>
+We already have a way to circumvent all of that. I don't just object
+to Ashwin's patch, I posted a more generic and robust solution here
+https://lkml.org/lkml/2014/11/9/75
 
+-Jassi
