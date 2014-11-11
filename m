@@ -1,87 +1,59 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal management updates for v3.18-rc5
-Date: Tue, 11 Nov 2014 13:06:46 -0400
-Message-ID: <20141111170644.GA4265@developer>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
+ Communication Channel
+Date: Tue, 11 Nov 2014 17:29:55 +0000
+Message-ID: <20141111172955.GA3815@sirena.org.uk>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
+ <1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
+ <5461E548.2040204@arm.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
-Return-path: <linux-pm-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="CB6sVB09WZeKI1Ay"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33605 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbaKKRb0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 12:31:26 -0500
 Content-Disposition: inline
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
+In-Reply-To: <5461E548.2040204@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 
 
---VS++wcV0S1rZb1Fb
+--CB6sVB09WZeKI1Ay
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hello Linus,
+On Tue, Nov 11, 2014 at 10:30:32AM +0000, Sudeep Holla wrote:
+> On 07/11/14 14:52, Ashwin Chaugule wrote:
 
-Please pull from
+> >+config PCC
+> >+       bool "Platform Communication Channel Driver"
+> >+       depends on ACPI
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git fixes
+> I am bit confused here, though I prefer PCC to depend on ACPI, I have
+> seen discussion in this thread about using PCC without ACPI, how will
+> that work ?
 
-to receive Thermal Management updates for v3.18-rc5 with top-most
+We can always remove the dependency when someone adds the code to talk
+to non-ACPI PCC devices.
 
-90a21ff5824c3ae8b49c1c0498b137792b935aab:
-
-  imx: thermal: imx_get_temp might be called before sensor clock is prepared (2014-11-09 15:42:53 -0400)
-
-on top of commit a1cff6e25e6e3b55183610dddca91546951b20e3:
-
-  Merge branch 'fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal (2014-11-04 11:57:27 -0800)
-
-Specifics:
-
-- I am sending thermal fixes for 3.18-rc5 on behalf of Rui Zhang this
-  time. He is currently unable to send pull requests due to troubles with
-  his machine and he's currently in a business trip.
-
-- This week we have few fixes:
-  . Fix in IMX thermal driver to do the correct loading sequence with CPUfreq;
-  . Fix in Exynos related to TMU_CONTROL offset in Exynos5260;
-  . Fix the unit conversion in int3403.
-
-
-BR,
-
-Eduardo Valentin
-
-----------------------------------------------------------------
-Bai Ping (1):
-      thermal: imx: correct driver load sequence for cpu cooling
-
-Bartlomiej Zolnierkiewicz (1):
-      thermal: exynos: use correct offset for TMU_CONTROL register on Exynos5260
-
-Heiner Kallweit (1):
-      imx: thermal: imx_get_temp might be called before sensor clock is prepared
-
-lan,Tianyu (1):
-      Thermal/int3403: Fix thermal hysteresis unit conversion
-
- drivers/thermal/imx_thermal.c                     | 45 +++++++++++++++--------
- drivers/thermal/int340x_thermal/int3403_thermal.c |  8 +++-
- drivers/thermal/samsung/exynos_tmu_data.c         |  1 -
- drivers/thermal/samsung/exynos_tmu_data.h         |  1 -
- 4 files changed, 36 insertions(+), 19 deletions(-)
-
---VS++wcV0S1rZb1Fb
+--CB6sVB09WZeKI1Ay
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQEcBAEBAgAGBQJUYkIaAAoJEMLUO4d9pOJWxjEIAIsBOd3SiSwpMz+N8XZP82Hc
-2T1iwKKHQPWdGmngkNfocf8BljwvzrU8I/IORIXEkvsPTodohRoXS0D4iBGIpTid
-PIYScEaYyE5Z7Wgh9x6PRsa8GXerSHR0fJ9gAF96hCvUSzoCjQkPDT1vdPicRgAV
-puBbZCdGlPRGI/UsiXBOMMftPmQ0ekr4MjKTXzwqKeM/uJdJKQD+8lK1ECS/C5cV
-S4htPyC0zX9eA3i3G+jm0p1fb4XtFZulmhUJelNvE4WpZ92P+wjr1y+RA7Xw19GI
-pqt0NsA3ujbIzR2jZNpjnau99WgS7e8e3I/SXuKf3o/lAZ8j+YN9i9aC0Y8o2fI=
-=iwfo
+iQEcBAEBAgAGBQJUYkeSAAoJECTWi3JdVIfQASMH/1Z8iViPsbH8DR4dX8T2Dr2r
+H4KUOd4OMM18y0+li1CcyZiHSQGusI8HakXnQpX53WLiirro8MImdN4UTvxSf15P
+gG7/OzTkZRc9pBv09ytDA4WiOULrqyLII/UKDtyroUyq2XRnFSOOpzHm5StqH7sE
+73GNtZXxifUfdCihDCXYcXWCU6O1y5M+937tGJfJ/6qwPmc4EnN54ExZwKF7T65I
+qG8RsPoW8EMW4xRxEE2CQLedJt/ZtHAKv/fcQTLnkgBRTgJ6LDFmj+5dvF69fkFM
+llUxatQuevFbNkEbPTTs99iYislhy+9r3I+PjzYOOxnZ6nl7XGOVPT1DLptuOR4=
+=fnx4
 -----END PGP SIGNATURE-----
 
---VS++wcV0S1rZb1Fb--
+--CB6sVB09WZeKI1Ay--
