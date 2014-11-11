@@ -1,229 +1,121 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch] PCI/MSI: Enhance core to support hierarchy irqdomain
-Date: Tue, 11 Nov 2014 21:02:18 +0800
-Message-ID: <1415710943-6001-1-git-send-email-jiang.liu@linux.intel.com>
-References: <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <jiang.liu@linux.intel.com>, Alexander Gordeev <agordeev@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Tue, 11 Nov 2014 08:02:47 -0500
+Message-ID: <CAJ5Y-eaaJW6NMSpt83onjDQ8Gr6GH-DbKg_aKxMcjqT=Hrt1sw@mail.gmail.com>
+References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
+	<CAJe_ZhcMvQyxZTyD+My23-Bi5pbfybCUhxN6PF3KBt8RtAS2iA@mail.gmail.com>
+	<CAJ5Y-eZq7+LsnQSyiJq+rK5ib7uqsJuyx8pJaRXn91ei2aObVA@mail.gmail.com>
+	<CAJe_ZhcSTvY=eYx67z=HxQ=VfSYzeKhA3+yhGwvccb208R7UFQ@mail.gmail.com>
+	<CAJ5Y-eaXOq0qYYxGvZafFEoYWpuq7b1xh3jMdCQBkYnpqBgFAw@mail.gmail.com>
+	<CAJe_Zhd1q=3r6So7XRYuAi9NSQvabpiuLqPiLpReoiFzUjX9QA@mail.gmail.com>
+	<CAJ5Y-eZa4zukM4ai3n7Ei86PLaaCoF_w4PqFzAdrojg_rOGdig@mail.gmail.com>
+	<CAJe_Zhd5DO=5DoQDOJySTseXG97mCYQZvb=yOR5boPBQ5fLR2w@mail.gmail.com>
+	<CAJ5Y-eZhU3wX1bc8NA1ocFj92N=gAvrMOFjcunqPUskLEOOTTA@mail.gmail.com>
+	<CAJe_Zhen65HwdyBPcBCjX7uD9BGBesHbQJeHdRmz3Bw2DdB5sw@mail.gmail.com>
+	<20141110201310.GQ3815@sirena.org.uk>
+	<CAJe_ZhczyNPjohLErcN63xtc-LrS2DY_Zu9yvXt1xAdCazvjGA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:51019 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265AbaKKNCt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 08:02:49 -0500
+Received: by mail-wi0-f173.google.com with SMTP id n3so1545909wiv.12
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Nov 2014 05:02:48 -0800 (PST)
+In-Reply-To: <CAJe_ZhczyNPjohLErcN63xtc-LrS2DY_Zu9yvXt1xAdCazvjGA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
 
-Enhance PCI MSI core to support hierarchy irqdomain, so the common
-code could be shared among architectures.
+On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+> On 11 November 2014 01:43, Mark Brown <broonie@kernel.org> wrote:
+>> On Mon, Nov 10, 2014 at 11:14:48PM +0530, Jassi Brar wrote:
+>>> On 10 November 2014 20:17, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>>> > On 10 November 2014 09:16, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+>>> >> On 10 November 2014 19:23, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>>
+>>> > What is there to stop two users from coming up with the same signature
+>>> > (0xdeadbeef / "string") for their mbox controllers? Things can break
+>>> > at run time, because with your patch, the first mbox controller with
+>>> > the duplicate signature/name will return a channel. The client may be
+>>> > expecting a channel from the "other" mbox.
+>>
+>>> Two channels with same signature are supposed to be _identical_ i.e,
+>>> either channel could serve any client asking for a channel with that
+>>> signature. So even if an "unexpected" instance of the channel is
+>>> assigned, the client should still be happy.
+>>
+>>> If a client differentiates between 2 instances of a channel, that's
+>>> probably a sign of bad design. The knowledge behind client's
+>>> preference of instance should actually lie on the provider(controller)
+>>> side. I am open to some example on the contrary.
+>>
+>> The problem here is that ACPI isn't defining the context in a way which
+>> maps well onto the way Linux looks things up.  We may not like that and
+>> think it's a bad design but the spec is a done deal here and we have to
+>> address reality.
+>>
+> I don't mean that by 'bad design'.
+>  Ashwin asked what if a client wants the channel from, say, second
+> instance of PCC instead of first (both are same controllers because
+> they check for same signature).
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
-Hi Thomas,
-	This update fixes a possible conflict on other architectures
-when they try to use the new MSI hierarchy irqdomain, as pointed out by
-Suravee Suthikulanit. The main change is as below.
-Regards!
-Gerry
+2 channels from 2 "different" controllers. e.g. Non-PCC controllers,
+which don't have a "subspace" signature field like PCC does.
 
- static void msi_domain_deactivate(struct irq_domain *domain,
- 				  struct irq_data *irq_data)
- {
- 	struct msi_msg msg;
-+	struct msi_desc *desc = irq_data->msi_desc;
- 
--	if (!irq_data->chip_data) {
-+	if (desc->irq == irq_data->irq) {
- 		memset(&msg, 0, sizeof(msg));
- 		__write_msi_msg(irq_data->msi_desc, &msg);
- 	}
----
- drivers/pci/Kconfig |    4 ++
- drivers/pci/msi.c   |  133 +++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/msi.h |   14 ++++++
- 3 files changed, 151 insertions(+)
+>  I can not imagine a good reason why would a client want that. If the
+> reason is like only the channel of first controller is actually
+> connected to remote (while that of second controller is nipped) ... I
+> say that kind of board specific knowledge belongs closer to controller
+> than the client. The second controller should have known that and not
+> even populated the channel.
+>
+>
+>>  From an ACPI point of view the context is the fact
+>> that this is a PCC channel (there's a globally unique namespace for PCC
+>> channels) but Linux wants a struct device for the client to represent
+>> the context with a mapping table of some kind behind that to do the
+>> lookup.
+>>
+>> There's nothing in the ACPI description of the channel or controller to
+>> tie it to the client device, and there's nothing preventing some other
+>> mailbox mechanism that gets added to an ACPI system from reusing similar
+>> names (bear in mind that idiomatic naming for ACPI appears to be three
+>> or four character strings).  If we have a PCC channel "FOO" and some new
+>> mailbox type which also defines "FOO" the controllers aren't really
+>> going to be able to tell them apart just on the string.
+>>
+> ACPI does specify a PCC specific signature (0x50434300) for its
+> channels. Any channel is identified by doing OR of that signature and
+> the index of channel/subspace in the array of 256.
 
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index b9db0f2ce11f..022e89745f86 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -16,6 +16,10 @@ config PCI_MSI
- 
- 	   If you don't know what to do here, say Y.
- 
-+config PCI_MSI_IRQ_DOMAIN
-+	bool
-+	depends on PCI_MSI && IRQ_DOMAIN_HIERARCHY
-+
- config PCI_DEBUG
- 	bool "PCI Debugging"
- 	depends on PCI && DEBUG_KERNEL
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index da181c59394b..365e969f5e8d 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -19,6 +19,7 @@
- #include <linux/errno.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/irqdomain.h>
- 
- #include "pci.h"
- 
-@@ -1098,3 +1099,135 @@ int pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
- 	return nvec;
- }
- EXPORT_SYMBOL(pci_enable_msix_range);
-+
-+#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-+/*
-+ * Generate a unique ID number for each possible MSI source, the ID number
-+ * is only used within the irqdomain.
-+ */
-+static inline irq_hw_number_t
-+msi_get_hwirq(struct pci_dev *dev, struct msi_desc *desc)
-+{
-+	return (irq_hw_number_t)desc->msi_attrib.entry_nr |
-+		PCI_DEVID(dev->bus->number, dev->devfn) << 11 |
-+		(pci_domain_nr(dev->bus) & 0xFFFFFFFF) << 27;
-+}
-+
-+static int msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
-+			    unsigned int nr_irqs, void *arg)
-+{
-+	int i, ret;
-+	irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
-+
-+	if (irq_find_mapping(domain, hwirq) > 0)
-+		return -EEXIST;
-+
-+	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
-+	if (ret < 0)
-+		return ret;
-+
-+	for (i = 0; i < nr_irqs; i++) {
-+		irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
-+					      domain->host_data, NULL);
-+		__irq_set_handler(virq + i, handle_edge_irq, 0, "edge");
-+	}
-+
-+	return ret;
-+}
-+
-+static void msi_domain_free(struct irq_domain *domain, unsigned int virq,
-+			    unsigned int nr_irqs)
-+{
-+	int i;
-+
-+	for (i = 0; i < nr_irqs; i++) {
-+		struct msi_desc *desc = irq_get_msi_desc(virq);
-+
-+		if (desc)
-+			desc->irq = 0;
-+	}
-+	irq_domain_free_irqs_top(domain, virq, nr_irqs);
-+}
-+
-+static void msi_domain_activate(struct irq_domain *domain,
-+				struct irq_data *irq_data)
-+{
-+	struct msi_msg msg;
-+	struct msi_desc *desc = irq_data->msi_desc;
-+
-+	/*
-+	 * MSI-X message is written per-IRQ.
-+	 * MSI message denotes a contiguous group of IRQs, written for 0th IRQ.
-+	 */
-+	if (desc->irq == irq_data->irq) {
-+		BUG_ON(irq_chip_compose_msi_msg(irq_data, &msg));
-+		__write_msi_msg(irq_data->msi_desc, &msg);
-+	}
-+}
-+
-+static void msi_domain_deactivate(struct irq_domain *domain,
-+				  struct irq_data *irq_data)
-+{
-+	struct msi_msg msg;
-+	struct msi_desc *desc = irq_data->msi_desc;
-+
-+	if (desc->irq == irq_data->irq) {
-+		memset(&msg, 0, sizeof(msg));
-+		__write_msi_msg(irq_data->msi_desc, &msg);
-+	}
-+}
-+
-+static struct irq_domain_ops msi_domain_ops = {
-+	.alloc = msi_domain_alloc,
-+	.free = msi_domain_free,
-+	.activate = msi_domain_activate,
-+	.deactivate = msi_domain_deactivate,
-+};
-+
-+struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
-+					 struct irq_chip *chip,
-+					 struct irq_domain *parent)
-+{
-+	struct irq_domain *domain;
-+
-+	domain = irq_domain_add_tree(of_node, &msi_domain_ops, chip);
-+	if (!domain)
-+		return NULL;
-+
-+	domain->parent = parent;
-+
-+	return domain;
-+}
-+
-+int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
-+			      struct pci_dev *dev, void *arg)
-+{
-+	int i, virq;
-+	struct msi_desc *desc;
-+	int node = dev_to_node(&dev->dev);
-+
-+	list_for_each_entry(desc, &dev->msi_list, list) {
-+		arch_msi_irq_domain_set_hwirq(arg, msi_get_hwirq(dev, desc));
-+		virq = irq_domain_alloc_irqs(domain, desc->nvec_used,
-+					     node, arg);
-+		if (virq < 0) {
-+			/* Special handling for pci_enable_msi_range(). */
-+			if (type == PCI_CAP_ID_MSI && desc->nvec_used > 1)
-+				return 1;
-+			else
-+				return -ENOSPC;
-+		}
-+		for (i = 0; i < desc->nvec_used; i++)
-+			irq_set_msi_desc_off(virq, i, desc);
-+	}
-+
-+	list_for_each_entry(desc, &dev->msi_list, list)
-+		if (desc->nvec_used == 1)
-+			dev_dbg(&dev->dev, "irq %d for MSI/MSI-X\n", virq);
-+		else
-+			dev_dbg(&dev->dev, "irq [%d-%d] for MSI/MSI-X\n",
-+				virq, virq + desc->nvec_used - 1);
-+
-+	return 0;
-+}
-+#endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index 44f4746d033b..662c628fc2fa 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -75,4 +75,18 @@ struct msi_chip {
- 	void (*teardown_irq)(struct msi_chip *chip, unsigned int irq);
- };
- 
-+#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-+struct irq_domain;
-+struct irq_chip;
-+
-+struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
-+					 struct irq_chip *chip,
-+					 struct irq_domain *parent);
-+int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
-+			      struct pci_dev *dev, void *arg);
-+
-+irq_hw_number_t arch_msi_irq_domain_get_hwirq(void *arg);
-+void arch_msi_irq_domain_set_hwirq(void *arg, irq_hw_number_t hwirq);
-+#endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
-+
- #endif /* LINUX_MSI_H */
--- 
-1.7.10.4
+This is true only for PCC. Another class of controllers may not even
+have such a signature. The only thing you can be sure of is that they
+will have the 4 letter table identifier string e.g. PCCT.
+
+>
+> IF another class of controllers is given the same name "_PCC", the
+> ACPI will atleast assign it a different signature (if not ACPI, the
+> controller driver for Linux). So we need not even think about using
+> strings.
+>
+>
+>> We could fit the maping into Linux a bit by having a struct device
+>> representing the PCC controller that you use to do the lookup but at
+>> that point you may as well have a PCC specific request function that
+>> knows that device and does the lookup which is approximately what we
+>> have in Ashwin's patch.  We could also require that the lookup be
+>> something like "PCC:FOO" and use a global_xlate() but it's not clear to
+>> me that this is making things clearer.
+>>
+> We already have a way to circumvent all of that. I don't just object
+> to Ashwin's patch, I posted a more generic and robust solution here
+> https://lkml.org/lkml/2014/11/9/75
+
+Arnd, Mark, Rafael, Lv, please^n ACK or NAK one of these patches and
+help us move on.
+
+>
+> -Jassi
