@@ -1,110 +1,129 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
- Communication Channel
-Date: Tue, 11 Nov 2014 10:01:03 +0530
-Message-ID: <CAJe_ZhfVcW3_tK0xx+dCMvwdt+hsxhu4Eg1tZBgLHqSe7s-Hcw@mail.gmail.com>
-References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
-	<CAJe_Zhen65HwdyBPcBCjX7uD9BGBesHbQJeHdRmz3Bw2DdB5sw@mail.gmail.com>
-	<20141110201310.GQ3815@sirena.org.uk>
-	<6137834.nUiGJsT7Uj@wuerfel>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] toshiba_acpi: Fix regression caused by backlight extra
+ check code
+Date: Mon, 10 Nov 2014 21:49:19 -0800
+Message-ID: <20141111054918.GB56947@vmdeb7>
+References: <1415073514-12555-1-git-send-email-coproscefalo@gmail.com>
+ <20141104062137.GC56751@vmdeb7>
+ <CAGdLNWH9OqBO1TgNm7ZRnX_wnGwe3rUuxaqwvLfq=HdYXNmMbw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:61815 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623AbaKKEbE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Nov 2014 23:31:04 -0500
-Received: by mail-qa0-f51.google.com with SMTP id f12so6209791qad.24
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Nov 2014 20:31:03 -0800 (PST)
-In-Reply-To: <6137834.nUiGJsT7Uj@wuerfel>
+Received: from bombadil.infradead.org ([198.137.202.9]:34215 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbaKKFt1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 00:49:27 -0500
+Content-Disposition: inline
+In-Reply-To: <CAGdLNWH9OqBO1TgNm7ZRnX_wnGwe3rUuxaqwvLfq=HdYXNmMbw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Mark Brown <broonie@kernel.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, "lv.zheng" <lv.zheng@intel.com>
+To: Azael Avalos <coproscefalo@gmail.com>
+Cc: rjw@rjwysocki.net, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Nuno Lopes <nunoplopes@sapo.pt>
 
-On 11 November 2014 01:59, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Monday 10 November 2014 20:13:10 Mark Brown wrote:
->> On Mon, Nov 10, 2014 at 11:14:48PM +0530, Jassi Brar wrote:
->> > On 10 November 2014 20:17, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
->> > > What is there to stop two users from coming up with the same signature
->> > > (0xdeadbeef / "string") for their mbox controllers? Things can break
->> > > at run time, because with your patch, the first mbox controller with
->> > > the duplicate signature/name will return a channel. The client may be
->> > > expecting a channel from the "other" mbox.
->>
->> > Two channels with same signature are supposed to be _identical_ i.e,
->> > either channel could serve any client asking for a channel with that
->> > signature. So even if an "unexpected" instance of the channel is
->> > assigned, the client should still be happy.
->>
->> > If a client differentiates between 2 instances of a channel, that's
->> > probably a sign of bad design. The knowledge behind client's
->> > preference of instance should actually lie on the provider(controller)
->> > side. I am open to some example on the contrary.
->>
->> The problem here is that ACPI isn't defining the context in a way which
->> maps well onto the way Linux looks things up.  We may not like that and
->> think it's a bad design but the spec is a done deal here and we have to
->> address reality.  From an ACPI point of view the context is the fact
->> that this is a PCC channel (there's a globally unique namespace for PCC
->> channels) but Linux wants a struct device for the client to represent
->> the context with a mapping table of some kind behind that to do the
->> lookup.
->
-> Right.
->
->> There's nothing in the ACPI description of the channel or controller to
->> tie it to the client device, and there's nothing preventing some other
->> mailbox mechanism that gets added to an ACPI system from reusing similar
->> names (bear in mind that idiomatic naming for ACPI appears to be three
->> or four character strings).  If we have a PCC channel "FOO" and some new
->> mailbox type which also defines "FOO" the controllers aren't really
->> going to be able to tell them apart just on the string.
->>
->> We could fit the maping into Linux a bit by having a struct device
->> representing the PCC controller that you use to do the lookup but at
->> that point you may as well have a PCC specific request function that
->> knows that device and does the lookup which is approximately what we
->> have in Ashwin's patch.  We could also require that the lookup be
->> something like "PCC:FOO" and use a global_xlate() but it's not clear to
->> me that this is making things clearer.
->
-> Agreed. Having a special interface here the way that Ashwin's patch
-> introduces seems the least invasive.
->
-Just to be sure... please have a look at an alternative solution
-https://lkml.org/lkml/2014/11/9/75
-I think 0 new api is lesser invasive than 2 new apis.
+On Mon, Nov 10, 2014 at 09:58:29AM -0700, Azael Avalos wrote:
+> Hi Darren,
+> 
+> Sorry for the way late reply, I had to go out of town in a hurry.
+> 
+> 2014-11-03 23:21 GMT-07:00 Darren Hart <dvhart@infradead.org>:
+> > On Mon, Nov 03, 2014 at 08:58:34PM -0700, Azael Avalos wrote:
+> >> Bug 86521 uncovered that some TOS6208 devices also return
+> >> non zero values on a write call to the backlight method,
+> >> thus getting caught and bailed out by the extra check code.
+> >>
+> >> This patch makes sure that the extra check is being done
+> >> on a TOS1900 device and then make the check for the broken
+> >> backlight code.
+> >>
+> >> Signed-off-by: Azael Avalos <coproscefalo@gmail.com>
+> >> ---
+> >>  drivers/platform/x86/toshiba_acpi.c | 8 ++++++--
+> >>  1 file changed, 6 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+> >> index ef3a190..e3fed12 100644
+> >> --- a/drivers/platform/x86/toshiba_acpi.c
+> >> +++ b/drivers/platform/x86/toshiba_acpi.c
+> >> @@ -944,9 +944,13 @@ static int set_lcd_brightness(struct toshiba_acpi_dev *dev, int value)
+> >>       /* Extra check for "incomplete" backlight method, where the AML code
+> >>        * doesn't check for HCI_SET or HCI_GET and returns TOS_SUCCESS,
+> >>        * the actual brightness, and in some cases the max brightness.
+> >> +      * Use the SPFC method as an indicator that we're on a TOS1900 device,
+> >> +      * otherwise some TOS6208 devices might get bailed out, see bug 86521
+> >
+> > This needs a clearer description here in this comment, rather than redirecting
+> > the reader to a bug report (which may or may not exist when needed).
+> 
+> Alright, will do whenever we reach an agreement below.
+> 
+> >
+> >>        */
+> >> -     if (out[2] > 0  || out[3] == 0xE000)
+> >> -             return -ENODEV;
+> >> +     if (acpi_has_method(dev->acpi_dev->handle, "SPFC")) {
+> >
+> > Hrm, this checking for the existence of a specific method seems suspect to me.
+> > We would know if we are on a TOS1900 as we matches the acpi id already. Is the
+> > SPFC significant here, or is it just a "we only see SPFC on TOS1900 so it's a
+> > convenient test"? If the latter, it seems rather fragile and prone to other
+> > breakage to me.
+> 
+> Yeah, its the latter, the "SPFC" method is specific to TOS1900 devices.
+> 
+> All of the TOS1900 support the Toshiba specific backlight read-only,
+> and that test is just to get those implementations where the AML
+> code doesn't check for read/write registers, so far I've identified three
+> series of laptops with this issue (all Qosmios), X500, X505 and X75-A
+> (and there might be more around).
+> 
+> We could dissable backlight on all TOS1900 or add those three models
+> to the (growing) DMI list on video.c, but of course, I would like to keep
+> the code in-house, but that's just me :-)
+> 
 
-> I don't think we would risk running
-> into the problems that Jassi mentioned regarding API growth if we
-> get other cases.
->
-Do we anticipate ..
-a) more than one instance of PCC on a platform?
-b) PCC alongside another non-DT/ACPI mailbox device?
+I'm having some trouble grokking the whole picture I think.
 
-I discount (a).
-But for (b) it doesn't look neat to either add yet another PCC like
-api or make non-PCC clients call pcc_mbox_request_channel().  Adapting
-mbox_request_channe() to accommodate even non-DT clients (like PCC)
-seems cleaner and more future proof.
+So, let's try and clear it up. We have a function to set brightness. On model
+citizen laptops, after the ACPI call, out[2] is 0 (TOS_SUCCESS) and we return 0.
 
-> In particular, anything that boots with DT will be
-> able to use the standard method, and even with ACPI if we have additional
-> mailboxes we would most likely use the named properties extension in
-> the future.
->
-> On a side note, I think we will actually have to add a DT binding
-> to PCC as well, but that should probably provide both the standard
-> mailbox API as well as support the pcc specific interfaces in order
-> to allow client drivers that do not have multiple ways of doing the
-> same thing.
->
-In that case, wouldn't it be cleaner to have client drivers just call
-mbox_request_channel() irrespective of being populated by DT or ACPI?
-Please note, in my implementation the client just need to see if it
-can populate the mbox_client.dev to be able to work as such on both DT
-backed and ACPI backed controller driver.
+The extra check was added by f6aac65 to avoid registering certain badly behaved
+machines (Qosmios) which always return HCI_SUCCESS, even the read/write commands
+are missing. This was determined by checking for observed values in out[2]
+greater than 0 and out[3] equal to 0xE000 (which presumably map to actual or max
+brightness. I take it in a well behaved ACPI implementation, out[2] must be 0
+and out[3] is .... what? I'll call this out[2] || out[3] state the "signature"
+of a bad implementation.
 
--Jassi
+Now, with bug 86521, we learn that these signatures are not necessarily bad,
+some working laptops also populate these fields in this way.
+
+Finally, while it is only TOS1900 devices that are known to be bad, all TOS1900
+devices are not necessarily bad. So you don't want to block all TOS1900 devices
+at probe time.
+
+Do I have this right?
+
+If so, this is looking more and more fragile to me. I'm inclined to push for a
+blacklist of the known bad models and strip out both this and the precious extra
+check, since they are based on circumstantial evidence of failure.
+
+> >
+> > Rafael, any recommendations here?
+
+
+Rafael, what's your take on this? Does the above influence your position one way
+or the other?
+
+
+
+> >
+> >> +             if (out[2] > 0  || out[3] == 0xE000)
+> >> +                     return -ENODEV;
+> >> +     }
+> >>
+> >>       return out[0] == TOS_SUCCESS ? 0 : -EIO;
+> >>  }
+
+-- 
+Darren Hart
+Intel Open Source Technology Center
