@@ -1,33 +1,26 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
- Communication Channel
-Date: Tue, 11 Nov 2014 14:22:50 -0500
-Message-ID: <CAJ5Y-eaqWhO3fNUcdX3SZryj5cTxAZRMsW3UepSZiA+YxM5PXw@mail.gmail.com>
-References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
-	<2214649.QGmZRRXly3@wuerfel>
-	<CAJe_ZhfQ7_T3LRz-OgmDj1yopZ2Jc0s3op_yFAfT+8wQZ_yS4Q@mail.gmail.com>
-	<1625601.1yb4h3sjoe@wuerfel>
-	<CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] dell-wireless: new driver for dell wireless button for
+ Windows 8
+Date: Tue, 11 Nov 2014 19:35:56 +0000
+Message-ID: <20141111193556.GA18229@srcf.ucam.org>
+References: <1415685685-16953-1-git-send-email-alex.hung@canonical.com>
+ <20141111061242.GD56947@vmdeb7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:33207 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbaKKTWv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 14:22:51 -0500
-Received: by mail-wi0-f179.google.com with SMTP id h11so2654344wiw.0
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Nov 2014 11:22:50 -0800 (PST)
-In-Reply-To: <CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141111061242.GD56947@vmdeb7>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Alex Hung <alex.hung@canonical.com>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>
 
-On 11 November 2014 14:08, Jassi Brar <jaswinder.singh@linaro.org> wrote:
-> Ashwin, would you fix the name and resubmit. Or I do
-> s/index/subspace_id/ before committing?
+On Mon, Nov 10, 2014 at 10:12:42PM -0800, Darren Hart wrote:
 
-I'll fix this and submit another patch.
+> As this is ACPI enumerated, does it belong in drivers/platform and not in
+> drivers/acpi?
 
-Thanks,
-Ashwin
+Yeah, it's still a platform driver rather than a core ACPI driver.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
