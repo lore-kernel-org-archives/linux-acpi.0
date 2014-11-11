@@ -1,67 +1,57 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 11 Nov 2014 21:25:02 +0100
-Message-ID: <1620095.ORCbaZ8QlJ@wuerfel>
-References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org> <CAJ5Y-eZ+q2dHuuWwVjMCcVtXqSwg0o9Zj-kqQS95K40VakwReQ@mail.gmail.com> <546224C8.7050502@arm.com>
+Date: Tue, 11 Nov 2014 21:38:04 +0100
+Message-ID: <1857695.vuMqt0pPSL@wuerfel>
+References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com> <1625601.1yb4h3sjoe@wuerfel> <CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:49401 "EHLO
+Received: from mout.kundenserver.de ([212.227.17.13]:57343 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbaKKUZQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 15:25:16 -0500
-In-Reply-To: <546224C8.7050502@arm.com>
+	with ESMTP id S1751649AbaKKUig (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 15:38:36 -0500
+In-Reply-To: <CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
+To: linaro-acpi@lists.linaro.org
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>
 
-On Tuesday 11 November 2014 15:01:28 Sudeep Holla wrote:
-> On 11/11/14 13:18, Ashwin Chaugule wrote:
-> > On 11 November 2014 05:30, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> >> On 07/11/14 14:52, Ashwin Chaugule wrote:
-> >>> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
-> >>
-> >>
-> >> Really, do you want to allocate 256 structures of mbox_chan even on
-> >> systems with just 1 - 2 channels(typically that would be the case) ?
-> >>
+On Wednesday 12 November 2014 00:38:42 Jassi Brar wrote:
+> On 11 November 2014 23:24, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Tuesday 11 November 2014 23:09:16 Jassi Brar wrote:
+> >> On 11 November 2014 22:03, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> > On Tuesday 11 November 2014 19:27:07 Jassi Brar wrote:
+> >> >> On 11 November 2014 18:32, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> >> >> > On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+> >> >>
+> >> >> In even simpler terms.... I prefer controller specific
+> >> >> encoding(0x50434300) instead of controller specific api
+> >> >> (pcc_mbox_request_channel).  For a different class of controller, it
+> >> >> is much cleaner to define a new encoding as compared to another
+> >> >> xyz_mbox_request_channel() api.
+> >> >
+> >> > The problem with this approach is that it still leaves the interface
+> >> > as controller specific, because the client now has to know that it
+> >> > must pass the PCC identifier instead of an index.
+> >> >
+> >> Yup. I hope you are aware that the "index" argument of
+> >> pcc_mbox_request_channel() is just the same thing. The "index" there
+> >> is actually the 'Type' value defined in ACPI for the client.
 > >
-> > Spec says, max of 256. Easier to support it this way.
+> > The problem is that it's not an index relative to the client, but
+> > into an array of the mailbox provide. I only today noticed that both
+> > are called 'index' in the source code, which is highly confusing,
+> > and the pcc driver should name it 'subspaceid' or similar instead,
+> > to minimize the confusion.
 > >
+> OK.
 > 
-> I tend to disagree, you can allocate dynamically. And use exactly same
-> logic you use in get_subspace_id to populate con_priv later. When you
-> parse PCC Subspace, you can just validate header and not record them in
-> pcc_mbox_chan. You can get the exact count in acpi_table_parse_entries
-> and then do the required allocation.
+> Ashwin, would you fix the name and resubmit. Or I do
+> s/index/subspace_id/ before committing?
+> Arnd, Could I please have your Reviewed/Acked-by?
 
-Right, I think that would be best.
-
-> >>> +
-> >>> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
-> >>> +                       sizeof(struct acpi_table_pcct),
-> >>
-> >>
-> >> s/struct acpi_table_pcct/*pcct_tbl/
-> >>
-> >> In general, the interrupt part of the PCCT SS is not considered in this
-> >> patch. It's better to see/discuss how that can be fit into the mailbox
-> >> framework, though it could be follow up patch.
-> >
-> > The IRQ part of the spec seems to be under discussion (single irq per
-> > subspace / common IRQ across all) and as you may be aware we're
-> > working on trying it out on Juno. That'll guide the design. What I
-> > have here is good enough to start off with and has been tested. I dont
-> > think we should have a problem using the mailbox API for asyn tx
-> > though, but I'd really^n prefer if we get something out there first.
-> >
-> 
-> That's the different and still under discussion. But you need to support
-> Type 1 subspace as it stands in ACPI v5.1
-
-Why? We should only implement whatever is required to support existing hardware,
-not because something is in the spec.
+I'll wait for the new version to dynamically allocate the channels as
+suggested by Sudeep.
 
 	Arnd
