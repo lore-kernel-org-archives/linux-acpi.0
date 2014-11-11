@@ -1,108 +1,241 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 11 Nov 2014 19:27:07 +0530
-Message-ID: <CAJe_ZhcJzC1N4pESC-BTe=MXFJuOw2Pj61TaZEOs52QQHULhSg@mail.gmail.com>
-References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
-	<CAJe_ZhcMvQyxZTyD+My23-Bi5pbfybCUhxN6PF3KBt8RtAS2iA@mail.gmail.com>
-	<CAJ5Y-eZq7+LsnQSyiJq+rK5ib7uqsJuyx8pJaRXn91ei2aObVA@mail.gmail.com>
-	<CAJe_ZhcSTvY=eYx67z=HxQ=VfSYzeKhA3+yhGwvccb208R7UFQ@mail.gmail.com>
-	<CAJ5Y-eaXOq0qYYxGvZafFEoYWpuq7b1xh3jMdCQBkYnpqBgFAw@mail.gmail.com>
-	<CAJe_Zhd1q=3r6So7XRYuAi9NSQvabpiuLqPiLpReoiFzUjX9QA@mail.gmail.com>
-	<CAJ5Y-eZa4zukM4ai3n7Ei86PLaaCoF_w4PqFzAdrojg_rOGdig@mail.gmail.com>
-	<CAJe_Zhd5DO=5DoQDOJySTseXG97mCYQZvb=yOR5boPBQ5fLR2w@mail.gmail.com>
-	<CAJ5Y-eZhU3wX1bc8NA1ocFj92N=gAvrMOFjcunqPUskLEOOTTA@mail.gmail.com>
-	<CAJe_Zhen65HwdyBPcBCjX7uD9BGBesHbQJeHdRmz3Bw2DdB5sw@mail.gmail.com>
-	<20141110201310.GQ3815@sirena.org.uk>
-	<CAJe_ZhczyNPjohLErcN63xtc-LrS2DY_Zu9yvXt1xAdCazvjGA@mail.gmail.com>
-	<CAJ5Y-eaaJW6NMSpt83onjDQ8Gr6GH-DbKg_aKxMcjqT=Hrt1sw@mail.gmail.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
+ Communication Channel
+Date: Tue, 11 Nov 2014 15:01:28 +0000
+Message-ID: <546224C8.7050502@arm.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>	<1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>	<5461E548.2040204@arm.com> <CAJ5Y-eZ+q2dHuuWwVjMCcVtXqSwg0o9Zj-kqQS95K40VakwReQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f181.google.com ([209.85.216.181]:40945 "EHLO
-	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbaKKN5I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 08:57:08 -0500
-Received: by mail-qc0-f181.google.com with SMTP id w7so7644383qcr.12
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Nov 2014 05:57:08 -0800 (PST)
-In-Reply-To: <CAJ5Y-eaaJW6NMSpt83onjDQ8Gr6GH-DbKg_aKxMcjqT=Hrt1sw@mail.gmail.com>
+Received: from service87.mimecast.com ([91.220.42.44]:42363 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481AbaKKPBL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 10:01:11 -0500
+In-Reply-To: <CAJ5Y-eZ+q2dHuuWwVjMCcVtXqSwg0o9Zj-kqQS95K40VakwReQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 
-On 11 November 2014 18:32, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+Hi Ashwin,
 
+On 11/11/14 13:18, Ashwin Chaugule wrote:
+> On 11 November 2014 05:30, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>> On 07/11/14 14:52, Ashwin Chaugule wrote:
 >
->> I don't mean that by 'bad design'.
->>  Ashwin asked what if a client wants the channel from, say, second
->> instance of PCC instead of first (both are same controllers because
->> they check for same signature).
+>>> +config PCC
+>>> +       bool "Platform Communication Channel Driver"
+>>> +       depends on ACPI
+>>
+>>
+>> I am bit confused here, though I prefer PCC to depend on ACPI, I have
+>> seen discussion in this thread about using PCC without ACPI, how will
+>> that work ?
 >
-> 2 channels from 2 "different" controllers. e.g. Non-PCC controllers,
-> which don't have a "subspace" signature field like PCC does.
+> Been discussed early on. DT users, if at all, will need to come up
+> with their own DT bindings to make this work.
 >
-OK, even that I think I explained already, but here it goes again ...
+>
 
-For Mailbox framework, there already has be some direct understanding
-between the client and controller driver. For ex, the controller
-defines the format of the payload packet and the client simply
-provides the pointer, to payload in SharedMemory, as "data" to mailbox
-api to be transmitted. This packet structure will usually be defined
-in a header common to client and controller driver.  [I almost feel
-embarrassed to repeat this common rant]
+Thanks understood, I had not followed this thread earlier closely, so
+asked to get clarified.
 
- Just like payload format, the 'signature' will also be declared by
-controller and used by clients. For PCC controller, we conveniently
-use the signature (0x50434300 | Type) defined by the ACPI (we could
-chose some other coding as well). Another controller of a different
-class will choose a different signature, say (0xdead0000 |
-16bitsCode).... much like we take care while defining a new DT binding
-that the 'compatible' string doesn't collide with that of another
-device.
+>>> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
+>>
+>>
+>> Really, do you want to allocate 256 structures of mbox_chan even on
+>> systems with just 1 - 2 channels(typically that would be the case) ?
+>>
+>
+> Spec says, max of 256. Easier to support it this way.
+>
 
-  Since we don't have DT bindings to map clients onto
-controller:channel, the client will have to convey the
-controller:channel information itself... which will be 0x50434301 for
-HW-Reduced-Comm(type-1) channel of PCC(0x50434300).
- So the responsibility lies with the client to specify correct
-signature while requesting a channel. There is nothing to stop a
-client from specifying a wrong signature, just like there is nothing
-to stop it from executing BUG()
+I tend to disagree, you can allocate dynamically. And use exactly same
+logic you use in get_subspace_id to populate con_priv later. When you
+parse PCC Subspace, you can just validate header and not record them in
+pcc_mbox_chan. You can get the exact count in acpi_table_parse_entries
+and then do the required allocation.
 
-In even simpler terms.... I prefer controller specific
-encoding(0x50434300) instead of controller specific api
-(pcc_mbox_request_channel).  For a different class of controller, it
-is much cleaner to define a new encoding as compared to another
-xyz_mbox_request_channel() api.
+>>> +
+>>> +/**
+>>> + * pcc_tx_done - Callback from Mailbox controller code to
+>>> + *             check if PCC message transmission completed.
+>>> + * @chan: Pointer to Mailbox channel on which previous
+>>> + *             transmission occurred.
+>>> + *
+>>> + * Return: TRUE if succeeded.
+>>> + */
+>>> +static bool pcc_tx_done(struct mbox_chan *chan)
+>>> +{
+>>> +       struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+>>> +       struct acpi_pcct_shared_memory *generic_comm_base =
+>>> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+>>
+>>
+>> IIUC, the PCCT table has the physical base Address of the shared memory
+>> range in the PCC subspace structures. Can you use that directly here ?
+>> Or are you mapping that memory elsewhere and updating the mapped address
+>> to the table ?
+>
+> In the client side. Its really owned by the client. pcc_tx_done can
+> never be called on a channel which doesn't have a mapped base address.
+>
 
+Yes but I don't like the way client has to read pcct_ss, read the
+physical address, map it and replace it in the table before it's used
+here. That could be issue especially for async notification when the
+client is not ready. If all the shared memory access happens in one
+place where it get's mapped, we can avoid such issues.
 
 >>
->>>  From an ACPI point of view the context is the fact
->>> that this is a PCC channel (there's a globally unique namespace for PCC
->>> channels) but Linux wants a struct device for the client to represent
->>> the context with a mapping table of some kind behind that to do the
->>> lookup.
->>>
->>> There's nothing in the ACPI description of the channel or controller to
->>> tie it to the client device, and there's nothing preventing some other
->>> mailbox mechanism that gets added to an ACPI system from reusing similar
->>> names (bear in mind that idiomatic naming for ACPI appears to be three
->>> or four character strings).  If we have a PCC channel "FOO" and some new
->>> mailbox type which also defines "FOO" the controllers aren't really
->>> going to be able to tell them apart just on the string.
->>>
->> ACPI does specify a PCC specific signature (0x50434300) for its
->> channels. Any channel is identified by doing OR of that signature and
->> the index of channel/subspace in the array of 256.
->
-> This is true only for PCC. Another class of controllers may not even
-> have such a signature. The only thing you can be sure of is that they
-> will have the 4 letter table identifier string e.g. PCCT.
->
-As I said, the PCC controller driver chooses to use ACPI defined
-signature. Likewise a different class controller may take some value
-from its specification or simply use random unique value... whatever
-suits it.
+>>> +       u16 cmd_delay = pcct_ss->min_turnaround_time;
 
--Jassi
+I missed this last time, you should not use this here. As per the ACPI
+spec, it is minimum amount of time that OSPM must wait after the
+completion of a command before issuing the next command. So you need
+this at the end of the function. IIUC you need to use nominal latency
+instead here.
+
+>>> +       unsigned int retries = 0;
+>>> +
+>>> +       /* Try a few times while waiting for platform to consume */
+>>> +       while (!(readw_relaxed(&generic_comm_base->status)
+>>
+>>
+>> This will explode if the pcct_ss->base_address is not mapped.
+>
+> It is. Client side. Called only _after_ client is done with its thing.
+>
+
+Yes for now, once you add interrupt handling that may not be true as I
+mentioned earlier.
+
+>>
+>>> +                   & PCC_CMD_COMPLETE)) {
+>>> +
+>>> +               if (retries++ < 5)
+>>> +                       udelay(cmd_delay);
+>>> +               else {
+>>> +                       /*
+>>> +                        * If the remote is dead, this will cause the Mbox
+>>> +                        * controller to timeout after mbox client.tx_tout
+>>> +                        * msecs.
+>>> +                        */
+>>> +                       pr_err("PCC platform did not respond.\n");
+>>> +                       return false;
+>>> +               }
+>>> +       }
+>>> +       return true;
+>>> +}
+>>
+>>
+>> In general you can isolate all the access to the shared memory in the
+>> protocol layer. In that case you might have to use mbox_client_txdone
+>> instead of this pcc_tx_done.
+>
+> I dont see the problem in keeping this way though.
+>
+
+For the reasons mentioned above, I prefer isolating the access to shared
+memory region from the control part(this driver).
+
+>>> +
+>>> +/**
+>>> + * pcc_send_data - Called from Mailbox Controller code to finally
+>>> + *     transmit data over channel.
+>>> + * @chan: Pointer to Mailbox channel over which to send data.
+>>> + * @data: Actual data to be written over channel.
+>>> + *
+>>> + * Return: Err if something failed else 0 for success.
+>>> + */
+>>> +static int pcc_send_data(struct mbox_chan *chan, void *data)
+>>> +{
+>>> +       struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+>>> +       struct acpi_pcct_shared_memory *generic_comm_base =
+>>> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+>>> +       struct acpi_generic_address doorbell;
+>>> +       u64 doorbell_preserve;
+>>> +       u64 doorbell_val;
+>>> +       u64 doorbell_write;
+>>> +       u16 cmd = *(u16 *) data;
+>>> +       u16 ss_idx = -1;
+>>> +
+>>> +       ss_idx = get_subspace_id(chan);
+>>> +
+>>> +       if (ss_idx < 0) {
+>>> +               pr_err("Invalid Subspace ID from PCC client\n");
+>>> +               return -EINVAL;
+>>> +       }
+>>> +
+>>> +       doorbell = pcct_ss->doorbell_register;
+>>> +       doorbell_preserve = pcct_ss->preserve_mask;
+>>> +       doorbell_write = pcct_ss->write_mask;
+>>> +
+>>> +       /* Write to the shared comm region. */
+>>> +       writew(cmd, &generic_comm_base->command);
+>>> +
+>>> +       /* Write Subspace MAGIC value so platform can identify
+>>> destination. */
+>>> +       writel((PCCS_SS_SIG_MAGIC | ss_idx),
+>>> &generic_comm_base->signature);
+>>> +
+>>> +       /* Flip CMD COMPLETE bit */
+>>> +       writew(0, &generic_comm_base->status);
+>>> +
+>>
+>>
+>> IMO it's not clean to modify only first 3 elements namely: Signature,
+>> Command and Status while the Communication Space is updated elsewhere.
+>> It's better to have all of them in one place if possible as mentioned above.
+>
+> The access sequence for first 3 elements is the same for each channel.
+> Thats all the controller is expected to do on behalf of the client. So
+> this function reduces code duplication in all client sites.
+>
+
+You can have a helper or a macro to avoid duplication.
+
+>>
+>>> +       /* Sync notification from OSPM to Platform. */
+>>> +       acpi_read(&doorbell_val, &doorbell);
+>>> +       acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
+>>> +                       &doorbell);
+>>> +
+>>
+>>
+>> Only the above 2 must be part of the controller driver, the remaining as
+>> I mentioned can be move to the protocol/client layer, thoughts ?
+>
+> I'd really prefer for it to be separate. Once client is done writing,
+> it calls this and lets the controller driver take over the rest. Its
+> not racy.
+>
+
+I think otherwise, so would like to see others' opinion on this :)
+
+>>> +
+>>> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+>>> +                       sizeof(struct acpi_table_pcct),
+>>
+>>
+>> s/struct acpi_table_pcct/*pcct_tbl/
+>>
+>> In general, the interrupt part of the PCCT SS is not considered in this
+>> patch. It's better to see/discuss how that can be fit into the mailbox
+>> framework, though it could be follow up patch.
+>
+> The IRQ part of the spec seems to be under discussion (single irq per
+> subspace / common IRQ across all) and as you may be aware we're
+> working on trying it out on Juno. That'll guide the design. What I
+> have here is good enough to start off with and has been tested. I dont
+> think we should have a problem using the mailbox API for asyn tx
+> though, but I'd really^n prefer if we get something out there first.
+>
+
+That's the different and still under discussion. But you need to support
+Type 1 subspace as it stands in ACPI v5.1
+
+Regards,
+Sudeep
+
