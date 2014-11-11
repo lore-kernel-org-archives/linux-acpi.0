@@ -1,57 +1,60 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 11 Nov 2014 21:38:04 +0100
-Message-ID: <1857695.vuMqt0pPSL@wuerfel>
-References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com> <1625601.1yb4h3sjoe@wuerfel> <CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and XPower
+Date: Wed, 12 Nov 2014 00:35:01 +0100
+Message-ID: <3052882.EdcZmghHR3@vostro.rjw.lan>
+References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com> <54616E55.80204@intel.com> <20141111111152.GX24004@x1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:57343 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751649AbaKKUig (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 15:38:36 -0500
-In-Reply-To: <CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141111111152.GX24004@x1>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>
 
-On Wednesday 12 November 2014 00:38:42 Jassi Brar wrote:
-> On 11 November 2014 23:24, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Tuesday 11 November 2014 23:09:16 Jassi Brar wrote:
-> >> On 11 November 2014 22:03, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> > On Tuesday 11 November 2014 19:27:07 Jassi Brar wrote:
-> >> >> On 11 November 2014 18:32, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> >> >> > On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
-> >> >>
-> >> >> In even simpler terms.... I prefer controller specific
-> >> >> encoding(0x50434300) instead of controller specific api
-> >> >> (pcc_mbox_request_channel).  For a different class of controller, it
-> >> >> is much cleaner to define a new encoding as compared to another
-> >> >> xyz_mbox_request_channel() api.
-> >> >
-> >> > The problem with this approach is that it still leaves the interface
-> >> > as controller specific, because the client now has to know that it
-> >> > must pass the PCC identifier instead of an index.
-> >> >
-> >> Yup. I hope you are aware that the "index" argument of
-> >> pcc_mbox_request_channel() is just the same thing. The "index" there
-> >> is actually the 'Type' value defined in ACPI for the client.
-> >
-> > The problem is that it's not an index relative to the client, but
-> > into an array of the mailbox provide. I only today noticed that both
-> > are called 'index' in the source code, which is highly confusing,
-> > and the pcc driver should name it 'subspaceid' or similar instead,
-> > to minimize the confusion.
-> >
-> OK.
+On Tuesday, November 11, 2014 11:11:52 AM Lee Jones wrote:
+> On Tue, 11 Nov 2014, Aaron Lu wrote:
 > 
-> Ashwin, would you fix the name and resubmit. Or I do
-> s/index/subspace_id/ before committing?
-> Arnd, Could I please have your Reviewed/Acked-by?
+> > On 10/31/2014 02:08 PM, Aaron Lu wrote:
+> > > On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
+> > > ACPI operation regions defined for the Power Management Integrated Circuit
+> > > device, one is for power resource handling and one is for thermal: sensor
+> > > temperature reporting, trip point setting, etc. There are different PMIC
+> > > chips used on those platforms and though each has the same two operation
+> > > regions and functionality, their implementation is different so every PMIC
+> > > will need a driver. But since their functionality is similar, some common
+> > > code is abstracted into the intel_soc_pmic_opregion.c.
+> > > 
+> > > The last version is posted here:
+> > > https://lkml.org/lkml/2014/9/8/801
+> > > 
+> > > Changes since then:
+> > > 1 Move to drivers/acpi as discussed on the above thread;
+> > > 2 Added support for XPower AXP288 PMIC operation region support;
+> > > 3 Since operation region handler can not be removed(at the moment at least),
+> > >   use bool for the two operation region driver configs instead of tristate;
+> > >   Another reason to do this is that, with Mika's MFD ACPI support patch, all
+> > >   those MFD cell devices created will have the same modalias as their parent's
+> > >   so it doesn't make much sense to compile these drivers into modules.
+> > > 
+> > > Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
+> > > patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
+> > > driver XPower AXP288 and iio driver axp288_adc is located.
+> > 
+> > Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branch, it
+> > would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
+> > 
+> > Rafael,
+> > Can I get your ACK for the three patches?
+> > 
+> > Lee,
+> > Can you please take the series if Rafael gives it ack?
+> 
+> Yes, no problem.
 
-I'll wait for the new version to dynamically allocate the channels as
-suggested by Sudeep.
+Well, since the code is going to reside mostly in drivers/acpi, I think I should
+be applying the patches and from your response it looks like you are fine with
+them.  Is that correct?
 
-	Arnd
+Rafael
