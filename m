@@ -1,69 +1,166 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 11 Nov 2014 20:55:46 +0530
-Message-ID: <CAJe_ZhcLqJ+dnWYZa+0aZ5asVNg_xKhuy67Wpv3GgG3HjsB0mg@mail.gmail.com>
-References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
-	<CAJe_ZhdbFrsY=SbcwE2Qg7g_N0ddMpEF-3kk7wGhz1OrQi=4vA@mail.gmail.com>
-	<CAJ5Y-eZBam9VGunmf3qGEAPb=neL1xuERfxnMJaMN0vDpKXCsw@mail.gmail.com>
+From: Azael Avalos <coproscefalo@gmail.com>
+Subject: Re: [PATCH] toshiba_acpi: Fix regression caused by backlight extra
+ check code
+Date: Tue, 11 Nov 2014 09:01:51 -0700
+Message-ID: <CAGdLNWEnxUWKDKD6Wen+ytOQG+qqKq901auE5CDm-1_RGCe4tQ@mail.gmail.com>
+References: <1415073514-12555-1-git-send-email-coproscefalo@gmail.com>
+	<20141104062137.GC56751@vmdeb7>
+	<CAGdLNWH9OqBO1TgNm7ZRnX_wnGwe3rUuxaqwvLfq=HdYXNmMbw@mail.gmail.com>
+	<20141111054918.GB56947@vmdeb7>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f51.google.com ([209.85.192.51]:53722 "EHLO
-	mail-qg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097AbaKKPZr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 10:25:47 -0500
-Received: by mail-qg0-f51.google.com with SMTP id j5so7486046qga.10
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Nov 2014 07:25:46 -0800 (PST)
-In-Reply-To: <CAJ5Y-eZBam9VGunmf3qGEAPb=neL1xuERfxnMJaMN0vDpKXCsw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20141111054918.GB56947@vmdeb7>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: rjw@rjwysocki.net, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Nuno Lopes <nunoplopes@sapo.pt>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
 
-On 11 November 2014 20:49, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> On 11 November 2014 10:12, Jassi Brar <jaswinder.singh@linaro.org> wrote:
->> On 7 November 2014 20:22, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+2014-11-10 22:49 GMT-07:00 Darren Hart <dvhart@infradead.org>:
+> On Mon, Nov 10, 2014 at 09:58:29AM -0700, Azael Avalos wrote:
+>> Hi Darren,
 >>
->>> +struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
->>> +               int index)
->>> +{
->>> +       struct device *dev = pcc_mbox_ctrl.dev;
->>> +       struct mbox_chan *chan;
->>> +       unsigned long flags;
->>> +
->>> +       /*
->>> +        * Each PCC Subspace is a Mailbox Channel.
->>> +        * The PCC Clients get their PCC Subspace ID
->>> +        * from their own tables and pass it here.
->>> +        * This returns a pointer to the PCC subspace
->>> +        * for the Client to operate on.
->>> +        */
->>> +       chan = &pcc_mbox_chan[index];
->>> +
->> You are mapping 'Type' of a client directly onto SubSpace-ID of the
->> channel allocated.
->> If two clients need an instance of, say,
->> Generic-Communications-Channel i.e, Type-0, this will not work.
->> If no two clients can ask the same channel, MAX_PCC_SUBSPACES should
->> be limited to max 'Type' value defined in ACPI specs (just 2 in
->> ACPI-5.1).
->
-> Intentional. Type 0 existed for X86 systems and nobody ever used it so
-> far in Linux. Upcoming systems will use ACPI v5.1 defined Type 1. We
-> want to get something out there and will start with Type 1 as the
-> default. As a follow patchset, we will add Type 2, when its ready and
-> Type 0 if at all it is required. Rafael/Lv and Mark have not objected
-> to this.
->
-Well, I do. People might be busy to have overlooked it.
-
->> The driver supports only ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE client ?!
+>> Sorry for the way late reply, I had to go out of town in a hurry.
+>>
+>> 2014-11-03 23:21 GMT-07:00 Darren Hart <dvhart@infradead.org>:
+>> > On Mon, Nov 03, 2014 at 08:58:34PM -0700, Azael Avalos wrote:
+>> >> Bug 86521 uncovered that some TOS6208 devices also return
+>> >> non zero values on a write call to the backlight method,
+>> >> thus getting caught and bailed out by the extra check code.
+>> >>
+>> >> This patch makes sure that the extra check is being done
+>> >> on a TOS1900 device and then make the check for the broken
+>> >> backlight code.
+>> >>
+>> >> Signed-off-by: Azael Avalos <coproscefalo@gmail.com>
+>> >> ---
+>> >>  drivers/platform/x86/toshiba_acpi.c | 8 ++++++--
+>> >>  1 file changed, 6 insertions(+), 2 deletions(-)
+>> >>
+>> >> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+>> >> index ef3a190..e3fed12 100644
+>> >> --- a/drivers/platform/x86/toshiba_acpi.c
+>> >> +++ b/drivers/platform/x86/toshiba_acpi.c
+>> >> @@ -944,9 +944,13 @@ static int set_lcd_brightness(struct toshiba_acpi_dev *dev, int value)
+>> >>       /* Extra check for "incomplete" backlight method, where the AML code
+>> >>        * doesn't check for HCI_SET or HCI_GET and returns TOS_SUCCESS,
+>> >>        * the actual brightness, and in some cases the max brightness.
+>> >> +      * Use the SPFC method as an indicator that we're on a TOS1900 device,
+>> >> +      * otherwise some TOS6208 devices might get bailed out, see bug 86521
+>> >
+>> > This needs a clearer description here in this comment, rather than redirecting
+>> > the reader to a bug report (which may or may not exist when needed).
+>>
+>> Alright, will do whenever we reach an agreement below.
+>>
+>> >
+>> >>        */
+>> >> -     if (out[2] > 0  || out[3] == 0xE000)
+>> >> -             return -ENODEV;
+>> >> +     if (acpi_has_method(dev->acpi_dev->handle, "SPFC")) {
+>> >
+>> > Hrm, this checking for the existence of a specific method seems suspect to me.
+>> > We would know if we are on a TOS1900 as we matches the acpi id already. Is the
+>> > SPFC significant here, or is it just a "we only see SPFC on TOS1900 so it's a
+>> > convenient test"? If the latter, it seems rather fragile and prone to other
+>> > breakage to me.
+>>
+>> Yeah, its the latter, the "SPFC" method is specific to TOS1900 devices.
+>>
+>> All of the TOS1900 support the Toshiba specific backlight read-only,
+>> and that test is just to get those implementations where the AML
+>> code doesn't check for read/write registers, so far I've identified three
+>> series of laptops with this issue (all Qosmios), X500, X505 and X75-A
+>> (and there might be more around).
+>>
+>> We could dissable backlight on all TOS1900 or add those three models
+>> to the (growing) DMI list on video.c, but of course, I would like to keep
+>> the code in-house, but that's just me :-)
 >>
 >
-> See above.
+> I'm having some trouble grokking the whole picture I think.
 >
-The code seems incomplete and broken at many levels. Not to forget the
-API messup.
+> So, let's try and clear it up. We have a function to set brightness. On model
+> citizen laptops, after the ACPI call, out[2] is 0 (TOS_SUCCESS) and we return 0.
 
--jassi
+Yeah, at least on TOS1900 devices, all write calls set the out[n] to zero,
+and then assign the specified return status to out[0] (either success or error).
+
+>
+> The extra check was added by f6aac65 to avoid registering certain badly behaved
+> machines (Qosmios) which always return HCI_SUCCESS, even the read/write commands
+> are missing. This was determined by checking for observed values in out[2]
+> greater than 0 and out[3] equal to 0xE000 (which presumably map to actual or max
+> brightness. I take it in a well behaved ACPI implementation, out[2] must be 0
+> and out[3] is .... what? I'll call this out[2] || out[3] state the "signature"
+> of a bad implementation.
+
+Yeah, since TOS1900 set all out[n] values to zero, I was expecting that same
+behaviour from a TOS62XX device, however, bug 86521 proved me wrong.
+
+>
+> Now, with bug 86521, we learn that these signatures are not necessarily bad,
+> some working laptops also populate these fields in this way.
+
+For TOS1900 devices, they are, but for TOS62XX, that's another story,
+the methods
+are hidden and I can't see what they're doing... :-(
+
+>
+> Finally, while it is only TOS1900 devices that are known to be bad, all TOS1900
+> devices are not necessarily bad. So you don't want to block all TOS1900 devices
+> at probe time.
+
+We're doing it already, toshiba_acpi_setup_backlight checks for read and write
+support in order to register the backlight, and since all* TOS1900
+support it read-only
+they all get bailed out by these checks, except those badly behaved models,
+they simply return SUCCESS and thus pass that check, creating a broken backlight
+device with just read capabilities.
+
+* (Actually there are two TOS1900 devices, the ones that support it
+read only, and the
+ones that don't support it at all)
+
+>
+> Do I have this right?
+>
+> If so, this is looking more and more fragile to me. I'm inclined to push for a
+> blacklist of the known bad models and strip out both this and the precious extra
+> check, since they are based on circumstantial evidence of failure.
+
+Yeah, I thought that from the beginning, but I found that a bit
+cumbersome to add
+those models to the growing list, if we can do it in-house. But I'm
+fine with whatever
+decision is made here.
+
+>
+>> >
+>> > Rafael, any recommendations here?
+>
+>
+> Rafael, what's your take on this? Does the above influence your position one way
+> or the other?
+>
+>
+>
+>> >
+>> >> +             if (out[2] > 0  || out[3] == 0xE000)
+>> >> +                     return -ENODEV;
+>> >> +     }
+>> >>
+>> >>       return out[0] == TOS_SUCCESS ? 0 : -EIO;
+>> >>  }
+>
+> --
+> Darren Hart
+> Intel Open Source Technology Center
+
+Cheers
+Azael
+
+
+
+-- 
+-- El mundo apesta y vosotros apestais tambien --
