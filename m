@@ -1,96 +1,64 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 11 Nov 2014 18:54:34 +0100
-Message-ID: <1625601.1yb4h3sjoe@wuerfel>
-References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com> <2214649.QGmZRRXly3@wuerfel> <CAJe_ZhfQ7_T3LRz-OgmDj1yopZ2Jc0s3op_yFAfT+8wQZ_yS4Q@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
+ Communication Channel
+Date: Tue, 11 Nov 2014 17:53:25 +0000
+Message-ID: <20141111175325.GB3815@sirena.org.uk>
+References: <CAJe_ZhcJzC1N4pESC-BTe=MXFJuOw2Pj61TaZEOs52QQHULhSg@mail.gmail.com>
+ <2214649.QGmZRRXly3@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QAWTAjsVArRgbJ7t"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:62428 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbaKKRyj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 12:54:39 -0500
-In-Reply-To: <CAJe_ZhfQ7_T3LRz-OgmDj1yopZ2Jc0s3op_yFAfT+8wQZ_yS4Q@mail.gmail.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33636 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751238AbaKKRzA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 12:55:00 -0500
+Content-Disposition: inline
+In-Reply-To: <2214649.QGmZRRXly3@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi@lists.linaro.org, Jassi Brar <jaswinder.singh@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, "lv.zheng" <lv.zheng@intel.com>
 
-On Tuesday 11 November 2014 23:09:16 Jassi Brar wrote:
-> On 11 November 2014 22:03, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Tuesday 11 November 2014 19:27:07 Jassi Brar wrote:
-> >> On 11 November 2014 18:32, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> >> > On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
-> >>
-> >> In even simpler terms.... I prefer controller specific
-> >> encoding(0x50434300) instead of controller specific api
-> >> (pcc_mbox_request_channel).  For a different class of controller, it
-> >> is much cleaner to define a new encoding as compared to another
-> >> xyz_mbox_request_channel() api.
-> >
-> > The problem with this approach is that it still leaves the interface
-> > as controller specific, because the client now has to know that it
-> > must pass the PCC identifier instead of an index.
-> >
-> Yup. I hope you are aware that the "index" argument of
-> pcc_mbox_request_channel() is just the same thing. The "index" there
-> is actually the 'Type' value defined in ACPI for the client.
 
-The problem is that it's not an index relative to the client, but
-into an array of the mailbox provide. I only today noticed that both
-are called 'index' in the source code, which is highly confusing,
-and the pcc driver should name it 'subspaceid' or similar instead,
-to minimize the confusion.
+--QAWTAjsVArRgbJ7t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> > A client driver using DT would just specify to use the first channel
-> > that is defined locally in the "mboxes" properties, so it can ask for
-> >
-> >         chan = mbox_request_channel(client, 0);
-> >
-> > to get the first channel defined for this client while a driver using
-> > ACPI has to look up the identifier in its own local tables:
-> >
-> >         u32 channel_id = this_driver_parse_acpi_and_find_pccid(dev);
-> >         chan = mbox_request_channel(client, channel_id);
-> >
-> > which is not the same interface as the first, even if you assume the
-> > channel_id to be globally unique in the system.
-> >
-> Yes. As I said, same for pcc_mbox_request_channel(). But since PCC
-> clients are limited and specified by ACPI (Type value won't change
-> across platforms, I understand), the client drivers could have that
-> value hardcoded.
+On Tue, Nov 11, 2014 at 05:33:28PM +0100, Arnd Bergmann wrote:
+> On Tuesday 11 November 2014 19:27:07 Jassi Brar wrote:
 
-Not really:
+> > In even simpler terms.... I prefer controller specific
+> > encoding(0x50434300) instead of controller specific api
+> > (pcc_mbox_request_channel).  For a different class of controller, it
+> > is much cleaner to define a new encoding as compared to another
+> > xyz_mbox_request_channel() api.
 
-> > Since we will need clients to have a consistent interface across
-> > DT and ACPI, I think the difference in firmware interfaces is better
-> > abstracted in a PCC specific interface.
-> >
-> > The client driver would still need to parse two different firmware
-> > structures, but it would at least have a consistent interface:
-> >
-> >         u32 channel_id = of_property_read_u32(dev->of_node, "pccid");
-> >         if (!channel_id)
-> >                 channel_id = this_driver_parse_acpi_and_find_pccid(dev);
-> >         chan = mbox_request_channel(client, channel_id);
-> >
-> > Alternatively, the driver could use the regular API on DT:
-> >
-> >         chan = mbox_request_channel(cl, 0);
-> >         if (!chan) {
-> >                 u32 chan_id = this_driver_parse_acpi_and_find_pccid(dev);
-> >                 chan =  mbox_request_channel(client, channel_id);
-> >         }
-> >
-> OK, but if the 'Type' value, that a client passes to
-> (pcc_)mbox_req_chan(), does not change across platforms, would we need
-> that?
+> The problem with this approach is that it still leaves the interface
+> as controller specific, because the client now has to know that it
+> must pass the PCC identifier instead of an index.
 
-As I understand the ACPI specification, we have multiple clients to the
-PCC, and each of them has its own client-specific hardcoded interface
-to /find/ the subspace ID from the ACPI tables, but the subspace ID itself
-has to be read from the table and is not constant.
+Further to what Arnd is saying here what all these various patterns for
+looking up PCC mailboxes are saying to me is that whatever we're doing
+there's probably a place for a helper API that implements them; even if
+it's just a thin inline wrapper in a header somewhere it saves everyone
+having to get it right and means if we do get a DT binding or whatever
+they all magically end up with support.
 
-	Arnd
+--QAWTAjsVArRgbJ7t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUYk0UAAoJECTWi3JdVIfQ7bgH/ikIWy25sPc46u4UthVgL8Ol
+jNY4CV9Lvx3+q9+IXvzHB5MwkLldDaCJb0vS7cggnfppD6SE2Rm5K7+o/b/JKPYm
+GG/3ZISdNpVXpo2wvb+edvI5fydZxLWO2ImhBs6OOmNrkvZXxdfSvTnPbArDHAUJ
+riYW4omOTzYN1CP5irZWNYqTPda+QSF+cW4O8BYhU6dKWR1E62IM25ufzO6GPJ34
+bJoC416bvFgeZYMQkIQDlTAZARca+h9XAEiPX5WZS9HwEpcbuLltZFERB+/yMq95
+wESx51hhA5i8P+5qrHFRjwtc6fMY3NJSF/DKm4S0elqfxgPXru8Ymbjd/klA77o=
+=Qerj
+-----END PGP SIGNATURE-----
+
+--QAWTAjsVArRgbJ7t--
