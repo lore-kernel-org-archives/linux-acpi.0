@@ -1,72 +1,87 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 11 Nov 2014 17:33:28 +0100
-Message-ID: <2214649.QGmZRRXly3@wuerfel>
-References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com> <CAJ5Y-eaaJW6NMSpt83onjDQ8Gr6GH-DbKg_aKxMcjqT=Hrt1sw@mail.gmail.com> <CAJe_ZhcJzC1N4pESC-BTe=MXFJuOw2Pj61TaZEOs52QQHULhSg@mail.gmail.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal management updates for v3.18-rc5
+Date: Tue, 11 Nov 2014 13:06:46 -0400
+Message-ID: <20141111170644.GA4265@developer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:50339 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018AbaKKQdh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 11:33:37 -0500
-In-Reply-To: <CAJe_ZhcJzC1N4pESC-BTe=MXFJuOw2Pj61TaZEOs52QQHULhSg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>
 
-On Tuesday 11 November 2014 19:27:07 Jassi Brar wrote:
-> On 11 November 2014 18:32, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
-> > On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
-> 
-> In even simpler terms.... I prefer controller specific
-> encoding(0x50434300) instead of controller specific api
-> (pcc_mbox_request_channel).  For a different class of controller, it
-> is much cleaner to define a new encoding as compared to another
-> xyz_mbox_request_channel() api.
 
-The problem with this approach is that it still leaves the interface
-as controller specific, because the client now has to know that it
-must pass the PCC identifier instead of an index.
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-A client driver using DT would just specify to use the first channel
-that is defined locally in the "mboxes" properties, so it can ask for
+Hello Linus,
 
-	chan = mbox_request_channel(client, 0);
+Please pull from
 
-to get the first channel defined for this client while a driver using
-ACPI has to look up the identifier in its own local tables:
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git fixes
 
-	u32 channel_id = this_driver_parse_acpi_and_find_pccid(dev);
-	chan = mbox_request_channel(client, channel_id);
+to receive Thermal Management updates for v3.18-rc5 with top-most
 
-which is not the same interface as the first, even if you assume the
-channel_id to be globally unique in the system.
+90a21ff5824c3ae8b49c1c0498b137792b935aab:
 
-Since we will need clients to have a consistent interface across
-DT and ACPI, I think the difference in firmware interfaces is better
-abstracted in a PCC specific interface. 
+  imx: thermal: imx_get_temp might be called before sensor clock is prepared (2014-11-09 15:42:53 -0400)
 
-The client driver would still need to parse two different firmware
-structures, but it would at least have a consistent interface:
+on top of commit a1cff6e25e6e3b55183610dddca91546951b20e3:
 
-	u32 channel_id = of_property_read_u32(dev->of_node, "pccid");
-	if (!channel_id)
-		channel_id = this_driver_parse_acpi_and_find_pccid(dev);
-	chan = mbox_request_channel(client, channel_id);
+  Merge branch 'fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal (2014-11-04 11:57:27 -0800)
 
-Alternatively, the driver could use the regular API on DT:
+Specifics:
 
-	chan = mbox_request_channel(cl, 0);
-	if (!chan) {
-		u32 chan_id = this_driver_parse_acpi_and_find_pccid(dev);
-		chan = 	mbox_request_channel(client, channel_id);	
-	}
+- I am sending thermal fixes for 3.18-rc5 on behalf of Rui Zhang this
+  time. He is currently unable to send pull requests due to troubles with
+  his machine and he's currently in a business trip.
 
-For any firmware that we have control over, the mbox_request_channel()
-case could even be made to work in ACPI, if we decide to add the
-properties we use in DT with the new _DSD method.
+- This week we have few fixes:
+  . Fix in IMX thermal driver to do the correct loading sequence with CPUfreq;
+  . Fix in Exynos related to TMU_CONTROL offset in Exynos5260;
+  . Fix the unit conversion in int3403.
 
-	Arnd
+
+BR,
+
+Eduardo Valentin
+
+----------------------------------------------------------------
+Bai Ping (1):
+      thermal: imx: correct driver load sequence for cpu cooling
+
+Bartlomiej Zolnierkiewicz (1):
+      thermal: exynos: use correct offset for TMU_CONTROL register on Exynos5260
+
+Heiner Kallweit (1):
+      imx: thermal: imx_get_temp might be called before sensor clock is prepared
+
+lan,Tianyu (1):
+      Thermal/int3403: Fix thermal hysteresis unit conversion
+
+ drivers/thermal/imx_thermal.c                     | 45 +++++++++++++++--------
+ drivers/thermal/int340x_thermal/int3403_thermal.c |  8 +++-
+ drivers/thermal/samsung/exynos_tmu_data.c         |  1 -
+ drivers/thermal/samsung/exynos_tmu_data.h         |  1 -
+ 4 files changed, 36 insertions(+), 19 deletions(-)
+
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUYkIaAAoJEMLUO4d9pOJWxjEIAIsBOd3SiSwpMz+N8XZP82Hc
+2T1iwKKHQPWdGmngkNfocf8BljwvzrU8I/IORIXEkvsPTodohRoXS0D4iBGIpTid
+PIYScEaYyE5Z7Wgh9x6PRsa8GXerSHR0fJ9gAF96hCvUSzoCjQkPDT1vdPicRgAV
+puBbZCdGlPRGI/UsiXBOMMftPmQ0ekr4MjKTXzwqKeM/uJdJKQD+8lK1ECS/C5cV
+S4htPyC0zX9eA3i3G+jm0p1fb4XtFZulmhUJelNvE4WpZ92P+wjr1y+RA7Xw19GI
+pqt0NsA3ujbIzR2jZNpjnau99WgS7e8e3I/SXuKf3o/lAZ8j+YN9i9aC0Y8o2fI=
+=iwfo
+-----END PGP SIGNATURE-----
+
+--VS++wcV0S1rZb1Fb--
