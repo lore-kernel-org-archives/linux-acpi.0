@@ -1,96 +1,84 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] dell-wireless: new driver for dell wireless button for
- Windows 8
-Date: Mon, 10 Nov 2014 22:12:42 -0800
-Message-ID: <20141111061242.GD56947@vmdeb7>
-References: <1415685685-16953-1-git-send-email-alex.hung@canonical.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
+ Communication Channel
+Date: Tue, 11 Nov 2014 10:30:32 +0000
+Message-ID: <5461E548.2040204@arm.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org> <1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37795 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316AbaKKGMr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 01:12:47 -0500
-Content-Disposition: inline
-In-Reply-To: <1415685685-16953-1-git-send-email-alex.hung@canonical.com>
+Received: from service87.mimecast.com ([91.220.42.44]:57327 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437AbaKKKaW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 05:30:22 -0500
+In-Reply-To: <1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
-Cc: platform-driver-x86@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "arnd@arndb.de" <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 
-On Tue, Nov 11, 2014 at 02:01:25PM +0800, Alex Hung wrote:
+Hi Ashwin,
 
-Please provide a proper git commit message.
-
-Which devices present this button. There appears to be a button and a slider
-version? Is it necessary to add completely new driver for this one button in
-addition to the other dell-* drivers already here.
-
-Matthew?
-
-As this is ACPI enumerated, does it belong in drivers/platform and not in
-drivers/acpi?
-
-Rafael?
-
-Thanks,
-
-Darren
-
-> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+On 07/11/14 14:52, Ashwin Chaugule wrote:
+> ACPI 5.0+ spec defines a generic mode of communication
+> between the OS and a platform such as the BMC. This medium
+> (PCC) is typically used by CPPC (ACPI CPU Performance management),
+> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
+> states).
+>
+> This patch adds PCC support as a Mailbox Controller.
+>
+> Reviewed-by: Mark Brown <broonie@kernel.org>
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 > ---
->  drivers/platform/x86/Kconfig         |   12 +++
->  drivers/platform/x86/Makefile        |    1 +
->  drivers/platform/x86/dell-wireless.c |  159 ++++++++++++++++++++++++++++++++++
->  3 files changed, 172 insertions(+)
->  create mode 100644 drivers/platform/x86/dell-wireless.c
-> 
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 172f26c..919df0b 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -228,6 +228,18 @@ config HP_WIRELESS
->  	 To compile this driver as a module, choose M here: the module will
->  	 be called hp-wireless.
->  
-> +config DELL_WIRELESS
-> +	tristate "DELL wireless button"
+>   drivers/mailbox/Kconfig   |  12 ++
+>   drivers/mailbox/Makefile  |   2 +
+>   drivers/mailbox/mailbox.c |   4 +-
+>   drivers/mailbox/mailbox.h |  16 ++
+>   drivers/mailbox/pcc.c     | 367 ++++++++++++++++++++++++++++++++++++++++++++++
+>   5 files changed, 398 insertions(+), 3 deletions(-)
+>   create mode 100644 drivers/mailbox/mailbox.h
+>   create mode 100644 drivers/mailbox/pcc.c
+>
+> diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
+> index 9fd9c67..c04fed9 100644
+> --- a/drivers/mailbox/Kconfig
+> +++ b/drivers/mailbox/Kconfig
+> @@ -33,4 +33,16 @@ config OMAP_MBOX_KFIFO_SIZE
+>            Specify the default size of mailbox's kfifo buffers (bytes).
+>            This can also be changed at runtime (via the mbox_kfifo_size
+>            module parameter).
+> +
+> +config PCC
+> +       bool "Platform Communication Channel Driver"
+> +       depends on ACPI
 
-> +	depends on ACPI
-> +	depends on INPUT
-> +	help
-> +	 This driver provides supports for new DELL wireless button for Windows
-> +         8. On such systems the driver should load automatically (via ACPI
-> +         alias).
+I am bit confused here, though I prefer PCC to depend on ACPI, I have
+seen discussion in this thread about using PCC without ACPI, how will
+that work ?
+
+> +       help
+> +         ACPI 5.0+ spec defines a generic mode of communication
+> +         between the OS and a platform such as the BMC. This medium
+> +         (PCC) is typically used by CPPC (ACPI CPU Performance management),
+> +         RAS (ACPI reliability protocol) and MPST (ACPI Memory power
+> +         states). Select this driver if your platform implements the
+> +         PCC clients mentioned above.
 > +
-> +	 To compile this driver as a module, choose M here: the module will
-> +	 be called dell-wireless.
-> +
->  config HP_WMI
->  	tristate "HP WMI extras"
->  	depends on ACPI_WMI
-> diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-> index c4ca428..09b382b 100644
-> --- a/drivers/platform/x86/Makefile
-> +++ b/drivers/platform/x86/Makefile
-> @@ -14,6 +14,7 @@ obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop.o
->  obj-$(CONFIG_DELL_WMI)		+= dell-wmi.o
->  obj-$(CONFIG_DELL_WMI_AIO)	+= dell-wmi-aio.o
->  obj-$(CONFIG_DELL_SMO8800)	+= dell-smo8800.o
-> +obj-$(CONFIG_DELL_WIRELESS)	+= dell-wireless.o
->  obj-$(CONFIG_ACER_WMI)		+= acer-wmi.o
->  obj-$(CONFIG_ACERHDF)		+= acerhdf.o
->  obj-$(CONFIG_HP_ACCEL)		+= hp_accel.o
-> diff --git a/drivers/platform/x86/dell-wireless.c b/drivers/platform/x86/dell-wireless.c
+>   endif
+
+[...]
+
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
 > new file mode 100644
-> index 0000000..c1545fb
+> index 0000000..49074cd0
 > --- /dev/null
-> +++ b/drivers/platform/x86/dell-wireless.c
-> @@ -0,0 +1,159 @@
+> +++ b/drivers/mailbox/pcc.c
+> @@ -0,0 +1,367 @@
 > +/*
-> + *  dell-wireless button for Windows 8
-> + *
-> + *  Copyright (C) 2014 Alex Hung
+> + *     Copyright (C) 2014 Linaro Ltd.
+> + *     Author: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 > + *
 > + *  This program is free software; you can redistribute it and/or modify
 > + *  it under the terms of the GNU General Public License as published by
@@ -102,155 +90,211 @@ Darren
 > + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 > + *  GNU General Public License for more details.
 > + *
+> + *  PCC (Platform Communication Channel) is defined in the ACPI 5.0+
+> + *  specification. It is a mailbox like mechanism to allow clients
+> + *  such as CPPC (Collaborative Processor Performance Control), RAS
+> + *  (Reliability, Availability and Serviceability) and MPST (Memory
+> + *  Node Power State Table) to talk to the platform (e.g. BMC) through
+> + *  shared memory regions as defined in the PCC table entries. The PCC
+> + *  specification supports a Doorbell mechanism for the PCC clients
+> + *  to notify the platform about new data. This Doorbell information
+> + *  is also specified in each PCC table entry. See pcc_send_data()
+> + *  and pcc_tx_done() for basic mode of operation.
+> + *
+> + *  For more details about PCC, please see the ACPI specification from
+> + *  http://www.uefi.org/ACPIv5.1 Section 14.
+> + *
+> + *  This file implements PCC as a Mailbox controller and allows for PCC
+> + *  clients to be implemented as its Mailbox Client Channels.
 > + */
 > +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/input.h>
-> +#include <linux/platform_device.h>
 > +#include <linux/acpi.h>
-> +#include <acpi/acpi_bus.h>
+> +#include <linux/delay.h>
+> +#include <linux/io.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mailbox_controller.h>
+> +#include <linux/mailbox_client.h>
 > +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Alex Hung");
-> +MODULE_ALIAS("acpi*:DELLABCE:*");
+> +#include "mailbox.h"
 > +
-> +#define DELL_TOGGLE_SWITCH	0
-> +#define DELL_SLIDER_SWITCH	1
+> +#define MAX_PCC_SUBSPACES      256
+> +#define PCCS_SS_SIG_MAGIC      0x50434300
+> +#define PCC_CMD_COMPLETE       0x1
 > +
-> +static int switch_type;
-> +
-> +static struct input_dev *dellwl_input_dev;
-> +
-> +static const struct acpi_device_id dellwl_ids[] = {
-> +	{"DELLABCE", 0},
-> +	{"", 0},
-> +};
-> +
-> +static int dell_wireless_input_setup(void)
-> +{
-> +	int err;
-> +
-> +	dellwl_input_dev = input_allocate_device();
-> +	if (!dellwl_input_dev)
-> +		return -ENOMEM;
-> +
-> +	dellwl_input_dev->name = "DELL Wireless hotkeys";
-> +	dellwl_input_dev->phys = "dellabce/input0";
-> +	dellwl_input_dev->id.bustype = BUS_HOST;
-> +	dellwl_input_dev->evbit[0] = BIT(EV_KEY);
-> +	set_bit(KEY_RFKILL, dellwl_input_dev->keybit);
-> +
-> +	err = input_register_device(dellwl_input_dev);
-> +	if (err)
-> +		goto err_free_dev;
-> +
-> +	return 0;
-> +
-> +err_free_dev:
-> +	input_free_device(dellwl_input_dev);
-> +	return err;
-> +}
-> +
-> +static void dell_wireless_input_destroy(void)
-> +{
-> +	input_unregister_device(dellwl_input_dev);
-> +}
-> +
-> +static void dellwl_notify(struct acpi_device *acpi_dev, u32 event)
-> +{
-> +	if (event != 0x80) {
-> +		pr_info("Received unknown event (0x%x)\n", event);
-> +		return;
-> +	}
-> +
-> +	if (switch_type != DELL_TOGGLE_SWITCH)
-> +		return;
-> +
-> +	input_report_key(dellwl_input_dev, KEY_RFKILL, 1);
-> +	input_sync(dellwl_input_dev);
-> +	input_report_key(dellwl_input_dev, KEY_RFKILL, 0);
-> +	input_sync(dellwl_input_dev);
-> +}
-> +
-> +static int dellwl_add(struct acpi_device *device)
-> +{
-> +	acpi_status status;
-> +	unsigned long long output;
-> +	int err = 0;
-> +
-> +	status = acpi_evaluate_integer(device->handle, "CRBT", NULL, &output);
-> +	if (!ACPI_SUCCESS(status))
-> +		return -EINVAL;
-> +
-> +	switch (output) {
-> +	case 0:
-> +	case 1:
-> +		switch_type = DELL_TOGGLE_SWITCH;
-> +		err = dell_wireless_input_setup();
-> +		break;
-> +	case 2:
-> +	case 3:
-> +		/* hard block is handled by module drivers */
-> +		switch_type = DELL_SLIDER_SWITCH;
-> +		break;
-> +	default:
-> +		err = -EINVAL;
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +static int dellwl_remove(struct acpi_device *device)
-> +{
-> +	if (switch_type == DELL_TOGGLE_SWITCH)
-> +		dell_wireless_input_destroy();
-> +
-> +	return 0;
-> +}
-> +
-> +static struct acpi_driver dellwl_driver = {
-> +	.name	= "dell-wireless",
-> +	.owner	= THIS_MODULE,
-> +	.ids	= dellwl_ids,
-> +	.ops	= {
-> +		.add	= dellwl_add,
-> +		.remove	= dellwl_remove,
-> +		.notify	= dellwl_notify,
-> +	},
-> +};
-> +
-> +static int __init dellwl_init(void)
-> +{
-> +	int err;
-> +
-> +	pr_info("Initializing DELLABCE module\n");
-> +	err = acpi_bus_register_driver(&dellwl_driver);
-> +	if (err) {
-> +		pr_err("Unable to register DELL wireless control driver.\n");
-> +		goto error_acpi_register;
-> +	}
-> +
-> +	return 0;
-> +
-> +error_acpi_register:
-> +	return err;
-> +}
-> +
-> +static void __exit dellwl_exit(void)
-> +{
-> +	pr_info("Exiting DELLABCE module\n");
-> +	acpi_bus_unregister_driver(&dellwl_driver);
-> +}
-> +
-> +module_init(dellwl_init);
-> +module_exit(dellwl_exit);
-> -- 
-> 1.7.9.5
-> 
-> 
+> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
 
--- 
-Darren Hart
-Intel Open Source Technology Center
+Really, do you want to allocate 256 structures of mbox_chan even on
+systems with just 1 - 2 channels(typically that would be the case) ?
+
+> +static struct mbox_controller pcc_mbox_ctrl = {};
+> +
+
+[...]
+
+> +
+> +/**
+> + * pcc_tx_done - Callback from Mailbox controller code to
+> + *             check if PCC message transmission completed.
+> + * @chan: Pointer to Mailbox channel on which previous
+> + *             transmission occurred.
+> + *
+> + * Return: TRUE if succeeded.
+> + */
+> +static bool pcc_tx_done(struct mbox_chan *chan)
+> +{
+> +       struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+> +       struct acpi_pcct_shared_memory *generic_comm_base =
+> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+
+IIUC, the PCCT table has the physical base Address of the shared memory
+range in the PCC subspace structures. Can you use that directly here ?
+Or are you mapping that memory elsewhere and updating the mapped address
+to the table ?
+
+> +       u16 cmd_delay = pcct_ss->min_turnaround_time;
+> +       unsigned int retries = 0;
+> +
+> +       /* Try a few times while waiting for platform to consume */
+> +       while (!(readw_relaxed(&generic_comm_base->status)
+
+This will explode if the pcct_ss->base_address is not mapped.
+
+> +                   & PCC_CMD_COMPLETE)) {
+> +
+> +               if (retries++ < 5)
+> +                       udelay(cmd_delay);
+> +               else {
+> +                       /*
+> +                        * If the remote is dead, this will cause the Mbox
+> +                        * controller to timeout after mbox client.tx_tout
+> +                        * msecs.
+> +                        */
+> +                       pr_err("PCC platform did not respond.\n");
+> +                       return false;
+> +               }
+> +       }
+> +       return true;
+> +}
+
+In general you can isolate all the access to the shared memory in the
+protocol layer. In that case you might have to use mbox_client_txdone
+instead of this pcc_tx_done.
+
+> +
+> +/**
+> + * get_subspace_id - Given a Mailbox channel, find out the
+> + *             PCC subspace id.
+> + * @chan: Pointer to Mailbox Channel from which we want
+> + *             the index.
+> + * Return: Errno if not found, else positive index number.
+> + */
+> +static int get_subspace_id(struct mbox_chan *chan)
+> +{
+> +       int id = chan - pcc_mbox_chan;
+> +
+> +       if (id < 0 || id > pcc_mbox_ctrl.num_chans)
+> +               return -ENOENT;
+> +
+> +       return id;
+> +}
+> +
+> +/**
+> + * pcc_send_data - Called from Mailbox Controller code to finally
+> + *     transmit data over channel.
+> + * @chan: Pointer to Mailbox channel over which to send data.
+> + * @data: Actual data to be written over channel.
+> + *
+> + * Return: Err if something failed else 0 for success.
+> + */
+> +static int pcc_send_data(struct mbox_chan *chan, void *data)
+> +{
+> +       struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
+> +       struct acpi_pcct_shared_memory *generic_comm_base =
+> +               (struct acpi_pcct_shared_memory *) pcct_ss->base_address;
+> +       struct acpi_generic_address doorbell;
+> +       u64 doorbell_preserve;
+> +       u64 doorbell_val;
+> +       u64 doorbell_write;
+> +       u16 cmd = *(u16 *) data;
+> +       u16 ss_idx = -1;
+> +
+> +       ss_idx = get_subspace_id(chan);
+> +
+> +       if (ss_idx < 0) {
+> +               pr_err("Invalid Subspace ID from PCC client\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       doorbell = pcct_ss->doorbell_register;
+> +       doorbell_preserve = pcct_ss->preserve_mask;
+> +       doorbell_write = pcct_ss->write_mask;
+> +
+> +       /* Write to the shared comm region. */
+> +       writew(cmd, &generic_comm_base->command);
+> +
+> +       /* Write Subspace MAGIC value so platform can identify destination. */
+> +       writel((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
+> +
+> +       /* Flip CMD COMPLETE bit */
+> +       writew(0, &generic_comm_base->status);
+> +
+
+IMO it's not clean to modify only first 3 elements namely: Signature,
+Command and Status while the Communication Space is updated elsewhere.
+It's better to have all of them in one place if possible as mentioned above.
+
+> +       /* Sync notification from OSPM to Platform. */
+> +       acpi_read(&doorbell_val, &doorbell);
+> +       acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
+> +                       &doorbell);
+> +
+
+Only the above 2 must be part of the controller driver, the remaining as
+I mentioned can be move to the protocol/client layer, thoughts ?
+
+> +       return 0;
+> +}
+> +
+> +static struct mbox_chan_ops pcc_chan_ops = {
+> +       .send_data = pcc_send_data,
+> +       .last_tx_done = pcc_tx_done,
+> +};
+> +
+
+[...]
+
+> +/**
+> + * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+> + *
+> + * Return: 0 for Success, else errno.
+> + */
+> +static int __init acpi_pcc_probe(void)
+> +{
+> +       acpi_status status = AE_OK;
+> +       acpi_size pcct_tbl_header_size;
+> +       int count;
+> +       struct acpi_table_pcct *pcct_tbl;
+> +
+> +       /* Search for PCCT */
+> +       status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
+> +                       (struct acpi_table_header **)&pcct_tbl,
+> +                       &pcct_tbl_header_size);
+> +
+> +       if (ACPI_FAILURE(status) || !pcct_tbl) {
+> +               pr_warn("PCCT header not found.\n");
+> +               return -ENODEV;
+> +       }
+> +
+> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+> +                       sizeof(struct acpi_table_pcct),
+
+s/struct acpi_table_pcct/*pcct_tbl/
+
+In general, the interrupt part of the PCCT SS is not considered in this
+patch. It's better to see/discuss how that can be fit into the mailbox
+framework, though it could be follow up patch.
+
+Regards,
+Sudeep
+
