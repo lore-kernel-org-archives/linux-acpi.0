@@ -1,86 +1,229 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and
- XPower
-Date: Tue, 11 Nov 2014 11:11:52 +0000
-Message-ID: <20141111111152.GX24004@x1>
-References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com>
- <54616E55.80204@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch] PCI/MSI: Enhance core to support hierarchy irqdomain
+Date: Tue, 11 Nov 2014 21:02:18 +0800
+Message-ID: <1415710943-6001-1-git-send-email-jiang.liu@linux.intel.com>
+References: <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54616E55.80204@intel.com>
+In-Reply-To: <1415283644-2559-22-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@linux.intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Grant Likely <grant.likely@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <jiang.liu@linux.intel.com>, Alexander Gordeev <agordeev@redhat.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 11 Nov 2014, Aaron Lu wrote:
+Enhance PCI MSI core to support hierarchy irqdomain, so the common
+code could be shared among architectures.
 
-> On 10/31/2014 02:08 PM, Aaron Lu wrote:
-> > On Intel Baytrail-T and Baytrail-T-CR platforms, there are two cust=
-omized
-> > ACPI operation regions defined for the Power Management Integrated =
-Circuit
-> > device, one is for power resource handling and one is for thermal: =
-sensor
-> > temperature reporting, trip point setting, etc. There are different=
- PMIC
-> > chips used on those platforms and though each has the same two oper=
-ation
-> > regions and functionality, their implementation is different so eve=
-ry PMIC
-> > will need a driver. But since their functionality is similar, some =
-common
-> > code is abstracted into the intel_soc_pmic_opregion.c.
-> >=20
-> > The last version is posted here:
-> > https://lkml.org/lkml/2014/9/8/801
-> >=20
-> > Changes since then:
-> > 1 Move to drivers/acpi as discussed on the above thread;
-> > 2 Added support for XPower AXP288 PMIC operation region support;
-> > 3 Since operation region handler can not be removed(at the moment a=
-t least),
-> >   use bool for the two operation region driver configs instead of t=
-ristate;
-> >   Another reason to do this is that, with Mika's MFD ACPI support p=
-atch, all
-> >   those MFD cell devices created will have the same modalias as the=
-ir parent's
-> >   so it doesn't make much sense to compile these drivers into modul=
-es.
-> >=20
-> > Patch 1 applies on top of Rafael's pm-next branch, and then patch 2=
- and
-> > patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the P=
-MIC
-> > driver XPower AXP288 and iio driver axp288_adc is located.
->=20
-> Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branch, i=
-t
-> would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
->=20
-> Rafael,
-> Can I get your ACK for the three patches?
->=20
-> Lee,
-> Can you please take the series if Rafael gives it ack?
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+Hi Thomas,
+	This update fixes a possible conflict on other architectures
+when they try to use the new MSI hierarchy irqdomain, as pointed out by
+Suravee Suthikulanit. The main change is as below.
+Regards!
+Gerry
 
-Yes, no problem.
+ static void msi_domain_deactivate(struct irq_domain *domain,
+ 				  struct irq_data *irq_data)
+ {
+ 	struct msi_msg msg;
++	struct msi_desc *desc = irq_data->msi_desc;
+ 
+-	if (!irq_data->chip_data) {
++	if (desc->irq == irq_data->irq) {
+ 		memset(&msg, 0, sizeof(msg));
+ 		__write_msi_msg(irq_data->msi_desc, &msg);
+ 	}
+---
+ drivers/pci/Kconfig |    4 ++
+ drivers/pci/msi.c   |  133 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/msi.h |   14 ++++++
+ 3 files changed, 151 insertions(+)
 
-> > Aaron Lu (3):
-> >   ACPI / pmic_opregion: support PMIC operation region for CrystalCo=
-ve
-> >   ACPI / pmic_opregion: support PMIC operation region for XPower AX=
-P288
-> >   ACPI / pmic_opregion: AXP288: support virtual GPIO in ACPI table
-> >=20
->=20
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index b9db0f2ce11f..022e89745f86 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -16,6 +16,10 @@ config PCI_MSI
+ 
+ 	   If you don't know what to do here, say Y.
+ 
++config PCI_MSI_IRQ_DOMAIN
++	bool
++	depends on PCI_MSI && IRQ_DOMAIN_HIERARCHY
++
+ config PCI_DEBUG
+ 	bool "PCI Debugging"
+ 	depends on PCI && DEBUG_KERNEL
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index da181c59394b..365e969f5e8d 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -19,6 +19,7 @@
+ #include <linux/errno.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
++#include <linux/irqdomain.h>
+ 
+ #include "pci.h"
+ 
+@@ -1098,3 +1099,135 @@ int pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
+ 	return nvec;
+ }
+ EXPORT_SYMBOL(pci_enable_msix_range);
++
++#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
++/*
++ * Generate a unique ID number for each possible MSI source, the ID number
++ * is only used within the irqdomain.
++ */
++static inline irq_hw_number_t
++msi_get_hwirq(struct pci_dev *dev, struct msi_desc *desc)
++{
++	return (irq_hw_number_t)desc->msi_attrib.entry_nr |
++		PCI_DEVID(dev->bus->number, dev->devfn) << 11 |
++		(pci_domain_nr(dev->bus) & 0xFFFFFFFF) << 27;
++}
++
++static int msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
++			    unsigned int nr_irqs, void *arg)
++{
++	int i, ret;
++	irq_hw_number_t hwirq = arch_msi_irq_domain_get_hwirq(arg);
++
++	if (irq_find_mapping(domain, hwirq) > 0)
++		return -EEXIST;
++
++	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
++	if (ret < 0)
++		return ret;
++
++	for (i = 0; i < nr_irqs; i++) {
++		irq_domain_set_hwirq_and_chip(domain, virq + i, hwirq + i,
++					      domain->host_data, NULL);
++		__irq_set_handler(virq + i, handle_edge_irq, 0, "edge");
++	}
++
++	return ret;
++}
++
++static void msi_domain_free(struct irq_domain *domain, unsigned int virq,
++			    unsigned int nr_irqs)
++{
++	int i;
++
++	for (i = 0; i < nr_irqs; i++) {
++		struct msi_desc *desc = irq_get_msi_desc(virq);
++
++		if (desc)
++			desc->irq = 0;
++	}
++	irq_domain_free_irqs_top(domain, virq, nr_irqs);
++}
++
++static void msi_domain_activate(struct irq_domain *domain,
++				struct irq_data *irq_data)
++{
++	struct msi_msg msg;
++	struct msi_desc *desc = irq_data->msi_desc;
++
++	/*
++	 * MSI-X message is written per-IRQ.
++	 * MSI message denotes a contiguous group of IRQs, written for 0th IRQ.
++	 */
++	if (desc->irq == irq_data->irq) {
++		BUG_ON(irq_chip_compose_msi_msg(irq_data, &msg));
++		__write_msi_msg(irq_data->msi_desc, &msg);
++	}
++}
++
++static void msi_domain_deactivate(struct irq_domain *domain,
++				  struct irq_data *irq_data)
++{
++	struct msi_msg msg;
++	struct msi_desc *desc = irq_data->msi_desc;
++
++	if (desc->irq == irq_data->irq) {
++		memset(&msg, 0, sizeof(msg));
++		__write_msi_msg(irq_data->msi_desc, &msg);
++	}
++}
++
++static struct irq_domain_ops msi_domain_ops = {
++	.alloc = msi_domain_alloc,
++	.free = msi_domain_free,
++	.activate = msi_domain_activate,
++	.deactivate = msi_domain_deactivate,
++};
++
++struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
++					 struct irq_chip *chip,
++					 struct irq_domain *parent)
++{
++	struct irq_domain *domain;
++
++	domain = irq_domain_add_tree(of_node, &msi_domain_ops, chip);
++	if (!domain)
++		return NULL;
++
++	domain->parent = parent;
++
++	return domain;
++}
++
++int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
++			      struct pci_dev *dev, void *arg)
++{
++	int i, virq;
++	struct msi_desc *desc;
++	int node = dev_to_node(&dev->dev);
++
++	list_for_each_entry(desc, &dev->msi_list, list) {
++		arch_msi_irq_domain_set_hwirq(arg, msi_get_hwirq(dev, desc));
++		virq = irq_domain_alloc_irqs(domain, desc->nvec_used,
++					     node, arg);
++		if (virq < 0) {
++			/* Special handling for pci_enable_msi_range(). */
++			if (type == PCI_CAP_ID_MSI && desc->nvec_used > 1)
++				return 1;
++			else
++				return -ENOSPC;
++		}
++		for (i = 0; i < desc->nvec_used; i++)
++			irq_set_msi_desc_off(virq, i, desc);
++	}
++
++	list_for_each_entry(desc, &dev->msi_list, list)
++		if (desc->nvec_used == 1)
++			dev_dbg(&dev->dev, "irq %d for MSI/MSI-X\n", virq);
++		else
++			dev_dbg(&dev->dev, "irq [%d-%d] for MSI/MSI-X\n",
++				virq, virq + desc->nvec_used - 1);
++
++	return 0;
++}
++#endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+diff --git a/include/linux/msi.h b/include/linux/msi.h
+index 44f4746d033b..662c628fc2fa 100644
+--- a/include/linux/msi.h
++++ b/include/linux/msi.h
+@@ -75,4 +75,18 @@ struct msi_chip {
+ 	void (*teardown_irq)(struct msi_chip *chip, unsigned int irq);
+ };
+ 
++#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
++struct irq_domain;
++struct irq_chip;
++
++struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
++					 struct irq_chip *chip,
++					 struct irq_domain *parent);
++int msi_irq_domain_alloc_irqs(struct irq_domain *domain, int type,
++			      struct pci_dev *dev, void *arg);
++
++irq_hw_number_t arch_msi_irq_domain_get_hwirq(void *arg);
++void arch_msi_irq_domain_set_hwirq(void *arg, irq_hw_number_t hwirq);
++#endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
++
+ #endif /* LINUX_MSI_H */
+-- 
+1.7.10.4
