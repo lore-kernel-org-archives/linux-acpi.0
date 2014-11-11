@@ -1,44 +1,59 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication
- Channel
-Date: Tue, 11 Nov 2014 18:07:03 +0000
-Message-ID: <54625047.2000103@arm.com>
-References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org> <1415371964-4451-2-git-send-email-ashwin.chaugule@linaro.org> <5461E548.2040204@arm.com> <20141111172955.GA3815@sirena.org.uk>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
+ Communication Channel
+Date: Wed, 12 Nov 2014 00:38:42 +0530
+Message-ID: <CAJe_ZhdEOWYzrB_nHwwJ51U0dHAZ7FkNvaVO1pYizfHN8KAg+g@mail.gmail.com>
+References: <CAJ5Y-eYbXT4rfkSXKV+jbAp=LHSZf-CHPyLuPjVdKULixO4PZA@mail.gmail.com>
+	<2214649.QGmZRRXly3@wuerfel>
+	<CAJe_ZhfQ7_T3LRz-OgmDj1yopZ2Jc0s3op_yFAfT+8wQZ_yS4Q@mail.gmail.com>
+	<1625601.1yb4h3sjoe@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:41726 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbaKKSGr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 13:06:47 -0500
-In-Reply-To: <20141111172955.GA3815@sirena.org.uk>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:39857 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859AbaKKTIo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Nov 2014 14:08:44 -0500
+Received: by mail-qa0-f49.google.com with SMTP id i13so7311918qae.8
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Nov 2014 11:08:43 -0800 (PST)
+In-Reply-To: <1625601.1yb4h3sjoe@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Patch Tracking <patches@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "lv.zheng" <lv.zheng@intel.com>
 
-Hi Mark,
-
-On 11/11/14 17:29, Mark Brown wrote:
-> On Tue, Nov 11, 2014 at 10:30:32AM +0000, Sudeep Holla wrote:
->> On 07/11/14 14:52, Ashwin Chaugule wrote:
+On 11 November 2014 23:24, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 11 November 2014 23:09:16 Jassi Brar wrote:
+>> On 11 November 2014 22:03, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > On Tuesday 11 November 2014 19:27:07 Jassi Brar wrote:
+>> >> On 11 November 2014 18:32, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>> >> > On 10 November 2014 23:04, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+>> >>
+>> >> In even simpler terms.... I prefer controller specific
+>> >> encoding(0x50434300) instead of controller specific api
+>> >> (pcc_mbox_request_channel).  For a different class of controller, it
+>> >> is much cleaner to define a new encoding as compared to another
+>> >> xyz_mbox_request_channel() api.
+>> >
+>> > The problem with this approach is that it still leaves the interface
+>> > as controller specific, because the client now has to know that it
+>> > must pass the PCC identifier instead of an index.
+>> >
+>> Yup. I hope you are aware that the "index" argument of
+>> pcc_mbox_request_channel() is just the same thing. The "index" there
+>> is actually the 'Type' value defined in ACPI for the client.
 >
->>> +config PCC
->>> +       bool "Platform Communication Channel Driver"
->>> +       depends on ACPI
+> The problem is that it's not an index relative to the client, but
+> into an array of the mailbox provide. I only today noticed that both
+> are called 'index' in the source code, which is highly confusing,
+> and the pcc driver should name it 'subspaceid' or similar instead,
+> to minimize the confusion.
 >
->> I am bit confused here, though I prefer PCC to depend on ACPI, I have
->> seen discussion in this thread about using PCC without ACPI, how will
->> that work ?
->
-> We can always remove the dependency when someone adds the code to talk
-> to non-ACPI PCC devices.
->
+OK.
 
-Agreed, Ashwin clarified that, I had not followed previous versions 
-closely and was speaking only in the context of this patch.
+Ashwin, would you fix the name and resubmit. Or I do
+s/index/subspace_id/ before committing?
+Arnd, Could I please have your Reviewed/Acked-by?
 
-Regards,
-Sudeep
-
+Thanks
+Jassi
