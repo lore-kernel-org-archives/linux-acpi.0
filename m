@@ -1,93 +1,81 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and
- XPower
-Date: Wed, 12 Nov 2014 09:44:19 +0000
-Message-ID: <20141112094419.GC24004@x1>
-References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com>
- <54616E55.80204@intel.com>
- <20141111111152.GX24004@x1>
- <3052882.EdcZmghHR3@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication
+ Channel
+Date: Wed, 12 Nov 2014 13:32:12 +0000
+Message-ID: <5463615C.90306@arm.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org> <CAJ5Y-eZ+q2dHuuWwVjMCcVtXqSwg0o9Zj-kqQS95K40VakwReQ@mail.gmail.com> <546224C8.7050502@arm.com> <1620095.ORCbaZ8QlJ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3052882.EdcZmghHR3-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:57659 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556AbaKLNdS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2014 08:33:18 -0500
+In-Reply-To: <1620095.ORCbaZ8QlJ@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 
-On Wed, 12 Nov 2014, Rafael J. Wysocki wrote:
 
-> On Tuesday, November 11, 2014 11:11:52 AM Lee Jones wrote:
-> > On Tue, 11 Nov 2014, Aaron Lu wrote:
-> >=20
-> > > On 10/31/2014 02:08 PM, Aaron Lu wrote:
-> > > > On Intel Baytrail-T and Baytrail-T-CR platforms, there are two =
-customized
-> > > > ACPI operation regions defined for the Power Management Integra=
-ted Circuit
-> > > > device, one is for power resource handling and one is for therm=
-al: sensor
-> > > > temperature reporting, trip point setting, etc. There are diffe=
-rent PMIC
-> > > > chips used on those platforms and though each has the same two =
-operation
-> > > > regions and functionality, their implementation is different so=
- every PMIC
-> > > > will need a driver. But since their functionality is similar, s=
-ome common
-> > > > code is abstracted into the intel_soc_pmic_opregion.c.
-> > > >=20
-> > > > The last version is posted here:
-> > > > https://lkml.org/lkml/2014/9/8/801
-> > > >=20
-> > > > Changes since then:
-> > > > 1 Move to drivers/acpi as discussed on the above thread;
-> > > > 2 Added support for XPower AXP288 PMIC operation region support=
-;
-> > > > 3 Since operation region handler can not be removed(at the mome=
-nt at least),
-> > > >   use bool for the two operation region driver configs instead =
-of tristate;
-> > > >   Another reason to do this is that, with Mika's MFD ACPI suppo=
-rt patch, all
-> > > >   those MFD cell devices created will have the same modalias as=
- their parent's
-> > > >   so it doesn't make much sense to compile these drivers into m=
-odules.
-> > > >=20
-> > > > Patch 1 applies on top of Rafael's pm-next branch, and then pat=
-ch 2 and
-> > > > patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where t=
-he PMIC
-> > > > driver XPower AXP288 and iio driver axp288_adc is located.
-> > >=20
-> > > Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branc=
-h, it
-> > > would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
-> > >=20
-> > > Rafael,
-> > > Can I get your ACK for the three patches?
-> > >=20
-> > > Lee,
-> > > Can you please take the series if Rafael gives it ack?
-> >=20
-> > Yes, no problem.
->=20
-> Well, since the code is going to reside mostly in drivers/acpi, I thi=
-nk I should
-> be applying the patches and from your response it looks like you are =
-fine with
-> them.  Is that correct?
 
-I read that this set has dependencies on patches which are already in
-the MFD tree.  If that's not the case please go ahead and apply them
-with my Ack for the MFD components.
+On 11/11/14 20:25, Arnd Bergmann wrote:
+> On Tuesday 11 November 2014 15:01:28 Sudeep Holla wrote:
+>> On 11/11/14 13:18, Ashwin Chaugule wrote:
+>>> On 11 November 2014 05:30, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>>> On 07/11/14 14:52, Ashwin Chaugule wrote:
+>>>>> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
+>>>>
+>>>>
+>>>> Really, do you want to allocate 256 structures of mbox_chan even on
+>>>> systems with just 1 - 2 channels(typically that would be the case) ?
+>>>>
+>>>
+>>> Spec says, max of 256. Easier to support it this way.
+>>>
+>>
+>> I tend to disagree, you can allocate dynamically. And use exactly same
+>> logic you use in get_subspace_id to populate con_priv later. When you
+>> parse PCC Subspace, you can just validate header and not record them in
+>> pcc_mbox_chan. You can get the exact count in acpi_table_parse_entries
+>> and then do the required allocation.
+>
+> Right, I think that would be best.
+>
+>>>>> +
+>>>>> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+>>>>> +                       sizeof(struct acpi_table_pcct),
+>>>>
+>>>>
+>>>> s/struct acpi_table_pcct/*pcct_tbl/
+>>>>
+>>>> In general, the interrupt part of the PCCT SS is not considered in this
+>>>> patch. It's better to see/discuss how that can be fit into the mailbox
+>>>> framework, though it could be follow up patch.
+>>>
+>>> The IRQ part of the spec seems to be under discussion (single irq per
+>>> subspace / common IRQ across all) and as you may be aware we're
+>>> working on trying it out on Juno. That'll guide the design. What I
+>>> have here is good enough to start off with and has been tested. I dont
+>>> think we should have a problem using the mailbox API for asyn tx
+>>> though, but I'd really^n prefer if we get something out there first.
+>>>
+>>
+>> That's the different and still under discussion. But you need to support
+>> Type 1 subspace as it stands in ACPI v5.1
+>
+> Why? We should only implement whatever is required to support existing hardware,
+> not because something is in the spec.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+Agreed. I assumed that this was tested on some hardware which adhere to
+Type 1 subspace of the spec and I asked to implement interrupt mode as
+it is always better compared to polling mode and current spec. has
+support for the interrupts.
+
+Also, the existing Type1 is not sufficient for the mailbox/PCC on Juno
+platform, hence the new proposal.
+
+Regards,
+Sudeep
+
