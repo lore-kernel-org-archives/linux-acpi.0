@@ -1,57 +1,77 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Part4 v1 00/17] Refine support of non-PCI-compliant Message
-Date: Wed, 12 Nov 2014 22:52:57 +0800
-Message-ID: <54637449.4070302@linux.intel.com>
-References: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com> <546364FA.7010806@arm.com> <alpine.DEB.2.11.1411121512270.3935@nanos>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v10 1/1] Mailbox: Add support for Platform
+ Communication Channel
+Date: Wed, 12 Nov 2014 13:25:31 -0500
+Message-ID: <CAJ5Y-eafz7PuZKQwX7bGYnYGvfWc5DmDdRWYd0PpGb_g7Ni1CA@mail.gmail.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJ5Y-eZ+q2dHuuWwVjMCcVtXqSwg0o9Zj-kqQS95K40VakwReQ@mail.gmail.com>
+	<546224C8.7050502@arm.com>
+	<1620095.ORCbaZ8QlJ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:41980 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753000AbaKLOxO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2014 09:53:14 -0500
-In-Reply-To: <alpine.DEB.2.11.1411121512270.3935@nanos>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:50094 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277AbaKLSZc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2014 13:25:32 -0500
+Received: by mail-wg0-f50.google.com with SMTP id z12so14946731wgg.37
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2014 10:25:31 -0800 (PST)
+In-Reply-To: <1620095.ORCbaZ8QlJ@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vg>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 
-On 2014/11/12 22:46, Thomas Gleixner wrote:
-> On Wed, 12 Nov 2014, Marc Zyngier wrote:
->> This patch introduces two optionnal fields to the msi_chip structure:
->> - a pointer to an irq domain, describing the MSI domain associated
->>   with this msi_chip. To be populated with msi_create_irq_domain.
->> - a domain_alloc_irqs() callback that has the same purpose as
->>   arch_setup_msi_irqs(), with the above domain as an additional
->>   parameter.
+On 11 November 2014 15:25, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 11 November 2014 15:01:28 Sudeep Holla wrote:
+>> On 11/11/14 13:18, Ashwin Chaugule wrote:
+>> > On 11 November 2014 05:30, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>> >> On 07/11/14 14:52, Ashwin Chaugule wrote:
+>> >>> +static struct mbox_chan pcc_mbox_chan[MAX_PCC_SUBSPACES];
+>> >>
+>> >>
+>> >> Really, do you want to allocate 256 structures of mbox_chan even on
+>> >> systems with just 1 - 2 channels(typically that would be the case) ?
+>> >>
+>> >
+>> > Spec says, max of 256. Easier to support it this way.
+>> >
 >>
->> If both of these fields are non-NULL, then domain_alloc_irqs() is
->> called, bypassing the setup_irq callback. This allows the MSI driver
->> to use the domain stacking feature without mandating core support in
->> the architecture.
-> 
-> I'd rather have the callback in the irqdomain itself. Along with a
-> callback to free the interrupts.
-> 
-> AFAICT is msi_chip more or less a wrapper around the actual MSI irq
-> domain. So we rather move towards assigning irqdomain to the pci bus
-> and get rid of msi_chip instead of adding another level of obscure
-> indirection through msi_chip.
-Hi Thomas and Marc,
+>> I tend to disagree, you can allocate dynamically. And use exactly same
+>> logic you use in get_subspace_id to populate con_priv later. When you
+>> parse PCC Subspace, you can just validate header and not record them in
+>> pcc_mbox_chan. You can get the exact count in acpi_table_parse_entries
+>> and then do the required allocation.
+>
+> Right, I think that would be best.
 
-I'm trying to replace all weak functions , such as
-arch_setup_msi_irqs()/arch_setup_msi_irq(), in drivers/pci/msi.c.
+Discussed this with Sudeep on IRC. The parse_pcc_subspace() function
+actually is a useful place to create new mbox channel entries. We get
+a pointer to the pcct_ss (pcc subspace subtable) in it, for each entry
+as it is discovered in the PCCT. If we ignore that pointer, then we
+will need to re-traverse the PCCT in the probe() function, just to get
+those pointers again.
 
-The framework core changes are almost ready, but it does take time
-to convert current arch_setup_msi_irqs() implementations to new
-irqdomain interfaces.
+In theory, we could re-traverse the PCCT in the probe function without
+using the API provided by the ACPI framework, but that sounds dicey.
+In the end we would be doing this only to maintain the clever-ish ptr
+math as it is in get_subspace_id(). Alternately, we could replace the
+array with a list.
 
-Not sure whether it's the right direction to go:(
-Regards!
-Gerry
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+e.g.
+
+struct pcc_channel {
+  struct list_head node;
+  struct mbox_chan chan;
+};
+
+Then use list_for_each_entry() to get the subspace id from a struct
+mbox_chan* , and list_for_each() + list_entry() to get the channel
+from a subspace index. These lists are not expected to get long in
+practice so traversing them for lookups is not really expensive and
+its only done at init.
+
+Does this make sense?
+
+Thanks,
+Ashwin
