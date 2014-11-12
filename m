@@ -1,67 +1,51 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and
- XPower
-Date: Wed, 12 Nov 2014 09:48:10 +0800
-Message-ID: <5462BC5A.7070407@intel.com>
-References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com> <54616E55.80204@intel.com> <20141111111152.GX24004@x1> <3052882.EdcZmghHR3@vostro.rjw.lan>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] dell-wireless: new driver for dell wireless button for
+ Windows 8
+Date: Wed, 12 Nov 2014 14:49:45 +0800
+Message-ID: <CAJ=jquZU7PiW1+JuVCCcWriLS6+RyBxEb2t==0K2S_ec+_v09w@mail.gmail.com>
+References: <1415685685-16953-1-git-send-email-alex.hung@canonical.com>
+	<20141111061242.GD56947@vmdeb7>
+	<20141111193556.GA18229@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3052882.EdcZmghHR3@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20141111193556.GA18229@srcf.ucam.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Darren Hart <dvhart@infradead.org>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/12/2014 07:35 AM, Rafael J. Wysocki wrote:
-> On Tuesday, November 11, 2014 11:11:52 AM Lee Jones wrote:
->> On Tue, 11 Nov 2014, Aaron Lu wrote:
->>
->>> On 10/31/2014 02:08 PM, Aaron Lu wrote:
->>>> On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
->>>> ACPI operation regions defined for the Power Management Integrated Circuit
->>>> device, one is for power resource handling and one is for thermal: sensor
->>>> temperature reporting, trip point setting, etc. There are different PMIC
->>>> chips used on those platforms and though each has the same two operation
->>>> regions and functionality, their implementation is different so every PMIC
->>>> will need a driver. But since their functionality is similar, some common
->>>> code is abstracted into the intel_soc_pmic_opregion.c.
->>>>
->>>> The last version is posted here:
->>>> https://lkml.org/lkml/2014/9/8/801
->>>>
->>>> Changes since then:
->>>> 1 Move to drivers/acpi as discussed on the above thread;
->>>> 2 Added support for XPower AXP288 PMIC operation region support;
->>>> 3 Since operation region handler can not be removed(at the moment at least),
->>>>   use bool for the two operation region driver configs instead of tristate;
->>>>   Another reason to do this is that, with Mika's MFD ACPI support patch, all
->>>>   those MFD cell devices created will have the same modalias as their parent's
->>>>   so it doesn't make much sense to compile these drivers into modules.
->>>>
->>>> Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
->>>> patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
->>>> driver XPower AXP288 and iio driver axp288_adc is located.
->>>
->>> Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branch, it
->>> would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
->>>
->>> Rafael,
->>> Can I get your ACK for the three patches?
->>>
->>> Lee,
->>> Can you please take the series if Rafael gives it ack?
->>
->> Yes, no problem.
-> 
-> Well, since the code is going to reside mostly in drivers/acpi, I think I should
-> be applying the patches and from your response it looks like you are fine with
-> them.  Is that correct?
+Hi Darren,
 
-Oh I thought you may not want to merge another branch into your next
-branch so I asked this question. If you can handle the whole thing in your
-tree, that's of course not a problem :-)
+Thanks for the comments. I will send a new version with more information.
 
-Thanks,
-Aaron
+I believe it is better to have a new driver as it seems OEM can
+depreciate and (probably is depreciating) old features and existing
+IDs. Especially, a lot of BIOS features are moving to be handled by OS
+and userspace applications. I expect to see more simple ACPI devices
+to be handled by simple drivers. Combining devices with different
+purposes into a single complex driver can be misleading.
+
+Hi Matthew,
+
+Thanks for clarifying it for me.
+
+Cheers,
+Alex Hung
+
+On Wed, Nov 12, 2014 at 3:35 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> On Mon, Nov 10, 2014 at 10:12:42PM -0800, Darren Hart wrote:
+>
+>> As this is ACPI enumerated, does it belong in drivers/platform and not in
+>> drivers/acpi?
+>
+> Yeah, it's still a platform driver rather than a core ACPI driver.
+>
+> --
+> Matthew Garrett | mjg59@srcf.ucam.org
+
+
+
+-- 
+Cheers,
+Alex Hung
