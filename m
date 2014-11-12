@@ -1,131 +1,80 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [RFC Part4 v1 00/17] Refine support of non-PCI-compliant Message
-Date: Wed, 12 Nov 2014 13:47:38 +0000
-Message-ID: <546364FA.7010806@arm.com>
-References: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v10 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Wed, 12 Nov 2014 08:48:15 -0500
+Message-ID: <CAJ5Y-ea_DDc_kpD+ZMvdw4-UqzKU=nEpafhRTR6B6dfdtaPgvQ@mail.gmail.com>
+References: <1415371964-4451-1-git-send-email-ashwin.chaugule@linaro.org>
+	<CAJ5Y-eZ+q2dHuuWwVjMCcVtXqSwg0o9Zj-kqQS95K40VakwReQ@mail.gmail.com>
+	<546224C8.7050502@arm.com>
+	<1620095.ORCbaZ8QlJ@wuerfel>
+	<5463615C.90306@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:38233 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbaKLNrp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2014 08:47:45 -0500
-In-Reply-To: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:62668 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752707AbaKLNsQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2014 08:48:16 -0500
+Received: by mail-wi0-f180.google.com with SMTP id hi2so4904112wib.7
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2014 05:48:15 -0800 (PST)
+In-Reply-To: <5463615C.90306@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@v>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 
-Hi Jiang,
+On 12 November 2014 08:32, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>
+>
+> On 11/11/14 20:25, Arnd Bergmann wrote:
+>>
+>> On Tuesday 11 November 2014 15:01:28 Sudeep Holla wrote:
+>>>
+>>> On 11/11/14 13:18, Ashwin Chaugule wrote:
+>>>>
+>>>> On 11 November 2014 05:30, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>>>>
+>>>>> On 07/11/14 14:52, Ashwin Chaugule wrote:
+>>>>
+>>>> The IRQ part of the spec seems to be under discussion (single irq per
+>>>> subspace / common IRQ across all) and as you may be aware we're
+>>>> working on trying it out on Juno. That'll guide the design. What I
+>>>> have here is good enough to start off with and has been tested. I dont
+>>>> think we should have a problem using the mailbox API for asyn tx
+>>>> though, but I'd really^n prefer if we get something out there first.
+>>>>
+>>>
+>>> That's the different and still under discussion. But you need to support
+>>> Type 1 subspace as it stands in ACPI v5.1
+>>
+>>
+>> Why? We should only implement whatever is required to support existing
+>> hardware,
+>> not because something is in the spec.
+>
+>
+> Agreed. I assumed that this was tested on some hardware which adhere to
+> Type 1 subspace of the spec and I asked to implement interrupt mode as
+> it is always better compared to polling mode and current spec. has
+> support for the interrupts.
 
-On 09/11/14 15:10, Jiang Liu wrote:
-> Some interrupt controllers, such as DMAR/HPET/HT_IRQ, work almost in
-> the same as PCI MSI interrupt controller. And there some devices make
-> use of PCI MSI mechanism for non-PCI devices on ARm/ARM64 platforms.
-> 
-> So this patches tries to split PCI MSI code into PCI dependent part
-> and PCI independent part. The PCI independent part will be used to
-> support other PCI MSI like interrupt controllers.
-> 
-> Patch 1-9 are clean ups for previous hierarchy irqdomain patchset
-> and preparation for coming PCI MSI code reorganization.
-> Patch 10-15 split PCI MSI code and implement common mechanism to support
-> other MSI alike interrupt contollers.
-> Patch 16-17 converts HT_IRQ to use the common MSI support mechanism.
+I do not have hardware to test the IRQ parts as of now, so the plan
+was to at least get polling mode out there. That will enable a lot of
+folks and will be useful as a fallback mode later on as well. We can
+add IRQ mode stuff once it is tested. I dont see the point in
+supporting it all from the start.
 
-[...]
+>
+> Also, the existing Type1 is not sufficient for the mailbox/PCC on Juno
+> platform, hence the new proposal.
 
-I used this patch series (or rather the v2 in your git tree) to rework the GICv3 ITS patch series. So far, the API seems cleaner (fewer global functions, increased flexibility), at the expense of a bit more complexity.
+Just as Juno is proving that the IRQ mode in the current spec is
+insufficient, we may find similar issues with other hardware as it
+becomes available. It makes more sense to tackle this once we have
+some hardware to test this part of PCC properly. Just because its in
+the spec doesn't mean its right. ;)
 
-One thing is still missing though: the way the MSI stacked domain works at the moment prevents the use of the msi_chip infrastructure (you need to override arch_setup_msi_irqs, which in turn prevents the use of msi_chips using setup_irq/teardown_irq callbacks. On arm/arm64, most MSI controllers are using the latter, while it is likely that the newer ones will be using the stacked domains.
-
-My solution to this is to slightly extend the msi_chip framework so that we can hock into the MSI domain framework on a per-msi-chip basis (see patch below). With this in place, I can completely get rid of any arm64-specific code (the msi_chip framework becomes good enough for us):
-
->From 5e9157ee7879953f89652d6ad9f296fc0ce6cb87 Mon Sep 17 00:00:00 2001
-From: Marc Zyngier <marc.zyngier@arm.com>
-Date: Wed, 12 Nov 2014 10:32:46 +0000
-Subject: [PATCH v2 02/14] PCI/MSI: Allow an msi_chip to be associated to an
- irq domain
-
-The new MSI stacked domain has the interesting effect that it is
-quite hard to use if the architecture doesn't provide its own
-arch_setup_msi_irqs() function to override the default.
-
-This inhibates the msi_chip infrastructure introduced in
-0cbdcfcf427b (PCI: Introduce new MSI chip infrastructure), as it is
-not possible to use it as an indirection between the core MSI code
-and the MSI driver (useful when having multiple MSI controllers that
-do not share the same requirements). The setup_irq and teardown_irq
-are rendered useless, as their role is now taken over by the alloc/free
-functions in the irq domain code.
-
-This patch introduces two optionnal fields to the msi_chip structure:
-- a pointer to an irq domain, describing the MSI domain associated
-  with this msi_chip. To be populated with msi_create_irq_domain.
-- a domain_alloc_irqs() callback that has the same purpose as
-  arch_setup_msi_irqs(), with the above domain as an additional
-  parameter.
-
-If both of these fields are non-NULL, then domain_alloc_irqs() is
-called, bypassing the setup_irq callback. This allows the MSI driver
-to use the domain stacking feature without mandating core support in
-the architecture.
-
-Tested on arm64 with the GICv3 ITS.
-
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- drivers/pci/msi.c   | 9 ++++++++-
- include/linux/msi.h | 5 +++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 6c38306..baefc21 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -63,8 +63,15 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- 
- 	/*
- 	 * If an architecture wants to support multiple MSI, it needs to
--	 * override arch_setup_msi_irqs()
-+	 * override arch_setup_msi_irqs(), or provide a way out on a per
-+	 * domain basis.
- 	 */
-+#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-+	struct msi_chip *chip = dev->bus->msi;
-+
-+	if (chip->domain && chip->domain_alloc_irqs)
-+		return chip->domain_alloc_irqs(chip->domain, dev, nvec, type);
-+#endif
- 	if (type == PCI_CAP_ID_MSI && nvec > 1)
- 		return 1;
- 
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index 0789a4d..7170eea 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -110,7 +110,12 @@ struct msi_chip {
- 	struct device *dev;
- 	struct device_node *of_node;
- 	struct list_head list;
-+#ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
-+	struct irq_domain *domain;
- 
-+	int (*domain_alloc_irqs)(struct irq_domain *domain,
-+				 struct pci_dev *pdev, int nvec, int type);
-+#endif
- 	int (*setup_irq)(struct msi_chip *chip, struct pci_dev *dev,
- 			 struct msi_desc *desc);
- 	void (*teardown_irq)(struct msi_chip *chip, unsigned int irq);
--- 
-2.0.4
-
-Thoughts? I'll post the full patch series later today.
+Btw, if you or anyone has any hardware to test it on, patches are more
+than welcome. :)
 
 Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
-
+Ashwin
