@@ -1,106 +1,94 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and
- XPower
-Date: Thu, 13 Nov 2014 10:41:26 +0000
-Message-ID: <20141113104126.GM24004@x1>
-References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com>
- <3052882.EdcZmghHR3@vostro.rjw.lan>
- <20141112094419.GC24004@x1>
- <1668657.Fqph6NyFNz@vostro.rjw.lan>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [RFC Part4 v1 00/17] Refine support of non-PCI-compliant Message
+Date: Thu, 13 Nov 2014 11:27:39 +0000
+Message-ID: <546495AB.9050308@arm.com>
+References: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com> <546364FA.7010806@arm.com> <alpine.DEB.2.11.1411121512270.3935@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1668657.Fqph6NyFNz-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1411121512270.3935@nanos>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>li
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 13 Nov 2014, Rafael J. Wysocki wrote:
+Hi Thomas,
 
-> On Wednesday, November 12, 2014 09:44:19 AM Lee Jones wrote:
-> > On Wed, 12 Nov 2014, Rafael J. Wysocki wrote:
-> >=20
-> > > On Tuesday, November 11, 2014 11:11:52 AM Lee Jones wrote:
-> > > > On Tue, 11 Nov 2014, Aaron Lu wrote:
-> > > >=20
-> > > > > On 10/31/2014 02:08 PM, Aaron Lu wrote:
-> > > > > > On Intel Baytrail-T and Baytrail-T-CR platforms, there are =
-two customized
-> > > > > > ACPI operation regions defined for the Power Management Int=
-egrated Circuit
-> > > > > > device, one is for power resource handling and one is for t=
-hermal: sensor
-> > > > > > temperature reporting, trip point setting, etc. There are d=
-ifferent PMIC
-> > > > > > chips used on those platforms and though each has the same =
-two operation
-> > > > > > regions and functionality, their implementation is differen=
-t so every PMIC
-> > > > > > will need a driver. But since their functionality is simila=
-r, some common
-> > > > > > code is abstracted into the intel_soc_pmic_opregion.c.
-> > > > > >=20
-> > > > > > The last version is posted here:
-> > > > > > https://lkml.org/lkml/2014/9/8/801
-> > > > > >=20
-> > > > > > Changes since then:
-> > > > > > 1 Move to drivers/acpi as discussed on the above thread;
-> > > > > > 2 Added support for XPower AXP288 PMIC operation region sup=
-port;
-> > > > > > 3 Since operation region handler can not be removed(at the =
-moment at least),
-> > > > > >   use bool for the two operation region driver configs inst=
-ead of tristate;
-> > > > > >   Another reason to do this is that, with Mika's MFD ACPI s=
-upport patch, all
-> > > > > >   those MFD cell devices created will have the same modalia=
-s as their parent's
-> > > > > >   so it doesn't make much sense to compile these drivers in=
-to modules.
-> > > > > >=20
-> > > > > > Patch 1 applies on top of Rafael's pm-next branch, and then=
- patch 2 and
-> > > > > > patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch whe=
-re the PMIC
-> > > > > > driver XPower AXP288 and iio driver axp288_adc is located.
-> > > > >=20
-> > > > > Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 b=
-ranch, it
-> > > > > would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
-> > > > >=20
-> > > > > Rafael,
-> > > > > Can I get your ACK for the three patches?
-> > > > >=20
-> > > > > Lee,
-> > > > > Can you please take the series if Rafael gives it ack?
-> > > >=20
-> > > > Yes, no problem.
-> > >=20
-> > > Well, since the code is going to reside mostly in drivers/acpi, I=
- think I should
-> > > be applying the patches and from your response it looks like you =
-are fine with
-> > > them.  Is that correct?
-> >=20
-> > I read that this set has dependencies on patches which are already =
-in
-> > the MFD tree.  If that's not the case please go ahead and apply the=
-m
-> > with my Ack for the MFD components.
->=20
-> I thought you had a branch that I could pull into my tree and apply t=
-he patches
-> on top of it.  At least that was my understanding of the Aaron's mess=
-age, so
-> please let me know if that's not the case.
+On 12/11/14 14:46, Thomas Gleixner wrote:
+> On Wed, 12 Nov 2014, Marc Zyngier wrote:
+>> This patch introduces two optionnal fields to the msi_chip structure:
+>> - a pointer to an irq domain, describing the MSI domain associated
+>>   with this msi_chip. To be populated with msi_create_irq_domain.
+>> - a domain_alloc_irqs() callback that has the same purpose as
+>>   arch_setup_msi_irqs(), with the above domain as an additional
+>>   parameter.
+>>
+>> If both of these fields are non-NULL, then domain_alloc_irqs() is
+>> called, bypassing the setup_irq callback. This allows the MSI driver
+>> to use the domain stacking feature without mandating core support in
+>> the architecture.
+> 
+> I'd rather have the callback in the irqdomain itself. Along with a
+> callback to free the interrupts.
+> 
+> AFAICT is msi_chip more or less a wrapper around the actual MSI irq
+> domain. So we rather move towards assigning irqdomain to the pci bus
+> and get rid of msi_chip instead of adding another level of obscure
+> indirection through msi_chip.
 
-That is absolutely the case.  'mfd/ib-mfd-iio-3.19' is good to go.
+I can see that putting the irq domain at the bus level makes a lot of 
+sense (assuming nobody tries to have multiple MSI controllers per bus...).
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+So I'm starting with something like this:
+
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 640a1ec..07e50fc 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -41,6 +41,7 @@ struct irq_domain;
+ struct of_device_id;
+ struct irq_chip;
+ struct irq_data;
++struct device;
+ 
+ /* Number of irqs reserved for a legacy isa controller */
+ #define NUM_ISA_INTERRUPTS	16
+@@ -76,6 +77,10 @@ struct irq_domain_ops {
+ 		     unsigned int nr_irqs);
+ 	void (*activate)(struct irq_domain *d, struct irq_data *irq_data);
+ 	void (*deactivate)(struct irq_domain *d, struct irq_data *irq_data);
++	int (*prepare_alloc_irqs)(struct irq_domain *d, struct device *dev,
++				  unsigned int nr_irqs, int type);
++	int (*cleanup_free_irqs)(struct irq_domain *d, struct device *dev,
++				 unsigned int virq, unsigned int nr_irqs);
+ #endif
+ };
+
+How do you see this behaving? At the moment, I have the "prepare" callback
+directly calling into pci_msi_domain_alloc_irqs() so that the irqs get
+created, but I have the nagging feeling that it's not what you want... ;-)
+The main issue I can see is that if more than one domain in the stack
+implements that, who gets to call pci_msi_domain_alloc_irqs?
+
+If we try to decouple those two, there is a problem with the creation of
+the intermediate structure (the irq_alloc_info that's in Jiang's patches),
+as this is a arch/driver/whatever specific structure.
+
+For reference, I've pushed out my current branch (very much a work in
+progress):
+http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git/log/?h=irq/branch-from-hell
+
+The commits related to this discussion are:
+http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/branch-from-hell&id=56ea48e6389fe461cb3ddf01e19afcdcd8f12f66
+and
+http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git/commit/?h=irq/branch-from-hell&id=855ab8b937967854dd070de2d0aaa07639e19526
+
+as well as the code making use of that:
+http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git/tree/drivers/irqchip/irq-gic-v3-its.c?h=irq/branch-from-hell&id=9f8ed988c2411831b7512006642e484c151e9a7a#n1184
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
