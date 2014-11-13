@@ -1,71 +1,91 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and XPower
-Date: Thu, 13 Nov 2014 01:53:23 +0100
-Message-ID: <1668657.Fqph6NyFNz@vostro.rjw.lan>
-References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com> <3052882.EdcZmghHR3@vostro.rjw.lan> <20141112094419.GC24004@x1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141112094419.GC24004@x1>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v11 0/1] PCC: Platform Communication Channel
+Date: Wed, 12 Nov 2014 19:59:37 -0500
+Message-ID: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:64005 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462AbaKMA7q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2014 19:59:46 -0500
+Received: by mail-pa0-f45.google.com with SMTP id lf10so14107054pab.4
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2014 16:59:46 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: jaswinder.singh@linaro.org
+Cc: broonie@kernel.org, lv.zheng@intel.com, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, arnd@arndb.de, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On Wednesday, November 12, 2014 09:44:19 AM Lee Jones wrote:
-> On Wed, 12 Nov 2014, Rafael J. Wysocki wrote:
-> 
-> > On Tuesday, November 11, 2014 11:11:52 AM Lee Jones wrote:
-> > > On Tue, 11 Nov 2014, Aaron Lu wrote:
-> > > 
-> > > > On 10/31/2014 02:08 PM, Aaron Lu wrote:
-> > > > > On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
-> > > > > ACPI operation regions defined for the Power Management Integrated Circuit
-> > > > > device, one is for power resource handling and one is for thermal: sensor
-> > > > > temperature reporting, trip point setting, etc. There are different PMIC
-> > > > > chips used on those platforms and though each has the same two operation
-> > > > > regions and functionality, their implementation is different so every PMIC
-> > > > > will need a driver. But since their functionality is similar, some common
-> > > > > code is abstracted into the intel_soc_pmic_opregion.c.
-> > > > > 
-> > > > > The last version is posted here:
-> > > > > https://lkml.org/lkml/2014/9/8/801
-> > > > > 
-> > > > > Changes since then:
-> > > > > 1 Move to drivers/acpi as discussed on the above thread;
-> > > > > 2 Added support for XPower AXP288 PMIC operation region support;
-> > > > > 3 Since operation region handler can not be removed(at the moment at least),
-> > > > >   use bool for the two operation region driver configs instead of tristate;
-> > > > >   Another reason to do this is that, with Mika's MFD ACPI support patch, all
-> > > > >   those MFD cell devices created will have the same modalias as their parent's
-> > > > >   so it doesn't make much sense to compile these drivers into modules.
-> > > > > 
-> > > > > Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
-> > > > > patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
-> > > > > driver XPower AXP288 and iio driver axp288_adc is located.
-> > > > 
-> > > > Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branch, it
-> > > > would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
-> > > > 
-> > > > Rafael,
-> > > > Can I get your ACK for the three patches?
-> > > > 
-> > > > Lee,
-> > > > Can you please take the series if Rafael gives it ack?
-> > > 
-> > > Yes, no problem.
-> > 
-> > Well, since the code is going to reside mostly in drivers/acpi, I think I should
-> > be applying the patches and from your response it looks like you are fine with
-> > them.  Is that correct?
-> 
-> I read that this set has dependencies on patches which are already in
-> the MFD tree.  If that's not the case please go ahead and apply them
-> with my Ack for the MFD components.
+Changes since V10:
+- Replace array with dynamic allocation.
+- Rename index to subspace_id to avoid confusion.
+- Use latency instead of min turnaround time.
 
-I thought you had a branch that I could pull into my tree and apply the patches
-on top of it.  At least that was my understanding of the Aaron's message, so
-please let me know if that's not the case.
+Changes since V9:
+- Default to PCC subspace headers as defined in ACPI v5.1
 
-Rafael
+Changes since V8:
+- Removed unncessary header files.
+- Added kerneldoc comments.
+- Added intro about PCC in pcc.c
+
+Changes since V7:
+- Added timeout to tx method in case the remote dies.
+- Restructured usage of acpi_status. Had inverted logic previously.
+
+Changes since V6:
+- Cosmetic changes based on Lv's suggestions
+
+Changes since V5:
+- Optimize loop that matches channel request.
+- Use platform_create_bundle.
+- Replace ioread/writes.
+- Remove redundant code and headers.
+- Restructure common mailbox macros.
+- Reformat PCC cmd parsing.
+
+Changes since V4:
+- Folded PCC Mailbox helpers into pcc.c
+
+Changes since V3:
+- Added PCC helper functions to work around "struct device" limitations.
+- PCC driver changes to work with PCC specific Mailbox helpers.
+
+Changes since V2:
+- Rebased on top of git://git.linaro.org/landing-teams/working/fujitsu/integration.git
+        branch mailbox-for-3.17
+- Added PCC API to mailbox framework as per Arnd's suggestion to allow usage without ACPI.
+
+Changes since V1:
+- Integration with Mailbox framework - https://lkml.org/lkml/2014/5/15/49
+
+This patchset adds support for the PCC (Platform Communication Channel)
+interface as described in the current ACPI 5.0 spec. See Section 14 of the
+ACPI spec - http://acpi.info/DOWNLOADS/ACPI_5_Errata%20A.pdf for more details
+on how PCC works.
+
+In brief PCC is a generic means for PCC clients, to talk to the firmware. The
+PCC register space is typically memory mapped IO and uses a doorbell mechanism
+to communicate synchronously from the OS to the firmware. The PCC driver is
+completely agnostic to the protocol implemented by the PCC clients. It only
+implements the enumeration of PCC channels and the low level transport mechanism
+and leaves the rest to the PCC clients.
+
+The PCC is meant to be useable in the future by clients such as CPPC
+(Collaborative Processor Performance Control), RAS (Reliability,
+Availability and Serviceability) and MPST (Memory Power State Tables) and possibly others.
+
+
+Ashwin Chaugule (1):
+  Mailbox: Add support for Platform Communication Channel
+
+ drivers/mailbox/Kconfig   |  12 ++
+ drivers/mailbox/Makefile  |   2 +
+ drivers/mailbox/mailbox.c |   4 +-
+ drivers/mailbox/mailbox.h |  16 ++
+ drivers/mailbox/pcc.c     | 403 ++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 434 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/mailbox/mailbox.h
+ create mode 100644 drivers/mailbox/pcc.c
+
+-- 
+1.9.1
+
