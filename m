@@ -1,530 +1,338 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [PATCH v11 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Wed, 12 Nov 2014 19:59:38 -0500
-Message-ID: <1415840378-1973-2-git-send-email-ashwin.chaugule@linaro.org>
-References: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 5/6] ACPI/EC: Cleanup QR_SC command processing by adding
+ a kernel thread to poll EC events.
+Date: Thu, 13 Nov 2014 02:31:08 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A0706@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1414988981.git.lv.zheng@intel.com>
+ <dc1ae83c60a2b79c8ac7ed633a1519013f3ab635.1414988981.git.lv.zheng@intel.com>
+ <2277351.09XTT17U9b@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:57297 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbaKMA7t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Nov 2014 19:59:49 -0500
-Received: by mail-pa0-f51.google.com with SMTP id kq14so14210476pab.10
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Nov 2014 16:59:49 -0800 (PST)
-In-Reply-To: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
+Received: from mga01.intel.com ([192.55.52.88]:3107 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753458AbaKMCbr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Nov 2014 21:31:47 -0500
+In-Reply-To: <2277351.09XTT17U9b@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jaswinder.singh@linaro.org
-Cc: broonie@kernel.org, lv.zheng@intel.com, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, arnd@arndb.de, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Andi Kleen (ak@linux.intel.com)" <ak@linux.intel.com>
 
-ACPI 5.0+ spec defines a generic mode of communication
-between the OS and a platform such as the BMC. This medium
-(PCC) is typically used by CPPC (ACPI CPU Performance management),
-RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-states).
-
-This patch adds PCC support as a Mailbox Controller. As of
-ACPI v5.1 there is no provision for clients to lookup mailbox
-controllers in a way that Linux expects. e.g. in DT the clients
-can list the mailboxes they can associate with in the DT binding
-and then provide a unique index to lookup a channel within a mailbox.
-Since the ACPI spec doesn't have anything similar, we introduce a
-mailbox controller specific API so that when the client calls it,
-we know to lookup in the context of a specific controller. This
-also helps in keeping a consistent interface across DT and ACPI
-for such drivers.
-
-This patch implements basic PCC support using the ACPI v5.1
-structures. IRQ mode support will be provided as follow up patches.
-
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
----
- drivers/mailbox/Kconfig   |  12 ++
- drivers/mailbox/Makefile  |   2 +
- drivers/mailbox/mailbox.c |   4 +-
- drivers/mailbox/mailbox.h |  16 ++
- drivers/mailbox/pcc.c     | 403 ++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 434 insertions(+), 3 deletions(-)
- create mode 100644 drivers/mailbox/mailbox.h
- create mode 100644 drivers/mailbox/pcc.c
-
-diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index 9fd9c67..c04fed9 100644
---- a/drivers/mailbox/Kconfig
-+++ b/drivers/mailbox/Kconfig
-@@ -33,4 +33,16 @@ config OMAP_MBOX_KFIFO_SIZE
- 	  Specify the default size of mailbox's kfifo buffers (bytes).
- 	  This can also be changed at runtime (via the mbox_kfifo_size
- 	  module parameter).
-+
-+config PCC
-+	bool "Platform Communication Channel Driver"
-+	depends on ACPI
-+	help
-+	  ACPI 5.0+ spec defines a generic mode of communication
-+	  between the OS and a platform such as the BMC. This medium
-+	  (PCC) is typically used by CPPC (ACPI CPU Performance management),
-+	  RAS (ACPI reliability protocol) and MPST (ACPI Memory power
-+	  states). Select this driver if your platform implements the
-+	  PCC clients mentioned above.
-+
- endif
-diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-index 94ed7ce..dd412c2 100644
---- a/drivers/mailbox/Makefile
-+++ b/drivers/mailbox/Makefile
-@@ -5,3 +5,5 @@ obj-$(CONFIG_MAILBOX)		+= mailbox.o
- obj-$(CONFIG_PL320_MBOX)	+= pl320-ipc.o
- 
- obj-$(CONFIG_OMAP2PLUS_MBOX)	+= omap-mailbox.o
-+
-+obj-$(CONFIG_PCC)		+= pcc.o
-diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-index afcb430..17e9e4a 100644
---- a/drivers/mailbox/mailbox.c
-+++ b/drivers/mailbox/mailbox.c
-@@ -21,9 +21,7 @@
- #include <linux/mailbox_client.h>
- #include <linux/mailbox_controller.h>
- 
--#define TXDONE_BY_IRQ	BIT(0) /* controller has remote RTR irq */
--#define TXDONE_BY_POLL	BIT(1) /* controller can read status of last TX */
--#define TXDONE_BY_ACK	BIT(2) /* S/W ACK recevied by Client ticks the TX */
-+#include "mailbox.h"
- 
- static LIST_HEAD(mbox_cons);
- static DEFINE_MUTEX(con_mutex);
-diff --git a/drivers/mailbox/mailbox.h b/drivers/mailbox/mailbox.h
-new file mode 100644
-index 0000000..5a15a25
---- /dev/null
-+++ b/drivers/mailbox/mailbox.h
-@@ -0,0 +1,16 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __MAILBOX_H
-+#define __MAILBOX_H
-+
-+#define TXDONE_BY_IRQ	BIT(0) /* controller has remote RTR irq */
-+#define TXDONE_BY_POLL	BIT(1) /* controller can read status of last TX */
-+#define TXDONE_BY_ACK	BIT(2) /* S/W ACK recevied by Client ticks the TX */
-+
-+#endif /* __MAILBOX_H */
-+
-+
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-new file mode 100644
-index 0000000..6dbf6fc
---- /dev/null
-+++ b/drivers/mailbox/pcc.c
-@@ -0,0 +1,403 @@
-+/*
-+ *	Copyright (C) 2014 Linaro Ltd.
-+ *	Author:	Ashwin Chaugule <ashwin.chaugule@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  PCC (Platform Communication Channel) is defined in the ACPI 5.0+
-+ *  specification. It is a mailbox like mechanism to allow clients
-+ *  such as CPPC (Collaborative Processor Performance Control), RAS
-+ *  (Reliability, Availability and Serviceability) and MPST (Memory
-+ *  Node Power State Table) to talk to the platform (e.g. BMC) through
-+ *  shared memory regions as defined in the PCC table entries. The PCC
-+ *  specification supports a Doorbell mechanism for the PCC clients
-+ *  to notify the platform about new data. This Doorbell information
-+ *  is also specified in each PCC table entry. See pcc_send_data()
-+ *  and pcc_tx_done() for basic mode of operation.
-+ *
-+ *  For more details about PCC, please see the ACPI specification from
-+ *  http://www.uefi.org/ACPIv5.1 Section 14.
-+ *
-+ *  This file implements PCC as a Mailbox controller and allows for PCC
-+ *  clients to be implemented as its Mailbox Client Channels.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/io.h>
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/platform_device.h>
-+#include <linux/mailbox_controller.h>
-+#include <linux/mailbox_client.h>
-+
-+#include "mailbox.h"
-+
-+#define MAX_PCC_SUBSPACES	256
-+#define PCCS_SS_SIG_MAGIC	0x50434300
-+#define PCC_CMD_COMPLETE	0x1
-+
-+static struct mbox_chan *pcc_mbox_channels;
-+
-+static struct mbox_controller pcc_mbox_ctrl = {};
-+/**
-+ * get_pcc_channel - Given a PCC subspace idx, get
-+ *	the respective mbox_channel.
-+ * @id: PCC subspace index.
-+ *
-+ * Return: ERR_PTR(errno) if error, else pointer
-+ *	to mbox channel.
-+ */
-+static struct mbox_chan *get_pcc_channel(int id)
-+{
-+	struct mbox_chan *pcc_chan;
-+
-+	if (id < 0 || id > pcc_mbox_ctrl.num_chans)
-+		return ERR_PTR(-ENOENT);
-+
-+	pcc_chan = (struct mbox_chan *)
-+		(unsigned long) pcc_mbox_channels +
-+		(id * sizeof(*pcc_chan));
-+
-+	return pcc_chan;
-+}
-+
-+/**
-+ * get_subspace_id - Given a Mailbox channel, find out the
-+ *		PCC subspace id.
-+ * @chan: Pointer to Mailbox Channel from which we want
-+ *		the index.
-+ * Return: Errno if not found, else positive index number.
-+ */
-+static int get_subspace_id(struct mbox_chan *chan)
-+{
-+	unsigned int id = chan - pcc_mbox_channels;
-+
-+	if (id < 0 || id > pcc_mbox_ctrl.num_chans)
-+		return -ENOENT;
-+
-+	return id;
-+}
-+
-+/**
-+ * pcc_mbox_request_channel - PCC clients call this function to
-+ *		request a pointer to their PCC subspace, from which they
-+ *		can get the details of communicating with the remote.
-+ * @cl: Pointer to Mailbox client, so we know where to bind the
-+ *		Channel.
-+ * @subspace_id: The PCC Subspace index as parsed in the PCC client
-+ *		ACPI package. This is used to lookup the array of PCC
-+ *		subspaces as parsed by the PCC Mailbox controller.
-+ *
-+ * Return: Pointer to the Mailbox Channel if successful or
-+ *		ERR_PTR.
-+ */
-+struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
-+		int subspace_id)
-+{
-+	struct device *dev = pcc_mbox_ctrl.dev;
-+	struct mbox_chan *chan;
-+	unsigned long flags;
-+
-+	/*
-+	 * Each PCC Subspace is a Mailbox Channel.
-+	 * The PCC Clients get their PCC Subspace ID
-+	 * from their own tables and pass it here.
-+	 * This returns a pointer to the PCC subspace
-+	 * for the Client to operate on.
-+	 */
-+	chan = get_pcc_channel(subspace_id);
-+
-+	if (!chan || chan->cl) {
-+		dev_err(dev, "%s: PCC mailbox not free\n", __func__);
-+		return ERR_PTR(-EBUSY);
-+	}
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	chan->msg_free = 0;
-+	chan->msg_count = 0;
-+	chan->active_req = NULL;
-+	chan->cl = cl;
-+	init_completion(&chan->tx_complete);
-+
-+	if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
-+		chan->txdone_method |= TXDONE_BY_ACK;
-+
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
-+	return chan;
-+}
-+EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
-+
-+/**
-+ * pcc_mbox_free_channel - Clients call this to free their Channel.
-+ *
-+ * @chan: Pointer to the mailbox channel as returned by
-+ *		pcc_mbox_request_channel()
-+ */
-+void pcc_mbox_free_channel(struct mbox_chan *chan)
-+{
-+	unsigned long flags;
-+
-+	if (!chan || !chan->cl)
-+		return;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	chan->cl = NULL;
-+	chan->active_req = NULL;
-+	if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
-+		chan->txdone_method = TXDONE_BY_POLL;
-+
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
-+
-+/**
-+ * pcc_tx_done - Callback from Mailbox controller code to
-+ *		check if PCC message transmission completed.
-+ * @chan: Pointer to Mailbox channel on which previous
-+ *		transmission occurred.
-+ *
-+ * Return: TRUE if succeeded.
-+ */
-+static bool pcc_tx_done(struct mbox_chan *chan)
-+{
-+	struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
-+	struct acpi_pcct_shared_memory *generic_comm_base =
-+		(struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-+	u16 cmd_delay = pcct_ss->latency;
-+	unsigned int retries = 0;
-+
-+	/* Try a few times while waiting for platform to consume */
-+	while (!(readw_relaxed(&generic_comm_base->status)
-+		    & PCC_CMD_COMPLETE)) {
-+
-+		if (retries++ < 5)
-+			udelay(cmd_delay);
-+		else {
-+			/*
-+			 * If the remote is dead, this will cause the Mbox
-+			 * controller to timeout after mbox client.tx_tout
-+			 * msecs.
-+			 */
-+			pr_err("PCC platform did not respond.\n");
-+			return false;
-+		}
-+	}
-+	return true;
-+}
-+
-+/**
-+ * pcc_send_data - Called from Mailbox Controller code to finally
-+ *	transmit data over channel.
-+ * @chan: Pointer to Mailbox channel over which to send data.
-+ * @data: Actual data to be written over channel.
-+ *
-+ * Return: Err if something failed else 0 for success.
-+ */
-+static int pcc_send_data(struct mbox_chan *chan, void *data)
-+{
-+	struct acpi_pcct_hw_reduced *pcct_ss = chan->con_priv;
-+	struct acpi_pcct_shared_memory *generic_comm_base =
-+		(struct acpi_pcct_shared_memory *) pcct_ss->base_address;
-+	struct acpi_generic_address doorbell;
-+	u64 doorbell_preserve;
-+	u64 doorbell_val;
-+	u64 doorbell_write;
-+	u16 cmd = *(u16 *) data;
-+	u16 ss_idx = -1;
-+
-+	ss_idx = get_subspace_id(chan);
-+
-+	if (ss_idx < 0) {
-+		pr_err("Invalid Subspace ID from PCC client\n");
-+		return -EINVAL;
-+	}
-+
-+	doorbell = pcct_ss->doorbell_register;
-+	doorbell_preserve = pcct_ss->preserve_mask;
-+	doorbell_write = pcct_ss->write_mask;
-+
-+	/* Write to the shared comm region. */
-+	writew(cmd, &generic_comm_base->command);
-+
-+	/* Write Subspace MAGIC value so platform can identify destination. */
-+	writel((PCCS_SS_SIG_MAGIC | ss_idx), &generic_comm_base->signature);
-+
-+	/* Flip CMD COMPLETE bit */
-+	writew(0, &generic_comm_base->status);
-+
-+	/* Sync notification from OSPM to Platform. */
-+	acpi_read(&doorbell_val, &doorbell);
-+	acpi_write((doorbell_val & doorbell_preserve) | doorbell_write,
-+			&doorbell);
-+
-+	return 0;
-+}
-+
-+static struct mbox_chan_ops pcc_chan_ops = {
-+	.send_data = pcc_send_data,
-+	.last_tx_done = pcc_tx_done,
-+};
-+
-+/**
-+ * parse_pcc_subspace - Parse the PCC table and verify PCC subspace
-+ *		entries. There should be one entry per PCC client.
-+ * @header: Pointer to the ACPI subtable header under the PCCT.
-+ * @end: End of subtable entry.
-+ *
-+ * Return: 0 for Success, else errno.
-+ *
-+ * This gets called for each entry in the PCC table.
-+ */
-+static int parse_pcc_subspace(struct acpi_subtable_header *header,
-+		const unsigned long end)
-+{
-+	struct acpi_pcct_hw_reduced *pcct_ss;
-+
-+	if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
-+		pcct_ss = (struct acpi_pcct_hw_reduced *) header;
-+
-+		if (pcct_ss->header.type !=
-+				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
-+			pr_err("Incorrect PCC Subspace type detected\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
-+ *
-+ * Return: 0 for Success, else errno.
-+ */
-+static int __init acpi_pcc_probe(void)
-+{
-+	acpi_size pcct_tbl_header_size;
-+	struct acpi_table_header *pcct_tbl;
-+	struct acpi_subtable_header *pcct_entry;
-+	int count, i;
-+	acpi_status status = AE_OK;
-+
-+	/* Search for PCCT */
-+	status = acpi_get_table_with_size(ACPI_SIG_PCCT, 0,
-+			&pcct_tbl,
-+			&pcct_tbl_header_size);
-+
-+	if (ACPI_FAILURE(status) || !pcct_tbl) {
-+		pr_warn("PCCT header not found.\n");
-+		return -ENODEV;
-+	}
-+
-+	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
-+			sizeof(struct acpi_table_pcct),
-+			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
-+			parse_pcc_subspace, MAX_PCC_SUBSPACES);
-+
-+	if (count <= 0) {
-+		pr_err("Error parsing PCC subspaces from PCCT\n");
-+		return -EINVAL;
-+	}
-+
-+	pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) *
-+			count, GFP_KERNEL);
-+
-+	if (!pcc_mbox_channels) {
-+		pr_err("Could not allocate space for PCC mbox channels\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* Point to the first PCC subspace entry */
-+	pcct_entry = (struct acpi_subtable_header *) (
-+		(unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
-+
-+	for (i = 0; i < count; i++) {
-+		pcc_mbox_channels[i].con_priv = pcct_entry;
-+		pcct_entry = (struct acpi_subtable_header *)
-+			((unsigned long) pcct_entry + pcct_entry->length);
-+	}
-+
-+	pcc_mbox_ctrl.num_chans = count;
-+
-+	pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
-+
-+	return 0;
-+}
-+
-+/**
-+ * pcc_mbox_probe - Called when we find a match for the
-+ *	PCCT platform device. This is purely used to represent
-+ *	the PCCT as a virtual device for registering with the
-+ *	generic Mailbox framework.
-+ *
-+ * @pdev: Pointer to platform device returned when a match
-+ *	is found.
-+ *
-+ *	Return: 0 for Success, else errno.
-+ */
-+static int pcc_mbox_probe(struct platform_device *pdev)
-+{
-+	int ret = 0;
-+
-+	pcc_mbox_ctrl.chans = pcc_mbox_channels;
-+	pcc_mbox_ctrl.ops = &pcc_chan_ops;
-+	pcc_mbox_ctrl.txdone_poll = true;
-+	pcc_mbox_ctrl.txpoll_period = 10;
-+	pcc_mbox_ctrl.dev = &pdev->dev;
-+
-+	pr_info("Registering PCC driver as Mailbox controller\n");
-+	ret = mbox_controller_register(&pcc_mbox_ctrl);
-+
-+	if (ret) {
-+		pr_err("Err registering PCC as Mailbox controller: %d\n", ret);
-+		ret = -ENODEV;
-+	}
-+
-+	return ret;
-+}
-+
-+struct platform_driver pcc_mbox_driver = {
-+	.probe = pcc_mbox_probe,
-+	.driver = {
-+		.name = "PCCT",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static int __init pcc_init(void)
-+{
-+	int ret;
-+	struct platform_device *pcc_pdev;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	/* Check if PCC support is available. */
-+	ret = acpi_pcc_probe();
-+
-+	if (ret) {
-+		pr_err("ACPI PCC probe failed.\n");
-+		return -ENODEV;
-+	}
-+
-+	pcc_pdev = platform_create_bundle(&pcc_mbox_driver,
-+			pcc_mbox_probe, NULL, 0, NULL, 0);
-+
-+	if (!pcc_pdev) {
-+		pr_err("Err creating PCC platform bundle\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+device_initcall(pcc_init);
--- 
-1.9.1
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFdlZG5lc2RheSwgTm92ZW1iZXIgMTIsIDIwMTQgOToxNyBBTQ0K
+PiANCj4gT24gTW9uZGF5LCBOb3ZlbWJlciAwMywgMjAxNCAwMToxNjozNyBQTSBMdiBaaGVuZyB3
+cm90ZToNCj4gPiBUaGVyZSBpcyB3YWl0IGNvZGUgaW4gdGhlIFFSX1NDIGNvbW1hbmQgcHJvY2Vz
+c2luZywgd2hpY2ggbWFrZXMgaXQgbm90DQo+ID4gc3VpdGFibGUgdG8gYmUgcHV0IGludG8gYSB3
+b3JrIHF1ZXVlIGl0ZW0gKHNlZSBidWcgODI2MTEpLiBBbmQgdGhlcmUgaXMNCj4gPiBjYXNlIHRo
+YXQgdGhlIFNDSV9FVlQgY2Fubm90IHRyaWdnZXIgR1BFLCB0aG91Z2ggYWxsIGNvbW1hbmRzIGhh
+dmUgcG9sbGluZw0KPiA+IG1vZGUgaW1wbGVtZW50ZWQsIHRoZSBldmVudCBjYW5ub3QgYmUgcG9s
+bGVkIChzZWUgYnVnIDc3NDMxKS4NCj4gPg0KPiA+IFNvIGlmIHRoZSBRUl9TQyBjb21tYW5kIGNh
+biBiZSBwdXQgaW50byBhIHNlcGVyYXRlIElSUSB0aHJlYWQsIHRoZW4gdGhlDQo+ID4gd29yayBx
+dWV1ZSB3aWxsIG5vdCBiZSBibG9ja2VkIGJ5IHRoZSBRUl9TQyBjb21tYW5kIHByb2Nlc3Npbmcg
+YW5kIHdlIGNhbg0KPiA+IGFsc28gdHJpZ2dlciBwb2xsaW5nIHVzaW5nIHRoZSB0aHJlYWQuIFVz
+aW5nIElSUSB0aHJlYWQgYWxzbyBhbGxvd3MgdXMgdG8NCj4gPiBjaGFuZ2UgdGhlIEVDIEdQRSBo
+YW5kbGVyIGludG8gdGhlIHRocmVhZGVkIElSUSBtb2RlbCB3aGVuIHBvc3NpYmxlLg0KPiA+DQo+
+ID4gVGhpcyBwYXRjaCB0aHVzIGFkZHMgdGhlIElSUSBwb2xsaW5nIHRocmVhZCBmb3IgU0NJX0VW
+VCBwb2xsaW5nIGFuZCByZW1vdmVzDQo+ID4gUVJfU0MgcHJvY2Vzc2luZyB3b3JrIGl0ZW0uDQo+
+ID4NCj4gPiBUaGUgcmVhc29ucyB3aHkgd2UgZG8gbm90IHB1dCBhIGxvb3AgaW4gdGhlIGV2ZW50
+IHBvbGxlciB0byBwb2xsIGV2ZW50DQo+ID4gdW50aWwgdGhlIHJldHVybmVkIHF1ZXJ5IHZhbHVl
+IGlzIDA6DQo+ID4gICBTb21lIHBsYXRmb3JtcyByZXR1cm4gbm9uIDAgcXVlcnkgdmFsdWUgZXZl
+biB3aGVuIFNDSV9FVlQ9MCwgaWYgd2UgcHV0IGENCj4gPiAgIGxvb3AgaW4gdGhlIHBvbGxlciwg
+b3VyIGNvbW1hbmQgZmx1c2ggbWVjaGFuaXNtIGNvdWxkIG5ldmVyIGV4ZWN1dGUgdG8NCj4gPiAg
+IGFuIGVuZCB0aHVzIHRoZSBzeXN0ZW0gc3VzcGVuZGluZyBwcm9jZXNzIGNvdWxkIGJlIGJsb2Nr
+ZWQuIE9uZSBTQ0lfRVZUDQo+ID4gICB0cmlnZ2VyaW5nIG9uZSBRUl9FQyBpcyBjdXJyZW50IGxv
+Z2ljIGFuZCBoYXMgYmVlbiBwcm92ZW4gdG8gYmUgd29ya2luZw0KPiA+ICAgZm9yIHNvIGxvbmcg
+dGltZS4NCj4gPg0KPiA+IFRoZSByZWFzb25zIHdoeSBpdCBpcyBub3QgaW1wbGVtZW50ZWQgZGly
+ZWN0bHkgdXNpbmcgdGhyZWFkZWQgSVJRIGFyZToNCj4gPiAxLiBBQ1BJQ0EgZG9lc24ndCBzdXBw
+b3J0IHRocmVhZGVkIElSUSBhcyBub3QgYWxsIG9mIHRoZSBPU1BNcyBzdXBwb3J0DQo+ID4gICAg
+dGhyZWFkZWQgSVJRIHdoaWxlIEdQRSBoYW5kbGVyIHJlZ2lzdGVyYXRpb25zIGFyZSBkb25lIHRo
+cm91Z2ggQUNQSUNBLg0KPiA+IDIuIFRoZSBJUlEgcHJvY2Vzc2luZyBjb2RlIG5lZWQgdG8gYmUg
+aWRlbnRpY2FsIGZvciBib3RoIHRoZSBJUlEgaGFuZGxlcg0KPiA+ICAgIGFuZCB0aGUgdGhyZWFk
+IGNhbGxiYWNrLCB3aGlsZSBjdXJyZW50bHksIHRob3VnaCB0aGUgY29tbWFuZCBHUEUNCj4gPiAg
+ICBoYW5kbGluZyBpcyByZWFkeSBmb3IgYm90aCBJUlEgYW5kIHBvbGxpbmcgbW9kZSwgb25seSB0
+aGUgZXZlbnQgR1BFIGlzDQo+ID4gICAgaXMgcG9sbGVkIGluIHRoZSBldmVudCBwb2xsaW5nIHRo
+cmVhZCBhbmQgdGhlIGNvbW1hbmQgaXMgcG9sbGVkIGluIHRoZQ0KPiA+ICAgIHVzZXIgdGhyZWFk
+cy4NCj4gPiBTbyB3ZSB1c2UgYSBzdGFuZGFsb25lIGtlcm5lbCB0aHJlYWQsIGlmIHRoZSBhYm92
+ZSBzaXR1YXRpb25zIGFyZSBjaGFuZ2VkDQo+ID4gaW4gdGhlIGZ1dHVyZSwgd2UgY2FuIGVhc2ls
+eSBjb252ZXJ0IHRoZSBjb2RlIGludG8gdGhlIHRocmVhZGVkIElSUSBzdHlsZS4NCj4gPg0KPiA+
+IFRoZSBvbGQgRUNfRkxBR1NfUVVFUllfUEVORElORyBpcyBjb252ZXJ0ZWQgdG8gRUNfRkxBR1Nf
+RVZFTlRfRU5BQkxFRCBpbg0KPiA+IHRoaXMgcGF0Y2gsIHNvIHRoYXQgaXRzIG5hbWluZyBpcyBj
+b25zaXN0ZW50IHdpdGggRUNfRkxBR1NfRVZFTlRfUEVORElORy4NCj4gPiBUaGUgb3JpZ2luYWwg
+ZmxhZyBkb2Vzbid0IGNvLXdvcmsgd2l0aCBTQ0lfRVZUIHdlbGwsIHRoaXMgcGF0Y2ggcmVmaW5l
+cw0KPiA+IGl0cyB1c2FnZSBieSBlbmZvcmNpbmcgYSBldmVudCBwb2xsaW5nIHdha2V1cCBpbmRp
+Y2F0aW9uIGFzOg0KPiA+ICAgRUNfRkxBR1NfRVZFTlRfRU5BQkxFRCAmJiBFQ19GTEFHU19FVkVO
+VF9QRU5ESU5HDQo+ID4gU28gdW5sZXNzIHRoZSBib3RoIG9mIHRoZSBmbGFncyBhcmUgc2V0LCB0
+aGUgdGhyZWFkZWQgZXZlbnQgcG9sbGVyIHdpbGwNCj4gPiBub3QgYmUgd29rZW4gdXAuDQo+ID4N
+Cj4gPiBUaGlzIHBhdGNoIGludm9rZXMgYWNwaV9lY19zdWJtaXRfcmVxdWVzdCgpIGFmdGVyIGhh
+dmluZyBkZXRlY3RlZCBTQ0lfRVZUDQo+ID4gYW5kIGludm9rZXMgYWNwaV9lY19jb21wbGV0ZV9y
+ZXF1ZXN0KCkgYmVmb3JlIGhhdmluZyB0aGUgUVJfRUMgY29tbWFuZA0KPiA+IHByb2Nlc3NlZC4g
+VGhpcyBpcyB1c2VmdWwgZm9yIGltcGxlbWVudGluZyBHUEUgc3Rvcm0gcHJldmVudGlvbiBmb3IN
+Cj4gPiBtYWxpY291cyAibGV2ZWwgdHJpZ2dlcmVkIiBTQ0lfRVZULiBCdXQgdGhlIHN0b3JtIHBy
+ZXZlbnRpb24gaXMgbm90DQo+ID4gaW1wbGVtZW50ZWQgaW4gdGhpcyBwYXRjaC4NCj4gPg0KPiA+
+IFNpbmNlIHRoZSBhY3BpX2VjX3N1Ym1pdF9yZXF1ZXN0KCkgaW52b2tlZCBhZnRlciBkZXRlY3Rp
+bmcgdGhlIFNDSV9FVlQgaXMNCj4gPiBwYWlyZWQgd2l0aCBhY3BpX2VjX2NvbXBsZXRlX3JlcXVl
+c3QoKSBpbnZva2VkIGFmdGVyIGNvbXBsZXRpbmcgUVJfRUMNCj4gPiBjb21tYW5kLCBhY3BpX2Vj
+X3N1Ym1pdF9mbHVzaGFibGVfcmVxdWVzdCgpIHRoZW4gbmVlZCB0byBiZSBtb2RpZmllZCB0bw0K
+PiA+IGFsbG93IFFSX0VDIGNvbW1hbmQgdG8gYmUgc3VibWl0dGVkIGR1cmluZyB0aGlzIHBlcmlv
+ZCB0byByZXZlcnQgdGhlDQo+ID4gaW5jcmVhc2VkIHJlZmVyZW5jZSBjb3VudC4gVGhpcyBwZXJp
+b2QgY2FuIGJlIGRldGVybWluZWQgYnkgdGhlIGV2ZW50DQo+ID4gcG9sbGluZyBpbmRpY2F0aW9u
+Og0KPiA+ICAgRUNfRkxBR1NfRVZFTlRfRU5BQkxFRCAmJiBFQ19GTEFHU19FVkVOVF9QRU5ESU5H
+DQo+ID4gV2l0aG91dCBlbmhhbmNpbmcgdGhpcyBjaGVjayBpbiBhY3BpX2VjX3N1Ym1pdF9mbHVz
+aGFibGVfcmVxdWVzdCgpLCBRUl9FQw0KPiA+IGNvbW1hbmQgd2lsbCBub3QgYmUgZXhlY3V0ZWQg
+dG8gZGVjcmVhc2UgdGhlIHJlZmVyZW5jZSBjb3VudCBhZGRlZCBhZnRlcg0KPiA+IGRldGVjdGlu
+ZyB0aGUgU0NJX0VWVCwgdGh1cyB0aGUgc3lzdGVtIHN1c3BlbmRpbmcgd2lsbCBiZSBibG9ja2Vk
+IGJlY2F1c2UNCj4gPiB0aGUgcmVmZXJlbmNlIGNvdW50IGVxdWFscyB0byAyLiBTdWNoIGNoZWNr
+IGlzIGNvbW1vbiBmb3IgZmx1c2hpbmcgY29kZS4NCj4gPg0KPiA+IFJlZmVyZW5jZTogaHR0cHM6
+Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD04MjYxMQ0KPiA+IFJlZmVyZW5j
+ZTogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD03NzQzMQ0KPiA+
+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gVGVzdGVk
+LWJ5OiBPcnR3aW4gR2zDvGNrIDxvZGlAb2RpLmNoPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2Fj
+cGkvZWMuYyAgICAgICB8ICAxOTQgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0t
+LS0tLS0tLS0tLS0NCj4gPiAgZHJpdmVycy9hY3BpL2ludGVybmFsLmggfCAgICAxICsNCj4gPiAg
+MiBmaWxlcyBjaGFuZ2VkLCAxNDQgaW5zZXJ0aW9ucygrKSwgNTEgZGVsZXRpb25zKC0pDQo+ID4N
+Cj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2VjLmMgYi9kcml2ZXJzL2FjcGkvZWMuYw0K
+PiA+IGluZGV4IGE3Njc5NGEuLjcwODkwODEgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3Bp
+L2VjLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvZWMuYw0KPiA+IEBAIC00NCw2ICs0NCw3IEBA
+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9hY3Bp
+Lmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9kbWkuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L2t0
+aHJlYWQuaD4NCj4gPiAgI2luY2x1ZGUgPGFzbS9pby5oPg0KPiA+DQo+ID4gICNpbmNsdWRlICJp
+bnRlcm5hbC5oIg0KPiA+IEBAIC03NSw3ICs3Niw4IEBAIGVudW0gZWNfY29tbWFuZCB7DQo+ID4g
+IAkJCQkJICogd2hlbiB0cnlpbmcgdG8gY2xlYXIgdGhlIEVDICovDQo+ID4NCj4gPiAgZW51bSB7
+DQo+ID4gLQlFQ19GTEFHU19RVUVSWV9QRU5ESU5HLAkJLyogUXVlcnkgaXMgcGVuZGluZyAqLw0K
+PiA+ICsJRUNfRkxBR1NfRVZFTlRfRU5BQkxFRCwJCS8qIEV2ZW50IGlzIGVuYWJsZWQgKi8NCj4g
+PiArCUVDX0ZMQUdTX0VWRU5UX1BFTkRJTkcsCQkvKiBFdmVudCBpcyBwZW5kaW5nICovDQo+ID4g
+IAlFQ19GTEFHU19HUEVfU1RPUk0sCQkvKiBHUEUgc3Rvcm0gZGV0ZWN0ZWQgKi8NCj4gPiAgCUVD
+X0ZMQUdTX0hBTkRMRVJTX0lOU1RBTExFRCwJLyogSGFuZGxlcnMgZm9yIEdQRSBhbmQNCj4gPiAg
+CQkJCQkgKiBPcFJlZyBhcmUgaW5zdGFsbGVkICovDQo+ID4gQEAgLTEyNCw2ICsxMjYsNyBAQCBz
+dHJ1Y3QgdHJhbnNhY3Rpb24gew0KPiA+ICBzdGF0aWMgc3RydWN0IGFjcGlfZWNfcXVlcnlfaGFu
+ZGxlciAqDQo+ID4gIGFjcGlfZWNfZ2V0X3F1ZXJ5X2hhbmRsZXIoc3RydWN0IGFjcGlfZWNfcXVl
+cnlfaGFuZGxlciAqaGFuZGxlcik7DQo+ID4gIHN0YXRpYyB2b2lkIGFjcGlfZWNfcHV0X3F1ZXJ5
+X2hhbmRsZXIoc3RydWN0IGFjcGlfZWNfcXVlcnlfaGFuZGxlciAqaGFuZGxlcik7DQo+ID4gK3N0
+YXRpYyBpbnQgYWNwaV9lY19zeW5jX3F1ZXJ5KHN0cnVjdCBhY3BpX2VjICplYywgdTggKmRhdGEp
+Ow0KPiA+DQo+ID4gIHN0cnVjdCBhY3BpX2VjICpib290X2VjLCAqZmlyc3RfZWM7DQo+ID4gIEVY
+UE9SVF9TWU1CT0woZmlyc3RfZWMpOw0KPiA+IEBAIC0xNDksNiArMTUyLDEyIEBAIHN0YXRpYyBi
+b29sIGFjcGlfZWNfZmx1c2hlZChzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gIAlyZXR1cm4gZWMt
+PnJlZmVyZW5jZV9jb3VudCA9PSAxOw0KPiA+ICB9DQo+ID4NCj4gPiArc3RhdGljIGJvb2wgYWNw
+aV9lY19oYXNfcGVuZGluZ19ldmVudChzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gK3sNCj4gPiAr
+CXJldHVybiB0ZXN0X2JpdChFQ19GTEFHU19FVkVOVF9FTkFCTEVELCAmZWMtPmZsYWdzKSAmJg0K
+PiA+ICsJICAgICAgIHRlc3RfYml0KEVDX0ZMQUdTX0VWRU5UX1BFTkRJTkcsICZlYy0+ZmxhZ3Mp
+Ow0KPiA+ICt9DQo+ID4gKw0KPiA+ICAvKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAgKiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIEdQRSBFbmhhbmNlbWVudA0KPiA+ICAgKiAtLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLSAqLw0KPiA+IEBAIC0xNzcsMjAgKzE4Niw5MyBAQCBzdGF0aWMgdm9pZCBhY3BpX2Vj
+X2NvbXBsZXRlX3JlcXVlc3Qoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiA+ICAgKiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlIGZsdXNoIG9wZXJhdGlvbiBpcyBub3QgaW4N
+Cj4gPiAgICogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHByb2dyZXNzDQo+
+ID4gICAqIEBlYzogdGhlIEVDIGRldmljZQ0KPiA+ICsgKiBAY2hlY2tfZXZlbnQ6IGNoZWNrIHdo
+ZXRoZXIgZXZlbnQgaXMgcGVuZGluZw0KPiA+ICAgKg0KPiA+ICAgKiBUaGlzIGZ1bmN0aW9uIG11
+c3QgYmUgdXNlZCBiZWZvcmUgdGFraW5nIGEgbmV3IGFjdGlvbiB0aGF0IHNob3VsZCBob2xkDQo+
+ID4gICAqIHRoZSByZWZlcmVuY2UgY291bnQuICBJZiB0aGlzIGZ1bmN0aW9uIHJldHVybnMgZmFs
+c2UsIHRoZW4gdGhlIGFjdGlvbg0KPiA+ICAgKiBtdXN0IGJlIGRpc2NhcmRlZCBvciBpdCB3aWxs
+IHByZXZlbnQgdGhlIGZsdXNoIG9wZXJhdGlvbiBmcm9tIGJlaW5nDQo+ID4gICAqIGNvbXBsZXRl
+ZC4NCj4gPiArICoNCj4gPiArICogRHVyaW5nIGZsdXNoaW5nLCBRUl9FQyBjb21tYW5kIG5lZWQg
+dG8gcGFzcyB0aGlzIGNoZWNrIHdoZW4gdGhlcmUgaXMgYQ0KPiA+ICsgKiBwZW5kaW5nIGV2ZW50
+LCBzbyB0aGF0IHRoZSByZWZlcmVuY2UgY291bnQgaGVsZCBmb3IgdGhlIHBlbmRpbmcgZXZlbnQN
+Cj4gPiArICogY2FuIGJlIGRlY3JlYXNlZCBieSB0aGUgY29tcGxldGlvbiBvZiB0aGUgUVJfRUMg
+Y29tbWFuZC4NCj4gPiAgICovDQo+ID4gLXN0YXRpYyBib29sIGFjcGlfZWNfc3VibWl0X2ZsdXNo
+YWJsZV9yZXF1ZXN0KHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiArc3RhdGljIGJvb2wgYWNwaV9l
+Y19zdWJtaXRfZmx1c2hhYmxlX3JlcXVlc3Qoc3RydWN0IGFjcGlfZWMgKmVjLA0KPiA+ICsJCQkJ
+CSAgICAgYm9vbCBjaGVja19ldmVudCkNCj4gPiAgew0KPiA+IC0JaWYgKCFhY3BpX2VjX3N0YXJ0
+ZWQoZWMpKQ0KPiA+IC0JCXJldHVybiBmYWxzZTsNCj4gPiArCWlmICghYWNwaV9lY19zdGFydGVk
+KGVjKSkgew0KPiA+ICsJCWlmICghY2hlY2tfZXZlbnQgfHwgIWFjcGlfZWNfaGFzX3BlbmRpbmdf
+ZXZlbnQoZWMpKQ0KPiA+ICsJCQlyZXR1cm4gZmFsc2U7DQo+ID4gKwl9DQo+ID4gIAlhY3BpX2Vj
+X3N1Ym1pdF9yZXF1ZXN0KGVjKTsNCj4gPiAgCXJldHVybiB0cnVlOw0KPiA+ICB9DQo+ID4NCj4g
+PiArc3RhdGljIHZvaWQgYWNwaV9lY19lbmFibGVfZXZlbnQoc3RydWN0IGFjcGlfZWMgKmVjKQ0K
+PiA+ICt7DQo+ID4gKwl1bnNpZ25lZCBsb25nIGZsYWdzOw0KPiA+ICsNCj4gPiArCXNwaW5fbG9j
+a19pcnFzYXZlKCZlYy0+bG9jaywgZmxhZ3MpOw0KPiA+ICsJLyogSG9sZCByZWZlcmVuY2UgZm9y
+IHBlbmRpbmcgZXZlbnQgKi8NCj4gPiArCWlmICghYWNwaV9lY19zdWJtaXRfZmx1c2hhYmxlX3Jl
+cXVlc3QoZWMsIGZhbHNlKSkgew0KPiA+ICsJCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmVjLT5s
+b2NrLCBmbGFncyk7DQo+ID4gKwkJcmV0dXJuOw0KPiA+ICsJfQ0KPiA+ICsJc2V0X2JpdChFQ19G
+TEFHU19FVkVOVF9FTkFCTEVELCAmZWMtPmZsYWdzKTsNCj4gPiArCWlmICh0ZXN0X2JpdChFQ19G
+TEFHU19FVkVOVF9QRU5ESU5HLCAmZWMtPmZsYWdzKSkgew0KPiA+ICsJCXByX2RlYnVnKCIqKioq
+KiBFdmVudCBwZW5kaW5nICoqKioqXG4iKTsNCj4gPiArCQl3YWtlX3VwX3Byb2Nlc3MoZWMtPnRo
+cmVhZCk7DQo+ID4gKwkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ssIGZsYWdzKTsN
+Cj4gPiArCQlyZXR1cm47DQo+ID4gKwl9DQo+ID4gKwlhY3BpX2VjX2NvbXBsZXRlX3JlcXVlc3Qo
+ZWMpOw0KPiA+ICsJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4g
+PiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgX19hY3BpX2VjX3NldF9ldmVudChzdHJ1Y3Qg
+YWNwaV9lYyAqZWMpDQo+ID4gK3sNCj4gPiArCS8qIEhvbGQgcmVmZXJlbmNlIGZvciBwZW5kaW5n
+IGV2ZW50ICovDQo+ID4gKwlpZiAoIWFjcGlfZWNfc3VibWl0X2ZsdXNoYWJsZV9yZXF1ZXN0KGVj
+LCBmYWxzZSkpDQo+ID4gKwkJcmV0dXJuOw0KPiA+ICsJaWYgKCF0ZXN0X2FuZF9zZXRfYml0KEVD
+X0ZMQUdTX0VWRU5UX1BFTkRJTkcsICZlYy0+ZmxhZ3MpKSB7DQo+ID4gKwkJcHJfZGVidWcoIioq
+KioqIEV2ZW50IHBlbmRpbmcgKioqKipcbiIpOw0KPiA+ICsJCWlmICh0ZXN0X2JpdChFQ19GTEFH
+U19FVkVOVF9FTkFCTEVELCAmZWMtPmZsYWdzKSkgew0KPiA+ICsJCQl3YWtlX3VwX3Byb2Nlc3Mo
+ZWMtPnRocmVhZCk7DQo+ID4gKwkJCXJldHVybjsNCj4gPiArCQl9DQo+ID4gKwl9DQo+ID4gKwlh
+Y3BpX2VjX2NvbXBsZXRlX3JlcXVlc3QoZWMpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMg
+dm9pZCBfX2FjcGlfZWNfY29tcGxldGVfZXZlbnQoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiA+ICt7
+DQo+ID4gKwlpZiAodGVzdF9hbmRfY2xlYXJfYml0KEVDX0ZMQUdTX0VWRU5UX1BFTkRJTkcsICZl
+Yy0+ZmxhZ3MpKSB7DQo+ID4gKwkJLyogVW5ob2xkIHJlZmVyZW5jZSBmb3IgcGVuZGluZyBldmVu
+dCAqLw0KPiA+ICsJCWFjcGlfZWNfY29tcGxldGVfcmVxdWVzdChlYyk7DQo+ID4gKwkJcHJfZGVi
+dWcoIioqKioqIEV2ZW50IHJ1bm5pbmcgKioqKipcbiIpOw0KPiA+ICsJfQ0KPiA+ICt9DQo+ID4g
+Kw0KPiA+ICtpbnQgYWNwaV9lY193YWl0X2Zvcl9ldmVudChzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+
+ID4gK3sNCj4gPiArCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+ID4gKw0KPiA+ICsJc2V0X2N1cnJl
+bnRfc3RhdGUoVEFTS19JTlRFUlJVUFRJQkxFKTsNCj4gPiArCXdoaWxlICgha3RocmVhZF9zaG91
+bGRfc3RvcCgpKSB7DQo+ID4gKwkJc3Bpbl9sb2NrX2lycXNhdmUoJmVjLT5sb2NrLCBmbGFncyk7
+DQo+ID4gKwkJaWYgKGFjcGlfZWNfaGFzX3BlbmRpbmdfZXZlbnQoZWMpKSB7DQo+ID4gKwkJCXNw
+aW5fdW5sb2NrX2lycXJlc3RvcmUoJmVjLT5sb2NrLCBmbGFncyk7DQo+ID4gKwkJCV9fc2V0X2N1
+cnJlbnRfc3RhdGUoVEFTS19SVU5OSU5HKTsNCj4gPiArCQkJcmV0dXJuIDA7DQo+ID4gKwkJfQ0K
+PiA+ICsJCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmVjLT5sb2NrLCBmbGFncyk7DQo+ID4gKwkJ
+c2NoZWR1bGUoKTsNCj4gPiArCQlzZXRfY3VycmVudF9zdGF0ZShUQVNLX0lOVEVSUlVQVElCTEUp
+Ow0KPiA+ICsJfQ0KPiA+ICsJX19zZXRfY3VycmVudF9zdGF0ZShUQVNLX1JVTk5JTkcpOw0KPiA+
+ICsJcmV0dXJuIC0xOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICAvKiAtLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0K
+PiA+ICAgKiAgICAgICAgICAgICAgICAgICAgICAgICAgIFRyYW5zYWN0aW9uIE1hbmFnZW1lbnQN
+Cj4gPiAgICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8NCj4gPiBAQCAtMjk4LDcgKzM4MCw3IEBAIHN0
+YXRpYyBib29sIGFkdmFuY2VfdHJhbnNhY3Rpb24oc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiA+ICAJ
+CQl0LT5mbGFncyB8PSBBQ1BJX0VDX0NPTU1BTkRfQ09NUExFVEU7DQo+ID4gIAkJCXdha2V1cCA9
+IHRydWU7DQo+ID4gIAkJfQ0KPiA+IC0JCXJldHVybiB3YWtldXA7DQo+ID4gKwkJZ290byBvdXQ7
+DQo+ID4gIAl9IGVsc2Ugew0KPiA+ICAJCWlmIChFQ19GTEFHU19RVUVSWV9IQU5EU0hBS0UgJiYN
+Cj4gPiAgCQkgICAgIShzdGF0dXMgJiBBQ1BJX0VDX0ZMQUdfU0NJKSAmJg0KPiA+IEBAIC0zMTIs
+OSArMzk0LDExIEBAIHN0YXRpYyBib29sIGFkdmFuY2VfdHJhbnNhY3Rpb24oc3RydWN0IGFjcGlf
+ZWMgKmVjKQ0KPiA+ICAJCX0gZWxzZSBpZiAoKHN0YXR1cyAmIEFDUElfRUNfRkxBR19JQkYpID09
+IDApIHsNCj4gPiAgCQkJYWNwaV9lY193cml0ZV9jbWQoZWMsIHQtPmNvbW1hbmQpOw0KPiA+ICAJ
+CQl0LT5mbGFncyB8PSBBQ1BJX0VDX0NPTU1BTkRfUE9MTDsNCj4gPiArCQkJaWYgKHQtPmNvbW1h
+bmQgPT0gQUNQSV9FQ19DT01NQU5EX1FVRVJZKQ0KPiA+ICsJCQkJX19hY3BpX2VjX2NvbXBsZXRl
+X2V2ZW50KGVjKTsNCj4gPiAgCQl9IGVsc2UNCj4gPiAgCQkJZ290byBlcnI7DQo+ID4gLQkJcmV0
+dXJuIHdha2V1cDsNCj4gPiArCQlnb3RvIG91dDsNCj4gPiAgCX0NCj4gPiAgZXJyOg0KPiA+ICAJ
+LyoNCj4gPiBAQCAtMzI1LDYgKzQwOSwxMCBAQCBlcnI6DQo+ID4gIAkJaWYgKGluX2ludGVycnVw
+dCgpICYmIHQpDQo+ID4gIAkJCSsrdC0+aXJxX2NvdW50Ow0KPiA+ICAJfQ0KPiA+ICtvdXQ6DQo+
+ID4gKwlpZiAoc3RhdHVzICYgQUNQSV9FQ19GTEFHX1NDSSAmJg0KPiA+ICsJICAgICghdCB8fCB0
+LT5mbGFncyAmIEFDUElfRUNfQ09NTUFORF9DT01QTEVURSkpDQo+ID4gKwkJX19hY3BpX2VjX3Nl
+dF9ldmVudChlYyk7DQo+ID4gIAlyZXR1cm4gd2FrZXVwOw0KPiA+ICB9DQo+ID4NCj4gPiBAQCAt
+MzM1LDE3ICs0MjMsNiBAQCBzdGF0aWMgdm9pZCBzdGFydF90cmFuc2FjdGlvbihzdHJ1Y3QgYWNw
+aV9lYyAqZWMpDQo+ID4gIAkodm9pZClhZHZhbmNlX3RyYW5zYWN0aW9uKGVjKTsNCj4gPiAgfQ0K
+PiA+DQo+ID4gLXN0YXRpYyBpbnQgYWNwaV9lY19zeW5jX3F1ZXJ5KHN0cnVjdCBhY3BpX2VjICpl
+YywgdTggKmRhdGEpOw0KPiA+IC0NCj4gPiAtc3RhdGljIGludCBlY19jaGVja19zY2lfc3luYyhz
+dHJ1Y3QgYWNwaV9lYyAqZWMsIHU4IHN0YXRlKQ0KPiA+IC17DQo+ID4gLQlpZiAoc3RhdGUgJiBB
+Q1BJX0VDX0ZMQUdfU0NJKSB7DQo+ID4gLQkJaWYgKCF0ZXN0X2FuZF9zZXRfYml0KEVDX0ZMQUdT
+X1FVRVJZX1BFTkRJTkcsICZlYy0+ZmxhZ3MpKQ0KPiA+IC0JCQlyZXR1cm4gYWNwaV9lY19zeW5j
+X3F1ZXJ5KGVjLCBOVUxMKTsNCj4gPiAtCX0NCj4gPiAtCXJldHVybiAwOw0KPiA+IC19DQo+ID4g
+LQ0KPiA+ICBzdGF0aWMgaW50IGVjX3BvbGwoc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiA+ICB7DQo+
+ID4gIAl1bnNpZ25lZCBsb25nIGZsYWdzOw0KPiA+IEBAIC0zODQsMTIgKzQ2MSwxMyBAQCBzdGF0
+aWMgaW50IGFjcGlfZWNfdHJhbnNhY3Rpb25fdW5sb2NrZWQoc3RydWN0IGFjcGlfZWMgKmVjLA0K
+PiA+ICAJdW5zaWduZWQgbG9uZyB0bXA7DQo+ID4gIAlpbnQgcmV0ID0gMDsNCj4gPg0KPiA+ICsJ
+Ym9vbCBpc19xdWVyeSA9ICEhKHQtPmNvbW1hbmQgPT0gQUNQSV9FQ19DT01NQU5EX1FVRVJZKTsN
+Cj4gPiAgCWlmIChFQ19GTEFHU19NU0kpDQo+ID4gIAkJdWRlbGF5KEFDUElfRUNfTVNJX1VERUxB
+WSk7DQo+ID4gIAkvKiBzdGFydCB0cmFuc2FjdGlvbiAqLw0KPiA+ICAJc3Bpbl9sb2NrX2lycXNh
+dmUoJmVjLT5sb2NrLCB0bXApOw0KPiA+ICAJLyogRW5hYmxlIEdQRSBmb3IgY29tbWFuZCBwcm9j
+ZXNzaW5nIChJQkY9MC9PQkY9MSkgKi8NCj4gPiAtCWlmICghYWNwaV9lY19zdWJtaXRfZmx1c2hh
+YmxlX3JlcXVlc3QoZWMpKSB7DQo+ID4gKwlpZiAoIWFjcGlfZWNfc3VibWl0X2ZsdXNoYWJsZV9y
+ZXF1ZXN0KGVjLCBpc19xdWVyeSkpIHsNCj4gPiAgCQlyZXQgPSAtRUlOVkFMOw0KPiA+ICAJCWdv
+dG8gdW5sb2NrOw0KPiA+ICAJfQ0KPiA+IEBAIC0zOTgsMTAgKzQ3Niw2IEBAIHN0YXRpYyBpbnQg
+YWNwaV9lY190cmFuc2FjdGlvbl91bmxvY2tlZChzdHJ1Y3QgYWNwaV9lYyAqZWMsDQo+ID4gIAlw
+cl9kZWJ1ZygiKioqKiogQ29tbWFuZCglcykgc3RhcnRlZCAqKioqKlxuIiwNCj4gPiAgCQkgYWNw
+aV9lY19jbWRfc3RyaW5nKHQtPmNvbW1hbmQpKTsNCj4gPiAgCXN0YXJ0X3RyYW5zYWN0aW9uKGVj
+KTsNCj4gPiAtCWlmIChlYy0+Y3Vyci0+Y29tbWFuZCA9PSBBQ1BJX0VDX0NPTU1BTkRfUVVFUlkp
+IHsNCj4gPiAtCQljbGVhcl9iaXQoRUNfRkxBR1NfUVVFUllfUEVORElORywgJmVjLT5mbGFncyk7
+DQo+ID4gLQkJcHJfZGVidWcoIioqKioqIEV2ZW50IHN0b3BwZWQgKioqKipcbiIpOw0KPiA+IC0J
+fQ0KPiA+ICAJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ssIHRtcCk7DQo+ID4gIAly
+ZXQgPSBlY19wb2xsKGVjKTsNCj4gPiAgCXNwaW5fbG9ja19pcnFzYXZlKCZlYy0+bG9jaywgdG1w
+KTsNCj4gPiBAQCAtNDQwLDggKzUxNCw2IEBAIHN0YXRpYyBpbnQgYWNwaV9lY190cmFuc2FjdGlv
+bihzdHJ1Y3QgYWNwaV9lYyAqZWMsIHN0cnVjdCB0cmFuc2FjdGlvbiAqdCkNCj4gPg0KPiA+ICAJ
+c3RhdHVzID0gYWNwaV9lY190cmFuc2FjdGlvbl91bmxvY2tlZChlYywgdCk7DQo+ID4NCj4gPiAt
+CS8qIGNoZWNrIGlmIHdlIHJlY2VpdmVkIFNDSSBkdXJpbmcgdHJhbnNhY3Rpb24gKi8NCj4gPiAt
+CWVjX2NoZWNrX3NjaV9zeW5jKGVjLCBhY3BpX2VjX3JlYWRfc3RhdHVzKGVjKSk7DQo+ID4gIAlp
+ZiAodGVzdF9iaXQoRUNfRkxBR1NfR1BFX1NUT1JNLCAmZWMtPmZsYWdzKSkgew0KPiA+ICAJCW1z
+bGVlcCgxKTsNCj4gPiAgCQkvKiBJdCBpcyBzYWZlIHRvIGVuYWJsZSB0aGUgR1BFIG91dHNpZGUg
+b2YgdGhlIHRyYW5zYWN0aW9uLiAqLw0KPiA+IEBAIC03OTIsMjkgKzg2NCw2IEBAIHN0YXRpYyBp
+bnQgYWNwaV9lY19zeW5jX3F1ZXJ5KHN0cnVjdCBhY3BpX2VjICplYywgdTggKmRhdGEpDQo+ID4g
+IAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+DQo+ID4gLXN0YXRpYyB2b2lkIGFjcGlfZWNfZ3BlX3F1
+ZXJ5KHZvaWQgKmVjX2N4dCkNCj4gPiAtew0KPiA+IC0Jc3RydWN0IGFjcGlfZWMgKmVjID0gZWNf
+Y3h0Ow0KPiA+IC0NCj4gPiAtCWlmICghZWMpDQo+ID4gLQkJcmV0dXJuOw0KPiA+IC0JbXV0ZXhf
+bG9jaygmZWMtPm11dGV4KTsNCj4gPiAtCWFjcGlfZWNfc3luY19xdWVyeShlYywgTlVMTCk7DQo+
+ID4gLQltdXRleF91bmxvY2soJmVjLT5tdXRleCk7DQo+ID4gLX0NCj4gPiAtDQo+ID4gLXN0YXRp
+YyBpbnQgZWNfY2hlY2tfc2NpKHN0cnVjdCBhY3BpX2VjICplYywgdTggc3RhdGUpDQo+ID4gLXsN
+Cj4gPiAtCWlmIChzdGF0ZSAmIEFDUElfRUNfRkxBR19TQ0kpIHsNCj4gPiAtCQlpZiAoIXRlc3Rf
+YW5kX3NldF9iaXQoRUNfRkxBR1NfUVVFUllfUEVORElORywgJmVjLT5mbGFncykpIHsNCj4gPiAt
+CQkJcHJfZGVidWcoIioqKioqIEV2ZW50IHN0YXJ0ZWQgKioqKipcbiIpOw0KPiA+IC0JCQlyZXR1
+cm4gYWNwaV9vc19leGVjdXRlKE9TTF9OT1RJRllfSEFORExFUiwNCj4gPiAtCQkJCWFjcGlfZWNf
+Z3BlX3F1ZXJ5LCBlYyk7DQo+ID4gLQkJfQ0KPiA+IC0JfQ0KPiA+IC0JcmV0dXJuIDA7DQo+ID4g
+LX0NCj4gPiAtDQo+ID4gIHN0YXRpYyB1MzIgYWNwaV9lY19ncGVfaGFuZGxlcihhY3BpX2hhbmRs
+ZSBncGVfZGV2aWNlLA0KPiA+ICAJdTMyIGdwZV9udW1iZXIsIHZvaWQgKmRhdGEpDQo+ID4gIHsN
+Cj4gPiBAQCAtODI1LDEwICs4NzQsNDYgQEAgc3RhdGljIHUzMiBhY3BpX2VjX2dwZV9oYW5kbGVy
+KGFjcGlfaGFuZGxlIGdwZV9kZXZpY2UsDQo+ID4gIAlpZiAoYWR2YW5jZV90cmFuc2FjdGlvbihl
+YykpDQo+ID4gIAkJd2FrZV91cCgmZWMtPndhaXQpOw0KPiA+ICAJc3Bpbl91bmxvY2tfaXJxcmVz
+dG9yZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4gPiAtCWVjX2NoZWNrX3NjaShlYywgYWNwaV9lY19y
+ZWFkX3N0YXR1cyhlYykpOw0KPiA+ICAJcmV0dXJuIEFDUElfSU5URVJSVVBUX0hBTkRMRUQgfCBB
+Q1BJX1JFRU5BQkxFX0dQRTsNCj4gPiAgfQ0KPiA+DQo+ID4gK3N0YXRpYyBpbnQgYWNwaV9lY19l
+dmVudF9wb2xsZXIodm9pZCAqY29udGV4dCkNCj4gPiArew0KPiA+ICsJc3RydWN0IGFjcGlfZWMg
+KmVjID0gY29udGV4dDsNCj4gPiArDQo+ID4gKwl3aGlsZSAoIWFjcGlfZWNfd2FpdF9mb3JfZXZl
+bnQoZWMpKSB7DQo+ID4gKwkJcHJfZGVidWcoIioqKioqIEV2ZW50IHBvbGxlciBzdGFydGVkICoq
+KioqXG4iKTsNCj4gPiArCQltdXRleF9sb2NrKCZlYy0+bXV0ZXgpOw0KPiA+ICsJCSh2b2lkKWFj
+cGlfZWNfc3luY19xdWVyeShlYywgTlVMTCk7DQo+ID4gKwkJbXV0ZXhfdW5sb2NrKCZlYy0+bXV0
+ZXgpOw0KPiA+ICsJCXByX2RlYnVnKCIqKioqKiBFdmVudCBwb2xsZXIgc3RvcHBlZCAqKioqKlxu
+Iik7DQo+ID4gKwl9DQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGlj
+IGludCBlY19jcmVhdGVfZXZlbnRfcG9sbGVyKHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiArew0K
+PiA+ICsJc3RydWN0IHRhc2tfc3RydWN0ICp0Ow0KPiA+ICsNCj4gPiArCXQgPSBrdGhyZWFkX3J1
+bihhY3BpX2VjX2V2ZW50X3BvbGxlciwgZWMsICJlYy9ncGUtJWx1IiwgZWMtPmdwZSk7DQo+IA0K
+PiBEb2VzIGl0IGhhdmUgdG8gYmUgYSBrZXJuZWwgdGhyZWFkPw0KPiANCj4gV2hhdCBhYm91dCB1
+c2luZyBhIHdvcmtxdWV1ZSBpbnN0ZWFkPw0KDQpBY3R1YWxseSBJIGp1c3Qgd2FudCB0byB1c2Ug
+dGhyZWFkZWQgSVJRIGhlcmUgaW4gcmVzcG9uc2UgdG8gQW5kaSBLbGVlbidzIGNvbW1lbnQuDQpJ
+ZiBhY3BpX2lycSBpcyByZWdpc3RlcmVkIGFzIHRocmVhZGVkIElSUSwgdGhlbiBhY3BpX2VjX2V2
+ZW50X3BvbGxlcigpIHdpbGwgYmUgdGhlIGNhbGxiYWNrIGZyb20gaXQuDQpTaW5jZSBBQ1BJQ0Eg
+aXMgbm90IHJlYWR5IGZvciB0aHJlYWRlZCBJUlEgY3VycmVudGx5LCB3ZSBjYW5ub3QgcHJvY2Vl
+ZCBhdCB0aGlzIHBvaW50Lg0KU28gSSBjb3BpZWQgdGhlIHRocmVhZGVkIElSUSBjb2RlIGZyb20g
+a2VybmVsL2lycS9tYW5hZ2UuYyBoZXJlIHRvIHByZXBhcmUgdGhyZWFkZWQgSVJRIGxvZ2ljcy4N
+Cg0KVXNpbmcgYSBzZXBhcmF0ZSB3b3JrIHF1ZXVlLCB3ZSBkaWRuJ3QgZGVjcmVhc2UgdGhlIGtl
+cm5lbCB0aHJlYWQgY291bnQuDQpBbmQgdGhlIGNvZGUgd3JpdHRlbiBmb3IgdGhlIHdvcmsgaXRl
+bSBjYW5ub3QgYmUgZGVyaXZlZCB3aGVuIHRoaW5ncyBhcmUgc3dpdGNoZWQgdG8gdGhlIHRocmVh
+ZGVkIElSUS4NClNvIEkgdXNlZCBrdGhyZWFkIGhlcmUuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdh
+cmRzDQotTHYNCg0KPiANCj4gPiArCWlmIChJU19FUlIodCkpIHsNCj4gPiArCQlwcl9lcnIoImZh
+aWxlZCB0byBjcmVhdGUgZXZlbnQgcG9sbGVyICVsdVxuIiwgZWMtPmdwZSk7DQo+ID4gKwkJcmV0
+dXJuIFBUUl9FUlIodCk7DQo+ID4gKwl9DQo+ID4gKwlnZXRfdGFza19zdHJ1Y3QodCk7DQo+ID4g
+KwllYy0+dGhyZWFkID0gdDsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtz
+dGF0aWMgdm9pZCBlY19kZWxldGVfZXZlbnRfcG9sbGVyKHN0cnVjdCBhY3BpX2VjICplYykNCj4g
+PiArew0KPiA+ICsJc3RydWN0IHRhc2tfc3RydWN0ICp0ID0gZWMtPnRocmVhZDsNCj4gPiArDQo+
+ID4gKwllYy0+dGhyZWFkID0gTlVMTDsNCj4gPiArCWt0aHJlYWRfc3RvcCh0KTsNCj4gPiArCXB1
+dF90YXNrX3N0cnVjdCh0KTsNCj4gPiArfQ0KPiA+ICsNCj4gPiAgLyogLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0NCj4gPiAgICogICAgICAgICAgICAgICAgICAgICAgICAgICBBZGRyZXNzIFNwYWNlIE1hbmFn
+ZW1lbnQNCj4gPiAgICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8NCj4gPiBAQCAtODg0LDcgKzk2OSw2
+IEBAIHN0YXRpYyBzdHJ1Y3QgYWNwaV9lYyAqbWFrZV9hY3BpX2VjKHZvaWQpDQo+ID4NCj4gPiAg
+CWlmICghZWMpDQo+ID4gIAkJcmV0dXJuIE5VTEw7DQo+ID4gLQllYy0+ZmxhZ3MgPSAxIDw8IEVD
+X0ZMQUdTX1FVRVJZX1BFTkRJTkc7DQo+ID4gIAltdXRleF9pbml0KCZlYy0+bXV0ZXgpOw0KPiA+
+ICAJaW5pdF93YWl0cXVldWVfaGVhZCgmZWMtPndhaXQpOw0KPiA+ICAJSU5JVF9MSVNUX0hFQUQo
+JmVjLT5saXN0KTsNCj4gPiBAQCAtOTQwLDE1ICsxMDI0LDIxIEBAIGVjX3BhcnNlX2RldmljZShh
+Y3BpX2hhbmRsZSBoYW5kbGUsIHUzMiBMZXZlbCwgdm9pZCAqY29udGV4dCwgdm9pZCAqKnJldHZh
+bCkNCj4gPg0KPiA+ICBzdGF0aWMgaW50IGVjX2luc3RhbGxfaGFuZGxlcnMoc3RydWN0IGFjcGlf
+ZWMgKmVjKQ0KPiA+ICB7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+ICAJYWNwaV9zdGF0dXMgc3RhdHVz
+Ow0KPiA+DQo+ID4gIAlpZiAodGVzdF9iaXQoRUNfRkxBR1NfSEFORExFUlNfSU5TVEFMTEVELCAm
+ZWMtPmZsYWdzKSkNCj4gPiAgCQlyZXR1cm4gMDsNCj4gPiArCXJldCA9IGVjX2NyZWF0ZV9ldmVu
+dF9wb2xsZXIoZWMpOw0KPiA+ICsJaWYgKHJldCkNCj4gPiArCQlyZXR1cm4gcmV0Ow0KPiA+ICAJ
+c3RhdHVzID0gYWNwaV9pbnN0YWxsX2dwZV9oYW5kbGVyKE5VTEwsIGVjLT5ncGUsDQo+ID4gIAkJ
+CQkgIEFDUElfR1BFX0VER0VfVFJJR0dFUkVELA0KPiA+ICAJCQkJICAmYWNwaV9lY19ncGVfaGFu
+ZGxlciwgZWMpOw0KPiA+IC0JaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQ0KPiA+ICsJaWYgKEFD
+UElfRkFJTFVSRShzdGF0dXMpKSB7DQo+ID4gKwkJZWNfZGVsZXRlX2V2ZW50X3BvbGxlcihlYyk7
+DQo+ID4gIAkJcmV0dXJuIC1FTk9ERVY7DQo+ID4gKwl9DQo+ID4NCj4gPiAgCWFjcGlfZWNfc3Rh
+cnQoZWMpOw0KPiA+ICAJc3RhdHVzID0gYWNwaV9pbnN0YWxsX2FkZHJlc3Nfc3BhY2VfaGFuZGxl
+cihlYy0+aGFuZGxlLA0KPiA+IEBAIC05NjgsNiArMTA1OCw3IEBAIHN0YXRpYyBpbnQgZWNfaW5z
+dGFsbF9oYW5kbGVycyhzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gIAkJCWFjcGlfZWNfc3RvcChl
+Yyk7DQo+ID4gIAkJCWFjcGlfcmVtb3ZlX2dwZV9oYW5kbGVyKE5VTEwsIGVjLT5ncGUsDQo+ID4g
+IAkJCQkmYWNwaV9lY19ncGVfaGFuZGxlcik7DQo+ID4gKwkJCWVjX2RlbGV0ZV9ldmVudF9wb2xs
+ZXIoZWMpOw0KPiA+ICAJCQlyZXR1cm4gLUVOT0RFVjsNCj4gPiAgCQl9DQo+ID4gIAl9DQo+ID4g
+QEAgLTk4NSw2ICsxMDc2LDcgQEAgc3RhdGljIHZvaWQgZWNfcmVtb3ZlX2hhbmRsZXJzKHN0cnVj
+dCBhY3BpX2VjICplYykNCj4gPiAgCWlmIChBQ1BJX0ZBSUxVUkUoYWNwaV9yZW1vdmVfZ3BlX2hh
+bmRsZXIoTlVMTCwgZWMtPmdwZSwNCj4gPiAgCQkJCSZhY3BpX2VjX2dwZV9oYW5kbGVyKSkpDQo+
+ID4gIAkJcHJfZXJyKCJmYWlsZWQgdG8gcmVtb3ZlIGdwZSBoYW5kbGVyXG4iKTsNCj4gPiArCWVj
+X2RlbGV0ZV9ldmVudF9wb2xsZXIoZWMpOw0KPiA+ICAJY2xlYXJfYml0KEVDX0ZMQUdTX0hBTkRM
+RVJTX0lOU1RBTExFRCwgJmVjLT5mbGFncyk7DQo+ID4gIH0NCj4gPg0KPiA+IEBAIC0xMDMyLDcg
+KzExMjQsNyBAQCBzdGF0aWMgaW50IGFjcGlfZWNfYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2
+aWNlKQ0KPiA+ICAJcmV0ID0gZWNfaW5zdGFsbF9oYW5kbGVycyhlYyk7DQo+ID4NCj4gPiAgCS8q
+IEVDIGlzIGZ1bGx5IG9wZXJhdGlvbmFsLCBhbGxvdyBxdWVyaWVzICovDQo+ID4gLQljbGVhcl9i
+aXQoRUNfRkxBR1NfUVVFUllfUEVORElORywgJmVjLT5mbGFncyk7DQo+ID4gKwlhY3BpX2VjX2Vu
+YWJsZV9ldmVudChlYyk7DQo+ID4NCj4gPiAgCS8qIENsZWFyIHN0YWxlIF9RIGV2ZW50cyBpZiBo
+YXJkd2FyZSBtaWdodCByZXF1aXJlIHRoYXQgKi8NCj4gPiAgCWlmIChFQ19GTEFHU19DTEVBUl9P
+Tl9SRVNVTUUpIHsNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2ludGVybmFsLmggYi9k
+cml2ZXJzL2FjcGkvaW50ZXJuYWwuaA0KPiA+IGluZGV4IGJiY2ZlMGIuLjIwYTU2OWMgMTAwNjQ0
+DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2ludGVybmFsLmgNCj4gPiArKysgYi9kcml2ZXJzL2Fj
+cGkvaW50ZXJuYWwuaA0KPiA+IEBAIC0xMjgsNiArMTI4LDcgQEAgc3RydWN0IGFjcGlfZWMgew0K
+PiA+ICAJc3RydWN0IGxpc3RfaGVhZCBsaXN0Ow0KPiA+ICAJc3RydWN0IHRyYW5zYWN0aW9uICpj
+dXJyOw0KPiA+ICAJc3BpbmxvY2tfdCBsb2NrOw0KPiA+ICsJc3RydWN0IHRhc2tfc3RydWN0ICp0
+aHJlYWQ7DQo+ID4gIH07DQo+ID4NCj4gPiAgZXh0ZXJuIHN0cnVjdCBhY3BpX2VjICpmaXJzdF9l
+YzsNCj4gPg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBK
+LiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
