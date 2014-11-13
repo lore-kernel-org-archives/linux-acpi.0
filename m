@@ -1,89 +1,86 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Part4 v1 00/17] Refine support of non-PCI-compliant
- Message
-Date: Thu, 13 Nov 2014 14:27:42 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1411131410560.3935@nanos>
-References: <1415545839-28263-1-git-send-email-jiang.liu@linux.intel.com> <546364FA.7010806@arm.com> <alpine.DEB.2.11.1411121512270.3935@nanos> <546495AB.9050308@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 5/6] ACPI/EC: Cleanup QR_SC command processing by adding a kernel thread to poll EC events.
+Date: Thu, 13 Nov 2014 23:37:41 +0100
+Message-ID: <1586902.iI2oFdt4zk@vostro.rjw.lan>
+References: <cover.1414988981.git.lv.zheng@intel.com> <1961414.bGx3EdA0yT@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88026A0737@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:46995 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932681AbaKMN20 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2014 08:28:26 -0500
-In-Reply-To: <546495AB.9050308@arm.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:52861 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933065AbaKMWQo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Nov 2014 17:16:44 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026A0737@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Yingjoe Chen <yingjoe.chen@mediatek.com>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>li
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Andi Kleen (ak@linux.intel.com)" <ak@linux.intel.com>
 
-On Thu, 13 Nov 2014, Marc Zyngier wrote:
-> On 12/11/14 14:46, Thomas Gleixner wrote:
-> > On Wed, 12 Nov 2014, Marc Zyngier wrote:
-> >> This patch introduces two optionnal fields to the msi_chip structure:
-> >> - a pointer to an irq domain, describing the MSI domain associated
-> >>   with this msi_chip. To be populated with msi_create_irq_domain.
-> >> - a domain_alloc_irqs() callback that has the same purpose as
-> >>   arch_setup_msi_irqs(), with the above domain as an additional
-> >>   parameter.
-> >>
-> >> If both of these fields are non-NULL, then domain_alloc_irqs() is
-> >> called, bypassing the setup_irq callback. This allows the MSI driver
-> >> to use the domain stacking feature without mandating core support in
-> >> the architecture.
+On Thursday, November 13, 2014 02:52:03 AM Zheng, Lv wrote:
+> Hi, Rafael
+> 
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Thursday, November 13, 2014 10:59 AM
 > > 
-> > I'd rather have the callback in the irqdomain itself. Along with a
-> > callback to free the interrupts.
+> > On Thursday, November 13, 2014 02:31:08 AM Zheng, Lv wrote:
+> > > Hi, Rafael
+> > >
+> > > > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > > > Sent: Wednesday, November 12, 2014 9:17 AM
 > > 
-> > AFAICT is msi_chip more or less a wrapper around the actual MSI irq
-> > domain. So we rather move towards assigning irqdomain to the pci bus
-> > and get rid of msi_chip instead of adding another level of obscure
-> > indirection through msi_chip.
+> > [cut]
+> > 
+> > > > > +
+> > > > > +static int ec_create_event_poller(struct acpi_ec *ec)
+> > > > > +{
+> > > > > +	struct task_struct *t;
+> > > > > +
+> > > > > +	t = kthread_run(acpi_ec_event_poller, ec, "ec/gpe-%lu", ec->gpe);
+> > > >
+> > > > Does it have to be a kernel thread?
+> > > >
+> > > > What about using a workqueue instead?
+> > >
+> > > Actually I just want to use threaded IRQ here in response to Andi Kleen's comment.
+> > > If acpi_irq is registered as threaded IRQ, then acpi_ec_event_poller() will be the
+> > > callback from it.
+> > 
+> > How so?
+> > 
+> > > Since ACPICA is not ready for threaded IRQ currently, we cannot proceed at this point.
+> > > So I copied the threaded IRQ code from kernel/irq/manage.c here to prepare threaded IRQ logics.
+> > 
+> > Oh dear, no.
+> > 
+> > This isn't the way forward here.
+> > 
+> > > Using a separate work queue, we didn't decrease the kernel thread count.
+> > 
+> > Why does that matter at all?
+> > 
+> > > And the code written for the work item cannot be derived when things are
+> > > switched to the threaded IRQ.
+> > > So I used kthread here.
+> > 
+> > Please use a workqueue instead.  If/when we need to switch over to threaded
+> > IRQs, we'll do the work then.  For now, let's not complicate things more
+> > than necessary.
 > 
-> I can see that putting the irq domain at the bus level makes a lot of 
-> sense (assuming nobody tries to have multiple MSI controllers per bus...).
+> It seems we need the thread because we will move polling code from ec_poll() to acpi_ec_event_poller().
+> This will happen right after these cleanups.
+> That's the threaded IRQ logic - IRQ is polled in the thread.
+> We cannot achieve this using work queue.
 
-That would be interesting :)
- 
-> So I'm starting with something like this:
-> 
-> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> index 640a1ec..07e50fc 100644
-> --- a/include/linux/irqdomain.h
-> +++ b/include/linux/irqdomain.h
-> @@ -41,6 +41,7 @@ struct irq_domain;
->  struct of_device_id;
->  struct irq_chip;
->  struct irq_data;
-> +struct device;
->  
->  /* Number of irqs reserved for a legacy isa controller */
->  #define NUM_ISA_INTERRUPTS	16
-> @@ -76,6 +77,10 @@ struct irq_domain_ops {
->  		     unsigned int nr_irqs);
->  	void (*activate)(struct irq_domain *d, struct irq_data *irq_data);
->  	void (*deactivate)(struct irq_domain *d, struct irq_data *irq_data);
-> +	int (*prepare_alloc_irqs)(struct irq_domain *d, struct device *dev,
-> +				  unsigned int nr_irqs, int type);
-> +	int (*cleanup_free_irqs)(struct irq_domain *d, struct device *dev,
-> +				 unsigned int virq, unsigned int nr_irqs);
->  #endif
->  };
-> 
-> How do you see this behaving? At the moment, I have the "prepare" callback
-> directly calling into pci_msi_domain_alloc_irqs() so that the irqs get
-> created, but I have the nagging feeling that it's not what you want... ;-)
-> The main issue I can see is that if more than one domain in the stack
-> implements that, who gets to call pci_msi_domain_alloc_irqs?
->
-> If we try to decouple those two, there is a problem with the creation of
-> the intermediate structure (the irq_alloc_info that's in Jiang's patches),
-> as this is a arch/driver/whatever specific structure.
+OK
 
-Hard to tell. I just saw Jiangs new series arrive and I want to look
-at that first before muttering nonsense.
+In that case I'm not going to apply this patch, because it is not a cleanup.
+It doesn't belong to this series, but to the series that will move the
+polling code.
 
-Thanks,
+Does patch [6/6] depend on [5/6]?
 
-	tglx
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
