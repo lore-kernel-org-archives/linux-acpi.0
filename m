@@ -1,57 +1,83 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 5/6] ACPI/EC: Cleanup QR_SC command processing by adding
- a kernel thread to poll EC events.
-Date: Thu, 13 Nov 2014 02:52:03 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A0737@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1414988981.git.lv.zheng@intel.com>
- <2277351.09XTT17U9b@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88026A0706@SHSMSX101.ccr.corp.intel.com>
- <1961414.bGx3EdA0yT@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/3] Support PMIC operation region for CrystalCove and
+ XPower
+Date: Thu, 13 Nov 2014 16:39:48 +0800
+Message-ID: <54646E54.5060608@intel.com>
+References: <1414735705-18366-1-git-send-email-aaron.lu@intel.com> <3052882.EdcZmghHR3@vostro.rjw.lan> <5462BC5A.7070407@intel.com> <1834078.D8VLOj1LAI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61931 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753603AbaKMCxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Nov 2014 21:53:23 -0500
-In-Reply-To: <1961414.bGx3EdA0yT@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1834078.D8VLOj1LAI-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Andi Kleen (ak@linux.intel.com)" <ak@linux.intel.com>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJlciAxMywgMjAxNCAxMDo1OSBBTQ0K
-PiANCj4gT24gVGh1cnNkYXksIE5vdmVtYmVyIDEzLCAyMDE0IDAyOjMxOjA4IEFNIFpoZW5nLCBM
-diB3cm90ZToNCj4gPiBIaSwgUmFmYWVsDQo+ID4NCj4gPiA+IEZyb206IFJhZmFlbCBKLiBXeXNv
-Y2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+ID4gPiBTZW50OiBXZWRuZXNkYXksIE5v
-dmVtYmVyIDEyLCAyMDE0IDk6MTcgQU0NCj4gDQo+IFtjdXRdDQo+IA0KPiA+ID4gPiArDQo+ID4g
-PiA+ICtzdGF0aWMgaW50IGVjX2NyZWF0ZV9ldmVudF9wb2xsZXIoc3RydWN0IGFjcGlfZWMgKmVj
-KQ0KPiA+ID4gPiArew0KPiA+ID4gPiArCXN0cnVjdCB0YXNrX3N0cnVjdCAqdDsNCj4gPiA+ID4g
-Kw0KPiA+ID4gPiArCXQgPSBrdGhyZWFkX3J1bihhY3BpX2VjX2V2ZW50X3BvbGxlciwgZWMsICJl
-Yy9ncGUtJWx1IiwgZWMtPmdwZSk7DQo+ID4gPg0KPiA+ID4gRG9lcyBpdCBoYXZlIHRvIGJlIGEg
-a2VybmVsIHRocmVhZD8NCj4gPiA+DQo+ID4gPiBXaGF0IGFib3V0IHVzaW5nIGEgd29ya3F1ZXVl
-IGluc3RlYWQ/DQo+ID4NCj4gPiBBY3R1YWxseSBJIGp1c3Qgd2FudCB0byB1c2UgdGhyZWFkZWQg
-SVJRIGhlcmUgaW4gcmVzcG9uc2UgdG8gQW5kaSBLbGVlbidzIGNvbW1lbnQuDQo+ID4gSWYgYWNw
-aV9pcnEgaXMgcmVnaXN0ZXJlZCBhcyB0aHJlYWRlZCBJUlEsIHRoZW4gYWNwaV9lY19ldmVudF9w
-b2xsZXIoKSB3aWxsIGJlIHRoZQ0KPiA+IGNhbGxiYWNrIGZyb20gaXQuDQo+IA0KPiBIb3cgc28/
-DQo+IA0KPiA+IFNpbmNlIEFDUElDQSBpcyBub3QgcmVhZHkgZm9yIHRocmVhZGVkIElSUSBjdXJy
-ZW50bHksIHdlIGNhbm5vdCBwcm9jZWVkIGF0IHRoaXMgcG9pbnQuDQo+ID4gU28gSSBjb3BpZWQg
-dGhlIHRocmVhZGVkIElSUSBjb2RlIGZyb20ga2VybmVsL2lycS9tYW5hZ2UuYyBoZXJlIHRvIHBy
-ZXBhcmUgdGhyZWFkZWQgSVJRIGxvZ2ljcy4NCj4gDQo+IE9oIGRlYXIsIG5vLg0KPiANCj4gVGhp
-cyBpc24ndCB0aGUgd2F5IGZvcndhcmQgaGVyZS4NCj4gDQo+ID4gVXNpbmcgYSBzZXBhcmF0ZSB3
-b3JrIHF1ZXVlLCB3ZSBkaWRuJ3QgZGVjcmVhc2UgdGhlIGtlcm5lbCB0aHJlYWQgY291bnQuDQo+
-IA0KPiBXaHkgZG9lcyB0aGF0IG1hdHRlciBhdCBhbGw/DQo+IA0KPiA+IEFuZCB0aGUgY29kZSB3
-cml0dGVuIGZvciB0aGUgd29yayBpdGVtIGNhbm5vdCBiZSBkZXJpdmVkIHdoZW4gdGhpbmdzIGFy
-ZQ0KPiA+IHN3aXRjaGVkIHRvIHRoZSB0aHJlYWRlZCBJUlEuDQo+ID4gU28gSSB1c2VkIGt0aHJl
-YWQgaGVyZS4NCj4gDQo+IFBsZWFzZSB1c2UgYSB3b3JrcXVldWUgaW5zdGVhZC4gIElmL3doZW4g
-d2UgbmVlZCB0byBzd2l0Y2ggb3ZlciB0byB0aHJlYWRlZA0KPiBJUlFzLCB3ZSdsbCBkbyB0aGUg
-d29yayB0aGVuLiAgRm9yIG5vdywgbGV0J3Mgbm90IGNvbXBsaWNhdGUgdGhpbmdzIG1vcmUNCj4g
-dGhhbiBuZWNlc3NhcnkuDQoNCkl0IHNlZW1zIHdlIG5lZWQgdGhlIHRocmVhZCBiZWNhdXNlIHdl
-IHdpbGwgbW92ZSBwb2xsaW5nIGNvZGUgZnJvbSBlY19wb2xsKCkgdG8gYWNwaV9lY19ldmVudF9w
-b2xsZXIoKS4NClRoaXMgd2lsbCBoYXBwZW4gcmlnaHQgYWZ0ZXIgdGhlc2UgY2xlYW51cHMuDQpU
-aGF0J3MgdGhlIHRocmVhZGVkIElSUSBsb2dpYyAtIElSUSBpcyBwb2xsZWQgaW4gdGhlIHRocmVh
-ZC4NCldlIGNhbm5vdCBhY2hpZXZlIHRoaXMgdXNpbmcgd29yayBxdWV1ZS4NCg0KQmVzdCByZWdh
-cmRzDQotTHYNCg==
+On 11/13/2014 08:51 AM, Rafael J. Wysocki wrote:
+> On Wednesday, November 12, 2014 09:48:10 AM Aaron Lu wrote:
+>> On 11/12/2014 07:35 AM, Rafael J. Wysocki wrote:
+>>> On Tuesday, November 11, 2014 11:11:52 AM Lee Jones wrote:
+>>>> On Tue, 11 Nov 2014, Aaron Lu wrote:
+>>>>
+>>>>> On 10/31/2014 02:08 PM, Aaron Lu wrote:
+>>>>>> On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
+>>>>>> ACPI operation regions defined for the Power Management Integrated Circuit
+>>>>>> device, one is for power resource handling and one is for thermal: sensor
+>>>>>> temperature reporting, trip point setting, etc. There are different PMIC
+>>>>>> chips used on those platforms and though each has the same two operation
+>>>>>> regions and functionality, their implementation is different so every PMIC
+>>>>>> will need a driver. But since their functionality is similar, some common
+>>>>>> code is abstracted into the intel_soc_pmic_opregion.c.
+>>>>>>
+>>>>>> The last version is posted here:
+>>>>>> https://lkml.org/lkml/2014/9/8/801
+>>>>>>
+>>>>>> Changes since then:
+>>>>>> 1 Move to drivers/acpi as discussed on the above thread;
+>>>>>> 2 Added support for XPower AXP288 PMIC operation region support;
+>>>>>> 3 Since operation region handler can not be removed(at the moment at least),
+>>>>>>   use bool for the two operation region driver configs instead of tristate;
+>>>>>>   Another reason to do this is that, with Mika's MFD ACPI support patch, all
+>>>>>>   those MFD cell devices created will have the same modalias as their parent's
+>>>>>>   so it doesn't make much sense to compile these drivers into modules.
+>>>>>>
+>>>>>> Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
+>>>>>> patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
+>>>>>> driver XPower AXP288 and iio driver axp288_adc is located.
+>>>>>
+>>>>> Since patch 2-3 are based on top of the mfd/ib-mfd-iio-3.19 branch, it
+>>>>> would be easy to go through the mfd/ib-mfd-iio-3.19 branch.
+>>>>>
+>>>>> Rafael,
+>>>>> Can I get your ACK for the three patches?
+>>>>>
+>>>>> Lee,
+>>>>> Can you please take the series if Rafael gives it ack?
+>>>>
+>>>> Yes, no problem.
+>>>
+>>> Well, since the code is going to reside mostly in drivers/acpi, I think I should
+>>> be applying the patches and from your response it looks like you are fine with
+>>> them.  Is that correct?
+>>
+>> Oh I thought you may not want to merge another branch into your next
+>> branch so I asked this question. If you can handle the whole thing in your
+>> tree, that's of course not a problem :-)
+> 
+> Merging one more branch wouldn't be a problem, but we'll take care of that
+> later.
+> 
+> For now, would it be possible to rename the subdir to "pmic" instead of
+> "pmic_opregion"?  The "_opregion" part doesn't seem to add much value here.
+
+No problem.
+
+> 
+> And can the names of the files be somewhat shorter too?  Like "intel_pmic.[h][c]"
+> and "intel_pmic_crc.c"?
+
+Sure, will update and send v2, thanks for the advice.
+
+Regards,
+Aaron
