@@ -1,88 +1,37 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 5/6] ACPI/EC: Cleanup QR_SC command processing by adding
- a kernel thread to poll EC events.
-Date: Fri, 14 Nov 2014 01:21:51 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A0A0F@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1414988981.git.lv.zheng@intel.com>
- <1961414.bGx3EdA0yT@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88026A0737@SHSMSX101.ccr.corp.intel.com>
- <1586902.iI2oFdt4zk@vostro.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Fri, 14 Nov 2014 09:58:41 +0100
+Message-ID: <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+	<2758495.RYBbleVHkC@vostro.rjw.lan>
+	<CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
+	<1433051.htaUTMPMBY@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1586902.iI2oFdt4zk@vostro.rjw.lan>
-Content-Language: en-US
+In-Reply-To: <1433051.htaUTMPMBY@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Andi Kleen (ak@linux.intel.com)" <ak@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IEZyaWRheSwgTm92ZW1iZXIgMTQsIDIwMTQgNjozOCBBTQ0KPiAN
-Cj4gT24gVGh1cnNkYXksIE5vdmVtYmVyIDEzLCAyMDE0IDAyOjUyOjAzIEFNIFpoZW5nLCBMdiB3
-cm90ZToNCj4gPiBIaSwgUmFmYWVsDQo+ID4NCj4gPiA+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tp
-IFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+ID4gPiBTZW50OiBUaHVyc2RheSwgTm92ZW1i
-ZXIgMTMsIDIwMTQgMTA6NTkgQU0NCj4gPiA+DQo+ID4gPiBPbiBUaHVyc2RheSwgTm92ZW1iZXIg
-MTMsIDIwMTQgMDI6MzE6MDggQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+ID4gPiBIaSwgUmFmYWVs
-DQo+ID4gPiA+DQo+ID4gPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandA
-cmp3eXNvY2tpLm5ldF0NCj4gPiA+ID4gPiBTZW50OiBXZWRuZXNkYXksIE5vdmVtYmVyIDEyLCAy
-MDE0IDk6MTcgQU0NCj4gPiA+DQo+ID4gPiBbY3V0XQ0KPiA+ID4NCj4gPiA+ID4gPiA+ICsNCj4g
-PiA+ID4gPiA+ICtzdGF0aWMgaW50IGVjX2NyZWF0ZV9ldmVudF9wb2xsZXIoc3RydWN0IGFjcGlf
-ZWMgKmVjKQ0KPiA+ID4gPiA+ID4gK3sNCj4gPiA+ID4gPiA+ICsJc3RydWN0IHRhc2tfc3RydWN0
-ICp0Ow0KPiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4gKwl0ID0ga3RocmVhZF9ydW4oYWNwaV9l
-Y19ldmVudF9wb2xsZXIsIGVjLCAiZWMvZ3BlLSVsdSIsIGVjLT5ncGUpOw0KPiA+ID4gPiA+DQo+
-ID4gPiA+ID4gRG9lcyBpdCBoYXZlIHRvIGJlIGEga2VybmVsIHRocmVhZD8NCj4gPiA+ID4gPg0K
-PiA+ID4gPiA+IFdoYXQgYWJvdXQgdXNpbmcgYSB3b3JrcXVldWUgaW5zdGVhZD8NCj4gPiA+ID4N
-Cj4gPiA+ID4gQWN0dWFsbHkgSSBqdXN0IHdhbnQgdG8gdXNlIHRocmVhZGVkIElSUSBoZXJlIGlu
-IHJlc3BvbnNlIHRvIEFuZGkgS2xlZW4ncyBjb21tZW50Lg0KPiA+ID4gPiBJZiBhY3BpX2lycSBp
-cyByZWdpc3RlcmVkIGFzIHRocmVhZGVkIElSUSwgdGhlbiBhY3BpX2VjX2V2ZW50X3BvbGxlcigp
-IHdpbGwgYmUgdGhlDQo+ID4gPiA+IGNhbGxiYWNrIGZyb20gaXQuDQo+ID4gPg0KPiA+ID4gSG93
-IHNvPw0KPiA+ID4NCj4gPiA+ID4gU2luY2UgQUNQSUNBIGlzIG5vdCByZWFkeSBmb3IgdGhyZWFk
-ZWQgSVJRIGN1cnJlbnRseSwgd2UgY2Fubm90IHByb2NlZWQgYXQgdGhpcyBwb2ludC4NCj4gPiA+
-ID4gU28gSSBjb3BpZWQgdGhlIHRocmVhZGVkIElSUSBjb2RlIGZyb20ga2VybmVsL2lycS9tYW5h
-Z2UuYyBoZXJlIHRvIHByZXBhcmUgdGhyZWFkZWQgSVJRIGxvZ2ljcy4NCj4gPiA+DQo+ID4gPiBP
-aCBkZWFyLCBuby4NCj4gPiA+DQo+ID4gPiBUaGlzIGlzbid0IHRoZSB3YXkgZm9yd2FyZCBoZXJl
-Lg0KPiA+ID4NCj4gPiA+ID4gVXNpbmcgYSBzZXBhcmF0ZSB3b3JrIHF1ZXVlLCB3ZSBkaWRuJ3Qg
-ZGVjcmVhc2UgdGhlIGtlcm5lbCB0aHJlYWQgY291bnQuDQo+ID4gPg0KPiA+ID4gV2h5IGRvZXMg
-dGhhdCBtYXR0ZXIgYXQgYWxsPw0KPiA+ID4NCj4gPiA+ID4gQW5kIHRoZSBjb2RlIHdyaXR0ZW4g
-Zm9yIHRoZSB3b3JrIGl0ZW0gY2Fubm90IGJlIGRlcml2ZWQgd2hlbiB0aGluZ3MgYXJlDQo+ID4g
-PiA+IHN3aXRjaGVkIHRvIHRoZSB0aHJlYWRlZCBJUlEuDQo+ID4gPiA+IFNvIEkgdXNlZCBrdGhy
-ZWFkIGhlcmUuDQo+ID4gPg0KPiA+ID4gUGxlYXNlIHVzZSBhIHdvcmtxdWV1ZSBpbnN0ZWFkLiAg
-SWYvd2hlbiB3ZSBuZWVkIHRvIHN3aXRjaCBvdmVyIHRvIHRocmVhZGVkDQo+ID4gPiBJUlFzLCB3
-ZSdsbCBkbyB0aGUgd29yayB0aGVuLiAgRm9yIG5vdywgbGV0J3Mgbm90IGNvbXBsaWNhdGUgdGhp
-bmdzIG1vcmUNCj4gPiA+IHRoYW4gbmVjZXNzYXJ5Lg0KPiA+DQo+ID4gSXQgc2VlbXMgd2UgbmVl
-ZCB0aGUgdGhyZWFkIGJlY2F1c2Ugd2Ugd2lsbCBtb3ZlIHBvbGxpbmcgY29kZSBmcm9tIGVjX3Bv
-bGwoKSB0byBhY3BpX2VjX2V2ZW50X3BvbGxlcigpLg0KPiA+IFRoaXMgd2lsbCBoYXBwZW4gcmln
-aHQgYWZ0ZXIgdGhlc2UgY2xlYW51cHMuDQo+ID4gVGhhdCdzIHRoZSB0aHJlYWRlZCBJUlEgbG9n
-aWMgLSBJUlEgaXMgcG9sbGVkIGluIHRoZSB0aHJlYWQuDQo+ID4gV2UgY2Fubm90IGFjaGlldmUg
-dGhpcyB1c2luZyB3b3JrIHF1ZXVlLg0KPiANCj4gT0sNCj4gDQo+IEluIHRoYXQgY2FzZSBJJ20g
-bm90IGdvaW5nIHRvIGFwcGx5IHRoaXMgcGF0Y2gsIGJlY2F1c2UgaXQgaXMgbm90IGEgY2xlYW51
-cC4NCj4gSXQgZG9lc24ndCBiZWxvbmcgdG8gdGhpcyBzZXJpZXMsIGJ1dCB0byB0aGUgc2VyaWVz
-IHRoYXQgd2lsbCBtb3ZlIHRoZQ0KPiBwb2xsaW5nIGNvZGUuDQoNCklmIHdlJ2xsIGRlZmVyIHNv
-bWUgZXhlY3V0aW9uIGFuZCB3ZSBrbm93IHRoZXJlIHdpbGwgb25seSBiZSBvbmUgZXhlY3V0aW9u
-IGNvcnJlc3BvbmRpbmcgdG8gb25lIGluZGljYXRpb24sIHdvcmsgaXRlbSBjYW4gZml0Lg0KSWYg
-d2UnbGwgcG9sbCBzb21ldGhpbmcgb3IgdGhlcmUgaXMgbm8gc3VjaCAxIHRvIDEgY29ycmVzcG9u
-ZGVuY2UsIHVzaW5nIHdvcmsgcXVldWUgbWF5IGFjY3VtdWxhdGUgdXNlbGVzcyB3b3JrIGl0ZW1z
-Lg0KDQpXZSBoYXZlIHRoZSB3b3JrIGl0ZW0gdG8gZXZhbHVhdGUgX1F4eCBpbiB0aGUgRUMgZHJp
-dmVyLCBmb3IgdGhlIElSUSBpbmRpY2F0aW9ucywgSU1PLCBpdCdzIGJldHRlciB0byB1c2UgYW4g
-SVJRIHBvbGxlciB0aHJlYWQuDQpBbmQgaXQncyBlYXNpZXIgZm9yIG1lIHRvIGNvbnRyb2wgZnV0
-dXJlIGltcHJvdmVtZW50cyB1c2luZyBrdGhyZWFkOg0KMS4gV2UgbmVlZCB0aGUgU0NJX0VWVCBk
-cmFpbmluZyBzdXBwb3J0IGZvciBTYW1zdW5nIGZpcm13YXJlLiBGb3IgU2Ftc3VuZywgMSBTQ0lf
-RVZUIGluZGljYXRpb24gbWF5IG1lYW4gc2V2ZXJhbCBRUl9FQyB0cmFuc2FjdGlvbnMgYXMgd2Ug
-Y2Fubm90IHJlbHkgb24gU0NJX0VWVCB2YWx1ZSwgaXQgY2FuIGJlIGNsZWFyZWQgYnkgU2Ftc3Vu
-ZyBmaXJtd2FyZSBiZWZvcmUgMHgwMCBpcyByZXR1cm5lZC4NCjIuIEZvciBBY2VyIGZpcm13YXJl
-LCBmaXJtd2FyZSB3aWxsIHJlZnVzZSB0byByZXNwb25kIFFSX0VDIGlmIFNDSV9FVlQ9MCBhbmQg
-ZnVydGhlciB0cmFuc2FjdGlvbnMgd2lsbCBiZSBibG9ja2VkLiBXaGV0aGVyIGEgdHJhbnNhY3Rp
-b24gYWJvcnQgc3VwcG9ydCBpcyBuZWVkZWQgaXMgdW5jbGVhciB0byBtZSBub3cgYmVjYXVzZSBJ
-J20gbm90IHN1cmUgaWYgdGhpcyB3aWxsIGFwcGVhciBvbiBvdGhlciBwbGF0Zm9ybXMuIFdoZW4g
-c3VwcG9ydGluZyB0aGlzLCBJIG1heSBmYWNlIHRoZSBkaWZmaWN1bHR5IHRvIGFib3J0IHNldmVy
-YWwgcXVldWVkIHVwIHdvcmsgaXRlbXMgYnV0IGZvciBJUlEgcG9sbGVyIHRocmVhZCwgSSBvbmx5
-IG5lZWQgdG8gYWJvcnQgdGhlIHZlcnkgMSBxdWVyeSB0cmFuc2FjdGlvbi4NCg0KPiBEb2VzIHBh
-dGNoIFs2LzZdIGRlcGVuZCBvbiBbNS82XT8NCg0KUGF0Y2ggWzYvNl0gZGVwZW5kcyBvbiBbNS82
-XS4NClNvIHlvdSBjYW4ganVzdCB0YWtlIHRoZSBwYXRjaCAxLTQgZmlyc3QuLg0KSSdsbCBhc2sg
-U2Ftc3VuZyB1c2VycyB0byB0ZXN0IGFuIGltcHJvdmVkIGV2ZW50IGRyYWluaW5nIHN1cHBvcnQg
-YmFzZWQgb24gdGhlIHBvbGxlciB0aHJlYWQgYW5kIHJlLXNlbmQgdGhlIHBhdGNoIFs1LzVdIGFu
-ZCBwYXRjaCBbNi82XSBhZnRlciB0aGF0Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2
-DQoNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEou
-IFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+On Mon, Nov 3, 2014 at 11:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, November 03, 2014 02:22:10 PM Linus Walleij wrote:
+
+>> With that change:
+>> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+>
+> OK, made the changes and added your Reviewed-by.
+>
+> One semi-related question though.  Alexandre ACKed the patch before, so
+> what did that mean from the GPIO subsystem's perspective?  Was the patch
+> approved, not approved, semi-approved?
+
+It just means we are not always entirely aligned, it's not like
+Alexandre and I have meetings on the side and decide what to
+say, it's just these mails. I do trust him, I wouldn't get mad if it
+had been merged just wanted some polishing when I could get
+it...
+
+Yours,
+Linus Walleij
