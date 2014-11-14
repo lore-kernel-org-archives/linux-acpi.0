@@ -1,95 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI and power management fixes for 3.18-rc5
-Date: Fri, 14 Nov 2014 16:05:49 +0100
-Message-ID: <CAJZ5v0hpu+tdc06_zz+5K-RmuTD+oy_Z9nJZtyXKafQD+Rrv5w@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2] ACPI/osl: speedup grace period in acpi_os_map_cleanup
+Date: Fri, 14 Nov 2014 23:52:44 +0800
+Message-ID: <20141114155244.GF32750@linux-rxt1.site>
+References: <20141108094717.9388.34638.stgit@zurg>
+ <20141109105337.4952.36899.stgit@zurg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:47212 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934727AbaKNQM7 (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Fri, 14 Nov 2014 11:12:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20141109105337.4952.36899.stgit@zurg>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Tom Boshoven <tomboshoven@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, x86@kernel.org, Josh Triplett <josh@joshtriplett.org>, Alexander Monakov <amonakov@gmail.com>
 
-Hi Linus,
+Hi, 
 
-Please pull from
+On Sun, Nov 09, 2014 at 01:53:37PM +0400, Konstantin Khlebnikov wrote:
+> ACPI maintains cache of ioremap regions to speed up operations and
+> access to them from irq context where ioremap() calls aren't allowed.
+> This code abuses synchronize_rcu() on unmap path for synchronization
+> with fast-path in acpi_os_read/write_memory which uses this cache.
+> 
+> Since v3.10 CPUs are allowed to enter idle state even if they have RCU
+> callbacks queued, see commit c0f4dfd4f90f1667d234d21f15153ea09a2eaa66
+> ("rcu: Make RCU_FAST_NO_HZ take advantage of numbered callbacks").
+> That change caused problems with nvidia proprietary driver which calls
+> acpi_os_map/unmap_generic_address several times during initialization.
+> Each unmap calls synchronize_rcu and adds significant delay. Totally
+> initialization is slowed for a couple of seconds and that is enough to
+> trigger timeout in hardware, gpu decides to "fell off the bus". Widely
+> spread workaround is reducing "rcu_idle_gp_delay" from 4 to 1 jiffy.
+> 
+> This patch replaces synchronize_rcu() with synchronize_rcu_expedited()
+> which is much faster.
+> 
+> Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+> Reported-and-tested-by: Alexander Monakov <amonakov@gmail.com>
+> Cc: Tom Boshoven <tomboshoven@gmail.com>
+> Link: https://devtalk.nvidia.com/default/topic/567297/linux/linux-3-10-driver-crash/
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.18-rc5
+Please feel free to add Tested-by:
 
-to receive ACPI and power management fixes for v3.18-rc5 with
-top-most commit 31689497d90e589d7050fc7bc850b4b46e632bfc
-
- Merge branches 'pm-domains', 'pm-sleep' and 'pm-cpufreq'
-
-on top of commit 206c5f60a3d902bc4b56dab2de3e88de5eb06108
-
- Linux 3.18-rc4
-
-These are three regression fixes, two recent (generic power domains,
-suspend-to-idle) and one older (cpufreq), an ACPI blacklist entry for
-one more machine having problems with Windows 8 compatibility, a
-minor cpufreq driver fix (cpufreq-dt) and a fixup for new callback
-definitions (generic power domains).
-
-Specifics:
-
- - Fix a crash in the suspend-to-idle code path introduced by a
-   recent commit that forgot to check a pointer against NULL before
-   dereferencing it (Dmitry Eremin-Solenikov).
-
- - Fix a boot crash on Exynos5 introduced by a recent commit making
-   that platform use generic Device Tree bindings for power domains
-   which exposed a weakness in the generic power domains framework
-   leading to that crash (Ulf Hansson).
-
- - Fix a crash during system resume on systems where cpufreq depends
-   on Operation Performance Points (OPP) for functionality, but
-   CONFIG_OPP is not set.  This leads the cpufreq driver registration
-   to fail, but the resume code attempts to restore the pre-suspend
-   cpufreq configuration (which does not exist) nevertheless and
-   crashes.  From Geert Uytterhoeven.
-
- - Add a new ACPI blacklist entry for Dell Vostro 3546 that has
-   problems if it is reported as Windows 8 compatible to the BIOS
-   (Adam Lee).
-
- - Fix swapped arguments in an error message in the cpufreq-dt
-   driver (Abhilash Kesavan).
-
- - Fix up the prototypes of new callbacks in struct generic_pm_domain
-   to make them more useful.  Users of those callbacks will be added
-   in 3.19 and it's better for them to be based on the correct struct
-   definition in mainline from the start.  From Ulf Hansson and
-   Kevin Hilman.
-
-Thanks!
+Tested-by: Lee, Chun-Yi <jlee@suse.com>
 
 
----------------
+This patch fixed the performance issue on VMWare workstation 10.0.2 with the
+virtual machine that has more than 2 CPU and 4G memory:
 
-Abhilash Kesavan (1):
-      cpufreq: cpufreq-dt: Fix arguments in clock failure error message
+Mware workstation 10.0.2 
+  BIOS DMI: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
+  vCPU = 8
+  vMEM = 4G
+  mem.hotplug=TRUE
 
-Adam Lee (1):
-      ACPI / blacklist: blacklist Win8 OSI for Dell Vostro 3546
+physical CPUs on host machine: Intel(R) Xeon(R) CPU X5670  @ 2.93GHz  * 24
 
-Dmitry Eremin-Solenikov (1):
-      PM / sleep: Fix entering suspend-to-IDLE if no freeze_oops is set
+I tested this patch with v3.12, v3.17, v3.18-rc4 mainline kernel, those kernel
+call can produced issue and all got speedup when acpi initial. I suggest this
+patch go to stable kernel patch fixing.
 
-Geert Uytterhoeven (1):
-      cpufreq: Avoid crash in resume on SMP without OPP
 
-Ulf Hansson (2):
-      PM / Domains: Change prototype for the attach and detach callbacks
-      PM / Domains: Fix initial default state of the need_restore flag
+Thanks a lot!
+Joey Lee
 
----------------
-
- drivers/acpi/blacklist.c     |  8 ++++++++
- drivers/base/power/domain.c  | 42 ++++++++++++++++++++++++++++++++++--------
- drivers/cpufreq/cpufreq-dt.c |  4 ++--
- drivers/cpufreq/cpufreq.c    |  3 ++-
- include/linux/pm_domain.h    |  8 +++++---
- kernel/power/suspend.c       |  4 ++--
- 6 files changed, 53 insertions(+), 16 deletions(-)
+> ---
+>  drivers/acpi/osl.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 9964f70..217713c 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -436,7 +436,7 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
+>  static void acpi_os_map_cleanup(struct acpi_ioremap *map)
+>  {
+>  	if (!map->refcount) {
+> -		synchronize_rcu();
+> +		synchronize_rcu_expedited();
+>  		acpi_unmap(map->phys, map->virt);
+>  		kfree(map);
+>  	}
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
