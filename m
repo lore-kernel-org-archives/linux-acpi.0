@@ -1,47 +1,95 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC PATCH 4/4] arm64, acpi, pci: Provide arch-specific calls for PCI host bridge dirver (PNP0A03).
-Date: Fri, 14 Nov 2014 15:53:35 +0100
-Message-ID: <2009440.GJsvyI3SUN@wuerfel>
-References: <1415366876-30811-1-git-send-email-tomasz.nowicki@linaro.org> <4474363.kMvYSLl2Ev@wuerfel> <54660D44.9020406@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI and power management fixes for 3.18-rc5
+Date: Fri, 14 Nov 2014 16:05:49 +0100
+Message-ID: <CAJZ5v0hpu+tdc06_zz+5K-RmuTD+oy_Z9nJZtyXKafQD+Rrv5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <54660D44.9020406@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, linux-pci@vger.kernel.org, catalin.marinas@arm.com, x86@kernel.org, Liviu.Dudau@arm.com, linux-kernel@vger.kernel.org, will.deacon@arm.com, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, bhelgaas@google.com, tglx@linutronix.de
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 14 November 2014 15:10:12 Tomasz Nowicki wrote:
-> On 07.11.2014 15:24, Arnd Bergmann wrote:
-> > On Friday 07 November 2014 14:27:56 Tomasz Nowicki wrote:
-> >>
-> >>   #ifdef CONFIG_PCI
-> >> +struct pci_controller {
-> >> +	struct acpi_device *companion;
-> >> +	int segment;
-> >> +	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
-> >> +};
-> >> +
-> >> +#define PCI_CONTROLLER(busdev) ((struct pci_controller *) busdev->sysdata)
-> >> +
-> >
-> > Don't use busdev->sysdata in architecture specific code, it belongs to the
-> > host bridge driver with the new model. For ACPI you don't have a host bridge
-> > driver, but it's better to keep these separate.
-> >
-> > The segment is always the same as the domain number, so just use that.
-> > The node and companion members here can get added to struct pci_host_bridge.
-> 
-> The reason why I put segment field to struct pci_controller is to 
-> initialize domain_nr of struct pci_bus being in pci_create_root_bus(), 
-> domain_nr can be used later on though. Correct me I am wrong.
-> 
-> Honestly I do not see the way to create root bus without e.g. 
-> sysdata.segment here.
+Hi Linus,
 
-See the patches that Liviu and Lorenzo have been posting recently. This
-should be straightforward in 3.19.
+Please pull from
 
-	Arnd
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.18-rc5
+
+to receive ACPI and power management fixes for v3.18-rc5 with
+top-most commit 31689497d90e589d7050fc7bc850b4b46e632bfc
+
+ Merge branches 'pm-domains', 'pm-sleep' and 'pm-cpufreq'
+
+on top of commit 206c5f60a3d902bc4b56dab2de3e88de5eb06108
+
+ Linux 3.18-rc4
+
+These are three regression fixes, two recent (generic power domains,
+suspend-to-idle) and one older (cpufreq), an ACPI blacklist entry for
+one more machine having problems with Windows 8 compatibility, a
+minor cpufreq driver fix (cpufreq-dt) and a fixup for new callback
+definitions (generic power domains).
+
+Specifics:
+
+ - Fix a crash in the suspend-to-idle code path introduced by a
+   recent commit that forgot to check a pointer against NULL before
+   dereferencing it (Dmitry Eremin-Solenikov).
+
+ - Fix a boot crash on Exynos5 introduced by a recent commit making
+   that platform use generic Device Tree bindings for power domains
+   which exposed a weakness in the generic power domains framework
+   leading to that crash (Ulf Hansson).
+
+ - Fix a crash during system resume on systems where cpufreq depends
+   on Operation Performance Points (OPP) for functionality, but
+   CONFIG_OPP is not set.  This leads the cpufreq driver registration
+   to fail, but the resume code attempts to restore the pre-suspend
+   cpufreq configuration (which does not exist) nevertheless and
+   crashes.  From Geert Uytterhoeven.
+
+ - Add a new ACPI blacklist entry for Dell Vostro 3546 that has
+   problems if it is reported as Windows 8 compatible to the BIOS
+   (Adam Lee).
+
+ - Fix swapped arguments in an error message in the cpufreq-dt
+   driver (Abhilash Kesavan).
+
+ - Fix up the prototypes of new callbacks in struct generic_pm_domain
+   to make them more useful.  Users of those callbacks will be added
+   in 3.19 and it's better for them to be based on the correct struct
+   definition in mainline from the start.  From Ulf Hansson and
+   Kevin Hilman.
+
+Thanks!
+
+
+---------------
+
+Abhilash Kesavan (1):
+      cpufreq: cpufreq-dt: Fix arguments in clock failure error message
+
+Adam Lee (1):
+      ACPI / blacklist: blacklist Win8 OSI for Dell Vostro 3546
+
+Dmitry Eremin-Solenikov (1):
+      PM / sleep: Fix entering suspend-to-IDLE if no freeze_oops is set
+
+Geert Uytterhoeven (1):
+      cpufreq: Avoid crash in resume on SMP without OPP
+
+Ulf Hansson (2):
+      PM / Domains: Change prototype for the attach and detach callbacks
+      PM / Domains: Fix initial default state of the need_restore flag
+
+---------------
+
+ drivers/acpi/blacklist.c     |  8 ++++++++
+ drivers/base/power/domain.c  | 42 ++++++++++++++++++++++++++++++++++--------
+ drivers/cpufreq/cpufreq-dt.c |  4 ++--
+ drivers/cpufreq/cpufreq.c    |  3 ++-
+ include/linux/pm_domain.h    |  8 +++++---
+ kernel/power/suspend.c       |  4 ++--
+ 6 files changed, 53 insertions(+), 16 deletions(-)
