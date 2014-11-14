@@ -1,50 +1,123 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 0/4] ACPI / LPSS: fix system hangup on BYT
-Date: Sat, 15 Nov 2014 00:27:53 +0100
-Message-ID: <6931265.npcFGj0zDg@vostro.rjw.lan>
-References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] ACPI/OSL: Add IRQ handler flushing support in the OSL.
+Date: Sat, 15 Nov 2014 00:34:05 +0100
+Message-ID: <1691764.Wi9xRTfTU8@vostro.rjw.lan>
+References: <454129232241014e949861cc07a7f3ff6c80bd52.1415156960.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62393 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49470 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933574AbaKNXGy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2014 18:06:54 -0500
-In-Reply-To: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	with SMTP id S1161484AbaKNXNH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2014 18:13:07 -0500
+In-Reply-To: <454129232241014e949861cc07a7f3ff6c80bd52.1415156960.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Scott Ashcroft <scott.ashcroft@talk21.com>, Mika Westerberg <mika.westerberg@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Corey Minyard <minyard@acm.org>, devel@acpica.org, openipmi-developer@lists.sourceforge.net
 
-On Wednesday, November 05, 2014 06:34:44 PM Andy Shevchenko wrote:
-> The Intel BayTrail based machines have different configuration of the Low Power
-> Sub System (LPSS) IP. The LPSS contains few host controllers, such as I2C, SPI,
-> I2C and common DMA IP to serve DMA transfers. Unfortunately the DMA IP has no
-> power control accessible for software / OS. It goes automatically down whenever
-> last device goes to sleep and turned on when one of them is turned on. When
-> user tries to access the powered off DMA device the system hangs.
+On Wednesday, November 05, 2014 03:06:13 PM Lv Zheng wrote:
+> It is possible that a GPE handler or a fixed event handler still accessed
+> after removing the handlers by invoking acpi_remove_gpe_handler() or
+> acpi_remove_fixed_event_handler(), this possibility can crash OPSM after a
+> module removal. In the Linux kernel, though all other GPE drivers are not
+> modules, since the IPMI_SI (ipmi_si_intf.c) can be compiled as a module, we
+> still need to consider a solution for this issue when the driver switches
+> to ACPI_GPE_RAW_HANDLER mode in order to invoke GPE APIs.
 > 
-> This patch series addressing the issue. Rafael suggested to create a 'proxy'
-> device which makes DMA to be powered on on the certain points of time.
+> ACPICA expects acpi_os_wait_events_complete() to be invoked after GPE
+> disabling so that OSPM can ensure all running GPE handlers have exitted.
+> But currently acpi_os_wait_events_complete() can only flush _Lxx/_Exx
+> evaluation work queue and this philosophy cannot work for drivers that have
+> installed a dedicated GPE handler.
 > 
-> Vinod, we would like to push this via Rafael's tree, so, please Ack or NAck the
-> patch 4/4.
+> The only way to protect a callback is to perform some state holders
+> (reference count, state machine) before invoking the callback. Then this
+> issue can only be fixed by the following means:
+> 1. Flush GPE in ACPICA before invoking the GPE handler. But currently,
+>    there is no such implementation in acpi_ev_gpe_dispatch().
+> 2. Flush GPE in ACPICA OSL before invoking the SCI handler. But currently,
+>    there is no such implementation in acpi_irq().
+> 3. Flush IRQ in OSPM IRQ layer before invoking the IRQ handler. In Linus
+>    kernel, this can be done by synchronize_irq().
+> 4. Flush scheduling in OSPM vector entry layer before invoking the vector.
+>    In Linux, this can be done by synchronize_sched().
 > 
-> Scott, do you have a chance to test this patch series against last linux-pm
-> tree on HP laptops? I would appreciate your Tested-by tag.
+> Since ACPICA expects the GPE handlers to be flushed by the ACPICA OSL or
+> the GPE drivers. If it is implemented by the GPE driver, we should see
+> synchronize_irq()/synchronize_sched() invoked in such drivers. If it is
+> implemented by the ACPICA OSL, ACPICA currently provides
+> acpi_os_wait_events_complete() hook to achieve this. After the following
+> commit:
+>   Commit: 69c841b6dd8313c9a673246cc0e2535174272cab
+>   Author: Lv Zheng <lv.zheng@intel.com>
+>   Subject: ACPICA: Update use of acpi_os_wait_events_complete interface.
+> The OSL acpi_os_wait_events_complete() is invoked after a GPE handler is
+> removed from acpi_remove_gpe_handler() or a fixed event handler is removed
+> from acpi_remove_fixed_event_handler(). Thus it is possible to implement
+> GPE handler flushing using this ACPICA OSL now. So the solution 1 is
+> currently not taken into account.
 > 
-> Andy Shevchenko (4):
->   ACPI / LPSS: add all LPSS devices to the specific power domain
->   ACPI / LPSS: allow to use specific PM domain during ->probe()
->   ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA
->   dmaengine: dw: enable runtime PM
+> By examining the IPMI_SI driver, we noticed that the IPMI_SI driver:
+> 1. Uses free_irq() to flush non GPE based IRQ handlers, in free_irq(),
+>    synchronize_irq() is invoked, and
+> 2. Uses acpi_remove_gpe_handler() to flush GPE based IRQ handlers, for such
+>    IRQ handlers, there is no synchronize_irq() invoked.
+> Since there isn't synchronize_sched() implemented for this driver, from the
+> driver's perspective, acpi_remove_gpe_handler() should have properly
+> flushed the GPE handlers for it. Since the driver doesn't invoke
+> synchronize_irq(), the solution 3 is not what the drivers expect.
 > 
->  drivers/acpi/acpi_lpss.c | 94 +++++++++++++++++++++++++++++++++---------------
->  drivers/dma/dw/core.c    | 11 ++++++
->  2 files changed, 76 insertions(+), 29 deletions(-)
+> This patch implements solution 2. But since given the fact that the GPE is
+> managed inside of ACPICA, and implementing the GPE flushing requires to
+> implement the whole GPE management code again in the OSL, instead of
+> flushing GPE, this patch flushes IRQ in acpi_os_wait_events_complete(). The
+> flushing could last longer than expected as though the target GPE/fixed
+> event that is removed can be fastly flushed, other GPEs/fix events can still
+> be issued during the flushing period.
+> 
+> This patch fixes this issue by invoking synchronize_hardirq() in
+> acpi_os_wait_events_complete(). The reason why we don't invoke
+> synchronize_irq() is: currently ACPICA is not threaded IRQ capable and the
+> only difference between synchronize_irq() and synchronize_hardirq() is
+> synchronize_irq() also flushes threaded IRQ handlers. Thus using
+> synchronize_hardirq() can help to reduce the overall synchronization time
+> for the current ACPICA implementation.
+> 
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Corey Minyard <minyard@acm.org>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: devel@acpica.org
+> Cc: openipmi-developer@lists.sourceforge.net
 
-I've queued up the series for 3.19, thanks!
+Queued up for 3.19, thanks!
+
+> ---
+>  drivers/acpi/osl.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 9964f70..2524196 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -1188,6 +1188,12 @@ EXPORT_SYMBOL(acpi_os_execute);
+>  
+>  void acpi_os_wait_events_complete(void)
+>  {
+> +	/*
+> +	 * Make sure the GPE handler or the fixed event handler is not used
+> +	 * on another CPU after removal.
+> +	 */
+> +	if (acpi_irq_handler)
+> +		synchronize_hardirq(acpi_gbl_FADT.sci_interrupt);
+>  	flush_workqueue(kacpid_wq);
+>  	flush_workqueue(kacpi_notify_wq);
+>  }
+> 
 
 -- 
 I speak only for myself.
