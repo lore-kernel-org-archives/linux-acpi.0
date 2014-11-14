@@ -1,42 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
-Date: Fri, 14 Nov 2014 23:54:13 +0100
-Message-ID: <3115626.VVMxodDDvN@vostro.rjw.lan>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <1433051.htaUTMPMBY@vostro.rjw.lan> <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
+Subject: Re: [PATCH v1 0/4] ACPI / LPSS: fix system hangup on BYT
+Date: Sat, 15 Nov 2014 00:27:53 +0100
+Message-ID: <6931265.npcFGj0zDg@vostro.rjw.lan>
+References: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61643 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:62393 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S934460AbaKNWdO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2014 17:33:14 -0500
-In-Reply-To: <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
+	with SMTP id S933574AbaKNXGy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2014 18:06:54 -0500
+In-Reply-To: <1415205288-3356-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Scott Ashcroft <scott.ashcroft@talk21.com>, Mika Westerberg <mika.westerberg@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Blin, Jerome" <jerome.blin@intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>
 
-On Friday, November 14, 2014 09:58:41 AM Linus Walleij wrote:
-> On Mon, Nov 3, 2014 at 11:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Monday, November 03, 2014 02:22:10 PM Linus Walleij wrote:
+On Wednesday, November 05, 2014 06:34:44 PM Andy Shevchenko wrote:
+> The Intel BayTrail based machines have different configuration of the Low Power
+> Sub System (LPSS) IP. The LPSS contains few host controllers, such as I2C, SPI,
+> I2C and common DMA IP to serve DMA transfers. Unfortunately the DMA IP has no
+> power control accessible for software / OS. It goes automatically down whenever
+> last device goes to sleep and turned on when one of them is turned on. When
+> user tries to access the powered off DMA device the system hangs.
 > 
-> >> With that change:
-> >> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-> >
-> > OK, made the changes and added your Reviewed-by.
-> >
-> > One semi-related question though.  Alexandre ACKed the patch before, so
-> > what did that mean from the GPIO subsystem's perspective?  Was the patch
-> > approved, not approved, semi-approved?
+> This patch series addressing the issue. Rafael suggested to create a 'proxy'
+> device which makes DMA to be powered on on the certain points of time.
 > 
-> It just means we are not always entirely aligned, it's not like
-> Alexandre and I have meetings on the side and decide what to
-> say, it's just these mails. I do trust him, I wouldn't get mad if it
-> had been merged just wanted some polishing when I could get
-> it...
+> Vinod, we would like to push this via Rafael's tree, so, please Ack or NAck the
+> patch 4/4.
+> 
+> Scott, do you have a chance to test this patch series against last linux-pm
+> tree on HP laptops? I would appreciate your Tested-by tag.
+> 
+> Andy Shevchenko (4):
+>   ACPI / LPSS: add all LPSS devices to the specific power domain
+>   ACPI / LPSS: allow to use specific PM domain during ->probe()
+>   ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA
+>   dmaengine: dw: enable runtime PM
+> 
+>  drivers/acpi/acpi_lpss.c | 94 +++++++++++++++++++++++++++++++++---------------
+>  drivers/dma/dw/core.c    | 11 ++++++
+>  2 files changed, 76 insertions(+), 29 deletions(-)
 
-I see, thanks!
+I've queued up the series for 3.19, thanks!
 
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
