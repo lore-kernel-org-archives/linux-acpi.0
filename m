@@ -1,82 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI/osl: speedup grace period in acpi_os_map_cleanup
-Date: Fri, 14 Nov 2014 23:48:30 +0100
-Message-ID: <18413590.CmnVIhvXn9@vostro.rjw.lan>
-References: <20141108094717.9388.34638.stgit@zurg> <20141109105337.4952.36899.stgit@zurg> <20141109220038.GH4901@linux.vnet.ibm.com>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Fri, 14 Nov 2014 23:54:13 +0100
+Message-ID: <3115626.VVMxodDDvN@vostro.rjw.lan>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com> <1433051.htaUTMPMBY@vostro.rjw.lan> <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60846 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:61643 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1161920AbaKNW1b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2014 17:27:31 -0500
-In-Reply-To: <20141109220038.GH4901@linux.vnet.ibm.com>
+	with SMTP id S934460AbaKNWdO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Nov 2014 17:33:14 -0500
+In-Reply-To: <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Tom Boshoven <tomboshoven@gmail.com>, x86@kernel.org, Josh Triplett <josh@joshtriplett.org>, Alexander Monakov <amonakov@gmail.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Sunday, November 09, 2014 02:00:38 PM Paul E. McKenney wrote:
-> On Sun, Nov 09, 2014 at 01:53:37PM +0400, Konstantin Khlebnikov wrote:
-> > ACPI maintains cache of ioremap regions to speed up operations and
-> > access to them from irq context where ioremap() calls aren't allowed.
-> > This code abuses synchronize_rcu() on unmap path for synchronization
-> > with fast-path in acpi_os_read/write_memory which uses this cache.
-> > 
-> > Since v3.10 CPUs are allowed to enter idle state even if they have RCU
-> > callbacks queued, see commit c0f4dfd4f90f1667d234d21f15153ea09a2eaa66
-> > ("rcu: Make RCU_FAST_NO_HZ take advantage of numbered callbacks").
-> > That change caused problems with nvidia proprietary driver which calls
-> > acpi_os_map/unmap_generic_address several times during initialization.
-> > Each unmap calls synchronize_rcu and adds significant delay. Totally
-> > initialization is slowed for a couple of seconds and that is enough to
-> > trigger timeout in hardware, gpu decides to "fell off the bus". Widely
-> > spread workaround is reducing "rcu_idle_gp_delay" from 4 to 1 jiffy.
-> > 
-> > This patch replaces synchronize_rcu() with synchronize_rcu_expedited()
-> > which is much faster.
-> > 
-> > Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-> > Reported-and-tested-by: Alexander Monakov <amonakov@gmail.com>
-> > Cc: Tom Boshoven <tomboshoven@gmail.com>
-> > Link: https://devtalk.nvidia.com/default/topic/567297/linux/linux-3-10-driver-crash/
+On Friday, November 14, 2014 09:58:41 AM Linus Walleij wrote:
+> On Mon, Nov 3, 2014 at 11:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Monday, November 03, 2014 02:22:10 PM Linus Walleij wrote:
 > 
-> Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-
-Patch queued up for 3.19, thanks!
-
+> >> With that change:
+> >> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+> >
+> > OK, made the changes and added your Reviewed-by.
+> >
+> > One semi-related question though.  Alexandre ACKed the patch before, so
+> > what did that mean from the GPIO subsystem's perspective?  Was the patch
+> > approved, not approved, semi-approved?
 > 
-> > ---
-> >  drivers/acpi/osl.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > index 9964f70..217713c 100644
-> > --- a/drivers/acpi/osl.c
-> > +++ b/drivers/acpi/osl.c
-> > @@ -436,7 +436,7 @@ static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
-> >  static void acpi_os_map_cleanup(struct acpi_ioremap *map)
-> >  {
-> >  	if (!map->refcount) {
-> > -		synchronize_rcu();
-> > +		synchronize_rcu_expedited();
-> >  		acpi_unmap(map->phys, map->virt);
-> >  		kfree(map);
-> >  	}
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It just means we are not always entirely aligned, it's not like
+> Alexandre and I have meetings on the side and decide what to
+> say, it's just these mails. I do trust him, I wouldn't get mad if it
+> had been merged just wanted some polishing when I could get
+> it...
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+I see, thanks!
+
+Rafael
+
