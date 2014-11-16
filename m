@@ -1,67 +1,42 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / sleep: Drain outstanding events after disabling multiple GPEs
-Date: Sat, 15 Nov 2014 02:37:49 +0100
-Message-ID: <1704297.D90U7pFiof@vostro.rjw.lan>
-References: <2087711.53EgqR6vL6@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2087711.53EgqR6vL6@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>
+From: Fabian Frederick <fabf@skynet.be>
+Subject: [PATCH 1/1 linux-next] ACPI: remove unnecessary sizeof(u8)
+Date: Sun, 16 Nov 2014 10:57:00 +0100
+Message-ID: <1416131820-7336-1-git-send-email-fabf@skynet.be>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Fabian Frederick <fabf@skynet.be>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, November 15, 2014 02:30:51 AM Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> After multiple GPEs have been disabled at the low level in one go,
-> like when acpi_disable_all_gpes() is called, we should always drain
-> all of the outstanding events from them, or the ACPICA's GPE handling
-> code may re-enable one of them as a result of a race condition.
+sizeof(u8) is always 1.
 
-Scratch the last part.
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/acpi/utils.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-We simply need to drain them to prevent the GPE handling code from
-being executed in parallel with whatever happens after the GPEs have
-been disabled.
-
-> For this reason, call acpi_os_wait_events_complete() after
-> acpi_enable_all_wakeup_gpes() and acpi_disable_all_gpes() in
-> acpi_freeze_prepare() and acpi_power_off_prepare(), respectively.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/sleep.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> Index: linux-pm/drivers/acpi/sleep.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/sleep.c
-> +++ linux-pm/drivers/acpi/sleep.c
-> @@ -630,6 +630,7 @@ static int acpi_freeze_begin(void)
->  static int acpi_freeze_prepare(void)
->  {
->  	acpi_enable_all_wakeup_gpes();
-> +	acpi_os_wait_events_complete();
->  	enable_irq_wake(acpi_gbl_FADT.sci_interrupt);
->  	return 0;
->  }
-> @@ -825,6 +826,7 @@ static void acpi_power_off_prepare(void)
->  	/* Prepare to power off the system */
->  	acpi_sleep_prepare(ACPI_STATE_S5);
->  	acpi_disable_all_gpes();
-> +	acpi_os_wait_events_complete();
->  }
->  
->  static void acpi_power_off(void)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 371ac12..dd8ff63 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -136,8 +136,7 @@ acpi_extract_package(union acpi_object *package,
+ 				break;
+ 			case 'B':
+ 				size_required +=
+-				    sizeof(u8 *) +
+-				    (element->buffer.length * sizeof(u8));
++				    sizeof(u8 *) + element->buffer.length;
+ 				tail_offset += sizeof(u8 *);
+ 				break;
+ 			default:
+@@ -255,7 +254,7 @@ acpi_extract_package(union acpi_object *package,
+ 				memcpy(tail, element->buffer.pointer,
+ 				       element->buffer.length);
+ 				head += sizeof(u8 *);
+-				tail += element->buffer.length * sizeof(u8);
++				tail += element->buffer.length;
+ 				break;
+ 			default:
+ 				/* Should never get here */
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.9.3
