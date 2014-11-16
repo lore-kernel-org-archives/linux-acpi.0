@@ -1,42 +1,112 @@
-From: Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 1/1 linux-next] ACPI: remove unnecessary sizeof(u8)
-Date: Sun, 16 Nov 2014 10:57:00 +0100
-Message-ID: <1416131820-7336-1-git-send-email-fabf@skynet.be>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Fabian Frederick <fabf@skynet.be>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Subject: [PATCH] ACPI / WAKEUP : enable wakeup power for physical child devices
+Date: Sun, 16 Nov 2014 15:10:01 +0300
+Message-ID: <1416139801-6537-1-git-send-email-Andrej.Skvortzov@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:44464 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755114AbaKPMKK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2014 07:10:10 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andrey Skvortsov <Andrej.Skvortzov@gmail.com>
 
-sizeof(u8) is always 1.
+commit f2b56bc808addb908a5bf435d9b942c02af9a7c4
+("ACPI / PM: Use device wakeup flags for handling ACPI wakeup devices")
+broke wake-on-lan for Broadcom BCM4401 Ethernet card (b44) on Dell Vostro 1500 laptop.
+device_may_wakeup for main ACPI device (PCIE) returns false, because it has
+can_wakeup = 0. Therefore any physical devices connected to this parent
+were not prepared for wakeup/suspend. But physical device is capable to
+wakeup the system.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+To fix this issue device_may_wakeup was replaced with acpi_device_may_wakeup.
+acpi_device_may_wakeup was written based on function
+acpi_system_wakeup_device_seq_show
+
+Signed-off-by: Andrey Skvortsov <Andrej.Skvortzov@gmail.com>
 ---
- drivers/acpi/utils.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/acpi/wakeup.c |   45 +++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 37 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 371ac12..dd8ff63 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -136,8 +136,7 @@ acpi_extract_package(union acpi_object *package,
- 				break;
- 			case 'B':
- 				size_required +=
--				    sizeof(u8 *) +
--				    (element->buffer.length * sizeof(u8));
-+				    sizeof(u8 *) + element->buffer.length;
- 				tail_offset += sizeof(u8 *);
- 				break;
- 			default:
-@@ -255,7 +254,7 @@ acpi_extract_package(union acpi_object *package,
- 				memcpy(tail, element->buffer.pointer,
- 				       element->buffer.length);
- 				head += sizeof(u8 *);
--				tail += element->buffer.length * sizeof(u8);
-+				tail += element->buffer.length;
- 				break;
- 			default:
- 				/* Should never get here */
+diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
+index 1638401..0da7e70 100644
+--- a/drivers/acpi/wakeup.c
++++ b/drivers/acpi/wakeup.c
+@@ -19,6 +19,34 @@
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME("wakeup_devices")
+ 
++
++bool acpi_device_may_wakeup(struct acpi_device *dev)
++{
++	struct acpi_device_physical_node *entry;
++	bool may_wakeup = false;
++
++	mutex_lock(&dev->physical_node_lock);
++	if (!dev->physical_node_count)
++		may_wakeup = device_may_wakeup(&dev->dev);
++	else {
++		struct device *ldev;
++
++		list_for_each_entry(entry, &dev->physical_node_list, node) {
++			ldev = get_device(entry->dev);
++			if (!ldev)
++				continue;
++
++			may_wakeup = device_may_wakeup(&dev->dev) ||
++				device_may_wakeup(ldev);
++
++			put_device(ldev);
++		}
++	}
++
++	mutex_unlock(&dev->physical_node_lock);
++	return may_wakeup;
++}
++
+ /**
+  * acpi_enable_wakeup_devices - Enable wake-up device GPEs.
+  * @sleep_state: ACPI system sleep state.
+@@ -35,13 +63,14 @@ void acpi_enable_wakeup_devices(u8 sleep_state)
+ 		struct acpi_device *dev =
+ 			container_of(node, struct acpi_device, wakeup_list);
+ 
++
+ 		if (!dev->wakeup.flags.valid
+-		    || sleep_state > (u32) dev->wakeup.sleep_state
+-		    || !(device_may_wakeup(&dev->dev)
+-		        || dev->wakeup.prepare_count))
++			|| sleep_state > (u32) dev->wakeup.sleep_state
++			|| !(acpi_device_may_wakeup(dev)
++			    || dev->wakeup.prepare_count))
+ 			continue;
+ 
+-		if (device_may_wakeup(&dev->dev))
++		if (acpi_device_may_wakeup(dev))
+ 			acpi_enable_wakeup_device_power(dev, sleep_state);
+ 
+ 		/* The wake-up power should have been enabled already. */
+@@ -63,15 +92,15 @@ void acpi_disable_wakeup_devices(u8 sleep_state)
+ 			container_of(node, struct acpi_device, wakeup_list);
+ 
+ 		if (!dev->wakeup.flags.valid
+-		    || sleep_state > (u32) dev->wakeup.sleep_state
+-		    || !(device_may_wakeup(&dev->dev)
+-		        || dev->wakeup.prepare_count))
++			|| sleep_state > (u32) dev->wakeup.sleep_state
++			|| !(acpi_device_may_wakeup(dev)
++				|| dev->wakeup.prepare_count))
+ 			continue;
+ 
+ 		acpi_set_gpe_wake_mask(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
+ 				ACPI_GPE_DISABLE);
+ 
+-		if (device_may_wakeup(&dev->dev))
++		if (acpi_device_may_wakeup(dev))
+ 			acpi_disable_wakeup_device_power(dev);
+ 	}
+ }
 -- 
-1.9.3
+1.7.2.5
+
