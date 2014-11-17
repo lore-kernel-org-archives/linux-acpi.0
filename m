@@ -1,93 +1,24 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH] cpuidle: Invert CPUIDLE_FLAG_TIME_VALID logic
-Date: Mon, 17 Nov 2014 13:53:15 +0100
-Message-ID: <5469EFBB.6000806@linaro.org>
-References: <1415804630-5055-1-git-send-email-daniel.lezcano@linaro.org> <20141113145609.GA9726@red-moon>
+From: "wlaeosyv" <sbwdiywc@gmail.ru>
+Subject: =?windows-1251?B?x+Rw4OLx8uLz6fJlISBC4PEg6O3yZXBl8fP+?=
+	=?windows-1251?B?8iBr6+hl7fLxa+hlIOHg5/sg5ODt7fv1Pw==?=
+Date: Mon, 17 Nov 2014 23:58:11 +0700
+Message-ID: <2F2A9CCFC4103F0CD0D59C210541E9EC@eqerao>
+Reply-To: "wlaeosyv" <tsibulkintsibr@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=windows-1251;
+	format=flowed	reply-type=original
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:60873 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbaKQMxW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2014 07:53:22 -0500
-Received: by mail-wi0-f169.google.com with SMTP id r20so2337508wiv.4
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Nov 2014 04:53:20 -0800 (PST)
-In-Reply-To: <20141113145609.GA9726@red-moon>
+Received: from rvrjcce.ac.in ([218.248.4.101]:49789 "EHLO ibmppc.internet"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751515AbaKQTDw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Nov 2014 14:03:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "preeti@linux.vnet.ibm.com" <preeti@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "tony@atomide.com" <tony@atomide.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "horms@verge.net.au" <horms@verge.net.au>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "ralf@linux-mips.org" <ralf@linux-mips.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-a
+To: tbhkbgpy <dnohwalu@gmail.com>
 
-On 11/13/2014 03:56 PM, Lorenzo Pieralisi wrote:
-> On Wed, Nov 12, 2014 at 03:03:50PM +0000, Daniel Lezcano wrote:
->> The only place where the time is invalid is when the ACPI_CSTATE_FFH=
- entry
->> method is not set. Otherwise for all the drivers, the time can be co=
-rrectly
->> measured.
->>
->> Instead of duplicating the CPUIDLE_FLAG_TIME_VALID flag in all the d=
-rivers
->> for all the states, just invert the logic by replacing it by the fla=
-g
->> CPUIDLE_FLAG_TIME_INVALID, hence we can set this flag only for the a=
-cpi idle
->> driver, remove the former flag from all the drivers and invert the l=
-ogic with
->> this flag in the different governor.
->>
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->
-> Are we sure that ACPI C1 invalid residency time is *still* an issue a=
-fter
-> we moved the residency accounting to the idle core ?
-
-(Cc'ed linux-acpi@)
-
-Hi x86 guys,
-
-any comment on that ?
-
-Thanks in advance
-
-  -- Daniel
-
-> I have a feeling you can remove this flag entirely, but I will let x8=
-6
-> guys speak for themselves.
-
-[ ... ]
-
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_=
-idle.c
->> index 17f9ec5..380b4b4 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
->> @@ -985,8 +985,8 @@ static int acpi_processor_setup_cpuidle_states(s=
-truct acpi_processor *pr)
->>                  state->flags =3D 0;
->>                  switch (cx->type) {
->>                          case ACPI_STATE_C1:
->> -                       if (cx->entry_method =3D=3D ACPI_CSTATE_FFH)
->> -                               state->flags |=3D CPUIDLE_FLAG_TIME_=
-VALID;
->> +                       if (cx->entry_method !=3D ACPI_CSTATE_FFH)
->> +                               state->flags |=3D CPUIDLE_FLAG_TIME_=
-INVALID;
-
-[ ... ]
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
+=C7=E4=F0=E0=E2c=F2=E2=F3=E9=F2e! =C2=E0c =E8=ED=F2e=F0ecy=FE=F2 k=EB=E8=
+e=ED=F2ck=E8e =E1=E0=E7=FB =E4=E0=ED=ED=FBx?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
