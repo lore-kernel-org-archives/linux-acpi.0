@@ -1,136 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / WAKEUP : enable wakeup power for physical child devices
-Date: Mon, 17 Nov 2014 01:37:01 +0100
-Message-ID: <2396976.mWgWcINWd3@vostro.rjw.lan>
-References: <1416139801-6537-1-git-send-email-Andrej.Skvortzov@gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 3/3] ACPI / processor: Rename acpi_(un)map_lsapic() to
+ acpi_(un)map_cpu()
+Date: Mon, 17 Nov 2014 10:31:01 +0800
+Message-ID: <54695DE5.2080309@linaro.org>
+References: <1414662780-2147-1-git-send-email-hanjun.guo@linaro.org> <5452CE9D.6000403@linaro.org> <10283319.F5QMI6fbWn@vostro.rjw.lan> <1820875.eppNBckBcQ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60451 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752193AbaKQAQA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2014 19:16:00 -0500
-In-Reply-To: <1416139801-6537-1-git-send-email-Andrej.Skvortzov@gmail.com>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:53541 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbaKQCdJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2014 21:33:09 -0500
+Received: by mail-pa0-f48.google.com with SMTP id rd3so7648294pab.21
+        for <linux-acpi@vger.kernel.org>; Sun, 16 Nov 2014 18:33:08 -0800 (PST)
+In-Reply-To: <1820875.eppNBckBcQ@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andrey Skvortsov <Andrej.Skvortzov@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Sunday, November 16, 2014 03:10:01 PM Andrey Skvortsov wrote:
-> commit f2b56bc808addb908a5bf435d9b942c02af9a7c4
-> ("ACPI / PM: Use device wakeup flags for handling ACPI wakeup devices")
+On 2014-11-15 7:35, Rafael J. Wysocki wrote:
+> On Friday, October 31, 2014 11:55:46 PM Rafael J. Wysocki wrote:
+>> On Friday, October 31, 2014 07:49:49 AM Hanjun Guo wrote:
+>>> On 2014=E5=B9=B410=E6=9C=8831=E6=97=A5 04:12, Rafael J. Wysocki wro=
+te:
+>>>> On Thursday, October 30, 2014 05:53:00 PM Hanjun Guo wrote:
+>>>>> acpi_map_lsapic() will allocate a logical CPU number and map it t=
+o
+>>>>> physical CPU id (such as APIC id) for the hot-added CPU, it will =
+also
+>>>>> do some mapping for NUMA node id and etc, acpi_unmap_lsapic() wil=
+l
+>>>>> do the reverse.
+>>>>>
+>>>>> We can see that the name of the function is a little bit confusin=
+g and
+>>>>> arch dependent so rename them as acpi_(un)map_map() to make arch
+>>>>
+>>>> That's acpi_(un)map_cpu() I guess?
+>>>
+>>> ah, yes, typos, it should be acpi_(un)map_cpu(), my fault.
+>>> should I send another version?
+>>
+>> No, I can fix this up.
+>=20
+> I've queued up the series for 3.19, thanks!
 
-That commit is from 2011.  Can you please tell me what makes you think
-that it is the source of the problem?
+Thanks!
 
-> broke wake-on-lan for Broadcom BCM4401 Ethernet card (b44) on Dell Vostro 1500 laptop.
-> device_may_wakeup for main ACPI device (PCIE) returns false, because it has
-> can_wakeup = 0. Therefore any physical devices connected to this parent
-> were not prepared for wakeup/suspend. But physical device is capable to
-> wakeup the system.
+Hanjun
 
-If that is the case, then ->
-
-> To fix this issue device_may_wakeup was replaced with acpi_device_may_wakeup.
-> acpi_device_may_wakeup was written based on function
-> acpi_system_wakeup_device_seq_show
-> 
-> Signed-off-by: Andrey Skvortsov <Andrej.Skvortzov@gmail.com>
-> ---
->  drivers/acpi/wakeup.c |   45 +++++++++++++++++++++++++++++++++++++--------
->  1 files changed, 37 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/wakeup.c b/drivers/acpi/wakeup.c
-> index 1638401..0da7e70 100644
-> --- a/drivers/acpi/wakeup.c
-> +++ b/drivers/acpi/wakeup.c
-> @@ -19,6 +19,34 @@
->  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
->  ACPI_MODULE_NAME("wakeup_devices")
->  
-> +
-> +bool acpi_device_may_wakeup(struct acpi_device *dev)
-> +{
-> +	struct acpi_device_physical_node *entry;
-> +	bool may_wakeup = false;
-> +
-> +	mutex_lock(&dev->physical_node_lock);
-> +	if (!dev->physical_node_count)
-> +		may_wakeup = device_may_wakeup(&dev->dev);
-> +	else {
-> +		struct device *ldev;
-> +
-> +		list_for_each_entry(entry, &dev->physical_node_list, node) {
-> +			ldev = get_device(entry->dev);
-> +			if (!ldev)
-> +				continue;
-> +
-> +			may_wakeup = device_may_wakeup(&dev->dev) ||
-> +				device_may_wakeup(ldev);
-> +
-> +			put_device(ldev);
-> +		}
-> +	}
-> +
-> +	mutex_unlock(&dev->physical_node_lock);
-> +	return may_wakeup;
-> +}
-> +
->  /**
->   * acpi_enable_wakeup_devices - Enable wake-up device GPEs.
->   * @sleep_state: ACPI system sleep state.
-> @@ -35,13 +63,14 @@ void acpi_enable_wakeup_devices(u8 sleep_state)
->  		struct acpi_device *dev =
->  			container_of(node, struct acpi_device, wakeup_list);
->  
-> +
->  		if (!dev->wakeup.flags.valid
-> -		    || sleep_state > (u32) dev->wakeup.sleep_state
-> -		    || !(device_may_wakeup(&dev->dev)
-> -		        || dev->wakeup.prepare_count))
-> +			|| sleep_state > (u32) dev->wakeup.sleep_state
-> +			|| !(acpi_device_may_wakeup(dev)
-> +			    || dev->wakeup.prepare_count))
-
--> dev->wakeup.prepare_count here shold be different from 0 at this point.
-
->  			continue;
->  
-> -		if (device_may_wakeup(&dev->dev))
-> +		if (acpi_device_may_wakeup(dev))
->  			acpi_enable_wakeup_device_power(dev, sleep_state);
->  
->  		/* The wake-up power should have been enabled already. */
-> @@ -63,15 +92,15 @@ void acpi_disable_wakeup_devices(u8 sleep_state)
->  			container_of(node, struct acpi_device, wakeup_list);
->  
->  		if (!dev->wakeup.flags.valid
-> -		    || sleep_state > (u32) dev->wakeup.sleep_state
-> -		    || !(device_may_wakeup(&dev->dev)
-> -		        || dev->wakeup.prepare_count))
-> +			|| sleep_state > (u32) dev->wakeup.sleep_state
-> +			|| !(acpi_device_may_wakeup(dev)
-> +				|| dev->wakeup.prepare_count))
->  			continue;
->  
->  		acpi_set_gpe_wake_mask(dev->wakeup.gpe_device, dev->wakeup.gpe_number,
->  				ACPI_GPE_DISABLE);
->  
-> -		if (device_may_wakeup(&dev->dev))
-> +		if (acpi_device_may_wakeup(dev))
->  			acpi_disable_wakeup_device_power(dev);
->  	}
->  }
-
-This is not the right fix.  The device_may_wakeup(&dev->dev) check in the
-above code is specifically for ACPI device objects that do *not* have physical
-devices assiciated with them (buttons etc.).
-
-I'll have a look at the driver in question next week (please remind me in
-case I get distracted).
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
