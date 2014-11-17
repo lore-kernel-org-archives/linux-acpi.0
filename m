@@ -1,58 +1,46 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 3/3] ACPI / processor: Rename acpi_(un)map_lsapic() to
- acpi_(un)map_cpu()
-Date: Mon, 17 Nov 2014 10:31:01 +0800
-Message-ID: <54695DE5.2080309@linaro.org>
-References: <1414662780-2147-1-git-send-email-hanjun.guo@linaro.org> <5452CE9D.6000403@linaro.org> <10283319.F5QMI6fbWn@vostro.rjw.lan> <1820875.eppNBckBcQ@vostro.rjw.lan>
+From: Alexandre Courbot <gnurou@gmail.com>
+Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
+Date: Mon, 17 Nov 2014 13:28:54 +0900
+Message-ID: <CAAVeFuLV2yR1tmxX-HicupqgwUYj5HzqvSoi0Bq3V7aVpvf9bg@mail.gmail.com>
+References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
+ <2758495.RYBbleVHkC@vostro.rjw.lan> <CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
+ <1433051.htaUTMPMBY@vostro.rjw.lan> <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:53541 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbaKQCdJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2014 21:33:09 -0500
-Received: by mail-pa0-f48.google.com with SMTP id rd3so7648294pab.21
-        for <linux-acpi@vger.kernel.org>; Sun, 16 Nov 2014 18:33:08 -0800 (PST)
-In-Reply-To: <1820875.eppNBckBcQ@vostro.rjw.lan>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:65331 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849AbaKQE3Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2014 23:29:16 -0500
+In-Reply-To: <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Grant Likely <grant.likely@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On 2014-11-15 7:35, Rafael J. Wysocki wrote:
-> On Friday, October 31, 2014 11:55:46 PM Rafael J. Wysocki wrote:
->> On Friday, October 31, 2014 07:49:49 AM Hanjun Guo wrote:
->>> On 2014=E5=B9=B410=E6=9C=8831=E6=97=A5 04:12, Rafael J. Wysocki wro=
-te:
->>>> On Thursday, October 30, 2014 05:53:00 PM Hanjun Guo wrote:
->>>>> acpi_map_lsapic() will allocate a logical CPU number and map it t=
-o
->>>>> physical CPU id (such as APIC id) for the hot-added CPU, it will =
-also
->>>>> do some mapping for NUMA node id and etc, acpi_unmap_lsapic() wil=
-l
->>>>> do the reverse.
->>>>>
->>>>> We can see that the name of the function is a little bit confusin=
-g and
->>>>> arch dependent so rename them as acpi_(un)map_map() to make arch
->>>>
->>>> That's acpi_(un)map_cpu() I guess?
->>>
->>> ah, yes, typos, it should be acpi_(un)map_cpu(), my fault.
->>> should I send another version?
+On Fri, Nov 14, 2014 at 5:58 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> On Mon, Nov 3, 2014 at 11:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> On Monday, November 03, 2014 02:22:10 PM Linus Walleij wrote:
+>
+>>> With that change:
+>>> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 >>
->> No, I can fix this up.
->=20
-> I've queued up the series for 3.19, thanks!
+>> OK, made the changes and added your Reviewed-by.
+>>
+>> One semi-related question though.  Alexandre ACKed the patch before, so
+>> what did that mean from the GPIO subsystem's perspective?  Was the patch
+>> approved, not approved, semi-approved?
+>
+> It just means we are not always entirely aligned, it's not like
+> Alexandre and I have meetings on the side and decide what to
+> say, it's just these mails. I do trust him, I wouldn't get mad if it
+> had been merged just wanted some polishing when I could get
+> it...
 
-Thanks!
-
-Hanjun
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In case of conflicting feedback between me and Linus, it goes without
+saying that Linus' opinion should prevail. I am trying to help a bit
+and take some of the burden off his shoulders, but have neither his
+skill nor his experience (which shows when you compare our patch
+reviews). So for important stuff it is a good idea to wait until both
+of us give a ack - the most likely conflict scenario being that I give
+a pass overlooking something that Linus will catch.
