@@ -1,46 +1,95 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH] ACPI / GPIO: Driver GPIO mappings for ACPI GPIOs
-Date: Mon, 17 Nov 2014 13:28:54 +0900
-Message-ID: <CAAVeFuLV2yR1tmxX-HicupqgwUYj5HzqvSoi0Bq3V7aVpvf9bg@mail.gmail.com>
-References: <CAAVeFuLW6fucvDxQvY5DDfnhPrgYM+1pi7WoHfBQa_BgYnc_Cw@mail.gmail.com>
- <2758495.RYBbleVHkC@vostro.rjw.lan> <CACRpkdanUC4QYbMXgMOkiGS+6oVyD1Opg_sFo95TEsyHJTM6_w@mail.gmail.com>
- <1433051.htaUTMPMBY@vostro.rjw.lan> <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH] cpuidle: Invert CPUIDLE_FLAG_TIME_VALID logic
+Date: Mon, 17 Nov 2014 13:53:15 +0100
+Message-ID: <5469EFBB.6000806@linaro.org>
+References: <1415804630-5055-1-git-send-email-daniel.lezcano@linaro.org> <20141113145609.GA9726@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:65331 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849AbaKQE3Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Nov 2014 23:29:16 -0500
-In-Reply-To: <CACRpkdb-T42Bqtf7zvc+2om03hgu4j8twDUqmsE4dcKaPXB9Wg@mail.gmail.com>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:60873 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673AbaKQMxW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Nov 2014 07:53:22 -0500
+Received: by mail-wi0-f169.google.com with SMTP id r20so2337508wiv.4
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Nov 2014 04:53:20 -0800 (PST)
+In-Reply-To: <20141113145609.GA9726@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, Darren Hart <dvhart@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "preeti@linux.vnet.ibm.com" <preeti@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "nsekhar@ti.com" <nsekhar@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "shawn.guo@linaro.org" <shawn.guo@linaro.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "tony@atomide.com" <tony@atomide.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "horms@verge.net.au" <horms@verge.net.au>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>, "ralf@linux-mips.org" <ralf@linux-mips.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "michal.simek@xilinx.com" <michal.simek@xilinx.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-a
 
-On Fri, Nov 14, 2014 at 5:58 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Mon, Nov 3, 2014 at 11:56 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Monday, November 03, 2014 02:22:10 PM Linus Walleij wrote:
->
->>> With that change:
->>> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+On 11/13/2014 03:56 PM, Lorenzo Pieralisi wrote:
+> On Wed, Nov 12, 2014 at 03:03:50PM +0000, Daniel Lezcano wrote:
+>> The only place where the time is invalid is when the ACPI_CSTATE_FFH=
+ entry
+>> method is not set. Otherwise for all the drivers, the time can be co=
+rrectly
+>> measured.
 >>
->> OK, made the changes and added your Reviewed-by.
+>> Instead of duplicating the CPUIDLE_FLAG_TIME_VALID flag in all the d=
+rivers
+>> for all the states, just invert the logic by replacing it by the fla=
+g
+>> CPUIDLE_FLAG_TIME_INVALID, hence we can set this flag only for the a=
+cpi idle
+>> driver, remove the former flag from all the drivers and invert the l=
+ogic with
+>> this flag in the different governor.
 >>
->> One semi-related question though.  Alexandre ACKed the patch before, so
->> what did that mean from the GPIO subsystem's perspective?  Was the patch
->> approved, not approved, semi-approved?
+>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 >
-> It just means we are not always entirely aligned, it's not like
-> Alexandre and I have meetings on the side and decide what to
-> say, it's just these mails. I do trust him, I wouldn't get mad if it
-> had been merged just wanted some polishing when I could get
-> it...
+> Are we sure that ACPI C1 invalid residency time is *still* an issue a=
+fter
+> we moved the residency accounting to the idle core ?
 
-In case of conflicting feedback between me and Linus, it goes without
-saying that Linus' opinion should prevail. I am trying to help a bit
-and take some of the burden off his shoulders, but have neither his
-skill nor his experience (which shows when you compare our patch
-reviews). So for important stuff it is a good idea to wait until both
-of us give a ack - the most likely conflict scenario being that I give
-a pass overlooking something that Linus will catch.
+(Cc'ed linux-acpi@)
+
+Hi x86 guys,
+
+any comment on that ?
+
+Thanks in advance
+
+  -- Daniel
+
+> I have a feeling you can remove this flag entirely, but I will let x8=
+6
+> guys speak for themselves.
+
+[ ... ]
+
+>> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_=
+idle.c
+>> index 17f9ec5..380b4b4 100644
+>> --- a/drivers/acpi/processor_idle.c
+>> +++ b/drivers/acpi/processor_idle.c
+>> @@ -985,8 +985,8 @@ static int acpi_processor_setup_cpuidle_states(s=
+truct acpi_processor *pr)
+>>                  state->flags =3D 0;
+>>                  switch (cx->type) {
+>>                          case ACPI_STATE_C1:
+>> -                       if (cx->entry_method =3D=3D ACPI_CSTATE_FFH)
+>> -                               state->flags |=3D CPUIDLE_FLAG_TIME_=
+VALID;
+>> +                       if (cx->entry_method !=3D ACPI_CSTATE_FFH)
+>> +                               state->flags |=3D CPUIDLE_FLAG_TIME_=
+INVALID;
+
+[ ... ]
+
+
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
