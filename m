@@ -1,101 +1,53 @@
-From: Dmitry Torokhov <dtor@chromium.org>
-Subject: Re: [PATCH] ACPI: do not fail suspend if unable to configure wakeup
-Date: Tue, 18 Nov 2014 10:00:53 -0800
-Message-ID: <CAE_wzQ8FTtnMGTxyaFu8=QqyuD0=W_ZyWXCf9_BK1sWKZHh95g@mail.gmail.com>
-References: <20141015225657.GA818@dtor-ws>
-	<CAJZ5v0jAe9npr-4U+CGCQWfZ8bQ988z+_pRjUiMN871kP-39FQ@mail.gmail.com>
-	<20141016160555.GA3255@dtor-ws>
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Subject: Re: [BUG] oops in cpufreq driver with AMD Kaveri CPU
+Date: Tue, 18 Nov 2014 21:07:51 +0200
+Message-ID: <9508464.Rg48i9FdUc@spock>
+References: <4708675.eITUXPv8Ih@spock> <CAKohponLC=NqTUG-mENuJ5Tomx6xgCYEBocj2P5RXXZumZaPZQ@mail.gmail.com> <1767434.385ncFoNtj@spock>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141016160555.GA3255@dtor-ws>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dtor@chromium.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Benson Leung <bleung@chromium.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from natalenko.name ([78.47.77.148]:58427 "EHLO natalenko.name"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754126AbaKRTH4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Nov 2014 14:07:56 -0500
+In-Reply-To: <1767434.385ncFoNtj@spock>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Rafael,
+Hmmm, weird, acpi=off as well as disabling ASPM and NMI watchdog didn't help :
+(.
 
-On Thu, Oct 16, 2014 at 9:05 AM, Dmitry Torokhov <dtor@chromium.org> wrote:
-> Hi Rafael,
->
-> On Thu, Oct 16, 2014 at 10:10:20AM +0200, Rafael J. Wysocki wrote:
->> Hi,
->>
->> On Thu, Oct 16, 2014 at 12:56 AM, Dmitry Torokhov <dtor@chromium.org> wrote:
->> > Newer kernels put i2c devices with ACPI companion in ACPI power domain and
->> > then ACPI will try to configure them for wakeup (if requested).
->> > Unfortunately on some Chromebooks firmware separates wakeup GPIO into a
->> > completely separate device (which is handled by the kernel as a sleep
->> > button), leaving the touchpads themselves not wakeup capable (as far as
->> > ACPI is concerned). This causes ACPI late suspend code to fail to configure
->> > them as wakeup sources and aborts entire suspend.
->> >
->> > To work around this issues let's not abort entire suspend process if
->> > driver asked to be a wakeup source but ACPI can not satisfy that
->> > request.
->> >
->> > Note that originally I tried to simply change the driver to not mark
->> > device as wakeup source, unfortunately then we do not know that we
->> > should not be powering down the device completely, otherwise we can't
->> > wake up.
->> >
->> > Verified by making sure that "echo mem > /sys/power/state" works on
->> > Squawks.
->> >
->> > Reviewed-by: Benson Leung <bleung@chromium.org>
->> > Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
->> > ---
->> >  drivers/acpi/device_pm.c | 16 ++++++++++++----
->> >  1 file changed, 12 insertions(+), 4 deletions(-)
->> >
->> > diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
->> > index 67075f8..440bc3d 100644
->> > --- a/drivers/acpi/device_pm.c
->> > +++ b/drivers/acpi/device_pm.c
->> > @@ -871,6 +871,7 @@ int acpi_dev_suspend_late(struct device *dev)
->> >         struct acpi_device *adev = ACPI_COMPANION(dev);
->> >         u32 target_state;
->> >         bool wakeup;
->> > +       bool can_wakeup;
->> >         int error;
->> >
->> >         if (!adev)
->> > @@ -878,12 +879,19 @@ int acpi_dev_suspend_late(struct device *dev)
->> >
->> >         target_state = acpi_target_system_state();
->> >         wakeup = device_may_wakeup(dev);
->> > -       error = acpi_device_wakeup(adev, target_state, wakeup);
->> > -       if (wakeup && error)
->> > -               return error;
->> > +       can_wakeup = acpi_device_can_wakeup(adev);
->> > +
->> > +       if (can_wakeup) {
->> > +               error = acpi_device_wakeup(adev, target_state, wakeup);
->> > +               if (wakeup && error)
->> > +                       return error;
->> > +       } else if (wakeup) {
->>
->> I think we just need to return an error code in that case, because otherwise
->
-> We used to return error and that error aborted the suspend altogether,
-> which prompted creating this patch.
->
->> this is potentially dangerous (worst case, it may be impossible to wake up
->> the machine at all after that).
->
-> Yes, there is such potential, but that kind of error (no working wakeup
-> sources) will be discovered before a box is shipped. Right now we have
-> boxes in the wild that suspend fine with 3.10 and refuse to suspend with
-> 3.14 because between 3.10 and 3.14 we started placing i2c devices with
-> ACPI companions into ACPI power domain and ACPI power domain is now
-> trying to configure them as wakeup sources and fails.
+Now trying to update BIOS.
 
-A gentle ping on the patch - without it (or something else) we basically
-have a regression on shipped hardware: Chromebooks that were
-suspending fine with 3.10 refuse to suspend with 3.14.
+P.S. Still affected while using 3.17.2 kernel.
 
-Thanks.
-
+On Tuesday 11 November 2014 12:41:18 Oleksandr Natalenko wrote:
+> It seems that this bug has nothing to do with acpi-cpufreq code but with
+> another ACPI area.
+> 
+> With ACPI enabled kernel may hang in a day or in a week (never survived more
+> than approx. 2 weeks). With acpi=off it seems to work OK. For instance, I
+> had to boot Ubuntu installer with acpi disabled to finish it successfully.
+> 
+> Usually, hanging is not accompanied by panic log. Only small vertical red
+> lines appear on the screen near letters (tried to use plaintext 80x25
+> console without radeon and got the same issue).
+> 
+> Still observing this for 3.16 kernel.
+> 
+> On Wednesday 13 August 2014 10:12:06 Viresh Kumar wrote:
+> > On 13 August 2014 00:24, Oleksandr Natalenko <oleksandr@natalenko.name>
+> 
+> wrote:
+> > > Updated logs.
+> > 
+> > Also will it be possible for you to find the last working kernel after
+> > which this
+> > happened?
 -- 
-Dmitry
+Oleksandr post-factum Natalenko, MSc
+pf-kernel community
+https://natalenko.name/
