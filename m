@@ -1,56 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1 linux-next] ACPI: remove unnecessary sizeof(u8)
-Date: Wed, 19 Nov 2014 00:28:32 +0100
-Message-ID: <3970319.cPmRxBPPro@vostro.rjw.lan>
-References: <1416131820-7336-1-git-send-email-fabf@skynet.be>
+Subject: Re: [PATCH] ACPI / Kconfig: Remove redundant depends on ACPI
+Date: Wed, 19 Nov 2014 00:29:01 +0100
+Message-ID: <2328327.v8Xh1u8vIt@vostro.rjw.lan>
+References: <1415958247-7143-1-git-send-email-hanjun.guo@linaro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60521 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58111 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932700AbaKRXH2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 18:07:28 -0500
-In-Reply-To: <1416131820-7336-1-git-send-email-fabf@skynet.be>
+	with SMTP id S1754553AbaKRXH4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 18:07:56 -0500
+In-Reply-To: <1415958247-7143-1-git-send-email-hanjun.guo@linaro.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.com>
 
-On Sunday, November 16, 2014 10:57:00 AM Fabian Frederick wrote:
-> sizeof(u8) is always 1.
+On Friday, November 14, 2014 05:44:07 PM Hanjun Guo wrote:
+> Since config ACPI_REDUCED_HARDWARE_ONLY is already depended
+> on ACPI (inside if ACPI / endif), so depdens on ACPI is redundant,
+> remove it and fix the minor syntax problem also.
 > 
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.com>
 
 Queued up for 3.19-rc1, thanks!
 
 > ---
->  drivers/acpi/utils.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+>  drivers/acpi/Kconfig | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 371ac12..dd8ff63 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -136,8 +136,7 @@ acpi_extract_package(union acpi_object *package,
->  				break;
->  			case 'B':
->  				size_required +=
-> -				    sizeof(u8 *) +
-> -				    (element->buffer.length * sizeof(u8));
-> +				    sizeof(u8 *) + element->buffer.length;
->  				tail_offset += sizeof(u8 *);
->  				break;
->  			default:
-> @@ -255,7 +254,7 @@ acpi_extract_package(union acpi_object *package,
->  				memcpy(tail, element->buffer.pointer,
->  				       element->buffer.length);
->  				head += sizeof(u8 *);
-> -				tail += element->buffer.length * sizeof(u8);
-> +				tail += element->buffer.length;
->  				break;
->  			default:
->  				/* Should never get here */
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index b23fe37..79078b8 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -360,15 +360,14 @@ config ACPI_BGRT
+>  config ACPI_REDUCED_HARDWARE_ONLY
+>  	bool "Hardware-reduced ACPI support only" if EXPERT
+>  	def_bool n
+> -	depends on ACPI
+>  	help
+> -	This config item changes the way the ACPI code is built.  When this
+> -	option is selected, the kernel will use a specialized version of
+> -	ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
+> -	resulting kernel will be smaller but it will also be restricted to
+> -	running in ACPI reduced hardware mode ONLY.
+> +	  This config item changes the way the ACPI code is built.  When this
+> +	  option is selected, the kernel will use a specialized version of
+> +	  ACPICA that ONLY supports the ACPI "reduced hardware" mode.  The
+> +	  resulting kernel will be smaller but it will also be restricted to
+> +	  running in ACPI reduced hardware mode ONLY.
+>  
+> -	If you are unsure what to do, do not enable this option.
+> +	  If you are unsure what to do, do not enable this option.
+>  
+>  source "drivers/acpi/apei/Kconfig"
+>  
 > 
 
 -- 
