@@ -1,79 +1,57 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 03/18] ACPI / table: Count matched and successfully
- parsed entries without specifying max entries
-Date: Tue, 18 Nov 2014 21:51:25 +0800
-Message-ID: <546B4EDD.9050804@linaro.org>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-4-git-send-email-hanjun.guo@linaro.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v11 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Tue, 18 Nov 2014 09:21:22 -0500
+Message-ID: <CAJ5Y-eZ4XKBOvdk9FLi=-5y7jMWM2Wq28QeS6isUdm=X4wFP0g@mail.gmail.com>
+References: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1415840378-1973-2-git-send-email-ashwin.chaugule@linaro.org>
+	<1946980.r78SuCoQbW@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:46447 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753932AbaKRNvi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 08:51:38 -0500
-Received: by mail-pd0-f182.google.com with SMTP id g10so8336017pdj.27
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2014 05:51:38 -0800 (PST)
-In-Reply-To: <1413553034-20956-4-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:40666 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755195AbaKROVX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 09:21:23 -0500
+Received: by mail-wi0-f180.google.com with SMTP id n3so5312000wiv.13
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2014 06:21:22 -0800 (PST)
+In-Reply-To: <1946980.r78SuCoQbW@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@l
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jaswinder Singh <jaswinder.singh@linaro.org>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi Rafael,
+On 18 November 2014 08:39, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 12 November 2014 19:59:38 Ashwin Chaugule wrote:
+>> ACPI 5.0+ spec defines a generic mode of communication
+>> between the OS and a platform such as the BMC. This medium
+>> (PCC) is typically used by CPPC (ACPI CPU Performance management),
+>> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
+>> states).
+>>
+>> This patch adds PCC support as a Mailbox Controller. As of
+>> ACPI v5.1 there is no provision for clients to lookup mailbox
+>> controllers in a way that Linux expects. e.g. in DT the clients
+>> can list the mailboxes they can associate with in the DT binding
+>> and then provide a unique index to lookup a channel within a mailbox.
+>> Since the ACPI spec doesn't have anything similar, we introduce a
+>> mailbox controller specific API so that when the client calls it,
+>> we know to lookup in the context of a specific controller. This
+>> also helps in keeping a consistent interface across DT and ACPI
+>> for such drivers.
+>>
+>> This patch implements basic PCC support using the ACPI v5.1
+>> structures. IRQ mode support will be provided as follow up patches.
+>>
+>> Reviewed-by: Mark Brown <broonie@kernel.org>
+>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>>
+>
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 
-On 2014=E5=B9=B410=E6=9C=8817=E6=97=A5 21:36, Hanjun Guo wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> It is very useful to traverse all available table entries without max
-> number of expected entries type. Current acpi_parse_entries()
-> implementation gives that feature but it does not count those entries=
-,
-> it returns 0 instead, so fix it to count matched and successfully
-> entries and return it.
->
-> NOTE: This change has no impact to x86 and ia64 archs since existing =
-code
-> checks for error occurrence only (acpi_parse_entries(...,0) < 0).
->
-> Acked-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Very much appreciated !
+Thanks for the constructive feedback Arnd, Jassi, Mark, Sudeep, Lv and Rafael!
+Jassi, can you please pick this patch? or if you'd prefer, I can send
+a git pull for it.
 
-Patch 2 and patch 3 are only for ACPI cores, and have no harm to x86
-and IA64, could you merge first in 3.19?
-
-Thanks
-Hanjun
-
-> ---
->   drivers/acpi/tables.c |    5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 21ae521..b18e45e 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -225,10 +225,13 @@ acpi_parse_entries(unsigned long table_size,
->   	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header=
-) <
->   	       table_end) {
->   		if (entry->type =3D=3D entry_id
-> -		    && (!max_entries || count++ < max_entries))
-> +		    && (!max_entries || count < max_entries)) {
->   			if (handler(entry, table_end))
->   				return -EINVAL;
->
-> +			count++;
-> +		}
-> +
->   		/*
->   		 * If entry->length is 0, break from this loop to avoid
->   		 * infinite loop.
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ashwin
