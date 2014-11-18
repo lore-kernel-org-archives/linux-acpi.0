@@ -1,57 +1,39 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v11 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Tue, 18 Nov 2014 09:21:22 -0500
-Message-ID: <CAJ5Y-eZ4XKBOvdk9FLi=-5y7jMWM2Wq28QeS6isUdm=X4wFP0g@mail.gmail.com>
-References: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1415840378-1973-2-git-send-email-ashwin.chaugule@linaro.org>
-	<1946980.r78SuCoQbW@wuerfel>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v5 01/18] ARM64: Move the init of cpu_logical_map(0)
+ before unflatten_device_tree()
+Date: Tue, 18 Nov 2014 16:43:13 +0000
+Message-ID: <20141118164312.GL28279@e104818-lin.cambridge.arm.com>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
+ <1413553034-20956-2-git-send-email-hanjun.guo@linaro.org>
+ <546B4D8D.2020605@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:40666 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755195AbaKROVX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 09:21:23 -0500
-Received: by mail-wi0-f180.google.com with SMTP id n3so5312000wiv.13
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2014 06:21:22 -0800 (PST)
-In-Reply-To: <1946980.r78SuCoQbW@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <546B4D8D.2020605@linaro.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawe
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jaswinder Singh <jaswinder.singh@linaro.org>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 18 November 2014 08:39, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wednesday 12 November 2014 19:59:38 Ashwin Chaugule wrote:
->> ACPI 5.0+ spec defines a generic mode of communication
->> between the OS and a platform such as the BMC. This medium
->> (PCC) is typically used by CPPC (ACPI CPU Performance management),
->> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
->> states).
->>
->> This patch adds PCC support as a Mailbox Controller. As of
->> ACPI v5.1 there is no provision for clients to lookup mailbox
->> controllers in a way that Linux expects. e.g. in DT the clients
->> can list the mailboxes they can associate with in the DT binding
->> and then provide a unique index to lookup a channel within a mailbox.
->> Since the ACPI spec doesn't have anything similar, we introduce a
->> mailbox controller specific API so that when the client calls it,
->> we know to lookup in the context of a specific controller. This
->> also helps in keeping a consistent interface across DT and ACPI
->> for such drivers.
->>
->> This patch implements basic PCC support using the ACPI v5.1
->> structures. IRQ mode support will be provided as follow up patches.
->>
->> Reviewed-by: Mark Brown <broonie@kernel.org>
->> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>
->
-> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+On Tue, Nov 18, 2014 at 01:45:49PM +0000, Hanjun Guo wrote:
+> On 2014=E5=B9=B410=E6=9C=8817=E6=97=A5 21:36, Hanjun Guo wrote:
+> > It always make sense to initialize CPU0's logical map entry from th=
+e
+> > hardware values, so move the initialization of cpu_logical_map(0)
+> > before unflatten_device_tree() which is needed by ACPI code later.
+> >
+> > Acked-by: Olof Johansson <olof@lixom.net>
+> > Acked-by: Mark Rutland <mark.rutland@arm.com>
+> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>=20
+> Could you merge this patch first in 3.19? It was acked by Olof and
+> Mark, and it will make sense without ACPI too.
 
-Very much appreciated !
-Thanks for the constructive feedback Arnd, Jassi, Mark, Sudeep, Lv and Rafael!
-Jassi, can you please pick this patch? or if you'd prefer, I can send
-a git pull for it.
+I think it can go in for 3.19 (it's Will's turn this time ;)).
 
-Thanks,
-Ashwin
+=46WIW:
+
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
