@@ -1,101 +1,176 @@
-From: Dmitry Torokhov <dtor@chromium.org>
-Subject: Re: [PATCH] ACPI: do not fail suspend if unable to configure wakeup
-Date: Tue, 18 Nov 2014 16:48:42 -0800
-Message-ID: <CAE_wzQ9Y5g+UV2CCfUE80O_0BCBjwHbRaAs153GpiRmZ+pDwAA@mail.gmail.com>
-References: <20141015225657.GA818@dtor-ws>
-	<1863054.8ksDvip1yp@vostro.rjw.lan>
-	<CAE_wzQ_keT0zm0iV=S3gM9r94bM73E5kFpbWX85AckRVcC6KSQ@mail.gmail.com>
-	<4442123.5JIyjOW8pr@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
+ BLOCKED flag.
+Date: Wed, 19 Nov 2014 08:55:25 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A36FB@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1414988981.git.lv.zheng@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
+ <20141118132328.GA27428@node.dhcp.inet.fi>
+ <4486101.LWS7CexbAj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4442123.5JIyjOW8pr@vostro.rjw.lan>
+In-Reply-To: <4486101.LWS7CexbAj@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dmitry Torokhov <dtor@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Benson Leung <bleung@chromium.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 18, 2014 at 5:01 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, November 18, 2014 04:14:49 PM Dmitry Torokhov wrote:
->> On Tue, Nov 18, 2014 at 4:20 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > It goes again below with a changelog, but since technically it is a regression
->> > fix, I'd like to push it for "stable" too.  I suppose that the commit that
->> > things stopped working after is a76e9bd89ae7 (i2c: attach/detach I2C client
->> > device to the ACPI power domain).  Is that correct?
->>
->> Yes.
->
-> OK
->
->> > --
->> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> > Subject: ACPI / PM: Ignore wakeup setting if the ACPI companion can't wake up
->> >
->> > As reported by Dmitry, on some Chromebooks there are devices with
->> > corresponding ACPI objects and with unusual system wakeup
->> > configuration.  Namely, they technically are wakeup-capable, but the
->> > wakeup is handled via a platform-specific out-of-band mechanism
->> > rather than by standard ACPI means.
->>
->> I think they are using standard ACPI wakeup methods, but in a very perverted
->> way: there is "shadow" ACPI sleep button corresponding to the GPIO assigned
->> to the trackpad or touchscreen; it is just not tied to touchpad/touchscreen
->> device in DSDT.
->
-> OK
->
-> This:
->
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / PM: Ignore wakeup setting if the ACPI companion can't wake up
->
-> As reported by Dmitry, on some Chromebooks there are devices with
-> corresponding ACPI objects and with unusual system wakeup
-> configuration.  Namely, they technically are wakeup-capable, but the
-> wakeup is handled via a platform-specific out-of-band mechanism and
-> the ACPI PM layer has no information on the wakeup capability.  As
-> a result, device_may_wakeup(dev) called from acpi_dev_suspend_late()
-> returns 'true' for those devices, but the wakeup.flags.valid flag is
-> unset for the corresponding ACPI device objects, so acpi_device_wakeup()
-> reproducibly fails for them causing acpi_dev_suspend_late() to return
-> an error code.  The entire system suspend is then aborted and the
-> machines in question cannot suspend at all.
->
-> Address the problem by ignoring the device_may_wakeup(dev) return
-> value in acpi_dev_suspend_late() if the ACPI companion of the device
-> being handled has wakeup.flags.valid unset (in which case it is clear
-> that the wakeup is supposed to be handled by other means).
->
-> This fixes a regression introduced by commit a76e9bd89ae7 (i2c:
-> attach/detach I2C client device to the ACPI power domain) as the
-> affected systems could suspend and resume successfully before that
-> commit.
->
-> Fixes: a76e9bd89ae7 (i2c: attach/detach I2C client device to the ACPI power domain)
-> Reported-by: Dmitry Torokhov <dtor@chromium.org>
-
-Excellent, thank you Rafael.
-
-Reviewed-by: Dmitry Torokhov <dtor@chromium.org>
-
-> Cc: 3.13+ <stable@vger.kernel.org>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/device_pm.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> Index: linux-pm/drivers/acpi/device_pm.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -878,7 +878,7 @@ int acpi_dev_suspend_late(struct device
->                 return 0;
->
->         target_state = acpi_target_system_state();
-> -       wakeup = device_may_wakeup(dev);
-> +       wakeup = device_may_wakeup(dev) && acpi_device_can_wakeup(adev);
->         error = acpi_device_wakeup(adev, target_state, wakeup);
->         if (wakeup && error)
->                 return error;
->
+SGksIFJhZmFlbA0KDQpJIHRoaW5rIHlvdSBrbm93IHRoaXMgaXNzdWUuDQoNCiBbUEFUQ0ggMV0g
+Y2FuIHRyaWdnZXIgdGhpcyBkZWFkIGxvY2sgYmVjYXVzZSBpdCBpcyBhY3R1YWxseSBiYXNlZCBv
+biBhbm90aGVyIEdQRSBkZWFkIGxvY2sgZml4aW5nIHNlcmllcy4NCkkgaGF2ZSBmaXhlZCB0aGUg
+ZGVhZCBsb2NrIGluIGFjcGlfZXZfZ3BlX2RldGVjdCgpIG9yIGFjcGlfZXZfZ3BlX2Rpc3BhdGNo
+KCkuDQpUaGUgcHJvYmxlbSBpcyB0aGV5IGhhdmVuJ3QgYmVlbiB1cHN0cmVhbWVkIHRvIEFDUElD
+QSwgc28gSSBjb3VsZG4ndCBwb3N0IHRoZW0gaGVyZS4NCg0KSSB3YXMgdGhpbmtpbmcgd2UgY2Fu
+IHdvcmsgdGhpcyBhcm91bmQgYnkgYXBwbHlpbmcgdGhlIGFjcGlfb3Nfd2FpdF9ldmVudHNfY29t
+cGxldGUoKSBlbmhhbmNlbWVudCBzdXBwb3J0IHByaW9yIHRoYW4gYXBwbHlpbmcgdGhpcyAgYmVj
+YXVzZSBpdCBjYW4gb25seSBoYXBwZW4gaW4gc3VzcGVuZC4NCkJ1dCBpdCBzZWVtcyB0aGlzIGNh
+biBhbHNvIGJlIHRyaWdnZXJlZCBkdXJpbmcgYm9vdC4NCg0KU28gd2UgY2FuIGhhdmUgMyBjaG9p
+Y2VzIGhlcmUgaW4gb3JkZXIgdG8gbWVyZ2UgdGhpcyBzZXJpZXM6DQoxLiBNZXJnaW5nIHRoZSBH
+UEUgZGVhZCBsb2NrIGZpeCBiZWZvcmUgaXQgaXMgbWVyZ2VkIGluIHRoZSBBQ1BJQ0EgdXBzdHJl
+YW0uDQoyLiBDaGFuZ2luZyBbUEFUQ0ggMV0gYW5kIGRvIG5vdCBob2xkIEVDIGxvY2sgY3VycmVu
+dGx5ICh0aG91Z2ggaXQgaXMgcmFjeSwgaXQgaXMgY3VycmVudGx5IHJhY3kpLg0KMy4gUmV2ZXJ0
+aW5nIFtQQVRDSCAxLTRdIGFuZCB3YWl0IHVudGlsIEdQRSBkZWFkIGxvY2sgZml4ZWQgaW4gQUNQ
+SUNBIHVwc3RyZWFtLg0KV2hpY2ggb25lIGRvIHlvdSBwcmVmZXI/DQoNCklNTywgd2UgaGF2ZSBz
+ZXZlcmFsIGlzc3VlcywgdGhlaXIgZml4ZXMgZm9ybSBhIGRlcGVuZGVuY3kgY2lyY2xlOg0KMS4g
+R1BFIGRlYWQgbG9jazogaXQgbWF5IGRlcGVuZHMgb24gRElTUEFUQ0hfTUVUSE9EIGZsdXNoaW5n
+ICh3ZSBzaG91bGRuJ3QgYnVtcCBlbmFibGluZyBzdGF0dXMgdXAgaW4gYWNwaV9ldl9hc3luY2hf
+ZW5hYmxlX2dwZSgpKQ0KMi4gRUMgdHJhbnNhY3Rpb24gZmx1c2hpbmc6IGl0IGRlcGVuZHMgb24g
+dGhlIEdQRSBkZWFkIGxvY2sNCjMuIEVDIGV2ZW50IHBvbGxpbmc6IGl0IGRlcGVuZHMgb24gdGhl
+IEVDIHRyYW5zYWN0aW9uIGZsdXNoaW5nLCB0aGlzIGlzIHJlcXVpcmVkIHRvIHN1cHBvcnQgRUMg
+ZXZlbnQgZHJhaW5pbmcgYXMgbWVudGlvbmVkIGluIGJ1Z3ppbGxhIDQ0MTYxDQo0LiBESVNQQVRD
+SF9NRVRIT0QgZmx1c2hpbmc6IGl0IGRlcGVuZHMgb24gRUMgZXZlbnQgcG9sbGluZywgaWYgd2Ug
+ZG9uJ3QgbW92ZSBFQyBxdWVyeSBmcm9tIHRoZSBfTHh4L19FeHggd29yayBxdWV1ZSwgdGhlbiBp
+dCBtYXkgYmxvY2sgRElTUEFUQ0hfTUVUSE9EIGZsdXNoaW5nLg0KU28gaXQgc2VlbXMgd2UgbmVl
+ZCB0byBkZXRlcm1pbmUgd2hpY2ggb25lIHNob3VsZCBiZSBtZXJnZWQgZmlyc3QuDQpJTU8sIHRo
+ZSBHUEUgZGVhZCBsb2NrIGZpeCBpcyB0aGUgbW9zdCBiYXNpYyBvbmUuDQoNClRoYW5rcyBhbmQg
+YmVzdCByZWdhcmRzDQotTHYNCg0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86
+cmp3QHJqd3lzb2NraS5uZXRdDQo+IFNlbnQ6IFdlZG5lc2RheSwgTm92ZW1iZXIgMTksIDIwMTQg
+NToyMCBBTQ0KPiBUbzogS2lyaWxsIEEuIFNodXRlbW92DQo+IENjOiBaaGVuZywgTHY7IFd5c29j
+a2ksIFJhZmFlbCBKOyBCcm93biwgTGVuOyBMdiBaaGVuZzsgbGludXgta2VybmVsQHZnZXIua2Vy
+bmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRD
+SCAxLzZdIEFDUEkvRUM6IEludHJvZHVjZSBTVEFSVEVEL1NUT1BQRUQgZmxhZ3MgdG8gcmVwbGFj
+ZSBCTE9DS0VEIGZsYWcuDQo+IA0KPiBPbiBUdWVzZGF5LCBOb3ZlbWJlciAxOCwgMjAxNCAwMzoy
+MzoyOCBQTSBLaXJpbGwgQS4gU2h1dGVtb3Ygd3JvdGU6DQo+ID4gT24gV2VkLCBOb3YgMDUsIDIw
+MTQgYXQgMDI6NTI6MzZBTSArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiANCj4gW2N1dF0NCj4g
+DQo+ID4NCj4gPiBIZXJlJ3MgbG9ja2RlcCB3YXJuaW5nIEkgc2VlIG9uIC1uZXh0Og0KPiANCj4g
+SXMgcGF0Y2ggWzEvNl0gc3VmZmljaWVudCB0byB0cmlnZ2VyIHRoaXMgb3IgZG8geW91IG5lZWQg
+YWxsIFsxLTQvNl0/DQo+IA0KPiANCj4gPiBbICAgIDAuNTEwMTU5XSA9PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPiBbICAgIDAuNTEwMTcx
+XSBbIElORk86IHBvc3NpYmxlIGNpcmN1bGFyIGxvY2tpbmcgZGVwZW5kZW5jeSBkZXRlY3RlZCBd
+DQo+ID4gWyAgICAwLjUxMDE4NV0gMy4xOC4wLXJjNC1uZXh0LTIwMTQxMTE3LTA3NDA0LWc5ZGFk
+MmFiNmRmOGIgIzY2IE5vdCB0YWludGVkDQo+ID4gWyAgICAwLjUxMDE5N10gLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+IFsgICAgMC41
+MTAyMDldIHN3YXBwZXIvMy8wIGlzIHRyeWluZyB0byBhY3F1aXJlIGxvY2s6DQo+ID4gWyAgICAw
+LjUxMDIxOV0gICgmKCZlYy0+bG9jayktPnJsb2NrKXstLi4uLi59LCBhdDogWzxmZmZmZmZmZjgx
+NGQ1MzNlPl0gYWNwaV9lY19ncGVfaGFuZGxlcisweDIxLzB4ZmMNCj4gPiBbICAgIDAuNTEwMjU0
+XQ0KPiA+IFsgICAgMC41MTAyNTRdIGJ1dCB0YXNrIGlzIGFscmVhZHkgaG9sZGluZyBsb2NrOg0K
+PiA+IFsgICAgMC41MTAyNjZdICAoJigqKCZhY3BpX2dibF9ncGVfbG9jaykpLT5ybG9jayl7LS4u
+Li4ufSwgYXQ6IFs8ZmZmZmZmZmY4MTRjZDY3ZT5dIGFjcGlfb3NfYWNxdWlyZV9sb2NrKzB4ZS8w
+eDEwDQo+ID4gWyAgICAwLjUxMDI5Nl0NCj4gPiBbICAgIDAuNTEwMjk2XSB3aGljaCBsb2NrIGFs
+cmVhZHkgZGVwZW5kcyBvbiB0aGUgbmV3IGxvY2suDQo+ID4gWyAgICAwLjUxMDI5Nl0NCj4gPiBb
+ICAgIDAuNTEwMzEyXQ0KPiA+IFsgICAgMC41MTAzMTJdIHRoZSBleGlzdGluZyBkZXBlbmRlbmN5
+IGNoYWluIChpbiByZXZlcnNlIG9yZGVyKSBpczoNCj4gPiBbICAgIDAuNTEwMzI3XQ0KPiA+IFsg
+ICAgMC41MTAzMjddIC0+ICMxICgmKCooJmFjcGlfZ2JsX2dwZV9sb2NrKSktPnJsb2NrKXstLi4u
+Li59Og0KPiA+IFsgICAgMC41MTAzNDRdICAgICAgICBbPGZmZmZmZmZmODExNThmNGY+XSBsb2Nr
+X2FjcXVpcmUrMHhkZi8weDJkMA0KPiA+IFsgICAgMC41MTAzNjRdICAgICAgICBbPGZmZmZmZmZm
+ODFiMDgwMTA+XSBfcmF3X3NwaW5fbG9ja19pcnFzYXZlKzB4NTAvMHg3MA0KPiA+IFsgICAgMC41
+MTAzODFdICAgICAgICBbPGZmZmZmZmZmODE0Y2Q2N2U+XSBhY3BpX29zX2FjcXVpcmVfbG9jaysw
+eGUvMHgxMA0KPiA+IFsgICAgMC41MTAzOThdICAgICAgICBbPGZmZmZmZmZmODE0ZTMxZTg+XSBh
+Y3BpX2VuYWJsZV9ncGUrMHgyMi8weDY4DQo+ID4gWyAgICAwLjUxMDQxNl0gICAgICAgIFs8ZmZm
+ZmZmZmY4MTRkNWIyND5dIGFjcGlfZWNfc3RhcnQrMHg2Ni8weDg3DQo+ID4gWyAgICAwLjUxMDQz
+Ml0gICAgICAgIFs8ZmZmZmZmZmY4MWFmYzc3MT5dIGVjX2luc3RhbGxfaGFuZGxlcnMrMHg0MS8w
+eGE0DQo+ID4gWyAgICAwLjUxMDQ0OV0gICAgICAgIFs8ZmZmZmZmZmY4MjNlNzJiOT5dIGFjcGlf
+ZWNfZWNkdF9wcm9iZSsweDFhOS8weDFlYQ0KPiA+IFsgICAgMC41MTA0NjZdICAgICAgICBbPGZm
+ZmZmZmZmODIzZTZhZTM+XSBhY3BpX2luaXQrMHg4Yi8weDI2ZQ0KPiA+IFsgICAgMC41MTA0ODBd
+ICAgICAgICBbPGZmZmZmZmZmODEwMDIxNDg+XSBkb19vbmVfaW5pdGNhbGwrMHhkOC8weDIxMA0K
+PiA+IFsgICAgMC41MTA0OTZdICAgICAgICBbPGZmZmZmZmZmODIzOWYxZGM+XSBrZXJuZWxfaW5p
+dF9mcmVlYWJsZSsweDFmNS8weDI4Mg0KPiA+IFsgICAgMC41MTA1MTNdICAgICAgICBbPGZmZmZm
+ZmZmODFhZjFhMWU+XSBrZXJuZWxfaW5pdCsweGUvMHhmMA0KPiA+IFsgICAgMC41MTA1MjddICAg
+ICAgICBbPGZmZmZmZmZmODFiMDhjZmM+XSByZXRfZnJvbV9mb3JrKzB4N2MvMHhiMA0KPiA+IFsg
+ICAgMC41MTA1NDJdDQo+ID4gWyAgICAwLjUxMDU0Ml0gLT4gIzAgKCYoJmVjLT5sb2NrKS0+cmxv
+Y2spey0uLi4uLn06DQo+ID4gWyAgICAwLjUxMDU1OF0gICAgICAgIFs8ZmZmZmZmZmY4MTE1ODVl
+Zj5dIF9fbG9ja19hY3F1aXJlKzB4MjEwZi8weDIyMjANCj4gPiBbICAgIDAuNTEwNTc0XSAgICAg
+ICAgWzxmZmZmZmZmZjgxMTU4ZjRmPl0gbG9ja19hY3F1aXJlKzB4ZGYvMHgyZDANCj4gPiBbICAg
+IDAuNTEwNTg5XSAgICAgICAgWzxmZmZmZmZmZjgxYjA4MDEwPl0gX3Jhd19zcGluX2xvY2tfaXJx
+c2F2ZSsweDUwLzB4NzANCj4gPiBbICAgIDAuNTEwNjA0XSAgICAgICAgWzxmZmZmZmZmZjgxNGQ1
+MzNlPl0gYWNwaV9lY19ncGVfaGFuZGxlcisweDIxLzB4ZmMNCj4gPiBbICAgIDAuNTEwNjIwXSAg
+ICAgICAgWzxmZmZmZmZmZjgxNGUwMmMyPl0gYWNwaV9ldl9ncGVfZGlzcGF0Y2grMHhkMi8weDE0
+Mw0KPiA+IFsgICAgMC41MTA2MzZdICAgICAgICBbPGZmZmZmZmZmODE0ZTAzZmI+XSBhY3BpX2V2
+X2dwZV9kZXRlY3QrMHhjOC8weDEwZg0KPiA+IFsgICAgMC41MTA2NTJdICAgICAgICBbPGZmZmZm
+ZmZmODE0ZTIzYjY+XSBhY3BpX2V2X3NjaV94cnVwdF9oYW5kbGVyKzB4MjIvMHgzOA0KPiA+IFsg
+ICAgMC41MTA2NjldICAgICAgICBbPGZmZmZmZmZmODE0Y2M4ZWU+XSBhY3BpX2lycSsweDE2LzB4
+MzENCj4gPiBbICAgIDAuNTEwNjg0XSAgICAgICAgWzxmZmZmZmZmZjgxMTZlY2NmPl0gaGFuZGxl
+X2lycV9ldmVudF9wZXJjcHUrMHg2Zi8weDU0MA0KPiA+IFsgICAgMC41MTA3MDJdICAgICAgICBb
+PGZmZmZmZmZmODExNmYxZTE+XSBoYW5kbGVfaXJxX2V2ZW50KzB4NDEvMHg3MA0KPiA+IFsgICAg
+MC41MTA3MThdICAgICAgICBbPGZmZmZmZmZmODExNzFlZjY+XSBoYW5kbGVfZmFzdGVvaV9pcnEr
+MHg4Ni8weDE0MA0KPiA+IFsgICAgMC41MTA3MzNdICAgICAgICBbPGZmZmZmZmZmODEwNzVhMjI+
+XSBoYW5kbGVfaXJxKzB4MjIvMHg0MA0KPiA+IFsgICAgMC41MTA3NDhdICAgICAgICBbPGZmZmZm
+ZmZmODFiMGJlYWY+XSBkb19JUlErMHg0Zi8weGYwDQo+ID4gWyAgICAwLjUxMDc2Ml0gICAgICAg
+IFs8ZmZmZmZmZmY4MWIwOWJiMj5dIHJldF9mcm9tX2ludHIrMHgwLzB4MWENCj4gPiBbICAgIDAu
+NTEwNzc3XSAgICAgICAgWzxmZmZmZmZmZjgxMDdlNzgzPl0gZGVmYXVsdF9pZGxlKzB4MjMvMHgy
+NjANCj4gPiBbICAgIDAuNTEwNzkyXSAgICAgICAgWzxmZmZmZmZmZjgxMDdmMzVmPl0gYXJjaF9j
+cHVfaWRsZSsweGYvMHgyMA0KPiA+IFsgICAgMC41MTA4MDZdICAgICAgICBbPGZmZmZmZmZmODEx
+NGE5OWI+XSBjcHVfc3RhcnR1cF9lbnRyeSsweDM2Yi8weDViMA0KPiA+IFsgICAgMC41MTA4MjFd
+ICAgICAgICBbPGZmZmZmZmZmODEwYThkMDQ+XSBzdGFydF9zZWNvbmRhcnkrMHgxYTQvMHgxZDAN
+Cj4gPiBbICAgIDAuNTEwODQwXQ0KPiA+IFsgICAgMC41MTA4NDBdIG90aGVyIGluZm8gdGhhdCBt
+aWdodCBoZWxwIHVzIGRlYnVnIHRoaXM6DQo+ID4gWyAgICAwLjUxMDg0MF0NCj4gPiBbICAgIDAu
+NTEwODU2XSAgUG9zc2libGUgdW5zYWZlIGxvY2tpbmcgc2NlbmFyaW86DQo+ID4gWyAgICAwLjUx
+MDg1Nl0NCj4gPiBbICAgIDAuNTEwODY4XSAgICAgICAgQ1BVMCAgICAgICAgICAgICAgICAgICAg
+Q1BVMQ0KPiA+IFsgICAgMC41MTA4NzddICAgICAgICAtLS0tICAgICAgICAgICAgICAgICAgICAt
+LS0tDQo+ID4gWyAgICAwLjUxMDg4Nl0gICBsb2NrKCYoKigmYWNwaV9nYmxfZ3BlX2xvY2spKS0+
+cmxvY2spOw0KPiA+IFsgICAgMC41MTA4OThdICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICBsb2NrKCYoJmVjLT5sb2NrKS0+cmxvY2spOw0KPiA+IFsgICAgMC41MTA5MTJdICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBsb2NrKCYoKigmYWNwaV9nYmxfZ3BlX2xvY2spKS0+cmxv
+Y2spOw0KPiA+IFsgICAgMC41MTA5MjddICAgbG9jaygmKCZlYy0+bG9jayktPnJsb2NrKTsNCj4g
+PiBbICAgIDAuNTEwOTM4XQ0KPiA+IFsgICAgMC41MTA5MzhdICAqKiogREVBRExPQ0sgKioqDQo+
+ID4gWyAgICAwLjUxMDkzOF0NCj4gPiBbICAgIDAuNTEwOTUzXSAxIGxvY2sgaGVsZCBieSBzd2Fw
+cGVyLzMvMDoNCj4gPiBbICAgIDAuNTEwOTYxXSAgIzA6ICAoJigqKCZhY3BpX2dibF9ncGVfbG9j
+aykpLT5ybG9jayl7LS4uLi4ufSwgYXQ6IFs8ZmZmZmZmZmY4MTRjZDY3ZT5dIGFjcGlfb3NfYWNx
+dWlyZV9sb2NrKzB4ZS8weDEwDQo+ID4gWyAgICAwLjUxMDk5MF0NCj4gPiBbICAgIDAuNTEwOTkw
+XSBzdGFjayBiYWNrdHJhY2U6DQo+ID4gWyAgICAwLjUxMTAwNF0gQ1BVOiAzIFBJRDogMCBDb21t
+OiBzd2FwcGVyLzMgTm90IHRhaW50ZWQgMy4xOC4wLXJjNC1uZXh0LTIwMTQxMTE3LTA3NDA0LWc5
+ZGFkMmFiNmRmOGIgIzY2DQo+ID4gWyAgICAwLjUxMTAyMV0gSGFyZHdhcmUgbmFtZTogTEVOT1ZP
+IDM0NjBDQzYvMzQ2MENDNiwgQklPUyBHNkVUOTNXVyAoMi41MyApIDAyLzA0LzIwMTMNCj4gPiBb
+ICAgIDAuNTExMDM1XSAgZmZmZmZmZmY4MmNiMmY3MCBmZmZmODgwMTFlMmMzYmI4IGZmZmZmZmZm
+ODFhZmMzMTYgMDAwMDAwMDAwMDAwMDAxMQ0KPiA+IFsgICAgMC41MTEwNTVdICBmZmZmZmZmZjgy
+Y2IyZjcwIGZmZmY4ODAxMWUyYzNjMDggZmZmZmZmZmY4MWFmYWUxMSAwMDAwMDAwMDAwMDAwMDAx
+DQo+ID4gWyAgICAwLjUxMTA3NF0gIGZmZmY4ODAxMWUyYzNjNjggZmZmZjg4MDExZTJjM2MwOCBm
+ZmZmODgwMTE5M2Y5MmQwIGZmZmY4ODAxMTkzZjliMjANCj4gPiBbICAgIDAuNTExMDk0XSBDYWxs
+IFRyYWNlOg0KPiA+IFsgICAgMC41MTExMDFdICA8SVJRPiAgWzxmZmZmZmZmZjgxYWZjMzE2Pl0g
+ZHVtcF9zdGFjaysweDRjLzB4NmUNCj4gPiBbICAgIDAuNTExMTI1XSAgWzxmZmZmZmZmZjgxYWZh
+ZTExPl0gcHJpbnRfY2lyY3VsYXJfYnVnKzB4MmIyLzB4MmMzDQo+ID4gWyAgICAwLjUxMTE0Ml0g
+IFs8ZmZmZmZmZmY4MTE1ODVlZj5dIF9fbG9ja19hY3F1aXJlKzB4MjEwZi8weDIyMjANCj4gPiBb
+ICAgIDAuNTExMTU5XSAgWzxmZmZmZmZmZjgxMTU4ZjRmPl0gbG9ja19hY3F1aXJlKzB4ZGYvMHgy
+ZDANCj4gPiBbICAgIDAuNTExMTc2XSAgWzxmZmZmZmZmZjgxNGQ1MzNlPl0gPyBhY3BpX2VjX2dw
+ZV9oYW5kbGVyKzB4MjEvMHhmYw0KPiA+IFsgICAgMC41MTExOTJdICBbPGZmZmZmZmZmODFiMDgw
+MTA+XSBfcmF3X3NwaW5fbG9ja19pcnFzYXZlKzB4NTAvMHg3MA0KPiA+IFsgICAgMC41MTEyMDld
+ICBbPGZmZmZmZmZmODE0ZDUzM2U+XSA/IGFjcGlfZWNfZ3BlX2hhbmRsZXIrMHgyMS8weGZjDQo+
+ID4gWyAgICAwLjUxMTIyNV0gIFs8ZmZmZmZmZmY4MTRlYTE5Mj5dID8gYWNwaV9od193cml0ZSsw
+eDRiLzB4NTINCj4gPiBbICAgIDAuNTExMjQxXSAgWzxmZmZmZmZmZjgxNGQ1MzNlPl0gYWNwaV9l
+Y19ncGVfaGFuZGxlcisweDIxLzB4ZmMNCj4gPiBbICAgIDAuNTExMjU4XSAgWzxmZmZmZmZmZjgx
+NGUwMmMyPl0gYWNwaV9ldl9ncGVfZGlzcGF0Y2grMHhkMi8weDE0Mw0KPiA+IFsgICAgMC41MTEy
+NzRdICBbPGZmZmZmZmZmODE0ZTAzZmI+XSBhY3BpX2V2X2dwZV9kZXRlY3QrMHhjOC8weDEwZg0K
+PiA+IFsgICAgMC41MTEyOTJdICBbPGZmZmZmZmZmODE0ZTIzYjY+XSBhY3BpX2V2X3NjaV94cnVw
+dF9oYW5kbGVyKzB4MjIvMHgzOA0KPiA+IFsgICAgMC41MTEzMDldICBbPGZmZmZmZmZmODE0Y2M4
+ZWU+XSBhY3BpX2lycSsweDE2LzB4MzENCj4gPiBbICAgIDAuNTExMzI1XSAgWzxmZmZmZmZmZjgx
+MTZlY2NmPl0gaGFuZGxlX2lycV9ldmVudF9wZXJjcHUrMHg2Zi8weDU0MA0KPiA+IFsgICAgMC41
+MTEzNDJdICBbPGZmZmZmZmZmODExNmYxZTE+XSBoYW5kbGVfaXJxX2V2ZW50KzB4NDEvMHg3MA0K
+PiA+IFsgICAgMC41MTEzNTddICBbPGZmZmZmZmZmODExNzFlOTg+XSA/IGhhbmRsZV9mYXN0ZW9p
+X2lycSsweDI4LzB4MTQwDQo+ID4gWyAgICAwLjUxMTM3Ml0gIFs8ZmZmZmZmZmY4MTE3MWVmNj5d
+IGhhbmRsZV9mYXN0ZW9pX2lycSsweDg2LzB4MTQwDQo+ID4gWyAgICAwLjUxMTM4OF0gIFs8ZmZm
+ZmZmZmY4MTA3NWEyMj5dIGhhbmRsZV9pcnErMHgyMi8weDQwDQo+ID4gWyAgICAwLjUxMTQwMl0g
+IFs8ZmZmZmZmZmY4MWIwYmVhZj5dIGRvX0lSUSsweDRmLzB4ZjANCj4gPiBbICAgIDAuNTExNDE3
+XSAgWzxmZmZmZmZmZjgxYjA5YmIyPl0gY29tbW9uX2ludGVycnVwdCsweDcyLzB4NzINCj4gPiBb
+ICAgIDAuNTExNDI4XSAgPEVPST4gIFs8ZmZmZmZmZmY4MTBiODk4Nj5dID8gbmF0aXZlX3NhZmVf
+aGFsdCsweDYvMHgxMA0KPiA+IFsgICAgMC41MTE0NTRdICBbPGZmZmZmZmZmODExNTRmM2Q+XSA/
+IHRyYWNlX2hhcmRpcnFzX29uKzB4ZC8weDEwDQo+ID4gWyAgICAwLjUxMTQ2OF0gIFs8ZmZmZmZm
+ZmY4MTA3ZTc4Mz5dIGRlZmF1bHRfaWRsZSsweDIzLzB4MjYwDQo+ID4gWyAgICAwLjUxMTQ4Ml0g
+IFs8ZmZmZmZmZmY4MTA3ZjM1Zj5dIGFyY2hfY3B1X2lkbGUrMHhmLzB4MjANCj4gPiBbICAgIDAu
+NTExNDk2XSAgWzxmZmZmZmZmZjgxMTRhOTliPl0gY3B1X3N0YXJ0dXBfZW50cnkrMHgzNmIvMHg1
+YjANCj4gPiBbICAgIDAuNTExNTEyXSAgWzxmZmZmZmZmZjgxMGE4ZDA0Pl0gc3RhcnRfc2Vjb25k
+YXJ5KzB4MWE0LzB4MWQwDQo+ID4NCj4gPg0KPiA+DQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkg
+Zm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hu
+b2xvZ3kgQ2VudGVyLg0K
