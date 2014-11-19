@@ -1,61 +1,97 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 03/18] ACPI / table: Count matched and successfully
- parsed entries without specifying max entries
-Date: Wed, 19 Nov 2014 08:34:42 +0800
-Message-ID: <546BE5A2.6030101@linaro.org>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-4-git-send-email-hanjun.guo@linaro.org> <546B4EDD.9050804@linaro.org> <7743567.TJcygJtKD3@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: do not fail suspend if unable to configure wakeup
+Date: Wed, 19 Nov 2014 02:01:35 +0100
+Message-ID: <4442123.5JIyjOW8pr@vostro.rjw.lan>
+References: <20141015225657.GA818@dtor-ws> <1863054.8ksDvip1yp@vostro.rjw.lan> <CAE_wzQ_keT0zm0iV=S3gM9r94bM73E5kFpbWX85AckRVcC6KSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:63478 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754022AbaKSAgw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 19:36:52 -0500
-Received: by mail-pd0-f173.google.com with SMTP id ft15so3478701pdb.18
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Nov 2014 16:36:52 -0800 (PST)
-In-Reply-To: <7743567.TJcygJtKD3@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:62951 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754538AbaKSAkb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Nov 2014 19:40:31 -0500
+In-Reply-To: <CAE_wzQ_keT0zm0iV=S3gM9r94bM73E5kFpbWX85AckRVcC6KSQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@l
+To: Dmitry Torokhov <dtor@chromium.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Benson Leung <bleung@chromium.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 2014-11-19 4:15, Rafael J. Wysocki wrote:
-> On Tuesday, November 18, 2014 09:51:25 PM Hanjun Guo wrote:
->> Hi Rafael,
->>
->> On 2014=E5=B9=B410=E6=9C=8817=E6=97=A5 21:36, Hanjun Guo wrote:
->>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>
->>> It is very useful to traverse all available table entries without m=
-ax
->>> number of expected entries type. Current acpi_parse_entries()
->>> implementation gives that feature but it does not count those entri=
-es,
->>> it returns 0 instead, so fix it to count matched and successfully
->>> entries and return it.
->>>
->>> NOTE: This change has no impact to x86 and ia64 archs since existin=
-g code
->>> checks for error occurrence only (acpi_parse_entries(...,0) < 0).
->>>
->>> Acked-by: Grant Likely <grant.likely@linaro.org>
->>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> Patch 2 and patch 3 are only for ACPI cores, and have no harm to x86
->> and IA64, could you merge first in 3.19?
->=20
-> I can do that if that helps.
+On Tuesday, November 18, 2014 04:14:49 PM Dmitry Torokhov wrote:
+> On Tue, Nov 18, 2014 at 4:20 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > It goes again below with a changelog, but since technically it is a regression
+> > fix, I'd like to push it for "stable" too.  I suppose that the commit that
+> > things stopped working after is a76e9bd89ae7 (i2c: attach/detach I2C client
+> > device to the ACPI power domain).  Is that correct?
+> 
+> Yes.
 
-Yes, it helps to keep the next version of ARM64 ACPI patch set smaller
-and easy for review. If any rebase work needed, please let me know.
+OK
 
-Thanks
-Hanjun
+> > --
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI / PM: Ignore wakeup setting if the ACPI companion can't wake up
+> >
+> > As reported by Dmitry, on some Chromebooks there are devices with
+> > corresponding ACPI objects and with unusual system wakeup
+> > configuration.  Namely, they technically are wakeup-capable, but the
+> > wakeup is handled via a platform-specific out-of-band mechanism
+> > rather than by standard ACPI means.
+> 
+> I think they are using standard ACPI wakeup methods, but in a very perverted
+> way: there is "shadow" ACPI sleep button corresponding to the GPIO assigned
+> to the trackpad or touchscreen; it is just not tied to touchpad/touchscreen
+> device in DSDT.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK
+
+This:
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / PM: Ignore wakeup setting if the ACPI companion can't wake up
+
+As reported by Dmitry, on some Chromebooks there are devices with
+corresponding ACPI objects and with unusual system wakeup
+configuration.  Namely, they technically are wakeup-capable, but the
+wakeup is handled via a platform-specific out-of-band mechanism and
+the ACPI PM layer has no information on the wakeup capability.  As
+a result, device_may_wakeup(dev) called from acpi_dev_suspend_late()
+returns 'true' for those devices, but the wakeup.flags.valid flag is
+unset for the corresponding ACPI device objects, so acpi_device_wakeup()
+reproducibly fails for them causing acpi_dev_suspend_late() to return
+an error code.  The entire system suspend is then aborted and the
+machines in question cannot suspend at all.
+
+Address the problem by ignoring the device_may_wakeup(dev) return
+value in acpi_dev_suspend_late() if the ACPI companion of the device
+being handled has wakeup.flags.valid unset (in which case it is clear
+that the wakeup is supposed to be handled by other means).
+
+This fixes a regression introduced by commit a76e9bd89ae7 (i2c:
+attach/detach I2C client device to the ACPI power domain) as the
+affected systems could suspend and resume successfully before that
+commit.
+
+Fixes: a76e9bd89ae7 (i2c: attach/detach I2C client device to the ACPI power domain)
+Reported-by: Dmitry Torokhov <dtor@chromium.org>
+Cc: 3.13+ <stable@vger.kernel.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/device_pm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -878,7 +878,7 @@ int acpi_dev_suspend_late(struct device
+ 		return 0;
+ 
+ 	target_state = acpi_target_system_state();
+-	wakeup = device_may_wakeup(dev);
++	wakeup = device_may_wakeup(dev) && acpi_device_can_wakeup(adev);
+ 	error = acpi_device_wakeup(adev, target_state, wakeup);
+ 	if (wakeup && error)
+ 		return error;
+
