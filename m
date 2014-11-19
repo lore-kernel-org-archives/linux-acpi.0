@@ -1,177 +1,86 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH 1/6] x86, acpi,
- pci: Reorder logic of pci_mmconfig_insert() function
-Date: Wed, 19 Nov 2014 17:04:46 +0100
-Message-ID: <1416413091-13452-2-git-send-email-tomasz.nowicki@linaro.org>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] ACPI: Add _DEP(Operation Region Dependencies) support to
+ fix battery issue on the Asus T100TA
+Date: Wed, 19 Nov 2014 17:05:47 +0100
+Message-ID: <20141119160547.GA8557@katana>
+References: <1416410441-14425-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, lorenzo.pieralisi@arm.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net
-Cc: linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1416410441-14425-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, shigorin@gmail.com, adamw@happyassassin.net, jan.brummer@tabos.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch is the first step of MMCONFIG refactoring process.
 
-Code that uses pci_mmcfg_lock will be moved to common file and become
-accessible for all architectures. pci_mmconfig_insert() cannot be moved
-so easily since it is mixing generic mmcfg code with x86 specific logic
-inside of mutual exclusive block guarded by pci_mmcfg_lock.
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-To get rid of that constraint we reorder actions as fallow:
-1. mmconfig entry allocation can be done at first, does not need lock
-2. insertion to iomem_resource has its own lock, no need to wrap it into mutex
-3. insertion to mmconfig list can be done as the final stage in separate
-function (candidate for further factoring)
+On Wed, Nov 19, 2014 at 11:20:41PM +0800, Lan Tianyu wrote:
+> ACPI 5.0 introduces _DEP to designate device objects that OSPM should
+> assign a higher priority in start ordering due to future operation region
+> accesses.
+>=20
+> On Asus T100TA, ACPI battery info are read from a I2C slave device via
+> I2C operation region. Before I2C operation region handler is installed,
+> battery _STA always returns 0. There is a _DEP method of designating
+> start order under battery device node.
+>=20
+> This patch is to implement _DEP feature to fix battery issue on the Asus =
+T100TA.
+> Introducing acpi_dep_list and adding dep_unmet count in the struct
+> acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
+> valid pair of master (device pointed to by _DEP)/slave(device with _DEP),=
+ record
+> master's and slave's ACPI handle in it and put it into acpi_dep_list. The=
+ dep_unmet
+> count will increase by one if there is a device under its _DEP. Driver's =
+probe() should
+> return EPROBE_DEFER when find dep_unmet larger than 0. When I2C operation
+> region handler is installed, remove all struct acpi_dep_data on the acpi_=
+dep_list
+> whose master is pointed to I2C host controller and decrease slave's dep_u=
+nmet.
+> When dep_unmet decreases to 0, all _DEP conditions are met and then do ac=
+pi_bus_attach()
+> for the device in order to resolve battery _STA issue on the Asus T100TA.
+>=20
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=3D69011=20
+> Tested-by: Jan-Michael Brummer <jan.brummer@tabos.org>
+> Tested-by: Adam Williamson <adamw@happyassassin.net>
+> Tested-by: Michael Shigorin <shigorin@gmail.com>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/x86/pci/mmconfig-shared.c | 100 ++++++++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 46 deletions(-)
+As long as the I2C related changes are that minimal:
 
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 326198a..ac24e1c 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -692,6 +692,39 @@ static int __init pci_mmcfg_late_insert_resources(void)
-  */
- late_initcall(pci_mmcfg_late_insert_resources);
- 
-+static int __init pci_mmconfig_inject(struct pci_mmcfg_region *cfg)
-+{
-+	struct pci_mmcfg_region *cfg_conflict;
-+	int err = 0;
-+
-+	mutex_lock(&pci_mmcfg_lock);
-+	cfg_conflict = pci_mmconfig_lookup(cfg->segment, cfg->start_bus);
-+	if (cfg_conflict) {
-+		if (cfg_conflict->end_bus < cfg->end_bus)
-+			pr_info(FW_INFO "MMCONFIG for "
-+				"domain %04x [bus %02x-%02x] "
-+				"only partially covers this bridge\n",
-+				cfg_conflict->segment, cfg_conflict->start_bus,
-+				cfg_conflict->end_bus);
-+		err = -EEXIST;
-+		goto out;
-+	}
-+
-+	if (pci_mmcfg_arch_map(cfg)) {
-+		pr_warn("fail to map MMCONFIG %pR.\n", &cfg->res);
-+		err = -ENOMEM;
-+		goto out;
-+	} else {
-+		list_add_sorted(cfg);
-+		pr_info("MMCONFIG at %pR (base %#lx)\n",
-+			&cfg->res, (unsigned long)cfg->address);
-+
-+	}
-+out:
-+	mutex_unlock(&pci_mmcfg_lock);
-+	return err;
-+}
-+
- /* Add MMCFG information for host bridges */
- int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
- 			phys_addr_t addr)
-@@ -703,66 +736,41 @@ int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
- 	if (!(pci_probe & PCI_PROBE_MMCONF) || pci_mmcfg_arch_init_failed)
- 		return -ENODEV;
- 
--	if (start > end)
-+	if (start > end || !addr)
- 		return -EINVAL;
- 
--	mutex_lock(&pci_mmcfg_lock);
--	cfg = pci_mmconfig_lookup(seg, start);
--	if (cfg) {
--		if (cfg->end_bus < end)
--			dev_info(dev, FW_INFO
--				 "MMCONFIG for "
--				 "domain %04x [bus %02x-%02x] "
--				 "only partially covers this bridge\n",
--				  cfg->segment, cfg->start_bus, cfg->end_bus);
--		mutex_unlock(&pci_mmcfg_lock);
--		return -EEXIST;
--	}
--
--	if (!addr) {
--		mutex_unlock(&pci_mmcfg_lock);
--		return -EINVAL;
--	}
--
- 	rc = -EBUSY;
- 	cfg = pci_mmconfig_alloc(seg, start, end, addr);
- 	if (cfg == NULL) {
- 		dev_warn(dev, "fail to add MMCONFIG (out of memory)\n");
--		rc = -ENOMEM;
-+		return -ENOMEM;
- 	} else if (!pci_mmcfg_check_reserved(dev, cfg, 0)) {
- 		dev_warn(dev, FW_BUG "MMCONFIG %pR isn't reserved\n",
- 			 &cfg->res);
--	} else {
--		/* Insert resource if it's not in boot stage */
--		if (pci_mmcfg_running_state)
--			tmp = insert_resource_conflict(&iomem_resource,
--						       &cfg->res);
--
--		if (tmp) {
--			dev_warn(dev,
--				 "MMCONFIG %pR conflicts with "
--				 "%s %pR\n",
--				 &cfg->res, tmp->name, tmp);
--		} else if (pci_mmcfg_arch_map(cfg)) {
--			dev_warn(dev, "fail to map MMCONFIG %pR.\n",
--				 &cfg->res);
--		} else {
--			list_add_sorted(cfg);
--			dev_info(dev, "MMCONFIG at %pR (base %#lx)\n",
--				 &cfg->res, (unsigned long)addr);
--			cfg = NULL;
--			rc = 0;
--		}
-+		goto error;
- 	}
- 
--	if (cfg) {
--		if (cfg->res.parent)
--			release_resource(&cfg->res);
--		kfree(cfg);
-+	/* Insert resource if it's not in boot stage */
-+	if (pci_mmcfg_running_state)
-+		tmp = insert_resource_conflict(&iomem_resource, &cfg->res);
-+
-+	if (tmp) {
-+		dev_warn(dev,
-+			 "MMCONFIG %pR conflicts with %s %pR\n",
-+			 &cfg->res, tmp->name, tmp);
-+		goto error;
- 	}
- 
--	mutex_unlock(&pci_mmcfg_lock);
-+	rc = pci_mmconfig_inject(cfg);
-+	if (rc)
-+		goto error;
-+
-+	return 0;
- 
-+error:
-+	if (cfg->res.parent)
-+		release_resource(&cfg->res);
-+	kfree(cfg);
- 	return rc;
- }
- 
--- 
-1.9.1
+Acked-by: Wolfram Sang <wsa@the-dreams.de> for the I2C part
+
+
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUbL/bAAoJEBQN5MwUoCm2JogQAIK28lczikHK/Ukm3thl2JbC
+JM8eud+VMxQDfAtarZyh8awYTsNatThy13vLlp0+ufdOeoauhNUyy64ai++eBA98
+1EFFKGO9qoNtv+fL2KVf3YtJXcSD8oRpzXjstDHEfQppshrkgsaXzFnWK1KCQTl1
+DJFgxlnpZ5gQDyJq3Wfm/R8LpvWkNgLPfYW94xvM6SFGejtnuEBcJo34XpXEPWLg
+CCXr/zYTonqiGuuhyNemYAk9U8aHVcfbNhrU70UzKzEI15a30s3GM2Acsg50mw5c
+4JBWWeb3EIjCv0JVfPANvDWIbEzPYmLtk/xaa2kulg07LfvpKJrkhVMxYE/yFqyI
+EWJypXqq8zB9UP/bw3YtZd5ZN9FC4045kQsxJSr7qWQk3goc5oSX7W6Yp7IziAbf
+f02r3XZPJC/b4ZBik/kGhql7873qaPT1rxxOMWcXFIyGbcOCSC+5Q00aaD9SaJ57
+loIKfe2TRSiYdC/vIk2dm3Vng/+rE5PyNb1LbNoXXTTLAPZvjGM+P/scdoNtmTRB
+H9VcQkbeamei3UXaH3i4kRBWpQmMxsbBjBQcq/toYauhiKPH6O2SMaOHpwzhx3l5
+laOjTEQBIztiB5KA2EkEAO9DWEwLz+9CoukYz2cEmVEPVbp6E2WserO8QWinWghh
+SiUjh8SzJkVCuu2bdxhF
+=mm43
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
