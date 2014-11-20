@@ -1,35 +1,62 @@
-From: Ahmed Tamrawi <ahmedtamrawi@gmail.com>
-Subject: Possible memory leak in function (acpi_video_init_brightness) not
- freeing (br->levels)
-Date: Wed, 19 Nov 2014 20:13:13 -0600
-Message-ID: <CAFZT-jL=2mDEQ-T69xUMGmb-MnPJAEAQbXjb8fNd=x04As7Esg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v3 1/2] ACPICA: Events: Remove duplicated sanity check in acpi_ev_enable_gpe().
+Date: Thu, 20 Nov 2014 10:19:49 +0800
+Message-ID: <434e1c81cce083f6a2d56e5cba3aba762f254449.1416449853.git.lv.zheng@intel.com>
+References: <20141119121615.GA2514@node.dhcp.inet.fi>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:56307 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754910AbaKTCNO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Nov 2014 21:13:14 -0500
-Received: by mail-ie0-f169.google.com with SMTP id y20so1892143ier.28
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Nov 2014 18:13:13 -0800 (PST)
+Received: from mga03.intel.com ([134.134.136.65]:3580 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754910AbaKTCT5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Nov 2014 21:19:57 -0500
+In-Reply-To: <20141119121615.GA2514@node.dhcp.inet.fi>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Bug Report Filed: https://bugzilla.kernel.org/show_bug.cgi?id=88531
-Linux Version [3.17-rc1]
-Configuration: Default configuration for x86
+This patch deletes a sanity check from acpi_ev_enable_gpe().
 
-Reference to source code:
-http://lxr.free-electrons.com/source/drivers/acpi/video.c#L1033
+This kind of check is already done in
+acpi_enable_gpe()/acpi_remove_gpe_handler()/acpi_update_all_gpes() before invoking
+acpi_ev_enable_gpe():
+1. acpi_enable_gpe(): same check (skip if DISPATCH_NONE) is now implemented.
+2. acpi_remove_gpe_handler(): a more strict check (skip if !DISPATCH_HANDLER)
+                           is implemented.
+3. acpi_update_all_gpes(): a more strict check (skip if DISPATCH_NONE ||
+                        DISPATCH_HANDLER || CAN_WAKE)
+4. acpi_set_gpe(): since it is invoked by the OSPM driver where the GPE
+                 handler is known to be available, such check isn't needed.
+So we can simply remove this duplicated check from acpi_ev_enable_gpe().
+Lv Zheng.
 
-In function (acpi_video_init_brightness) in file (drivers/acpi/video.c):
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpica/evgpe.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-The function allocates (br->levels) pointer at line (1033) and frees
-it on some paths at line (1137). However, the problem occurs when the
-function returns from line (1134) where the pointer (br->levels) is
-not freed. Thus, causing a memory leak when the function returns from
-line (1134).
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 2095dfb..9d1771d7 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -114,17 +114,6 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
+ 
+ 	ACPI_FUNCTION_TRACE(ev_enable_gpe);
+ 
+-	/*
+-	 * We will only allow a GPE to be enabled if it has either an associated
+-	 * method (_Lxx/_Exx) or a handler, or is using the implicit notify
+-	 * feature. Otherwise, the GPE will be immediately disabled by
+-	 * acpi_ev_gpe_dispatch the first time it fires.
+-	 */
+-	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
+-	    ACPI_GPE_DISPATCH_NONE) {
+-		return_ACPI_STATUS(AE_NO_HANDLER);
+-	}
+-
+ 	/* Clear the GPE (of stale events) */
+ 
+ 	status = acpi_hw_clear_gpe(gpe_event_info);
+-- 
+1.7.10
 
-
-~Ahmed
