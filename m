@@ -1,62 +1,31 @@
 From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
- BLOCKED flag.
-Date: Thu, 20 Nov 2014 23:34:48 +0200
-Message-ID: <20141120213448.GB13221@node.dhcp.inet.fi>
-References: <cover.1414988981.git.lv.zheng@intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
- <20141118132328.GA27428@node.dhcp.inet.fi>
- <4486101.LWS7CexbAj@vostro.rjw.lan>
- <20141119121615.GA2514@node.dhcp.inet.fi>
- <1AE640813FDE7649BE1B193DEA596E88026A3D9E@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [RFC PATCH v4] ACPICA/Events: Add support to ensure GPE is
+ disabled by default for handlers.
+Date: Fri, 21 Nov 2014 00:15:35 +0200
+Message-ID: <20141120221535.GA13547@node.dhcp.inet.fi>
+References: <20141119121615.GA2514@node.dhcp.inet.fi>
+ <ce3ab540463bc5d97e527f24ca7d7d82b2952fae.1416459350.git.lv.zheng@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88026A3E81@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta-out1.inet.fi ([62.71.2.227]:60097 "EHLO jenni1.inet.fi"
+Received: from mta-out1.inet.fi ([62.71.2.203]:48116 "EHLO jenni2.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757000AbaKTVe4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Nov 2014 16:34:56 -0500
+	id S1756063AbaKTWPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Nov 2014 17:15:42 -0500
 Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026A3D9E@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026A3E81@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
 
-On Thu, Nov 20, 2014 at 02:34:12AM +0000, Zheng, Lv wrote:
-> Hi,
+On Thu, Nov 20, 2014 at 06:47:16AM +0000, Zheng, Lv wrote:
+> Hi, Kirill
 > 
-> > From: Kirill A. Shutemov [mailto:kirill@shutemov.name]
-> > Sent: Wednesday, November 19, 2014 8:16 PM
-> > 
-> > On Tue, Nov 18, 2014 at 10:20:11PM +0100, Rafael J. Wysocki wrote:
-> > > On Tuesday, November 18, 2014 03:23:28 PM Kirill A. Shutemov wrote:
-> > > > On Wed, Nov 05, 2014 at 02:52:36AM +0000, Zheng, Lv wrote:
-> > >
-> > > [cut]
-> > >
-> > > >
-> > > > Here's lockdep warning I see on -next:
-> > >
-> > > Is patch [1/6] sufficient to trigger this or do you need all [1-4/6]?
-> > 
-> > I only saw it on -next. I've tried to apply patches directly on -rc5 and
-> > don't see the warning. I don't have time for proper bisecting, sorry.
-> 
-> Also I want to know if there is a real dead lock issue triggered?
+> Could also help to confirm if this patch can also fix the issue.
+> Please help to validate the 2 fix patchsets separately.
 
-I didn't see system hung or something. The laptop is usable at least.
-
-> I think we have worked the dead lock issue around to make it working even when the fix is not merged so that we can have other EC work proceeded.
-> So maybe I only need to prevent the warning from being triggered at current situation.
-> 
-> Thanks and best regards
-> -Lv
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
+I've applied it on top of other two and still set the issue. 
 -- 
  Kirill A. Shutemov
