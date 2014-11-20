@@ -1,22 +1,35 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH] ACPI: Add _DEP(Operation Region Dependencies) support
- to fix battery issue on the Asus T100TA
-Date: Thu, 20 Nov 2014 09:59:10 +0800
-Message-ID: <546D4AEE.7080008@intel.com>
-References: <1416410441-14425-1-git-send-email-tianyu.lan@intel.com> <20141119162651.GK1309@lahna.fi.intel.com>
+From: Ahmed Tamrawi <ahmedtamrawi@gmail.com>
+Subject: Possible memory leak in function (acpi_video_init_brightness) not
+ freeing (br->levels)
+Date: Wed, 19 Nov 2014 20:13:13 -0600
+Message-ID: <CAFZT-jL=2mDEQ-T69xUMGmb-MnPJAEAQbXjb8fNd=x04As7Esg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141119162651.GK1309@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, wsa@the-dreams.de, robert.moore@intel.com, lv.zheng@intel.com, shigorin@gmail.com, adamw@happyassassin.net, jan.brummer@tabos.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, devel@acpica.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:56307 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754910AbaKTCNO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Nov 2014 21:13:14 -0500
+Received: by mail-ie0-f169.google.com with SMTP id y20so1892143ier.28
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Nov 2014 18:13:13 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi Mika:
-Thank you for review. Will resolve your comments in the next version.
+Bug Report Filed: https://bugzilla.kernel.org/show_bug.cgi?id=88531
+Linux Version [3.17-rc1]
+Configuration: Default configuration for x86
 
--- 
-Best regards
-Tianyu Lan
+Reference to source code:
+http://lxr.free-electrons.com/source/drivers/acpi/video.c#L1033
+
+In function (acpi_video_init_brightness) in file (drivers/acpi/video.c):
+
+The function allocates (br->levels) pointer at line (1033) and frees
+it on some paths at line (1137). However, the problem occurs when the
+function returns from line (1134) where the pointer (br->levels) is
+not freed. Thus, causing a memory leak when the function returns from
+line (1134).
+
+
+~Ahmed
