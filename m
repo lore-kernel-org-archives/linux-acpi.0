@@ -1,49 +1,45 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
- BLOCKED flag.
-Date: Thu, 20 Nov 2014 02:34:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A3D9E@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1414988981.git.lv.zheng@intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
- <20141118132328.GA27428@node.dhcp.inet.fi>
- <4486101.LWS7CexbAj@vostro.rjw.lan> <20141119121615.GA2514@node.dhcp.inet.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v4] ACPICA/Events: Add support to ensure GPE is disabled by default for handlers.
+Date: Thu, 20 Nov 2014 14:44:59 +0800
+Message-ID: <ce3ab540463bc5d97e527f24ca7d7d82b2952fae.1416459350.git.lv.zheng@intel.com>
+References: <20141119121615.GA2514@node.dhcp.inet.fi>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32479 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:55000 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754658AbaKTCf1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Nov 2014 21:35:27 -0500
+	id S1751078AbaKTGpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Nov 2014 01:45:10 -0500
 In-Reply-To: <20141119121615.GA2514@node.dhcp.inet.fi>
-Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Kirill A. Shutemov" <kirill@shutemov.name>
 
-Hi,
+On some platforms, GPE is not disabled by default after ACPI hardware is
+enabled. This confuses GPE drivers. This patch adds support to disable GPE
+by default for GPE handler drivers.
 
-> From: Kirill A. Shutemov [mailto:kirill@shutemov.name]
-> Sent: Wednesday, November 19, 2014 8:16 PM
-> 
-> On Tue, Nov 18, 2014 at 10:20:11PM +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, November 18, 2014 03:23:28 PM Kirill A. Shutemov wrote:
-> > > On Wed, Nov 05, 2014 at 02:52:36AM +0000, Zheng, Lv wrote:
-> >
-> > [cut]
-> >
-> > >
-> > > Here's lockdep warning I see on -next:
-> >
-> > Is patch [1/6] sufficient to trigger this or do you need all [1-4/6]?
-> 
-> I only saw it on -next. I've tried to apply patches directly on -rc5 and
-> don't see the warning. I don't have time for proper bisecting, sorry.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+---
+ drivers/acpi/acpica/evxface.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Also I want to know if there is a real dead lock issue triggered?
-I think we have worked the dead lock issue around to make it working even when the fix is not merged so that we can have other EC work proceeded.
-So maybe I only need to prevent the warning from being triggered at current situation.
-
-Thanks and best regards
--Lv
+Index: linux-acpica/drivers/acpi/acpica/evxface.c
+===================================================================
+--- linux-acpica.orig/drivers/acpi/acpica/evxface.c
++++ linux-acpica/drivers/acpi/acpica/evxface.c
+@@ -821,6 +821,14 @@ acpi_install_gpe_handler(acpi_handle gpe
+ 	    ~(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
+ 	gpe_event_info->flags |= (u8)(type | ACPI_GPE_DISPATCH_HANDLER);
+ 
++	/*
++	 * Make sure that the GPE is disabled by default for the GPE
++	 * handler driver. It is expected that the GPE handler driver
++	 * should invoke acpi_enable_gpe() after installing the GPE
++	 * handler.
++	 */
++	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_DISABLE);
++
+ 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+ 
+ unlock_and_exit:
