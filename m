@@ -1,258 +1,161 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
-Date: Thu, 20 Nov 2014 22:24:10 +0100
-Message-ID: <2092795.JQp4ODhu7d@vostro.rjw.lan>
-References: <1416492733-18597-1-git-send-email-tianyu.lan@intel.com>
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: Re: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
+ BLOCKED flag.
+Date: Thu, 20 Nov 2014 23:33:48 +0200
+Message-ID: <20141120213348.GA13221@node.dhcp.inet.fi>
+References: <cover.1414988981.git.lv.zheng@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
+ <20141118132328.GA27428@node.dhcp.inet.fi>
+ <4486101.LWS7CexbAj@vostro.rjw.lan>
+ <20141119121615.GA2514@node.dhcp.inet.fi>
+ <1AE640813FDE7649BE1B193DEA596E88026A3D69@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64404 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757000AbaKTVDD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2014 16:03:03 -0500
-In-Reply-To: <1416492733-18597-1-git-send-email-tianyu.lan@intel.com>
+Received: from mta-out1.inet.fi ([62.71.2.195]:56305 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757000AbaKTVd6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Nov 2014 16:33:58 -0500
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026A3D69@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, wsa@the-dreams.de, robert.moore@intel.com, lv.zheng@intel.com, shigorin@gmail.com, adamw@happyassassin.net, jan.brummer@tabos.org, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, devel@acpica.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, November 20, 2014 10:12:12 PM Lan Tianyu wrote:
-> ACPI 5.0 introduces _DEP to designate device objects that OSPM should
-> assign a higher priority in start ordering due to future operation region
-> accesses.
+On Thu, Nov 20, 2014 at 02:20:53AM +0000, Zheng, Lv wrote:
+> Since you have environment to trigger this.
+> Could you also help to check if the fix can work?
+> I've just sent them as RFC to this thread.
+
+With these two patchse on top of my -next snapshot I still see the issue:
+
+[    0.324119] ======================================================
+[    0.324125] [ INFO: possible circular locking dependency detected ]
+[    0.324132] 3.18.0-rc5-next-20141119-07477-g4c45e54745b2 #80 Not tainted
+[    0.324138] -------------------------------------------------------
+[    0.324144] swapper/3/0 is trying to acquire lock:
+[    0.324149]  (&(&ec->lock)->rlock){-.....}, at: [<ffffffff814cb803>] acpi_ec_gpe_handler+0x21/0xfc
+[    0.324165] 
+but task is already holding lock:
+[    0.324171]  (&(*(&acpi_gbl_gpe_lock))->rlock){-.....}, at: [<ffffffff814c3b3e>] acpi_os_acquire_lock+0xe/0x10
+[    0.324185] 
+which lock already depends on the new lock.
+
+[    0.324193] 
+the existing dependency chain (in reverse order) is:
+[    0.324200] 
+-> #1 (&(*(&acpi_gbl_gpe_lock))->rlock){-.....}:
+[    0.324209]        [<ffffffff81158f0f>] lock_acquire+0xdf/0x2d0
+[    0.324218]        [<ffffffff81b004c0>] _raw_spin_lock_irqsave+0x50/0x70
+[    0.324228]        [<ffffffff814c3b3e>] acpi_os_acquire_lock+0xe/0x10
+[    0.324235]        [<ffffffff814d9945>] acpi_enable_gpe+0x27/0x75
+[    0.324244]        [<ffffffff814cc960>] acpi_ec_start+0x67/0x88
+[    0.324251]        [<ffffffff81af4ca9>] ec_install_handlers+0x41/0xa4
+[    0.324258]        [<ffffffff823e4134>] acpi_ec_ecdt_probe+0x1a9/0x1ea
+[    0.324267]        [<ffffffff823e395e>] acpi_init+0x8b/0x26e
+[    0.324275]        [<ffffffff81002148>] do_one_initcall+0xd8/0x210
+[    0.324283]        [<ffffffff8239c1dc>] kernel_init_freeable+0x1f5/0x282
+[    0.324293]        [<ffffffff81aea0fe>] kernel_init+0xe/0xf0
+[    0.324300]        [<ffffffff81b011bc>] ret_from_fork+0x7c/0xb0
+[    0.324307] 
+-> #0 (&(&ec->lock)->rlock){-.....}:
+[    0.324315]        [<ffffffff811585af>] __lock_acquire+0x210f/0x2220
+[    0.324323]        [<ffffffff81158f0f>] lock_acquire+0xdf/0x2d0
+[    0.324330]        [<ffffffff81b004c0>] _raw_spin_lock_irqsave+0x50/0x70
+[    0.324338]        [<ffffffff814cb803>] acpi_ec_gpe_handler+0x21/0xfc
+[    0.324346]        [<ffffffff814d68e0>] acpi_ev_gpe_dispatch+0xb9/0x12e
+[    0.324353]        [<ffffffff814d6a5a>] acpi_ev_gpe_detect+0x105/0x227
+[    0.324360]        [<ffffffff814d8af5>] acpi_ev_sci_xrupt_handler+0x22/0x38
+[    0.324368]        [<ffffffff814c2dae>] acpi_irq+0x16/0x31
+[    0.324375]        [<ffffffff8116ecbf>] handle_irq_event_percpu+0x6f/0x540
+[    0.324384]        [<ffffffff8116f1d1>] handle_irq_event+0x41/0x70
+[    0.324392]        [<ffffffff81171ee6>] handle_fasteoi_irq+0x86/0x140
+[    0.324399]        [<ffffffff81075a22>] handle_irq+0x22/0x40
+[    0.324408]        [<ffffffff81b0436f>] do_IRQ+0x4f/0xf0
+[    0.324416]        [<ffffffff81b02072>] ret_from_intr+0x0/0x1a
+[    0.324423]        [<ffffffff8107e7a3>] default_idle+0x23/0x260
+[    0.324430]        [<ffffffff8107f37f>] arch_cpu_idle+0xf/0x20
+[    0.324438]        [<ffffffff8114a95b>] cpu_startup_entry+0x36b/0x5b0
+[    0.324445]        [<ffffffff810a8d24>] start_secondary+0x1a4/0x1d0
+[    0.324454] 
+other info that might help us debug this:
+
+[    0.324462]  Possible unsafe locking scenario:
+
+[    0.324468]        CPU0                    CPU1
+[    0.324473]        ----                    ----
+[    0.324477]   lock(&(*(&acpi_gbl_gpe_lock))->rlock);
+[    0.324483]                                lock(&(&ec->lock)->rlock);
+[    0.324490]                                lock(&(*(&acpi_gbl_gpe_lock))->rlock);
+[    0.324498]   lock(&(&ec->lock)->rlock);
+[    0.324503] 
+ *** DEADLOCK ***
+
+[    0.324510] 1 lock held by swapper/3/0:
+[    0.324514]  #0:  (&(*(&acpi_gbl_gpe_lock))->rlock){-.....}, at: [<ffffffff814c3b3e>] acpi_os_acquire_lock+0xe/0x10
+[    0.324528] 
+stack backtrace:
+[    0.324535] CPU: 3 PID: 0 Comm: swapper/3 Not tainted 3.18.0-rc5-next-20141119-07477-g4c45e54745b2 #80
+[    0.324543] Hardware name: LENOVO 3460CC6/3460CC6, BIOS G6ET93WW (2.53 ) 02/04/2013
+[    0.324550]  ffffffff82cae120 ffff88011e2c3ba8 ffffffff81af484e 0000000000000011
+[    0.324560]  ffffffff82cae120 ffff88011e2c3bf8 ffffffff81af3361 0000000000000001
+[    0.324569]  ffff88011e2c3c58 ffff88011e2c3bf8 ffff8801193f92b0 ffff8801193f9b00
+[    0.324579] Call Trace:
+[    0.324582]  <IRQ>  [<ffffffff81af484e>] dump_stack+0x4c/0x6e
+[    0.324593]  [<ffffffff81af3361>] print_circular_bug+0x2b2/0x2c3
+[    0.324601]  [<ffffffff811585af>] __lock_acquire+0x210f/0x2220
+[    0.324609]  [<ffffffff81158f0f>] lock_acquire+0xdf/0x2d0
+[    0.324616]  [<ffffffff814cb803>] ? acpi_ec_gpe_handler+0x21/0xfc
+[    0.324624]  [<ffffffff81b004c0>] _raw_spin_lock_irqsave+0x50/0x70
+[    0.324631]  [<ffffffff814cb803>] ? acpi_ec_gpe_handler+0x21/0xfc
+[    0.324640]  [<ffffffff814e08f7>] ? acpi_hw_write+0x4b/0x52
+[    0.324646]  [<ffffffff814cb803>] acpi_ec_gpe_handler+0x21/0xfc
+[    0.324653]  [<ffffffff814d68e0>] acpi_ev_gpe_dispatch+0xb9/0x12e
+[    0.324660]  [<ffffffff814d6a5a>] acpi_ev_gpe_detect+0x105/0x227
+[    0.324668]  [<ffffffff814d8af5>] acpi_ev_sci_xrupt_handler+0x22/0x38
+[    0.324675]  [<ffffffff814c2dae>] acpi_irq+0x16/0x31
+[    0.324683]  [<ffffffff8116ecbf>] handle_irq_event_percpu+0x6f/0x540
+[    0.324691]  [<ffffffff8116f1d1>] handle_irq_event+0x41/0x70
+[    0.324698]  [<ffffffff81171e88>] ? handle_fasteoi_irq+0x28/0x140
+[    0.324705]  [<ffffffff81171ee6>] handle_fasteoi_irq+0x86/0x140
+[    0.324712]  [<ffffffff81075a22>] handle_irq+0x22/0x40
+[    0.324719]  [<ffffffff81b0436f>] do_IRQ+0x4f/0xf0
+[    0.324725]  [<ffffffff81b02072>] common_interrupt+0x72/0x72
+[    0.324731]  <EOI>  [<ffffffff810b8986>] ? native_safe_halt+0x6/0x10
+[    0.324743]  [<ffffffff81154efd>] ? trace_hardirqs_on+0xd/0x10
+[    0.324750]  [<ffffffff8107e7a3>] default_idle+0x23/0x260
+[    0.324757]  [<ffffffff8107f37f>] arch_cpu_idle+0xf/0x20
+[    0.324763]  [<ffffffff8114a95b>] cpu_startup_entry+0x36b/0x5b0
+[    0.324771]  [<ffffffff810a8d24>] start_secondary+0x1a4/0x1d0
+
+
 > 
-> On Asus T100TA, ACPI battery info are read from a I2C slave device via
-> I2C operation region. Before I2C operation region handler is installed,
-> battery _STA always returns 0. There is a _DEP method of designating
-> start order under battery device node.
+> Thanks and best regards
+> -Lv
 > 
-> This patch is to implement _DEP feature to fix battery issue on the Asus T100TA.
-> Introducing acpi_dep_list and adding dep_unmet count in the struct
-> acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
-> valid pair of master (device pointed to by _DEP)/slave(device with _DEP), record
-> master's and slave's ACPI handle in it and put it into acpi_dep_list. The dep_unmet
-> count will increase by one if there is a device under its _DEP. Driver's probe() should
-> return EPROBE_DEFER when find dep_unmet is larger than 0. When I2C operation
-> region handler is installed, remove all struct acpi_dep_data on the acpi_dep_list
-> whose master is pointed to I2C host controller and decrease slave's dep_unmet.
-> When dep_unmet decreases to 0, all _DEP conditions are met and then do acpi_bus_attach()
-> for the device in order to resolve battery _STA issue on the Asus T100TA.
-> 
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=69011
-> Tested-by: Jan-Michael Brummer <jan.brummer@tabos.org>
-> Tested-by: Adam Williamson <adamw@happyassassin.net>
-> Tested-by: Michael Shigorin <shigorin@gmail.com>
-> Acked-by: Wolfram Sang <wsa@the-dreams.de>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
-> Change since V1:
-> 	Remove redundant blank line and some coding style fixs.
->        
->  drivers/acpi/battery.c  |  4 +++
->  drivers/acpi/scan.c     | 86 +++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/i2c/i2c-core.c  |  1 +
->  include/acpi/acpi_bus.h |  1 +
->  include/linux/acpi.h    |  1 +
->  5 files changed, 93 insertions(+)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 8ec8a89..d98ba43 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -1180,6 +1180,10 @@ static int acpi_battery_add(struct acpi_device *device)
->  
->  	if (!device)
->  		return -EINVAL;
-> +
-> +	if (device->dep_unmet)
-> +		return -EPROBE_DEFER;
-> +
->  	battery = kzalloc(sizeof(struct acpi_battery), GFP_KERNEL);
->  	if (!battery)
->  		return -ENOMEM;
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 9cb5cca..54a4102 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -36,6 +36,8 @@ bool acpi_force_hot_remove;
->  
->  static const char *dummy_hid = "device";
->  
-> +static LIST_HEAD(acpi_dep_list);
-> +static DEFINE_MUTEX(acpi_dep_list_lock);
->  static LIST_HEAD(acpi_bus_id_list);
->  static DEFINE_MUTEX(acpi_scan_lock);
->  static LIST_HEAD(acpi_scan_handlers_list);
-> @@ -43,6 +45,12 @@ DEFINE_MUTEX(acpi_device_lock);
->  LIST_HEAD(acpi_wakeup_device_list);
->  static DEFINE_MUTEX(acpi_hp_context_lock);
->  
-> +struct acpi_dep_data {
-> +	struct list_head node;
-> +	acpi_handle master;
-> +	acpi_handle slave;
-> +};
-> +
->  struct acpi_device_bus_id{
->  	char bus_id[15];
->  	unsigned int instance_no;
-> @@ -2193,6 +2201,60 @@ static void acpi_scan_init_hotplug(struct acpi_device *adev)
->  	}
->  }
->  
-> +static void acpi_device_dep_initialize(struct acpi_device *adev)
-> +{
-> +	struct acpi_dep_data *dep;
-> +	struct acpi_handle_list dep_devices;
-> +	struct acpi_device_info *info;
-> +	acpi_status status;
-> +	int i, skip;
-
-skip and info are only needed inside of the loop it seems ->
-
-> +
-> +	if (!acpi_has_method(adev->handle, "_DEP"))
-> +		return;
-> +
-> +	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
-> +					&dep_devices);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_err(&adev->dev, "Failed to evaluate _DEP.\n");
-> +		return;
-> +	}
-> +
-> +	for (i = 0; i < dep_devices.count; i++) {
-
--> so you can define:
-
-		struct acpi_device_info *info;
-		bool skip;
-
-here and ->>
-
-
-> +		status = acpi_get_object_info(dep_devices.handles[i], &info);
-> +		if (ACPI_FAILURE(status)) {
-> +			dev_err(&adev->dev, "Error reading device info\n");
-> +			continue;
-> +		}
-> +
-> +		/*
-> +		 * Skip the dependency of Windows System Power
-> +		 * Management Controller
-> +		 */
-> +		if (info->valid & ACPI_VALID_HID
-> +		    && !strcmp(info->hardware_id.string, "INT3396"))
-> +			skip = 1;
-> +		else
-> +			skip = 0;
-
-->> then you can do
-
-		skip = info->valid & ACPI_VALID_HID &&
-			!strcmp(info->hardware_id.string, "INT3396");
-
-> +
-> +		kfree(info);
-> +
-> +		if (skip)
-> +			continue;
-> +
-> +		dep = kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
-> +		if (!dep)
-> +			return;
-> +
-> +		dep->master = dep_devices.handles[i];
-> +		dep->slave  = adev->handle;
-> +		adev->dep_unmet++;
-> +
-> +		mutex_lock(&acpi_dep_list_lock);
-> +		list_add_tail(&dep->node , &acpi_dep_list);
-> +		mutex_unlock(&acpi_dep_list_lock);
-> +	}
-> +}
-> +
->  static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
->  				      void *not_used, void **return_value)
->  {
-> @@ -2219,6 +2281,7 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
->  		return AE_CTRL_DEPTH;
->  
->  	acpi_scan_init_hotplug(device);
-> +	acpi_device_dep_initialize(device);
->  
->   out:
->  	if (!*return_value)
-> @@ -2339,6 +2402,29 @@ static void acpi_bus_attach(struct acpi_device *device)
->  		device->handler->hotplug.notify_online(device);
->  }
->  
-> +void acpi_walk_dep_device_list(acpi_handle handle)
-> +{
-> +	struct acpi_dep_data *dep, *tmp;
-> +	struct acpi_device *adev;
-> +
-> +	mutex_lock(&acpi_dep_list_lock);
-> +	list_for_each_entry_safe(dep, tmp, &acpi_dep_list, node) {
-> +		if (dep->master == handle) {
-> +			acpi_bus_get_device(dep->slave, &adev);
-> +			if (!adev)
-> +				continue;
-> +
-> +			adev->dep_unmet--;
-> +			if (!adev->dep_unmet)
-> +				acpi_bus_attach(adev);
-> +			list_del(&dep->node);
-> +			kfree(dep);
-> +		}
-> +	}
-> +	mutex_unlock(&acpi_dep_list_lock);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_walk_dep_device_list);
-> +
->  /**
->   * acpi_bus_scan - Add ACPI device node objects in a given namespace scope.
->   * @handle: Root of the namespace scope to scan.
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index f43b4e1..68aeb8e 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -403,6 +403,7 @@ static int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
->  		return -ENOMEM;
->  	}
->  
-> +	acpi_walk_dep_device_list(handle);
->  	return 0;
->  }
->  
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 7d1ce40..d539084 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -372,6 +372,7 @@ struct acpi_device {
->  	void *driver_data;
->  	struct device dev;
->  	unsigned int physical_node_count;
-> +	unsigned int dep_unmet;
->  	struct list_head physical_node_list;
->  	struct mutex physical_node_lock;
->  	void (*remove)(struct acpi_device *);
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 10f2ed9..e09f7f4 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -428,6 +428,7 @@ extern bool acpi_driver_match_device(struct device *dev,
->  				     const struct device_driver *drv);
->  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
->  int acpi_device_modalias(struct device *, char *, int);
-> +void acpi_walk_dep_device_list(acpi_handle handle);
->  
->  struct platform_device *acpi_create_platform_device(struct acpi_device *);
->  #define ACPI_PTR(_ptr)	(_ptr)
-
-The rest looks OK.
+> > From: Kirill A. Shutemov [mailto:kirill@shutemov.name]
+> > Sent: Wednesday, November 19, 2014 8:16 PM
+> > To: Rafael J. Wysocki
+> > Cc: Zheng, Lv; Wysocki, Rafael J; Brown, Len; Lv Zheng; linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> > Subject: Re: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
+> > 
+> > On Tue, Nov 18, 2014 at 10:20:11PM +0100, Rafael J. Wysocki wrote:
+> > > On Tuesday, November 18, 2014 03:23:28 PM Kirill A. Shutemov wrote:
+> > > > On Wed, Nov 05, 2014 at 02:52:36AM +0000, Zheng, Lv wrote:
+> > >
+> > > [cut]
+> > >
+> > > >
+> > > > Here's lockdep warning I see on -next:
+> > >
+> > > Is patch [1/6] sufficient to trigger this or do you need all [1-4/6]?
+> > 
+> > I only saw it on -next. I've tried to apply patches directly on -rc5 and
+> > don't see the warning. I don't have time for proper bisecting, sorry.
+> > 
+> > --
+> >  Kirill A. Shutemov
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+ Kirill A. Shutemov
