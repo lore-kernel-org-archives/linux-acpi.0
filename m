@@ -1,8 +1,8 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace
  BLOCKED flag.
-Date: Thu, 20 Nov 2014 02:20:53 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A3D69@SHSMSX101.ccr.corp.intel.com>
+Date: Thu, 20 Nov 2014 02:34:12 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A3D9E@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1414988981.git.lv.zheng@intel.com>
  <1AE640813FDE7649BE1B193DEA596E8802689778@SHSMSX101.ccr.corp.intel.com>
  <20141118132328.GA27428@node.dhcp.inet.fi>
@@ -11,10 +11,10 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:42382 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:32479 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754272AbaKTCWT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Nov 2014 21:22:19 -0500
+	id S1754658AbaKTCf1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Nov 2014 21:35:27 -0500
 In-Reply-To: <20141119121615.GA2514@node.dhcp.inet.fi>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
@@ -22,18 +22,10 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Kirill A. Shutemov" <kirill@shutemov.name>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Since you have environment to trigger this.
-Could you also help to check if the fix can work?
-I've just sent them as RFC to this thread.
-
-Thanks and best regards
--Lv
+Hi,
 
 > From: Kirill A. Shutemov [mailto:kirill@shutemov.name]
 > Sent: Wednesday, November 19, 2014 8:16 PM
-> To: Rafael J. Wysocki
-> Cc: Zheng, Lv; Wysocki, Rafael J; Brown, Len; Lv Zheng; linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> Subject: Re: [PATCH 1/6] ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
 > 
 > On Tue, Nov 18, 2014 at 10:20:11PM +0100, Rafael J. Wysocki wrote:
 > > On Tuesday, November 18, 2014 03:23:28 PM Kirill A. Shutemov wrote:
@@ -48,6 +40,10 @@ Thanks and best regards
 > 
 > I only saw it on -next. I've tried to apply patches directly on -rc5 and
 > don't see the warning. I don't have time for proper bisecting, sorry.
-> 
-> --
->  Kirill A. Shutemov
+
+Also I want to know if there is a real dead lock issue triggered?
+I think we have worked the dead lock issue around to make it working even when the fix is not merged so that we can have other EC work proceeded.
+So maybe I only need to prevent the warning from being triggered at current situation.
+
+Thanks and best regards
+-Lv
