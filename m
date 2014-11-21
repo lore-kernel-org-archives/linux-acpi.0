@@ -1,33 +1,62 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi:apd:add AMD ACPI2Platform device support for x86 system.
-Date: Fri, 21 Nov 2014 15:58:41 +0100
-Message-ID: <4186825.AlJiqLqNxs@vostro.rjw.lan>
-References: <1416290291-5802-1-git-send-email-Ken.Xue@amd.com> <4AC89B18A26BAB43B540DB1C94E2802C05A47EDE@scybexdag03.amd.com>
+Subject: Re: [PATCH 1/2] cpuidle: acpi: Remove TIME_INVALID flag from acpi
+Date: Fri, 21 Nov 2014 16:05:33 +0100
+Message-ID: <2283319.n13QkHWkNs@vostro.rjw.lan>
+References: <1416562192-14114-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54860 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50865 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751368AbaKUOhd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2014 09:37:33 -0500
-In-Reply-To: <4AC89B18A26BAB43B540DB1C94E2802C05A47EDE@scybexdag03.amd.com>
+	with SMTP id S1754269AbaKUOoZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2014 09:44:25 -0500
+In-Reply-To: <1416562192-14114-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Xue, Ken" <Ken.Xue@amd.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "mika.wasterberg@linux.intel.com" <mika.wasterberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Wu, Jeff" <Jeff.Wu@amd.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-pm@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On Friday, November 21, 2014 05:15:46 AM Xue, Ken wrote:
-> Hi Len,  Rafael J & Mika,
-> 	Please help to review this patch. And tell me any of your concern. Thanks.
+On Friday, November 21, 2014 10:29:51 AM Daniel Lezcano wrote:
+> The commit 8e92b6605d introduced the TIME_VALID flag for the C1 state
+> if this one is a mwait state assuming the interrupt will be enabled
+> before reading the end time of the idle state.
 > 
-> 	I understand it is a trend that convert a ACPI device to be a platform device.
-> 	For AMD, we try to use this patch to match this trend well. The patch based on INTEL LPSS . 
-> 	But we cannot reuse LPSS, because of specific definition of "lpss_device_desc" for LPSS.
+> The changelog of this commit mention a potential problem with the menu
+> governor but not a real observation and I assume it described an old
+> code as the commit is from 2008.
+> 
+> I have been digging through the code and I didn't find any place where the
+> interrupts are enabled before reading the time. Moreover with the changes
+> in the meantime, we moved the time measurements in the cpuidle core as well
+> as the interrupts enabling making sure the time is measured before the
+> interrupt are enabled again in a single place.
+> 
+> Remove this test as the time measurement is always valid for this
+> state.
+> 
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
+Well, I need Len to have a look at this.
 
-You don't have to resend the patch every day for us to notice it.  We're
-actually in the process of reviewing your original submission.
+> ---
+>  drivers/acpi/processor_idle.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 380b4b4..7afba40 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -985,8 +985,6 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+>  		state->flags = 0;
+>  		switch (cx->type) {
+>  			case ACPI_STATE_C1:
+> -			if (cx->entry_method != ACPI_CSTATE_FFH)
+> -				state->flags |= CPUIDLE_FLAG_TIME_INVALID;
+>  
+>  			state->enter = acpi_idle_enter_c1;
+>  			state->enter_dead = acpi_idle_play_dead;
+> 
 
 -- 
 I speak only for myself.
