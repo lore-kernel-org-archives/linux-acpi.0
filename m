@@ -1,69 +1,111 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v3 3/3] ACPI / PMIC: AXP288: support virtual GPIO in ACPI table
-Date: Fri, 21 Nov 2014 15:11:51 +0800
-Message-ID: <1416553911-22990-4-git-send-email-aaron.lu@intel.com>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416553911-22990-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lee Jones <lee.jones@linaro.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Yegnesh Iyer <yegnesh.s.iyer@intel.com>, linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH 2/2] cpuidle: Remove TIME_INVALID flag
+Date: Fri, 21 Nov 2014 10:29:52 +0100
+Message-ID: <1416562192-14114-2-git-send-email-daniel.lezcano@linaro.org>
+References: <1416562192-14114-1-git-send-email-daniel.lezcano@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1416562192-14114-1-git-send-email-daniel.lezcano@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-pm@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The same virtual GPIO strategy is also used for the AXP288 PMIC in that
-various control methods that are used to do power rail handling and
-sensor reading/setting will touch GPIO fields defined under the PMIC
-device. The GPIO fileds are only defined by the ACPI code while the
-actual hardware doesn't really have a GPIO controller, but to make those
-control method execution succeed, we have to install a GPIO handler for
-the PMIC device handle. Since we do not need the virtual GPIO strategy,
-we can simply do nothing in that handler.
+The time measurement is always valid for all the drivers for all the idle
+states. This flag is no longer needed.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Remove it as well as the code using it.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 ---
- drivers/acpi/pmic/intel_pmic_xpower.c | 27 +++++++++++++++++++++++----
- 1 file changed, 23 insertions(+), 4 deletions(-)
+ drivers/cpuidle/governors/ladder.c |  8 ++------
+ drivers/cpuidle/governors/menu.c   | 25 ++++++++-----------------
+ include/linux/cpuidle.h            |  2 --
+ 3 files changed, 10 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 6c4d6ce0cff1..480c41c36444 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -251,13 +251,32 @@ static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
- 	.thermal_table_count = ARRAY_SIZE(thermal_table),
+diff --git a/drivers/cpuidle/governors/ladder.c b/drivers/cpuidle/governors/ladder.c
+index 37263d9..55a1fc9 100644
+--- a/drivers/cpuidle/governors/ladder.c
++++ b/drivers/cpuidle/governors/ladder.c
+@@ -79,12 +79,8 @@ static int ladder_select_state(struct cpuidle_driver *drv,
+ 
+ 	last_state = &ldev->states[last_idx];
+ 
+-	if (!(drv->states[last_idx].flags & CPUIDLE_FLAG_TIME_INVALID)) {
+-		last_residency = cpuidle_get_last_residency(dev) - \
+-					 drv->states[last_idx].exit_latency;
+-	}
+-	else
+-		last_residency = last_state->threshold.promotion_time + 1;
++	last_residency = cpuidle_get_last_residency(dev) - \
++				 drv->states[last_idx].exit_latency;
+ 
+ 	/* consider promotion */
+ 	if (last_idx < drv->state_count - 1 &&
+diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
+index 659d7b0..2191ea0 100644
+--- a/drivers/cpuidle/governors/menu.c
++++ b/drivers/cpuidle/governors/menu.c
+@@ -395,32 +395,23 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+ 	 * Try to figure out how much time passed between entry to low
+ 	 * power state and occurrence of the wakeup event.
+ 	 *
+-	 * If the entered idle state didn't support residency measurements,
+-	 * we are basically lost in the dark how much time passed.
+-	 * As a compromise, assume we slept for the whole expected time.
+-	 *
+ 	 * Any measured amount of time will include the exit latency.
+ 	 * Since we are interested in when the wakeup begun, not when it
+ 	 * was completed, we must subtract the exit latency. However, if
+ 	 * the measured amount of time is less than the exit latency,
+ 	 * assume the state was never reached and the exit latency is 0.
+ 	 */
+-	if (unlikely(target->flags & CPUIDLE_FLAG_TIME_INVALID)) {
+-		/* Use timer value as is */
+-		measured_us = data->next_timer_us;
+ 
+-	} else {
+-		/* Use measured value */
+-		measured_us = cpuidle_get_last_residency(dev);
++	/* Use measured value */
++	measured_us = cpuidle_get_last_residency(dev);
+ 
+-		/* Deduct exit latency */
+-		if (measured_us > target->exit_latency)
+-			measured_us -= target->exit_latency;
++	/* Deduct exit latency */
++	if (measured_us > target->exit_latency)
++		measured_us -= target->exit_latency;
+ 
+-		/* Make sure our coefficients do not exceed unity */
+-		if (measured_us > data->next_timer_us)
+-			measured_us = data->next_timer_us;
+-	}
++	/* Make sure our coefficients do not exceed unity */
++	if (measured_us > data->next_timer_us)
++		measured_us = data->next_timer_us;
+ 
+ 	/* Update our correction ratio */
+ 	new_factor = data->correction_factor[data->bucket];
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index a07e087..d697b9e 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -53,7 +53,6 @@ struct cpuidle_state {
  };
  
-+static acpi_status intel_xpower_pmic_gpio_handler(u32 function,
-+		acpi_physical_address address, u32 bit_width, u64 *value,
-+		void *handler_context, void *region_context)
-+{
-+	return AE_OK;
-+}
+ /* Idle State Flags */
+-#define CPUIDLE_FLAG_TIME_INVALID	(0x01) /* is residency time measurable? */
+ #define CPUIDLE_FLAG_COUPLED	(0x02) /* state applies to multiple cpus */
+ #define CPUIDLE_FLAG_TIMER_STOP (0x04)  /* timer is stopped on this state */
  
- static int intel_xpower_pmic_opregion_probe(struct platform_device *pdev)
+@@ -90,7 +89,6 @@ DECLARE_PER_CPU(struct cpuidle_device, cpuidle_dev);
+  * cpuidle_get_last_residency - retrieves the last state's residency time
+  * @dev: the target CPU
+  *
+- * NOTE: this value is invalid if CPUIDLE_FLAG_TIME_INVALID is set
+  */
+ static inline int cpuidle_get_last_residency(struct cpuidle_device *dev)
  {
--	struct axp20x_dev *axp20x = dev_get_drvdata(pdev->dev.parent);
--	return intel_pmic_install_opregion_handler(&pdev->dev,
--			ACPI_HANDLE(pdev->dev.parent), axp20x->regmap,
--			&intel_xpower_pmic_opregion_data);
-+	struct device *parent = pdev->dev.parent;
-+	struct axp20x_dev *axp20x = dev_get_drvdata(parent);
-+	acpi_status status;
-+	int result;
-+
-+	result = intel_pmic_install_opregion_handler(&pdev->dev,
-+					ACPI_HANDLE(parent), axp20x->regmap,
-+					&intel_xpower_pmic_opregion_data);
-+	if (!result) {
-+		status = acpi_install_address_space_handler(
-+				ACPI_HANDLE(parent), ACPI_ADR_SPACE_GPIO,
-+				intel_xpower_pmic_gpio_handler, NULL, NULL);
-+		if (ACPI_FAILURE(status))
-+			result = -ENODEV;
-+	}
-+
-+	return result;
- }
- 
- static struct platform_driver intel_xpower_pmic_opregion_driver = {
 -- 
-1.9.3
+1.9.1
+
