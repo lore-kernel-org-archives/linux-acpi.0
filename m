@@ -1,45 +1,83 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH v4] ACPICA/Events: Add support to ensure GPE is
- disabled by default for handlers.
-Date: Fri, 21 Nov 2014 01:36:42 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A41BB@SHSMSX101.ccr.corp.intel.com>
-References: <20141119121615.GA2514@node.dhcp.inet.fi>
- <ce3ab540463bc5d97e527f24ca7d7d82b2952fae.1416459350.git.lv.zheng@intel.com>
- <1AE640813FDE7649BE1B193DEA596E88026A3E81@SHSMSX101.ccr.corp.intel.com>
- <20141120221535.GA13547@node.dhcp.inet.fi>
+From: Myron Stowe <myron.stowe@gmail.com>
+Subject: Re: [PATCH 6/6] pci, acpi: Share ACPI PCI config space accessors.
+Date: Thu, 20 Nov 2014 21:00:17 -0700
+Message-ID: <CAL-B5D3MqUa-=bzebo12DbZfczss2-MdGwQ8WKTbFH8H2AENXg@mail.gmail.com>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
+	<1416413091-13452-7-git-send-email-tomasz.nowicki@linaro.org>
+	<2360791.Aj7tQ0nCJ3@wuerfel>
+	<20141120222650.GC7987@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:48490 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756904AbaKUBid convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2014 20:38:33 -0500
-In-Reply-To: <20141120221535.GA13547@node.dhcp.inet.fi>
-Content-Language: en-US
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:39198 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756837AbaKUEAS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Nov 2014 23:00:18 -0500
+In-Reply-To: <20141120222650.GC7987@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, wangyijing@huawei.com, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, rjw@rjwysocki.net, linaro-acpi@lists.linaro.org, linux-pci <linux-pci@vger.kernel.org>, x86 <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This result convinces me that this might only be a theoretical dead lock for now.
-So finally we won't need this in order to eliminate this warning.
+On Thu, Nov 20, 2014 at 3:26 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Wed, Nov 19, 2014 at 05:19:20PM +0100, Arnd Bergmann wrote:
+>> On Wednesday 19 November 2014 17:04:51 Tomasz Nowicki wrote:
+>> > +/*
+>> > + * raw_pci_read/write - ACPI PCI config space accessors.
+>> > + *
+>> > + * ACPI spec defines MMCFG as the way we can access PCI config space,
+>> > + * so let MMCFG be default (__weak).
+>> > + *
+>> > + * If platform needs more fancy stuff, should provides its own implementation.
+>> > + */
+>> > +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+>> > +                       unsigned int devfn, int reg, int len, u32 *val)
+>> > +{
+>> > +       return pci_mmcfg_read(domain, bus, devfn, reg, len, val);
+>> > +}
+>> > +
+>> > +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+>> > +                        unsigned int devfn, int reg, int len, u32 val)
+>> > +{
+>> > +       return pci_mmcfg_write(domain, bus, devfn, reg, len, val);
+>> > +}
+>> > +
+>> >
+>>
+>> I think it would be better to avoid __weak functions here, as they tend
+>> to be hard to follow when trying to understand the code.
+>
+> That's interesting.  I would have said exactly the opposite -- I think the
+> extra Kconfiggery is harder to follow than weak/strong functions :)
+>
+> But consistency is better than my personal opinion.  Is there a consensus
+> that we should use the Kconfig strategy instead of __weak?
 
-Thanks and best regards
--Lv
+I too find weak/strong functions easier to follow than "Kconfiggery" (nice term
+invention there).
 
-> From: Kirill A. Shutemov [mailto:kirill@shutemov.name]
-> Sent: Friday, November 21, 2014 6:16 AM
-> To: Zheng, Lv
-> Cc: Lv Zheng; linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Wysocki, Rafael J; Brown, Len
-> Subject: Re: [RFC PATCH v4] ACPICA/Events: Add support to ensure GPE is disabled by default for handlers.
-> 
-> On Thu, Nov 20, 2014 at 06:47:16AM +0000, Zheng, Lv wrote:
-> > Hi, Kirill
-> >
-> > Could also help to confirm if this patch can also fix the issue.
-> > Please help to validate the 2 fix patchsets separately.
-> 
-> I've applied it on top of other two and still set the issue.
+>
+>> How about using a Kconfig symbol like this:
+>>
+>> #ifdef CONFIG_ARCH_RAW_PCI_READWRITE
+>> int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+>>                  int reg, int len, u32 *val);
+>> int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+>>                   int reg, int len, u32 val);
+>> #else
+>> static inline int raw_pci_read(unsigned int domain, unsigned int bus,
+>>                              unsigned int devfn, int reg, int len, u32 *val)
+>> {
+>>       return pci_mmcfg_read(domain, bus, devfn, reg, len, val);
+>> }
+>>
+>> static inline int raw_pci_write(unsigned int domain, unsigned int bus,
+>>                                       unsigned int devfn, int reg, int len, u32 val)
+>> {
+>>        return pci_mmcfg_write(domain, bus, devfn, reg, len, val);
+>> }
+>> #endif
 > --
->  Kirill A. Shutemov
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
