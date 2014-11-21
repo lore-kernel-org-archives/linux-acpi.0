@@ -1,102 +1,110 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 1/2] cpuidle: acpi: Remove TIME_INVALID flag from acpi
-Date: Fri, 21 Nov 2014 16:01:35 +0100
-Message-ID: <546F53CF.8070004@linaro.org>
-References: <1416562192-14114-1-git-send-email-daniel.lezcano@linaro.org> <2283319.n13QkHWkNs@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 6/6] pci, acpi: Share ACPI PCI config space accessors.
+Date: Fri, 21 Nov 2014 11:08:25 -0700
+Message-ID: <20141121180825.GD6578@google.com>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
+ <20141120222650.GC7987@google.com>
+ <CAL-B5D3MqUa-=bzebo12DbZfczss2-MdGwQ8WKTbFH8H2AENXg@mail.gmail.com>
+ <3957412.IooRKpIXjW@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:56395 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758628AbaKUPBn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2014 10:01:43 -0500
-Received: by mail-wi0-f178.google.com with SMTP id hi2so9061632wib.17
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Nov 2014 07:01:38 -0800 (PST)
-In-Reply-To: <2283319.n13QkHWkNs@vostro.rjw.lan>
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:50942 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822AbaKUSI3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Nov 2014 13:08:29 -0500
+Received: by mail-ig0-f181.google.com with SMTP id l13so37753iga.8
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Nov 2014 10:08:28 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <3957412.IooRKpIXjW@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-pm@vger.kernel.org, linaro-kernel@lists.linaro.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Myron Stowe <myron.stowe@gmail.com>, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, linaro-acpi@lists.linaro.org, linux-pci <linux-pci@vger.kernel.org>, catalin.marinas@arm.com, x86 <x86@kernel.org>, will.deacon@arm.com, LKML <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, hanjun.guo@linaro.org, "H. Peter Anvin" <hpa@zytor.com>, wangyijing@huawei.com, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>
 
-On 11/21/2014 04:05 PM, Rafael J. Wysocki wrote:
-> On Friday, November 21, 2014 10:29:51 AM Daniel Lezcano wrote:
->> The commit 8e92b6605d introduced the TIME_VALID flag for the C1 stat=
-e
->> if this one is a mwait state assuming the interrupt will be enabled
->> before reading the end time of the idle state.
->>
->> The changelog of this commit mention a potential problem with the me=
-nu
->> governor but not a real observation and I assume it described an old
->> code as the commit is from 2008.
->>
->> I have been digging through the code and I didn't find any place whe=
-re the
->> interrupts are enabled before reading the time. Moreover with the ch=
-anges
->> in the meantime, we moved the time measurements in the cpuidle core =
-as well
->> as the interrupts enabling making sure the time is measured before t=
-he
->> interrupt are enabled again in a single place.
->>
->> Remove this test as the time measurement is always valid for this
->> state.
->>
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->
-> Well, I need Len to have a look at this.
+On Fri, Nov 21, 2014 at 01:24:52PM +0100, Arnd Bergmann wrote:
+> On Thursday 20 November 2014 21:00:17 Myron Stowe wrote:
+> > On Thu, Nov 20, 2014 at 3:26 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> > > On Wed, Nov 19, 2014 at 05:19:20PM +0100, Arnd Bergmann wrote:
+> > >> On Wednesday 19 November 2014 17:04:51 Tomasz Nowicki wrote:
+> > >> > +/*
+> > >> > + * raw_pci_read/write - ACPI PCI config space accessors.
+> > >> > + *
+> > >> > + * ACPI spec defines MMCFG as the way we can access PCI config space,
+> > >> > + * so let MMCFG be default (__weak).
+> > >> > + *
+> > >> > + * If platform needs more fancy stuff, should provides its own implementation.
+> > >> > + */
+> > >> > +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+> > >> > +                       unsigned int devfn, int reg, int len, u32 *val)
+> > >> > +{
+> > >> > +       return pci_mmcfg_read(domain, bus, devfn, reg, len, val);
+> > >> > +}
+> > >> > +
+> > >> > +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+> > >> > +                        unsigned int devfn, int reg, int len, u32 val)
+> > >> > +{
+> > >> > +       return pci_mmcfg_write(domain, bus, devfn, reg, len, val);
+> > >> > +}
+> > >> > +
+> > >> >
+> > >>
+> > >> I think it would be better to avoid __weak functions here, as they tend
+> > >> to be hard to follow when trying to understand the code.
+> > >
+> > > That's interesting.  I would have said exactly the opposite -- I think the
+> > > extra Kconfiggery is harder to follow than weak/strong functions 
+> > >
+> > > But consistency is better than my personal opinion.  Is there a consensus
+> > > that we should use the Kconfig strategy instead of __weak?
+> > 
+> > I too find weak/strong functions easier to follow than "Kconfiggery" (nice term
+> > invention there).
+> 
+> I don't think there is a universal consensus, but the majority of
+> maintainers seems to avoid them for the same reasons that I think
+> __weak is problematic.
+> 
+> We have some uses of __weak in the core kernel, but there is
+> basically none in drivers outside of PCI, and the most common
+> uses are all providing an empty __weak function that can be
+> overridden with a function that actually does something, unlike
+> the code above.
 
-Ok thanks.
+One thing I like better about __weak (when used correctly) is that you have
+exactly one declaration, and the role of each definition (weak default
+implementation or strong override) is obvious from looking at it.
 
-If you have time, is it possible also you have a look at the patchset I=
-=20
-sent :
+In your #ifdef example, the extern declaration and the inline definition
+are never compiled together, so you have to repeat the signature and the
+compiler doesn't enforce that they match.  So you end up with the extern
+and the inline in one file, a #define in an arch header file or Kconfig,
+and an arch definition in a third file.
 
-[PATCH V3 0/6] sched: idle: cpuidle: cleanups and fixes
+But it's certainly true that everybody knows how #ifdef works, and the fact
+that __weak on a declaration affects all in-scope definitions is definitely
+a land mine (multiple weak definitions with no strong one is a disaster).
 
-and give your opinion about the poll state Peter and I we were discussi=
-ng ?
+> My pragmatic approach so far has been to advocate __weak for
+> drivers/pci patches but discourage it elsewhere when I review
+> patches, in order to maintain consistency. I also think it
+> would be nice to change the way that PCI handles architecture
+> specific overrides in the process of unifying the host bridge
+> handling.
+> 
+> I wouldn't use Kconfig symbols in most cases though. My preferred
+> choice would be to turn a lot of the __weak symbols into function
+> pointers within a per-hostbridge structure. As an example, we could
+> replace pcibios_add_device() with a pointer in pci_host_bridge->ops
+> that gets set by all the architectures and host drivers that currently
+> override it, and replace the one caller with
+> 
+> 	if (pci_host_bridge->ops->add_device)
+> 		pci_host_bridge->ops->add_device(dev);
 
-Regards
+I definitely agree with this part, but I think it's orthogonal to the
+__weak question.  In this case, we'd like to support multiple host bridges,
+each with a different flavor of add_device().  We can't do that at all with
+either __weak or #ifdef.
 
-   -- Daniel
-
->> ---
->>   drivers/acpi/processor_idle.c | 2 --
->>   1 file changed, 2 deletions(-)
->>
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_=
-idle.c
->> index 380b4b4..7afba40 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
->> @@ -985,8 +985,6 @@ static int acpi_processor_setup_cpuidle_states(s=
-truct acpi_processor *pr)
->>   		state->flags =3D 0;
->>   		switch (cx->type) {
->>   			case ACPI_STATE_C1:
->> -			if (cx->entry_method !=3D ACPI_CSTATE_FFH)
->> -				state->flags |=3D CPUIDLE_FLAG_TIME_INVALID;
->>
->>   			state->enter =3D acpi_idle_enter_c1;
->>   			state->enter_dead =3D acpi_idle_play_dead;
->>
->
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
