@@ -1,82 +1,90 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] platform: x86: dell-laptop: Add support for keyboard
- backlight
-Date: Fri, 21 Nov 2014 14:09:40 -0800
-Message-ID: <20141121220939.GA24951@vmdeb7>
-References: <1415967813-7223-1-git-send-email-pali.rohar@gmail.com>
- <201411192141.20190@pali>
- <20141121203930.GA74402@vmdeb7>
- <201411221946.25314@pali>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] dell-smo8800: Add more acpi ids and change description of driver
+Date: Sun, 23 Nov 2014 03:38:26 +0100
+Message-ID: <201411230338.26239@pali>
+References: <1411994748-11229-1-git-send-email-pali.rohar@gmail.com> <20140929205604.GA34181@vmdeb7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43419 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbaKVTbg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 22 Nov 2014 14:31:36 -0500
-Content-Disposition: inline
-In-Reply-To: <201411221946.25314@pali>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart6883331.XbimRxxLkg";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140929205604.GA34181@vmdeb7>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, libsmbios-devel@lists.us.dell.com, Srinivas_G_Gowda@dell.com, Michael_E_Brown@dell.com, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@intel.com>
 
-On Sat, Nov 22, 2014 at 07:46:25PM +0100, Pali Roh=E1r wrote:
+--nextPart6883331.XbimRxxLkg
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> > > 0   Completed successfully
-> > > -1  Completed with error
-> > > -2  Function not supported
-> > >=20
-> > > So we can return something other too (not always -EINVAL).
-> > > Do you have any idea which errno should we return for -1
-> > > and -2?
-> >=20
-> > For -1, I should think  -EIO (I/O Error)
-> > For -2, I'd expect -ENXIO (No such device or address)
-> >=20
+Oops, I lost this mail somewhere...
+
+I copied these ids from windows driver inf file. I did not tested=20
+them because I do not have machine which reports these ids. It=20
+looks like all SMOXX devices have same acpi structure (one IRQ).=20
+So adding ids could not break anything (if acpi device will not=20
+have for some reason IRQ specified, device probe function will=20
+fail).
+
+On Monday 29 September 2014 22:56:04 Darren Hart wrote:
+> On Mon, Sep 29, 2014 at 02:45:48PM +0200, Pali Roh=C3=A1r wrote:
 >=20
-> What about -ENOSYS for -2?
-
-No. This specific topic came up at kernel summit this year. ENOSYS is
-specifically for not implemented system calls.
-
+> Please see Documentation/SubmittingPatches, 15) The canonical
+> patch format, and provide a complete message body.
 >=20
-> > > > > +	if (convert) {
-> > > > > +		/* NOTE: this switch fall down */
-> > > >=20
-> > > > "fall down" ? As in, it intentionally doesn't have breaks?
-> > >=20
-> > > This code convert "value" in "units" to new value in minutes
-> > > units. So for unit =3D=3D days it is: 24*60*60... So no breaks.
-> >=20
-> > Right, so the language of the comment just wasn't clear, try:
-> >=20
-> > /* Convert value from seconds to minutes */
-> >=20
+> Have you validated each of the 6 ACPI IDs added to the driver?
 >=20
-> Err... to seconds :-) But OK, I will change comment.
-
-Oops, duh.
-
-/* Convert value from current units to seconds. */
-
+> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > ---
+> >=20
+> >  drivers/platform/x86/Kconfig        |    4 ++--
+> >  drivers/platform/x86/dell-smo8800.c |   10 ++++++++--
+> >  2 files changed, 10 insertions(+), 4 deletions(-)
+> >=20
+> > diff --git a/drivers/platform/x86/Kconfig
+> > b/drivers/platform/x86/Kconfig index 3bbcbf1..ba9ee4f
+> > 100644
+> > --- a/drivers/platform/x86/Kconfig
+> > +++ b/drivers/platform/x86/Kconfig
+> > @@ -128,10 +128,10 @@ config DELL_WMI_AIO
+> >=20
+> >  	  be called dell-wmi-aio.
+> > =20
+> >  config DELL_SMO8800
+> >=20
+> > -	tristate "Dell Latitude freefall driver (ACPI
+> > SMO8800/SMO8810)" +	tristate "Dell Latitude freefall driver
+> > (ACPI SMO88XX)"
+> >=20
+> >  	depends on ACPI
+> >  	---help---
+> >=20
+> > -	  Say Y here if you want to support SMO8800/SMO8810
+> > freefall device +	  Say Y here if you want to support
+> > SMO88XX freefall device
 >=20
-> > > > > +		switch (unit) {
-> > > > > +		case KBD_TIMEOUT_DAYS:
-> > > > > +			value *=3D 24;
-> > > > > +		case KBD_TIMEOUT_HOURS:
-> > > > > +			value *=3D 60;
-> > > > > +		case KBD_TIMEOUT_MINUTES:
-> > > > > +			value *=3D 60;
-> > > > > +			unit =3D KBD_TIMEOUT_SECONDS;
-> > > > > +	 	}
+> "devices" now that multiple are supported.
+>=20
+> Thanks,
 
---=20
-Darren Hart
-Intel Open Source Technology Center
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart6883331.XbimRxxLkg
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlRxSKIACgkQi/DJPQPkQ1KEsQCfRHE6j4rK/tFTyr2gsAtwkfLa
+RAQAnjq2Ed4wsAvvWHCJG2kLgK3Irp20
+=eAn1
+-----END PGP SIGNATURE-----
+
+--nextPart6883331.XbimRxxLkg--
