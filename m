@@ -1,90 +1,229 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] dell-smo8800: Add more acpi ids and change description of driver
-Date: Sun, 23 Nov 2014 03:38:26 +0100
-Message-ID: <201411230338.26239@pali>
-References: <1411994748-11229-1-git-send-email-pali.rohar@gmail.com> <20140929205604.GA34181@vmdeb7>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart6883331.XbimRxxLkg";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V3] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
+Date: Sun, 23 Nov 2014 21:22:54 +0800
+Message-ID: <1416748974-24124-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140929205604.GA34181@vmdeb7>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, wsa@the-dreams.de, robert.moore@intel.com, lv.zheng@intel.com, shigorin@gmail.com, adamw@happyassassin.net, jan.brummer@tabos.org, mika.westerberg@linux.intel.com
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart6883331.XbimRxxLkg
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+ACPI 5.0 introduces _DEP to designate device objects that OSPM should
+assign a higher priority in start ordering due to future operation region
+accesses.
 
-Oops, I lost this mail somewhere...
+On Asus T100TA, ACPI battery info are read from a I2C slave device via
+I2C operation region. Before I2C operation region handler is installed,
+battery _STA always returns 0. There is a _DEP method of designating
+start order under battery device node.
 
-I copied these ids from windows driver inf file. I did not tested=20
-them because I do not have machine which reports these ids. It=20
-looks like all SMOXX devices have same acpi structure (one IRQ).=20
-So adding ids could not break anything (if acpi device will not=20
-have for some reason IRQ specified, device probe function will=20
-fail).
+This patch is to implement _DEP feature to fix battery issue on the Asus T100TA.
+Introducing acpi_dep_list and adding dep_unmet count in the struct
+acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
+valid pair of master (device pointed to by _DEP)/slave(device with _DEP), record
+master's and slave's ACPI handle in it and put it into acpi_dep_list. The dep_unmet
+count will increase by one if there is a device under its _DEP. Driver's probe() should
+return EPROBE_DEFER when find dep_unmet is larger than 0. When I2C operation
+region handler is installed, remove all struct acpi_dep_data on the acpi_dep_list
+whose master is pointed to I2C host controller and decrease slave's dep_unmet.
+When dep_unmet decreases to 0, all _DEP conditions are met and then do acpi_bus_attach()
+for the device in order to resolve battery _STA issue on the Asus T100TA.
 
-On Monday 29 September 2014 22:56:04 Darren Hart wrote:
-> On Mon, Sep 29, 2014 at 02:45:48PM +0200, Pali Roh=C3=A1r wrote:
->=20
-> Please see Documentation/SubmittingPatches, 15) The canonical
-> patch format, and provide a complete message body.
->=20
-> Have you validated each of the 6 ACPI IDs added to the driver?
->=20
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > ---
-> >=20
-> >  drivers/platform/x86/Kconfig        |    4 ++--
-> >  drivers/platform/x86/dell-smo8800.c |   10 ++++++++--
-> >  2 files changed, 10 insertions(+), 4 deletions(-)
-> >=20
-> > diff --git a/drivers/platform/x86/Kconfig
-> > b/drivers/platform/x86/Kconfig index 3bbcbf1..ba9ee4f
-> > 100644
-> > --- a/drivers/platform/x86/Kconfig
-> > +++ b/drivers/platform/x86/Kconfig
-> > @@ -128,10 +128,10 @@ config DELL_WMI_AIO
-> >=20
-> >  	  be called dell-wmi-aio.
-> > =20
-> >  config DELL_SMO8800
-> >=20
-> > -	tristate "Dell Latitude freefall driver (ACPI
-> > SMO8800/SMO8810)" +	tristate "Dell Latitude freefall driver
-> > (ACPI SMO88XX)"
-> >=20
-> >  	depends on ACPI
-> >  	---help---
-> >=20
-> > -	  Say Y here if you want to support SMO8800/SMO8810
-> > freefall device +	  Say Y here if you want to support
-> > SMO88XX freefall device
->=20
-> "devices" now that multiple are supported.
->=20
-> Thanks,
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=69011
+Tested-by: Jan-Michael Brummer <jan.brummer@tabos.org>
+Tested-by: Adam Williamson <adamw@happyassassin.net>
+Tested-by: Michael Shigorin <shigorin@gmail.com>
+Acked-by: Wolfram Sang <wsa@the-dreams.de>
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+Change since V2:
+        Coding style change
+Change since V1:
+ 	Remove redundant blank line and some coding style fixs.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
 
---nextPart6883331.XbimRxxLkg
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+ drivers/acpi/battery.c  |  4 +++
+ drivers/acpi/scan.c     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/i2c-core.c  |  1 +
+ include/acpi/acpi_bus.h |  1 +
+ include/linux/acpi.h    |  1 +
+ 5 files changed, 92 insertions(+)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRxSKIACgkQi/DJPQPkQ1KEsQCfRHE6j4rK/tFTyr2gsAtwkfLa
-RAQAnjq2Ed4wsAvvWHCJG2kLgK3Irp20
-=eAn1
------END PGP SIGNATURE-----
-
---nextPart6883331.XbimRxxLkg--
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 8ec8a89..d98ba43 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1180,6 +1180,10 @@ static int acpi_battery_add(struct acpi_device *device)
+ 
+ 	if (!device)
+ 		return -EINVAL;
++
++	if (device->dep_unmet)
++		return -EPROBE_DEFER;
++
+ 	battery = kzalloc(sizeof(struct acpi_battery), GFP_KERNEL);
+ 	if (!battery)
+ 		return -ENOMEM;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 9cb5cca..1b1cf55 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -36,6 +36,8 @@ bool acpi_force_hot_remove;
+ 
+ static const char *dummy_hid = "device";
+ 
++static LIST_HEAD(acpi_dep_list);
++static DEFINE_MUTEX(acpi_dep_list_lock);
+ static LIST_HEAD(acpi_bus_id_list);
+ static DEFINE_MUTEX(acpi_scan_lock);
+ static LIST_HEAD(acpi_scan_handlers_list);
+@@ -43,6 +45,12 @@ DEFINE_MUTEX(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ static DEFINE_MUTEX(acpi_hp_context_lock);
+ 
++struct acpi_dep_data {
++	struct list_head node;
++	acpi_handle master;
++	acpi_handle slave;
++};
++
+ struct acpi_device_bus_id{
+ 	char bus_id[15];
+ 	unsigned int instance_no;
+@@ -2193,6 +2201,59 @@ static void acpi_scan_init_hotplug(struct acpi_device *adev)
+ 	}
+ }
+ 
++static void acpi_device_dep_initialize(struct acpi_device *adev)
++{
++	struct acpi_dep_data *dep;
++	struct acpi_handle_list dep_devices;
++	acpi_status status;
++	int i;
++
++	if (!acpi_has_method(adev->handle, "_DEP"))
++		return;
++
++	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
++					&dep_devices);
++	if (ACPI_FAILURE(status)) {
++		dev_err(&adev->dev, "Failed to evaluate _DEP.\n");
++		return;
++	}
++
++	for (i = 0; i < dep_devices.count; i++) {
++		struct acpi_device_info *info;
++		int skip;
++
++		status = acpi_get_object_info(dep_devices.handles[i], &info);
++		if (ACPI_FAILURE(status)) {
++			dev_err(&adev->dev, "Error reading device info\n");
++			continue;
++		}
++
++		/*
++		 * Skip the dependency of Windows System Power
++		 * Management Controller
++		 */
++		skip = info->valid & ACPI_VALID_HID &&
++			!strcmp(info->hardware_id.string, "INT3396");
++
++		kfree(info);
++
++		if (skip)
++			continue;
++
++		dep = kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
++		if (!dep)
++			return;
++
++		dep->master = dep_devices.handles[i];
++		dep->slave  = adev->handle;
++		adev->dep_unmet++;
++
++		mutex_lock(&acpi_dep_list_lock);
++		list_add_tail(&dep->node , &acpi_dep_list);
++		mutex_unlock(&acpi_dep_list_lock);
++	}
++}
++
+ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
+ 				      void *not_used, void **return_value)
+ {
+@@ -2219,6 +2280,7 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
+ 		return AE_CTRL_DEPTH;
+ 
+ 	acpi_scan_init_hotplug(device);
++	acpi_device_dep_initialize(device);
+ 
+  out:
+ 	if (!*return_value)
+@@ -2339,6 +2401,29 @@ static void acpi_bus_attach(struct acpi_device *device)
+ 		device->handler->hotplug.notify_online(device);
+ }
+ 
++void acpi_walk_dep_device_list(acpi_handle handle)
++{
++	struct acpi_dep_data *dep, *tmp;
++	struct acpi_device *adev;
++
++	mutex_lock(&acpi_dep_list_lock);
++	list_for_each_entry_safe(dep, tmp, &acpi_dep_list, node) {
++		if (dep->master == handle) {
++			acpi_bus_get_device(dep->slave, &adev);
++			if (!adev)
++				continue;
++
++			adev->dep_unmet--;
++			if (!adev->dep_unmet)
++				acpi_bus_attach(adev);
++			list_del(&dep->node);
++			kfree(dep);
++		}
++	}
++	mutex_unlock(&acpi_dep_list_lock);
++}
++EXPORT_SYMBOL_GPL(acpi_walk_dep_device_list);
++
+ /**
+  * acpi_bus_scan - Add ACPI device node objects in a given namespace scope.
+  * @handle: Root of the namespace scope to scan.
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index f43b4e1..68aeb8e 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -403,6 +403,7 @@ static int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
+ 		return -ENOMEM;
+ 	}
+ 
++	acpi_walk_dep_device_list(handle);
+ 	return 0;
+ }
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 7d1ce40..d539084 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -372,6 +372,7 @@ struct acpi_device {
+ 	void *driver_data;
+ 	struct device dev;
+ 	unsigned int physical_node_count;
++	unsigned int dep_unmet;
+ 	struct list_head physical_node_list;
+ 	struct mutex physical_node_lock;
+ 	void (*remove)(struct acpi_device *);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 10f2ed9..e09f7f4 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -428,6 +428,7 @@ extern bool acpi_driver_match_device(struct device *dev,
+ 				     const struct device_driver *drv);
+ int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+ int acpi_device_modalias(struct device *, char *, int);
++void acpi_walk_dep_device_list(acpi_handle handle);
+ 
+ struct platform_device *acpi_create_platform_device(struct acpi_device *);
+ #define ACPI_PTR(_ptr)	(_ptr)
+-- 
+1.8.4.rc0.1.g8f6a3e5.dirty
