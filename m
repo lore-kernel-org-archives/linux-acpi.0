@@ -1,88 +1,159 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 6/6] pci, acpi: Share ACPI PCI config space accessors.
-Date: Mon, 24 Nov 2014 11:41:28 +0100
-Message-ID: <2178540.dTppAIY2rE@wuerfel>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <3957412.IooRKpIXjW@wuerfel> <20141121180825.GD6578@google.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 02/18] ACPI / table: Add new function to get table
+ entries
+Date: Mon, 24 Nov 2014 19:03:54 +0800
+Message-ID: <5473109A.2070704@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-3-git-send-email-hanjun.guo@linaro.org> <2764417.DLFalXXngC@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:61064 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192AbaKXKnn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 05:43:43 -0500
-In-Reply-To: <20141121180825.GD6578@google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2764417.DLFalXXngC@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@l
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, Myron Stowe <myron.stowe@gmail.com>, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, linaro-acpi@lists.linaro.org, linux-pci <linux-pci@vger.kernel.org>, catalin.marinas@arm.com, x86 <x86@kernel.org>, will.deacon@arm.com, LKML <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, hanjun.guo@linaro.org, "H. Peter Anvin" <hpa@zytor.com>, wangyijing@huawei.com, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>
 
-On Friday 21 November 2014 11:08:25 Bjorn Helgaas wrote:
-> On Fri, Nov 21, 2014 at 01:24:52PM +0100, Arnd Bergmann wrote:
-> > On Thursday 20 November 2014 21:00:17 Myron Stowe wrote:
-> > > On Thu, Nov 20, 2014 at 3:26 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
-> > > > That's interesting.  I would have said exactly the opposite -- I think the
-> > > > extra Kconfiggery is harder to follow than weak/strong functions 
-> > > >
-> > > > But consistency is better than my personal opinion.  Is there a consensus
-> > > > that we should use the Kconfig strategy instead of __weak?
-> > > 
-> > > I too find weak/strong functions easier to follow than "Kconfiggery" (nice term
-> > > invention there).
-> > 
-> > I don't think there is a universal consensus, but the majority of
-> > maintainers seems to avoid them for the same reasons that I think
-> > __weak is problematic.
-> > 
-> > We have some uses of __weak in the core kernel, but there is
-> > basically none in drivers outside of PCI, and the most common
-> > uses are all providing an empty __weak function that can be
-> > overridden with a function that actually does something, unlike
-> > the code above.
+On 2014-11-24 9:27, Rafael J. Wysocki wrote:
+> On Friday, October 17, 2014 09:36:58 PM Hanjun Guo wrote:
+>> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>>
+>> The acpi_table_parse() function has a callback that
+>> passes a pointer to a table_header. Add a new function
+>> which takes this pointer and parses its entries. This
+>> eliminates the need to re-traverse all the tables for
+>> each call. e.g. as in acpi_table_parse_madt() which is
+>> normally called after acpi_table_parse().
+>>
+>> Acked-by: Grant Likely <grant.likely@linaro.org>
+>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
+>>  include/linux/acpi.h  |    4 +++
+>>  2 files changed, 51 insertions(+), 20 deletions(-)
+>>
+>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>> index 6d5a6cd..21ae521 100644
+>> --- a/drivers/acpi/tables.c
+>> +++ b/drivers/acpi/tables.c
+>> @@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>>  
+>>  
+>>  int __init
+>> -acpi_table_parse_entries(char *id,
+>> -			     unsigned long table_size,
+>> -			     int entry_id,
+>> -			     acpi_tbl_entry_handler handler,
+>> -			     unsigned int max_entries)
+>> +acpi_parse_entries(unsigned long table_size,
+>> +		acpi_tbl_entry_handler handler,
+>> +		struct acpi_table_header *table_header,
+>> +		int entry_id, unsigned int max_entries)
+>>  {
+>> -	struct acpi_table_header *table_header = NULL;
+>>  	struct acpi_subtable_header *entry;
+>> -	unsigned int count = 0;
+>> +	int count = 0;
+>>  	unsigned long table_end;
+>> -	acpi_size tbl_size;
+>>  
+>>  	if (acpi_disabled)
+>>  		return -ENODEV;
+>> @@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
+>>  	if (!handler)
+>>  		return -EINVAL;
+>>  
+>> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+>> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+>> -	else
+>> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
+>> +	if (!table_size)
+>> +		return -EINVAL;
+>>  
+>>  	if (!table_header) {
+>> -		pr_warn("%4.4s not present\n", id);
+>> +		pr_warn("Table header not present\n");
 > 
-> One thing I like better about __weak (when used correctly) is that you have
-> exactly one declaration, and the role of each definition (weak default
-> implementation or strong override) is obvious from looking at it.
-
-Right.
-
-> In your #ifdef example, the extern declaration and the inline definition
-> are never compiled together, so you have to repeat the signature and the
-> compiler doesn't enforce that they match.  So you end up with the extern
-> and the inline in one file, a #define in an arch header file or Kconfig,
-> and an arch definition in a third file.
+> The message doesn't make sense any more if the table signature is not printed.
 > 
-> But it's certainly true that everybody knows how #ifdef works, and the fact
-> that __weak on a declaration affects all in-scope definitions is definitely
-> a land mine (multiple weak definitions with no strong one is a disaster).
+>>  		return -ENODEV;
+>>  	}
+>>  
+>> @@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
+>>  		if (entry->type == entry_id
+>>  		    && (!max_entries || count++ < max_entries))
+>>  			if (handler(entry, table_end))
+>> -				goto err;
+>> +				return -EINVAL;
+>>  
+>>  		/*
+>>  		 * If entry->length is 0, break from this loop to avoid
+>>  		 * infinite loop.
+>>  		 */
+>>  		if (entry->length == 0) {
+>> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
+>> -			goto err;
+>> +			pr_err("[0x%02x] Invalid zero length\n", entry_id);
 > 
-> > My pragmatic approach so far has been to advocate __weak for
-> > drivers/pci patches but discourage it elsewhere when I review
-> > patches, in order to maintain consistency. I also think it
-> > would be nice to change the way that PCI handles architecture
-> > specific overrides in the process of unifying the host bridge
-> > handling.
-> > 
-> > I wouldn't use Kconfig symbols in most cases though. My preferred
-> > choice would be to turn a lot of the __weak symbols into function
-> > pointers within a per-hostbridge structure. As an example, we could
-> > replace pcibios_add_device() with a pointer in pci_host_bridge->ops
-> > that gets set by all the architectures and host drivers that currently
-> > override it, and replace the one caller with
-> > 
-> > 	if (pci_host_bridge->ops->add_device)
-> > 		pci_host_bridge->ops->add_device(dev);
+> Same here.
+
+How about remove the message and return directly?
+
 > 
-> I definitely agree with this part, but I think it's orthogonal to the
-> __weak question.  In this case, we'd like to support multiple host bridges,
-> each with a different flavor of add_device().  We can't do that at all with
-> either __weak or #ifdef.
+>> +			return -EINVAL;
+>>  		}
+>>  
+>>  		entry = (struct acpi_subtable_header *)
+>>  		    ((unsigned long)entry + entry->length);
+>>  	}
+>> +
+>>  	if (max_entries && count > max_entries) {
+>>  		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
+>> -			id, entry_id, count - max_entries, count);
+>> +			table_header->signature, entry_id, count - max_entries,
+>> +			count);
+>>  	}
+>>  
+>> -	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+>>  	return count;
+>> -err:
+>> +}
+>> +
+>> +int __init
+>> +acpi_table_parse_entries(char *id,
+>> +			 unsigned long table_size,
+>> +			 int entry_id,
+>> +			 acpi_tbl_entry_handler handler,
+>> +			 unsigned int max_entries)
+>> +{
+>> +	struct acpi_table_header *table_header = NULL;
+>> +	acpi_size tbl_size;
+>> +	int count;
+>> +
+>> +	if (acpi_disabled)
+>> +		return -ENODEV;
+>> +
+>> +	if (!handler)
+>> +		return -EINVAL;
+>> +
+>> +	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+>> +		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+>> +	else
+>> +		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
+> 
+> 
+> 	u32 instance = 0;
+> 
+> 	if (!strncmp(id, ACPI_SIG_MADT, 4))
+> 		instance = acpi_apic_instance;
+> 
+> 	acpi_get_table_with_size(id, instance, &table_header, &tbl_size);
+> 
+> Pretty please.
 
-What we currently have though is a a __weak definition of add_device,
-which some architectures override, and some of them (ARM in particular)
-by implementing their own abstraction. I suspect for the majority of
-what we currently define as __weak functions, we could use a similar
-approach and kill off the global symbols entirely.
+Yes, much better! I will update the patch.
 
-	Arnd
+Thanks
+Hanjun
