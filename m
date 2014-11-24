@@ -1,97 +1,87 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3 3/3] ACPI / PMIC: AXP288: support virtual GPIO in ACPI
- table
-Date: Mon, 24 Nov 2014 14:01:29 +0800
-Message-ID: <5472C9B9.5020508@intel.com>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com> <1416553911-22990-4-git-send-email-aaron.lu@intel.com> <1648486.coeVgHKNdn@vostro.rjw.lan>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v5 03/18] ACPI / table: Count matched and successfully
+ parsed entries without specifying max entries
+Date: Mon, 24 Nov 2014 09:34:24 +0100
+Message-ID: <5472ED90.5010803@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-4-git-send-email-hanjun.guo@linaro.org> <6619034.gHDuQJ1A7y@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:39574 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751972AbaKXGBc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Nov 2014 01:01:32 -0500
-In-Reply-To: <1648486.coeVgHKNdn@vostro.rjw.lan>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:35846 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752789AbaKXIeb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 03:34:31 -0500
+Received: by mail-wi0-f177.google.com with SMTP id l15so4859400wiw.16
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2014 00:34:29 -0800 (PST)
+In-Reply-To: <6619034.gHDuQJ1A7y@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lee Jones <lee.jones@linaro.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Yegnesh Iyer <yegnesh.s.iyer@intel.com>, linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@l
 
-On 11/24/2014 09:06 AM, Rafael J. Wysocki wrote:
-> On Friday, November 21, 2014 03:11:51 PM Aaron Lu wrote:
->> The same virtual GPIO strategy is also used for the AXP288 PMIC in that
->> various control methods that are used to do power rail handling and
->> sensor reading/setting will touch GPIO fields defined under the PMIC
->> device. The GPIO fileds are only defined by the ACPI code while the
->> actual hardware doesn't really have a GPIO controller, but to make those
->> control method execution succeed, we have to install a GPIO handler for
->> the PMIC device handle. Since we do not need the virtual GPIO strategy,
->> we can simply do nothing in that handler.
+On 24.11.2014 02:45, Rafael J. Wysocki wrote:
+> On Friday, October 17, 2014 09:36:59 PM Hanjun Guo wrote:
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 >>
->> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> It is very useful to traverse all available table entries without max
+>> number of expected entries type. Current acpi_parse_entries()
+>> implementation gives that feature but it does not count those entries,
+>> it returns 0 instead, so fix it to count matched and successfully
+>> entries and return it.
+>
+> Hmm.  I guess that the goal is for count to only be incremented when the
+> condition is satisfied entirely, while without the patch it may be incremented
+> even if that isn't the case.
+
+That would be our goal if patch would look like:
+-		    && (!max_entries || count++ < max_entries))
++		    && (!max_entries && count++ < max_entries)) {
+but then we can not walk through all available entries (with max_entries==0)
+
+>
+> I'm not sure how that is related to the above paragraph, however.
+>
+
+Previous changelog is not clear, let me rewrite it:
+
+acpi_parse_entries() allows to traverse all available table entries (aka 
+subtables) by passing max_entries parameter equal to 0. But for that use 
+case acpi_parse_entries() does not inform caller how many entries were 
+matched and for how many entries handler was run against. That patch is 
+going to fix it.
+
+Regards,
+Tomasz
+
+>> NOTE: This change has no impact to x86 and ia64 archs since existing code
+>> checks for error occurrence only (acpi_parse_entries(...,0) < 0).
+>>
+>> Acked-by: Grant Likely <grant.likely@linaro.org>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>  drivers/acpi/pmic/intel_pmic_xpower.c | 27 +++++++++++++++++++++++----
->>  1 file changed, 23 insertions(+), 4 deletions(-)
+>>   drivers/acpi/tables.c |    5 ++++-
+>>   1 file changed, 4 insertions(+), 1 deletion(-)
 >>
->> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
->> index 6c4d6ce0cff1..480c41c36444 100644
->> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
->> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
->> @@ -251,13 +251,32 @@ static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
->>  	.thermal_table_count = ARRAY_SIZE(thermal_table),
->>  };
->>  
->> +static acpi_status intel_xpower_pmic_gpio_handler(u32 function,
->> +		acpi_physical_address address, u32 bit_width, u64 *value,
->> +		void *handler_context, void *region_context)
->> +{
->> +	return AE_OK;
->> +}
->>  
->>  static int intel_xpower_pmic_opregion_probe(struct platform_device *pdev)
->>  {
->> -	struct axp20x_dev *axp20x = dev_get_drvdata(pdev->dev.parent);
->> -	return intel_pmic_install_opregion_handler(&pdev->dev,
->> -			ACPI_HANDLE(pdev->dev.parent), axp20x->regmap,
->> -			&intel_xpower_pmic_opregion_data);
->> +	struct device *parent = pdev->dev.parent;
->> +	struct axp20x_dev *axp20x = dev_get_drvdata(parent);
->> +	acpi_status status;
->> +	int result;
->> +
->> +	result = intel_pmic_install_opregion_handler(&pdev->dev,
->> +					ACPI_HANDLE(parent), axp20x->regmap,
->> +					&intel_xpower_pmic_opregion_data);
->> +	if (!result) {
->> +		status = acpi_install_address_space_handler(
->> +				ACPI_HANDLE(parent), ACPI_ADR_SPACE_GPIO,
->> +				intel_xpower_pmic_gpio_handler, NULL, NULL);
-> 
-> So here we have a problem, because we can't unregister the opregion handler
-> registered above if this fails.  Not nice.
-
-I'll add a remove_opregion_handler call if the above install failed, the
-chance the remove_opregion_handler will trigger a problem during init time
-is pretty low.
-
-If that is not desired, I can install the operation region handler for
-the virtual GPIO first and then the real PMIC operation region handler,
-the cost of leaving a virtual GPIO operation region handler is essential
-zero I think.
-
-Thanks,
-Aaron
-
-> 
->> +		if (ACPI_FAILURE(status))
->> +			result = -ENODEV;
->> +	}
->> +
->> +	return result;
->>  }
->>  
->>  static struct platform_driver intel_xpower_pmic_opregion_driver = {
+>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>> index 21ae521..b18e45e 100644
+>> --- a/drivers/acpi/tables.c
+>> +++ b/drivers/acpi/tables.c
+>> @@ -225,10 +225,13 @@ acpi_parse_entries(unsigned long table_size,
+>>   	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+>>   	       table_end) {
+>>   		if (entry->type == entry_id
+>> -		    && (!max_entries || count++ < max_entries))
+>> +		    && (!max_entries || count < max_entries)) {
+>>   			if (handler(entry, table_end))
+>>   				return -EINVAL;
 >>
-> 
-
+>> +			count++;
+>> +		}
+>> +
+>>   		/*
+>>   		 * If entry->length is 0, break from this loop to avoid
+>>   		 * infinite loop.
+>>
+>
