@@ -1,113 +1,102 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v3 updated 3/3] ACPI / PMIC: AXP288: support virtual GPIO in ACPI table
-Date: Mon, 24 Nov 2014 16:19:39 +0100
-Message-ID: <2204417.orosXAozvY@vostro.rjw.lan>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com> <1648486.coeVgHKNdn@vostro.rjw.lan> <5472FB31.8000408@intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v5 03/18] ACPI / table: Count matched and successfully
+ parsed entries without specifying max entries
+Date: Mon, 24 Nov 2014 16:01:24 +0100
+Message-ID: <54734844.1070505@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <6619034.gHDuQJ1A7y@vostro.rjw.lan> <5472ED90.5010803@linaro.org> <2301926.MWJ5MneAen@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5472FB31.8000408-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yegnesh Iyer <yegnesh.s.iyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:63729 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758AbaKXPBc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 10:01:32 -0500
+Received: by mail-wg0-f43.google.com with SMTP id l18so12846904wgh.16
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2014 07:01:30 -0800 (PST)
+In-Reply-To: <2301926.MWJ5MneAen@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acp
 
-On Monday, November 24, 2014 05:32:33 PM Aaron Lu wrote:
-> On 11/24/2014 09:06 AM, Rafael J. Wysocki wrote:
-> > On Friday, November 21, 2014 03:11:51 PM Aaron Lu wrote:
-> >> +	if (!result) {
-> >> +		status = acpi_install_address_space_handler(
-> >> +				ACPI_HANDLE(parent), ACPI_ADR_SPACE_GPIO,
-> >> +				intel_xpower_pmic_gpio_handler, NULL, NULL);
-> > 
-> > So here we have a problem, because we can't unregister the opregion handler
-> > registered above if this fails.  Not nice.
-> 
-> I'm not correct in the cover letter, the actual problem with operation
-> region remove is with module unload, it happens like this:
-> 
-> The acpi_remove_address_space_handler doesn't wait for the current
-> running handler to return, so if we call
-> acpi_remove_address_space_handler in a module's exit function, the
-> handler's memory will be freed and the running handler will access to
-> a no longer valid memory place.
-> 
-> So as long as we can make sure the handler will not go away from the
-> memory, we are safe.
+On 24.11.2014 16:16, Rafael J. Wysocki wrote:
+> On Monday, November 24, 2014 09:34:24 AM Tomasz Nowicki wrote:
+>> On 24.11.2014 02:45, Rafael J. Wysocki wrote:
+>>> On Friday, October 17, 2014 09:36:59 PM Hanjun Guo wrote:
+>>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>>
+>>>> It is very useful to traverse all available table entries without max
+>>>> number of expected entries type. Current acpi_parse_entries()
+>>>> implementation gives that feature but it does not count those entries,
+>>>> it returns 0 instead, so fix it to count matched and successfully
+>>>> entries and return it.
+>>>
+>>> Hmm.  I guess that the goal is for count to only be incremented when the
+>>> condition is satisfied entirely, while without the patch it may be incremented
+>>> even if that isn't the case.
+>>
+>> That would be our goal if patch would look like:
+>> -		    && (!max_entries || count++ < max_entries))
+>> +		    && (!max_entries && count++ < max_entries)) {
+>> but then we can not walk through all available entries (with max_entries==0)
+>
+> No, that's not what I was trying to say. :-)
+>
+>>>
+>>> I'm not sure how that is related to the above paragraph, however.
+>>>
+>>
+>> Previous changelog is not clear, let me rewrite it:
+>>
+>> acpi_parse_entries() allows to traverse all available table entries (aka
+>> subtables) by passing max_entries parameter equal to 0. But for that use
+>> case acpi_parse_entries() does not inform caller how many entries were
+>> matched and for how many entries handler was run against. That patch is
+>> going to fix it.
+>
+> Do I understand correctly that count is only ever incremented by current code
+> if max_entries is different from 0?
 
-This only means that address space handlers cannot be removed from kernel
-modules.
+Right. Currently "count" is incremented only if max_entries > 0.
 
-Lv was trying to add a wrapper for that some time ago, maybe it's a good
-idea to revive that?
+Tomasz
 
-> With this said, the updated patch is here:
-> 
-> From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Date: Mon, 20 Oct 2014 17:06:20 +0800
-> Subject: [PATCH 3/3] ACPI / PMIC: AXP288: support virtual GPIO in ACPI table
-> 
-> The same virtual GPIO strategy is also used for the AXP288 PMIC in that
-> various control methods that are used to do power rail handling and
-> sensor reading/setting will touch GPIO fields defined under the PMIC
-> device. The GPIO fileds are only defined by the ACPI code while the
-> actual hardware doesn't really have a GPIO controller, but to make those
-> control method execution succeed, we have to install a GPIO handler for
-> the PMIC device handle. Since we do not need the virtual GPIO strategy,
-> we can simply do nothing in that handler.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/acpi/pmic/intel_pmic_xpower.c | 30 ++++++++++++++++++++++++++----
->  1 file changed, 26 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-> index 795ca073db08..9ec57ebd81c9 100644
-> --- a/drivers/acpi/pmic/intel_pmic_xpower.c
-> +++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-> @@ -220,13 +220,35 @@ static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
->  	.thermal_table_count = ARRAY_SIZE(thermal_table),
->  };
->  
-> +static acpi_status intel_xpower_pmic_gpio_handler(u32 function,
-> +		acpi_physical_address address, u32 bit_width, u64 *value,
-> +		void *handler_context, void *region_context)
-> +{
-> +	return AE_OK;
-> +}
->  
->  static int intel_xpower_pmic_opregion_probe(struct platform_device *pdev)
->  {
-> -	struct axp20x_dev *axp20x = dev_get_drvdata(pdev->dev.parent);
-> -	return intel_pmic_install_opregion_handler(&pdev->dev,
-> -			ACPI_HANDLE(pdev->dev.parent), axp20x->regmap,
-> -			&intel_xpower_pmic_opregion_data);
-> +	struct device *parent = pdev->dev.parent;
-> +	struct axp20x_dev *axp20x = dev_get_drvdata(parent);
-> +	acpi_status status;
-> +	int result;
-> +
-> +	status = acpi_install_address_space_handler(ACPI_HANDLE(parent),
-> +			ACPI_ADR_SPACE_GPIO, intel_xpower_pmic_gpio_handler,
-> +			NULL, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	result = intel_pmic_install_opregion_handler(&pdev->dev,
-> +					ACPI_HANDLE(parent), axp20x->regmap,
-> +					&intel_xpower_pmic_opregion_data);
-> +	if (result)
-> +		acpi_remove_address_space_handler(ACPI_HANDLE(parent),
-> +						  ACPI_ADR_SPACE_GPIO,
-> +						  intel_xpower_pmic_gpio_handler);
-> +
-> +	return result;
->  }
->  
->  static struct platform_driver intel_xpower_pmic_opregion_driver = {
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>
+>
+>>>> NOTE: This change has no impact to x86 and ia64 archs since existing code
+>>>> checks for error occurrence only (acpi_parse_entries(...,0) < 0).
+>>>>
+>>>> Acked-by: Grant Likely <grant.likely@linaro.org>
+>>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>    drivers/acpi/tables.c |    5 ++++-
+>>>>    1 file changed, 4 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>>>> index 21ae521..b18e45e 100644
+>>>> --- a/drivers/acpi/tables.c
+>>>> +++ b/drivers/acpi/tables.c
+>>>> @@ -225,10 +225,13 @@ acpi_parse_entries(unsigned long table_size,
+>>>>    	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+>>>>    	       table_end) {
+>>>>    		if (entry->type == entry_id
+>>>> -		    && (!max_entries || count++ < max_entries))
+>>>> +		    && (!max_entries || count < max_entries)) {
+>>>>    			if (handler(entry, table_end))
+>>>>    				return -EINVAL;
+>>>>
+>>>> +			count++;
+>>>> +		}
+>>>> +
+>>>>    		/*
+>>>>    		 * If entry->length is 0, break from this loop to avoid
+>>>>    		 * infinite loop.
+>>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
