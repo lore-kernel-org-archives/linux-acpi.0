@@ -1,56 +1,74 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [UPDATE RFC PATCH 2] ACPICA: Events: Introduce
- ACPI_GPE_HANDLER_RAW to fix 2 issues for the current GPE APIs.
-Date: Mon, 24 Nov 2014 02:47:45 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A46B1@SHSMSX101.ccr.corp.intel.com>
-References: <1416531434-3454-1-git-send-email-lv.zheng@intel.com>
- <1AE640813FDE7649BE1B193DEA596E88026A417D@SHSMSX101.ccr.corp.intel.com>
- <20141121124048.GA17006@node.dhcp.inet.fi>
+From: Adam Williamson <awilliam-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V3] ACPI: Add _DEP(Operation Region Dependencies)
+ support to fix battery issue on the Asus T100TA
+Date: Sun, 23 Nov 2014 20:23:32 -0800
+Message-ID: <1416803012.2669.68.camel@redhat.com>
+References: <1416748974-24124-1-git-send-email-tianyu.lan@intel.com>
+	 <54729A7B.4050007@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:41186 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750989AbaKXCru convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Nov 2014 21:47:50 -0500
-In-Reply-To: <20141121124048.GA17006@node.dhcp.inet.fi>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54729A7B.4050007-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Li, Aubrey" <aubrey.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shigorin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jan.brummer-sgYkR6nYkOfYtjvyW6yDsg@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lv Zheng (zetalog@gmail.com)" <zetalog@gmail.com>
 
-Hi,
-
-Adding people that were disturbed by my fault previously.
-
-You should also reply in the same thread with this validation result.
-As we might need this to be the motivation for the proposal that the GPE dead lock issue should be fixed in a higher priority way.
-I've reported this at:
-https://bugs.acpica.org/show_bug.cgi?id=1100
-
-Thanks and best regards
--Lv
-
-> From: Kirill A. Shutemov [mailto:kirill@shutemov.name]
-> Sent: Friday, November 21, 2014 8:41 PM
+On Mon, 2014-11-24 at 10:39 +0800, Li, Aubrey wrote:
+> On 2014/11/23 21:22, Lan Tianyu wrote:
+> > ACPI 5.0 introduces _DEP to designate device objects that OSPM should
+> > assign a higher priority in start ordering due to future operation region
+> > accesses.
+> > 
+> > On Asus T100TA, ACPI battery info are read from a I2C slave device via
+> > I2C operation region. Before I2C operation region handler is installed,
+> > battery _STA always returns 0. There is a _DEP method of designating
+> > start order under battery device node.
+> > 
+> > This patch is to implement _DEP feature to fix battery issue on the Asus T100TA.
+> > Introducing acpi_dep_list and adding dep_unmet count in the struct
+> > acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
+> > valid pair of master (device pointed to by _DEP)/slave(device with _DEP), record
+> > master's and slave's ACPI handle in it and put it into acpi_dep_list. The dep_unmet
+> > count will increase by one if there is a device under its _DEP. Driver's probe() should
+> > return EPROBE_DEFER when find dep_unmet is larger than 0. When I2C operation
+> > region handler is installed, remove all struct acpi_dep_data on the acpi_dep_list
+> > whose master is pointed to I2C host controller and decrease slave's dep_unmet.
+> > When dep_unmet decreases to 0, all _DEP conditions are met and then do acpi_bus_attach()
+> > for the device in order to resolve battery _STA issue on the Asus T100TA.
 > 
-> On Fri, Nov 21, 2014 at 01:05:40AM +0000, Zheng, Lv wrote:
-> > Hi, Kirill
-> >
-> > Please help to check again to use the updated patch.
-> > Sorry for my mistake.
-> >
-> > I originally used a patch that will unlock before invoking all handlers.
-> > But as requested by maintainers, the new ACPICA part will use a ACPI_GPE_HANDLER_RAW flag, and I updated my patch in a hurry
-> for you without updating the ec.c.
-> >
-> > It's my fault.
-> > I can also do some local confirmation before disturbing you.
-> > Could you tell me how can I reproduce this?
+> Well, Can we explicitly tied this up with ASUS T100TA in the code?
+> If I understand correctly, the assumption in the patch is that the
+> battery device only depends on I2C device, which is true on ASUS T100TA,
+> but may not on the other platforms.
 > 
-> This one seems works
+> This patch does not work on a box I have, on it _DEP contains I2C and GPIO.
 > 
-> --
->  Kirill A. Shutemov
+> Device (BATC)
+>         {
+>             Name (_HID, EisaId ("PNP0C0A"))  // _HID: Hardware ID
+> --------snip--------
+>             Name (_DEP, Package (0x03)  // _DEP: Dependencies
+>             {
+>                 I2C1,
+>                 GPO2,
+>                 GPO0
+>             })
+> 
+> Thanks,
+> -Aubrey
+
+It certainly works for more than *just* the T100 - fedlet users have
+reported working battery status on at least the Miix 2 and Venue 8 Pro
+(I can personally confirm it works on the Venue 8 Pro). However, Bastien
+Nocera reported failure on an Onda v975w with a slightly earlier version
+of the patch in the bug report -
+https://bugzilla.kernel.org/show_bug.cgi?id=69011#c58 , "Tested with the
+same patch on a Onda v975w, and it tries very hard to detect the battery
+but fails."
+-- 
+Adam Williamson
+Fedora QA Community Monkey
+IRC: adamw | Twitter: AdamW_Fedora | XMPP: adamw AT happyassassin . net
+http://www.happyassassin.net
