@@ -1,104 +1,88 @@
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 updated 3/3] ACPI / PMIC: AXP288: support virtual GPIO
- in ACPI table
-Date: Mon, 24 Nov 2014 17:32:33 +0800
-Message-ID: <5472FB31.8000408@intel.com>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com> <1416553911-22990-4-git-send-email-aaron.lu@intel.com> <1648486.coeVgHKNdn@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 6/6] pci, acpi: Share ACPI PCI config space accessors.
+Date: Mon, 24 Nov 2014 11:41:28 +0100
+Message-ID: <2178540.dTppAIY2rE@wuerfel>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <3957412.IooRKpIXjW@wuerfel> <20141121180825.GD6578@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1648486.coeVgHKNdn-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yegnesh Iyer <yegnesh.s.iyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.130]:61064 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753192AbaKXKnn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 05:43:43 -0500
+In-Reply-To: <20141121180825.GD6578@google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-arm-kernel@lists.infradead.org, Myron Stowe <myron.stowe@gmail.com>, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, linaro-acpi@lists.linaro.org, linux-pci <linux-pci@vger.kernel.org>, catalin.marinas@arm.com, x86 <x86@kernel.org>, will.deacon@arm.com, LKML <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, hanjun.guo@linaro.org, "H. Peter Anvin" <hpa@zytor.com>, wangyijing@huawei.com, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>
 
-On 11/24/2014 09:06 AM, Rafael J. Wysocki wrote:
-> On Friday, November 21, 2014 03:11:51 PM Aaron Lu wrote:
->> +	if (!result) {
->> +		status = acpi_install_address_space_handler(
->> +				ACPI_HANDLE(parent), ACPI_ADR_SPACE_GPIO,
->> +				intel_xpower_pmic_gpio_handler, NULL, NULL);
+On Friday 21 November 2014 11:08:25 Bjorn Helgaas wrote:
+> On Fri, Nov 21, 2014 at 01:24:52PM +0100, Arnd Bergmann wrote:
+> > On Thursday 20 November 2014 21:00:17 Myron Stowe wrote:
+> > > On Thu, Nov 20, 2014 at 3:26 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>
+> > > > That's interesting.  I would have said exactly the opposite -- I think the
+> > > > extra Kconfiggery is harder to follow than weak/strong functions 
+> > > >
+> > > > But consistency is better than my personal opinion.  Is there a consensus
+> > > > that we should use the Kconfig strategy instead of __weak?
+> > > 
+> > > I too find weak/strong functions easier to follow than "Kconfiggery" (nice term
+> > > invention there).
+> > 
+> > I don't think there is a universal consensus, but the majority of
+> > maintainers seems to avoid them for the same reasons that I think
+> > __weak is problematic.
+> > 
+> > We have some uses of __weak in the core kernel, but there is
+> > basically none in drivers outside of PCI, and the most common
+> > uses are all providing an empty __weak function that can be
+> > overridden with a function that actually does something, unlike
+> > the code above.
 > 
-> So here we have a problem, because we can't unregister the opregion handler
-> registered above if this fails.  Not nice.
+> One thing I like better about __weak (when used correctly) is that you have
+> exactly one declaration, and the role of each definition (weak default
+> implementation or strong override) is obvious from looking at it.
 
-I'm not correct in the cover letter, the actual problem with operation
-region remove is with module unload, it happens like this:
+Right.
 
-The acpi_remove_address_space_handler doesn't wait for the current
-running handler to return, so if we call
-acpi_remove_address_space_handler in a module's exit function, the
-handler's memory will be freed and the running handler will access to
-a no longer valid memory place.
+> In your #ifdef example, the extern declaration and the inline definition
+> are never compiled together, so you have to repeat the signature and the
+> compiler doesn't enforce that they match.  So you end up with the extern
+> and the inline in one file, a #define in an arch header file or Kconfig,
+> and an arch definition in a third file.
+> 
+> But it's certainly true that everybody knows how #ifdef works, and the fact
+> that __weak on a declaration affects all in-scope definitions is definitely
+> a land mine (multiple weak definitions with no strong one is a disaster).
+> 
+> > My pragmatic approach so far has been to advocate __weak for
+> > drivers/pci patches but discourage it elsewhere when I review
+> > patches, in order to maintain consistency. I also think it
+> > would be nice to change the way that PCI handles architecture
+> > specific overrides in the process of unifying the host bridge
+> > handling.
+> > 
+> > I wouldn't use Kconfig symbols in most cases though. My preferred
+> > choice would be to turn a lot of the __weak symbols into function
+> > pointers within a per-hostbridge structure. As an example, we could
+> > replace pcibios_add_device() with a pointer in pci_host_bridge->ops
+> > that gets set by all the architectures and host drivers that currently
+> > override it, and replace the one caller with
+> > 
+> > 	if (pci_host_bridge->ops->add_device)
+> > 		pci_host_bridge->ops->add_device(dev);
+> 
+> I definitely agree with this part, but I think it's orthogonal to the
+> __weak question.  In this case, we'd like to support multiple host bridges,
+> each with a different flavor of add_device().  We can't do that at all with
+> either __weak or #ifdef.
 
-So as long as we can make sure the handler will not go away from the
-memory, we are safe.
+What we currently have though is a a __weak definition of add_device,
+which some architectures override, and some of them (ARM in particular)
+by implementing their own abstraction. I suspect for the majority of
+what we currently define as __weak functions, we could use a similar
+approach and kill off the global symbols entirely.
 
-With this said, the updated patch is here:
-
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date: Mon, 20 Oct 2014 17:06:20 +0800
-Subject: [PATCH 3/3] ACPI / PMIC: AXP288: support virtual GPIO in ACPI table
-
-The same virtual GPIO strategy is also used for the AXP288 PMIC in that
-various control methods that are used to do power rail handling and
-sensor reading/setting will touch GPIO fields defined under the PMIC
-device. The GPIO fileds are only defined by the ACPI code while the
-actual hardware doesn't really have a GPIO controller, but to make those
-control method execution succeed, we have to install a GPIO handler for
-the PMIC device handle. Since we do not need the virtual GPIO strategy,
-we can simply do nothing in that handler.
-
-Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/pmic/intel_pmic_xpower.c | 30 ++++++++++++++++++++++++++----
- 1 file changed, 26 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 795ca073db08..9ec57ebd81c9 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -220,13 +220,35 @@ static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
- 	.thermal_table_count = ARRAY_SIZE(thermal_table),
- };
- 
-+static acpi_status intel_xpower_pmic_gpio_handler(u32 function,
-+		acpi_physical_address address, u32 bit_width, u64 *value,
-+		void *handler_context, void *region_context)
-+{
-+	return AE_OK;
-+}
- 
- static int intel_xpower_pmic_opregion_probe(struct platform_device *pdev)
- {
--	struct axp20x_dev *axp20x = dev_get_drvdata(pdev->dev.parent);
--	return intel_pmic_install_opregion_handler(&pdev->dev,
--			ACPI_HANDLE(pdev->dev.parent), axp20x->regmap,
--			&intel_xpower_pmic_opregion_data);
-+	struct device *parent = pdev->dev.parent;
-+	struct axp20x_dev *axp20x = dev_get_drvdata(parent);
-+	acpi_status status;
-+	int result;
-+
-+	status = acpi_install_address_space_handler(ACPI_HANDLE(parent),
-+			ACPI_ADR_SPACE_GPIO, intel_xpower_pmic_gpio_handler,
-+			NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	result = intel_pmic_install_opregion_handler(&pdev->dev,
-+					ACPI_HANDLE(parent), axp20x->regmap,
-+					&intel_xpower_pmic_opregion_data);
-+	if (result)
-+		acpi_remove_address_space_handler(ACPI_HANDLE(parent),
-+						  ACPI_ADR_SPACE_GPIO,
-+						  intel_xpower_pmic_gpio_handler);
-+
-+	return result;
- }
- 
- static struct platform_driver intel_xpower_pmic_opregion_driver = {
--- 
-1.9.3
+	Arnd
