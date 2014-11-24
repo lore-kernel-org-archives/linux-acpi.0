@@ -1,102 +1,62 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v5 03/18] ACPI / table: Count matched and successfully
- parsed entries without specifying max entries
-Date: Mon, 24 Nov 2014 16:01:24 +0100
-Message-ID: <54734844.1070505@linaro.org>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <6619034.gHDuQJ1A7y@vostro.rjw.lan> <5472ED90.5010803@linaro.org> <2301926.MWJ5MneAen@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH V3] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
+Date: Mon, 24 Nov 2014 16:27:11 +0100
+Message-ID: <1720074.U59stZW2tQ@vostro.rjw.lan>
+References: <1416748974-24124-1-git-send-email-tianyu.lan@intel.com> <54729A7B.4050007@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:63729 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758AbaKXPBc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 10:01:32 -0500
-Received: by mail-wg0-f43.google.com with SMTP id l18so12846904wgh.16
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Nov 2014 07:01:30 -0800 (PST)
-In-Reply-To: <2301926.MWJ5MneAen@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54729A7B.4050007-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Li, Aubrey" <aubrey.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shigorin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, adamw-cfjF3rc+CpsYNetmKr+vY16hYfS7NtTn@public.gmane.org, jan.brummer-sgYkR6nYkOfYtjvyW6yDsg@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acp
 
-On 24.11.2014 16:16, Rafael J. Wysocki wrote:
-> On Monday, November 24, 2014 09:34:24 AM Tomasz Nowicki wrote:
->> On 24.11.2014 02:45, Rafael J. Wysocki wrote:
->>> On Friday, October 17, 2014 09:36:59 PM Hanjun Guo wrote:
->>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>>
->>>> It is very useful to traverse all available table entries without max
->>>> number of expected entries type. Current acpi_parse_entries()
->>>> implementation gives that feature but it does not count those entries,
->>>> it returns 0 instead, so fix it to count matched and successfully
->>>> entries and return it.
->>>
->>> Hmm.  I guess that the goal is for count to only be incremented when the
->>> condition is satisfied entirely, while without the patch it may be incremented
->>> even if that isn't the case.
->>
->> That would be our goal if patch would look like:
->> -		    && (!max_entries || count++ < max_entries))
->> +		    && (!max_entries && count++ < max_entries)) {
->> but then we can not walk through all available entries (with max_entries==0)
->
-> No, that's not what I was trying to say. :-)
->
->>>
->>> I'm not sure how that is related to the above paragraph, however.
->>>
->>
->> Previous changelog is not clear, let me rewrite it:
->>
->> acpi_parse_entries() allows to traverse all available table entries (aka
->> subtables) by passing max_entries parameter equal to 0. But for that use
->> case acpi_parse_entries() does not inform caller how many entries were
->> matched and for how many entries handler was run against. That patch is
->> going to fix it.
->
-> Do I understand correctly that count is only ever incremented by current code
-> if max_entries is different from 0?
+On Monday, November 24, 2014 10:39:55 AM Li, Aubrey wrote:
+> On 2014/11/23 21:22, Lan Tianyu wrote:
+> > ACPI 5.0 introduces _DEP to designate device objects that OSPM should
+> > assign a higher priority in start ordering due to future operation region
+> > accesses.
+> > 
+> > On Asus T100TA, ACPI battery info are read from a I2C slave device via
+> > I2C operation region. Before I2C operation region handler is installed,
+> > battery _STA always returns 0. There is a _DEP method of designating
+> > start order under battery device node.
+> > 
+> > This patch is to implement _DEP feature to fix battery issue on the Asus T100TA.
+> > Introducing acpi_dep_list and adding dep_unmet count in the struct
+> > acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
+> > valid pair of master (device pointed to by _DEP)/slave(device with _DEP), record
+> > master's and slave's ACPI handle in it and put it into acpi_dep_list. The dep_unmet
+> > count will increase by one if there is a device under its _DEP. Driver's probe() should
+> > return EPROBE_DEFER when find dep_unmet is larger than 0. When I2C operation
+> > region handler is installed, remove all struct acpi_dep_data on the acpi_dep_list
+> > whose master is pointed to I2C host controller and decrease slave's dep_unmet.
+> > When dep_unmet decreases to 0, all _DEP conditions are met and then do acpi_bus_attach()
+> > for the device in order to resolve battery _STA issue on the Asus T100TA.
+> 
+> Well, Can we explicitly tied this up with ASUS T100TA in the code?
+> If I understand correctly, the assumption in the patch is that the
+> battery device only depends on I2C device, which is true on ASUS T100TA,
+> but may not on the other platforms.
+> 
+> This patch does not work on a box I have, on it _DEP contains I2C and GPIO.
 
-Right. Currently "count" is incremented only if max_entries > 0.
+Does the patch break anything for you?
 
-Tomasz
+> Device (BATC)
+>         {
+>             Name (_HID, EisaId ("PNP0C0A"))  // _HID: Hardware ID
+> --------snip--------
+>             Name (_DEP, Package (0x03)  // _DEP: Dependencies
+>             {
+>                 I2C1,
+>                 GPO2,
+>                 GPO0
+>             })
+> 
 
->
->
->>>> NOTE: This change has no impact to x86 and ia64 archs since existing code
->>>> checks for error occurrence only (acpi_parse_entries(...,0) < 0).
->>>>
->>>> Acked-by: Grant Likely <grant.likely@linaro.org>
->>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> ---
->>>>    drivers/acpi/tables.c |    5 ++++-
->>>>    1 file changed, 4 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->>>> index 21ae521..b18e45e 100644
->>>> --- a/drivers/acpi/tables.c
->>>> +++ b/drivers/acpi/tables.c
->>>> @@ -225,10 +225,13 @@ acpi_parse_entries(unsigned long table_size,
->>>>    	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
->>>>    	       table_end) {
->>>>    		if (entry->type == entry_id
->>>> -		    && (!max_entries || count++ < max_entries))
->>>> +		    && (!max_entries || count < max_entries)) {
->>>>    			if (handler(entry, table_end))
->>>>    				return -EINVAL;
->>>>
->>>> +			count++;
->>>> +		}
->>>> +
->>>>    		/*
->>>>    		 * If entry->length is 0, break from this loop to avoid
->>>>    		 * infinite loop.
->>>>
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
