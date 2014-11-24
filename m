@@ -1,111 +1,95 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 02/18] ACPI / table: Add new function to get table entries
-Date: Mon, 24 Nov 2014 15:51:40 +0100
-Message-ID: <1581499.U8906vqSiO@vostro.rjw.lan>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <2764417.DLFalXXngC@vostro.rjw.lan> <5473109A.2070704@linaro.org>
+Subject: Re: [PATCH v5 03/18] ACPI / table: Count matched and successfully parsed entries without specifying max entries
+Date: Mon, 24 Nov 2014 16:16:55 +0100
+Message-ID: <2301926.MWJ5MneAen@vostro.rjw.lan>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <6619034.gHDuQJ1A7y@vostro.rjw.lan> <5472ED90.5010803@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50499 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50570 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751459AbaKXOac (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 09:30:32 -0500
-In-Reply-To: <5473109A.2070704@linaro.org>
+	with SMTP id S1754126AbaKXOzn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 09:55:43 -0500
+In-Reply-To: <5472ED90.5010803@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@l
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acp
 
-On Monday, November 24, 2014 07:03:54 PM Hanjun Guo wrote:
-> On 2014-11-24 9:27, Rafael J. Wysocki wrote:
-> > On Friday, October 17, 2014 09:36:58 PM Hanjun Guo wrote:
-> >> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+On Monday, November 24, 2014 09:34:24 AM Tomasz Nowicki wrote:
+> On 24.11.2014 02:45, Rafael J. Wysocki wrote:
+> > On Friday, October 17, 2014 09:36:59 PM Hanjun Guo wrote:
+> >> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > >>
-> >> The acpi_table_parse() function has a callback that
-> >> passes a pointer to a table_header. Add a new function
-> >> which takes this pointer and parses its entries. This
-> >> eliminates the need to re-traverse all the tables for
-> >> each call. e.g. as in acpi_table_parse_madt() which is
-> >> normally called after acpi_table_parse().
+> >> It is very useful to traverse all available table entries without max
+> >> number of expected entries type. Current acpi_parse_entries()
+> >> implementation gives that feature but it does not count those entries,
+> >> it returns 0 instead, so fix it to count matched and successfully
+> >> entries and return it.
+> >
+> > Hmm.  I guess that the goal is for count to only be incremented when the
+> > condition is satisfied entirely, while without the patch it may be incremented
+> > even if that isn't the case.
+> 
+> That would be our goal if patch would look like:
+> -		    && (!max_entries || count++ < max_entries))
+> +		    && (!max_entries && count++ < max_entries)) {
+> but then we can not walk through all available entries (with max_entries==0)
+
+No, that's not what I was trying to say. :-)
+
+> >
+> > I'm not sure how that is related to the above paragraph, however.
+> >
+> 
+> Previous changelog is not clear, let me rewrite it:
+> 
+> acpi_parse_entries() allows to traverse all available table entries (aka 
+> subtables) by passing max_entries parameter equal to 0. But for that use 
+> case acpi_parse_entries() does not inform caller how many entries were 
+> matched and for how many entries handler was run against. That patch is 
+> going to fix it.
+
+Do I understand correctly that count is only ever incremented by current code
+if max_entries is different from 0?
+
+
+> >> NOTE: This change has no impact to x86 and ia64 archs since existing code
+> >> checks for error occurrence only (acpi_parse_entries(...,0) < 0).
 > >>
 > >> Acked-by: Grant Likely <grant.likely@linaro.org>
-> >> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 > >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > >> ---
-> >>  drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
-> >>  include/linux/acpi.h  |    4 +++
-> >>  2 files changed, 51 insertions(+), 20 deletions(-)
+> >>   drivers/acpi/tables.c |    5 ++++-
+> >>   1 file changed, 4 insertions(+), 1 deletion(-)
 > >>
 > >> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> >> index 6d5a6cd..21ae521 100644
+> >> index 21ae521..b18e45e 100644
 > >> --- a/drivers/acpi/tables.c
 > >> +++ b/drivers/acpi/tables.c
-> >> @@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-> >>  
-> >>  
-> >>  int __init
-> >> -acpi_table_parse_entries(char *id,
-> >> -			     unsigned long table_size,
-> >> -			     int entry_id,
-> >> -			     acpi_tbl_entry_handler handler,
-> >> -			     unsigned int max_entries)
-> >> +acpi_parse_entries(unsigned long table_size,
-> >> +		acpi_tbl_entry_handler handler,
-> >> +		struct acpi_table_header *table_header,
-> >> +		int entry_id, unsigned int max_entries)
-> >>  {
-> >> -	struct acpi_table_header *table_header = NULL;
-> >>  	struct acpi_subtable_header *entry;
-> >> -	unsigned int count = 0;
-> >> +	int count = 0;
-> >>  	unsigned long table_end;
-> >> -	acpi_size tbl_size;
-> >>  
-> >>  	if (acpi_disabled)
-> >>  		return -ENODEV;
-> >> @@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
-> >>  	if (!handler)
-> >>  		return -EINVAL;
-> >>  
-> >> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
-> >> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-> >> -	else
-> >> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-> >> +	if (!table_size)
-> >> +		return -EINVAL;
-> >>  
-> >>  	if (!table_header) {
-> >> -		pr_warn("%4.4s not present\n", id);
-> >> +		pr_warn("Table header not present\n");
-> > 
-> > The message doesn't make sense any more if the table signature is not printed.
-> > 
-> >>  		return -ENODEV;
-> >>  	}
-> >>  
-> >> @@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
-> >>  		if (entry->type == entry_id
-> >>  		    && (!max_entries || count++ < max_entries))
-> >>  			if (handler(entry, table_end))
-> >> -				goto err;
-> >> +				return -EINVAL;
-> >>  
-> >>  		/*
-> >>  		 * If entry->length is 0, break from this loop to avoid
-> >>  		 * infinite loop.
-> >>  		 */
-> >>  		if (entry->length == 0) {
-> >> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-> >> -			goto err;
-> >> +			pr_err("[0x%02x] Invalid zero length\n", entry_id);
-> > 
-> > Same here.
-> 
-> How about remove the message and return directly?
-
-We could do that, but for what reason?  Is the message not useful?
+> >> @@ -225,10 +225,13 @@ acpi_parse_entries(unsigned long table_size,
+> >>   	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+> >>   	       table_end) {
+> >>   		if (entry->type == entry_id
+> >> -		    && (!max_entries || count++ < max_entries))
+> >> +		    && (!max_entries || count < max_entries)) {
+> >>   			if (handler(entry, table_end))
+> >>   				return -EINVAL;
+> >>
+> >> +			count++;
+> >> +		}
+> >> +
+> >>   		/*
+> >>   		 * If entry->length is 0, break from this loop to avoid
+> >>   		 * infinite loop.
+> >>
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
