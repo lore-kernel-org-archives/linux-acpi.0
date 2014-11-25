@@ -1,106 +1,177 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part3 v4 11/38] x86, irq: Kill unused struct mp_pin_info
-Date: Tue, 25 Nov 2014 15:49:35 +0800
-Message-ID: <1416901802-24211-12-git-send-email-jiang.liu@linux.intel.com>
+From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [Patch Part3 v4 14/38] x86,
+	irq: Kill x86_io_apic_ops.set_affinity and related interfaces
+Date: Tue, 25 Nov 2014 15:49:38 +0800
+Message-ID: <1416901802-24211-15-git-send-email-jiang.liu@linux.intel.com>
 References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1416901802-24211-1-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now nobody makes use of struct mp_pin_info, so kill it.
+Now there is no user of x86_io_apic_ops.set_affinity anymore, so kill
+it.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Tested-by: Joerg Roedel <jroedel@suse.de>
+Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Tested-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
 ---
- arch/x86/kernel/apic/io_apic.c |   30 +++---------------------------
- 1 file changed, 3 insertions(+), 27 deletions(-)
+ arch/x86/include/asm/io_apic.h  |    4 ----
+ arch/x86/include/asm/x86_init.h |    3 ---
+ arch/x86/kernel/apic/io_apic.c  |   25 +------------------------
+ arch/x86/kernel/x86_init.c      |    1 -
+ drivers/iommu/irq_remapping.c   |   16 ----------------
+ 5 files changed, 1 insertion(+), 48 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 993a0303370f..551108e35cf0 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -88,13 +88,6 @@ struct mp_chip_data {
- 	bool isa_irq;
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index 0c66c4759987..5fba350fec1f 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -222,9 +222,6 @@ extern unsigned int native_io_apic_read(unsigned int apic, unsigned int reg);
+ extern void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int val);
+ extern void native_io_apic_modify(unsigned int apic, unsigned int reg, unsigned int val);
+ extern void native_disable_io_apic(void);
+-extern int native_ioapic_set_affinity(struct irq_data *,
+-				      const struct cpumask *,
+-				      bool);
+ 
+ static inline unsigned int io_apic_read(unsigned int apic, unsigned int reg)
+ {
+@@ -285,7 +282,6 @@ static inline void disable_ioapic_support(void) { }
+ #define native_io_apic_write		NULL
+ #define native_io_apic_modify		NULL
+ #define native_disable_io_apic		NULL
+-#define native_ioapic_set_affinity	NULL
+ #define native_eoi_ioapic_pin		NULL
+ #endif
+ 
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index 0c690574efae..f9f83cfabcaa 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -191,9 +191,6 @@ struct x86_io_apic_ops {
+ 	void		(*write)  (unsigned int apic, unsigned int reg, unsigned int value);
+ 	void		(*modify) (unsigned int apic, unsigned int reg, unsigned int value);
+ 	void		(*disable)(void);
+-	int		(*set_affinity)(struct irq_data *data,
+-					const struct cpumask *mask,
+-					bool force);
+ 	void		(*eoi_ioapic_pin)(int apic, int pin, int vector);
  };
  
--struct mp_pin_info {
--	int trigger;
--	int polarity;
--	int set;
--	u32 count;
--};
--
- static struct ioapic {
- 	/*
- 	 * # of IRQ routing registers
-@@ -110,7 +103,6 @@ static struct ioapic {
- 	struct mp_ioapic_gsi  gsi_config;
- 	struct ioapic_domain_cfg irqdomain_cfg;
- 	struct irq_domain *irqdomain;
--	struct mp_pin_info *pin_info;
- 	struct resource *iomem_res;
- } ioapics[MAX_IO_APICS];
- 
-@@ -156,11 +148,6 @@ static inline int mp_init_irq_at_boot(int ioapic, int irq)
- 	return ioapic == 0 || (irq >= 0 && irq < nr_legacy_irqs());
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index c862f8299a3f..26fa504b57f6 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -1777,29 +1777,6 @@ static void __target_IO_APIC_irq(unsigned int irq, unsigned int dest, struct irq
+ 	}
  }
  
--static inline struct mp_pin_info *mp_pin_info(int ioapic_idx, int pin)
+-int native_ioapic_set_affinity(struct irq_data *data,
+-			       const struct cpumask *mask,
+-			       bool force)
 -{
--	return ioapics[ioapic_idx].pin_info + pin;
+-	unsigned int dest, irq = data->irq;
+-	unsigned long flags;
+-	int ret;
+-
+-	if (!config_enabled(CONFIG_SMP))
+-		return -EPERM;
+-
+-	raw_spin_lock_irqsave(&ioapic_lock, flags);
+-	ret = apic_set_affinity(data, mask, &dest);
+-	if (!ret) {
+-		/* Only the high 8 bits are valid. */
+-		dest = SET_APIC_LOGICAL_ID(dest);
+-		__target_IO_APIC_irq(irq, dest, irqd_cfg(data));
+-		ret = IRQ_SET_MASK_OK_NOCOPY;
+-	}
+-	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
+-	return ret;
 -}
 -
- static inline struct irq_domain *mp_ioapic_irqdomain(int ioapic)
- {
- 	return ioapics[ioapic].irqdomain;
-@@ -2422,7 +2409,6 @@ out:
+ atomic_t irq_mis_count;
  
- static int mp_irqdomain_create(int ioapic)
- {
--	size_t size;
- 	struct irq_alloc_info info;
- 	struct irq_domain *parent;
- 	int hwirqs = mp_ioapic_pin_count(ioapic);
-@@ -2430,11 +2416,6 @@ static int mp_irqdomain_create(int ioapic)
- 	struct ioapic_domain_cfg *cfg = &ip->irqdomain_cfg;
- 	struct mp_ioapic_gsi *gsi_cfg = mp_ioapic_gsi_routing(ioapic);
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+@@ -2676,7 +2653,7 @@ void __init setup_ioapic_dest(void)
+ 		else
+ 			mask = apic->target_cpus();
  
--	size = sizeof(struct mp_pin_info) * mp_ioapic_pin_count(ioapic);
--	ip->pin_info = kzalloc(size, GFP_KERNEL);
--	if (!ip->pin_info)
--		return -ENOMEM;
--
- 	if (cfg->type == IOAPIC_DOMAIN_INVALID)
- 		return 0;
- 
-@@ -2447,13 +2428,10 @@ static int mp_irqdomain_create(int ioapic)
- 
- 	ip->irqdomain = irq_domain_add_linear(cfg->dev, hwirqs, cfg->ops,
- 					      (void *)(long)ioapic);
--	if (ip->irqdomain) {
--		ip->irqdomain->parent = parent;
--	} else {
--		kfree(ip->pin_info);
--		ip->pin_info = NULL;
-+	if (!ip->irqdomain)
- 		return -ENOMEM;
--	}
-+
-+	ip->irqdomain->parent = parent;
- 
- 	if (cfg->type == IOAPIC_DOMAIN_LEGACY ||
- 	    cfg->type == IOAPIC_DOMAIN_STRICT)
-@@ -2469,8 +2447,6 @@ static void ioapic_destroy_irqdomain(int idx)
- 		irq_domain_remove(ioapics[idx].irqdomain);
- 		ioapics[idx].irqdomain = NULL;
+-		x86_io_apic_ops.set_affinity(idata, mask, false);
++		irq_set_affinity(irq, mask);
  	}
--	kfree(ioapics[idx].pin_info);
--	ioapics[idx].pin_info = NULL;
+ 
+ }
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 066cdaa6503e..f7e8eab3a7c4 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -144,6 +144,5 @@ struct x86_io_apic_ops x86_io_apic_ops = {
+ 	.write			= native_io_apic_write,
+ 	.modify			= native_io_apic_modify,
+ 	.disable		= native_disable_io_apic,
+-	.set_affinity		= native_ioapic_set_affinity,
+ 	.eoi_ioapic_pin		= native_eoi_ioapic_pin,
+ };
+diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
+index 5768652eea57..13243ac9040f 100644
+--- a/drivers/iommu/irq_remapping.c
++++ b/drivers/iommu/irq_remapping.c
+@@ -26,10 +26,6 @@ int no_x2apic_optout;
+ 
+ static struct irq_remap_ops *remap_ops;
+ 
+-static int set_remapped_irq_affinity(struct irq_data *data,
+-				     const struct cpumask *mask,
+-				     bool force);
+-
+ static bool irq_remapped(struct irq_cfg *cfg)
+ {
+ 	return (cfg->remapped == 1);
+@@ -62,7 +58,6 @@ static void eoi_ioapic_pin_remapped(int apic, int pin, int vector)
+ static void __init irq_remapping_modify_x86_ops(void)
+ {
+ 	x86_io_apic_ops.disable		= irq_remapping_disable_io_apic;
+-	x86_io_apic_ops.set_affinity	= set_remapped_irq_affinity;
+ 	x86_io_apic_ops.eoi_ioapic_pin	= eoi_ioapic_pin_remapped;
  }
  
- void __init setup_IO_APIC(void)
+@@ -177,16 +172,6 @@ int __init irq_remap_enable_fault_handling(void)
+ 	return remap_ops->enable_faulting();
+ }
+ 
+-static int set_remapped_irq_affinity(struct irq_data *data,
+-				     const struct cpumask *mask, bool force)
+-{
+-	if (!config_enabled(CONFIG_SMP) || !remap_ops ||
+-	    !remap_ops->set_affinity)
+-		return 0;
+-
+-	return remap_ops->set_affinity(data, mask, force);
+-}
+-
+ void free_remapped_irq(int irq)
+ {
+ 	struct irq_cfg *cfg = irq_cfg(irq);
+@@ -238,7 +223,6 @@ void irq_remap_modify_chip_defaults(struct irq_chip *chip)
+ 	chip->irq_print_chip = ir_print_prefix;
+ 	chip->irq_ack = ir_ack_apic_edge;
+ 	chip->irq_eoi = ir_ack_apic_level;
+-	chip->irq_set_affinity = x86_io_apic_ops.set_affinity;
+ }
+ 
+ bool setup_remapped_irq(int irq, struct irq_cfg *cfg, struct irq_chip *chip)
 -- 
 1.7.10.4
