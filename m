@@ -1,123 +1,147 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v5 02/18] ACPI / table: Add new function to get table
- entries
-Date: Tue, 25 Nov 2014 11:38:05 +0800
-Message-ID: <5473F99D.6090505@huawei.com>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <2764417.DLFalXXngC@vostro.rjw.lan> <5473109A.2070704@linaro.org> <1581499.U8906vqSiO@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch Part2 v6 00/27] Enable hierarchy irqdomian on x86 platforms
+Date: Tue, 25 Nov 2014 13:53:09 +0800
+Message-ID: <1416894816-23245-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:47567 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbaKYDkp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 22:40:45 -0500
-In-Reply-To: <1581499.U8906vqSiO@vostro.rjw.lan>
+Received: from mga11.intel.com ([192.55.52.93]:64065 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750770AbaKYFuh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Nov 2014 00:50:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2014/11/24 22:51, Rafael J. Wysocki wrote:
-> On Monday, November 24, 2014 07:03:54 PM Hanjun Guo wrote:
->> On 2014-11-24 9:27, Rafael J. Wysocki wrote:
->>> On Friday, October 17, 2014 09:36:58 PM Hanjun Guo wrote:
->>>> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>>
->>>> The acpi_table_parse() function has a callback that
->>>> passes a pointer to a table_header. Add a new function
->>>> which takes this pointer and parses its entries. This
->>>> eliminates the need to re-traverse all the tables for
->>>> each call. e.g. as in acpi_table_parse_madt() which is
->>>> normally called after acpi_table_parse().
->>>>
->>>> Acked-by: Grant Likely <grant.likely@linaro.org>
->>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> ---
->>>>  drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
->>>>  include/linux/acpi.h  |    4 +++
->>>>  2 files changed, 51 insertions(+), 20 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->>>> index 6d5a6cd..21ae521 100644
->>>> --- a/drivers/acpi/tables.c
->>>> +++ b/drivers/acpi/tables.c
->>>> @@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->>>>  
->>>>  
->>>>  int __init
->>>> -acpi_table_parse_entries(char *id,
->>>> -			     unsigned long table_size,
->>>> -			     int entry_id,
->>>> -			     acpi_tbl_entry_handler handler,
->>>> -			     unsigned int max_entries)
->>>> +acpi_parse_entries(unsigned long table_size,
->>>> +		acpi_tbl_entry_handler handler,
->>>> +		struct acpi_table_header *table_header,
->>>> +		int entry_id, unsigned int max_entries)
->>>>  {
->>>> -	struct acpi_table_header *table_header = NULL;
->>>>  	struct acpi_subtable_header *entry;
->>>> -	unsigned int count = 0;
->>>> +	int count = 0;
->>>>  	unsigned long table_end;
->>>> -	acpi_size tbl_size;
->>>>  
->>>>  	if (acpi_disabled)
->>>>  		return -ENODEV;
->>>> @@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
->>>>  	if (!handler)
->>>>  		return -EINVAL;
->>>>  
->>>> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
->>>> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
->>>> -	else
->>>> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
->>>> +	if (!table_size)
->>>> +		return -EINVAL;
->>>>  
->>>>  	if (!table_header) {
->>>> -		pr_warn("%4.4s not present\n", id);
->>>> +		pr_warn("Table header not present\n");
->>> The message doesn't make sense any more if the table signature is not printed.
+We plan to restructure x86 interrupt code based on hierarchy irqdomain,
+that is to build irqdomains for CPU vector, interrupt remapping unit,
+IOAPIC, MSI and HPET etc and organize those irqdomains in hierarchy mode.
+Each irqdomain manages corresponding interrupt controller and talks to
+parent interrupt controller through public irqdomain interfaces. We also
+support stacked irq_chip based on hierarchy irqdomain. It will make the
+x86 interrupt architecture much more clear and more easy to maintain
+with hierarchy irqdomain and stacked irq_chip.
 
-For this message, since no table id is passed, and this message is printed in
-acpi_table_parse_entries() before this function is called, I think we can check
-the table_header before call this function and remove the printed message here.
+This is the second patch set to enable support of hierarchy irqdomain
+on x86 platforms. It's based on tip/x86/apic branch and IOMMU x86/vt-d
+branch at:
+https://git.kernel.org/cgit/linux/kernel/git/joro/iommu.git/ x86/vt-d
 
->>>
->>>>  		return -ENODEV;
->>>>  	}
->>>>  
->>>> @@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
->>>>  		if (entry->type == entry_id
->>>>  		    && (!max_entries || count++ < max_entries))
->>>>  			if (handler(entry, table_end))
->>>> -				goto err;
->>>> +				return -EINVAL;
->>>>  
->>>>  		/*
->>>>  		 * If entry->length is 0, break from this loop to avoid
->>>>  		 * infinite loop.
->>>>  		 */
->>>>  		if (entry->length == 0) {
->>>> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
->>>> -			goto err;
->>>> +			pr_err("[0x%02x] Invalid zero length\n", entry_id);
+You may access it at:
+https://github.com/jiangliu/linux.git irqdomain/p2v6
 
-For this one, since the table_header is valid now, we can keep it with:
+There will aslo be a third patch set to convert IOAPIC driver to support
+hierarchy irqdomain and clean up code.
 
-- pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-+ pr_err("[%4.4s:0x%02x] Invalid zero length\n", table_header->signature, entry_id);
+We have tested this patchset on Intel 32-bit and 64-bit systems. Joerg has
+helped to test it on AMD platforms. It also passes Fengguang's 0day tests.
+Helps are still needed for testings on:
+1) AMD HT_IRQ
+2) UV platform
+3) Intel MID platforms
 
->>> Same here.
->> How about remove the message and return directly?
-> We could do that, but for what reason?  Is the message not useful?
+Patch 1-7 introduce vector domain to manage CPU vectors and convert
+	PCI MSI/HPET/DMAT etc to use vector domain.
+Patch 8-11 introduce new irq_remapping interfaces to support hierarchy
+	irqdomain.
+Patch 12-14, 19-20, 24-27 convert PCI MSI/HPET/DMAR to use new hierarchy
+	irqdomain framework.
+Patch 15-18 clean up old irq_remapping interfaces to support PCI MSI and
+	HPET interrupts.
+Patch 21-22 convert HT_IRQ and UV platform to use new hierarchy irqdomain.
+Patch 23 normalizes irqchip names on x86 platforms.
 
-I agree with you, the message is useful I think, how about the comments above?
+V5->V6:
+1) Common hierarchy irqdomian code has been moved into tip/irq/irqdomain
+2) Rebase onto tip/irq/irqdomain and iommu/x86/vt-d
+3) Convert PCI MSI/HPET/DMAR to use the new generic MSI framework
+4) Fix bugs and conflicts when merging with IOMMU hotplug code
+5) More code cleanups
+V4->V5:
+1) Refine PCI MSI interfaces to support hierarchy irqdomain
+2) Fix a bug with dealing multiple MSI interrupts
+3) Improve commit messages
+V3->V4:
+1) Simplify IRQ remapping interfaces
+2) Hide all IRQ remapping logic from MSI/HPET drivers
+3) Move most MSI irqdomain code to public drivers/pci/msi.c so it could
+   be resued
+4) Improve common PCI MSI code
+5) Rebase to tip/x86/apic
+V2->V3:
+1) Fix bugs in handling OF irqdomain
+2) Add documentation
+3) Rebase to v3.18-rc2
+V1->V2
+1) Add hierarchy iredomain support of DMAR IRQ and UV IRQ.
+2) Fix bugs reported by Joe C.
+3) Address all review comments from Thomas
+4) Fix a bug found during tests
+5) Fix errors and warning found by 0day tests
 
-Thanks
-Hanjun
+Jiang Liu (27):
+  x86, irq: Save destination CPU ID in irq_cfg
+  x86, irq: Use hierarchy irqdomain to manage CPU interrupt vectors
+  x86, hpet: Use new irqdomain interfaces to allocate/free IRQ
+  x86, MSI: Use new irqdomain interfaces to allocate/free IRQ
+  x86, uv: Use new irqdomain interfaces to allocate/free IRQ
+  x86, htirq: Use new irqdomain interfaces to allocate/free IRQ
+  x86, dmar: Use new irqdomain interfaces to allocate/free IRQ
+  x86: irq_remapping: Introduce new interfaces to support hierarchy
+    irqdomain
+  iommu/vt-d: Change prototypes to prepare for enabling hierarchy
+    irqdomain
+  iommu/vt-d: Enhance Intel IR driver to suppport hierarchy irqdomain
+  iommu/amd: Enhance AMD IR driver to suppport hierarchy irqdomain
+  x86, hpet: Enhance HPET IRQ to support hierarchy irqdomain
+  x86, PCI, MSI: Use hierarchy irqdomain to manage MSI interrupts
+  x86, irq: Directly call native_compose_msi_msg() for DMAR IRQ
+  iommu/vt-d: Clean up unused MSI related code
+  iommu/amd: Clean up unused MSI related code
+  x86: irq_remapping: Clean up unused MSI related code
+  x86, irq: Clean up unused MSI related code and interfaces
+  iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
+  x86, irq: Use hierarchy irqdomain to manage DMAR interrupts
+  x86, htirq: Use hierarchy irqdomain to manage Hypertransport
+    interrupts
+  x86, uv: Use hierarchy irqdomain to manage UV interrupts
+  x86, irq: Normalize x86 irq_chip name
+  x86, PCI/MSI: Simplify the way to deal with remapped MSI interrupts
+  PCI/MSI: Replace msi_update_msg() with irq_chip_compose_msi_msg()
+  x86, irq: Implement irq_chip.irq_write_msi_msg for MSI/DMAR/HPET
+    irq_chips
+  x86, irq: Simplify MSI/DMAR/HPET implementation by using common code
+
+ arch/ia64/include/asm/irq_remapping.h |    2 -
+ arch/ia64/kernel/msi_ia64.c           |   30 ++-
+ arch/x86/Kconfig                      |    4 +-
+ arch/x86/include/asm/hpet.h           |   16 +-
+ arch/x86/include/asm/hw_irq.h         |   91 +++++++
+ arch/x86/include/asm/irq_remapping.h  |   47 ++--
+ arch/x86/include/asm/msi.h            |    7 +
+ arch/x86/include/asm/pci.h            |    5 -
+ arch/x86/include/asm/x86_init.h       |    4 -
+ arch/x86/kernel/apic/htirq.c          |  173 +++++++++----
+ arch/x86/kernel/apic/io_apic.c        |    3 -
+ arch/x86/kernel/apic/msi.c            |  420 +++++++++++++++++-------------
+ arch/x86/kernel/apic/vector.c         |  165 +++++++++++-
+ arch/x86/kernel/hpet.c                |   57 ++---
+ arch/x86/kernel/x86_init.c            |    2 -
+ arch/x86/platform/uv/uv_irq.c         |  298 ++++++++--------------
+ drivers/iommu/amd_iommu.c             |  378 ++++++++++++++++++++-------
+ drivers/iommu/amd_iommu_init.c        |    4 +
+ drivers/iommu/amd_iommu_proto.h       |    9 +
+ drivers/iommu/amd_iommu_types.h       |    5 +
+ drivers/iommu/dmar.c                  |   19 +-
+ drivers/iommu/intel_irq_remapping.c   |  453 +++++++++++++++++++++++----------
+ drivers/iommu/irq_remapping.c         |  191 ++++----------
+ drivers/iommu/irq_remapping.h         |   20 +-
+ drivers/pci/htirq.c                   |   48 +---
+ include/linux/dmar.h                  |    3 +-
+ include/linux/htirq.h                 |   22 +-
+ include/linux/intel-iommu.h           |    4 +
+ 28 files changed, 1523 insertions(+), 957 deletions(-)
+ create mode 100644 arch/x86/include/asm/msi.h
+
+-- 
+1.7.10.4
 
