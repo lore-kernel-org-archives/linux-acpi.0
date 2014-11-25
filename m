@@ -1,77 +1,108 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part3 v4 31/38] x86, irq: Change functions only used in vector.c as static
-Date: Tue, 25 Nov 2014 15:49:55 +0800
-Message-ID: <1416901802-24211-32-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part3 v4 33/38] x86, irq: Move check of cfg->move_in_progress into send_cleanup_vector()
+Date: Tue, 25 Nov 2014 15:49:57 +0800
+Message-ID: <1416901802-24211-34-git-send-email-jiang.liu@linux.intel.com>
 References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:38967 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752885AbaKYHyu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Nov 2014 02:54:50 -0500
 In-Reply-To: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org
 
-Function {assign|clear}_irq_vector() and apic_retrigger_irq() are only
-used in file vector.c, so change them as static.
+Move check of cfg->move_in_progress into send_cleanup_vector() to
+prepare for simplifying struct irq_cfg.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Tested-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/x86/include/asm/hw_irq.h |    3 ---
- arch/x86/kernel/apic/vector.c |    7 ++++---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ arch/x86/kernel/apic/vector.c       |   10 ++++++++--
+ arch/x86/platform/uv/uv_irq.c       |    3 +--
+ drivers/iommu/amd_iommu.c           |    3 +--
+ drivers/iommu/intel_irq_remapping.c |    3 +--
+ 4 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index a88f5b325bf2..ea9aebc65ff6 100644
---- a/arch/x86/include/asm/hw_irq.h
-+++ b/arch/x86/include/asm/hw_irq.h
-@@ -188,8 +188,6 @@ extern struct irq_cfg *irq_cfg(unsigned int irq);
- extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
- extern void lock_vector_lock(void);
- extern void unlock_vector_lock(void);
--extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
--extern void clear_irq_vector(int irq, struct irq_cfg *cfg);
- extern void setup_vector_irq(int cpu);
- #ifdef CONFIG_SMP
- extern void send_cleanup_vector(struct irq_cfg *);
-@@ -199,7 +197,6 @@ static inline void send_cleanup_vector(struct irq_cfg *c) { }
- static inline void irq_complete_move(struct irq_cfg *c) { }
- #endif
- 
--extern int apic_retrigger_irq(struct irq_data *data);
- extern void apic_ack_edge(struct irq_data *data);
- extern int apic_set_affinity(struct irq_data *data, const struct cpumask *mask,
- 			     unsigned int *dest_id);
 diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 8467ca47bd4a..fba4958b6139 100644
+index 436a3400d9ac..a5ce2eef0528 100644
 --- a/arch/x86/kernel/apic/vector.c
 +++ b/arch/x86/kernel/apic/vector.c
-@@ -185,7 +185,8 @@ next:
- 	return err;
+@@ -495,7 +495,7 @@ static struct irq_chip lapic_controller = {
+ };
+ 
+ #ifdef CONFIG_SMP
+-void send_cleanup_vector(struct irq_cfg *cfg)
++static void __send_cleanup_vector(struct irq_cfg *cfg)
+ {
+ 	cpumask_var_t cleanup_mask;
+ 
+@@ -513,6 +513,12 @@ void send_cleanup_vector(struct irq_cfg *cfg)
+ 	cfg->move_in_progress = 0;
  }
  
--int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
-+static int assign_irq_vector(int irq, struct irq_cfg *cfg,
-+			     const struct cpumask *mask)
++void send_cleanup_vector(struct irq_cfg *cfg)
++{
++	if (cfg->move_in_progress)
++		__send_cleanup_vector(cfg);
++}
++
+ asmlinkage __visible void smp_irq_move_cleanup_interrupt(void)
  {
- 	int err;
- 	unsigned long flags;
-@@ -196,7 +197,7 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
- 	return err;
+ 	unsigned vector, me;
+@@ -583,7 +589,7 @@ static void __irq_complete_move(struct irq_cfg *cfg, unsigned vector)
+ 	me = smp_processor_id();
+ 
+ 	if (vector == cfg->vector && cpumask_test_cpu(me, cfg->domain))
+-		send_cleanup_vector(cfg);
++		__send_cleanup_vector(cfg);
  }
  
--void clear_irq_vector(int irq, struct irq_cfg *cfg)
-+static void clear_irq_vector(int irq, struct irq_cfg *cfg)
- {
- 	int cpu, vector;
- 	unsigned long flags;
-@@ -441,7 +442,7 @@ void setup_vector_irq(int cpu)
- 	__setup_vector_irq(cpu);
- }
+ void irq_complete_move(struct irq_cfg *cfg)
+diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
+index c237ed34a498..b242e0aada19 100644
+--- a/arch/x86/platform/uv/uv_irq.c
++++ b/arch/x86/platform/uv/uv_irq.c
+@@ -63,8 +63,7 @@ uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
+ 	ret = parent->chip->irq_set_affinity(parent, mask, force);
+ 	if (ret >= 0) {
+ 		uv_program_mmr(cfg, data->chip_data);
+-		if (cfg->move_in_progress)
+-			send_cleanup_vector(cfg);
++		send_cleanup_vector(cfg);
+ 	}
  
--int apic_retrigger_irq(struct irq_data *data)
-+static int apic_retrigger_irq(struct irq_data *data)
- {
- 	struct irq_cfg *cfg = irqd_cfg(data);
- 	unsigned long flags;
+ 	return ret;
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index 2e8bbe5e164d..a5c59b434c77 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -4331,8 +4331,7 @@ static int amd_ir_set_affinity(struct irq_data *data,
+ 	 * at the new destination. So, time to cleanup the previous
+ 	 * vector allocation.
+ 	 */
+-	if (cfg->move_in_progress)
+-		send_cleanup_vector(cfg);
++	send_cleanup_vector(cfg);
+ 
+ 	return IRQ_SET_MASK_OK_DONE;
+ }
+diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
+index acff8493191e..f6da3b2651c0 100644
+--- a/drivers/iommu/intel_irq_remapping.c
++++ b/drivers/iommu/intel_irq_remapping.c
+@@ -997,8 +997,7 @@ intel_ir_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 	 * at the new destination. So, time to cleanup the previous
+ 	 * vector allocation.
+ 	 */
+-	if (cfg->move_in_progress)
+-		send_cleanup_vector(cfg);
++	send_cleanup_vector(cfg);
+ 
+ 	return IRQ_SET_MASK_OK_DONE;
+ }
 -- 
 1.7.10.4
+
