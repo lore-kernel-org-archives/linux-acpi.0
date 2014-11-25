@@ -1,168 +1,302 @@
-From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [Patch Part3 v4 12/38] x86,
-	irq: Kill x86_io_apic_ops.print_entries and related interfaces
-Date: Tue, 25 Nov 2014 15:49:36 +0800
-Message-ID: <1416901802-24211-13-git-send-email-jiang.liu@linux.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch Part3 v4 10/38] x86, irq: Kill unused old IOAPIC irqdomain interfaces
+Date: Tue, 25 Nov 2014 15:49:34 +0800
+Message-ID: <1416901802-24211-11-git-send-email-jiang.liu@linux.intel.com>
 References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1416901802-24211-1-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now there is no user of x86_io_apic_ops.print_entries anymore, so kill
-it.
+Now we have converted to hierarchy irqdomain, so kill unused old IOAPIC
+irqdomain interfaces and code.
 
-Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Tested-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Tested-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/x86/include/asm/io_apic.h      |    3 --
- arch/x86/include/asm/x86_init.h     |    1 -
- arch/x86/kernel/apic/io_apic.c      |   55 -----------------------------------
- arch/x86/kernel/x86_init.c          |    1 -
- drivers/iommu/intel_irq_remapping.c |    7 -----
- 5 files changed, 67 deletions(-)
+ arch/x86/include/asm/io_apic.h |    4 -
+ arch/x86/kernel/apic/io_apic.c |  202 +---------------------------------------
+ 2 files changed, 1 insertion(+), 205 deletions(-)
 
 diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 3162a91f2b3d..8b4fc2d94bc1 100644
+index 073b9c76abcb..3162a91f2b3d 100644
 --- a/arch/x86/include/asm/io_apic.h
 +++ b/arch/x86/include/asm/io_apic.h
-@@ -225,8 +225,6 @@ extern unsigned int native_io_apic_read(unsigned int apic, unsigned int reg);
- extern void native_io_apic_write(unsigned int apic, unsigned int reg, unsigned int val);
- extern void native_io_apic_modify(unsigned int apic, unsigned int reg, unsigned int val);
- extern void native_disable_io_apic(void);
--extern void native_io_apic_print_entries(unsigned int apic, unsigned int nr_entries);
--extern void intel_ir_io_apic_print_entries(unsigned int apic, unsigned int nr_entries);
- extern int native_ioapic_set_affinity(struct irq_data *,
- 				      const struct cpumask *,
- 				      bool);
-@@ -290,7 +288,6 @@ static inline void disable_ioapic_support(void) { }
- #define native_io_apic_write		NULL
- #define native_io_apic_modify		NULL
- #define native_disable_io_apic		NULL
--#define native_io_apic_print_entries	NULL
- #define native_ioapic_set_affinity	NULL
- #define native_setup_ioapic_entry	NULL
- #define native_eoi_ioapic_pin		NULL
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index 1649bb9ca27c..2924bc88034a 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -191,7 +191,6 @@ struct x86_io_apic_ops {
- 	void		(*write)  (unsigned int apic, unsigned int reg, unsigned int value);
- 	void		(*modify) (unsigned int apic, unsigned int reg, unsigned int value);
- 	void		(*disable)(void);
--	void		(*print_entries)(unsigned int apic, unsigned int nr_entries);
- 	int		(*set_affinity)(struct irq_data *data,
- 					const struct cpumask *mask,
- 					bool force);
+@@ -204,9 +204,6 @@ extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
+ 			      struct ioapic_domain_cfg *cfg);
+ extern int mp_unregister_ioapic(u32 gsi_base);
+ extern int mp_ioapic_registered(u32 gsi_base);
+-extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+-			    irq_hw_number_t hwirq);
+-extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
+ extern int mp_irqdomain_alloc(struct irq_domain *domain, unsigned int virq,
+ 			      unsigned int nr_irqs, void *arg);
+ extern void mp_irqdomain_free(struct irq_domain *domain, unsigned int virq,
+@@ -218,7 +215,6 @@ extern void mp_irqdomain_deactivate(struct irq_domain *domain,
+ extern int mp_irqdomain_ioapic_idx(struct irq_domain *domain);
+ extern void ioapic_set_alloc_attr(struct irq_alloc_info *info,
+ 				  int node, int trigger, int polarity);
+-extern int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node);
+ 
+ extern void mp_save_irq(struct mpc_intsrc *m);
+ 
 diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 551108e35cf0..42dc3ee37e89 100644
+index 02db6044a384..993a0303370f 100644
 --- a/arch/x86/kernel/apic/io_apic.c
 +++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1332,61 +1332,6 @@ static void __init setup_IO_APIC_irqs(void)
+@@ -91,7 +91,6 @@ struct mp_chip_data {
+ struct mp_pin_info {
+ 	int trigger;
+ 	int polarity;
+-	int node;
+ 	int set;
+ 	u32 count;
+ };
+@@ -1303,30 +1302,6 @@ static inline int IO_APIC_irq_trigger(int irq)
+ }
+ #endif
+ 
+-static void ioapic_register_intr(unsigned int irq, struct irq_cfg *cfg,
+-				 unsigned long trigger)
+-{
+-	struct irq_chip *chip = &ioapic_chip;
+-	irq_flow_handler_t hdl;
+-	bool fasteoi;
+-
+-	if ((trigger == IOAPIC_AUTO && IO_APIC_irq_trigger(irq)) ||
+-	    trigger == IOAPIC_LEVEL) {
+-		irq_set_status_flags(irq, IRQ_LEVEL);
+-		fasteoi = true;
+-	} else {
+-		irq_clear_status_flags(irq, IRQ_LEVEL);
+-		fasteoi = false;
+-	}
+-
+-	if (setup_remapped_irq(irq, cfg, chip))
+-		fasteoi = trigger != 0;
+-
+-	hdl = fasteoi ? handle_fasteoi_irq : handle_edge_irq;
+-	irq_set_chip_and_handler_name(irq, chip, hdl,
+-				      fasteoi ? "fasteoi" : "edge");
+-}
+-
+ int native_setup_ioapic_entry(int irq, struct IO_APIC_route_entry *entry,
+ 			      unsigned int destination, int vector,
+ 			      struct io_apic_irq_attr *attr)
+@@ -1351,48 +1326,6 @@ int native_setup_ioapic_entry(int irq, struct IO_APIC_route_entry *entry,
+ 	return 0;
+ }
+ 
+-static void setup_ioapic_irq(unsigned int irq, struct irq_cfg *cfg,
+-				struct io_apic_irq_attr *attr)
+-{
+-	struct IO_APIC_route_entry entry;
+-	unsigned int dest;
+-
+-	if (!IO_APIC_IRQ(irq))
+-		return;
+-
+-	if (assign_irq_vector(irq, cfg, apic->target_cpus()))
+-		return;
+-
+-	if (apic->cpu_mask_to_apicid_and(cfg->domain, apic->target_cpus(),
+-					 &dest)) {
+-		pr_warn("Failed to obtain apicid for ioapic %d, pin %d\n",
+-			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
+-		clear_irq_vector(irq, cfg);
+-
+-		return;
+-	}
+-
+-	apic_printk(APIC_VERBOSE,KERN_DEBUG
+-		    "IOAPIC[%d]: Set routing entry (%d-%d -> 0x%x -> "
+-		    "IRQ %d Mode:%i Active:%i Dest:%d)\n",
+-		    attr->ioapic, mpc_ioapic_id(attr->ioapic), attr->ioapic_pin,
+-		    cfg->vector, irq, attr->trigger, attr->polarity, dest);
+-
+-	if (x86_io_apic_ops.setup_entry(irq, &entry, dest, cfg->vector, attr)) {
+-		pr_warn("Failed to setup ioapic entry for ioapic  %d, pin %d\n",
+-			mpc_ioapic_id(attr->ioapic), attr->ioapic_pin);
+-		clear_irq_vector(irq, cfg);
+-
+-		return;
+-	}
+-
+-	ioapic_register_intr(irq, cfg, attr->trigger);
+-	if (irq < nr_legacy_irqs())
+-		legacy_pic->mask(irq);
+-
+-	ioapic_write_entry(attr->ioapic, attr->ioapic_pin, entry);
+-}
+-
+ static void __init setup_IO_APIC_irqs(void)
+ {
+ 	unsigned int ioapic, pin;
+@@ -1412,46 +1345,6 @@ static void __init setup_IO_APIC_irqs(void)
  	}
  }
  
--void native_io_apic_print_entries(unsigned int apic, unsigned int nr_entries)
+-/*
+- * Set up the timer pin, possibly with the 8259A-master behind.
+- */
+-static void __init setup_timer_IRQ0_pin(unsigned int ioapic_idx,
+-					unsigned int pin, int vector)
 -{
--	int i;
+-	struct IO_APIC_route_entry entry;
+-	unsigned int dest;
 -
--	pr_debug(" NR Dst Mask Trig IRR Pol Stat Dmod Deli Vect:\n");
+-	memset(&entry, 0, sizeof(entry));
 -
--	for (i = 0; i <= nr_entries; i++) {
--		struct IO_APIC_route_entry entry;
--
--		entry = ioapic_read_entry(apic, i);
--
--		pr_debug(" %02x %02X  ", i, entry.dest);
--		pr_cont("%1d    %1d    %1d   %1d   %1d    "
--			"%1d    %1d    %02X\n",
--			entry.mask,
--			entry.trigger,
--			entry.irr,
--			entry.polarity,
--			entry.delivery_status,
--			entry.dest_mode,
--			entry.delivery_mode,
--			entry.vector);
--	}
--}
--
--void intel_ir_io_apic_print_entries(unsigned int apic,
--				    unsigned int nr_entries)
--{
--	int i;
--
--	pr_debug(" NR Indx Fmt Mask Trig IRR Pol Stat Indx2 Zero Vect:\n");
--
--	for (i = 0; i <= nr_entries; i++) {
--		struct IR_IO_APIC_route_entry *ir_entry;
--		struct IO_APIC_route_entry entry;
--
--		entry = ioapic_read_entry(apic, i);
--
--		ir_entry = (struct IR_IO_APIC_route_entry *)&entry;
--
--		pr_debug(" %02x %04X ", i, ir_entry->index);
--		pr_cont("%1d   %1d    %1d    %1d   %1d   "
--			"%1d    %1d     %X    %02X\n",
--			ir_entry->format,
--			ir_entry->mask,
--			ir_entry->trigger,
--			ir_entry->irr,
--			ir_entry->polarity,
--			ir_entry->delivery_status,
--			ir_entry->index2,
--			ir_entry->zero,
--			ir_entry->vector);
--	}
--}
--
- void ioapic_zap_locks(void)
- {
- 	raw_spin_lock_init(&ioapic_lock);
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index b094d691f2fe..d6f36c7594d7 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -144,7 +144,6 @@ struct x86_io_apic_ops x86_io_apic_ops = {
- 	.write			= native_io_apic_write,
- 	.modify			= native_io_apic_modify,
- 	.disable		= native_disable_io_apic,
--	.print_entries		= native_io_apic_print_entries,
- 	.set_affinity		= native_ioapic_set_affinity,
- 	.setup_entry		= native_setup_ioapic_entry,
- 	.eoi_ioapic_pin		= native_eoi_ioapic_pin,
-diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
-index cb00d6bcb6ea..95c44820c851 100644
---- a/drivers/iommu/intel_irq_remapping.c
-+++ b/drivers/iommu/intel_irq_remapping.c
-@@ -681,13 +681,6 @@ static int __init intel_enable_irq_remapping(void)
- 
- 	irq_remapping_enabled = 1;
- 
 -	/*
--	 * VT-d has a different layout for IO-APIC entries when
--	 * interrupt remapping is enabled. So it needs a special routine
--	 * to print IO-APIC entries for debugging purposes too.
+-	 * We use logical delivery to get the timer IRQ
+-	 * to the first CPU.
 -	 */
--	x86_io_apic_ops.print_entries = intel_ir_io_apic_print_entries;
+-	if (unlikely(apic->cpu_mask_to_apicid_and(apic->target_cpus(),
+-						  apic->target_cpus(), &dest)))
+-		dest = BAD_APICID;
 -
- 	pr_info("Enabled IRQ remapping in %s mode\n", eim ? "x2apic" : "xapic");
+-	entry.dest_mode = apic->irq_dest_mode;
+-	entry.mask = 0;			/* don't mask IRQ for edge */
+-	entry.dest = dest;
+-	entry.delivery_mode = apic->irq_delivery_mode;
+-	entry.polarity = 0;
+-	entry.trigger = 0;
+-	entry.vector = vector;
+-
+-	/*
+-	 * The timer IRQ doesn't have to know that behind the
+-	 * scene we may have a 8259A-master in AEOI mode ...
+-	 */
+-	irq_set_chip_and_handler_name(0, &ioapic_chip, handle_edge_irq,
+-				      "edge");
+-
+-	/*
+-	 * Add it to the IO-APIC irq-routing table:
+-	 */
+-	ioapic_write_entry(ioapic_idx, pin, entry);
+-}
+-
+ void native_io_apic_print_entries(unsigned int apic, unsigned int nr_entries)
+ {
+ 	int i;
+@@ -2659,20 +2552,6 @@ static int __init ioapic_init_ops(void)
  
- 	return eim ? IRQ_REMAP_X2APIC_MODE : IRQ_REMAP_XAPIC_MODE;
+ device_initcall(ioapic_init_ops);
+ 
+-static int
+-io_apic_setup_irq_pin(unsigned int irq, int node, struct io_apic_irq_attr *attr)
+-{
+-	struct irq_cfg *cfg = alloc_irq_and_cfg_at(irq, node);
+-	int ret;
+-
+-	if (!cfg)
+-		return -EINVAL;
+-	ret = __add_pin_to_irq_node(cfg, node, attr->ioapic, attr->ioapic_pin);
+-	if (!ret)
+-		setup_ioapic_irq(irq, cfg, attr);
+-	return ret;
+-}
+-
+ static int io_apic_get_redir_entries(int ioapic)
+ {
+ 	union IO_APIC_reg_01	reg_01;
+@@ -3229,58 +3108,8 @@ static inline void set_io_apic_irq_attr(struct io_apic_irq_attr *irq_attr,
+ 	irq_attr->polarity	= polarity;
+ }
+ 
+-int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+-		     irq_hw_number_t hwirq)
+-{
+-	int ioapic = mp_irqdomain_ioapic_idx(domain);
+-	struct mp_pin_info *info = mp_pin_info(ioapic, hwirq);
+-	struct io_apic_irq_attr attr;
+-
+-	/* Get default attribute if not set by caller yet */
+-	if (!info->set) {
+-		u32 gsi = mp_pin_to_gsi(ioapic, hwirq);
+-
+-		if (acpi_get_override_irq(gsi, &info->trigger,
+-					  &info->polarity) < 0) {
+-			/*
+-			 * PCI interrupts are always polarity one level
+-			 * triggered.
+-			 */
+-			info->trigger = 1;
+-			info->polarity = 1;
+-		}
+-		info->node = NUMA_NO_NODE;
+-
+-		/*
+-		 * setup_IO_APIC_irqs() programs all legacy IRQs with default
+-		 * trigger and polarity attributes. Don't set the flag for that
+-		 * case so the first legacy IRQ user could reprogram the pin
+-		 * with real trigger and polarity attributes.
+-		 */
+-		if (virq >= nr_legacy_irqs() || info->count)
+-			info->set = 1;
+-	}
+-	set_io_apic_irq_attr(&attr, ioapic, hwirq, info->trigger,
+-			     info->polarity);
+-
+-	return io_apic_setup_irq_pin(virq, info->node, &attr);
+-}
+-
+-void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq)
+-{
+-	struct irq_data *data = irq_get_irq_data(virq);
+-	struct irq_cfg *cfg = irq_cfg(virq);
+-	int ioapic = mp_irqdomain_ioapic_idx(domain);
+-	int pin = (int)data->hwirq;
+-
+-	ioapic_mask_entry(ioapic, pin);
+-	__remove_pin_from_irq(cfg, ioapic, pin);
+-	WARN_ON(!list_empty(&cfg->irq_2_pin));
+-	arch_teardown_hwirq(virq);
+-}
+-
+ static void mp_irqdomain_get_attr(u32 gsi, struct mp_chip_data *data,
+-				 struct irq_alloc_info *info)
++				  struct irq_alloc_info *info)
+ {
+ 	if (info && info->ioapic_valid) {
+ 		data->trigger = info->ioapic_trigger;
+@@ -3404,35 +3233,6 @@ void mp_irqdomain_deactivate(struct irq_domain *domain,
+ 			  (int)irq_data->hwirq);
+ }
+ 
+-int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
+-{
+-	int ret = 0;
+-	int ioapic, pin;
+-	struct mp_pin_info *info;
+-
+-	ioapic = mp_find_ioapic(gsi);
+-	if (ioapic < 0)
+-		return -ENODEV;
+-
+-	pin = mp_find_ioapic_pin(ioapic, gsi);
+-	info = mp_pin_info(ioapic, pin);
+-	trigger = trigger ? 1 : 0;
+-	polarity = polarity ? 1 : 0;
+-
+-	mutex_lock(&ioapic_mutex);
+-	if (!info->set) {
+-		info->trigger = trigger;
+-		info->polarity = polarity;
+-		info->node = node;
+-		info->set = 1;
+-	} else if (info->trigger != trigger || info->polarity != polarity) {
+-		ret = -EBUSY;
+-	}
+-	mutex_unlock(&ioapic_mutex);
+-
+-	return ret;
+-}
+-
+ int mp_irqdomain_ioapic_idx(struct irq_domain *domain)
+ {
+ 	return (int)(long)domain->host_data;
 -- 
 1.7.10.4
