@@ -1,154 +1,77 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part3 v4 29/38] x86, irq: Use cached IOAPIC entry instead of reading from hardware
-Date: Tue, 25 Nov 2014 15:49:53 +0800
-Message-ID: <1416901802-24211-30-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part3 v4 31/38] x86, irq: Change functions only used in vector.c as static
+Date: Tue, 25 Nov 2014 15:49:55 +0800
+Message-ID: <1416901802-24211-32-git-send-email-jiang.liu@linux.intel.com>
 References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use cahced IOAPIC entry instead of reading data from IOAPIC hardware
-registers to improve performance.
+Function {assign|clear}_irq_vector() and apic_retrigger_irq() are only
+used in file vector.c, so change them as static.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Tested-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/x86/kernel/apic/io_apic.c |   78 +++++++++++-----------------------------
- 1 file changed, 21 insertions(+), 57 deletions(-)
+ arch/x86/include/asm/hw_irq.h |    3 ---
+ arch/x86/kernel/apic/vector.c |    7 ++++---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index a915ee005148..8a6293311ee6 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -69,8 +69,13 @@
- int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index a88f5b325bf2..ea9aebc65ff6 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -188,8 +188,6 @@ extern struct irq_cfg *irq_cfg(unsigned int irq);
+ extern struct irq_cfg *irqd_cfg(struct irq_data *irq_data);
+ extern void lock_vector_lock(void);
+ extern void unlock_vector_lock(void);
+-extern int assign_irq_vector(int, struct irq_cfg *, const struct cpumask *);
+-extern void clear_irq_vector(int irq, struct irq_cfg *cfg);
+ extern void setup_vector_irq(int cpu);
+ #ifdef CONFIG_SMP
+ extern void send_cleanup_vector(struct irq_cfg *);
+@@ -199,7 +197,6 @@ static inline void send_cleanup_vector(struct irq_cfg *c) { }
+ static inline void irq_complete_move(struct irq_cfg *c) { }
+ #endif
  
- /*
-- *      Is the SiS APIC rmw bug present ?
-+ * Is the SiS APIC rmw bug present ?
-  *      -1 = don't know, 0 = no, 1 = yes
-+ * When doing a read-modify-write operation on IOAPIC registers, older SiS APIC
-+ * requires we rewrite the index register again where the read already set up
-+ * the index register.
-+ * The code to make use of sis_apic_bug has been removed, but we don't want to
-+ * loss this knowledge.
-  */
- int sis_apic_bug = -1;
- 
-@@ -290,22 +295,6 @@ static void io_apic_write(unsigned int apic, unsigned int reg,
- 	writel(value, &io_apic->data);
+-extern int apic_retrigger_irq(struct irq_data *data);
+ extern void apic_ack_edge(struct irq_data *data);
+ extern int apic_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 			     unsigned int *dest_id);
+diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+index 8467ca47bd4a..fba4958b6139 100644
+--- a/arch/x86/kernel/apic/vector.c
++++ b/arch/x86/kernel/apic/vector.c
+@@ -185,7 +185,8 @@ next:
+ 	return err;
  }
  
--/*
-- * Re-write a value: to be used for read-modify-write
-- * cycles where the read already set up the index register.
-- *
-- * Older SiS APIC requires we rewrite the index register
-- */
--static void io_apic_modify(unsigned int apic, unsigned int reg,
--			   unsigned int value)
--{
--	struct io_apic __iomem *io_apic = io_apic_base(apic);
--
--	if (sis_apic_bug)
--		writel(reg, &io_apic->index);
--	writel(value, &io_apic->data);
--}
--
- union entry_union {
- 	struct { u32 w1, w2; };
- 	struct IO_APIC_route_entry entry;
-@@ -442,29 +431,23 @@ static void __init replace_pin_at_irq_node(struct mp_chip_data *data, int node,
- 	add_pin_to_irq_node(data, node, newapic, newpin);
- }
- 
--static void __io_apic_modify_irq(struct irq_pin_list *entry,
--				 int mask_and, int mask_or,
--				 void (*final)(struct irq_pin_list *entry))
--{
--	unsigned int reg, pin;
--
--	pin = entry->pin;
--	reg = io_apic_read(entry->apic, 0x10 + pin * 2);
--	reg &= mask_and;
--	reg |= mask_or;
--	io_apic_modify(entry->apic, 0x10 + pin * 2, reg);
--	if (final)
--		final(entry);
--}
--
- static void io_apic_modify_irq(struct mp_chip_data *data,
- 			       int mask_and, int mask_or,
- 			       void (*final)(struct irq_pin_list *entry))
+-int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
++static int assign_irq_vector(int irq, struct irq_cfg *cfg,
++			     const struct cpumask *mask)
  {
-+	union entry_union eu;
- 	struct irq_pin_list *entry;
- 
--	for_each_irq_pin(entry, data->irq_2_pin)
--		__io_apic_modify_irq(entry, mask_and, mask_or, final);
-+	eu.entry = data->entry;
-+	eu.w1 &= mask_and;
-+	eu.w1 |= mask_or;
-+	data->entry = eu.entry;
-+
-+	for_each_irq_pin(entry, data->irq_2_pin) {
-+		io_apic_write(entry->apic, 0x10 + 2 * entry->pin, eu.w1);
-+		if (final)
-+			final(entry);
-+	}
- }
- 
- static void io_apic_sync(struct irq_pin_list *entry)
-@@ -1729,28 +1712,6 @@ static unsigned int startup_ioapic_irq(struct irq_data *data)
- 	return was_pending;
- }
- 
--static void __target_IO_APIC_irq(unsigned int irq, struct irq_cfg *cfg,
--				 struct mp_chip_data *data)
--{
--	int apic, pin;
--	struct irq_pin_list *entry;
--	u8 vector = cfg->vector;
--	unsigned int dest = SET_APIC_LOGICAL_ID(cfg->dest_apicid);
--
--	for_each_irq_pin(entry, data->irq_2_pin) {
--		unsigned int reg;
--
--		apic = entry->apic;
--		pin = entry->pin;
--
--		io_apic_write(apic, 0x11 + pin*2, dest);
--		reg = io_apic_read(apic, 0x10 + pin*2);
--		reg &= ~IO_APIC_REDIR_VECTOR_MASK;
--		reg |= vector;
--		io_apic_modify(apic, 0x10 + pin*2, reg);
--	}
--}
--
- atomic_t irq_mis_count;
- 
- #ifdef CONFIG_GENERIC_PENDING_IRQ
-@@ -1916,6 +1877,7 @@ static int ioapic_set_affinity(struct irq_data *irq_data,
- {
- 	struct irq_data *parent = irq_data->parent_data;
- 	struct mp_chip_data *data = irq_data->chip_data;
-+	struct irq_pin_list *entry;
- 	struct irq_cfg *cfg;
+ 	int err;
  	unsigned long flags;
- 	int ret;
-@@ -1926,7 +1888,9 @@ static int ioapic_set_affinity(struct irq_data *irq_data,
- 		cfg = irqd_cfg(irq_data);
- 		data->entry.dest = SET_APIC_LOGICAL_ID(cfg->dest_apicid);
- 		data->entry.vector = cfg->vector;
--		__target_IO_APIC_irq(irq_data->irq, cfg, irq_data->chip_data);
-+		for_each_irq_pin(entry, data->irq_2_pin)
-+			__ioapic_write_entry(entry->apic, entry->pin,
-+					     data->entry);
- 	}
- 	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
+@@ -196,7 +197,7 @@ int assign_irq_vector(int irq, struct irq_cfg *cfg, const struct cpumask *mask)
+ 	return err;
+ }
  
+-void clear_irq_vector(int irq, struct irq_cfg *cfg)
++static void clear_irq_vector(int irq, struct irq_cfg *cfg)
+ {
+ 	int cpu, vector;
+ 	unsigned long flags;
+@@ -441,7 +442,7 @@ void setup_vector_irq(int cpu)
+ 	__setup_vector_irq(cpu);
+ }
+ 
+-int apic_retrigger_irq(struct irq_data *data)
++static int apic_retrigger_irq(struct irq_data *data)
+ {
+ 	struct irq_cfg *cfg = irqd_cfg(data);
+ 	unsigned long flags;
 -- 
 1.7.10.4
