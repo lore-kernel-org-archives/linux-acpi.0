@@ -1,101 +1,123 @@
-From: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 updated 3/3] ACPI / PMIC: AXP288: support virtual
- GPIO in ACPI table
-Date: Tue, 25 Nov 2014 01:44:28 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A4A7C@SHSMSX101.ccr.corp.intel.com>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com>
- <1648486.coeVgHKNdn@vostro.rjw.lan> <5472FB31.8000408@intel.com>
- <2204417.orosXAozvY@vostro.rjw.lan>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v5 02/18] ACPI / table: Add new function to get table
+ entries
+Date: Tue, 25 Nov 2014 11:38:05 +0800
+Message-ID: <5473F99D.6090505@huawei.com>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <2764417.DLFalXXngC@vostro.rjw.lan> <5473109A.2070704@linaro.org> <1581499.U8906vqSiO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2204417.orosXAozvY-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Content-Language: en-US
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Lu, Aaron" <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Iyer, Yegnesh S" <yegnesh.s.iyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:47567 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260AbaKYDkp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Nov 2014 22:40:45 -0500
+In-Reply-To: <1581499.U8906vqSiO@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acpi@vger.kernel.org, linux-arm-
 
-SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
-dF0NCj4gU2VudDogTW9uZGF5LCBOb3ZlbWJlciAyNCwgMjAxNCAxMToyMCBQTQ0KPiBMdg0KPiBT
-dWJqZWN0OiBSZTogW1BBVENIIHYzIHVwZGF0ZWQgMy8zXSBBQ1BJIC8gUE1JQzogQVhQMjg4OiBz
-dXBwb3J0IHZpcnR1YWwgR1BJTyBpbiBBQ1BJIHRhYmxlDQo+IA0KPiBPbiBNb25kYXksIE5vdmVt
-YmVyIDI0LCAyMDE0IDA1OjMyOjMzIFBNIEFhcm9uIEx1IHdyb3RlOg0KPiA+IE9uIDExLzI0LzIw
-MTQgMDk6MDYgQU0sIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+ID4gT24gRnJpZGF5LCBO
-b3ZlbWJlciAyMSwgMjAxNCAwMzoxMTo1MSBQTSBBYXJvbiBMdSB3cm90ZToNCj4gPiA+PiArCWlm
-ICghcmVzdWx0KSB7DQo+ID4gPj4gKwkJc3RhdHVzID0gYWNwaV9pbnN0YWxsX2FkZHJlc3Nfc3Bh
-Y2VfaGFuZGxlcigNCj4gPiA+PiArCQkJCUFDUElfSEFORExFKHBhcmVudCksIEFDUElfQURSX1NQ
-QUNFX0dQSU8sDQo+ID4gPj4gKwkJCQlpbnRlbF94cG93ZXJfcG1pY19ncGlvX2hhbmRsZXIsIE5V
-TEwsIE5VTEwpOw0KPiA+ID4NCj4gPiA+IFNvIGhlcmUgd2UgaGF2ZSBhIHByb2JsZW0sIGJlY2F1
-c2Ugd2UgY2FuJ3QgdW5yZWdpc3RlciB0aGUgb3ByZWdpb24gaGFuZGxlcg0KPiA+ID4gcmVnaXN0
-ZXJlZCBhYm92ZSBpZiB0aGlzIGZhaWxzLiAgTm90IG5pY2UuDQo+ID4NCj4gPiBJJ20gbm90IGNv
-cnJlY3QgaW4gdGhlIGNvdmVyIGxldHRlciwgdGhlIGFjdHVhbCBwcm9ibGVtIHdpdGggb3BlcmF0
-aW9uDQo+ID4gcmVnaW9uIHJlbW92ZSBpcyB3aXRoIG1vZHVsZSB1bmxvYWQsIGl0IGhhcHBlbnMg
-bGlrZSB0aGlzOg0KPiA+DQo+ID4gVGhlIGFjcGlfcmVtb3ZlX2FkZHJlc3Nfc3BhY2VfaGFuZGxl
-ciBkb2Vzbid0IHdhaXQgZm9yIHRoZSBjdXJyZW50DQo+ID4gcnVubmluZyBoYW5kbGVyIHRvIHJl
-dHVybiwgc28gaWYgd2UgY2FsbA0KPiA+IGFjcGlfcmVtb3ZlX2FkZHJlc3Nfc3BhY2VfaGFuZGxl
-ciBpbiBhIG1vZHVsZSdzIGV4aXQgZnVuY3Rpb24sIHRoZQ0KPiA+IGhhbmRsZXIncyBtZW1vcnkg
-d2lsbCBiZSBmcmVlZCBhbmQgdGhlIHJ1bm5pbmcgaGFuZGxlciB3aWxsIGFjY2VzcyB0bw0KPiA+
-IGEgbm8gbG9uZ2VyIHZhbGlkIG1lbW9yeSBwbGFjZS4NCj4gPg0KPiA+IFNvIGFzIGxvbmcgYXMg
-d2UgY2FuIG1ha2Ugc3VyZSB0aGUgaGFuZGxlciB3aWxsIG5vdCBnbyBhd2F5IGZyb20gdGhlDQo+
-ID4gbWVtb3J5LCB3ZSBhcmUgc2FmZS4NCj4gDQo+IFRoaXMgb25seSBtZWFucyB0aGF0IGFkZHJl
-c3Mgc3BhY2UgaGFuZGxlcnMgY2Fubm90IGJlIHJlbW92ZWQgZnJvbSBrZXJuZWwNCj4gbW9kdWxl
-cy4NCj4gDQo+IEx2IHdhcyB0cnlpbmcgdG8gYWRkIGEgd3JhcHBlciBmb3IgdGhhdCBzb21lIHRp
-bWUgYWdvLCBtYXliZSBpdCdzIGEgZ29vZA0KPiBpZGVhIHRvIHJldml2ZSB0aGF0Pw0KDQpJIG1h
-eSBmaXggdGhlIGlzc3VlIGluIEFDUElDQSwgYnV0IGl0IGxvb2tzIGxpa2UgdGhhdCBpdCB3aWxs
-IGNvc3QgdGltZSB0byBkaXNjdXNzLg0KU28gSSBhbHNvIHRoaW5rIGl0IGlzIGJldHRlciB0byB0
-YWtlIHRoZSB3cmFwcGVyIG5vdy4NCkknbGwgaGFuZCB0aGUgcGF0Y2ggdG8gQWFyb24gdG8gbGV0
-IGhpbSBkbyBhIHRlc3Qgb24gaXQgYmVmb3JlIHBvc3RpbmcgaXQgYWdhaW4uDQoNClRoYW5rcyBh
-bmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiA+IFdpdGggdGhpcyBzYWlkLCB0aGUgdXBkYXRlZCBw
-YXRjaCBpcyBoZXJlOg0KPiA+DQo+ID4gRnJvbTogQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNv
-bT4NCj4gPiBEYXRlOiBNb24sIDIwIE9jdCAyMDE0IDE3OjA2OjIwICswODAwDQo+ID4gU3ViamVj
-dDogW1BBVENIIDMvM10gQUNQSSAvIFBNSUM6IEFYUDI4ODogc3VwcG9ydCB2aXJ0dWFsIEdQSU8g
-aW4gQUNQSSB0YWJsZQ0KPiA+DQo+ID4gVGhlIHNhbWUgdmlydHVhbCBHUElPIHN0cmF0ZWd5IGlz
-IGFsc28gdXNlZCBmb3IgdGhlIEFYUDI4OCBQTUlDIGluIHRoYXQNCj4gPiB2YXJpb3VzIGNvbnRy
-b2wgbWV0aG9kcyB0aGF0IGFyZSB1c2VkIHRvIGRvIHBvd2VyIHJhaWwgaGFuZGxpbmcgYW5kDQo+
-ID4gc2Vuc29yIHJlYWRpbmcvc2V0dGluZyB3aWxsIHRvdWNoIEdQSU8gZmllbGRzIGRlZmluZWQg
-dW5kZXIgdGhlIFBNSUMNCj4gPiBkZXZpY2UuIFRoZSBHUElPIGZpbGVkcyBhcmUgb25seSBkZWZp
-bmVkIGJ5IHRoZSBBQ1BJIGNvZGUgd2hpbGUgdGhlDQo+ID4gYWN0dWFsIGhhcmR3YXJlIGRvZXNu
-J3QgcmVhbGx5IGhhdmUgYSBHUElPIGNvbnRyb2xsZXIsIGJ1dCB0byBtYWtlIHRob3NlDQo+ID4g
-Y29udHJvbCBtZXRob2QgZXhlY3V0aW9uIHN1Y2NlZWQsIHdlIGhhdmUgdG8gaW5zdGFsbCBhIEdQ
-SU8gaGFuZGxlciBmb3INCj4gPiB0aGUgUE1JQyBkZXZpY2UgaGFuZGxlLiBTaW5jZSB3ZSBkbyBu
-b3QgbmVlZCB0aGUgdmlydHVhbCBHUElPIHN0cmF0ZWd5LA0KPiA+IHdlIGNhbiBzaW1wbHkgZG8g
-bm90aGluZyBpbiB0aGF0IGhhbmRsZXIuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBBYXJvbiBM
-dSA8YWFyb24ubHVAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvcG1pYy9p
-bnRlbF9wbWljX3hwb3dlci5jIHwgMzAgKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tDQo+
-ID4gIDEgZmlsZSBjaGFuZ2VkLCAyNiBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KPiA+
-DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWNfeHBvd2VyLmMg
-Yi9kcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljX3hwb3dlci5jDQo+ID4gaW5kZXggNzk1Y2Ew
-NzNkYjA4Li45ZWM1N2ViZDgxYzkgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL3BtaWMv
-aW50ZWxfcG1pY194cG93ZXIuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3Bt
-aWNfeHBvd2VyLmMNCj4gPiBAQCAtMjIwLDEzICsyMjAsMzUgQEAgc3RhdGljIHN0cnVjdCBpbnRl
-bF9wbWljX29wcmVnaW9uX2RhdGEgaW50ZWxfeHBvd2VyX3BtaWNfb3ByZWdpb25fZGF0YSA9IHsN
-Cj4gPiAgCS50aGVybWFsX3RhYmxlX2NvdW50ID0gQVJSQVlfU0laRSh0aGVybWFsX3RhYmxlKSwN
-Cj4gPiAgfTsNCj4gPg0KPiA+ICtzdGF0aWMgYWNwaV9zdGF0dXMgaW50ZWxfeHBvd2VyX3BtaWNf
-Z3Bpb19oYW5kbGVyKHUzMiBmdW5jdGlvbiwNCj4gPiArCQlhY3BpX3BoeXNpY2FsX2FkZHJlc3Mg
-YWRkcmVzcywgdTMyIGJpdF93aWR0aCwgdTY0ICp2YWx1ZSwNCj4gPiArCQl2b2lkICpoYW5kbGVy
-X2NvbnRleHQsIHZvaWQgKnJlZ2lvbl9jb250ZXh0KQ0KPiA+ICt7DQo+ID4gKwlyZXR1cm4gQUVf
-T0s7DQo+ID4gK30NCj4gPg0KPiA+ICBzdGF0aWMgaW50IGludGVsX3hwb3dlcl9wbWljX29wcmVn
-aW9uX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpDQo+ID4gIHsNCj4gPiAtCXN0
-cnVjdCBheHAyMHhfZGV2ICpheHAyMHggPSBkZXZfZ2V0X2RydmRhdGEocGRldi0+ZGV2LnBhcmVu
-dCk7DQo+ID4gLQlyZXR1cm4gaW50ZWxfcG1pY19pbnN0YWxsX29wcmVnaW9uX2hhbmRsZXIoJnBk
-ZXYtPmRldiwNCj4gPiAtCQkJQUNQSV9IQU5ETEUocGRldi0+ZGV2LnBhcmVudCksIGF4cDIweC0+
-cmVnbWFwLA0KPiA+IC0JCQkmaW50ZWxfeHBvd2VyX3BtaWNfb3ByZWdpb25fZGF0YSk7DQo+ID4g
-KwlzdHJ1Y3QgZGV2aWNlICpwYXJlbnQgPSBwZGV2LT5kZXYucGFyZW50Ow0KPiA+ICsJc3RydWN0
-IGF4cDIweF9kZXYgKmF4cDIweCA9IGRldl9nZXRfZHJ2ZGF0YShwYXJlbnQpOw0KPiA+ICsJYWNw
-aV9zdGF0dXMgc3RhdHVzOw0KPiA+ICsJaW50IHJlc3VsdDsNCj4gPiArDQo+ID4gKwlzdGF0dXMg
-PSBhY3BpX2luc3RhbGxfYWRkcmVzc19zcGFjZV9oYW5kbGVyKEFDUElfSEFORExFKHBhcmVudCks
-DQo+ID4gKwkJCUFDUElfQURSX1NQQUNFX0dQSU8sIGludGVsX3hwb3dlcl9wbWljX2dwaW9faGFu
-ZGxlciwNCj4gPiArCQkJTlVMTCwgTlVMTCk7DQo+ID4gKwlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1
-cykpDQo+ID4gKwkJcmV0dXJuIC1FTk9ERVY7DQo+ID4gKw0KPiA+ICsJcmVzdWx0ID0gaW50ZWxf
-cG1pY19pbnN0YWxsX29wcmVnaW9uX2hhbmRsZXIoJnBkZXYtPmRldiwNCj4gPiArCQkJCQlBQ1BJ
-X0hBTkRMRShwYXJlbnQpLCBheHAyMHgtPnJlZ21hcCwNCj4gPiArCQkJCQkmaW50ZWxfeHBvd2Vy
-X3BtaWNfb3ByZWdpb25fZGF0YSk7DQo+ID4gKwlpZiAocmVzdWx0KQ0KPiA+ICsJCWFjcGlfcmVt
-b3ZlX2FkZHJlc3Nfc3BhY2VfaGFuZGxlcihBQ1BJX0hBTkRMRShwYXJlbnQpLA0KPiA+ICsJCQkJ
-CQkgIEFDUElfQURSX1NQQUNFX0dQSU8sDQo+ID4gKwkJCQkJCSAgaW50ZWxfeHBvd2VyX3BtaWNf
-Z3Bpb19oYW5kbGVyKTsNCj4gPiArDQo+ID4gKwlyZXR1cm4gcmVzdWx0Ow0KPiA+ICB9DQo+ID4N
-Cj4gPiAgc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kcml2ZXIgaW50ZWxfeHBvd2VyX3BtaWNfb3By
-ZWdpb25fZHJpdmVyID0gew0KPiA+DQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2Vs
-Zi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2Vu
-dGVyLg0K
+On 2014/11/24 22:51, Rafael J. Wysocki wrote:
+> On Monday, November 24, 2014 07:03:54 PM Hanjun Guo wrote:
+>> On 2014-11-24 9:27, Rafael J. Wysocki wrote:
+>>> On Friday, October 17, 2014 09:36:58 PM Hanjun Guo wrote:
+>>>> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>>>>
+>>>> The acpi_table_parse() function has a callback that
+>>>> passes a pointer to a table_header. Add a new function
+>>>> which takes this pointer and parses its entries. This
+>>>> eliminates the need to re-traverse all the tables for
+>>>> each call. e.g. as in acpi_table_parse_madt() which is
+>>>> normally called after acpi_table_parse().
+>>>>
+>>>> Acked-by: Grant Likely <grant.likely@linaro.org>
+>>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>  drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
+>>>>  include/linux/acpi.h  |    4 +++
+>>>>  2 files changed, 51 insertions(+), 20 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>>>> index 6d5a6cd..21ae521 100644
+>>>> --- a/drivers/acpi/tables.c
+>>>> +++ b/drivers/acpi/tables.c
+>>>> @@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>>>>  
+>>>>  
+>>>>  int __init
+>>>> -acpi_table_parse_entries(char *id,
+>>>> -			     unsigned long table_size,
+>>>> -			     int entry_id,
+>>>> -			     acpi_tbl_entry_handler handler,
+>>>> -			     unsigned int max_entries)
+>>>> +acpi_parse_entries(unsigned long table_size,
+>>>> +		acpi_tbl_entry_handler handler,
+>>>> +		struct acpi_table_header *table_header,
+>>>> +		int entry_id, unsigned int max_entries)
+>>>>  {
+>>>> -	struct acpi_table_header *table_header = NULL;
+>>>>  	struct acpi_subtable_header *entry;
+>>>> -	unsigned int count = 0;
+>>>> +	int count = 0;
+>>>>  	unsigned long table_end;
+>>>> -	acpi_size tbl_size;
+>>>>  
+>>>>  	if (acpi_disabled)
+>>>>  		return -ENODEV;
+>>>> @@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
+>>>>  	if (!handler)
+>>>>  		return -EINVAL;
+>>>>  
+>>>> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
+>>>> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
+>>>> -	else
+>>>> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
+>>>> +	if (!table_size)
+>>>> +		return -EINVAL;
+>>>>  
+>>>>  	if (!table_header) {
+>>>> -		pr_warn("%4.4s not present\n", id);
+>>>> +		pr_warn("Table header not present\n");
+>>> The message doesn't make sense any more if the table signature is not printed.
+
+For this message, since no table id is passed, and this message is printed in
+acpi_table_parse_entries() before this function is called, I think we can check
+the table_header before call this function and remove the printed message here.
+
+>>>
+>>>>  		return -ENODEV;
+>>>>  	}
+>>>>  
+>>>> @@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
+>>>>  		if (entry->type == entry_id
+>>>>  		    && (!max_entries || count++ < max_entries))
+>>>>  			if (handler(entry, table_end))
+>>>> -				goto err;
+>>>> +				return -EINVAL;
+>>>>  
+>>>>  		/*
+>>>>  		 * If entry->length is 0, break from this loop to avoid
+>>>>  		 * infinite loop.
+>>>>  		 */
+>>>>  		if (entry->length == 0) {
+>>>> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
+>>>> -			goto err;
+>>>> +			pr_err("[0x%02x] Invalid zero length\n", entry_id);
+
+For this one, since the table_header is valid now, we can keep it with:
+
+- pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
++ pr_err("[%4.4s:0x%02x] Invalid zero length\n", table_header->signature, entry_id);
+
+>>> Same here.
+>> How about remove the message and return directly?
+> We could do that, but for what reason?  Is the message not useful?
+
+I agree with you, the message is useful I think, how about the comments above?
+
+Thanks
+Hanjun
+
