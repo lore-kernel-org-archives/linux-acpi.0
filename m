@@ -1,188 +1,327 @@
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] Support PMIC operation region for CrystalCove
- and XPower
-Date: Tue, 25 Nov 2014 19:52:31 +0800
-Message-ID: <54746D7F.1020104@intel.com>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com> <1987897.BgdIEqPdlH@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v3 updated 3/3] ACPI / PMIC: AXP288: support virtual GPIO
+ in ACPI table
+Date: Tue, 25 Nov 2014 20:01:38 +0800
+Message-ID: <54746FA2.9030408@intel.com>
+References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com> <1648486.coeVgHKNdn@vostro.rjw.lan> <5472FB31.8000408@intel.com> <2204417.orosXAozvY@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1987897.BgdIEqPdlH-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yegnesh Iyer <yegnesh.s.iyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2204417.orosXAozvY@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lee Jones <lee.jones@linaro.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Yegnesh Iyer <yegnesh.s.iyer@intel.com>, linux-acpi@vger.kernel.org, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/25/2014 09:47 AM, Rafael J. Wysocki wrote:
-> On Friday, November 21, 2014 03:11:48 PM Aaron Lu wrote:
->> v3:
->> Only some function/variable name changes, no functiona changes:
->> - Replace the dptf/DPTF word originate from the BIOS ACPI table with more
->>   meaningful word thermal/THERMAL in all places;
->> - Eliminate the soc part in various structure and function names to make
->>   them shorter:
->>   intel_soc_pmic_opregion -> intel_pmic_opregion
->>   intel_soc_pmic_pmop_handler -> intel_pmic_pmop_handler
->>   intel_soc_pmic_install_opregion_handler -> intel_pmic_install_opregion_handler
->>   etc.
+On 11/24/2014 11:19 PM, Rafael J. Wysocki wrote:
+> On Monday, November 24, 2014 05:32:33 PM Aaron Lu wrote:
+>> On 11/24/2014 09:06 AM, Rafael J. Wysocki wrote:
+>>> On Friday, November 21, 2014 03:11:51 PM Aaron Lu wrote:
+>>>> +	if (!result) {
+>>>> +		status = acpi_install_address_space_handler(
+>>>> +				ACPI_HANDLE(parent), ACPI_ADR_SPACE_GPIO,
+>>>> +				intel_xpower_pmic_gpio_handler, NULL, NULL);
+>>>
+>>> So here we have a problem, because we can't unregister the opregion handler
+>>> registered above if this fails.  Not nice.
 >>
+>> I'm not correct in the cover letter, the actual problem with operation
+>> region remove is with module unload, it happens like this:
 >>
->> v2:
->> Place PMIC operation files under drivers/acpi/pmic instead of
->> drivers/acpi/pmic_opregion as suggested by Rafael;
->> Rename PMIC operation files to make them shorter as suggested by Rafael.
+>> The acpi_remove_address_space_handler doesn't wait for the current
+>> running handler to return, so if we call
+>> acpi_remove_address_space_handler in a module's exit function, the
+>> handler's memory will be freed and the running handler will access to
+>> a no longer valid memory place.
 >>
->> v1:
->> On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
->> ACPI operation regions defined for the Power Management Integrated Circuit
->> device, one is for power resource handling and one is for thermal: sensor
->> temperature reporting, trip point setting, etc. There are different PMIC
->> chips used on those platforms and though each has the same two operation
->> regions and functionality, their implementation is different so every PMIC
->> will need a driver. But since their functionality is similar, some common
->> code is abstracted into the intel_soc_pmic_opregion.c.
->>
->> The last version is posted here:
->> https://lkml.org/lkml/2014/9/8/801
->>
->> Changes since then:
->> 1 Move to drivers/acpi as discussed on the above thread;
->> 2 Added support for XPower AXP288 PMIC operation region support;
->> 3 Since operation region handler can not be removed(at the moment at least),
->>   use bool for the two operation region driver configs instead of tristate;
->>   Another reason to do this is that, with Mika's MFD ACPI support patch, all
->>   those MFD cell devices created will have the same modalias as their parent's
->>   so it doesn't make much sense to compile these drivers into modules.
->>
->> Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
->> patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
->> driver XPower AXP288 and iio driver axp288_adc is located.
->>
->>
->> Aaron Lu (3):
->>   ACPI / PMIC: support PMIC operation region for CrystalCove
->>   ACPI / PMIC: support PMIC operation region for XPower AXP288
->>   ACPI / PMIC: AXP288: support virtual GPIO in ACPI table
+>> So as long as we can make sure the handler will not go away from the
+>> memory, we are safe.
 > 
-> OK
+> This only means that address space handlers cannot be removed from kernel
+> modules.
+
+If the module can not be unloaded(no module exit call), then we should
+be safe.
+
 > 
-> I've pulled the Lee's 'mfd/ib-mfd-iio-3.19' branch and applied your updated
-> three on top of that.  Please check the bleeding-edge branch of linux-pm.git
-> for the result.
+> Lv was trying to add a wrapper for that some time ago, maybe it's a good
+> idea to revive that?
 
-Thanks, and a fix patch is here:
+Is it this one? If it is, I'll test it and then add the unload
+functionality to the PMIC drivers.
 
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date: Tue, 25 Nov 2014 14:35:38 +0800
-Subject: [PATCH] ACPI / PMIC: Make it possible to build PMIC driver as a module
+From: Lv Zheng <lv.zheng@intel.com>
+Date: Tue, 25 Nov 2014 15:42:44 +0800
+Subject: [PATCH] ACPICA: Events: Add invocation protection for operation region callbacks.
 
-This can solve a problem that when axp288_adc driver is built as a
-module and the PMIC driver is builtin, following error would ocur:
- drivers/built-in.o: In function `intel_xpower_pmic_get_raw_temp':
- intel_pmic_xpower.c:(.text+0xdfaa7): undefined reference to `iio_channel_get'
- intel_pmic_xpower.c:(.text+0xdfb24): undefined reference to `iio_read_channel_raw'
- intel_pmic_xpower.c:(.text+0xdfb4e): undefined reference to `iio_channel_release'
+This patch adds invocation protection around operation region callbacks to
+offer a module safe environment for OSPM provided address space handlers.
 
-Also, with the fix commit: 52870786ff5d ("ACPI: Use ACPI companion to
-match only the first physical device"), the MFD cell device will have
-its own platform modalias instead of its parent's ACPI modalias, this
-made it possible for the module to be autoloaded.
+It is likely that OSPM where ModuleDevice is supported will implement
+specific address space handlers in the modules.  Thus the unloading of
+the handlers' owner modules may lead to program crash around the invocation
+if the handler callbacks are invoked without protection.  Since the
+handler callbacks are invoked inside of ACPICA, it is better to implement
+invocation protection inside of ACPICA.
+As address space handlers are expected to be executed in parallel, it is
+not a good choice to implement protection using locks.  This patch uses
+reference counting based protection mechanism.  When OSPM calls
+acpi_remove_address_space_handler(), the function waits until all invocations
+exit to ensure no invocation can happen after the unloading of the modules.
 
-Reported-by: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Note that this might be a workaround and not tested, better solution could
+be implemented to tune the design of the namespace objects. Lv Zheng.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/Kconfig                  |  6 +++---
- drivers/acpi/pmic/intel_pmic_crc.c    | 12 +++++++++++-
- drivers/acpi/pmic/intel_pmic_xpower.c | 12 +++++++++++-
- 3 files changed, 25 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/acevents.h  |   9 ++++
+ drivers/acpi/acpica/acobject.h  |   1 +
+ drivers/acpi/acpica/evhandler.c | 117 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/evregion.c  |  11 +++-
+ drivers/acpi/acpica/evxfregn.c  |   9 ++++
+ include/acpi/actypes.h          |   2 +
+ 6 files changed, 147 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 227f0692cbff..f9459ba4ce59 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -394,7 +394,7 @@ config ACPI_EXTLOG
- 	  tracepoint which carries that information to userspace.
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index 7a7811a9fc26..3020ac4ab7a8 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -175,6 +175,15 @@ acpi_ev_install_space_handler(struct acpi_namespace_node *node,
+ 			      acpi_adr_space_handler handler,
+ 			      acpi_adr_space_setup setup, void *context);
  
- menuconfig PMIC_OPREGION
--	bool "PMIC (Power Management Integrated Circuit) operation region support"
-+	tristate "PMIC (Power Management Integrated Circuit) operation region support"
- 	help
- 	  Select this option to enable support for ACPI operation
- 	  region of the PMIC chip. The operation region can be used
-@@ -403,13 +403,13 @@ menuconfig PMIC_OPREGION
++acpi_status
++acpi_ev_get_space_handler(union acpi_operand_object *handler_desc);
++
++void acpi_ev_put_space_handler(union acpi_operand_object *handler_desc);
++
++void acpi_ev_flush_space_handler(union acpi_operand_object *handler_desc);
++
++s16 acpi_ev_space_handler_count(union acpi_operand_object *handler_desc);
++
+ /*
+  * evregion - Operation region support
+  */
+diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
+index 8abb393dafab..a719d9733e6b 100644
+--- a/drivers/acpi/acpica/acobject.h
++++ b/drivers/acpi/acpica/acobject.h
+@@ -304,6 +304,7 @@ struct acpi_object_notify_handler {
  
- if PMIC_OPREGION
- config CRC_PMIC_OPREGION
--	bool "ACPI operation region support for CrystalCove PMIC"
-+	tristate "ACPI operation region support for CrystalCove PMIC"
- 	depends on INTEL_SOC_PMIC
- 	help
- 	  This config adds ACPI operation region support for CrystalCove PMIC.
+ struct acpi_object_addr_handler {
+ 	ACPI_OBJECT_COMMON_HEADER u8 space_id;
++	s16 invocation_count;
+ 	u8 handler_flags;
+ 	acpi_adr_space_handler handler;
+ 	struct acpi_namespace_node *node;	/* Parent device */
+diff --git a/drivers/acpi/acpica/evhandler.c b/drivers/acpi/acpica/evhandler.c
+index 78ac29351c9e..b27cc8e0507f 100644
+--- a/drivers/acpi/acpica/evhandler.c
++++ b/drivers/acpi/acpica/evhandler.c
+@@ -499,6 +499,7 @@ acpi_ev_install_space_handler(struct acpi_namespace_node * node,
+ 	handler_obj->address_space.space_id = (u8)space_id;
+ 	handler_obj->address_space.handler_flags = flags;
+ 	handler_obj->address_space.region_list = NULL;
++	handler_obj->address_space.invocation_count = 0;
+ 	handler_obj->address_space.node = node;
+ 	handler_obj->address_space.handler = handler;
+ 	handler_obj->address_space.context = context;
+@@ -534,3 +535,119 @@ acpi_ev_install_space_handler(struct acpi_namespace_node * node,
+ unlock_and_exit:
+ 	return_ACPI_STATUS(status);
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ev_flush_space_handler
++ *
++ * PARAMETERS:  handler_desc     - Address space object
++ *                                 (ACPI_TYPE_LOCAL_ADDRESS_HANDLER)
++ *
++ * RETURN:      None.
++ *
++ * DESCRIPTION: Flush the reference of the given address space handler object.
++ *
++ ******************************************************************************/
++
++void acpi_ev_flush_space_handler(union acpi_operand_object *handler_desc)
++{
++	acpi_cpu_flags lock_flags;
++
++	ACPI_FUNCTION_TRACE_PTR(acpi_ev_flush_space_handler, handler_desc);
++
++	if (handler_desc && handler_desc->address_space.invocation_count >= 0) {
++		lock_flags =
++		    acpi_os_acquire_lock(acpi_gbl_reference_count_lock);
++		handler_desc->address_space.invocation_count |= ACPI_INT16_MIN;
++		acpi_os_release_lock(acpi_gbl_reference_count_lock, lock_flags);
++	}
++
++	return_VOID;
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ev_get_space_handler
++ *
++ * PARAMETERS:  handler_desc     - Address space object
++ *                                 (ACPI_TYPE_LOCAL_ADDRESS_HANDLER)
++ *
++ * RETURN:      Status.
++ *
++ * DESCRIPTION: Acquire an reference of the given address space handler object.
++ *
++ ******************************************************************************/
++
++acpi_status acpi_ev_get_space_handler(union acpi_operand_object *handler_desc)
++{
++	acpi_cpu_flags lock_flags;
++
++	ACPI_FUNCTION_TRACE_PTR(acpi_ev_get_space_handler, handler_desc);
++
++	if (handler_desc && handler_desc->address_space.invocation_count >= 0) {
++		lock_flags =
++		    acpi_os_acquire_lock(acpi_gbl_reference_count_lock);
++		handler_desc->address_space.invocation_count++;
++		acpi_os_release_lock(acpi_gbl_reference_count_lock, lock_flags);
++		return_ACPI_STATUS(AE_OK);
++	}
++
++	return_ACPI_STATUS(AE_ERROR);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ev_put_space_handler
++ *
++ * PARAMETERS:  handler_desc     - Address space object
++ *                                 (ACPI_TYPE_LOCAL_ADDRESS_HANDLER)
++ *
++ * RETURN:      None.
++ *
++ * DESCRIPTION: Release an reference of the given address space handler object.
++ *
++ ******************************************************************************/
++
++void acpi_ev_put_space_handler(union acpi_operand_object *handler_desc)
++{
++	acpi_cpu_flags lock_flags;
++
++	ACPI_FUNCTION_TRACE_PTR(acpi_ev_put_space_handler, handler_desc);
++
++	if (handler_desc) {
++		lock_flags =
++		    acpi_os_acquire_lock(acpi_gbl_reference_count_lock);
++		handler_desc->address_space.invocation_count--;
++		acpi_os_release_lock(acpi_gbl_reference_count_lock, lock_flags);
++	}
++
++	return_VOID;
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ev_space_handler_count
++ *
++ * PARAMETERS:  handler_desc     - Address space object
++ *                                 (ACPI_TYPE_LOCAL_ADDRESS_HANDLER)
++ *
++ * RETURN:      Invocation count of the handler.
++ *
++ * DESCRIPTION: Get the reference of the given address space handler object.
++ *
++ ******************************************************************************/
++
++s16 acpi_ev_space_handler_count(union acpi_operand_object *handler_desc)
++{
++	s16 count = 0;
++	acpi_cpu_flags lock_flags;
++
++	if (handler_desc) {
++		lock_flags =
++		    acpi_os_acquire_lock(acpi_gbl_reference_count_lock);
++		count = handler_desc->address_space.invocation_count;
++		acpi_os_release_lock(acpi_gbl_reference_count_lock, lock_flags);
++	}
++
++	return (count);
++}
+diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
+index 8eb8575e8c16..dcdd779257d0 100644
+--- a/drivers/acpi/acpica/evregion.c
++++ b/drivers/acpi/acpica/evregion.c
+@@ -165,6 +165,10 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 		return_ACPI_STATUS(AE_NOT_EXIST);
+ 	}
  
- config XPOWER_PMIC_OPREGION
--	bool "ACPI operation region support for XPower AXP288 PMIC"
-+	tristate "ACPI operation region support for XPower AXP288 PMIC"
- 	depends on AXP288_ADC
- 	help
- 	  This config adds ACPI operation region support for XPower AXP288 PMIC.
-diff --git a/drivers/acpi/pmic/intel_pmic_crc.c b/drivers/acpi/pmic/intel_pmic_crc.c
-index 8955e5b41195..8a193381b5ee 100644
---- a/drivers/acpi/pmic/intel_pmic_crc.c
-+++ b/drivers/acpi/pmic/intel_pmic_crc.c
-@@ -194,13 +194,23 @@ static int intel_crc_pmic_opregion_probe(struct platform_device *pdev)
- 			&intel_crc_pmic_opregion_data);
++	status = acpi_ev_get_space_handler(handler_desc);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(AE_NOT_EXIST);
++	}
+ 	context = handler_desc->address_space.context;
+ 
+ 	/*
+@@ -185,7 +189,8 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 				    region_obj,
+ 				    acpi_ut_get_region_name(region_obj->region.
+ 							    space_id)));
+-			return_ACPI_STATUS(AE_NOT_EXIST);
++			status = AE_NOT_EXIST;
++			goto error_exit;
+ 		}
+ 
+ 		/*
+@@ -210,7 +215,7 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 					acpi_ut_get_region_name(region_obj->
+ 								region.
+ 								space_id)));
+-			return_ACPI_STATUS(status);
++			goto error_exit;
+ 		}
+ 
+ 		/* Region initialization may have been completed by region_setup */
+@@ -306,6 +311,8 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 		acpi_ex_enter_interpreter();
+ 	}
+ 
++error_exit:
++	acpi_ev_put_space_handler(handler_desc);
+ 	return_ACPI_STATUS(status);
  }
  
-+#define DRV_NAME "crystal_cove_region"
-+
-+static struct platform_device_id crc_opregion_id_table[] = {
-+	{ .name = DRV_NAME },
-+	{},
-+};
-+
- static struct platform_driver intel_crc_pmic_opregion_driver = {
- 	.probe = intel_crc_pmic_opregion_probe,
-+	.id_table = crc_opregion_id_table,
- 	.driver = {
--		.name = "crystal_cove_region",
-+		.name = DRV_NAME,
- 	},
- };
+diff --git a/drivers/acpi/acpica/evxfregn.c b/drivers/acpi/acpica/evxfregn.c
+index 2d6f187939c7..c8c8538aae40 100644
+--- a/drivers/acpi/acpica/evxfregn.c
++++ b/drivers/acpi/acpica/evxfregn.c
+@@ -266,6 +266,15 @@ acpi_remove_address_space_handler(acpi_handle device,
  
-+MODULE_DEVICE_TABLE(platform, crc_opregion_id_table);
-+
- static int __init intel_crc_pmic_opregion_driver_init(void)
- {
- 	return platform_driver_register(&intel_crc_pmic_opregion_driver);
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 9ec57ebd81c9..4debcbbd6285 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -251,13 +251,23 @@ static int intel_xpower_pmic_opregion_probe(struct platform_device *pdev)
- 	return result;
- }
+ 			*last_obj_ptr = handler_obj->address_space.next;
  
-+#define DRV_NAME "axp288_opregion"
++			/* Wait for handlers to exit */
 +
-+static struct platform_device_id xpower_opregion_id_table[] = {
-+	{ .name = DRV_NAME },
-+	{},
-+};
++			acpi_ev_flush_space_handler(handler_obj);
++			while (acpi_ev_space_handler_count(handler_obj) != ACPI_INT16_MIN) {
++				(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++				acpi_os_sleep((u64)10);
++				(void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++			}
 +
- static struct platform_driver intel_xpower_pmic_opregion_driver = {
- 	.probe = intel_xpower_pmic_opregion_probe,
-+	.id_table = xpower_opregion_id_table,
- 	.driver = {
--		.name = "axp288_opregion",
-+		.name = DRV_NAME,
- 	},
- };
+ 			/* Now we can delete the handler object */
  
-+MODULE_DEVICE_TABLE(platform, xpower_opregion_id_table);
-+
- static int __init intel_xpower_pmic_opregion_driver_init(void)
- {
- 	return platform_driver_register(&intel_xpower_pmic_opregion_driver);
+ 			acpi_ut_remove_reference(handler_obj);
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 7000e66f768e..a341a9a8157f 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -65,6 +65,8 @@
+ #define ACPI_UINT16_MAX                 (u16)(~((u16) 0))	/* 0xFFFF             */
+ #define ACPI_UINT32_MAX                 (u32)(~((u32) 0))	/* 0xFFFFFFFF         */
+ #define ACPI_UINT64_MAX                 (u64)(~((u64) 0))	/* 0xFFFFFFFFFFFFFFFF */
++#define ACPI_INT16_MAX                  ((s16)(ACPI_UINT16_MAX>>1))
++#define ACPI_INT16_MIN                  ((s16)(-ACPI_INT16_MAX - 1))
+ #define ACPI_ASCII_MAX                  0x7F
+ 
+ /*
 -- 
 1.9.3
