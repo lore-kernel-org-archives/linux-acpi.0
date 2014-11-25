@@ -1,125 +1,240 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 02/18] ACPI / table: Add new function to get table entries
-Date: Tue, 25 Nov 2014 22:20:39 +0100
-Message-ID: <1591450.lUZUanAOs6@vostro.rjw.lan>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1581499.U8906vqSiO@vostro.rjw.lan> <5473F99D.6090505@huawei.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH V3] ACPI: Add _DEP(Operation Region Dependencies) support to fix battery issue on the Asus T100TA
+Date: Tue, 25 Nov 2014 23:31:47 +0100
+Message-ID: <2784837.a10Sa2bqgX@vostro.rjw.lan>
+References: <1416748974-24124-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5473F99D.6090505@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linux-acp
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416748974-24124-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shigorin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, adamw-cfjF3rc+CpsYNetmKr+vY16hYfS7NtTn@public.gmane.org, jan.brummer-sgYkR6nYkOfYtjvyW6yDsg@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, November 25, 2014 11:38:05 AM Hanjun Guo wrote:
-> On 2014/11/24 22:51, Rafael J. Wysocki wrote:
-> > On Monday, November 24, 2014 07:03:54 PM Hanjun Guo wrote:
-> >> On 2014-11-24 9:27, Rafael J. Wysocki wrote:
-> >>> On Friday, October 17, 2014 09:36:58 PM Hanjun Guo wrote:
-> >>>> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> >>>>
-> >>>> The acpi_table_parse() function has a callback that
-> >>>> passes a pointer to a table_header. Add a new function
-> >>>> which takes this pointer and parses its entries. This
-> >>>> eliminates the need to re-traverse all the tables for
-> >>>> each call. e.g. as in acpi_table_parse_madt() which is
-> >>>> normally called after acpi_table_parse().
-> >>>>
-> >>>> Acked-by: Grant Likely <grant.likely@linaro.org>
-> >>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> >>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> >>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>> ---
-> >>>>  drivers/acpi/tables.c |   67 ++++++++++++++++++++++++++++++++++---------------
-> >>>>  include/linux/acpi.h  |    4 +++
-> >>>>  2 files changed, 51 insertions(+), 20 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> >>>> index 6d5a6cd..21ae521 100644
-> >>>> --- a/drivers/acpi/tables.c
-> >>>> +++ b/drivers/acpi/tables.c
-> >>>> @@ -192,17 +192,14 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-> >>>>  
-> >>>>  
-> >>>>  int __init
-> >>>> -acpi_table_parse_entries(char *id,
-> >>>> -			     unsigned long table_size,
-> >>>> -			     int entry_id,
-> >>>> -			     acpi_tbl_entry_handler handler,
-> >>>> -			     unsigned int max_entries)
-> >>>> +acpi_parse_entries(unsigned long table_size,
-> >>>> +		acpi_tbl_entry_handler handler,
-> >>>> +		struct acpi_table_header *table_header,
-> >>>> +		int entry_id, unsigned int max_entries)
-> >>>>  {
-> >>>> -	struct acpi_table_header *table_header = NULL;
-> >>>>  	struct acpi_subtable_header *entry;
-> >>>> -	unsigned int count = 0;
-> >>>> +	int count = 0;
-> >>>>  	unsigned long table_end;
-> >>>> -	acpi_size tbl_size;
-> >>>>  
-> >>>>  	if (acpi_disabled)
-> >>>>  		return -ENODEV;
-> >>>> @@ -210,13 +207,11 @@ acpi_table_parse_entries(char *id,
-> >>>>  	if (!handler)
-> >>>>  		return -EINVAL;
-> >>>>  
-> >>>> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
-> >>>> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-> >>>> -	else
-> >>>> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-> >>>> +	if (!table_size)
-> >>>> +		return -EINVAL;
-> >>>>  
-> >>>>  	if (!table_header) {
-> >>>> -		pr_warn("%4.4s not present\n", id);
-> >>>> +		pr_warn("Table header not present\n");
-> >>> The message doesn't make sense any more if the table signature is not printed.
+On Sunday, November 23, 2014 09:22:54 PM Lan Tianyu wrote:
+> ACPI 5.0 introduces _DEP to designate device objects that OSPM should
+> assign a higher priority in start ordering due to future operation region
+> accesses.
 > 
-> For this message, since no table id is passed, and this message is printed in
-> acpi_table_parse_entries() before this function is called, I think we can check
-> the table_header before call this function and remove the printed message here.
-
-table_header needs to be checked against NULL in the caller and the message
-printed from there to my eyes.
-
-> >>>
-> >>>>  		return -ENODEV;
-> >>>>  	}
-> >>>>  
-> >>>> @@ -232,30 +227,62 @@ acpi_table_parse_entries(char *id,
-> >>>>  		if (entry->type == entry_id
-> >>>>  		    && (!max_entries || count++ < max_entries))
-> >>>>  			if (handler(entry, table_end))
-> >>>> -				goto err;
-> >>>> +				return -EINVAL;
-> >>>>  
-> >>>>  		/*
-> >>>>  		 * If entry->length is 0, break from this loop to avoid
-> >>>>  		 * infinite loop.
-> >>>>  		 */
-> >>>>  		if (entry->length == 0) {
-> >>>> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-> >>>> -			goto err;
-> >>>> +			pr_err("[0x%02x] Invalid zero length\n", entry_id);
+> On Asus T100TA, ACPI battery info are read from a I2C slave device via
+> I2C operation region. Before I2C operation region handler is installed,
+> battery _STA always returns 0. There is a _DEP method of designating
+> start order under battery device node.
 > 
-> For this one, since the table_header is valid now, we can keep it with:
-
-Fine by me.
-
-> - pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-> + pr_err("[%4.4s:0x%02x] Invalid zero length\n", table_header->signature, entry_id);
+> This patch is to implement _DEP feature to fix battery issue on the Asus T100TA.
+> Introducing acpi_dep_list and adding dep_unmet count in the struct
+> acpi_device. During ACPI namespace scan, create struct acpi_dep_data for a
+> valid pair of master (device pointed to by _DEP)/slave(device with _DEP), record
+> master's and slave's ACPI handle in it and put it into acpi_dep_list. The dep_unmet
+> count will increase by one if there is a device under its _DEP. Driver's probe() should
+> return EPROBE_DEFER when find dep_unmet is larger than 0. When I2C operation
+> region handler is installed, remove all struct acpi_dep_data on the acpi_dep_list
+> whose master is pointed to I2C host controller and decrease slave's dep_unmet.
+> When dep_unmet decreases to 0, all _DEP conditions are met and then do acpi_bus_attach()
+> for the device in order to resolve battery _STA issue on the Asus T100TA.
 > 
-> >>> Same here.
-> >> How about remove the message and return directly?
-> > We could do that, but for what reason?  Is the message not useful?
-> 
-> I agree with you, the message is useful I think, how about the comments above?
+> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=69011
+> Tested-by: Jan-Michael Brummer <jan.brummer-sgYkR6nYkOfYtjvyW6yDsg@public.gmane.org>
+> Tested-by: Adam Williamson <adamw-cfjF3rc+CpsYNetmKr+vY16hYfS7NtTn@public.gmane.org>
+> Tested-by: Michael Shigorin <shigorin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Acked-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> Acked-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Please see above.
+Queued up for 3.19-rc1, thanks!
+
+> ---
+> Change since V2:
+>         Coding style change
+> Change since V1:
+>  	Remove redundant blank line and some coding style fixs.
+> 
+> 
+>  drivers/acpi/battery.c  |  4 +++
+>  drivers/acpi/scan.c     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/i2c/i2c-core.c  |  1 +
+>  include/acpi/acpi_bus.h |  1 +
+>  include/linux/acpi.h    |  1 +
+>  5 files changed, 92 insertions(+)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 8ec8a89..d98ba43 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -1180,6 +1180,10 @@ static int acpi_battery_add(struct acpi_device *device)
+>  
+>  	if (!device)
+>  		return -EINVAL;
+> +
+> +	if (device->dep_unmet)
+> +		return -EPROBE_DEFER;
+> +
+>  	battery = kzalloc(sizeof(struct acpi_battery), GFP_KERNEL);
+>  	if (!battery)
+>  		return -ENOMEM;
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 9cb5cca..1b1cf55 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -36,6 +36,8 @@ bool acpi_force_hot_remove;
+>  
+>  static const char *dummy_hid = "device";
+>  
+> +static LIST_HEAD(acpi_dep_list);
+> +static DEFINE_MUTEX(acpi_dep_list_lock);
+>  static LIST_HEAD(acpi_bus_id_list);
+>  static DEFINE_MUTEX(acpi_scan_lock);
+>  static LIST_HEAD(acpi_scan_handlers_list);
+> @@ -43,6 +45,12 @@ DEFINE_MUTEX(acpi_device_lock);
+>  LIST_HEAD(acpi_wakeup_device_list);
+>  static DEFINE_MUTEX(acpi_hp_context_lock);
+>  
+> +struct acpi_dep_data {
+> +	struct list_head node;
+> +	acpi_handle master;
+> +	acpi_handle slave;
+> +};
+> +
+>  struct acpi_device_bus_id{
+>  	char bus_id[15];
+>  	unsigned int instance_no;
+> @@ -2193,6 +2201,59 @@ static void acpi_scan_init_hotplug(struct acpi_device *adev)
+>  	}
+>  }
+>  
+> +static void acpi_device_dep_initialize(struct acpi_device *adev)
+> +{
+> +	struct acpi_dep_data *dep;
+> +	struct acpi_handle_list dep_devices;
+> +	acpi_status status;
+> +	int i;
+> +
+> +	if (!acpi_has_method(adev->handle, "_DEP"))
+> +		return;
+> +
+> +	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
+> +					&dep_devices);
+> +	if (ACPI_FAILURE(status)) {
+> +		dev_err(&adev->dev, "Failed to evaluate _DEP.\n");
+> +		return;
+> +	}
+> +
+> +	for (i = 0; i < dep_devices.count; i++) {
+> +		struct acpi_device_info *info;
+> +		int skip;
+> +
+> +		status = acpi_get_object_info(dep_devices.handles[i], &info);
+> +		if (ACPI_FAILURE(status)) {
+> +			dev_err(&adev->dev, "Error reading device info\n");
+> +			continue;
+> +		}
+> +
+> +		/*
+> +		 * Skip the dependency of Windows System Power
+> +		 * Management Controller
+> +		 */
+> +		skip = info->valid & ACPI_VALID_HID &&
+> +			!strcmp(info->hardware_id.string, "INT3396");
+> +
+> +		kfree(info);
+> +
+> +		if (skip)
+> +			continue;
+> +
+> +		dep = kzalloc(sizeof(struct acpi_dep_data), GFP_KERNEL);
+> +		if (!dep)
+> +			return;
+> +
+> +		dep->master = dep_devices.handles[i];
+> +		dep->slave  = adev->handle;
+> +		adev->dep_unmet++;
+> +
+> +		mutex_lock(&acpi_dep_list_lock);
+> +		list_add_tail(&dep->node , &acpi_dep_list);
+> +		mutex_unlock(&acpi_dep_list_lock);
+> +	}
+> +}
+> +
+>  static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
+>  				      void *not_used, void **return_value)
+>  {
+> @@ -2219,6 +2280,7 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl_not_used,
+>  		return AE_CTRL_DEPTH;
+>  
+>  	acpi_scan_init_hotplug(device);
+> +	acpi_device_dep_initialize(device);
+>  
+>   out:
+>  	if (!*return_value)
+> @@ -2339,6 +2401,29 @@ static void acpi_bus_attach(struct acpi_device *device)
+>  		device->handler->hotplug.notify_online(device);
+>  }
+>  
+> +void acpi_walk_dep_device_list(acpi_handle handle)
+> +{
+> +	struct acpi_dep_data *dep, *tmp;
+> +	struct acpi_device *adev;
+> +
+> +	mutex_lock(&acpi_dep_list_lock);
+> +	list_for_each_entry_safe(dep, tmp, &acpi_dep_list, node) {
+> +		if (dep->master == handle) {
+> +			acpi_bus_get_device(dep->slave, &adev);
+> +			if (!adev)
+> +				continue;
+> +
+> +			adev->dep_unmet--;
+> +			if (!adev->dep_unmet)
+> +				acpi_bus_attach(adev);
+> +			list_del(&dep->node);
+> +			kfree(dep);
+> +		}
+> +	}
+> +	mutex_unlock(&acpi_dep_list_lock);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_walk_dep_device_list);
+> +
+>  /**
+>   * acpi_bus_scan - Add ACPI device node objects in a given namespace scope.
+>   * @handle: Root of the namespace scope to scan.
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index f43b4e1..68aeb8e 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -403,6 +403,7 @@ static int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
+>  		return -ENOMEM;
+>  	}
+>  
+> +	acpi_walk_dep_device_list(handle);
+>  	return 0;
+>  }
+>  
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 7d1ce40..d539084 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -372,6 +372,7 @@ struct acpi_device {
+>  	void *driver_data;
+>  	struct device dev;
+>  	unsigned int physical_node_count;
+> +	unsigned int dep_unmet;
+>  	struct list_head physical_node_list;
+>  	struct mutex physical_node_lock;
+>  	void (*remove)(struct acpi_device *);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 10f2ed9..e09f7f4 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -428,6 +428,7 @@ extern bool acpi_driver_match_device(struct device *dev,
+>  				     const struct device_driver *drv);
+>  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+>  int acpi_device_modalias(struct device *, char *, int);
+> +void acpi_walk_dep_device_list(acpi_handle handle);
+>  
+>  struct platform_device *acpi_create_platform_device(struct acpi_device *);
+>  #define ACPI_PTR(_ptr)	(_ptr)
+> 
 
 -- 
 I speak only for myself.
