@@ -1,170 +1,77 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPI / table: Add new function to get table entries
-Date: Wed, 26 Nov 2014 23:14:11 +0100
-Message-ID: <3690114.UPTfuA83uf@vostro.rjw.lan>
-References: <1417010474-2399-1-git-send-email-hanjun.guo@linaro.com>
+Subject: Re: [PATCH 1/3] ACPI / processor: remove incorrect comparison of phys_id
+Date: Wed, 26 Nov 2014 23:26 +0100
+Message-ID: <9584090.hqdaL9kipZ@vostro.rjw.lan>
+References: <1416926930-792-1-git-send-email-sudeep.holla@arm.com> <5475A307.8040605@linaro.org> <5475AC60.9000506@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57787 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49812 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753359AbaKZVw5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Nov 2014 16:52:57 -0500
-In-Reply-To: <1417010474-2399-1-git-send-email-hanjun.guo@linaro.com>
+	with SMTP id S1750793AbaKZWEo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Nov 2014 17:04:44 -0500
+In-Reply-To: <5475AC60.9000506@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday, November 26, 2014 10:01:13 PM Hanjun Guo wrote:
-> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+On Wednesday, November 26, 2014 10:33:04 AM Sudeep Holla wrote:
+> Hi Hanjun,
 > 
-> The acpi_table_parse() function has a callback that
-> passes a pointer to a table_header. Add a new function
-> which takes this pointer and parses its entries. This
-> eliminates the need to re-traverse all the tables for
-> each call. e.g. as in acpi_table_parse_madt() which is
-> normally called after acpi_table_parse().
+> On 26/11/14 09:53, Hanjun Guo wrote:
+> > Hi Sudeep,
+> >
+> > On 2014-11-25 22:48, Sudeep Holla wrote:
+> >> phys_id in acpi_processor structure is unsigned 32-bit integer,
+> >> comparing it with signed value is incorrect.
+> >
+> > Yes, this is a bug :)
+> >
+> > But the phys_id in acpi_processor structure should be signed value
+> > because acpi_get_phys_id() will return -1 if there if no CPU entry
+> > found in MADT table.
+> >
+> > I found the id in acpi_processor structure should also be signed
+> > value by unsigned now, we should fix that too.
+> >
 > 
-> Acked-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/tables.c | 63 +++++++++++++++++++++++++++++++++++----------------
->  include/linux/acpi.h  |  4 ++++
->  2 files changed, 48 insertions(+), 19 deletions(-)
+> I tend to disagree, since the physical(h/w) and logical identifiers are
+> unsigned integers, the structure elements must also be the same. Though
+> for checking the correctness of those identifiers, the functions can
+> manage through signed values or any other alternates IMO(i.e. more
+> implementation details)
 > 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 6d5a6cd..f1debe9 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -190,30 +190,24 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->  	}
->  }
->  
-> -
->  int __init
-> -acpi_table_parse_entries(char *id,
-> -			     unsigned long table_size,
-> -			     int entry_id,
-> -			     acpi_tbl_entry_handler handler,
-> -			     unsigned int max_entries)
-> +acpi_parse_entries(char *id, unsigned long table_size,
+> Let's see what's Rafael's opinion on this.
+> 
+> >>
+> >> This patch removes that incorrect comparision in
+> >> acpi_processor_hotadd_init as the lone user of this function is
+> >> already checking for correctness of phys_id before calling it.
+> >
+> > if (apic_id < 0) acpi_handle_debug(pr->handle, "failed to get CPU
+> > APIC ID.\n");
+> >
+> > it only check the value and print debug message but no returns, so I
+> > think the check in the following patch is still needed.
+> >
+> 
+> Agreed, but that's something we need to fix in the logic and not by
+> changing these identifiers to signed values in the structures.
 
-Why isn't this static?  Are you going to use it somewhere else?
+I'd rather not change data structures just because of what one funtion returns.
 
-> +		acpi_tbl_entry_handler handler,
-> +		struct acpi_table_header *table_header,
-> +		int entry_id, unsigned int max_entries)
->  {
-> -	struct acpi_table_header *table_header = NULL;
->  	struct acpi_subtable_header *entry;
-> -	unsigned int count = 0;
-> +	int count = 0;
->  	unsigned long table_end;
-> -	acpi_size tbl_size;
->  
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> -	if (!handler)
-> +	if (!id || !handler)
->  		return -EINVAL;
->  
-> -	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
-> -		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-> -	else
-> -		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-> +	if (!table_size)
-> +		return -EINVAL;
->  
->  	if (!table_header) {
->  		pr_warn("%4.4s not present\n", id);
-> @@ -232,7 +226,7 @@ acpi_table_parse_entries(char *id,
->  		if (entry->type == entry_id
->  		    && (!max_entries || count++ < max_entries))
->  			if (handler(entry, table_end))
-> -				goto err;
-> +				return -EINVAL;
->  
->  		/*
->  		 * If entry->length is 0, break from this loop to avoid
-> @@ -240,22 +234,53 @@ acpi_table_parse_entries(char *id,
->  		 */
->  		if (entry->length == 0) {
->  			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-> -			goto err;
-> +			return -EINVAL;
->  		}
->  
->  		entry = (struct acpi_subtable_header *)
->  		    ((unsigned long)entry + entry->length);
->  	}
-> +
->  	if (max_entries && count > max_entries) {
->  		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
->  			id, entry_id, count - max_entries, count);
->  	}
->  
-> -	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
->  	return count;
-> -err:
-> +}
-> +
-> +int __init
-> +acpi_table_parse_entries(char *id,
-> +			 unsigned long table_size,
-> +			 int entry_id,
-> +			 acpi_tbl_entry_handler handler,
-> +			 unsigned int max_entries)
-> +{
-> +	struct acpi_table_header *table_header = NULL;
-> +	acpi_size tbl_size;
-> +	int count;
-> +	u32 instance = 0;
-> +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
-> +
-> +	if (!id || !handler)
-> +		return -EINVAL;
-> +
-> +	if (!strncmp(id, ACPI_SIG_MADT, 4))
-> +		instance = acpi_apic_instance;
-> +
-> +	acpi_get_table_with_size(id, instance, &table_header, &tbl_size);
-> +	if (!table_header) {
-> +		pr_warn("%4.4s not present\n", id);
-> +		return -ENODEV;
-> +	}
-> +
-> +	count = acpi_parse_entries(id, table_size, handler, table_header,
-> +			entry_id, max_entries);
-> +
->  	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-> -	return -EINVAL;
-> +	return count;
->  }
->  
->  int __init
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index e09f7f4..d7a5fcf 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -124,6 +124,10 @@ int acpi_numa_init (void);
->  
->  int acpi_table_init (void);
->  int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
-> +int __init acpi_parse_entries(char *id, unsigned long table_size,
-> +			      acpi_tbl_entry_handler handler,
-> +			      struct acpi_table_header *table_header,
-> +			      int entry_id, unsigned int max_entries);
->  int __init acpi_table_parse_entries(char *id, unsigned long table_size,
->  				    int entry_id,
->  				    acpi_tbl_entry_handler handler,
-> 
+Instead, I'd do something like
+
+	#define CPU_PHYS_ID_INVALID	(u32)(-1)
+
+change the function in question to return CPU_PHYS_ID_INVALID instead of -1
+and change the check to
+
+	if (phys_id == CPU_PHYS_ID_INVALID)
+		...
+
 
 -- 
 I speak only for myself.
