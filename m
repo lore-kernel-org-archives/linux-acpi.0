@@ -1,174 +1,111 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] Support PMIC operation region for CrystalCove and XPower
-Date: Thu, 27 Nov 2014 00:02:03 +0100
-Message-ID: <2182869.tHxxv6o4LM@vostro.rjw.lan>
-References: <1416553911-22990-1-git-send-email-aaron.lu@intel.com> <54753C7E.8030503@intel.com> <54753E92.2010609@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 4/4] PCI / PM: Drop CONFIG_PM_RUNTIME from the PCI core
+Date: Thu, 27 Nov 2014 01:40:53 +0100
+Message-ID: <2582138.zUe2QZynBg@vostro.rjw.lan>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54753E92.2010609-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yegnesh Iyer <yegnesh.s.iyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <37310416.jZXoh5nfSC@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, November 26, 2014 10:44:34 AM Aaron Lu wrote:
-> On 11/26/2014 10:35 AM, Aaron Lu wrote:
-> > On 11/26/2014 04:41 AM, Rafael J. Wysocki wrote:
-> >> On Tuesday, November 25, 2014 07:52:31 PM Aaron Lu wrote:
-> >>> On 11/25/2014 09:47 AM, Rafael J. Wysocki wrote:
-> >>>> On Friday, November 21, 2014 03:11:48 PM Aaron Lu wrote:
-> >>>>> v3:
-> >>>>> Only some function/variable name changes, no functiona changes:
-> >>>>> - Replace the dptf/DPTF word originate from the BIOS ACPI table with more
-> >>>>>   meaningful word thermal/THERMAL in all places;
-> >>>>> - Eliminate the soc part in various structure and function names to make
-> >>>>>   them shorter:
-> >>>>>   intel_soc_pmic_opregion -> intel_pmic_opregion
-> >>>>>   intel_soc_pmic_pmop_handler -> intel_pmic_pmop_handler
-> >>>>>   intel_soc_pmic_install_opregion_handler -> intel_pmic_install_opregion_handler
-> >>>>>   etc.
-> >>>>>
-> >>>>>
-> >>>>> v2:
-> >>>>> Place PMIC operation files under drivers/acpi/pmic instead of
-> >>>>> drivers/acpi/pmic_opregion as suggested by Rafael;
-> >>>>> Rename PMIC operation files to make them shorter as suggested by Rafael.
-> >>>>>
-> >>>>> v1:
-> >>>>> On Intel Baytrail-T and Baytrail-T-CR platforms, there are two customized
-> >>>>> ACPI operation regions defined for the Power Management Integrated Circuit
-> >>>>> device, one is for power resource handling and one is for thermal: sensor
-> >>>>> temperature reporting, trip point setting, etc. There are different PMIC
-> >>>>> chips used on those platforms and though each has the same two operation
-> >>>>> regions and functionality, their implementation is different so every PMIC
-> >>>>> will need a driver. But since their functionality is similar, some common
-> >>>>> code is abstracted into the intel_soc_pmic_opregion.c.
-> >>>>>
-> >>>>> The last version is posted here:
-> >>>>> https://lkml.org/lkml/2014/9/8/801
-> >>>>>
-> >>>>> Changes since then:
-> >>>>> 1 Move to drivers/acpi as discussed on the above thread;
-> >>>>> 2 Added support for XPower AXP288 PMIC operation region support;
-> >>>>> 3 Since operation region handler can not be removed(at the moment at least),
-> >>>>>   use bool for the two operation region driver configs instead of tristate;
-> >>>>>   Another reason to do this is that, with Mika's MFD ACPI support patch, all
-> >>>>>   those MFD cell devices created will have the same modalias as their parent's
-> >>>>>   so it doesn't make much sense to compile these drivers into modules.
-> >>>>>
-> >>>>> Patch 1 applies on top of Rafael's pm-next branch, and then patch 2 and
-> >>>>> patch 3 needs merge of Lee's mfd/ib-mfd-iio-3.19 branch where the PMIC
-> >>>>> driver XPower AXP288 and iio driver axp288_adc is located.
-> >>>>>
-> >>>>>
-> >>>>> Aaron Lu (3):
-> >>>>>   ACPI / PMIC: support PMIC operation region for CrystalCove
-> >>>>>   ACPI / PMIC: support PMIC operation region for XPower AXP288
-> >>>>>   ACPI / PMIC: AXP288: support virtual GPIO in ACPI table
-> >>>>
-> >>>> OK
-> >>>>
-> >>>> I've pulled the Lee's 'mfd/ib-mfd-iio-3.19' branch and applied your updated
-> >>>> three on top of that.  Please check the bleeding-edge branch of linux-pm.git
-> >>>> for the result.
-> >>>
-> >>> Thanks, and a fix patch is here:
-> >>>
-> >>> From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >>> Date: Tue, 25 Nov 2014 14:35:38 +0800
-> >>> Subject: [PATCH] ACPI / PMIC: Make it possible to build PMIC driver as a module
-> >>>
-> >>> This can solve a problem that when axp288_adc driver is built as a
-> >>> module and the PMIC driver is builtin, following error would ocur:
-> >>
-> >> I would prefer that to be sloved by requiring axp288_adc to be built in
-> >> if the PMIC stuff is selected.  Otherwise we may need to deal with some
-> >> nasty module load ordering dependencies.
-> > 
-> > Good point, and I saw you have solved this problem in the bleeding-edge
-> > branch, thanks!
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-No problem, I can fix up things like that occasionally.
+After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+selected) PM_RUNTIME is always set if PM is set, so quite a few
+#ifdef blocks depending on CONFIG_PM_RUNTIME may now be changed to
+depend on CONFIG_PM.
 
-> >>
-> >>>  drivers/built-in.o: In function `intel_xpower_pmic_get_raw_temp':
-> >>>  intel_pmic_xpower.c:(.text+0xdfaa7): undefined reference to `iio_channel_get'
-> >>>  intel_pmic_xpower.c:(.text+0xdfb24): undefined reference to `iio_read_channel_raw'
-> >>>  intel_pmic_xpower.c:(.text+0xdfb4e): undefined reference to `iio_channel_release'
-> >>>
-> >>> Also, with the fix commit: 52870786ff5d ("ACPI: Use ACPI companion to
-> >>> match only the first physical device"), the MFD cell device will have
-> >>> its own platform modalias instead of its parent's ACPI modalias, this
-> >>> made it possible for the module to be autoloaded.
-> >>>
-> >>> Reported-by: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >>> Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >>> ---
-> >>>  drivers/acpi/Kconfig                  |  6 +++---
-> >>>  drivers/acpi/pmic/intel_pmic_crc.c    | 12 +++++++++++-
-> >>>  drivers/acpi/pmic/intel_pmic_xpower.c | 12 +++++++++++-
-> >>>  3 files changed, 25 insertions(+), 5 deletions(-)
-> >>>
-> >>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> >>> index 227f0692cbff..f9459ba4ce59 100644
-> >>> --- a/drivers/acpi/Kconfig
-> >>> +++ b/drivers/acpi/Kconfig
-> >>> @@ -394,7 +394,7 @@ config ACPI_EXTLOG
-> >>>  	  tracepoint which carries that information to userspace.
-> >>>  
-> >>>  menuconfig PMIC_OPREGION
-> >>> -	bool "PMIC (Power Management Integrated Circuit) operation region support"
-> >>> +	tristate "PMIC (Power Management Integrated Circuit) operation region support"
-> >>>  	help
-> >>>  	  Select this option to enable support for ACPI operation
-> >>>  	  region of the PMIC chip. The operation region can be used
-> >>> @@ -403,13 +403,13 @@ menuconfig PMIC_OPREGION
-> >>>  
-> >>>  if PMIC_OPREGION
-> >>>  config CRC_PMIC_OPREGION
-> >>> -	bool "ACPI operation region support for CrystalCove PMIC"
-> >>> +	tristate "ACPI operation region support for CrystalCove PMIC"
-> >>>  	depends on INTEL_SOC_PMIC
-> >>>  	help
-> >>>  	  This config adds ACPI operation region support for CrystalCove PMIC.
-> >>>  
-> >>>  config XPOWER_PMIC_OPREGION
-> >>> -	bool "ACPI operation region support for XPower AXP288 PMIC"
-> >>> +	tristate "ACPI operation region support for XPower AXP288 PMIC"
-> >>>  	depends on AXP288_ADC
-> >>>  	help
-> >>>  	  This config adds ACPI operation region support for XPower AXP288 PMIC.
-> >>> diff --git a/drivers/acpi/pmic/intel_pmic_crc.c b/drivers/acpi/pmic/intel_pmic_crc.c
-> >>> index 8955e5b41195..8a193381b5ee 100644
-> >>> --- a/drivers/acpi/pmic/intel_pmic_crc.c
-> >>> +++ b/drivers/acpi/pmic/intel_pmic_crc.c
-> >>> @@ -194,13 +194,23 @@ static int intel_crc_pmic_opregion_probe(struct platform_device *pdev)
-> >>>  			&intel_crc_pmic_opregion_data);
-> >>>  }
-> >>>  
-> >>> +#define DRV_NAME "crystal_cove_region"
-> >>
-> >> This name is just horrible, BTW.
-> > 
-> > Heh. I tried to follow the pattern in CrystalCove's MFD driver, where
-> > all its cell devices are named crystal_cove_XXX, and since the platform
-> > bus' match is done by comparing the device's name and the name field of
-> > the driver's id table entry, they have to be the same.
+Replace CONFIG_PM_RUNTIME with CONFIG_PM in the ACPI core code.
 
-So I called this one "crystal_cove_pmic" and the other one "axp288_pmic_acpi".
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/pci-driver.c |   20 +++++++-------------
+ drivers/pci/pci-sysfs.c  |    4 ++--
+ drivers/pci/pcie/Kconfig |    2 +-
+ 3 files changed, 10 insertions(+), 16 deletions(-)
 
-> The problem is,
-> > the name field of the platform_device_id structure has a size limit of
-> > 20, I can't even put the 'op' before the 'region' there. Perhaps time to
-> > enlarge that size limit?
-> 
-> Or we can simply use 'acpi' instead of 'region' or 'opregion' here, to
-> mean that this cell device is for ACPI purpose. How does this sound?
-
-Better, but see above.
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/pci/pcie/Kconfig
+===================================================================
+--- linux-pm.orig/drivers/pci/pcie/Kconfig
++++ linux-pm/drivers/pci/pcie/Kconfig
+@@ -79,4 +79,4 @@ endchoice
+ 
+ config PCIE_PME
+ 	def_bool y
+-	depends on PCIEPORTBUS && PM_RUNTIME
++	depends on PCIEPORTBUS && PM
+Index: linux-pm/drivers/pci/pci-driver.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-driver.c
++++ linux-pm/drivers/pci/pci-driver.c
+@@ -1104,7 +1104,7 @@ static int pci_pm_restore(struct device
+ 
+ #endif /* !CONFIG_HIBERNATE_CALLBACKS */
+ 
+-#ifdef CONFIG_PM_RUNTIME
++#ifdef CONFIG_PM
+ 
+ static int pci_pm_runtime_suspend(struct device *dev)
+ {
+@@ -1200,16 +1200,6 @@ static int pci_pm_runtime_idle(struct de
+ 	return ret;
+ }
+ 
+-#else /* !CONFIG_PM_RUNTIME */
+-
+-#define pci_pm_runtime_suspend	NULL
+-#define pci_pm_runtime_resume	NULL
+-#define pci_pm_runtime_idle	NULL
+-
+-#endif /* !CONFIG_PM_RUNTIME */
+-
+-#ifdef CONFIG_PM
+-
+ static const struct dev_pm_ops pci_dev_pm_ops = {
+ 	.prepare = pci_pm_prepare,
+ 	.suspend = pci_pm_suspend,
+@@ -1231,11 +1221,15 @@ static const struct dev_pm_ops pci_dev_p
+ 
+ #define PCI_PM_OPS_PTR	(&pci_dev_pm_ops)
+ 
+-#else /* !COMFIG_PM_OPS */
++#else /* !CONFIG_PM */
++
++#define pci_pm_runtime_suspend	NULL
++#define pci_pm_runtime_resume	NULL
++#define pci_pm_runtime_idle	NULL
+ 
+ #define PCI_PM_OPS_PTR	NULL
+ 
+-#endif /* !COMFIG_PM_OPS */
++#endif /* !CONFIG_PM */
+ 
+ /**
+  * __pci_register_driver - register a new pci driver
+Index: linux-pm/drivers/pci/pci-sysfs.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-sysfs.c
++++ linux-pm/drivers/pci/pci-sysfs.c
+@@ -385,7 +385,7 @@ static ssize_t dev_bus_rescan_store(stru
+ }
+ static DEVICE_ATTR(rescan, (S_IWUSR|S_IWGRP), NULL, dev_bus_rescan_store);
+ 
+-#if defined(CONFIG_PM_RUNTIME) && defined(CONFIG_ACPI)
++#if defined(CONFIG_PM) && defined(CONFIG_ACPI)
+ static ssize_t d3cold_allowed_store(struct device *dev,
+ 				    struct device_attribute *attr,
+ 				    const char *buf, size_t count)
+@@ -566,7 +566,7 @@ static struct attribute *pci_dev_attrs[]
+ 	&dev_attr_enable.attr,
+ 	&dev_attr_broken_parity_status.attr,
+ 	&dev_attr_msi_bus.attr,
+-#if defined(CONFIG_PM_RUNTIME) && defined(CONFIG_ACPI)
++#if defined(CONFIG_PM) && defined(CONFIG_ACPI)
+ 	&dev_attr_d3cold_allowed.attr,
+ #endif
+ #ifdef CONFIG_OF
