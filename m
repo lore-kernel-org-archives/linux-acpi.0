@@ -1,52 +1,64 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part3 v4 37/38] x86, irq: Introduce mechanism to support
- different vector allocation policies
-Date: Fri, 28 Nov 2014 00:22:58 +0800
-Message-ID: <54774FE2.6010807@linux.intel.com>
-References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com> <1416901802-24211-38-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1411271142340.3961@nanos>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/4] PM: Use CONFIG_PM instead of CONFIG_PM_RUNTIME in core code
+Date: Thu, 27 Nov 2014 17:52:46 +0100
+Message-ID: <2907778.ZNoNjGGGYl@vostro.rjw.lan>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan> <CAPDyKFox8bXyFT0861Tc8YY5HLyq5uPVGkfN0G4fXDKqQynkYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1411271142340.3961@nanos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:61038 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750821AbaK0Qba (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 11:31:30 -0500
+In-Reply-To: <CAPDyKFox8bXyFT0861Tc8YY5HLyq5uPVGkfN0G4fXDKqQynkYQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 
-On 2014/11/27 18:44, Thomas Gleixner wrote:
-> On Tue, 25 Nov 2014, Jiang Liu wrote:
->> Introduce mechanism to support different vector allocation policies,
->> so platform or user may choose the best suitable CPU vector allocation
+On Thursday, November 27, 2014 09:57:33 AM Ulf Hansson wrote:
+> On 27 November 2014 at 01:37, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > Hi,
+> >
+> > After commit b2b49ccbdd54 "PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> > selected" (currently in Linux next) CONFIG_PM_RUNTIME is set whenever
+> > CONFIG_PM is set, so CONFIG_PM can be used in #ifdefs instead of
+> > CONFIG_PM_RUNTIME which simplifies things in quite a few cases.
+> >
+> > For this reason, the following patches modify some core code to use
+> > CONFIG_PM instead of CONFIG_PM_RUNTIME.
+> >
+> > [1/4] Drop a macro which is redundant after the above commit.
+> > [2/4] Use PM instead of PM_RUNTIME in the core device PM code.
+> > [3/4] Use PM instead of PM_RUNTIME in the ACPI core.
+> > [4/4] Use PM instead of PM_RUNTIME in the PCI core.
+> >
+> > They build for me for all of the relevant combinations of options (on x86),
+> > but more testing (on the other architectures) would be welcome.
 > 
-> I've postponed this and the next patch for 3.20.
-Hi Thomas,
-	That's fine, thanks for merging all other patches for 3.19:)
+> I really like the looks of this patchset!
+> 
+> Noticed that you have applied it for your bleeding edge branch, I
+> suppose that means you will get some "free" testing in linux-next?
+> 
+> Anyway, I have tested it for ux500 (including the genpd support for
+> it, available in linux-next). It works nicely!
+> 
+> I have also tested the two Kconfig options; CONFIG_PM_SLEEP (which
+> selects CONFIG_PM_RUNTIME) and for CONFIG_PM_RUNTIME (with
+> CONFIG_PM_SLEEP unset).
+> 
+> That brings me to a raise a question; why do we need to keep these two
+> configurations options? Couldn't we also have CONFIG_PM_RUNTIME to
+> select CONFIG_PM_SLEEP, that will further simplify things?
 
-> 
->> policy. Currently two policies are supported:
->> 1) allocate CPU vector from cpumask_of_node(dev_to_node(dev))
->> 2) allocate from apic->target_cpus(), this is the default policy
->>
->> Platform driver may call set_vector_alloc_policy() to choose the
->> preferred policies.
->>
->> This mechanism may be used to support NumaConnect systems to allocate
->> CPU vectors from device local node.
-> 
-> So these policies are system wide and need to be selected at boot time?
-Yes, the polices are system wide.
-It may be change at runtime, but seems no strong requirement yet so
-haven't implemented the interface to change it at runtime.
+My plan is different.  I'm going to eliminate PM_RUNTIME from the code
+and then replace it with PM as a selectable option.  Then, PM_SLEEP will
+select PM (directly) and PM_RUNTIME can be entirely dropped.
 
-Basically this idea is inspired by a patch set to allocate  CPU vector
-from device local node for NumaConnect systems. I found it may also help
-2-socket or 4-socket systems, so reimplemented in this way.
-Thanks!
-Gerry
+So in the end we'll have one Kconfig option less, which is a win IMO.
 
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
