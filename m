@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 4/6] ACPICA: Disassembler: Update for C-style expressions.
-Date: Thu, 27 Nov 2014 14:26:21 +0800
-Message-ID: <02333eb825c981d57cc4cbebd37e93b6213c679f.1416899966.git.lv.zheng@intel.com>
+Subject: [PATCH 3/6] ACPICA: Disassembler: Add support for C-style operators and expressions.
+Date: Thu, 27 Nov 2014 14:26:12 +0800
+Message-ID: <343281650b3ac8b7354b5293418297012cb74904.1416899966.git.lv.zheng@intel.com>
 References: <cover.1416899966.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1416899966.git.lv.zheng@intel.com>
@@ -12,25 +12,48 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Add extra set of parens for assignments within an expression.
+Now emit ASL+ code which includes C-style operators.
+Optionally, legacy text ASL operators can still be emitted.
 
-This patch only affects compiler support which is not in the Linux kernel.
+This patch only affects compiler/disassembler support which is not in the
+Linux kernel.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpica/acglobal.h |    1 +
+ drivers/acpi/acpica/aclocal.h  |    2 ++
+ 2 files changed, 3 insertions(+)
 
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index ebf02cc..7f60582 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -305,6 +305,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_db_output_flags, ACPI_DB_CONSOLE_OUTPUT);
+ 
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
+ 
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_disasm);
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_verbose);
 diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 1c218d9..80c74e9 100644
+index c00e7e4..1c218d9 100644
 --- a/drivers/acpi/acpica/aclocal.h
 +++ b/drivers/acpi/acpica/aclocal.h
-@@ -829,6 +829,7 @@ struct acpi_parse_state {
+@@ -722,6 +722,7 @@ union acpi_parse_value {
+ 	ACPI_DISASM_ONLY_MEMBERS (\
+ 	u8                              disasm_flags;   /* Used during AML disassembly */\
+ 	u8                              disasm_opcode;  /* Subtype used for disassembly */\
++	char                            *operator_symbol;/* Used for C-style operator name strings */\
+ 	char                            aml_op_name[16])	/* Op name (debug only) */
+ 
+ /* Flags for disasm_flags field above */
+@@ -827,6 +828,7 @@ struct acpi_parse_state {
+ #define ACPI_PARSEOP_EMPTY_TERMLIST     0x04
  #define ACPI_PARSEOP_PREDEF_CHECKED     0x08
  #define ACPI_PARSEOP_SPECIAL            0x10
- #define ACPI_PARSEOP_COMPOUND           0x20
-+#define ACPI_PARSEOP_ASSIGNMENT         0x40
++#define ACPI_PARSEOP_COMPOUND           0x20
  
  /*****************************************************************************
   *
