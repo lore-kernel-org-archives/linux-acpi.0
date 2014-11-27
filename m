@@ -1,61 +1,58 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH v11 1/1] Mailbox: Add support for Platform Communication Channel
-Date: Thu, 27 Nov 2014 13:03:57 +0530
-Message-ID: <CAJe_ZheZ=zv-EPm26migsjMooBgo8f1hwZ195okAr834dO7mQg@mail.gmail.com>
-References: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
-	<1415840378-1973-2-git-send-email-ashwin.chaugule@linaro.org>
-	<1946980.r78SuCoQbW@wuerfel>
-	<CAJ5Y-eZ4XKBOvdk9FLi=-5y7jMWM2Wq28QeS6isUdm=X4wFP0g@mail.gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/4] PM: Use CONFIG_PM instead of CONFIG_PM_RUNTIME in
+ core code
+Date: Thu, 27 Nov 2014 09:57:33 +0100
+Message-ID: <CAPDyKFox8bXyFT0861Tc8YY5HLyq5uPVGkfN0G4fXDKqQynkYQ@mail.gmail.com>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f44.google.com ([209.85.192.44]:49191 "EHLO
-	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752656AbaK0Hd6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 02:33:58 -0500
-Received: by mail-qg0-f44.google.com with SMTP id z60so3220267qgd.3
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Nov 2014 23:33:57 -0800 (PST)
-In-Reply-To: <CAJ5Y-eZ4XKBOvdk9FLi=-5y7jMWM2Wq28QeS6isUdm=X4wFP0g@mail.gmail.com>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:34837 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755419AbaK0I5e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 03:57:34 -0500
+Received: by mail-qc0-f179.google.com with SMTP id c9so3224747qcz.24
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Nov 2014 00:57:33 -0800 (PST)
+In-Reply-To: <37310416.jZXoh5nfSC@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 
-On 18 November 2014 at 19:51, Ashwin Chaugule
-<ashwin.chaugule@linaro.org> wrote:
-> On 18 November 2014 08:39, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Wednesday 12 November 2014 19:59:38 Ashwin Chaugule wrote:
->>> ACPI 5.0+ spec defines a generic mode of communication
->>> between the OS and a platform such as the BMC. This medium
->>> (PCC) is typically used by CPPC (ACPI CPU Performance management),
->>> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
->>> states).
->>>
->>> This patch adds PCC support as a Mailbox Controller. As of
->>> ACPI v5.1 there is no provision for clients to lookup mailbox
->>> controllers in a way that Linux expects. e.g. in DT the clients
->>> can list the mailboxes they can associate with in the DT binding
->>> and then provide a unique index to lookup a channel within a mailbox.
->>> Since the ACPI spec doesn't have anything similar, we introduce a
->>> mailbox controller specific API so that when the client calls it,
->>> we know to lookup in the context of a specific controller. This
->>> also helps in keeping a consistent interface across DT and ACPI
->>> for such drivers.
->>>
->>> This patch implements basic PCC support using the ACPI v5.1
->>> structures. IRQ mode support will be provided as follow up patches.
->>>
->>> Reviewed-by: Mark Brown <broonie@kernel.org>
->>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>
->>
->> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+On 27 November 2014 at 01:37, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> Hi,
 >
-> Very much appreciated !
-> Thanks for the constructive feedback Arnd, Jassi, Mark, Sudeep, Lv and Rafael!
-> Jassi, can you please pick this patch? or if you'd prefer, I can send
-> a git pull for it.
+> After commit b2b49ccbdd54 "PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected" (currently in Linux next) CONFIG_PM_RUNTIME is set whenever
+> CONFIG_PM is set, so CONFIG_PM can be used in #ifdefs instead of
+> CONFIG_PM_RUNTIME which simplifies things in quite a few cases.
 >
-Applied to mailbox-devel, Thanks
+> For this reason, the following patches modify some core code to use
+> CONFIG_PM instead of CONFIG_PM_RUNTIME.
+>
+> [1/4] Drop a macro which is redundant after the above commit.
+> [2/4] Use PM instead of PM_RUNTIME in the core device PM code.
+> [3/4] Use PM instead of PM_RUNTIME in the ACPI core.
+> [4/4] Use PM instead of PM_RUNTIME in the PCI core.
+>
+> They build for me for all of the relevant combinations of options (on x86),
+> but more testing (on the other architectures) would be welcome.
 
--Jassi
+I really like the looks of this patchset!
+
+Noticed that you have applied it for your bleeding edge branch, I
+suppose that means you will get some "free" testing in linux-next?
+
+Anyway, I have tested it for ux500 (including the genpd support for
+it, available in linux-next). It works nicely!
+
+I have also tested the two Kconfig options; CONFIG_PM_SLEEP (which
+selects CONFIG_PM_RUNTIME) and for CONFIG_PM_RUNTIME (with
+CONFIG_PM_SLEEP unset).
+
+That brings me to a raise a question; why do we need to keep these two
+configurations options? Couldn't we also have CONFIG_PM_RUNTIME to
+select CONFIG_PM_SLEEP, that will further simplify things?
+
+Kind regards
+Uffe
