@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/6] ACPICA: acpiexec: Add option to specify an object initialization file.
-Date: Thu, 27 Nov 2014 14:26:07 +0800
-Message-ID: <eb9a4e2bf6bae05bff67af3ff4fdacb7e892376f.1416899966.git.lv.zheng@intel.com>
+Subject: [PATCH 6/6] ACPICA: Update version to 20141107.
+Date: Thu, 27 Nov 2014 14:26:35 +0800
+Message-ID: <6da3e37fc53ebdaa2ba5086d054148cb62de23b8.1416899966.git.lv.zheng@intel.com>
 References: <cover.1416899966.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44816 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:44915 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750714AbaK0G0T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Nov 2014 01:26:19 -0500
+	id S1754175AbaK0G1L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Nov 2014 01:27:11 -0500
 In-Reply-To: <cover.1416899966.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,56 +16,27 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vg
 
 From: Bob Moore <robert.moore@intel.com>
 
-This option (-fi) allows the specification of a file that is used
-to specify initialization values for individual namespace objects.
-Each line in the file is in the format:
-
-<ACPI pathname> <Integer Value>
-
-This patch only affects acpiexec which is not in the Linux kernel.
+Version 20141107.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utxfinit.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index 13380d8..b1fd688 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -53,6 +53,9 @@
- #define _COMPONENT          ACPI_UTILITIES
- ACPI_MODULE_NAME("utxfinit")
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index ab2acf6..5ba7846 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
-+/* For acpi_exec only */
-+void ae_do_object_overrides(void);
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_initialize_subsystem
-@@ -65,6 +68,7 @@ ACPI_MODULE_NAME("utxfinit")
-  *              called, so any early initialization belongs here.
-  *
-  ******************************************************************************/
-+
- acpi_status __init acpi_initialize_subsystem(void)
- {
- 	acpi_status status;
-@@ -275,6 +279,13 @@ acpi_status __init acpi_initialize_objects(u32 flags)
- 			return_ACPI_STATUS(status);
- 		}
- 	}
-+#ifdef ACPI_EXEC_APP
-+	/*
-+	 * This call implements the "initialization file" option for acpi_exec.
-+	 * This is the precise point that we want to perform the overrides.
-+	 */
-+	ae_do_object_overrides();
-+#endif
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
- 	/*
- 	 * Execute any module-level code that was detected during the table load
+-#define ACPI_CA_VERSION                 0x20140926
++#define ACPI_CA_VERSION                 0x20141107
+ 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 1.7.10
 
