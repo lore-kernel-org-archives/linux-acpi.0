@@ -1,51 +1,66 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 2/3] ACPI / processor: Convert apic_id to phys_id to
- make it arch agnostic
-Date: Thu, 27 Nov 2014 13:29:55 +0800
-Message-ID: <5476B6D3.9080700@linaro.org>
-References: <1417064853-27905-1-git-send-email-hanjun.guo@linaro.com> <1417064853-27905-3-git-send-email-hanjun.guo@linaro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/6] ACPICA: 20141107 Release
+Date: Thu, 27 Nov 2014 14:25:53 +0800
+Message-ID: <cover.1416899966.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:43577 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbaK0FcG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 00:32:06 -0500
-Received: by mail-pd0-f181.google.com with SMTP id z10so4163674pdj.26
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Nov 2014 21:32:06 -0800 (PST)
-In-Reply-To: <1417064853-27905-3-git-send-email-hanjun.guo@linaro.com>
+Received: from mga11.intel.com ([192.55.52.93]:41012 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751040AbaK0G0B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Nov 2014 01:26:01 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Rafael,
+The 20141107 ACPICA kernel-resident subsystem updates are linuxized based
+on the pm/linux-next branch to form this patchset.
 
-On 2014-11-27 13:07, Hanjun Guo wrote:
-> apic_id in MADT table is the CPU hardware id which identify
-> it self in the system for x86 and ia64, OSPM will use it for
-> SMP init to map APIC ID to logical cpu number in the early
-> boot, when the DSDT/SSDT (ACPI namespace) is scanned later, the
-> ACPI processor driver is probed and the driver will use acpi_id
-> in DSDT to get the apic_id, then map to the logical cpu number
-> which is needed by the processor driver.
-> 
-> Before ACPI 5.0, only x86 and ia64 were supported in ACPI spec,
-> so apic_id is used both in arch code and ACPI core which is
-> pretty fine. Since ACPI 5.0, ARM is supported by ACPI and
-> APIC is not available on ARM, this will confuse people when
-> apic_id is both used by x86 and ARM in one function.
-> 
-> So convert apic_id to phys_id (which is the original meaning)
-> in ACPI processor dirver to make it arch agnostic, but leave the
-> arch dependent code unchanged, no functional change.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.com>
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. i386 + allyes + CONFIG_ACPI=y
+3. i386 + default + COFNIG_ACPI=n
+4. i386 + allyes + CONFIG_ACPI=n
+5. x86_64 + default + COFNIG_ACPI=y
+6. x86_64 + allyes + CONFIG_ACPI=y
+7. x86_64 + default + COFNIG_ACPI=n
+8. x86_64 + allyes + CONFIG_ACPI=n
+Boot tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. x86_64 + default + COFNIG_ACPI=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All drivers/acpi configurations
+   All platform drivers
 
-Sorry, my bad, not linaro.com but linaro.org, and patch 3
-has the same problem, if you need resend those patch, please
-let me know.
+The divergences checking result:
+Before applying (20140926 Release):
+  852 lines
+After applying (20141107 Release):
+  852 lines
 
-Thanks
-Hanjun
+Bob Moore (6):
+  ACPICA: iASL: Add support for to_PLD macro.
+  ACPICA: acpiexec: Add option to specify an object initialization
+    file.
+  ACPICA: Disassembler: Add support for C-style operators and
+    expressions.
+  ACPICA: Disassembler: Update for C-style expressions.
+  ACPICA: Disassembler: Emit correct string for 0 stop bits.
+  ACPICA: Update version to 20141107.
+
+ drivers/acpi/acpica/acglobal.h |    1 +
+ drivers/acpi/acpica/aclocal.h  |    3 +++
+ drivers/acpi/acpica/utresrc.c  |    2 +-
+ drivers/acpi/acpica/utxface.c  |    4 +++-
+ drivers/acpi/acpica/utxfinit.c |   11 +++++++++++
+ include/acpi/acbuffer.h        |   14 +++++++++++---
+ include/acpi/acpixf.h          |    2 +-
+ 7 files changed, 31 insertions(+), 6 deletions(-)
+
+-- 
+1.7.10
+
