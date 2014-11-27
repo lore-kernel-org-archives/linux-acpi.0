@@ -1,75 +1,61 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/6] ACPICA: iASL: Add support for to_PLD macro.
-Date: Thu, 27 Nov 2014 14:26:00 +0800
-Message-ID: <f773c3768a07c39310f54ec92ebda1d319823836.1416899966.git.lv.zheng@intel.com>
-References: <cover.1416899966.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1416899966.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, "David E. Box" <david.e.box@linux.intel.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH v11 1/1] Mailbox: Add support for Platform Communication Channel
+Date: Thu, 27 Nov 2014 13:03:57 +0530
+Message-ID: <CAJe_ZheZ=zv-EPm26migsjMooBgo8f1hwZ195okAr834dO7mQg@mail.gmail.com>
+References: <1415840378-1973-1-git-send-email-ashwin.chaugule@linaro.org>
+	<1415840378-1973-2-git-send-email-ashwin.chaugule@linaro.org>
+	<1946980.r78SuCoQbW@wuerfel>
+	<CAJ5Y-eZ4XKBOvdk9FLi=-5y7jMWM2Wq28QeS6isUdm=X4wFP0g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f44.google.com ([209.85.192.44]:49191 "EHLO
+	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752656AbaK0Hd6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 02:33:58 -0500
+Received: by mail-qg0-f44.google.com with SMTP id z60so3220267qgd.3
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Nov 2014 23:33:57 -0800 (PST)
+In-Reply-To: <CAJ5Y-eZ4XKBOvdk9FLi=-5y7jMWM2Wq28QeS6isUdm=X4wFP0g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-From: Bob Moore <robert.moore@intel.com>
+On 18 November 2014 at 19:51, Ashwin Chaugule
+<ashwin.chaugule@linaro.org> wrote:
+> On 18 November 2014 08:39, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Wednesday 12 November 2014 19:59:38 Ashwin Chaugule wrote:
+>>> ACPI 5.0+ spec defines a generic mode of communication
+>>> between the OS and a platform such as the BMC. This medium
+>>> (PCC) is typically used by CPPC (ACPI CPU Performance management),
+>>> RAS (ACPI reliability protocol) and MPST (ACPI Memory power
+>>> states).
+>>>
+>>> This patch adds PCC support as a Mailbox Controller. As of
+>>> ACPI v5.1 there is no provision for clients to lookup mailbox
+>>> controllers in a way that Linux expects. e.g. in DT the clients
+>>> can list the mailboxes they can associate with in the DT binding
+>>> and then provide a unique index to lookup a channel within a mailbox.
+>>> Since the ACPI spec doesn't have anything similar, we introduce a
+>>> mailbox controller specific API so that when the client calls it,
+>>> we know to lookup in the context of a specific controller. This
+>>> also helps in keeping a consistent interface across DT and ACPI
+>>> for such drivers.
+>>>
+>>> This patch implements basic PCC support using the ACPI v5.1
+>>> structures. IRQ mode support will be provided as follow up patches.
+>>>
+>>> Reviewed-by: Mark Brown <broonie@kernel.org>
+>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>>>
+>>
+>> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+>
+> Very much appreciated !
+> Thanks for the constructive feedback Arnd, Jassi, Mark, Sudeep, Lv and Rafael!
+> Jassi, can you please pick this patch? or if you'd prefer, I can send
+> a git pull for it.
+>
+Applied to mailbox-devel, Thanks
 
-This macro is intended to simplify the constuction of _PLD buffers.
-NOTE: Prototype only, subject to change before this macro is
-added to the ACPI specification. David E. Box.
-
-Signed-off-by: David E. Box <david.e.box@linux.intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/utxface.c |    4 +++-
- include/acpi/acbuffer.h       |   14 +++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
-index 502a849..49c873c 100644
---- a/drivers/acpi/acpica/utxface.c
-+++ b/drivers/acpi/acpica/utxface.c
-@@ -531,7 +531,9 @@ acpi_decode_pld_buffer(u8 *in_buffer,
- 	ACPI_MOVE_32_TO_32(&dword, &buffer[0]);
- 	pld_info->revision = ACPI_PLD_GET_REVISION(&dword);
- 	pld_info->ignore_color = ACPI_PLD_GET_IGNORE_COLOR(&dword);
--	pld_info->color = ACPI_PLD_GET_COLOR(&dword);
-+	pld_info->red = ACPI_PLD_GET_RED(&dword);
-+	pld_info->green = ACPI_PLD_GET_GREEN(&dword);
-+	pld_info->blue = ACPI_PLD_GET_BLUE(&dword);
- 
- 	/* Second 32-bit DWord */
- 
-diff --git a/include/acpi/acbuffer.h b/include/acpi/acbuffer.h
-index 88cb477..d5ec6c8 100644
---- a/include/acpi/acbuffer.h
-+++ b/include/acpi/acbuffer.h
-@@ -111,7 +111,9 @@ struct acpi_gtm_info {
- struct acpi_pld_info {
- 	u8 revision;
- 	u8 ignore_color;
--	u32 color;
-+	u8 red;
-+	u8 green;
-+	u8 blue;
- 	u16 width;
- 	u16 height;
- 	u8 user_visible;
-@@ -155,8 +157,14 @@ struct acpi_pld_info {
- #define ACPI_PLD_GET_IGNORE_COLOR(dword)        ACPI_GET_BITS (dword, 7, ACPI_1BIT_MASK)
- #define ACPI_PLD_SET_IGNORE_COLOR(dword,value)  ACPI_SET_BITS (dword, 7, ACPI_1BIT_MASK, value)	/* Offset 7, Len 1 */
- 
--#define ACPI_PLD_GET_COLOR(dword)               ACPI_GET_BITS (dword, 8, ACPI_24BIT_MASK)
--#define ACPI_PLD_SET_COLOR(dword,value)         ACPI_SET_BITS (dword, 8, ACPI_24BIT_MASK, value)	/* Offset 8, Len 24 */
-+#define ACPI_PLD_GET_RED(dword)                 ACPI_GET_BITS (dword, 8, ACPI_8BIT_MASK)
-+#define ACPI_PLD_SET_RED(dword,value)           ACPI_SET_BITS (dword, 8, ACPI_8BIT_MASK, value)	/* Offset 8, Len 8 */
-+
-+#define ACPI_PLD_GET_GREEN(dword)               ACPI_GET_BITS (dword, 16, ACPI_8BIT_MASK)
-+#define ACPI_PLD_SET_GREEN(dword,value)         ACPI_SET_BITS (dword, 16, ACPI_8BIT_MASK, value)	/* Offset 16, Len 8 */
-+
-+#define ACPI_PLD_GET_BLUE(dword)                ACPI_GET_BITS (dword, 24, ACPI_8BIT_MASK)
-+#define ACPI_PLD_SET_BLUE(dword,value)          ACPI_SET_BITS (dword, 24, ACPI_8BIT_MASK, value)	/* Offset 24, Len 8 */
- 
- /* Second 32-bit dword, bits 33:63 */
- 
--- 
-1.7.10
+-Jassi
