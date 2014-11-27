@@ -1,117 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH 4/4] PCI / PM: Drop CONFIG_PM_RUNTIME from the PCI core
-Date: Thu, 27 Nov 2014 23:41:42 +0100
-Message-ID: <1665071.LpcEGj9O01@vostro.rjw.lan>
-References: <37310416.jZXoh5nfSC@vostro.rjw.lan> <2582138.zUe2QZynBg@vostro.rjw.lan>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/4] PM: Use CONFIG_PM instead of CONFIG_PM_RUNTIME in
+ core code
+Date: Thu, 27 Nov 2014 23:34:03 +0100
+Message-ID: <CAPDyKFpcHawZ8F+2QdDYO=+qbh=uQb+A+2Rq_M7g9VqMnFtM1A@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1411271216470.8104-100000@netrider.rowland.org>
+	<1803282.Wzz7IausxS@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2582138.zUe2QZynBg@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f44.google.com ([209.85.192.44]:40138 "EHLO
+	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895AbaK0WeF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 17:34:05 -0500
+Received: by mail-qg0-f44.google.com with SMTP id z60so4115690qgd.3
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Nov 2014 14:34:04 -0800 (PST)
+In-Reply-To: <1803282.Wzz7IausxS@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Geert Uytterhoeven <geert@linux-m68k.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: PCI / PM: Drop CONFIG_PM_RUNTIME from the PCI core
+[...]
 
-After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
-selected) PM_RUNTIME is always set if PM is set, so quite a few
-#ifdef blocks depending on CONFIG_PM_RUNTIME may now be changed to
-depend on CONFIG_PM.
+> That said whether or not it is ever useful to set PM_RUNTIME alone is a good
+> question.  In my opinion it is useful today, at least on some platforms that
+> don't really support system suspend or hibernation in any form.  However, it
+> may not be the case any more when suspend-to-idle becomes mature enough,
+> because that should just work for any platform without any kind of special
+> support.  We're still missing some timekeeping bits there, but once that
+> gap has been covered, we may just eliminate PM_SLEEP as well if there's a
+> broad consensus on that.
 
-Replace CONFIG_PM_RUNTIME with CONFIG_PM in the PCI core code.
+That's sounds like a good approach, thanks for sharing your ideas and plans.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+Feel free to add my reviewed-by tag to this patchset as well.
 
-Changelog fixup.
-
----
- drivers/pci/pci-driver.c |   20 +++++++-------------
- drivers/pci/pci-sysfs.c  |    4 ++--
- drivers/pci/pcie/Kconfig |    2 +-
- 3 files changed, 10 insertions(+), 16 deletions(-)
-
-Index: linux-pm/drivers/pci/pcie/Kconfig
-===================================================================
---- linux-pm.orig/drivers/pci/pcie/Kconfig
-+++ linux-pm/drivers/pci/pcie/Kconfig
-@@ -79,4 +79,4 @@ endchoice
- 
- config PCIE_PME
- 	def_bool y
--	depends on PCIEPORTBUS && PM_RUNTIME
-+	depends on PCIEPORTBUS && PM
-Index: linux-pm/drivers/pci/pci-driver.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-driver.c
-+++ linux-pm/drivers/pci/pci-driver.c
-@@ -1104,7 +1104,7 @@ static int pci_pm_restore(struct device
- 
- #endif /* !CONFIG_HIBERNATE_CALLBACKS */
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- 
- static int pci_pm_runtime_suspend(struct device *dev)
- {
-@@ -1200,16 +1200,6 @@ static int pci_pm_runtime_idle(struct de
- 	return ret;
- }
- 
--#else /* !CONFIG_PM_RUNTIME */
--
--#define pci_pm_runtime_suspend	NULL
--#define pci_pm_runtime_resume	NULL
--#define pci_pm_runtime_idle	NULL
--
--#endif /* !CONFIG_PM_RUNTIME */
--
--#ifdef CONFIG_PM
--
- static const struct dev_pm_ops pci_dev_pm_ops = {
- 	.prepare = pci_pm_prepare,
- 	.suspend = pci_pm_suspend,
-@@ -1231,11 +1221,15 @@ static const struct dev_pm_ops pci_dev_p
- 
- #define PCI_PM_OPS_PTR	(&pci_dev_pm_ops)
- 
--#else /* !COMFIG_PM_OPS */
-+#else /* !CONFIG_PM */
-+
-+#define pci_pm_runtime_suspend	NULL
-+#define pci_pm_runtime_resume	NULL
-+#define pci_pm_runtime_idle	NULL
- 
- #define PCI_PM_OPS_PTR	NULL
- 
--#endif /* !COMFIG_PM_OPS */
-+#endif /* !CONFIG_PM */
- 
- /**
-  * __pci_register_driver - register a new pci driver
-Index: linux-pm/drivers/pci/pci-sysfs.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci-sysfs.c
-+++ linux-pm/drivers/pci/pci-sysfs.c
-@@ -385,7 +385,7 @@ static ssize_t dev_bus_rescan_store(stru
- }
- static DEVICE_ATTR(rescan, (S_IWUSR|S_IWGRP), NULL, dev_bus_rescan_store);
- 
--#if defined(CONFIG_PM_RUNTIME) && defined(CONFIG_ACPI)
-+#if defined(CONFIG_PM) && defined(CONFIG_ACPI)
- static ssize_t d3cold_allowed_store(struct device *dev,
- 				    struct device_attribute *attr,
- 				    const char *buf, size_t count)
-@@ -566,7 +566,7 @@ static struct attribute *pci_dev_attrs[]
- 	&dev_attr_enable.attr,
- 	&dev_attr_broken_parity_status.attr,
- 	&dev_attr_msi_bus.attr,
--#if defined(CONFIG_PM_RUNTIME) && defined(CONFIG_ACPI)
-+#if defined(CONFIG_PM) && defined(CONFIG_ACPI)
- 	&dev_attr_d3cold_allowed.attr,
- #endif
- #ifdef CONFIG_OF
-
+Kind regards
+Uffe
