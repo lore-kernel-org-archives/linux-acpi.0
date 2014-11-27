@@ -1,41 +1,51 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2 0/3] cleanups for converting apic_id to phys_id to make it arch agnostic
-Date: Thu, 27 Nov 2014 13:07:30 +0800
-Message-ID: <1417064853-27905-1-git-send-email-hanjun.guo@linaro.com>
+Subject: [PATCH v2 1/3] ACPI / processor: Update the comments in processor.h
+Date: Thu, 27 Nov 2014 13:07:31 +0800
+Message-ID: <1417064853-27905-2-git-send-email-hanjun.guo@linaro.com>
+References: <1417064853-27905-1-git-send-email-hanjun.guo@linaro.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:47004 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728AbaK0FIA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 00:08:00 -0500
-Received: by mail-pa0-f47.google.com with SMTP id kq14so4257939pab.6
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Nov 2014 21:07:59 -0800 (PST)
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:62856 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbaK0FIH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Nov 2014 00:08:07 -0500
+Received: by mail-pa0-f48.google.com with SMTP id rd3so4257716pab.35
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Nov 2014 21:08:06 -0800 (PST)
+In-Reply-To: <1417064853-27905-1-git-send-email-hanjun.guo@linaro.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Some cleanups to convert apic_id to phys_id to accommodate
-ACPI 5.0+.
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-updates since v1:
- - rebase on top of linux-next git repo to slove the conflicts
-   with IOAPIC hotplug patch
- - modify patch 2 to update the comments and print message using
-   arch independent words instead of APIC
+In commit 46ba51e (ACPI / processor: Introduce ARCH_MIGHT_HAVE_ACPI_PDC),
+acpi_processor_set_pdc() was moved to processor_pdc.c, so update
+the comments accordingly.
 
-Hanjun Guo (3):
-  ACPI / processor: Update the comments in processor.h
-  ACPI / processor: Convert apic_id to phys_id to make it arch agnostic
-  ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ include/acpi/processor.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- arch/ia64/kernel/acpi.c       |  9 ++++---
- arch/x86/kernel/acpi/boot.c   |  9 ++++---
- drivers/acpi/acpi_processor.c | 25 ++++++++++---------
- drivers/acpi/processor_core.c | 56 +++++++++++++++++++++----------------------
- include/acpi/processor.h      | 12 ++++++----
- include/linux/acpi.h          |  4 ++--
- 6 files changed, 59 insertions(+), 56 deletions(-)
-
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 9b9b6f2..cbb6cd3 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -313,11 +313,13 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
+ #endif				/* CONFIG_CPU_FREQ */
+ 
+ /* in processor_core.c */
+-void acpi_processor_set_pdc(acpi_handle handle);
+ int acpi_get_apicid(acpi_handle, int type, u32 acpi_id);
+ int acpi_map_cpuid(int apic_id, u32 acpi_id);
+ int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
+ 
++/* in processor_pdc.c */
++void acpi_processor_set_pdc(acpi_handle handle);
++
+ /* in processor_throttling.c */
+ int acpi_processor_tstate_has_changed(struct acpi_processor *pr);
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr);
 -- 
 1.9.1
 
