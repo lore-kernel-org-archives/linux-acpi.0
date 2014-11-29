@@ -1,42 +1,19 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Replacement][PATCH 1/4] PM: Merge the SET*_RUNTIME_PM_OPS() macros
-Date: Sat, 29 Nov 2014 01:52:32 +0100
-Message-ID: <1551552.1uQKV96bxc@vostro.rjw.lan>
-References: <37310416.jZXoh5nfSC@vostro.rjw.lan> <3484329.phAPviVnbd@vostro.rjw.lan> <1740704.VN27cDdEAu@vostro.rjw.lan>
+From: <luv2charitys@gmail.com>
+Subject: Charity Work
+Date: Fri, 28 Nov 2014 22:54:26 -0600
+Message-ID: <HO-SRV2vmg2Ry6sJDJd000ac4f1@office.horkans.com>
+Reply-To: <paucharity@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1740704.VN27cDdEAu@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.vodafone.ie ([213.233.128.43]:1913 "EHLO
+	mail1.vodafone.ie" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751043AbaK2Eyn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Nov 2014 23:54:43 -0500
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thursday, November 27, 2014 11:05:41 PM Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The SET_PM_RUNTIME_PM_OPS() and SET_RUNTIME_PM_OPS() macros are
-> identical except that one of them is not empty for CONFIG_PM set,
-> while the other one is not empty for CONFIG_PM_RUNTIME set,
-> respectively.
-> 
-> However, after commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
-> PM_SLEEP is selected) PM_RUNTIME is always set if PM is set, so one
-> of these macros is now redundant.
-> 
-> For this reason, replace SET_PM_RUNTIME_PM_OPS() with
-> SET_RUNTIME_PM_OPS() everywhere and redefine the SET_PM_RUNTIME_PM_OPS
-> symbol as SET_RUNTIME_PM_OPS in case new code is starting to use the
-> macro being removed here.
-
-It turns out that I need to defer this one, because it breaks builds for
-CONFIG_PM selected without CONFIG_PM_SLEEP or CONFIG_PM_RUNTIME (which is
-arguably invalid, but some defconfigs evidently do that).
-
-I need to fix those defconfigs first.
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Hello,this is Mr Paul N,i sent you an email on charity work but i am yet to hear fom you,do reply with this code CHA-2015 to my email address paulcharity@qq.com  i Look forward to hearing from you this time,God bless  Brother Paul
