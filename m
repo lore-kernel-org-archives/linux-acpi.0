@@ -1,84 +1,63 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH] ACPI / video: check _DOD list when creating backlight
- device
-Date: Sat, 29 Nov 2014 09:34:47 -0800
-Message-ID: <20141129173447.GA3608@norris-Latitude-E6410>
-References: <542A4949.2020208@intel.com>
- <1648939.GaN1bonAuX@vostro.rjw.lan>
- <5436470B.3030306@intel.com>
- <20141128095928.GA5106@norris-Latitude-E6410>
- <54786294.5030105@intel.com>
- <20141128171812.GA3658@norris-Latitude-E6410>
- <5479C3BB.5080905@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / video: update the condition to check if a device is
+ in _DOD list
+Date: Sun, 30 Nov 2014 09:14:29 +0800
+Message-ID: <547A6F75.6050806@intel.com>
+References: <542A4949.2020208@intel.com> <1648939.GaN1bonAuX@vostro.rjw.lan> <5436470B.3030306@intel.com> <20141128095928.GA5106@norris-Latitude-E6410> <54786294.5030105@intel.com> <20141128171812.GA3658@norris-Latitude-E6410> <5479C3BB.5080905@intel.com> <20141129173447.GA3608@norris-Latitude-E6410>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5479C3BB.5080905@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ntrrgc@gmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:33054 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751804AbaK3BOb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Nov 2014 20:14:31 -0500
+In-Reply-To: <20141129173447.GA3608@norris-Latitude-E6410>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ntrrgc@gmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-On Sat, Nov 29, 2014 at 09:01:47PM +0800, Aaron Lu wrote:
-> On 11/29/2014 01:18 AM, Brian Norris wrote:
-> > On Fri, Nov 28, 2014 at 07:55:00PM +0800, Aaron Lu wrote:
-> >> On 11/28/2014 05:59 PM, Brian Norris wrote:
-> >>> Do you need any additional info to handle the regression, or should we
-> >>> just revert the patch?
-> >>
-> >> Please attach acpidump, dmesg with video.dyndbg="module video +pft" in
-> >> kernel cmdline, list the /sys/class/backlight with and without this
-> >> commit, thanks.
-[...]
-> > Before reverting:
-> > 
-> > $ ls -al /sys/class/backlight
-> > total 0
-> > drwxr-xr-x  2 root root 0 Nov 28 09:01 .
-> > drwxr-xr-x 58 root root 0 Nov 28 09:01 ..
-> > 
-> > After reverting:
-> > 
-> > $ ls -al /sys/class/backlight
-> > total 0
-> > drwxr-xr-x  2 root root 0 Nov 28 09:10 .
-> > drwxr-xr-x 50 root root 0 Nov 28 09:10 ..
-> > lrwxrwxrwx  1 root root 0 Nov 28 09:09 acpi_video0 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/backlight/acpi_video0
-> 
-> The current logic to bind device doesn't work with your system, that
-> logic is there for a long time so I prefer not to change that, instead,
-> I can change the newly added function acpi_video_device_in_dod to let it
-> directly compare the 0-12 bits of the ID to decide if the video output
-> device is in the _DOD list. Can you please try the following patch?
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 41e6b977ceb2..185a57d13723 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -1164,7 +1164,8 @@ static bool acpi_video_device_in_dod(struct acpi_video_device *device)
->  		return true;
->  
->  	for (i = 0; i < video->attached_count; i++) {
-> -		if (video->attached_array[i].bind_info == device)
-> +		if ((video->attached_array[i].value.int_val & 0xfff) ==
-> +		    (device->device_id & 0xfff))
->  			return true;
->  	}
+On 11/30/2014 01:34 AM, Brian Norris wrote:
+> Tested-by: Brian Norris <computersforpeace@gmail.com>
 
-Thanks for the patch! This works better for me:
+Thanks for the test! Updated patch with changelog:
 
-$ ls -al /sys/class/backlight/
-total 0
-drwxr-xr-x  2 root root 0 Nov 29 09:00 .
-drwxr-xr-x 50 root root 0 Nov 29 09:00 ..
-lrwxrwxrwx  1 root root 0 Nov 29 08:59 acpi_video0 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/backlight/acpi_video0
+>From 0b11bb529245ddceb69eb558477b9b4a81208f4b Mon Sep 17 00:00:00 2001
+From: Aaron Lu <aaron.lu@intel.com>
+Date: Sun, 30 Nov 2014 09:01:15 +0800
+Subject: [PATCH] ACPI / video: update the condition to check if a device is in _DOD list
 
-And I see no dmesg dev_dbg() prints from the acpi/video module.
+Commit 0b8db271f159 ("ACPI / video: check _DOD list when creating
+backlight devices") checks if the video device is in the bind devices
+list to decide if we should create backlight device for it, that causes
+problem for one Dell Latitude E6410, where none of the video output
+devices are properly bound due to the way how we did the comparing
+between its _ADR and the _DOD's values. Solve this problem by comparing
+the lower 12 bits of both the device's _ADR and the _DOD's values instead
+of relying on bind result.
 
+Fixes: 0b8db271f159 ("ACPI / video: check _DOD list when creating backlight devices")
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 Tested-by: Brian Norris <computersforpeace@gmail.com>
+---
+ drivers/acpi/video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Should we try to get this into 3.18, then?
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 41e6b977ceb2..185a57d13723 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1164,7 +1164,8 @@ static bool acpi_video_device_in_dod(struct acpi_video_device *device)
+ 		return true;
+ 
+ 	for (i = 0; i < video->attached_count; i++) {
+-		if (video->attached_array[i].bind_info == device)
++		if ((video->attached_array[i].value.int_val & 0xfff) ==
++		    (device->device_id & 0xfff))
+ 			return true;
+ 	}
+ 
+-- 
+1.9.3
 
-Thanks,
-Brian
