@@ -1,63 +1,51 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / video: update the condition to check if a device is
- in _DOD list
-Date: Sun, 30 Nov 2014 09:14:29 +0800
-Message-ID: <547A6F75.6050806@intel.com>
-References: <542A4949.2020208@intel.com> <1648939.GaN1bonAuX@vostro.rjw.lan> <5436470B.3030306@intel.com> <20141128095928.GA5106@norris-Latitude-E6410> <54786294.5030105@intel.com> <20141128171812.GA3658@norris-Latitude-E6410> <5479C3BB.5080905@intel.com> <20141129173447.GA3608@norris-Latitude-E6410>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 1/1] ACPI: Deletion of an unnecessary check before the function
+ call "pci_dev_put"
+Date: Sun, 30 Nov 2014 11:08:36 +0100
+Message-ID: <547AECA4.3050800@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
+ urceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:33054 "EHLO mga03.intel.com"
+Received: from mout.web.de ([212.227.17.11]:56159 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751804AbaK3BOb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 29 Nov 2014 20:14:31 -0500
-In-Reply-To: <20141129173447.GA3608@norris-Latitude-E6410>
+	id S1751561AbaK3KIx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Nov 2014 05:08:53 -0500
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ntrrgc@gmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 
-On 11/30/2014 01:34 AM, Brian Norris wrote:
-> Tested-by: Brian Norris <computersforpeace@gmail.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 30 Nov 2014 10:59:10 +0100
 
-Thanks for the test! Updated patch with changelog:
+The pci_dev_put() function tests whether its argument is NULL and then
+returns immediately. Thus the test around the call is not needed.
 
->From 0b11bb529245ddceb69eb558477b9b4a81208f4b Mon Sep 17 00:00:00 2001
-From: Aaron Lu <aaron.lu@intel.com>
-Date: Sun, 30 Nov 2014 09:01:15 +0800
-Subject: [PATCH] ACPI / video: update the condition to check if a device is in _DOD list
+This issue was detected by using the Coccinelle software.
 
-Commit 0b8db271f159 ("ACPI / video: check _DOD list when creating
-backlight devices") checks if the video device is in the bind devices
-list to decide if we should create backlight device for it, that causes
-problem for one Dell Latitude E6410, where none of the video output
-devices are properly bound due to the way how we did the comparing
-between its _ADR and the _DOD's values. Solve this problem by comparing
-the lower 12 bits of both the device's _ADR and the _DOD's values instead
-of relying on bind result.
-
-Fixes: 0b8db271f159 ("ACPI / video: check _DOD list when creating backlight devices")
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Tested-by: Brian Norris <computersforpeace@gmail.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/acpi/video.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/ioapic.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 41e6b977ceb2..185a57d13723 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1164,7 +1164,8 @@ static bool acpi_video_device_in_dod(struct acpi_video_device *device)
- 		return true;
- 
- 	for (i = 0; i < video->attached_count; i++) {
--		if (video->attached_array[i].bind_info == device)
-+		if ((video->attached_array[i].value.int_val & 0xfff) ==
-+		    (device->device_id & 0xfff))
- 			return true;
- 	}
- 
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index 9a631a6..35963d3 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -185,8 +185,7 @@ exit_disable:
+ 	if (dev)
+ 		pci_disable_device(dev);
+ exit_put:
+-	if (dev)
+-		pci_dev_put(dev);
++	pci_dev_put(dev);
+ exit_free:
+ 	kfree(ioapic);
+ exit:
 -- 
-1.9.3
+2.1.3
 
