@@ -1,48 +1,80 @@
-From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Subject: Re: [PATCH] ACPI / WAKEUP : enable wakeup power for physical child
- devices
-Date: Mon, 1 Dec 2014 14:11:25 +0300
-Message-ID: <20141201111125.GA11974@localhost.localdomain>
-References: <1416139801-6537-1-git-send-email-Andrej.Skvortzov@gmail.com>
- <2396976.mWgWcINWd3@vostro.rjw.lan>
- <20141130172401.GC5215@crion89>
- <1446027.JMxKZRkq7f@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch Part3 v4 38/38] x86, irq: Add kernel parameter
+ vector_alloc to set CPU vector allocation policy
+Date: Mon, 1 Dec 2014 11:49:11 -0700
+Message-ID: <CAErSpo7-GezRLKe4hTAm=KhYHUw6zggi+4LRXjh25K-f+_hAng@mail.gmail.com>
+References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com> <1416901802-24211-39-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:65395 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753152AbaLALMA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Dec 2014 06:12:00 -0500
-Content-Disposition: inline
-In-Reply-To: <1446027.JMxKZRkq7f@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1416901802-24211-39-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jonathan Corbet <corbet@lwn.net>, "x86@kernel.org" <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Daniel J Blueman <daniel@numascale.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Dec 01, 2014 at 02:15:36AM +0100, Rafael J. Wysocki wrote:
+On Tue, Nov 25, 2014 at 12:50 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> Parameter vector_alloc should be set to an integer with:
+> bit 0:  enable allocating CPU vector from CPUs on device local node.
+>         That's to allocate from cpumask_of_node(irq_data->node).
+> bit 1: enable the default policy, which is to allocate from
+>        apic->target_cpus().
+>
+> When allocating vectors, it tries all enabled policies from lower bit
+> position to higher bit position.
+>
+> This option could be use to optimize interrupt distribution on large
+> system such as NumaChip etc.
 
-> > > 
-> > > -> dev->wakeup.prepare_count here shold be different from 0 at this point.
-> > 
-> > Thank you very much for the tip. I checked prepare_count, it was 0.
-> > I tried fix that and patched ssb and b44 drivers, that are used for my Ethernet card.
-> > The code is below. Is this a better way to solve this problem? 
-> 
-> Having a cursory look at the changes only, I think so.
+Why can't we figure this out automatically?  Having a kernel parameter
+is a pain in the neck for users.
 
-Thank you, then I will format the patch in a proper way and submit it.
-
-> > diff --git a/drivers/net/ethernet/broadcom/b44.c b/drivers/net/ethernet/broadcom/b44.c
-> > index 416620f..ebac411 100644
-> > --- a/drivers/net/ethernet/broadcom/b44.c
-> > +++ b/drivers/net/ethernet/broadcom/b44.c
-> > @@ -2103,7 +2103,9 @@ static int b44_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
-> >  	else
-> >  		bp->flags &= ~B44_FLAG_WOL_ENABLE;
-
--- 
-Best regards,
-Andrey Skvortsov
-
-PGP Key ID: 0x57A3AEAD
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Cc: Daniel J Blueman <daniel@numascale.com>
+> ---
+>  Documentation/kernel-parameters.txt |    6 ++++++
+>  arch/x86/kernel/apic/vector.c       |   11 +++++++++++
+>  2 files changed, 17 insertions(+)
+>
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index 4c81a860cc2b..a175c5016954 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -3709,6 +3709,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>         vector=         [IA-64,SMP]
+>                         vector=percpu: enable percpu vector domain
+>
+> +       vector_alloc=   [x86,SMP]
+> +                       vector_alloc=policy: policy is a bitmap, bit 0
+> +                       for allocating CPU vector from CPUs on device local
+> +                       node; bit 1 for the default policy to allocating from
+> +                       apic->target_cpus(). All higher bits are reserved.
+> +
+>         video=          [FB] Frame buffer configuration
+>                         See Documentation/fb/modedb.txt.
+>
+> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+> index 16de8906ee1e..1158843551c7 100644
+> --- a/arch/x86/kernel/apic/vector.c
+> +++ b/arch/x86/kernel/apic/vector.c
+> @@ -79,6 +79,17 @@ void set_vector_alloc_policy(unsigned int policy)
+>                 x86_vector_alloc_policy = policy | X86_VECTOR_POL_CALLER;
+>  }
+>
+> +static int __init apic_parse_vector_policy(char *str)
+> +{
+> +       int policy;
+> +
+> +       if (get_option(&str, &policy) == 1)
+> +               set_vector_alloc_policy(policy);
+> +
+> +       return 1;
+> +}
+> +__setup("vector_alloc=", apic_parse_vector_policy);
+> +
+>  static struct apic_chip_data *alloc_apic_chip_data(int node)
+>  {
+>         struct apic_chip_data *data;
+> --
+> 1.7.10.4
+>
