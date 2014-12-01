@@ -1,66 +1,124 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPICA: Save current masks of enabled GPEs after enable register writes
-Date: Mon, 01 Dec 2014 23:33:18 +0100
-Message-ID: <1906259.Y3CVpWVIyR@vostro.rjw.lan>
-References: <2017469.J3BZteXtBu@vostro.rjw.lan> <5837035.VZ0lP2ZXdi@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88026A57CA@SHSMSX101.ccr.corp.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Update][PATCH 4/4] PCI / PM: Drop CONFIG_PM_RUNTIME from the PCI core
+Date: Mon, 1 Dec 2014 15:51:04 -0700
+Message-ID: <CAErSpo7taxQy=TNoe0eJ6oBpJxdmPNZtJ+Cuy8KxFvoWFLHCKA@mail.gmail.com>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan> <2582138.zUe2QZynBg@vostro.rjw.lan>
+ <1665071.LpcEGj9O01@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026A57CA@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <1665071.LpcEGj9O01@vostro.rjw.lan>
 Sender: linux-pm-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kevin Hilman <khilman@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, December 01, 2014 05:03:04 AM Zheng, Lv wrote:
-> Hi, Rafael
-> 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Monday, December 01, 2014 9:53 AM
-> > 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > There is a race condition between acpi_hw_disable_all_gpes() or
-> > acpi_enable_all_wakeup_gpes() and acpi_ev_asynch_enable_gpe() such
-> > that if the latter wins the race, it may mistakenly enable a GPE
-> > disabled by the former.  This may lead to premature system wakeups
-> > during system suspend and potentially to more serious consequences.
-> > 
-> > The source of the problem is how acpi_hw_low_set_gpe() works when
-> > passed ACPI_GPE_CONDITIONAL_ENABLE as the second argument.  In that
-> > case, the GPE will be enabled if the corresponding bit is set in the
-> > enable_for_run mask of the GPE enable register containing that bit.
-> > However, acpi_hw_disable_all_gpes() and acpi_enable_all_wakeup_gpes()
-> > don't modify the enable_for_run masks of GPE registers when writing
-> > to them.  In consequence, if acpi_ev_asynch_enable_gpe(), which
-> > eventually calls acpi_hw_low_set_gpe() with the second argument
-> > equal to ACPI_GPE_CONDITIONAL_ENABLE, is executed in parallel with
-> > one of these functions, it may reverse changes made by them.
-> > 
-> > To fix the problem, introduce a new enable_mask field in struct
-> > acpi_gpe_register_info in which to store the current mask of
-> > enabled GPEs and modify acpi_hw_low_set_gpe() to take this
-> > mask into account instead of enable_for_run when its second
-> > argument is equal to ACPI_GPE_CONDITIONAL_ENABLE.  Also modify
-> > the low-level routines called by acpi_hw_disable_all_gpes(),
-> > acpi_enable_all_wakeup_gpes() and acpi_enable_all_runtime_gpes()
-> > to update the enable_mask masks of GPE registers after all
-> > (successful) writes to those registers.
-> 
-> Both the solution and the patch looks OK.
-> You'll still need the following fix to ensure the atomicity of acpi_ev_asynch_enable_gpe():
-> https://bugzilla.kernel.org/attachment.cgi?id=157391
-> 
-> Acked-by: Lv Zheng <lv.zheng@intel.com>
+On Thu, Nov 27, 2014 at 3:41 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: PCI / PM: Drop CONFIG_PM_RUNTIME from the PCI core
+>
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so quite a few
+> #ifdef blocks depending on CONFIG_PM_RUNTIME may now be changed to
+> depend on CONFIG_PM.
+>
+> Replace CONFIG_PM_RUNTIME with CONFIG_PM in the PCI core code.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks!
+I acked this on IRC, and I think Rafael plans to merge this via his
+tree, but for the archives:
 
-Can you please submit the patch from
-https://bugzilla.kernel.org/attachment.cgi?id=157391
-to linux-acpi officially?
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-I'd like it to be included into 3.19 as a fix.
-
-Rafael
-
+> ---
+>
+> Changelog fixup.
+>
+> ---
+>  drivers/pci/pci-driver.c |   20 +++++++-------------
+>  drivers/pci/pci-sysfs.c  |    4 ++--
+>  drivers/pci/pcie/Kconfig |    2 +-
+>  3 files changed, 10 insertions(+), 16 deletions(-)
+>
+> Index: linux-pm/drivers/pci/pcie/Kconfig
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pcie/Kconfig
+> +++ linux-pm/drivers/pci/pcie/Kconfig
+> @@ -79,4 +79,4 @@ endchoice
+>
+>  config PCIE_PME
+>         def_bool y
+> -       depends on PCIEPORTBUS && PM_RUNTIME
+> +       depends on PCIEPORTBUS && PM
+> Index: linux-pm/drivers/pci/pci-driver.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-driver.c
+> +++ linux-pm/drivers/pci/pci-driver.c
+> @@ -1104,7 +1104,7 @@ static int pci_pm_restore(struct device
+>
+>  #endif /* !CONFIG_HIBERNATE_CALLBACKS */
+>
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>
+>  static int pci_pm_runtime_suspend(struct device *dev)
+>  {
+> @@ -1200,16 +1200,6 @@ static int pci_pm_runtime_idle(struct de
+>         return ret;
+>  }
+>
+> -#else /* !CONFIG_PM_RUNTIME */
+> -
+> -#define pci_pm_runtime_suspend NULL
+> -#define pci_pm_runtime_resume  NULL
+> -#define pci_pm_runtime_idle    NULL
+> -
+> -#endif /* !CONFIG_PM_RUNTIME */
+> -
+> -#ifdef CONFIG_PM
+> -
+>  static const struct dev_pm_ops pci_dev_pm_ops = {
+>         .prepare = pci_pm_prepare,
+>         .suspend = pci_pm_suspend,
+> @@ -1231,11 +1221,15 @@ static const struct dev_pm_ops pci_dev_p
+>
+>  #define PCI_PM_OPS_PTR (&pci_dev_pm_ops)
+>
+> -#else /* !COMFIG_PM_OPS */
+> +#else /* !CONFIG_PM */
+> +
+> +#define pci_pm_runtime_suspend NULL
+> +#define pci_pm_runtime_resume  NULL
+> +#define pci_pm_runtime_idle    NULL
+>
+>  #define PCI_PM_OPS_PTR NULL
+>
+> -#endif /* !COMFIG_PM_OPS */
+> +#endif /* !CONFIG_PM */
+>
+>  /**
+>   * __pci_register_driver - register a new pci driver
+> Index: linux-pm/drivers/pci/pci-sysfs.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-sysfs.c
+> +++ linux-pm/drivers/pci/pci-sysfs.c
+> @@ -385,7 +385,7 @@ static ssize_t dev_bus_rescan_store(stru
+>  }
+>  static DEVICE_ATTR(rescan, (S_IWUSR|S_IWGRP), NULL, dev_bus_rescan_store);
+>
+> -#if defined(CONFIG_PM_RUNTIME) && defined(CONFIG_ACPI)
+> +#if defined(CONFIG_PM) && defined(CONFIG_ACPI)
+>  static ssize_t d3cold_allowed_store(struct device *dev,
+>                                     struct device_attribute *attr,
+>                                     const char *buf, size_t count)
+> @@ -566,7 +566,7 @@ static struct attribute *pci_dev_attrs[]
+>         &dev_attr_enable.attr,
+>         &dev_attr_broken_parity_status.attr,
+>         &dev_attr_msi_bus.attr,
+> -#if defined(CONFIG_PM_RUNTIME) && defined(CONFIG_ACPI)
+> +#if defined(CONFIG_PM) && defined(CONFIG_ACPI)
+>         &dev_attr_d3cold_allowed.attr,
+>  #endif
+>  #ifdef CONFIG_OF
+>
