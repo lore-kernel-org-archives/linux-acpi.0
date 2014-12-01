@@ -1,89 +1,66 @@
-From: Daniel J Blueman <daniel@numascale.com>
-Subject: Re: [Patch Part3 v4 38/38] x86, irq: Add kernel parameter vector_alloc
- to set CPU vector allocation policy
-Date: Mon, 01 Dec 2014 14:15:52 -0500
-Message-ID: <547CBE68.1040704@numascale.com>
-References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com> <1416901802-24211-39-git-send-email-jiang.liu@linux.intel.com> <CAErSpo7-GezRLKe4hTAm=KhYHUw6zggi+4LRXjh25K-f+_hAng@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/2] ACPICA: Save current masks of enabled GPEs after enable register writes
+Date: Mon, 01 Dec 2014 23:33:18 +0100
+Message-ID: <1906259.Y3CVpWVIyR@vostro.rjw.lan>
+References: <2017469.J3BZteXtBu@vostro.rjw.lan> <5837035.VZ0lP2ZXdi@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88026A57CA@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7-GezRLKe4hTAm=KhYHUw6zggi+4LRXjh25K-f+_hAng@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jonathan Corbet <corbet@lwn.net>, "x86@kernel.org" <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026A57CA@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/01/2014 01:49 PM, Bjorn Helgaas wrote:
-> On Tue, Nov 25, 2014 at 12:50 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->> Parameter vector_alloc should be set to an integer with:
->> bit 0:  enable allocating CPU vector from CPUs on device local node.
->>          That's to allocate from cpumask_of_node(irq_data->node).
->> bit 1: enable the default policy, which is to allocate from
->>         apic->target_cpus().
->>
->> When allocating vectors, it tries all enabled policies from lower bit
->> position to higher bit position.
->>
->> This option could be use to optimize interrupt distribution on large
->> system such as NumaChip etc.
->
-> Why can't we figure this out automatically?  Having a kernel parameter
-> is a pain in the neck for users.
+On Monday, December 01, 2014 05:03:04 AM Zheng, Lv wrote:
+> Hi, Rafael
+> 
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Monday, December 01, 2014 9:53 AM
+> > 
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > There is a race condition between acpi_hw_disable_all_gpes() or
+> > acpi_enable_all_wakeup_gpes() and acpi_ev_asynch_enable_gpe() such
+> > that if the latter wins the race, it may mistakenly enable a GPE
+> > disabled by the former.  This may lead to premature system wakeups
+> > during system suspend and potentially to more serious consequences.
+> > 
+> > The source of the problem is how acpi_hw_low_set_gpe() works when
+> > passed ACPI_GPE_CONDITIONAL_ENABLE as the second argument.  In that
+> > case, the GPE will be enabled if the corresponding bit is set in the
+> > enable_for_run mask of the GPE enable register containing that bit.
+> > However, acpi_hw_disable_all_gpes() and acpi_enable_all_wakeup_gpes()
+> > don't modify the enable_for_run masks of GPE registers when writing
+> > to them.  In consequence, if acpi_ev_asynch_enable_gpe(), which
+> > eventually calls acpi_hw_low_set_gpe() with the second argument
+> > equal to ACPI_GPE_CONDITIONAL_ENABLE, is executed in parallel with
+> > one of these functions, it may reverse changes made by them.
+> > 
+> > To fix the problem, introduce a new enable_mask field in struct
+> > acpi_gpe_register_info in which to store the current mask of
+> > enabled GPEs and modify acpi_hw_low_set_gpe() to take this
+> > mask into account instead of enable_for_run when its second
+> > argument is equal to ACPI_GPE_CONDITIONAL_ENABLE.  Also modify
+> > the low-level routines called by acpi_hw_disable_all_gpes(),
+> > acpi_enable_all_wakeup_gpes() and acpi_enable_all_runtime_gpes()
+> > to update the enable_mask masks of GPE registers after all
+> > (successful) writes to those registers.
+> 
+> Both the solution and the patch looks OK.
+> You'll still need the following fix to ensure the atomicity of acpi_ev_asynch_enable_gpe():
+> https://bugzilla.kernel.org/attachment.cgi?id=157391
+> 
+> Acked-by: Lv Zheng <lv.zheng@intel.com>
 
-For the Numachip case, it would be sufficient to add a call to 
-set_vector_alloc_policy in the APIC driver, as this will always be 
-preferred for local MSI handling.
+Thanks!
 
-I'll follow up with a patch in the next day or so; further support for 
-other systems can be added later as and when tested.
+Can you please submit the patch from
+https://bugzilla.kernel.org/attachment.cgi?id=157391
+to linux-acpi officially?
 
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> Cc: Daniel J Blueman <daniel@numascale.com>
->> ---
->>   Documentation/kernel-parameters.txt |    6 ++++++
->>   arch/x86/kernel/apic/vector.c       |   11 +++++++++++
->>   2 files changed, 17 insertions(+)
->>
->> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
->> index 4c81a860cc2b..a175c5016954 100644
->> --- a/Documentation/kernel-parameters.txt
->> +++ b/Documentation/kernel-parameters.txt
->> @@ -3709,6 +3709,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->>          vector=         [IA-64,SMP]
->>                          vector=percpu: enable percpu vector domain
->>
->> +       vector_alloc=   [x86,SMP]
->> +                       vector_alloc=policy: policy is a bitmap, bit 0
->> +                       for allocating CPU vector from CPUs on device local
->> +                       node; bit 1 for the default policy to allocating from
->> +                       apic->target_cpus(). All higher bits are reserved.
->> +
->>          video=          [FB] Frame buffer configuration
->>                          See Documentation/fb/modedb.txt.
->>
->> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
->> index 16de8906ee1e..1158843551c7 100644
->> --- a/arch/x86/kernel/apic/vector.c
->> +++ b/arch/x86/kernel/apic/vector.c
->> @@ -79,6 +79,17 @@ void set_vector_alloc_policy(unsigned int policy)
->>                  x86_vector_alloc_policy = policy | X86_VECTOR_POL_CALLER;
->>   }
->>
->> +static int __init apic_parse_vector_policy(char *str)
->> +{
->> +       int policy;
->> +
->> +       if (get_option(&str, &policy) == 1)
->> +               set_vector_alloc_policy(policy);
->> +
->> +       return 1;
->> +}
->> +__setup("vector_alloc=", apic_parse_vector_policy);
->> +
->>   static struct apic_chip_data *alloc_apic_chip_data(int node)
->>   {
->>          struct apic_chip_data *data;
--- 
-Daniel J Blueman
-Principal Software Engineer, Numascale
+I'd like it to be included into 3.19 as a fix.
+
+Rafael
+
