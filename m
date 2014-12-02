@@ -1,172 +1,66 @@
-From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Patch Part3 v4 18/38] x86: irq_remapping: Clean up unsued code
-Date: Mon, 1 Dec 2014 17:21:46 -0700
-Message-ID: <20141202002146.GA5825@google.com>
-References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
-	<1416901802-24211-19-git-send-email-jiang.liu@linux.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/2] ACPICA: Save current masks of enabled GPEs after
+ enable register writes
+Date: Tue, 2 Dec 2014 00:56:14 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026A5ABD@SHSMSX101.ccr.corp.intel.com>
+References: <2017469.J3BZteXtBu@vostro.rjw.lan>
+ <5837035.VZ0lP2ZXdi@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E88026A57CA@SHSMSX101.ccr.corp.intel.com>
+ <1906259.Y3CVpWVIyR@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1416901802-24211-19-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1906259.Y3CVpWVIyR@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-s/unsued/unused/ in subject (here and other patches).
-
-"Clean up" is slightly ambiguous; it could mean either "make better" or
-"remove."  "Remove unused code" would be less ambiguous.
-
-On Tue, Nov 25, 2014 at 03:49:42PM +0800, Jiang Liu wrote:
-> Now we have converted to hierarchy irqdomain, so clean up unused code.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Tested-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
-> ---
->  arch/x86/include/asm/irq_remapping.h |   23 ----------------------
->  arch/x86/kernel/apic/vector.c        |    1 -
->  drivers/iommu/irq_remapping.c        |   36 ----------------------------------
->  3 files changed, 60 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/irq_remapping.h b/arch/x86/include/asm/irq_remapping.h
-> index de8470b6f36a..6ba243126b3b 100644
-> --- a/arch/x86/include/asm/irq_remapping.h
-> +++ b/arch/x86/include/asm/irq_remapping.h
-> @@ -26,12 +26,7 @@
->  #include <asm/hw_irq.h>
->  #include <asm/io_apic.h>
->  
-> -struct IO_APIC_route_entry;
-> -struct io_apic_irq_attr;
-> -struct irq_chip;
->  struct msi_msg;
-> -struct pci_dev;
-> -struct irq_cfg;
->  struct irq_alloc_info;
->  
->  #ifdef CONFIG_IRQ_REMAP
-> @@ -44,13 +39,7 @@ extern int irq_remapping_enable(void);
->  extern void irq_remapping_disable(void);
->  extern int irq_remapping_reenable(int);
->  extern int irq_remap_enable_fault_handling(void);
-> -extern void free_remapped_irq(int irq);
->  extern void panic_if_irq_remap(const char *msg);
-> -extern bool setup_remapped_irq(int irq,
-> -			       struct irq_cfg *cfg,
-> -			       struct irq_chip *chip);
-> -
-> -void irq_remap_modify_chip_defaults(struct irq_chip *chip);
->  
->  extern struct irq_domain *
->  irq_remapping_get_ir_irq_domain( struct irq_alloc_info *info);
-> @@ -77,23 +66,11 @@ static inline int irq_remapping_enable(void) { return -ENODEV; }
->  static inline void irq_remapping_disable(void) { }
->  static inline int irq_remapping_reenable(int eim) { return -ENODEV; }
->  static inline int irq_remap_enable_fault_handling(void) { return -ENODEV; }
-> -static inline void free_remapped_irq(int irq) { }
->  
->  static inline void panic_if_irq_remap(const char *msg)
->  {
->  }
->  
-> -static inline void irq_remap_modify_chip_defaults(struct irq_chip *chip)
-> -{
-> -}
-> -
-> -static inline bool setup_remapped_irq(int irq,
-> -				      struct irq_cfg *cfg,
-> -				      struct irq_chip *chip)
-> -{
-> -	return false;
-> -}
-> -
->  static inline struct irq_domain *
->  irq_remapping_get_ir_irq_domain(struct irq_alloc_info *info)
->  {
-> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-> index 31dc4a871673..ca30365507a0 100644
-> --- a/arch/x86/kernel/apic/vector.c
-> +++ b/arch/x86/kernel/apic/vector.c
-> @@ -283,7 +283,6 @@ static void x86_vector_free_irqs(struct irq_domain *domain,
->  	for (i = 0; i < nr_irqs; i++) {
->  		irq_data = irq_domain_get_irq_data(x86_vector_domain, virq + i);
->  		if (irq_data && irq_data->chip_data) {
-> -			free_remapped_irq(virq);
->  			clear_irq_vector(virq + i, irq_data->chip_data);
->  			free_irq_cfg(irq_data->chip_data);
->  #ifdef	CONFIG_X86_IO_APIC
-> diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-> index d175d6911821..3c3da04da8c5 100644
-> --- a/drivers/iommu/irq_remapping.c
-> +++ b/drivers/iommu/irq_remapping.c
-> @@ -26,11 +26,6 @@ int no_x2apic_optout;
->  
->  static struct irq_remap_ops *remap_ops;
->  
-> -static bool irq_remapped(struct irq_cfg *cfg)
-> -{
-> -	return (cfg->remapped == 1);
-> -}
-> -
->  static void irq_remapping_disable_io_apic(void)
->  {
->  	/*
-> @@ -160,17 +155,6 @@ int __init irq_remap_enable_fault_handling(void)
->  	return remap_ops->enable_faulting();
->  }
->  
-> -void free_remapped_irq(int irq)
-> -{
-> -	struct irq_cfg *cfg = irq_cfg(irq);
-> -
-> -	if (!remap_ops || !remap_ops->free_irq)
-> -		return;
-> -
-> -	if (irq_remapped(cfg))
-> -		remap_ops->free_irq(irq);
-> -}
-> -
->  void panic_if_irq_remap(const char *msg)
->  {
->  	if (irq_remapping_enabled)
-> @@ -195,26 +179,6 @@ void irq_remapping_print_chip(struct irq_data *data, struct seq_file *p)
->  		seq_printf(p, " %s", data->chip->name);
->  }
->  
-> -static void ir_print_prefix(struct irq_data *data, struct seq_file *p)
-> -{
-> -	seq_printf(p, " IR-%s", data->chip->name);
-> -}
-> -
-> -void irq_remap_modify_chip_defaults(struct irq_chip *chip)
-> -{
-> -	chip->irq_print_chip = ir_print_prefix;
-> -	chip->irq_ack = ir_ack_apic_edge;
-> -}
-> -
-> -bool setup_remapped_irq(int irq, struct irq_cfg *cfg, struct irq_chip *chip)
-> -{
-> -	if (!irq_remapped(cfg))
-> -		return false;
-> -	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
-> -	irq_remap_modify_chip_defaults(chip);
-> -	return true;
-> -}
-> -
->  /**
->   * irq_remapping_get_ir_irq_domain - Get the irqdomain associated with the IOMMU
->   *				     device serving request @info
-> -- 
-> 1.7.10.4
-> 
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMDIsIDIwMTQgNjozMyBBTQ0KPiANCj4gT24g
+TW9uZGF5LCBEZWNlbWJlciAwMSwgMjAxNCAwNTowMzowNCBBTSBaaGVuZywgTHYgd3JvdGU6DQo+
+ID4gSGksIFJhZmFlbA0KPiA+DQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRv
+OnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDogTW9uZGF5LCBEZWNlbWJlciAwMSwgMjAx
+NCA5OjUzIEFNDQo+ID4gPg0KPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgPHJhZmFlbC5q
+Lnd5c29ja2lAaW50ZWwuY29tPg0KPiA+ID4NCj4gPiA+IFRoZXJlIGlzIGEgcmFjZSBjb25kaXRp
+b24gYmV0d2VlbiBhY3BpX2h3X2Rpc2FibGVfYWxsX2dwZXMoKSBvcg0KPiA+ID4gYWNwaV9lbmFi
+bGVfYWxsX3dha2V1cF9ncGVzKCkgYW5kIGFjcGlfZXZfYXN5bmNoX2VuYWJsZV9ncGUoKSBzdWNo
+DQo+ID4gPiB0aGF0IGlmIHRoZSBsYXR0ZXIgd2lucyB0aGUgcmFjZSwgaXQgbWF5IG1pc3Rha2Vu
+bHkgZW5hYmxlIGEgR1BFDQo+ID4gPiBkaXNhYmxlZCBieSB0aGUgZm9ybWVyLiAgVGhpcyBtYXkg
+bGVhZCB0byBwcmVtYXR1cmUgc3lzdGVtIHdha2V1cHMNCj4gPiA+IGR1cmluZyBzeXN0ZW0gc3Vz
+cGVuZCBhbmQgcG90ZW50aWFsbHkgdG8gbW9yZSBzZXJpb3VzIGNvbnNlcXVlbmNlcy4NCj4gPiA+
+DQo+ID4gPiBUaGUgc291cmNlIG9mIHRoZSBwcm9ibGVtIGlzIGhvdyBhY3BpX2h3X2xvd19zZXRf
+Z3BlKCkgd29ya3Mgd2hlbg0KPiA+ID4gcGFzc2VkIEFDUElfR1BFX0NPTkRJVElPTkFMX0VOQUJM
+RSBhcyB0aGUgc2Vjb25kIGFyZ3VtZW50LiAgSW4gdGhhdA0KPiA+ID4gY2FzZSwgdGhlIEdQRSB3
+aWxsIGJlIGVuYWJsZWQgaWYgdGhlIGNvcnJlc3BvbmRpbmcgYml0IGlzIHNldCBpbiB0aGUNCj4g
+PiA+IGVuYWJsZV9mb3JfcnVuIG1hc2sgb2YgdGhlIEdQRSBlbmFibGUgcmVnaXN0ZXIgY29udGFp
+bmluZyB0aGF0IGJpdC4NCj4gPiA+IEhvd2V2ZXIsIGFjcGlfaHdfZGlzYWJsZV9hbGxfZ3Blcygp
+IGFuZCBhY3BpX2VuYWJsZV9hbGxfd2FrZXVwX2dwZXMoKQ0KPiA+ID4gZG9uJ3QgbW9kaWZ5IHRo
+ZSBlbmFibGVfZm9yX3J1biBtYXNrcyBvZiBHUEUgcmVnaXN0ZXJzIHdoZW4gd3JpdGluZw0KPiA+
+ID4gdG8gdGhlbS4gIEluIGNvbnNlcXVlbmNlLCBpZiBhY3BpX2V2X2FzeW5jaF9lbmFibGVfZ3Bl
+KCksIHdoaWNoDQo+ID4gPiBldmVudHVhbGx5IGNhbGxzIGFjcGlfaHdfbG93X3NldF9ncGUoKSB3
+aXRoIHRoZSBzZWNvbmQgYXJndW1lbnQNCj4gPiA+IGVxdWFsIHRvIEFDUElfR1BFX0NPTkRJVElP
+TkFMX0VOQUJMRSwgaXMgZXhlY3V0ZWQgaW4gcGFyYWxsZWwgd2l0aA0KPiA+ID4gb25lIG9mIHRo
+ZXNlIGZ1bmN0aW9ucywgaXQgbWF5IHJldmVyc2UgY2hhbmdlcyBtYWRlIGJ5IHRoZW0uDQo+ID4g
+Pg0KPiA+ID4gVG8gZml4IHRoZSBwcm9ibGVtLCBpbnRyb2R1Y2UgYSBuZXcgZW5hYmxlX21hc2sg
+ZmllbGQgaW4gc3RydWN0DQo+ID4gPiBhY3BpX2dwZV9yZWdpc3Rlcl9pbmZvIGluIHdoaWNoIHRv
+IHN0b3JlIHRoZSBjdXJyZW50IG1hc2sgb2YNCj4gPiA+IGVuYWJsZWQgR1BFcyBhbmQgbW9kaWZ5
+IGFjcGlfaHdfbG93X3NldF9ncGUoKSB0byB0YWtlIHRoaXMNCj4gPiA+IG1hc2sgaW50byBhY2Nv
+dW50IGluc3RlYWQgb2YgZW5hYmxlX2Zvcl9ydW4gd2hlbiBpdHMgc2Vjb25kDQo+ID4gPiBhcmd1
+bWVudCBpcyBlcXVhbCB0byBBQ1BJX0dQRV9DT05ESVRJT05BTF9FTkFCTEUuICBBbHNvIG1vZGlm
+eQ0KPiA+ID4gdGhlIGxvdy1sZXZlbCByb3V0aW5lcyBjYWxsZWQgYnkgYWNwaV9od19kaXNhYmxl
+X2FsbF9ncGVzKCksDQo+ID4gPiBhY3BpX2VuYWJsZV9hbGxfd2FrZXVwX2dwZXMoKSBhbmQgYWNw
+aV9lbmFibGVfYWxsX3J1bnRpbWVfZ3BlcygpDQo+ID4gPiB0byB1cGRhdGUgdGhlIGVuYWJsZV9t
+YXNrIG1hc2tzIG9mIEdQRSByZWdpc3RlcnMgYWZ0ZXIgYWxsDQo+ID4gPiAoc3VjY2Vzc2Z1bCkg
+d3JpdGVzIHRvIHRob3NlIHJlZ2lzdGVycy4NCj4gPg0KPiA+IEJvdGggdGhlIHNvbHV0aW9uIGFu
+ZCB0aGUgcGF0Y2ggbG9va3MgT0suDQo+ID4gWW91J2xsIHN0aWxsIG5lZWQgdGhlIGZvbGxvd2lu
+ZyBmaXggdG8gZW5zdXJlIHRoZSBhdG9taWNpdHkgb2YgYWNwaV9ldl9hc3luY2hfZW5hYmxlX2dw
+ZSgpOg0KPiA+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9hdHRhY2htZW50LmNnaT9pZD0x
+NTczOTENCj4gPg0KPiA+IEFja2VkLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0K
+PiANCj4gVGhhbmtzIQ0KPiANCj4gQ2FuIHlvdSBwbGVhc2Ugc3VibWl0IHRoZSBwYXRjaCBmcm9t
+DQo+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9hdHRhY2htZW50LmNnaT9pZD0xNTczOTEN
+Cj4gdG8gbGludXgtYWNwaSBvZmZpY2lhbGx5Pw0KPiANCj4gSSdkIGxpa2UgaXQgdG8gYmUgaW5j
+bHVkZWQgaW50byAzLjE5IGFzIGEgZml4Lg0KDQpPSy4gSSdsbCBwb3N0IGl0IHRvIHRoaXMgdGhy
+ZWFkLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCg==
