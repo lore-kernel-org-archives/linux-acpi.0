@@ -1,94 +1,172 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch Part3 v4 38/38] x86, irq: Add kernel parameter
- vector_alloc to set CPU vector allocation policy
-Date: Mon, 1 Dec 2014 16:47:51 -0700
-Message-ID: <CAErSpo6kppuFjDHL45n8k+2RMQFgGV4QPGqzW7-_4jEfihp2XA@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch Part3 v4 18/38] x86: irq_remapping: Clean up unsued code
+Date: Mon, 1 Dec 2014 17:21:46 -0700
+Message-ID: <20141202002146.GA5825@google.com>
 References: <1416901802-24211-1-git-send-email-jiang.liu@linux.intel.com>
- <1416901802-24211-39-git-send-email-jiang.liu@linux.intel.com>
- <CAErSpo7-GezRLKe4hTAm=KhYHUw6zggi+4LRXjh25K-f+_hAng@mail.gmail.com> <547CFD93.5000702@linux.intel.com>
+	<1416901802-24211-19-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <547CFD93.5000702@linux.intel.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jonathan Corbet <corbet@lwn.net>, "x86@kernel.org" <x86@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Daniel J Blueman <daniel@numascale.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1416901802-24211-19-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 1, 2014 at 4:45 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->
->
-> On 2014/12/2 2:49, Bjorn Helgaas wrote:
->> On Tue, Nov 25, 2014 at 12:50 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->>> Parameter vector_alloc should be set to an integer with:
->>> bit 0:  enable allocating CPU vector from CPUs on device local node.
->>>         That's to allocate from cpumask_of_node(irq_data->node).
->>> bit 1: enable the default policy, which is to allocate from
->>>        apic->target_cpus().
->>>
->>> When allocating vectors, it tries all enabled policies from lower bit
->>> position to higher bit position.
->>>
->>> This option could be use to optimize interrupt distribution on large
->>> system such as NumaChip etc.
->>
->> Why can't we figure this out automatically?  Having a kernel parameter
->> is a pain in the neck for users.
-> Hi Bjorn,
->         I'm thinking of automatically turning on local vector
-> allocation if any host bridge has an assigned(valid) NUMA node id.
-> By this way, user doesn't need to specify the kernel parameter for most
-> cases. How about this solution?
+s/unsued/unused/ in subject (here and other patches).
 
-I'm not an IRQ person, but your idea sounds like figuring this out
-automatically, and I'm in favor of that :)
+"Clean up" is slightly ambiguous; it could mean either "make better" or
+"remove."  "Remove unused code" would be less ambiguous.
 
->>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>> Cc: Daniel J Blueman <daniel@numascale.com>
->>> ---
->>>  Documentation/kernel-parameters.txt |    6 ++++++
->>>  arch/x86/kernel/apic/vector.c       |   11 +++++++++++
->>>  2 files changed, 17 insertions(+)
->>>
->>> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
->>> index 4c81a860cc2b..a175c5016954 100644
->>> --- a/Documentation/kernel-parameters.txt
->>> +++ b/Documentation/kernel-parameters.txt
->>> @@ -3709,6 +3709,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->>>         vector=         [IA-64,SMP]
->>>                         vector=percpu: enable percpu vector domain
->>>
->>> +       vector_alloc=   [x86,SMP]
->>> +                       vector_alloc=policy: policy is a bitmap, bit 0
->>> +                       for allocating CPU vector from CPUs on device local
->>> +                       node; bit 1 for the default policy to allocating from
->>> +                       apic->target_cpus(). All higher bits are reserved.
->>> +
->>>         video=          [FB] Frame buffer configuration
->>>                         See Documentation/fb/modedb.txt.
->>>
->>> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
->>> index 16de8906ee1e..1158843551c7 100644
->>> --- a/arch/x86/kernel/apic/vector.c
->>> +++ b/arch/x86/kernel/apic/vector.c
->>> @@ -79,6 +79,17 @@ void set_vector_alloc_policy(unsigned int policy)
->>>                 x86_vector_alloc_policy = policy | X86_VECTOR_POL_CALLER;
->>>  }
->>>
->>> +static int __init apic_parse_vector_policy(char *str)
->>> +{
->>> +       int policy;
->>> +
->>> +       if (get_option(&str, &policy) == 1)
->>> +               set_vector_alloc_policy(policy);
->>> +
->>> +       return 1;
->>> +}
->>> +__setup("vector_alloc=", apic_parse_vector_policy);
->>> +
->>>  static struct apic_chip_data *alloc_apic_chip_data(int node)
->>>  {
->>>         struct apic_chip_data *data;
->>> --
->>> 1.7.10.4
->>>
+On Tue, Nov 25, 2014 at 03:49:42PM +0800, Jiang Liu wrote:
+> Now we have converted to hierarchy irqdomain, so clean up unused code.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Tested-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+> ---
+>  arch/x86/include/asm/irq_remapping.h |   23 ----------------------
+>  arch/x86/kernel/apic/vector.c        |    1 -
+>  drivers/iommu/irq_remapping.c        |   36 ----------------------------------
+>  3 files changed, 60 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/irq_remapping.h b/arch/x86/include/asm/irq_remapping.h
+> index de8470b6f36a..6ba243126b3b 100644
+> --- a/arch/x86/include/asm/irq_remapping.h
+> +++ b/arch/x86/include/asm/irq_remapping.h
+> @@ -26,12 +26,7 @@
+>  #include <asm/hw_irq.h>
+>  #include <asm/io_apic.h>
+>  
+> -struct IO_APIC_route_entry;
+> -struct io_apic_irq_attr;
+> -struct irq_chip;
+>  struct msi_msg;
+> -struct pci_dev;
+> -struct irq_cfg;
+>  struct irq_alloc_info;
+>  
+>  #ifdef CONFIG_IRQ_REMAP
+> @@ -44,13 +39,7 @@ extern int irq_remapping_enable(void);
+>  extern void irq_remapping_disable(void);
+>  extern int irq_remapping_reenable(int);
+>  extern int irq_remap_enable_fault_handling(void);
+> -extern void free_remapped_irq(int irq);
+>  extern void panic_if_irq_remap(const char *msg);
+> -extern bool setup_remapped_irq(int irq,
+> -			       struct irq_cfg *cfg,
+> -			       struct irq_chip *chip);
+> -
+> -void irq_remap_modify_chip_defaults(struct irq_chip *chip);
+>  
+>  extern struct irq_domain *
+>  irq_remapping_get_ir_irq_domain( struct irq_alloc_info *info);
+> @@ -77,23 +66,11 @@ static inline int irq_remapping_enable(void) { return -ENODEV; }
+>  static inline void irq_remapping_disable(void) { }
+>  static inline int irq_remapping_reenable(int eim) { return -ENODEV; }
+>  static inline int irq_remap_enable_fault_handling(void) { return -ENODEV; }
+> -static inline void free_remapped_irq(int irq) { }
+>  
+>  static inline void panic_if_irq_remap(const char *msg)
+>  {
+>  }
+>  
+> -static inline void irq_remap_modify_chip_defaults(struct irq_chip *chip)
+> -{
+> -}
+> -
+> -static inline bool setup_remapped_irq(int irq,
+> -				      struct irq_cfg *cfg,
+> -				      struct irq_chip *chip)
+> -{
+> -	return false;
+> -}
+> -
+>  static inline struct irq_domain *
+>  irq_remapping_get_ir_irq_domain(struct irq_alloc_info *info)
+>  {
+> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+> index 31dc4a871673..ca30365507a0 100644
+> --- a/arch/x86/kernel/apic/vector.c
+> +++ b/arch/x86/kernel/apic/vector.c
+> @@ -283,7 +283,6 @@ static void x86_vector_free_irqs(struct irq_domain *domain,
+>  	for (i = 0; i < nr_irqs; i++) {
+>  		irq_data = irq_domain_get_irq_data(x86_vector_domain, virq + i);
+>  		if (irq_data && irq_data->chip_data) {
+> -			free_remapped_irq(virq);
+>  			clear_irq_vector(virq + i, irq_data->chip_data);
+>  			free_irq_cfg(irq_data->chip_data);
+>  #ifdef	CONFIG_X86_IO_APIC
+> diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
+> index d175d6911821..3c3da04da8c5 100644
+> --- a/drivers/iommu/irq_remapping.c
+> +++ b/drivers/iommu/irq_remapping.c
+> @@ -26,11 +26,6 @@ int no_x2apic_optout;
+>  
+>  static struct irq_remap_ops *remap_ops;
+>  
+> -static bool irq_remapped(struct irq_cfg *cfg)
+> -{
+> -	return (cfg->remapped == 1);
+> -}
+> -
+>  static void irq_remapping_disable_io_apic(void)
+>  {
+>  	/*
+> @@ -160,17 +155,6 @@ int __init irq_remap_enable_fault_handling(void)
+>  	return remap_ops->enable_faulting();
+>  }
+>  
+> -void free_remapped_irq(int irq)
+> -{
+> -	struct irq_cfg *cfg = irq_cfg(irq);
+> -
+> -	if (!remap_ops || !remap_ops->free_irq)
+> -		return;
+> -
+> -	if (irq_remapped(cfg))
+> -		remap_ops->free_irq(irq);
+> -}
+> -
+>  void panic_if_irq_remap(const char *msg)
+>  {
+>  	if (irq_remapping_enabled)
+> @@ -195,26 +179,6 @@ void irq_remapping_print_chip(struct irq_data *data, struct seq_file *p)
+>  		seq_printf(p, " %s", data->chip->name);
+>  }
+>  
+> -static void ir_print_prefix(struct irq_data *data, struct seq_file *p)
+> -{
+> -	seq_printf(p, " IR-%s", data->chip->name);
+> -}
+> -
+> -void irq_remap_modify_chip_defaults(struct irq_chip *chip)
+> -{
+> -	chip->irq_print_chip = ir_print_prefix;
+> -	chip->irq_ack = ir_ack_apic_edge;
+> -}
+> -
+> -bool setup_remapped_irq(int irq, struct irq_cfg *cfg, struct irq_chip *chip)
+> -{
+> -	if (!irq_remapped(cfg))
+> -		return false;
+> -	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
+> -	irq_remap_modify_chip_defaults(chip);
+> -	return true;
+> -}
+> -
+>  /**
+>   * irq_remapping_get_ir_irq_domain - Get the irqdomain associated with the IOMMU
+>   *				     device serving request @info
+> -- 
+> 1.7.10.4
+> 
