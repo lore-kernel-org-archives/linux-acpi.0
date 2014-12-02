@@ -1,49 +1,42 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPICA: Events: Fix issue that GPE register modifications are not protected after _Lxx/_Exx evaluation.
-Date: Tue,  2 Dec 2014 08:56:55 +0800
-Message-ID: <8b74d60e865216529ee0f5443fa9bcca949884f8.1417481649.git.lv.zheng@intel.com>
-References: <2017469.J3BZteXtBu@vostro.rjw.lan>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:59541 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754161AbaLBA5J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Dec 2014 19:57:09 -0500
-In-Reply-To: <2017469.J3BZteXtBu@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH 0/4] PM: Use CONFIG_PM instead of CONFIG_PM_RUNTIME in core code
+Date: Mon, 01 Dec 2014 17:01:40 -0800
+Message-ID: <7hd28250gb.fsf@deeprootsystems.com>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <37310416.jZXoh5nfSC@vostro.rjw.lan> (Rafael J. Wysocki's message
+	of "Thu, 27 Nov 2014 01:37:13 +0100")
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Ulf Hansson <ulf.hansson@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-It is reported that there are pieces of code invoking acpi_ev_finish_gpe()
-without holding acpi_gbl_gpe_lock. Since this function will modify GPE
-register values, there could be race breaking the register modification
-process.
+"Rafael J. Wysocki" <rjw@rjwysocki.net> writes:
 
-This patch fixes this issue. Lv Zheng.
+> Hi,
+>
+> After commit b2b49ccbdd54 "PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected" (currently in Linux next) CONFIG_PM_RUNTIME is set whenever
+> CONFIG_PM is set, so CONFIG_PM can be used in #ifdefs instead of
+> CONFIG_PM_RUNTIME which simplifies things in quite a few cases.
+>
+> For this reason, the following patches modify some core code to use
+> CONFIG_PM instead of CONFIG_PM_RUNTIME.
+>
+> [1/4] Drop a macro which is redundant after the above commit.
+> [2/4] Use PM instead of PM_RUNTIME in the core device PM code.
+> [3/4] Use PM instead of PM_RUNTIME in the ACPI core.
+> [4/4] Use PM instead of PM_RUNTIME in the PCI core.
+>
+> They build for me for all of the relevant combinations of options (on x86),
+> but more testing (on the other architectures) would be welcome.
 
-Reported-by: Joe Liu <joe.liu@apple.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net>
----
- drivers/acpi/acpica/evgpe.c |    3 +++
- 1 file changed, 3 insertions(+)
+Acked-by: Kevin Hilman <khilman@linaro.org>
 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 81db932..aa70154 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -616,8 +616,11 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
- static void ACPI_SYSTEM_XFACE acpi_ev_asynch_enable_gpe(void *context)
- {
- 	struct acpi_gpe_event_info *gpe_event_info = context;
-+	acpi_cpu_flags flags;
- 
-+	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
- 	(void)acpi_ev_finish_gpe(gpe_event_info);
-+	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
- 
- 	ACPI_FREE(gpe_event_info);
- 	return;
--- 
-1.7.10
+I gave this a quick boot test on all the OMAP boards I have, and it's
+booting fine. As soon as this hits linux-next, it will be boot tested on
+a pile of different ARM platforms, and will let you know what happens.
 
+Kevin
