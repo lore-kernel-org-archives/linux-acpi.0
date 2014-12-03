@@ -1,145 +1,57 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH] ACPI, EINJ: Enhance error injection tolerance level
-Date: Wed, 03 Dec 2014 13:22:39 -0800
-Message-ID: <c5f50564109273ab7f1c5fab4490169ae573128d.1417641347.git.tony.luck@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50960 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751270AbaLCVv5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Dec 2014 16:51:57 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/4] PM: Drop the SET_PM_RUNTIME_PM_OPS() macro
+Date: Wed, 03 Dec 2014 23:51:44 +0100
+Message-ID: <2647870.gu06V1GGvo@vostro.rjw.lan>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan> <3484329.phAPviVnbd@vostro.rjw.lan> <CAPDyKFoZmCYYNAGfNzwwEj=jk9wrfCKoxqQ4p=KStADSK1suCg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFoZmCYYNAGfNzwwEj=jk9wrfCKoxqQ4p=KStADSK1suCg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Borislav Petkov <bp@suse.de>, Chen Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org
 
-From: "Chen, Gong" <gong.chen@linux.intel.com>
+On Wednesday, December 03, 2014 03:15:49 PM Ulf Hansson wrote:
+> On 27 November 2014 at 01:38, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > The SET_PM_RUNTIME_PM_OPS() and SET_RUNTIME_PM_OPS() macros are
+> > identical except that one of them is not empty for CONFIG_PM set,
+> > while the other one is not empty for CONFIG_PM_RUNTIME set,
+> > respectively.
+> >
+> > However, after commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> > PM_SLEEP is selected) PM_RUNTIME is always set if PM is set, so one
+> > of these macros is now redundant.
+> >
+> > For this reason, drop SET_PM_RUNTIME_PM_OPS() and replace it with
+> > SET_RUNTIME_PM_OPS() everywhere.
+> 
+> Hi Rafael,
+> 
+> Apparently, I have queued an mmc patch in my mmc tree, which means one
+> mmc driver starts using the SET_PM_RUNTIME_PM_OPS macro. It should
+> cause a build error in linux-next with @subject patch.
+> 
+> I have shared that patch through an immutable branch, I have also
+> checked potential conflicts and it shouldn't be any problems to pull
+> that in to your tree. Then you can fix $subject patch by also
+> converting the mmc driver to use SET_RUNTIME_PM_OPS macro.
+> 
+> The branch is available at:
+> git://git.linaro.org/people/ulf.hansson/mmc.git mmc_for_linux_pm
 
-Some BIOSes utilize PCI MMCFG space read/write opertion to trigger
-specific errors. EINJ will report errors as below when hitting such
-cases:
+Thanks for letting me know!
 
-APEI: Can not request [mem 0x83f990a0-0x83f990a3] for APEI EINJ Trigger registers
+What about adding the following line to the $subject patch instead:
 
-It is because on x86 platform ACPI based PCI MMCFG logic has
-reserved all MMCFG spaces so that EINJ can't reserve it again.
-We already trust the ACPI/APEI code when using the EINJ interface
-so it is not a big leap to also trust it to access the right
-MMCFG addresses. Skip address checking to allow the access.
+#define SET_PM_RUNTIME_PM_OPS	SET_RUNTIME_PM_OPS
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
----
- drivers/acpi/apei/apei-base.c | 58 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 52 insertions(+), 6 deletions(-)
+and fixing things up when all has been merged?
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 2cd7bdd6c8b3..e809d3c4904d 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -41,6 +41,9 @@
- #include <linux/interrupt.h>
- #include <linux/debugfs.h>
- #include <asm/unaligned.h>
-+#ifdef CONFIG_PCI_MMCONFIG
-+#include <asm/pci_x86.h>
-+#endif
- 
- #include "apei-internal.h"
- 
-@@ -449,7 +452,7 @@ int apei_resources_sub(struct apei_resources *resources1,
- }
- EXPORT_SYMBOL_GPL(apei_resources_sub);
- 
--static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
-+static int apei_get_res_callback(__u64 start, __u64 size, void *data)
- {
- 	struct apei_resources *resources = data;
- 	return apei_res_add(&resources->iomem, start, size);
-@@ -457,9 +460,42 @@ static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
- 
- static int apei_get_nvs_resources(struct apei_resources *resources)
- {
--	return acpi_nvs_for_each_region(apei_get_nvs_callback, resources);
-+	return acpi_nvs_for_each_region(apei_get_res_callback, resources);
- }
- 
-+#ifdef CONFIG_PCI_MMCONFIG
-+static int pci_mmcfg_for_each_region(int (*func)(__u64 start, __u64 size,
-+				     void *data), void *data)
-+{
-+	struct pci_mmcfg_region *cfg;
-+	int rc;
-+
-+	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
-+		return 0;
-+
-+	if (list_empty(&pci_mmcfg_list))
-+		return 0;
-+
-+	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
-+		rc = func(cfg->res.start, resource_size(&cfg->res), data);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static int apei_get_mmcfg_resources(struct apei_resources *resources)
-+{
-+	return pci_mmcfg_for_each_region(apei_get_res_callback, resources);
-+}
-+#else
-+static int apei_get_mmcfg_resources(struct apei_resources *resources)
-+{
-+	return 0;
-+}
-+#endif
-+
- /*
-  * IO memory/port resource management mechanism is used to check
-  * whether memory/port area used by GARs conflicts with normal memory
-@@ -470,7 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
- {
- 	struct apei_res *res, *res_bak = NULL;
- 	struct resource *r;
--	struct apei_resources nvs_resources;
-+	struct apei_resources nvs_resources, mmcfg_res;
- 	int rc;
- 
- 	rc = apei_resources_sub(resources, &apei_resources_all);
-@@ -485,10 +521,18 @@ int apei_resources_request(struct apei_resources *resources,
- 	apei_resources_init(&nvs_resources);
- 	rc = apei_get_nvs_resources(&nvs_resources);
- 	if (rc)
--		goto res_fini;
-+		goto nvs_res_fini;
- 	rc = apei_resources_sub(resources, &nvs_resources);
- 	if (rc)
--		goto res_fini;
-+		goto nvs_res_fini;
-+
-+	apei_resources_init(&mmcfg_res);
-+	rc = apei_get_mmcfg_resources(&mmcfg_res);
-+	if (rc)
-+		goto mmcfg_res_fini;
-+	rc = apei_resources_sub(resources, &mmcfg_res);
-+	if (rc)
-+		goto mmcfg_res_fini;
- 
- 	rc = -EINVAL;
- 	list_for_each_entry(res, &resources->iomem, list) {
-@@ -536,7 +580,9 @@ err_unmap_iomem:
- 			break;
- 		release_mem_region(res->start, res->end - res->start);
- 	}
--res_fini:
-+mmcfg_res_fini:
-+	apei_resources_fini(&mmcfg_res);
-+nvs_res_fini:
- 	apei_resources_fini(&nvs_resources);
- 	return rc;
- }
+
 -- 
-2.1.0
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
