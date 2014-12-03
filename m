@@ -1,186 +1,215 @@
-From: Ken Xue <Ken.Xue@amd.com>
-Subject: [PATCH 2/2] acpi:apd:add AMD ACPI2Platform device support
-Date: Wed, 3 Dec 2014 20:34:32 +0800
-Message-ID: <1417610072-2217-1-git-send-email-Ken.Xue@amd.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/4] PM: Drop the SET_PM_RUNTIME_PM_OPS() macro
+Date: Wed, 3 Dec 2014 15:15:49 +0100
+Message-ID: <CAPDyKFoZmCYYNAGfNzwwEj=jk9wrfCKoxqQ4p=KStADSK1suCg@mail.gmail.com>
+References: <37310416.jZXoh5nfSC@vostro.rjw.lan>
+	<3484329.phAPviVnbd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bn0104.outbound.protection.outlook.com ([157.56.110.104]:6823
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751341AbaLCMpW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Dec 2014 07:45:22 -0500
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:65260 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbaLCOPu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Dec 2014 09:15:50 -0500
+Received: by mail-qc0-f174.google.com with SMTP id c9so10993271qcz.19
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Dec 2014 06:15:50 -0800 (PST)
+In-Reply-To: <3484329.phAPviVnbd@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mika.westerberg@linux.intel.com, rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ken Xue <Ken.Xue@amd.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Bjorn Helgaas <bhelgaas@google.com>, Kevin Hilman <khilman@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 
-This is a new feature to interpret AMD specific ACPI device to
-platform device such as I2C, UART found on AMD CZ and later
-chipsets. It based on INTEL LPSS and acpi soc.
+On 27 November 2014 at 01:38, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> The SET_PM_RUNTIME_PM_OPS() and SET_RUNTIME_PM_OPS() macros are
+> identical except that one of them is not empty for CONFIG_PM set,
+> while the other one is not empty for CONFIG_PM_RUNTIME set,
+> respectively.
+>
+> However, after commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> PM_SLEEP is selected) PM_RUNTIME is always set if PM is set, so one
+> of these macros is now redundant.
+>
+> For this reason, drop SET_PM_RUNTIME_PM_OPS() and replace it with
+> SET_RUNTIME_PM_OPS() everywhere.
 
-Signed-off-by: Ken Xue <Ken.Xue@amd.com>
----
- arch/x86/Kconfig        | 11 +++++++
- drivers/acpi/Makefile   |  2 +-
- drivers/acpi/acpi_apd.c | 82 +++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |  6 ++++
- drivers/acpi/scan.c     |  1 +
- 5 files changed, 101 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/acpi_apd.c
+Hi Rafael,
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index ded8a67..6402c79f 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -495,6 +495,17 @@ config X86_INTEL_LPSS
- 	  things like clock tree (common clock framework) and pincontrol
- 	  which are needed by the LPSS peripheral drivers.
- 
-+config X86_AMD_PLATFORM_DEVICE
-+	bool "AMD ACPI2Platform devices support"
-+	depends on ACPI
-+	select COMMON_CLK
-+	select PINCTRL
-+	---help---
-+	  Select to interpret AMD specific ACPI device to platform device
-+	  such as I2C, UART found on AMD CARRIZO and later chipset. Selecting
-+	  this option enables things like clock tree (common clock framework)
-+	  and pinctrl.
-+
- config IOSF_MBI
- 	tristate "Intel SoC IOSF Sideband support for SoC platforms"
- 	depends on PCI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index ae3397d..b07003a 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
--acpi-y				+= acpi_soc.o acpi_lpss.o
-+acpi-y				+= acpi_soc.o acpi_lpss.o acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-y				+= int340x_thermal.o
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-new file mode 100644
-index 0000000..9afc144
---- /dev/null
-+++ b/drivers/acpi/acpi_apd.c
-@@ -0,0 +1,82 @@
-+/*
-+ * AMD ACPI support for  ACPI2platform device.
-+ *
-+ * Copyright (c) 2014, AMD Corporation.
-+ * Authors: Ken Xue <Ken.Xue@amd.com>
-+ *	Wu, Jeff <Jeff.Wu@amd.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/clk.h>
-+#include <linux/clkdev.h>
-+#include <linux/clk-provider.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+
-+#include "internal.h"
-+#include "acpi_soc.h"
-+
-+struct acpi_soc asoc;
-+
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+#define APD_ADDR(desc)	((unsigned long)&desc)
-+
-+static int acpi_apd_setup(struct acpi_soc_dev_private_data *pdata)
-+{
-+	struct acpi_soc_dev_desc *dev_desc = pdata->dev_desc;
-+	struct clk *clk = ERR_PTR(-ENODEV);
-+
-+	if (dev_desc->clk)
-+		return 0;
-+
-+	if (dev_desc->fixed_clk_rate) {
-+		clk = clk_register_fixed_rate(&pdata->adev->dev,
-+					dev_name(&pdata->adev->dev),
-+					NULL, CLK_IS_ROOT,
-+					dev_desc->fixed_clk_rate);
-+		dev_desc->clk = clk;
-+		clk_register_clkdev(clk, NULL, dev_name(&pdata->adev->dev));
-+	}
-+
-+	return 0;
-+}
-+
-+static struct acpi_soc_dev_desc cz_i2c_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 133000000,
-+};
-+
-+static struct acpi_soc_dev_desc cz_uart_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 48000000,
-+};
-+
-+#else
-+
-+#define APD_ADDR(desc) (0UL)
-+
-+#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-+
-+static struct acpi_device_id acpi_apd_device_ids[] = {
-+	/* Generic apd devices */
-+	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-+	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-+	{ }
-+};
-+
-+
-+void __init acpi_apd_init(void)
-+{
-+	asoc.ids = acpi_apd_device_ids;
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+	register_acpi_soc(&asoc, false);
-+#else
-+	register_acpi_soc(&asoc, true);
-+#endif /*CONFIG_X86_AMD_PLATFORM_DEVICE*/
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 447f6d6..c8a0e8e 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -68,6 +68,12 @@ static inline void acpi_debugfs_init(void) { return; }
- #endif
- void acpi_lpss_init(void);
- 
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+void acpi_apd_init(void);
-+#else
-+static inline void acpi_apd_init(void) {}
-+#endif
-+
- acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
- bool acpi_queue_hotplug_work(struct work_struct *work);
- void acpi_device_hotplug(struct acpi_device *adev, u32 src);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 0476e90..24fef2b 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2349,6 +2349,7 @@ int __init acpi_scan_init(void)
- 	acpi_pci_link_init();
- 	acpi_processor_init();
- 	acpi_lpss_init();
-+	acpi_apd_init();
- 	acpi_cmos_rtc_init();
- 	acpi_container_init();
- 	acpi_memory_hotplug_init();
--- 
-1.9.1
+Apparently, I have queued an mmc patch in my mmc tree, which means one
+mmc driver starts using the SET_PM_RUNTIME_PM_OPS macro. It should
+cause a build error in linux-next with @subject patch.
 
+I have shared that patch through an immutable branch, I have also
+checked potential conflicts and it shouldn't be any problems to pull
+that in to your tree. Then you can fix $subject patch by also
+converting the mmc driver to use SET_RUNTIME_PM_OPS macro.
+
+The branch is available at:
+git://git.linaro.org/people/ulf.hansson/mmc.git mmc_for_linux_pm
+
+Kind regards
+Uffe
+
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/amba/bus.c                |    2 +-
+>  drivers/dma/ste_dma40.c           |    2 +-
+>  drivers/gpio/gpio-zynq.c          |    2 +-
+>  drivers/i2c/busses/i2c-hix5hd2.c  |    2 +-
+>  drivers/i2c/busses/i2c-nomadik.c  |    2 +-
+>  drivers/mmc/host/mmci.c           |    2 +-
+>  drivers/mmc/host/sh_mobile_sdhi.c |    2 +-
+>  drivers/mmc/host/tmio_mmc.c       |    2 +-
+>  drivers/spi/spi-pl022.c           |    2 +-
+>  include/linux/pm.h                |   11 +----------
+>  10 files changed, 10 insertions(+), 19 deletions(-)
+>
+> Index: linux-pm/drivers/amba/bus.c
+> ===================================================================
+> --- linux-pm.orig/drivers/amba/bus.c
+> +++ linux-pm/drivers/amba/bus.c
+> @@ -124,7 +124,7 @@ static const struct dev_pm_ops amba_pm =
+>         .thaw           = pm_generic_thaw,
+>         .poweroff       = pm_generic_poweroff,
+>         .restore        = pm_generic_restore,
+> -       SET_PM_RUNTIME_PM_OPS(
+> +       SET_RUNTIME_PM_OPS(
+>                 amba_pm_runtime_suspend,
+>                 amba_pm_runtime_resume,
+>                 NULL
+> Index: linux-pm/drivers/dma/ste_dma40.c
+> ===================================================================
+> --- linux-pm.orig/drivers/dma/ste_dma40.c
+> +++ linux-pm/drivers/dma/ste_dma40.c
+> @@ -3051,7 +3051,7 @@ static int dma40_runtime_resume(struct d
+>
+>  static const struct dev_pm_ops dma40_pm_ops = {
+>         SET_LATE_SYSTEM_SLEEP_PM_OPS(dma40_suspend, dma40_resume)
+> -       SET_PM_RUNTIME_PM_OPS(dma40_runtime_suspend,
+> +       SET_RUNTIME_PM_OPS(dma40_runtime_suspend,
+>                                 dma40_runtime_resume,
+>                                 NULL)
+>  };
+> Index: linux-pm/drivers/gpio/gpio-zynq.c
+> ===================================================================
+> --- linux-pm.orig/drivers/gpio/gpio-zynq.c
+> +++ linux-pm/drivers/gpio/gpio-zynq.c
+> @@ -578,7 +578,7 @@ static void zynq_gpio_free(struct gpio_c
+>
+>  static const struct dev_pm_ops zynq_gpio_dev_pm_ops = {
+>         SET_SYSTEM_SLEEP_PM_OPS(zynq_gpio_suspend, zynq_gpio_resume)
+> -       SET_PM_RUNTIME_PM_OPS(zynq_gpio_runtime_suspend,
+> +       SET_RUNTIME_PM_OPS(zynq_gpio_runtime_suspend,
+>                         zynq_gpio_runtime_resume, NULL)
+>  };
+>
+> Index: linux-pm/drivers/i2c/busses/i2c-hix5hd2.c
+> ===================================================================
+> --- linux-pm.orig/drivers/i2c/busses/i2c-hix5hd2.c
+> +++ linux-pm/drivers/i2c/busses/i2c-hix5hd2.c
+> @@ -528,7 +528,7 @@ static int hix5hd2_i2c_runtime_resume(st
+>  #endif
+>
+>  static const struct dev_pm_ops hix5hd2_i2c_pm_ops = {
+> -       SET_PM_RUNTIME_PM_OPS(hix5hd2_i2c_runtime_suspend,
+> +       SET_RUNTIME_PM_OPS(hix5hd2_i2c_runtime_suspend,
+>                               hix5hd2_i2c_runtime_resume,
+>                               NULL)
+>  };
+> Index: linux-pm/drivers/i2c/busses/i2c-nomadik.c
+> ===================================================================
+> --- linux-pm.orig/drivers/i2c/busses/i2c-nomadik.c
+> +++ linux-pm/drivers/i2c/busses/i2c-nomadik.c
+> @@ -932,7 +932,7 @@ static int nmk_i2c_runtime_resume(struct
+>
+>  static const struct dev_pm_ops nmk_i2c_pm = {
+>         SET_LATE_SYSTEM_SLEEP_PM_OPS(nmk_i2c_suspend_late, nmk_i2c_resume_early)
+> -       SET_PM_RUNTIME_PM_OPS(nmk_i2c_runtime_suspend,
+> +       SET_RUNTIME_PM_OPS(nmk_i2c_runtime_suspend,
+>                         nmk_i2c_runtime_resume,
+>                         NULL)
+>  };
+> Index: linux-pm/drivers/mmc/host/mmci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/mmc/host/mmci.c
+> +++ linux-pm/drivers/mmc/host/mmci.c
+> @@ -1843,7 +1843,7 @@ static int mmci_runtime_resume(struct de
+>  static const struct dev_pm_ops mmci_dev_pm_ops = {
+>         SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
+>                                 pm_runtime_force_resume)
+> -       SET_PM_RUNTIME_PM_OPS(mmci_runtime_suspend, mmci_runtime_resume, NULL)
+> +       SET_RUNTIME_PM_OPS(mmci_runtime_suspend, mmci_runtime_resume, NULL)
+>  };
+>
+>  static struct amba_id mmci_ids[] = {
+> Index: linux-pm/drivers/mmc/host/sh_mobile_sdhi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/mmc/host/sh_mobile_sdhi.c
+> +++ linux-pm/drivers/mmc/host/sh_mobile_sdhi.c
+> @@ -375,7 +375,7 @@ static int sh_mobile_sdhi_remove(struct
+>  static const struct dev_pm_ops tmio_mmc_dev_pm_ops = {
+>         SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
+>                         pm_runtime_force_resume)
+> -       SET_PM_RUNTIME_PM_OPS(tmio_mmc_host_runtime_suspend,
+> +       SET_RUNTIME_PM_OPS(tmio_mmc_host_runtime_suspend,
+>                         tmio_mmc_host_runtime_resume,
+>                         NULL)
+>  };
+> Index: linux-pm/drivers/mmc/host/tmio_mmc.c
+> ===================================================================
+> --- linux-pm.orig/drivers/mmc/host/tmio_mmc.c
+> +++ linux-pm/drivers/mmc/host/tmio_mmc.c
+> @@ -135,7 +135,7 @@ static int tmio_mmc_remove(struct platfo
+>
+>  static const struct dev_pm_ops tmio_mmc_dev_pm_ops = {
+>         SET_SYSTEM_SLEEP_PM_OPS(tmio_mmc_suspend, tmio_mmc_resume)
+> -       SET_PM_RUNTIME_PM_OPS(tmio_mmc_host_runtime_suspend,
+> +       SET_RUNTIME_PM_OPS(tmio_mmc_host_runtime_suspend,
+>                         tmio_mmc_host_runtime_resume,
+>                         NULL)
+>  };
+> Index: linux-pm/drivers/spi/spi-pl022.c
+> ===================================================================
+> --- linux-pm.orig/drivers/spi/spi-pl022.c
+> +++ linux-pm/drivers/spi/spi-pl022.c
+> @@ -2377,7 +2377,7 @@ static int pl022_runtime_resume(struct d
+>
+>  static const struct dev_pm_ops pl022_dev_pm_ops = {
+>         SET_SYSTEM_SLEEP_PM_OPS(pl022_suspend, pl022_resume)
+> -       SET_PM_RUNTIME_PM_OPS(pl022_runtime_suspend, pl022_runtime_resume, NULL)
+> +       SET_RUNTIME_PM_OPS(pl022_runtime_suspend, pl022_runtime_resume, NULL)
+>  };
+>
+>  static struct vendor_data vendor_arm = {
+> Index: linux-pm/include/linux/pm.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm.h
+> +++ linux-pm/include/linux/pm.h
+> @@ -342,7 +342,7 @@ struct dev_pm_ops {
+>  #define SET_LATE_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
+>  #endif
+>
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  #define SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn) \
+>         .runtime_suspend = suspend_fn, \
+>         .runtime_resume = resume_fn, \
+> @@ -351,15 +351,6 @@ struct dev_pm_ops {
+>  #define SET_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn)
+>  #endif
+>
+> -#ifdef CONFIG_PM
+> -#define SET_PM_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn) \
+> -       .runtime_suspend = suspend_fn, \
+> -       .runtime_resume = resume_fn, \
+> -       .runtime_idle = idle_fn,
+> -#else
+> -#define SET_PM_RUNTIME_PM_OPS(suspend_fn, resume_fn, idle_fn)
+> -#endif
+> -
+>  /*
+>   * Use this if you want to use the same suspend and resume callbacks for suspend
+>   * to RAM and hibernation.
+>
