@@ -1,43 +1,91 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI backlight regression fix for 3.18-rc8
-Date: Fri, 5 Dec 2014 02:17:39 +0100
-Message-ID: <CAJZ5v0ikkZ9LMFzMoj854nkN9Kno9FqoKffGYh8nJzoQ3GOyWw@mail.gmail.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] dell-smo8800: Add more acpi ids and change description
+ of driver
+Date: Wed, 3 Dec 2014 05:43:23 -0800
+Message-ID: <20141203134323.GI75099@vmdeb7>
+References: <1411994748-11229-1-git-send-email-pali.rohar@gmail.com>
+ <20140929205604.GA34181@vmdeb7>
+ <201411230338.26239@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:45120 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932098AbaLEDgy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Dec 2014 22:36:54 -0500
+Content-Disposition: inline
+In-Reply-To: <201411230338.26239@pali>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Sun, Nov 23, 2014 at 03:38:26AM +0100, Pali Roh=E1r wrote:
+> Oops, I lost this mail somewhere...
+>=20
+> I copied these ids from windows driver inf file. I did not tested=20
+> them because I do not have machine which reports these ids. It=20
+> looks like all SMOXX devices have same acpi structure (one IRQ).=20
+> So adding ids could not break anything (if acpi device will not=20
+> have for some reason IRQ specified, device probe function will=20
+> fail).
 
-Please pull from
+Please resend with a complete message body and the typo fix below.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.18-rc8
+>=20
+> On Monday 29 September 2014 22:56:04 Darren Hart wrote:
+> > On Mon, Sep 29, 2014 at 02:45:48PM +0200, Pali Roh=E1r wrote:
+> >=20
+> > Please see Documentation/SubmittingPatches, 15) The canonical
+> > patch format, and provide a complete message body.
+> >=20
+> > Have you validated each of the 6 ACPI IDs added to the driver?
+> >=20
+> > > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+> > > ---
+> > >=20
+> > >  drivers/platform/x86/Kconfig        |    4 ++--
+> > >  drivers/platform/x86/dell-smo8800.c |   10 ++++++++--
+> > >  2 files changed, 10 insertions(+), 4 deletions(-)
+> > >=20
+> > > diff --git a/drivers/platform/x86/Kconfig
+> > > b/drivers/platform/x86/Kconfig index 3bbcbf1..ba9ee4f
+> > > 100644
+> > > --- a/drivers/platform/x86/Kconfig
+> > > +++ b/drivers/platform/x86/Kconfig
+> > > @@ -128,10 +128,10 @@ config DELL_WMI_AIO
+> > >=20
+> > >  	  be called dell-wmi-aio.
+> > > =20
+> > >  config DELL_SMO8800
+> > >=20
+> > > -	tristate "Dell Latitude freefall driver (ACPI
+> > > SMO8800/SMO8810)" +	tristate "Dell Latitude freefall driver
+> > > (ACPI SMO88XX)"
+> > >=20
+> > >  	depends on ACPI
+> > >  	---help---
+> > >=20
+> > > -	  Say Y here if you want to support SMO8800/SMO8810
+> > > freefall device +	  Say Y here if you want to support
+> > > SMO88XX freefall device
+> >=20
+> > "devices" now that multiple are supported.
+> >=20
+> > Thanks,
+>=20
+> --=20
+> Pali Roh=E1r
+> pali.rohar@gmail.com
 
-to receive an ACPI backlight fix for v3.18-rc8 (or for final 3.18 if
-there's no -rc8) as commit 35d0565b95547ec12d025dc9b1394f22968d113d
 
- ACPI / video: update condition to check if device is in _DOD list
 
-on top of commit 009d0431c3914de64666bec0d350e54fdd59df6a
-
- Linux 3.18-rc7
-
-This is a simple fix for an ACPI backlight regression introduced by
-a recent commit that overlooked a corner case which should have been
-taken into account.
-
-Thanks!
-
----------------
-
-Aaron Lu (1):
-      ACPI / video: update condition to check if device is in _DOD list
-
----------------
-
- drivers/acpi/video.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+--=20
+Darren Hart
+Intel Open Source Technology Center
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
