@@ -1,224 +1,401 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/2] acpi:apd:add AMD ACPI2Platform device support
-Date: Thu, 4 Dec 2014 13:58:48 +0200
-Message-ID: <20141204115848.GL28857@lahna.fi.intel.com>
-References: <1417610072-2217-1-git-send-email-Ken.Xue@amd.com>
+Subject: Re: [PATCH 1/2] acpi:soc: merge common codes for creating platform
+ device
+Date: Thu, 4 Dec 2014 15:04:24 +0200
+Message-ID: <20141204130424.GM28857@lahna.fi.intel.com>
+References: <1417610017-2140-1-git-send-email-Ken.Xue@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:53706 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:41229 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753402AbaLDMB2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Dec 2014 07:01:28 -0500
+	id S1753199AbaLDNE2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Dec 2014 08:04:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1417610072-2217-1-git-send-email-Ken.Xue@amd.com>
+In-Reply-To: <1417610017-2140-1-git-send-email-Ken.Xue@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Ken Xue <Ken.Xue@amd.com>
 Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Dec 03, 2014 at 08:34:32PM +0800, Ken Xue wrote:
-> This is a new feature to interpret AMD specific ACPI device to
-> platform device such as I2C, UART found on AMD CZ and later
-> chipsets. It based on INTEL LPSS and acpi soc.
->=20
+On Wed, Dec 03, 2014 at 08:33:37PM +0800, Ken Xue wrote:
+> This patch is supposed to deliver some common codes for AMD APD and
+> INTEL LPSS. It can help to convert some specific acpi devices to be
+> platform devices.
+> 
 > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
 > ---
->  arch/x86/Kconfig        | 11 +++++++
->  drivers/acpi/Makefile   |  2 +-
->  drivers/acpi/acpi_apd.c | 82 +++++++++++++++++++++++++++++++++++++++=
-++++++++++
->  drivers/acpi/internal.h |  6 ++++
->  drivers/acpi/scan.c     |  1 +
->  5 files changed, 101 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/acpi/acpi_apd.c
-
-Trying to compile this with !X86_AMD_PLATFORM_DEVICE gives me
-
-drivers/acpi/acpi_apd.c:74:13: error: redefinition of =E2=80=98acpi_apd=
-_init=E2=80=99
- void __init acpi_apd_init(void)
-             ^
-In file included from drivers/acpi/acpi_apd.c:22:0:
-drivers/acpi/internal.h:74:20: note: previous definition of =E2=80=98ac=
-pi_apd_init=E2=80=99 was here
- static inline void acpi_apd_init(void) {}
-                    ^
-scripts/Makefile.build:257: recipe for target 'drivers/acpi/acpi_apd.o'=
- failed
-make[2]: *** [drivers/acpi/acpi_apd.o] Error 1
-make[2]: *** Waiting for unfinished jobs....
-
-
->=20
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index ded8a67..6402c79f 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -495,6 +495,17 @@ config X86_INTEL_LPSS
->  	  things like clock tree (common clock framework) and pincontrol
->  	  which are needed by the LPSS peripheral drivers.
-> =20
-> +config X86_AMD_PLATFORM_DEVICE
-> +	bool "AMD ACPI2Platform devices support"
-> +	depends on ACPI
-> +	select COMMON_CLK
-> +	select PINCTRL
-> +	---help---
-> +	  Select to interpret AMD specific ACPI device to platform device
-> +	  such as I2C, UART found on AMD CARRIZO and later chipset. Selecti=
-ng
-> +	  this option enables things like clock tree (common clock framewor=
-k)
-> +	  and pinctrl.
-> +
->  config IOSF_MBI
->  	tristate "Intel SoC IOSF Sideband support for SoC platforms"
->  	depends on PCI
+>  drivers/acpi/Makefile   |   2 +-
+>  drivers/acpi/acpi_soc.c | 211 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/acpi_soc.h |  90 +++++++++++++++++++++
+>  3 files changed, 302 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/acpi/acpi_soc.c
+>  create mode 100644 drivers/acpi/acpi_soc.h
+> 
 > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index ae3397d..b07003a 100644
+> index c3b2fcb..ae3397d 100644
 > --- a/drivers/acpi/Makefile
 > +++ b/drivers/acpi/Makefile
-> @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) +=3D proces=
-sor_pdc.o
->  acpi-y				+=3D ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+=3D dock.o
->  acpi-y				+=3D pci_root.o pci_link.o pci_irq.o
-> -acpi-y				+=3D acpi_soc.o acpi_lpss.o
-> +acpi-y				+=3D acpi_soc.o acpi_lpss.o acpi_apd.o
->  acpi-y				+=3D acpi_platform.o
->  acpi-y				+=3D acpi_pnp.o
->  acpi-y				+=3D int340x_thermal.o
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>  acpi-y				+= ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+>  acpi-y				+= pci_root.o pci_link.o pci_irq.o
+> -acpi-y				+= acpi_lpss.o
+> +acpi-y				+= acpi_soc.o acpi_lpss.o
+
+I think you need to convert acpi_lpss.c to use this new acpi_soc.c.
+
+>  acpi-y				+= acpi_platform.o
+>  acpi-y				+= acpi_pnp.o
+>  acpi-y				+= int340x_thermal.o
+> diff --git a/drivers/acpi/acpi_soc.c b/drivers/acpi/acpi_soc.c
 > new file mode 100644
-> index 0000000..9afc144
+> index 0000000..25089a0
 > --- /dev/null
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -0,0 +1,82 @@
+> +++ b/drivers/acpi/acpi_soc.c
+> @@ -0,0 +1,211 @@
 > +/*
-> + * AMD ACPI support for  ACPI2platform device.
+> + * ACPI SOC support for Intel Lynxpoint LPSS and AMD APD.
 > + *
-> + * Copyright (c) 2014, AMD Corporation.
+> + * Copyright (C) 2015, Intel Corporation & AMD Corporation
 > + * Authors: Ken Xue <Ken.Xue@amd.com>
-> + *	Wu, Jeff <Jeff.Wu@amd.com>
+> + *		Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *		Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > + *
-> + * This program is free software; you can redistribute it and/or mod=
-ify
+> + * This program is free software; you can redistribute it and/or modify
 > + * it under the terms of the GNU General Public License version 2 as
 > + * published by the Free Software Foundation.
 > + */
 > +
 > +#include <linux/acpi.h>
-> +#include <linux/clk.h>
-> +#include <linux/clkdev.h>
-> +#include <linux/clk-provider.h>
 > +#include <linux/err.h>
 > +#include <linux/io.h>
 > +#include <linux/platform_device.h>
 > +#include <linux/pm_runtime.h>
-
-Are you sure you need all those headers?
-
+> +#include <linux/delay.h>
+> +#include <linux/pm_domain.h>
+> +
 > +#include "internal.h"
 > +#include "acpi_soc.h"
 > +
-> +struct acpi_soc asoc;
+> +ACPI_MODULE_NAME("acpi_soc");
 > +
-> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +#define APD_ADDR(desc)	((unsigned long)&desc)
+> +/* A list for all acpi soc device */
+> +static LIST_HEAD(a_soc_list);
 > +
-> +static int acpi_apd_setup(struct acpi_soc_dev_private_data *pdata)
+> +static int is_memory(struct acpi_resource *res, void *not_used)
 > +{
-> +	struct acpi_soc_dev_desc *dev_desc =3D pdata->dev_desc;
-> +	struct clk *clk =3D ERR_PTR(-ENODEV);
+> +	struct resource r;
 > +
-> +	if (dev_desc->clk)
+> +	return !acpi_dev_resource_memory(res, &r);
+> +}
+> +
+> +static int acpi_soc_create_device(struct acpi_device *adev,
+> +				   const struct acpi_device_id *id)
+> +{
+> +	struct acpi_soc_dev_desc *dev_desc;
+> +	struct acpi_soc_dev_private_data *pdata;
+> +	struct resource_list_entry *rentry;
+> +	struct list_head resource_list;
+> +	struct platform_device *pdev;
+> +	int ret;
+> +
+> +	dev_desc = (struct acpi_soc_dev_desc *)id->driver_data;
+> +	if (!dev_desc) {
+> +		pdev = acpi_create_platform_device(adev);
+> +		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
+> +	}
+> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		return -ENOMEM;
+> +
+> +	INIT_LIST_HEAD(&resource_list);
+> +	ret = acpi_dev_get_resources(adev, &resource_list, is_memory, NULL);
+> +	if (ret < 0)
+> +		goto err_out;
+> +
+> +	list_for_each_entry(rentry, &resource_list, node)
+> +		if (resource_type(&rentry->res) == IORESOURCE_MEM) {
+> +			if (dev_desc->mem_size_override)
+> +				pdata->mmio_size = dev_desc->mem_size_override;
+> +			else
+> +				pdata->mmio_size = resource_size(&rentry->res);
+> +			pdata->mmio_base = ioremap(rentry->res.start,
+> +						   pdata->mmio_size);
+> +			break;
+> +		}
+> +
+> +	acpi_dev_free_resource_list(&resource_list);
+> +
+> +	pdata->adev = adev;
+> +	pdata->dev_desc = dev_desc;
+> +
+> +	if (dev_desc->setup)
+> +		dev_desc->setup(pdata);
+> +
+> +	/*
+> +	 * This works around a known issue in ACPI tables where acpi soc devices
+> +	 * have _PS0 and _PS3 without _PSC (and no power resources), so
+> +	 * acpi_bus_init_power() will assume that the BIOS has put them into D0.
+> +	 */
+> +	ret = acpi_device_fix_up_power(adev);
+> +	if (ret) {
+> +		/* Skip the device, but continue the namespace scan. */
+> +		ret = 0;
+> +		goto err_out;
+> +	}
+> +
+> +	adev->driver_data = pdata;
+> +	pdev = acpi_create_platform_device(adev);
+> +	if (!IS_ERR_OR_NULL(pdev))
+> +		return 1;
+> +
+> +	ret = PTR_ERR(pdev);
+> +	adev->driver_data = NULL;
+> +
+> + err_out:
+> +	kfree(pdata);
+> +	return ret;
+> +}
+> +
+> +static int acpi_soc_platform_notify(struct notifier_block *nb,
+> +				     unsigned long action, void *data)
+> +{
+> +	struct platform_device *pdev = to_platform_device(data);
+> +	struct acpi_soc_dev_private_data *pdata;
+> +	struct acpi_device *adev;
+> +	struct acpi_soc *a_soc_entry;
+> +	const struct acpi_device_id *id = NULL;
+> +
+> +	list_for_each_entry(a_soc_entry, &a_soc_list, list) {
+> +		id = acpi_match_device(a_soc_entry->ids, &pdev->dev);
+> +		if (!id)
+> +			break;
+> +	}
+> +
+> +	if (!id || !id->driver_data)
 > +		return 0;
 > +
-> +	if (dev_desc->fixed_clk_rate) {
-> +		clk =3D clk_register_fixed_rate(&pdata->adev->dev,
-> +					dev_name(&pdata->adev->dev),
-> +					NULL, CLK_IS_ROOT,
-> +					dev_desc->fixed_clk_rate);
-> +		dev_desc->clk =3D clk;
-> +		clk_register_clkdev(clk, NULL, dev_name(&pdata->adev->dev));
+> +	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
+> +		return 0;
+> +
+> +	pdata = acpi_driver_data(adev);
+> +	if (!pdata || !pdata->mmio_base)
+> +		return 0;
+> +
+> +	switch (action) {
+> +	case BUS_NOTIFY_BOUND_DRIVER:
+> +		if ((pdata->dev_desc->flags & ACPI_SOC_PM)) {
+> +			if (a_soc_entry->pm_domain)
+> +				pdev->dev.pm_domain = a_soc_entry->pm_domain;
+> +			else if (pdata->dev_desc->flags & ACPI_SOC_PM_ON)
+> +					dev_pm_domain_attach(&pdev->dev, true);
+> +			else
+> +					dev_pm_domain_attach(&pdev->dev, false);
+> +		}
+> +		break;
+> +	case BUS_NOTIFY_UNBOUND_DRIVER:
+> +		if ((pdata->dev_desc->flags & ACPI_SOC_PM)) {
+> +			if (a_soc_entry->pm_domain)
+> +				pdev->dev.pm_domain = a_soc_entry->pm_domain;
+> +			else if (pdata->dev_desc->flags & ACPI_SOC_PM_ON)
+> +					dev_pm_domain_detach(&pdev->dev, true);
+> +			else
+> +					dev_pm_domain_detach(&pdev->dev, false);
+> +		}
+> +		break;
+> +	case BUS_NOTIFY_ADD_DEVICE:
+> +		if ((pdata->dev_desc->flags & ACPI_SOC_SYSFS)
+> +			&& a_soc_entry->pm_domain)
+> +			return sysfs_create_group(&pdev->dev.kobj,
+> +						  a_soc_entry->attr_group);
+> +	case BUS_NOTIFY_DEL_DEVICE:
+> +		if ((pdata->dev_desc->flags & ACPI_SOC_SYSFS)
+> +			&& a_soc_entry->pm_domain)
+> +			sysfs_remove_group(&pdev->dev.kobj,
+> +			a_soc_entry->attr_group);
+> +		break;
 > +	}
 > +
 > +	return 0;
 > +}
 > +
-> +static struct acpi_soc_dev_desc cz_i2c_desc =3D {
-> +	.setup =3D acpi_apd_setup,
-> +	.fixed_clk_rate =3D 133000000,
+> +static struct notifier_block acpi_soc_nb = {
+> +	.notifier_call = acpi_soc_platform_notify,
 > +};
 > +
-> +static struct acpi_soc_dev_desc cz_uart_desc =3D {
-> +	.setup =3D acpi_apd_setup,
-> +	.fixed_clk_rate =3D 48000000,
-> +};
-> +
-> +#else
-> +
-> +#define APD_ADDR(desc) (0UL)
-> +
-> +#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-> +
-> +static struct acpi_device_id acpi_apd_device_ids[] =3D {
-> +	/* Generic apd devices */
-> +	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-> +	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-> +	{ }
-> +};
-> +
-> +
-
-Double blank line.
-
-> +void __init acpi_apd_init(void)
+> +static void acpi_soc_bind(struct device *dev)
 > +{
-> +	asoc.ids =3D acpi_apd_device_ids;
-> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +	register_acpi_soc(&asoc, false);
-> +#else
-> +	register_acpi_soc(&asoc, true);
-> +#endif /*CONFIG_X86_AMD_PLATFORM_DEVICE*/
-> +}
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 447f6d6..c8a0e8e 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -68,6 +68,12 @@ static inline void acpi_debugfs_init(void) { retur=
-n; }
->  #endif
->  void acpi_lpss_init(void);
-> =20
-> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +void acpi_apd_init(void);
-> +#else
-> +static inline void acpi_apd_init(void) {}
-> +#endif
+> +	struct acpi_soc_dev_private_data *pdata;
 > +
->  acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src)=
-;
->  bool acpi_queue_hotplug_work(struct work_struct *work);
->  void acpi_device_hotplug(struct acpi_device *adev, u32 src);
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 0476e90..24fef2b 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2349,6 +2349,7 @@ int __init acpi_scan_init(void)
->  	acpi_pci_link_init();
->  	acpi_processor_init();
->  	acpi_lpss_init();
-> +	acpi_apd_init();
->  	acpi_cmos_rtc_init();
->  	acpi_container_init();
->  	acpi_memory_hotplug_init();
-> --=20
+> +	pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +
+> +	if (!pdata || !pdata->dev_desc || !pdata->dev_desc->bind)
+> +		return;
+> +
+> +	pdata->dev_desc->bind(pdata);
+> +}
+> +
+> +static void acpi_soc_unbind(struct device *dev)
+> +{
+> +	struct acpi_soc_dev_private_data *pdata;
+> +
+> +	pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +
+> +	if (!pdata || !pdata->dev_desc || !pdata->dev_desc->unbind)
+> +		return;
+> +
+> +	pdata->dev_desc->unbind(pdata);
+> +}
+> +
+> +void register_acpi_soc(struct acpi_soc *a_soc, bool disable_scan_handler)
+
+Would it work better if we pass acpi_scan_handler as a parameter to this
+function?
+
+Then if it is NULL, it means that it will not register scan handler at
+all.
+
+And then provide the default handler in acpi_soc.h so that you can do
+
+	register_acpi_soc(&soc, default_acpi_scan_handler);
+
+or
+
+	register_acpi_soc(&soc, NULL);
+
+depending the case. But also support passing custom scan handler.
+
+> +{
+> +	struct acpi_scan_handler *acpi_soc_handler;
+> +
+> +	INIT_LIST_HEAD(&a_soc->list);
+> +	list_add(&a_soc->list, &a_soc_list);
+> +
+> +	acpi_soc_handler = kzalloc(sizeof(*acpi_soc_handler), GFP_KERNEL);
+> +	acpi_soc_handler->ids = a_soc->ids;
+> +	if (!disable_scan_handler) {
+> +		acpi_soc_handler->attach = acpi_soc_create_device;
+> +		acpi_soc_handler->bind = acpi_soc_bind;
+> +		acpi_soc_handler->unbind = acpi_soc_unbind;
+> +	}
+> +	acpi_scan_add_handler(acpi_soc_handler);
+> +	bus_register_notifier(&platform_bus_type, &acpi_soc_nb);
+> +}
+> diff --git a/drivers/acpi/acpi_soc.h b/drivers/acpi/acpi_soc.h
+> new file mode 100644
+> index 0000000..cc270a5
+> --- /dev/null
+> +++ b/drivers/acpi/acpi_soc.h
+> @@ -0,0 +1,90 @@
+> +/*
+> + * ACPI SOC support for Intel Lynxpoint LPSS and AMD APD.
+> + *
+> + * Copyright (C) 2015, Intel Corporation & AMD Corporation
+> + * Authors: Ken Xue <Ken.Xue@amd.com>
+> + *		Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *		Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef _ACPI_SOC_H
+> +#define _ACPI_SOC_H
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/clk.h>
+> +#include <linux/pm.h>
+> +
+> +/* Flags */
+> +#define ACPI_SOC_SYSFS	BIT(0)
+> +#define ACPI_SOC_PM		BIT(1)
+> +#define ACPI_SOC_PM_ON	BIT(2)
+
+Would be nice to document what those mean.
+
+> +
+> +struct acpi_soc_dev_private_data;
+> +
+> +/**
+> + * struct acpi_soc - acpi soc
+> + * @list: list head
+> + * @ids: all acpi device ids for acpi soc
+> + * @pm_domain: power domain for all acpi device;can be NULL
+> + * @attr_group: attribute group for sysfs support of acpi soc;can be NULL
+> + */
+> +struct acpi_soc {
+> +	struct list_head list;
+> +	struct acpi_device_id	*ids;
+> +	struct dev_pm_domain	*pm_domain;
+> +	struct attribute_group	*attr_group;
+
+These are tab aligned but list is using spaces. Please be consistent.
+
+> +};
+> +
+> +/**
+> + * struct acpi_soc_dev_desc - a descriptor for acpi device
+> + * @flags: some device feature flags
+
+Please a bit better documentation than "some device feature flags".
+
+> + * @clk: clock device
+> + * @fixed_clk_rate: fixed rate input clock source for acpi device;
+> + *				0 means no fixed rate input clock source
+> + * @mem_size_override: a workaround for override device memsize;
+> + *				0 means no needs for this WA
+> + * @setup: a hook routine to set device resource during create platform device
+> + * @bind: a hook of acpi_scan_handler.bind
+> + * @unbind: a hook of acpi_scan_handler.unbind
+> + *
+> + *device description defined as acpi_device_id.driver_data
+
+Missing space.
+
+> + */
+> +struct acpi_soc_dev_desc {
+> +	unsigned int flags;
+> +	struct clk *clk;
+> +	unsigned int fixed_clk_rate;
+> +	size_t mem_size_override;
+> +	int (*setup)(struct acpi_soc_dev_private_data *pdata);
+> +	void (*bind)(struct acpi_soc_dev_private_data *pdata);
+> +	void (*unbind)(struct acpi_soc_dev_private_data *pdata);
+> +};
+> +
+> +/**
+> + * struct acpi_soc_dev_private_data - acpi device private data
+> + * @mmio_base: virtual memory base addr of the device
+> + * @mmio_size: device memory size
+> + * @dev_desc: device description
+> + * @adev: apci device
+
+apci -> acpi
+
+> + */
+> +struct acpi_soc_dev_private_data {
+> +	void __iomem *mmio_base;
+> +	resource_size_t mmio_size;
+> +
+> +	struct acpi_soc_dev_desc *dev_desc;
+> +	struct acpi_device *adev;
+> +};
+> +
+> +/**
+> + * register_acpi_soc - register a new acpi soc
+> + * @a_soc: acpi soc
+> + * @disable_scan_handler: true means remove default scan handle
+> + *			false means use default scan handle
+> + *
+> + * register a new acpi soc into asoc_list and install default scan handle.
+> + */
+
+IMHO function kernel-docs belong close to the function implementation,
+e.g in this case to acpi_soc.c.
+
+> +void register_acpi_soc(struct acpi_soc *a_soc, bool disable_scan_handler);
+> +
+> +#endif
+> -- 
 > 1.9.1
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
