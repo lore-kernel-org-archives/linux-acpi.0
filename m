@@ -1,38 +1,71 @@
-From: nicole dulac <nicoledulac01@gmail.com>
-Subject: Vorgeschlagene Finanzdarlehen...
-Date: Sat, 6 Dec 2014 19:50:30 +0100
-Message-ID: <CA+=uMqtF2ppC4XCB8ujRRCBm6cyJMvm_jwCkf7cz1hS3NCQtmw__29587.5590797097$1417891862$gmane$org@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] drm/i915/opregion: work around buggy
+ firmware that provides 8+ output devices
+Date: Mon, 08 Dec 2014 09:58:42 +0800
+Message-ID: <548505D2.8030904@intel.com>
+References: <52FAE504.8020001@intel.com>
+ <20140212103156.GC5298@nuc-i3427.alporthouse.com>
+ <52FC8C01.1040002@intel.com>
+ <20140213100814.GM14909@nuc-i3427.alporthouse.com>
+ <CAKMK7uGN3Of2VU6_LsSLh041kkx4TrhyH0H8zvE-PRvOtzJgfg@mail.gmail.com>
+ <53045DD1.5010406@intel.com> <20140219073339.GA30685@srcf.ucam.org>
+ <5304725A.3020909@intel.com> <20140304144504.GE17001@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f194.google.com ([209.85.212.194]:40225 "EHLO
-	mail-wi0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283AbaLFSuc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Dec 2014 13:50:32 -0500
-Received: by mail-wi0-f194.google.com with SMTP id l15so681893wiw.5
-        for <linux-acpi@vger.kernel.org>; Sat, 06 Dec 2014 10:50:31 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20140304144504.GE17001@phenom.ffwll.local>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Daniel Vetter <daniel@ffwll.ch>, Matthew Garrett <mjg59@srcf.ucam.org>, Chris Wilson <chris@chris-wilson.co.uk>, Jani Nikula <jani.nikula@linux.intel.com>
+Cc: "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, jaime.91@hotmail.es, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Oleksij Rempel <linux@rempel-privat.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Vorgeschlagene Finanzdarlehen
-Ich bin ein und bietet privater Investor Raha Darlehen f=C3=BCr alle
-Personen, zu haben und gute Manieren in der Lage, mit einem Zinssatz
-von und 3% einer von Laufzeit 1-30 aastat zur=C3=BCck, von der abh=C3=A4=
-ngig
-gew=C3=BCnschten Menge.
-Ich will meine Br=C3=BCder und einfach nur Schwestern surevad finanziel=
-len
-Schwierigkeiten sind, und sind von den Banken Daher f=C3=BCr weitere
-Informationen zu helfen abgelehnt, kontaktieren saatke mulle bitte koht=
-a
-E-Mail: nicoledulac01@gmail.com
-PS: Ich werde auch zu geben Meinen Vollen Namen, ist nichts verborgen,
-Weil ich mit Vertrauen und Ehrlichkeit. In Wartestellung ...
-nicoledulac01@gmail.com
-nicoledulac01@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+V2UgaGF2ZSBhIG5ldyBidWcgcmVwb3J0IHRoYXQgaGFzIHRoZSBzYW1lIHByb2JsZW06Cmh0dHBz
+Oi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9ODg5NDEKClRoZSBwb3N0ZWQg
+cGF0Y2ggc29sdmVzIHRoZSBwcm9ibGVtLiBJIGtub3cgaXQncyBub3QgcGVyZmVjdCwgYnV0IGl0
+CmRvZXNuJ3Qgc2VlbSBpdCB3b3VsZCBkbyBhbnkgaGFybSB0byBleGlzdGluZyBzeXN0ZW1zIHNv
+IHNob3VsZCBiZSBzYWZlLgoKQmV0dGVyLCBpZiBzb21lb25lIGNhbiBzaGVkIHNvbWUgbGlnaHQg
+b24gaG93IHRoaXMgc2hvdWxkIGJlIHByb3Blcmx5CmhhbmRsZWQsIHRoYXQgd291bGQgYmUgZ3Jl
+YXQuCgpUaGFua3MsCkFhcm9uCgpPbiAwMy8wNC8yMDE0IDEwOjQ1IFBNLCBEYW5pZWwgVmV0dGVy
+IHdyb3RlOgo+IE9uIFdlZCwgRmViIDE5LCAyMDE0IGF0IDA0OjU5OjA2UE0gKzA4MDAsIEFhcm9u
+IEx1IHdyb3RlOgo+PiBPbiAwMi8xOS8yMDE0IDAzOjMzIFBNLCBNYXR0aGV3IEdhcnJldHQgd3Jv
+dGU6Cj4+PiBPbiBXZWQsIEZlYiAxOSwgMjAxNCBhdCAwMzozMToyOVBNICswODAwLCBBYXJvbiBM
+dSB3cm90ZToKPj4+Cj4+Pj4gRElEMiBpcyBpbiBzeXN0ZW0gbWVtb3J5IHJlZ2lvbiBhbmQgaGFz
+IHNvbWUgYXNzaWduZWQgdmFsdWUgbGlrZSAweDQwMAo+Pj4+IHdoZW4gd2UgcmVhZCBpdC4gRm9y
+IHRoaXMgY2FzZSBpdCBpcyBlYXN5IHNpbmNlIHRoZXJlIGlzIG9ubHkgb25lIG91dHB1dAo+Pj4+
+IGRldmljZSB0aGF0IGlzIG9mIHR5cGUgTFZEUyBzbyB3ZSBjYW4gbWF0Y2ggaXQgdG8gY29ubmVj
+dG9yIG9mIHR5cGUgZURQCj4+Pj4gb3IgTFZEUywgc3VwcG9zZSB0aGVyZSBpcyBvbmx5IG9uZSBz
+dWNoIGNvbm5lY3Rvci4gQnV0IGZvciBvdXRwdXQKPj4+PiBkZXZpY2VzJyB3aG9zZSBfQURSIGhh
+cyB0aGUgdmFsdWUgb2YgMHgzMDEsIDB4MzAyLCBldGMuIEkgaGF2ZSBubyBpZGVhCj4+Pj4gaG93
+IHRvIG1hdGNoIHRoZW0gdXAgdG8gdGhlIGNvbm5lY3RvcnMgb2YgdGhhdCB0eXBlIGFzIHdlIGNh
+bid0IGJlIHN1cmUKPj4+PiB0aGUgcHJvYmUgb3JkZXIgd2UgaGF2ZSB1c2VkIGluIGk5MTUgZHJp
+dmVyIGlzIHRoZSBzYW1lIGFzIEJJT1MnLgo+Pj4KPj4+IE5vbi1zdGFuZGFyZCBfQURSIHZhbHVl
+cyBhcmUgYXNzaWdlbmQgYnkgdGhlIEdQVSB2ZW5kb3IsIHNvIEludGVsIHNob3VsZCAKPj4+IGJl
+IGFibGUgdG8gcHJvdmlkZSB5b3Ugd2l0aCB0aGUgY29ycmVjdCBpbnRlcnByZXRhdGlvbnMuCj4+
+Cj4+IEl0IGRvZXNuJ3Qgc2VlbSB0aGUgX0FEUiB2YWx1ZSBoYXMgdG8gYmUgdGhlIGZvcm1hdCBk
+ZWZpbmVkIGJ5IF9ET0QsIGFzCj4+IHRoZSBleGFtcGxlIG9mIHRoZSBBQ1BJIHNwZWMgZ2l2ZXM6
+Cj4+IE1ldGhvZCAoX0FEUiwgMCkgewo+PiAgICAgcmV0dXJuKDB4MDEwMCkKPj4gfQo+PiBTbyB0
+aGF0IGlzIG5vdCB0aGUgcHJvYmxlbSBoZXJlLgo+Pgo+PiBUaGUgcHJvYmxlbSBpcywgd2UgZG9u
+J3QgaGF2ZSBhbnkgd2F5IG9mIG1hdGNoaW5nIGFuIEFDUEkgb3V0cHV0IGRldmljZQo+PiBub2Rl
+IHRvIGEgZHJtIGNvbm5lY3RvciBvZiB0aGUgc2FtZSB0eXBlIHdoZW4gdGhlcmUgYXJlIG1vcmUg
+dGhhbiAxIG9mCj4+IHRob3NlIHdpdGggdGhlIHNhbWUgdHlwZSwgaS5lLiB3ZSBkb24ndCBrbm93
+IGhvdyB0aGUgaW5kZXggdmFsdWUgYXJlCj4+IGFzc2lnbmVkIGJ5IEJJT1MuCj4gCj4gSSd2ZSB0
+aG91Z2h0IHRoZSBPcFJlZ2lvbiBzcGVjIGhhcyBzb21lIGFkZGl0aW9uYWwgZmllbGRzIGluIHRo
+ZXJlCj4gaW5kaWNhdGluZyB0aGUgcG9ydCBudW1iZXIsIHdoaWNoIHdlIGNvdWxkIG1hdGNoIHVw
+IGF0IGxlYXN0IG9uIG1vZGVybgo+IHBsYXRmb3JtcyAod2hlcmUgdGhlcmUncyBvbmx5IGV2ZXIg
+cG9ydCBBLUUpLiBCdXQgdGhhdCdzIHZlcnkgaGF6eQo+IHJlY29sbGVjdGlvbiBmcm9tIGEgcmVh
+bGx5IG9sZCBPcFJlZ2lvbiBzcGVjLCBpLmUuIEkgaGF2ZSBubyBibG9vZHkgY2x1ZQo+IGF0IGFs
+bCA7LSkKPiAKPiBJZiBJIG1pc3JlbWVtYmVyIHRoaXMgdGhlbiB3ZSBuZWVkIHRvIHN0YXJ0IG9u
+IGEgYmVnZ2luZyB0b3VyIGFnYWluIGFuZAo+IGFzayB0aGUgd2luZG93cyBndXlzIGhvdyB0aGlz
+IGlzIGFsbCBzdXBwb3NlZCB0byB3b3JrIC4uLgo+IC1EYW5pZWwKPiAKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QK
+SW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
