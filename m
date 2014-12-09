@@ -1,36 +1,58 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 6/6] pci, acpi: Share ACPI PCI config space accessors.
-Date: Tue, 9 Dec 2014 14:50:05 -0700
-Message-ID: <CAErSpo6cUuEK41wD33Uyzb5Y5yFp+jKVVvWLrZ0dO1iuYv8GjQ@mail.gmail.com>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
- <3957412.IooRKpIXjW@wuerfel> <20141121180825.GD6578@google.com>
- <2178540.dTppAIY2rE@wuerfel> <54854FB2.8080206@linaro.org>
+From: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>
+Subject: Re: [PATCH] ACPI / Fan: Use bus id for INT3404 Fan
+Date: Tue, 9 Dec 2014 23:30:30 +0000
+Message-ID: <1418167806.740.33.camel@spandruv-desktop.jf.intel.com>
+References: <1418158385-5070-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <5893682.k1Yk2RLk90@vostro.rjw.lan>
+	 <1418167597.740.30.camel@spandruv-desktop.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f51.google.com ([209.85.192.51]:43740 "EHLO
-	mail-qg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728AbaLIVu0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Dec 2014 16:50:26 -0500
-Received: by mail-qg0-f51.google.com with SMTP id e89so1154931qgf.24
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Dec 2014 13:50:26 -0800 (PST)
-In-Reply-To: <54854FB2.8080206@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1418167597.740.30.camel@spandruv-desktop.jf.intel.com>
+Content-Language: en-US
+Content-ID: <BA2791FD8B4872489E5F55AD5E6DA863@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "edubezval@gmail.com" <edubezval@gmail.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, Myron Stowe <myron.stowe@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linaro-acpi@lists.linaro.org, linux-pci <linux-pci@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, x86 <x86@kernel.org>, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, "H. Peter Anvin" <hpa@zytor.com>, Yijing Wang <wangyijing@huawei.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Mon, Dec 8, 2014 at 12:13 AM, Tomasz Nowicki
-<tomasz.nowicki@linaro.org> wrote:
-
-> What would be next steps regarding this patch set? I am not sure we have
-> reached a consensus on weak vs #ifdef choice.
-
-I work through the list at
-https://patchwork.ozlabs.org/project/linux-pci/list/ in FIFO order, so
-you don't need to do anything else except poke me to move faster :)
-
-The weak/ifdef question is relatively minor and easily changed, so I
-wouldn't worry about it yet.
-
-Bjorn
+Q29ycmVjdGVkIGVtYWlsIGFkZHJlc3MuDQpPbiBUdWUsIDIwMTQtMTItMDkgYXQgMTU6MjYgLTA4
+MDAsIFNyaW5pdmFzIFBhbmRydXZhZGEgd3JvdGU6IA0KPiBPbiBUdWUsIDIwMTQtMTItMDkgYXQg
+MjI6NDMgKzAxMDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOiANCj4gPiBPbiBUdWVzZGF5LCBE
+ZWNlbWJlciAwOSwgMjAxNCAxMjo1MzowNSBQTSBTcmluaXZhcyBQYW5kcnV2YWRhIHdyb3RlOg0K
+PiA+ID4gVGhlIEFSVCB0YWJsZSByZWZlcnMgdG8gYWN0dWFsIGJ1cyBpZCBuYW1lIGZvciBzcGVj
+aWZ5aW5nIHJlbGF0aW9uc2hpcC4NCj4gPiA+IE5hbWluZyAiRmFuIiBpcyBub3QgZW5vdWdoIGFz
+IG5hbWUgaW4gdGhlIEFSVCB0YWJsZSBjYW4gY2hhbmdlIG9uIGV2ZXJ5DQo+ID4gPiBwbGF0Zm9y
+bS4NCj4gPiA+IA0KPiA+ID4gU2lnbmVkLW9mZi1ieTogU3Jpbml2YXMgUGFuZHJ1dmFkYSA8c3Jp
+bml2YXMucGFuZHJ1dmFkYUBsaW51eC5pbnRlbC5jb20+DQo+ID4gPiAtLS0NCj4gPiA+ICBkcml2
+ZXJzL2FjcGkvZmFuLmMgfCA4ICsrKysrKystDQo+ID4gPiAgMSBmaWxlIGNoYW5nZWQsIDcgaW5z
+ZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPiA+ID4gDQo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9hY3BpL2Zhbi5jIGIvZHJpdmVycy9hY3BpL2Zhbi5jDQo+ID4gPiBpbmRleCBjYWY5Yjc2
+Li5jOTIxM2JjIDEwMDY0NA0KPiA+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2Zhbi5jDQo+ID4gPiAr
+KysgYi9kcml2ZXJzL2FjcGkvZmFuLmMNCj4gPiA+IEBAIC0zMjUsNiArMzI1LDcgQEAgc3RhdGlj
+IGludCBhY3BpX2Zhbl9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQ0KPiA+ID4g
+IAlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldjsNCj4gPiA+ICAJc3RydWN0IGFj
+cGlfZmFuICpmYW47DQo+ID4gPiAgCXN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlID0gQUNQSV9D
+T01QQU5JT04oJnBkZXYtPmRldik7DQo+ID4gPiArCWNoYXIgKm5hbWU7DQo+ID4gPiAgDQo+ID4g
+PiAgCWZhbiA9IGRldm1fa3phbGxvYygmcGRldi0+ZGV2LCBzaXplb2YoKmZhbiksIEdGUF9LRVJO
+RUwpOw0KPiA+ID4gIAlpZiAoIWZhbikgew0KPiA+ID4gQEAgLTM0Niw3ICszNDcsMTIgQEAgc3Rh
+dGljIGludCBhY3BpX2Zhbl9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQ0KPiA+
+ID4gIAkJfQ0KPiA+ID4gIAl9DQo+ID4gPiAgDQo+ID4gPiAtCWNkZXYgPSB0aGVybWFsX2Nvb2xp
+bmdfZGV2aWNlX3JlZ2lzdGVyKCJGYW4iLCBkZXZpY2UsDQo+ID4gPiArCWlmICghc3RybmNtcChw
+ZGV2LT5uYW1lLCAiSU5UMzQwNCIsIHN0cmxlbigiSU5UMzQwNCIpKSkNCj4gPiANCj4gPiBzdHJj
+bXAoKSBzaG91bGQgYmUgc3VmZmljaWVudCBoZXJlICh3ZSBuZWVkIHRvIGhhdmUgYSBtYXRjaCB0
+byBnZXQgdG8gdGhpcyBwb2ludA0KPiA+IGFueXdheSkuDQo+IFRoZSBwZGV2LT5uYW1lIGNvbWVz
+IHVwIHdpdGggaW5zdGFuY2UgbnVtYmVyOiBJTlQzNDA0OjAwLCBzbyBvbmx5DQo+IGNvbXBhcmlu
+ZyAiSU5UMzQwNCIgYXMgd2UgY2FuIGhhdmUgbXVsdGlwbGUgaW5zdGFuY2VzLg0KPiANCj4gPiAN
+Cj4gPiBUaGF0IHNhaWQgSSdkIGNvbXBhcmUgd2l0aCAiUE5QMEMwQiIgYW5kIHRoZW4gdXNlICJG
+YW4iIGlmIHRoYXQncyBtYXRjaGluZw0KPiA+IG9yIHRoZSBkZXZpY2UgSUQgb3RoZXJ3aXNlLg0K
+PiBJIHdpbGwgc3VibWl0IGFub3RoZXIgcGF0Y2ggd2l0aCB0aGlzIGNoYW5nZS4NCj4gSGVyZSBh
+bHNvIGl0IGNvbWVzIHVwIHdpdGggUE5QQzBCOmluc3RhbmNlIG51bWJlciwgc28gc3RpbGwgaGF2
+ZSB0bw0KPiBjb21wYXJlIG9ubHkgIlBOUEMwQiINCj4gDQo+IFRoYW5rcywNCj4gU3Jpbml2YXMg
+DQo+ID4gPiArCQluYW1lID0gYWNwaV9kZXZpY2VfYmlkKGRldmljZSk7DQo+ID4gPiArCWVsc2UN
+Cj4gPiA+ICsJCW5hbWUgPSAiRmFuIjsNCj4gPiA+ICsNCj4gPiA+ICsJY2RldiA9IHRoZXJtYWxf
+Y29vbGluZ19kZXZpY2VfcmVnaXN0ZXIobmFtZSwgZGV2aWNlLA0KPiA+ID4gIAkJCQkJCSZmYW5f
+Y29vbGluZ19vcHMpOw0KPiA+ID4gIAlpZiAoSVNfRVJSKGNkZXYpKSB7DQo+ID4gPiAgCQlyZXN1
+bHQgPSBQVFJfRVJSKGNkZXYpOw0KPiA+ID4gDQo+ID4gDQo+ID4gQW5kIHBsZWFzZSBDQyBBQ1BJ
+IHBhdGNoZXMgdG8gbGludXgtYWNwaS4NCj4gPiANCj4gDQoNCg==
