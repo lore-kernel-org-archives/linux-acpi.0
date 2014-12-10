@@ -1,65 +1,175 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1] ACPI / Fan: Use bus id for non PNP0C0B (Fan) device
-Date: Wed, 10 Dec 2014 22:53:06 +0100
-Message-ID: <1513887.Yep6z7hHDZ@vostro.rjw.lan>
-References: <1418170540-8349-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1418170540-8349-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCHv2] ACPI, EINJ: Enhance error injection tolerance level
+Date: Wed, 10 Dec 2014 13:53:26 -0800
+Message-ID: <5ab8b2e0b3e41b1bb4bdee09289200e12a0dfbe4.1418248436.git.tony.luck@intel.com>
+References: <3908561D78D1C84285E8C5FCA982C28F32961DDF@ORSMSX114.amr.corp.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62188 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933218AbaLJVbd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Dec 2014 16:31:33 -0500
-In-Reply-To: <1418170540-8349-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:29310 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758098AbaLJWKO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Dec 2014 17:10:14 -0500
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32961DDF@ORSMSX114.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-kernel@vger.kernel.org
+Cc: Borislav Petkov <bp@suse.de>, Chen Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, December 09, 2014 04:15:40 PM Srinivas Pandruvada wrote:
-> The _ART (Active Cooling Relationship Table), specifies relationship
-> among heat generating sources to a target active cooling device like
-> fan. The _ART table refers to actual bus id name for specifying relationship.
-> Naming "Fan" is not enough as name in the _ART table can change on every
-> platform, to establish relationship for user space thermal controllers.
-> 
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
 
-I can apply this or do you have any thermal material depending on it?
+Some BIOSes utilize PCI MMCFG space read/write opertion to trigger
+specific errors. EINJ will report errors as below when hitting such
+cases:
 
-> ---
->  drivers/acpi/fan.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> index caf9b76..7a36f02 100644
-> --- a/drivers/acpi/fan.c
-> +++ b/drivers/acpi/fan.c
-> @@ -325,6 +325,7 @@ static int acpi_fan_probe(struct platform_device *pdev)
->  	struct thermal_cooling_device *cdev;
->  	struct acpi_fan *fan;
->  	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
-> +	char *name;
->  
->  	fan = devm_kzalloc(&pdev->dev, sizeof(*fan), GFP_KERNEL);
->  	if (!fan) {
-> @@ -346,7 +347,12 @@ static int acpi_fan_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> -	cdev = thermal_cooling_device_register("Fan", device,
-> +	if (!strncmp(pdev->name, "PNP0C0B", strlen("PNP0C0B")))
-> +		name = "Fan";
-> +	else
-> +		name = acpi_device_bid(device);
-> +
-> +	cdev = thermal_cooling_device_register(name, device,
->  						&fan_cooling_ops);
->  	if (IS_ERR(cdev)) {
->  		result = PTR_ERR(cdev);
-> 
+APEI: Can not request [mem 0x83f990a0-0x83f990a3] for APEI EINJ Trigger registers
 
+It is because on x86 platform ACPI based PCI MMCFG logic has
+reserved all MMCFG spaces so that EINJ can't reserve it again.
+We already trust the ACPI/APEI code when using the EINJ interface
+so it is not a big leap to also trust it to access the right
+MMCFG addresses. Skip address checking to allow the access.
+
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+
+Chen Gong still gets author credit for this. All I did was rename
+some "mmcfg" things to be "arch", and move the mmcfg scan routine
+out of apei.c and into the x86 specific mmconfig-shared.c to
+address Tomasz's concerns.
+
+ arch/x86/pci/mmconfig-shared.c | 28 ++++++++++++++++++++++++++++
+ drivers/acpi/apei/apei-base.c  | 35 +++++++++++++++++++++++++++++------
+ 2 files changed, 57 insertions(+), 6 deletions(-)
+
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index 326198a4434e..c08b985f9441 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -610,6 +610,32 @@ static int __init pci_parse_mcfg(struct acpi_table_header *header)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_ACPI_APEI
++extern int (*arch_apei_filter_addr)(int (*func)(__u64 start, __u64 size,
++				     void *data), void *data);
++
++static int pci_mmcfg_for_each_region(int (*func)(__u64 start, __u64 size,
++				     void *data), void *data)
++{
++	struct pci_mmcfg_region *cfg;
++	int rc;
++
++	if (list_empty(&pci_mmcfg_list))
++		return 0;
++
++	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
++		rc = func(cfg->res.start, resource_size(&cfg->res), data);
++		if (rc)
++			return rc;
++	}
++
++	return 0;
++}
++#define set_apei_filter() (arch_apei_filter_addr = pci_mmcfg_for_each_region)
++#else
++#define set_apei_filter()
++#endif
++
+ static void __init __pci_mmcfg_init(int early)
+ {
+ 	pci_mmcfg_reject_broken(early);
+@@ -644,6 +670,8 @@ void __init pci_mmcfg_early_init(void)
+ 		else
+ 			acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+ 		__pci_mmcfg_init(1);
++
++		set_apei_filter();
+ 	}
+ }
+ 
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 2cd7bdd6c8b3..f74779b1e035 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -41,6 +41,9 @@
+ #include <linux/interrupt.h>
+ #include <linux/debugfs.h>
+ #include <asm/unaligned.h>
++#ifdef CONFIG_PCI_MMCONFIG
++#include <asm/pci_x86.h>
++#endif
+ 
+ #include "apei-internal.h"
+ 
+@@ -449,7 +452,7 @@ int apei_resources_sub(struct apei_resources *resources1,
+ }
+ EXPORT_SYMBOL_GPL(apei_resources_sub);
+ 
+-static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
++static int apei_get_res_callback(__u64 start, __u64 size, void *data)
+ {
+ 	struct apei_resources *resources = data;
+ 	return apei_res_add(&resources->iomem, start, size);
+@@ -457,7 +460,15 @@ static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
+ 
+ static int apei_get_nvs_resources(struct apei_resources *resources)
+ {
+-	return acpi_nvs_for_each_region(apei_get_nvs_callback, resources);
++	return acpi_nvs_for_each_region(apei_get_res_callback, resources);
++}
++
++int (*arch_apei_filter_addr)(int (*func)(__u64 start, __u64 size,
++				     void *data), void *data);
++static int apei_get_arch_resources(struct apei_resources *resources)
++
++{
++	return arch_apei_filter_addr(apei_get_res_callback, resources);
+ }
+ 
+ /*
+@@ -470,7 +481,7 @@ int apei_resources_request(struct apei_resources *resources,
+ {
+ 	struct apei_res *res, *res_bak = NULL;
+ 	struct resource *r;
+-	struct apei_resources nvs_resources;
++	struct apei_resources nvs_resources, arch_res;
+ 	int rc;
+ 
+ 	rc = apei_resources_sub(resources, &apei_resources_all);
+@@ -485,10 +496,20 @@ int apei_resources_request(struct apei_resources *resources,
+ 	apei_resources_init(&nvs_resources);
+ 	rc = apei_get_nvs_resources(&nvs_resources);
+ 	if (rc)
+-		goto res_fini;
++		goto nvs_res_fini;
+ 	rc = apei_resources_sub(resources, &nvs_resources);
+ 	if (rc)
+-		goto res_fini;
++		goto nvs_res_fini;
++
++	if (arch_apei_filter_addr) {
++		apei_resources_init(&arch_res);
++		rc = apei_get_arch_resources(&arch_res);
++		if (rc)
++			goto arch_res_fini;
++		rc = apei_resources_sub(resources, &arch_res);
++		if (rc)
++			goto arch_res_fini;
++	}
+ 
+ 	rc = -EINVAL;
+ 	list_for_each_entry(res, &resources->iomem, list) {
+@@ -536,7 +557,9 @@ err_unmap_iomem:
+ 			break;
+ 		release_mem_region(res->start, res->end - res->start);
+ 	}
+-res_fini:
++arch_res_fini:
++	apei_resources_fini(&arch_res);
++nvs_res_fini:
+ 	apei_resources_fini(&nvs_resources);
+ 	return rc;
+ }
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+2.1.0
+
