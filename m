@@ -1,106 +1,163 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
-Date: Thu, 11 Dec 2014 00:32:18 +0100
-Message-ID: <2022256.J7VNVZ55j5@vostro.rjw.lan>
-References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 3/6] x86, acpi, pci: Move PCI config space accessors.
+Date: Wed, 10 Dec 2014 16:17:46 -0700
+Message-ID: <20141210231746.GF6692@google.com>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
+ <1416413091-13452-4-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63512 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757945AbaLJXKn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Dec 2014 18:10:43 -0500
-In-Reply-To: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1416413091-13452-4-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jakub Sitnicki <jsitnicki@gmail.com>
-Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
-> PNP core is the last user of the __check_region() which has been
-> deprecated for almost 12 years (since v2.5.54). Replace it with a combo
-> of __request_region() followed by __release_region().
+On Wed, Nov 19, 2014 at 05:04:48PM +0100, Tomasz Nowicki wrote:
+> We are going to use mmio_config_{} name convention across all architectures.
+
+mmio_config_*() are workarounds for an AMD Fam10h defect [1].  I would prefer
+not to extend these names to other architectures, because they should be
+able to use readb()/writeb()/etc. directly, as we did on x86 before
+3320ad994afb ("x86: Work around mmio config space quirk on AMD Fam10h").
+
+In fact, it would be nice if we could use readb()/writeb()/etc. on x86, and
+only use mmio_config_*() when we're on AMD Fam10h.  Maybe there could be a
+"struct pci_raw_ops pci_mmcfg_amd_fam10h" that used mmio_config_*(), and we
+could set raw_pci_ext_ops to those ops instead of the default ones when
+we're on AMD Fam10h.  Then x86 should be able to use the generic
+readb()-based ops on most platforms.
+
+Bjorn
+
+[1] 3320ad994afb ("x86: Work around mmio config space quirk on AMD Fam10h")
+
+Somewhere in this process, I'd like to update the AMD Fam10h comment to fix
+the typos and reference the spec that talks about this, i.e., the "BIOS and
+Kernel Developer's Guide (BKDG) For AMD Family 10h Processors," rev 3.48,
+sec 2.11.1, "MMIO Configuration Coding Requirements."
+
+That can be a separate patch since it's only cosmetic.
+
+> Currently it belongs to asm/pci_x86.h header which should be included
+> only for x86 specific files. From now on, those accessors are in asm/pci.h
+> header which can be included in non-architecture code much easier.
 > 
-> pnp_check_port() and pnp_check_mem() remain racy after this change.
-> 
-> Signed-off-by: Jakub Sitnicki <jsitnicki@gmail.com>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
+>  arch/x86/include/asm/pci.h     | 42 +++++++++++++++++++++++++++++++++++++++++
+>  arch/x86/include/asm/pci_x86.h | 43 ------------------------------------------
+>  2 files changed, 42 insertions(+), 43 deletions(-)
 > 
-> There was a previous attempt at making this change 3 years ago but the
-> author has never addressed the review comments:
-> 
->   https://lkml.org/lkml/2011/8/12/216
-> 
-> The end goal here is to get rid of __check_region() which lands in
-> every kernel image because of the PNP core.
-> 
-> It has been previously pointed out that replacing __check_region()
-> with request_region() obscures the fact that pnp_check_port() is racy:
-> 
->   https://lkml.org/lkml/2011/8/11/466
-> 
-> Because of that I've also considered just moving __check_region() to
-> PNP core. However, that would require making free_resource() an
-> exported symbol in kernel/resource.c.
-> 
-> On the other hand, a switch to request/release_region() makes
-> pnp_check_port() and pnp_check_mem() follow the same pattern as found
-> in pnp_check_irq() and pnp_check_dma():
-> 
-> 	if (!dev->active) {
-> 		if (request_<resource type>(...))
-> 			return 0;
-> 		free_<resource type>(...);
-> 	}
->   
-> Admittedly, I was not able to exercise the touched code paths on a
-> commodity x86_64 laptop or under QEMU / VirtualBox (which lack ISA PnP
-> support, AFAIK).
-> 
-> To my understanding, the correct way to test pnp_check_port() or
-> pnp_check_mem() would be by issuing either:
-> 
->   $ echo fill >/sys/bus/pnp/devices/XX:YY/resources
-> or
->   $ echo auto >/sys/bus/pnp/devices/XX:YY/resources
-> 
-> ... but only if the device is not attached or active, which is not the
-> case for ACPI PnP devices on my machines. If anyone can provide hints
-> on steps to test this, I will be glad to do so.
-> 
->  drivers/pnp/resource.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
-> index 782e822..f980ff7 100644
-> --- a/drivers/pnp/resource.c
-> +++ b/drivers/pnp/resource.c
-> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
->  	/* check if the resource is already in use, skip if the
->  	 * device is active because it itself may be in use */
->  	if (!dev->active) {
-> -		if (__check_region(&ioport_resource, *port, length(port, end)))
-> +		if (!request_region(*port, length(port, end), "pnp"))
->  			return 0;
-> +		release_region(*port, length(port, end));
-
-Shouldn't we also release the resource returned by request_region() if it is
-not NULL?
-
->  	}
+> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+> index 0892ea0..5ba3720 100644
+> --- a/arch/x86/include/asm/pci.h
+> +++ b/arch/x86/include/asm/pci.h
+> @@ -71,6 +71,48 @@ void pcibios_set_master(struct pci_dev *dev);
+>  struct irq_routing_table *pcibios_get_irq_routing_table(void);
+>  int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
 >  
->  	/* check if the resource is reserved */
-> @@ -241,8 +242,9 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
->  	/* check if the resource is already in use, skip if the
->  	 * device is active because it itself may be in use */
->  	if (!dev->active) {
-> -		if (check_mem_region(*addr, length(addr, end)))
-> +		if (!request_mem_region(*addr, length(addr, end), "pnp"))
->  			return 0;
-> +		release_mem_region(*addr, length(addr, end));
->  	}
+> +/*
+> + * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+> + * on their northbrige except through the * %eax register. As such, you MUST
+> + * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
+> + * accessor functions.
+> + * In fact just use pci_config_*, nothing else please.
+> + */
+> +static inline unsigned char mmio_config_readb(void __iomem *pos)
+> +{
+> +	u8 val;
+> +	asm volatile("movb (%1),%%al" : "=a" (val) : "r" (pos));
+> +	return val;
+> +}
+> +
+> +static inline unsigned short mmio_config_readw(void __iomem *pos)
+> +{
+> +	u16 val;
+> +	asm volatile("movw (%1),%%ax" : "=a" (val) : "r" (pos));
+> +	return val;
+> +}
+> +
+> +static inline unsigned int mmio_config_readl(void __iomem *pos)
+> +{
+> +	u32 val;
+> +	asm volatile("movl (%1),%%eax" : "=a" (val) : "r" (pos));
+> +	return val;
+> +}
+> +
+> +static inline void mmio_config_writeb(void __iomem *pos, u8 val)
+> +{
+> +	asm volatile("movb %%al,(%1)" : : "a" (val), "r" (pos) : "memory");
+> +}
+> +
+> +static inline void mmio_config_writew(void __iomem *pos, u16 val)
+> +{
+> +	asm volatile("movw %%ax,(%1)" : : "a" (val), "r" (pos) : "memory");
+> +}
+> +
+> +static inline void mmio_config_writel(void __iomem *pos, u32 val)
+> +{
+> +	asm volatile("movl %%eax,(%1)" : : "a" (val), "r" (pos) : "memory");
+> +}
 >  
->  	/* check if the resource is reserved */
+>  #define HAVE_PCI_MMAP
+>  extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+> index caba141..42e7332 100644
+> --- a/arch/x86/include/asm/pci_x86.h
+> +++ b/arch/x86/include/asm/pci_x86.h
+> @@ -121,49 +121,6 @@ extern int __init pcibios_init(void);
+>  extern int pci_legacy_init(void);
+>  extern void pcibios_fixup_irqs(void);
+>  
+> -/*
+> - * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+> - * on their northbrige except through the * %eax register. As such, you MUST
+> - * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
+> - * accessor functions.
+> - * In fact just use pci_config_*, nothing else please.
+> - */
+> -static inline unsigned char mmio_config_readb(void __iomem *pos)
+> -{
+> -	u8 val;
+> -	asm volatile("movb (%1),%%al" : "=a" (val) : "r" (pos));
+> -	return val;
+> -}
+> -
+> -static inline unsigned short mmio_config_readw(void __iomem *pos)
+> -{
+> -	u16 val;
+> -	asm volatile("movw (%1),%%ax" : "=a" (val) : "r" (pos));
+> -	return val;
+> -}
+> -
+> -static inline unsigned int mmio_config_readl(void __iomem *pos)
+> -{
+> -	u32 val;
+> -	asm volatile("movl (%1),%%eax" : "=a" (val) : "r" (pos));
+> -	return val;
+> -}
+> -
+> -static inline void mmio_config_writeb(void __iomem *pos, u8 val)
+> -{
+> -	asm volatile("movb %%al,(%1)" : : "a" (val), "r" (pos) : "memory");
+> -}
+> -
+> -static inline void mmio_config_writew(void __iomem *pos, u16 val)
+> -{
+> -	asm volatile("movw %%ax,(%1)" : : "a" (val), "r" (pos) : "memory");
+> -}
+> -
+> -static inline void mmio_config_writel(void __iomem *pos, u32 val)
+> -{
+> -	asm volatile("movl %%eax,(%1)" : : "a" (val), "r" (pos) : "memory");
+> -}
+> -
+>  #ifdef CONFIG_PCI
+>  # ifdef CONFIG_ACPI
+>  #  define x86_default_pci_init		pci_acpi_init
+> -- 
+> 1.9.1
 > 
-
