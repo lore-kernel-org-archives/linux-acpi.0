@@ -1,39 +1,65 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 6/6] pci, acpi: Share ACPI PCI config space accessors.
-Date: Wed, 10 Dec 2014 07:16:25 +0100
-Message-ID: <5487E539.3000500@linaro.org>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <3957412.IooRKpIXjW@wuerfel> <20141121180825.GD6578@google.com> <2178540.dTppAIY2rE@wuerfel> <54854FB2.8080206@linaro.org> <CAErSpo6cUuEK41wD33Uyzb5Y5yFp+jKVVvWLrZ0dO1iuYv8GjQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v1] ACPI / Fan: Use bus id for non PNP0C0B (Fan) device
+Date: Wed, 10 Dec 2014 22:53:06 +0100
+Message-ID: <1513887.Yep6z7hHDZ@vostro.rjw.lan>
+References: <1418170540-8349-1-git-send-email-srinivas.pandruvada@linux.intel.com> <1418170540-8349-2-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:46453 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756115AbaLJGQe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Dec 2014 01:16:34 -0500
-Received: by mail-wg0-f50.google.com with SMTP id a1so2752405wgh.9
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Dec 2014 22:16:33 -0800 (PST)
-In-Reply-To: <CAErSpo6cUuEK41wD33Uyzb5Y5yFp+jKVVvWLrZ0dO1iuYv8GjQ@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:62188 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933218AbaLJVbd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Dec 2014 16:31:33 -0500
+In-Reply-To: <1418170540-8349-2-git-send-email-srinivas.pandruvada@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, Myron Stowe <myron.stowe@gmail.com>, Rafael Wysocki <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linaro-acpi@lists.linaro.org, linux-pci <linux-pci@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, x86 <x86@kernel.org>, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, "H. Peter Anvin" <hpa@zytor.com>, Yijing Wang <wangyijing@huawei.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-W dniu 09.12.2014 o 22:50, Bjorn Helgaas pisze:
-> On Mon, Dec 8, 2014 at 12:13 AM, Tomasz Nowicki
-> <tomasz.nowicki@linaro.org> wrote:
->
->> What would be next steps regarding this patch set? I am not sure we have
->> reached a consensus on weak vs #ifdef choice.
->
-> I work through the list at
-> https://patchwork.ozlabs.org/project/linux-pci/list/ in FIFO order, so
-> you don't need to do anything else except poke me to move faster :)
+On Tuesday, December 09, 2014 04:15:40 PM Srinivas Pandruvada wrote:
+> The _ART (Active Cooling Relationship Table), specifies relationship
+> among heat generating sources to a target active cooling device like
+> fan. The _ART table refers to actual bus id name for specifying relationship.
+> Naming "Fan" is not enough as name in the _ART table can change on every
+> platform, to establish relationship for user space thermal controllers.
+> 
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Awesome! I guess I am good at poke people so you can count on me :)
+I can apply this or do you have any thermal material depending on it?
 
-Regards,
-Tomasz
+> ---
+>  drivers/acpi/fan.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index caf9b76..7a36f02 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -325,6 +325,7 @@ static int acpi_fan_probe(struct platform_device *pdev)
+>  	struct thermal_cooling_device *cdev;
+>  	struct acpi_fan *fan;
+>  	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+> +	char *name;
+>  
+>  	fan = devm_kzalloc(&pdev->dev, sizeof(*fan), GFP_KERNEL);
+>  	if (!fan) {
+> @@ -346,7 +347,12 @@ static int acpi_fan_probe(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> -	cdev = thermal_cooling_device_register("Fan", device,
+> +	if (!strncmp(pdev->name, "PNP0C0B", strlen("PNP0C0B")))
+> +		name = "Fan";
+> +	else
+> +		name = acpi_device_bid(device);
+> +
+> +	cdev = thermal_cooling_device_register(name, device,
+>  						&fan_cooling_ops);
+>  	if (IS_ERR(cdev)) {
+>  		result = PTR_ERR(cdev);
+> 
 
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
