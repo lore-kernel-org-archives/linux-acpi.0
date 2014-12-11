@@ -1,73 +1,142 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Do not disable wakeup GPEs that have not been enabled
-Date: Thu, 11 Dec 2014 02:55:26 +0100
-Message-ID: <1890951.o2PAmqguxi@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Venkat Raghavulu <venkat.raghavulu@intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: [PATCH] ACPI, EINJ: Enhance error injection tolerance level
+Date: Wed, 10 Dec 2014 21:14:58 -0500
+Message-ID: <1418264098-27397-1-git-send-email-gong.chen@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:22813 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933176AbaLKCyg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Dec 2014 21:54:36 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bp@alien8.de
+Cc: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>, Tony Luck <tony.luck@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Some BIOSes utilize PCI MMCFG space read/write opertion to trigger
+specific errors. EINJ will report errors as below when hitting such
+cases:
 
-In some cases acpi_device_wakeup() may be called to ensure wakeup
-power to be off for a given device even though that device's wakeup
-GPE has not been enabled so far.  It calls acpi_disable_gpe() on a
-GPE that's not enabled and this causes ACPICA to return the AE_LIMIT
-status code from that call which then is reported as an error by the
-ACPICA's debug facilities (if enabled).  This may lead to a fair
-amount of confusion, so introduce a new ACPI device wakeup flag
-to store the wakeup GPE status and avoid disabling wakeup GPEs
-that have not been enabled.
+APEI: Can not request [mem 0x83f990a0-0x83f990a3] for APEI EINJ Trigger registers
 
-Reported-and-tested-by: Venkat Raghavulu <venkat.raghavulu@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+It is because on x86 platform ACPI based PCI MMCFG logic has
+reserved all MMCFG spaces so that EINJ can't reserve it again.
+We trust EINJ trigger action won't do anything bad so just skip
+check on MMCFG space.
+
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 ---
- drivers/acpi/device_pm.c |   12 ++++++++++--
- include/acpi/acpi_bus.h  |    1 +
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/acpi/apei/apei-base.c | 58 ++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 52 insertions(+), 6 deletions(-)
 
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -313,6 +313,7 @@ struct acpi_device_wakeup_flags {
- 	u8 valid:1;		/* Can successfully enable wakeup? */
- 	u8 run_wake:1;		/* Run-Wake GPE devices */
- 	u8 notifier_present:1;  /* Wake-up notify handler has been installed */
-+	u8 enabled:1;		/* Enabled for wakeup */
- };
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index 2cd7bdd6c8b3..e809d3c4904d 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -41,6 +41,9 @@
+ #include <linux/interrupt.h>
+ #include <linux/debugfs.h>
+ #include <asm/unaligned.h>
++#ifdef CONFIG_PCI_MMCONFIG
++#include <asm/pci_x86.h>
++#endif
  
- struct acpi_device_wakeup_context {
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -680,13 +680,21 @@ static int acpi_device_wakeup(struct acp
- 		if (error)
- 			return error;
+ #include "apei-internal.h"
  
-+		if (adev->wakeup.flags.enabled)
-+			return 0;
+@@ -449,7 +452,7 @@ int apei_resources_sub(struct apei_resources *resources1,
+ }
+ EXPORT_SYMBOL_GPL(apei_resources_sub);
+ 
+-static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
++static int apei_get_res_callback(__u64 start, __u64 size, void *data)
+ {
+ 	struct apei_resources *resources = data;
+ 	return apei_res_add(&resources->iomem, start, size);
+@@ -457,9 +460,42 @@ static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
+ 
+ static int apei_get_nvs_resources(struct apei_resources *resources)
+ {
+-	return acpi_nvs_for_each_region(apei_get_nvs_callback, resources);
++	return acpi_nvs_for_each_region(apei_get_res_callback, resources);
+ }
+ 
++#ifdef CONFIG_PCI_MMCONFIG
++static int pci_mmcfg_for_each_region(int (*func)(__u64 start, __u64 size,
++				     void *data), void *data)
++{
++	struct pci_mmcfg_region *cfg;
++	int rc;
 +
- 		res = acpi_enable_gpe(wakeup->gpe_device, wakeup->gpe_number);
--		if (ACPI_FAILURE(res)) {
-+		if (ACPI_SUCCESS(res)) {
-+			adev->wakeup.flags.enabled = 1;
-+		} else {
- 			acpi_disable_wakeup_device_power(adev);
- 			return -EIO;
- 		}
- 	} else {
--		acpi_disable_gpe(wakeup->gpe_device, wakeup->gpe_number);
-+		if (adev->wakeup.flags.enabled) {
-+			acpi_disable_gpe(wakeup->gpe_device, wakeup->gpe_number);
-+			adev->wakeup.flags.enabled = 0;
-+		}
- 		acpi_disable_wakeup_device_power(adev);
++	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
++		return 0;
++
++	if (list_empty(&pci_mmcfg_list))
++		return 0;
++
++	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
++		rc = func(cfg->res.start, resource_size(&cfg->res), data);
++		if (rc)
++			return rc;
++	}
++
++	return 0;
++}
++
++static int apei_get_mmcfg_resources(struct apei_resources *resources)
++{
++	return pci_mmcfg_for_each_region(apei_get_res_callback, resources);
++}
++#else
++static int apei_get_mmcfg_resources(struct apei_resources *resources)
++{
++	return 0;
++}
++#endif
++
+ /*
+  * IO memory/port resource management mechanism is used to check
+  * whether memory/port area used by GARs conflicts with normal memory
+@@ -470,7 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
+ {
+ 	struct apei_res *res, *res_bak = NULL;
+ 	struct resource *r;
+-	struct apei_resources nvs_resources;
++	struct apei_resources nvs_resources, mmcfg_res;
+ 	int rc;
+ 
+ 	rc = apei_resources_sub(resources, &apei_resources_all);
+@@ -485,10 +521,18 @@ int apei_resources_request(struct apei_resources *resources,
+ 	apei_resources_init(&nvs_resources);
+ 	rc = apei_get_nvs_resources(&nvs_resources);
+ 	if (rc)
+-		goto res_fini;
++		goto nvs_res_fini;
+ 	rc = apei_resources_sub(resources, &nvs_resources);
+ 	if (rc)
+-		goto res_fini;
++		goto nvs_res_fini;
++
++	apei_resources_init(&mmcfg_res);
++	rc = apei_get_mmcfg_resources(&mmcfg_res);
++	if (rc)
++		goto mmcfg_res_fini;
++	rc = apei_resources_sub(resources, &mmcfg_res);
++	if (rc)
++		goto mmcfg_res_fini;
+ 
+ 	rc = -EINVAL;
+ 	list_for_each_entry(res, &resources->iomem, list) {
+@@ -536,7 +580,9 @@ err_unmap_iomem:
+ 			break;
+ 		release_mem_region(res->start, res->end - res->start);
  	}
- 	return 0;
+-res_fini:
++mmcfg_res_fini:
++	apei_resources_fini(&mmcfg_res);
++nvs_res_fini:
+ 	apei_resources_fini(&nvs_resources);
+ 	return rc;
+ }
+-- 
+2.1.0
 
