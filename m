@@ -1,135 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [GIT PULL] ACPI and power management updates for 3.19-rc1
-Date: Fri, 12 Dec 2014 15:56:27 +0100
-Message-ID: <2077616.2azHLLCLOp@vostro.rjw.lan>
-References: <CAJZ5v0i3UhvaAu9JV_BuB0fPFmHAa_NdX+eXYBnAHcsiaVOw9g@mail.gmail.com> <CA+55aFx+8gKsDSDKSAxB4+JuL_M22uuHDmzSfsv1qJ=dSZ3-ww@mail.gmail.com> <1589257.Va5eEYbcUY@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH 2/6] x86, acpi, pci: Move arch-agnostic MMCFG code out of arch/x86/ directory
+Date: Fri, 12 Dec 2014 15:55:23 +0100
+Message-ID: <67564550.9h6b3Ng1Fi@wuerfel>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <1416413091-13452-3-git-send-email-tomasz.nowicki@linaro.org> <20141210235500.GA22886@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1589257.Va5eEYbcUY@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.131]:50135 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757044AbaLLOzn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Dec 2014 09:55:43 -0500
+In-Reply-To: <20141210235500.GA22886@google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linaro-acpi@lists.linaro.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, catalin.marinas@arm.com, x86@kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, wangyijing@huawei.com, Liviu.Dudau@arm.com, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org
 
-On Friday, December 12, 2014 03:42:07 PM Rafael J. Wysocki wrote:
-> On Thursday, December 11, 2014 07:59:20 PM Linus Torvalds wrote:
-> > On Mon, Dec 8, 2014 at 4:21 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > >
-> > > Also the ACPI core is now going to support the _DEP configuration
-> > > information in a limited way.
+On Wednesday 10 December 2014 16:55:00 Bjorn Helgaas wrote:
+> On Wed, Nov 19, 2014 at 05:04:47PM +0100, Tomasz Nowicki wrote:
+> > MMCFG table seems to be architecture independent and it makes sense
+> > to share common code across all architectures. The ones that may need
+> > architectural specific actions have default prototype (__weak).
 > > 
-> > Hmm. That seems to be the cause of this annoying new message:
-> > 
-> >     ...
-> >     ACPI: Using IOAPIC for interrupt routing
-> >     PCI: Using host bridge windows from ACPI; if necessary, use
-> > "pci=nocrs" and report a bug
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:00: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:01: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:02: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:03: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:04: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:05: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:06: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb200)
-> >     acpi LNXCPU:07: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb840)
-> >     acpi device:27: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb840)
-> >     acpi device:3f: Failed to evaluate _DEP.
-> >     ACPI: [Package] has zero elements (ffff88040ccdb8c0)
-> >     acpi LNXVIDEO:00: Failed to evaluate _DEP.
-> >     ACPI: Power Resource [FN00] (off)
-> >     ...
-> > 
-> > which doesn't seem to hinder anything from working, but is extremely
-> > annoying because it's printed out as some super-important "KERN_ERR
-> > message of Doom!"
-> > 
-> > I don't see why incomplete ACPI tables would *ever* be "KERN_ERR"
-> > level messages, but I particularly don't see it when it seems to be
-> > our own meaningless fake entries.
+> > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> > Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > ---
+> >  arch/x86/include/asm/pci_x86.h |  29 -----
+> >  arch/x86/pci/acpi.c            |   1 +
+> >  arch/x86/pci/init.c            |   1 +
+> >  arch/x86/pci/mmconfig-shared.c | 200 +---------------------------------
+> >  arch/x86/pci/mmconfig_32.c     |   1 +
+> >  arch/x86/pci/mmconfig_64.c     |   1 +
+> >  drivers/acpi/Makefile          |   1 +
+> >  drivers/acpi/bus.c             |   1 +
+> >  drivers/acpi/mmconfig.c        | 242 +++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/mmconfig.h       |  58 ++++++++++
+> >  include/linux/pci.h            |   8 --
+> >  11 files changed, 308 insertions(+), 235 deletions(-)
+> >  create mode 100644 drivers/acpi/mmconfig.c
+> >  create mode 100644 include/linux/mmconfig.h
+> > ... 
 > 
-> Right the KERN_ERR level in there is silly.  Overlooked in review, sorry
-> about that.  The patch below should take care of it.
-> 
-> Some of the messages you're seeing are from acpi_evaluate_reference(),
-> though, and are not really useful too.  I'll cut a separate patch for
-> these.
+> Much of the code you're moving to drivers/acpi/mmconfig.c is not actually
+> ACPI-specific and would have to be duplicated for a non-ACPI architecture
+> that supports ECAM.  Could that code be moved somewhere like
+> drivers/pci/ecam.c, where it could be shared?
 
-This:
+We have an implementation of ECAM in drivers/pci/host/pci-host-generic.c,
+which today is ARM32 specific but should be migrated to the new generic
+infrastructure we are adding for ARM64, after which that driver becomes
+very simple.
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / utils: Drop error messages from acpi_evaluate_reference()
+I suppose we could either make it use drivers/pci/ecam.c then, or have
+the config space code from pci-host-generic be shared between ACPI and
+DT based platforms. The former approach is probably nicer in the long
+run, and it allows sharing with other drivers that use ECAM but are not
+completely generic otherwise.
 
-Some of the error messages printed by acpi_evaluate_reference()
-with the KERN_ERR priority should really be debug messages, but then
-they would be redundant, because acpi_util_eval_error() is called
-too at the same spots (except for one).
-
-Drop the kernel messages from there entirely and leave the
-acpi_util_eval_error() to take care of the debug printing.  In one case,
-replace the kernel message with a call to acpi_util_eval_error().
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/utils.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
-
-Index: linux-pm/drivers/acpi/utils.c
-===================================================================
---- linux-pm.orig/drivers/acpi/utils.c
-+++ linux-pm/drivers/acpi/utils.c
-@@ -346,22 +346,16 @@ acpi_evaluate_reference(acpi_handle hand
- 	package = buffer.pointer;
- 
- 	if ((buffer.length == 0) || !package) {
--		printk(KERN_ERR PREFIX "No return object (len %X ptr %p)\n",
--			    (unsigned)buffer.length, package);
- 		status = AE_BAD_DATA;
- 		acpi_util_eval_error(handle, pathname, status);
- 		goto end;
- 	}
- 	if (package->type != ACPI_TYPE_PACKAGE) {
--		printk(KERN_ERR PREFIX "Expecting a [Package], found type %X\n",
--			    package->type);
- 		status = AE_BAD_DATA;
- 		acpi_util_eval_error(handle, pathname, status);
- 		goto end;
- 	}
- 	if (!package->package.count) {
--		printk(KERN_ERR PREFIX "[Package] has zero elements (%p)\n",
--			    package);
- 		status = AE_BAD_DATA;
- 		acpi_util_eval_error(handle, pathname, status);
- 		goto end;
-@@ -380,17 +374,13 @@ acpi_evaluate_reference(acpi_handle hand
- 
- 		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
- 			status = AE_BAD_DATA;
--			printk(KERN_ERR PREFIX
--				    "Expecting a [Reference] package element, found type %X\n",
--				    element->type);
- 			acpi_util_eval_error(handle, pathname, status);
- 			break;
- 		}
- 
- 		if (!element->reference.handle) {
--			printk(KERN_WARNING PREFIX "Invalid reference in"
--			       " package %s\n", pathname);
- 			status = AE_NULL_ENTRY;
-+			acpi_util_eval_error(handle, pathname, status);
- 			break;
- 		}
- 		/* Get the  acpi_handle. */
-
+	Arnd
