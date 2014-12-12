@@ -1,56 +1,59 @@
-From: Feng Kan <fkan@apm.com>
-Subject: [PATCH] sata: xgene: add ACPI support for APM X-Gene SATA ports
-Date: Thu, 11 Dec 2014 14:31:10 -0800
-Message-ID: <1418337070-17644-1-git-send-email-fkan@apm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: patches@apm.com, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, msalter@redhat.com, tj@kernel.org, hdegoede@redhat.com
-Cc: Feng Kan <fkan@apm.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] ACPI and power management updates for 3.19-rc1
+Date: Thu, 11 Dec 2014 19:59:20 -0800
+Message-ID: <CA+55aFx+8gKsDSDKSAxB4+JuL_M22uuHDmzSfsv1qJ=dSZ3-ww@mail.gmail.com>
+References: <CAJZ5v0i3UhvaAu9JV_BuB0fPFmHAa_NdX+eXYBnAHcsiaVOw9g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0i3UhvaAu9JV_BuB0fPFmHAa_NdX+eXYBnAHcsiaVOw9g@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This adds ACPI support for the APM X-Gene SATA ports. When the system
-boots using ACPI table, the SATA ports are able to configure using the
-values supplied by the ACPI table rather than the DTS.
+On Mon, Dec 8, 2014 at 4:21 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> Also the ACPI core is now going to support the _DEP configuration
+> information in a limited way.
 
-Signed-off-by: Feng Kan <fkan@apm.com>
----
- drivers/ata/ahci_xgene.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Hmm. That seems to be the cause of this annoying new message:
 
-diff --git a/drivers/ata/ahci_xgene.c b/drivers/ata/ahci_xgene.c
-index d0c851a..4951392 100644
---- a/drivers/ata/ahci_xgene.c
-+++ b/drivers/ata/ahci_xgene.c
-@@ -22,6 +22,7 @@
-  * NOTE: PM support is not currently available.
-  *
-  */
-+#include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/ahci_platform.h>
-@@ -521,6 +522,14 @@ disable_resources:
- 	return rc;
- }
- 
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id xgene_ahci_acpi_match[] = {
-+	{ "APMC0D0D", },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, xgene_ahci_acpi_match);
-+#endif
-+
- static const struct of_device_id xgene_ahci_of_match[] = {
- 	{.compatible = "apm,xgene-ahci"},
- 	{},
-@@ -534,6 +543,7 @@ static struct platform_driver xgene_ahci_driver = {
- 		.name = "xgene-ahci",
- 		.owner = THIS_MODULE,
- 		.of_match_table = xgene_ahci_of_match,
-+		.acpi_match_table = ACPI_PTR(xgene_ahci_acpi_match),
- 	},
- };
- 
--- 
-1.9.1
+    ...
+    ACPI: Using IOAPIC for interrupt routing
+    PCI: Using host bridge windows from ACPI; if necessary, use
+"pci=nocrs" and report a bug
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:00: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:01: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:02: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:03: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:04: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:05: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:06: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb200)
+    acpi LNXCPU:07: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb840)
+    acpi device:27: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb840)
+    acpi device:3f: Failed to evaluate _DEP.
+    ACPI: [Package] has zero elements (ffff88040ccdb8c0)
+    acpi LNXVIDEO:00: Failed to evaluate _DEP.
+    ACPI: Power Resource [FN00] (off)
+    ...
+
+which doesn't seem to hinder anything from working, but is extremely
+annoying because it's printed out as some super-important "KERN_ERR
+message of Doom!"
+
+I don't see why incomplete ACPI tables would *ever* be "KERN_ERR"
+level messages, but I particularly don't see it when it seems to be
+our own meaningless fake entries.
+
+                   Linus
