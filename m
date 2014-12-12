@@ -1,124 +1,46 @@
-From: Jakub Sitnicki <jsitnicki@gmail.com>
-Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
-Date: Fri, 12 Dec 2014 08:47:34 +0100
-Message-ID: <878uid5my1.fsf@frog.home>
-References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <2022256.J7VNVZ55j5@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:41577 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934127AbaLLHri (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Dec 2014 02:47:38 -0500
-In-reply-to: <2022256.J7VNVZ55j5@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 3/3] ACPICA: Remove use of __DATE__ macro
+Date: Fri, 12 Dec 2014 11:51:28 +0100
+Message-ID: <1418381488-25123-3-git-send-email-linux@rasmusvillemoes.dk>
+References: <1418381488-25123-1-git-send-email-linux@rasmusvillemoes.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1418381488-25123-1-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Rafael J. Wysocki <rjw@rjwysocki.net> writes:
+The macro __DATE__ and friends is not allowed in the kernel. Also,
+including the build time in output doesn't seem to provide any value.
 
-> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
->> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
->> index 782e822..f980ff7 100644
->> --- a/drivers/pnp/resource.c
->> +++ b/drivers/pnp/resource.c
->> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
->>  	/* check if the resource is already in use, skip if the
->>  	 * device is active because it itself may be in use */
->>  	if (!dev->active) {
->> -		if (__check_region(&ioport_resource, *port, length(port, end)))
->> +		if (!request_region(*port, length(port, end), "pnp"))
->>  			return 0;
->> +		release_region(*port, length(port, end));
->
-> Shouldn't we also release the resource returned by request_region() if it is
-> not NULL?
->
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+---
+ drivers/acpi/acpica/acapps.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Thanks for taking a look at this. I think we're good here. If you please
-bear with me for a moment:
-
-release_resource() removes an element from the list of resource parent's
-children (and makes it an orphan):
-
-	p = &old->parent->child;
-	for (;;) {
-		tmp = *p;
-		if (!tmp)
-			break;
-		if (tmp == old) {
-			*p = tmp->sibling;
-			old->parent = NULL;
-			return 0;
-		}
-		p = &tmp->sibling;
-	}
-
-release_region() does the same but with additional checks, and also
-frees the resource:
-
-	p = &parent->child;
-        /* ... */
-	for (;;) {
-		struct resource *res = *p;
-
-		if (!res)
-			break;
-		if (res->start <= start && res->end >= end) {
-                        /* ... */
-			*p = res->sibling;
-                        /* ... */
-			free_resource(res);
-			return;
-		}
-		p = &res->sibling;
-	}
-
-When making the change I've based on other code in the kernel which also
-make use of request_region().
-
-To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
-I/O port region when initialization fails like so:
-
-static int ne2k_pci_init_one(struct pci_dev *pdev,
-			     const struct pci_device_id *ent)
-{
-        /* ... */
-
-	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
-		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
-			NE_IO_EXTENT, ioaddr);
-		return -EBUSY;
-	}
-
-        /* ... */
-
-	dev = alloc_ei_netdev();
-	if (!dev) {
-		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
-		goto err_out_free_res;
-	}
-
-        /* ... */
-
-err_out_free_res:
-	release_region (ioaddr, NE_IO_EXTENT);
-	return -ENODEV;
-}
-
->>  	}
->>  
->>  	/* check if the resource is reserved */
->> @@ -241,8 +242,9 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
->>  	/* check if the resource is already in use, skip if the
->>  	 * device is active because it itself may be in use */
->>  	if (!dev->active) {
->> -		if (check_mem_region(*addr, length(addr, end)))
->> +		if (!request_mem_region(*addr, length(addr, end), "pnp"))
->>  			return 0;
->> +		release_mem_region(*addr, length(addr, end));
->>  	}
->>  
->>  	/* check if the resource is reserved */
->> 
+diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
+index 3d2c88289da9..f72826176ebe 100644
+--- a/drivers/acpi/acpica/acapps.h
++++ b/drivers/acpi/acpica/acapps.h
+@@ -64,15 +64,15 @@
+ /* Macros for signons and file headers */
+ 
+ #define ACPI_COMMON_SIGNON(utility_name) \
+-	"\n%s\n%s version %8.8X%s [%s]\n%s\n\n", \
++	"\n%s\n%s version %8.8X%s\n%s\n\n", \
+ 	ACPICA_NAME, \
+-	utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, \
++	utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, \
+ 	ACPICA_COPYRIGHT
+ 
+ #define ACPI_COMMON_HEADER(utility_name, prefix) \
+-	"%s%s\n%s%s version %8.8X%s [%s]\n%s%s\n%s\n", \
++	"%s%s\n%s%s version %8.8X%s\n%s%s\n%s\n", \
+ 	prefix, ACPICA_NAME, \
+-	prefix, utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, \
++	prefix, utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, \
+ 	prefix, ACPICA_COPYRIGHT, \
+ 	prefix
+ 
+-- 
+2.1.3
