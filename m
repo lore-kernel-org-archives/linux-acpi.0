@@ -1,59 +1,124 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] ACPI and power management updates for 3.19-rc1
-Date: Thu, 11 Dec 2014 19:59:20 -0800
-Message-ID: <CA+55aFx+8gKsDSDKSAxB4+JuL_M22uuHDmzSfsv1qJ=dSZ3-ww@mail.gmail.com>
-References: <CAJZ5v0i3UhvaAu9JV_BuB0fPFmHAa_NdX+eXYBnAHcsiaVOw9g@mail.gmail.com>
+From: Jakub Sitnicki <jsitnicki@gmail.com>
+Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
+Date: Fri, 12 Dec 2014 08:47:34 +0100
+Message-ID: <878uid5my1.fsf@frog.home>
+References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <2022256.J7VNVZ55j5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0i3UhvaAu9JV_BuB0fPFmHAa_NdX+eXYBnAHcsiaVOw9g@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:41577 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934127AbaLLHri (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Dec 2014 02:47:38 -0500
+In-reply-to: <2022256.J7VNVZ55j5@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Dec 8, 2014 at 4:21 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+Rafael J. Wysocki <rjw@rjwysocki.net> writes:
+
+> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
+>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+>> index 782e822..f980ff7 100644
+>> --- a/drivers/pnp/resource.c
+>> +++ b/drivers/pnp/resource.c
+>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
+>>  	/* check if the resource is already in use, skip if the
+>>  	 * device is active because it itself may be in use */
+>>  	if (!dev->active) {
+>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
+>> +		if (!request_region(*port, length(port, end), "pnp"))
+>>  			return 0;
+>> +		release_region(*port, length(port, end));
 >
-> Also the ACPI core is now going to support the _DEP configuration
-> information in a limited way.
+> Shouldn't we also release the resource returned by request_region() if it is
+> not NULL?
+>
 
-Hmm. That seems to be the cause of this annoying new message:
+Thanks for taking a look at this. I think we're good here. If you please
+bear with me for a moment:
 
-    ...
-    ACPI: Using IOAPIC for interrupt routing
-    PCI: Using host bridge windows from ACPI; if necessary, use
-"pci=nocrs" and report a bug
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:00: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:01: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:02: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:03: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:04: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:05: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:06: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb200)
-    acpi LNXCPU:07: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb840)
-    acpi device:27: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb840)
-    acpi device:3f: Failed to evaluate _DEP.
-    ACPI: [Package] has zero elements (ffff88040ccdb8c0)
-    acpi LNXVIDEO:00: Failed to evaluate _DEP.
-    ACPI: Power Resource [FN00] (off)
-    ...
+release_resource() removes an element from the list of resource parent's
+children (and makes it an orphan):
 
-which doesn't seem to hinder anything from working, but is extremely
-annoying because it's printed out as some super-important "KERN_ERR
-message of Doom!"
+	p = &old->parent->child;
+	for (;;) {
+		tmp = *p;
+		if (!tmp)
+			break;
+		if (tmp == old) {
+			*p = tmp->sibling;
+			old->parent = NULL;
+			return 0;
+		}
+		p = &tmp->sibling;
+	}
 
-I don't see why incomplete ACPI tables would *ever* be "KERN_ERR"
-level messages, but I particularly don't see it when it seems to be
-our own meaningless fake entries.
+release_region() does the same but with additional checks, and also
+frees the resource:
 
-                   Linus
+	p = &parent->child;
+        /* ... */
+	for (;;) {
+		struct resource *res = *p;
+
+		if (!res)
+			break;
+		if (res->start <= start && res->end >= end) {
+                        /* ... */
+			*p = res->sibling;
+                        /* ... */
+			free_resource(res);
+			return;
+		}
+		p = &res->sibling;
+	}
+
+When making the change I've based on other code in the kernel which also
+make use of request_region().
+
+To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
+I/O port region when initialization fails like so:
+
+static int ne2k_pci_init_one(struct pci_dev *pdev,
+			     const struct pci_device_id *ent)
+{
+        /* ... */
+
+	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
+		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
+			NE_IO_EXTENT, ioaddr);
+		return -EBUSY;
+	}
+
+        /* ... */
+
+	dev = alloc_ei_netdev();
+	if (!dev) {
+		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
+		goto err_out_free_res;
+	}
+
+        /* ... */
+
+err_out_free_res:
+	release_region (ioaddr, NE_IO_EXTENT);
+	return -ENODEV;
+}
+
+>>  	}
+>>  
+>>  	/* check if the resource is reserved */
+>> @@ -241,8 +242,9 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
+>>  	/* check if the resource is already in use, skip if the
+>>  	 * device is active because it itself may be in use */
+>>  	if (!dev->active) {
+>> -		if (check_mem_region(*addr, length(addr, end)))
+>> +		if (!request_mem_region(*addr, length(addr, end), "pnp"))
+>>  			return 0;
+>> +		release_mem_region(*addr, length(addr, end));
+>>  	}
+>>  
+>>  	/* check if the resource is reserved */
+>> 
