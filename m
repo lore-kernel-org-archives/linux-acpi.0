@@ -1,61 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH 2/6] x86, acpi, pci: Move arch-agnostic MMCFG code out of arch/x86/ directory
-Date: Fri, 12 Dec 2014 15:55:23 +0100
-Message-ID: <67564550.9h6b3Ng1Fi@wuerfel>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <1416413091-13452-3-git-send-email-tomasz.nowicki@linaro.org> <20141210235500.GA22886@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPI/EC: Fix an issue that ec_remove_handlers() is invoked unexpectedly.
+Date: Mon, 15 Dec 2014 08:47:52 +0800
+Message-ID: <1418604472-1764-1-git-send-email-lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:50135 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757044AbaLLOzn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Dec 2014 09:55:43 -0500
-In-Reply-To: <20141210235500.GA22886@google.com>
+Received: from mga02.intel.com ([134.134.136.20]:2817 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751213AbaLOAsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 14 Dec 2014 19:48:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, rjw@rjwysocki.net, linux-pci@vger.kernel.org, catalin.marinas@arm.com, x86@kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, wangyijing@huawei.com, Liviu.Dudau@arm.com, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wednesday 10 December 2014 16:55:00 Bjorn Helgaas wrote:
-> On Wed, Nov 19, 2014 at 05:04:47PM +0100, Tomasz Nowicki wrote:
-> > MMCFG table seems to be architecture independent and it makes sense
-> > to share common code across all architectures. The ones that may need
-> > architectural specific actions have default prototype (__weak).
-> > 
-> > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> > Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > ---
-> >  arch/x86/include/asm/pci_x86.h |  29 -----
-> >  arch/x86/pci/acpi.c            |   1 +
-> >  arch/x86/pci/init.c            |   1 +
-> >  arch/x86/pci/mmconfig-shared.c | 200 +---------------------------------
-> >  arch/x86/pci/mmconfig_32.c     |   1 +
-> >  arch/x86/pci/mmconfig_64.c     |   1 +
-> >  drivers/acpi/Makefile          |   1 +
-> >  drivers/acpi/bus.c             |   1 +
-> >  drivers/acpi/mmconfig.c        | 242 +++++++++++++++++++++++++++++++++++++++++
-> >  include/linux/mmconfig.h       |  58 ++++++++++
-> >  include/linux/pci.h            |   8 --
-> >  11 files changed, 308 insertions(+), 235 deletions(-)
-> >  create mode 100644 drivers/acpi/mmconfig.c
-> >  create mode 100644 include/linux/mmconfig.h
-> > ... 
-> 
-> Much of the code you're moving to drivers/acpi/mmconfig.c is not actually
-> ACPI-specific and would have to be duplicated for a non-ACPI architecture
-> that supports ECAM.  Could that code be moved somewhere like
-> drivers/pci/ecam.c, where it could be shared?
+The ec_remove_handlers() is invoked without checking
+EC_FLAGS_HANDLERS_INSTALLED, this patch enhances this check to avoid issues
+that acpi_disable_gpe() is invoked unexpectedly to reduce the GPE runtime
+count. This may happen when the EC handler installation failed on some
+platforms.
 
-We have an implementation of ECAM in drivers/pci/host/pci-host-generic.c,
-which today is ARM32 specific but should be migrated to the new generic
-infrastructure we are adding for ARM64, after which that driver becomes
-very simple.
+Reported-by: Venkat Raghavulu <venkat.raghavulu@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-I suppose we could either make it use drivers/pci/ecam.c then, or have
-the config space code from pci-host-generic be shared between ACPI and
-DT based platforms. The former approach is probably nicer in the long
-run, and it allows sharing with other drivers that use ECAM but are not
-completely generic otherwise.
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 5f9b74b..1b5853f 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -844,6 +844,8 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 
+ static void ec_remove_handlers(struct acpi_ec *ec)
+ {
++	if (!test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
++		return;
+ 	acpi_disable_gpe(NULL, ec->gpe);
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+-- 
+1.7.10
 
-	Arnd
