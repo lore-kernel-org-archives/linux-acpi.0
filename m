@@ -1,42 +1,65 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI/EC: Fix an issue that ec_remove_handlers() is invoked unexpectedly.
-Date: Mon, 15 Dec 2014 08:47:52 +0800
-Message-ID: <1418604472-1764-1-git-send-email-lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2817 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbaLOAsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Dec 2014 19:48:19 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / video: update the skip case for
+	acpi_video_device_in_dod
+Date: Mon, 15 Dec 2014 16:01:29 +0800
+Message-ID: <548E9559.3080707@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: Dmitry Tunin <hanipouspilot@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Jimbo <jaime.91@hotmail.es>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-The ec_remove_handlers() is invoked without checking
-EC_FLAGS_HANDLERS_INSTALLED, this patch enhances this check to avoid issues
-that acpi_disable_gpe() is invoked unexpectedly to reduce the GPE runtime
-count. This may happen when the EC handler installation failed on some
-platforms.
-
-Reported-by: Venkat Raghavulu <venkat.raghavulu@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 5f9b74b..1b5853f 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -844,6 +844,8 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 
- static void ec_remove_handlers(struct acpi_ec *ec)
- {
-+	if (!test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
-+		return;
- 	acpi_disable_gpe(NULL, ec->gpe);
- 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
--- 
-1.7.10
-
+SWYgdGhlIGZpcm13YXJlIGhhcyBkZWNsYXJlZCBtb3JlIHRoYW4gOCB2aWRlbyBvdXRwdXQgZGV2
+aWNlcywgYW5kIHRoZQpvbmUgdGhhdCBjb250cm9sIHRoZSBpbnRlcm5hbCBwYW5lbCdzIGJhY2ts
+aWdodCBpcyBsaXN0ZWQgYWZ0ZXIgdGhlCmZpcnN0IDggb3V0cHV0IGRldmljZXMsIHRoZSBfRE9E
+IHdpbGwgbm90IGluY2x1ZGUgaXQgZHVlIHRvIHRoZSBjdXJyZW50Cmk5MTUgb3BlcmF0aW9uIHJl
+Z2lvbiBpbXBsZW1lbnRhdGlvbi4gQXMgYSByZXN1bHQsIHdlIHdpbGwgbm90IGNyZWF0ZSBhCmJh
+Y2tsaWdodCBkZXZpY2UgZm9yIGl0IHdoaWxlIHdlIHNob3VsZC4gU29sdmUgdGhpcyBwcm9ibGVt
+IGJ5IHNwZWNpYWwKY2FzZSB0aGUgZmlybXdhcmUgdGhhdCBoYXMgOCsgb3V0cHV0IGRldmljZXMg
+aW4gdGhhdCBpZiB3ZSBzZWUgc3VjaCBhCmZpcm13YXJlLCB3ZSBkbyBub3QgdGVzdCBpZiB0aGUg
+ZGV2aWNlIGlzIGluIF9ET0QgbGlzdC4gVGhlIGNyZWF0aW9uIG9mCnRoZSBiYWNrbGlnaHQgZGV2
+aWNlIHdpbGwgYWxzbyBlbmFibGUgdGhlIGZpcm13YXJlIHRvIGVtaXQgZXZlbnRzIG9uCmJhY2ts
+aWdodCBob3RrZXkgcHJlc3Mgd2hlbiB0aGUgYWNwaV9vc2k9IGNtZGxpbmUgb3B0aW9uIGlzIHNw
+ZWNpZmllZCBvbgp0aG9zZSBhZmZlY3RlZCBBU1VTIGxhcHRvcHMuCgpCdWdsaW5rOiBodHRwczov
+L2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTcwMjQxClJlcG9ydGVkLWFuZC10
+ZXN0ZWQtYnk6IE9sZWtzaWogUmVtcGVsIDxsaW51eEByZW1wZWwtcHJpdmF0LmRlPgpSZXBvcnRl
+ZC1hbmQtdGVzdGVkLWJ5OiBEbWl0cnkgVHVuaW4gPGhhbmlwb3VzcGlsb3RAZ21haWwuY29tPgpS
+ZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBKaW1ibyA8amFpbWUuOTFAaG90bWFpbC5lcz4KQ2M6IHN0
+YWJsZUB2Z2VyLmtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogQWFyb24gTHUgPGFhcm9uLmx1QGlu
+dGVsLmNvbT4KLS0tCiBkcml2ZXJzL2FjcGkvdmlkZW8uYyB8IDEwICsrKysrKysrLS0KIDEgZmls
+ZSBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9hY3BpL3ZpZGVvLmMgYi9kcml2ZXJzL2FjcGkvdmlkZW8uYwppbmRleCA4Yjg0NDkz
+MWI5MzYuLmM3MmU3OWQyYzVhZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMKKysr
+IGIvZHJpdmVycy9hY3BpL3ZpZGVvLmMKQEAgLTE1NSw2ICsxNTUsNyBAQCBzdHJ1Y3QgYWNwaV92
+aWRlb19idXMgewogCXU4IGRvc19zZXR0aW5nOwogCXN0cnVjdCBhY3BpX3ZpZGVvX2VudW1lcmF0
+ZWRfZGV2aWNlICphdHRhY2hlZF9hcnJheTsKIAl1OCBhdHRhY2hlZF9jb3VudDsKKwl1OCBjaGls
+ZF9jb3VudDsKIAlzdHJ1Y3QgYWNwaV92aWRlb19idXNfY2FwIGNhcDsKIAlzdHJ1Y3QgYWNwaV92
+aWRlb19idXNfZmxhZ3MgZmxhZ3M7CiAJc3RydWN0IGxpc3RfaGVhZCB2aWRlb19kZXZpY2VfbGlz
+dDsKQEAgLTExNzYsOCArMTE3NywxMiBAQCBzdGF0aWMgYm9vbCBhY3BpX3ZpZGVvX2RldmljZV9p
+bl9kb2Qoc3RydWN0IGFjcGlfdmlkZW9fZGV2aWNlICpkZXZpY2UpCiAJc3RydWN0IGFjcGlfdmlk
+ZW9fYnVzICp2aWRlbyA9IGRldmljZS0+dmlkZW87CiAJaW50IGk7CiAKLQkvKiBJZiB3ZSBoYXZl
+IGEgYnJva2VuIF9ET0QsIG5vIG5lZWQgdG8gdGVzdCAqLwotCWlmICghdmlkZW8tPmF0dGFjaGVk
+X2NvdW50KQorCS8qCisJICogSWYgd2UgaGF2ZSBhIGJyb2tlbiBfRE9EIG9yIHdlIGhhdmUgbW9y
+ZSB0aGFuIDggb3V0cHV0IGRldmljZXMKKwkgKiB1bmRlciB0aGUgZ3JhcGhpY3MgY29udHJvbGxl
+ciBub2RlIHRoYXQgd2UgY2FuJ3QgcHJvcGVyIGRlYWwgd2l0aAorCSAqIGluIHRoZSBvcGVyYXRp
+b24gcmVnaW9uIGNvZGUgY3VycmVudGx5LCBubyBuZWVkIHRvIHRlc3QuCisJICovCisJaWYgKCF2
+aWRlby0+YXR0YWNoZWRfY291bnQgfHwgdmlkZW8tPmNoaWxkX2NvdW50ID4gOCkKIAkJcmV0dXJu
+IHRydWU7CiAKIAlmb3IgKGkgPSAwOyBpIDwgdmlkZW8tPmF0dGFjaGVkX2NvdW50OyBpKyspIHsK
+QEAgLTE0MzAsNiArMTQzNSw3IEBAIGFjcGlfdmlkZW9fYnVzX2dldF9kZXZpY2VzKHN0cnVjdCBh
+Y3BpX3ZpZGVvX2J1cyAqdmlkZW8sCiAJCQlkZXZfZXJyKCZkZXYtPmRldiwgIkNhbid0IGF0dGFj
+aCBkZXZpY2VcbiIpOwogCQkJYnJlYWs7CiAJCX0KKwkJdmlkZW8tPmNoaWxkX2NvdW50Kys7CiAJ
+fQogCXJldHVybiBzdGF0dXM7CiB9Ci0tIAoyLjEuMAoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9pbnRlbC1nZngK
