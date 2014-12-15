@@ -1,75 +1,443 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH] ACPI / video: update the skip case for
-	acpi_video_device_in_dod
-Date: Mon, 15 Dec 2014 11:02:37 +0200
-Message-ID: <87r3w1jnf6.fsf@intel.com>
-References: <548E9559.3080707@intel.com>
+From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: Re: [Patch Part2 v6 22/27] x86, uv: Use hierarchy irqdomain to
+ manage UV interrupts
+Date: Mon, 15 Dec 2014 15:37:35 -0600
+Message-ID: <20141215213735.GA8149@sgi.com>
+References: <1416894816-23245-1-git-send-email-jiang.liu@linux.intel.com>
+ <1416894816-23245-23-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <548E9559.3080707@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Aaron Lu <aaron.lu@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
-Cc: Dmitry Tunin <hanipouspilot@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Jimbo <jaime.91@hotmail.es>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay2.sgi.com ([192.48.180.65]:55441 "EHLO relay.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750851AbaLOVhl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Dec 2014 16:37:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1416894816-23245-23-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russ Anderson <rja@sgi.com>, Nathan Zimmer <nzimmer@sgi.com>, Dimitri Sivanich <sivanich@sgi.com>
 
-T24gTW9uLCAxNSBEZWMgMjAxNCwgQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4gd3JvdGU6
-Cj4gSWYgdGhlIGZpcm13YXJlIGhhcyBkZWNsYXJlZCBtb3JlIHRoYW4gOCB2aWRlbyBvdXRwdXQg
-ZGV2aWNlcywgYW5kIHRoZQo+IG9uZSB0aGF0IGNvbnRyb2wgdGhlIGludGVybmFsIHBhbmVsJ3Mg
-YmFja2xpZ2h0IGlzIGxpc3RlZCBhZnRlciB0aGUKPiBmaXJzdCA4IG91dHB1dCBkZXZpY2VzLCB0
-aGUgX0RPRCB3aWxsIG5vdCBpbmNsdWRlIGl0IGR1ZSB0byB0aGUgY3VycmVudAo+IGk5MTUgb3Bl
-cmF0aW9uIHJlZ2lvbiBpbXBsZW1lbnRhdGlvbi4gQXMgYSByZXN1bHQsIHdlIHdpbGwgbm90IGNy
-ZWF0ZSBhCj4gYmFja2xpZ2h0IGRldmljZSBmb3IgaXQgd2hpbGUgd2Ugc2hvdWxkLiBTb2x2ZSB0
-aGlzIHByb2JsZW0gYnkgc3BlY2lhbAo+IGNhc2UgdGhlIGZpcm13YXJlIHRoYXQgaGFzIDgrIG91
-dHB1dCBkZXZpY2VzIGluIHRoYXQgaWYgd2Ugc2VlIHN1Y2ggYQo+IGZpcm13YXJlLCB3ZSBkbyBu
-b3QgdGVzdCBpZiB0aGUgZGV2aWNlIGlzIGluIF9ET0QgbGlzdC4gVGhlIGNyZWF0aW9uIG9mCj4g
-dGhlIGJhY2tsaWdodCBkZXZpY2Ugd2lsbCBhbHNvIGVuYWJsZSB0aGUgZmlybXdhcmUgdG8gZW1p
-dCBldmVudHMgb24KPiBiYWNrbGlnaHQgaG90a2V5IHByZXNzIHdoZW4gdGhlIGFjcGlfb3NpPSBj
-bWRsaW5lIG9wdGlvbiBpcyBzcGVjaWZpZWQgb24KPiB0aG9zZSBhZmZlY3RlZCBBU1VTIGxhcHRv
-cHMuCj4KPiBCdWdsaW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
-P2lkPTcwMjQxCj4gUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogT2xla3NpaiBSZW1wZWwgPGxpbnV4
-QHJlbXBlbC1wcml2YXQuZGU+Cj4gUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogRG1pdHJ5IFR1bmlu
-IDxoYW5pcG91c3BpbG90QGdtYWlsLmNvbT4KPiBSZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBKaW1i
-byA8amFpbWUuOTFAaG90bWFpbC5lcz4KPiBDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZwo+IFNp
-Z25lZC1vZmYtYnk6IEFhcm9uIEx1IDxhYXJvbi5sdUBpbnRlbC5jb20+CgpPYnZpb3VzbHkgSSdk
-IGxpa2UgdG8gaGF2ZSB0aGUgcHJvcGVyIGluZm9ybWF0aW9uIGluIHRoZSBvcHJlZ2lvbgpESURM
-L0NBREwgZmllbGRzLCBidXQgaXQncyBub3QgZ29pbmcgdG8gaGFwcGVuIHNvb24sIG5vciBpcyBp
-dCBnb2luZyB0bwpmaXQgdW5kZXIgc3RhYmxlIHNpemUgbGltaXRzLgoKSSBsaWtlIHRoZSBzaW1w
-bGljaXR5IGhlcmUuIEZXSVcsCgpBY2tlZC1ieTogSmFuaSBOaWt1bGEgPGphbmkubmlrdWxhQGlu
-dGVsLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMvYWNwaS92aWRlby5jIHwgMTAgKysrKysrKystLQo+
-ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQo+Cj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS92aWRlby5jIGIvZHJpdmVycy9hY3BpL3ZpZGVvLmMKPiBp
-bmRleCA4Yjg0NDkzMWI5MzYuLmM3MmU3OWQyYzVhZCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2Fj
-cGkvdmlkZW8uYwo+ICsrKyBiL2RyaXZlcnMvYWNwaS92aWRlby5jCj4gQEAgLTE1NSw2ICsxNTUs
-NyBAQCBzdHJ1Y3QgYWNwaV92aWRlb19idXMgewo+ICAJdTggZG9zX3NldHRpbmc7Cj4gIAlzdHJ1
-Y3QgYWNwaV92aWRlb19lbnVtZXJhdGVkX2RldmljZSAqYXR0YWNoZWRfYXJyYXk7Cj4gIAl1OCBh
-dHRhY2hlZF9jb3VudDsKPiArCXU4IGNoaWxkX2NvdW50Owo+ICAJc3RydWN0IGFjcGlfdmlkZW9f
-YnVzX2NhcCBjYXA7Cj4gIAlzdHJ1Y3QgYWNwaV92aWRlb19idXNfZmxhZ3MgZmxhZ3M7Cj4gIAlz
-dHJ1Y3QgbGlzdF9oZWFkIHZpZGVvX2RldmljZV9saXN0Owo+IEBAIC0xMTc2LDggKzExNzcsMTIg
-QEAgc3RhdGljIGJvb2wgYWNwaV92aWRlb19kZXZpY2VfaW5fZG9kKHN0cnVjdCBhY3BpX3ZpZGVv
-X2RldmljZSAqZGV2aWNlKQo+ICAJc3RydWN0IGFjcGlfdmlkZW9fYnVzICp2aWRlbyA9IGRldmlj
-ZS0+dmlkZW87Cj4gIAlpbnQgaTsKPiAgCj4gLQkvKiBJZiB3ZSBoYXZlIGEgYnJva2VuIF9ET0Qs
-IG5vIG5lZWQgdG8gdGVzdCAqLwo+IC0JaWYgKCF2aWRlby0+YXR0YWNoZWRfY291bnQpCj4gKwkv
-Kgo+ICsJICogSWYgd2UgaGF2ZSBhIGJyb2tlbiBfRE9EIG9yIHdlIGhhdmUgbW9yZSB0aGFuIDgg
-b3V0cHV0IGRldmljZXMKPiArCSAqIHVuZGVyIHRoZSBncmFwaGljcyBjb250cm9sbGVyIG5vZGUg
-dGhhdCB3ZSBjYW4ndCBwcm9wZXIgZGVhbCB3aXRoCj4gKwkgKiBpbiB0aGUgb3BlcmF0aW9uIHJl
-Z2lvbiBjb2RlIGN1cnJlbnRseSwgbm8gbmVlZCB0byB0ZXN0Lgo+ICsJICovCj4gKwlpZiAoIXZp
-ZGVvLT5hdHRhY2hlZF9jb3VudCB8fCB2aWRlby0+Y2hpbGRfY291bnQgPiA4KQo+ICAJCXJldHVy
-biB0cnVlOwo+ICAKPiAgCWZvciAoaSA9IDA7IGkgPCB2aWRlby0+YXR0YWNoZWRfY291bnQ7IGkr
-Kykgewo+IEBAIC0xNDMwLDYgKzE0MzUsNyBAQCBhY3BpX3ZpZGVvX2J1c19nZXRfZGV2aWNlcyhz
-dHJ1Y3QgYWNwaV92aWRlb19idXMgKnZpZGVvLAo+ICAJCQlkZXZfZXJyKCZkZXYtPmRldiwgIkNh
-bid0IGF0dGFjaCBkZXZpY2VcbiIpOwo+ICAJCQlicmVhazsKPiAgCQl9Cj4gKwkJdmlkZW8tPmNo
-aWxkX2NvdW50Kys7Cj4gIAl9Cj4gIAlyZXR1cm4gc3RhdHVzOwo+ICB9Cj4gLS0gCj4gMi4xLjAK
-PgoKLS0gCkphbmkgTmlrdWxhLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlcgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZngg
-bWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+Was this patch ever tested on a UV system?
+
+Also, adding some SGI folks to the CC list, since there were none listed before.
+
+On Tue, Nov 25, 2014 at 01:53:31PM +0800, Jiang Liu wrote:
+> Enhance UV code to support hierarchy irqdomain, it helps to make
+> the architecture more clear.
+> 
+> We should construct hwirq based on mmr_blade and mmr_offset, but
+> mmr_offset is type of unsigned long, it may exceed the range of
+> irq_hw_number_t. So help about the way to construct hwirq based
+> on mmr_blade and mmr_offset is welcomed!
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/x86/include/asm/hw_irq.h |    9 ++
+>  arch/x86/platform/uv/uv_irq.c |  287 ++++++++++++++++-------------------------
+>  2 files changed, 117 insertions(+), 179 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+> index 46dec7e37829..bbf90fe2a224 100644
+> --- a/arch/x86/include/asm/hw_irq.h
+> +++ b/arch/x86/include/asm/hw_irq.h
+> @@ -123,6 +123,7 @@ enum irq_alloc_type {
+>  	X86_IRQ_ALLOC_TYPE_MSI,
+>  	X86_IRQ_ALLOC_TYPE_MSIX,
+>  	X86_IRQ_ALLOC_TYPE_DMAR,
+> +	X86_IRQ_ALLOC_TYPE_UV,
+>  };
+>  
+>  struct irq_alloc_info {
+> @@ -169,6 +170,14 @@ struct irq_alloc_info {
+>  			void		*ht_update;
+>  		};
+>  #endif
+> +#ifdef	CONFIG_X86_UV
+> +		struct {
+> +			int		uv_limit;
+> +			int		uv_blade;
+> +			unsigned long	uv_offset;
+> +			char		*uv_name;
+> +		};
+> +#endif
+>  	};
+>  };
+>  
+> diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
+> index 474912d03f40..c237ed34a498 100644
+> --- a/arch/x86/platform/uv/uv_irq.c
+> +++ b/arch/x86/platform/uv/uv_irq.c
+> @@ -19,17 +19,31 @@
+>  #include <asm/uv/uv_hub.h>
+>  
+>  /* MMR offset and pnode of hub sourcing interrupts for a given irq */
+> -struct uv_irq_2_mmr_pnode{
+> -	struct rb_node		list;
+> +struct uv_irq_2_mmr_pnode {
+>  	unsigned long		offset;
+>  	int			pnode;
+> -	int			irq;
+>  };
+>  
+> -static DEFINE_SPINLOCK(uv_irq_lock);
+> -static struct rb_root		uv_irq_root;
+> +static void uv_program_mmr(struct irq_cfg *cfg, struct uv_irq_2_mmr_pnode *info)
+> +{
+> +	unsigned long mmr_value;
+> +	struct uv_IO_APIC_route_entry *entry;
+> +
+> +	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
+> +		     sizeof(unsigned long));
+> +
+> +	mmr_value = 0;
+> +	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
+> +	entry->vector		= cfg->vector;
+> +	entry->delivery_mode	= apic->irq_delivery_mode;
+> +	entry->dest_mode	= apic->irq_dest_mode;
+> +	entry->polarity		= 0;
+> +	entry->trigger		= 0;
+> +	entry->mask		= 0;
+> +	entry->dest		= cfg->dest_apicid;
+>  
+> -static int uv_set_irq_affinity(struct irq_data *, const struct cpumask *, bool);
+> +	uv_write_global_mmr64(info->pnode, info->offset, mmr_value);
+> +}
+>  
+>  static void uv_noop(struct irq_data *data) { }
+>  
+> @@ -38,6 +52,24 @@ static void uv_ack_apic(struct irq_data *data)
+>  	ack_APIC_irq();
+>  }
+>  
+> +static int
+> +uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
+> +		    bool force)
+> +{
+> +	struct irq_data *parent = data->parent_data;
+> +	struct irq_cfg *cfg = irqd_cfg(data);
+> +	int ret;
+> +
+> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
+> +	if (ret >= 0) {
+> +		uv_program_mmr(cfg, data->chip_data);
+> +		if (cfg->move_in_progress)
+> +			send_cleanup_vector(cfg);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static struct irq_chip uv_irq_chip = {
+>  	.name			= "UV-CORE",
+>  	.irq_mask		= uv_noop,
+> @@ -46,179 +78,99 @@ static struct irq_chip uv_irq_chip = {
+>  	.irq_set_affinity	= uv_set_irq_affinity,
+>  };
+>  
+> -/*
+> - * Add offset and pnode information of the hub sourcing interrupts to the
+> - * rb tree for a specific irq.
+> - */
+> -static int uv_set_irq_2_mmr_info(int irq, unsigned long offset, unsigned blade)
+> +static int uv_domain_alloc(struct irq_domain *domain, unsigned int virq,
+> +			   unsigned int nr_irqs, void *arg)
+>  {
+> -	struct rb_node **link = &uv_irq_root.rb_node;
+> -	struct rb_node *parent = NULL;
+> -	struct uv_irq_2_mmr_pnode *n;
+> -	struct uv_irq_2_mmr_pnode *e;
+> -	unsigned long irqflags;
+> -
+> -	n = kmalloc_node(sizeof(struct uv_irq_2_mmr_pnode), GFP_KERNEL,
+> -				uv_blade_to_memory_nid(blade));
+> -	if (!n)
+> +	struct uv_irq_2_mmr_pnode *chip_data;
+> +	struct irq_alloc_info *info = arg;
+> +	struct irq_data *irq_data = irq_domain_get_irq_data(domain, virq);
+> +	int ret;
+> +
+> +	if (nr_irqs > 1 || !info || info->type != X86_IRQ_ALLOC_TYPE_UV)
+> +		return -EINVAL;
+> +
+> +	chip_data = kmalloc_node(sizeof(*chip_data), GFP_KERNEL,
+> +				 irq_data->node);
+> +	if (!chip_data)
+>  		return -ENOMEM;
+>  
+> -	n->irq = irq;
+> -	n->offset = offset;
+> -	n->pnode = uv_blade_to_pnode(blade);
+> -	spin_lock_irqsave(&uv_irq_lock, irqflags);
+> -	/* Find the right place in the rbtree: */
+> -	while (*link) {
+> -		parent = *link;
+> -		e = rb_entry(parent, struct uv_irq_2_mmr_pnode, list);
+> -
+> -		if (unlikely(irq == e->irq)) {
+> -			/* irq entry exists */
+> -			e->pnode = uv_blade_to_pnode(blade);
+> -			e->offset = offset;
+> -			spin_unlock_irqrestore(&uv_irq_lock, irqflags);
+> -			kfree(n);
+> -			return 0;
+> -		}
+> -
+> -		if (irq < e->irq)
+> -			link = &(*link)->rb_left;
+> +	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
+> +	if (ret >= 0) {
+> +		if (info->uv_limit == UV_AFFINITY_CPU)
+> +			irq_set_status_flags(virq, IRQ_NO_BALANCING);
+>  		else
+> -			link = &(*link)->rb_right;
+> +			irq_set_status_flags(virq, IRQ_MOVE_PCNTXT);
+> +
+> +		chip_data->pnode = uv_blade_to_pnode(info->uv_blade);
+> +		chip_data->offset = info->uv_offset;
+> +		irq_domain_set_info(domain, virq, virq, &uv_irq_chip, chip_data,
+> +				    handle_percpu_irq, NULL, info->uv_name);
+> +	} else {
+> +		kfree(chip_data);
+>  	}
+>  
+> -	/* Insert the node into the rbtree. */
+> -	rb_link_node(&n->list, parent, link);
+> -	rb_insert_color(&n->list, &uv_irq_root);
+> -
+> -	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
+> -	return 0;
+> +	return ret;
+>  }
+>  
+> -/* Retrieve offset and pnode information from the rb tree for a specific irq */
+> -int uv_irq_2_mmr_info(int irq, unsigned long *offset, int *pnode)
+> +static void uv_domain_free(struct irq_domain *domain, unsigned int virq,
+> +			   unsigned int nr_irqs)
+>  {
+> -	struct uv_irq_2_mmr_pnode *e;
+> -	struct rb_node *n;
+> -	unsigned long irqflags;
+> -
+> -	spin_lock_irqsave(&uv_irq_lock, irqflags);
+> -	n = uv_irq_root.rb_node;
+> -	while (n) {
+> -		e = rb_entry(n, struct uv_irq_2_mmr_pnode, list);
+> -
+> -		if (e->irq == irq) {
+> -			*offset = e->offset;
+> -			*pnode = e->pnode;
+> -			spin_unlock_irqrestore(&uv_irq_lock, irqflags);
+> -			return 0;
+> -		}
+> -
+> -		if (irq < e->irq)
+> -			n = n->rb_left;
+> -		else
+> -			n = n->rb_right;
+> -	}
+> -	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
+> -	return -1;
+> +	struct irq_data *irq_data = irq_domain_get_irq_data(domain, virq);
+> +
+> +	BUG_ON(nr_irqs != 1);
+> +	kfree(irq_data->chip_data);
+> +	irq_clear_status_flags(virq, IRQ_MOVE_PCNTXT);
+> +	irq_clear_status_flags(virq, IRQ_NO_BALANCING);
+> +	irq_domain_free_irqs_top(domain, virq, nr_irqs);
+>  }
+>  
+>  /*
+>   * Re-target the irq to the specified CPU and enable the specified MMR located
+>   * on the specified blade to allow the sending of MSIs to the specified CPU.
+>   */
+> -static int
+> -arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
+> -		       unsigned long mmr_offset, int limit)
+> +static void uv_domain_activate(struct irq_domain *domain,
+> +			       struct irq_data *irq_data)
+>  {
+> -	struct irq_cfg *cfg = irq_cfg(irq);
+> -	unsigned long mmr_value;
+> -	struct uv_IO_APIC_route_entry *entry;
+> -	int mmr_pnode;
+> -
+> -	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
+> -			sizeof(unsigned long));
+> -
+> -	if (limit == UV_AFFINITY_CPU)
+> -		irq_set_status_flags(irq, IRQ_NO_BALANCING);
+> -	else
+> -		irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
+> -
+> -	irq_set_chip_and_handler_name(irq, &uv_irq_chip, handle_percpu_irq,
+> -				      irq_name);
+> -
+> -	mmr_value = 0;
+> -	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
+> -	entry->vector		= cfg->vector;
+> -	entry->delivery_mode	= apic->irq_delivery_mode;
+> -	entry->dest_mode	= apic->irq_dest_mode;
+> -	entry->polarity		= 0;
+> -	entry->trigger		= 0;
+> -	entry->mask		= 0;
+> -	entry->dest		= cfg->dest_apicid;
+> -
+> -	mmr_pnode = uv_blade_to_pnode(mmr_blade);
+> -	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
+> -
+> -	if (cfg->move_in_progress)
+> -		send_cleanup_vector(cfg);
+> -
+> -	return irq;
+> +	uv_program_mmr(irqd_cfg(irq_data), irq_data->chip_data);
+>  }
+>  
+>  /*
+>   * Disable the specified MMR located on the specified blade so that MSIs are
+>   * longer allowed to be sent.
+>   */
+> -static void arch_disable_uv_irq(int mmr_pnode, unsigned long mmr_offset)
+> +static void uv_domain_deactivate(struct irq_domain *domain,
+> +				 struct irq_data *irq_data)
+>  {
+>  	unsigned long mmr_value;
+>  	struct uv_IO_APIC_route_entry *entry;
+>  
+> -	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
+> -			sizeof(unsigned long));
+> -
+>  	mmr_value = 0;
+>  	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
+>  	entry->mask = 1;
+> -
+> -	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
+> +	uv_program_mmr(irqd_cfg(irq_data), irq_data->chip_data);
+>  }
+>  
+> -static int
+> -uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
+> -		    bool force)
+> -{
+> -	struct irq_cfg *cfg = irqd_cfg(data);
+> -	unsigned int dest;
+> -	unsigned long mmr_value, mmr_offset;
+> -	struct uv_IO_APIC_route_entry *entry;
+> -	int mmr_pnode;
+> -
+> -	if (apic_set_affinity(data, mask, &dest))
+> -		return -1;
+> -
+> -	mmr_value = 0;
+> -	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
+> -
+> -	entry->vector		= cfg->vector;
+> -	entry->delivery_mode	= apic->irq_delivery_mode;
+> -	entry->dest_mode	= apic->irq_dest_mode;
+> -	entry->polarity		= 0;
+> -	entry->trigger		= 0;
+> -	entry->mask		= 0;
+> -	entry->dest		= dest;
+> -
+> -	/* Get previously stored MMR and pnode of hub sourcing interrupts */
+> -	if (uv_irq_2_mmr_info(data->irq, &mmr_offset, &mmr_pnode))
+> -		return -1;
+> -
+> -	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
+> +static struct irq_domain_ops uv_domain_ops = {
+> +	.alloc = uv_domain_alloc,
+> +	.free = uv_domain_free,
+> +	.activate = uv_domain_activate,
+> +	.deactivate = uv_domain_deactivate,
+> +};
+>  
+> -	if (cfg->move_in_progress)
+> -		send_cleanup_vector(cfg);
+> +static struct irq_domain *uv_get_irq_domain(void)
+> +{
+> +	static struct irq_domain *uv_domain;
+> +	static DEFINE_MUTEX(uv_lock);
+> +
+> +	mutex_lock(&uv_lock);
+> +	if (uv_domain == NULL) {
+> +		uv_domain = irq_domain_add_tree(NULL, &uv_domain_ops, NULL);
+> +		if (uv_domain)
+> +			uv_domain->parent = x86_vector_domain;
+> +	}
+> +	mutex_unlock(&uv_lock);
+>  
+> -	return IRQ_SET_MASK_OK_NOCOPY;
+> +	return uv_domain;
+>  }
+>  
+>  /*
+> @@ -229,23 +181,20 @@ uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
+>  int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
+>  		 unsigned long mmr_offset, int limit)
+>  {
+> -	int ret, irq;
+>  	struct irq_alloc_info info;
+> +	struct irq_domain *domain = uv_get_irq_domain();
+> +
+> +	if (!domain)
+> +		return -ENOMEM;
+>  
+>  	init_irq_alloc_info(&info, cpumask_of(cpu));
+> -	irq = irq_domain_alloc_irqs(NULL, 1, uv_blade_to_memory_nid(mmr_blade),
+> -				    &info);
+> -	if (irq <= 0)
+> -		return -EBUSY;
+> -
+> -	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
+> -		limit);
+> -	if (ret == irq)
+> -		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
+> -	else
+> -		irq_domain_free_irqs(irq, 1);
+> +	info.uv_limit = limit;
+> +	info.uv_blade = mmr_blade;
+> +	info.uv_offset = mmr_offset;
+> +	info.uv_name = irq_name;
+>  
+> -	return ret;
+> +	return irq_domain_alloc_irqs(domain, 1,
+> +				     uv_blade_to_memory_nid(mmr_blade), &info);
+>  }
+>  EXPORT_SYMBOL_GPL(uv_setup_irq);
+>  
+> @@ -258,26 +207,6 @@ EXPORT_SYMBOL_GPL(uv_setup_irq);
+>   */
+>  void uv_teardown_irq(unsigned int irq)
+>  {
+> -	struct uv_irq_2_mmr_pnode *e;
+> -	struct rb_node *n;
+> -	unsigned long irqflags;
+> -
+> -	spin_lock_irqsave(&uv_irq_lock, irqflags);
+> -	n = uv_irq_root.rb_node;
+> -	while (n) {
+> -		e = rb_entry(n, struct uv_irq_2_mmr_pnode, list);
+> -		if (e->irq == irq) {
+> -			arch_disable_uv_irq(e->pnode, e->offset);
+> -			rb_erase(n, &uv_irq_root);
+> -			kfree(e);
+> -			break;
+> -		}
+> -		if (irq < e->irq)
+> -			n = n->rb_left;
+> -		else
+> -			n = n->rb_right;
+> -	}
+> -	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
+>  	irq_domain_free_irqs(irq, 1);
+>  }
+>  EXPORT_SYMBOL_GPL(uv_teardown_irq);
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
