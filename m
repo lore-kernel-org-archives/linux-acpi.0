@@ -1,166 +1,140 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCHv3] ACPI, EINJ: Enhance error injection tolerance level
-Date: Wed, 10 Dec 2014 13:53:26 -0800
-Message-ID: <075830@agluck-desk.sc.intel.com>
-References: <5ab8b2e0b3e41b1bb4bdee09289200e12a0dfbe4.1418248436.git.tony.luck@intel.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: [RFC] ACPI on arm64 TODO List
+Date: Mon, 15 Dec 2014 19:18:16 -0700
+Message-ID: <548F9668.6080900@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:23357 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750738AbaLOVlq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Dec 2014 16:41:46 -0500
-In-Reply-To: <5ab8b2e0b3e41b1bb4bdee09289200e12a0dfbe4.1418248436.git.tony.luck@intel.com>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:42657 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750861AbaLPCST (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Dec 2014 21:18:19 -0500
+Received: by mail-ie0-f177.google.com with SMTP id rd18so11989045iec.22
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Dec 2014 18:18:19 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-kernel@vger.kernel.org
-Cc: Borislav Petkov <bp@suse.de>, Chen Gong <gong.chen@linux.intel.com>, linux-acpi@vger.kernel.org
+To: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 
-From: "Chen, Gong" <gong.chen@linux.intel.com>
+Back in September 2014, a meeting was held at Linaro Connect where we
+discussed what issues remained before the arm64 ACPI core patches could
+be merged into the kernel, creating the TODO list below.  I should have
+published this list sooner; I got focused on trying to resolve some of
+the issues instead.
 
-Some BIOSes utilize PCI MMCFG space read/write opertion to trigger
-specific errors. EINJ will report errors as below when hitting such
-cases:
+We have made some progress on all of these items.  But, I want to make
+sure we haven't missed something.  Since this list was compiled by only
+the people in the room at Connect, it is probable we have.  I, for one,
+do not yet claim omniscience.
 
-APEI: Can not request [mem 0x83f990a0-0x83f990a3] for APEI EINJ Trigger registers
+So, I want to ask the ARM and ACPI communities:
 
-It is because on x86 platform ACPI based PCI MMCFG logic has
-reserved all MMCFG spaces so that EINJ can't reserve it again.
-We already trust the ACPI/APEI code when using the EINJ interface
-so it is not a big leap to also trust it to access the right
-MMCFG addresses. Skip address checking to allow the access.
+  -- Is this list correct?
 
-Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
----
+  -- Is this list complete?
 
-v3: Same as v2, except dropped the
-  +#ifdef CONFIG_PCI_MMCONFIG
-  +#include <asm/pci_x86.h>
-  +#endif
-hunk from apei-base.c as it is not needed
+Below is what we currently know about; very brief notes on status are
+included.  The TL;DR versions of the TODO list and the current status
+can be found at:
 
- arch/x86/pci/mmconfig-shared.c | 28 ++++++++++++++++++++++++++++
- drivers/acpi/apei/apei-base.c  | 32 ++++++++++++++++++++++++++------
- 2 files changed, 54 insertions(+), 6 deletions(-)
+   https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/CoreUpstreamNotes
 
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 326198a4434e..676e5e04e4d4 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -610,6 +610,32 @@ static int __init pci_parse_mcfg(struct acpi_table_header *header)
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI_APEI
-+extern int (*arch_apei_filter_addr)(int (*func)(__u64 start, __u64 size,
-+				     void *data), void *data);
-+
-+static int pci_mmcfg_for_each_region(int (*func)(__u64 start, __u64 size,
-+				     void *data), void *data)
-+{
-+	struct pci_mmcfg_region *cfg;
-+	int rc;
-+
-+	if (list_empty(&pci_mmcfg_list))
-+		return 0;
-+
-+	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
-+		rc = func(cfg->res.start, resource_size(&cfg->res), data);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+#define set_apei_filter() (arch_apei_filter_addr = pci_mmcfg_for_each_region)
-+#else
-+#define set_apei_filter()
-+#endif
-+
- static void __init __pci_mmcfg_init(int early)
- {
- 	pci_mmcfg_reject_broken(early);
-@@ -644,6 +670,8 @@ void __init pci_mmcfg_early_init(void)
- 		else
- 			acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
- 		__pci_mmcfg_init(1);
-+
-+		set_apei_filter();
- 	}
- }
- 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 2cd7bdd6c8b3..a85ac07f3da3 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -449,7 +449,7 @@ int apei_resources_sub(struct apei_resources *resources1,
- }
- EXPORT_SYMBOL_GPL(apei_resources_sub);
- 
--static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
-+static int apei_get_res_callback(__u64 start, __u64 size, void *data)
- {
- 	struct apei_resources *resources = data;
- 	return apei_res_add(&resources->iomem, start, size);
-@@ -457,7 +457,15 @@ static int apei_get_nvs_callback(__u64 start, __u64 size, void *data)
- 
- static int apei_get_nvs_resources(struct apei_resources *resources)
- {
--	return acpi_nvs_for_each_region(apei_get_nvs_callback, resources);
-+	return acpi_nvs_for_each_region(apei_get_res_callback, resources);
-+}
-+
-+int (*arch_apei_filter_addr)(int (*func)(__u64 start, __u64 size,
-+				     void *data), void *data);
-+static int apei_get_arch_resources(struct apei_resources *resources)
-+
-+{
-+	return arch_apei_filter_addr(apei_get_res_callback, resources);
- }
- 
- /*
-@@ -470,7 +478,7 @@ int apei_resources_request(struct apei_resources *resources,
- {
- 	struct apei_res *res, *res_bak = NULL;
- 	struct resource *r;
--	struct apei_resources nvs_resources;
-+	struct apei_resources nvs_resources, arch_res;
- 	int rc;
- 
- 	rc = apei_resources_sub(resources, &apei_resources_all);
-@@ -485,10 +493,20 @@ int apei_resources_request(struct apei_resources *resources,
- 	apei_resources_init(&nvs_resources);
- 	rc = apei_get_nvs_resources(&nvs_resources);
- 	if (rc)
--		goto res_fini;
-+		goto nvs_res_fini;
- 	rc = apei_resources_sub(resources, &nvs_resources);
- 	if (rc)
--		goto res_fini;
-+		goto nvs_res_fini;
-+
-+	if (arch_apei_filter_addr) {
-+		apei_resources_init(&arch_res);
-+		rc = apei_get_arch_resources(&arch_res);
-+		if (rc)
-+			goto arch_res_fini;
-+		rc = apei_resources_sub(resources, &arch_res);
-+		if (rc)
-+			goto arch_res_fini;
-+	}
- 
- 	rc = -EINVAL;
- 	list_for_each_entry(res, &resources->iomem, list) {
-@@ -536,7 +554,9 @@ err_unmap_iomem:
- 			break;
- 		release_mem_region(res->start, res->end - res->start);
- 	}
--res_fini:
-+arch_res_fini:
-+	apei_resources_fini(&arch_res);
-+nvs_res_fini:
- 	apei_resources_fini(&nvs_resources);
- 	return rc;
- }
+and I'll do my best to kept that up to date.
+
+Thanks.  Any and all feedback is greatly appreciated.
+
+
+TODO List for ACPI on arm64:
+============================
+1. Define how Aarch64 OS identifies itself to firmware.
+   * Problem:
+     * _OSI method is demonstrably unreliable. On x86 Linux claims to
+       be Windows
+     * Proposal to use _OSC method as replacement is complicated and
+       creates an explosion of combinations
+   * Solution:
+     * Draft and propose OS identification rules to ABST and ASWG for
+       inclusion in ACPI spec.
+     * Draft and propose recommended practice for current ACPI 5.1 spec
+       platforms.
+   * Status: Little progress, still under investigation
+
+2. Linux must choose DT booting by default when offered both ACPI and
+   DT on arm64
+   * DONE
+
+3. Linux UEFI/ACPI testing tools must be made available
+   * Problem:
+     * Hardware/Firmware vendors do not have tools to test Linux
+       compatibility.
+     * Common problems go undetected if not tested for.
+   * Solution:
+     * Port FWTS tool and LuvOS distribution to AArch64
+     * Make LuvOS images readily available
+     * Require hardware vendors to actively test against old and new
+       kernels.
+   * Status: LuvOS and FWTS ported to arm64 and running; patches being
+     mainlined; additional test cases being written.
+
+4. Set clear expectations for those providing ACPI for use with Linux
+   * Problem:
+     * Hardware/Firmware vendors can and will create ACPI tables that
+       cannot be used by Linux without some guidance
+     * Kernel developers cannot determine whether the kernel or firmware
+       is broken without knowing what the firmware should do
+   * Solution: document the expectations, and iterate as needed.
+     Enforce when we must.
+   * Status: initial kernel text available; AMD has offered to make
+     their guidance document generic; firmware summit planned for
+     deeper discussions.
+
+5. Demonstrate the ACPI core patches work
+   * Problem: how can we be sure the patches work?
+   * Solution: verify the patches on arm64 server platforms
+   * Status:
+     * ACPI core works on at least the Foundation model, Juno, APM
+       Mustang, and AMD Seattle
+     * FWTS results will be published as soon as possible
+
+6. How does the kernel handle_DSD usage?
+   * Problem:
+     * _DSD defines key-value properties in the DT style. How do we
+       ensure _DSD bindings are well defined?
+     * How do we ensure DT and _DSD bindings remain consistent with
+       each other?
+   * Solution: public documentation for all bindings, and a process
+     for defining them
+   * Status: proposal to require patch authors to point at public
+     binding documentation; kernel Documentation/devicetree/bindings
+     remains the default if no other location exists; UEFI forum has
+     set up a binding repository.
+
+7. Why is ACPI required?
+   * Problem:
+     * arm64 maintainers still haven't been convinced that ACPI is
+       necessary.
+     * Why do hardware and OS vendors say ACPI is required?
+   * Status: Al & Grant collecting statements from OEMs to be posted
+     publicly early in the new year; firmware summit for broader
+     discussion planned.
+
+8. Platform support patches need review
+   * Problem: the core Aarch64 patches have been reviewed and are in
+     good shape, but there is not yet a good example of server platform
+     support patches that use them.
+   * Solution: Post *good* patches for multiple ACPI platforms
+   * Status: first version for AMD Seattle has been posted to the
+     public linaro-acpi mailing list for initial review (thanks,
+     Arnd), refined versions to be posted to broader lists after a
+     few iterations for basic cleanup
+
 -- 
-2.1.0
-
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
