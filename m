@@ -1,140 +1,84 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: [RFC] ACPI on arm64 TODO List
-Date: Mon, 15 Dec 2014 19:18:16 -0700
-Message-ID: <548F9668.6080900@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / video: update the skip case for
+	acpi_video_device_in_dod
+Date: Tue, 16 Dec 2014 11:21:15 +0800
+Message-ID: <548FA52B.6060602@intel.com>
+References: <548E9559.3080707@intel.com> <87r3w1jnf6.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:42657 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861AbaLPCST (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Dec 2014 21:18:19 -0500
-Received: by mail-ie0-f177.google.com with SMTP id rd18so11989045iec.22
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Dec 2014 18:18:19 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <87r3w1jnf6.fsf@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Jani Nikula <jani.nikula@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: Dmitry Tunin <hanipouspilot@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Jimbo <jaime.91@hotmail.es>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>
 List-Id: linux-acpi@vger.kernel.org
-To: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 
-Back in September 2014, a meeting was held at Linaro Connect where we
-discussed what issues remained before the arm64 ACPI core patches could
-be merged into the kernel, creating the TODO list below.  I should have
-published this list sooner; I got focused on trying to resolve some of
-the issues instead.
-
-We have made some progress on all of these items.  But, I want to make
-sure we haven't missed something.  Since this list was compiled by only
-the people in the room at Connect, it is probable we have.  I, for one,
-do not yet claim omniscience.
-
-So, I want to ask the ARM and ACPI communities:
-
-  -- Is this list correct?
-
-  -- Is this list complete?
-
-Below is what we currently know about; very brief notes on status are
-included.  The TL;DR versions of the TODO list and the current status
-can be found at:
-
-   https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/CoreUpstreamNotes
-
-and I'll do my best to kept that up to date.
-
-Thanks.  Any and all feedback is greatly appreciated.
-
-
-TODO List for ACPI on arm64:
-============================
-1. Define how Aarch64 OS identifies itself to firmware.
-   * Problem:
-     * _OSI method is demonstrably unreliable. On x86 Linux claims to
-       be Windows
-     * Proposal to use _OSC method as replacement is complicated and
-       creates an explosion of combinations
-   * Solution:
-     * Draft and propose OS identification rules to ABST and ASWG for
-       inclusion in ACPI spec.
-     * Draft and propose recommended practice for current ACPI 5.1 spec
-       platforms.
-   * Status: Little progress, still under investigation
-
-2. Linux must choose DT booting by default when offered both ACPI and
-   DT on arm64
-   * DONE
-
-3. Linux UEFI/ACPI testing tools must be made available
-   * Problem:
-     * Hardware/Firmware vendors do not have tools to test Linux
-       compatibility.
-     * Common problems go undetected if not tested for.
-   * Solution:
-     * Port FWTS tool and LuvOS distribution to AArch64
-     * Make LuvOS images readily available
-     * Require hardware vendors to actively test against old and new
-       kernels.
-   * Status: LuvOS and FWTS ported to arm64 and running; patches being
-     mainlined; additional test cases being written.
-
-4. Set clear expectations for those providing ACPI for use with Linux
-   * Problem:
-     * Hardware/Firmware vendors can and will create ACPI tables that
-       cannot be used by Linux without some guidance
-     * Kernel developers cannot determine whether the kernel or firmware
-       is broken without knowing what the firmware should do
-   * Solution: document the expectations, and iterate as needed.
-     Enforce when we must.
-   * Status: initial kernel text available; AMD has offered to make
-     their guidance document generic; firmware summit planned for
-     deeper discussions.
-
-5. Demonstrate the ACPI core patches work
-   * Problem: how can we be sure the patches work?
-   * Solution: verify the patches on arm64 server platforms
-   * Status:
-     * ACPI core works on at least the Foundation model, Juno, APM
-       Mustang, and AMD Seattle
-     * FWTS results will be published as soon as possible
-
-6. How does the kernel handle_DSD usage?
-   * Problem:
-     * _DSD defines key-value properties in the DT style. How do we
-       ensure _DSD bindings are well defined?
-     * How do we ensure DT and _DSD bindings remain consistent with
-       each other?
-   * Solution: public documentation for all bindings, and a process
-     for defining them
-   * Status: proposal to require patch authors to point at public
-     binding documentation; kernel Documentation/devicetree/bindings
-     remains the default if no other location exists; UEFI forum has
-     set up a binding repository.
-
-7. Why is ACPI required?
-   * Problem:
-     * arm64 maintainers still haven't been convinced that ACPI is
-       necessary.
-     * Why do hardware and OS vendors say ACPI is required?
-   * Status: Al & Grant collecting statements from OEMs to be posted
-     publicly early in the new year; firmware summit for broader
-     discussion planned.
-
-8. Platform support patches need review
-   * Problem: the core Aarch64 patches have been reviewed and are in
-     good shape, but there is not yet a good example of server platform
-     support patches that use them.
-   * Solution: Post *good* patches for multiple ACPI platforms
-   * Status: first version for AMD Seattle has been posted to the
-     public linaro-acpi mailing list for initial review (thanks,
-     Arnd), refined versions to be posted to broader lists after a
-     few iterations for basic cleanup
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+T24gMTIvMTUvMjAxNCAwNTowMiBQTSwgSmFuaSBOaWt1bGEgd3JvdGU6Cj4gT24gTW9uLCAxNSBE
+ZWMgMjAxNCwgQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4gd3JvdGU6Cj4+IElmIHRoZSBm
+aXJtd2FyZSBoYXMgZGVjbGFyZWQgbW9yZSB0aGFuIDggdmlkZW8gb3V0cHV0IGRldmljZXMsIGFu
+ZCB0aGUKPj4gb25lIHRoYXQgY29udHJvbCB0aGUgaW50ZXJuYWwgcGFuZWwncyBiYWNrbGlnaHQg
+aXMgbGlzdGVkIGFmdGVyIHRoZQo+PiBmaXJzdCA4IG91dHB1dCBkZXZpY2VzLCB0aGUgX0RPRCB3
+aWxsIG5vdCBpbmNsdWRlIGl0IGR1ZSB0byB0aGUgY3VycmVudAo+PiBpOTE1IG9wZXJhdGlvbiBy
+ZWdpb24gaW1wbGVtZW50YXRpb24uIEFzIGEgcmVzdWx0LCB3ZSB3aWxsIG5vdCBjcmVhdGUgYQo+
+PiBiYWNrbGlnaHQgZGV2aWNlIGZvciBpdCB3aGlsZSB3ZSBzaG91bGQuIFNvbHZlIHRoaXMgcHJv
+YmxlbSBieSBzcGVjaWFsCj4+IGNhc2UgdGhlIGZpcm13YXJlIHRoYXQgaGFzIDgrIG91dHB1dCBk
+ZXZpY2VzIGluIHRoYXQgaWYgd2Ugc2VlIHN1Y2ggYQo+PiBmaXJtd2FyZSwgd2UgZG8gbm90IHRl
+c3QgaWYgdGhlIGRldmljZSBpcyBpbiBfRE9EIGxpc3QuIFRoZSBjcmVhdGlvbiBvZgo+PiB0aGUg
+YmFja2xpZ2h0IGRldmljZSB3aWxsIGFsc28gZW5hYmxlIHRoZSBmaXJtd2FyZSB0byBlbWl0IGV2
+ZW50cyBvbgo+PiBiYWNrbGlnaHQgaG90a2V5IHByZXNzIHdoZW4gdGhlIGFjcGlfb3NpPSBjbWRs
+aW5lIG9wdGlvbiBpcyBzcGVjaWZpZWQgb24KPj4gdGhvc2UgYWZmZWN0ZWQgQVNVUyBsYXB0b3Bz
+Lgo+Pgo+PiBCdWdsaW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
+P2lkPTcwMjQxCj4+IFJlcG9ydGVkLWFuZC10ZXN0ZWQtYnk6IE9sZWtzaWogUmVtcGVsIDxsaW51
+eEByZW1wZWwtcHJpdmF0LmRlPgo+PiBSZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBEbWl0cnkgVHVu
+aW4gPGhhbmlwb3VzcGlsb3RAZ21haWwuY29tPgo+PiBSZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBK
+aW1ibyA8amFpbWUuOTFAaG90bWFpbC5lcz4KPj4gQ2M6IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcK
+Pj4gU2lnbmVkLW9mZi1ieTogQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4KPiAKPiBPYnZp
+b3VzbHkgSSdkIGxpa2UgdG8gaGF2ZSB0aGUgcHJvcGVyIGluZm9ybWF0aW9uIGluIHRoZSBvcHJl
+Z2lvbgo+IERJREwvQ0FETCBmaWVsZHMsIGJ1dCBpdCdzIG5vdCBnb2luZyB0byBoYXBwZW4gc29v
+biwgbm9yIGlzIGl0IGdvaW5nIHRvCj4gZml0IHVuZGVyIHN0YWJsZSBzaXplIGxpbWl0cy4KPiAK
+PiBJIGxpa2UgdGhlIHNpbXBsaWNpdHkgaGVyZS4gRldJVywKPiAKPiBBY2tlZC1ieTogSmFuaSBO
+aWt1bGEgPGphbmkubmlrdWxhQGludGVsLmNvbT4KClRoYW5rcyA6LSkKCkJUVywgdGhpcyBwYXRj
+aCBpcyBtb3JlIG9mIGEgZml4IGZvciBteSBwcmV2aW91cyBjb21taXQgMGI4ZGIyNzFmMTU5Cigi
+QUNQSSAvIHZpZGVvOiBjaGVjayBfRE9EIGxpc3Qgd2hlbiBjcmVhdGluZyBiYWNrbGlnaHQgZGV2
+aWNlcyIpIHRoYXQKbWFkZSB0aGUgYWNwaV92aWRlbyBpbnRlcmZhY2UgZGlzYXBwZWFyIG9uIHRo
+ZXNlIGFmZmVjdGVkIGxhcHRvcHMgc28gSQp3b3VsZCBsaWtlIHRvIGZpeCBpdCBxdWlja2x5LiBB
+bmQgSSBhZ3JlZSB0aGF0IGEgcHJvcGVyIGltcGxlbWVudGF0aW9uCm9mIHRoZSBESURML0NBREwg
+bGlzdCBpcyBuZWVkZWQgc28gdGhhdCBwZW9wbGUgY2FuIGdldCByaWQgb2YgdGhlCmFjcGlfb3Np
+PSBjbWRsaW5lIG9wdGlvbiB0aGV5IGN1cnJlbnRseSBuZWVkIHRvIGdldCBob3RrZXkgZXZlbnRz
+LgoKUmVnYXJkcywKQWFyb24KCj4gCj4+IC0tLQo+PiAgZHJpdmVycy9hY3BpL3ZpZGVvLmMgfCAx
+MCArKysrKysrKy0tCj4+ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0
+aW9ucygtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMgYi9kcml2ZXJz
+L2FjcGkvdmlkZW8uYwo+PiBpbmRleCA4Yjg0NDkzMWI5MzYuLmM3MmU3OWQyYzVhZCAxMDA2NDQK
+Pj4gLS0tIGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMKPj4gKysrIGIvZHJpdmVycy9hY3BpL3ZpZGVv
+LmMKPj4gQEAgLTE1NSw2ICsxNTUsNyBAQCBzdHJ1Y3QgYWNwaV92aWRlb19idXMgewo+PiAgCXU4
+IGRvc19zZXR0aW5nOwo+PiAgCXN0cnVjdCBhY3BpX3ZpZGVvX2VudW1lcmF0ZWRfZGV2aWNlICph
+dHRhY2hlZF9hcnJheTsKPj4gIAl1OCBhdHRhY2hlZF9jb3VudDsKPj4gKwl1OCBjaGlsZF9jb3Vu
+dDsKPj4gIAlzdHJ1Y3QgYWNwaV92aWRlb19idXNfY2FwIGNhcDsKPj4gIAlzdHJ1Y3QgYWNwaV92
+aWRlb19idXNfZmxhZ3MgZmxhZ3M7Cj4+ICAJc3RydWN0IGxpc3RfaGVhZCB2aWRlb19kZXZpY2Vf
+bGlzdDsKPj4gQEAgLTExNzYsOCArMTE3NywxMiBAQCBzdGF0aWMgYm9vbCBhY3BpX3ZpZGVvX2Rl
+dmljZV9pbl9kb2Qoc3RydWN0IGFjcGlfdmlkZW9fZGV2aWNlICpkZXZpY2UpCj4+ICAJc3RydWN0
+IGFjcGlfdmlkZW9fYnVzICp2aWRlbyA9IGRldmljZS0+dmlkZW87Cj4+ICAJaW50IGk7Cj4+ICAK
+Pj4gLQkvKiBJZiB3ZSBoYXZlIGEgYnJva2VuIF9ET0QsIG5vIG5lZWQgdG8gdGVzdCAqLwo+PiAt
+CWlmICghdmlkZW8tPmF0dGFjaGVkX2NvdW50KQo+PiArCS8qCj4+ICsJICogSWYgd2UgaGF2ZSBh
+IGJyb2tlbiBfRE9EIG9yIHdlIGhhdmUgbW9yZSB0aGFuIDggb3V0cHV0IGRldmljZXMKPj4gKwkg
+KiB1bmRlciB0aGUgZ3JhcGhpY3MgY29udHJvbGxlciBub2RlIHRoYXQgd2UgY2FuJ3QgcHJvcGVy
+IGRlYWwgd2l0aAo+PiArCSAqIGluIHRoZSBvcGVyYXRpb24gcmVnaW9uIGNvZGUgY3VycmVudGx5
+LCBubyBuZWVkIHRvIHRlc3QuCj4+ICsJICovCj4+ICsJaWYgKCF2aWRlby0+YXR0YWNoZWRfY291
+bnQgfHwgdmlkZW8tPmNoaWxkX2NvdW50ID4gOCkKPj4gIAkJcmV0dXJuIHRydWU7Cj4+ICAKPj4g
+IAlmb3IgKGkgPSAwOyBpIDwgdmlkZW8tPmF0dGFjaGVkX2NvdW50OyBpKyspIHsKPj4gQEAgLTE0
+MzAsNiArMTQzNSw3IEBAIGFjcGlfdmlkZW9fYnVzX2dldF9kZXZpY2VzKHN0cnVjdCBhY3BpX3Zp
+ZGVvX2J1cyAqdmlkZW8sCj4+ICAJCQlkZXZfZXJyKCZkZXYtPmRldiwgIkNhbid0IGF0dGFjaCBk
+ZXZpY2VcbiIpOwo+PiAgCQkJYnJlYWs7Cj4+ICAJCX0KPj4gKwkJdmlkZW8tPmNoaWxkX2NvdW50
+Kys7Cj4+ICAJfQo+PiAgCXJldHVybiBzdGF0dXM7Cj4+ICB9Cj4+IC0tIAo+PiAyLjEuMAo+Pgo+
+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwt
+Z2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9s
+aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
