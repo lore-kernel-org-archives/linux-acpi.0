@@ -1,99 +1,162 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 3/3] cpuidle, ACPI: remove unused CPUIDLE_FLAG_TIME_INVALID
-Date: Tue, 16 Dec 2014 12:08:25 +0100
-Message-ID: <549012A9.6070408@linaro.org>
-References: <1418712728-2193-1-git-send-email-lenb@kernel.org> <2d1595ea66f8eadeb1e337354b311c4f5282e2a1.1418712225.git.len.brown@intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Tue, 16 Dec 2014 12:27:48 +0100
+Message-ID: <9355623.14GfrLxEB0@wuerfel>
+References: <548F9668.6080900@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2d1595ea66f8eadeb1e337354b311c4f5282e2a1.1418712225.git.len.brown@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:62554 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750840AbaLPL2C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 06:28:02 -0500
+In-Reply-To: <548F9668.6080900@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 
-On 12/16/2014 07:52 AM, Len Brown wrote:
-> From: Len Brown <len.brown@intel.com>
->
-> CPUIDLE_FLAG_TIME_INVALID is no longer checked
-> by menu or ladder cpuidle governors, so don't
-> bother setting or defining it.
->
-> It was originally invented to account for the fact that
-> acpi_safe_halt() enables interrupts to invoke HLT.
-> That would allow interrupt service routines to be included
-> in the last_idle duration measurements made in cpuidle_enter_state(),
-> potentially returning a duration much larger than reality.
->
-> But menu and ladder can gracefully handle erroneously large duration
-> intervals without checking for CPUIDLE_FLAG_TIME_INVALID.
-> Further, if they don't check CPUIDLE_FLAG_TIME_INVALID, they
-> can also benefit from the instances when the duration interval
-> is not erroneously large.
->
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+On Monday 15 December 2014 19:18:16 Al Stone wrote:
 
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> Below is what we currently know about; very brief notes on status are
+> included.  The TL;DR versions of the TODO list and the current status
+> can be found at:
+> 
+>    https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/CoreUpstreamNotes
+> 
+> and I'll do my best to kept that up to date.
+> 
+> Thanks.  Any and all feedback is greatly appreciated.
 
+Thanks for keeping the list up to date!
 
-> ---
->   drivers/acpi/processor_idle.c | 2 --
->   include/linux/cpuidle.h       | 3 ---
->   2 files changed, 5 deletions(-)
->
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_i=
-dle.c
-> index 4995365..87b704e 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -985,8 +985,6 @@ static int acpi_processor_setup_cpuidle_states(st=
-ruct acpi_processor *pr)
->   		state->flags =3D 0;
->   		switch (cx->type) {
->   			case ACPI_STATE_C1:
-> -			if (cx->entry_method !=3D ACPI_CSTATE_FFH)
-> -				state->flags |=3D CPUIDLE_FLAG_TIME_INVALID;
->
->   			state->enter =3D acpi_idle_enter_c1;
->   			state->enter_dead =3D acpi_idle_play_dead;
-> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> index a07e087..ab70f3b 100644
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -53,7 +53,6 @@ struct cpuidle_state {
->   };
->
->   /* Idle State Flags */
-> -#define CPUIDLE_FLAG_TIME_INVALID	(0x01) /* is residency time measur=
-able? */
->   #define CPUIDLE_FLAG_COUPLED	(0x02) /* state applies to multiple cp=
-us */
->   #define CPUIDLE_FLAG_TIMER_STOP (0x04)  /* timer is stopped on this=
- state */
->
-> @@ -89,8 +88,6 @@ DECLARE_PER_CPU(struct cpuidle_device, cpuidle_dev)=
-;
->   /**
->    * cpuidle_get_last_residency - retrieves the last state's residenc=
-y time
->    * @dev: the target CPU
-> - *
-> - * NOTE: this value is invalid if CPUIDLE_FLAG_TIME_INVALID is set
->    */
->   static inline int cpuidle_get_last_residency(struct cpuidle_device =
-*dev)
->   {
->
+> 
+> TODO List for ACPI on arm64:
+> ============================
+> 1. Define how Aarch64 OS identifies itself to firmware.
+>    * Problem:
+>      * _OSI method is demonstrably unreliable. On x86 Linux claims to
+>        be Windows
+>      * Proposal to use _OSC method as replacement is complicated and
+>        creates an explosion of combinations
+>    * Solution:
+>      * Draft and propose OS identification rules to ABST and ASWG for
+>        inclusion in ACPI spec.
+>      * Draft and propose recommended practice for current ACPI 5.1 spec
+>        platforms.
+>    * Status: Little progress, still under investigation
 
+I must have missed the problem with _OSC, it sounded like it was good
+enough, but I have no clue about the details.
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
+> 2. Linux must choose DT booting by default when offered both ACPI and
+>    DT on arm64
+>    * DONE
+> 
+> 3. Linux UEFI/ACPI testing tools must be made available
+>    * Problem:
+>      * Hardware/Firmware vendors do not have tools to test Linux
+>        compatibility.
+>      * Common problems go undetected if not tested for.
+>    * Solution:
+>      * Port FWTS tool and LuvOS distribution to AArch64
+>      * Make LuvOS images readily available
+>      * Require hardware vendors to actively test against old and new
+>        kernels.
+>    * Status: LuvOS and FWTS ported to arm64 and running; patches being
+>      mainlined; additional test cases being written.
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Ah, nice!
 
+> 4. Set clear expectations for those providing ACPI for use with Linux
+>    * Problem:
+>      * Hardware/Firmware vendors can and will create ACPI tables that
+>        cannot be used by Linux without some guidance
+>      * Kernel developers cannot determine whether the kernel or firmware
+>        is broken without knowing what the firmware should do
+>    * Solution: document the expectations, and iterate as needed.
+>      Enforce when we must.
+>    * Status: initial kernel text available; AMD has offered to make
+>      their guidance document generic; firmware summit planned for
+>      deeper discussions.
+
+After seeing the AMD patches, I would add to this point that we need to
+find a way to come up with shared bindings for common hardware such as
+the ARM pl011/pl022/pl061/pl330 IP blocks or the designware
+i2c/spi/usb3/ahci blocks.
+
+What I remember from this item on your list is actually a different
+problem: We need to define more clearly what kinds of machines we
+would expect ACPI support for and which machines we would not.
+
+Fine-grained clock support is one such example: if anybody needs
+to expose that through a clock driver in the kernel, we need to be
+very clear that we will not support that kind of machine through
+ACPI, so we don't get developers building BIOS images that will
+never be supported. Other examples would be non-compliant PCI
+hosts or machines that are not covered by SBSA.
+
+> 5. Demonstrate the ACPI core patches work
+>    * Problem: how can we be sure the patches work?
+>    * Solution: verify the patches on arm64 server platforms
+>    * Status:
+>      * ACPI core works on at least the Foundation model, Juno, APM
+>        Mustang, and AMD Seattle
+>      * FWTS results will be published as soon as possible
+
+I think the problem is to a lesser degree the verification of the
+patches, but to have a patch set that demonstrates /how/ everything
+can work, and what the possible limitations are. I would not worry
+about any bugs that might keep the system from working properly, as
+long as you can show that there is a plan to make that work.
+
+Out of the four platforms you list, I think we have concluded that
+three of them are not appropriate for use with ACPI, but in order
+to do that, we needed to review the patches and pinpoint specific
+issues so we could avoid just exchanging different opinions on the
+matter of it "works" or not.
+
+> 6. How does the kernel handle_DSD usage?
+>    * Problem:
+>      * _DSD defines key-value properties in the DT style. How do we
+>        ensure _DSD bindings are well defined?
+>      * How do we ensure DT and _DSD bindings remain consistent with
+>        each other?
+>    * Solution: public documentation for all bindings, and a process
+>      for defining them
+>    * Status: proposal to require patch authors to point at public
+>      binding documentation; kernel Documentation/devicetree/bindings
+>      remains the default if no other location exists; UEFI forum has
+>      set up a binding repository.
+
+I think we also need to make a decision here on whether we want to use
+PRP0001 devices on ARM64 servers, and to what degree. I would prefer
+if we could either make them required for any devices that already have
+a DT binding and that are not part of the official ACPI spec, or we
+decide to not use them at all and make any PRP0001 usage a testcase
+failure.
+
+> 7. Why is ACPI required?
+>    * Problem:
+>      * arm64 maintainers still haven't been convinced that ACPI is
+>        necessary.
+>      * Why do hardware and OS vendors say ACPI is required?
+>    * Status: Al & Grant collecting statements from OEMs to be posted
+>      publicly early in the new year; firmware summit for broader
+>      discussion planned.
+
+I was particularly hoping to see better progress on this item. It
+really shouldn't be that hard to explain why someone wants this feature.
+
+> 8. Platform support patches need review
+>    * Problem: the core Aarch64 patches have been reviewed and are in
+>      good shape, but there is not yet a good example of server platform
+>      support patches that use them.
+>    * Solution: Post *good* patches for multiple ACPI platforms
+>    * Status: first version for AMD Seattle has been posted to the
+>      public linaro-acpi mailing list for initial review (thanks,
+>      Arnd), refined versions to be posted to broader lists after a
+>      few iterations for basic cleanup
+
+	Arnd
