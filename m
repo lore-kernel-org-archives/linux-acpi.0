@@ -1,88 +1,38 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Tue, 16 Dec 2014 15:48:42 +0000
-Message-ID: <20141216154842.GI19412@leverpostej>
-References: <548F9668.6080900@linaro.org>
- <9355623.14GfrLxEB0@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:57725 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750881AbaLPPtW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Dec 2014 10:49:22 -0500
-Content-Disposition: inline
-In-Reply-To: <9355623.14GfrLxEB0@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: [PATCH 0/4] dln2: add support for ACPI
+Date: Tue, 16 Dec 2014 18:12:29 +0200
+Message-ID: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org, lee.jones@linaro.org, rjw@rjwysocki.net
+Cc: johan@kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, heikki.krogerus@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-> > 4. Set clear expectations for those providing ACPI for use with Linux
-> >    * Problem:
-> >      * Hardware/Firmware vendors can and will create ACPI tables that
-> >        cannot be used by Linux without some guidance
-> >      * Kernel developers cannot determine whether the kernel or firmware
-> >        is broken without knowing what the firmware should do
-> >    * Solution: document the expectations, and iterate as needed.
-> >      Enforce when we must.
-> >    * Status: initial kernel text available; AMD has offered to make
-> >      their guidance document generic; firmware summit planned for
-> >      deeper discussions.
-> 
-> After seeing the AMD patches, I would add to this point that we need to
-> find a way to come up with shared bindings for common hardware such as
-> the ARM pl011/pl022/pl061/pl330 IP blocks or the designware
-> i2c/spi/usb3/ahci blocks.
-> 
-> What I remember from this item on your list is actually a different
-> problem: We need to define more clearly what kinds of machines we
-> would expect ACPI support for and which machines we would not.
-> 
-> Fine-grained clock support is one such example: if anybody needs
-> to expose that through a clock driver in the kernel, we need to be
-> very clear that we will not support that kind of machine through
-> ACPI, so we don't get developers building BIOS images that will
-> never be supported. Other examples would be non-compliant PCI
-> hosts or machines that are not covered by SBSA.
+This patch sets adds support for ACPI enumeration for devices
+connected to the DLN2 bridge via a custom ACPI table.
 
-[...]
+The first two patches fix a couple of issues with the ACPI load/unload
+table APIs.
 
-> > 6. How does the kernel handle_DSD usage?
-> >    * Problem:
-> >      * _DSD defines key-value properties in the DT style. How do we
-> >        ensure _DSD bindings are well defined?
-> >      * How do we ensure DT and _DSD bindings remain consistent with
-> >        each other?
-> >    * Solution: public documentation for all bindings, and a process
-> >      for defining them
-> >    * Status: proposal to require patch authors to point at public
-> >      binding documentation; kernel Documentation/devicetree/bindings
-> >      remains the default if no other location exists; UEFI forum has
-> >      set up a binding repository.
-> 
-> I think we also need to make a decision here on whether we want to use
-> PRP0001 devices on ARM64 servers, and to what degree. I would prefer
-> if we could either make them required for any devices that already have
-> a DT binding and that are not part of the official ACPI spec, or we
-> decide to not use them at all and make any PRP0001 usage a testcase
-> failure.
+The 3rd patch adds ACPI support to the MFD driver and the last patch
+configures pull-up/pull-down on GPIO pins based on the APCI
+configuration.
 
-I am rather concerned about the relationship between items described
-with _DSD and ACPI's existing device model. Describing the relationship
-between devices and their input clocks, regulators, and so on defeats
-much of the benefit ACPI is marketed as providing w.r.t. abstraction of
-the underlying platform (and as Arnd mentioned above, that's not the
-kind of platform we want to support with ACPI).
+Octavian Purdila (4):
+  ACPICA: take ACPI_MTX_INTERPRETER in acpi_unload_table_id
+  ACPICA: don't release ACPI_MTX_TABLES in
+    acpi_tb_install_standard_table
+  mfd: dln2: add support for ACPI
+  gpio: dln2: add support for ACPI pin configuration
 
-I have not seen good guidelines on the usage of _DSD in that respect,
-and I'm worried we'll end up with clock controllers half-owned by AML
-and half-owned by the kernel's clock framework, and this separation
-varying from board to board (and FW revision to FW revision). I think
-that needs to be clarified at the ACPI spec level in addition to
-anything we have in the kernel documentation.
+ Documentation/acpi/dln2-acpi.txt |  62 ++++++++++++++++++
+ drivers/acpi/acpica/tbinstal.c   |   1 -
+ drivers/acpi/acpica/tbxface.c    |   7 ++
+ drivers/gpio/gpio-dln2.c         |  76 ++++++++++++++++++++++
+ drivers/mfd/dln2.c               | 134 +++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 279 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/acpi/dln2-acpi.txt
 
-I'm still of the opinion that conflating _DSD and DT is a bad idea.
+-- 
+1.9.1
 
-Mark.
