@@ -1,84 +1,85 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / video: update the skip case for
-	acpi_video_device_in_dod
-Date: Tue, 16 Dec 2014 11:21:15 +0800
-Message-ID: <548FA52B.6060602@intel.com>
-References: <548E9559.3080707@intel.com> <87r3w1jnf6.fsf@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/2] cpuidle: acpi: Remove TIME_INVALID flag from acpi
+Date: Tue, 16 Dec 2014 00:28:11 -0500
+Message-ID: <CAJvTdKkzNUc4Q59DSeo3MPVhR=eWLE3iEmagrYSVb69Stt-Exg@mail.gmail.com>
+References: <1416562192-14114-1-git-send-email-daniel.lezcano@linaro.org>
+	<2283319.n13QkHWkNs@vostro.rjw.lan>
+	<546F53CF.8070004@linaro.org>
+	<54802121.2030407@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <87r3w1jnf6.fsf@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
-Cc: Dmitry Tunin <hanipouspilot@gmail.com>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, Jimbo <jaime.91@hotmail.es>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Oleksij Rempel <linux@rempel-privat.de>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:45887 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750851AbaLPF2M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 00:28:12 -0500
+In-Reply-To: <54802121.2030407@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, linaro-kernel@lists.linaro.org, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
 
-T24gMTIvMTUvMjAxNCAwNTowMiBQTSwgSmFuaSBOaWt1bGEgd3JvdGU6Cj4gT24gTW9uLCAxNSBE
-ZWMgMjAxNCwgQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4gd3JvdGU6Cj4+IElmIHRoZSBm
-aXJtd2FyZSBoYXMgZGVjbGFyZWQgbW9yZSB0aGFuIDggdmlkZW8gb3V0cHV0IGRldmljZXMsIGFu
-ZCB0aGUKPj4gb25lIHRoYXQgY29udHJvbCB0aGUgaW50ZXJuYWwgcGFuZWwncyBiYWNrbGlnaHQg
-aXMgbGlzdGVkIGFmdGVyIHRoZQo+PiBmaXJzdCA4IG91dHB1dCBkZXZpY2VzLCB0aGUgX0RPRCB3
-aWxsIG5vdCBpbmNsdWRlIGl0IGR1ZSB0byB0aGUgY3VycmVudAo+PiBpOTE1IG9wZXJhdGlvbiBy
-ZWdpb24gaW1wbGVtZW50YXRpb24uIEFzIGEgcmVzdWx0LCB3ZSB3aWxsIG5vdCBjcmVhdGUgYQo+
-PiBiYWNrbGlnaHQgZGV2aWNlIGZvciBpdCB3aGlsZSB3ZSBzaG91bGQuIFNvbHZlIHRoaXMgcHJv
-YmxlbSBieSBzcGVjaWFsCj4+IGNhc2UgdGhlIGZpcm13YXJlIHRoYXQgaGFzIDgrIG91dHB1dCBk
-ZXZpY2VzIGluIHRoYXQgaWYgd2Ugc2VlIHN1Y2ggYQo+PiBmaXJtd2FyZSwgd2UgZG8gbm90IHRl
-c3QgaWYgdGhlIGRldmljZSBpcyBpbiBfRE9EIGxpc3QuIFRoZSBjcmVhdGlvbiBvZgo+PiB0aGUg
-YmFja2xpZ2h0IGRldmljZSB3aWxsIGFsc28gZW5hYmxlIHRoZSBmaXJtd2FyZSB0byBlbWl0IGV2
-ZW50cyBvbgo+PiBiYWNrbGlnaHQgaG90a2V5IHByZXNzIHdoZW4gdGhlIGFjcGlfb3NpPSBjbWRs
-aW5lIG9wdGlvbiBpcyBzcGVjaWZpZWQgb24KPj4gdGhvc2UgYWZmZWN0ZWQgQVNVUyBsYXB0b3Bz
-Lgo+Pgo+PiBCdWdsaW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
-P2lkPTcwMjQxCj4+IFJlcG9ydGVkLWFuZC10ZXN0ZWQtYnk6IE9sZWtzaWogUmVtcGVsIDxsaW51
-eEByZW1wZWwtcHJpdmF0LmRlPgo+PiBSZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBEbWl0cnkgVHVu
-aW4gPGhhbmlwb3VzcGlsb3RAZ21haWwuY29tPgo+PiBSZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBK
-aW1ibyA8amFpbWUuOTFAaG90bWFpbC5lcz4KPj4gQ2M6IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcK
-Pj4gU2lnbmVkLW9mZi1ieTogQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4KPiAKPiBPYnZp
-b3VzbHkgSSdkIGxpa2UgdG8gaGF2ZSB0aGUgcHJvcGVyIGluZm9ybWF0aW9uIGluIHRoZSBvcHJl
-Z2lvbgo+IERJREwvQ0FETCBmaWVsZHMsIGJ1dCBpdCdzIG5vdCBnb2luZyB0byBoYXBwZW4gc29v
-biwgbm9yIGlzIGl0IGdvaW5nIHRvCj4gZml0IHVuZGVyIHN0YWJsZSBzaXplIGxpbWl0cy4KPiAK
-PiBJIGxpa2UgdGhlIHNpbXBsaWNpdHkgaGVyZS4gRldJVywKPiAKPiBBY2tlZC1ieTogSmFuaSBO
-aWt1bGEgPGphbmkubmlrdWxhQGludGVsLmNvbT4KClRoYW5rcyA6LSkKCkJUVywgdGhpcyBwYXRj
-aCBpcyBtb3JlIG9mIGEgZml4IGZvciBteSBwcmV2aW91cyBjb21taXQgMGI4ZGIyNzFmMTU5Cigi
-QUNQSSAvIHZpZGVvOiBjaGVjayBfRE9EIGxpc3Qgd2hlbiBjcmVhdGluZyBiYWNrbGlnaHQgZGV2
-aWNlcyIpIHRoYXQKbWFkZSB0aGUgYWNwaV92aWRlbyBpbnRlcmZhY2UgZGlzYXBwZWFyIG9uIHRo
-ZXNlIGFmZmVjdGVkIGxhcHRvcHMgc28gSQp3b3VsZCBsaWtlIHRvIGZpeCBpdCBxdWlja2x5LiBB
-bmQgSSBhZ3JlZSB0aGF0IGEgcHJvcGVyIGltcGxlbWVudGF0aW9uCm9mIHRoZSBESURML0NBREwg
-bGlzdCBpcyBuZWVkZWQgc28gdGhhdCBwZW9wbGUgY2FuIGdldCByaWQgb2YgdGhlCmFjcGlfb3Np
-PSBjbWRsaW5lIG9wdGlvbiB0aGV5IGN1cnJlbnRseSBuZWVkIHRvIGdldCBob3RrZXkgZXZlbnRz
-LgoKUmVnYXJkcywKQWFyb24KCj4gCj4+IC0tLQo+PiAgZHJpdmVycy9hY3BpL3ZpZGVvLmMgfCAx
-MCArKysrKysrKy0tCj4+ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0
-aW9ucygtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMgYi9kcml2ZXJz
-L2FjcGkvdmlkZW8uYwo+PiBpbmRleCA4Yjg0NDkzMWI5MzYuLmM3MmU3OWQyYzVhZCAxMDA2NDQK
-Pj4gLS0tIGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMKPj4gKysrIGIvZHJpdmVycy9hY3BpL3ZpZGVv
-LmMKPj4gQEAgLTE1NSw2ICsxNTUsNyBAQCBzdHJ1Y3QgYWNwaV92aWRlb19idXMgewo+PiAgCXU4
-IGRvc19zZXR0aW5nOwo+PiAgCXN0cnVjdCBhY3BpX3ZpZGVvX2VudW1lcmF0ZWRfZGV2aWNlICph
-dHRhY2hlZF9hcnJheTsKPj4gIAl1OCBhdHRhY2hlZF9jb3VudDsKPj4gKwl1OCBjaGlsZF9jb3Vu
-dDsKPj4gIAlzdHJ1Y3QgYWNwaV92aWRlb19idXNfY2FwIGNhcDsKPj4gIAlzdHJ1Y3QgYWNwaV92
-aWRlb19idXNfZmxhZ3MgZmxhZ3M7Cj4+ICAJc3RydWN0IGxpc3RfaGVhZCB2aWRlb19kZXZpY2Vf
-bGlzdDsKPj4gQEAgLTExNzYsOCArMTE3NywxMiBAQCBzdGF0aWMgYm9vbCBhY3BpX3ZpZGVvX2Rl
-dmljZV9pbl9kb2Qoc3RydWN0IGFjcGlfdmlkZW9fZGV2aWNlICpkZXZpY2UpCj4+ICAJc3RydWN0
-IGFjcGlfdmlkZW9fYnVzICp2aWRlbyA9IGRldmljZS0+dmlkZW87Cj4+ICAJaW50IGk7Cj4+ICAK
-Pj4gLQkvKiBJZiB3ZSBoYXZlIGEgYnJva2VuIF9ET0QsIG5vIG5lZWQgdG8gdGVzdCAqLwo+PiAt
-CWlmICghdmlkZW8tPmF0dGFjaGVkX2NvdW50KQo+PiArCS8qCj4+ICsJICogSWYgd2UgaGF2ZSBh
-IGJyb2tlbiBfRE9EIG9yIHdlIGhhdmUgbW9yZSB0aGFuIDggb3V0cHV0IGRldmljZXMKPj4gKwkg
-KiB1bmRlciB0aGUgZ3JhcGhpY3MgY29udHJvbGxlciBub2RlIHRoYXQgd2UgY2FuJ3QgcHJvcGVy
-IGRlYWwgd2l0aAo+PiArCSAqIGluIHRoZSBvcGVyYXRpb24gcmVnaW9uIGNvZGUgY3VycmVudGx5
-LCBubyBuZWVkIHRvIHRlc3QuCj4+ICsJICovCj4+ICsJaWYgKCF2aWRlby0+YXR0YWNoZWRfY291
-bnQgfHwgdmlkZW8tPmNoaWxkX2NvdW50ID4gOCkKPj4gIAkJcmV0dXJuIHRydWU7Cj4+ICAKPj4g
-IAlmb3IgKGkgPSAwOyBpIDwgdmlkZW8tPmF0dGFjaGVkX2NvdW50OyBpKyspIHsKPj4gQEAgLTE0
-MzAsNiArMTQzNSw3IEBAIGFjcGlfdmlkZW9fYnVzX2dldF9kZXZpY2VzKHN0cnVjdCBhY3BpX3Zp
-ZGVvX2J1cyAqdmlkZW8sCj4+ICAJCQlkZXZfZXJyKCZkZXYtPmRldiwgIkNhbid0IGF0dGFjaCBk
-ZXZpY2VcbiIpOwo+PiAgCQkJYnJlYWs7Cj4+ICAJCX0KPj4gKwkJdmlkZW8tPmNoaWxkX2NvdW50
-Kys7Cj4+ICAJfQo+PiAgCXJldHVybiBzdGF0dXM7Cj4+ICB9Cj4+IC0tIAo+PiAyLjEuMAo+Pgo+
-IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwt
-Z2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+>>>> The commit 8e92b6605d introduced the TIME_VALID flag for the C1 state
+>>>> if this one is a mwait state assuming the interrupt will be enabled
+>>>> before reading the end time of the idle state.
+...
+>>>> I have been digging through the code and I didn't find any place
+>>>> where the interrupts are enabled before reading the time.
+
+Linux is correct as it stands, and the patch proposed here is not correct.
+
+Note that on x86, the "STI" instruction enables interrupts:
+
+static inline void native_safe_halt(void)
+{
+        asm volatile("sti; hlt": : :"memory");
+}
+
+We get here via acpi_safe_halt(), which is invoked with interrupts
+disabled via the cpuidle enter path.
+As it needs to return with interrupts disabled, it hacks them off
+again, but not before the actual
+interrupt is serviced -- which is what throws off the time-stamps in
+this path, and why
+the CPUIDLE_FLAG_TIME_INVALID exists.
+
+/*
+ * Callers should disable interrupts before the call and enable
+ * interrupts after return.
+ */
+static void acpi_safe_halt(void)
+{
+        if (!tif_need_resched()) {
+                safe_halt();
+                local_irq_disable();
+        }
+}
+
+That said...
+I think if ladder and menu were more clever, we could delete
+CPUIDLE_FLAG_TIME_INVALID...
+Today, we use this flag to set our last_residency to the amount of
+time until the predicted
+next timer expires.  There are only two cases:
+
+First, we could have taken and serviced an interrupt -- all before the timer
+would have expired.
+In this case, we are rounding up last_residency to the max, the
+duration till the next timer
+would have expired.
+
+Second, we could take the timer, and we could service it for a long
+time, and we'd
+return a time that is longer than the expected time.  So here we are truncating
+down to the expected duration till the next timer.
+
+But in case #1, our "invalid" measurement is actually more accurate than what
+we are rounding up to.  And in case #2, we don't need a flag to detect it --
+indeed menu already checks for that case:
+
+                /* Make sure our coefficients do not exceed unity */
+                if (measured_us > data->next_timer_us)
+                        measured_us = data->next_timer_us;
+
+cheers,
+Len Brown, Intel Open Source Technology Center
