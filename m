@@ -1,80 +1,97 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [PATCH 1/4] ACPICA: take ACPI_MTX_INTERPRETER in acpi_unload_table_id
-Date: Tue, 16 Dec 2014 21:32:44 +0200
-Message-ID: <CAE1zotL5W=PpKjrcCV_Q_nBdpm+cakn7NOqqjEwx3WEcYduacw@mail.gmail.com>
-References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com>
-	<1418746353-3481-2-git-send-email-octavian.purdila@intel.com>
-	<54907676.4050108@cogentembedded.com>
+From: Tuukka Tikkanen <tuukka.tikkanen@linaro.org>
+Subject: Re: [PATCH 1/3] cpuidle menu: Better idle duration measurement
+ without using CPUIDLE_FLAG_TIME_INVALID
+Date: Tue, 16 Dec 2014 23:09:56 +0200
+Message-ID: <CAG-99FOc3=eE-cFPTDFSjtLbDTDwtfhw48zPocdtHQQ2QNOrLg@mail.gmail.com>
+References: <1418712728-2193-1-git-send-email-lenb@kernel.org>
+	<c55877aa13886c660da484118a96117f939553e3.1418712225.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <54907676.4050108@cogentembedded.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Johan Hovold <johan@kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <c55877aa13886c660da484118a96117f939553e3.1418712225.git.len.brown@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 16, 2014 at 8:14 PM, Sergei Shtylyov
-<sergei.shtylyov@cogentembedded.com> wrote:
-> Hello.
+On Tue, Dec 16, 2014 at 8:52 AM, Len Brown <lenb@kernel.org> wrote:
+> From: Len Brown <len.brown@intel.com>
 >
-> On 12/16/2014 07:12 PM, Octavian Purdila wrote:
+> When menu sees CPUIDLE_FLAG_TIME_INVALID, it ignores its timestamps,
+> and assumes that idle lasted as long as the time till next predicted
+> timer expiration.
 >
->> acpi_tb_delete_namespace_by_owner expects ACPI_MTX_INTERPRETER to be
->> taken. This fixes the following issue:
+> But if an interrupt was seen and serviced before that duration,
+> it would actually be more accurate to use the measured time
+> rather than rounding up to the next predicted timer expiration.
 >
+> And if an interrupt is seen and serviced such that the mesured time
+> exceeds the time till next predicted timer expiration, then
+> truncating to that expiration is the right thing to do --
+> since we can never stay idle past that timer expiration.
 >
->> ACPI Error: Mutex [0x0] is not acquired, cannot release
->> (20141107/utmutex-322)
->> Call Trace:
->>    [<ffffffff81b0bd28>] dump_stack+0x4f/0x7b
->>    [<ffffffff81546bfc>] acpi_ut_release_mutex+0x47/0x67
->>    [<ffffffff81542cf1>] acpi_tb_delete_namespace_by_owner+0x57/0x8d
->>    [<ffffffff81543ef1>] acpi_unload_table_id+0x3a/0x5e
+> So the code can do a better job without
+> checking for CPUIDLE_FLAG_TIME_INVALID.
 >
->
->> Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
->> ---
->>   drivers/acpi/acpica/tbxface.c | 7 +++++++
->>   1 file changed, 7 insertions(+)
->
->
->> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
->> index 6482b0d..9520ae1 100644
->> --- a/drivers/acpi/acpica/tbxface.c
->> +++ b/drivers/acpi/acpica/tbxface.c
->> @@ -281,6 +281,11 @@ acpi_status acpi_unload_table_id(acpi_owner_id id)
->>
->>         ACPI_FUNCTION_TRACE(acpi_unload_table_id);
->>
->> +       status = acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
->> +       if (ACPI_FAILURE(status)) {
->> +               return_ACPI_STATUS(status);
->> +       }
->
->
->    {} not needed here. Please run your patches thru scripts/checkpatch.pl,
-> it should complain in this case.
->
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-I always run checkpatch. It does not complain.
+Reviewed-by: Tuukka Tikkanen <tuukka.tikkanen@linaro.org>
 
->> +
->>         /* Find table in the global table list */
->>         for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i)
->> {
->>                 if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
->> @@ -297,6 +302,8 @@ acpi_status acpi_unload_table_id(acpi_owner_id id)
->>                 acpi_tb_set_table_loaded_flag(i, FALSE);
->>                 break;
->>         }
->> +
->> +       (void)acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
+> ---
+>  drivers/cpuidle/governors/menu.c | 25 ++++++++++---------------
+>  1 file changed, 10 insertions(+), 15 deletions(-)
 >
+> diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
+> index 659d7b0..4058079 100644
+> --- a/drivers/cpuidle/governors/menu.c
+> +++ b/drivers/cpuidle/governors/menu.c
+> @@ -396,8 +396,8 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+>          * power state and occurrence of the wakeup event.
+>          *
+>          * If the entered idle state didn't support residency measurements,
+> -        * we are basically lost in the dark how much time passed.
+> -        * As a compromise, assume we slept for the whole expected time.
+> +        * we use them anyway if they are short, and if long,
+> +        * truncate to the whole expected time.
+>          *
+>          * Any measured amount of time will include the exit latency.
+>          * Since we are interested in when the wakeup begun, not when it
+> @@ -405,22 +405,17 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+>          * the measured amount of time is less than the exit latency,
+>          * assume the state was never reached and the exit latency is 0.
+>          */
+> -       if (unlikely(target->flags & CPUIDLE_FLAG_TIME_INVALID)) {
+> -               /* Use timer value as is */
+> -               measured_us = data->next_timer_us;
 >
->    Cast to *void*  not necessary either.
+> -       } else {
+> -               /* Use measured value */
+> -               measured_us = cpuidle_get_last_residency(dev);
+> +       /* measured value */
+> +       measured_us = cpuidle_get_last_residency(dev);
 >
-
-AFAICS ACPICA has a slight different coding style than the rest of the
-kernel and I kept using it in these patches. Rafael, please let me
-know if I am wrong.
+> -               /* Deduct exit latency */
+> -               if (measured_us > target->exit_latency)
+> -                       measured_us -= target->exit_latency;
+> +       /* Deduct exit latency */
+> +       if (measured_us > target->exit_latency)
+> +               measured_us -= target->exit_latency;
+>
+> -               /* Make sure our coefficients do not exceed unity */
+> -               if (measured_us > data->next_timer_us)
+> -                       measured_us = data->next_timer_us;
+> -       }
+> +       /* Make sure our coefficients do not exceed unity */
+> +       if (measured_us > data->next_timer_us)
+> +               measured_us = data->next_timer_us;
+>
+>         /* Update our correction ratio */
+>         new_factor = data->correction_factor[data->bucket];
+> --
+> 2.1.2.451.g98349e5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
