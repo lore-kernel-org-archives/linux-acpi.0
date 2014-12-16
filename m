@@ -1,56 +1,23 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Tue, 16 Dec 2014 15:27:07 +0000
-Message-ID: <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Tue, 16 Dec 2014 15:48:42 +0000
+Message-ID: <20141216154842.GI19412@leverpostej>
 References: <548F9668.6080900@linaro.org>
  <9355623.14GfrLxEB0@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:50674 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118AbaLPP1R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 10:27:17 -0500
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:57725 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750881AbaLPPtW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Dec 2014 10:49:22 -0500
 Content-Disposition: inline
 In-Reply-To: <9355623.14GfrLxEB0@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
-
-On Tue, Dec 16, 2014 at 11:27:48AM +0000, Arnd Bergmann wrote:
-> On Monday 15 December 2014 19:18:16 Al Stone wrote:
-> > TODO List for ACPI on arm64:
-> > ============================
-> > 1. Define how Aarch64 OS identifies itself to firmware.
-> >    * Problem:
-> >      * _OSI method is demonstrably unreliable. On x86 Linux claims to
-> >        be Windows
-> >      * Proposal to use _OSC method as replacement is complicated and
-> >        creates an explosion of combinations
-> >    * Solution:
-> >      * Draft and propose OS identification rules to ABST and ASWG for
-> >        inclusion in ACPI spec.
-> >      * Draft and propose recommended practice for current ACPI 5.1 spec
-> >        platforms.
-> >    * Status: Little progress, still under investigation
-> 
-> I must have missed the problem with _OSC, it sounded like it was good
-> enough, but I have no clue about the details.
-
-Neither do I. It's also not entirely clear whether per-device _OSC are
-arbitrary or vendors need to go through some kind of approving process
-(as with the new _DSD process).
-
-> > 2. Linux must choose DT booting by default when offered both ACPI and
-> >    DT on arm64
-> >    * DONE
-
-I'm fine with this but just a clarification note here. We can't have
-acpi=off in the absence of DT because the system may not be able to
-report the error (no PC standard with some fixed 8250 port to fall back
-to). That's unless we print the error from the EFI_STUB before exiting
-boot services (e.g. "No Device Tree and no acpi=on; cannot boot").
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
 > > 4. Set clear expectations for those providing ACPI for use with Linux
 > >    * Problem:
@@ -80,31 +47,42 @@ boot services (e.g. "No Device Tree and no acpi=on; cannot boot").
 > never be supported. Other examples would be non-compliant PCI
 > hosts or machines that are not covered by SBSA.
 
-Another example is SMP booting. The ACPI 5.1 spec mentions the parking
-protocol but I can't find a reference to the latest document. In the
-meantime, we stick to PSCI.
+[...]
 
->From a recent more private discussion I learnt that hardware or firmware
-people are not keen on reading a Linux arm-acpi.txt document, probably
-thinking it is too Linux specific. The proposal is to (longer term) move
-parts of this document (which are not Linux specific) into SBBR or maybe
-a new document for run-time requirements. Linux will still keep a
-statement about compliance with such documents and other Linux-specific
-aspects.
-
-> > 7. Why is ACPI required?
+> > 6. How does the kernel handle_DSD usage?
 > >    * Problem:
-> >      * arm64 maintainers still haven't been convinced that ACPI is
-> >        necessary.
-> >      * Why do hardware and OS vendors say ACPI is required?
-> >    * Status: Al & Grant collecting statements from OEMs to be posted
-> >      publicly early in the new year; firmware summit for broader
-> >      discussion planned.
+> >      * _DSD defines key-value properties in the DT style. How do we
+> >        ensure _DSD bindings are well defined?
+> >      * How do we ensure DT and _DSD bindings remain consistent with
+> >        each other?
+> >    * Solution: public documentation for all bindings, and a process
+> >      for defining them
+> >    * Status: proposal to require patch authors to point at public
+> >      binding documentation; kernel Documentation/devicetree/bindings
+> >      remains the default if no other location exists; UEFI forum has
+> >      set up a binding repository.
 > 
-> I was particularly hoping to see better progress on this item. It
-> really shouldn't be that hard to explain why someone wants this feature.
+> I think we also need to make a decision here on whether we want to use
+> PRP0001 devices on ARM64 servers, and to what degree. I would prefer
+> if we could either make them required for any devices that already have
+> a DT binding and that are not part of the official ACPI spec, or we
+> decide to not use them at all and make any PRP0001 usage a testcase
+> failure.
 
-It's an "industry standard", you shouldn't question any further ;).
+I am rather concerned about the relationship between items described
+with _DSD and ACPI's existing device model. Describing the relationship
+between devices and their input clocks, regulators, and so on defeats
+much of the benefit ACPI is marketed as providing w.r.t. abstraction of
+the underlying platform (and as Arnd mentioned above, that's not the
+kind of platform we want to support with ACPI).
 
--- 
-Catalin
+I have not seen good guidelines on the usage of _DSD in that respect,
+and I'm worried we'll end up with clock controllers half-owned by AML
+and half-owned by the kernel's clock framework, and this separation
+varying from board to board (and FW revision to FW revision). I think
+that needs to be clarified at the ACPI spec level in addition to
+anything we have in the kernel documentation.
+
+I'm still of the opinion that conflating _DSD and DT is a bad idea.
+
+Mark.
