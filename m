@@ -1,93 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/3] cpuidle, ACPI: remove unused CPUIDLE_FLAG_TIME_INVALID
-Date: Wed, 17 Dec 2014 01:28:01 +0100
-Message-ID: <1590939.ihOXNTxWbF@vostro.rjw.lan>
-References: <1418712728-2193-1-git-send-email-lenb@kernel.org> <2d1595ea66f8eadeb1e337354b311c4f5282e2a1.1418712225.git.len.brown@intel.com> <549012A9.6070408@linaro.org>
+Subject: Re: [PATCH] ACPI / video: update the skip case for acpi_video_device_in_dod
+Date: Wed, 17 Dec 2014 01:28:54 +0100
+Message-ID: <1521043.H5AWqcztdI@vostro.rjw.lan>
+References: <548E9559.3080707@intel.com> <87r3w1jnf6.fsf@intel.com> <548FA52B.6060602@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <549012A9.6070408@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Len Brown <lenb@kernel.org>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51118 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751000AbaLQAHJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 19:07:09 -0500
+In-Reply-To: <548FA52B.6060602@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Oleksij Rempel <linux@rempel-privat.de>, Dmitry Tunin <hanipouspilot@gmail.com>, Jimbo <jaime.91@hotmail.es>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
 
-On Tuesday, December 16, 2014 12:08:25 PM Daniel Lezcano wrote:
-> On 12/16/2014 07:52 AM, Len Brown wrote:
-> > From: Len Brown <len.brown@intel.com>
-> >
-> > CPUIDLE_FLAG_TIME_INVALID is no longer checked
-> > by menu or ladder cpuidle governors, so don't
-> > bother setting or defining it.
-> >
-> > It was originally invented to account for the fact that
-> > acpi_safe_halt() enables interrupts to invoke HLT.
-> > That would allow interrupt service routines to be included
-> > in the last_idle duration measurements made in cpuidle_enter_state(),
-> > potentially returning a duration much larger than reality.
-> >
-> > But menu and ladder can gracefully handle erroneously large duration
-> > intervals without checking for CPUIDLE_FLAG_TIME_INVALID.
-> > Further, if they don't check CPUIDLE_FLAG_TIME_INVALID, they
-> > can also benefit from the instances when the duration interval
-> > is not erroneously large.
-> >
-> > Signed-off-by: Len Brown <len.brown@intel.com>
-> > Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+On Tuesday, December 16, 2014 11:21:15 AM Aaron Lu wrote:
+> On 12/15/2014 05:02 PM, Jani Nikula wrote:
+> > On Mon, 15 Dec 2014, Aaron Lu <aaron.lu@intel.com> wrote:
+> >> If the firmware has declared more than 8 video output devices, and the
+> >> one that control the internal panel's backlight is listed after the
+> >> first 8 output devices, the _DOD will not include it due to the current
+> >> i915 operation region implementation. As a result, we will not create a
+> >> backlight device for it while we should. Solve this problem by special
+> >> case the firmware that has 8+ output devices in that if we see such a
+> >> firmware, we do not test if the device is in _DOD list. The creation of
+> >> the backlight device will also enable the firmware to emit events on
+> >> backlight hotkey press when the acpi_osi= cmdline option is specified on
+> >> those affected ASUS laptops.
+> >>
+> >> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=70241
+> >> Reported-and-tested-by: Oleksij Rempel <linux@rempel-privat.de>
+> >> Reported-and-tested-by: Dmitry Tunin <hanipouspilot@gmail.com>
+> >> Reported-and-tested-by: Jimbo <jaime.91@hotmail.es>
+> >> Cc: stable@vger.kernel.org
+> >> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > 
+> > Obviously I'd like to have the proper information in the opregion
+> > DIDL/CADL fields, but it's not going to happen soon, nor is it going to
+> > fit under stable size limits.
+> > 
+> > I like the simplicity here. FWIW,
+> > 
+> > Acked-by: Jani Nikula <jani.nikula@intel.com>
 > 
-> Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-
-OK
-
-Since the material for my next pull request is staged already, I'm going to
-queue up this series for 3.19-rc, but I'll most likely push it for -rc2.
-
-Thanks!
-
-> > ---
-> >   drivers/acpi/processor_idle.c | 2 --
-> >   include/linux/cpuidle.h       | 3 ---
-> >   2 files changed, 5 deletions(-)
-> >
-> > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> > index 4995365..87b704e 100644
-> > --- a/drivers/acpi/processor_idle.c
-> > +++ b/drivers/acpi/processor_idle.c
-> > @@ -985,8 +985,6 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-> >   		state->flags = 0;
-> >   		switch (cx->type) {
-> >   			case ACPI_STATE_C1:
-> > -			if (cx->entry_method != ACPI_CSTATE_FFH)
-> > -				state->flags |= CPUIDLE_FLAG_TIME_INVALID;
-> >
-> >   			state->enter = acpi_idle_enter_c1;
-> >   			state->enter_dead = acpi_idle_play_dead;
-> > diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> > index a07e087..ab70f3b 100644
-> > --- a/include/linux/cpuidle.h
-> > +++ b/include/linux/cpuidle.h
-> > @@ -53,7 +53,6 @@ struct cpuidle_state {
-> >   };
-> >
-> >   /* Idle State Flags */
-> > -#define CPUIDLE_FLAG_TIME_INVALID	(0x01) /* is residency time measurable? */
-> >   #define CPUIDLE_FLAG_COUPLED	(0x02) /* state applies to multiple cpus */
-> >   #define CPUIDLE_FLAG_TIMER_STOP (0x04)  /* timer is stopped on this state */
-> >
-> > @@ -89,8 +88,6 @@ DECLARE_PER_CPU(struct cpuidle_device, cpuidle_dev);
-> >   /**
-> >    * cpuidle_get_last_residency - retrieves the last state's residency time
-> >    * @dev: the target CPU
-> > - *
-> > - * NOTE: this value is invalid if CPUIDLE_FLAG_TIME_INVALID is set
-> >    */
-> >   static inline int cpuidle_get_last_residency(struct cpuidle_device *dev)
-> >   {
-> >
+> Thanks :-)
 > 
-> 
-> 
+> BTW, this patch is more of a fix for my previous commit 0b8db271f159
+> ("ACPI / video: check _DOD list when creating backlight devices") that
+> made the acpi_video interface disappear on these affected laptops so I
+> would like to fix it quickly. And I agree that a proper implementation
+> of the DIDL/CADL list is needed so that people can get rid of the
+> acpi_osi= cmdline option they currently need to get hotkey events.
+
+Patch applied, thanks!
 
 -- 
 I speak only for myself.
