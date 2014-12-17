@@ -1,77 +1,64 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Wed, 17 Dec 2014 17:31:15 +0000
-Message-ID: <20141217173115.GK9475@e104818-lin.cambridge.arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Wed, 17 Dec 2014 18:14:07 +0000
+Message-ID: <20141217181407.GA18416@red-moon>
 References: <548F9668.6080900@linaro.org>
  <9355623.14GfrLxEB0@wuerfel>
- <5490B876.50101@linaro.org>
+ <20141216154842.GI19412@leverpostej>
+ <5490D042.3060901@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:51401 "EHLO
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:51435 "EHLO
 	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946AbaLQRbb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2014 12:31:31 -0500
+	with ESMTP id S1750990AbaLQSOE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2014 13:14:04 -0500
 Content-Disposition: inline
-In-Reply-To: <5490B876.50101@linaro.org>
+In-Reply-To: <5490D042.3060901@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Al Stone <al.stone@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Dec 16, 2014 at 10:55:50PM +0000, Al Stone wrote:
-> > On Monday 15 December 2014 19:18:16 Al Stone wrote:
-> >> 2. Linux must choose DT booting by default when offered both ACPI and
-> >>    DT on arm64
-> >>    * DONE
+On Wed, Dec 17, 2014 at 12:37:22AM +0000, Al Stone wrote:
+
+[...]
+
+> > I am rather concerned about the relationship between items described
+> > with _DSD and ACPI's existing device model. Describing the relationship
+> > between devices and their input clocks, regulators, and so on defeats
+> > much of the benefit ACPI is marketed as providing w.r.t. abstraction of
+> > the underlying platform (and as Arnd mentioned above, that's not the
+> > kind of platform we want to support with ACPI).
 > 
-> I've asked Hanjun to re-examine the patch we have.  If the setup_arch()
-> code for arm64 goes something like this:
+> My belief is that all those things should be set up into a known good
+> state by UEFI on initial boot.  If they need to change, say as the
+> result of going into a deeper sleep state or something, that's what
+> the ACPI power management objects are for; Linux would execute one of
+> the ACPI methods already defined by the spec to control transition to
+> the desired state, and that method would have within it the ability
+> to change whatever clocks or regulators it deems necessary.  The
+> kernel should not have to track these things.
 > 
->    If acpi=force (or =on?)
+> If someone is describing all those relationships in _DSD, I agree that
+> is not the kind of ARM platform I think we want to deal with.  This is
+> touched on, iirc, in arm-acpi.txt, but apparently too briefly.
 
-acpi=force is already defined, we could use that. But I don't have a
-problem with introducing =on either.
+I would rather rule out using _DSD to describe clocks, regulators and
+their relationships in ACPI, period. There are established ACPI methods to
+control power for devices and processors and if we adopt ACPI those must be
+used, as you say (I am not saying they are perfect, given that x86 guys
+moved away from them when they could, eg CPU idle).
 
->       If ACPI tables exist
->          use ACPI
->       Else if a DT exists
->          use DT, but issue a warning that ACPI tables are missing
->       Else
->          panic, 'cause we got nothin'
+They can certainly be enhanced, as it is happening for idle states
+description, for instance.
 
-While this panic is still needed here to stop the kernel from booting,
-the problem with it is that it doesn't go anywhere, you could not
-retrieve any console information. Anyway, it's not worse than what we
-currently have but in the presence of EFI_STUB, maybe we could also
-report such error before existing boot services (like "no DT nor ACPI
-found").
+I understand one reason for ACPI adoption is its established way
+of handling power management for processors and devices, if for
+any reason people who want ACPI on ARM require _DSD to describe
+clocks and regulators relationships then they have to explain to us
+why they require ACPI in the first place, given that at the moment
+those clocks and regulators descriptions are non-existent in ACPI
+world.
 
->       Endif
->    Else
->       If a DT exists
->          use DT
->       Else if ACPI tables exist
->          use ACPI, but issue a warning that the DT is missing
-
-Why? Maybe this could be temporary but longer term we should treat ACPI
-and DT as equal citizens, with DT having priority if both are present. I
-don't think we should require that ACPI tables are always accompanied by
-DT counterparts.
-
->       Else
->          panic, 'cause we got nothin'
-
-Same here with the panic.
-
->       Endif
->    Endif
-> 
-> ...is that better?  Or worse?  Or just far too kind to people trying
-> to boot a kernel :)?
-
-Maybe the kernel should prompt the user: "Are you really sure you want
-to use ACPI?" ;)
-
--- 
-Catalin
+Lorenzo
