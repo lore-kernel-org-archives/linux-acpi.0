@@ -1,57 +1,432 @@
-From: G Gregory <graeme.gregory@linaro.org>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Wed, 17 Dec 2014 09:08:44 +0000
-Message-ID: <CAGCh1+mEVsdVxnyBdoHg1LfY4=frL8_S=bD=jTepLbcxJKcDQA@mail.gmail.com>
-References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
- <20141216154842.GI19412@leverpostej> <5490D042.3060901@linaro.org>
+From: Ken Xue <Ken.Xue@amd.com>
+Subject: Re: [PATCH 1/3 V2] acpi:soc: merge common codes for creating
+ platform device
+Date: Wed, 17 Dec 2014 17:26:25 +0800
+Message-ID: <1418808385.2582.33.camel@kxue-X58A-UD3R>
+References: <1418267089-5555-1-git-send-email-Ken.Xue@amd.com>
+	 <CAHp75VcJxoRkRpgf7GhJLz00SpQVD_3C2s_t0fPyTHU-_Z7YDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5490D042.3060901@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Al Stone <al.stone@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bn0102.outbound.protection.outlook.com ([157.56.110.102]:22836
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750799AbaLQJhL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Dec 2014 04:37:11 -0500
+In-Reply-To: <CAHp75VcJxoRkRpgf7GhJLz00SpQVD_3C2s_t0fPyTHU-_Z7YDw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 17 December 2014 at 00:37, Al Stone <al.stone@linaro.org> wrote:
->> I have not seen good guidelines on the usage of _DSD in that respect,
->> and I'm worried we'll end up with clock controllers half-owned by AML
->> and half-owned by the kernel's clock framework, and this separation
->> varying from board to board (and FW revision to FW revision). I think
->> that needs to be clarified at the ACPI spec level in addition to
->> anything we have in the kernel documentation.
->
-> Hrm.  The spec (section 6.2.5) basically says that there exists a
-> thing called _DSD and that when invoked, it returns a UUID followed
-> by a data structure.  A separate document (on http://www.uefi.org/acpi)
-> for each UUID defines the data structure it corresponds to.  The only
-> one defined so far is for device properties:
->
->
-> http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
->
-> I think you are suggesting good guidelines for both, yes?  The usage
-> of new UUIDs and data structures, along with the usage of device
-> properties for the UUID we have, right?  I've been trying to write
-> such a thing but all I've accomplished so far is throwing away a
-> couple of drafts that got ugly.  I'll keep at it, though.
->
+On Tue, 2014-12-16 at 12:19 +0200, Andy Shevchenko wrote:
+> On Thu, Dec 11, 2014 at 5:04 AM, Ken Xue <Ken.Xue@amd.com> wrote:
+> > This patch is supposed to deliver some common codes for AMD APD and
+> > INTEL LPSS. It can help to convert some specific acpi devices to be
+> > platform devices.
+> 
+> My few comments below.
+> 
+> First of all, please, add me to the Cc list of this patch set in the future.
+> 
+[ken]got it.
 
-Of course the way the spec is written also gives us the option, if the
-OEMs and kernel guys and MS all agree on a different format for
-aarch64 then all that is needed is a new UUID and we are no longer
-tied to trying to insert DT into ACPI. I personally think this is the
-way to go, I do not like the blindly copying DT into ACPI. I suspect
-the information that a ACPI platform "needs" is probably significantly
-simplified compared to some of the DT bindings.
+> >
+> > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
+> > ---
+> >  drivers/acpi/Makefile   |   2 +-
+> >  drivers/acpi/acpi_soc.c | 224 ++++++++++++++++++++++++++++++++++++++++++++++++
+> >  drivers/acpi/acpi_soc.h |  98 +++++++++++++++++++++
+> >  3 files changed, 323 insertions(+), 1 deletion(-)
+> >  create mode 100644 drivers/acpi/acpi_soc.c
+> >  create mode 100644 drivers/acpi/acpi_soc.h
+> >
+> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> > index c3b2fcb..ae3397d 100644
+> > --- a/drivers/acpi/Makefile
+> > +++ b/drivers/acpi/Makefile
+> > @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+> >  acpi-y                         += ec.o
+> >  acpi-$(CONFIG_ACPI_DOCK)       += dock.o
+> >  acpi-y                         += pci_root.o pci_link.o pci_irq.o
+> > -acpi-y                         += acpi_lpss.o
+> > +acpi-y                         += acpi_soc.o acpi_lpss.o
+> >  acpi-y                         += acpi_platform.o
+> >  acpi-y                         += acpi_pnp.o
+> >  acpi-y                         += int340x_thermal.o
+> > diff --git a/drivers/acpi/acpi_soc.c b/drivers/acpi/acpi_soc.c
+> > new file mode 100644
+> > index 0000000..46901d5
+> > --- /dev/null
+> > +++ b/drivers/acpi/acpi_soc.c
+> > @@ -0,0 +1,224 @@
+> > +/*
+> > + * ACPI SOC support for Intel Lynxpoint LPSS and AMD APD.
+> > + *
+> > + * Copyright (C) 2015, Intel Corporation & AMD Corporation
+> 
+> 2015? Wait couple of weeks :-)
+> Moreover, Intel code is copyrighted starting from 2013. I think it
+> would be better to keep two lines, one is original from Intel and one
+> from AMD.
+> 
+[ken]ok.
 
-Graeme
+> > + * Authors: Ken Xue <Ken.Xue@amd.com>
+> > + *             Mika Westerberg <mika.westerberg@linux.intel.com>
+> > + *             Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#include <linux/err.h>
+> > +#include <linux/list.h>
+> > +#include <linux/pm_domain.h>
+> > +#include <linux/platform_device.h>
+> > +
+> > +#include "acpi_soc.h"
+> > +#include "internal.h"
+> > +
+> > +ACPI_MODULE_NAME("acpi_soc");
+> > +
+> > +/* A list for all acpi soc device */
+> > +static LIST_HEAD(a_soc_list);
+> > +
+> > +static int is_memory(struct acpi_resource *res, void *not_used)
+> > +{
+> > +       struct resource r;
+> > +
+> > +       return !acpi_dev_resource_memory(res, &r);
+> > +}
+> > +
+> > +static int acpi_soc_create_device(struct acpi_device *adev,
+> > +                                  const struct acpi_device_id *id)
+> > +{
+> > +       struct acpi_soc_dev_desc *dev_desc;
+> > +       struct acpi_soc_dev_private_data *pdata;
+> > +       struct resource_list_entry *rentry;
+> > +       struct list_head resource_list;
+> > +       struct platform_device *pdev;
+> > +       int ret;
+> > +
+> > +       dev_desc = (struct acpi_soc_dev_desc *)id->driver_data;
+> > +       if (!dev_desc) {
+> > +               pdev = acpi_create_platform_device(adev);
+> > +               return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
+> > +       }
+> > +       pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> > +       if (!pdata)
+> > +               return -ENOMEM;
+> > +
+> > +       INIT_LIST_HEAD(&resource_list);
+> > +       ret = acpi_dev_get_resources(adev, &resource_list, is_memory, NULL);
+> > +       if (ret < 0)
+> > +               goto err_out;
+> > +
+> > +       list_for_each_entry(rentry, &resource_list, node)
+> > +               if (resource_type(&rentry->res) == IORESOURCE_MEM) {
+> > +                       if (dev_desc->mem_size_override)
+> > +                               pdata->mmio_size = dev_desc->mem_size_override;
+> > +                       else
+> > +                               pdata->mmio_size = resource_size(&rentry->res);
+> > +                       pdata->mmio_base = ioremap(rentry->res.start,
+> > +                                                  pdata->mmio_size);
+> > +                       break;
+> > +               }
+> > +
+> > +       acpi_dev_free_resource_list(&resource_list);
+> > +
+> > +       pdata->adev = adev;
+> > +       pdata->dev_desc = dev_desc;
+> > +
+> > +       if (dev_desc->setup) {
+> > +               ret = dev_desc->setup(pdata);
+> > +               if (ret)
+> > +                       goto err_out;
+> > +       }
+> > +
+> > +       /*
+> > +        * This works around a known issue in ACPI tables where acpi soc devices
+> > +        * have _PS0 and _PS3 without _PSC (and no power resources), so
+> > +        * acpi_bus_init_power() will assume that the BIOS has put them into D0.
+> > +        */
+> > +       ret = acpi_device_fix_up_power(adev);
+> > +       if (ret) {
+> > +               /* Skip the device, but continue the namespace scan. */
+> > +               ret = 0;
+> > +               goto err_out;
+> > +       }
+> > +
+> > +       adev->driver_data = pdata;
+> > +       pdev = acpi_create_platform_device(adev);
+> > +       if (!IS_ERR_OR_NULL(pdev))
+> > +               return 1;
+> > +
+> > +       ret = PTR_ERR(pdev);
+> > +       adev->driver_data = NULL;
+> > +
+> > + err_out:
+> > +       kfree(pdata);
+> > +       return ret;
+> > +}
+> > +
+> > +static int acpi_soc_platform_notify(struct notifier_block *nb,
+> > +                                    unsigned long action, void *data)
+> > +{
+> > +       struct platform_device *pdev = to_platform_device(data);
+> > +       struct acpi_soc_dev_private_data *pdata;
+> > +       struct acpi_device *adev;
+> > +       struct acpi_soc *a_soc_entry;
+> > +       const struct acpi_device_id *id = NULL;
+> > +
+> > +       list_for_each_entry(a_soc_entry, &a_soc_list, list) {
+> > +               id = acpi_match_device(a_soc_entry->ids, &pdev->dev);
+> > +               if (id)
+> > +                       break;
+> > +       }
+> > +
+> > +       if (!id || !id->driver_data)
+> > +               return 0;
+> > +
+> > +       if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
+> > +               return 0;
+> > +
+> > +       pdata = acpi_driver_data(adev);
+> > +       if (!pdata || !pdata->mmio_base)
+> > +               return 0;
+> > +
+> > +       switch (action) {
+> > +       case BUS_NOTIFY_BOUND_DRIVER:
+> > +               if ((pdata->dev_desc->flags & ACPI_SOC_PM)) {
+> 
+> No need to have double parentheses here and below in the other conditions.
+> 
+> It seems you took an old code here. We used to have a nasty bug which
+> was fixed recently, namely by cb39dcdd4ef6, 01ac170ba29a, and
+> 6c17ee44d524.
+> Please, take most recent version from linux-pm tree.
+> 
+[Ken] i checked your latest patches. About 'proxy' device, it looks like
+a WA and it is hard to implement in acpi soc elegantly. do you have any
+ideal?
+
+> > +                       if (a_soc_entry->pm_domain)
+> > +                               pdev->dev.pm_domain = a_soc_entry->pm_domain;
+> > +                       else if (pdata->dev_desc->flags & ACPI_SOC_PM_ON)
+> > +                                       dev_pm_domain_attach(&pdev->dev, true);
+> > +                       else
+> > +                                       dev_pm_domain_attach(&pdev->dev, false);
+> > +               }
+> > +               break;
+> > +       case BUS_NOTIFY_UNBOUND_DRIVER:
+> > +               if ((pdata->dev_desc->flags & ACPI_SOC_PM)) {
+> > +                       if (a_soc_entry->pm_domain)
+> > +                               pdev->dev.pm_domain = a_soc_entry->pm_domain;
+> > +                       else if (pdata->dev_desc->flags & ACPI_SOC_PM_ON)
+> > +                                       dev_pm_domain_detach(&pdev->dev, true);
+> > +                       else
+> > +                                       dev_pm_domain_detach(&pdev->dev, false);
+> > +               }
+> > +               break;
+> > +       case BUS_NOTIFY_ADD_DEVICE:
+> > +               if ((pdata->dev_desc->flags & ACPI_SOC_SYSFS)
+> > +                       && a_soc_entry->attr_group)
+> 
+> Unnecessary parentheses. Could it be one line?
+> 
+> > +                       sysfs_create_group(&pdev->dev.kobj,
+> > +                                                 a_soc_entry->attr_group);
+> > +               break;
+> > +       case BUS_NOTIFY_DEL_DEVICE:
+> > +               if ((pdata->dev_desc->flags & ACPI_SOC_SYSFS)
+> > +                       && a_soc_entry->attr_group)
+> 
+> Ditto.
+[Ken]i want to make logic clear with parentheses instead of priority.
+and it will be safe for extending conditions.
+
+> > +                       sysfs_remove_group(&pdev->dev.kobj,
+> > +                       a_soc_entry->attr_group);
+> > +               break;
+> > +       }
+> > +
+> > +       return 0;
+> > +}
+> > +
+> > +static struct notifier_block acpi_soc_nb = {
+> > +       .notifier_call = acpi_soc_platform_notify,
+> > +};
+> > +
+> > +static void acpi_soc_bind(struct device *dev)
+> > +{
+> > +       struct acpi_soc_dev_private_data *pdata;
+> > +
+> > +       pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> > +
+> > +       if (!pdata || !pdata->dev_desc || !pdata->dev_desc->bind)
+> > +               return;
+> > +
+> > +       pdata->dev_desc->bind(pdata, dev);
+> > +}
+> > +
+> > +static void acpi_soc_unbind(struct device *dev)
+> > +{
+> > +       struct acpi_soc_dev_private_data *pdata;
+> > +
+> > +       pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> > +
+> > +       if (!pdata || !pdata->dev_desc || !pdata->dev_desc->unbind)
+> > +               return;
+> > +
+> > +       pdata->dev_desc->unbind(pdata, dev);
+> > +}
+> > +
+> > +/**
+> > + * register_acpi_soc - register a new acpi soc
+> > + * @a_soc: acpi soc
+> > + * @disable_scan_handler: true means remove default scan handle
+> > + *                      false means use default scan handle
+> > + *
+> > + * register a new acpi soc into asoc_list and install default scan handle.
+> > + */
+> > +void register_acpi_soc(struct acpi_soc *a_soc, bool disable_scan_handler)
+> > +{
+> > +       static int init;
+> > +       struct acpi_scan_handler *acpi_soc_handler;
+> > +
+> > +       INIT_LIST_HEAD(&a_soc->list);
+> > +       list_add(&a_soc->list, &a_soc_list);
+> > +
+> > +       acpi_soc_handler = kzalloc(sizeof(*acpi_soc_handler), GFP_KERNEL);
+> > +       acpi_soc_handler->ids = a_soc->ids;
+> > +       if (!disable_scan_handler) {
+> > +               acpi_soc_handler->attach = acpi_soc_create_device;
+> > +               acpi_soc_handler->bind = acpi_soc_bind;
+> > +               acpi_soc_handler->unbind = acpi_soc_unbind;
+> > +               if (init == 0) {
+> > +                       init++;
+> > +                       bus_register_notifier(&platform_bus_type, &acpi_soc_nb);
+> > +               }
+> > +       }
+> > +       acpi_scan_add_handler(acpi_soc_handler);
+> > +}
+> > diff --git a/drivers/acpi/acpi_soc.h b/drivers/acpi/acpi_soc.h
+> > new file mode 100644
+> > index 0000000..bada2a1
+> > --- /dev/null
+> > +++ b/drivers/acpi/acpi_soc.h
+> > @@ -0,0 +1,98 @@
+> > +/*
+> > + * ACPI SOC support for Intel Lynxpoint LPSS and AMD APD.
+> > + *
+> > + * Copyright (C) 2015, Intel Corporation & AMD Corporation
+> > + * Authors: Ken Xue <Ken.Xue@amd.com>
+> > + *             Mika Westerberg <mika.westerberg@linux.intel.com>
+> > + *             Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +#ifndef _ACPI_SOC_H
+> > +#define _ACPI_SOC_H
+> > +
+> > +#include <linux/acpi.h>
+> > +#include <linux/clk.h>
+> > +#include <linux/pm.h>
+> > +
+> > +struct acpi_soc_dev_private_data;
+> > +
+> > +/**
+> > + * struct acpi_soc - acpi soc
+> > + * @list: list head
+> > + * @ids: all acpi device ids for acpi soc
+> > + * @pm_domain: power domain for all acpi device;can be NULL
+> > + * @attr_group: attribute group for sysfs support of acpi soc;can be NULL
+> > + */
+> > +struct acpi_soc {
+> > +       struct list_head        list;
+> > +       struct acpi_device_id   *ids;
+> > +       struct dev_pm_domain    *pm_domain;
+> > +       struct attribute_group  *attr_group;
+> > +};
+> > +
+> > +
+> > +/**
+> > + * device flags of acpi_soc_dev_desc.
+> > + * bit 16 to 31 reserved for acpi soc.
+> > + * bit 0 ~15 reserved for private flags.
+> > + * ACPI_SOC_SYSFS : add device attributes in sysfs
+> > + * ACPI_SOC_PM : attach power domain to device
+> > + * ACPI_SOC_PM_ON : power on device when attach power domain
+> > + */
+> > +#define ACPI_SOC_SYSFS BIT(16)
+> > +#define ACPI_SOC_PM    BIT(17)
+> > +#define ACPI_SOC_PM_ON BIT(18)
+> > +
+> > +/**
+> > + * struct acpi_soc_dev_desc - a descriptor for acpi device
+> > + * @flags: device flags like ACPI_SOC_SYSFS ACPI_SOC_PM ACPI_SOC_PM_ON
+> > + * @clk: clock device
+> > + * @fixed_clk_rate: fixed rate input clock source for acpi device;
+> > + *                     0 means no fixed rate input clock source
+> > + * @mem_size_override: a workaround for override device memsize;
+> > + *                     0 means no needs for this WA
+> > + * @prv_offset: reg offest of lpss features
+> > + * @setup: a hook routine to set device resource during create platform device
+> > + * @bind: a hook of acpi_scan_handler.bind
+> > + * @unbind: a hook of acpi_scan_handler.unbind
+> > + *
+> > + * device description defined as acpi_device_id.driver_data
+> > + */
+> > +struct acpi_soc_dev_desc {
+> > +       unsigned int flags;
+> > +       struct clk *clk;
+> > +       unsigned int fixed_clk_rate;
+> > +       size_t mem_size_override;
+> > +       unsigned int prv_offset;
+> > +       int (*setup)(struct acpi_soc_dev_private_data *pdata);
+> > +       void (*bind)(struct acpi_soc_dev_private_data *pdata,
+> > +                               struct device *dev);
+> > +       void (*unbind)(struct acpi_soc_dev_private_data *pdata,
+> > +                               struct device *dev);
+> > +};
+> > +
+> > +#define ACPI_SOC_REG_CONTEXT_MAX               10
+> > +
+> > +/**
+> > + * struct acpi_soc_dev_private_data - acpi device private data
+> > + * @mmio_base: virtual memory base addr of the device
+> > + * @mmio_size: device memory size
+> > + * @dev_desc: device description
+> > + * @adev: acpi device
+> > + * @prv_reg_ctx: reg context for power management
+> > + */
+> > +struct acpi_soc_dev_private_data {
+> > +       void __iomem *mmio_base;
+> > +       resource_size_t mmio_size;
+> > +
+> > +       struct acpi_soc_dev_desc *dev_desc;
+> > +       struct acpi_device *adev;
+> > +       u32 prv_reg_ctx[ACPI_SOC_REG_CONTEXT_MAX];
+> > +};
+> > +
+> > +void register_acpi_soc(struct acpi_soc *a_soc, bool disable_scan_handler);
+> > +
+> > +#endif
+> > --
+> > 1.9.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> 
+> 
+
+
