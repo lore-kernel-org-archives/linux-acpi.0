@@ -1,76 +1,94 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Tue, 16 Dec 2014 17:03:06 -0700
-Message-ID: <5490C83A.2080600@linaro.org>
-References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel> <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 3/3] cpuidle, ACPI: remove unused CPUIDLE_FLAG_TIME_INVALID
+Date: Wed, 17 Dec 2014 01:28:01 +0100
+Message-ID: <1590939.ihOXNTxWbF@vostro.rjw.lan>
+References: <1418712728-2193-1-git-send-email-lenb@kernel.org> <2d1595ea66f8eadeb1e337354b311c4f5282e2a1.1418712225.git.len.brown@intel.com> <549012A9.6070408@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:63922 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069AbaLQADK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 19:03:10 -0500
-Received: by mail-ie0-f174.google.com with SMTP id rl12so13496497iec.5
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2014 16:03:09 -0800 (PST)
-In-Reply-To: <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <549012A9.6070408@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Len Brown <lenb@kernel.org>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 
-On 12/16/2014 08:27 AM, Catalin Marinas wrote:
-> On Tue, Dec 16, 2014 at 11:27:48AM +0000, Arnd Bergmann wrote:
->> On Monday 15 December 2014 19:18:16 Al Stone wrote:
->>> TODO List for ACPI on arm64:
->>> ============================
-[snip..]
->>> 4. Set clear expectations for those providing ACPI for use with Linux
->>>    * Problem:
->>>      * Hardware/Firmware vendors can and will create ACPI tables that
->>>        cannot be used by Linux without some guidance
->>>      * Kernel developers cannot determine whether the kernel or firmware
->>>        is broken without knowing what the firmware should do
->>>    * Solution: document the expectations, and iterate as needed.
->>>      Enforce when we must.
->>>    * Status: initial kernel text available; AMD has offered to make
->>>      their guidance document generic; firmware summit planned for
->>>      deeper discussions.
->>
-[snip...]
+On Tuesday, December 16, 2014 12:08:25 PM Daniel Lezcano wrote:
+> On 12/16/2014 07:52 AM, Len Brown wrote:
+> > From: Len Brown <len.brown@intel.com>
+> >
+> > CPUIDLE_FLAG_TIME_INVALID is no longer checked
+> > by menu or ladder cpuidle governors, so don't
+> > bother setting or defining it.
+> >
+> > It was originally invented to account for the fact that
+> > acpi_safe_halt() enables interrupts to invoke HLT.
+> > That would allow interrupt service routines to be included
+> > in the last_idle duration measurements made in cpuidle_enter_state(),
+> > potentially returning a duration much larger than reality.
+> >
+> > But menu and ladder can gracefully handle erroneously large duration
+> > intervals without checking for CPUIDLE_FLAG_TIME_INVALID.
+> > Further, if they don't check CPUIDLE_FLAG_TIME_INVALID, they
+> > can also benefit from the instances when the duration interval
+> > is not erroneously large.
+> >
+> > Signed-off-by: Len Brown <len.brown@intel.com>
+> > Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 > 
-> Another example is SMP booting. The ACPI 5.1 spec mentions the parking
-> protocol but I can't find a reference to the latest document. In the
-> meantime, we stick to PSCI.
+> Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-Hrm.  A bug in the spec.
+OK
 
-Every external document mentioned in the ACPI spec is supposed to have
-a link that will eventually get you to the source document.  All links
-in the spec should point here http://www.uefi.org/acpi which in turn
-has links to the authoritative original documents.  However, it looks
-like the parking protocol document pointed to (the "Multiprocessor
-Startup" link) may not be the most recent version.  The reference in
-the spec to the protocol (Table 5-61, Section 5.2.12.14)) also appears
-to be useless (it points to http://infocenter.arm.com/help/index.jsp
-which doesn't have the document either).  I've filed a change request
-with ASWG to fix this.
+Since the material for my next pull request is staged already, I'm going to
+queue up this series for 3.19-rc, but I'll most likely push it for -rc2.
 
-That being said, the early systems still don't provide PSCI.  They will
-at some point in the future, but not now.  Regardless, I think it's
-reasonable for us to say that if you want ACPI support, PSCI must be
-used for secondary CPU startup.  People can hack something up to get
-the parking protocol to work on development branches if they want, but
-I personally see no need to get that into the kernel -- and it needs
-to be said explicitly in arm-acpi.txt.
+Thanks!
 
+> > ---
+> >   drivers/acpi/processor_idle.c | 2 --
+> >   include/linux/cpuidle.h       | 3 ---
+> >   2 files changed, 5 deletions(-)
+> >
+> > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> > index 4995365..87b704e 100644
+> > --- a/drivers/acpi/processor_idle.c
+> > +++ b/drivers/acpi/processor_idle.c
+> > @@ -985,8 +985,6 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+> >   		state->flags = 0;
+> >   		switch (cx->type) {
+> >   			case ACPI_STATE_C1:
+> > -			if (cx->entry_method != ACPI_CSTATE_FFH)
+> > -				state->flags |= CPUIDLE_FLAG_TIME_INVALID;
+> >
+> >   			state->enter = acpi_idle_enter_c1;
+> >   			state->enter_dead = acpi_idle_play_dead;
+> > diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+> > index a07e087..ab70f3b 100644
+> > --- a/include/linux/cpuidle.h
+> > +++ b/include/linux/cpuidle.h
+> > @@ -53,7 +53,6 @@ struct cpuidle_state {
+> >   };
+> >
+> >   /* Idle State Flags */
+> > -#define CPUIDLE_FLAG_TIME_INVALID	(0x01) /* is residency time measurable? */
+> >   #define CPUIDLE_FLAG_COUPLED	(0x02) /* state applies to multiple cpus */
+> >   #define CPUIDLE_FLAG_TIMER_STOP (0x04)  /* timer is stopped on this state */
+> >
+> > @@ -89,8 +88,6 @@ DECLARE_PER_CPU(struct cpuidle_device, cpuidle_dev);
+> >   /**
+> >    * cpuidle_get_last_residency - retrieves the last state's residency time
+> >    * @dev: the target CPU
+> > - *
+> > - * NOTE: this value is invalid if CPUIDLE_FLAG_TIME_INVALID is set
+> >    */
+> >   static inline int cpuidle_get_last_residency(struct cpuidle_device *dev)
+> >   {
+> >
+> 
+> 
+> 
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
