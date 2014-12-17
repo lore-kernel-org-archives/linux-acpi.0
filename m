@@ -1,53 +1,128 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/EC: Fix an issue that ec_remove_handlers() is invoked unexpectedly.
-Date: Wed, 17 Dec 2014 01:29:34 +0100
-Message-ID: <1486012.QAaSVkhiWx@vostro.rjw.lan>
-References: <1418604472-1764-1-git-send-email-lv.zheng@intel.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Tue, 16 Dec 2014 17:37:22 -0700
+Message-ID: <5490D042.3060901@linaro.org>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel> <20141216154842.GI19412@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50763 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750811AbaLQAHt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 19:07:49 -0500
-In-Reply-To: <1418604472-1764-1-git-send-email-lv.zheng@intel.com>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:43135 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbaLQAh0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 19:37:26 -0500
+Received: by mail-pd0-f175.google.com with SMTP id g10so12930351pdj.6
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Dec 2014 16:37:25 -0800 (PST)
+In-Reply-To: <20141216154842.GI19412@leverpostej>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Monday, December 15, 2014 08:47:52 AM Lv Zheng wrote:
-> The ec_remove_handlers() is invoked without checking
-> EC_FLAGS_HANDLERS_INSTALLED, this patch enhances this check to avoid issues
-> that acpi_disable_gpe() is invoked unexpectedly to reduce the GPE runtime
-> count. This may happen when the EC handler installation failed on some
-> platforms.
+On 12/16/2014 08:48 AM, Mark Rutland wrote:
+>>> 4. Set clear expectations for those providing ACPI for use with Linux
+>>>    * Problem:
+>>>      * Hardware/Firmware vendors can and will create ACPI tables that
+>>>        cannot be used by Linux without some guidance
+>>>      * Kernel developers cannot determine whether the kernel or firmware
+>>>        is broken without knowing what the firmware should do
+>>>    * Solution: document the expectations, and iterate as needed.
+>>>      Enforce when we must.
+>>>    * Status: initial kernel text available; AMD has offered to make
+>>>      their guidance document generic; firmware summit planned for
+>>>      deeper discussions.
+>>
+>> After seeing the AMD patches, I would add to this point that we need to
+>> find a way to come up with shared bindings for common hardware such as
+>> the ARM pl011/pl022/pl061/pl330 IP blocks or the designware
+>> i2c/spi/usb3/ahci blocks.
+>>
+>> What I remember from this item on your list is actually a different
+>> problem: We need to define more clearly what kinds of machines we
+>> would expect ACPI support for and which machines we would not.
+>>
+>> Fine-grained clock support is one such example: if anybody needs
+>> to expose that through a clock driver in the kernel, we need to be
+>> very clear that we will not support that kind of machine through
+>> ACPI, so we don't get developers building BIOS images that will
+>> never be supported. Other examples would be non-compliant PCI
+>> hosts or machines that are not covered by SBSA.
 > 
-> Reported-by: Venkat Raghavulu <venkat.raghavulu@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> [...]
+> 
+>>> 6. How does the kernel handle_DSD usage?
+>>>    * Problem:
+>>>      * _DSD defines key-value properties in the DT style. How do we
+>>>        ensure _DSD bindings are well defined?
+>>>      * How do we ensure DT and _DSD bindings remain consistent with
+>>>        each other?
+>>>    * Solution: public documentation for all bindings, and a process
+>>>      for defining them
+>>>    * Status: proposal to require patch authors to point at public
+>>>      binding documentation; kernel Documentation/devicetree/bindings
+>>>      remains the default if no other location exists; UEFI forum has
+>>>      set up a binding repository.
+>>
+>> I think we also need to make a decision here on whether we want to use
+>> PRP0001 devices on ARM64 servers, and to what degree. I would prefer
+>> if we could either make them required for any devices that already have
+>> a DT binding and that are not part of the official ACPI spec, or we
+>> decide to not use them at all and make any PRP0001 usage a testcase
+>> failure.
+> 
+> I am rather concerned about the relationship between items described
+> with _DSD and ACPI's existing device model. Describing the relationship
+> between devices and their input clocks, regulators, and so on defeats
+> much of the benefit ACPI is marketed as providing w.r.t. abstraction of
+> the underlying platform (and as Arnd mentioned above, that's not the
+> kind of platform we want to support with ACPI).
 
-Applied, thanks!
+My belief is that all those things should be set up into a known good
+state by UEFI on initial boot.  If they need to change, say as the
+result of going into a deeper sleep state or something, that's what
+the ACPI power management objects are for; Linux would execute one of
+the ACPI methods already defined by the spec to control transition to
+the desired state, and that method would have within it the ability
+to change whatever clocks or regulators it deems necessary.  The
+kernel should not have to track these things.
 
-> ---
->  drivers/acpi/ec.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 5f9b74b..1b5853f 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -844,6 +844,8 @@ static int ec_install_handlers(struct acpi_ec *ec)
->  
->  static void ec_remove_handlers(struct acpi_ec *ec)
->  {
-> +	if (!test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
-> +		return;
->  	acpi_disable_gpe(NULL, ec->gpe);
->  	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
->  				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
-> 
+If someone is describing all those relationships in _DSD, I agree that
+is not the kind of ARM platform I think we want to deal with.  This is
+touched on, iirc, in arm-acpi.txt, but apparently too briefly.
+
+> I have not seen good guidelines on the usage of _DSD in that respect,
+> and I'm worried we'll end up with clock controllers half-owned by AML
+> and half-owned by the kernel's clock framework, and this separation
+> varying from board to board (and FW revision to FW revision). I think
+> that needs to be clarified at the ACPI spec level in addition to
+> anything we have in the kernel documentation.
+
+Hrm.  The spec (section 6.2.5) basically says that there exists a
+thing called _DSD and that when invoked, it returns a UUID followed
+by a data structure.  A separate document (on http://www.uefi.org/acpi)
+for each UUID defines the data structure it corresponds to.  The only
+one defined so far is for device properties:
+
+
+http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+
+I think you are suggesting good guidelines for both, yes?  The usage
+of new UUIDs and data structures, along with the usage of device
+properties for the UUID we have, right?  I've been trying to write
+such a thing but all I've accomplished so far is throwing away a
+couple of drafts that got ugly.  I'll keep at it, though.
+
+> I'm still of the opinion that conflating _DSD and DT is a bad idea.
+
+Could you explain your usage of "conflating" here?  I think I understand
+what you mean, but I'd rather be sure.
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
