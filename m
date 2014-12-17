@@ -1,77 +1,57 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Wed, 17 Dec 2014 09:25:06 +0000
-Message-ID: <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
-References: <548F9668.6080900@linaro.org>
- <9355623.14GfrLxEB0@wuerfel>
- <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
- <5490C83A.2080600@linaro.org>
+From: G Gregory <graeme.gregory@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Wed, 17 Dec 2014 09:08:44 +0000
+Message-ID: <CAGCh1+mEVsdVxnyBdoHg1LfY4=frL8_S=bD=jTepLbcxJKcDQA@mail.gmail.com>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
+ <20141216154842.GI19412@leverpostej> <5490D042.3060901@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:50983 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790AbaLQJZP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2014 04:25:15 -0500
-Content-Disposition: inline
-In-Reply-To: <5490C83A.2080600@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5490D042.3060901@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Al Stone <al.stone@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 17, 2014 at 12:03:06AM +0000, Al Stone wrote:
-> On 12/16/2014 08:27 AM, Catalin Marinas wrote:
-> > On Tue, Dec 16, 2014 at 11:27:48AM +0000, Arnd Bergmann wrote:
-> >> On Monday 15 December 2014 19:18:16 Al Stone wrote:
-> >>> TODO List for ACPI on arm64:
-> >>> ============================
-> [snip..]
-> >>> 4. Set clear expectations for those providing ACPI for use with Linux
-> >>>    * Problem:
-> >>>      * Hardware/Firmware vendors can and will create ACPI tables that
-> >>>        cannot be used by Linux without some guidance
-> >>>      * Kernel developers cannot determine whether the kernel or firmware
-> >>>        is broken without knowing what the firmware should do
-> >>>    * Solution: document the expectations, and iterate as needed.
-> >>>      Enforce when we must.
-> >>>    * Status: initial kernel text available; AMD has offered to make
-> >>>      their guidance document generic; firmware summit planned for
-> >>>      deeper discussions.
-> >>
-> [snip...]
-> > 
-> > Another example is SMP booting. The ACPI 5.1 spec mentions the parking
-> > protocol but I can't find a reference to the latest document. In the
-> > meantime, we stick to PSCI.
-> 
-> Hrm.  A bug in the spec.
-> 
-> Every external document mentioned in the ACPI spec is supposed to have
-> a link that will eventually get you to the source document.  All links
-> in the spec should point here http://www.uefi.org/acpi which in turn
-> has links to the authoritative original documents.  However, it looks
-> like the parking protocol document pointed to (the "Multiprocessor
-> Startup" link) may not be the most recent version.  The reference in
-> the spec to the protocol (Table 5-61, Section 5.2.12.14)) also appears
-> to be useless (it points to http://infocenter.arm.com/help/index.jsp
-> which doesn't have the document either).  I've filed a change request
-> with ASWG to fix this.
+On 17 December 2014 at 00:37, Al Stone <al.stone@linaro.org> wrote:
+>> I have not seen good guidelines on the usage of _DSD in that respect,
+>> and I'm worried we'll end up with clock controllers half-owned by AML
+>> and half-owned by the kernel's clock framework, and this separation
+>> varying from board to board (and FW revision to FW revision). I think
+>> that needs to be clarified at the ACPI spec level in addition to
+>> anything we have in the kernel documentation.
+>
+> Hrm.  The spec (section 6.2.5) basically says that there exists a
+> thing called _DSD and that when invoked, it returns a UUID followed
+> by a data structure.  A separate document (on http://www.uefi.org/acpi)
+> for each UUID defines the data structure it corresponds to.  The only
+> one defined so far is for device properties:
+>
+>
+> http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel.htm
+>
+> I think you are suggesting good guidelines for both, yes?  The usage
+> of new UUIDs and data structures, along with the usage of device
+> properties for the UUID we have, right?  I've been trying to write
+> such a thing but all I've accomplished so far is throwing away a
+> couple of drafts that got ugly.  I'll keep at it, though.
+>
 
-Thanks. I followed the same links but couldn't find any newer version.
+Of course the way the spec is written also gives us the option, if the
+OEMs and kernel guys and MS all agree on a different format for
+aarch64 then all that is needed is a new UUID and we are no longer
+tied to trying to insert DT into ACPI. I personally think this is the
+way to go, I do not like the blindly copying DT into ACPI. I suspect
+the information that a ACPI platform "needs" is probably significantly
+simplified compared to some of the DT bindings.
 
-> That being said, the early systems still don't provide PSCI.  They will
-> at some point in the future, but not now.  Regardless, I think it's
-> reasonable for us to say that if you want ACPI support, PSCI must be
-> used for secondary CPU startup.  People can hack something up to get
-> the parking protocol to work on development branches if they want, but
-> I personally see no need to get that into the kernel -- and it needs
-> to be said explicitly in arm-acpi.txt.
-
-I'm fine with this. But note that it pretty much rules out the APM
-boards (I think we ruled them out a few times already) which don't have
-an EL3 to host PSCI firmware. EL2 is not suitable as it is likely that
-we want this level for KVM or Xen rather than platform firmware.
-
--- 
-Catalin
+Graeme
