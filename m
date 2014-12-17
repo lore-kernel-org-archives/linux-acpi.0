@@ -1,64 +1,63 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Wed, 17 Dec 2014 18:14:07 +0000
-Message-ID: <20141217181407.GA18416@red-moon>
-References: <548F9668.6080900@linaro.org>
- <9355623.14GfrLxEB0@wuerfel>
- <20141216154842.GI19412@leverpostej>
- <5490D042.3060901@linaro.org>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Wed, 17 Dec 2014 22:26:24 +0000
+Message-ID: <CACxGe6vRN2Tc97=Sx05gri02goxBaHnZm30hR37q=002agFLAA@mail.gmail.com>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:51435 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbaLQSOE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2014 13:14:04 -0500
-Content-Disposition: inline
-In-Reply-To: <5490D042.3060901@linaro.org>
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:51993 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbaLQW0p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Dec 2014 17:26:45 -0500
+Received: by mail-ie0-f175.google.com with SMTP id x19so5219ier.20
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Dec 2014 14:26:45 -0800 (PST)
+In-Reply-To: <9355623.14GfrLxEB0@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wed, Dec 17, 2014 at 12:37:22AM +0000, Al Stone wrote:
+On Tue, Dec 16, 2014 at 11:27 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 15 December 2014 19:18:16 Al Stone wrote:
+>> 6. How does the kernel handle_DSD usage?
+>>    * Problem:
+>>      * _DSD defines key-value properties in the DT style. How do we
+>>        ensure _DSD bindings are well defined?
+>>      * How do we ensure DT and _DSD bindings remain consistent with
+>>        each other?
+>>    * Solution: public documentation for all bindings, and a process
+>>      for defining them
+>>    * Status: proposal to require patch authors to point at public
+>>      binding documentation; kernel Documentation/devicetree/bindings
+>>      remains the default if no other location exists; UEFI forum has
+>>      set up a binding repository.
+>
+> I think we also need to make a decision here on whether we want to use
+> PRP0001 devices on ARM64 servers, and to what degree. I would prefer
+> if we could either make them required for any devices that already have
+> a DT binding and that are not part of the official ACPI spec, or we
+> decide to not use them at all and make any PRP0001 usage a testcase
+> failure.
 
-[...]
+Hmmm... having rules specifically for Aarch64 doesn't make a whole lot
+of sense. Whatever rules we choose for PRP0001 should apply equally
+regardless of architecture.
 
-> > I am rather concerned about the relationship between items described
-> > with _DSD and ACPI's existing device model. Describing the relationship
-> > between devices and their input clocks, regulators, and so on defeats
-> > much of the benefit ACPI is marketed as providing w.r.t. abstraction of
-> > the underlying platform (and as Arnd mentioned above, that's not the
-> > kind of platform we want to support with ACPI).
-> 
-> My belief is that all those things should be set up into a known good
-> state by UEFI on initial boot.  If they need to change, say as the
-> result of going into a deeper sleep state or something, that's what
-> the ACPI power management objects are for; Linux would execute one of
-> the ACPI methods already defined by the spec to control transition to
-> the desired state, and that method would have within it the ability
-> to change whatever clocks or regulators it deems necessary.  The
-> kernel should not have to track these things.
-> 
-> If someone is describing all those relationships in _DSD, I agree that
-> is not the kind of ARM platform I think we want to deal with.  This is
-> touched on, iirc, in arm-acpi.txt, but apparently too briefly.
+>> 7. Why is ACPI required?
+>>    * Problem:
+>>      * arm64 maintainers still haven't been convinced that ACPI is
+>>        necessary.
+>>      * Why do hardware and OS vendors say ACPI is required?
+>>    * Status: Al & Grant collecting statements from OEMs to be posted
+>>      publicly early in the new year; firmware summit for broader
+>>      discussion planned.
+>
+> I was particularly hoping to see better progress on this item. It
+> really shouldn't be that hard to explain why someone wants this feature.
 
-I would rather rule out using _DSD to describe clocks, regulators and
-their relationships in ACPI, period. There are established ACPI methods to
-control power for devices and processors and if we adopt ACPI those must be
-used, as you say (I am not saying they are perfect, given that x86 guys
-moved away from them when they could, eg CPU idle).
+I've written something up in as a reply on the firmware summit thread.
+I'm going to rework it to be a standalone document and post it
+publicly. I hope that should resolve this issue.
 
-They can certainly be enhanced, as it is happening for idle states
-description, for instance.
-
-I understand one reason for ACPI adoption is its established way
-of handling power management for processors and devices, if for
-any reason people who want ACPI on ARM require _DSD to describe
-clocks and regulators relationships then they have to explain to us
-why they require ACPI in the first place, given that at the moment
-those clocks and regulators descriptions are non-existent in ACPI
-world.
-
-Lorenzo
+g.
