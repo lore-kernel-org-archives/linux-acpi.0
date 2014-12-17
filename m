@@ -1,61 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / video: update the skip case for acpi_video_device_in_dod
-Date: Wed, 17 Dec 2014 01:28:54 +0100
-Message-ID: <1521043.H5AWqcztdI@vostro.rjw.lan>
-References: <548E9559.3080707@intel.com> <87r3w1jnf6.fsf@intel.com> <548FA52B.6060602@intel.com>
+Subject: Re: [PATCH] ACPI/EC: Fix an issue that ec_remove_handlers() is invoked unexpectedly.
+Date: Wed, 17 Dec 2014 01:29:34 +0100
+Message-ID: <1486012.QAaSVkhiWx@vostro.rjw.lan>
+References: <1418604472-1764-1-git-send-email-lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51118 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50763 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751000AbaLQAHJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 19:07:09 -0500
-In-Reply-To: <548FA52B.6060602@intel.com>
+	with SMTP id S1750811AbaLQAHt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Dec 2014 19:07:49 -0500
+In-Reply-To: <1418604472-1764-1-git-send-email-lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Oleksij Rempel <linux@rempel-privat.de>, Dmitry Tunin <hanipouspilot@gmail.com>, Jimbo <jaime.91@hotmail.es>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, December 16, 2014 11:21:15 AM Aaron Lu wrote:
-> On 12/15/2014 05:02 PM, Jani Nikula wrote:
-> > On Mon, 15 Dec 2014, Aaron Lu <aaron.lu@intel.com> wrote:
-> >> If the firmware has declared more than 8 video output devices, and the
-> >> one that control the internal panel's backlight is listed after the
-> >> first 8 output devices, the _DOD will not include it due to the current
-> >> i915 operation region implementation. As a result, we will not create a
-> >> backlight device for it while we should. Solve this problem by special
-> >> case the firmware that has 8+ output devices in that if we see such a
-> >> firmware, we do not test if the device is in _DOD list. The creation of
-> >> the backlight device will also enable the firmware to emit events on
-> >> backlight hotkey press when the acpi_osi= cmdline option is specified on
-> >> those affected ASUS laptops.
-> >>
-> >> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=70241
-> >> Reported-and-tested-by: Oleksij Rempel <linux@rempel-privat.de>
-> >> Reported-and-tested-by: Dmitry Tunin <hanipouspilot@gmail.com>
-> >> Reported-and-tested-by: Jimbo <jaime.91@hotmail.es>
-> >> Cc: stable@vger.kernel.org
-> >> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > 
-> > Obviously I'd like to have the proper information in the opregion
-> > DIDL/CADL fields, but it's not going to happen soon, nor is it going to
-> > fit under stable size limits.
-> > 
-> > I like the simplicity here. FWIW,
-> > 
-> > Acked-by: Jani Nikula <jani.nikula@intel.com>
+On Monday, December 15, 2014 08:47:52 AM Lv Zheng wrote:
+> The ec_remove_handlers() is invoked without checking
+> EC_FLAGS_HANDLERS_INSTALLED, this patch enhances this check to avoid issues
+> that acpi_disable_gpe() is invoked unexpectedly to reduce the GPE runtime
+> count. This may happen when the EC handler installation failed on some
+> platforms.
 > 
-> Thanks :-)
-> 
-> BTW, this patch is more of a fix for my previous commit 0b8db271f159
-> ("ACPI / video: check _DOD list when creating backlight devices") that
-> made the acpi_video interface disappear on these affected laptops so I
-> would like to fix it quickly. And I agree that a proper implementation
-> of the DIDL/CADL list is needed so that people can get rid of the
-> acpi_osi= cmdline option they currently need to get hotkey events.
+> Reported-by: Venkat Raghavulu <venkat.raghavulu@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-Patch applied, thanks!
+Applied, thanks!
+
+> ---
+>  drivers/acpi/ec.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 5f9b74b..1b5853f 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -844,6 +844,8 @@ static int ec_install_handlers(struct acpi_ec *ec)
+>  
+>  static void ec_remove_handlers(struct acpi_ec *ec)
+>  {
+> +	if (!test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
+> +		return;
+>  	acpi_disable_gpe(NULL, ec->gpe);
+>  	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+>  				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+> 
 
 -- 
 I speak only for myself.
