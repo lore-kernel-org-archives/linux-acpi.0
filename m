@@ -1,71 +1,74 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Thu, 18 Dec 2014 09:55:49 +0000
-Message-ID: <20141218095549.GA19484@e104818-lin.cambridge.arm.com>
-References: <548F9668.6080900@linaro.org>
- <9355623.14GfrLxEB0@wuerfel>
- <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
- <5490C83A.2080600@linaro.org>
- <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
- <54925EA1.1030901@jonmasters.org>
+From: Dmitry Tunin <hanipouspilot@gmail.com>
+Subject: [PATCH v3 1/2] acpi: Add "acpi_osi=" for ASUS X200MA to enable, brightness
+ keys
+Date: Thu, 18 Dec 2014 15:16:35 +0300
+Message-ID: <5492C5A3.8090700@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:51651 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbaLRJ4K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2014 04:56:10 -0500
-Content-Disposition: inline
-In-Reply-To: <54925EA1.1030901@jonmasters.org>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:45038 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbaLRMQi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2014 07:16:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jonathan@jonmasters.org>
-Cc: Al Stone <al.stone@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, stable@vger.kernel.org, aaron.lu@intel.com
 
-On Thu, Dec 18, 2014 at 04:57:05AM +0000, Jon Masters wrote:
-> On 12/17/14, 4:25 AM, Catalin Marinas wrote:
-> > On Wed, Dec 17, 2014 at 12:03:06AM +0000, Al Stone wrote:
-> >> They will
-> >> at some point in the future, but not now.  Regardless, I think it's
-> >> reasonable for us to say that if you want ACPI support, PSCI must be
-> >> used for secondary CPU startup.  People can hack something up to get
-> >> the parking protocol to work on development branches if they want, but
-> >> I personally see no need to get that into the kernel -- and it needs
-> >> to be said explicitly in arm-acpi.txt.
-[...]
-> > I'm fine with this. But note that it pretty much rules out the APM
-> > boards (I think we ruled them out a few times already) which don't have
-> > an EL3 to host PSCI firmware. EL2 is not suitable as it is likely that
-> > we want this level for KVM or Xen rather than platform firmware.
-> 
-> The gen1 APM boards work great with UEFI and ACPI using the Parking 
-> Protocol. It's trivial to support, and it's a fairly constrained since 
-> everyone is headed toward PSCI. Personally I consider it unfair to 
-> punish the first guy out of the gate for something that was standardized 
-> after they made their design.
+Add "acpi_osi=" quirk for ASUS X200MA
+More information can be found in UX302LA bugreport
+https://bugzilla.kernel.org/show_bug.cgi?id=70241
 
-Most of the complaints about the APM ACPI support were around drivers,
-clocks rather than the parking protocol. On the latter, we complained
-when Hanjun posted core patches that did not match the documentation and
-the (old) parking protocol spec was not suitable to AArch64 either.
+X200MA is affected by th e same bug and the solution has been tested
 
-> My recommendation would be to get the 
-> relevant document updated in the public repository.
+I reported it to launchpad too
+https://bugs.launchpad.net/ubuntu/bug/1400068
 
-This should be stronger than just a "recommendation".
+Cc: stable@vger.kernel.org
+Signed-off-by: Dmitry Tunin <hanipouspilot@gmail.com>
 
-> Patches that 
-> implement Parking Protocol are already in existence/working well as an 
-> alternative to PSCI (which is always preferred if available).
+---
+  drivers/acpi/blacklist.c | 20 ++++++++++++++++++++
+  1 file changed, 20 insertions(+)
 
-Let's hope they match the new spec ;).
-
-What the parking protocol doesn't cover (last time I looked) is a way to
-return CPUs to firmware for hotplug or CPUidle. On non-PSCI platforms
-this would need to be done with SoC-specific code implementing (part of)
-the cpu_operations back-end. Technically, I think there are solutions to
-standardise such CPU return to firmware but it's debatable whether it's
-worth the effort given the long term PSCI recommendation.
-
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 7556e7c..f78ed08 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -162,6 +162,17 @@ static int __init dmi_disable_osi_win8(const struct dmi_system_id *d)
+  	acpi_osi_setup("!Windows 2012");
+  	return 0;
+  }
++/*
++ * Some ASUS models firmware declares 16 devices instead of 8
++ * 'acpi_osi=' kernel parameter fixes it
++ * Without this parameters brightness keys Fn+F5 and F6 do not work
++ */
++static int __init dmi_disable_osi_all(const struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
++	acpi_osi_setup("");
++	return 0;
++}
+  
+  static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+  	{
+@@ -371,6 +382,15 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+  		     DMI_MATCH(DMI_PRODUCT_NAME, "1015PX"),
+  		},
+  	},
++	/* Without this brightness keys do not work */	
++	{
++	.callback = dmi_disable_osi_all,
++	.ident = "ASUSTeK COMPUTER INC. X200MA",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "X200MA"),
++		},
++	},
+  	{}
+  };
+  
 -- 
-Catalin
+1.9.1
