@@ -1,65 +1,46 @@
 From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Wed, 17 Dec 2014 23:57:05 -0500
-Message-ID: <54925EA1.1030901@jonmasters.org>
-References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
- <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
- <5490C83A.2080600@linaro.org>
- <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Thu, 18 Dec 2014 00:04:18 -0500
+Message-ID: <54926052.5000105@jonmasters.org>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel> <20141216154842.GI19412@leverpostej> <5490D042.3060901@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Al Stone <al.stone@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from edison.jonmasters.org ([173.255.233.168]:57323 "EHLO
+	edison.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720AbaLRFE1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2014 00:04:27 -0500
+In-Reply-To: <5490D042.3060901@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 12/17/14, 4:25 AM, Catalin Marinas wrote:
-> On Wed, Dec 17, 2014 at 12:03:06AM +0000, Al Stone wrote:
+On 12/16/14, 7:37 PM, Al Stone wrote:
+> On 12/16/2014 08:48 AM, Mark Rutland wrote:
 
->> That being said, the early systems still don't provide PSCI.
+>> I am rather concerned about the relationship between items described
+>> with _DSD and ACPI's existing device model. Describing the relationship
+>> between devices and their input clocks, regulators, and so on defeats
+>> much of the benefit ACPI is marketed as providing w.r.t. abstraction of
+>> the underlying platform (and as Arnd mentioned above, that's not the
+>> kind of platform we want to support with ACPI).
+>
+> My belief is that all those things should be set up into a known good
+> state by UEFI on initial boot.
 
-Clarification: some early systems are capable of PSCI but the firmware 
-was in progress (and thus they implemented the Parking Protocol 
-initially but will do full PSCI) - for example AMD Seattle - while one 
-other implementation is unable to provide PSCI and will only do Parking 
-Protocol. Both are trivially supportable through bits in the ACPI MADT.
+Correct. There should never be a situation in which any clocks are 
+explicitly exposed in the DSDT. Clock state should be set as a side 
+effect of calling ACPI methods to transition device state. _DSD is 
+intended to implement simple additions to the core spec, such as 
+metadata describing the MAC address, interface type, and PHY on a 
+network device. But it should never be used to expose clock nets.
 
->> They will
->> at some point in the future, but not now.  Regardless, I think it's
->> reasonable for us to say that if you want ACPI support, PSCI must be
->> used for secondary CPU startup.  People can hack something up to get
->> the parking protocol to work on development branches if they want, but
->> I personally see no need to get that into the kernel -- and it needs
->> to be said explicitly in arm-acpi.txt.
-
-That could be ok for upstream - it's up to you guys - but note that 
-there will be some early hardware that doesn't do PSCI. I've sat on 
-*everyone* over the past couple of years behind the scenes to ensure 
-that all future designs will do PSCI, but this takes time to realize.
-
-> I'm fine with this. But note that it pretty much rules out the APM
-> boards (I think we ruled them out a few times already) which don't have
-> an EL3 to host PSCI firmware. EL2 is not suitable as it is likely that
-> we want this level for KVM or Xen rather than platform firmware.
-
-The gen1 APM boards work great with UEFI and ACPI using the Parking 
-Protocol. It's trivial to support, and it's a fairly constrained since 
-everyone is headed toward PSCI. Personally I consider it unfair to 
-punish the first guy out of the gate for something that was standardized 
-after they made their design. My recommendation would be to get the 
-relevant document updated in the public repository. Patches that 
-implement Parking Protocol are already in existence/working well as an 
-alternative to PSCI (which is always preferred if available).
+I've spoken with nearly everyone building a 64-bit ARM server using ACPI 
+and in nearly every case also reviewed their tables. Nobody is going to 
+be so foolish on day one. The trick to some of the ongoing 
+discussion/planning is to ensure that guidance prevents mistakes later.
 
 Jon.
+
