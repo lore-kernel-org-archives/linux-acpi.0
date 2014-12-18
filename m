@@ -1,47 +1,71 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC PATCH 2/2] ata: ahci_platform: Add ACPI _CLS matching
-Date: Thu, 18 Dec 2014 10:17 +0100
-Message-ID: <3408260.hhf4YMy6F6@wuerfel>
-References: <1418858195-22857-1-git-send-email-suravee.suthikulpanit@amd.com> <1418858195-22857-3-git-send-email-suravee.suthikulpanit@amd.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Thu, 18 Dec 2014 09:55:49 +0000
+Message-ID: <20141218095549.GA19484@e104818-lin.cambridge.arm.com>
+References: <548F9668.6080900@linaro.org>
+ <9355623.14GfrLxEB0@wuerfel>
+ <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
+ <5490C83A.2080600@linaro.org>
+ <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
+ <54925EA1.1030901@jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1418858195-22857-3-git-send-email-suravee.suthikulpanit@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:51651 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750968AbaLRJ4K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2014 04:56:10 -0500
+Content-Disposition: inline
+In-Reply-To: <54925EA1.1030901@jonmasters.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jon Masters <jonathan@jonmasters.org>
+Cc: Al Stone <al.stone@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 
-On Wednesday 17 December 2014 17:16:35 Suravee Suthikulpanit wrote:
-> +#ifdef CONFIG_ATA_ACPI
-> +#include <linux/acpi.h>
-> +#endif
->  #include "ahci.h"
->  
->  static const struct ata_port_info ahci_port_info = {
-> @@ -71,6 +74,10 @@ static const struct of_device_id ahci_of_match[] = {
->  };
->  MODULE_DEVICE_TABLE(of, ahci_of_match);
->  
-> +#ifdef CONFIG_ATA_ACPI
-> +static const struct acpi_device_cls ahci_cls = {0x01, 0x06, 0x01};
-> +#endif
-> +
->  static struct platform_driver ahci_driver = {
->         .probe = ahci_probe,
->         .remove = ata_platform_remove_one,
-> @@ -78,6 +85,9 @@ static struct platform_driver ahci_driver = {
->                 .name = "ahci",
->                 .owner = THIS_MODULE,
->                 .of_match_table = ahci_of_match,
-> +#ifdef CONFIG_ATA_ACPI
-> +               .acpi_cls = &ahci_cls,
-> +#endif
->                 .pm = &ahci_pm_ops,
+On Thu, Dec 18, 2014 at 04:57:05AM +0000, Jon Masters wrote:
+> On 12/17/14, 4:25 AM, Catalin Marinas wrote:
+> > On Wed, Dec 17, 2014 at 12:03:06AM +0000, Al Stone wrote:
+> >> They will
+> >> at some point in the future, but not now.  Regardless, I think it's
+> >> reasonable for us to say that if you want ACPI support, PSCI must be
+> >> used for secondary CPU startup.  People can hack something up to get
+> >> the parking protocol to work on development branches if they want, but
+> >> I personally see no need to get that into the kernel -- and it needs
+> >> to be said explicitly in arm-acpi.txt.
+[...]
+> > I'm fine with this. But note that it pretty much rules out the APM
+> > boards (I think we ruled them out a few times already) which don't have
+> > an EL3 to host PSCI firmware. EL2 is not suitable as it is likely that
+> > we want this level for KVM or Xen rather than platform firmware.
 > 
+> The gen1 APM boards work great with UEFI and ACPI using the Parking 
+> Protocol. It's trivial to support, and it's a fairly constrained since 
+> everyone is headed toward PSCI. Personally I consider it unfair to 
+> punish the first guy out of the gate for something that was standardized 
+> after they made their design.
 
-It would be better to leave out the various #ifdef here, in particular the
-one around the header file inclusion.
+Most of the complaints about the APM ACPI support were around drivers,
+clocks rather than the parking protocol. On the latter, we complained
+when Hanjun posted core patches that did not match the documentation and
+the (old) parking protocol spec was not suitable to AArch64 either.
 
-	Arnd
+> My recommendation would be to get the 
+> relevant document updated in the public repository.
+
+This should be stronger than just a "recommendation".
+
+> Patches that 
+> implement Parking Protocol are already in existence/working well as an 
+> alternative to PSCI (which is always preferred if available).
+
+Let's hope they match the new spec ;).
+
+What the parking protocol doesn't cover (last time I looked) is a way to
+return CPUs to firmware for hotplug or CPUidle. On non-PSCI platforms
+this would need to be done with SoC-specific code implementing (part of)
+the cpu_operations back-end. Technically, I think there are solutions to
+standardise such CPU return to firmware but it's debatable whether it's
+worth the effort given the long term PSCI recommendation.
+
+-- 
+Catalin
