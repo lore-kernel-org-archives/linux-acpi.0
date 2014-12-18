@@ -1,31 +1,25 @@
 From: Dmitry Tunin <hanipouspilot@gmail.com>
 Subject: Re: [PATCH v3 1/2] acpi: Add "acpi_osi=" for ASUS X200MA to enable,
  brightness keys
-Date: Thu, 18 Dec 2014 16:28:24 +0300
-Message-ID: <5492D678.9040308@gmail.com>
+Date: Thu, 18 Dec 2014 16:40:08 +0300
+Message-ID: <5492D938.1020907@gmail.com>
 References: <5492C5A3.8090700@gmail.com> <CA+5PVA43jLUp4K9=56nwgQJEyLB9EkEynb2PqfEhBWD8q-m-DQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:52882 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442AbaLRN21 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Dec 2014 08:28:27 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CA+5PVA43jLUp4K9=56nwgQJEyLB9EkEynb2PqfEhBWD8q-m-DQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Josh Boyer <jwboyer@fedoraproject.org>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Josh,
-
-I agree, that a better approach is to implement opregion in a right way=
-=2E
-But it will take some time. In the meantime this kind of quirks solve t=
-he problem.
-And it is quite safe.
+I did not notice the inline question.
+The rest of the keys work as they did before.
+Now other regressions have been noticed.
+Many people use acpi_osi=3D as a boot paremeter, since there
+is no other way to get Fn+F5 and F6 working.
 
 18.12.2014 16:25, Josh Boyer =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
 > On Thu, Dec 18, 2014 at 7:16 AM, Dmitry Tunin <hanipouspilot@gmail.co=
@@ -110,8 +104,3 @@ ruct
 >> To unsubscribe from this list: send the line "unsubscribe stable" in
 >> the body of a message to majordomo@vger.kernel.org
 >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
