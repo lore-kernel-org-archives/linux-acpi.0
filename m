@@ -1,44 +1,106 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+From: Timur Tabi <timur@codeaurora.org>
 Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Thu, 18 Dec 2014 14:01:29 -0600
-Message-ID: <54933299.9030902@amd.com>
+Date: Thu, 18 Dec 2014 14:04:02 -0600
+Message-ID: <CAOZdJXWaQk+f6MLngDzdmUU8x=4cPrt9kpJG6L529MhV0uQwdA@mail.gmail.com>
 References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
+	<1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, "Kangkang.Shen@huawei.com" <Kangkang.Shen@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, Kangkang.Shen@huawei.com, linu
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/17/2014 8:37 AM, Hanjun Guo wrote:
+On Fri, Oct 17, 2014 at 8:37 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
 
-> From: Graeme Gregory <graeme.gregory@linaro.org>
->
-> Add documentation for the guidelines of how to use ACPI
-> on ARM64.
->
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->   Documentation/arm64/arm-acpi.txt |  323
-> ++++++++++++++++++++++++++++++++++++++
->   1 file changed, 323 insertions(+)
->   create mode 100644 Documentation/arm64/arm-acpi.txt
->[...]
+> If acpi=force is used, the kernel
+> +will ONLY use device configuration information contained in the ACPI tables.
 
-AMD has reviewed this document, and currently implements ACPI table in 
-the firmware for AMD Seattle platform based on the documentation 
-published here:
+Based on this statement, ...
 
-http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Seattle_ACPI_Guide.pdf
+> +In order for the kernel to load and use ACPI tables, the UEFI implementation
+> +MUST set the ACPI_20_TABLE_GUID to point to the RSDP table (the table with
+> +the ACPI signature "RSD PTR ").  If this pointer is incorrect and acpi=force
+> +is used, the kernel will disable ACPI and try to use DT to boot.
 
-Reviewed-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+wouldn't it be more correct to say "If this pointer is incorrect OR
+acpi=force is used"?
 
-Thank you,
+> +Forum provides a mechanism for registering such bindings [URL TBD by ASWG]
 
-Suravee
+Did you intend to replace the text in []?
+
+> +so that they may be used on any operating system supporting ACPI.  Device
+> +properties that have not been registered with the UEFI Forum should not be
+> +used.
+
+Blech.  I guess it's necessary, but the information needs to be documented here.
+
+> +Drivers should look for device properties in the _DSD object ONLY; the _DSD
+> +object is described in the ACPI specification section 6.2.5, but more
+> +specifically, use the _DSD Device Properties UUID:
+> +
+> +   -- UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301
+> +
+> +   -- http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf)
+
+Extra ) here.
+
+> +The kernel has an interface for looking up device properties in a manner
+> +independent of whether DT or ACPI is being used and that interface should
+> +be used; it can eliminate some duplication of code paths in driver probing
+> +functions and discourage divergence between DT bindings and ACPI device
+> +properties.
+
+How about a pointer to the documentation for this method?
+
+> +Such code in _PS? methods will of course be very platform specific.  But,
+
+I would use _PSx instead of _PS? here.
+
+> +this allows the driver to abstract out the interface for operating the device
+> +and avoid having to read special non-standard values from ACPI tables. Further,
+> +abstracting the use of these resources allows the hardware to change over time
+> +without requiring updates to the driver.
+> +
+> +
+> +Clocks
+> +------
+> +ACPI makes the assumption that clocks are initialized by the firmware --
+> +UEFI, in this case -- to some working value before control is handed over
+> +to the kernel.  This has implications for devices such as UARTs, or SoC
+> +driven LCD displays, for example.
+
+SOC-driven should be hyphenated.
+
+> +When the kernel boots, the clock is assumed to be set to reasonable
+
+to A reasonable
+
+> +working value.  If for some reason the frequency needs to change -- e.g.,
+> +throttling for power management -- the device driver should expect that
+> +process to be abstracted out into some ACPI method that can be invoked
+> +(please see the ACPI specification for further recommendations on standard
+> +methods to be expected).  If is not, there is no direct way for ACPI to
+
+If IT is not
+
+> +control the clocks.
+> +
+> +
+> +Driver Recommendations
+> +----------------------
+> +DO NOT remove any DT handling when adding ACPI support for a driver.  The
+> +same device may be used on many different systems.
+> +
+> +DO try to structure the driver so that it is data driven.  That is, set up
+
+data-driven
+
+
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
