@@ -1,98 +1,65 @@
-From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Subject: [RFC PATCH 2/2] ata: ahci_platform: Add ACPI _CLS matching
-Date: Wed, 17 Dec 2014 17:16:35 -0600
-Message-ID: <1418858195-22857-3-git-send-email-suravee.suthikulpanit@amd.com>
-References: <1418858195-22857-1-git-send-email-suravee.suthikulpanit@amd.com>
+From: Jon Masters <jonathan@jonmasters.org>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Wed, 17 Dec 2014 23:57:05 -0500
+Message-ID: <54925EA1.1030901@jonmasters.org>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
+ <20141216152707.GH11565@e104818-lin.cambridge.arm.com>
+ <5490C83A.2080600@linaro.org>
+ <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1418858195-22857-1-git-send-email-suravee.suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org
-Cc: hanjun.guo@linaro.org, leo.duran@amd.com, graeme.gregory@linaro.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20141217092505.GA9475@e104818-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Al Stone <al.stone@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+On 12/17/14, 4:25 AM, Catalin Marinas wrote:
+> On Wed, Dec 17, 2014 at 12:03:06AM +0000, Al Stone wrote:
 
-This patch adds ACPI supports for AHCI platform driver, which uses _CLS
-method to match the device.
+>> That being said, the early systems still don't provide PSCI.
 
-The following is an example of ASL structure in DSDT for a SATA controller,
-which contains _CLS package to be matched by the ahci_platform driver:
+Clarification: some early systems are capable of PSCI but the firmware 
+was in progress (and thus they implemented the Parking Protocol 
+initially but will do full PSCI) - for example AMD Seattle - while one 
+other implementation is unable to provide PSCI and will only do Parking 
+Protocol. Both are trivially supportable through bits in the ACPI MADT.
 
-  Device (AHC0) // AHCI Controller
-  {
-    Name(_HID, "AMDI0600")
-    Name (_CCA, 1)
-    Name (_CLS, Package (3)
-    {
-      0x01, // Base Class: Mass Storage
-      0x06, // Sub-Class: serial ATA
-      0x01, // Interface: AHCI
-    })
-    Name (_CRS, ResourceTemplate ()
-    {
-      Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
-      Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
-    })
-  }
+>> They will
+>> at some point in the future, but not now.  Regardless, I think it's
+>> reasonable for us to say that if you want ACPI support, PSCI must be
+>> used for secondary CPU startup.  People can hack something up to get
+>> the parking protocol to work on development branches if they want, but
+>> I personally see no need to get that into the kernel -- and it needs
+>> to be said explicitly in arm-acpi.txt.
 
-Also, since ATA driver should not require PCI support for ATA_ACPI,
-this patch removes dependency in the driver/ata/Kconfig.
+That could be ok for upstream - it's up to you guys - but note that 
+there will be some early hardware that doesn't do PSCI. I've sat on 
+*everyone* over the past couple of years behind the scenes to ensure 
+that all future designs will do PSCI, but this takes time to realize.
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/ata/Kconfig         |  2 +-
- drivers/ata/ahci_platform.c | 10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+> I'm fine with this. But note that it pretty much rules out the APM
+> boards (I think we ruled them out a few times already) which don't have
+> an EL3 to host PSCI firmware. EL2 is not suitable as it is likely that
+> we want this level for KVM or Xen rather than platform firmware.
 
-diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index cd4cccb..edb00c6 100644
---- a/drivers/ata/Kconfig
-+++ b/drivers/ata/Kconfig
-@@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
- 
- config ATA_ACPI
- 	bool "ATA ACPI Support"
--	depends on ACPI && PCI
-+	depends on ACPI
- 	default y
- 	help
- 	  This option adds support for ATA-related ACPI objects.
-diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-index 06f1d59..54568ec 100644
---- a/drivers/ata/ahci_platform.c
-+++ b/drivers/ata/ahci_platform.c
-@@ -20,6 +20,9 @@
- #include <linux/platform_device.h>
- #include <linux/libata.h>
- #include <linux/ahci_platform.h>
-+#ifdef CONFIG_ATA_ACPI
-+#include <linux/acpi.h>
-+#endif
- #include "ahci.h"
- 
- static const struct ata_port_info ahci_port_info = {
-@@ -71,6 +74,10 @@ static const struct of_device_id ahci_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, ahci_of_match);
- 
-+#ifdef CONFIG_ATA_ACPI
-+static const struct acpi_device_cls ahci_cls = {0x01, 0x06, 0x01};
-+#endif
-+
- static struct platform_driver ahci_driver = {
- 	.probe = ahci_probe,
- 	.remove = ata_platform_remove_one,
-@@ -78,6 +85,9 @@ static struct platform_driver ahci_driver = {
- 		.name = "ahci",
- 		.owner = THIS_MODULE,
- 		.of_match_table = ahci_of_match,
-+#ifdef CONFIG_ATA_ACPI
-+		.acpi_cls = &ahci_cls,
-+#endif
- 		.pm = &ahci_pm_ops,
- 	},
- };
--- 
-1.9.3
+The gen1 APM boards work great with UEFI and ACPI using the Parking 
+Protocol. It's trivial to support, and it's a fairly constrained since 
+everyone is headed toward PSCI. Personally I consider it unfair to 
+punish the first guy out of the gate for something that was standardized 
+after they made their design. My recommendation would be to get the 
+relevant document updated in the public repository. Patches that 
+implement Parking Protocol are already in existence/working well as an 
+alternative to PSCI (which is always preferred if available).
+
+Jon.
