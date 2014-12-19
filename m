@@ -1,181 +1,60 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 6/6] ACPI/EC: Cleanup QR_EC related code
-Date: Fri, 19 Dec 2014 14:00:11 +0800
-Message-ID: <8b84beb1f5b9d856f23c35f7a40a81eb3d08081a.1418966602.git.lv.zheng@intel.com>
-References: <cover.1418966602.git.lv.zheng@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Fri, 19 Dec 2014 21:04:42 +0800
+Message-ID: <5494226A.4040006@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org> <54933299.9030902@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36748 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751979AbaLSGAZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Dec 2014 01:00:25 -0500
-In-Reply-To: <cover.1418966602.git.lv.zheng@intel.com>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:46322 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113AbaLSNE6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2014 08:04:58 -0500
+Received: by mail-pa0-f51.google.com with SMTP id ey11so1184585pad.10
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Dec 2014 05:04:57 -0800 (PST)
+In-Reply-To: <54933299.9030902@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, "Kangkang.Shen@huawei.com" <Kangkang.Shen@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-kernel@vger.kernel.org" <li>
 
-The QR_EC related code pieces have redundants, this patch merges them into
-acpi_ec_query() which invokes acpi_ec_transaction() where EC mutex and the
-global lock are already held. After doing so, query handler traversal still
-need to be locked by EC mutex after invoking acpi_ec_transaction().
+On 2014=E5=B9=B412=E6=9C=8819=E6=97=A5 04:01, Suravee Suthikulanit wrot=
+e:
+> On 10/17/2014 8:37 AM, Hanjun Guo wrote:
+>
+>> From: Graeme Gregory <graeme.gregory@linaro.org>
+>>
+>> Add documentation for the guidelines of how to use ACPI
+>> on ARM64.
+>>
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   Documentation/arm64/arm-acpi.txt |  323
+>> ++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 323 insertions(+)
+>>   create mode 100644 Documentation/arm64/arm-acpi.txt
+>> [...]
+>
+> AMD has reviewed this document, and currently implements ACPI table i=
+n
+> the firmware for AMD Seattle platform based on the documentation
+> published here:
+>
+> http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Seattl=
+e_ACPI_Guide.pdf
+>
+>
+> Reviewed-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-Note that EC event handling is sequential. We fetch one event from firmware
-event queue and process it until 0x00 or error returned. So we don't need
-to hold mutex for whole acpi_ec_clear() process to determine whether we
-should continue to drain. And for the same reason, we don't need to hold
-mutex for the whole procedure from the QR_EC transaction to the query
-handler traversal.
+Thank you very much, Suravee.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |   70 +++++++++++++++--------------------------------------
- 1 file changed, 20 insertions(+), 50 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 89e89b2..c385606 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -120,7 +120,7 @@ struct transaction {
- 	u8 flags;
- };
- 
--static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data);
-+static int acpi_ec_query(struct acpi_ec *ec, u8 *data);
- 
- struct acpi_ec *boot_ec, *first_ec;
- EXPORT_SYMBOL(first_ec);
-@@ -508,7 +508,7 @@ static void acpi_ec_clear(struct acpi_ec *ec)
- 	u8 value = 0;
- 
- 	for (i = 0; i < ACPI_EC_CLEAR_MAX; i++) {
--		status = acpi_ec_sync_query(ec, &value);
-+		status = acpi_ec_query(ec, &value);
- 		if (status || !value)
- 			break;
- 	}
-@@ -539,14 +539,11 @@ void acpi_ec_unblock_transactions(void)
- 	if (!ec)
- 		return;
- 
--	mutex_lock(&ec->mutex);
- 	/* Allow transactions to be carried out again */
- 	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
- 
- 	if (EC_FLAGS_CLEAR_ON_RESUME)
- 		acpi_ec_clear(ec);
--
--	mutex_unlock(&ec->mutex);
- }
- 
- void acpi_ec_unblock_transactions_early(void)
-@@ -559,30 +556,6 @@ void acpi_ec_unblock_transactions_early(void)
- 		clear_bit(EC_FLAGS_BLOCKED, &first_ec->flags);
- }
- 
--static int acpi_ec_query_unlocked(struct acpi_ec *ec, u8 *data)
--{
--	int result;
--	u8 d;
--	struct transaction t = {.command = ACPI_EC_COMMAND_QUERY,
--				.wdata = NULL, .rdata = &d,
--				.wlen = 0, .rlen = 1};
--
--	if (!ec || !data)
--		return -EINVAL;
--	/*
--	 * Query the EC to find out which _Qxx method we need to evaluate.
--	 * Note that successful completion of the query causes the ACPI_EC_SCI
--	 * bit to be cleared (and thus clearing the interrupt source).
--	 */
--	result = acpi_ec_transaction_unlocked(ec, &t);
--	if (result)
--		return result;
--	if (!d)
--		return -ENODATA;
--	*data = d;
--	return 0;
--}
--
- /* --------------------------------------------------------------------------
-                                 Event Management
-    -------------------------------------------------------------------------- */
-@@ -662,19 +635,30 @@ static void acpi_ec_run(void *cxt)
- 	acpi_ec_put_query_handler(handler);
- }
- 
--static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
-+static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- {
- 	u8 value = 0;
- 	int result;
- 	acpi_status status;
- 	struct acpi_ec_query_handler *handler;
-+	struct transaction t = {.command = ACPI_EC_COMMAND_QUERY,
-+				.wdata = NULL, .rdata = &value,
-+				.wlen = 0, .rlen = 1};
- 
--	result = acpi_ec_query_unlocked(ec, &value);
--	if (data)
--		*data = value;
-+	/*
-+	 * Query the EC to find out which _Qxx method we need to evaluate.
-+	 * Note that successful completion of the query causes the ACPI_EC_SCI
-+	 * bit to be cleared (and thus clearing the interrupt source).
-+	 */
-+	result = acpi_ec_transaction(ec, &t);
- 	if (result)
- 		return result;
-+	if (data)
-+		*data = value;
-+	if (!value)
-+		return -ENODATA;
- 
-+	mutex_lock(&ec->mutex);
- 	list_for_each_entry(handler, &ec->list, node) {
- 		if (value == handler->query_bit) {
- 			/* have custom handler for this bit */
-@@ -689,26 +673,15 @@ static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
- 			break;
- 		}
- 	}
-+	mutex_unlock(&ec->mutex);
- 	return result;
- }
- 
- static void acpi_ec_gpe_poller(struct work_struct *work)
- {
--	acpi_status status;
--	u32 glk;
- 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work);
- 
--	mutex_lock(&ec->mutex);
--	if (ec->global_lock) {
--		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
--		if (ACPI_FAILURE(status))
--			goto unlock;
--	}
--	acpi_ec_sync_query(ec, NULL);
--	if (ec->global_lock)
--		acpi_release_global_lock(glk);
--unlock:
--	mutex_unlock(&ec->mutex);
-+	acpi_ec_query(ec, NULL);
- }
- 
- static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
-@@ -932,11 +905,8 @@ static int acpi_ec_add(struct acpi_device *device)
- 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 
- 	/* Clear stale _Q events if hardware might require that */
--	if (EC_FLAGS_CLEAR_ON_RESUME) {
--		mutex_lock(&ec->mutex);
-+	if (EC_FLAGS_CLEAR_ON_RESUME)
- 		acpi_ec_clear(ec);
--		mutex_unlock(&ec->mutex);
--	}
- 	return ret;
- }
- 
--- 
-1.7.10
-
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
