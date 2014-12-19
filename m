@@ -1,105 +1,41 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v3 1/2] acpi: Add "acpi_osi=" for ASUS X200MA to enable,
- brightness keys
-Date: Fri, 19 Dec 2014 11:23:28 +0800
-Message-ID: <54939A30.2020601@intel.com>
-References: <5492C5A3.8090700@gmail.com> <CA+5PVA43jLUp4K9=56nwgQJEyLB9EkEynb2PqfEhBWD8q-m-DQ@mail.gmail.com> <54938360.4000804@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH 0/6] ACPI/EC: Enhance EC driver state machine
+Date: Fri, 19 Dec 2014 13:59:19 +0800
+Message-ID: <cover.1418966602.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <54938360.4000804@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Josh Boyer <jwboyer@fedoraproject.org>, Dmitry Tunin <hanipouspilot@gmail.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Jani Nikula <jani.nikula@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:17693 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751907AbaLSF7e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Dec 2014 00:59:34 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On 12/19/2014 09:46 AM, Aaron Lu wrote:
-> CC Jani, who is working on the patchset to enable 8+ output devices and
-> may have some comments on this.
+This patchset fixes several small issues in current EC driver.
+After applying this patchset, we can have all EC IRQ handling code
+collected in advance_transaction() which is the core function of the EC
+driver state machine.
 
-Change Jani's email address, I got a warning from the mailer about his other
-email address.
+These fixes are required by the EC GPE raw handler mode switch but not
+dependent on the GPE raw handler mode. So I collect them to form this
+small patchset.
 
-> 
-> Regards,
-> Aaron
-> 
-> On 12/18/2014 09:25 PM, Josh Boyer wrote:
->> On Thu, Dec 18, 2014 at 7:16 AM, Dmitry Tunin <hanipouspilot@gmail.com> wrote:
->>> Add "acpi_osi=" quirk for ASUS X200MA
->>> More information can be found in UX302LA bugreport
->>> https://bugzilla.kernel.org/show_bug.cgi?id=70241
->>>
->>> X200MA is affected by th e same bug and the solution has been tested
->>>
->>> I reported it to launchpad too
->>> https://bugs.launchpad.net/ubuntu/bug/1400068
->>>
->>> Cc: stable@vger.kernel.org
->>> Signed-off-by: Dmitry Tunin <hanipouspilot@gmail.com>
->>>
->>
->> The UX301LA models have the same setup, with 16 devices instead of 8.
->> I discussed this with Matthew Garrett a bit and a more ideal approach
->> is to actually enumerate all 16 devices between the firmware and i915
->> driver.  The problem we have is that the intel opregion spec that
->> hasn't been updated since 2008 doesn't cover the additional 8 devices.
->> Anyway, that is being tracked here:
->>
->> https://bugs.freedesktop.org/show_bug.cgi?id=81762
->>
->>> ---
->>>  drivers/acpi/blacklist.c | 20 ++++++++++++++++++++
->>>  1 file changed, 20 insertions(+)
->>>
->>> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
->>> index 7556e7c..f78ed08 100644
->>> --- a/drivers/acpi/blacklist.c
->>> +++ b/drivers/acpi/blacklist.c
->>> @@ -162,6 +162,17 @@ static int __init dmi_disable_osi_win8(const struct
->>> dmi_system_id *d)
->>>         acpi_osi_setup("!Windows 2012");
->>>         return 0;
->>>  }
->>> +/*
->>> + * Some ASUS models firmware declares 16 devices instead of 8
->>> + * 'acpi_osi=' kernel parameter fixes it
->>> + * Without this parameters brightness keys Fn+F5 and F6 do not work
->>> + */
->>> +static int __init dmi_disable_osi_all(const struct dmi_system_id *d)
->>> +{
->>> +       printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
->>> +       acpi_osi_setup("");
->>> +       return 0;
->>> +}
->>
->> What does this do to the rest of the function keys?  Does everything
->> else still work as expected, including suspend and resume?
->>
->>>   static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->>>         {
->>> @@ -371,6 +382,15 @@ static struct dmi_system_id acpi_osi_dmi_table[]
->>> __initdata = {
->>>                      DMI_MATCH(DMI_PRODUCT_NAME, "1015PX"),
->>>                 },
->>>         },
->>> +       /* Without this brightness keys do not work */
->>> +       {
->>> +       .callback = dmi_disable_osi_all,
->>> +       .ident = "ASUSTeK COMPUTER INC. X200MA",
->>> +       .matches = {
->>> +                    DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->>> +                    DMI_MATCH(DMI_PRODUCT_NAME, "X200MA"),
->>> +               },
->>> +       },
->>>         {}
->>>  };
->>>
->>> --
->>> 1.9.1
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe stable" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Lv Zheng (6):
+  ACPI/EC: Cleanup transaction wakeup code
+  ACPI/EC: Add reference counting for query handlers
+  ACPI/EC: Fix returning values in acpi_ec_sync_query()
+  ACPI/EC: Fix a code path that global lock is not held
+  ACPI/EC: Fix issues related to the SCI_EVT handling
+  ACPI/EC: Cleanup QR_EC related code
+
+ drivers/acpi/ec.c       |  183 +++++++++++++++++++++++------------------------
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 92 insertions(+), 92 deletions(-)
+
+-- 
+1.7.10
+
