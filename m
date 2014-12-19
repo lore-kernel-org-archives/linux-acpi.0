@@ -1,83 +1,49 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH 2/2] ata: ahci_platform: Add ACPI _CLS matching
-Date: Fri, 19 Dec 2014 14:13:08 -0600
-Message-ID: <1419019988-4398-3-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1419019988-4398-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH 0/6] ACPI/EC: Enhance EC driver state machine
+Date: Fri, 19 Dec 2014 23:28:41 +0100
+Message-ID: <1830437.bnLnyPGhyy@vostro.rjw.lan>
+References: <cover.1418966602.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1419019988-4398-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org
-Cc: hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56780 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751488AbaLSWGw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Dec 2014 17:06:52 -0500
+In-Reply-To: <cover.1418966602.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-This patch adds ACPI supports for AHCI platform driver, which uses _CLS
-method to match the device.
+On Friday, December 19, 2014 01:59:19 PM Lv Zheng wrote:
+> This patchset fixes several small issues in current EC driver.
+> After applying this patchset, we can have all EC IRQ handling code
+> collected in advance_transaction() which is the core function of the EC
+> driver state machine.
+> 
+> These fixes are required by the EC GPE raw handler mode switch but not
+> dependent on the GPE raw handler mode. So I collect them to form this
+> small patchset.
+> 
+> Lv Zheng (6):
+>   ACPI/EC: Cleanup transaction wakeup code
+>   ACPI/EC: Add reference counting for query handlers
+>   ACPI/EC: Fix returning values in acpi_ec_sync_query()
+>   ACPI/EC: Fix a code path that global lock is not held
+>   ACPI/EC: Fix issues related to the SCI_EVT handling
+>   ACPI/EC: Cleanup QR_EC related code
+> 
+>  drivers/acpi/ec.c       |  183 +++++++++++++++++++++++------------------------
+>  drivers/acpi/internal.h |    1 +
+>  2 files changed, 92 insertions(+), 92 deletions(-)
 
-The following is an example of ASL structure in DSDT for a SATA controller,
-which contains _CLS package to be matched by the ahci_platform driver:
+All of this makes sense to me, but I'd rather not push it for 3.19.
 
-  Device (AHC0) // AHCI Controller
-  {
-    Name(_HID, "AMDI0600")
-    Name (_CCA, 1)
-    Name (_CLS, Package (3)
-    {
-      0x01, // Base Class: Mass Storage
-      0x06, // Sub-Class: serial ATA
-      0x01, // Interface: AHCI
-    })
-    Name (_CRS, ResourceTemplate ()
-    {
-      Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
-      Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
-    })
-  }
+I can queue it up for 3.20 after clearing my current 3.19 queue.
 
-Also, since ATA driver should not require PCI support for ATA_ACPI,
-this patch removes dependency in the driver/ata/Kconfig.
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/ata/Kconfig         | 2 +-
- drivers/ata/ahci_platform.c | 3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index cd4cccb..edb00c6 100644
---- a/drivers/ata/Kconfig
-+++ b/drivers/ata/Kconfig
-@@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
- 
- config ATA_ACPI
- 	bool "ATA ACPI Support"
--	depends on ACPI && PCI
-+	depends on ACPI
- 	default y
- 	help
- 	  This option adds support for ATA-related ACPI objects.
-diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-index 06f1d59..4879f9b 100644
---- a/drivers/ata/ahci_platform.c
-+++ b/drivers/ata/ahci_platform.c
-@@ -71,6 +71,8 @@ static const struct of_device_id ahci_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, ahci_of_match);
- 
-+static const struct acpi_device_cls ahci_cls = {0x01, 0x06, 0x01};
-+
- static struct platform_driver ahci_driver = {
- 	.probe = ahci_probe,
- 	.remove = ata_platform_remove_one,
-@@ -78,6 +80,7 @@ static struct platform_driver ahci_driver = {
- 		.name = "ahci",
- 		.owner = THIS_MODULE,
- 		.of_match_table = ahci_of_match,
-+		.acpi_cls = &ahci_cls,
- 		.pm = &ahci_pm_ops,
- 	},
- };
 -- 
-1.9.3
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
