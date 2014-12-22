@@ -1,67 +1,28 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / video: Add some samsung models to disable_native_backlight
- list
-Date: Mon, 22 Dec 2014 15:18:05 +0800
-Message-ID: <5497C5AD.5060803@intel.com>
+From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+Subject: lenovo ultrabay docking station: if power button pressed 1x it creates
+ 2x the same ACPI event
+Date: Mon, 22 Dec 2014 11:06:58 +0100
+Message-ID: <5497ED42.2050003@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:41277 "EHLO mga03.intel.com"
+Received: from mout.gmx.net ([212.227.17.21]:63677 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753184AbaLVHSM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Dec 2014 02:18:12 -0500
+	id S1754104AbaLVKHB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Dec 2014 05:07:01 -0500
+Received: from [192.168.178.24] ([78.54.131.152]) by mail.gmx.com (mrgmx102)
+ with ESMTPSA (Nemesis) id 0MIhDo-1Y5BkZ2XRA-002Jwp for
+ <linux-acpi@vger.kernel.org>; Mon, 22 Dec 2014 11:06:59 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Brent Saner <brent.saner@gmail.com>, Vitaliy Filippov <vitalif@yourcmc.ru>, Laszlo KREKACS <laszlo.krekacs.list@gmail.com>, Vladimir Perepechin <vovochka13@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-The SAMSUNG 870Z5E/880Z5E/680Z5E and SAMSUNG
-370R4E/370R4V/370R5E/3570RE/370R5V do not have a working native
-backlight control interface so restore their acpi_videoX interface.
+This happens at a Lenovo T440s (took me some time to realize why my suspend/resume script runs twice).
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84221
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84651
-For SAMSUNG 870Z5E/880Z5E/680Z5E:
-Reported-and-tested-by: Brent Saner <brent.saner@gmail.com>
-Reported-by: Vitaliy Filippov <vitalif@yourcmc.ru>
-Reported-by: Laszlo KREKACS <laszlo.krekacs.list@gmail.com>
-For SAMSUNG 370R4E/370R4V/370R5E/3570RE/370R5V:
-Reported-by: Vladimir Perepechin <vovochka13@gmail.com>
-Cc: 3.17+ <stable@vger.kernel.org> # 3.17+
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/video.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Is this a known issue ?
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index adf4b4cf0be6..43384360c2b1 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -492,6 +492,23 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "HP ENVY 15 Notebook PC"),
- 		},
- 	},
-+
-+	{
-+	 .callback = video_disable_native_backlight,
-+	 .ident = "SAMSUNG 870Z5E/880Z5E/680Z5E",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "870Z5E/880Z5E/680Z5E"),
-+		},
-+	},
-+	{
-+	 .callback = video_disable_native_backlight,
-+	 .ident = "SAMSUNG 370R4E/370R4V/370R5E/3570RE/370R5V",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "370R4E/370R4V/370R5E/3570RE/370R5V"),
-+		},
-+	},
- 	{}
- };
- 
 -- 
-1.9.3
+Toralf
+pgp key: 7B1A 07F4 EC82 0F90 D4C2  8936 872A E508 0076 E94E
 
