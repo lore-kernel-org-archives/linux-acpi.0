@@ -1,119 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
-Date: Mon, 22 Dec 2014 23:34:48 +0100
-Message-ID: <2588457.Skz2ar9t5B@vostro.rjw.lan>
-References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <878uid5my1.fsf@frog.home> <87vbl4lynj.fsf@frog.home>
+Subject: Re: [PATCH] ACPI / video: Add some samsung models to disable_native_backlight list
+Date: Mon, 22 Dec 2014 23:36:40 +0100
+Message-ID: <10377048.LzOCFOoELM@vostro.rjw.lan>
+References: <5497C5AD.5060803@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60696 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51634 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932134AbaLVWM6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Dec 2014 17:12:58 -0500
-In-Reply-To: <87vbl4lynj.fsf@frog.home>
+	with SMTP id S1754702AbaLVWOs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Dec 2014 17:14:48 -0500
+In-Reply-To: <5497C5AD.5060803@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jakub Sitnicki <jsitnicki@gmail.com>
-Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Brent Saner <brent.saner@gmail.com>, Vitaliy Filippov <vitalif@yourcmc.ru>, Laszlo KREKACS <laszlo.krekacs.list@gmail.com>, Vladimir Perepechin <vovochka13@gmail.com>
 
-On Monday, December 22, 2014 12:19:44 PM Jakub Sitnicki wrote:
-> On Fri, Dec 12, 2014 at 08:47 AM CET, Jakub Sitnicki wrote:
-> > Rafael J. Wysocki <rjw@rjwysocki.net> writes:
-> >
-> >> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
-> >>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
-> >>> index 782e822..f980ff7 100644
-> >>> --- a/drivers/pnp/resource.c
-> >>> +++ b/drivers/pnp/resource.c
-> >>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
-> >>>  	/* check if the resource is already in use, skip if the
-> >>>  	 * device is active because it itself may be in use */
-> >>>  	if (!dev->active) {
-> >>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
-> >>> +		if (!request_region(*port, length(port, end), "pnp"))
-> >>>  			return 0;
-> >>> +		release_region(*port, length(port, end));
-> >>
-> >> Shouldn't we also release the resource returned by request_region() if it is
-> >> not NULL?
-> >>
-> >
-> > Thanks for taking a look at this. I think we're good here. If you please
-> > bear with me for a moment:
-> >
-> > release_resource() removes an element from the list of resource parent's
-> > children (and makes it an orphan):
-> >
-> > 	p = &old->parent->child;
-> > 	for (;;) {
-> > 		tmp = *p;
-> > 		if (!tmp)
-> > 			break;
-> > 		if (tmp == old) {
-> > 			*p = tmp->sibling;
-> > 			old->parent = NULL;
-> > 			return 0;
-> > 		}
-> > 		p = &tmp->sibling;
-> > 	}
-> >
-> > release_region() does the same but with additional checks, and also
-> > frees the resource:
-> >
-> > 	p = &parent->child;
-> >         /* ... */
-> > 	for (;;) {
-> > 		struct resource *res = *p;
-> >
-> > 		if (!res)
-> > 			break;
-> > 		if (res->start <= start && res->end >= end) {
-> >                         /* ... */
-> > 			*p = res->sibling;
-> >                         /* ... */
-> > 			free_resource(res);
-> > 			return;
-> > 		}
-> > 		p = &res->sibling;
-> > 	}
-> >
-> > When making the change I've based on other code in the kernel which also
-> > make use of request_region().
-> >
-> > To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
-> > I/O port region when initialization fails like so:
-> >
-> > static int ne2k_pci_init_one(struct pci_dev *pdev,
-> > 			     const struct pci_device_id *ent)
-> > {
-> >         /* ... */
-> >
-> > 	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
-> > 		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
-> > 			NE_IO_EXTENT, ioaddr);
-> > 		return -EBUSY;
-> > 	}
-> >
-> >         /* ... */
-> >
-> > 	dev = alloc_ei_netdev();
-> > 	if (!dev) {
-> > 		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
-> > 		goto err_out_free_res;
-> > 	}
-> >
-> >         /* ... */
-> >
-> > err_out_free_res:
-> > 	release_region (ioaddr, NE_IO_EXTENT);
-> > 	return -ENODEV;
-> > }
+On Monday, December 22, 2014 03:18:05 PM Aaron Lu wrote:
+> The SAMSUNG 870Z5E/880Z5E/680Z5E and SAMSUNG
+> 370R4E/370R4V/370R5E/3570RE/370R5V do not have a working native
+> backlight control interface so restore their acpi_videoX interface.
 > 
-> Just wondering, do you have any further thoughts on this?
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84221
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=84651
+> For SAMSUNG 870Z5E/880Z5E/680Z5E:
+> Reported-and-tested-by: Brent Saner <brent.saner@gmail.com>
+> Reported-by: Vitaliy Filippov <vitalif@yourcmc.ru>
+> Reported-by: Laszlo KREKACS <laszlo.krekacs.list@gmail.com>
+> For SAMSUNG 370R4E/370R4V/370R5E/3570RE/370R5V:
+> Reported-by: Vladimir Perepechin <vovochka13@gmail.com>
+> Cc: 3.17+ <stable@vger.kernel.org> # 3.17+
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-I'll queue it up for 3.20 later in January.
+Applied, thanks!
 
+> ---
+>  drivers/acpi/video.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index adf4b4cf0be6..43384360c2b1 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -492,6 +492,23 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "HP ENVY 15 Notebook PC"),
+>  		},
+>  	},
+> +
+> +	{
+> +	 .callback = video_disable_native_backlight,
+> +	 .ident = "SAMSUNG 870Z5E/880Z5E/680Z5E",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "870Z5E/880Z5E/680Z5E"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_disable_native_backlight,
+> +	 .ident = "SAMSUNG 370R4E/370R4V/370R5E/3570RE/370R5V",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "370R4E/370R4V/370R5E/3570RE/370R5V"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> 
 
 -- 
 I speak only for myself.
