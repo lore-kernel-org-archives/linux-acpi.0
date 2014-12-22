@@ -1,107 +1,120 @@
-From: "Muller, Francois-nicolas" <francois-nicolas.muller@intel.com>
-Subject: RE: [PATCH] TCO Watchdog warning interrupt driver creation
-Date: Mon, 22 Dec 2014 16:07:30 +0000
-Message-ID: <B9C02DB17496AC4197F41A146D371B9B075C6189@hasmsx107.ger.corp.intel.com>
-References: <B9C02DB17496AC4197F41A146D371B9B075AF9DE@hasmsx107.ger.corp.intel.com>
- <20141211040404.GA28797@vmdeb7> <5489AA6B.9080802@roeck-us.net>
- <B9C02DB17496AC4197F41A146D371B9B075C5FE3@hasmsx107.ger.corp.intel.com>
- <E73BFCB9-87CB-447D-839C-9ED4031FC6E2@infradead.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
+Date: Mon, 22 Dec 2014 23:34:48 +0100
+Message-ID: <2588457.Skz2ar9t5B@vostro.rjw.lan>
+References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <878uid5my1.fsf@frog.home> <87vbl4lynj.fsf@frog.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <E73BFCB9-87CB-447D-839C-9ED4031FC6E2@infradead.org>
-Content-Language: en-US
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>, Guenter Roeck <linux@roeck-us.net>
-Cc: "'platform-driver-x86@vger.kernel.org'" <platform-driver-x86@vger.kernel.org>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Wim Van Sebroeck <wim@iguana.be>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60696 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932134AbaLVWM6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Dec 2014 17:12:58 -0500
+In-Reply-To: <87vbl4lynj.fsf@frog.home>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jakub Sitnicki <jsitnicki@gmail.com>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-U3ViamVjdDogW1BBVENIXSBUQ08gd2F0Y2hkb2cgd2FybmluZyBpbnRlcnJ1cHQgaGFuZGxlcg0K
-DQpBZGRpbmcgVENPIHdhdGNoZG9nIHdhcm5pbmcgaW50ZXJydXB0IGhhbmRsaW5nLg0KDQpUaGlz
-IGZlYXR1cmUgaXMgdXNlZnVsIHRvIHJvb3QgY2F1c2Ugd2F0Y2hkb2cgZXhwaXJhdGlvbi4NCkl0
-IGlzIGFjdGl2YXRlZCBieSBib290IHBhcmFtZXRlciAnd2Fybl9pcnEnIChkaXNhYmxlZCBieSBk
-ZWZhdWx0KS4NCg0KVXBvbiBmaXJzdCBleHBpcmF0aW9uIG9mIHRoZSBUQ08gd2F0Y2hkb2csIGEg
-d2FybmluZyBpbnRlcnJ1cHQgaXMNCmZpcmVkIGFuZCB0aGUgZHJpdmVyIGNhbGxzIHBhbmljKCkg
-dG8gZHVtcCBkZWJ1ZyBpbmZvcm1hdGlvbiAocmVnaXN0ZXJzIGFuZA0KY2FsbCBzdGFja3MpLg0K
-DQpBdCB0aGUgc2FtZSB0aW1lLCB0aGUgVENPIHdhdGNoZG9nIHJlbG9hZHMgd2l0aCAyLjQgc2Vj
-b25kcyB0aW1lb3V0DQp2YWx1ZSBhbmQgcnVucyB1bnRpbCB0aGUgc2Vjb25kIGV4cGlyYXRpb24u
-DQoNClNpZ25lZC1vZmYtYnk6IEZyYW5jb2lzLU5pY29sYXMgTXVsbGVyIDxmcmFuY29pcy1uaWNv
-bGFzLm11bGxlckBpbnRlbC5jb20+DQotLS0NCiBkcml2ZXJzL3dhdGNoZG9nL2lUQ09fd2R0LmMg
-fCAgIDY2ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCiAxIGZp
-bGUgY2hhbmdlZCwgNjYgaW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy93YXRj
-aGRvZy9pVENPX3dkdC5jIGIvZHJpdmVycy93YXRjaGRvZy9pVENPX3dkdC5jIGluZGV4IGU4MDJh
-NTQuLjFjZTlhZDggMTAwNjQ0DQotLS0gYS9kcml2ZXJzL3dhdGNoZG9nL2lUQ09fd2R0LmMNCisr
-KyBiL2RyaXZlcnMvd2F0Y2hkb2cvaVRDT193ZHQuYw0KQEAgLTQ5LDYgKzQ5LDggQEANCiAvKiBN
-b2R1bGUgYW5kIHZlcnNpb24gaW5mb3JtYXRpb24gKi8NCiAjZGVmaW5lIERSVl9OQU1FCSJpVENP
-X3dkdCINCiAjZGVmaW5lIERSVl9WRVJTSU9OCSIxLjExIg0KKyNkZWZpbmUgRFJWX05BTUVfQUNQ
-SQkiaVRDT193ZHRfd2lycSINCisjZGVmaW5lIFRDT19DTEFTUwlEUlZfTkFNRQ0KIA0KIC8qIElu
-Y2x1ZGVzICovDQogI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgkJLyogRm9yIG1vZHVsZSBzcGVj
-aWZpYyBpdGVtcyAqLw0KQEAgLTY4LDYgKzcwLDkgQEANCiAjaW5jbHVkZSA8bGludXgvcG0uaD4J
-CQkvKiBGb3Igc3VzcGVuZC9yZXN1bWUgKi8NCiAjaW5jbHVkZSA8bGludXgvbWZkL2NvcmUuaD4N
-CiAjaW5jbHVkZSA8bGludXgvbWZkL2xwY19pY2guaD4NCisjaW5jbHVkZSA8bGludXgvbm1pLmg+
-DQorI2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4NCisjaW5jbHVkZSA8YWNwaS9hY3R5cGVzLmg+DQog
-DQogI2luY2x1ZGUgImlUQ09fdmVuZG9yLmgiDQogDQpAQCAtMTA3LDYgKzExMiwxMiBAQCBzdGF0
-aWMgc3RydWN0IHsJCS8qIHRoaXMgaXMgcHJpdmF0ZSBkYXRhIGZvciB0aGUgaVRDT193ZHQgZGV2
-aWNlICovDQogCWJvb2wgc3RhcnRlZDsNCiB9IGlUQ09fd2R0X3ByaXZhdGU7DQogDQorc3RhdGlj
-IGNvbnN0IHN0cnVjdCBhY3BpX2RldmljZV9pZCBpVENPX3dkdF9pZHNbXSA9IHsNCisJeyI4MDg2
-MjI5QyIsIDB9LA0KKwl7IiIsIDB9LA0KK307DQorTU9EVUxFX0RFVklDRV9UQUJMRShhY3BpLCBp
-VENPX3dkdF9pZHMpOw0KKw0KIC8qIG1vZHVsZSBwYXJhbWV0ZXJzICovDQogI2RlZmluZSBXQVRD
-SERPR19USU1FT1VUIDMwCS8qIDMwIHNlYyBkZWZhdWx0IGhlYXJ0YmVhdCAqLw0KIHN0YXRpYyBp
-bnQgaGVhcnRiZWF0ID0gV0FUQ0hET0dfVElNRU9VVDsgIC8qIGluIHNlY29uZHMgKi8gQEAgLTEy
-Niw2ICsxMzcsMTEgQEAgbW9kdWxlX3BhcmFtKHR1cm5fU01JX3dhdGNoZG9nX2NsZWFyX29mZiwg
-aW50LCAwKTsgIE1PRFVMRV9QQVJNX0RFU0ModHVybl9TTUlfd2F0Y2hkb2dfY2xlYXJfb2ZmLA0K
-IAkiVHVybiBvZmYgU01JIGNsZWFyaW5nIHdhdGNoZG9nIChkZXBlbmRzIG9uIFRDTy12ZXJzaW9u
-KShkZWZhdWx0PTEpIik7DQogDQorc3RhdGljIGJvb2wgd2Fybl9pcnE7DQorbW9kdWxlX3BhcmFt
-KHdhcm5faXJxLCBib29sLCAwKTsNCitNT0RVTEVfUEFSTV9ERVNDKHdhcm5faXJxLA0KKwkiV2F0
-Y2hkb2cgdHJpZ3MgYSBwYW5pYyBhdCBmaXJzdCBleHBpcmF0aW9uIChkZWZhdWx0PTApIik7DQor
-DQogLyoNCiAgKiBTb21lIFRDTyBzcGVjaWZpYyBmdW5jdGlvbnMNCiAgKi8NCkBAIC0yMDAsNiAr
-MjE2LDM3IEBAIHN0YXRpYyBpbnQgaVRDT193ZHRfdW5zZXRfTk9fUkVCT09UX2JpdCh2b2lkKQ0K
-IAlyZXR1cm4gcmV0OyAvKiByZXR1cm5zOiAwID0gT0ssIC1FSU8gPSBFcnJvciAqLyAgfQ0KIA0K
-K3N0YXRpYyB1MzIgaVRDT193ZHRfd2lycShhY3BpX2hhbmRsZSBncGVfZGV2aWNlLCB1MzIgZ3Bl
-LCB2b2lkIA0KKypjb250ZXh0KSB7DQorCXByX3dhcm4oIltTSFREV05dICVzLCBXQVRDSERPRyBU
-SU1FT1VUIEhBTkRMRVIhXG4iLCBfX2Z1bmNfXyk7DQorDQorCXRyaWdnZXJfYWxsX2NwdV9iYWNr
-dHJhY2UoKTsNCisJcGFuaWMoIktlcm5lbCBXYXRjaGRvZyIpOw0KKw0KKwkvKiBUaGlzIGNvZGUg
-c2hvdWxkIG5vdCBiZSByZWFjaGVkICovDQorCXJldHVybiBJUlFfSEFORExFRDsNCit9DQorDQor
-c3RhdGljIGludCBpVENPX3dkdF9hY3BpX2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkg
-ew0KKwl1bnNpZ25lZCBsb25nIGxvbmcgZ3BlOw0KKwlhY3BpX3N0YXR1cyBzdGF0dXM7DQorDQor
-CXN0YXR1cyA9IGFjcGlfZXZhbHVhdGVfaW50ZWdlcihkZXZpY2UtPmhhbmRsZSwgIl9HUEUiLCBO
-VUxMLCAmZ3BlKTsNCisJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQ0KKwkJcmV0dXJuIC1FSU5W
-QUw7DQorDQorCXN0YXR1cyA9IGFjcGlfaW5zdGFsbF9ncGVfaGFuZGxlcihOVUxMLCBncGUsIEFD
-UElfR1BFX0VER0VfVFJJR0dFUkVELA0KKwkJCQkJICBpVENPX3dkdF93aXJxLCBOVUxMKTsNCisJ
-aWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQ0KKwkJcmV0dXJuIC1FTk9ERVY7DQorDQorCWFjcGlf
-ZW5hYmxlX2dwZShOVUxMLCBncGUpOw0KKw0KKwlwcl9pbmZvKCJpbnRlcnJ1cHQ9U0NJIEdQRT0w
-eCUwMmxseCIsIGdwZSk7DQorCXJldHVybiAwOw0KK30NCisNCiBzdGF0aWMgaW50IGlUQ09fd2R0
-X3N0YXJ0KHN0cnVjdCB3YXRjaGRvZ19kZXZpY2UgKndkX2RldikgIHsNCiAJdW5zaWduZWQgaW50
-IHZhbDsNCkBAIC02MjgsNiArNjc1LDE1IEBAIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVy
-IGlUQ09fd2R0X2RyaXZlciA9IHsNCiAJfSwNCiB9Ow0KIA0KK3N0YXRpYyBzdHJ1Y3QgYWNwaV9k
-cml2ZXIgaVRDT193ZHRfYWNwaV9kcml2ZXIgPSB7DQorCS5uYW1lID0gRFJWX05BTUVfQUNQSSwN
-CisJLmNsYXNzID0gVENPX0NMQVNTLA0KKwkuaWRzID0gaVRDT193ZHRfaWRzLA0KKwkub3BzID0g
-ew0KKwkJLmFkZCA9IGlUQ09fd2R0X2FjcGlfYWRkLA0KKwl9LA0KK307DQorDQogc3RhdGljIGlu
-dCBfX2luaXQgaVRDT193ZHRfaW5pdF9tb2R1bGUodm9pZCkgIHsNCiAJaW50IGVycjsNCkBAIC02
-MzgsMTIgKzY5NCwyMiBAQCBzdGF0aWMgaW50IF9faW5pdCBpVENPX3dkdF9pbml0X21vZHVsZSh2
-b2lkKQ0KIAlpZiAoZXJyKQ0KIAkJcmV0dXJuIGVycjsNCiANCisJaWYgKHdhcm5faXJxKSB7DQor
-CQllcnIgPSBhY3BpX2J1c19yZWdpc3Rlcl9kcml2ZXIoJmlUQ09fd2R0X2FjcGlfZHJpdmVyKTsN
-CisJCWlmIChlcnIpIHsNCisJCQlwbGF0Zm9ybV9kcml2ZXJfdW5yZWdpc3RlcigmaVRDT193ZHRf
-ZHJpdmVyKTsNCisJCQlyZXR1cm4gZXJyOw0KKwkJfQ0KKwl9DQorDQogCXJldHVybiAwOw0KIH0N
-CiANCiBzdGF0aWMgdm9pZCBfX2V4aXQgaVRDT193ZHRfY2xlYW51cF9tb2R1bGUodm9pZCkgIHsN
-CiAJcGxhdGZvcm1fZHJpdmVyX3VucmVnaXN0ZXIoJmlUQ09fd2R0X2RyaXZlcik7DQorCWlmICh3
-YXJuX2lycSkNCisJCWFjcGlfYnVzX3VucmVnaXN0ZXJfZHJpdmVyKCZpVENPX3dkdF9hY3BpX2Ry
-aXZlcik7DQogCXByX2luZm8oIldhdGNoZG9nIE1vZHVsZSBVbmxvYWRlZFxuIik7ICB9DQogDQot
-LQ0KMS43LjkuNQ0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBEYXJyZW4g
-SGFydCBbbWFpbHRvOmR2aGFydEBpbmZyYWRlYWQub3JnXSANClNlbnQ6IE1vbmRheSwgRGVjZW1i
-ZXIgMjIsIDIwMTQgNDo0MSBQTQ0KVG86IE11bGxlciwgRnJhbmNvaXMtbmljb2xhczsgR3VlbnRl
-ciBSb2Vjaw0KQ2M6ICdwbGF0Zm9ybS1kcml2ZXIteDg2QHZnZXIua2VybmVsLm9yZyc7IFJhZmFl
-bCBXeXNvY2tpOyBMaW51eCBBQ1BJIE1haWxpbmcgTGlzdDsgbGludXgtd2F0Y2hkb2dAdmdlci5r
-ZXJuZWwub3JnOyBXaW0gVmFuIFNlYnJvZWNrDQpTdWJqZWN0OiBSRTogW1BBVENIXSBUQ08gV2F0
-Y2hkb2cgd2FybmluZyBpbnRlcnJ1cHQgZHJpdmVyIGNyZWF0aW9uDQoNCg0KDQpPbiBEZWNlbWJl
-ciAyMiwgMjAxNCA1OjE4OjMzIEFNIFBTVCwgIk11bGxlciwgRnJhbmNvaXMtbmljb2xhcyIgPGZy
-YW5jb2lzLW5pY29sYXMubXVsbGVyQGludGVsLmNvbT4gd3JvdGU6DQo+VGhhbmtzIERhcnJlbiBh
-bmQgR3VlbnRlciBmb3IgeW91ciByZXZpZXcuDQo+SGVyZSBpcyBhIG5ldyBwYXRjaHNldCwgaW5j
-bHVkaW5nIHRoZSBmZWF0dXJlIGluIHRoZSB3YXRjaGRvZyBkcml2ZXIgDQo+YW5kIHVzaW5nIGEg
-Ym9vdCBwYXJhbWV0ZXIgdG8gYmUgZW5hYmxlZC4NCj5GcmFuw6dvaXMtTmljb2xhcw0KPg0KPlN1
-YmplY3Q6IFtQQVRDSF0gVENPIHdhdGNoZG9nIHdhcm5pbmcgaW50ZXJydXB0IGhhbmRsZXINCj4N
-Cg0KUGxlYXNlIHByb3ZpZGUgYSBjb21wbGV0ZSBjb21taXQgbWVzc2FnZS4NCg0KPlNpZ25lZC1v
-ZmYtYnk6IEZyYW5jb2lzLU5pY29sYXMgTXVsbGVyDQo+PGZyYW5jb2lzLW5pY29sYXMubXVsbGVy
-QGludGVsLmNvbT4NCg0KLS0NCkRhcnJlbiBIYXJ0DQpTZW50IGZyb20gbXkgQW5kcm9pZCBkZXZp
-Y2Ugd2l0aCBLLTkgTWFpbC4gUGxlYXNlIGV4Y3VzZSBteSBicmV2aXR5Lg0K
+On Monday, December 22, 2014 12:19:44 PM Jakub Sitnicki wrote:
+> On Fri, Dec 12, 2014 at 08:47 AM CET, Jakub Sitnicki wrote:
+> > Rafael J. Wysocki <rjw@rjwysocki.net> writes:
+> >
+> >> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
+> >>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+> >>> index 782e822..f980ff7 100644
+> >>> --- a/drivers/pnp/resource.c
+> >>> +++ b/drivers/pnp/resource.c
+> >>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
+> >>>  	/* check if the resource is already in use, skip if the
+> >>>  	 * device is active because it itself may be in use */
+> >>>  	if (!dev->active) {
+> >>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
+> >>> +		if (!request_region(*port, length(port, end), "pnp"))
+> >>>  			return 0;
+> >>> +		release_region(*port, length(port, end));
+> >>
+> >> Shouldn't we also release the resource returned by request_region() if it is
+> >> not NULL?
+> >>
+> >
+> > Thanks for taking a look at this. I think we're good here. If you please
+> > bear with me for a moment:
+> >
+> > release_resource() removes an element from the list of resource parent's
+> > children (and makes it an orphan):
+> >
+> > 	p = &old->parent->child;
+> > 	for (;;) {
+> > 		tmp = *p;
+> > 		if (!tmp)
+> > 			break;
+> > 		if (tmp == old) {
+> > 			*p = tmp->sibling;
+> > 			old->parent = NULL;
+> > 			return 0;
+> > 		}
+> > 		p = &tmp->sibling;
+> > 	}
+> >
+> > release_region() does the same but with additional checks, and also
+> > frees the resource:
+> >
+> > 	p = &parent->child;
+> >         /* ... */
+> > 	for (;;) {
+> > 		struct resource *res = *p;
+> >
+> > 		if (!res)
+> > 			break;
+> > 		if (res->start <= start && res->end >= end) {
+> >                         /* ... */
+> > 			*p = res->sibling;
+> >                         /* ... */
+> > 			free_resource(res);
+> > 			return;
+> > 		}
+> > 		p = &res->sibling;
+> > 	}
+> >
+> > When making the change I've based on other code in the kernel which also
+> > make use of request_region().
+> >
+> > To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
+> > I/O port region when initialization fails like so:
+> >
+> > static int ne2k_pci_init_one(struct pci_dev *pdev,
+> > 			     const struct pci_device_id *ent)
+> > {
+> >         /* ... */
+> >
+> > 	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
+> > 		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
+> > 			NE_IO_EXTENT, ioaddr);
+> > 		return -EBUSY;
+> > 	}
+> >
+> >         /* ... */
+> >
+> > 	dev = alloc_ei_netdev();
+> > 	if (!dev) {
+> > 		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
+> > 		goto err_out_free_res;
+> > 	}
+> >
+> >         /* ... */
+> >
+> > err_out_free_res:
+> > 	release_region (ioaddr, NE_IO_EXTENT);
+> > 	return -ENODEV;
+> > }
+> 
+> Just wondering, do you have any further thoughts on this?
+
+I'll queue it up for 3.20 later in January.
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
