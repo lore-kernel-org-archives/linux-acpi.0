@@ -1,493 +1,293 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part2 v6 22/27] x86, uv: Use hierarchy irqdomain to manage
- UV interrupts
-Date: Tue, 23 Dec 2014 15:18:08 +0800
-Message-ID: <54991730.8000406@linux.intel.com>
-References: <1416894816-23245-1-git-send-email-jiang.liu@linux.intel.com> <1416894816-23245-23-git-send-email-jiang.liu@linux.intel.com> <20141215213735.GA8149@sgi.com> <20141216172902.GA24760@sgi.com> <5490ED6F.4040409@linux.intel.com> <20141217164532.GB25783@sgi.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Wed, 24 Dec 2014 17:18:15 +0000
+Message-ID: <20141224171815.GD13399@e104818-lin.cambridge.arm.com>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
+ <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141217164532.GB25783@sgi.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russ Anderson <rja@sgi.com>
-Cc: Dimitri Sivanich <sivanich@sgi.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Nathan Zimmer <nzimmer@sgi.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:53498 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216AbaLXRS1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Dec 2014 12:18:27 -0500
+Content-Disposition: inline
+In-Reply-To: <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawe
 
-On 2014/12/18 0:45, Russ Anderson wrote:
-> On Wed, Dec 17, 2014 at 10:41:51AM +0800, Jiang Liu wrote:
->> On 2014/12/17 1:29, Dimitri Sivanich wrote:
->>> I answered my own question, this had never been tested on UV.
->>>
->>> The gru driver fails with:
->>>         SGI GRU Device Driver: uv_setup_irq failed, errno=22
->>>
->>> The info->type in uv_domain_alloc() is not set to X86_IRQ_ALLOC_TYPE_UV
->>> (info->type is never set to that value anywhere).
->>>
->>> Adding the following to uv_setup_irq allows it to work:
->>>
->>> --- linux.orig/arch/x86/platform/uv/uv_irq.c
->>> +++ linux/arch/x86/platform/uv/uv_irq.c
->>> @@ -187,6 +187,7 @@ int uv_setup_irq(char *irq_name, int cpu
->>>                 return -ENOMEM;
->>>
->>>         init_irq_alloc_info(&info, cpumask_of(cpu));
->>> +       info.type = X86_IRQ_ALLOC_TYPE_UV;
->>>         info.uv_limit = limit;
->>>         info.uv_blade = mmr_blade;
->>>         info.uv_offset = mmr_offset;
->>>
->>> On Mon, Dec 15, 2014 at 03:37:35PM -0600, Dimitri Sivanich wrote:
->> Hi Dimitri,
->> 	Thanks for reporting and fixing this bug. We will rebase the
->> tip/x86/apic branch and fold the above patch into the original patch.
->> May I assume a Tested-by from you? I have no UV systems for testing.
-> 
-> 287 lines of change in uv_irq.c completely untested in linux-next?  Ouch.
-> 
-> Dimitri tested the one line change above, because the driver would
-> not even load without it.  It will take some time to look through
-> your extensive changes to understand and verify it works.
-Hi Anderson,
-	The whole patch set has been exposed to linux-next through
-tip/x86/apic, but not sure why this bug hasn't been discovered.
-Will Cc you and Dimitri next time.
-Regards!
-Gerry
+Hi,
 
-> 
-> Thanks.
-> 
->> Regards!
->> Gerry
->>
->>>> Was this patch ever tested on a UV system?
->>>>
->>>> Also, adding some SGI folks to the CC list, since there were none listed before.
->>>>
->>>> On Tue, Nov 25, 2014 at 01:53:31PM +0800, Jiang Liu wrote:
->>>>> Enhance UV code to support hierarchy irqdomain, it helps to make
->>>>> the architecture more clear.
->>>>>
->>>>> We should construct hwirq based on mmr_blade and mmr_offset, but
->>>>> mmr_offset is type of unsigned long, it may exceed the range of
->>>>> irq_hw_number_t. So help about the way to construct hwirq based
->>>>> on mmr_blade and mmr_offset is welcomed!
->>>>>
->>>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>>>> ---
->>>>>  arch/x86/include/asm/hw_irq.h |    9 ++
->>>>>  arch/x86/platform/uv/uv_irq.c |  287 ++++++++++++++++-------------------------
->>>>>  2 files changed, 117 insertions(+), 179 deletions(-)
->>>>>
->>>>> diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
->>>>> index 46dec7e37829..bbf90fe2a224 100644
->>>>> --- a/arch/x86/include/asm/hw_irq.h
->>>>> +++ b/arch/x86/include/asm/hw_irq.h
->>>>> @@ -123,6 +123,7 @@ enum irq_alloc_type {
->>>>>  	X86_IRQ_ALLOC_TYPE_MSI,
->>>>>  	X86_IRQ_ALLOC_TYPE_MSIX,
->>>>>  	X86_IRQ_ALLOC_TYPE_DMAR,
->>>>> +	X86_IRQ_ALLOC_TYPE_UV,
->>>>>  };
->>>>>  
->>>>>  struct irq_alloc_info {
->>>>> @@ -169,6 +170,14 @@ struct irq_alloc_info {
->>>>>  			void		*ht_update;
->>>>>  		};
->>>>>  #endif
->>>>> +#ifdef	CONFIG_X86_UV
->>>>> +		struct {
->>>>> +			int		uv_limit;
->>>>> +			int		uv_blade;
->>>>> +			unsigned long	uv_offset;
->>>>> +			char		*uv_name;
->>>>> +		};
->>>>> +#endif
->>>>>  	};
->>>>>  };
->>>>>  
->>>>> diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
->>>>> index 474912d03f40..c237ed34a498 100644
->>>>> --- a/arch/x86/platform/uv/uv_irq.c
->>>>> +++ b/arch/x86/platform/uv/uv_irq.c
->>>>> @@ -19,17 +19,31 @@
->>>>>  #include <asm/uv/uv_hub.h>
->>>>>  
->>>>>  /* MMR offset and pnode of hub sourcing interrupts for a given irq */
->>>>> -struct uv_irq_2_mmr_pnode{
->>>>> -	struct rb_node		list;
->>>>> +struct uv_irq_2_mmr_pnode {
->>>>>  	unsigned long		offset;
->>>>>  	int			pnode;
->>>>> -	int			irq;
->>>>>  };
->>>>>  
->>>>> -static DEFINE_SPINLOCK(uv_irq_lock);
->>>>> -static struct rb_root		uv_irq_root;
->>>>> +static void uv_program_mmr(struct irq_cfg *cfg, struct uv_irq_2_mmr_pnode *info)
->>>>> +{
->>>>> +	unsigned long mmr_value;
->>>>> +	struct uv_IO_APIC_route_entry *entry;
->>>>> +
->>>>> +	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
->>>>> +		     sizeof(unsigned long));
->>>>> +
->>>>> +	mmr_value = 0;
->>>>> +	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
->>>>> +	entry->vector		= cfg->vector;
->>>>> +	entry->delivery_mode	= apic->irq_delivery_mode;
->>>>> +	entry->dest_mode	= apic->irq_dest_mode;
->>>>> +	entry->polarity		= 0;
->>>>> +	entry->trigger		= 0;
->>>>> +	entry->mask		= 0;
->>>>> +	entry->dest		= cfg->dest_apicid;
->>>>>  
->>>>> -static int uv_set_irq_affinity(struct irq_data *, const struct cpumask *, bool);
->>>>> +	uv_write_global_mmr64(info->pnode, info->offset, mmr_value);
->>>>> +}
->>>>>  
->>>>>  static void uv_noop(struct irq_data *data) { }
->>>>>  
->>>>> @@ -38,6 +52,24 @@ static void uv_ack_apic(struct irq_data *data)
->>>>>  	ack_APIC_irq();
->>>>>  }
->>>>>  
->>>>> +static int
->>>>> +uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
->>>>> +		    bool force)
->>>>> +{
->>>>> +	struct irq_data *parent = data->parent_data;
->>>>> +	struct irq_cfg *cfg = irqd_cfg(data);
->>>>> +	int ret;
->>>>> +
->>>>> +	ret = parent->chip->irq_set_affinity(parent, mask, force);
->>>>> +	if (ret >= 0) {
->>>>> +		uv_program_mmr(cfg, data->chip_data);
->>>>> +		if (cfg->move_in_progress)
->>>>> +			send_cleanup_vector(cfg);
->>>>> +	}
->>>>> +
->>>>> +	return ret;
->>>>> +}
->>>>> +
->>>>>  static struct irq_chip uv_irq_chip = {
->>>>>  	.name			= "UV-CORE",
->>>>>  	.irq_mask		= uv_noop,
->>>>> @@ -46,179 +78,99 @@ static struct irq_chip uv_irq_chip = {
->>>>>  	.irq_set_affinity	= uv_set_irq_affinity,
->>>>>  };
->>>>>  
->>>>> -/*
->>>>> - * Add offset and pnode information of the hub sourcing interrupts to the
->>>>> - * rb tree for a specific irq.
->>>>> - */
->>>>> -static int uv_set_irq_2_mmr_info(int irq, unsigned long offset, unsigned blade)
->>>>> +static int uv_domain_alloc(struct irq_domain *domain, unsigned int virq,
->>>>> +			   unsigned int nr_irqs, void *arg)
->>>>>  {
->>>>> -	struct rb_node **link = &uv_irq_root.rb_node;
->>>>> -	struct rb_node *parent = NULL;
->>>>> -	struct uv_irq_2_mmr_pnode *n;
->>>>> -	struct uv_irq_2_mmr_pnode *e;
->>>>> -	unsigned long irqflags;
->>>>> -
->>>>> -	n = kmalloc_node(sizeof(struct uv_irq_2_mmr_pnode), GFP_KERNEL,
->>>>> -				uv_blade_to_memory_nid(blade));
->>>>> -	if (!n)
->>>>> +	struct uv_irq_2_mmr_pnode *chip_data;
->>>>> +	struct irq_alloc_info *info = arg;
->>>>> +	struct irq_data *irq_data = irq_domain_get_irq_data(domain, virq);
->>>>> +	int ret;
->>>>> +
->>>>> +	if (nr_irqs > 1 || !info || info->type != X86_IRQ_ALLOC_TYPE_UV)
->>>>> +		return -EINVAL;
->>>>> +
->>>>> +	chip_data = kmalloc_node(sizeof(*chip_data), GFP_KERNEL,
->>>>> +				 irq_data->node);
->>>>> +	if (!chip_data)
->>>>>  		return -ENOMEM;
->>>>>  
->>>>> -	n->irq = irq;
->>>>> -	n->offset = offset;
->>>>> -	n->pnode = uv_blade_to_pnode(blade);
->>>>> -	spin_lock_irqsave(&uv_irq_lock, irqflags);
->>>>> -	/* Find the right place in the rbtree: */
->>>>> -	while (*link) {
->>>>> -		parent = *link;
->>>>> -		e = rb_entry(parent, struct uv_irq_2_mmr_pnode, list);
->>>>> -
->>>>> -		if (unlikely(irq == e->irq)) {
->>>>> -			/* irq entry exists */
->>>>> -			e->pnode = uv_blade_to_pnode(blade);
->>>>> -			e->offset = offset;
->>>>> -			spin_unlock_irqrestore(&uv_irq_lock, irqflags);
->>>>> -			kfree(n);
->>>>> -			return 0;
->>>>> -		}
->>>>> -
->>>>> -		if (irq < e->irq)
->>>>> -			link = &(*link)->rb_left;
->>>>> +	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
->>>>> +	if (ret >= 0) {
->>>>> +		if (info->uv_limit == UV_AFFINITY_CPU)
->>>>> +			irq_set_status_flags(virq, IRQ_NO_BALANCING);
->>>>>  		else
->>>>> -			link = &(*link)->rb_right;
->>>>> +			irq_set_status_flags(virq, IRQ_MOVE_PCNTXT);
->>>>> +
->>>>> +		chip_data->pnode = uv_blade_to_pnode(info->uv_blade);
->>>>> +		chip_data->offset = info->uv_offset;
->>>>> +		irq_domain_set_info(domain, virq, virq, &uv_irq_chip, chip_data,
->>>>> +				    handle_percpu_irq, NULL, info->uv_name);
->>>>> +	} else {
->>>>> +		kfree(chip_data);
->>>>>  	}
->>>>>  
->>>>> -	/* Insert the node into the rbtree. */
->>>>> -	rb_link_node(&n->list, parent, link);
->>>>> -	rb_insert_color(&n->list, &uv_irq_root);
->>>>> -
->>>>> -	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
->>>>> -	return 0;
->>>>> +	return ret;
->>>>>  }
->>>>>  
->>>>> -/* Retrieve offset and pnode information from the rb tree for a specific irq */
->>>>> -int uv_irq_2_mmr_info(int irq, unsigned long *offset, int *pnode)
->>>>> +static void uv_domain_free(struct irq_domain *domain, unsigned int virq,
->>>>> +			   unsigned int nr_irqs)
->>>>>  {
->>>>> -	struct uv_irq_2_mmr_pnode *e;
->>>>> -	struct rb_node *n;
->>>>> -	unsigned long irqflags;
->>>>> -
->>>>> -	spin_lock_irqsave(&uv_irq_lock, irqflags);
->>>>> -	n = uv_irq_root.rb_node;
->>>>> -	while (n) {
->>>>> -		e = rb_entry(n, struct uv_irq_2_mmr_pnode, list);
->>>>> -
->>>>> -		if (e->irq == irq) {
->>>>> -			*offset = e->offset;
->>>>> -			*pnode = e->pnode;
->>>>> -			spin_unlock_irqrestore(&uv_irq_lock, irqflags);
->>>>> -			return 0;
->>>>> -		}
->>>>> -
->>>>> -		if (irq < e->irq)
->>>>> -			n = n->rb_left;
->>>>> -		else
->>>>> -			n = n->rb_right;
->>>>> -	}
->>>>> -	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
->>>>> -	return -1;
->>>>> +	struct irq_data *irq_data = irq_domain_get_irq_data(domain, virq);
->>>>> +
->>>>> +	BUG_ON(nr_irqs != 1);
->>>>> +	kfree(irq_data->chip_data);
->>>>> +	irq_clear_status_flags(virq, IRQ_MOVE_PCNTXT);
->>>>> +	irq_clear_status_flags(virq, IRQ_NO_BALANCING);
->>>>> +	irq_domain_free_irqs_top(domain, virq, nr_irqs);
->>>>>  }
->>>>>  
->>>>>  /*
->>>>>   * Re-target the irq to the specified CPU and enable the specified MMR located
->>>>>   * on the specified blade to allow the sending of MSIs to the specified CPU.
->>>>>   */
->>>>> -static int
->>>>> -arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
->>>>> -		       unsigned long mmr_offset, int limit)
->>>>> +static void uv_domain_activate(struct irq_domain *domain,
->>>>> +			       struct irq_data *irq_data)
->>>>>  {
->>>>> -	struct irq_cfg *cfg = irq_cfg(irq);
->>>>> -	unsigned long mmr_value;
->>>>> -	struct uv_IO_APIC_route_entry *entry;
->>>>> -	int mmr_pnode;
->>>>> -
->>>>> -	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
->>>>> -			sizeof(unsigned long));
->>>>> -
->>>>> -	if (limit == UV_AFFINITY_CPU)
->>>>> -		irq_set_status_flags(irq, IRQ_NO_BALANCING);
->>>>> -	else
->>>>> -		irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
->>>>> -
->>>>> -	irq_set_chip_and_handler_name(irq, &uv_irq_chip, handle_percpu_irq,
->>>>> -				      irq_name);
->>>>> -
->>>>> -	mmr_value = 0;
->>>>> -	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
->>>>> -	entry->vector		= cfg->vector;
->>>>> -	entry->delivery_mode	= apic->irq_delivery_mode;
->>>>> -	entry->dest_mode	= apic->irq_dest_mode;
->>>>> -	entry->polarity		= 0;
->>>>> -	entry->trigger		= 0;
->>>>> -	entry->mask		= 0;
->>>>> -	entry->dest		= cfg->dest_apicid;
->>>>> -
->>>>> -	mmr_pnode = uv_blade_to_pnode(mmr_blade);
->>>>> -	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
->>>>> -
->>>>> -	if (cfg->move_in_progress)
->>>>> -		send_cleanup_vector(cfg);
->>>>> -
->>>>> -	return irq;
->>>>> +	uv_program_mmr(irqd_cfg(irq_data), irq_data->chip_data);
->>>>>  }
->>>>>  
->>>>>  /*
->>>>>   * Disable the specified MMR located on the specified blade so that MSIs are
->>>>>   * longer allowed to be sent.
->>>>>   */
->>>>> -static void arch_disable_uv_irq(int mmr_pnode, unsigned long mmr_offset)
->>>>> +static void uv_domain_deactivate(struct irq_domain *domain,
->>>>> +				 struct irq_data *irq_data)
->>>>>  {
->>>>>  	unsigned long mmr_value;
->>>>>  	struct uv_IO_APIC_route_entry *entry;
->>>>>  
->>>>> -	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
->>>>> -			sizeof(unsigned long));
->>>>> -
->>>>>  	mmr_value = 0;
->>>>>  	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
->>>>>  	entry->mask = 1;
->>>>> -
->>>>> -	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
->>>>> +	uv_program_mmr(irqd_cfg(irq_data), irq_data->chip_data);
->>>>>  }
->>>>>  
->>>>> -static int
->>>>> -uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
->>>>> -		    bool force)
->>>>> -{
->>>>> -	struct irq_cfg *cfg = irqd_cfg(data);
->>>>> -	unsigned int dest;
->>>>> -	unsigned long mmr_value, mmr_offset;
->>>>> -	struct uv_IO_APIC_route_entry *entry;
->>>>> -	int mmr_pnode;
->>>>> -
->>>>> -	if (apic_set_affinity(data, mask, &dest))
->>>>> -		return -1;
->>>>> -
->>>>> -	mmr_value = 0;
->>>>> -	entry = (struct uv_IO_APIC_route_entry *)&mmr_value;
->>>>> -
->>>>> -	entry->vector		= cfg->vector;
->>>>> -	entry->delivery_mode	= apic->irq_delivery_mode;
->>>>> -	entry->dest_mode	= apic->irq_dest_mode;
->>>>> -	entry->polarity		= 0;
->>>>> -	entry->trigger		= 0;
->>>>> -	entry->mask		= 0;
->>>>> -	entry->dest		= dest;
->>>>> -
->>>>> -	/* Get previously stored MMR and pnode of hub sourcing interrupts */
->>>>> -	if (uv_irq_2_mmr_info(data->irq, &mmr_offset, &mmr_pnode))
->>>>> -		return -1;
->>>>> -
->>>>> -	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
->>>>> +static struct irq_domain_ops uv_domain_ops = {
->>>>> +	.alloc = uv_domain_alloc,
->>>>> +	.free = uv_domain_free,
->>>>> +	.activate = uv_domain_activate,
->>>>> +	.deactivate = uv_domain_deactivate,
->>>>> +};
->>>>>  
->>>>> -	if (cfg->move_in_progress)
->>>>> -		send_cleanup_vector(cfg);
->>>>> +static struct irq_domain *uv_get_irq_domain(void)
->>>>> +{
->>>>> +	static struct irq_domain *uv_domain;
->>>>> +	static DEFINE_MUTEX(uv_lock);
->>>>> +
->>>>> +	mutex_lock(&uv_lock);
->>>>> +	if (uv_domain == NULL) {
->>>>> +		uv_domain = irq_domain_add_tree(NULL, &uv_domain_ops, NULL);
->>>>> +		if (uv_domain)
->>>>> +			uv_domain->parent = x86_vector_domain;
->>>>> +	}
->>>>> +	mutex_unlock(&uv_lock);
->>>>>  
->>>>> -	return IRQ_SET_MASK_OK_NOCOPY;
->>>>> +	return uv_domain;
->>>>>  }
->>>>>  
->>>>>  /*
->>>>> @@ -229,23 +181,20 @@ uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
->>>>>  int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
->>>>>  		 unsigned long mmr_offset, int limit)
->>>>>  {
->>>>> -	int ret, irq;
->>>>>  	struct irq_alloc_info info;
->>>>> +	struct irq_domain *domain = uv_get_irq_domain();
->>>>> +
->>>>> +	if (!domain)
->>>>> +		return -ENOMEM;
->>>>>  
->>>>>  	init_irq_alloc_info(&info, cpumask_of(cpu));
->>>>> -	irq = irq_domain_alloc_irqs(NULL, 1, uv_blade_to_memory_nid(mmr_blade),
->>>>> -				    &info);
->>>>> -	if (irq <= 0)
->>>>> -		return -EBUSY;
->>>>> -
->>>>> -	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
->>>>> -		limit);
->>>>> -	if (ret == irq)
->>>>> -		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
->>>>> -	else
->>>>> -		irq_domain_free_irqs(irq, 1);
->>>>> +	info.uv_limit = limit;
->>>>> +	info.uv_blade = mmr_blade;
->>>>> +	info.uv_offset = mmr_offset;
->>>>> +	info.uv_name = irq_name;
->>>>>  
->>>>> -	return ret;
->>>>> +	return irq_domain_alloc_irqs(domain, 1,
->>>>> +				     uv_blade_to_memory_nid(mmr_blade), &info);
->>>>>  }
->>>>>  EXPORT_SYMBOL_GPL(uv_setup_irq);
->>>>>  
->>>>> @@ -258,26 +207,6 @@ EXPORT_SYMBOL_GPL(uv_setup_irq);
->>>>>   */
->>>>>  void uv_teardown_irq(unsigned int irq)
->>>>>  {
->>>>> -	struct uv_irq_2_mmr_pnode *e;
->>>>> -	struct rb_node *n;
->>>>> -	unsigned long irqflags;
->>>>> -
->>>>> -	spin_lock_irqsave(&uv_irq_lock, irqflags);
->>>>> -	n = uv_irq_root.rb_node;
->>>>> -	while (n) {
->>>>> -		e = rb_entry(n, struct uv_irq_2_mmr_pnode, list);
->>>>> -		if (e->irq == irq) {
->>>>> -			arch_disable_uv_irq(e->pnode, e->offset);
->>>>> -			rb_erase(n, &uv_irq_root);
->>>>> -			kfree(e);
->>>>> -			break;
->>>>> -		}
->>>>> -		if (irq < e->irq)
->>>>> -			n = n->rb_left;
->>>>> -		else
->>>>> -			n = n->rb_right;
->>>>> -	}
->>>>> -	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
->>>>>  	irq_domain_free_irqs(irq, 1);
->>>>>  }
->>>>>  EXPORT_SYMBOL_GPL(uv_teardown_irq);
->>>>> -- 
->>>>> 1.7.10.4
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>> Please read the FAQ at  http://www.tux.org/lkml/
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Please read the FAQ at  http://www.tux.org/lkml/
->>>
-> 
+Some thoughts before the end of the year. I won't be able to follow up
+until around 5th of January though.
+
+On Fri, Oct 17, 2014 at 02:37:14PM +0100, Hanjun Guo wrote:
+> --- /dev/null
+> +++ b/Documentation/arm64/arm-acpi.txt
+> @@ -0,0 +1,323 @@
+> +ACPI on ARMv8 Servers
+> +---------------------
+> +ACPI can be used for ARMv8 general purpose servers designed to follow
+> +the ARM SBSA (Server Base System Architecture) specification, currently
+> +available to those with an ARM login at http://silver.arm.com.
+
+You should mention SBBR (Server Base Boot Requirements) here as well.
+The arm-acpi.txt is complementary to arm-acpi.txt and longer term we
+should aim to move parts of the Linux document into the more OS-agonstic
+SBBR.
+
+> +The ARMv8 kernel implements the reduced hardware model of ACPI version
+> +5.1 and its corresponding errata.
+
+I would say 5.1 or later to avoid updating this document every time we
+get a new ACPI release.
+
+> +If an ARMv8 system does not meet the requirements of the SBSA, or cannot
+> +be described using the mechanisms defined in the required ACPI specifications,
+> +then it is likely that Device Tree (DT) is more suitable than ACPI for the
+> +hardware.
+
+Based on some private discussions, I think we could drop some of the
+references to DT in this document. It should specify the requirements
+for ACPI support and, if not met, the alternative SoC support is
+automatically DT for Linux. That's just to make it easier to move parts
+of this doc into SBBR.
+
+> +Relationship with Device Tree
+> +-----------------------------
+
+This section is fine, Linux specific and it will stay in this document.
+
+> +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+> +exclusive with DT support at compile time.
+> +
+> +At boot time the kernel will only use one description method depending on
+> +parameters passed from the bootloader (including kernel bootargs).
+> +
+> +Regardless of whether DT or ACPI is used, the kernel must always be capable
+> +of booting with either scheme (in kernels with both schemes enabled at compile
+> +time).
+> +
+> +When booting using ACPI tables, the /chosen node in DT will still be parsed
+> +to extract the kernel command line and initrd path.  No other section of the
+> +DT will be used.
+
+I don't think this paragraph is needed. That's a kernel detail when how
+the EFI_STUB passes the information to the rest of the kernel. We
+mandate UEFI booting for ACPI support, so I wouldn't expect an
+ACPI-aware U-Boot.
+
+> +Booting using ACPI tables
+> +-------------------------
+> +The only defined method for passing ACPI tables to the kernel on ARMv8
+> +is via the UEFI system configuration table.
+> +
+> +Processing of ACPI tables may be disabled by passing acpi=off on the kernel
+> +command line; this is the default behavior.  If acpi=force is used, the kernel
+> +will ONLY use device configuration information contained in the ACPI tables.
+
+See my comments to Al around the defaults. I think if only ACPI tables
+are present, we shouldn't panic the kernel if acpi=force is missing but
+continue with ACPI. If both DT and ACPI tables are present, DT will be
+the default. You could say "this is the default behaviour if both ACPI
+and DT tables are present".
+
+> +Device Enumeration
+> +------------------
+> +Device descriptions in ACPI should use standard recognized ACPI interfaces.
+> +These can contain less information than is typically provided via a Device
+
+s/can/may/ ? Not sure, it just sounds better to me (not a native English
+speaker).
+
+> +Tree description for the same device.  This is also one of the reasons that
+> +ACPI can be useful -- the driver takes into account that it may have less
+> +detailed information about the device and uses sensible defaults instead.
+> +If done properly in the driver, the hardware can change and improve over
+> +time without the driver having to change at all.
+> +
+> +Clocks provide an excellent example.  In DT, clocks need to be specified
+> +and the drivers need to take them into account.  In ACPI, the assumption
+> +is that UEFI will leave the device in a reasonable default state, including
+> +any clock settings.  If for some reason the driver needs to change a clock
+> +value, this can be done in an ACPI method; all the driver needs to do is
+> +invoke the method and not concern itself with what the method needs to do
+> +to change the clock.  Changing the hardware can then take place over time
+> +by changing what the ACPI method does, and not the driver.
+> +
+> +ACPI drivers should only look at one specific ASL object -- the _DSD object
+> +-- for device driver parameters (known in DT as "bindings", or "Device
+> +Properties" in ACPI).  Not all DT bindings will be recognized. 
+
+This last sentence kind of implies that many of the DT bindings will be
+recognised. While it is useful to have some commonalities, I think this
+gives the wrong message that _DSD is a copy of DT. We should avoid this.
+
+> The UEFI
+> +Forum provides a mechanism for registering such bindings [URL TBD by ASWG]
+
+s/bindings/properties/ if we talk in the ACPI context.
+
+> +so that they may be used on any operating system supporting ACPI.  Device
+> +properties that have not been registered with the UEFI Forum should not be
+> +used.
+
+More about this further down.
+
+> +Drivers should look for device properties in the _DSD object ONLY; the _DSD
+> +object is described in the ACPI specification section 6.2.5, but more
+> +specifically, use the _DSD Device Properties UUID:
+> +
+> +   -- UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301
+> +
+> +   -- http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf)
+> +
+> +The kernel has an interface for looking up device properties in a manner
+> +independent of whether DT or ACPI is being used and that interface should
+> +be used;
+
+I haven't followed the _DSD kernel support but does it provide a common
+API to be shared with DT? I'm not entirely convinced it's a good idea.
+
+> it can eliminate some duplication of code paths in driver probing
+> +functions and discourage divergence between DT bindings and ACPI device
+> +properties.
+
+Given the current different mechanism of reviewing/approving bindings
+between DT and ACPI (kernel community vs UEFI forum), I don't see how we
+encourage convergence (unless we state that _DSD are Linux-only, Windows
+should use a different mechanism like .inf files).
+
+> +ACPI tables are described with a formal language called ASL, the ACPI
+> +Source Language (section 19 of the specification).  This means that there
+> +are always multiple ways to describe the same thing -- including device
+> +properties.  For example, device properties could use an ASL construct
+> +that looks like this: Name(KEY0, "value0").  An ACPI device driver would
+> +then retrieve the value of the property by evaluating the KEY0 object.
+> +However, using Name() this way has multiple problems: (1) ACPI limits
+> +names ("KEY0") to four characters unlike DT; (2) there is no industry
+> +wide registry that maintains a list of names, minimzing re-use; (3)
+> +there is also no registry for the definition of property values ("value0"),
+> +again making re-use difficult; and (4) how does one maintain backward
+> +compatibility as new hardware comes out?  The _DSD method was created
+> +to solve precisely these sorts of problems; Linux drivers should ALWAYS
+> +use the _DSD method for device properties and nothing else.
+> +
+> +The _DSM object (ACPI Section 9.14.1) could also be used for conveying
+> +device properties to a driver.  Linux drivers should only expect it to
+> +be used if _DSD cannot represent the data required, and there is no way
+> +to create a new UUID for the _DSD object.  Note that there is even less
+> +regulation of the use of _DSM than there is of _DSD.  Drivers that depend
+> +on the contents of _DSM objects will be more difficult to maintain over
+> +time because of this.
+> +
+> +The _DSD object is a very flexible mechanism in ACPI, as are the registered
+> +Device Properties.  This flexibility allows _DSD to cover more than just the
+> +generic server case and care should be taken in device drivers not to expect
+> +it to replicate highly specific embedded behaviour from DT.
+
+While this is all good, we need to be more specific on what "embedded
+behaviour" means. Maybe not for this document but the UEFI approval
+process for new properties doesn't give any hint on what is and is not
+sane (and I already disagree with some of the examples on uefi.org).
+
+> +Both DT bindings and ACPI device properties for device drivers have review
+> +processes.  Use them.  And, before creating new device properties, check to
+> +be sure that they have not been defined before and either registered in the
+> +Linux kernel documentation or the UEFI Forum.  If the device drivers supports
+> +ACPI and DT, please make sure the device properties are consistent in both
+> +places.
+
+In the interest of progress, I think we need to *temporarily* ban the
+use of _DSD on ARM platforms aimed at ACPI and state it clearly in this
+document. Once we are happy with the UEFI forum review process, we'll
+adjust the document accordingly.
+
+My problems with _DSD:
+
+a) no clear guidance on what a good property means, whether it covers
+   just device specific information or it may include Linux behaviour
+   (like "linux,default-trigger", I don't think it should)
+b) the Linux kernel community does not seem to be involved in the UEFI
+   forum _DSD review process. This means that we'll be faced with
+   patches against drivers to support UEFI-published _DSD properties.
+   I want to avoid such arguments, rejecting kernel code is too late
+   after _DSD properties have been published
+
+The alternative to _DSD would be to program the hardware to some sane
+state. For example, I'm sure a MAC address can be written by firmware to
+some register and the driver can read and store it locally (I'm not even
+sure why we need MAC address in ACPI tables, this is not really a
+property of the hardware but a configuration that could be done in
+firmware).
+
+> +Clocks
+> +------
+> +ACPI makes the assumption that clocks are initialized by the firmware --
+> +UEFI, in this case -- to some working value before control is handed over
+> +to the kernel.  This has implications for devices such as UARTs, or SoC
+> +driven LCD displays, for example.
+> +
+> +When the kernel boots, the clock is assumed to be set to reasonable
+> +working value.  If for some reason the frequency needs to change -- e.g.,
+> +throttling for power management -- the device driver should expect that
+> +process to be abstracted out into some ACPI method that can be invoked
+> +(please see the ACPI specification for further recommendations on standard
+> +methods to be expected).  If is not, there is no direct way for ACPI to
+> +control the clocks.
+
+I would emphasize that there is no way for _Linux_ to directly control the
+clocks on an ACPI-enabled platform.
+
+> +ASWG
+> +----
+> +The following areas are not yet fully defined for ARM in the 5.1 version
+> +of the ACPI specification and are expected to be worked through in the
+> +UEFI ACPI Specification Working Group (ASWG):
+> +
+> +   -- ACPI based CPU topology
+> +   -- ACPI based Power management
+> +   -- CPU idle control based on PSCI
+> +   -- CPU performance control (CPPC)
+> +   -- ACPI based SMMU
+> +   -- ITS support for GIC in MADT
+
+In addition to the above and _DSD requirements/banning, I would also add
+some clear statements around:
+
+_OSC: only global/published capabilities are allowed. For
+device-specific _OSC we need a process or maybe we can ban them entirely
+and rely on _DSD once we clarify the process.
+
+_OSI: firmware must not check for certain _OSI strings. Here I'm not
+sure what we would have to do for ARM Linux. Reporting "Windows" does
+not make any sense but not reporting anything can, as Matthew Garrett
+pointed out, can be interpreted by firmware as "Linux". In addition to
+any statements in this document, I suggest you patch
+drivers/acpi/acpica/utosi.c accordingly, maybe report "Linux" for ARM
+and print a kernel warning so that we notice earlier.
+
+ACPI_OS_NAME: this is globally defined as "Microsoft Windows NT". It
+doesn't make much sense in the ARM context. Could we change it to
+"Linux" when CONFIG_ARM64?
+
+Compatibility with older kernels: ACPI firmware must work, even though
+not fully optimal, with the earliest kernel version implementing the
+targeted ACPI spec. There may be a need for new drivers but otherwise
+adding things like CPU power management should not break older kernel
+versions. In addition, the ACPI firmware must also work with the latest
+kernel version.
+
+
+I strongly consider that we need to be very strict with the Linux ACPI
+firmware and hardware requirements to avoid the need for supporting
+non-standard implementations as much as possible. This is, however, a
+live document, so we can relax it as we see fit (e.g. _DSD process
+clarified).
+
+In the meantime, Merry Christmas ;). I'll follow up in January.
+
+-- 
+Catalin
