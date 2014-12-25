@@ -1,69 +1,86 @@
-From: Eugene Korenevsky <ekorenevsky@gmail.com>
-Subject: [PATCH] acpi: remove pointless checks for NULL pointer
-Date: Wed, 24 Dec 2014 23:16:48 +0300
-Message-ID: <20141224201648.GA15251@gnote>
+From: nick <xerofoify@gmail.com>
+Subject: Re: 3.19-rc1 errors when opening LID
+Date: Wed, 24 Dec 2014 23:28:27 -0500
+Message-ID: <549B926B.1050000@gmail.com>
+References: <201412241951.48652@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:62827 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483AbaLXUO7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Dec 2014 15:14:59 -0500
-Received: by mail-la0-f50.google.com with SMTP id pn19so7282415lab.23
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Dec 2014 12:14:57 -0800 (PST)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <201412241951.48652@pali>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-A trivial fix. No need to check `p` for NULL.
-`resource` pointer is valid therefore `p` is also valid.
-
-Signed-off-by: Eugene Korenevsky <ekorenevsky@gmail.com>
----
- drivers/acpi/pci_link.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index cfd7581..6379186 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -111,7 +111,7 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
- 	case ACPI_RESOURCE_TYPE_IRQ:
- 		{
- 			struct acpi_resource_irq *p = &resource->data.irq;
--			if (!p || !p->interrupt_count) {
-+			if (!p->interrupt_count) {
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 						  "Blank _PRS IRQ resource\n"));
- 				return AE_OK;
-@@ -137,7 +137,7 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
- 		{
- 			struct acpi_resource_extended_irq *p =
- 			    &resource->data.extended_irq;
--			if (!p || !p->interrupt_count) {
-+			if (!p->interrupt_count) {
- 				printk(KERN_WARNING PREFIX
- 					      "Blank _PRS EXT IRQ resource\n");
- 				return AE_OK;
-@@ -198,7 +198,7 @@ static acpi_status acpi_pci_link_check_current(struct acpi_resource *resource,
- 	case ACPI_RESOURCE_TYPE_IRQ:
- 		{
- 			struct acpi_resource_irq *p = &resource->data.irq;
--			if (!p || !p->interrupt_count) {
-+			if (!p->interrupt_count) {
- 				/*
- 				 * IRQ descriptors may have no IRQ# bits set,
- 				 * particularly those those w/ _STA disabled
-@@ -214,7 +214,7 @@ static acpi_status acpi_pci_link_check_current(struct acpi_resource *resource,
- 		{
- 			struct acpi_resource_extended_irq *p =
- 			    &resource->data.extended_irq;
--			if (!p || !p->interrupt_count) {
-+			if (!p->interrupt_count) {
- 				/*
- 				 * extended IRQ descriptors must
- 				 * return at least 1 IRQ
--- 
-2.0.4
-
+UGFsaSwKRG8geW91IGtub3duIGhvdyB0byBydW4gZ2l0IGJpc2VjdCBhcyB0aGlzIGlzIHByb2Jh
+Ymx5IHRoZSBiZXN0IHdheSB0byBjb250aW51ZS4gCk90aGVyd2lzZSwgSSBjYW4gdGVhY2ggeW91
+IGhvdyBpdCdzIG5vdCBoYXJkIGlmIHlvdXIgd2lsbGluZyB0byBsZWFybiA6KS4KQ2hlZXJzIE5p
+Y2sKCk9uIDIwMTQtMTItMjQgMDE6NTEgUE0sIFBhbGkgUm9ow6FyIHdyb3RlOgo+IEhlbGxvIQo+
+IAo+IFdpdGggbmV3IDMuMTktcmMxIGtlcm5lbCBldmVyeSB0aW1lIHdoZW4gSSBvcGVuIExJRCBv
+biBteSBsYXB0b3AsIGtlcm5lbCBwcmludHMgdGhlc2UgZXJyb3IgbGluZXMgdG8gZG1lc2c6Cj4g
+Cj4gWzI1NTY2LjM2ODEzM10gW2RybTpoc3dfdW5jbGFpbWVkX3JlZ19kZXRlY3QuaXNyYS42IFtp
+OTE1XV0gKkVSUk9SKiBVbmNsYWltZWQgcmVnaXN0ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhl
+IGk5MTUubW1pb19kZWJ1Zz0xIHRvIGRlYnVnIHRoaXMgcHJvYmxlbS4KPiBbMjU1NjYuMzY4MTM0
+XSBbZHJtOmludGVsX3VuY29yZV9jaGVja19lcnJvcnMgW2k5MTVdXSAqRVJST1IqIFVuY2xhaW1l
+ZCByZWdpc3RlciBiZWZvcmUgaW50ZXJydXB0Cj4gWzI1NTY2LjM2ODE5Ml0gW2RybTpoc3dfdW5j
+bGFpbWVkX3JlZ19kZXRlY3QuaXNyYS42IFtpOTE1XV0gKkVSUk9SKiBVbmNsYWltZWQgcmVnaXN0
+ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhlIGk5MTUubW1pb19kZWJ1Zz0xIHRvIGRlYnVnIHRo
+aXMgcHJvYmxlbS4KPiBbMjU1NjYuMzY4MjMyXSBbZHJtOmhzd191bmNsYWltZWRfcmVnX2RldGVj
+dC5pc3JhLjYgW2k5MTVdXSAqRVJST1IqIFVuY2xhaW1lZCByZWdpc3RlciBkZXRlY3RlZC4gUGxl
+YXNlIHVzZSB0aGUgaTkxNS5tbWlvX2RlYnVnPTEgdG8gZGVidWcgdGhpcyBwcm9ibGVtLjw0Plsy
+NTU2OC40NDYwMTFdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZs
+YWdzIDB4Ml0gCj4gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDcwMThdIHBjaV9idXMg
+MDAwMDowMjogQWxsb2NhdGluZyByZXNvdXJjZXMKPiBbMjU1NjguNDQ3MDU1XSBwY2lfYnVzIDAw
+MDA6MDM6IEFsbG9jYXRpbmcgcmVzb3VyY2VzCj4gWzI1NTY4LjQ0NzEzNV0gcGNpX2J1cyAwMDAw
+OjA0OiBBbGxvY2F0aW5nIHJlc291cmNlcwo+IFsyNTU2OC40NDcxNjhdIHBjaV9idXMgMDAwMDow
+NTogQWxsb2NhdGluZyByZXNvdXJjZXMKPiBbMjU1NjguNDQ3MTk1XSBwY2lfYnVzIDAwMDA6MDY6
+IEFsbG9jYXRpbmcgcmVzb3VyY2VzCj4gWzI1NTY4LjQ0NzIyOF0gcGNpX2J1cyAwMDAwOjBlOiBB
+bGxvY2F0aW5nIHJlc291cmNlcwo+IFsyNTU2OC40NDczMjNdIGk5MTUgMDAwMDowMDowMi4wOiBC
+QVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsy
+NTU2OC40NDc1NTddIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZs
+YWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDc3MzVdIGk5MTUgMDAwMDow
+MDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdu
+bWVudAo+IFsyNTU2OC40NDc4NDddIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAw
+MDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDgzOTldIGk5
+MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJv
+Z3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDg0MzhdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjog
+Wz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40
+NDg1NjZdIGFjcGkgTVNGVDExMTE6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2VyIHN0YXRl
+IEQzY29sZCBmb3IgcGFyZW50IGluICh1bmtub3duKQo+IFsyNTU2OC40NDg1NzJdIGFjcGkgSU5U
+MzNDMjowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMKPiBbMjU1
+NjguNDQ4NTc3XSBhY3BpIE1TRlQwMDAyOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBz
+dGF0ZSBEM2NvbGQgZm9yIHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NTgxXSBhY3Bp
+IEVMQU4xMDEwOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEM2NvbGQgZm9y
+IHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NTg3XSBhY3BpIElOVDMzQzM6MDA6IENh
+bm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzCj4gWzI1NTY4LjQ0ODU5MF0g
+YWNwaSBJTlQzM0MwOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBE
+Mwo+IFsyNTU2OC40NDg1OTRdIGFjcGkgSU5UMzNDMTowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8g
+bm9uLUQwIHN0YXRlIGZyb20gRDMKPiBbMjU1NjguNDQ4NTk4XSBhY3BpIElOVDMzQzQ6MDA6IENh
+bm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzCj4gWzI1NTY4LjQ0ODYwMl0g
+YWNwaSBJTlQzM0M1OjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBE
+Mwo+IFsyNTU2OC40NDg2MjNdIGFjcGkgZGV2aWNlOjQxOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBw
+b3dlciBzdGF0ZSBEM2NvbGQgZm9yIHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NjI3
+XSBhY3BpIElOVDMzQzY6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9t
+IEQzCj4gWzI1NTY4LjQ0ODg5MF0gcGNpX2J1cyAwMDAwOjAxOiBBbGxvY2F0aW5nIHJlc291cmNl
+cwo+IFsyNTU2OC40NDg5MDVdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAw
+MDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDkwNjRdIGk5MTUg
+MDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3Vz
+IGFsaWdubWVudAo+IFsyNTU2OC40NDk0NzJdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/
+PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IAo+IFdpdGggb2xk
+ZXIga2VybmVsICgzLjEzKSBJIGRvIG5vdCBzZWUgdGhlc2UgZXJyb3JzLCBzbyBpdCBpcyByZWdy
+ZXNzaW9uLiBDYW4geW91IGxvb2sgYXQgaXQ/IElmIGl0IGlzIG5lZWRlZCwgSSBjYW4gcHJvdmlk
+ZSBvdGhlciBsb2dzLCBBQ1BJL0RTVEQgZHVtcHMsIGV0Yy4KPiAKPiAKPiAKPiBfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IEludGVsLWdmeCBtYWlsaW5n
+IGxpc3QKPiBJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gaHR0cDovL2xpc3RzLmZy
+ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo+IApfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0
+CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9w
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
