@@ -1,13 +1,12 @@
-From: nick <xerofoify@gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: 3.19-rc1 errors when opening LID
-Date: Wed, 24 Dec 2014 23:28:27 -0500
-Message-ID: <549B926B.1050000@gmail.com>
-References: <201412241951.48652@pali>
+Date: Thu, 25 Dec 2014 09:48:38 +0100
+Message-ID: <201412250948.38808@pali>
+References: <201412241951.48652@pali> <549B926B.1050000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1408468456=="
 Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <201412241951.48652@pali>
+In-Reply-To: <549B926B.1050000@gmail.com>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
@@ -17,70 +16,134 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: intel-gfx-bounces@lists.freedesktop.org
 Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
+To: nick <xerofoify@gmail.com>
+Cc: David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel.vetter@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-UGFsaSwKRG8geW91IGtub3duIGhvdyB0byBydW4gZ2l0IGJpc2VjdCBhcyB0aGlzIGlzIHByb2Jh
-Ymx5IHRoZSBiZXN0IHdheSB0byBjb250aW51ZS4gCk90aGVyd2lzZSwgSSBjYW4gdGVhY2ggeW91
-IGhvdyBpdCdzIG5vdCBoYXJkIGlmIHlvdXIgd2lsbGluZyB0byBsZWFybiA6KS4KQ2hlZXJzIE5p
-Y2sKCk9uIDIwMTQtMTItMjQgMDE6NTEgUE0sIFBhbGkgUm9ow6FyIHdyb3RlOgo+IEhlbGxvIQo+
-IAo+IFdpdGggbmV3IDMuMTktcmMxIGtlcm5lbCBldmVyeSB0aW1lIHdoZW4gSSBvcGVuIExJRCBv
-biBteSBsYXB0b3AsIGtlcm5lbCBwcmludHMgdGhlc2UgZXJyb3IgbGluZXMgdG8gZG1lc2c6Cj4g
-Cj4gWzI1NTY2LjM2ODEzM10gW2RybTpoc3dfdW5jbGFpbWVkX3JlZ19kZXRlY3QuaXNyYS42IFtp
-OTE1XV0gKkVSUk9SKiBVbmNsYWltZWQgcmVnaXN0ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhl
-IGk5MTUubW1pb19kZWJ1Zz0xIHRvIGRlYnVnIHRoaXMgcHJvYmxlbS4KPiBbMjU1NjYuMzY4MTM0
-XSBbZHJtOmludGVsX3VuY29yZV9jaGVja19lcnJvcnMgW2k5MTVdXSAqRVJST1IqIFVuY2xhaW1l
-ZCByZWdpc3RlciBiZWZvcmUgaW50ZXJydXB0Cj4gWzI1NTY2LjM2ODE5Ml0gW2RybTpoc3dfdW5j
-bGFpbWVkX3JlZ19kZXRlY3QuaXNyYS42IFtpOTE1XV0gKkVSUk9SKiBVbmNsYWltZWQgcmVnaXN0
-ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhlIGk5MTUubW1pb19kZWJ1Zz0xIHRvIGRlYnVnIHRo
-aXMgcHJvYmxlbS4KPiBbMjU1NjYuMzY4MjMyXSBbZHJtOmhzd191bmNsYWltZWRfcmVnX2RldGVj
-dC5pc3JhLjYgW2k5MTVdXSAqRVJST1IqIFVuY2xhaW1lZCByZWdpc3RlciBkZXRlY3RlZC4gUGxl
-YXNlIHVzZSB0aGUgaTkxNS5tbWlvX2RlYnVnPTEgdG8gZGVidWcgdGhpcyBwcm9ibGVtLjw0Plsy
-NTU2OC40NDYwMTFdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZs
-YWdzIDB4Ml0gCj4gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDcwMThdIHBjaV9idXMg
-MDAwMDowMjogQWxsb2NhdGluZyByZXNvdXJjZXMKPiBbMjU1NjguNDQ3MDU1XSBwY2lfYnVzIDAw
-MDA6MDM6IEFsbG9jYXRpbmcgcmVzb3VyY2VzCj4gWzI1NTY4LjQ0NzEzNV0gcGNpX2J1cyAwMDAw
-OjA0OiBBbGxvY2F0aW5nIHJlc291cmNlcwo+IFsyNTU2OC40NDcxNjhdIHBjaV9idXMgMDAwMDow
-NTogQWxsb2NhdGluZyByZXNvdXJjZXMKPiBbMjU1NjguNDQ3MTk1XSBwY2lfYnVzIDAwMDA6MDY6
-IEFsbG9jYXRpbmcgcmVzb3VyY2VzCj4gWzI1NTY4LjQ0NzIyOF0gcGNpX2J1cyAwMDAwOjBlOiBB
-bGxvY2F0aW5nIHJlc291cmNlcwo+IFsyNTU2OC40NDczMjNdIGk5MTUgMDAwMDowMDowMi4wOiBC
-QVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsy
-NTU2OC40NDc1NTddIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZs
-YWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDc3MzVdIGk5MTUgMDAwMDow
-MDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdu
-bWVudAo+IFsyNTU2OC40NDc4NDddIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAw
-MDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDgzOTldIGk5
-MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJv
-Z3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDg0MzhdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjog
-Wz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40
-NDg1NjZdIGFjcGkgTVNGVDExMTE6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2VyIHN0YXRl
-IEQzY29sZCBmb3IgcGFyZW50IGluICh1bmtub3duKQo+IFsyNTU2OC40NDg1NzJdIGFjcGkgSU5U
-MzNDMjowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMKPiBbMjU1
-NjguNDQ4NTc3XSBhY3BpIE1TRlQwMDAyOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBz
-dGF0ZSBEM2NvbGQgZm9yIHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NTgxXSBhY3Bp
-IEVMQU4xMDEwOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEM2NvbGQgZm9y
-IHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NTg3XSBhY3BpIElOVDMzQzM6MDA6IENh
-bm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzCj4gWzI1NTY4LjQ0ODU5MF0g
-YWNwaSBJTlQzM0MwOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBE
-Mwo+IFsyNTU2OC40NDg1OTRdIGFjcGkgSU5UMzNDMTowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8g
-bm9uLUQwIHN0YXRlIGZyb20gRDMKPiBbMjU1NjguNDQ4NTk4XSBhY3BpIElOVDMzQzQ6MDA6IENh
-bm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzCj4gWzI1NTY4LjQ0ODYwMl0g
-YWNwaSBJTlQzM0M1OjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBE
-Mwo+IFsyNTU2OC40NDg2MjNdIGFjcGkgZGV2aWNlOjQxOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBw
-b3dlciBzdGF0ZSBEM2NvbGQgZm9yIHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NjI3
-XSBhY3BpIElOVDMzQzY6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9t
-IEQzCj4gWzI1NTY4LjQ0ODg5MF0gcGNpX2J1cyAwMDAwOjAxOiBBbGxvY2F0aW5nIHJlc291cmNl
-cwo+IFsyNTU2OC40NDg5MDVdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAw
-MDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IFsyNTU2OC40NDkwNjRdIGk5MTUg
-MDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3Vz
-IGFsaWdubWVudAo+IFsyNTU2OC40NDk0NzJdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/
-PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudAo+IAo+IFdpdGggb2xk
-ZXIga2VybmVsICgzLjEzKSBJIGRvIG5vdCBzZWUgdGhlc2UgZXJyb3JzLCBzbyBpdCBpcyByZWdy
-ZXNzaW9uLiBDYW4geW91IGxvb2sgYXQgaXQ/IElmIGl0IGlzIG5lZWRlZCwgSSBjYW4gcHJvdmlk
-ZSBvdGhlciBsb2dzLCBBQ1BJL0RTVEQgZHVtcHMsIGV0Yy4KPiAKPiAKPiAKPiBfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IEludGVsLWdmeCBtYWlsaW5n
-IGxpc3QKPiBJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gaHR0cDovL2xpc3RzLmZy
-ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo+IApfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0
-CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9w
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+--===============1408468456==
+Content-Type: multipart/signed;
+  boundary="nextPart2668000.RjPbr6p80n";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart2668000.RjPbr6p80n
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+I know how to use git... first I wanted to report errors because=20
+maybe it could be known problem or somebody else can come with=20
+quick patch even without bisetcing (like for other problems which=20
+I reported).
+
+Anyway those acpi devices which are mentioned in log do not exist=20
+in 3.13 kernel (I do not see them in /sys/devices)
+
+Any idea why 3.19 kernel create new acpi devices which 3.13=20
+kernel did not?
+
+On Thursday 25 December 2014 05:28:27 nick wrote:
+> Pali,
+> Do you known how to run git bisect as this is probably the
+> best way to continue. Otherwise, I can teach you how it's not
+> hard if your willing to learn :). Cheers Nick
+>=20
+> On 2014-12-24 01:51 PM, Pali Roh=C3=A1r wrote:
+> > Hello!
+> >=20
+> > With new 3.19-rc1 kernel every time when I open LID on my
+> > laptop, kernel prints these error lines to dmesg:
+> >=20
+> > [25566.368133] [drm:hsw_unclaimed_reg_detect.isra.6 [i915]]
+> > *ERROR* Unclaimed register detected. Please use the
+> > i915.mmio_debug=3D1 to debug this problem. [25566.368134]
+> > [drm:intel_uncore_check_errors [i915]] *ERROR* Unclaimed
+> > register before interrupt [25566.368192]
+> > [drm:hsw_unclaimed_reg_detect.isra.6 [i915]] *ERROR*
+> > Unclaimed register detected. Please use the
+> > i915.mmio_debug=3D1 to debug this problem. [25566.368232]
+> > [drm:hsw_unclaimed_reg_detect.isra.6 [i915]] *ERROR*
+> > Unclaimed register detected. Please use the
+> > i915.mmio_debug=3D1 to debug this problem.<4>[25568.446011]
+> > i915 0000:00:02.0: BAR 6: [??? 0x00000000 flags 0x2] has
+> > bogus alignment
+> > [25568.447018] pci_bus 0000:02: Allocating resources
+> > [25568.447055] pci_bus 0000:03: Allocating resources
+> > [25568.447135] pci_bus 0000:04: Allocating resources
+> > [25568.447168] pci_bus 0000:05: Allocating resources
+> > [25568.447195] pci_bus 0000:06: Allocating resources
+> > [25568.447228] pci_bus 0000:0e: Allocating resources
+> > [25568.447323] i915 0000:00:02.0: BAR 6: [??? 0x00000000
+> > flags 0x2] has bogus alignment [25568.447557] i915
+> > 0000:00:02.0: BAR 6: [??? 0x00000000 flags 0x2] has bogus
+> > alignment [25568.447735] i915 0000:00:02.0: BAR 6: [???
+> > 0x00000000 flags 0x2] has bogus alignment [25568.447847]
+> > i915 0000:00:02.0: BAR 6: [??? 0x00000000 flags 0x2] has
+> > bogus alignment [25568.448399] i915 0000:00:02.0: BAR 6:
+> > [??? 0x00000000 flags 0x2] has bogus alignment
+> > [25568.448438] i915 0000:00:02.0: BAR 6: [??? 0x00000000
+> > flags 0x2] has bogus alignment [25568.448566] acpi
+> > MSFT1111:00: Cannot transition to power state D3cold for
+> > parent in (unknown) [25568.448572] acpi INT33C2:00: Cannot
+> > transition to non-D0 state from D3 [25568.448577] acpi
+> > MSFT0002:00: Cannot transition to power state D3cold for
+> > parent in (unknown) [25568.448581] acpi ELAN1010:00: Cannot
+> > transition to power state D3cold for parent in (unknown)
+> > [25568.448587] acpi INT33C3:00: Cannot transition to non-D0
+> > state from D3 [25568.448590] acpi INT33C0:00: Cannot
+> > transition to non-D0 state from D3 [25568.448594] acpi
+> > INT33C1:00: Cannot transition to non-D0 state from D3
+> > [25568.448598] acpi INT33C4:00: Cannot transition to non-D0
+> > state from D3 [25568.448602] acpi INT33C5:00: Cannot
+> > transition to non-D0 state from D3 [25568.448623] acpi
+> > device:41: Cannot transition to power state D3cold for
+> > parent in (unknown) [25568.448627] acpi INT33C6:00: Cannot
+> > transition to non-D0 state from D3 [25568.448890] pci_bus
+> > 0000:01: Allocating resources [25568.448905] i915
+> > 0000:00:02.0: BAR 6: [??? 0x00000000 flags 0x2] has bogus
+> > alignment [25568.449064] i915 0000:00:02.0: BAR 6: [???
+> > 0x00000000 flags 0x2] has bogus alignment [25568.449472]
+> > i915 0000:00:02.0: BAR 6: [??? 0x00000000 flags 0x2] has
+> > bogus alignment
+> >=20
+> > With older kernel (3.13) I do not see these errors, so it is
+> > regression. Can you look at it? If it is needed, I can
+> > provide other logs, ACPI/DSTD dumps, etc.
+> >=20
+> >=20
+> >=20
+> > _______________________________________________
+> > Intel-gfx mailing list
+> > Intel-gfx@lists.freedesktop.org
+> > http://lists.freedesktop.org/mailman/listinfo/intel-gfx
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2668000.RjPbr6p80n
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlSbz2YACgkQi/DJPQPkQ1LTBACffymKs/mb3MVgVqL7fu6Sl1dR
+apQAniQ+/nK1we981m/9b4jwjFfBWo7Q
+=uIZ1
+-----END PGP SIGNATURE-----
+
+--nextPart2668000.RjPbr6p80n--
+
+--===============1408468456==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4
+IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+
+--===============1408468456==--
