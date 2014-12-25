@@ -1,105 +1,54 @@
-From: nick <xerofoify@gmail.com>
-Subject: Re: 3.19-rc1 errors when opening LID
-Date: Thu, 25 Dec 2014 11:59:36 -0500
-Message-ID: <549C4278.5080707@gmail.com>
-References: <201412241951.48652@pali> <549B926B.1050000@gmail.com>
- <201412250948.38808@pali>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 2/2] ata: ahci_platform: Add ACPI _CLS matching
+Date: Thu, 25 Dec 2014 15:32:02 -0500
+Message-ID: <20141225203202.GF22951@htj.dyndns.org>
+References: <1419019988-4398-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1419019988-4398-3-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <201412250948.38808@pali>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel.vetter@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1419019988-4398-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, arnd@arndb.de, mjg59@srcf.ucam.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-UGFsaSwKVGhpcyB3YXMgcHJvYmFibHkgdG8gZWl0aGVyIGFkZCBiZXR0ZXIgcG93ZXIgbWFuYWdl
-bWVudCBvciBlbmFibGUgc29tZSAKbmV3IGZlYXR1cmVzIHJlbGF0ZWQgdG8gYWNwaS4gQ2FuIHlv
-dSBzZW5kIG1lIHRoZSBmaWxlcyB0aGV5IGNyZWF0ZWQgaW4Ka2VybmVsIDMuMTkgcjEgYXMgSSBj
-YW4gcHJvYmFibHkgdHJhY2UgaXQgYmFjayB0byB0aGUgYmFkIGNvbW1pdC4KUmVnYXJkcyBOaWNr
-CgoKT24gMjAxNC0xMi0yNSAwMzo0OCBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gSSBrbm93IGhv
-dyB0byB1c2UgZ2l0Li4uIGZpcnN0IEkgd2FudGVkIHRvIHJlcG9ydCBlcnJvcnMgYmVjYXVzZSAK
-PiBtYXliZSBpdCBjb3VsZCBiZSBrbm93biBwcm9ibGVtIG9yIHNvbWVib2R5IGVsc2UgY2FuIGNv
-bWUgd2l0aCAKPiBxdWljayBwYXRjaCBldmVuIHdpdGhvdXQgYmlzZXRjaW5nIChsaWtlIGZvciBv
-dGhlciBwcm9ibGVtcyB3aGljaCAKPiBJIHJlcG9ydGVkKS4KPiAKPiBBbnl3YXkgdGhvc2UgYWNw
-aSBkZXZpY2VzIHdoaWNoIGFyZSBtZW50aW9uZWQgaW4gbG9nIGRvIG5vdCBleGlzdCAKPiBpbiAz
-LjEzIGtlcm5lbCAoSSBkbyBub3Qgc2VlIHRoZW0gaW4gL3N5cy9kZXZpY2VzKQo+IAo+IEFueSBp
-ZGVhIHdoeSAzLjE5IGtlcm5lbCBjcmVhdGUgbmV3IGFjcGkgZGV2aWNlcyB3aGljaCAzLjEzIAo+
-IGtlcm5lbCBkaWQgbm90Pwo+IAo+IE9uIFRodXJzZGF5IDI1IERlY2VtYmVyIDIwMTQgMDU6Mjg6
-MjcgbmljayB3cm90ZToKPj4gUGFsaSwKPj4gRG8geW91IGtub3duIGhvdyB0byBydW4gZ2l0IGJp
-c2VjdCBhcyB0aGlzIGlzIHByb2JhYmx5IHRoZQo+PiBiZXN0IHdheSB0byBjb250aW51ZS4gT3Ro
-ZXJ3aXNlLCBJIGNhbiB0ZWFjaCB5b3UgaG93IGl0J3Mgbm90Cj4+IGhhcmQgaWYgeW91ciB3aWxs
-aW5nIHRvIGxlYXJuIDopLiBDaGVlcnMgTmljawo+Pgo+PiBPbiAyMDE0LTEyLTI0IDAxOjUxIFBN
-LCBQYWxpIFJvaMOhciB3cm90ZToKPj4+IEhlbGxvIQo+Pj4KPj4+IFdpdGggbmV3IDMuMTktcmMx
-IGtlcm5lbCBldmVyeSB0aW1lIHdoZW4gSSBvcGVuIExJRCBvbiBteQo+Pj4gbGFwdG9wLCBrZXJu
-ZWwgcHJpbnRzIHRoZXNlIGVycm9yIGxpbmVzIHRvIGRtZXNnOgo+Pj4KPj4+IFsyNTU2Ni4zNjgx
-MzNdIFtkcm06aHN3X3VuY2xhaW1lZF9yZWdfZGV0ZWN0LmlzcmEuNiBbaTkxNV1dCj4+PiAqRVJS
-T1IqIFVuY2xhaW1lZCByZWdpc3RlciBkZXRlY3RlZC4gUGxlYXNlIHVzZSB0aGUKPj4+IGk5MTUu
-bW1pb19kZWJ1Zz0xIHRvIGRlYnVnIHRoaXMgcHJvYmxlbS4gWzI1NTY2LjM2ODEzNF0KPj4+IFtk
-cm06aW50ZWxfdW5jb3JlX2NoZWNrX2Vycm9ycyBbaTkxNV1dICpFUlJPUiogVW5jbGFpbWVkCj4+
-PiByZWdpc3RlciBiZWZvcmUgaW50ZXJydXB0IFsyNTU2Ni4zNjgxOTJdCj4+PiBbZHJtOmhzd191
-bmNsYWltZWRfcmVnX2RldGVjdC5pc3JhLjYgW2k5MTVdXSAqRVJST1IqCj4+PiBVbmNsYWltZWQg
-cmVnaXN0ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhlCj4+PiBpOTE1Lm1taW9fZGVidWc9MSB0
-byBkZWJ1ZyB0aGlzIHByb2JsZW0uIFsyNTU2Ni4zNjgyMzJdCj4+PiBbZHJtOmhzd191bmNsYWlt
-ZWRfcmVnX2RldGVjdC5pc3JhLjYgW2k5MTVdXSAqRVJST1IqCj4+PiBVbmNsYWltZWQgcmVnaXN0
-ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhlCj4+PiBpOTE1Lm1taW9fZGVidWc9MSB0byBkZWJ1
-ZyB0aGlzIHByb2JsZW0uPDQ+WzI1NTY4LjQ0NjAxMV0KPj4+IGk5MTUgMDAwMDowMDowMi4wOiBC
-QVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzCj4+PiBib2d1cyBhbGlnbm1lbnQK
-Pj4+IFsyNTU2OC40NDcwMThdIHBjaV9idXMgMDAwMDowMjogQWxsb2NhdGluZyByZXNvdXJjZXMK
-Pj4+IFsyNTU2OC40NDcwNTVdIHBjaV9idXMgMDAwMDowMzogQWxsb2NhdGluZyByZXNvdXJjZXMK
-Pj4+IFsyNTU2OC40NDcxMzVdIHBjaV9idXMgMDAwMDowNDogQWxsb2NhdGluZyByZXNvdXJjZXMK
-Pj4+IFsyNTU2OC40NDcxNjhdIHBjaV9idXMgMDAwMDowNTogQWxsb2NhdGluZyByZXNvdXJjZXMK
-Pj4+IFsyNTU2OC40NDcxOTVdIHBjaV9idXMgMDAwMDowNjogQWxsb2NhdGluZyByZXNvdXJjZXMK
-Pj4+IFsyNTU2OC40NDcyMjhdIHBjaV9idXMgMDAwMDowZTogQWxsb2NhdGluZyByZXNvdXJjZXMK
-Pj4+IFsyNTU2OC40NDczMjNdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAw
-MDAwCj4+PiBmbGFncyAweDJdIGhhcyBib2d1cyBhbGlnbm1lbnQgWzI1NTY4LjQ0NzU1N10gaTkx
-NQo+Pj4gMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFz
-IGJvZ3VzCj4+PiBhbGlnbm1lbnQgWzI1NTY4LjQ0NzczNV0gaTkxNSAwMDAwOjAwOjAyLjA6IEJB
-UiA2OiBbPz8/Cj4+PiAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudCBb
-MjU1NjguNDQ3ODQ3XQo+Pj4gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2OiBbPz8/IDB4MDAwMDAw
-MDAgZmxhZ3MgMHgyXSBoYXMKPj4+IGJvZ3VzIGFsaWdubWVudCBbMjU1NjguNDQ4Mzk5XSBpOTE1
-IDAwMDA6MDA6MDIuMDogQkFSIDY6Cj4+PiBbPz8/IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMg
-Ym9ndXMgYWxpZ25tZW50Cj4+PiBbMjU1NjguNDQ4NDM4XSBpOTE1IDAwMDA6MDA6MDIuMDogQkFS
-IDY6IFs/Pz8gMHgwMDAwMDAwMAo+Pj4gZmxhZ3MgMHgyXSBoYXMgYm9ndXMgYWxpZ25tZW50IFsy
-NTU2OC40NDg1NjZdIGFjcGkKPj4+IE1TRlQxMTExOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBw
-b3dlciBzdGF0ZSBEM2NvbGQgZm9yCj4+PiBwYXJlbnQgaW4gKHVua25vd24pIFsyNTU2OC40NDg1
-NzJdIGFjcGkgSU5UMzNDMjowMDogQ2Fubm90Cj4+PiB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0
-ZSBmcm9tIEQzIFsyNTU2OC40NDg1NzddIGFjcGkKPj4+IE1TRlQwMDAyOjAwOiBDYW5ub3QgdHJh
-bnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEM2NvbGQgZm9yCj4+PiBwYXJlbnQgaW4gKHVua25vd24p
-IFsyNTU2OC40NDg1ODFdIGFjcGkgRUxBTjEwMTA6MDA6IENhbm5vdAo+Pj4gdHJhbnNpdGlvbiB0
-byBwb3dlciBzdGF0ZSBEM2NvbGQgZm9yIHBhcmVudCBpbiAodW5rbm93bikKPj4+IFsyNTU2OC40
-NDg1ODddIGFjcGkgSU5UMzNDMzowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwCj4+PiBz
-dGF0ZSBmcm9tIEQzIFsyNTU2OC40NDg1OTBdIGFjcGkgSU5UMzNDMDowMDogQ2Fubm90Cj4+PiB0
-cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzIFsyNTU2OC40NDg1OTRdIGFjcGkKPj4+
-IElOVDMzQzE6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzCj4+
-PiBbMjU1NjguNDQ4NTk4XSBhY3BpIElOVDMzQzQ6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIG5v
-bi1EMAo+Pj4gc3RhdGUgZnJvbSBEMyBbMjU1NjguNDQ4NjAyXSBhY3BpIElOVDMzQzU6MDA6IENh
-bm5vdAo+Pj4gdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBEMyBbMjU1NjguNDQ4NjIz
-XSBhY3BpCj4+PiBkZXZpY2U6NDE6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2VyIHN0YXRlIEQz
-Y29sZCBmb3IKPj4+IHBhcmVudCBpbiAodW5rbm93bikgWzI1NTY4LjQ0ODYyN10gYWNwaSBJTlQz
-M0M2OjAwOiBDYW5ub3QKPj4+IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMgWzI1
-NTY4LjQ0ODg5MF0gcGNpX2J1cwo+Pj4gMDAwMDowMTogQWxsb2NhdGluZyByZXNvdXJjZXMgWzI1
-NTY4LjQ0ODkwNV0gaTkxNQo+Pj4gMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAw
-IGZsYWdzIDB4Ml0gaGFzIGJvZ3VzCj4+PiBhbGlnbm1lbnQgWzI1NTY4LjQ0OTA2NF0gaTkxNSAw
-MDAwOjAwOjAyLjA6IEJBUiA2OiBbPz8/Cj4+PiAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJv
-Z3VzIGFsaWdubWVudCBbMjU1NjguNDQ5NDcyXQo+Pj4gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2
-OiBbPz8/IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMKPj4+IGJvZ3VzIGFsaWdubWVudAo+Pj4K
-Pj4+IFdpdGggb2xkZXIga2VybmVsICgzLjEzKSBJIGRvIG5vdCBzZWUgdGhlc2UgZXJyb3JzLCBz
-byBpdCBpcwo+Pj4gcmVncmVzc2lvbi4gQ2FuIHlvdSBsb29rIGF0IGl0PyBJZiBpdCBpcyBuZWVk
-ZWQsIEkgY2FuCj4+PiBwcm92aWRlIG90aGVyIGxvZ3MsIEFDUEkvRFNURCBkdW1wcywgZXRjLgo+
-Pj4KPj4+Cj4+Pgo+Pj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KPj4+IEludGVsLWdmeCBtYWlsaW5nIGxpc3QKPj4+IEludGVsLWdmeEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKPj4+IGh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9pbnRlbC1nZngKPiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRl
-bC1nZngK
+On Fri, Dec 19, 2014 at 02:13:08PM -0600, Suravee Suthikulpanit wrote:
+> This patch adds ACPI supports for AHCI platform driver, which uses _CLS
+> method to match the device.
+> 
+> The following is an example of ASL structure in DSDT for a SATA controller,
+> which contains _CLS package to be matched by the ahci_platform driver:
+> 
+>   Device (AHC0) // AHCI Controller
+>   {
+>     Name(_HID, "AMDI0600")
+>     Name (_CCA, 1)
+>     Name (_CLS, Package (3)
+>     {
+>       0x01, // Base Class: Mass Storage
+>       0x06, // Sub-Class: serial ATA
+>       0x01, // Interface: AHCI
+>     })
+>     Name (_CRS, ResourceTemplate ()
+>     {
+>       Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
+>       Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
+>     })
+>   }
+> 
+> Also, since ATA driver should not require PCI support for ATA_ACPI,
+> this patch removes dependency in the driver/ata/Kconfig.
+> 
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+
+Acked-by: Tejun Heo <tj@kernel.org>
+
+Please feel free to route this as you see fit.  Let me know if this
+should go through libata.
+
+Thanks.
+
+-- 
+tejun
