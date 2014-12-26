@@ -1,54 +1,53 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 2/2] ata: ahci_platform: Add ACPI _CLS matching
-Date: Thu, 25 Dec 2014 15:32:02 -0500
-Message-ID: <20141225203202.GF22951@htj.dyndns.org>
-References: <1419019988-4398-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1419019988-4398-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: lenovo ultrabay docking station: if power button pressed 1x it
+ creates 2x the same ACPI event
+Date: Thu, 25 Dec 2014 22:45:58 -0200
+Message-ID: <20141226004558.GH18822@khazad-dum.debian.net>
+References: <5497ED42.2050003@gmx.de>
+ <1712969.2BqpevJf26@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:55462 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750708AbaLZAqM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Dec 2014 19:46:12 -0500
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+	by mailout.nyi.internal (Postfix) with ESMTP id 76275207D4
+	for <linux-acpi@vger.kernel.org>; Thu, 25 Dec 2014 19:46:11 -0500 (EST)
 Content-Disposition: inline
-In-Reply-To: <1419019988-4398-3-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, arnd@arndb.de, mjg59@srcf.ucam.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+In-Reply-To: <1712969.2BqpevJf26@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Toralf =?iso-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>, linux-acpi@vger.kernel.org
 
-On Fri, Dec 19, 2014 at 02:13:08PM -0600, Suravee Suthikulpanit wrote:
-> This patch adds ACPI supports for AHCI platform driver, which uses _CLS
-> method to match the device.
-> 
-> The following is an example of ASL structure in DSDT for a SATA controller,
-> which contains _CLS package to be matched by the ahci_platform driver:
-> 
->   Device (AHC0) // AHCI Controller
->   {
->     Name(_HID, "AMDI0600")
->     Name (_CCA, 1)
->     Name (_CLS, Package (3)
->     {
->       0x01, // Base Class: Mass Storage
->       0x06, // Sub-Class: serial ATA
->       0x01, // Interface: AHCI
->     })
->     Name (_CRS, ResourceTemplate ()
->     {
->       Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
->       Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
->     })
->   }
-> 
-> Also, since ATA driver should not require PCI support for ATA_ACPI,
-> this patch removes dependency in the driver/ata/Kconfig.
-> 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+On Mon, 22 Dec 2014, Rafael J. Wysocki wrote:
+> On Monday, December 22, 2014 11:06:58 AM Toralf F=F6rster wrote:
+> > This happens at a Lenovo T440s (took me some time to realize why my=
+ suspend/resume script runs twice).
+> >=20
+> > Is this a known issue ?
+>=20
+> Well, not in general.
+>=20
+> What kernel is this?
+>=20
+> Anyway, please file a bug entry at bugzilla.kernel.org for this sight=
+ing
+> so that we don't lose it from our radar.
 
-Acked-by: Tejun Heo <tj@kernel.org>
+And add me to its CC.  Thinkpad-acpi might be involved.
 
-Please feel free to route this as you see fit.  Let me know if this
-should go through libata.
-
-Thanks.
-
--- 
-tejun
+--=20
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
