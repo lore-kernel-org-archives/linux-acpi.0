@@ -1,13 +1,12 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: 3.19-rc1 errors when opening LID
-Date: Fri, 26 Dec 2014 16:12:49 +0100
-Message-ID: <3406993.nnu7vUsHIn@vostro.rjw.lan>
-References: <201412241951.48652@pali>
+Date: Fri, 26 Dec 2014 16:52:53 +0100
+Message-ID: <201412261652.54112@pali>
+References: <201412241951.48652@pali> <3406993.nnu7vUsHIn@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0083944671=="
 Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <201412241951.48652@pali>
+In-Reply-To: <3406993.nnu7vUsHIn@vostro.rjw.lan>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
@@ -17,81 +16,126 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: intel-gfx-bounces@lists.freedesktop.org
 Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gV2VkbmVzZGF5LCBEZWNlbWJlciAyNCwgMjAxNCAwNzo1MTo0OCBQTSBQYWxpIFJvaMOhciB3
-cm90ZToKPiAKPiAtLW5leHRQYXJ0NTk0Mzg5My5wS3lNQm01RW1wCj4gQ29udGVudC1UeXBlOiBU
-ZXh0L1BsYWluOwo+ICAgY2hhcnNldD0idXRmLTgiCj4gQ29udGVudC1UcmFuc2Zlci1FbmNvZGlu
-ZzogcXVvdGVkLXByaW50YWJsZQo+IAo+IEhlbGxvIQo+IAo+IFdpdGggbmV3IDMuMTktcmMxIGtl
-cm5lbCBldmVyeSB0aW1lIHdoZW4gSSBvcGVuIExJRCBvbiBteSBsYXB0b3AsIGtlcm5lbCBwcj0K
-PiBpbnRzIHRoZXNlIGVycm9yIGxpbmVzIHRvIGRtZXNnOgoKRG9lcyB5b3VyIHN5c3RlIHN1c3Bl
-bmQgd2hlbiB0aGUgbGlkIGlzIGNsb3NlZCBhbmQgcmVzdW1lIHdoZW4gaXQgaXMgb3Blbj8KCj4g
-WzI1NTY2LjM2ODEzM10gW2RybTpoc3dfdW5jbGFpbWVkX3JlZ19kZXRlY3QuaXNyYS42IFtpOTE1
-XV0gKkVSUk9SKiBVbmNsYWltPQo+IGVkIHJlZ2lzdGVyIGRldGVjdGVkLiBQbGVhc2UgdXNlIHRo
-ZSBpOTE1Lm1taW9fZGVidWc9M0QxIHRvIGRlYnVnIHRoaXMgcHJvYj0KPiBsZW0uCj4gWzI1NTY2
-LjM2ODEzNF0gW2RybTppbnRlbF91bmNvcmVfY2hlY2tfZXJyb3JzIFtpOTE1XV0gKkVSUk9SKiBV
-bmNsYWltZWQgcmVnPQo+IGlzdGVyIGJlZm9yZSBpbnRlcnJ1cHQKPiBbMjU1NjYuMzY4MTkyXSBb
-ZHJtOmhzd191bmNsYWltZWRfcmVnX2RldGVjdC5pc3JhLjYgW2k5MTVdXSAqRVJST1IqIFVuY2xh
-aW09Cj4gZWQgcmVnaXN0ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhlIGk5MTUubW1pb19kZWJ1
-Zz0zRDEgdG8gZGVidWcgdGhpcyBwcm9iPQo+IGxlbS4KPiBbMjU1NjYuMzY4MjMyXSBbZHJtOmhz
-d191bmNsYWltZWRfcmVnX2RldGVjdC5pc3JhLjYgW2k5MTVdXSAqRVJST1IqIFVuY2xhaW09Cj4g
-ZWQgcmVnaXN0ZXIgZGV0ZWN0ZWQuIFBsZWFzZSB1c2UgdGhlIGk5MTUubW1pb19kZWJ1Zz0zRDEg
-dG8gZGVidWcgdGhpcyBwcm9iPQo+IGxlbS48ND5bMjU1NjguNDQ2MDExXSBpOTE1IDAwMDA6MDA6
-MDIuMDogQkFSIDY6IFs/Pz8gMHgwMDAwMDAwMCBmbGFncyAweDJdPQo+ID0yMAo+IGhhcyBib2d1
-cyBhbGlnbm1lbnQKClRoZSBhYm92ZSBtZXNzYWdlcyBhcmUgZnJvbSBpOTE1IGFuZCBkb24ndCBz
-ZWVtIHRvIGJlIHJlbGF0ZWQgdG8gQUNQSS4KCj4gWzI1NTY4LjQ0NzAxOF0gcGNpX2J1cyAwMDAw
-OjAyOiBBbGxvY2F0aW5nIHJlc291cmNlcwo+IFsyNTU2OC40NDcwNTVdIHBjaV9idXMgMDAwMDow
-MzogQWxsb2NhdGluZyByZXNvdXJjZXMKPiBbMjU1NjguNDQ3MTM1XSBwY2lfYnVzIDAwMDA6MDQ6
-IEFsbG9jYXRpbmcgcmVzb3VyY2VzCj4gWzI1NTY4LjQ0NzE2OF0gcGNpX2J1cyAwMDAwOjA1OiBB
-bGxvY2F0aW5nIHJlc291cmNlcwo+IFsyNTU2OC40NDcxOTVdIHBjaV9idXMgMDAwMDowNjogQWxs
-b2NhdGluZyByZXNvdXJjZXMKPiBbMjU1NjguNDQ3MjI4XSBwY2lfYnVzIDAwMDA6MGU6IEFsbG9j
-YXRpbmcgcmVzb3VyY2VzCj4gWzI1NTY4LjQ0NzMyM10gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2
-OiBbPz8/IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMgYm9nPQo+IHVzIGFsaWdubWVudAo+IFsy
-NTU2OC40NDc1NTddIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZs
-YWdzIDB4Ml0gaGFzIGJvZz0KPiB1cyBhbGlnbm1lbnQKPiBbMjU1NjguNDQ3NzM1XSBpOTE1IDAw
-MDA6MDA6MDIuMDogQkFSIDY6IFs/Pz8gMHgwMDAwMDAwMCBmbGFncyAweDJdIGhhcyBib2c9Cj4g
-dXMgYWxpZ25tZW50Cj4gWzI1NTY4LjQ0Nzg0N10gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2OiBb
-Pz8/IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMgYm9nPQo+IHVzIGFsaWdubWVudAo+IFsyNTU2
-OC40NDgzOTldIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdz
-IDB4Ml0gaGFzIGJvZz0KPiB1cyBhbGlnbm1lbnQKPiBbMjU1NjguNDQ4NDM4XSBpOTE1IDAwMDA6
-MDA6MDIuMDogQkFSIDY6IFs/Pz8gMHgwMDAwMDAwMCBmbGFncyAweDJdIGhhcyBib2c9Cj4gdXMg
-YWxpZ25tZW50CgpUaGUgYWJvdmUgdG9vLgoKPiBbMjU1NjguNDQ4NTY2XSBhY3BpIE1TRlQxMTEx
-OjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEM2NvbGQgZm89Cj4gciBwYXJl
-bnQgaW4gKHVua25vd24pCj4gWzI1NTY4LjQ0ODU3Ml0gYWNwaSBJTlQzM0MyOjAwOiBDYW5ub3Qg
-dHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBEMwo+IFsyNTU2OC40NDg1NzddIGFjcGkg
-TVNGVDAwMDI6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2VyIHN0YXRlIEQzY29sZCBmbz0K
-PiByIHBhcmVudCBpbiAodW5rbm93bikKPiBbMjU1NjguNDQ4NTgxXSBhY3BpIEVMQU4xMDEwOjAw
-OiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEM2NvbGQgZm89Cj4gciBwYXJlbnQg
-aW4gKHVua25vd24pCj4gWzI1NTY4LjQ0ODU4N10gYWNwaSBJTlQzM0MzOjAwOiBDYW5ub3QgdHJh
-bnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBEMwo+IFsyNTU2OC40NDg1OTBdIGFjcGkgSU5U
-MzNDMDowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMKPiBbMjU1
-NjguNDQ4NTk0XSBhY3BpIElOVDMzQzE6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBz
-dGF0ZSBmcm9tIEQzCj4gWzI1NTY4LjQ0ODU5OF0gYWNwaSBJTlQzM0M0OjAwOiBDYW5ub3QgdHJh
-bnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBEMwo+IFsyNTU2OC40NDg2MDJdIGFjcGkgSU5U
-MzNDNTowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMKPiBbMjU1
-NjguNDQ4NjIzXSBhY3BpIGRldmljZTo0MTogQ2Fubm90IHRyYW5zaXRpb24gdG8gcG93ZXIgc3Rh
-dGUgRDNjb2xkIGZvciA9Cj4gcGFyZW50IGluICh1bmtub3duKQo+IFsyNTU2OC40NDg2MjddIGFj
-cGkgSU5UMzNDNjowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMK
-CkFsbCBvZiB0aGUgYWJvdmUgbWVhbiB0aGF0IHBvd2VyIHRyYW5zaXRpb25zIHdlcmUgbm90IGNh
-cnJpZWQgb3V0IGZvciBzb21lCmRldmljZXMsIGJlY2F1c2UgdGhleSB3ZXJlIGluIHVuZXhwZWN0
-ZWQgcG93ZXIgc3RhdGVzIHRvIHN0YXJ0IHdpdGguCgpUaGV5IGFyZSBkZXZpY2VzIG9uIHRoZSBJ
-bnRlbCBMUFNTIGFzIGZhciBhcyBJIGNhbiBzYXkgKENDaW5nIE1pa2EgYW5kIEFuZHkpLgoKPiBb
-MjU1NjguNDQ4ODkwXSBwY2lfYnVzIDAwMDA6MDE6IEFsbG9jYXRpbmcgcmVzb3VyY2VzCj4gWzI1
-NTY4LjQ0ODkwNV0gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2OiBbPz8/IDB4MDAwMDAwMDAgZmxh
-Z3MgMHgyXSBoYXMgYm9nPQo+IHVzIGFsaWdubWVudAo+IFsyNTU2OC40NDkwNjRdIGk5MTUgMDAw
-MDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzIGJvZz0KPiB1
-cyBhbGlnbm1lbnQKPiBbMjU1NjguNDQ5NDcyXSBpOTE1IDAwMDA6MDA6MDIuMDogQkFSIDY6IFs/
-Pz8gMHgwMDAwMDAwMCBmbGFncyAweDJdIGhhcyBib2c9Cj4gdXMgYWxpZ25tZW50Cj4gCj4gV2l0
-aCBvbGRlciBrZXJuZWwgKDMuMTMpIEkgZG8gbm90IHNlZSB0aGVzZSBlcnJvcnMsIHNvIGl0IGlz
-IHJlZ3Jlc3Npb24uCgpJdCBvbmx5IGlzIGEgcmVncmVzc2lvbiBpZiBpdCBsZWFkcyB0byBmdW5j
-dGlvbmFsIHByb2JsZW1zLiAgRG8geW91IHNlZSBhbnk/Cgo+IENhPW4geW91IGxvb2sgYXQgaXQ/
-IElmIGl0IGlzIG5lZWRlZCwgSSBjYW4gcHJvdmlkZSBvdGhlciBsb2dzLCBBQ1BJL0RTVEQgZHVt
-cD0KPiBzLCBldGMuCgpJdCBsb29rcyBsaWtlIDMuMTMgZGlkbid0IHRyeSB0byB1c2Ugc29tZSBk
-ZXZpY2VzIHRoYXQgYXJlIG5vdyB1c2VkIGluIDMuMTktcmMxCmFuZCBzb21ldGhpbmcgZG9lc24n
-dCB3b3JrIGVudGlyZWx5IGFzIGV4cGVjdGVkLgoKCi0tIApJIHNwZWFrIG9ubHkgZm9yIG15c2Vs
-Zi4KUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVy
-LgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1n
-ZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+--===============0083944671==
+Content-Type: multipart/signed;
+  boundary="nextPart2803232.V5hP08oaOP";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart2803232.V5hP08oaOP
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Friday 26 December 2014 16:12:49 Rafael J. Wysocki wrote:
+> On Wednesday, December 24, 2014 07:51:48 PM Pali Roh=C3=A1r wrote:
+> > --nextPart5943893.pKyMBm5Emp
+> > Content-Type: Text/Plain;
+> >=20
+> >   charset=3D"utf-8"
+> >=20
+> > Content-Transfer-Encoding: quoted-printable
+> >=20
+> > Hello!
+> >=20
+> > With new 3.19-rc1 kernel every time when I open LID on my
+> > laptop, kernel pr=3D
+>=20
+> > ints these error lines to dmesg:
+> Does your syste suspend when the lid is closed and resume when
+> it is open?
+>=20
+
+No, I disabled all autosuspend and autohibernate settings. When I=20
+close LID system is running.
+
+>=20
+> > [25568.448566] acpi MSFT1111:00: Cannot transition to power
+> > state D3cold fo=3D r parent in (unknown)
+> > [25568.448572] acpi INT33C2:00: Cannot transition to non-D0
+> > state from D3 [25568.448577] acpi MSFT0002:00: Cannot
+> > transition to power state D3cold fo=3D r parent in (unknown)
+> > [25568.448581] acpi ELAN1010:00: Cannot transition to power
+> > state D3cold fo=3D r parent in (unknown)
+> > [25568.448587] acpi INT33C3:00: Cannot transition to non-D0
+> > state from D3 [25568.448590] acpi INT33C0:00: Cannot
+> > transition to non-D0 state from D3 [25568.448594] acpi
+> > INT33C1:00: Cannot transition to non-D0 state from D3
+> > [25568.448598] acpi INT33C4:00: Cannot transition to non-D0
+> > state from D3 [25568.448602] acpi INT33C5:00: Cannot
+> > transition to non-D0 state from D3 [25568.448623] acpi
+> > device:41: Cannot transition to power state D3cold for =3D
+> > parent in (unknown)
+> > [25568.448627] acpi INT33C6:00: Cannot transition to non-D0
+> > state from D3
+>=20
+> All of the above mean that power transitions were not carried
+> out for some devices, because they were in unexpected power
+> states to start with.
+>=20
+> They are devices on the Intel LPSS as far as I can say (CCing
+> Mika and Andy).
+>=20
+
+Just to note: all above acpi devices do not exist in 3.13 kernel,=20
+at least I do not see them in /sys/bus/acpi/.
+
+> > [25568.448890] pci_bus 0000:01: Allocating resources
+> > [25568.448905] i915 0000:00:02.0: BAR 6: [??? 0x00000000
+> > flags 0x2] has bog=3D us alignment
+> > [25568.449064] i915 0000:00:02.0: BAR 6: [??? 0x00000000
+> > flags 0x2] has bog=3D us alignment
+> > [25568.449472] i915 0000:00:02.0: BAR 6: [??? 0x00000000
+> > flags 0x2] has bog=3D us alignment
+> >=20
+> > With older kernel (3.13) I do not see these errors, so it is
+> > regression.
+>=20
+> It only is a regression if it leads to functional problems.=20
+> Do you see any?
+>=20
+
+Ok. I do not see functional problems, but I see above messages in=20
+dmesg log every time when I open LID.
+
+> > Ca=3Dn you look at it? If it is needed, I can provide other
+> > logs, ACPI/DSTD dump=3D s, etc.
+>=20
+> It looks like 3.13 didn't try to use some devices that are now
+> used in 3.19-rc1 and something doesn't work entirely as
+> expected.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2803232.V5hP08oaOP
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlSdhFYACgkQi/DJPQPkQ1IcRgCfZ1PB+47+ZP/JBFnXrH8crdYe
+eN8An2gTl3SxG/HthbWXi4ElZwy7Jc23
+=zisQ
+-----END PGP SIGNATURE-----
+
+--nextPart2803232.V5hP08oaOP--
+
+--===============0083944671==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4
+IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+
+--===============0083944671==--
