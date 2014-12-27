@@ -1,12 +1,11 @@
-From: nick <xerofoify@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: 3.19-rc1 errors when opening LID
-Date: Sat, 27 Dec 2014 12:31:37 -0500
-Message-ID: <549EECF9.40206@gmail.com>
-References: <201412241951.48652@pali> <201412250948.38808@pali>
- <549C4278.5080707@gmail.com> <201412270919.49540@pali>
+Date: Sat, 27 Dec 2014 21:22:56 +0100
+Message-ID: <1818900.MY9q0yfluC@vostro.rjw.lan>
+References: <201412241951.48652@pali> <549C4278.5080707@gmail.com>
+ <201412270919.49540@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1144160470=="
 Return-path: <intel-gfx-bounces@lists.freedesktop.org>
 In-Reply-To: <201412270919.49540@pali>
 List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
@@ -18,106 +17,137 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
  <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: intel-gfx-bounces@lists.freedesktop.org
 Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel.vetter@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-UGFsaSwKVGhpcyBzZWVtcyB0byBiZSBhIGxpa2VseSBjdWxwcml0LiBXb3VsZCB5b3UgbWluZCBi
-dWlsZGluZyBhIGtlcm5lbCBiZWZvcmUgdGhhdCBjb21taXQgd2FzIG1lcmdlZCBpbiBvcmRlciB0
-bwp0ZXN0IGlmIGl0IHdvcmtzLgpSZWdhcmRzIE5pY2sKCk9uIDIwMTQtMTItMjcgMDM6MTkgQU0s
-IFBhbGkgUm9ow6FyIHdyb3RlOgo+IEhlbGxvLAo+IAo+IGluIGF0dGFjaG1lbnQgaXMgb3V0cHV0
-IG9mIGxzIC1sIC9zeXMvYnVzL2FjcGkvZGV2aWNlcyBmcm9tIGJvdGggCj4gMy4xMyBhbmQgMy4x
-OSBrZXJuZWxzLgo+ICAKPiBBbnl3YXkgR2FicmllbGUgTWF6em90dGEgd3JvdGUgbWUgdGhhdCBu
-ZXcgYWNwaSBkZXZpY2VzIGNvdWxkIGJlIAo+IGNyZWF0ZWQgYWZ0ZXIgY29tbWl0IGZhYWU0MDRl
-YmRjNmJiYSAoQUNQSUNBOiBBZGQgIldpbmRvd3MgMjAxMyIgCj4gc3RyaW5nIHRvIF9PU0kgc3Vw
-cG9ydCkuCj4gCj4gTWF5YmUgdGhpcyBhbm90aGVyIG91dHB1dCBjb3VsZCBoZWxwIHlvdToKPiAK
-PiAkIGNhdCAvc3lzL2J1cy9hY3BpL2RldmljZXMvSU5UMzNDNVw6MDAvc3RhdHVzCj4gMAo+ICQg
-Y2F0IC9zeXMvYnVzL2FjcGkvZGV2aWNlcy9JTlQzM0M1XDowMC9wb3dlcl9zdGF0ZQo+ICh1bmtu
-b3duKQo+IAo+IERldmljZSBJTlQzM0M1IGlzIGluIHRoYXQgZG1lc2cgbG9nOgo+IGFjcGkgSU5U
-MzNDNTowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gbm9uLUQwIHN0YXRlIGZyb20gRDMKPiAKPiBB
-bmQgc3RhdHVzIDAgaW4gc3lzbm9kZSBjb3VsZCBpbmRpY2F0ZSB0aGF0IGFjcGkgZGV2aWNlIGlz
-IG5vdCAKPiBwcmVzZW50IHJpZ2h0Pwo+IAo+IE9uIFRodXJzZGF5IDI1IERlY2VtYmVyIDIwMTQg
-MTc6NTk6MzYgbmljayB3cm90ZToKPj4gUGFsaSwKPj4gVGhpcyB3YXMgcHJvYmFibHkgdG8gZWl0
-aGVyIGFkZCBiZXR0ZXIgcG93ZXIgbWFuYWdlbWVudCBvcgo+PiBlbmFibGUgc29tZSBuZXcgZmVh
-dHVyZXMgcmVsYXRlZCB0byBhY3BpLiBDYW4geW91IHNlbmQgbWUgdGhlCj4+IGZpbGVzIHRoZXkg
-Y3JlYXRlZCBpbiBrZXJuZWwgMy4xOSByMSBhcyBJIGNhbiBwcm9iYWJseSB0cmFjZQo+PiBpdCBi
-YWNrIHRvIHRoZSBiYWQgY29tbWl0LiBSZWdhcmRzIE5pY2sKPj4KPj4gT24gMjAxNC0xMi0yNSAw
-Mzo0OCBBTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4+PiBJIGtub3cgaG93IHRvIHVzZSBnaXQuLi4g
-Zmlyc3QgSSB3YW50ZWQgdG8gcmVwb3J0IGVycm9ycwo+Pj4gYmVjYXVzZSBtYXliZSBpdCBjb3Vs
-ZCBiZSBrbm93biBwcm9ibGVtIG9yIHNvbWVib2R5IGVsc2UKPj4+IGNhbiBjb21lIHdpdGggcXVp
-Y2sgcGF0Y2ggZXZlbiB3aXRob3V0IGJpc2V0Y2luZyAobGlrZSBmb3IKPj4+IG90aGVyIHByb2Js
-ZW1zIHdoaWNoIEkgcmVwb3J0ZWQpLgo+Pj4KPj4+IEFueXdheSB0aG9zZSBhY3BpIGRldmljZXMg
-d2hpY2ggYXJlIG1lbnRpb25lZCBpbiBsb2cgZG8gbm90Cj4+PiBleGlzdCBpbiAzLjEzIGtlcm5l
-bCAoSSBkbyBub3Qgc2VlIHRoZW0gaW4gL3N5cy9kZXZpY2VzKQo+Pj4KPj4+IEFueSBpZGVhIHdo
-eSAzLjE5IGtlcm5lbCBjcmVhdGUgbmV3IGFjcGkgZGV2aWNlcyB3aGljaCAzLjEzCj4+PiBrZXJu
-ZWwgZGlkIG5vdD8KPj4+Cj4+PiBPbiBUaHVyc2RheSAyNSBEZWNlbWJlciAyMDE0IDA1OjI4OjI3
-IG5pY2sgd3JvdGU6Cj4+Pj4gUGFsaSwKPj4+PiBEbyB5b3Uga25vd24gaG93IHRvIHJ1biBnaXQg
-YmlzZWN0IGFzIHRoaXMgaXMgcHJvYmFibHkgdGhlCj4+Pj4gYmVzdCB3YXkgdG8gY29udGludWUu
-IE90aGVyd2lzZSwgSSBjYW4gdGVhY2ggeW91IGhvdyBpdCdzCj4+Pj4gbm90IGhhcmQgaWYgeW91
-ciB3aWxsaW5nIHRvIGxlYXJuIDopLiBDaGVlcnMgTmljawo+Pj4+Cj4+Pj4gT24gMjAxNC0xMi0y
-NCAwMTo1MSBQTSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4+Pj4+IEhlbGxvIQo+Pj4+Pgo+Pj4+PiBX
-aXRoIG5ldyAzLjE5LXJjMSBrZXJuZWwgZXZlcnkgdGltZSB3aGVuIEkgb3BlbiBMSUQgb24gbXkK
-Pj4+Pj4gbGFwdG9wLCBrZXJuZWwgcHJpbnRzIHRoZXNlIGVycm9yIGxpbmVzIHRvIGRtZXNnOgo+
-Pj4+Pgo+Pj4+PiBbMjU1NjYuMzY4MTMzXSBbZHJtOmhzd191bmNsYWltZWRfcmVnX2RldGVjdC5p
-c3JhLjYKPj4+Pj4gW2k5MTVdXSAqRVJST1IqIFVuY2xhaW1lZCByZWdpc3RlciBkZXRlY3RlZC4g
-UGxlYXNlIHVzZQo+Pj4+PiB0aGUgaTkxNS5tbWlvX2RlYnVnPTEgdG8gZGVidWcgdGhpcyBwcm9i
-bGVtLgo+Pj4+PiBbMjU1NjYuMzY4MTM0XSBbZHJtOmludGVsX3VuY29yZV9jaGVja19lcnJvcnMg
-W2k5MTVdXQo+Pj4+PiAqRVJST1IqIFVuY2xhaW1lZCByZWdpc3RlciBiZWZvcmUgaW50ZXJydXB0
-Cj4+Pj4+IFsyNTU2Ni4zNjgxOTJdCj4+Pj4+IFtkcm06aHN3X3VuY2xhaW1lZF9yZWdfZGV0ZWN0
-LmlzcmEuNiBbaTkxNV1dICpFUlJPUioKPj4+Pj4gVW5jbGFpbWVkIHJlZ2lzdGVyIGRldGVjdGVk
-LiBQbGVhc2UgdXNlIHRoZQo+Pj4+PiBpOTE1Lm1taW9fZGVidWc9MSB0byBkZWJ1ZyB0aGlzIHBy
-b2JsZW0uIFsyNTU2Ni4zNjgyMzJdCj4+Pj4+IFtkcm06aHN3X3VuY2xhaW1lZF9yZWdfZGV0ZWN0
-LmlzcmEuNiBbaTkxNV1dICpFUlJPUioKPj4+Pj4gVW5jbGFpbWVkIHJlZ2lzdGVyIGRldGVjdGVk
-LiBQbGVhc2UgdXNlIHRoZQo+Pj4+PiBpOTE1Lm1taW9fZGVidWc9MSB0byBkZWJ1ZyB0aGlzIHBy
-b2JsZW0uPDQ+WzI1NTY4LjQ0NjAxMV0KPj4+Pj4gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2OiBb
-Pz8/IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMKPj4+Pj4gYm9ndXMgYWxpZ25tZW50Cj4+Pj4+
-IFsyNTU2OC40NDcwMThdIHBjaV9idXMgMDAwMDowMjogQWxsb2NhdGluZyByZXNvdXJjZXMKPj4+
-Pj4gWzI1NTY4LjQ0NzA1NV0gcGNpX2J1cyAwMDAwOjAzOiBBbGxvY2F0aW5nIHJlc291cmNlcwo+
-Pj4+PiBbMjU1NjguNDQ3MTM1XSBwY2lfYnVzIDAwMDA6MDQ6IEFsbG9jYXRpbmcgcmVzb3VyY2Vz
-Cj4+Pj4+IFsyNTU2OC40NDcxNjhdIHBjaV9idXMgMDAwMDowNTogQWxsb2NhdGluZyByZXNvdXJj
-ZXMKPj4+Pj4gWzI1NTY4LjQ0NzE5NV0gcGNpX2J1cyAwMDAwOjA2OiBBbGxvY2F0aW5nIHJlc291
-cmNlcwo+Pj4+PiBbMjU1NjguNDQ3MjI4XSBwY2lfYnVzIDAwMDA6MGU6IEFsbG9jYXRpbmcgcmVz
-b3VyY2VzCj4+Pj4+IFsyNTU2OC40NDczMjNdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/
-PyAweDAwMDAwMDAwCj4+Pj4+IGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudCBbMjU1Njgu
-NDQ3NTU3XSBpOTE1Cj4+Pj4+IDAwMDA6MDA6MDIuMDogQkFSIDY6IFs/Pz8gMHgwMDAwMDAwMCBm
-bGFncyAweDJdIGhhcyBib2d1cwo+Pj4+PiBhbGlnbm1lbnQgWzI1NTY4LjQ0NzczNV0gaTkxNSAw
-MDAwOjAwOjAyLjA6IEJBUiA2OiBbPz8/Cj4+Pj4+IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMg
-Ym9ndXMgYWxpZ25tZW50IFsyNTU2OC40NDc4NDddCj4+Pj4+IGk5MTUgMDAwMDowMDowMi4wOiBC
-QVIgNjogWz8/PyAweDAwMDAwMDAwIGZsYWdzIDB4Ml0gaGFzCj4+Pj4+IGJvZ3VzIGFsaWdubWVu
-dCBbMjU1NjguNDQ4Mzk5XSBpOTE1IDAwMDA6MDA6MDIuMDogQkFSIDY6Cj4+Pj4+IFs/Pz8gMHgw
-MDAwMDAwMCBmbGFncyAweDJdIGhhcyBib2d1cyBhbGlnbm1lbnQKPj4+Pj4gWzI1NTY4LjQ0ODQz
-OF0gaTkxNSAwMDAwOjAwOjAyLjA6IEJBUiA2OiBbPz8/IDB4MDAwMDAwMDAKPj4+Pj4gZmxhZ3Mg
-MHgyXSBoYXMgYm9ndXMgYWxpZ25tZW50IFsyNTU2OC40NDg1NjZdIGFjcGkKPj4+Pj4gTVNGVDEx
-MTE6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2VyIHN0YXRlIEQzY29sZCBmb3IKPj4+Pj4g
-cGFyZW50IGluICh1bmtub3duKSBbMjU1NjguNDQ4NTcyXSBhY3BpIElOVDMzQzI6MDA6IENhbm5v
-dAo+Pj4+PiB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tIEQzIFsyNTU2OC40NDg1Nzdd
-IGFjcGkKPj4+Pj4gTVNGVDAwMDI6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2VyIHN0YXRl
-IEQzY29sZCBmb3IKPj4+Pj4gcGFyZW50IGluICh1bmtub3duKSBbMjU1NjguNDQ4NTgxXSBhY3Bp
-IEVMQU4xMDEwOjAwOgo+Pj4+PiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEM2Nv
-bGQgZm9yIHBhcmVudCBpbgo+Pj4+PiAodW5rbm93bikgWzI1NTY4LjQ0ODU4N10gYWNwaSBJTlQz
-M0MzOjAwOiBDYW5ub3QKPj4+Pj4gdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbSBEMyBb
-MjU1NjguNDQ4NTkwXSBhY3BpCj4+Pj4+IElOVDMzQzA6MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRv
-IG5vbi1EMCBzdGF0ZSBmcm9tIEQzCj4+Pj4+IFsyNTU2OC40NDg1OTRdIGFjcGkgSU5UMzNDMTow
-MDogQ2Fubm90IHRyYW5zaXRpb24gdG8KPj4+Pj4gbm9uLUQwIHN0YXRlIGZyb20gRDMgWzI1NTY4
-LjQ0ODU5OF0gYWNwaSBJTlQzM0M0OjAwOgo+Pj4+PiBDYW5ub3QgdHJhbnNpdGlvbiB0byBub24t
-RDAgc3RhdGUgZnJvbSBEMyBbMjU1NjguNDQ4NjAyXQo+Pj4+PiBhY3BpIElOVDMzQzU6MDA6IENh
-bm5vdCB0cmFuc2l0aW9uIHRvIG5vbi1EMCBzdGF0ZSBmcm9tCj4+Pj4+IEQzIFsyNTU2OC40NDg2
-MjNdIGFjcGkgZGV2aWNlOjQxOiBDYW5ub3QgdHJhbnNpdGlvbiB0bwo+Pj4+PiBwb3dlciBzdGF0
-ZSBEM2NvbGQgZm9yIHBhcmVudCBpbiAodW5rbm93bikgWzI1NTY4LjQ0ODYyN10KPj4+Pj4gYWNw
-aSBJTlQzM0M2OjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBub24tRDAgc3RhdGUgZnJvbQo+Pj4+
-PiBEMyBbMjU1NjguNDQ4ODkwXSBwY2lfYnVzIDAwMDA6MDE6IEFsbG9jYXRpbmcgcmVzb3VyY2Vz
-Cj4+Pj4+IFsyNTU2OC40NDg5MDVdIGk5MTUgMDAwMDowMDowMi4wOiBCQVIgNjogWz8/PyAweDAw
-MDAwMDAwCj4+Pj4+IGZsYWdzIDB4Ml0gaGFzIGJvZ3VzIGFsaWdubWVudCBbMjU1NjguNDQ5MDY0
-XSBpOTE1Cj4+Pj4+IDAwMDA6MDA6MDIuMDogQkFSIDY6IFs/Pz8gMHgwMDAwMDAwMCBmbGFncyAw
-eDJdIGhhcyBib2d1cwo+Pj4+PiBhbGlnbm1lbnQgWzI1NTY4LjQ0OTQ3Ml0gaTkxNSAwMDAwOjAw
-OjAyLjA6IEJBUiA2OiBbPz8/Cj4+Pj4+IDB4MDAwMDAwMDAgZmxhZ3MgMHgyXSBoYXMgYm9ndXMg
-YWxpZ25tZW50Cj4+Pj4+Cj4+Pj4+IFdpdGggb2xkZXIga2VybmVsICgzLjEzKSBJIGRvIG5vdCBz
-ZWUgdGhlc2UgZXJyb3JzLCBzbyBpdAo+Pj4+PiBpcyByZWdyZXNzaW9uLiBDYW4geW91IGxvb2sg
-YXQgaXQ/IElmIGl0IGlzIG5lZWRlZCwgSSBjYW4KPj4+Pj4gcHJvdmlkZSBvdGhlciBsb2dzLCBB
-Q1BJL0RTVEQgZHVtcHMsIGV0Yy4KPj4+Pj4KPj4+Pj4KPj4+Pj4KPj4+Pj4gX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPj4+Pj4gSW50ZWwtZ2Z4IG1haWxp
-bmcgbGlzdAo+Pj4+PiBJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4+Pj4+IGh0dHA6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngKPiAKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1h
-aWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+
+--===============1144160470==
+Content-Type: multipart/signed; boundary="nextPart10465392.Boglpc3bMo"; micalg="pgp-sha256"; protocol="application/pgp-signature"
+
+
+--nextPart10465392.Boglpc3bMo
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+
+On Saturday, December 27, 2014 09:19:49 AM Pali Roh=C3=A1r wrote:
+> Hello,
+>=20
+> in attachment is output of ls -l /sys/bus/acpi/devices from both=20
+> 3.13 and 3.19 kernels.
+> =20
+> Anyway Gabriele Mazzotta wrote me that new acpi devices could be=20
+> created after commit faae404ebdc6bba (ACPICA: Add "Windows 2013"=20
+> string to _OSI support).
+>=20
+> Maybe this another output could help you:
+>=20
+> $ cat /sys/bus/acpi/devices/INT33C5\:00/status
+> 0
+> $ cat /sys/bus/acpi/devices/INT33C5\:00/power_state
+> (unknown)
+>=20
+> Device INT33C5 is in that dmesg log:
+> acpi INT33C5:00: Cannot transition to non-D0 state from D3
+
+The appended patch should make these messages go away, please test.
+
+> And status 0 in sysnode could indicate that acpi device is not=20
+> present right?
+
+That's correct.
+
+=2D--
+ drivers/acpi/device_pm.c |    7 ++++---
+ include/acpi/acpi_bus.h  |    3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+Index: linux-pm/include/acpi/acpi_bus.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -589,7 +589,8 @@ static inline u32 acpi_target_system_sta
+=20
+ static inline bool acpi_device_power_manageable(struct acpi_device *ad=
+ev)
+ {
+=2D=09return adev->flags.power_manageable;
++=09return adev->flags.power_manageable
++=09=09&& (adev->status.present || adev->status.functional);
+ }
+=20
+ static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
+Index: linux-pm/drivers/acpi/device_pm.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -68,7 +68,8 @@ int acpi_device_get_power(struct acpi_de
+ {
+ =09int result =3D ACPI_STATE_UNKNOWN;
+=20
+=2D=09if (!device || !state)
++=09if (!device || !state
++=09    || !(device->status.present || device->status.functional))
+ =09=09return -EINVAL;
+=20
+ =09if (!device->flags.power_manageable) {
+@@ -156,7 +157,7 @@ int acpi_device_set_power(struct acpi_de
+ =09int result =3D 0;
+ =09bool cut_power =3D false;
+=20
+=2D=09if (!device || !device->flags.power_manageable
++=09if (!device || !acpi_device_power_manageable(device)
+ =09    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+ =09=09return -EINVAL;
+=20
+@@ -361,7 +362,7 @@ bool acpi_bus_power_manageable(acpi_hand
+ =09int result;
+=20
+ =09result =3D acpi_bus_get_device(handle, &device);
+=2D=09return result ? false : device->flags.power_manageable;
++=09return result ? false : acpi_device_power_manageable(device);
+ }
+ EXPORT_SYMBOL(acpi_bus_power_manageable);
+=20
+
+--nextPart10465392.Boglpc3bMo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAABCAAGBQJUnxUmAAoJEILEb/54YlRxXZcP/RqBjLESb+ZgJK3pwB6uaL/R
+UNz3bHMXjeNK6YPhT3yanUYTTBQjBoyZwxAT6UUjo/nG+eWDPyNM15zpMh4rQgIb
+09Pf80khZ9wrk75agl3WUR7EKGOoHd2yPCXsuVQYD6LZvgGSAwsABPHkDh3rw8py
+L25Fdar4H0O6mYCTVUTomYGI81/kagPw3VfdfHIdDIavD05nQbxsyL0dCGChn24+
+tTV2lS7+/ih4/+TEYxbtqXfiIB6vD0448OQZh4X+ta91oHp04cQL+1Jm2jSrcgaf
+C/GjQXwGOtJeLohW3Jsc7lowL9HbZUQ61qMhfFPdPkW1g9xPqVEdVCv5tDmOLeTi
+msoc/564EBYt42KX85w74KxioQVuwtgpxUmOsCwiWr3MfrIaJhlmhmuL1uyy2Fjg
+9YMMHdON6fv9wIE3ysV8jCnYfF+H9XrV6HjX9QZJd7wla3g9YmuUSC0xT82vJDGF
+LZ4Ax01U0lswnLV7gfD1isTP3SKuSOB+kIzkfjZyiwe5/GfBhIMsCqhu7wlEhJFD
+JGb4qFEzlIfiekQhA4BhA8BmzmvPg+By2peWa0zpBZ9u9Y5kBN0LXJ0lSN8jcPjC
+194M4mF8pIUm74GMfxzxtMeJv+tuXRi1vBHgvfwxEcbSlAA6jjxFZmmQ1Ok9rl29
+VKuU1VWsL7g/yKtvzJPc
+=bGp0
+-----END PGP SIGNATURE-----
+
+--nextPart10465392.Boglpc3bMo--
+
+
+--===============1144160470==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4
+IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+
+--===============1144160470==--
