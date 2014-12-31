@@ -1,62 +1,234 @@
-From: ashwinc@codeaurora.org
-Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Wed, 31 Dec 2014 15:08:23 -0000
-Message-ID: <d3ea3f18e4d9ca9c623e3632129caee6.squirrel@www.codeaurora.org>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
-    <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
-    <CAJ5Y-eZ5cu9_OhG24yAv+CZq7zKg0vU+eVGekyN+9dDzaz1OhQ@mail.gmail.com>
-    <8fc9550c96a468b3e50d51a37db68a33.squirrel@www.codeaurora.org>
-    <54A3B526.9040903@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:55906 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956AbaLaPIZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Dec 2014 10:08:25 -0500
-In-Reply-To: <54A3B526.9040903@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Subject: [PATCH] acpi: acpica: utstring.c:  Remove some unused functions
+Date: Wed, 31 Dec 2014 18:01:57 +0100
+Message-ID: <1420045317-24091-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: ashwinc@codeaurora.org, catalin.marinas@arm.com, rjw@rjwysocki.net, mark.rutland@arm.com, olof@lixom.net, grant.likely@linaro.org, will.deacon@arm.com, linaro-acpi@lists.linaro.org, liviu.dudau@arm.com, lv.zheng@intel.com, robh@kernel.org, lorenzo.pieralisi@arm.com, al.stone@linaro.org, daniel.lezcano@linaro.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, charles.garcia-tobin@arm.com, rric@kernel.org, jason@lakedaemon.net, arnd@arndb.de, marc.zyngier@arm.com, jcm@redhat.com, broonie@kernel.org, "bhelgaas@google.com." <linux-arm-kernel@lists.infradead.org>, graeme.gregory@linaro.org, kangkang.shen@huawei.com, rdunlap@infradead.org, linux-kernel@vger.kernel.org, sudeep.holla@arm.com
 
-On 31 December 2014 at 03:34, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> On 2014=E5=B9=B412=E6=9C=8831=E6=97=A5 04:13, ashwinc@codeaurora.org =
-wrote:
->> Hi Hanjun,
->>> +ASWG
->>> +----
->>> +The following areas are not yet fully defined for ARM in the 5.1
->>> version
->>> +of the ACPI specification and are expected to be worked through in=
- the
->>> +UEFI ACPI Specification Working Group (ASWG):
->>> +
->>> +   -- ACPI based CPU topology
->>> +   -- ACPI based Power management
->>
->> Should clarify this to idle management rather than generic power
->> management.
->
-> and I think it is CPU idle specific here, right?
->
+Removes some functions that are not used anywhere:
+acpi_ut_strlwr() acpi_ut_safe_strncat() acpi_ut_safe_strcat()
+acpi_ut_safe_strcpy() ut_convert_backslashes() acpi_ut_stricmp()
 
-Right.
+This was partially found by using a static code analysis program called cppcheck.
 
-Thanks,
-Ashwin
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/acpi/acpica/acutils.h  |   17 -----
+ drivers/acpi/acpica/utstring.c |  157 ----------------------------------------
+ 2 files changed, 174 deletions(-)
 
---
-Qualcomm Innovation Center, Inc
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora For=
-um,
-a Linux Foundation Collaborative Project
-
---
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 486d342..8e082af 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -629,33 +629,16 @@ acpi_ut_get_resource_end_tag(union acpi_operand_object *obj_desc, u8 **end_tag);
+  */
+ void acpi_ut_strupr(char *src_string);
+ 
+-void acpi_ut_strlwr(char *src_string);
+-
+-int acpi_ut_stricmp(char *string1, char *string2);
+-
+ acpi_status acpi_ut_strtoul64(char *string, u32 base, u64 *ret_integer);
+ 
+ void acpi_ut_print_string(char *string, u16 max_length);
+ 
+-void ut_convert_backslashes(char *pathname);
+-
+ u8 acpi_ut_valid_acpi_name(char *name);
+ 
+ u8 acpi_ut_valid_acpi_char(char character, u32 position);
+ 
+ void acpi_ut_repair_name(char *name);
+ 
+-#if defined (ACPI_DEBUGGER) || defined (ACPI_APPLICATION)
+-u8 acpi_ut_safe_strcpy(char *dest, acpi_size dest_size, char *source);
+-
+-u8 acpi_ut_safe_strcat(char *dest, acpi_size dest_size, char *source);
+-
+-u8
+-acpi_ut_safe_strncat(char *dest,
+-		     acpi_size dest_size,
+-		     char *source, acpi_size max_transfer_length);
+-#endif
+-
+ /*
+  * utmutex - mutex support
+  */
+diff --git a/drivers/acpi/acpica/utstring.c b/drivers/acpi/acpica/utstring.c
+index 6dc54b3..d94d536 100644
+--- a/drivers/acpi/acpica/utstring.c
++++ b/drivers/acpi/acpica/utstring.c
+@@ -52,71 +52,6 @@ ACPI_MODULE_NAME("utstring")
+  * Non-ANSI C library functions - strlwr, strupr, stricmp, and a 64-bit
+  * version of strtoul.
+  */
+-#ifdef ACPI_ASL_COMPILER
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ut_strlwr (strlwr)
+- *
+- * PARAMETERS:  src_string      - The source string to convert
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Convert string to lowercase
+- *
+- * NOTE: This is not a POSIX function, so it appears here, not in utclib.c
+- *
+- ******************************************************************************/
+-void acpi_ut_strlwr(char *src_string)
+-{
+-	char *string;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	if (!src_string) {
+-		return;
+-	}
+-
+-	/* Walk entire string, lowercasing the letters */
+-
+-	for (string = src_string; *string; string++) {
+-		*string = (char)ACPI_TOLOWER(*string);
+-	}
+-
+-	return;
+-}
+-
+-/******************************************************************************
+- *
+- * FUNCTION:    acpi_ut_stricmp (stricmp)
+- *
+- * PARAMETERS:  string1             - first string to compare
+- *              string2             - second string to compare
+- *
+- * RETURN:      int that signifies string relationship. Zero means strings
+- *              are equal.
+- *
+- * DESCRIPTION: Implementation of the non-ANSI stricmp function (compare
+- *              strings with no case sensitivity)
+- *
+- ******************************************************************************/
+-
+-int acpi_ut_stricmp(char *string1, char *string2)
+-{
+-	int c1;
+-	int c2;
+-
+-	do {
+-		c1 = tolower((int)*string1);
+-		c2 = tolower((int)*string2);
+-
+-		string1++;
+-		string2++;
+-	}
+-	while ((c1 == c2) && (c1));
+-
+-	return (c1 - c2);
+-}
+-#endif
+ 
+ /*******************************************************************************
+  *
+@@ -554,95 +489,3 @@ void acpi_ut_repair_name(char *name)
+ 	}
+ }
+ 
+-#if defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP
+-/*******************************************************************************
+- *
+- * FUNCTION:    ut_convert_backslashes
+- *
+- * PARAMETERS:  pathname        - File pathname string to be converted
+- *
+- * RETURN:      Modifies the input Pathname
+- *
+- * DESCRIPTION: Convert all backslashes (0x5C) to forward slashes (0x2F) within
+- *              the entire input file pathname string.
+- *
+- ******************************************************************************/
+-
+-void ut_convert_backslashes(char *pathname)
+-{
+-
+-	if (!pathname) {
+-		return;
+-	}
+-
+-	while (*pathname) {
+-		if (*pathname == '\\') {
+-			*pathname = '/';
+-		}
+-
+-		pathname++;
+-	}
+-}
+-#endif
+-
+-#if defined (ACPI_DEBUGGER) || defined (ACPI_APPLICATION)
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ut_safe_strcpy, acpi_ut_safe_strcat, acpi_ut_safe_strncat
+- *
+- * PARAMETERS:  Adds a "DestSize" parameter to each of the standard string
+- *              functions. This is the size of the Destination buffer.
+- *
+- * RETURN:      TRUE if the operation would overflow the destination buffer.
+- *
+- * DESCRIPTION: Safe versions of standard Clib string functions. Ensure that
+- *              the result of the operation will not overflow the output string
+- *              buffer.
+- *
+- * NOTE:        These functions are typically only helpful for processing
+- *              user input and command lines. For most ACPICA code, the
+- *              required buffer length is precisely calculated before buffer
+- *              allocation, so the use of these functions is unnecessary.
+- *
+- ******************************************************************************/
+-
+-u8 acpi_ut_safe_strcpy(char *dest, acpi_size dest_size, char *source)
+-{
+-
+-	if (ACPI_STRLEN(source) >= dest_size) {
+-		return (TRUE);
+-	}
+-
+-	ACPI_STRCPY(dest, source);
+-	return (FALSE);
+-}
+-
+-u8 acpi_ut_safe_strcat(char *dest, acpi_size dest_size, char *source)
+-{
+-
+-	if ((ACPI_STRLEN(dest) + ACPI_STRLEN(source)) >= dest_size) {
+-		return (TRUE);
+-	}
+-
+-	ACPI_STRCAT(dest, source);
+-	return (FALSE);
+-}
+-
+-u8
+-acpi_ut_safe_strncat(char *dest,
+-		     acpi_size dest_size,
+-		     char *source, acpi_size max_transfer_length)
+-{
+-	acpi_size actual_transfer_length;
+-
+-	actual_transfer_length =
+-	    ACPI_MIN(max_transfer_length, ACPI_STRLEN(source));
+-
+-	if ((ACPI_STRLEN(dest) + actual_transfer_length) >= dest_size) {
+-		return (TRUE);
+-	}
+-
+-	ACPI_STRNCAT(dest, source, max_transfer_length);
+-	return (FALSE);
+-}
+-#endif
+-- 
+1.7.10.4
