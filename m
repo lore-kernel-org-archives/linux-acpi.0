@@ -1,55 +1,115 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Thu, 1 Jan 2015 20:04:24 +0000
-Message-ID: <20150101200424.GB12770@xora-haswell.xora.org.uk>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
- <CAJ5Y-eZ5cu9_OhG24yAv+CZq7zKg0vU+eVGekyN+9dDzaz1OhQ@mail.gmail.com>
- <8fc9550c96a468b3e50d51a37db68a33.squirrel@www.codeaurora.org>
- <54A3B526.9040903@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / PM: Fix PM initialization for devices that are not present
+Date: Thu, 01 Jan 2015 23:38:28 +0100
+Message-ID: <4453924.d7c5RYZUJi@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <54A3B526.9040903@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: mark.rutland@arm.com, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, lv.zheng@intel.com, robh@kernel.org, Lorenzo.Pieralisi@arm.com, al.stone@linaro.org, daniel.lezcano@linaro.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, grant.likely@linaro.org, Liviu.Dudau@arm.com, Charles.Garcia-Tobin@arm.com, rric@kernel.org, jason@lakedaemon.net, arnd@arndb.de, marc.zyngier@arm.com, jcm@redhat.com, broonie@kernel.org, "bhelgaas@google.com." <linux-arm-kernel@lists.infradead.org>, graeme.gregory@linaro.org, ashwinc@codeaurora.org, Kangkang.Shen@huawei.com, rdunlap@infradead.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Sudeep.Holla@arm.com, olof@lixom.net
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56221 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751450AbbAAWQT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jan 2015 17:16:19 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-T24gV2VkLCBEZWMgMzEsIDIwMTQgYXQgMDQ6MzQ6NDZQTSArMDgwMCwgSGFuanVuIEd1byB3cm90
-ZToKPiBPbiAyMDE05bm0MTLmnIgzMeaXpSAwNDoxMywgYXNod2luY0Bjb2RlYXVyb3JhLm9yZyB3
-cm90ZToKPiA+SGkgSGFuanVuLAo+ID4KPiA+T3ZlcmFsbCB0aGUgZG9jdW1lbnQgbG9va3MgZ29v
-ZCB0byB1cy4gU29tZSBtaW5vciBjbGFyaWZpY2F0aW9ucyBiZWxvdy4KPiA+Cj4gPj4tLS0tLS0t
-LS0tIEZvcndhcmRlZCBtZXNzYWdlIC0tLS0tLS0tLS0KPiA+PkZyb206IEdyYWVtZSBHcmVnb3J5
-IDxncmFlbWUuZ3JlZ29yeUBsaW5hcm8ub3JnPgo+ID4+Cj4gPj5BZGQgZG9jdW1lbnRhdGlvbiBm
-b3IgdGhlIGd1aWRlbGluZXMgb2YgaG93IHRvIHVzZSBBQ1BJCj4gPj5vbiBBUk02NC4KPiA+Pgo+
-ID4+U2lnbmVkLW9mZi1ieTogR3JhZW1lIEdyZWdvcnkgPGdyYWVtZS5ncmVnb3J5QGxpbmFyby5v
-cmc+Cj4gPj5TaWduZWQtb2ZmLWJ5OiBBbCBTdG9uZSA8YWwuc3RvbmVAbGluYXJvLm9yZz4KPiA+
-PlNpZ25lZC1vZmYtYnk6IEhhbmp1biBHdW8gPGhhbmp1bi5ndW9AbGluYXJvLm9yZz4KPiA+Pi0t
-LQo+ID4+ICBEb2N1bWVudGF0aW9uL2FybTY0L2FybS1hY3BpLnR4dCB8ICAzMjMKPiA+PisrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gPj4gIDEgZmlsZSBjaGFuZ2VkLCAz
-MjMgaW5zZXJ0aW9ucygrKQo+ID4+ICBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9h
-cm02NC9hcm0tYWNwaS50eHQKPiA+Pgo+ID4KPiA+Wy4uXQo+ID4KPiA+PitSZWxhdGlvbnNoaXAg
-d2l0aCBEZXZpY2UgVHJlZQo+ID4+Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPgo+
-ID5bLi5dCj4gPgo+ID4+K1doZW4gYm9vdGluZyB1c2luZyBBQ1BJIHRhYmxlcywgdGhlIC9jaG9z
-ZW4gbm9kZSBpbiBEVCB3aWxsIHN0aWxsIGJlCj4gPj5wYXJzZWQKPiA+Pit0byBleHRyYWN0IHRo
-ZSBrZXJuZWwgY29tbWFuZCBsaW5lIGFuZCBpbml0cmQgcGF0aC4gIE5vIG90aGVyIHNlY3Rpb24g
-b2YKPiA+PnRoZQo+ID4+K0RUIHdpbGwgYmUgdXNlZC4KPiA+Cj4gPklzIHRoaXMgc3RpbGwgdHJ1
-ZT8KPiAKPiBObywgd2UgY2FuIGJvb3RpbmcgdGhlIEFDUEkgc3lzdGVtIGluIEVGSSBzdHViIHdp
-dGhvdXQgZHRiLiBDYXRhbGluCj4gYWxzbyBwb2ludGVkIG91dCB0aGlzIGlzc3VlLCBJIHdpbGwg
-cmVtb3ZlIHRoaXMgcGFyYWdyYXBoLgo+IAoKVGhlIHBhcmFncmFwaCBpcyBzdGlsbCBjb3JyZWN0
-LCB0aGUgL2Nob3NlbiBub2RlIGlzIGFsd2F5cyBwcmVzZW50IGV2ZW4KaWYgbm90aGluZyBlbHNl
-IGlzLgoKR3JhZW1lCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0
-cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtYXJtLWtlcm5lbAo=
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+If an ACPI device object whose _STA returns 0 (not present and not
+functional) has _PR0 or _PS0, its power_manageable flag will be set
+and acpi_bus_init_power() will return 0 for it.  Consequently, if
+such a device object is passed to the ACPI device PM functions, they
+will attempt to carry out the requested operation on the device,
+although they should not do that for devices that are not present.
+
+To fix that problem make acpi_bus_init_power() return an error code
+for devices that are not present which will cause power_manageable to
+be cleared for them as appropriate in acpi_bus_get_power_flags().
+However, the lists of power resources should not be freed for the
+device in that case, so modify acpi_bus_get_power_flags() to keep
+those lists even if acpi_bus_init_power() returns an error.
+Accordingly, when deciding whether or not the lists of power
+resources need to be freed, acpi_free_power_resources_lists()
+should check the power.flags.power_resources flag instead of
+flags.power_manageable, so make that change too.
+
+Furthermore, if acpi_bus_attach() sees that flags.initialized is
+unset for the given device, it should reset the power management
+settings of the device and re-initialize them from scratch instead
+of relying on the previous settings (the device may have appeared
+after being not present previously, for example), so make it use
+the 'valid' flag of the D0 power state as the initial value of
+flags.power_manageable for it and call acpi_bus_init_power() to
+discover its current power state.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+"Stable" material.
+
+---
+ drivers/acpi/device_pm.c |    2 +-
+ drivers/acpi/scan.c      |   13 ++++++++-----
+ 2 files changed, 9 insertions(+), 6 deletions(-)
+
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -257,7 +257,7 @@ int acpi_bus_init_power(struct acpi_devi
+ 
+ 	device->power.state = ACPI_STATE_UNKNOWN;
+ 	if (!acpi_device_is_present(device))
+-		return 0;
++		return -ENXIO;
+ 
+ 	result = acpi_device_get_power(device, &state);
+ 	if (result)
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -1001,7 +1001,7 @@ static void acpi_free_power_resources_li
+ 	if (device->wakeup.flags.valid)
+ 		acpi_power_resources_list_free(&device->wakeup.resources);
+ 
+-	if (!device->flags.power_manageable)
++	if (!device->power.flags.power_resources)
+ 		return;
+ 
+ 	for (i = ACPI_STATE_D0; i <= ACPI_STATE_D3_HOT; i++) {
+@@ -1744,10 +1744,8 @@ static void acpi_bus_get_power_flags(str
+ 			device->power.flags.power_resources)
+ 		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
+ 
+-	if (acpi_bus_init_power(device)) {
+-		acpi_free_power_resources_lists(device);
++	if (acpi_bus_init_power(device))
+ 		device->flags.power_manageable = 0;
+-	}
+ }
+ 
+ static void acpi_bus_get_flags(struct acpi_device *device)
+@@ -2371,13 +2369,18 @@ static void acpi_bus_attach(struct acpi_
+ 	/* Skip devices that are not present. */
+ 	if (!acpi_device_is_present(device)) {
+ 		device->flags.visited = false;
++		device->flags.power_manageable = 0;
+ 		return;
+ 	}
+ 	if (device->handler)
+ 		goto ok;
+ 
+ 	if (!device->flags.initialized) {
+-		acpi_bus_update_power(device, NULL);
++		device->flags.power_manageable =
++			device->power.states[ACPI_STATE_D0].flags.valid;
++		if (acpi_bus_init_power(device))
++			device->flags.power_manageable = 0;
++
+ 		device->flags.initialized = true;
+ 	}
+ 	device->flags.visited = false;
+
