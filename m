@@ -1,115 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Fix PM initialization for devices that are not present
-Date: Thu, 01 Jan 2015 23:38:28 +0100
-Message-ID: <4453924.d7c5RYZUJi@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Fri, 02 Jan 2015 17:28:11 +0800
+Message-ID: <54A664AB.3030101@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org> <CAJ5Y-eZ5cu9_OhG24yAv+CZq7zKg0vU+eVGekyN+9dDzaz1OhQ@mail.gmail.com> <8fc9550c96a468b3e50d51a37db68a33.squirrel@www.codeaurora.org> <54A3B526.9040903@linaro.org> <20150101200424.GB12770@xora-haswell.xora.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56221 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751450AbbAAWQT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jan 2015 17:16:19 -0500
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:63980 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbbABJ2W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jan 2015 04:28:22 -0500
+Received: by mail-pa0-f50.google.com with SMTP id bj1so23968423pad.9
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Jan 2015 01:28:21 -0800 (PST)
+In-Reply-To: <20150101200424.GB12770@xora-haswell.xora.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: ashwinc@codeaurora.org, catalin.marinas@arm.com, rjw@rjwysocki.net, mark.rutland@arm.com, olof@lixom.net, grant.likely@linaro.org, will.deacon@arm.com, linaro-acpi@lists.linaro.org, Liviu.Dudau@arm.com, lv.zheng@intel.com, robh@kernel.org, Lorenzo.Pieralisi@arm.com, al.stone@linaro.org, daniel.lezcano@linaro.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, rric@kernel.org, jason@lakedaemon.net, arnd@arndb.de, marc.zyngier@arm.com, jcm@redhat.com, broonie@kernel.org, "bhelgaas@google.com." <linux-arm-kernel@lists.infradead.org>, graeme.gregory@linaro.org, Kangkang.Shen@huawei.com, rdunlap@infradead.org, linux-kernel@vger.kernel.org, Sudeep.Holla@arm.com
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Graeme,
 
-If an ACPI device object whose _STA returns 0 (not present and not
-functional) has _PR0 or _PS0, its power_manageable flag will be set
-and acpi_bus_init_power() will return 0 for it.  Consequently, if
-such a device object is passed to the ACPI device PM functions, they
-will attempt to carry out the requested operation on the device,
-although they should not do that for devices that are not present.
+On 2015=E5=B9=B401=E6=9C=8802=E6=97=A5 04:04, Graeme Gregory wrote:
+> On Wed, Dec 31, 2014 at 04:34:46PM +0800, Hanjun Guo wrote:
+>> On 2014=E5=B9=B412=E6=9C=8831=E6=97=A5 04:13, ashwinc@codeaurora.org=
+ wrote:
+>>> Hi Hanjun,
+>>>
+>>> Overall the document looks good to us. Some minor clarifications be=
+low.
+>>>
+>>>> ---------- Forwarded message ----------
+>>>> From: Graeme Gregory <graeme.gregory@linaro.org>
+>>>>
+>>>> Add documentation for the guidelines of how to use ACPI
+>>>> on ARM64.
+>>>>
+>>>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>>>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>   Documentation/arm64/arm-acpi.txt |  323
+>>>> ++++++++++++++++++++++++++++++++++++++
+>>>>   1 file changed, 323 insertions(+)
+>>>>   create mode 100644 Documentation/arm64/arm-acpi.txt
+>>>>
+>>>
+>>> [..]
+>>>
+>>>> +Relationship with Device Tree
+>>>> +-----------------------------
+>>>
+>>> [..]
+>>>
+>>>> +When booting using ACPI tables, the /chosen node in DT will still=
+ be
+>>>> parsed
+>>>> +to extract the kernel command line and initrd path.  No other sec=
+tion of
+>>>> the
+>>>> +DT will be used.
+>>>
+>>> Is this still true?
+>>
+>> No, we can booting the ACPI system in EFI stub without dtb. Catalin
+>> also pointed out this issue, I will remove this paragraph.
+>>
+>
+> The paragraph is still correct, the /chosen node is always present ev=
+en
+> if nothing else is.
 
-To fix that problem make acpi_bus_init_power() return an error code
-for devices that are not present which will cause power_manageable to
-be cleared for them as appropriate in acpi_bus_get_power_flags().
-However, the lists of power resources should not be freed for the
-device in that case, so modify acpi_bus_get_power_flags() to keep
-those lists even if acpi_bus_init_power() returns an error.
-Accordingly, when deciding whether or not the lists of power
-resources need to be freed, acpi_free_power_resources_lists()
-should check the power.flags.power_resources flag instead of
-flags.power_manageable, so make that change too.
+Sorry for the confusing, I mean no dtb needed for the command line if
+ACPI tables are available.
 
-Furthermore, if acpi_bus_attach() sees that flags.initialized is
-unset for the given device, it should reset the power management
-settings of the device and re-initialize them from scratch instead
-of relying on the previous settings (the device may have appeared
-after being not present previously, for example), so make it use
-the 'valid' flag of the D0 power state as the initial value of
-flags.power_manageable for it and call acpi_bus_init_power() to
-discover its current power state.
+efi will create a empty dtb if no dtb found, and add the cmd line into
+the new created dtb, I'm just wondering, can we remove the limitation
+for passing the cmd line in /chosen node in the future?
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-"Stable" material.
-
----
- drivers/acpi/device_pm.c |    2 +-
- drivers/acpi/scan.c      |   13 ++++++++-----
- 2 files changed, 9 insertions(+), 6 deletions(-)
-
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -257,7 +257,7 @@ int acpi_bus_init_power(struct acpi_devi
- 
- 	device->power.state = ACPI_STATE_UNKNOWN;
- 	if (!acpi_device_is_present(device))
--		return 0;
-+		return -ENXIO;
- 
- 	result = acpi_device_get_power(device, &state);
- 	if (result)
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -1001,7 +1001,7 @@ static void acpi_free_power_resources_li
- 	if (device->wakeup.flags.valid)
- 		acpi_power_resources_list_free(&device->wakeup.resources);
- 
--	if (!device->flags.power_manageable)
-+	if (!device->power.flags.power_resources)
- 		return;
- 
- 	for (i = ACPI_STATE_D0; i <= ACPI_STATE_D3_HOT; i++) {
-@@ -1744,10 +1744,8 @@ static void acpi_bus_get_power_flags(str
- 			device->power.flags.power_resources)
- 		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
- 
--	if (acpi_bus_init_power(device)) {
--		acpi_free_power_resources_lists(device);
-+	if (acpi_bus_init_power(device))
- 		device->flags.power_manageable = 0;
--	}
- }
- 
- static void acpi_bus_get_flags(struct acpi_device *device)
-@@ -2371,13 +2369,18 @@ static void acpi_bus_attach(struct acpi_
- 	/* Skip devices that are not present. */
- 	if (!acpi_device_is_present(device)) {
- 		device->flags.visited = false;
-+		device->flags.power_manageable = 0;
- 		return;
- 	}
- 	if (device->handler)
- 		goto ok;
- 
- 	if (!device->flags.initialized) {
--		acpi_bus_update_power(device, NULL);
-+		device->flags.power_manageable =
-+			device->power.states[ACPI_STATE_D0].flags.valid;
-+		if (acpi_bus_init_power(device))
-+			device->flags.power_manageable = 0;
-+
- 		device->flags.initialized = true;
- 	}
- 	device->flags.visited = false;
-
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
