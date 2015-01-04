@@ -1,71 +1,116 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Sun, 04 Jan 2015 17:39:24 +0800
-Message-ID: <54A90A4C.60908@linaro.org>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org> <20141224171815.GD13399@e104818-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH v6 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Sun,  4 Jan 2015 18:55:01 +0800
+Message-ID: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:62427 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921AbbADJjq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2015 04:39:46 -0500
-Received: by mail-pa0-f54.google.com with SMTP id fb1so26740058pad.13
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Jan 2015 01:39:46 -0800 (PST)
-In-Reply-To: <20141224171815.GD13399@e104818-lin.cambridge.arm.com>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:40483 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750905AbbADKzd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2015 05:55:33 -0500
+Received: by mail-pd0-f174.google.com with SMTP id fp1so26196802pdb.19
+        for <linux-acpi@vger.kernel.org>; Sun, 04 Jan 2015 02:55:33 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawe
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2014=E5=B9=B412=E6=9C=8825=E6=97=A5 01:18, Catalin Marinas wrote:
-[...]
->
-> In addition to the above and _DSD requirements/banning, I would also =
-add
-> some clear statements around:
->
-> _OSC: only global/published capabilities are allowed. For
-> device-specific _OSC we need a process or maybe we can ban them entir=
-ely
-> and rely on _DSD once we clarify the process.
->
-> _OSI: firmware must not check for certain _OSI strings. Here I'm not
-> sure what we would have to do for ARM Linux. Reporting "Windows" does
-> not make any sense but not reporting anything can, as Matthew Garrett
-> pointed out, can be interpreted by firmware as "Linux". In addition t=
-o
-> any statements in this document, I suggest you patch
-> drivers/acpi/acpica/utosi.c accordingly, maybe report "Linux" for ARM
-> and print a kernel warning so that we notice earlier.
->
-> ACPI_OS_NAME: this is globally defined as "Microsoft Windows NT". It
-> doesn't make much sense in the ARM context. Could we change it to
-> "Linux" when CONFIG_ARM64?
+Hi,
 
-We will work on this both on ASWG and linux ACPI driver side, as Dong
-and Charles pointed out, _OSI things can be solved in ACPI spec, when
-that is done, we can modify the kernel driver to fix the problems above=
-=2E
+This is the sixth version of ACPI core patches for ARM64 based on ACPI
+5.1.
 
->
-> Compatibility with older kernels: ACPI firmware must work, even thoug=
-h
-> not fully optimal, with the earliest kernel version implementing the
-> targeted ACPI spec. There may be a need for new drivers but otherwise
-> adding things like CPU power management should not break older kernel
-> versions. In addition, the ACPI firmware must also work with the late=
-st
-> kernel version.
+updates from v5:
+  - fix the NULL pointer reference in cpu_get_ops() if PSCI is absent
+    and NULL will passed, which found by Suravee when he was testing
+    those patches on Seattle platform. I added his Tested-by for all
+    those ACPI patches.
 
-It should be, and I think that's why we need ACPI (or DT) here :)
+  - Rebased on 3.19-rc2 which ACPI table related patches already merged
+    into 3.19 by Rafael, and remove the first patch in v5 which is not needed
+    any more.
+
+  - Add two cleanup patches to convert ACPI ID to physical ID to make the
+    ACPI core looks more ARCH agnostic, those two patches were expected going
+    into 3.19 but conflicted with IOAPIC hotplug patches so Rafael left them
+    for 3.20.
+
+  - updates to the doc about ACPI on ARM to address comments from Catalin,
+    Timur, Ashwin. continue discussion will bw needed about this doc.
+
+  - we did lots of work as Al pointed out in the "[RFC] ACPI on arm64 TODO List"
+    thread [1], and we already make FWTS running on ARM64, thanks FuWei for doing
+    that. Here is the test results for linaro leg kernel release test results:
+
+Test report for leg-20141215.0 (Revision: d37eefeb160cc9cc1db997031793723e317be7b7)
+
+This test Image comes from  https://ci.linaro.org/job/linux-leg-fuwei
+The CI job Link: https://ci.linaro.org/job/linux-leg-fuwei/37/
+
+Notes : All the tests ran on FVP base model in LAVA server : http://validation.linaro.org/
+
+The startup.nsh boot test Link :https://validation.linaro.org/scheduler/job/222779
+
+The ACPI test Link : https://validation.linaro.org/scheduler/job/222781
+    The results.log file Link : https://validation.linaro.org/dashboard/attachment/1267957/view
+
+The grub-install test Link : https://validation.linaro.org/scheduler/job/222780
+
+and here is the *summary*:
+
+summary        -SUM:77 passed, 6 failed, 2 warnings, 5 aborted, 186 skipped, 8 info only.
+summary        -NLN:
+summary        -SUM:Test Failure Summary
+summary        -SEP:===========================================================================================
+summary        -NLN:
+summary        -SUM:Critical failures: NONE
+summary        -NLN:
+summary        -SUM:High failures: 2
+summary        -SUM: uefirttime: Failed to get wakeup time with UEFI runtime service.
+summary        -SUM: uefirttime: Failed to set wakeup time with UEFI runtime service.
+summary        -NLN:
+summary        -SUM:Medium failures: 5
+summary        -SUM: wakealarm: Could not find an RTC with an alarm ioctl() interface.
+summary        -SUM: method: \_SB_.COM0._CID returned a string 'PL011' but it was not a valid PNP ID or a valid ACPI ID.
+summary        -SUM: method: Object _PRS did not exist.
+summary        -SUM: method: Object _PTS did not exist.
+summary        -SUM: method: Object _WAK did not exist.
+summary        -NLN:
+summary        -SUM:Low failures: NONE
+summary        -NLN:
+summary        -SUM:Other failures: NONE
+summary        -NLN:
+summary        -SUM:Test           |Pass |Fail |Abort|Warn |Skip |Info |
+summary        -SUM:---------------+-----+-----+-----+-----+-----+-----+
+summary        -SUM:acpidump       |     |     |     |     |     |    1|
+summary        -SUM:acpiinfo       |     |     |     |     |     |    3|
+summary        -SUM:acpitables     |   11|     |     |    1|     |     |
+summary        -SUM:aspm           |     |     |     |     |    1|     |
+summary        -SUM:checksum       |    8|     |     |     |     |     |
+summary        -SUM:cpufreq        |     |     |     |    1|     |     |
+summary        -SUM:crsdump        |     |     |     |     |     |     |
+summary        -SUM:gpedump        |     |     |     |     |     |     |
+summary        -SUM:hda_audio      |     |     |     |     |    1|     |
+summary        -SUM:klog           |    1|     |     |     |     |     |
+summary        -SUM:maxreadreq     |     |     |     |     |     |     |
+summary        -SUM:method         |   29|    4|     |     |  173|     |
+summary        -SUM:oops           |    2|     |     |     |     |     |
+summary        -SUM:plddump        |     |     |     |     |     |     |
+summary        -SUM:prsdump        |     |     |     |     |     |     |
+summary        -SUM:securebootcert |     |     |    1|     |     |     |
+summary        -SUM:syntaxcheck    |    1|     |     |     |     |     |
+summary        -SUM:uefibootpath   |    1|     |     |     |     |     |
+summary        -SUM:uefidump       |     |     |     |     |     |     |
+summary        -SUM:uefirtmisc     |    2|     |     |     |   10|     |
+summary        -SUM:uefirttime     |    2|    2|     |     |     |     |
+summary        -SUM:uefirtvariable |   20|     |     |     |     |     |
+summary        -SUM:uefivarinfo    |     |     |     |     |     |     |
+summary        -SUM:version        |     |     |     |     |    1|    4|
+summary        -SUM:wakealarm      |     |     |    4|     |     |     |
+summary        -SUM:---------------+-----+-----+-----+-----+-----+-----+
+summary        -SUM:Total:         |   77|    6|    5|    2|  186|    8|
+summary        -SUM:---------------+-----+-----+-----+-----+-----+-----+
+
+
+[1]: http://lists.infradead.org/pipermail/linux-arm-kernel/2014-December/310921.html
 
 Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
