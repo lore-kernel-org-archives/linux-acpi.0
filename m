@@ -1,129 +1,139 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v6 05/17] ARM64 / ACPI: Introduce early_param for "acpi" and pass acpi=force to enable ACPI
-Date: Sun,  4 Jan 2015 18:55:06 +0800
-Message-ID: <1420368918-5086-6-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v6 02/17] ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
+Date: Sun,  4 Jan 2015 18:55:03 +0800
+Message-ID: <1420368918-5086-3-git-send-email-hanjun.guo@linaro.org>
 References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.com>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.com>
 
-Introduce one early parameters "off" and "force" for "acpi", acpi=off
-will be the default behavior for ARM64, so introduce acpi=force to
-enable ACPI on ARM64.
+acpi_map_lsapic() will allocate a logical CPU number and map it to
+physical CPU id (such as APIC id) for the hot-added CPU, it will also
+do some mapping for NUMA node id and etc, acpi_unmap_lsapic() will
+do the reverse.
 
-Disable ACPI before early parameters parsed, and enable it to pass
-"acpi=force" if people want use ACPI on ARM64. This ensures DT be
-the prefer one if ACPI table and DT both are provided at this moment.
+We can see that the name of the function is a little bit confusing and
+arch (IA64) dependent so rename them as acpi_(un)map_cpu() to make arch
+agnostic and explicit.
 
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- Documentation/kernel-parameters.txt |  3 ++-
- arch/arm64/include/asm/acpi.h       |  9 +++++++++
- arch/arm64/kernel/acpi.c            | 17 +++++++++++++++++
- arch/arm64/kernel/setup.c           |  3 +++
- 4 files changed, 31 insertions(+), 1 deletion(-)
+ arch/ia64/kernel/acpi.c       | 9 ++++-----
+ arch/x86/kernel/acpi/boot.c   | 9 ++++-----
+ drivers/acpi/acpi_processor.c | 6 +++---
+ include/linux/acpi.h          | 4 ++--
+ 4 files changed, 13 insertions(+), 15 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 4df73da..4adfd50 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
- bytes respectively. Such letter suffixes can also be entirely omitted.
- 
- 
--	acpi=		[HW,ACPI,X86]
-+	acpi=		[HW,ACPI,X86,ARM64]
- 			Advanced Configuration and Power Interface
- 			Format: { force | off | strict | noirq | rsdt }
- 			force -- enable ACPI if default was off
-@@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 				strictly ACPI specification compliant.
- 			rsdt -- prefer RSDT over (default) XSDT
- 			copy_dsdt -- copy DSDT to memory
-+			For ARM64, ONLY "acpi=off" or "acpi=force" are available
- 
- 			See also Documentation/power/runtime_pm.txt, pci=noacpi
- 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 8b837ab..496c33b 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -26,6 +26,13 @@ static inline void disable_acpi(void)
- 	acpi_noirq = 1;
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 615ef81..e795cb8 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -893,13 +893,13 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
  }
  
-+static inline void enable_acpi(void)
-+{
-+	acpi_disabled = 0;
-+	acpi_pci_disabled = 0;
-+	acpi_noirq = 0;
-+}
-+
- /*
-  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-  * with this check the ACPI core will not override the CPU index
-@@ -40,6 +47,8 @@ static inline bool acpi_has_cpu_in_madt(void)
- 
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
- 
-+#else
-+static inline void disable_acpi(void) { }
- #endif /* CONFIG_ACPI */
- 
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 9252f72..39a1655 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -67,3 +67,20 @@ void __init acpi_boot_table_init(void)
- 	if (acpi_table_init())
- 		disable_acpi();
+ /* wrapper to silence section mismatch warning */
+-int __ref acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
++int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
+ {
+ 	return _acpi_map_lsapic(handle, physid, pcpu);
  }
-+
-+static int __init parse_acpi(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	/* "acpi=off" disables both ACPI table parsing and interpreter */
-+	if (strcmp(arg, "off") == 0)
-+		disable_acpi();
-+	else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
-+		enable_acpi();
-+	else
-+		return -EINVAL;	/* Core will print when we return error */
-+
-+	return 0;
-+}
-+early_param("acpi", parse_acpi);
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index 224a2e6..22e6895 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -62,6 +62,7 @@
- #include <asm/memblock.h>
- #include <asm/psci.h>
- #include <asm/efi.h>
-+#include <asm/acpi.h>
+-EXPORT_SYMBOL(acpi_map_lsapic);
++EXPORT_SYMBOL(acpi_map_cpu);
  
- unsigned int processor_id;
- EXPORT_SYMBOL(processor_id);
-@@ -388,6 +389,8 @@ void __init setup_arch(char **cmdline_p)
- 	early_fixmap_init();
- 	early_ioremap_init();
+-int acpi_unmap_lsapic(int cpu)
++int acpi_unmap_cpu(int cpu)
+ {
+ 	ia64_cpu_to_sapicid[cpu] = -1;
+ 	set_cpu_present(cpu, false);
+@@ -910,8 +910,7 @@ int acpi_unmap_lsapic(int cpu)
  
-+	disable_acpi();
-+
- 	parse_early_param();
+ 	return (0);
+ }
+-
+-EXPORT_SYMBOL(acpi_unmap_lsapic);
++EXPORT_SYMBOL(acpi_unmap_cpu);
+ #endif				/* CONFIG_ACPI_HOTPLUG_CPU */
  
- 	/*
+ #ifdef CONFIG_ACPI_NUMA
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 4433a4b..d162636 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -750,13 +750,13 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
+ }
+ 
+ /* wrapper to silence section mismatch warning */
+-int __ref acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
++int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
+ {
+ 	return _acpi_map_lsapic(handle, physid, pcpu);
+ }
+-EXPORT_SYMBOL(acpi_map_lsapic);
++EXPORT_SYMBOL(acpi_map_cpu);
+ 
+-int acpi_unmap_lsapic(int cpu)
++int acpi_unmap_cpu(int cpu)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+ 	set_apicid_to_node(per_cpu(x86_cpu_to_apicid, cpu), NUMA_NO_NODE);
+@@ -768,8 +768,7 @@ int acpi_unmap_lsapic(int cpu)
+ 
+ 	return (0);
+ }
+-
+-EXPORT_SYMBOL(acpi_unmap_lsapic);
++EXPORT_SYMBOL(acpi_unmap_cpu);
+ #endif				/* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index f02b29e..1020b1b 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -180,13 +180,13 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+ 	cpu_maps_update_begin();
+ 	cpu_hotplug_begin();
+ 
+-	ret = acpi_map_lsapic(pr->handle, pr->phys_id, &pr->id);
++	ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
+ 	if (ret)
+ 		goto out;
+ 
+ 	ret = arch_register_cpu(pr->id);
+ 	if (ret) {
+-		acpi_unmap_lsapic(pr->id);
++		acpi_unmap_cpu(pr->id);
+ 		goto out;
+ 	}
+ 
+@@ -461,7 +461,7 @@ static void acpi_processor_remove(struct acpi_device *device)
+ 
+ 	/* Remove the CPU. */
+ 	arch_unregister_cpu(pr->id);
+-	acpi_unmap_lsapic(pr->id);
++	acpi_unmap_cpu(pr->id);
+ 
+ 	cpu_hotplug_done();
+ 	cpu_maps_update_done();
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 856d381..d459cd1 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -147,8 +147,8 @@ void acpi_numa_arch_fixup(void);
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ /* Arch dependent functions for cpu hotplug support */
+-int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
+-int acpi_unmap_lsapic(int cpu);
++int acpi_map_cpu(acpi_handle handle, int physid, int *pcpu);
++int acpi_unmap_cpu(int cpu);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
 -- 
 1.9.1
