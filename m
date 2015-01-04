@@ -1,139 +1,202 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v6 02/17] ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
-Date: Sun,  4 Jan 2015 18:55:03 +0800
-Message-ID: <1420368918-5086-3-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v6 07/17] ARM64 / ACPI: Make PCI optional for ACPI on ARM64
+Date: Sun,  4 Jan 2015 18:55:08 +0800
+Message-ID: <1420368918-5086-8-git-send-email-hanjun.guo@linaro.org>
 References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:57794 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872AbbADK4Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2015 05:56:16 -0500
+Received: by mail-pa0-f46.google.com with SMTP id lf10so26684182pab.19
+        for <linux-acpi@vger.kernel.org>; Sun, 04 Jan 2015 02:56:16 -0800 (PST)
 In-Reply-To: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Hanjun Guo <hanjun.guo@linaro.com>
+Since PCI is not required in ACPI spec and ARM can run without
+it, introduce some stub functions to make PCI optional for ACPI,
+and make ACPI core run without CONFIG_PCI on ARM64.
 
-acpi_map_lsapic() will allocate a logical CPU number and map it to
-physical CPU id (such as APIC id) for the hot-added CPU, it will also
-do some mapping for NUMA node id and etc, acpi_unmap_lsapic() will
-do the reverse.
+When PCI is enabled on ARM64, ACPI core will need some PCI functions
+to make it functional, so introduce some empty functions here and
+implement it later.
 
-We can see that the name of the function is a little bit confusing and
-arch (IA64) dependent so rename them as acpi_(un)map_cpu() to make arch
-agnostic and explicit.
+Since ACPI on X86 and IA64 depends on PCI and this patch only makes
+PCI optional for ARM64, it will not break anything on X86 and IA64.
 
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/ia64/kernel/acpi.c       | 9 ++++-----
- arch/x86/kernel/acpi/boot.c   | 9 ++++-----
- drivers/acpi/acpi_processor.c | 6 +++---
- include/linux/acpi.h          | 4 ++--
- 4 files changed, 13 insertions(+), 15 deletions(-)
+ arch/arm64/include/asm/pci.h |  6 ++++++
+ arch/arm64/kernel/pci.c      | 28 ++++++++++++++++++++++++++++
+ drivers/acpi/Makefile        |  2 +-
+ drivers/acpi/internal.h      |  5 +++++
+ include/linux/pci.h          | 37 +++++++++++++++++++++++++++----------
+ 5 files changed, 67 insertions(+), 11 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 615ef81..e795cb8 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -893,13 +893,13 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
- }
+diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+index 872ba93..fded096 100644
+--- a/arch/arm64/include/asm/pci.h
++++ b/arch/arm64/include/asm/pci.h
+@@ -24,6 +24,12 @@
+  */
+ #define PCI_DMA_BUS_IS_PHYS	(0)
  
- /* wrapper to silence section mismatch warning */
--int __ref acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
-+int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
- {
- 	return _acpi_map_lsapic(handle, physid, pcpu);
- }
--EXPORT_SYMBOL(acpi_map_lsapic);
-+EXPORT_SYMBOL(acpi_map_cpu);
++static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
++{
++	/* no legacy IRQ on arm64 */
++	return -ENODEV;
++}
++
+ extern int isa_dma_bridge_buggy;
  
--int acpi_unmap_lsapic(int cpu)
-+int acpi_unmap_cpu(int cpu)
- {
- 	ia64_cpu_to_sapicid[cpu] = -1;
- 	set_cpu_present(cpu, false);
-@@ -910,8 +910,7 @@ int acpi_unmap_lsapic(int cpu)
+ #ifdef CONFIG_PCI
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index ce5836c..42fb195 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -10,6 +10,7 @@
+  *
+  */
  
- 	return (0);
++#include <linux/acpi.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+@@ -68,3 +69,30 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+ 	bus->domain_nr = domain;
  }
+ #endif
++
++/*
++ * raw_pci_read/write - Platform-specific PCI config space access.
++ *
++ * Default empty implementation.  Replace with an architecture-specific setup
++ * routine, if necessary.
++ */
++int raw_pci_read(unsigned int domain, unsigned int bus,
++		  unsigned int devfn, int reg, int len, u32 *val)
++{
++	return -EINVAL;
++}
++
++int raw_pci_write(unsigned int domain, unsigned int bus,
++		unsigned int devfn, int reg, int len, u32 val)
++{
++	return -EINVAL;
++}
++
++#ifdef CONFIG_ACPI
++/* Root bridge scanning */
++struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
++{
++	/* TODO: Should be revisited when implementing PCI on ACPI */
++	return NULL;
++}
++#endif
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 39f3ec1..c346011 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -43,7 +43,7 @@ acpi-y				+= processor_core.o
+ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+ acpi-y				+= ec.o
+ acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+-acpi-y				+= pci_root.o pci_link.o pci_irq.o
++acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
+ acpi-y				+= acpi_lpss.o
+ acpi-y				+= acpi_platform.o
+ acpi-y				+= acpi_pnp.o
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 163e82f..c5ff8ba 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -26,8 +26,13 @@
+ acpi_status acpi_os_initialize1(void);
+ int init_acpi_device_notify(void);
+ int acpi_scan_init(void);
++#ifdef CONFIG_PCI
+ void acpi_pci_root_init(void);
+ void acpi_pci_link_init(void);
++#else
++static inline void acpi_pci_root_init(void) {}
++static inline void acpi_pci_link_init(void) {}
++#endif
+ void acpi_processor_init(void);
+ void acpi_platform_init(void);
+ void acpi_pnp_init(void);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 360a966..1476a66 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -564,15 +564,6 @@ struct pci_ops {
+ 	int (*write)(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 val);
+ };
+ 
+-/*
+- * ACPI needs to be able to access PCI config space before we've done a
+- * PCI bus scan and created pci_bus structures.
+- */
+-int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+-		 int reg, int len, u32 *val);
+-int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+-		  int reg, int len, u32 val);
 -
--EXPORT_SYMBOL(acpi_unmap_lsapic);
-+EXPORT_SYMBOL(acpi_unmap_cpu);
- #endif				/* CONFIG_ACPI_HOTPLUG_CPU */
+ struct pci_bus_region {
+ 	dma_addr_t start;
+ 	dma_addr_t end;
+@@ -1329,6 +1320,16 @@ typedef int (*arch_set_vga_state_t)(struct pci_dev *pdev, bool decode,
+ 		      unsigned int command_bits, u32 flags);
+ void pci_register_set_vga_state(arch_set_vga_state_t func);
  
- #ifdef CONFIG_ACPI_NUMA
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 4433a4b..d162636 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -750,13 +750,13 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
- }
++/*
++ * ACPI needs to be able to access PCI config space before we've done a
++ * PCI bus scan and created pci_bus structures.
++ */
++int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
++		 int reg, int len, u32 *val);
++int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
++		  int reg, int len, u32 val);
++void pcibios_penalize_isa_irq(int irq, int active);
++
+ #else /* CONFIG_PCI is not enabled */
  
- /* wrapper to silence section mismatch warning */
--int __ref acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
-+int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
- {
- 	return _acpi_map_lsapic(handle, physid, pcpu);
- }
--EXPORT_SYMBOL(acpi_map_lsapic);
-+EXPORT_SYMBOL(acpi_map_cpu);
+ /*
+@@ -1430,6 +1431,23 @@ static inline struct pci_dev *pci_get_bus_and_slot(unsigned int bus,
+ 						unsigned int devfn)
+ { return NULL; }
  
--int acpi_unmap_lsapic(int cpu)
-+int acpi_unmap_cpu(int cpu)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	set_apicid_to_node(per_cpu(x86_cpu_to_apicid, cpu), NUMA_NO_NODE);
-@@ -768,8 +768,7 @@ int acpi_unmap_lsapic(int cpu)
++static inline struct pci_bus *pci_find_bus(int domain, int busnr)
++{ return NULL; }
++
++static inline int pci_bus_write_config_byte(struct pci_bus *bus,
++				unsigned int devfn, int where, u8 val)
++{ return -ENOSYS; }
++
++static inline int raw_pci_read(unsigned int domain, unsigned int bus,
++			unsigned int devfn, int reg, int len, u32 *val)
++{ return -ENOSYS; }
++
++static inline int raw_pci_write(unsigned int domain, unsigned int bus,
++			unsigned int devfn, int reg, int len, u32 val)
++{ return -ENOSYS; }
++
++static inline void pcibios_penalize_isa_irq(int irq, int active) { }
++
+ static inline int pci_domain_nr(struct pci_bus *bus) { return 0; }
+ static inline struct pci_dev *pci_dev_get(struct pci_dev *dev) { return NULL; }
+ static inline int pci_get_new_domain_nr(void) { return -ENOSYS; }
+@@ -1639,7 +1657,6 @@ int pcibios_set_pcie_reset_state(struct pci_dev *dev,
+ 				 enum pcie_reset_state state);
+ int pcibios_add_device(struct pci_dev *dev);
+ void pcibios_release_device(struct pci_dev *dev);
+-void pcibios_penalize_isa_irq(int irq, int active);
  
- 	return (0);
- }
--
--EXPORT_SYMBOL(acpi_unmap_lsapic);
-+EXPORT_SYMBOL(acpi_unmap_cpu);
- #endif				/* CONFIG_ACPI_HOTPLUG_CPU */
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index f02b29e..1020b1b 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -180,13 +180,13 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- 	cpu_maps_update_begin();
- 	cpu_hotplug_begin();
- 
--	ret = acpi_map_lsapic(pr->handle, pr->phys_id, &pr->id);
-+	ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
- 	if (ret)
- 		goto out;
- 
- 	ret = arch_register_cpu(pr->id);
- 	if (ret) {
--		acpi_unmap_lsapic(pr->id);
-+		acpi_unmap_cpu(pr->id);
- 		goto out;
- 	}
- 
-@@ -461,7 +461,7 @@ static void acpi_processor_remove(struct acpi_device *device)
- 
- 	/* Remove the CPU. */
- 	arch_unregister_cpu(pr->id);
--	acpi_unmap_lsapic(pr->id);
-+	acpi_unmap_cpu(pr->id);
- 
- 	cpu_hotplug_done();
- 	cpu_maps_update_done();
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 856d381..d459cd1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -147,8 +147,8 @@ void acpi_numa_arch_fixup(void);
- 
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
--int acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu);
--int acpi_unmap_lsapic(int cpu);
-+int acpi_map_cpu(acpi_handle handle, int physid, int *pcpu);
-+int acpi_unmap_cpu(int cpu);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
+ #ifdef CONFIG_HIBERNATE_CALLBACKS
+ extern struct dev_pm_ops pcibios_pm_ops;
 -- 
 1.9.1
+
