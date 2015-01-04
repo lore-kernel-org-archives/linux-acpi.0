@@ -1,361 +1,238 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v6 17/17] Documentation: ACPI for ARM64
-Date: Sun,  4 Jan 2015 18:55:18 +0800
-Message-ID: <1420368918-5086-18-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v6 14/17] ARM64 / ACPI: Parse GTDT to initialize arch timer
+Date: Sun,  4 Jan 2015 18:55:15 +0800
+Message-ID: <1420368918-5086-15-git-send-email-hanjun.guo@linaro.org>
 References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+Using the information presented by GTDT to initialize the arch
+timer (not memory-mapped).
 
-Add documentation for the guidelines of how to use ACPI
-on ARM64.
-
-Reviewed-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
+Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- Documentation/arm64/arm-acpi.txt | 327 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 327 insertions(+)
- create mode 100644 Documentation/arm64/arm-acpi.txt
+ arch/arm64/kernel/time.c             |   7 ++
+ drivers/clocksource/arm_arch_timer.c | 132 ++++++++++++++++++++++++++++-------
+ include/linux/clocksource.h          |   6 ++
+ 3 files changed, 118 insertions(+), 27 deletions(-)
 
-diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
-new file mode 100644
-index 0000000..21e7020
---- /dev/null
-+++ b/Documentation/arm64/arm-acpi.txt
-@@ -0,0 +1,327 @@
-+ACPI on ARMv8 Servers
-+---------------------
-+ACPI can be used for ARMv8 general purpose servers designed to follow
-+the ARM SBSA (Server Base System Architecture) and SBBR (Server Base
-+Boot Requirements) specifications, currently available to those with
-+an ARM login at http://silver.arm.com.
+diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+index 1a7125c..42f9195 100644
+--- a/arch/arm64/kernel/time.c
++++ b/arch/arm64/kernel/time.c
+@@ -35,6 +35,7 @@
+ #include <linux/delay.h>
+ #include <linux/clocksource.h>
+ #include <linux/clk-provider.h>
++#include <linux/acpi.h>
+ 
+ #include <clocksource/arm_arch_timer.h>
+ 
+@@ -72,6 +73,12 @@ void __init time_init(void)
+ 
+ 	tick_setup_hrtimer_broadcast();
+ 
++	/*
++	 * Since ACPI or FDT will only one be available in the system,
++	 * we can use acpi_generic_timer_init() here safely
++	 */
++	acpi_generic_timer_init();
 +
-+The ARMv8 kernel implements the reduced hardware model of ACPI version
-+5.1 and later.  Links to the specification and all external documents
-+it refers to are managed by the UEFI Forum.  The specification is
-+available at http://www.uefi.org/specifications and external documents
-+can be found via http://www.uefi.org/acpi.
+ 	arch_timer_rate = arch_timer_get_rate();
+ 	if (!arch_timer_rate)
+ 		panic("Unable to initialise architected timer.\n");
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 6a79fc4..612f2a0 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -21,6 +21,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/sched_clock.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/arch_timer.h>
+ #include <asm/virt.h>
+@@ -370,8 +371,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+ 	if (arch_timer_rate)
+ 		return;
+ 
+-	/* Try to determine the frequency from the device tree or CNTFRQ */
+-	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
++	/*
++	 * Try to determine the frequency from the device tree or CNTFRQ,
++	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
++	 */
++	if (!acpi_disabled ||
++	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
+ 		if (cntbase)
+ 			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
+ 		else
+@@ -690,28 +695,8 @@ static void __init arch_timer_common_init(void)
+ 	arch_timer_arch_init();
+ }
+ 
+-static void __init arch_timer_init(struct device_node *np)
++static void __init arch_timer_init(void)
+ {
+-	int i;
+-
+-	if (arch_timers_present & ARCH_CP15_TIMER) {
+-		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+-		return;
+-	}
+-
+-	arch_timers_present |= ARCH_CP15_TIMER;
+-	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+-		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+-	arch_timer_detect_rate(NULL, np);
+-
+-	/*
+-	 * If we cannot rely on firmware initializing the timer registers then
+-	 * we should use the physical timers instead.
+-	 */
+-	if (IS_ENABLED(CONFIG_ARM) &&
+-	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+-			arch_timer_use_virtual = false;
+-
+ 	/*
+ 	 * If HYP mode is available, we know that the physical timer
+ 	 * has been configured to be accessible from PL1. Use it, so
+@@ -730,13 +715,39 @@ static void __init arch_timer_init(struct device_node *np)
+ 		}
+ 	}
+ 
+-	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+-
+ 	arch_timer_register();
+ 	arch_timer_common_init();
+ }
+-CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
+-CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
 +
-+If an ARMv8 system does not meet the requirements of the SBSA, or cannot
-+be described using the mechanisms defined in the required ACPI specifications,
-+then it is likely that Device Tree (DT) is more suitable than ACPI for the
-+hardware.
-+
-+
-+Relationship with Device Tree
-+-----------------------------
-+ACPI support in drivers and subsystems for ARMv8 should never be mutually
-+exclusive with DT support at compile time.
-+
-+At boot time the kernel will only use one description method depending on
-+parameters passed from the bootloader (including kernel bootargs).
-+
-+Regardless of whether DT or ACPI is used, the kernel must always be capable
-+of booting with either scheme (in kernels with both schemes enabled at compile
-+time).
-+
-+
-+Booting using ACPI tables
-+-------------------------
-+The only defined method for passing ACPI tables to the kernel on ARMv8
-+is via the UEFI system configuration table.
-+
-+Processing of ACPI tables may be disabled by passing acpi=off on the kernel
-+command line; this is the default behavior if both ACPI and DT tables are
-+present.  If acpi=force is used, the kernel will ONLY use device configuration
-+information contained in the ACPI tables if those tables are available.
-+
-+In order for the kernel to load and use ACPI tables, the UEFI implementation
-+MUST set the ACPI_20_TABLE_GUID to point to the RSDP table (the table with
-+the ACPI signature "RSD PTR ").  If this pointer is incorrect and acpi=force
-+is used, the kernel will disable ACPI and try to use DT to boot instead.
-+
-+If the pointer to the RSDP table is correct, the table will be mapped into
-+the kernel by the ACPI core, using the address provided by UEFI.
-+
-+The ACPI core will then locate and map in all other ACPI tables provided by
-+using the addresses in the RSDP table to find the XSDT (eXtended System
-+Description Table).  The XSDT in turn provides the addresses to all other
-+ACPI tables provided by the system firmware; the ACPI core will then traverse
-+this table and map in the tables listed.
-+
-+The ACPI core will ignore any provided RSDT (Root System Description Table).
-+RSDTs have been deprecated and are ignored on arm64 since they only allow
-+for 32-bit addresses.
-+
-+Further, the ACPI core will only use the 64-bit address fields in the FADT
-+(Fixed ACPI Description Table).  Any 32-bit address fields in the FADT will
-+be ignored on arm64.
-+
-+Hardware reduced mode (see Section 4.1 of the ACPI 5.1 specification) will
-+be enforced by the ACPI core on arm64.  Doing so allows the ACPI core to
-+run less complex code since it no longer has to provide support for legacy
-+hardware from other architectures.
-+
-+For the ACPI core to operate properly, and in turn provide the information
-+the kernel needs to configure devices, it expects to find the following
-+tables (all section numbers refer to the ACPI 5.1 specfication):
-+
-+    -- RSDP (Root System Description Pointer), section 5.2.5
-+
-+    -- XSDT (eXtended System Description Table), section 5.2.8
-+
-+    -- FADT (Fixed ACPI Description Table), section 5.2.9
-+
-+    -- DSDT (Differentiated System Description Table), section
-+       5.2.11.1
-+
-+    -- MADT (Multiple APIC Description Table), section 5.2.12
-+
-+    -- GTDT (Generic Timer Description Table), section 5.2.24
-+
-+    -- If PCI is supported, the MCFG (Memory mapped ConFiGuration
-+       Table), section 5.2.6, specifically Table 5-31.
-+
-+If the above tables are not all present, the kernel may or may not be
-+able to boot properly since it may not be able to configure all of the
-+devices available.
-+
-+
-+ACPI Detection
-+--------------
-+Drivers should determine their probe() type by checking for a null
-+value for ACPI_HANDLE, or checking .of_node, or other information in
-+the device structure.  This is detailed further in the "Driver 
-+Recommendations" section.
-+
-+In non-driver code, if the presence of ACPI needs to be detected at
-+runtime, then check the value of acpi_disabled. If CONFIG_ACPI is not
-+set, acpi_disabled will always be 1.
-+
-+
-+Device Enumeration
-+------------------
-+Device descriptions in ACPI should use standard recognized ACPI interfaces.
-+These may contain less information than is typically provided via a Device
-+Tree description for the same device.  This is also one of the reasons that
-+ACPI can be useful -- the driver takes into account that it may have less
-+detailed information about the device and uses sensible defaults instead.
-+If done properly in the driver, the hardware can change and improve over
-+time without the driver having to change at all.
-+
-+Clocks provide an excellent example.  In DT, clocks need to be specified
-+and the drivers need to take them into account.  In ACPI, the assumption
-+is that UEFI will leave the device in a reasonable default state, including
-+any clock settings.  If for some reason the driver needs to change a clock
-+value, this can be done in an ACPI method; all the driver needs to do is
-+invoke the method and not concern itself with what the method needs to do
-+to change the clock.  Changing the hardware can then take place over time
-+by changing what the ACPI method does, and not the driver.
-+
-+ACPI drivers should only look at one specific ASL object -- the _DSD object
-+-- for device driver parameters (known in DT as "bindings", or "Device
-+Properties" in ACPI).  DT bindings also will be reviewed before used.  The UEFI
-+Forum provides a mechanism for registering such bindings [URL TBD by ASWG]
-+so that they may be used on any operating system supporting ACPI.  Device
-+properties that have not been registered with the UEFI Forum should not be
-+used.
-+
-+Drivers should look for device properties in the _DSD object ONLY; the _DSD
-+object is described in the ACPI specification section 6.2.5, but more
-+specifically, use the _DSD Device Properties UUID:
-+
-+   -- UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301
-+   
-+   -- http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-+
-+The kernel has an interface for looking up device properties in a manner
-+independent of whether DT or ACPI is being used and that interface should
-+be used; it can eliminate some duplication of code paths in driver probing
-+functions and discourage divergence between DT bindings and ACPI device
-+properties.
-+
-+ACPI tables are described with a formal language called ASL, the ACPI
-+Source Language (section 19 of the specification).  This means that there
-+are always multiple ways to describe the same thing -- including device
-+properties.  For example, device properties could use an ASL construct
-+that looks like this: Name(KEY0, "value0").  An ACPI device driver would
-+then retrieve the value of the property by evaluating the KEY0 object.
-+However, using Name() this way has multiple problems: (1) ACPI limits
-+names ("KEY0") to four characters unlike DT; (2) there is no industry
-+wide registry that maintains a list of names, minimzing re-use; (3)
-+there is also no registry for the definition of property values ("value0"),
-+again making re-use difficult; and (4) how does one maintain backward
-+compatibility as new hardware comes out?  The _DSD method was created
-+to solve precisely these sorts of problems; Linux drivers should ALWAYS
-+use the _DSD method for device properties and nothing else.
-+
-+The _DSM object (ACPI Section 9.14.1) could also be used for conveying
-+device properties to a driver.  Linux drivers should only expect it to
-+be used if _DSD cannot represent the data required, and there is no way
-+to create a new UUID for the _DSD object.  Note that there is even less
-+regulation of the use of _DSM than there is of _DSD.  Drivers that depend
-+on the contents of _DSM objects will be more difficult to maintain over
-+time because of this.
-+
-+The _DSD object is a very flexible mechanism in ACPI, as are the registered
-+Device Properties.  This flexibility allows _DSD to cover more than just the
-+generic server case and care should be taken in device drivers not to expect
-+it to replicate highly specific embedded behaviour from DT.
-+
-+Both DT bindings and ACPI device properties for device drivers have review
-+processes.  Use them.  And, before creating new device properties, check to
-+be sure that they have not been defined before and either registered in the
-+Linux kernel documentation or the UEFI Forum.  If the device drivers supports
-+ACPI and DT, please make sure the device properties are consistent in both
-+places.
-+
-+
-+Programmable Power Control Resources
-+------------------------------------
-+Programmable power control resources include such resources as voltage/current
-+providers (regulators) and clock sources.
-+
-+The kernel assumes that power control of these resources is represented with
-+Power Resource Objects (ACPI section 7.1).  The ACPI core will then handle
-+correctly enabling and disabling resources as they are needed.  In order to
-+get that to work, ACPI assumes each device has defined D-states and that these
-+can be controlled through the optional ACPI methods _PS0, _PS1, _PS2, and _PS3;
-+in ACPI, _PS0 is the method to invoke to turn a device full on, and _PS3 is for
-+turning a device full off.
-+
-+There are two options for using those Power Resources.
-+   -- be managed in _PSx routine which gets called on entry to Dx.
-+
-+   -- be declared separately as power resources with their own _ON and _OFF
-+      methods.  They are then tied back to D-states for a particular device
-+      via _PRx which specifies which power resources a device needs to be on
-+      while in Dx.  Kernel then tracks number of devices using a power resource
-+      and calls _ON/_OFF as needed.
-+
-+The kernel ACPI code will also assume that the _PSx methods follow the normal
-+ACPI rules for such methods:
-+
-+   -- If either _PS0 or _PS3 is implemented, then the other method must also
-+      be implemented.
-+
-+   -- If a device requires usage or setup of a power resource when on, the ASL
-+      should organize that it is allocated/enabled using the _PS0 method.
-+
-+   -- Resources allocated or enabled in the _PS0 method should be disabled
-+      or de-allocated in the _PS3 method.
-+
-+   -- Firmware will leave the resources in a reasonable state before handing
-+      over control to the kernel.
-+
-+Such code in _PSx methods will of course be very platform specific.  But,
-+this allows the driver to abstract out the interface for operating the device
-+and avoid having to read special non-standard values from ACPI tables. Further,
-+abstracting the use of these resources allows the hardware to change over time
-+without requiring updates to the driver.
-+
-+
-+Clocks
-+------
-+ACPI makes the assumption that clocks are initialized by the firmware -- 
-+UEFI, in this case -- to some working value before control is handed over
-+to the kernel.  This has implications for devices such as UARTs, or SoC-driven
-+LCD displays, for example.
-+
-+When the kernel boots, the clock is assumed to be set to a reasonable
-+working value.  If for some reason the frequency needs to change -- e.g.,
-+throttling for power management -- the device driver should expect that 
-+process to be abstracted out into some ACPI method that can be invoked 
-+(please see the ACPI specification for further recommendations on standard
-+methods to be expected) except CPU clocks where CPPC provides a much richer
-+interface instead of some method.  If it is not, there is no direct way for
-+ACPI to control the clocks.
-+
-+
-+Driver Recommendations
-+----------------------
-+DO NOT remove any DT handling when adding ACPI support for a driver.  The
-+same device may be used on many different systems.
-+
-+DO try to structure the driver so that it is data-driven.  That is, set up
-+a struct containing internal per-device state based on defaults and whatever
-+else must be discovered by the driver probe function.  Then, have the rest
-+of the driver operate off of the contents of that struct.  Doing so should
-+allow most divergence between ACPI and DT functionality to be kept local to
-+the probe function instead of being scattered throughout the driver.  For
-+example:
-+
-+static int device_probe_dt(struct platform_device *pdev)
++static void __init arch_timer_of_init(struct device_node *np)
 +{
-+	/* DT specific functionality */
-+	...
++	int i;
++
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
++		return;
++	}
++
++	arch_timers_present |= ARCH_CP15_TIMER;
++	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
++		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
++
++	arch_timer_detect_rate(NULL, np);
++
++	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
++
++	/*
++	 * If we cannot rely on firmware initializing the timer registers then
++	 * we should use the physical timers instead.
++	 */
++	if (IS_ENABLED(CONFIG_ARM) &&
++	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
++			arch_timer_use_virtual = false;
++
++	arch_timer_init();
++}
++CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
++CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+ 
+ static void __init arch_timer_mem_init(struct device_node *np)
+ {
+@@ -803,3 +814,70 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
++
++#ifdef CONFIG_ACPI
++static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
++{
++	int trigger, polarity;
++
++	if (!interrupt)
++		return 0;
++
++	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
++			: ACPI_LEVEL_SENSITIVE;
++
++	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
++			: ACPI_ACTIVE_HIGH;
++
++	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
 +}
 +
-+static int device_probe_acpi(struct platform_device *pdev)
++/* Initialize per-processor generic timer */
++static int __init arch_timer_acpi_init(struct acpi_table_header *table)
 +{
-+	/* ACPI specific functionality */
-+	...
++	struct acpi_table_gtdt *gtdt;
++
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: already initialized, skipping\n");
++		return -EINVAL;
++	}
++
++	gtdt = container_of(table, struct acpi_table_gtdt, header);
++
++	arch_timers_present |= ARCH_CP15_TIMER;
++
++	arch_timer_ppi[PHYS_SECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
++		gtdt->secure_el1_flags);
++
++	arch_timer_ppi[PHYS_NONSECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
++		gtdt->non_secure_el1_flags);
++
++	arch_timer_ppi[VIRT_PPI] =
++		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
++		gtdt->virtual_timer_flags);
++
++	arch_timer_ppi[HYP_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
++		gtdt->non_secure_el2_flags);
++
++	/* Get the frequency from CNTFRQ */
++	arch_timer_detect_rate(NULL, NULL);
++
++	/* Always-on capability */
++	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
++
++	arch_timer_init();
++	return 0;
 +}
 +
-+static int device_probe(stuct platform_device *pdev)
++/* Initialize all the generic timers presented in GTDT */
++void __init acpi_generic_timer_init(void)
 +{
-+	...
-+	struct device_node node = pdev->dev.of_node;
-+	...
++	if (acpi_disabled)
++		return;
 +
-+	if (node)
-+		ret = device_probe_dt(pdev);
-+	else if (ACPI_HANDLE(&pdev->dev))
-+		ret = device_probe_acpi(pdev);
-+	else
-+		/* other initialization */
-+		...
-+	/* Continue with any generic probe operations */
-+	...
++	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
 +}
++#endif
+diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+index abcafaa..af6155a 100644
+--- a/include/linux/clocksource.h
++++ b/include/linux/clocksource.h
+@@ -346,4 +346,10 @@ extern void clocksource_of_init(void);
+ static inline void clocksource_of_init(void) {}
+ #endif
+ 
++#ifdef CONFIG_ACPI
++void acpi_generic_timer_init(void);
++#else
++static inline void acpi_generic_timer_init(void) { }
++#endif
 +
-+DO keep the MODULE_DEVICE_TABLE entries together in the driver to make it
-+clear the different names the driver is probed for, both from DT and from
-+ACPI:
-+
-+static struct of_device_id virtio_mmio_match[] = {
-+        { .compatible = "virtio,mmio", },
-+        { }
-+};
-+MODULE_DEVICE_TABLE(of, virtio_mmio_match);
-+
-+static const struct acpi_device_id virtio_mmio_acpi_match[] = {
-+        { "LNRO0005", },
-+        { }
-+};
-+MODULE_DEVICE_TABLE(acpi, virtio_mmio_acpi_match);
-+
-+
-+ASWG
-+----
-+The following areas are not yet fully defined for ARM in the 5.1 version
-+of the ACPI specification and are expected to be worked through in the 
-+UEFI ACPI Specification Working Group (ASWG):
-+
-+   -- ACPI based CPU topology
-+   -- ACPI based CPU idle control
-+   -- ACPI based SMMU and its IO topology
-+   -- ITS support for GIC in MADT
-+
-+Participation in this group is open to all UEFI members.  Please see
-+http://www.uefi.org/workinggroup for details on group membership.
-+
-+It is the intent of the ARMv8 ACPI kernel code to follow the ACPI specification
-+as closely as possible, and to only implement functionality that complies with
-+the released standards from UEFI ASWG.  As a practical matter, there will be
-+vendors that provide bad ACPI tables or violate the standards in some way.
-+If this is because of errors, quirks and fixups may be necessary, but will
-+be avoided if possible.  If there are features missing from ACPI that preclude
-+it from being used on a platform, ECRs (Engineering Change Requests) should be
-+submitted to ASWG and go through the normal approval process; for those that
-+are not UEFI members, many other members of the Linux community are and would
-+likely be willing to assist in submitting ECRs.
+ #endif /* _LINUX_CLOCKSOURCE_H */
 -- 
 1.9.1
