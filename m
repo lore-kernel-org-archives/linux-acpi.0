@@ -1,202 +1,141 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] acpica: utpredef: Remove some unused functions
-Date: Sun,  4 Jan 2015 16:22:54 +0100
-Message-ID: <1420384974-11745-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f68.google.com ([209.85.215.68]:34385 "EHLO
-	mail-la0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752644AbbADPTz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Jan 2015 10:19:55 -0500
-Received: by mail-la0-f68.google.com with SMTP id gq15so5386313lab.3
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Jan 2015 07:19:54 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/3] video / backlight: add two APIs for drivers to use
+Date: Mon, 05 Jan 2015 13:46:39 +0800
+Message-ID: <54AA253F.2030207@intel.com>
+References: <1419997818-19528-1-git-send-email-aaron.lu@intel.com> <1419997818-19528-2-git-send-email-aaron.lu@intel.com> <000b01d026f1$408e3620$c1aaa260$%han@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <000b01d026f1$408e3620$c1aaa260$%han@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jingoo Han <jg1.han@samsung.com>
+Cc: 'Lee Jones' <lee.jones@linaro.org>, 'Zhang Rui' <rui.zhang@intel.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 
-Removes some functions that are not used anywhere:
-acpi_ut_get_resource_bit_width() acpi_ut_display_predefined_method() acpi_ut_match_resource_name()
+On 01/03/2015 09:04 AM, Jingoo Han wrote:
+> On Wednesday, December 31, 2014 12:50 PM, Aaron Lu wrote:
+>>
+>> It is useful to get the backlight device's pointer and use it to set
+>> backlight in some cases(the following patch will make use of it) so add
+>> the two APIs and export them.
+>>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> 
+> Acked-by: Jingoo Han <jg1.han@samsung.com>
 
-This was partially found by using a static code analysis program called cppcheck.
+Thanks for the review!
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/acpi/acpica/acutils.h  |    9 ---
- drivers/acpi/acpica/utpredef.c |  134 ----------------------------------------
- 2 files changed, 143 deletions(-)
+Regards,
+Aaron
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index 486d342..9b3fab1 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -502,17 +502,8 @@ const union acpi_predefined_info *acpi_ut_get_next_predefined_method(const union
- 
- const union acpi_predefined_info *acpi_ut_match_predefined_method(char *name);
- 
--const union acpi_predefined_info *acpi_ut_match_resource_name(char *name);
--
--void
--acpi_ut_display_predefined_method(char *buffer,
--				  const union acpi_predefined_info *this_name,
--				  u8 multi_line);
--
- void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes);
- 
--u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types);
--
- /*
-  * utstate - Generic state creation/cache routines
-  */
-diff --git a/drivers/acpi/acpica/utpredef.c b/drivers/acpi/acpica/utpredef.c
-index db30caf..f1ff33c 100644
---- a/drivers/acpi/acpica/utpredef.c
-+++ b/drivers/acpi/acpica/utpredef.c
-@@ -209,105 +209,6 @@ static const char *ut_resource_type_names[] = {
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ut_match_resource_name
-- *
-- * PARAMETERS:  name                - Name to find
-- *
-- * RETURN:      Pointer to entry in the resource table. NULL indicates not
-- *              found.
-- *
-- * DESCRIPTION: Check an object name against the predefined resource
-- *              descriptor object list.
-- *
-- ******************************************************************************/
--
--const union acpi_predefined_info *acpi_ut_match_resource_name(char *name)
--{
--	const union acpi_predefined_info *this_name;
--
--	/* Quick check for a predefined name, first character must be underscore */
--
--	if (name[0] != '_') {
--		return (NULL);
--	}
--
--	/* Search info table for a predefined method/object name */
--
--	this_name = acpi_gbl_resource_names;
--	while (this_name->info.name[0]) {
--		if (ACPI_COMPARE_NAME(name, this_name->info.name)) {
--			return (this_name);
--		}
--
--		this_name++;
--	}
--
--	return (NULL);		/* Not found */
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_ut_display_predefined_method
-- *
-- * PARAMETERS:  buffer              - Scratch buffer for this function
-- *              this_name           - Entry in the predefined method/name table
-- *              multi_line          - TRUE if output should be on >1 line
-- *
-- * RETURN:      None
-- *
-- * DESCRIPTION: Display information about a predefined method. Number and
-- *              type of the input arguments, and expected type(s) for the
-- *              return value, if any.
-- *
-- ******************************************************************************/
--
--void
--acpi_ut_display_predefined_method(char *buffer,
--				  const union acpi_predefined_info *this_name,
--				  u8 multi_line)
--{
--	u32 arg_count;
--
--	/*
--	 * Get the argument count and the string buffer
--	 * containing all argument types
--	 */
--	arg_count = acpi_ut_get_argument_types(buffer,
--					       this_name->info.argument_list);
--
--	if (multi_line) {
--		printf("      ");
--	}
--
--	printf("%4.4s    Requires %s%u argument%s",
--	       this_name->info.name,
--	       (this_name->info.argument_list & ARG_COUNT_IS_MINIMUM) ?
--	       "(at least) " : "", arg_count, arg_count != 1 ? "s" : "");
--
--	/* Display the types for any arguments */
--
--	if (arg_count > 0) {
--		printf(" (%s)", buffer);
--	}
--
--	if (multi_line) {
--		printf("\n    ");
--	}
--
--	/* Get the return value type(s) allowed */
--
--	if (this_name->info.expected_btypes) {
--		acpi_ut_get_expected_return_types(buffer,
--						  this_name->info.
--						  expected_btypes);
--		printf("  Return value types: %s\n", buffer);
--	} else {
--		printf("  No return value\n");
--	}
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_ut_get_argument_types
-  *
-  * PARAMETERS:  buffer              - Where to return the formatted types
-@@ -361,39 +262,4 @@ static u32 acpi_ut_get_argument_types(char *buffer, u16 argument_types)
- 	return (arg_count);
- }
- 
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_ut_get_resource_bit_width
-- *
-- * PARAMETERS:  buffer              - Where the formatted string is returned
-- *              types               - Bitfield of expected data types
-- *
-- * RETURN:      Count of return types. Formatted string in Buffer.
-- *
-- * DESCRIPTION: Format the resource bit widths into a printable string.
-- *
-- ******************************************************************************/
--
--u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types)
--{
--	u32 i;
--	u16 sub_index;
--	u32 found;
--
--	*buffer = 0;
--	sub_index = 1;
--	found = 0;
--
--	for (i = 0; i < NUM_RESOURCE_WIDTHS; i++) {
--		if (types & 1) {
--			strcat(buffer, &(ut_resource_type_names[i][sub_index]));
--			sub_index = 0;
--			found++;
--		}
--
--		types >>= 1;
--	}
--
--	return (found);
--}
- #endif
--- 
-1.7.10.4
-
+> 
+> Best regards,
+> Jingoo Han
+> 
+>> ---
+>>  drivers/video/backlight/backlight.c | 44 ++++++++++++++++++++++++-------------
+>>  include/linux/backlight.h           |  2 ++
+>>  2 files changed, 31 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+>> index bddc8b17a4d8..bea749329236 100644
+>> --- a/drivers/video/backlight/backlight.c
+>> +++ b/drivers/video/backlight/backlight.c
+>> @@ -164,28 +164,19 @@ static ssize_t brightness_show(struct device *dev,
+>>  	return sprintf(buf, "%d\n", bd->props.brightness);
+>>  }
+>>
+>> -static ssize_t brightness_store(struct device *dev,
+>> -		struct device_attribute *attr, const char *buf, size_t count)
+>> +int backlight_device_set_brightness(struct backlight_device *bd, int brightness)
+>>  {
+>> -	int rc;
+>> -	struct backlight_device *bd = to_backlight_device(dev);
+>> -	unsigned long brightness;
+>> -
+>> -	rc = kstrtoul(buf, 0, &brightness);
+>> -	if (rc)
+>> -		return rc;
+>> -
+>> -	rc = -ENXIO;
+>> +	int rc = -ENXIO;
+>>
+>>  	mutex_lock(&bd->ops_lock);
+>>  	if (bd->ops) {
+>>  		if (brightness > bd->props.max_brightness)
+>>  			rc = -EINVAL;
+>>  		else {
+>> -			pr_debug("set brightness to %lu\n", brightness);
+>> +			pr_debug("set brightness to %u\n", brightness);
+>>  			bd->props.brightness = brightness;
+>>  			backlight_update_status(bd);
+>> -			rc = count;
+>> +			rc = 0;
+>>  		}
+>>  	}
+>>  	mutex_unlock(&bd->ops_lock);
+>> @@ -194,6 +185,23 @@ static ssize_t brightness_store(struct device *dev,
+>>
+>>  	return rc;
+>>  }
+>> +EXPORT_SYMBOL(backlight_device_set_brightness);
+>> +
+>> +static ssize_t brightness_store(struct device *dev,
+>> +		struct device_attribute *attr, const char *buf, size_t count)
+>> +{
+>> +	int rc;
+>> +	struct backlight_device *bd = to_backlight_device(dev);
+>> +	unsigned long brightness;
+>> +
+>> +	rc = kstrtoul(buf, 0, &brightness);
+>> +	if (rc)
+>> +		return rc;
+>> +
+>> +	rc = backlight_device_set_brightness(bd, brightness);
+>> +
+>> +	return rc ? rc : count;
+>> +}
+>>  static DEVICE_ATTR_RW(brightness);
+>>
+>>  static ssize_t type_show(struct device *dev, struct device_attribute *attr,
+>> @@ -380,7 +388,7 @@ struct backlight_device *backlight_device_register(const char *name,
+>>  }
+>>  EXPORT_SYMBOL(backlight_device_register);
+>>
+>> -bool backlight_device_registered(enum backlight_type type)
+>> +struct backlight_device *backlight_device_get_by_type(enum backlight_type type)
+>>  {
+>>  	bool found = false;
+>>  	struct backlight_device *bd;
+>> @@ -394,7 +402,13 @@ bool backlight_device_registered(enum backlight_type type)
+>>  	}
+>>  	mutex_unlock(&backlight_dev_list_mutex);
+>>
+>> -	return found;
+>> +	return found ? bd : NULL;
+>> +}
+>> +EXPORT_SYMBOL(backlight_device_get_by_type);
+>> +
+>> +bool backlight_device_registered(enum backlight_type type)
+>> +{
+>> +	return backlight_device_get_by_type(type) ? true : false;
+>>  }
+>>  EXPORT_SYMBOL(backlight_device_registered);
+>>
+>> diff --git a/include/linux/backlight.h b/include/linux/backlight.h
+>> index adb14a8616df..c59a020df3f8 100644
+>> --- a/include/linux/backlight.h
+>> +++ b/include/linux/backlight.h
+>> @@ -140,6 +140,8 @@ extern void backlight_force_update(struct backlight_device *bd,
+>>  extern bool backlight_device_registered(enum backlight_type type);
+>>  extern int backlight_register_notifier(struct notifier_block *nb);
+>>  extern int backlight_unregister_notifier(struct notifier_block *nb);
+>> +extern struct backlight_device *backlight_device_get_by_type(enum backlight_type type);
+>> +extern int backlight_device_set_brightness(struct backlight_device *bd, int brightness);
+>>
+>>  #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
+>>
+>> --
+>> 2.1.0
+> 
