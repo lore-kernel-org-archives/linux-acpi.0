@@ -1,47 +1,98 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] acpi-video: Add disable_native_backlight quirk for Dell XPS15 L521X
-Date: Mon,  5 Jan 2015 08:57:04 +0100
-Message-ID: <1420444624-8313-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37957 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbbAEH5K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Jan 2015 02:57:10 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpi: acpica: utmisc.c:  Remove unused function
+Date: Mon, 5 Jan 2015 08:32:59 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026AAC8D@SHSMSX101.ccr.corp.intel.com>
+References: <1420132554-32049-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1420132554-32049-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-The L521X variant of the Dell XPS15 has integrated nvidia graphics, and
-backlight control does not work properly when using the native interfaces.
+Hi, Rickard
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1163574
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+> From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
+> Sent: Friday, January 02, 2015 1:16 AM
+> 
+> Remove the function acpi_ut_is_aml_table() that is not used anywhere.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index c72e79d2c5..032db45 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -522,6 +522,16 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "370R4E/370R4V/370R5E/3570RE/370R5V"),
- 		},
- 	},
-+
-+	{
-+	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
-+	 .callback = video_disable_native_backlight,
-+	 .ident = "Dell XPS15 L521X",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "XPS L521X"),
-+		},
-+	},
- 	{}
- };
- 
--- 
-2.1.0
+This function is used by the ACPICA debugger and disassembler.
+The ACPICA release process has just automatically released this function from the ACPICA code base to the Linux kernel.
 
+We shouldn't just remove it from the Linux kernel code base.
+If we do so, it's just turned into divergences that can hurt the release automation.
+You may use ACPI_FUTURE_USAGE around these functions instead.
+
+Same rule should apply to all of the other patches from you.
+
+Thanks and best regards
+-Lv
+
+> 
+> This was partially found by using a static code analysis program called cppcheck.
+> 
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+> ---
+>  drivers/acpi/acpica/acutils.h |    2 --
+>  drivers/acpi/acpica/utmisc.c  |   28 ----------------------------
+>  2 files changed, 30 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+> index 486d342..ec5da45 100644
+> --- a/drivers/acpi/acpica/acutils.h
+> +++ b/drivers/acpi/acpica/acutils.h
+> @@ -570,8 +570,6 @@ const struct acpi_exception_info *acpi_ut_validate_exception(acpi_status
+> 
+>  u8 acpi_ut_is_pci_root_bridge(char *id);
+> 
+> -u8 acpi_ut_is_aml_table(struct acpi_table_header *table);
+> -
+>  acpi_status
+>  acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
+>  			  void *target_object,
+> diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+> index 2e2bb14..a9440af 100644
+> --- a/drivers/acpi/acpica/utmisc.c
+> +++ b/drivers/acpi/acpica/utmisc.c
+> @@ -77,34 +77,6 @@ u8 acpi_ut_is_pci_root_bridge(char *id)
+> 
+>  /*******************************************************************************
+>   *
+> - * FUNCTION:    acpi_ut_is_aml_table
+> - *
+> - * PARAMETERS:  table               - An ACPI table
+> - *
+> - * RETURN:      TRUE if table contains executable AML; FALSE otherwise
+> - *
+> - * DESCRIPTION: Check ACPI Signature for a table that contains AML code.
+> - *              Currently, these are DSDT,SSDT,PSDT. All other table types are
+> - *              data tables that do not contain AML code.
+> - *
+> - ******************************************************************************/
+> -
+> -u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
+> -{
+> -
+> -	/* These are the only tables that contain executable AML */
+> -
+> -	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT) ||
+> -	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_PSDT) ||
+> -	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT)) {
+> -		return (TRUE);
+> -	}
+> -
+> -	return (FALSE);
+> -}
+> -
+> -/*******************************************************************************
+> - *
+>   * FUNCTION:    acpi_ut_dword_byte_swap
+>   *
+>   * PARAMETERS:  value           - Value to be converted
+> --
+> 1.7.10.4
