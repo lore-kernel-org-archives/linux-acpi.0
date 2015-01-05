@@ -1,69 +1,49 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Mon, 5 Jan 2015 13:13:02 +0000
-Message-ID: <20150105131302.GB14967@e104818-lin.cambridge.arm.com>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
- <20141224171815.GD13399@e104818-lin.cambridge.arm.com>
- <54A28B22.7090305@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / PM: Fix PM initialization for devices that are
+ not present
+Date: Mon, 5 Jan 2015 15:40:10 +0200
+Message-ID: <20150105134010.GF1386@lahna.fi.intel.com>
+References: <4453924.d7c5RYZUJi@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:55327 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818AbbAENNU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2015 08:13:20 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54A28B22.7090305@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <4453924.d7c5RYZUJi@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Kangkang.Shen@huawe
 
-On Tue, Dec 30, 2014 at 11:23:14AM +0000, Hanjun Guo wrote:
-> On 2014=E5=B9=B412=E6=9C=8825=E6=97=A5 01:18, Catalin Marinas wrote:
-> > On Fri, Oct 17, 2014 at 02:37:14PM +0100, Hanjun Guo wrote:
-> >> +Booting using ACPI tables
-> >> +-------------------------
-> >> +The only defined method for passing ACPI tables to the kernel on =
-ARMv8
-> >> +is via the UEFI system configuration table.
-> >> +
-> >> +Processing of ACPI tables may be disabled by passing acpi=3Doff o=
-n the kernel
-> >> +command line; this is the default behavior.  If acpi=3Dforce is u=
-sed, the kernel
-> >> +will ONLY use device configuration information contained in the A=
-CPI tables.
-> >
-> > See my comments to Al around the defaults. I think if only ACPI tab=
-les
-> > are present, we shouldn't panic the kernel if acpi=3Dforce is missi=
-ng but
-> > continue with ACPI.
->=20
-> I think we need another patch to implement it, for this patch set,ker=
-nel
-> will panic if no dtb and acpi=3Doff.
+On Thu, Jan 01, 2015 at 11:38:28PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> If an ACPI device object whose _STA returns 0 (not present and not
+> functional) has _PR0 or _PS0, its power_manageable flag will be set
+> and acpi_bus_init_power() will return 0 for it.  Consequently, if
+> such a device object is passed to the ACPI device PM functions, they
+> will attempt to carry out the requested operation on the device,
+> although they should not do that for devices that are not present.
+> 
+> To fix that problem make acpi_bus_init_power() return an error code
+> for devices that are not present which will cause power_manageable to
+> be cleared for them as appropriate in acpi_bus_get_power_flags().
+> However, the lists of power resources should not be freed for the
+> device in that case, so modify acpi_bus_get_power_flags() to keep
+> those lists even if acpi_bus_init_power() returns an error.
+> Accordingly, when deciding whether or not the lists of power
+> resources need to be freed, acpi_free_power_resources_lists()
+> should check the power.flags.power_resources flag instead of
+> flags.power_manageable, so make that change too.
+> 
+> Furthermore, if acpi_bus_attach() sees that flags.initialized is
+> unset for the given device, it should reset the power management
+> settings of the device and re-initialize them from scratch instead
+> of relying on the previous settings (the device may have appeared
+> after being not present previously, for example), so make it use
+> the 'valid' flag of the D0 power state as the initial value of
+> flags.power_manageable for it and call acpi_bus_init_power() to
+> discover its current power state.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-If no dtb and acpi=3Doff on the kernel command line, I agree that the
-kernel should panic as it doesn't have any way to get the platform
-description.
-
-> since passing no DT tables to OS but
-> acpi=3Dforce is missing is a corner case, we can do a follow up patch=
- to
-> fix that, does it make sense?
-
-Not entirely. Why would no dtb and no acpi=3Dforce be a corner case? I
-thought this should be the default when only ACPI tables are passed, no
-need for an additional acpi=3Dforce argument.
-
---=20
-Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
