@@ -1,57 +1,62 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Mon, 5 Jan 2015 21:52:27 +0100
-Message-ID: <20150105205227.GA24657@amd>
-References: <548F9668.6080900@linaro.org>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [V2 PATCH 0/2] Introduce ACPI support for ahci_platform driver
+Date: Mon, 5 Jan 2015 15:11:13 -0600
+Message-ID: <1420492275-6878-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47276 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753811AbbAEUwb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2015 15:52:31 -0500
-Content-Disposition: inline
-In-Reply-To: <548F9668.6080900@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, grant.likely@linaro.org
+Cc: hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>
 
-Hi!
+This patch series introduce ACPI support for non-PCI AHCI platform driver.
+Existing ACPI support for AHCI assumes the device controller is a PCI device.
 
-> Back in September 2014, a meeting was held at Linaro Connect where we
-> discussed what issues remained before the arm64 ACPI core patches could
-> be merged into the kernel, creating the TODO list below.  I should have
-> published this list sooner; I got focused on trying to resolve some of
-> the issues instead.
-> 
-> We have made some progress on all of these items.  But, I want to make
-> sure we haven't missed something.  Since this list was compiled by only
-> the people in the room at Connect, it is probable we have.  I, for one,
-> do not yet claim omniscience.
-> 
-> So, I want to ask the ARM and ACPI communities:
-> 
->   -- Is this list correct?
-> 
->   -- Is this list complete?
+Also, since there is no ACPI _HID/_CID for generic AHCI controller, the driver
+could not use them for matching devices. Therefore, this patch introduces
+a mechanism for drivers to match devices using ACPI _CLS method.
 
-I'm not sure this is how kernel development works. Expect new issues
-to be raised as patches are being reviewed.
+This patch series is rebased from and tested with:
 
-> 7. Why is ACPI required?
->    * Problem:
->      * arm64 maintainers still haven't been convinced that ACPI is
->        necessary.
->      * Why do hardware and OS vendors say ACPI is required?
->    * Status: Al & Grant collecting statements from OEMs to be posted
->      publicly early in the new year; firmware summit for broader
->      discussion planned.
+    http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v7
 
-This should be #1 really, right? I still hope the answer is "ACPI not
-needed".
+This topic was discussed earlier here (as part of introducing support for
+AMD Seattle SATA controller):
 
-								Pavel
+    http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
+
+NOTE:
+	* PATCH 2/2 has already been Acked-by Tejun Heo in V1. I only made
+	  a minor renaming of the acpi_cls to acpi_match_cls for clarity
+	  in V2. It probably should be routed together with the PATCH 1/2
+	  (once acked) since it defines the new member in the struct.
+
+Changes V1 (https://lkml.org/lkml/2014/12/19/345)
+	* Rebased to 3.19.0-rc2
+	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
+	* Change the matching logic in acpi_driver_match_device() due to the new
+	  special PRP0001 _HID.
+	* Simplify the return type of acpi_match_device_cls() to boolean.
+
+Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
+	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
+	  as inline. (per Arnd)
+	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
+
+Suravee Suthikulpanit (2):
+  ACPI / scan: Add support for ACPI _CLS device matching
+  ata: ahci_platform: Add ACPI _CLS matching
+
+ drivers/acpi/scan.c             | 79 +++++++++++++++++++++++++++++++++++++++--
+ drivers/ata/Kconfig             |  2 +-
+ drivers/ata/ahci_platform.c     |  3 ++
+ include/acpi/acnames.h          |  1 +
+ include/linux/acpi.h            | 10 ++++++
+ include/linux/device.h          |  1 +
+ include/linux/mod_devicetable.h |  6 ++++
+ 7 files changed, 98 insertions(+), 4 deletions(-)
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.9.3
+
