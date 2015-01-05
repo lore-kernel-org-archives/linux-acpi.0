@@ -1,74 +1,90 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 3/3] ACPICA: Remove use of __DATE__ macro
-Date: Mon, 5 Jan 2015 08:47:43 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026AACD9@SHSMSX101.ccr.corp.intel.com>
-References: <1418381488-25123-1-git-send-email-linux@rasmusvillemoes.dk>
- <1418381488-25123-3-git-send-email-linux@rasmusvillemoes.dk>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v6 14/17] ARM64 / ACPI: Parse GTDT to initialize arch
+ timer
+Date: Mon, 05 Jan 2015 16:59:44 +0800
+Message-ID: <54AA5280.3050802@linaro.org>
+References: <D0CF9C94.CD69%suravee.suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:7894 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753123AbbAEIrs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2015 03:47:48 -0500
-In-Reply-To: <1418381488-25123-3-git-send-email-linux@rasmusvillemoes.dk>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <D0CF9C94.CD69%suravee.suthikulpanit@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
+On 2015=E5=B9=B401=E6=9C=8805=E6=97=A5 15:55, Suthikulpanit, Suravee wr=
+ote:
+> On 1/4/15, 04:55, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
+>
+>> Using the information presented by GTDT to initialize the arch
+>> timer (not memory-mapped).
+>>
+>> Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>> arch/arm64/kernel/time.c             |   7 ++
+>> drivers/clocksource/arm_arch_timer.c | 132
+>> ++++++++++++++++++++++++++++-------
+>> include/linux/clocksource.h          |   6 ++
+>> 3 files changed, 118 insertions(+), 27 deletions(-)
+[...]
+>> +static void __init arch_timer_of_init(struct device_node *np)
+>> +{
+>> +	int i;
+>> +
+>> +	if (arch_timers_present & ARCH_CP15_TIMER) {
+>> +		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+>> +		return;
+>> +	}
+>> +
+>> +	arch_timers_present |=3D ARCH_CP15_TIMER;
+>> +	for (i =3D PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+>> +		arch_timer_ppi[i] =3D irq_of_parse_and_map(np, i);
+>> +
+>> +	arch_timer_detect_rate(NULL, np);
+>> +
+>> +	arch_timer_c3stop =3D !of_property_read_bool(np, "always-on");
+>> +
+>> +	/*
+>> +	 * If we cannot rely on firmware initializing the timer registers =
+then
+>> +	 * we should use the physical timers instead.
+>> +	 */
+>> +	if (IS_ENABLED(CONFIG_ARM) &&
+>> +	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured=
+"))
+>> +			arch_timer_use_virtual =3D false;
+>> +
+>> +	arch_timer_init();
+>> +}
+>> +CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer",
+>> arch_timer_of_init);
+>> +CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer",
+>> arch_timer_of_init);
+>
+> Hanjun,
+>
+> FYI, it seems that the tree that you have rebased the patch series ha=
+s an
+> issue determining clocksource in ARM64 introduced by this commit.
+>
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit=
+/?id=3D0
+> b46b8a718c6e90910a1b1b0fe797be3c167e186
+>
+> Here is the fix from Catalin that already went upstream:
+>
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit=
+/drive
+> rs/clocksource/arm_arch_timer.c?id=3Dd6ad36913083d683aad4e02e53580c99=
+5f1a6ede
 
-> From: Rasmus Villemoes [mailto:linux@rasmusvillemoes.dk]
-> Sent: Friday, December 12, 2014 6:51 PM
-> To: Zheng, Lv
-> Cc: Rasmus Villemoes; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH 3/3] ACPICA: Remove use of __DATE__ macro
-> 
-> The macro __DATE__ and friends is not allowed in the kernel. Also,
-> including the build time in output doesn't seem to provide any value.
-> 
+This bug fix patch was merged in Dec 30 by Linus, which is the date
+after 3.19-rc2 released :)
 
-Could you confirm that it is not useful even for the user tools?
-Please perform the following commands in the kernel source tree
-1. stay in tools folder
-2. type "make acpi"
-3. type "./power/acpi/acpidump -v"
-
-Thanks and best regards
--Lv
-
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> ---
->  drivers/acpi/acpica/acapps.h | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
-> index 3d2c88289da9..f72826176ebe 100644
-> --- a/drivers/acpi/acpica/acapps.h
-> +++ b/drivers/acpi/acpica/acapps.h
-> @@ -64,15 +64,15 @@
->  /* Macros for signons and file headers */
-> 
->  #define ACPI_COMMON_SIGNON(utility_name) \
-> -	"\n%s\n%s version %8.8X%s [%s]\n%s\n\n", \
-> +	"\n%s\n%s version %8.8X%s\n%s\n\n", \
->  	ACPICA_NAME, \
-> -	utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, \
-> +	utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, \
->  	ACPICA_COPYRIGHT
-> 
->  #define ACPI_COMMON_HEADER(utility_name, prefix) \
-> -	"%s%s\n%s%s version %8.8X%s [%s]\n%s%s\n%s\n", \
-> +	"%s%s\n%s%s version %8.8X%s\n%s%s\n%s\n", \
->  	prefix, ACPICA_NAME, \
-> -	prefix, utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, __DATE__, \
-> +	prefix, utility_name, ((u32) ACPI_CA_VERSION), ACPI_WIDTH, \
->  	prefix, ACPICA_COPYRIGHT, \
->  	prefix
-> 
-> --
-> 2.1.3
-
+Thanks
+Hanjun
