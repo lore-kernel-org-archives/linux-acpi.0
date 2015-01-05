@@ -1,39 +1,57 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: acpica: utmisc.c:  Remove unused function
-Date: Tue, 06 Jan 2015 00:30:56 +0100
-Message-ID: <1648651.DmmjNgUaYH@vostro.rjw.lan>
-References: <1420132554-32049-1-git-send-email-rickard_strandqvist@spectrumdigital.se> <1AE640813FDE7649BE1B193DEA596E88026AAC8D@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH] acpi-video: Add disable_native_backlight quirk for Dell XPS15 L521X
+Date: Tue, 06 Jan 2015 00:35:47 +0100
+Message-ID: <2014708.5hDiAjSl5h@vostro.rjw.lan>
+References: <1420444624-8313-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60818 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:62745 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752714AbbAEXIk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2015 18:08:40 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026AAC8D@SHSMSX101.ccr.corp.intel.com>
+	with SMTP id S1753031AbbAEXNb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jan 2015 18:13:31 -0500
+In-Reply-To: <1420444624-8313-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday, January 05, 2015 08:32:59 AM Zheng, Lv wrote:
-> Hi, Rickard
+On Monday, January 05, 2015 08:57:04 AM Hans de Goede wrote:
+> The L521X variant of the Dell XPS15 has integrated nvidia graphics, and
+> backlight control does not work properly when using the native interfaces.
 > 
-> > From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
-> > Sent: Friday, January 02, 2015 1:16 AM
-> > 
-> > Remove the function acpi_ut_is_aml_table() that is not used anywhere.
-> 
-> This function is used by the ACPICA debugger and disassembler.
-> The ACPICA release process has just automatically released this function from the ACPICA code base to the Linux kernel.
-> 
-> We shouldn't just remove it from the Linux kernel code base.
-> If we do so, it's just turned into divergences that can hurt the release automation.
-> You may use ACPI_FUTURE_USAGE around these functions instead.
+> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1163574
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Can we do that in upstream ACPICA?
+Applied, thanks!
 
+> ---
+>  drivers/acpi/video.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index c72e79d2c5..032db45 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -522,6 +522,16 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "370R4E/370R4V/370R5E/3570RE/370R5V"),
+>  		},
+>  	},
+> +
+> +	{
+> +	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
+> +	 .callback = video_disable_native_backlight,
+> +	 .ident = "Dell XPS15 L521X",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "XPS L521X"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> 
 
 -- 
 I speak only for myself.
