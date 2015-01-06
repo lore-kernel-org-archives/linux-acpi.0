@@ -1,61 +1,153 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Tue, 6 Jan 2015 14:03:06 +0000
-Message-ID: <20150106140305.GE8829@e104818-lin.cambridge.arm.com>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <54A28B22.7090305@linaro.org>
- <20150105131302.GB14967@e104818-lin.cambridge.arm.com>
- <1797489.PjmKzBFdQA@wuerfel>
- <20150106112000.GA8829@e104818-lin.cambridge.arm.com>
- <CAGCh1+kYRPg8QJ57bamH7Ctb1vJKmn2rirMUpbXcrU=Qw_VF2A@mail.gmail.com>
+Date: Tue, 06 Jan 2015 21:59:41 +0800
+Message-ID: <54ABEA4D.9020103@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>	<1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>	<20141224171815.GD13399@e104818-lin.cambridge.arm.com>	<54A90A4C.60908@linaro.org>	<20150105110533.GA14967@e104818-lin.cambridge.arm.com>	<54ABC2CB.6@linaro.org>	<20150106112929.GB8829@e104818-lin.cambridge.arm.com>	<54ABE82E.30308@linaro.org> <CAGCh1+neCkwYDc5jA=g1=RWrGc28EqBoYtY23E0dXSvmPXm0GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAGCh1+kYRPg8QJ57bamH7Ctb1vJKmn2rirMUpbXcrU=Qw_VF2A@mail.gmail.com>
+In-Reply-To: <CAGCh1+neCkwYDc5jA=g1=RWrGc28EqBoYtY23E0dXSvmPXm0GA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: G Gregory <graeme.gregory@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <br>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <Mark.Rutland@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Kangkang.Shen@huawei.com" <Kangka>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 06, 2015 at 01:51:27PM +0000, G Gregory wrote:
-> On 6 January 2015 at 11:20, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > On Mon, Jan 05, 2015 at 08:16:30PM +0000, Arnd Bergmann wrote:
-> >> On Monday 05 January 2015 13:13:02 Catalin Marinas wrote:
-> >> > > since passing no DT tables to OS but
-> >> > > acpi=force is missing is a corner case, we can do a follow up patch to
-> >> > > fix that, does it make sense?
-> >> >
-> >> > Not entirely. Why would no dtb and no acpi=force be a corner case? I
-> >> > thought this should be the default when only ACPI tables are passed, no
-> >> > need for an additional acpi=force argument.
-> >>
-> >> We don't really support the case of only ACPI tables for now. The expectation
-> >> is that you always have working DT support, at least for the next few years
-> >> as ACPI features are ramping up, and without acpi=force it should not try
-> >> to use ACPI at all.
-> >
-> > So if both DT and ACPI are present, just use DT unless acpi=force is
-> > passed. So far I think we agree but what I want to avoid is always
-> > mandating acpi=force even when the DT tables are missing (in the long
-> > run).
-> >
-> > Now, what's preventing a vendor firmware from providing only ACPI
-> > tables? Do we enforce it in some way (arm-acpi.txt, kernel warning etc.)
-> > that both DT and ACPI are supported, or at least that dts files are
-> > merged in the kernel first?
+On 2015=E5=B9=B401=E6=9C=8806=E6=97=A5 21:54, G Gregory wrote:
+> On 6 January 2015 at 13:50, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>> On 2015=E5=B9=B401=E6=9C=8806=E6=97=A5 19:29, Catalin Marinas wrote:
+>>>
+>>> On Tue, Jan 06, 2015 at 11:11:07AM +0000, Hanjun Guo wrote:
+>>>>
+>>>> On 2015=E5=B9=B401=E6=9C=8805=E6=97=A5 19:05, Catalin Marinas wrot=
+e:
+>>>>>
+>>>>> On Sun, Jan 04, 2015 at 09:39:24AM +0000, Hanjun Guo wrote:
+>>>>>>
+>>>>>> On 2014=E5=B9=B412=E6=9C=8825=E6=97=A5 01:18, Catalin Marinas wr=
+ote:
+>>>>>> [...]
+>>>>>>>
+>>>>>>>
+>>>>>>> In addition to the above and _DSD requirements/banning, I would=
+ also
+>>>>>>> add
+>>>>>>> some clear statements around:
+>>>>>>>
+>>>>>>> _OSC: only global/published capabilities are allowed. For
+>>>>>>> device-specific _OSC we need a process or maybe we can ban them
+>>>>>>> entirely
+>>>>>>> and rely on _DSD once we clarify the process.
+>>>>>>>
+>>>>>>> _OSI: firmware must not check for certain _OSI strings. Here I'=
+m not
+>>>>>>> sure what we would have to do for ARM Linux. Reporting "Windows=
+" does
+>>>>>>> not make any sense but not reporting anything can, as Matthew G=
+arrett
+>>>>>>> pointed out, can be interpreted by firmware as "Linux". In addi=
+tion to
+>>>>>>> any statements in this document, I suggest you patch
+>>>>>>> drivers/acpi/acpica/utosi.c accordingly, maybe report "Linux" f=
+or ARM
+>>>>>>> and print a kernel warning so that we notice earlier.
+>>>>>>>
+>>>>>>> ACPI_OS_NAME: this is globally defined as "Microsoft Windows NT=
+". It
+>>>>>>> doesn't make much sense in the ARM context. Could we change it =
+to
+>>>>>>> "Linux" when CONFIG_ARM64?
+>>>>
+>>>>
+>>>> I think we can introduce a Kconfig such as CONFIG_ACPI_OS_NAME_LIN=
+UX,
+>>>> selected by ARM64 and change ACPI_OS_NAME to "Linux" when
+>>>> CONFIG_ACPI_OS_NAME_LINUX defined. (we can not add CONFIG_ARM64 in
+>>>> ACPICA code directly since it will be used by windows too)
+>>>>
+>>>> some code like below:
+>>>
+>>>
+>>> This looks fine for me (with some minor comments below) but I'm not=
+ an
+>>> ACPI expert to say there wouldn't be any issues.
+>>>
+>>>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>>>> index b1f9a20..de567a3 100644
+>>>> --- a/arch/arm64/Kconfig
+>>>> +++ b/arch/arm64/Kconfig
+>>>> @@ -1,5 +1,6 @@
+>>>>     config ARM64
+>>>>            def_bool y
+>>>> +       select ACPI_OS_NAME_LINUX if ACPI
+>>>>            select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+>>>>            select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>>>>            select ARCH_HAS_GCOV_PROFILE_ALL
+>>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>>>> index 8951cef..11a10ac 100644
+>>>> --- a/drivers/acpi/Kconfig
+>>>> +++ b/drivers/acpi/Kconfig
+>>>> @@ -369,6 +369,10 @@ config ACPI_REDUCED_HARDWARE_ONLY
+>>>>
+>>>>              If you are unsure what to do, do not enable this opti=
+on.
+>>>>
+>>>> +config ACPI_OS_NAME_LINUX
+>>>> +       bool "Using Linux for _OS method" if EXPERT
+>>>> +       def_bool n
+>>>
+>>>
+>>> No need for a default n, it is off by default. Alternatively you co=
+uld
+>>> say:
+>>>
+>>>          default y if ARM64
+>>
+>>
+>> ok.
+>>
+>>>
+>>>> +
+>>>>     source "drivers/acpi/apei/Kconfig"
+>>>>
+>>>>     config ACPI_EXTLOG
+>>>> diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+>>>> index 5a0a3e5..db5e13e 100644
+>>>> --- a/include/acpi/acconfig.h
+>>>> +++ b/include/acpi/acconfig.h
+>>>> @@ -69,7 +69,11 @@
+>>>>      * code that will not execute the _OSI method unless _OS match=
+es the
+>>>> string
+>>>>      * below.  Therefore, change this string at your own risk.
+>>>>      */
+>>>> +#ifndef ACPI_OS_NAME_USING_LINUX
+>>>>     #define ACPI_OS_NAME                    "Microsoft Windows NT"
+>>>> +#else
+>>>> +#define ACPI_OS_NAME                    "Linux"
+>>>> +#endif
+>>>
+>>>
+>>> Can you not use CONFIG_ACPI_OS_NAME_LINUX directly here without
+>>> introducing another macro?
+>>
+>>
+>> acconfig.h is part of ACPICA core and will be shared by windows and
+>> other OS, so use CONFIG from Linux in this file is not allowed I thi=
+nk.
+>>
 >
-> How do we tell the difference between a DT passed purely for booting purposes
-> ie a skeleton DT. And one which actually has hardware description as this needs
-> to be done before unpacking the DT.
+> We could just propse
+> #ifndef ACPI_OS_NAME
+> #define ACPI_OS_NAME "Microsoft Windows NT"
+> #endif
+>
+> to acpica maintainers. This will not alter Windows or other software =
+usage
+> but we can then override it in Linux when/if we want to.
 
-You do the check in EFI_STUB (part of the kernel). An ACPI-only firmware
-should never pass a DT to the kernel, not even for booting purposes
-(EFI_STUB builds one on the fly to pass parameters to the kernel but
-that's purely an internal kernel decision).
+this is better and looks great to me :)
 
-There are other ways as well, but if we decide to enforce this, I think
-EFI_STUB is the best option.
-
--- 
-Catalin
+Thanks
+Hanjun
