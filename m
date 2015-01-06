@@ -1,41 +1,74 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: =?UTF-8?B?562U5aSNOg==?= [PATCH v6 17/17] Documentation: ACPI for ARM64
-Date: Tue, 06 Jan 2015 21:49:21 +0100
-Message-ID: <9429675.LhiSR5rsOc@wuerfel>
-References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org> <1420368918-5086-18-git-send-email-hanjun.guo@linaro.org> <D0F5605BA99F0B4594FB1EEC24E785CC654879C3@SZXEMA510-MBX.china.huawei.com>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Tue, 06 Jan 2015 17:06:15 -0500
+Message-ID: <54AC5C57.7050504@redhat.com>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <20150106112000.GA8829@e104818-lin.cambridge.arm.com> <54AC0C4B.1000907@redhat.com> <1596791.jNp4rCPpnN@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <D0F5605BA99F0B4594FB1EEC24E785CC654879C3@SZXEMA510-MBX.china.huawei.com>
+In-Reply-To: <1596791.jNp4rCPpnN@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: liyi 00215672 <phoenix.liyi@huawei.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, "Charles.Garcia-Tobin@arm.com" <Charles.Garcia-Tobin@arm.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vg>
+To: Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 06 January 2015 09:52:05 liyi 00215672 wrote:
-> In traditional telecom market, what confused us(Huawei) was our softw=
-are
-> and hardware coupling together oftentimes. So if we change some hardw=
-are
-> then we MUST modify our software, which was not our customer=E2=80=99=
-s
-> expectation. In x86 world, we have UEFI and ACPI technologies, they a=
-re
-> suitable to solve this problem very well, we just upgrade our hardwar=
-e
-> and don=E2=80=99t need to upgrade their software, in the meantime ACP=
-I provides
-> many methods on power management.
+Hi Arnd,
 
-Can you give an example of how ACPI solves the problem of supporting a
-particular piece of new hardware?
+Happy New Year!
 
-I assume that for a completely new SoC, it won't help because you
-still need device drivers for all the major parts of the hardware
-that have changed, so this is about parts of the system that can
-be abstracted in AML but not fully described in DT without the need
-for new device drivers. Which are the main ones you are interested in
-here?
+On 01/06/2015 02:21 PM, Arnd Bergmann wrote:
+> On Tuesday 06 January 2015 11:24:43 Jon Masters wrote:
+>> On 01/06/2015 06:20 AM, Catalin Marinas wrote:
+>>
+>>> Now, what's preventing a vendor firmware from providing only ACPI
+>>> tables? Do we enforce it in some way (arm-acpi.txt, kernel warning etc.)
+>>> that both DT and ACPI are supported, or at least that dts files are
+>>> merged in the kernel first?
+>>
+>> I know of some (server) firmware that will only provide ACPI in the
+>> medium term, so this is coming.
+> 
+> Medium term is fine, as long as they are not expecting their hardware
+> to be supported by Linux before ACPI support is stable enough for
+> general consumption.
 
-	Arnd
+To be clear, I think that's reasonable for upstream. I may love ACPI,
+but vendors can always ship kernels with a config supporting ACPI only
+platforms in the interim period if they have a commercial justification
+and that doesn't have to be supported in terms of the upstream default.
+
+But, perhaps there's a way to have it both ways, you could consider also
+a CONFIG_EXPERT option that would allow you to build a kernel with ACPI
+only support in the medium term. That way, if someone is running a
+vendor kernel, but wants to track upstream development more closely,
+they can do so on such hardware by enabling the expert config bit.
+
+> I have no idea how long that will take, but my
+> guess is that we shouldn't plan on supporting ACPI-only platforms in
+> Linux for the next couple of years and just demand that all drivers
+> have DT support to let users add a valid DTB that can describe the
+> hardware.
+
+I'm not opposed. It was particularly useful in the early days of ACPI to
+be able to boot our internal systems (which now all default to ACPI on
+by default) with acpi=off when there were glitches that needed to be
+isolated to whether they were ACPI related. One reason I was very keen
+for a DT UUID in UEFI early on was so that there was a clean way to
+specify both sets of tables on a UEFI platform. Keeping them in sync is
+not something we can rely on in the longer term, but during bringup
+timeframe I suspect you'll continue to see many platforms with both sets
+of tables. This is especially true for early silicon that might be
+supporting both embedded and server environments - hence a platform that
+appears to be a server might have a DT posted upstream anyway if such a
+platform is also being used for unrelated embedded work.
+
+> That should always be possible using something like grub2 as an
+> intermediate that boots using the UEFI interfaces and loads the
+> kernel and DT from disk.
+
+This is another reason (but it's up to you, I understand your position)
+why it may not be a huge problem if there are ACPI only systems, since
+the "devicetree" directive in GRUB2 configs is always possible.
+
+Jon.
