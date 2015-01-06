@@ -1,20 +1,15 @@
-From: G Gregory <graeme.gregory@linaro.org>
-Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Tue, 6 Jan 2015 13:54:43 +0000
-Message-ID: <CAGCh1+neCkwYDc5jA=g1=RWrGc28EqBoYtY23E0dXSvmPXm0GA@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Tue, 06 Jan 2015 14:59:27 +0100
+Message-ID: <3538097.dWBy3R9lty@wuerfel>
 References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
- <20141224171815.GD13399@e104818-lin.cambridge.arm.com>
- <54A90A4C.60908@linaro.org>
- <20150105110533.GA14967@e104818-lin.cambridge.arm.com>
- <54ABC2CB.6@linaro.org>
- <20150106112929.GB8829@e104818-lin.cambridge.arm.com>
- <54ABE82E.30308@linaro.org>
+ <1797489.PjmKzBFdQA@wuerfel>
+ <20150106112000.GA8829@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <54ABE82E.30308@linaro.org>
+In-Reply-To: <20150106112000.GA8829@e104818-lin.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,80 +19,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.o
+To: linaro-acpi@lists.linaro.org
+Cc: Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "jcm@redhat.com" <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gNiBKYW51YXJ5IDIwMTUgYXQgMTM6NTAsIEhhbmp1biBHdW8gPGhhbmp1bi5ndW9AbGluYXJv
-Lm9yZz4gd3JvdGU6Cj4gT24gMjAxNeW5tDAx5pyIMDbml6UgMTk6MjksIENhdGFsaW4gTWFyaW5h
-cyB3cm90ZToKPj4KPj4gT24gVHVlLCBKYW4gMDYsIDIwMTUgYXQgMTE6MTE6MDdBTSArMDAwMCwg
-SGFuanVuIEd1byB3cm90ZToKPj4+Cj4+PiBPbiAyMDE15bm0MDHmnIgwNeaXpSAxOTowNSwgQ2F0
-YWxpbiBNYXJpbmFzIHdyb3RlOgo+Pj4+Cj4+Pj4gT24gU3VuLCBKYW4gMDQsIDIwMTUgYXQgMDk6
-Mzk6MjRBTSArMDAwMCwgSGFuanVuIEd1byB3cm90ZToKPj4+Pj4KPj4+Pj4gT24gMjAxNOW5tDEy
-5pyIMjXml6UgMDE6MTgsIENhdGFsaW4gTWFyaW5hcyB3cm90ZToKPj4+Pj4gWy4uLl0KPj4+Pj4+
-Cj4+Pj4+Pgo+Pj4+Pj4gSW4gYWRkaXRpb24gdG8gdGhlIGFib3ZlIGFuZCBfRFNEIHJlcXVpcmVt
-ZW50cy9iYW5uaW5nLCBJIHdvdWxkIGFsc28KPj4+Pj4+IGFkZAo+Pj4+Pj4gc29tZSBjbGVhciBz
-dGF0ZW1lbnRzIGFyb3VuZDoKPj4+Pj4+Cj4+Pj4+PiBfT1NDOiBvbmx5IGdsb2JhbC9wdWJsaXNo
-ZWQgY2FwYWJpbGl0aWVzIGFyZSBhbGxvd2VkLiBGb3IKPj4+Pj4+IGRldmljZS1zcGVjaWZpYyBf
-T1NDIHdlIG5lZWQgYSBwcm9jZXNzIG9yIG1heWJlIHdlIGNhbiBiYW4gdGhlbQo+Pj4+Pj4gZW50
-aXJlbHkKPj4+Pj4+IGFuZCByZWx5IG9uIF9EU0Qgb25jZSB3ZSBjbGFyaWZ5IHRoZSBwcm9jZXNz
-Lgo+Pj4+Pj4KPj4+Pj4+IF9PU0k6IGZpcm13YXJlIG11c3Qgbm90IGNoZWNrIGZvciBjZXJ0YWlu
-IF9PU0kgc3RyaW5ncy4gSGVyZSBJJ20gbm90Cj4+Pj4+PiBzdXJlIHdoYXQgd2Ugd291bGQgaGF2
-ZSB0byBkbyBmb3IgQVJNIExpbnV4LiBSZXBvcnRpbmcgIldpbmRvd3MiIGRvZXMKPj4+Pj4+IG5v
-dCBtYWtlIGFueSBzZW5zZSBidXQgbm90IHJlcG9ydGluZyBhbnl0aGluZyBjYW4sIGFzIE1hdHRo
-ZXcgR2FycmV0dAo+Pj4+Pj4gcG9pbnRlZCBvdXQsIGNhbiBiZSBpbnRlcnByZXRlZCBieSBmaXJt
-d2FyZSBhcyAiTGludXgiLiBJbiBhZGRpdGlvbiB0bwo+Pj4+Pj4gYW55IHN0YXRlbWVudHMgaW4g
-dGhpcyBkb2N1bWVudCwgSSBzdWdnZXN0IHlvdSBwYXRjaAo+Pj4+Pj4gZHJpdmVycy9hY3BpL2Fj
-cGljYS91dG9zaS5jIGFjY29yZGluZ2x5LCBtYXliZSByZXBvcnQgIkxpbnV4IiBmb3IgQVJNCj4+
-Pj4+PiBhbmQgcHJpbnQgYSBrZXJuZWwgd2FybmluZyBzbyB0aGF0IHdlIG5vdGljZSBlYXJsaWVy
-Lgo+Pj4+Pj4KPj4+Pj4+IEFDUElfT1NfTkFNRTogdGhpcyBpcyBnbG9iYWxseSBkZWZpbmVkIGFz
-ICJNaWNyb3NvZnQgV2luZG93cyBOVCIuIEl0Cj4+Pj4+PiBkb2Vzbid0IG1ha2UgbXVjaCBzZW5z
-ZSBpbiB0aGUgQVJNIGNvbnRleHQuIENvdWxkIHdlIGNoYW5nZSBpdCB0bwo+Pj4+Pj4gIkxpbnV4
-IiB3aGVuIENPTkZJR19BUk02ND8KPj4+Cj4+Pgo+Pj4gSSB0aGluayB3ZSBjYW4gaW50cm9kdWNl
-IGEgS2NvbmZpZyBzdWNoIGFzIENPTkZJR19BQ1BJX09TX05BTUVfTElOVVgsCj4+PiBzZWxlY3Rl
-ZCBieSBBUk02NCBhbmQgY2hhbmdlIEFDUElfT1NfTkFNRSB0byAiTGludXgiIHdoZW4KPj4+IENP
-TkZJR19BQ1BJX09TX05BTUVfTElOVVggZGVmaW5lZC4gKHdlIGNhbiBub3QgYWRkIENPTkZJR19B
-Uk02NCBpbgo+Pj4gQUNQSUNBIGNvZGUgZGlyZWN0bHkgc2luY2UgaXQgd2lsbCBiZSB1c2VkIGJ5
-IHdpbmRvd3MgdG9vKQo+Pj4KPj4+IHNvbWUgY29kZSBsaWtlIGJlbG93Ogo+Pgo+Pgo+PiBUaGlz
-IGxvb2tzIGZpbmUgZm9yIG1lICh3aXRoIHNvbWUgbWlub3IgY29tbWVudHMgYmVsb3cpIGJ1dCBJ
-J20gbm90IGFuCj4+IEFDUEkgZXhwZXJ0IHRvIHNheSB0aGVyZSB3b3VsZG4ndCBiZSBhbnkgaXNz
-dWVzLgo+Pgo+Pj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtNjQvS2NvbmZpZyBiL2FyY2gvYXJtNjQv
-S2NvbmZpZwo+Pj4gaW5kZXggYjFmOWEyMC4uZGU1NjdhMyAxMDA2NDQKPj4+IC0tLSBhL2FyY2gv
-YXJtNjQvS2NvbmZpZwo+Pj4gKysrIGIvYXJjaC9hcm02NC9LY29uZmlnCj4+PiBAQCAtMSw1ICsx
-LDYgQEAKPj4+ICAgIGNvbmZpZyBBUk02NAo+Pj4gICAgICAgICAgIGRlZl9ib29sIHkKPj4+ICsg
-ICAgICAgc2VsZWN0IEFDUElfT1NfTkFNRV9MSU5VWCBpZiBBQ1BJCj4+PiAgICAgICAgICAgc2Vs
-ZWN0IEFSQ0hfQklORk1UX0VMRl9SQU5ET01JWkVfUElFCj4+PiAgICAgICAgICAgc2VsZWN0IEFS
-Q0hfSEFTX0FUT01JQzY0X0RFQ19JRl9QT1NJVElWRQo+Pj4gICAgICAgICAgIHNlbGVjdCBBUkNI
-X0hBU19HQ09WX1BST0ZJTEVfQUxMCj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL0tjb25m
-aWcgYi9kcml2ZXJzL2FjcGkvS2NvbmZpZwo+Pj4gaW5kZXggODk1MWNlZi4uMTFhMTBhYyAxMDA2
-NDQKPj4+IC0tLSBhL2RyaXZlcnMvYWNwaS9LY29uZmlnCj4+PiArKysgYi9kcml2ZXJzL2FjcGkv
-S2NvbmZpZwo+Pj4gQEAgLTM2OSw2ICszNjksMTAgQEAgY29uZmlnIEFDUElfUkVEVUNFRF9IQVJE
-V0FSRV9PTkxZCj4+Pgo+Pj4gICAgICAgICAgICAgSWYgeW91IGFyZSB1bnN1cmUgd2hhdCB0byBk
-bywgZG8gbm90IGVuYWJsZSB0aGlzIG9wdGlvbi4KPj4+Cj4+PiArY29uZmlnIEFDUElfT1NfTkFN
-RV9MSU5VWAo+Pj4gKyAgICAgICBib29sICJVc2luZyBMaW51eCBmb3IgX09TIG1ldGhvZCIgaWYg
-RVhQRVJUCj4+PiArICAgICAgIGRlZl9ib29sIG4KPj4KPj4KPj4gTm8gbmVlZCBmb3IgYSBkZWZh
-dWx0IG4sIGl0IGlzIG9mZiBieSBkZWZhdWx0LiBBbHRlcm5hdGl2ZWx5IHlvdSBjb3VsZAo+PiBz
-YXk6Cj4+Cj4+ICAgICAgICAgZGVmYXVsdCB5IGlmIEFSTTY0Cj4KPgo+IG9rLgo+Cj4+Cj4+PiAr
-Cj4+PiAgICBzb3VyY2UgImRyaXZlcnMvYWNwaS9hcGVpL0tjb25maWciCj4+Pgo+Pj4gICAgY29u
-ZmlnIEFDUElfRVhUTE9HCj4+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hY3BpL2FjY29uZmlnLmgg
-Yi9pbmNsdWRlL2FjcGkvYWNjb25maWcuaAo+Pj4gaW5kZXggNWEwYTNlNS4uZGI1ZTEzZSAxMDA2
-NDQKPj4+IC0tLSBhL2luY2x1ZGUvYWNwaS9hY2NvbmZpZy5oCj4+PiArKysgYi9pbmNsdWRlL2Fj
-cGkvYWNjb25maWcuaAo+Pj4gQEAgLTY5LDcgKzY5LDExIEBACj4+PiAgICAgKiBjb2RlIHRoYXQg
-d2lsbCBub3QgZXhlY3V0ZSB0aGUgX09TSSBtZXRob2QgdW5sZXNzIF9PUyBtYXRjaGVzIHRoZQo+
-Pj4gc3RyaW5nCj4+PiAgICAgKiBiZWxvdy4gIFRoZXJlZm9yZSwgY2hhbmdlIHRoaXMgc3RyaW5n
-IGF0IHlvdXIgb3duIHJpc2suCj4+PiAgICAgKi8KPj4+ICsjaWZuZGVmIEFDUElfT1NfTkFNRV9V
-U0lOR19MSU5VWAo+Pj4gICAgI2RlZmluZSBBQ1BJX09TX05BTUUgICAgICAgICAgICAgICAgICAg
-ICJNaWNyb3NvZnQgV2luZG93cyBOVCIKPj4+ICsjZWxzZQo+Pj4gKyNkZWZpbmUgQUNQSV9PU19O
-QU1FICAgICAgICAgICAgICAgICAgICAiTGludXgiCj4+PiArI2VuZGlmCj4+Cj4+Cj4+IENhbiB5
-b3Ugbm90IHVzZSBDT05GSUdfQUNQSV9PU19OQU1FX0xJTlVYIGRpcmVjdGx5IGhlcmUgd2l0aG91
-dAo+PiBpbnRyb2R1Y2luZyBhbm90aGVyIG1hY3JvPwo+Cj4KPiBhY2NvbmZpZy5oIGlzIHBhcnQg
-b2YgQUNQSUNBIGNvcmUgYW5kIHdpbGwgYmUgc2hhcmVkIGJ5IHdpbmRvd3MgYW5kCj4gb3RoZXIg
-T1MsIHNvIHVzZSBDT05GSUcgZnJvbSBMaW51eCBpbiB0aGlzIGZpbGUgaXMgbm90IGFsbG93ZWQg
-SSB0aGluay4KPgoKV2UgY291bGQganVzdCBwcm9wc2UKI2lmbmRlZiBBQ1BJX09TX05BTUUKI2Rl
-ZmluZSBBQ1BJX09TX05BTUUgIk1pY3Jvc29mdCBXaW5kb3dzIE5UIgojZW5kaWYKCnRvIGFjcGlj
-YSBtYWludGFpbmVycy4gVGhpcyB3aWxsIG5vdCBhbHRlciBXaW5kb3dzIG9yIG90aGVyIHNvZnR3
-YXJlIHVzYWdlCmJ1dCB3ZSBjYW4gdGhlbiBvdmVycmlkZSBpdCBpbiBMaW51eCB3aGVuL2lmIHdl
-IHdhbnQgdG8uCgpHcmFlbWUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Tuesday 06 January 2015 11:20:01 Catalin Marinas wrote:
+> On Mon, Jan 05, 2015 at 08:16:30PM +0000, Arnd Bergmann wrote:
+> > On Monday 05 January 2015 13:13:02 Catalin Marinas wrote:
+> > > > since passing no DT tables to OS but
+> > > > acpi=force is missing is a corner case, we can do a follow up patch to
+> > > > fix that, does it make sense?
+> > > 
+> > > Not entirely. Why would no dtb and no acpi=force be a corner case? I
+> > > thought this should be the default when only ACPI tables are passed, no
+> > > need for an additional acpi=force argument.
+> > 
+> > We don't really support the case of only ACPI tables for now. The expectation
+> > is that you always have working DT support, at least for the next few years
+> > as ACPI features are ramping up, and without acpi=force it should not try
+> > to use ACPI at all.
+> 
+> So if both DT and ACPI are present, just use DT unless acpi=force is
+> passed. So far I think we agree but what I want to avoid is always
+> mandating acpi=force even when the DT tables are missing (in the long
+> run).
+> 
+> Now, what's preventing a vendor firmware from providing only ACPI
+> tables? Do we enforce it in some way (arm-acpi.txt, kernel warning etc.)
+> that both DT and ACPI are supported, or at least that dts files are
+> merged in the kernel first?
+
+We have no way of enforcing what a board vendor ships, so if they want
+to have ACPI-only machines for MS Windows, they just won't work by
+default on Linux. Once ACPI support is mature enough, we can also
+have a whitelist or a different default for using it automatically
+when no DT is present.
+
+For drivers merged upstream, I would insist that every driver merged
+for an ARM64 platform has a documented DT binding that is used in the
+driver.
+
+	Arnd
