@@ -1,112 +1,49 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: G Gregory <graeme.gregory@linaro.org>
 Subject: Re: [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Tue, 06 Jan 2015 21:50:38 +0800
-Message-ID: <54ABE82E.30308@linaro.org>
+Date: Tue, 6 Jan 2015 13:51:27 +0000
+Message-ID: <CAGCh1+kYRPg8QJ57bamH7Ctb1vJKmn2rirMUpbXcrU=Qw_VF2A@mail.gmail.com>
 References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1413553034-20956-19-git-send-email-hanjun.guo@linaro.org>
- <20141224171815.GD13399@e104818-lin.cambridge.arm.com>
- <54A90A4C.60908@linaro.org>
- <20150105110533.GA14967@e104818-lin.cambridge.arm.com>
- <54ABC2CB.6@linaro.org> <20150106112929.GB8829@e104818-lin.cambridge.arm.com>
+	<54A28B22.7090305@linaro.org>
+	<20150105131302.GB14967@e104818-lin.cambridge.arm.com>
+	<1797489.PjmKzBFdQA@wuerfel>
+	<20150106112000.GA8829@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150106112929.GB8829@e104818-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150106112000.GA8829@e104818-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Brown <br>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjAxNeW5tDAx5pyIMDbml6UgMTk6MjksIENhdGFsaW4gTWFyaW5hcyB3cm90ZToKPiBPbiBU
-dWUsIEphbiAwNiwgMjAxNSBhdCAxMToxMTowN0FNICswMDAwLCBIYW5qdW4gR3VvIHdyb3RlOgo+
-PiBPbiAyMDE15bm0MDHmnIgwNeaXpSAxOTowNSwgQ2F0YWxpbiBNYXJpbmFzIHdyb3RlOgo+Pj4g
-T24gU3VuLCBKYW4gMDQsIDIwMTUgYXQgMDk6Mzk6MjRBTSArMDAwMCwgSGFuanVuIEd1byB3cm90
-ZToKPj4+PiBPbiAyMDE05bm0MTLmnIgyNeaXpSAwMToxOCwgQ2F0YWxpbiBNYXJpbmFzIHdyb3Rl
-Ogo+Pj4+IFsuLi5dCj4+Pj4+Cj4+Pj4+IEluIGFkZGl0aW9uIHRvIHRoZSBhYm92ZSBhbmQgX0RT
-RCByZXF1aXJlbWVudHMvYmFubmluZywgSSB3b3VsZCBhbHNvIGFkZAo+Pj4+PiBzb21lIGNsZWFy
-IHN0YXRlbWVudHMgYXJvdW5kOgo+Pj4+Pgo+Pj4+PiBfT1NDOiBvbmx5IGdsb2JhbC9wdWJsaXNo
-ZWQgY2FwYWJpbGl0aWVzIGFyZSBhbGxvd2VkLiBGb3IKPj4+Pj4gZGV2aWNlLXNwZWNpZmljIF9P
-U0Mgd2UgbmVlZCBhIHByb2Nlc3Mgb3IgbWF5YmUgd2UgY2FuIGJhbiB0aGVtIGVudGlyZWx5Cj4+
-Pj4+IGFuZCByZWx5IG9uIF9EU0Qgb25jZSB3ZSBjbGFyaWZ5IHRoZSBwcm9jZXNzLgo+Pj4+Pgo+
-Pj4+PiBfT1NJOiBmaXJtd2FyZSBtdXN0IG5vdCBjaGVjayBmb3IgY2VydGFpbiBfT1NJIHN0cmlu
-Z3MuIEhlcmUgSSdtIG5vdAo+Pj4+PiBzdXJlIHdoYXQgd2Ugd291bGQgaGF2ZSB0byBkbyBmb3Ig
-QVJNIExpbnV4LiBSZXBvcnRpbmcgIldpbmRvd3MiIGRvZXMKPj4+Pj4gbm90IG1ha2UgYW55IHNl
-bnNlIGJ1dCBub3QgcmVwb3J0aW5nIGFueXRoaW5nIGNhbiwgYXMgTWF0dGhldyBHYXJyZXR0Cj4+
-Pj4+IHBvaW50ZWQgb3V0LCBjYW4gYmUgaW50ZXJwcmV0ZWQgYnkgZmlybXdhcmUgYXMgIkxpbnV4
-Ii4gSW4gYWRkaXRpb24gdG8KPj4+Pj4gYW55IHN0YXRlbWVudHMgaW4gdGhpcyBkb2N1bWVudCwg
-SSBzdWdnZXN0IHlvdSBwYXRjaAo+Pj4+PiBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0b3NpLmMgYWNj
-b3JkaW5nbHksIG1heWJlIHJlcG9ydCAiTGludXgiIGZvciBBUk0KPj4+Pj4gYW5kIHByaW50IGEg
-a2VybmVsIHdhcm5pbmcgc28gdGhhdCB3ZSBub3RpY2UgZWFybGllci4KPj4+Pj4KPj4+Pj4gQUNQ
-SV9PU19OQU1FOiB0aGlzIGlzIGdsb2JhbGx5IGRlZmluZWQgYXMgIk1pY3Jvc29mdCBXaW5kb3dz
-IE5UIi4gSXQKPj4+Pj4gZG9lc24ndCBtYWtlIG11Y2ggc2Vuc2UgaW4gdGhlIEFSTSBjb250ZXh0
-LiBDb3VsZCB3ZSBjaGFuZ2UgaXQgdG8KPj4+Pj4gIkxpbnV4IiB3aGVuIENPTkZJR19BUk02ND8K
-Pj4KPj4gSSB0aGluayB3ZSBjYW4gaW50cm9kdWNlIGEgS2NvbmZpZyBzdWNoIGFzIENPTkZJR19B
-Q1BJX09TX05BTUVfTElOVVgsCj4+IHNlbGVjdGVkIGJ5IEFSTTY0IGFuZCBjaGFuZ2UgQUNQSV9P
-U19OQU1FIHRvICJMaW51eCIgd2hlbgo+PiBDT05GSUdfQUNQSV9PU19OQU1FX0xJTlVYIGRlZmlu
-ZWQuICh3ZSBjYW4gbm90IGFkZCBDT05GSUdfQVJNNjQgaW4KPj4gQUNQSUNBIGNvZGUgZGlyZWN0
-bHkgc2luY2UgaXQgd2lsbCBiZSB1c2VkIGJ5IHdpbmRvd3MgdG9vKQo+Pgo+PiBzb21lIGNvZGUg
-bGlrZSBiZWxvdzoKPgo+IFRoaXMgbG9va3MgZmluZSBmb3IgbWUgKHdpdGggc29tZSBtaW5vciBj
-b21tZW50cyBiZWxvdykgYnV0IEknbSBub3QgYW4KPiBBQ1BJIGV4cGVydCB0byBzYXkgdGhlcmUg
-d291bGRuJ3QgYmUgYW55IGlzc3Vlcy4KPgo+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm02NC9LY29u
-ZmlnIGIvYXJjaC9hcm02NC9LY29uZmlnCj4+IGluZGV4IGIxZjlhMjAuLmRlNTY3YTMgMTAwNjQ0
-Cj4+IC0tLSBhL2FyY2gvYXJtNjQvS2NvbmZpZwo+PiArKysgYi9hcmNoL2FybTY0L0tjb25maWcK
-Pj4gQEAgLTEsNSArMSw2IEBACj4+ICAgIGNvbmZpZyBBUk02NAo+PiAgICAgICAgICAgZGVmX2Jv
-b2wgeQo+PiArICAgICAgIHNlbGVjdCBBQ1BJX09TX05BTUVfTElOVVggaWYgQUNQSQo+PiAgICAg
-ICAgICAgc2VsZWN0IEFSQ0hfQklORk1UX0VMRl9SQU5ET01JWkVfUElFCj4+ICAgICAgICAgICBz
-ZWxlY3QgQVJDSF9IQVNfQVRPTUlDNjRfREVDX0lGX1BPU0lUSVZFCj4+ICAgICAgICAgICBzZWxl
-Y3QgQVJDSF9IQVNfR0NPVl9QUk9GSUxFX0FMTAo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3Bp
-L0tjb25maWcgYi9kcml2ZXJzL2FjcGkvS2NvbmZpZwo+PiBpbmRleCA4OTUxY2VmLi4xMWExMGFj
-IDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL2FjcGkvS2NvbmZpZwo+PiArKysgYi9kcml2ZXJzL2Fj
-cGkvS2NvbmZpZwo+PiBAQCAtMzY5LDYgKzM2OSwxMCBAQCBjb25maWcgQUNQSV9SRURVQ0VEX0hB
-UkRXQVJFX09OTFkKPj4KPj4gICAgICAgICAgICAgSWYgeW91IGFyZSB1bnN1cmUgd2hhdCB0byBk
-bywgZG8gbm90IGVuYWJsZSB0aGlzIG9wdGlvbi4KPj4KPj4gK2NvbmZpZyBBQ1BJX09TX05BTUVf
-TElOVVgKPj4gKyAgICAgICBib29sICJVc2luZyBMaW51eCBmb3IgX09TIG1ldGhvZCIgaWYgRVhQ
-RVJUCj4+ICsgICAgICAgZGVmX2Jvb2wgbgo+Cj4gTm8gbmVlZCBmb3IgYSBkZWZhdWx0IG4sIGl0
-IGlzIG9mZiBieSBkZWZhdWx0LiBBbHRlcm5hdGl2ZWx5IHlvdSBjb3VsZAo+IHNheToKPgo+IAlk
-ZWZhdWx0IHkgaWYgQVJNNjQKCm9rLgoKPgo+PiArCj4+ICAgIHNvdXJjZSAiZHJpdmVycy9hY3Bp
-L2FwZWkvS2NvbmZpZyIKPj4KPj4gICAgY29uZmlnIEFDUElfRVhUTE9HCj4+IGRpZmYgLS1naXQg
-YS9pbmNsdWRlL2FjcGkvYWNjb25maWcuaCBiL2luY2x1ZGUvYWNwaS9hY2NvbmZpZy5oCj4+IGlu
-ZGV4IDVhMGEzZTUuLmRiNWUxM2UgMTAwNjQ0Cj4+IC0tLSBhL2luY2x1ZGUvYWNwaS9hY2NvbmZp
-Zy5oCj4+ICsrKyBiL2luY2x1ZGUvYWNwaS9hY2NvbmZpZy5oCj4+IEBAIC02OSw3ICs2OSwxMSBA
-QAo+PiAgICAgKiBjb2RlIHRoYXQgd2lsbCBub3QgZXhlY3V0ZSB0aGUgX09TSSBtZXRob2QgdW5s
-ZXNzIF9PUyBtYXRjaGVzIHRoZQo+PiBzdHJpbmcKPj4gICAgICogYmVsb3cuICBUaGVyZWZvcmUs
-IGNoYW5nZSB0aGlzIHN0cmluZyBhdCB5b3VyIG93biByaXNrLgo+PiAgICAgKi8KPj4gKyNpZm5k
-ZWYgQUNQSV9PU19OQU1FX1VTSU5HX0xJTlVYCj4+ICAgICNkZWZpbmUgQUNQSV9PU19OQU1FICAg
-ICAgICAgICAgICAgICAgICAiTWljcm9zb2Z0IFdpbmRvd3MgTlQiCj4+ICsjZWxzZQo+PiArI2Rl
-ZmluZSBBQ1BJX09TX05BTUUgICAgICAgICAgICAgICAgICAgICJMaW51eCIKPj4gKyNlbmRpZgo+
-Cj4gQ2FuIHlvdSBub3QgdXNlIENPTkZJR19BQ1BJX09TX05BTUVfTElOVVggZGlyZWN0bHkgaGVy
-ZSB3aXRob3V0Cj4gaW50cm9kdWNpbmcgYW5vdGhlciBtYWNybz8KCmFjY29uZmlnLmggaXMgcGFy
-dCBvZiBBQ1BJQ0EgY29yZSBhbmQgd2lsbCBiZSBzaGFyZWQgYnkgd2luZG93cyBhbmQKb3RoZXIg
-T1MsIHNvIHVzZSBDT05GSUcgZnJvbSBMaW51eCBpbiB0aGlzIGZpbGUgaXMgbm90IGFsbG93ZWQg
-SSB0aGluay4KCj4KPj4+PiBXZSB3aWxsIHdvcmsgb24gdGhpcyBib3RoIG9uIEFTV0cgYW5kIGxp
-bnV4IEFDUEkgZHJpdmVyIHNpZGUsIGFzIERvbmcKPj4+PiBhbmQgQ2hhcmxlcyBwb2ludGVkIG91
-dCwgX09TSSB0aGluZ3MgY2FuIGJlIHNvbHZlZCBpbiBBQ1BJIHNwZWMsIHdoZW4KPj4+PiB0aGF0
-IGlzIGRvbmUsIHdlIGNhbiBtb2RpZnkgdGhlIGtlcm5lbCBkcml2ZXIgdG8gZml4IHRoZSBwcm9i
-bGVtcyBhYm92ZS4KPj4+Cj4+PiBXaGljaCBkcml2ZXI/Cj4+Cj4+IHRoZSBBQ1BJQ0EgY29yZSBk
-cml2ZXIgYXMgeW91IHN1Z2dlc3RlZCwgc29ycnkgZm9yIHRoZSBjb25mdXNpb24uCj4+Cj4+PiBX
-aGF0IGFib3V0IEFDUElfT1NfTkFNRT8gV291bGQgeW91IHN1Z2dlc3QgaXQgaXMgZmluZSB0byBy
-ZXBvcnQKPj4+ICJNaWNyb3NvZnQgV2luZG93cyBOVCIgb24gYW4gQVJNIHN5c3RlbT8gVGhhdCBf
-T1NfIG5vdCBfT1NJLgo+Pgo+PiBObywgbm90IGF0IGFsbC4gSSBwcmVmZXIgIkxpbnV4Igo+PiBJ
-biBpbmNsdWRlL2FjcGkvYWNjb25maWcuaCwgd2hlbiBBQ1BJX09TX05BTUUgZGVmaW5lZCwgaXQg
-c2F5czoKPj4gIk9TIG5hbWUsIHVzZWQgZm9yIHRoZSBfT1Mgb2JqZWN0LiAgVGhlIF9PUyBvYmpl
-Y3QgaXMgZXNzZW50aWFsbHkKPj4gb2Jzb2xldGUsLi4uIgo+PiBmb3Igc29tZSBsZWdhY3kgcmVh
-c29ucywgd2UgbmVlZGVkICAiTWljcm9zb2Z0IFdpbmRvd3MgTlQiLCBidXQgQUNQSQo+PiBmb3Ig
-QVJNNjQgb24gbGludXggaXMgdG90YWxseSBuZXcsIEkgdGhpbmsgd2UgY2FuIGNoYW5nZSBpdCB0
-bwo+PiAiTGludXgiIHdoZW4gQ09ORklHX0FSTTY0IGFzIHlvdSBzdWdnZXN0ZWQuCj4KPiBXZSBj
-b3VsZCBpZ25vcmUgdGhpcyBjaGFuZ2UgZm9yIG5vdyBpZiB3ZSBkb24ndCBleHBlY3QgdGhlIF9P
-UyBvYmplY3QgdG8KPiBiZSB1c2VkIGF0IGFsbC4gQnV0IGRvIHdlIGhhdmUgYW55IG90aGVyIHdh
-eSB0byBjaGVjayB0aGUgQU1MIGNvZGUgZm9yCj4gdGhpcz8gV291bGQgRldUUyBjYXRjaCBzdWNo
-IG9ic29sZXRlIGNhc2VzPwoKSSdtIG5vdCBzdXJlLCBJIHdpbGwgY2hlY2sgaXQgYW5kIGdldCBi
-YWNrIHdoZW4gSSBoYXZlIHRoZSBhbnN3ZXIuCgpUaGFua3MKSGFuanVuCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxp
-bmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 6 January 2015 at 11:20, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> On Mon, Jan 05, 2015 at 08:16:30PM +0000, Arnd Bergmann wrote:
+>> On Monday 05 January 2015 13:13:02 Catalin Marinas wrote:
+>> > > since passing no DT tables to OS but
+>> > > acpi=force is missing is a corner case, we can do a follow up patch to
+>> > > fix that, does it make sense?
+>> >
+>> > Not entirely. Why would no dtb and no acpi=force be a corner case? I
+>> > thought this should be the default when only ACPI tables are passed, no
+>> > need for an additional acpi=force argument.
+>>
+>> We don't really support the case of only ACPI tables for now. The expectation
+>> is that you always have working DT support, at least for the next few years
+>> as ACPI features are ramping up, and without acpi=force it should not try
+>> to use ACPI at all.
+>
+> So if both DT and ACPI are present, just use DT unless acpi=force is
+> passed. So far I think we agree but what I want to avoid is always
+> mandating acpi=force even when the DT tables are missing (in the long
+> run).
+>
+> Now, what's preventing a vendor firmware from providing only ACPI
+> tables? Do we enforce it in some way (arm-acpi.txt, kernel warning etc.)
+> that both DT and ACPI are supported, or at least that dts files are
+> merged in the kernel first?
+>
+How do we tell the difference between a DT passed purely for booting purposes
+ie a skeleton DT. And one which actually has hardware description as this needs
+to be done before unpacking the DT.
+
+Graeme
