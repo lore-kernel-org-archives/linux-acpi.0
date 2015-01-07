@@ -1,28 +1,31 @@
-From: Jason Cooper <jason@lakedaemon.net>
+From: Jon Masters <jcm@redhat.com>
 Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Wed, 7 Jan 2015 16:40:55 -0500
-Message-ID: <20150107214055.GP24989@titan.lakedaemon.net>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <2161376.07iV9ANMSk@wuerfel>
- <20150107115039.GA2199@e104818-lin.cambridge.arm.com>
- <1520439.Y1rXzXY1eS@wuerfel>
- <20150107172741.GY2634@sirena.org.uk>
- <20150107184158.GO24989@titan.lakedaemon.net>
- <54AD8FF2.60407@redhat.com>
+Date: Wed, 7 Jan 2015 17:10:14 -0500 (EST)
+Message-ID: <1796283731.6904840.1420668614408.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <2161376.07iV9ANMSk@wuerfel> <20150107115039.GA2199@e104818-lin.cambridge.arm.com> <1520439.Y1rXzXY1eS@wuerfel> <20150107172741.GY2634@sirena.org.uk> <20150107184158.GO24989@titan.lakedaemon.net> <54AD8FF2.60407@redhat.com> <20150107214055.GP24989@titan.lakedaemon.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39758 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbbAGVlT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 16:41:19 -0500
-Content-Disposition: inline
-In-Reply-To: <54AD8FF2.60407@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150107214055.GP24989@titan.lakedaemon.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Cooper <jason@lakedaemon.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Randy Dunlap <rdunlap@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Lv Zheng <lv.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh@kernel.org>, Will Deacon <Will.Deacon@arm.com>, Mark Brown <broonie@kernel.org>, Olof Johansson <olof@lixom.net>, Robert Richter <rric@kernel.org>, linux-arm-kernel@lists.infradead.org, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Olof Johansson <olof@lixom.net>
 
+Jason,
+
+Will followup more later...was being a little sarcastic before...no raw nerve ;) but sarcasm translates badly so apologies. Will send a better reply when back online :) Good points!
+
+Jon.
+
+-- 
+Computer Architect | Sent from my #ARM Powered Mobile Device
+
+On Jan 7, 2015 4:41 PM, Jason Cooper <jason@lakedaemon.net> wrote:
+>
+> On Wed, Jan 07, 2015 at 02:58:42PM -0500, Jon Masters wrote: 
+> > On 01/07/2015 01:41 PM, Jason Cooper wrote: 
 On Wed, Jan 07, 2015 at 02:58:42PM -0500, Jon Masters wrote:
 > On 01/07/2015 01:41 PM, Jason Cooper wrote:
 > > On Wed, Jan 07, 2015 at 05:27:41PM +0000, Mark Brown wrote:
