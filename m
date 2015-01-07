@@ -1,71 +1,80 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Wed, 7 Jan 2015 17:59:04 -0500
-Message-ID: <20150107225904.GQ24989@titan.lakedaemon.net>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <2161376.07iV9ANMSk@wuerfel>
- <20150107115039.GA2199@e104818-lin.cambridge.arm.com>
- <1520439.Y1rXzXY1eS@wuerfel>
- <20150107172741.GY2634@sirena.org.uk>
- <20150107184158.GO24989@titan.lakedaemon.net>
- <54AD8FF2.60407@redhat.com>
- <54AD917A.2040307@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI material for 3.19-rc4
+Date: Thu, 8 Jan 2015 00:45:49 +0100
+Message-ID: <CAJZ5v0jz4zNbTNO2NGPvK8D__zEm9MB6Ar_NQ5-yOXaNhtFxSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38464 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755285AbbAGW7n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 17:59:43 -0500
-Content-Disposition: inline
-In-Reply-To: <54AD917A.2040307@redhat.com>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:51079 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751015AbbAGXpt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 18:45:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Olof Johansson <olof@lixom.net>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Jan 07, 2015 at 03:05:14PM -0500, Jon Masters wrote:
-> On 01/07/2015 02:58 PM, Jon Masters wrote:
-> > On 01/07/2015 01:41 PM, Jason Cooper wrote:
-> 
-> >> One of the reasons I've really enjoyed working with ARM platforms and DT
-> >> is the absence of this type of 'feature'.  I honestly don't care whether
-> >> the kernel gets the board configuration info from DT or ACPI or FOO, as
-> >> long as we can avoid the security mistakes of the past:
-> >>
-> >>   http://www.spiegel.de/international/world/catalog-reveals-nsa-has-back-doors-for-numerous-devices-a-940994.html
-> > 
-> > ACPI is not the great satan. I'm aware certain others in the community
-> > have written missinformed blog posts and G+ rants equating ACPI with SMI
-> > and even with various other system firmware. I can't force someone to
-> > become informed on a topic, especially if it's politically useful to
-> > them to hate on ACPI and use the security paranoia handwavy argument.
-> 
-> To clarify, and this is not directed at you Jason, it is politically
-> useful to some who have written rants those business models are built
-> upon being paid to enable platforms. For those folks, standardized
-> platforms which allow a common OS approach are seen as threatening.
+Hi Linus,
 
-Ahh, thanks for clarifying.
+Please pull from
 
-> In the previous rants (which were really instigated as a result of the
-> above) ACPI was equated with SMM (System Management Mode), which is a
-> bit like the Secure/Trusted world on AArch64 in which you might run
-> another "Trusted" OS. These are the places where you want to watch out
-> to malware of the kind cited in your link, not in ACPI tables.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.19-rc4
 
-fwiw, I *am* concerned about those spaces.  It seems we agree on their
-vulnerability to attack (plus being meaty targets).
+to receive power management and ACPI material for v3.19-rc4 with
+top-most commit 794c3a0a9380d46cebff14b0d9b409ecb7687480
 
-To more concisely state my other reply to you, wrt to AML, I'm primarily
-concerned about a malicious update to the ACPI tables.  The ACPI tables
-in the update would be otherwise normal, except for the AML blob that
-contains some extra code.  The malicious payload.  Then, a routine call
-into an AML (for pinctrl, say) executes the malicious code.
+ Merge branches 'acpi-pm', 'acpi-processor' and 'acpi-video'
 
-The plausibility and preventability of that style of attack is what I'm
-hoping to nail down with this discussion.
+on top of commit b1940cd21c0f4abdce101253e860feff547291b0
 
-thx,
+ Linux 3.19-rc3
 
-Jason.
+These are an ACPI device power management initialization fix (-stable
+material), two commits renaming stuff in the ACPI processor driver
+to make it more suitable for ARM64 processors and a new ACPI
+backlight blacklist entry.
+
+Specifics:
+
+ - Fix ACPI power management intialization for device objects
+   corresponding to devices that are not present at the init time
+   (the _STA control method returns 0 for them) and therefore should
+   not be regarded as power manageable (Rafael J Wysocki).
+
+ - Rename a structure field and two functions used by the ACPI
+   processor driver to make them less tied to architectures that
+   use APICs (both x86 and ia64) and more suitable for ARM64
+   processors (Hanjun Guo).
+
+ - Add a disable_native_backlight quirk for Dell XPS15 L521X
+   designed in an unusual way preventing native backlight from
+   working on that machine (Hans de Goede).
+
+Thanks!
+
+
+---------------
+
+Hanjun Guo (2):
+      ACPI / processor: Convert apic_id to phys_id to make it arch agnostic
+      ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
+
+Hans de Goede (1):
+      ACPI / video: Add disable_native_backlight quirk for Dell XPS15 L521X
+
+Rafael J. Wysocki (1):
+      ACPI / PM: Fix PM initialization for devices that are not present
+
+---------------
+
+ arch/ia64/kernel/acpi.c       |  9 ++++---
+ arch/x86/kernel/acpi/boot.c   |  9 ++++---
+ drivers/acpi/acpi_processor.c | 25 ++++++++++---------
+ drivers/acpi/device_pm.c      |  2 +-
+ drivers/acpi/processor_core.c | 56 +++++++++++++++++++++----------------------
+ drivers/acpi/scan.c           | 13 ++++++----
+ drivers/acpi/video.c          | 10 ++++++++
+ include/acpi/processor.h      |  8 +++----
+ include/linux/acpi.h          |  4 ++--
+ 9 files changed, 75 insertions(+), 61 deletions(-)
