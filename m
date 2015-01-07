@@ -1,60 +1,83 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 01/17] ACPI / processor: Convert apic_id to phys_id
- to make it arch agnostic
-Date: Wed, 07 Jan 2015 17:49:25 +0800
-Message-ID: <54AD0125.9060601@linaro.org>
-References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org> <1420368918-5086-2-git-send-email-hanjun.guo@linaro.org> <1463717.XWsK98imMv@vostro.rjw.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Wed, 07 Jan 2015 11:36:13 +0100
+Message-ID: <2161376.07iV9ANMSk@wuerfel>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <54AC5C57.7050504@redhat.com> <54ACBC5E.3040905@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:51960 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213AbbAGJtx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 04:49:53 -0500
-Received: by mail-pd0-f179.google.com with SMTP id fp1so3656609pdb.10
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Jan 2015 01:49:53 -0800 (PST)
-In-Reply-To: <1463717.XWsK98imMv@vostro.rjw.lan>
+Received: from mout.kundenserver.de ([212.227.17.24]:65312 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330AbbAGKhK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 05:37:10 -0500
+In-Reply-To: <54ACBC5E.3040905@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun
+To: Jon Masters <jcm@redhat.com>
+Cc: linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Lv Zheng <lv.zheng@intel.com>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Moore <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-On 2015=E5=B9=B401=E6=9C=8807=E6=97=A5 09:50, Rafael J. Wysocki wrote:
-> On Sunday, January 04, 2015 06:55:02 PM Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.com>
->>
->> apic_id in MADT table is the CPU hardware id which identify
->> it self in the system for x86 and ia64, OSPM will use it for
->> SMP init to map APIC ID to logical cpu number in the early
->> boot, when the DSDT/SSDT (ACPI namespace) is scanned later, the
->> ACPI processor driver is probed and the driver will use acpi_id
->> in DSDT to get the apic_id, then map to the logical cpu number
->> which is needed by the processor driver.
->>
->> Before ACPI 5.0, only x86 and ia64 were supported in ACPI spec,
->> so apic_id is used both in arch code and ACPI core which is
->> pretty fine. Since ACPI 5.0, ARM is supported by ACPI and
->> APIC is not available on ARM, this will confuse people when
->> apic_id is both used by x86 and ARM in one function.
->>
->> So convert apic_id to phys_id (which is the original meaning)
->> in ACPI processor dirver to make it arch agnostic, but leave the
->> arch dependent code unchanged, no functional change.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->
-> I've queued up this one and [2/17] for 3.19-rc4 as I promised I'd pus=
-h these
-> two for 3.19.
+On Tuesday 06 January 2015 23:55:58 Jon Masters wrote:
+> On 01/06/2015 05:06 PM, Jon Masters wrote:
+> > Hi Arnd,
+> > 
+> > Happy New Year!
+> > 
+> > On 01/06/2015 02:21 PM, Arnd Bergmann wrote:
+> >> On Tuesday 06 January 2015 11:24:43 Jon Masters wrote:
+> >>> On 01/06/2015 06:20 AM, Catalin Marinas wrote:
+> >>>
+> >>>> Now, what's preventing a vendor firmware from providing only ACPI
+> >>>> tables? Do we enforce it in some way (arm-acpi.txt, kernel warning etc.)
+> >>>> that both DT and ACPI are supported, or at least that dts files are
+> >>>> merged in the kernel first?
+> >>>
+> >>> I know of some (server) firmware that will only provide ACPI in the
+> >>> medium term, so this is coming.
+> >>
+> >> Medium term is fine, as long as they are not expecting their hardware
+> >> to be supported by Linux before ACPI support is stable enough for
+> >> general consumption.
+> > 
+> > To be clear, I think that's reasonable for upstream. I may love ACPI,
+> > but vendors can always ship kernels with a config supporting ACPI only
+> > platforms in the interim period if they have a commercial justification
+> > and that doesn't have to be supported in terms of the upstream default.
 
-Great, thanks a lot. I thought you will queued them for 3.20 :)
+I would hope that none of the ACPI-only machines are meant to run Linux
+as a primary operating system, that would be very sad.
 
-Regards
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vendors that are interested in Linux support should instead work on getting
+their hardware supported upstream so they don't need a private kernel to
+match their private firmware.
+
+> > But, perhaps there's a way to have it both ways, you could consider also
+> > a CONFIG_EXPERT option that would allow you to build a kernel with ACPI
+> > only support in the medium term. That way, if someone is running a
+> > vendor kernel, but wants to track upstream development more closely,
+> > they can do so on such hardware by enabling the expert config bit.
+
+I don't see how this helps. The main point of requiring users to add
+the option is to ensure that everyone understands the support is
+experimental and not guaranteed to work across firmware releases or
+kernel versions, until we have stopped making incompatible changes.
+
+If someone is tracking the upstream kernel, they should know that they
+have to get working DT support in first, and test both ways with the
+same kernel anyway.
+
+> Clarification: I'm suggesting that in the medium term the dependency
+> upon CONFIG_EXPERT either goes away or is replaced with requiring ACPI
+> and DTB in the non "expert" case
+
+Sure, no debate on that.
+
+> and requiring "expert" selected to allow a kernel that will boot with
+> ACPI only. But only a suggestion.
+
+This is a separate issue. I personally think we shouldn't bother with
+this, as such a configuration would just break a lot of assumptions
+we make today and removes hardware support, but it's something we
+can discuss after we get to the point of having ACPI enabled by default.
+
+	Arnd
