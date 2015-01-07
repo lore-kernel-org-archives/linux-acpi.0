@@ -1,90 +1,66 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Wed, 7 Jan 2015 17:27:41 +0000
-Message-ID: <20150107172741.GY2634@sirena.org.uk>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <2161376.07iV9ANMSk@wuerfel>
- <20150107115039.GA2199@e104818-lin.cambridge.arm.com>
- <1520439.Y1rXzXY1eS@wuerfel>
+From: Feng Kan <fkan@apm.com>
+Subject: Re: [PATCH] sata: xgene: add ACPI support for APM X-Gene SATA ports
+Date: Wed, 7 Jan 2015 09:32:56 -0800
+Message-ID: <CAL85gmAHLk9XCbr-1+USmOKxd5O7iCxWX0vqSRf74Brn2pzESg@mail.gmail.com>
+References: <1418337070-17644-1-git-send-email-fkan@apm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6ovzACdnYbOKIO0z"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:41674 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754321AbbAGR2b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 12:28:31 -0500
-Content-Disposition: inline
-In-Reply-To: <1520439.Y1rXzXY1eS@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1418337070-17644-1-git-send-email-fkan@apm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: patches <patches@apm.com>, linux-ide@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Salter <msalter@redhat.com>, tj@kernel.org, hdegoede@redhat.com
+Cc: Feng Kan <fkan@apm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Olof Johansson <olof@lixom.net>
 
+Just want to ping this again.
 
---6ovzACdnYbOKIO0z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Happy new year
 
-On Wed, Jan 07, 2015 at 02:06:28PM +0100, Arnd Bergmann wrote:
-> On Wednesday 07 January 2015 11:50:39 Catalin Marinas wrote:
-
-> > From what I gathered so far, the main reason for _some_ vendors is not
-> > support for "other" OS but actually features that ACPI has and DT
-> > doesn't (like AML; I deliberately ignore statements like "industry
-> > standard"). _If_ such reasons are sound, maybe they have a case for
-> > ACPI-only machines targeted primarily at Linux.
-
-> What I got from the replies from HP, Huawei and from earlier discussions
-> with Jon is that they all hope to get to the point of relying on AML
-> alone to bridge the differences between SoC families. However, I don't
-> see that happening with the limited hardware compatibility that the
-> existing SBSA provides:
-
-I tend to agree with you that it's an overreach to think that this is
-going to completely abstract away the differences between SoCs from
-different vendors without substantial further standardization work.
-However it does seem reasonable to expect that features like AML are
-going to be more successful in handling board differences and
-incremental revisions of SoCs - things like interactions with system
-power controllers for example.  That seems like a useful win in and of
-itself, and one that's worth supporting.
-
-> The main problem here is that can AML only cover part of the problem:
-> it can talk to a clock controller e.g. over I2C, SPI, GPIO, UART
-> or IPMI, but you still need a device driver in the kernel to talk to
-> those, and SBSA doesn't mandate a specific implementation so you can
-> expect every other SoC that is coming out to have a different one.
-
-> Similarly, SBSA is rather vague about some peripherals it mandates,
-> and if a new SoC has a slightly different AHCI variation, there is
-> nothing you can do about it in AML.
-
-> x86 gets around this problem by having an extreme level of hardware
-> backwards compatibility, so you don't even need AML for this and
-> can generally boot a (almost) full-featured Linux kernel with
-> acpi=off on the command line.
-
-That level of hardware compatibility does partly come from the need to
-run existing software.  I'd expect that similar effects will start to
-come into play with ARMv8 ACPI systems if they become successful; people
-will do things like ensure compatibility with common IPs that have
-existing Linux drivers that distros tend to include as standard.
-
---6ovzACdnYbOKIO0z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUrWyMAAoJECTWi3JdVIfQGAUH/jml1p4+VJ2rwtT9ED9KKG9X
-vPSgeXHmg89xk7HkqYLG3rcd8QS/wErEbfdM9f5tGuqPwiYSrvldm6XjK2k8gkhm
-GcWfD85Sle8yziONh2qHeVvMaHCzpzAAWYaeK9jdehmoPW6COG/sduc4jnET+Bb2
-Xf7enQgYXBRxowtFIoswdJir/p3q+tPS9Nw98l1/lwEKsyOIgqzjzLSz/asxt4/v
-k9uZ1Z8c6KS2U273YhfFyNmsSCyUszdXX3rPUgU76eMFtgYGka2uBuPJYGJvcfNj
-3x4jBAqSInsuwmgaapqfI7enjG4L/Brh7uPjuzr2ujY0HYJDrbSRDTV3sR6ReKc=
-=hgdU
------END PGP SIGNATURE-----
-
---6ovzACdnYbOKIO0z--
+On Thu, Dec 11, 2014 at 2:31 PM, Feng Kan <fkan@apm.com> wrote:
+> This adds ACPI support for the APM X-Gene SATA ports. When the system
+> boots using ACPI table, the SATA ports are able to configure using the
+> values supplied by the ACPI table rather than the DTS.
+>
+> Signed-off-by: Feng Kan <fkan@apm.com>
+> ---
+>  drivers/ata/ahci_xgene.c | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>
+> diff --git a/drivers/ata/ahci_xgene.c b/drivers/ata/ahci_xgene.c
+> index d0c851a..4951392 100644
+> --- a/drivers/ata/ahci_xgene.c
+> +++ b/drivers/ata/ahci_xgene.c
+> @@ -22,6 +22,7 @@
+>   * NOTE: PM support is not currently available.
+>   *
+>   */
+> +#include <linux/acpi.h>
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/ahci_platform.h>
+> @@ -521,6 +522,14 @@ disable_resources:
+>         return rc;
+>  }
+>
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id xgene_ahci_acpi_match[] = {
+> +       { "APMC0D0D", },
+> +       { }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, xgene_ahci_acpi_match);
+> +#endif
+> +
+>  static const struct of_device_id xgene_ahci_of_match[] = {
+>         {.compatible = "apm,xgene-ahci"},
+>         {},
+> @@ -534,6 +543,7 @@ static struct platform_driver xgene_ahci_driver = {
+>                 .name = "xgene-ahci",
+>                 .owner = THIS_MODULE,
+>                 .of_match_table = xgene_ahci_of_match,
+> +               .acpi_match_table = ACPI_PTR(xgene_ahci_acpi_match),
+>         },
+>  };
+>
+> --
+> 1.9.1
+>
