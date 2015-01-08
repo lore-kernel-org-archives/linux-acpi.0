@@ -1,91 +1,175 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch 05/19] ACPI: Provide union for address_space64 and ext_address_space64
-Date: Thu,  8 Jan 2015 10:32:52 +0800
-Message-ID: <1420684386-5975-6-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch 02/19] ACPI: Implement proper length checks for mem resources
+Date: Thu,  8 Jan 2015 10:32:49 +0800
+Message-ID: <1420684386-5975-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:27186 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753312AbbAHCaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Jan 2015 21:30:25 -0500
 In-Reply-To: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, devel@acpica.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 
 From: Thomas Gleixner <tglx@linutronix.de>
 
-address_space64 and ext_address_space64 share substracts just at
-different offsets. To unify the parsing functions implement the two
-structs as unions of their substructs, so we can extract the shared
-data.
+Check whether the resulting length is the same as the given
+length. Check for start <= end as well.
+
+We need to hand in the resource for this, so we can apply the flags
+directly.
+
+[Jiang] Remove enforcement that resource starting address must be
+non-zero.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- include/acpi/acrestyp.h |   49 ++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 36 insertions(+), 13 deletions(-)
+ drivers/acpi/resource.c |   61 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 34 insertions(+), 27 deletions(-)
 
-diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
-index eb760ca0b2e0..307d5b2605c8 100644
---- a/include/acpi/acrestyp.h
-+++ b/include/acpi/acrestyp.h
-@@ -326,23 +326,46 @@ struct acpi_resource_address32 {
- 	struct acpi_resource_source resource_source;
- };
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index d4c3d7640715..f20e23d4fb16 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -34,21 +34,37 @@
+ #define valid_IRQ(i) (true)
+ #endif
  
--struct acpi_resource_address64 {
--	ACPI_RESOURCE_ADDRESS_COMMON u64 granularity;
--	u64 minimum;
--	u64 maximum;
--	u64 translation_offset;
-+#define ACPI_RESOURCE_ADDRESS64_COMMON \
-+	u64 granularity;	       \
-+	u64 minimum;		       \
-+	u64 maximum;		       \
-+	u64 translation_offset;	       \
- 	u64 address_length;
--	struct acpi_resource_source resource_source;
+-static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
+-						bool window)
++static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
+ {
+-	unsigned long flags = IORESOURCE_MEM;
++	u64 reslen = end - start + 1;
+ 
+-	if (len == 0)
+-		flags |= IORESOURCE_DISABLED;
++	/*
++	 * CHECKME: len might be required to check versus a minimum
++	 * length as well. 1 for io is fine, but for memory it does
++	 * not make any sense at all.
++	 */
++	if (len && reslen && reslen == len && start <= end)
++		return true;
 +
-+struct acpi_resource_address64_common {
-+ACPI_RESOURCE_ADDRESS64_COMMON};
++	pr_info("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
++		io ? "io" : "mem", start, end, len);
 +
-+struct acpi_resource_address64 {
-+	union {
-+		struct {
-+			ACPI_RESOURCE_ADDRESS_COMMON
-+			ACPI_RESOURCE_ADDRESS64_COMMON
-+			struct acpi_resource_source resource_source;
-+		};
-+		struct {
-+			struct acpi_resource_address base;
-+			struct acpi_resource_address64_common addr;
-+			struct acpi_resource_source resource_source;
-+		} common;
-+	};
- };
++	return false;
++}
++
++static void acpi_dev_memresource_flags(struct resource *res, u64 len,
++				       u8 write_protect, bool window)
++{
++	res->flags = IORESOURCE_MEM;
++
++	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
++		res->flags |= IORESOURCE_DISABLED;
  
- struct acpi_resource_extended_address64 {
--	ACPI_RESOURCE_ADDRESS_COMMON u8 revision_ID;
--	u64 granularity;
--	u64 minimum;
--	u64 maximum;
--	u64 translation_offset;
--	u64 address_length;
--	u64 type_specific;
-+	union {
-+		struct {
-+			ACPI_RESOURCE_ADDRESS_COMMON
-+			u8 revision_ID;
-+			ACPI_RESOURCE_ADDRESS64_COMMON
-+			u64 type_specific;
-+		};
-+		struct {
-+			struct acpi_resource_address base;
-+			u8 revision_ID;
-+			struct acpi_resource_address64_common addr;
-+			u64 type_specific;
-+		} common;
-+	};
- };
+ 	if (write_protect == ACPI_READ_WRITE_MEMORY)
+-		flags |= IORESOURCE_MEM_WRITEABLE;
++		res->flags |= IORESOURCE_MEM_WRITEABLE;
  
- struct acpi_resource_extended_irq {
+ 	if (window)
+-		flags |= IORESOURCE_WINDOW;
+-
+-	return flags;
++		res->flags |= IORESOURCE_WINDOW;
+ }
+ 
+ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
+@@ -56,7 +72,7 @@ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
+ {
+ 	res->start = start;
+ 	res->end = start + len - 1;
+-	res->flags = acpi_dev_memresource_flags(len, write_protect, false);
++	acpi_dev_memresource_flags(res, len, write_protect, false);
+ }
+ 
+ /**
+@@ -77,24 +93,18 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ 	switch (ares->type) {
+ 	case ACPI_RESOURCE_TYPE_MEMORY24:
+ 		memory24 = &ares->data.memory24;
+-		if (!memory24->minimum && !memory24->address_length)
+-			return false;
+ 		acpi_dev_get_memresource(res, memory24->minimum,
+ 					 memory24->address_length,
+ 					 memory24->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_MEMORY32:
+ 		memory32 = &ares->data.memory32;
+-		if (!memory32->minimum && !memory32->address_length)
+-			return false;
+ 		acpi_dev_get_memresource(res, memory32->minimum,
+ 					 memory32->address_length,
+ 					 memory32->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+ 		fixed_memory32 = &ares->data.fixed_memory32;
+-		if (!fixed_memory32->address && !fixed_memory32->address_length)
+-			return false;
+ 		acpi_dev_get_memresource(res, fixed_memory32->address,
+ 					 fixed_memory32->address_length,
+ 					 fixed_memory32->write_protect);
+@@ -102,7 +112,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ 	default:
+ 		return false;
+ 	}
+-	return true;
++
++	return !(res->flags & IORESOURCE_DISABLED);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+ 
+@@ -186,7 +197,6 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 	acpi_status status;
+ 	struct acpi_resource_address64 addr;
+ 	bool window;
+-	u64 len;
+ 	u8 io_decode;
+ 
+ 	status = acpi_resource_to_address64(ares, &addr);
+@@ -199,10 +209,9 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 
+ 	switch(addr.resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+-		len = addr.maximum - addr.minimum + 1;
+-		res->flags = acpi_dev_memresource_flags(len,
+-						addr.info.mem.write_protect,
+-						window);
++		acpi_dev_memresource_flags(res, addr.address_length,
++					   addr.info.mem.write_protect,
++					   window);
+ 		break;
+ 	case ACPI_IO_RANGE:
+ 		io_decode = addr.granularity == 0xfff ?
+@@ -236,7 +245,6 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ {
+ 	struct acpi_resource_extended_address64 *ext_addr;
+ 	bool window;
+-	u64 len;
+ 	u8 io_decode;
+ 
+ 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
+@@ -250,10 +258,9 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 
+ 	switch(ext_addr->resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+-		len = ext_addr->maximum - ext_addr->minimum + 1;
+-		res->flags = acpi_dev_memresource_flags(len,
+-					ext_addr->info.mem.write_protect,
+-					window);
++		acpi_dev_memresource_flags(res, ext_addr->address_length,
++					   ext_addr->info.mem.write_protect,
++					   window);
+ 		break;
+ 	case ACPI_IO_RANGE:
+ 		io_decode = ext_addr->granularity == 0xfff ?
 -- 
 1.7.10.4
+
