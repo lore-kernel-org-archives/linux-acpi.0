@@ -1,80 +1,79 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI material for 3.19-rc4
-Date: Thu, 8 Jan 2015 00:45:49 +0100
-Message-ID: <CAJZ5v0jz4zNbTNO2NGPvK8D__zEm9MB6Ar_NQ5-yOXaNhtFxSQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC Patch 00/19] Improve ACPI resource parsing interfaces and data structures
+Date: Thu,  8 Jan 2015 10:32:47 +0800
+Message-ID: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:51079 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbbAGXpt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jan 2015 18:45:49 -0500
+Received: from mga03.intel.com ([134.134.136.65]:32320 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752382AbbAHCaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Jan 2015 21:30:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Linus,
+During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
+in ACPI resource parsing interfaces. So this is an effort to improve them.
 
-Please pull from
+Patch 1-12 improve ACPI resource parsing interfaces and also fixes some
+bugs.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-3.19-rc4
+Patch 13-19 try to share the common data structure resource_list_entry
+between PCI and ACPI. It may also be shared with PNP too.
 
-to receive power management and ACPI material for v3.19-rc4 with
-top-most commit 794c3a0a9380d46cebff14b0d9b409ecb7687480
+The patchset is based on v3.19-rc3 and you may get it from:
+https://github.com/jiangliu/linux.git acpires_v1
 
- Merge branches 'acpi-pm', 'acpi-processor' and 'acpi-video'
+Jiang Liu (11):
+  ACPI: Fix a bug in parsing ACPI Memroy24 resource
+  ACPI: Normalize return value of resource parser functions
+  ACPI: Set flag IORESOURCE_UNSET for unassigned resources
+  ACPI: Enforce stricter checks for address space descriptors
+  ACPI: Return translation offset when parsing ACPI address space
+    resources
+  ACPI: Translate resource into master side address for bridge window
+    resources
+  ACPI: Add field offset to struct resource_list_entry
+  ACPI: Introduce helper function acpi_dev_filter_resource_type()
+  resources: Move struct resource_list_entry from ACPI into resource
+    core
+  PCI: Use common resource list management code instead of private
+    implementation
+  x86/PCI/ACPI: Use common ACPI resource interfaces to simplify
+    implementation
 
-on top of commit b1940cd21c0f4abdce101253e860feff547291b0
+Thomas Gleixner (8):
+  ACPI: Remove redundant check in function
+    acpi_dev_resource_address_space()
+  ACPI: Implement proper length checks for mem resources
+  ACPI: Use the length check for io resources as well
+  ACPI: Let the parser return false for disabled resources
+  ACPI: Provide union for address_space64 and ext_address_space64
+  ACPI: Unify the parsing of address_space and ext_address_space
+  ACPI: Move the window flag logic to the combined parser
+  ACPI: Add prefetch decoding to the address space parser
 
- Linux 3.19-rc3
+ arch/arm/kernel/bios32.c            |    5 +-
+ arch/x86/pci/acpi.c                 |  297 ++++++++++---------------------
+ arch/x86/pci/bus_numa.c             |    4 +-
+ drivers/acpi/acpi_lpss.c            |    6 +-
+ drivers/acpi/acpi_platform.c        |    2 +-
+ drivers/acpi/resource.c             |  333 ++++++++++++++++++++++-------------
+ drivers/dma/acpi-dma.c              |    8 +-
+ drivers/pci/bus.c                   |   18 +-
+ drivers/pci/host-bridge.c           |    8 +-
+ drivers/pci/host/pci-host-generic.c |    4 +-
+ drivers/pci/host/pci-xgene.c        |    4 +-
+ drivers/pci/host/pcie-xilinx.c      |    4 +-
+ drivers/pci/probe.c                 |   10 +-
+ drivers/pnp/pnpacpi/rsparser.c      |    4 +-
+ include/acpi/acrestyp.h             |   49 ++++--
+ include/linux/acpi.h                |   12 +-
+ include/linux/ioport.h              |   25 +++
+ include/linux/pci.h                 |    8 +-
+ kernel/resource.c                   |   48 +++++
+ 19 files changed, 452 insertions(+), 397 deletions(-)
 
-These are an ACPI device power management initialization fix (-stable
-material), two commits renaming stuff in the ACPI processor driver
-to make it more suitable for ARM64 processors and a new ACPI
-backlight blacklist entry.
+-- 
+1.7.10.4
 
-Specifics:
-
- - Fix ACPI power management intialization for device objects
-   corresponding to devices that are not present at the init time
-   (the _STA control method returns 0 for them) and therefore should
-   not be regarded as power manageable (Rafael J Wysocki).
-
- - Rename a structure field and two functions used by the ACPI
-   processor driver to make them less tied to architectures that
-   use APICs (both x86 and ia64) and more suitable for ARM64
-   processors (Hanjun Guo).
-
- - Add a disable_native_backlight quirk for Dell XPS15 L521X
-   designed in an unusual way preventing native backlight from
-   working on that machine (Hans de Goede).
-
-Thanks!
-
-
----------------
-
-Hanjun Guo (2):
-      ACPI / processor: Convert apic_id to phys_id to make it arch agnostic
-      ACPI / processor: Rename acpi_(un)map_lsapic() to acpi_(un)map_cpu()
-
-Hans de Goede (1):
-      ACPI / video: Add disable_native_backlight quirk for Dell XPS15 L521X
-
-Rafael J. Wysocki (1):
-      ACPI / PM: Fix PM initialization for devices that are not present
-
----------------
-
- arch/ia64/kernel/acpi.c       |  9 ++++---
- arch/x86/kernel/acpi/boot.c   |  9 ++++---
- drivers/acpi/acpi_processor.c | 25 ++++++++++---------
- drivers/acpi/device_pm.c      |  2 +-
- drivers/acpi/processor_core.c | 56 +++++++++++++++++++++----------------------
- drivers/acpi/scan.c           | 13 ++++++----
- drivers/acpi/video.c          | 10 ++++++++
- include/acpi/processor.h      |  8 +++----
- include/linux/acpi.h          |  4 ++--
- 9 files changed, 75 insertions(+), 61 deletions(-)
