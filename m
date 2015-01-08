@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch 06/19] ACPI: Unify the parsing of address_space and ext_address_space
-Date: Thu,  8 Jan 2015 10:32:53 +0800
-Message-ID: <1420684386-5975-7-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch 04/19] ACPI: Let the parser return false for disabled resources
+Date: Thu,  8 Jan 2015 10:32:51 +0800
+Message-ID: <1420684386-5975-5-git-send-email-jiang.liu@linux.intel.com>
 References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
@@ -12,135 +12,42 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Thomas Gleixner <tglx@linutronix.de>
 
-With the unions in place which let us identify the substructs we can
-use a single parser for address_space and ext_address_space.
+If the parser disables a resource during parsing, let it return false,
+so the calling code does not need to implement further checks.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |   88 ++++++++++++++++++-----------------------------
- 1 file changed, 33 insertions(+), 55 deletions(-)
+ drivers/acpi/resource.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index deb70a839f80..d1ceba02afde 100644
+index c0578c05e2c2..deb70a839f80 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -178,6 +178,35 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
- 
-+static bool acpi_decode_space(struct resource *res,
-+			      struct acpi_resource_address *base,
-+			      struct acpi_resource_address64_common *addr)
-+{
-+	u8 iodec = addr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
-+	bool window = base->producer_consumer == ACPI_PRODUCER;
-+	bool wp = base->info.mem.write_protect;
-+	u64 len = addr->address_length;
-+
-+	res->start = addr->minimum;
-+	res->end = addr->maximum;
-+
-+	switch(base->resource_type) {
-+	case ACPI_MEMORY_RANGE:
-+		acpi_dev_memresource_flags(res, len, wp, window);
-+		break;
-+	case ACPI_IO_RANGE:
-+		acpi_dev_ioresource_flags(res, len, iodec, window);
-+		break;
-+	case ACPI_BUS_NUMBER_RANGE:
-+		res->flags = IORESOURCE_BUS;
-+		break;
-+	default:
+@@ -219,10 +219,10 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 		res->flags = IORESOURCE_BUS;
+ 		break;
+ 	default:
+-		res->flags = 0;
 +		return false;
-+	}
-+
+ 	}
+ 
+-	return true;
 +	return !(res->flags & IORESOURCE_DISABLED);
-+}
-+
- /**
-  * acpi_dev_resource_address_space - Extract ACPI address space information.
-  * @ares: Input ACPI resource object.
-@@ -190,39 +219,12 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
- bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 				     struct resource *res)
- {
--	acpi_status status;
- 	struct acpi_resource_address64 addr;
--	bool window;
--	u8 io_decode;
--
--	status = acpi_resource_to_address64(ares, &addr);
--	if (ACPI_FAILURE(status))
--		return false;
- 
--	res->start = addr.minimum;
--	res->end = addr.maximum;
--	window = addr.producer_consumer == ACPI_PRODUCER;
--
--	switch(addr.resource_type) {
--	case ACPI_MEMORY_RANGE:
--		acpi_dev_memresource_flags(res, addr.address_length,
--					   addr.info.mem.write_protect,
--					   window);
--		break;
--	case ACPI_IO_RANGE:
--		io_decode = addr.granularity == 0xfff ?
--				ACPI_DECODE_10 : ACPI_DECODE_16;
--		acpi_dev_ioresource_flags(res, addr.address_length,
--					  io_decode, window);
--		break;
--	case ACPI_BUS_NUMBER_RANGE:
--		res->flags = IORESOURCE_BUS;
--		break;
--	default:
-+	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
- 		return false;
--	}
- 
--	return !(res->flags & IORESOURCE_DISABLED);
-+	return acpi_decode_space(res, &addr.common.base, &addr.common.addr);
  }
  EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
  
-@@ -239,38 +241,14 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- 					 struct resource *res)
- {
- 	struct acpi_resource_extended_address64 *ext_addr;
--	bool window;
--	u8 io_decode;
+@@ -267,10 +267,10 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 		res->flags = IORESOURCE_BUS;
+ 		break;
+ 	default:
+-		res->flags = 0;
++		return false;
+ 	}
  
- 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
- 		return false;
- 
- 	ext_addr = &ares->data.ext_address64;
- 
--	res->start = ext_addr->minimum;
--	res->end = ext_addr->maximum;
--	window = ext_addr->producer_consumer == ACPI_PRODUCER;
--
--	switch(ext_addr->resource_type) {
--	case ACPI_MEMORY_RANGE:
--		acpi_dev_memresource_flags(res, ext_addr->address_length,
--					   ext_addr->info.mem.write_protect,
--					   window);
--		break;
--	case ACPI_IO_RANGE:
--		io_decode = ext_addr->granularity == 0xfff ?
--				ACPI_DECODE_10 : ACPI_DECODE_16;
--		acpi_dev_ioresource_flags(res, ext_addr->address_length,
--					  io_decode, window);
--		break;
--	case ACPI_BUS_NUMBER_RANGE:
--		res->flags = IORESOURCE_BUS;
--		break;
--	default:
--		return false;
--	}
--
--	return !(res->flags & IORESOURCE_DISABLED);
-+	return acpi_decode_space(res, &ext_addr->common.base,
-+				 &ext_addr->common.addr);
+-	return true;
++	return !(res->flags & IORESOURCE_DISABLED);
  }
  EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
  
