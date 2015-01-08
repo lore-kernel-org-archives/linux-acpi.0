@@ -1,79 +1,116 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch 00/19] Improve ACPI resource parsing interfaces and data structures
-Date: Thu,  8 Jan 2015 10:32:47 +0800
-Message-ID: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:32320 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752382AbbAHCaL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Jan 2015 21:30:11 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [RFC Patch 07/19] ACPI: Move the window flag logic to the combined parser
+Date: Thu,  8 Jan 2015 10:32:54 +0800
+Message-ID: <1420684386-5975-8-git-send-email-jiang.liu@linux.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
-in ACPI resource parsing interfaces. So this is an effort to improve them.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Patch 1-12 improve ACPI resource parsing interfaces and also fixes some
-bugs.
+Normal memory and io resources have window always set to false. Move
+the flag logic to the unified address space parser.
 
-Patch 13-19 try to share the common data structure resource_list_entry
-between PCI and ACPI. It may also be shared with PNP too.
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/resource.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-The patchset is based on v3.19-rc3 and you may get it from:
-https://github.com/jiangliu/linux.git acpires_v1
-
-Jiang Liu (11):
-  ACPI: Fix a bug in parsing ACPI Memroy24 resource
-  ACPI: Normalize return value of resource parser functions
-  ACPI: Set flag IORESOURCE_UNSET for unassigned resources
-  ACPI: Enforce stricter checks for address space descriptors
-  ACPI: Return translation offset when parsing ACPI address space
-    resources
-  ACPI: Translate resource into master side address for bridge window
-    resources
-  ACPI: Add field offset to struct resource_list_entry
-  ACPI: Introduce helper function acpi_dev_filter_resource_type()
-  resources: Move struct resource_list_entry from ACPI into resource
-    core
-  PCI: Use common resource list management code instead of private
-    implementation
-  x86/PCI/ACPI: Use common ACPI resource interfaces to simplify
-    implementation
-
-Thomas Gleixner (8):
-  ACPI: Remove redundant check in function
-    acpi_dev_resource_address_space()
-  ACPI: Implement proper length checks for mem resources
-  ACPI: Use the length check for io resources as well
-  ACPI: Let the parser return false for disabled resources
-  ACPI: Provide union for address_space64 and ext_address_space64
-  ACPI: Unify the parsing of address_space and ext_address_space
-  ACPI: Move the window flag logic to the combined parser
-  ACPI: Add prefetch decoding to the address space parser
-
- arch/arm/kernel/bios32.c            |    5 +-
- arch/x86/pci/acpi.c                 |  297 ++++++++++---------------------
- arch/x86/pci/bus_numa.c             |    4 +-
- drivers/acpi/acpi_lpss.c            |    6 +-
- drivers/acpi/acpi_platform.c        |    2 +-
- drivers/acpi/resource.c             |  333 ++++++++++++++++++++++-------------
- drivers/dma/acpi-dma.c              |    8 +-
- drivers/pci/bus.c                   |   18 +-
- drivers/pci/host-bridge.c           |    8 +-
- drivers/pci/host/pci-host-generic.c |    4 +-
- drivers/pci/host/pci-xgene.c        |    4 +-
- drivers/pci/host/pcie-xilinx.c      |    4 +-
- drivers/pci/probe.c                 |   10 +-
- drivers/pnp/pnpacpi/rsparser.c      |    4 +-
- include/acpi/acrestyp.h             |   49 ++++--
- include/linux/acpi.h                |   12 +-
- include/linux/ioport.h              |   25 +++
- include/linux/pci.h                 |    8 +-
- kernel/resource.c                   |   48 +++++
- 19 files changed, 452 insertions(+), 397 deletions(-)
-
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index d1ceba02afde..a56a64164410 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -53,7 +53,7 @@ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
+ }
+ 
+ static void acpi_dev_memresource_flags(struct resource *res, u64 len,
+-				       u8 write_protect, bool window)
++				       u8 write_protect)
+ {
+ 	res->flags = IORESOURCE_MEM;
+ 
+@@ -62,9 +62,6 @@ static void acpi_dev_memresource_flags(struct resource *res, u64 len,
+ 
+ 	if (write_protect == ACPI_READ_WRITE_MEMORY)
+ 		res->flags |= IORESOURCE_MEM_WRITEABLE;
+-
+-	if (window)
+-		res->flags |= IORESOURCE_WINDOW;
+ }
+ 
+ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
+@@ -72,7 +69,7 @@ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
+ {
+ 	res->start = start;
+ 	res->end = start + len - 1;
+-	acpi_dev_memresource_flags(res, len, write_protect, false);
++	acpi_dev_memresource_flags(res, len, write_protect);
+ }
+ 
+ /**
+@@ -118,7 +115,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+ 
+ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+-				      u8 io_decode, bool window)
++				      u8 io_decode)
+ {
+ 	res->flags = IORESOURCE_IO;
+ 
+@@ -130,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+ 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+-
+-	if (window)
+-		res->flags |= IORESOURCE_WINDOW;
+ }
+ 
+ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+@@ -140,7 +134,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+ {
+ 	res->start = start;
+ 	res->end = start + len - 1;
+-	acpi_dev_ioresource_flags(res, len, io_decode, false);
++	acpi_dev_ioresource_flags(res, len, io_decode);
+ }
+ 
+ /**
+@@ -183,7 +177,6 @@ static bool acpi_decode_space(struct resource *res,
+ 			      struct acpi_resource_address64_common *addr)
+ {
+ 	u8 iodec = addr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
+-	bool window = base->producer_consumer == ACPI_PRODUCER;
+ 	bool wp = base->info.mem.write_protect;
+ 	u64 len = addr->address_length;
+ 
+@@ -192,10 +185,10 @@ static bool acpi_decode_space(struct resource *res,
+ 
+ 	switch(base->resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res, len, wp, window);
++		acpi_dev_memresource_flags(res, len, wp);
+ 		break;
+ 	case ACPI_IO_RANGE:
+-		acpi_dev_ioresource_flags(res, len, iodec, window);
++		acpi_dev_ioresource_flags(res, len, iodec);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
+@@ -204,6 +197,9 @@ static bool acpi_decode_space(struct resource *res,
+ 		return false;
+ 	}
+ 
++	if (base->producer_consumer == ACPI_PRODUCER)
++		res->flags |= IORESOURCE_WINDOW;
++
+ 	return !(res->flags & IORESOURCE_DISABLED);
+ }
+ 
 -- 
 1.7.10.4
-
