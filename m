@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch 13/19] ACPI: Return translation offset when parsing ACPI address space resources
-Date: Thu,  8 Jan 2015 10:33:00 +0800
-Message-ID: <1420684386-5975-14-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC Patch 09/19] ACPI: Fix a bug in parsing ACPI Memroy24 resource
+Date: Thu,  8 Jan 2015 10:32:56 +0800
+Message-ID: <1420684386-5975-10-git-send-email-jiang.liu@linux.intel.com>
 References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,140 +10,29 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Change function acpi_dev_resource_address_space() and
-acpi_dev_resource_ext_address_space() to return address space
-translation offset.
-
-It's based on a patch from Yinghai Lu <yinghai@kernel.org>.
+According to ACPI spec 5, section 6.4.3.1 "24-Bit Memory Range Descriptor",
+minimum, maximum and address_length field in struct acpi_resource_memory24
+is in granularity of 256-bytes. So shift 8-bit left to get correct address.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c        |   22 +++++++++++++++-------
- drivers/pnp/pnpacpi/rsparser.c |    4 ++--
- include/linux/acpi.h           |    6 ++++--
- 3 files changed, 21 insertions(+), 11 deletions(-)
+ drivers/acpi/resource.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index e82149e44347..d3aa56674bd4 100644
+index abe3a29ad802..f4aeef22a9d8 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -184,7 +184,7 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
- 
--static bool acpi_decode_space(struct resource *res,
-+static bool acpi_decode_space(struct resource *res, resource_size_t *offset,
- 			      struct acpi_resource_address *base,
- 			      struct acpi_resource_address64_common *addr)
- {
-@@ -217,6 +217,9 @@ static bool acpi_decode_space(struct resource *res,
- 		return false;
- 	}
- 
-+	if (offset)
-+		*offset = addr->translation_offset;
-+
- 	if (base->producer_consumer == ACPI_PRODUCER)
- 		res->flags |= IORESOURCE_WINDOW;
- 
-@@ -230,6 +233,7 @@ static bool acpi_decode_space(struct resource *res,
-  * acpi_dev_resource_address_space - Extract ACPI address space information.
-  * @ares: Input ACPI resource object.
-  * @res: Output generic resource object.
-+ * @offset: Output translation offset
-  *
-  * Check if the given ACPI resource object represents an address space resource
-  * and if that's the case, use the information in it to populate the generic
-@@ -241,7 +245,8 @@ static bool acpi_decode_space(struct resource *res,
-  * 3) true: valid assigned resource
-  */
- bool acpi_dev_resource_address_space(struct acpi_resource *ares,
--				     struct resource *res)
-+				     struct resource *res,
-+				     resource_size_t *offset)
- {
- 	struct acpi_resource_address64 addr;
- 
-@@ -249,7 +254,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
- 		return false;
- 
--	return acpi_decode_space(res, &addr.common.base, &addr.common.addr);
-+	return acpi_decode_space(res, offset,
-+				 &addr.common.base, &addr.common.addr);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
- 
-@@ -257,6 +263,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
-  * acpi_dev_resource_ext_address_space - Extract ACPI address space information.
-  * @ares: Input ACPI resource object.
-  * @res: Output generic resource object.
-+ * @offset: Output translation offset
-  *
-  * Check if the given ACPI resource object represents an extended address space
-  * resource and if that's the case, use the information in it to populate the
-@@ -268,7 +275,8 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
-  * 3) true: valid assigned resource
-  */
- bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
--					 struct resource *res)
-+					 struct resource *res,
-+					 resource_size_t *offset)
- {
- 	struct acpi_resource_extended_address64 *ext_addr;
- 
-@@ -278,7 +286,7 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- 
- 	ext_addr = &ares->data.ext_address64;
- 
--	return acpi_decode_space(res, &ext_addr->common.base,
-+	return acpi_decode_space(res, offset, &ext_addr->common.base,
- 				 &ext_addr->common.addr);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
-@@ -478,8 +486,8 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
- 
- 	if (acpi_dev_resource_memory(ares, &r)
- 	    || acpi_dev_resource_io(ares, &r)
--	    || acpi_dev_resource_address_space(ares, &r)
--	    || acpi_dev_resource_ext_address_space(ares, &r))
-+	    || acpi_dev_resource_address_space(ares, &r, NULL)
-+	    || acpi_dev_resource_ext_address_space(ares, &r, NULL))
- 		return acpi_dev_new_resource_entry(&r, c);
- 
- 	for (i = 0; acpi_dev_resource_interrupt(ares, i, &r); i++) {
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 66977ebf13b3..e7bd483704e2 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -183,8 +183,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	struct resource r = {0};
- 	int i, flags;
- 
--	if (acpi_dev_resource_address_space(res, &r)
--	    || acpi_dev_resource_ext_address_space(res, &r)) {
-+	if (acpi_dev_resource_address_space(res, &r, NULL)
-+	    || acpi_dev_resource_ext_address_space(res, &r, NULL)) {
- 		pnp_add_resource(dev, &r);
- 		return AE_OK;
- 	}
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 856d381b1d5b..bde8119f5897 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -288,9 +288,11 @@ extern int pnpacpi_disabled;
- bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res);
- bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
- bool acpi_dev_resource_address_space(struct acpi_resource *ares,
--				     struct resource *res);
-+				     struct resource *res,
-+				     resource_size_t *offset);
- bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
--					 struct resource *res);
-+					 struct resource *res,
-+					 resource_size_t *offset);
- unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
- bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
- 				 struct resource *res);
+@@ -90,8 +90,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ 	switch (ares->type) {
+ 	case ACPI_RESOURCE_TYPE_MEMORY24:
+ 		memory24 = &ares->data.memory24;
+-		acpi_dev_get_memresource(res, memory24->minimum,
+-					 memory24->address_length,
++		acpi_dev_get_memresource(res, memory24->minimum << 8,
++					 memory24->address_length << 8,
+ 					 memory24->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_MEMORY32:
 -- 
 1.7.10.4
