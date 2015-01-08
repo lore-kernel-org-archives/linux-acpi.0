@@ -1,175 +1,83 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC Patch 02/19] ACPI: Implement proper length checks for mem resources
-Date: Thu,  8 Jan 2015 10:32:49 +0800
-Message-ID: <1420684386-5975-3-git-send-email-jiang.liu@linux.intel.com>
-References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH] sata: xgene: add ACPI support for APM X-Gene SATA ports
+Date: Thu, 08 Jan 2015 15:50:07 +0800
+Message-ID: <54AE36AF.3070603@linaro.org>
+References: <1418337070-17644-1-git-send-email-fkan@apm.com> <CAL85gmAHLk9XCbr-1+USmOKxd5O7iCxWX0vqSRf74Brn2pzESg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27186 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753312AbbAHCaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Jan 2015 21:30:25 -0500
-In-Reply-To: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:47978 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455AbbAHHuV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jan 2015 02:50:21 -0500
+Received: by mail-pa0-f48.google.com with SMTP id rd3so10191508pab.7
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Jan 2015 23:50:20 -0800 (PST)
+In-Reply-To: <CAL85gmAHLk9XCbr-1+USmOKxd5O7iCxWX0vqSRf74Brn2pzESg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+To: Feng Kan <fkan@apm.com>, patches <patches@apm.com>, linux-ide@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Salter <msalter@redhat.com>, tj@kernel.org, hdegoede@redhat.com
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Hi Feng Kan,
 
-Check whether the resulting length is the same as the given
-length. Check for start <= end as well.
+I have some comments below.
 
-We need to hand in the resource for this, so we can apply the flags
-directly.
+On 2015=E5=B9=B401=E6=9C=8808=E6=97=A5 01:32, Feng Kan wrote:
+> Just want to ping this again.
+>
+> Happy new year
+>
+> On Thu, Dec 11, 2014 at 2:31 PM, Feng Kan <fkan@apm.com> wrote:
+>> This adds ACPI support for the APM X-Gene SATA ports. When the syste=
+m
+>> boots using ACPI table, the SATA ports are able to configure using t=
+he
+>> values supplied by the ACPI table rather than the DTS.
+>>
+>> Signed-off-by: Feng Kan <fkan@apm.com>
+>> ---
+>>   drivers/ata/ahci_xgene.c | 10 ++++++++++
+>>   1 file changed, 10 insertions(+)
+>>
+>> diff --git a/drivers/ata/ahci_xgene.c b/drivers/ata/ahci_xgene.c
+>> index d0c851a..4951392 100644
+>> --- a/drivers/ata/ahci_xgene.c
+>> +++ b/drivers/ata/ahci_xgene.c
+>> @@ -22,6 +22,7 @@
+>>    * NOTE: PM support is not currently available.
+>>    *
+>>    */
+>> +#include <linux/acpi.h>
+>>   #include <linux/module.h>
+>>   #include <linux/platform_device.h>
+>>   #include <linux/ahci_platform.h>
+>> @@ -521,6 +522,14 @@ disable_resources:
+>>          return rc;
+>>   }
+>>
+>> +#ifdef CONFIG_ACPI
+>> +static const struct acpi_device_id xgene_ahci_acpi_match[] =3D {
+>> +       { "APMC0D0D", },
 
-[Jiang] Remove enforcement that resource starting address must be
-non-zero.
+When I was going through the PNP and ACPI ID list in
+http://www.uefi.org/PNP_ACPI_Registry, I found that
+there is no "APMC" for ACPI ID, I only found that there is
+a PNP ID "APM" for Applied Memory Tech company, are
+you using PNP ID for this one?
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/acpi/resource.c |   61 ++++++++++++++++++++++++++---------------------
- 1 file changed, 34 insertions(+), 27 deletions(-)
+if not, I think you can send a request to UEFI and
+request a new ACPI ID of "APMC" for Applied Micro, and then
+submit the patch again.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index d4c3d7640715..f20e23d4fb16 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -34,21 +34,37 @@
- #define valid_IRQ(i) (true)
- #endif
- 
--static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
--						bool window)
-+static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
- {
--	unsigned long flags = IORESOURCE_MEM;
-+	u64 reslen = end - start + 1;
- 
--	if (len == 0)
--		flags |= IORESOURCE_DISABLED;
-+	/*
-+	 * CHECKME: len might be required to check versus a minimum
-+	 * length as well. 1 for io is fine, but for memory it does
-+	 * not make any sense at all.
-+	 */
-+	if (len && reslen && reslen == len && start <= end)
-+		return true;
-+
-+	pr_info("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-+		io ? "io" : "mem", start, end, len);
-+
-+	return false;
-+}
-+
-+static void acpi_dev_memresource_flags(struct resource *res, u64 len,
-+				       u8 write_protect, bool window)
-+{
-+	res->flags = IORESOURCE_MEM;
-+
-+	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
-+		res->flags |= IORESOURCE_DISABLED;
- 
- 	if (write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
-+		res->flags |= IORESOURCE_MEM_WRITEABLE;
- 
- 	if (window)
--		flags |= IORESOURCE_WINDOW;
--
--	return flags;
-+		res->flags |= IORESOURCE_WINDOW;
- }
- 
- static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
-@@ -56,7 +72,7 @@ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
- {
- 	res->start = start;
- 	res->end = start + len - 1;
--	res->flags = acpi_dev_memresource_flags(len, write_protect, false);
-+	acpi_dev_memresource_flags(res, len, write_protect, false);
- }
- 
- /**
-@@ -77,24 +93,18 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		memory24 = &ares->data.memory24;
--		if (!memory24->minimum && !memory24->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, memory24->minimum,
- 					 memory24->address_length,
- 					 memory24->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 		memory32 = &ares->data.memory32;
--		if (!memory32->minimum && !memory32->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, memory32->minimum,
- 					 memory32->address_length,
- 					 memory32->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 		fixed_memory32 = &ares->data.fixed_memory32;
--		if (!fixed_memory32->address && !fixed_memory32->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, fixed_memory32->address,
- 					 fixed_memory32->address_length,
- 					 fixed_memory32->write_protect);
-@@ -102,7 +112,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 	default:
- 		return false;
- 	}
--	return true;
-+
-+	return !(res->flags & IORESOURCE_DISABLED);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
- 
-@@ -186,7 +197,6 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 	acpi_status status;
- 	struct acpi_resource_address64 addr;
- 	bool window;
--	u64 len;
- 	u8 io_decode;
- 
- 	status = acpi_resource_to_address64(ares, &addr);
-@@ -199,10 +209,9 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 
- 	switch(addr.resource_type) {
- 	case ACPI_MEMORY_RANGE:
--		len = addr.maximum - addr.minimum + 1;
--		res->flags = acpi_dev_memresource_flags(len,
--						addr.info.mem.write_protect,
--						window);
-+		acpi_dev_memresource_flags(res, addr.address_length,
-+					   addr.info.mem.write_protect,
-+					   window);
- 		break;
- 	case ACPI_IO_RANGE:
- 		io_decode = addr.granularity == 0xfff ?
-@@ -236,7 +245,6 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- {
- 	struct acpi_resource_extended_address64 *ext_addr;
- 	bool window;
--	u64 len;
- 	u8 io_decode;
- 
- 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
-@@ -250,10 +258,9 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- 
- 	switch(ext_addr->resource_type) {
- 	case ACPI_MEMORY_RANGE:
--		len = ext_addr->maximum - ext_addr->minimum + 1;
--		res->flags = acpi_dev_memresource_flags(len,
--					ext_addr->info.mem.write_protect,
--					window);
-+		acpi_dev_memresource_flags(res, ext_addr->address_length,
-+					   ext_addr->info.mem.write_protect,
-+					   window);
- 		break;
- 	case ACPI_IO_RANGE:
- 		io_decode = ext_addr->granularity == 0xfff ?
--- 
-1.7.10.4
+How to send a request to register the ACPI ID, you can
+refer to:
+http://www.uefi.org/PNP_ACPI_Registry
 
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
