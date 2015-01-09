@@ -1,56 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Fri, 09 Jan 2015 11:55:51 +0100
-Message-ID: <3341506.a2BFqPNg3k@wuerfel>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1610983.9vqJdsL27R@wuerfel>
- <20150109103307.GC24408@e104818-lin.cambridge.arm.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH] treewide: Convert clockevents_notify to use int cpu
+Date: Fri, 9 Jan 2015 12:34:56 +0100
+Message-ID: <20150109113452.GF16465@ulmo>
+References: <1418254133.18092.22.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150109103307.GC24408@e104818-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, "jcm@redhat.com" <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Olof Johansson <olof@lixom.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DEueqSqTbz/jWVG1"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-we0-f175.google.com ([74.125.82.175]:55718 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932870AbbAILe7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jan 2015 06:34:59 -0500
+Content-Disposition: inline
+In-Reply-To: <1418254133.18092.22.camel@perches.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm <linux-pm@vger.kernel.org>
 
-On Friday 09 January 2015 10:33:07 Catalin Marinas wrote:
-> On Wed, Jan 07, 2015 at 07:48:48PM +0000, Arnd Bergmann wrote:
 
-> > In other cases that's actually a good thing. One such example is the
-> > "Principles of ARM Memory Maps" document that tells hardware implementers
-> > to do a rather complex mapping "To support 36-bit x86 PAE compatible operating
-> > systems, such as Linux." but makes life much harder in the process than
-> > any of the random mappings we have seen in the wild.
-> 
-> Unfortunately, with any significant amount of RAM (say 16GB), this
-> document becomes pretty useless. It basically forces you to have a very
-> sparse physical address map from 0 to over 40-bit. I wouldn't apply the
-> ARM memory maps doc to server systems.
+--DEueqSqTbz/jWVG1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Are you sure? I was under the impression that this document was targetted
-specifically at servers.
+On Wed, Dec 10, 2014 at 03:28:53PM -0800, Joe Perches wrote:
+[...]
+>  arch/arm/mach-tegra/cpuidle-tegra114.c |  4 ++--
+>  arch/arm/mach-tegra/cpuidle-tegra20.c  |  8 ++++----
+>  arch/arm/mach-tegra/cpuidle-tegra30.c  |  8 ++++----
+[...]
 
-> >   It's also not just the CPU core, other components also get easily
-> >   replaced, like a GICv3 that is not a strict superset of GICv2.
-> 
-> That's not a problem for Linux, we can describe them in DT or ACPI and
-> have drivers. GICv3 has an optional GICv2 compatible mode, though
-> vendors may decide not to implement it.
+Acked-by: Thierry Reding <treding@nvidia.com>
 
-I'm aware that we can deal with it after we have the drivers. My point
-was that we are unable to deal with this problem in general if we want
-to run existing kernels on new hardware that contains e.g. a GICv4/5/6
-that requires a new driver which has to first be written and then
-backported into distro kernels.
+--DEueqSqTbz/jWVG1
+Content-Type: application/pgp-signature
 
-	Arnd
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUr7zcAAoJEN0jrNd/PrOhrsAP/iWqYSubPYR6Plip5QDe/QoP
+9bcbtfr5b+PsC/H1evIRrWKNo5E68ZZNJpA4FfPSGs1NAqqfl0/7fG1s6j2E38dG
+UWwLGFQ/tzRJht0SzbehEIef8ZZ0w2Y9dmVoriQoQq0FjHJqbG3zf2tsPFkztIvI
++zaOSc/FHTH6lN2fjqbySFT6+NF32Hx4IoO4pKrp2upqMh7LiWaAt6h6RE8Xb84o
+3eu0Ooyqc8g1vHmZu4vGB7eQsHHF3l3DBEdKLrnXaJXd92RlzQFy/rhoN2A+rClr
+kadKPbfH8HV4ENG1l5j2fPhzx/rsZMI1KLgKssm1xbGF8tPUromdroL3VuayI+y8
+WEO2LoXUb3RH5zh6QarQvZyCPzDba5s33sk8Z03NoazTtp1ldAE29UAORrzfdEFq
+YCDExJsxFZwYT1bkTvlMKjeL22SAh3LKiJuTCerqGvRZkAwVZnmdsTmnxjcotWRC
+SZvIJjoAbkanqyUZN7Jrz6Txl37ZPET6dZxFcqLXDoiPfAJ3H3rYVp8d6fSejcH5
+N2x8wGwwkWLQScxRVRv0aQsERpT6UHfYyADVBMPIKz2OhRXoy0nCSdFtB7KsY43r
+FxeOEM9JQvuuIiH/NsoNR19613E7pboA00siPF8QPyIE93JB9rSIQgqkK4SbbnL0
+Iumq7l9GgNhbA6mm931L
+=XFHi
+-----END PGP SIGNATURE-----
+
+--DEueqSqTbz/jWVG1--
