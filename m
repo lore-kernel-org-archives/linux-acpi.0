@@ -1,47 +1,46 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Fri, 9 Jan 2015 15:13:43 +0000
-Message-ID: <20150109151342.GE24408@e104818-lin.cambridge.arm.com>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
- <1610983.9vqJdsL27R@wuerfel>
- <20150109103307.GC24408@e104818-lin.cambridge.arm.com>
- <3341506.a2BFqPNg3k@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3341506.a2BFqPNg3k@wuerfel>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Olof Johansson <olof@lixom.net>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] acpi-video: Add disable_native_backlight quirk for Samsung 730U3E/740U3E
+Date: Fri,  9 Jan 2015 16:13:01 +0100
+Message-ID: <1420816381-12394-1-git-send-email-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:49261 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756671AbbAIPNH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Jan 2015 10:13:07 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-On Fri, Jan 09, 2015 at 10:55:51AM +0000, Arnd Bergmann wrote:
-> On Friday 09 January 2015 10:33:07 Catalin Marinas wrote:
-> > On Wed, Jan 07, 2015 at 07:48:48PM +0000, Arnd Bergmann wrote:
-> 
-> > > In other cases that's actually a good thing. One such example is the
-> > > "Principles of ARM Memory Maps" document that tells hardware implementers
-> > > to do a rather complex mapping "To support 36-bit x86 PAE compatible operating
-> > > systems, such as Linux." but makes life much harder in the process than
-> > > any of the random mappings we have seen in the wild.
-> > 
-> > Unfortunately, with any significant amount of RAM (say 16GB), this
-> > document becomes pretty useless. It basically forces you to have a very
-> > sparse physical address map from 0 to over 40-bit. I wouldn't apply the
-> > ARM memory maps doc to server systems.
-> 
-> Are you sure? I was under the impression that this document was targetted
-> specifically at servers.
+The Samsung 730U3E/740U3E has integrated ATI Radeon graphics, and backlight
+control does not work properly when using the native interfaces.
 
-Ah, sorry for the confusion, I haven't read the latest (apparently from
-2012) update which covers 44 and 48-bit memory maps.
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1094948
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-The only downside is that for more than 32GB of RAM (up to 512GB) it
-requires a 40-bit memory map. Given the sparseness, we can't use
-3-levels of page table with 4KB pages which can only cover 39-bit.
-Anyway, not a major issue.
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 032db45..e641268 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -522,6 +522,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "370R4E/370R4V/370R5E/3570RE/370R5V"),
+ 		},
+ 	},
++	{
++	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1094948 */
++	 .callback = video_disable_native_backlight,
++	 .ident = "SAMSUNG 730U3E/740U3E"
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "730U3E/740U3E"),
++		},
++	},
+ 
+ 	{
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
 -- 
-Catalin
+2.1.0
+
