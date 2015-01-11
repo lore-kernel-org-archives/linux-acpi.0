@@ -1,50 +1,170 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] acpi-video: Add disable_native_backlight quirk for Dell
- XPS15 L521X
-Date: Sun, 11 Jan 2015 11:37:52 +0100
-Message-ID: <54B25280.6010604@redhat.com>
-References: <1420444624-8313-1-git-send-email-hdegoede@redhat.com> <20150111061602.GA1677@srcf.ucam.org>
+From: Al Stone <ahs3@redhat.com>
+Subject: [RFC v2] ACPI on arm64 TODO List, 11 Jan 2015
+Date: Sun, 11 Jan 2015 13:41:28 -0700
+Message-ID: <54B2DFF8.4020301@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43812 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49362 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751267AbbAKKiD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Jan 2015 05:38:03 -0500
-In-Reply-To: <20150111061602.GA1677@srcf.ucam.org>
+	id S1750753AbbAKUmR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Jan 2015 15:42:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>
 
-Hi,
+Update for 11 Jan 2015:
 
-On 11-01-15 07:16, Matthew Garrett wrote:
-> On Mon, Jan 05, 2015 at 08:57:04AM +0100, Hans de Goede wrote:
->> The L521X variant of the Dell XPS15 has integrated nvidia graphics, and
->> backlight control does not work properly when using the native interfaces.
->
-> I'm not convinced that the assessment of this bug is correct. Is the
-> system using the nvidia graphics device?
+Back in September 2014, a meeting was held at Linaro Connect where we
+discussed what issues remained before the arm64 ACPI core patches could
+be merged into the kernel, creating the TODO list below.  I should have
+published this list sooner; I got focused on trying to resolve some of
+the issues instead.
 
-I do not know.
+We have made some progress on all of these items.  But, I want to make
+sure we haven't missed something.  Since this list was compiled by only
+the people in the room at Connect, it is probable we have.  I, for one,
+do not yet claim omniscience.
 
-> If so, why is userspace writing to the intel backlight device?
+So, I want to ask the ARM and ACPI communities:
 
-Userspace is writing to the intel_backlight device because it is the
-only one present under /sys/class/backlight, as we disable acpi-video
-on win8 ready laptops by default now.
+  -- Is this list correct?
 
-What this commit does is disable the disabling of acpi-video, and
-after that userspace will see an acpi_video0 backlight under
-/sys/class/backlight, use that and then things work, this has been
-confirmed by the bug reporter.
+  -- Is this list complete?
 
-The commit message may not be 100% accurate, although I believe this is
-related to the laptop having nvidia graphics, but the code / fix is correct
-regardless.
+Below is what we currently know about; very brief notes on status are
+included.  The TL;DR versions of the TODO list and the current status
+can be found at:
 
-Regards,
+   https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/CoreUpstreamNotes
 
-Hans
+and I'll do my best to kept that up to date.
+
+Thanks.  Any and all feedback is greatly appreciated.
+
+
+Changes since 14 Dec 2014:
+-- v6 of ACPI core patches posted
+-- Good progress in _OSI investigation, started preparing RFC for the
+   mailing lists
+-- Precise definition of kernel behavior when defaulting to DT and/or
+   using acpi=force being discussed again
+-- FWTS now runs and results posted after each merge of leg-kernel
+   (includes ACPI) with Linus' tree (i.e., each -rc).
+-- ACPI on arm64 kernel document updated, under extensive discussion on
+   the lists; starting coordination with SBBR content.
+-- Firmware Summit: planned for 26 Mar 2015, San Jose, CA, at the ARM
+   office; mailing list (with archives) now up and running; updated
+   agenda being prepared
+-- Merged items "Demonstrate the ACPI core patches work", and "Platform
+   support patches need review" because of their similarity.
+-- Further discussions have occurred regarding "Why ACPI?"; Grant has
+   a blog post explaining this better, and we will add that to kernel
+   document
+-- Further discussion on the usage of _DSD has occurred, but much more
+   is needed
+
+
+TODO List for ACPI on arm64:
+============================
+1. Define how Aarch64 OS identifies itself to firmware
+   * Problem:
+     * _OSI method is demonstrably unreliable. On x86, Linux claims to
+       be Windows.
+     * Proposal to use _OSC method as replacement is complicated and
+       creates an explosion of combinations
+   * Solution:
+     * Draft and propose OS identification rules to ABST and ASWG for
+       inclusion in ACPI spec.
+     * Draft and propose recommended practice for current ACPI 5.1 spec
+       platforms.
+   * Status: Good progress in _OSI investigation, started preparing RFC
+     for the mailing lists; general agreement to deprecate _OSI
+     completely
+
+2. Linux must choose DT booting by default when offered both ACPI and
+   DT on arm64
+   * Status: DONE, but being revisited for possible algorithmic change
+
+3. Linux UEFI/ACPI testing tools must be made available
+   * Problem:
+     * Hardware/Firmware vendors do not have tools to test Linux
+       compatibility.
+     * Common problems go undetected if not tested for.
+   * Solution:
+     * Port FWTS tool and LuvOS distribution to AArch64
+     * Make LuvOS images readily available
+     * Require hardware vendors to actively test against old and new
+       kernels.
+   * Status:
+     * LuvOS and FWTS ported to arm64; patches in mainline; additional
+       test cases being written.
+     * CI loop set up to run FWTS on Foundation model for each -rc
+       merge of Linus' tree into leg-kernel.
+     * AMD Seattle results pending updated kernel patches.
+     * LuvOS details at https://wiki.linaro.org/LEG/Engineering/luvOS
+
+4. Set clear expectations for those providing ACPI for use with Linux
+   * Problem:
+     * Hardware/Firmware vendors can and will create ACPI tables that
+       cannot be used by Linux without some guidance
+     * Kernel developers cannot determine whether the kernel or
+       firmware is broken without knowing what the firmware should do
+   * Solution: document the expectations, and iterate as needed.
+     Enforce when we must.
+   * Status: kernel text updated and under heavy discussion, AMD has
+     made their guidance document available, and starting to coordinate
+     content with SBBR; firmware summit date and location seems firm,
+     agenda being updated.
+
+5. Platform support patches need verification and review
+   * Problem: the core Aarch64 patches have been reviewed and are in
+     good shape, but there is not yet a good example of server platform
+     support patches that use them.
+   * Solution: post *good* patches for multiple ACPI platforms,
+     demonstrating that both the core patches work, and that the use of
+     the ACPI core makes sense.
+   * Status:
+     * ACPI core works on at least the Foundation model, Juno, APM
+       Mustang, and AMD Seattle
+     * FWTS results for the Foundation model have been posted
+     * First version for AMD Seattle has been posted to the public
+       linaro-acpi mailing list for initial review, refined versions to
+       be posted to broader lists after a few iterations for basic
+       cleanup
+
+6. How does the kernel handle_DSD usage?
+   * Problem:
+     * _DSD defines key-value properties in the DT style. How do we
+       ensure _DSD bindings are well defined?
+     * How do we ensure DT and _DSD bindings remain consistent with
+       each other?
+   * Solution: public documentation for all bindings, and a process for
+     defining them
+   * Status: proposal to require patch authors to point at public
+     binding documentation; kernel Documentation/devicetree/bindings
+     remains the default if no other location exists; UEFI forum has
+     set up a binding repository. Discussion continues.
+
+7. Why is ACPI required?
+   * Problem:
+     * arm64 maintainers still haven't been convinced that ACPI is
+       necessary.
+     * Why do hardware and OS vendors say ACPI is required?
+   * Solution: discussions between those who want ACPI and arm64
+     maintainers
+   * Status: Grant has provided a blog post at
+     http://www.secretlab.ca/archives/151.  Al will roll that content
+     into the kernel documentation, also.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
