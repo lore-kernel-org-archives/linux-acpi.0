@@ -1,150 +1,35 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Mon, 12 Jan 2015 20:40:51 +0100
-Message-ID: <1421113529.giGjG4IzLy@wuerfel>
-References: <548F9668.6080900@linaro.org> <1636716.eAYJb6Z2AV@wuerfel> <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Mon, 12 Jan 2015 20:55:31 +0100
+Message-ID: <6510884.pqfMoSc7Kv@wuerfel>
+References: <548F9668.6080900@linaro.org> <CACxGe6ub0UsUNs1-2NziK_sGEtpxTjcDD+Eto3YOsNkvWxaNcw@mail.gmail.com> <20150112193905.GB5281@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:49661 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.130]:52827 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725AbbALTla (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2015 14:41:30 -0500
-In-Reply-To: <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com>
+	with ESMTP id S1753425AbbALTzo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2015 14:55:44 -0500
+In-Reply-To: <20150112193905.GB5281@amd>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Grant Likely <grant.likely@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-On Monday 12 January 2015 12:00:31 Grant Likely wrote:
-> On Mon, Jan 12, 2015 at 10:21 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Saturday 10 January 2015 14:44:02 Grant Likely wrote:
-> >> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@linaro.org> wrote:
-> > This seems like a great fit for AML indeed, but I wonder what exactly
-> > we want to hotplug here, since everything I can think of wouldn't need
-> > AML support for the specific use case of SBSA compliant servers:
+On Monday 12 January 2015 20:39:05 Pavel Machek wrote:
 > 
-> [...]
-> 
-> I've trimmed the specific examples here because I think that misses
-> the point. The point is that regardless of interface (either ACPI or
-> DT) there are always going to be cases where the data needs to change
-> at runtime. Not all platforms will need to change the CPU data, but
-> some will (say for a machine that detects a failed CPU and removes
-> it). Some PCI add-in boards will carry along with them additional data
-> that needs to be inserted into the ACPI namespace or DT. Some
-> platforms will have system level component (ie. non-PCI) that may not
-> always be accessible.
+> Ok, so what is the primary reason? As far as I could tell it is
+> "Microsoft wants ACPI" and "hardware people want Microsoft" and
+> "fragmentation is bad so we do ACPI" (1) (and maybe "someone at RedHat
+> says they want ACPI" -- but RedHat people should really speak for
+> themselves.)
 
-Just to be sure I get this right: do you mean runtime or boot-time
-(re-)configuration for those?
-
-> ACPI has an interface baked in already for tying data changes to
-> events. DT currently needs platform specific support (which we can
-> improve on). I'm not even trying to argue for ACPI over DT in this
-> section, but I included it this document because it is one of the
-> reasons often given for choosing ACPI and I felt it required a more
-> nuanced discussion.
-
-I can definitely see the need for an architected interface for
-dynamic reconfiguration in cases like this, and I think the ACPI
-model actually does this better than the IBM Power hypervisor
-model, I just didn't see the need on servers as opposed to something
-like a laptop docking station to give a more obvious example I know
-from x86.
-
-> > * From the experience with x86, Linux tends to prefer using drivers
-> >   for hardware registers over the AML based drivers when both are
-> >   implemented, because of efficiency and correctness.
-> >
-> > We should probably discuss at some point how to get the best of
-> > both. I really don't like the idea of putting the low-level
-> > details that we tend to have DT into ACPI, but there are two
-> > things we can do: For systems that have a high-level abstraction
-> > for their PM in hardware (e.g. talking to an embedded controller
-> > that does the actual work), the ACPI description should contain
-> > enough information to implement a kernel-level driver for it as
-> > we have on Intel machines. For more traditional SoCs that do everything
-> > themselves, I would recommend to always have a working DT for
-> > those people wanting to get the most of their hardware. This will
-> > also enable any other SoC features that cannot be represented in
-> > ACPI.
-> 
-> The nice thing about ACPI is that we always have the option of
-> ignoring it when the driver knows better since it is always executed
-> under the control of the kernel interpreter. There is no ACPI going
-> off and doing something behind the kernel's back. To start with we
-> have the OSPM state model and devices can use additional ACPI methods
-> as needed, but as an optimization, the driver can do those operations
-> directly if the driver author has enough knowledge about the device.
-
-Ok, makes sense.
-
-> >> Reliability, Availability & Serviceability (RAS)
-> >> ------------------------------------------------
-> >> 7. Support RAS interfaces
-> >>
-> >> This isn't a question of whether or not DT can support RAS. Of course
-> >> it can. Rather it is a matter of RAS bindings already existing for
-> >> ACPI, including a usage model. We've barely begun to explore this on
-> >> DT. This item doesn't make ACPI technically superior to DT, but it
-> >> certainly makes it more mature.
-> >
-> > Unfortunately, RAS can mean a lot of things to different people.
-> > Is there some high-level description of what the APCI idea of RAS
-> > is? On systems I've worked on in the past, this was generally done
-> > out of band (e.g. in an IPMI BMC) because you can't really trust
-> > the running OS when you report errors that may impact data consistency
-> > of that OS.
-> 
-> RAS is also something where every company already has something that
-> they are using on their x86 machines. Those interfaces are being
-> ported over to the ARM platforms and will be equivalent to what they
-> already do for x86. So, for example, an ARM server from DELL will use
-> mostly the same RAS interfaces as an x86 server from DELL.
-
-Right, I'm still curious about what those are, in case we have to
-add DT bindings for them as well.
-
-> > I do think that this is in fact the most important argument in favor
-> > of doing ACPI on Linux, because a number of companies are betting on
-> > Windows (or some in-house OS that uses ACPI) support. At the same time,
-> > I don't think talking of a single 'ARM server ecosystem' that needs to
-> > agree on one interface is helpful here. Each server company has their
-> > own business plan and their own constraints. I absolutely think that
-> > getting as many companies as possible to agree on SBSA and UEFI is
-> > helpful here because it reduces the the differences between the platforms
-> > as seen by a distro. For companies that want to support Windows, it's
-> > obvious they want to have ACPI on their machines, for others the
-> > factors you mention above can be enough to justify the move to ACPI
-> > even without Windows support. Then there are other companies for
-> > which the tradeoffs are different, and I see no reason for forcing
-> > it on them. Finally there are and will likely always be chips that
-> > are not built around SBSA and someone will use the chips in creative
-> > ways to build servers from them, so we already don't have a homogeneous
-> > ecosystem.
-> 
-> Allow me to clarify my position here. This entire document is about
-> why ACPI was chosen for the ARM SBBR specification. 
-
-I thought it was about why we should merge ACPI support into the kernel,
-which seems to me like a different thing.
- 
-> As far as we (Linux maintainers) are concerned, we've also been really
-> clear that DT is not a second class citizen to ACPI. Mainline cannot
-> and should not force certain classes of machines to use ACPI and other
-> classes of machines to use DT. As long as the code is well written and
-> conforms to our rules for what ACPI or DT code is allowed to do, then
-> we should be happy to take the patches.
-
-What we are still missing though is a recommendation for a boot protocol.
-The UEFI bits in SBBR are generally useful for having compatibility
-across machines that we support in the kernel regardless of the device
-description, and we also need to have guidelines along the lines of
-"if you do ACPI, then do it like this" that are in SBBR. However, the
-way that these two are coupled into "you have to use ACPI and UEFI
-this way to build a compliant server" really does make the document
-much less useful for Linux.
+I can only find the first two in Grant's document, not the third one,
+and I don't think it's on the table any more. The argument that was
+in there was that for a given platform that wants to support both
+Linux and Windows, they can use ACPI and Linux should work with that,
+but that is different from "all servers must use ACPI", which would
+be unrealistic.
 
 	Arnd
