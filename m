@@ -1,304 +1,246 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 08/17] ARM64 / ACPI: Parse FADT table to get PSCI
- flags for PSCI init
-Date: Mon, 12 Jan 2015 11:41:41 +0000
-Message-ID: <20150112114141.GA14519@red-moon>
-References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
- <1420368918-5086-9-git-send-email-hanjun.guo@linaro.org>
- <20150109190400.GD13478@red-moon>
- <54B34D01.8090600@linaro.org>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Mon, 12 Jan 2015 12:00:31 +0000
+Message-ID: <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com>
+References: <548F9668.6080900@linaro.org> <CACxGe6vRN2Tc97=Sx05gri02goxBaHnZm30hR37q=002agFLAA@mail.gmail.com>
+ <CACxGe6sbGu53x5rsx2sWVVVVCnnFvmkQAk3Se9ZGNOXCkqpi=A@mail.gmail.com> <1636716.eAYJb6Z2AV@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:59854 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbbALLlu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2015 06:41:50 -0500
-Content-Disposition: inline
-In-Reply-To: <54B34D01.8090600@linaro.org>
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:52919 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751501AbbALMAw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Jan 2015 07:00:52 -0500
+Received: by mail-ie0-f175.google.com with SMTP id x19so24752757ier.6
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Jan 2015 04:00:52 -0800 (PST)
+In-Reply-To: <1636716.eAYJb6Z2AV@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, linux-acpi@vger.kerne
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-On Mon, Jan 12, 2015 at 04:26:41AM +0000, Hanjun Guo wrote:
-> On 2015=E5=B9=B401=E6=9C=8810=E6=97=A5 03:04, Lorenzo Pieralisi wrote=
-:
-> > On Sun, Jan 04, 2015 at 10:55:09AM +0000, Hanjun Guo wrote:
-> >> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
-> >> the former signals to the OS that the firmware is PSCI compliant.
-> >> The latter selects the appropriate conduit for PSCI calls by
-> >> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
-> >> (SMC).
-> >>
-> >> FADT table contains such information, parse FADT to get the flags
-> >> for PSCI init. Since ACPI 5.1 doesn't support self defined PSCI
-> >> function IDs, which means that only PSCI 0.2+ is supported in ACPI=
-=2E
-> >>
-> >> At the same time, only ACPI 5.1 or higher verison supports PSCI,
-> >> and FADT Major.Minor version was introduced in ACPI 5.1, so we
-> >> will check the version and only parse FADT table with version >=3D=
- 5.1.
-> >>
-> >> If firmware provides ACPI tables with ACPI version less than 5.1,
-> >> OS will be messed up with those information and have no way to ini=
-t
-> >> smp and GIC, so disable ACPI if we get an FADT table with version
-> >> less that 5.1.
-> >
-> > I am a bit confused by this log. I understand the problem is that,
-> > for versions predating 5.1, PSCI information is missing. So, I woul=
-d
-> > say:
-> >
-> > "OS will not be able to boot properly owing to missing PSCI binding=
-s
-> > data in the ACPI tables".
-> >
-> > Is that the message you want to get across ?
->=20
-> Not exactly. PSCI is part of the updates for ACPI 5.1, and more updat=
-es
-> are for GIC (MADT table), without those updates in GIC (MADT table), =
-we
-> can not get the MPIDR for SMP init, and can not get the right GICC
-> base_address for GICv2 init too (GICC base_address was there in ACPI =
-5.0
-> , but the offset to the start of the structure was changed in ACPI 5.=
-1)
-> so if we use the ACPI 5.1 OS code to parse ACPI 5.0 firmware table, i=
-t
-> will messed up teh OS boot, not only because of PSCI.
->=20
-> Should I update the Change log here?
+On Mon, Jan 12, 2015 at 10:21 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Saturday 10 January 2015 14:44:02 Grant Likely wrote:
+>> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@linaro.org> wrote:
+>
+>> I've posted an article on my blog, but I'm reposting it here because
+>> the mailing list is more conducive to discussion...
+>>
+>> http://www.secretlab.ca/archives/151
+>>
+>> Why ACPI on ARM?
+>> ----------------
+>>
+>> Why are we doing ACPI on ARM? That question has been asked many times,
+>> but we haven't yet had a good summary of the most important reasons
+>> for wanting ACPI on ARM. This article is an attempt to state the
+>> rationale clearly.
+>
+> Thanks for writing this up, much appreciated. I'd like to comment
+> on some of the points here, which seems easier than commenting on the
+> blog post.
 
-Thanks for the explanation.
+Thanks for reading through it. Replies below...
 
-So basically this means you can't boot arm64 ACPI with table versions
-predating 5.1, right ? Or (version >=3D 5.1) is a requirement only if
-PSCI is the enable method ?
-
-It is what I thought, basically IIUC you are merging two patches in one=
-=2E
-This patch is supposed to get PSCI flags from ACPI tables (ie init PSCI=
- from
-ACPI tables), checking the version (which of course is a prerequisite
-for parsing PSCI flags too) should have been done in a separate patch,
-possibly squashed with the ACPI tables initialization.
-
-I think you should split the patch and be done with that.
+>
+>> Device Configurations
+>> ---------------------
+>> 2. Support device configurations
+>> 3. Support dynamic device configurations (hot add/removal)
+>>
+> ...
+>>
+>> DT platforms have also supported dynamic configuration and hotplug for
+>> years. There isn't a lot here that differentiates between ACPI and DT.
+>> The biggest difference is that dynamic changes to the ACPI namespace
+>> can be triggered by ACPI methods, whereas for DT changes are received
+>> as messages from firmware and have been very much platform specific
+>> (e.g. IBM pSeries does this)
+>
+> This seems like a great fit for AML indeed, but I wonder what exactly
+> we want to hotplug here, since everything I can think of wouldn't need
+> AML support for the specific use case of SBSA compliant servers:
 
 [...]
 
-> >> +static int __init acpi_parse_fadt(struct acpi_table_header *table=
-)
-> >> +{
-> >> +    struct acpi_table_fadt *fadt =3D (struct acpi_table_fadt *)ta=
-ble;
-> >> +
-> >> +    /*
-> >> +     * Revision in table header is the FADT Major revision,
-> >> +     * and there is a minor revision of FADT which was introduced
-> >> +     * by ACPI 5.1, we only deal with ACPI 5.1 or newer revision
-> >> +     * to get arm boot flags, or we will disable ACPI.
-> >> +     */
-> >> +    if (table->revision > 5 ||
-> >> +        (table->revision =3D=3D 5 && fadt->minor_revision >=3D 1)=
-)
-> >> +            return 0;
-> >> +
-> >> +    pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, wil=
-l disable ACPI\n",
-> >> +            table->revision, fadt->minor_revision);
-> >> +    disable_acpi();
-> >
-> > I would rename this function, function is checking the FADT
-> > revision, make that clear. I think that disable_acpi() should be
-> > called on function return, if it fails.
-> >
-> > To make the "acpi disabling" clearer, why not call this function in
-> >
-> > psci_acpi_init()
-> >
-> > something like:
-> >
-> > int __init psci_acpi_init(void)
-> > {
-> >
-> >       if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
-> >               pr_err("Can't find FADT or error happened during pars=
-ing FADT\n");
-> >               disable_acpi();
-> >       }
-> >       ...
-> > }
-> >
-> > After all you disable ACPI because you can't retrieve PSCI informat=
-ion,
-> > am I right ?
->=20
-> I think we need to consider two scenes:
->=20
->   - ACPI version less than 5.1, it definitely needs to disable ACPI
->     because of OS doesn't support that and we don't need to do it;
+I've trimmed the specific examples here because I think that misses
+the point. The point is that regardless of interface (either ACPI or
+DT) there are always going to be cases where the data needs to change
+at runtime. Not all platforms will need to change the CPU data, but
+some will (say for a machine that detects a failed CPU and removes
+it). Some PCI add-in boards will carry along with them additional data
+that needs to be inserted into the ACPI namespace or DT. Some
+platforms will have system level component (ie. non-PCI) that may not
+always be accessible.
 
-Patch 1. Actually, why can't you carry out the check at acpi tables
-init instead of executing the check when PSCI is initialized ?
+ACPI has an interface baked in already for tying data changes to
+events. DT currently needs platform specific support (which we can
+improve on). I'm not even trying to argue for ACPI over DT in this
+section, but I included it this document because it is one of the
+reasons often given for choosing ACPI and I felt it required a more
+nuanced discussion.
 
-Is version >5.1 a requirement only if booting with PSCI ? It does not
-seem so from what you said above.
+>> Power Management Model
+>> ----------------------
+>> 4. Support hardware abstraction through control methods
+>> 5. Support power management
+>> 6. Support thermal management
+>>
+>> Power, thermal, and clock management can all be dealt with as a group.
+>> ACPI defines a power management model (OSPM) that both the platform
+>> and the OS conform to. The OS implements the OSPM state machine, but
+>> the platform can provide state change behaviour in the form of
+>> bytecode methods. Methods can access hardware directly or hand off PM
+>> operations to a coprocessor. The OS really doesn't have to care about
+>> the details as long as the platform obeys the rules of the OSPM model.
+>>
+>> With DT, the kernel has device drivers for each and every component in
+>> the platform, and configures them using DT data. DT itself doesn't
+>> have a PM model. Rather the PM model is an implementation detail of
+>> the kernel. Device drivers use DT data to decide how to handle PM
+>> state changes. We have clock, pinctrl, and regulator frameworks in the
+>> kernel for working out runtime PM. However, this only works when all
+>> the drivers and support code have been merged into the kernel. When
+>> the kernel's PM model doesn't work for new hardware, then we change
+>> the model. This works very well for mobile/embedded because the vendor
+>> controls the kernel. We can change things when we need to, but we also
+>> struggle with getting board support mainlined.
+>
+> I can definitely see this point, but I can also see two important
+> downsides to the ACPI model that need to be considered for an
+> individual implementor:
+>
+> * As a high-level abstraction, there are limits to how fine-grained
+>   the power management can be done, or is implemented in a particular
+>   BIOS. The thinner the abstraction, the better the power savings can
+>   get when implemented right.
 
->   - if ACPI version is 5.1 or later, and PSCI flags are missing in
->     FADT table, I think we still can boot the OS with single core (
->     if Parking Protocol is still missing) and print some warning mess=
-age
->     instead (you can refer to patch 10/17). just disable ACPI may lea=
-d
->     to boot failure.
+Agreed. That is the tradeoff. OSPM defines a power model, and the
+machine must restrict any PM behaviour to fit within that power model.
+This is important for interoperability, but it also leaves performance
+on the table. ACPI at least gives us the option to pick that
+performance back up by adding better power management to the drivers,
+without sacrificing the interoperability provided by OSPM.
 
-And patch 2, which is what this patch was devised for, to initialize
-PSCI from ACPI tables.
+In other words, OSPM gets us going, but we can add specific
+optimizations when required.
 
-> Does it make sense?
+Also important: Vendors can choose to not implement any PM into their
+ACPI tables at all. In this case the the machine would be left running
+at full tilt. It will be compatible with everything, but it won't be
+optimized. Then they have the option of loading a PM driver at runtime
+to optimize the system with the caveat that the PM driver must not be
+required for the machine to be operational. In this case, as far as
+the OS is concerned, it is still applying the OSPM state machine, but
+the OSPM behaviour never changes the state of the hardware.
 
-Yes, that's why this patch should be split, because it is implementing =
-two
-pieces of functionality at once.
+> * From the experience with x86, Linux tends to prefer using drivers
+>   for hardware registers over the AML based drivers when both are
+>   implemented, because of efficiency and correctness.
+>
+> We should probably discuss at some point how to get the best of
+> both. I really don't like the idea of putting the low-level
+> details that we tend to have DT into ACPI, but there are two
+> things we can do: For systems that have a high-level abstraction
+> for their PM in hardware (e.g. talking to an embedded controller
+> that does the actual work), the ACPI description should contain
+> enough information to implement a kernel-level driver for it as
+> we have on Intel machines. For more traditional SoCs that do everything
+> themselves, I would recommend to always have a working DT for
+> those people wanting to get the most of their hardware. This will
+> also enable any other SoC features that cannot be represented in
+> ACPI.
 
-Put it differently, checking the version is a requirement that goes bey=
-ond
-PSCI, as you described above, I do not see why you want to merge the
-version check and PSCI init together, it obfuscates.
+The nice thing about ACPI is that we always have the option of
+ignoring it when the driver knows better since it is always executed
+under the control of the kernel interpreter. There is no ACPI going
+off and doing something behind the kernel's back. To start with we
+have the OSPM state model and devices can use additional ACPI methods
+as needed, but as an optimization, the driver can do those operations
+directly if the driver author has enough knowledge about the device.
 
->=20
-> >
-> >> +
-> >> +    return -EINVAL;
-> >> +}
-> >> +
-> >>   /*
-> >>    * acpi_boot_table_init() called from setup_arch(), always.
-> >>    * 1. find RSDP and get its address, and then find XSDT
-> >>    * 2. extract all tables and checksums them all
-> >> + *  3. check ACPI FADT revisoin
-> >
-> > s/revisoin/revision
->=20
-> Good catch, will update it.
->=20
-> >
-> >>    *
-> >>    * We can parse ACPI boot-time tables such as MADT after
-> >>    * this function is called.
-> >> @@ -64,8 +88,13 @@ void __init acpi_boot_table_init(void)
-> >>              return;
-> >>
-> >>      /* Initialize the ACPI boot-time table parser. */
-> >> -    if (acpi_table_init())
-> >> +    if (acpi_table_init()) {
-> >>              disable_acpi();
-> >> +            return;
-> >> +    }
-> >> +
-> >> +    if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt))
-> >> +            pr_err("Can't find FADT or error happened during pars=
-ing FADT\n");
-> >
-> > As I said above this is a bit sneaky. It is not clear you are disab=
-ling
-> > ACPI when the acpi_table_parse() call fails. Is it not better to mo=
-ve
-> > the revision check in the PSCI ACPI init call ?
->=20
-> please refer to the comments above.
->=20
-> >
-> >>   }
-> >>
-> >>   static int __init parse_acpi(char *arg)
-> >> diff --git a/arch/arm64/kernel/psci.c b/arch/arm64/kernel/psci.c
-> >> index f1dbca7..dbb3945 100644
-> >> --- a/arch/arm64/kernel/psci.c
-> >> +++ b/arch/arm64/kernel/psci.c
-> >> @@ -15,6 +15,7 @@
-> >>
-> >>   #define pr_fmt(fmt) "psci: " fmt
-> >>
-> >> +#include <linux/acpi.h>
-> >>   #include <linux/init.h>
-> >>   #include <linux/of.h>
-> >>   #include <linux/smp.h>
-> >> @@ -24,6 +25,7 @@
-> >>   #include <linux/slab.h>
-> >>   #include <uapi/linux/psci.h>
-> >>
-> >> +#include <asm/acpi.h>
-> >>   #include <asm/compiler.h>
-> >>   #include <asm/cpu_ops.h>
-> >>   #include <asm/errno.h>
-> >> @@ -304,6 +306,33 @@ static void psci_sys_poweroff(void)
-> >>      invoke_psci_fn(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
-> >>   }
-> >>
-> >> +static void psci_0_2_set_functions(void)
-> >
-> > __init ?
->=20
-> Yes, it only called by __init function, can be defined as
-> __init too.
->=20
+>> Reliability, Availability & Serviceability (RAS)
+>> ------------------------------------------------
+>> 7. Support RAS interfaces
+>>
+>> This isn't a question of whether or not DT can support RAS. Of course
+>> it can. Rather it is a matter of RAS bindings already existing for
+>> ACPI, including a usage model. We've barely begun to explore this on
+>> DT. This item doesn't make ACPI technically superior to DT, but it
+>> certainly makes it more mature.
+>
+> Unfortunately, RAS can mean a lot of things to different people.
+> Is there some high-level description of what the APCI idea of RAS
+> is? On systems I've worked on in the past, this was generally done
+> out of band (e.g. in an IPMI BMC) because you can't really trust
+> the running OS when you report errors that may impact data consistency
+> of that OS.
 
-It can and should :)
+RAS is also something where every company already has something that
+they are using on their x86 machines. Those interfaces are being
+ported over to the ARM platforms and will be equivalent to what they
+already do for x86. So, for example, an ARM server from DELL will use
+mostly the same RAS interfaces as an x86 server from DELL.
 
-[...]
+>
+>> Multiplatform support
+>> ---------------------
+>> 1. Support multiple OSes, including Linux and Windows
+>>
+>> I'm tackling this item last because I think it is the most contentious
+>> for those of us in the Linux world. I wanted to get the other issues
+>> out of the way before addressing it.
+>>
+>> I know that this line of thought is more about market forces rather
+>> than a hard technical argument between ACPI and DT, but it is an
+>> equally significant one. Agreeing on a single way of doing things is
+>> important. The ARM server ecosystem is better for the agreement to use
+>> the same interface for all operating systems. This is what is meant by
+>> standards compliant. The standard is a codification of the mutually
+>> agreed interface. It provides confidence that all vendors are using
+>> the same rules for interoperability.
+>
+> I do think that this is in fact the most important argument in favor
+> of doing ACPI on Linux, because a number of companies are betting on
+> Windows (or some in-house OS that uses ACPI) support. At the same time,
+> I don't think talking of a single 'ARM server ecosystem' that needs to
+> agree on one interface is helpful here. Each server company has their
+> own business plan and their own constraints. I absolutely think that
+> getting as many companies as possible to agree on SBSA and UEFI is
+> helpful here because it reduces the the differences between the platforms
+> as seen by a distro. For companies that want to support Windows, it's
+> obvious they want to have ACPI on their machines, for others the
+> factors you mention above can be enough to justify the move to ACPI
+> even without Windows support. Then there are other companies for
+> which the tradeoffs are different, and I see no reason for forcing
+> it on them. Finally there are and will likely always be chips that
+> are not built around SBSA and someone will use the chips in creative
+> ways to build servers from them, so we already don't have a homogeneous
+> ecosystem.
 
-> >> -int __init psci_init(void)
-> >> +int __init psci_dt_init(void)
-> >>   {
-> >>      struct device_node *np;
-> >>      const struct of_device_id *matched_np;
-> >> @@ -427,6 +434,29 @@ int __init psci_init(void)
-> >>      return init_fn(np);
-> >>   }
-> >>
-> >> +/*
-> >> + * We use PSCI 0.2+ when ACPI is deployed on ARM64 and it's
-> >> + * explicitly clarified in SBBR
-> >> + */
-> >> +int __init psci_acpi_init(void)
-> >> +{
-> >> +    if (!acpi_psci_present()) {
-> >> +            pr_info("is not implemented in ACPI.\n");
-> >> +            return -EOPNOTSUPP;
-> >> +    }
-> >> +
-> >> +    pr_info("probing for conduit method from ACPI.\n");
-> >> +
-> >> +    if (acpi_psci_use_hvc())
-> >> +            invoke_psci_fn =3D __invoke_psci_fn_hvc;
-> >> +    else
-> >> +            invoke_psci_fn =3D __invoke_psci_fn_smc;
-> >> +
-> >> +    psci_0_2_set_functions();
-> >> +
-> >> +    return 0;
-> >
-> > As I asked above, is not there a better way to have a common init
-> > function and factor out the acpi/dt paths in it instead of adding
-> > multiple calls in setup_arch() ?
->=20
-> We tried, but it introduced more complexity, so Catalin suggested
-> that adding multiple calls in setup_arch (which the way he preferred)=
-=2E
+Allow me to clarify my position here. This entire document is about
+why ACPI was chosen for the ARM SBBR specification. The SBBR and the
+SBSA are important because they document the agreements and
+compromises made by vendors and industry representatives to get
+interoperability. It is a tool for vendors to say that they are aiming
+for compatibility with a particularly hardware/software ecosystem.
 
-I missed that sorry, I will go back to previous threads and check.
+*Nobody* is forced to implement these specifications. Any company is
+free to ignore them and go their own way. The tradeoff in doing so is
+it means they are on their own for support. Non-compliant hardware
+vendors have to convince OS vendors to support them, and similarly,
+non-compliant OS vendors need to convince hardware vendors of the
+same. Red Had has stated very clearly that they won't support any
+hardware that isn't SBSA/SBBR compliant. So has Microsoft. Canonical
+on the other hand has said they will support whatever if there is a
+business case. This certainly is a business decision and each company
+needs to make its own choices.
 
-Thanks,
-Lorenzo
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As far as we (Linux maintainers) are concerned, we've also been really
+clear that DT is not a second class citizen to ACPI. Mainline cannot
+and should not force certain classes of machines to use ACPI and other
+classes of machines to use DT. As long as the code is well written and
+conforms to our rules for what ACPI or DT code is allowed to do, then
+we should be happy to take the patches.
+
+g.
