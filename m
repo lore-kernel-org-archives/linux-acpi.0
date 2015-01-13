@@ -1,57 +1,162 @@
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Subject: Re: if power button pressed 1x it creates the same ACPI event twice
-Date: Tue, 13 Jan 2015 17:47:24 +0100
-Message-ID: <1202643605.20150113174724@eikelenboom.it>
-References: <618666178.20150113173510@eikelenboom.it>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Tue, 13 Jan 2015 17:02:37 +0000
+Message-ID: <CACxGe6upNdAx7aAVMK7n_pSiEjBk4CzufaKQw-p9u+ccyn+irA@mail.gmail.com>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
+ <CACxGe6vRN2Tc97=Sx05gri02goxBaHnZm30hR37q=002agFLAA@mail.gmail.com>
+ <CACxGe6sbGu53x5rsx2sWVVVVCnnFvmkQAk3Se9ZGNOXCkqpi=A@mail.gmail.com> <20150112142358.GA23680@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <618666178.20150113173510@eikelenboom.it>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sander Eikelenboom <linux@eikelenboom.it>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:61563 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806AbbAMRC6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 12:02:58 -0500
+Received: by mail-ie0-f172.google.com with SMTP id tr6so3907223ieb.3
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 09:02:58 -0800 (PST)
+In-Reply-To: <20150112142358.GA23680@amd>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Tuesday, January 13, 2015, 5:35:10 PM, you wrote:
+Hi Pavel,
 
-> Hi Rafael / Len,
+For the sake of argument, I'll respond to your points below, even
+though we fundamentally disagree on what is required for a general
+purpose server...
 
-> When i press the power-button on my intel NUC, i get twp ACPI power-events shortly 
-> after one another (within a second), instead of just one. 
+On Mon, Jan 12, 2015 at 2:23 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Sat 2015-01-10 14:44:02, Grant Likely wrote:
+> Grant Likely published article about ACPI and ARM at
+>
+> http://www.secretlab.ca/archives/151
+>
+> . He acknowledges systems with ACPI are harder to debug, but because
+> Microsoft says so, we have to use ACPI (basically).
+>
+> I believe doing wrong technical choice "because Microsoft says so" is
+> a wrong thing to do.
+>
+> Yes, ACPI gives more flexibility to hardware vendors. Imagine
+> replacing block devices with interpretted bytecode coming from
+> ROM. That is obviously bad, right? Why is it good for power
+> management?
+>
+> It is not.
+>
 
-> It doesn't matter if i have the old /proc/acpi interface enabled or disabled in the kernel config.
+Trying to equate a block driver with the things that are done by ACPI
+is a pretty big stretch. It doesn't even come close to the same level
+of complexity. ACPI is merely the glue between the OS and the
+behaviour of the HW & FW. (e.g. On platform A, the rfkill switch is a
+GPIO, but on platform B it is an i2c transaction to a
+microcontroller). There are lots of these little details on modern
+hardware, and most of them are pretty trivial aside from the fact that
+support requires either a kernel change (for every supported OS) or
+something like ACPI.
 
-> I have tested a few older kernels lingering around on the box and 3.14 already 
-> has this problem. 3.2 (from the debian repo) doesn't have the problem, it only 
-> fires one event.
+You just need to look at the x86 market to see that huge drivers in
+ACPI generally doesn't happen. In fact, aside from the high profile
+bad examples (we all like to watch a good scandal) the x86 market
+works really well.
 
-> I did find another report:
->     Re: lenovo ultrabay docking station: if power button pressed 1x it creates 2x the same ACPI event
->     http://www.spinics.net/lists/linux-acpi/msg54723.html
-> But that hasn't come to a conclusion ...
+> Besides being harder to debug, there are more disadvantages:
+>
+> * Size, speed and complexity disadvantage of bytecode interpretter in
+> the kernel.
 
+The bytecode interpreter has been in the kernel for years. It works,
+It isn't on the hot path for computing power, and it meets the
+requirement for abstraction between the kernel and the platform.
 
-> Unfortunately 3.2 - 3.19-rc4 is a bit of a largish bisect window, so that's 
-> unfeasible :-)
+> * Many more drivers. Imagine GPIO       switch, controlling rfkill
+>   (for
+>   example). In device tree case, that's few lines in the .dts
+>   specifying
+>   which GPIO that switch is on.
+>
+> In ACPI case, each hardware vendor initially implements rfkill switch
+> in AML, differently. After few years, each vendor implements
+> (different) kernel<->AML interface for querying   rfkill state and
+> toggling it in software. Few years after that, we implement kernel
+> drivers for those AML interfaces, to properly integrate     them in
+> the
+> kernel.
 
-> I compiled in apci debug support and tried:
->  echo "0x00080000" > /sys/module/acpi/parameters/debug_layer
->  echo "0xffffffff" > /sys/module/acpi/parameters/debug_level
+I don't know what you're trying to argue here. If an AML interface
+works, we never bother with writing direct kernel support for it. Most
+of the time it works. When it doesn't, we write a quirk in the driver
+and move on.
 
-> But i don't get any extra output in dmesg ?
+> * Incompatibility. ARM servers will now be very different from other
+> ARM systems.
 
-> Do you have any ideas for a debug patch or better values to figure out what is going on ?
+If anything, ARM servers are an extension of the existing x86 server
+market, not any of the existing ARM markets. They don't look like
+mobile, and they don't look like embedded. The fact that the OS
+vendors and the HW vendors are independent companies completely
+changes how this hardware gets supported. The x86 market has figured
+this out and that is a big reason why it is able to scale to the size
+it has. ACPI is a direct result of what that kind of market needs.
 
-> --
-> Sander
+> Now, are there some arguments for ACPI? Yes -- it allows hw vendors to
+> hack half-working drivers without touching kernel
+> sources. (Half-working: such drivers are not properly integrated in
+> all the various subsystems).
 
-Hmm is it normal that it registers in this way (twice) ?
+That's an unsubstantiated claim. ACPI defines a model for the fiddly
+bits around the edges to be implemented by the platform, and performed
+under /kernel/ control, without requiring the kernel to explicitly
+have code for each and every possibility. It is a very good
+abstraction from that point of view.
 
-[    5.817980] input: Power Button as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0C:00/input/input0
-[    5.837907] ACPI: Power Button [PWRB]
-[    5.847540] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input1
-[    5.866915] ACPI: Power Button [PWRF]
+> Grant claims that power management is
+> somehow special, and requirement for real drivers is somehow ok for
+> normal drivers (block, video), but not for power management. Now,
+> getting driver merged into the kernel does not take that long -- less
+> than half a year if you know what you are doing. Plus, for power
+> management, you can really just initialize hardware in the bootloader
+> (into working but not optimal state). But basic drivers are likely to
+> merged fast, and then you'll just have to supply DT tables.
 
---
-Sander
+The reality doesn't play out with the scenario you're describing. We
+have two major mass markets in the Linux world; Mobile and general
+purpose computing. For mobile, we have yet to have a device on the
+market that is well supported at launch by mainline. Vendors ship
+their own kernel because they only support a single OS, and we haven't
+figured out how to support their hardware at launch time (there is
+plenty of blame to go around on this issue; regardless of who is to
+blame, it is still a problem). The current mobile model doesn't even
+remotely address the needs of server vendors and traditional Linux
+distributions.
+
+The general purpose (or in this case, the server subset), is the only
+place where there is a large ecosystem of independent hardware and OS
+vendors. For all the complaints about technical problems, the existing
+x86 architecture using ACPI works well and it has spawned an awful lot
+of very interesting hardware.
+
+...
+
+Personally, I think ACPI is the wrong thing to be getting upset over.
+Even supposing ACPI was rejected, it doesn't say anything about
+firmware that is completely out of visibility of the kernel. Both ARM
+and x86 CPUs have secure modes that are the domain of firmware, not
+the kernel, and have basically free reign on the machine.
+
+ACPI on the other hand can be inspected. We know when the interpreter
+is running, because the kernel controls it. We can extract and
+decompile the ACPI tables. It isn't quite the hidden black box that
+the rhetoric against ACPI claims it to be.
+
+If you really want to challenge the industry, then push for vendors to
+open source and upstream their firmware. Heck, all the necessary
+building blocks are already open sourced in the Tianocore and ARM
+Trusted Firmware projects. This would actually improve the visibility
+and auditing of the platform behaviour. The really invisible stuff is
+there, not in ACPI, and believe me, if ACPI (or similar) isn't
+available then the vendors will be stuffing even more into firmware
+than they are now.
+
+g.
