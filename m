@@ -1,161 +1,134 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: More X1 Carbon (2nd gen) adaptive keyboard support
-Date: Tue, 13 Jan 2015 14:54:19 +0100
-Message-ID: <1421157259.2542.13.camel@hadess.net>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [RFC] ACPI on arm64 TODO List
+Date: Tue, 13 Jan 2015 14:12:55 +0000
+Message-ID: <CACxGe6tTTu5mSbixDWp7SdPzHVKDsvaT8BAEufygz-2ZgPHaVg@mail.gmail.com>
+References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
+ <CACxGe6vRN2Tc97=Sx05gri02goxBaHnZm30hR37q=002agFLAA@mail.gmail.com>
+ <CACxGe6sbGu53x5rsx2sWVVVVCnnFvmkQAk3Se9ZGNOXCkqpi=A@mail.gmail.com>
+ <20150112142358.GA23680@amd> <CACxGe6ub0UsUNs1-2NziK_sGEtpxTjcDD+Eto3YOsNkvWxaNcw@mail.gmail.com>
+ <20150112193905.GB5281@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:35025 "EHLO
-	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752392AbbAMNzK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 08:55:10 -0500
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:64619 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752441AbbAMONQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 09:13:16 -0500
+Received: by mail-ig0-f172.google.com with SMTP id l13so4055307iga.5
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 06:13:15 -0800 (PST)
+In-Reply-To: <20150112193905.GB5281@amd>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hey,
+On Mon, Jan 12, 2015 at 7:39 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Mon 2015-01-12 14:41:50, Grant Likely wrote:
+>> On Mon, Jan 12, 2015 at 2:23 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>> > On Sat 2015-01-10 14:44:02, Grant Likely wrote:
+>> >> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@linaro.org> wrote:
+>> >> > On Tue, Dec 16, 2014 at 11:27 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> >> >> On Monday 15 December 2014 19:18:16 Al Stone wrote:
+>> >> >>> 7. Why is ACPI required?
+>> >> >>>    * Problem:
+>> >> >>>      * arm64 maintainers still haven't been convinced that ACPI is
+>> >> >>>        necessary.
+>> >> >>>      * Why do hardware and OS vendors say ACPI is required?
+>> >> >>>    * Status: Al & Grant collecting statements from OEMs to be posted
+>> >> >>>      publicly early in the new year; firmware summit for broader
+>> >> >>>      discussion planned.
+>> >> >>
+>> >> >> I was particularly hoping to see better progress on this item. It
+>> >> >> really shouldn't be that hard to explain why someone wants this feature.
+>> >> >
+>> >> > I've written something up in as a reply on the firmware summit thread.
+>> >> > I'm going to rework it to be a standalone document and post it
+>> >> > publicly. I hope that should resolve this issue.
+>> >>
+>> >> I've posted an article on my blog, but I'm reposting it here because
+>> >> the mailing list is more conducive to discussion...
+>> >>
+>> >> http://www.secretlab.ca/archives/151
+>> >
+>> > Unfortunately, I seen the blog post before the mailing list post, so
+>> > here's reply in blog format.
+>> >
+>> > Grant Likely published article about ACPI and ARM at
+>> >
+>> > http://www.secretlab.ca/archives/151
+>> >
+>> > . He acknowledges systems with ACPI are harder to debug, but because
+>> > Microsoft says so, we have to use ACPI (basically).
+>>
+>> Please reread the blog post. Microsoft is a factor, but it is not the
+>> primary driver by any means.
+>
+> Ok, so what is the primary reason? As far as I could tell it is
+> "Microsoft wants ACPI" and "hardware people want Microsoft" and
+> "fragmentation is bad so we do ACPI" (1) (and maybe "someone at RedHat
+> says they want ACPI" -- but RedHat people should really speak for
+> themselves.)
 
-I'm currently working on adding support for the extra "adaptive" keys
-for the X1 Carbon 2014 (2nd gen).
+The primary driver is abstraction. It is a hard requirement of the
+hardware vendors. They have to have the ability to adapt their
+products at a software level to support existing Linux distributions
+and other operating system releases. This is exactly what they do now
+in the x86 market, and they are not going to enter the ARM server
+market without this ability.
 
-Below is the (non-working) patch to add support for some of those keys.
-I'm working with Benjamin Tissoires to add the necessary, missing, Linu=
-x
-keycodes.
+Even if DT was chosen, the condition would have been to add an
+abstraction model into DT, and then DT would end up looking like an
+immature ACPI.
 
-A couple of questions though:
-- Should I expand the main "hotkey" keymap? I don't really understand
-that code (and don't really want to read the archives since 2007 ;)
-- A couple of keys don't go through the same "hotkey" interface:
-  - show all applications
-  - show overview/expos=C3=A9
-  - search
-  - webcam on/off
-  - wireless on/off
+The secondary driver is consistency. When hardware vendors and OS
+vendors produce independent products for the same ecosystem that must
+be compatible at the binary level, then it is really important that
+everyone in that ecosystem uses the same interfaces. At this level it
+doesn't matter if it is DT or ACPI, just as long as everyone uses the
+same thing.
 
-Any ideas how those could be exported? Any specific data you would need
-(de-compiled DSDT?)? Debug I can turn on?
+[Of course, vendors have the option of completely rejecting the server
+specifications as published by ARM, with the understanding that they
+will probably need to either a) ship both the HW and OS themselves, or
+b) create a separate and competing ecosystem.]
 
-Some interesting kernel messages:
+If the reason was merely as you say, "because Microsoft says so", then
+my blog post would have been much shorter. I would have had no qualms
+about saying so bluntly if that was actually the case. Instead, this
+is the key paragraph to pay attention to:
 
---8<--
-[13747.860235] thinkpad_acpi_adaptive: ThinkPad BIOS GRET42WW (1.19 ), =
-EC unknown
-[13747.860236] thinkpad_acpi_adaptive: Lenovo ThinkPad X1 Carbon 2nd, m=
-odel 20A7002WUS
-[13747.860865] thinkpad_acpi_adaptive: tpacpi_acpi_handle_locate: Found=
- ACPI handle for video
-[13747.861114] thinkpad_acpi_adaptive: Unsupported brightness interface=
-, please contact ibm-acpi-devel@lists.sourceforge.net
+> > However, the enterprise folks don't have that luxury. The platform/kernel split isn't a design choice. It is a characteristic of the market. Hardware and OS vendors each have their own product timetables, and they don't line up. The timeline for getting patches into the kernel and flowing through into OS releases puts OS support far downstream from the actual release of hardware. Hardware vendors simply cannot wait for OS support to come online to be able to release their products. They need to be able to work with available releases, and make their hardware behave in the way the OS expects. The advantage of ACPI OSPM is that it defines behaviour and limits what the hardware is allowed to do without involving the kernel.
 
-[13747.861127] thinkpad_acpi_adaptive: drv_acpi_handle_init: Found ACPI=
- handle HKEY for hkey
-[13747.861141] thinkpad_acpi_adaptive: unknown version of the HKEY inte=
-rface: 0x200
-[13747.861142] thinkpad_acpi_adaptive: please report this to ibm-acpi-d=
-evel@lists.sourceforge.net
---8<--
+All of the above applies regardless of whether or not vendors only
+care about Linux support. ACPI is strongly desired regardless of
+whether or not Microsoft is in the picture. Their support merely adds
+weight behind an argument that is already the choice preferred by
+hardware vendors.
 
-Patch below,
+> You snipped quite a lot of reasons why ACPI is inferior that were
+> below this line in email.
 
-Cheers
+Yes, I did. My primary point is that ACPI was chosen because the
+hardware OEMs require some level of abstraction. If you don't agree
+that the abstraction is important, then we fundamentally don't agree
+on what the market looks like. In which case there is absolutely no
+value in debating the details because each of us are working from a
+different set of requirements.
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x8=
-6/thinkpad_acpi.c
-index 721905b..ebf2fb2 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -3526,6 +3526,31 @@ const int adaptive_keyboard_modes[] =3D {
-=20
- #define DFR_CHANGE_ROW			0x101
- #define DFR_SHOW_QUICKVIEW_ROW		0x102
-+#define FIRST_ADAPTIVE_KEY		0x105
-+
-+/* The first item in this list is the Clipping tool button
-+ * which is emitted with 0x105 through
-+ * adaptive_keyboard_hotkey_notify_hotkey ()*/
-+static int adaptive_keycodes[] =3D {
-+	KEY_RESERVED, /* Clipping tool, 0x105 */
-+	KEY_RESERVED, /* Cloud */
-+	KEY_RESERVED,
-+	KEY_RESERVED, /* Voice */
-+	KEY_RESERVED,
-+	KEY_RESERVED, /* Gestures */
-+	KEY_RESERVED,
-+	KEY_RESERVED,
-+	KEY_RESERVED,
-+	KEY_RESERVED, /* Settings */
-+	KEY_RESERVED, /* New tab */
-+	KEY_REFRESH,  /* Reload */
-+	KEY_BACK,     /* Back */
-+	KEY_RESERVED, /* Microphone down */
-+	KEY_RESERVED, /* Microphone up */
-+	KEY_RESERVED, /* Microphone cancellation */
-+	KEY_RESERVED, /* Camera mode */
-+	KEY_RESERVED, /* Rotate display, 0x116 */
-+};
-=20
- /* press Fn key a while second, it will switch to Function Mode. Then
-  * release Fn key, previous mode be restored.
-@@ -3583,6 +3608,7 @@ static bool adaptive_keyboard_hotkey_notify_hotke=
-y(unsigned int scancode)
- {
- 	u32 current_mode =3D 0;
- 	int new_mode =3D 0;
-+	int keycode;
-=20
- 	switch (scancode) {
- 	case DFR_CHANGE_ROW:
-@@ -3615,7 +3641,26 @@ static bool adaptive_keyboard_hotkey_notify_hotk=
-ey(unsigned int scancode)
- 		return true;
-=20
- 	default:
--		return false;
-+		if (scancode < FIRST_ADAPTIVE_KEY ||
-+			scancode > FIRST_ADAPTIVE_KEY +
-+				ARRAY_SIZE(adaptive_keycodes)) {
-+			pr_info("Unhandled adaptive keyboard key: 0x%x\n",
-+					scancode);
-+			return false;
-+		}
-+		keycode =3D adaptive_keycodes[scancode - FIRST_ADAPTIVE_KEY];
-+		if (keycode !=3D KEY_RESERVED) {
-+			mutex_lock(&tpacpi_inputdev_send_mutex);
-+
-+			input_report_key(tpacpi_inputdev, keycode, 1);
-+			input_sync(tpacpi_inputdev);
-+
-+			input_report_key(tpacpi_inputdev, keycode, 0);
-+			input_sync(tpacpi_inputdev);
-+
-+			mutex_unlock(&tpacpi_inputdev_send_mutex);
-+		}
-+		return true;
- 	}
- }
-=20
-@@ -3628,6 +3673,8 @@ static bool hotkey_notify_hotkey(const u32 hkey,
- 	*send_acpi_ev =3D true;
- 	*ignore_acpi_ev =3D false;
-=20
-+	pr_err ("hotkey_notify_hotkey: 0x%x\n", hkey);
-+
- 	/* HKEY event 0x1001 is scancode 0x00 */
- 	if (scancode > 0 && scancode <=3D TPACPI_HOTKEY_MAP_LEN) {
- 		scancode--;
-@@ -3639,6 +3686,7 @@ static bool hotkey_notify_hotkey(const u32 hkey,
- 		}
- 		return true;
- 	} else {
-+		pr_err ("scancode: 0x%x\n", scancode);
- 		return adaptive_keyboard_hotkey_notify_hotkey(scancode);
- 	}
- 	return false;
+>                                                                         Pavel
+>
+> (1) ignoring fact that it causes fragmentation between servers and phones.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's a red herring. ARM servers are not an extension of the ARM
+phone market. The software ecosystem is completely different (the
+phone vendor builds and ships the OS instead of being provided by one
+of many independent OS vendors). ARM servers are an extension of the
+x86 server market, and they will be judged in terms of how they
+compare to a similar x86 machine. It is in the HW vendors best
+interest to make using an ARM server as similar to their existing x86
+products as possible.
+
+When confronted with the choice of similarity with ARM phones or with
+from x86 servers, the vendors will chose to follow x86's lead, and
+they will be right to do so.
