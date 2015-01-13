@@ -1,182 +1,169 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Tue, 13 Jan 2015 17:22:02 +0000
-Message-ID: <CACxGe6t9Rbrr5166UDm8T7UVM_4k9jBFv=ozJB1zY=Kvi6F1LQ@mail.gmail.com>
-References: <548F9668.6080900@linaro.org> <1636716.eAYJb6Z2AV@wuerfel>
- <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com> <1421113529.giGjG4IzLy@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Subject: [PATCH] ACPICA: rsdump: Remove some unused functions
+Date: Tue, 13 Jan 2015 19:43:52 +0100
+Message-ID: <1421174632-5146-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:46422 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190AbbAMRWX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 12:22:23 -0500
-Received: by mail-ig0-f171.google.com with SMTP id z20so18050960igj.4
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 09:22:23 -0800 (PST)
-In-Reply-To: <1421113529.giGjG4IzLy@wuerfel>
+Received: from mail-we0-f178.google.com ([74.125.82.178]:50755 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808AbbAMSkr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 13:40:47 -0500
+Received: by mail-we0-f178.google.com with SMTP id p10so4593722wes.9
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 10:40:45 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 
-On Mon, Jan 12, 2015 at 7:40 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Monday 12 January 2015 12:00:31 Grant Likely wrote:
->> On Mon, Jan 12, 2015 at 10:21 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->> > On Saturday 10 January 2015 14:44:02 Grant Likely wrote:
->> >> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@linaro.org> wrote:
->> > This seems like a great fit for AML indeed, but I wonder what exactly
->> > we want to hotplug here, since everything I can think of wouldn't need
->> > AML support for the specific use case of SBSA compliant servers:
->>
->> [...]
->>
->> I've trimmed the specific examples here because I think that misses
->> the point. The point is that regardless of interface (either ACPI or
->> DT) there are always going to be cases where the data needs to change
->> at runtime. Not all platforms will need to change the CPU data, but
->> some will (say for a machine that detects a failed CPU and removes
->> it). Some PCI add-in boards will carry along with them additional data
->> that needs to be inserted into the ACPI namespace or DT. Some
->> platforms will have system level component (ie. non-PCI) that may not
->> always be accessible.
->
-> Just to be sure I get this right: do you mean runtime or boot-time
-> (re-)configuration for those?
+Removes some functions that are not used anywhere:
+acpi_rs_dump_irq_list() acpi_rs_dump_resource_list()
 
-Both are important.
+This was partially found by using a static code analysis program called cppcheck.
 
->> ACPI has an interface baked in already for tying data changes to
->> events. DT currently needs platform specific support (which we can
->> improve on). I'm not even trying to argue for ACPI over DT in this
->> section, but I included it this document because it is one of the
->> reasons often given for choosing ACPI and I felt it required a more
->> nuanced discussion.
->
-> I can definitely see the need for an architected interface for
-> dynamic reconfiguration in cases like this, and I think the ACPI
-> model actually does this better than the IBM Power hypervisor
-> model, I just didn't see the need on servers as opposed to something
-> like a laptop docking station to give a more obvious example I know
-> from x86.
->
->> > * From the experience with x86, Linux tends to prefer using drivers
->> >   for hardware registers over the AML based drivers when both are
->> >   implemented, because of efficiency and correctness.
->> >
->> > We should probably discuss at some point how to get the best of
->> > both. I really don't like the idea of putting the low-level
->> > details that we tend to have DT into ACPI, but there are two
->> > things we can do: For systems that have a high-level abstraction
->> > for their PM in hardware (e.g. talking to an embedded controller
->> > that does the actual work), the ACPI description should contain
->> > enough information to implement a kernel-level driver for it as
->> > we have on Intel machines. For more traditional SoCs that do everything
->> > themselves, I would recommend to always have a working DT for
->> > those people wanting to get the most of their hardware. This will
->> > also enable any other SoC features that cannot be represented in
->> > ACPI.
->>
->> The nice thing about ACPI is that we always have the option of
->> ignoring it when the driver knows better since it is always executed
->> under the control of the kernel interpreter. There is no ACPI going
->> off and doing something behind the kernel's back. To start with we
->> have the OSPM state model and devices can use additional ACPI methods
->> as needed, but as an optimization, the driver can do those operations
->> directly if the driver author has enough knowledge about the device.
->
-> Ok, makes sense.
->
->> >> Reliability, Availability & Serviceability (RAS)
->> >> ------------------------------------------------
->> >> 7. Support RAS interfaces
->> >>
->> >> This isn't a question of whether or not DT can support RAS. Of course
->> >> it can. Rather it is a matter of RAS bindings already existing for
->> >> ACPI, including a usage model. We've barely begun to explore this on
->> >> DT. This item doesn't make ACPI technically superior to DT, but it
->> >> certainly makes it more mature.
->> >
->> > Unfortunately, RAS can mean a lot of things to different people.
->> > Is there some high-level description of what the APCI idea of RAS
->> > is? On systems I've worked on in the past, this was generally done
->> > out of band (e.g. in an IPMI BMC) because you can't really trust
->> > the running OS when you report errors that may impact data consistency
->> > of that OS.
->>
->> RAS is also something where every company already has something that
->> they are using on their x86 machines. Those interfaces are being
->> ported over to the ARM platforms and will be equivalent to what they
->> already do for x86. So, for example, an ARM server from DELL will use
->> mostly the same RAS interfaces as an x86 server from DELL.
->
-> Right, I'm still curious about what those are, in case we have to
-> add DT bindings for them as well.
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ drivers/acpi/acpica/acresrc.h |    7 ---
+ drivers/acpi/acpica/rsdump.c  |  110 -----------------------------------------
+ 2 files changed, 117 deletions(-)
 
-Certainly.
+diff --git a/drivers/acpi/acpica/acresrc.h b/drivers/acpi/acpica/acresrc.h
+index 4b008e8..4a4f8af 100644
+--- a/drivers/acpi/acpica/acresrc.h
++++ b/drivers/acpi/acpica/acresrc.h
+@@ -299,13 +299,6 @@ acpi_rs_set_resource_length(acpi_rsdesc_size total_length,
+ 			    union aml_resource *aml);
+ 
+ /*
+- * rsdump
+- */
+-void acpi_rs_dump_resource_list(struct acpi_resource *resource);
+-
+-void acpi_rs_dump_irq_list(u8 * route_table);
+-
+-/*
+  * Resource conversion tables
+  */
+ extern struct acpi_rsconvert_info acpi_rs_convert_dma[];
+diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
+index c3c56b5..8bd41ec 100644
+--- a/drivers/acpi/acpica/rsdump.c
++++ b/drivers/acpi/acpica/rsdump.c
+@@ -357,116 +357,6 @@ static void acpi_rs_dump_address_common(union acpi_resource_data *resource)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_rs_dump_resource_list
+- *
+- * PARAMETERS:  resource_list       - Pointer to a resource descriptor list
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Dispatches the structure to the correct dump routine.
+- *
+- ******************************************************************************/
+-
+-void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
+-{
+-	u32 count = 0;
+-	u32 type;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	/* Check if debug output enabled */
+-
+-	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
+-		return;
+-	}
+-
+-	/* Walk list and dump all resource descriptors (END_TAG terminates) */
+-
+-	do {
+-		acpi_os_printf("\n[%02X] ", count);
+-		count++;
+-
+-		/* Validate Type before dispatch */
+-
+-		type = resource_list->type;
+-		if (type > ACPI_RESOURCE_TYPE_MAX) {
+-			acpi_os_printf
+-			    ("Invalid descriptor type (%X) in resource list\n",
+-			     resource_list->type);
+-			return;
+-		}
+-
+-		/* Sanity check the length. It must not be zero, or we loop forever */
+-
+-		if (!resource_list->length) {
+-			acpi_os_printf
+-			    ("Invalid zero length descriptor in resource list\n");
+-			return;
+-		}
+-
+-		/* Dump the resource descriptor */
+-
+-		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+-			acpi_rs_dump_descriptor(&resource_list->data,
+-						acpi_gbl_dump_serial_bus_dispatch
+-						[resource_list->data.
+-						 common_serial_bus.type]);
+-		} else {
+-			acpi_rs_dump_descriptor(&resource_list->data,
+-						acpi_gbl_dump_resource_dispatch
+-						[type]);
+-		}
+-
+-		/* Point to the next resource structure */
+-
+-		resource_list = ACPI_NEXT_RESOURCE(resource_list);
+-
+-		/* Exit when END_TAG descriptor is reached */
+-
+-	} while (type != ACPI_RESOURCE_TYPE_END_TAG);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_rs_dump_irq_list
+- *
+- * PARAMETERS:  route_table     - Pointer to the routing table to dump.
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Print IRQ routing table
+- *
+- ******************************************************************************/
+-
+-void acpi_rs_dump_irq_list(u8 * route_table)
+-{
+-	struct acpi_pci_routing_table *prt_element;
+-	u8 count;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	/* Check if debug output enabled */
+-
+-	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
+-		return;
+-	}
+-
+-	prt_element = ACPI_CAST_PTR(struct acpi_pci_routing_table, route_table);
+-
+-	/* Dump all table elements, Exit on zero length element */
+-
+-	for (count = 0; prt_element->length; count++) {
+-		acpi_os_printf("\n[%02X] PCI IRQ Routing Table Package\n",
+-			       count);
+-		acpi_rs_dump_descriptor(prt_element, acpi_rs_dump_prt);
+-
+-		prt_element = ACPI_ADD_PTR(struct acpi_pci_routing_table,
+-					   prt_element, prt_element->length);
+-	}
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_rs_out*
+  *
+  * PARAMETERS:  title       - Name of the resource field
+-- 
+1.7.10.4
 
->> > I do think that this is in fact the most important argument in favor
->> > of doing ACPI on Linux, because a number of companies are betting on
->> > Windows (or some in-house OS that uses ACPI) support. At the same time,
->> > I don't think talking of a single 'ARM server ecosystem' that needs to
->> > agree on one interface is helpful here. Each server company has their
->> > own business plan and their own constraints. I absolutely think that
->> > getting as many companies as possible to agree on SBSA and UEFI is
->> > helpful here because it reduces the the differences between the platforms
->> > as seen by a distro. For companies that want to support Windows, it's
->> > obvious they want to have ACPI on their machines, for others the
->> > factors you mention above can be enough to justify the move to ACPI
->> > even without Windows support. Then there are other companies for
->> > which the tradeoffs are different, and I see no reason for forcing
->> > it on them. Finally there are and will likely always be chips that
->> > are not built around SBSA and someone will use the chips in creative
->> > ways to build servers from them, so we already don't have a homogeneous
->> > ecosystem.
->>
->> Allow me to clarify my position here. This entire document is about
->> why ACPI was chosen for the ARM SBBR specification.
->
-> I thought it was about why we should merge ACPI support into the kernel,
-> which seems to me like a different thing.
-
-Nope! I'm not trying to make that argument here. This document is
-primarily to document the rationale for choosing ACPI in the ARM
-server SBBR document (from a Linux developer's perspective, granted).
-
-I'll make arguments about actually merging the patches in a different email. :-)
-
->> As far as we (Linux maintainers) are concerned, we've also been really
->> clear that DT is not a second class citizen to ACPI. Mainline cannot
->> and should not force certain classes of machines to use ACPI and other
->> classes of machines to use DT. As long as the code is well written and
->> conforms to our rules for what ACPI or DT code is allowed to do, then
->> we should be happy to take the patches.
->
-> What we are still missing though is a recommendation for a boot protocol.
-> The UEFI bits in SBBR are generally useful for having compatibility
-> across machines that we support in the kernel regardless of the device
-> description, and we also need to have guidelines along the lines of
-> "if you do ACPI, then do it like this" that are in SBBR. However, the
-> way that these two are coupled into "you have to use ACPI and UEFI
-> this way to build a compliant server" really does make the document
-> much less useful for Linux.
-
-I don't follow your argument. Exactly what problem do you have with
-"You have to use ACPI and UEFI" to be compliant with the SBBR
-document? Vendors absolutely have the choice to ignore those
-documents, but doing so means they are explicitly rejecting the
-platform that ARM has defined for server machines, and by extension,
-explicitly rejecting the ecosystem and interoperability that goes with
-it.
-
-On the UEFI front, I don't see a problem. Linux mainline has the UEFI
-stub on ARM, and that is the boot protocol.
-
-For UEFI providing DT, the interface is set. We defined it, and it
-works, but that is not part of the ARM server ecosystem as defined by
-ARM. Why would the SBBR cover it?
-
-My perspective is that Linux should support the SBSA+SBBR ecosystem,
-but we don't need to be exclusive about it. We'll happily support
-UEFI+DT platforms as well as UEFI+ACPI.
-
-g.
