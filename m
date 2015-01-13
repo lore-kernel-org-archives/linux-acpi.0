@@ -1,56 +1,109 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [GIT PULL] Thermal Management updates for 3.19-rc5
-Date: Tue, 13 Jan 2015 11:26:25 +0800
-Message-ID: <1421119585.23668.15.camel@rzhang1-toshiba>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [Devel] [PATCH 3/3] ACPICA: Remove use of __DATE__ macro
+Date: Tue, 13 Jan 2015 05:42:16 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026ADAD3@SHSMSX101.ccr.corp.intel.com>
+References: <1418381488-25123-1-git-send-email-linux@rasmusvillemoes.dk>
+ <1418381488-25123-3-git-send-email-linux@rasmusvillemoes.dk>
+ <1AE640813FDE7649BE1B193DEA596E88026AACD9@SHSMSX101.ccr.corp.intel.com>
+ <87oaqdy13n.fsf@rasmusvillemoes.dk>
+ <1AE640813FDE7649BE1B193DEA596E88026AB06A@SHSMSX101.ccr.corp.intel.com>
+ <20150106193610.GA7141@pathfinder>
+ <1AE640813FDE7649BE1B193DEA596E88026AC9E4@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:40785 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750963AbbAMFmY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 00:42:24 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026AC9E4@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi, Linus,
+Hi, Rasmus
 
-Please pull from
+Just for your information.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git for-rc
+There is also a known bug related to the application header printing.
+The fix is:
+https://github.com/zetalog/acpica/commit/79e75432
+But this bug can only be seen for EFI ports of ACPICA utilities, it won't be detected in the kernel source tree.
+Hope this is not the motivation that has caused you to try to remove the __DATE__ usages.
 
-to get the latest Thermal Management changes for 3.19-rc5 with top-most
-commit ad0f409051a67dde8d454990e09b6db41f675876:
+Thanks and best regards
+-Lv
 
-  int340x_thermal/processor_thermal_device: return failure when
-(2015-01-06 08:18:21 +0800)
-
-on top of commit 693a30b8f19a964087a3762d09fb2e1cbad6b0d4:
-
-  Merge branch 'for-linus' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rw/uml (2015-01-04
-11:46:43 -0800)
-
-Specifics:
-
-- Fix a problem that Intel SoC DTS thermal driver does not work when
-CONFIG_THERMAL_INT340X is not set.
-
-- Fix a NULL pointer dereference when processor_thermal_device driver is
-loaded on a platform without ACPI support.
-
-thanks,
-rui
-
-----------------------------------------------------------------
-Zhang Rui (3):
-      ACPI/int340x_thermal: enumerate INT340X devices even if they're
-not in _ART/_TRT
-      ACPI/int340x_thermal: enumerate INT3401 for Intel SoC DTS thermal
-driver
-      int340x_thermal/processor_thermal_device: return failure when
-
- drivers/acpi/int340x_thermal.c                   | 11 +++++++----
- .../thermal/int340x_thermal/acpi_thermal_rel.c   | 16 ++++------------
- .../int340x_thermal/processor_thermal_device.c   |  2 ++
- 3 files changed, 13 insertions(+), 16 deletions(-)
-
-
+> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng, Lv
+> Sent: Tuesday, January 13, 2015 10:33 AM
+> 
+> Hi,
+> 
+> I've added this patch into the 201501 ACPICA materials for review:
+> https://github.com/acpica/acpica/pull/61
+> If it is merged, it will appear in Linux kernel after 201501 ACPICA release.
+> Thanks for reporting.
+> 
+> Best regards
+> -Lv
+> 
+> > From: David E. Box [mailto:david.e.box@linux.intel.com]
+> > Sent: Wednesday, January 07, 2015 3:36 AM
+> >
+> > On Tue, Jan 06, 2015 at 12:30:05AM +0000, Zheng, Lv wrote:
+> > > Hi,
+> > >
+> > > > From: Rasmus Villemoes [mailto:linux@rasmusvillemoes.dk]
+> > > > Sent: Monday, January 05, 2015 6:27 PM
+> > > >
+> > > > On Mon, Jan 05 2015, "Zheng, Lv" <lv.zheng@intel.com> wrote:
+> > > >
+> > > > > Hi,
+> > > > >
+> > > > >> From: Rasmus Villemoes [mailto:linux@rasmusvillemoes.dk]
+> > > > >> Sent: Friday, December 12, 2014 6:51 PM
+> > > > >> To: Zheng, Lv
+> > > > >> Cc: Rasmus Villemoes; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
+> > > > >> Subject: [PATCH 3/3] ACPICA: Remove use of __DATE__ macro
+> > > > >>
+> > > > >> The macro __DATE__ and friends is not allowed in the kernel. Also,
+> > > > >> including the build time in output doesn't seem to provide any value.
+> > > > >>
+> > > > >
+> > > > > Could you confirm that it is not useful even for the user tools?
+> > > > > Please perform the following commands in the kernel source tree
+> > > > > 1. stay in tools folder
+> > > > > 2. type "make acpi"
+> > > > > 3. type "./power/acpi/acpidump -v"
+> > > > >
+> > > >
+> > > > Yeah, it's part of the output, but for what reason? What can userspace
+> > > > possibly use that information for?
+> > >
+> > > I also want to know.
+> >
+> > I don't see a reason for userspace to know the build date.
+> >
+> > >
+> > > > I can see some utility in printing a
+> > > > version number, since that may tell something about the features
+> > > > present or absent. The compilation date, on the other hand, seems
+> > > > completely useless. Different distros may ship different versions which
+> > > > happened to be compiled on the same day, or older versions compiled later.
+> > >
+> > > If the deletion was done for this reason, IMO, it's acceptable.
+> > > So let's wait to see others' feedback.
+> > >
+> >
+> > I'm okay with removing it (the build date) in Linux and ACPICA as well. However
+> > the version, which is essentially the release date, is important for the exact
+> > reasons already stated.
+> >
+> > Dave
+> _______________________________________________
+> Devel mailing list
+> Devel@acpica.org
+> https://lists.acpica.org/mailman/listinfo/devel
