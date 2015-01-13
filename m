@@ -1,93 +1,75 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: [PATCH] ACPICA: tbinstal: Remove unused function
-Date: Tue, 13 Jan 2015 19:48:45 +0100
-Message-ID: <1421174925-5796-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal SoC management updates for v3.19-rc5
+Date: Tue, 13 Jan 2015 15:55:58 -0400
+Message-ID: <CAC-25o8q1bDOJ0_D=yaVv-w_=q9b1NE_T9oaKH3e66Cqfu8w0g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:57450 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751446AbbAMSpk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 13:45:40 -0500
-Received: by mail-wi0-f176.google.com with SMTP id ex7so23397724wid.3
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 10:45:39 -0800 (PST)
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:50699 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253AbbAMT4A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 14:56:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Remove the function acpi_tb_store_table() that is not used anywhere.
+Hello Rui,
 
-This was partially found by using a static code analysis program called cppcheck.
+Please pull from
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
----
- drivers/acpi/acpica/actables.h |    5 -----
- drivers/acpi/acpica/tbinstal.c |   37 -------------------------------------
- 2 files changed, 42 deletions(-)
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git
+fixes
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 1afe46e..7d65cac 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -119,11 +119,6 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 			       u8 flags,
- 			       u8 reload, u8 override, u32 *table_index);
- 
--acpi_status
--acpi_tb_store_table(acpi_physical_address address,
--		    struct acpi_table_header *table,
--		    u32 length, u8 flags, u32 *table_index);
--
- void acpi_tb_uninstall_table(struct acpi_table_desc *table_desc);
- 
- void acpi_tb_terminate(void);
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 755b90c..a998e8c 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -455,43 +455,6 @@ finish_override:
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_tb_store_table
-- *
-- * PARAMETERS:  address             - Table address
-- *              table               - Table header
-- *              length              - Table length
-- *              flags               - Install flags
-- *              table_index         - Where the table index is returned
-- *
-- * RETURN:      Status and table index.
-- *
-- * DESCRIPTION: Add an ACPI table to the global table list
-- *
-- ******************************************************************************/
--
--acpi_status
--acpi_tb_store_table(acpi_physical_address address,
--		    struct acpi_table_header * table,
--		    u32 length, u8 flags, u32 *table_index)
--{
--	acpi_status status;
--	struct acpi_table_desc *table_desc;
--
--	status = acpi_tb_get_next_root_index(table_index);
--	if (ACPI_FAILURE(status)) {
--		return (status);
--	}
--
--	/* Initialize added table */
--
--	table_desc = &acpi_gbl_root_table_list.tables[*table_index];
--	acpi_tb_init_table_descriptor(table_desc, address, flags, table);
--	table_desc->pointer = table;
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_tb_uninstall_table
-  *
-  * PARAMETERS:  table_desc          - Table descriptor
--- 
-1.7.10.4
+to receive Thermal SoC Management updates for v3.19-rc5 with top-most
 
+ee853addd9fedb116bd34a18f11dd5959fcf0428:
+
+  thermal: rcar: Spelling/grammar: s/drier use .../driver uses ...s/
+(2015-01-12 16:48:10 -0400)
+
+on top of commit 5e0f872c7d7e371fbdf09e864eddd24bddfda8fe:
+
+  Merge branch 'upstream' of
+git://git.infradead.org/users/pcmoore/audit (2014-12-31 14:52:18
+-0800)
+
+Specifics:
+
+- Minor fixes on drivers' side: IMX and RCAR.
+- Update TI SoC thermal maintainer entry.
+- type qualifier fix in OF thermal.
+- Updated documentation of OF cpufreq cooling register.
+
+BR,
+
+Eduardo Valentin
+
+----------------------------------------------------------------
+Anson Huang (1):
+      Thermal: imx: add clk disable/enable for suspend/resume
+
+Eduardo Valentin (1):
+      MAINTAINERS: update ti-soc-thermal status
+
+Geert Uytterhoeven (2):
+      thermal: of: Remove bogus type qualifier for of_thermal_get_trip_points()
+      thermal: rcar: Spelling/grammar: s/drier use .../driver uses ...s/
+
+Javi Merino (1):
+      Documentation: thermal: document of_cpufreq_cooling_register()
+
+Nishanth Menon (1):
+      MAINTAINERS: Add linux-omap to list of reviewers for TI Thermal
+
+Yoshihiro Shimoda (2):
+      thermal: rcar: fix ENR register value
+      thermal: rcar: change type of ctemp in rcar_thermal_update_temp()
+
+ Documentation/thermal/cpu-cooling-api.txt | 15 +++++++++++++--
+ MAINTAINERS                               |  3 ++-
+ drivers/thermal/imx_thermal.c             |  2 ++
+ drivers/thermal/of-thermal.c              |  2 +-
+ drivers/thermal/rcar_thermal.c            | 17 +++++++++++------
+ drivers/thermal/thermal_core.h            |  4 ++--
+ 6 files changed, 31 insertions(+), 12 deletions(-)
