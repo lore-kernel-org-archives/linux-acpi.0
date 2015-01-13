@@ -1,162 +1,182 @@
 From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Tue, 13 Jan 2015 17:02:37 +0000
-Message-ID: <CACxGe6upNdAx7aAVMK7n_pSiEjBk4CzufaKQw-p9u+ccyn+irA@mail.gmail.com>
-References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel>
- <CACxGe6vRN2Tc97=Sx05gri02goxBaHnZm30hR37q=002agFLAA@mail.gmail.com>
- <CACxGe6sbGu53x5rsx2sWVVVVCnnFvmkQAk3Se9ZGNOXCkqpi=A@mail.gmail.com> <20150112142358.GA23680@amd>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Tue, 13 Jan 2015 17:22:02 +0000
+Message-ID: <CACxGe6t9Rbrr5166UDm8T7UVM_4k9jBFv=ozJB1zY=Kvi6F1LQ@mail.gmail.com>
+References: <548F9668.6080900@linaro.org> <1636716.eAYJb6Z2AV@wuerfel>
+ <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com> <1421113529.giGjG4IzLy@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:61563 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbbAMRC6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 12:02:58 -0500
-Received: by mail-ie0-f172.google.com with SMTP id tr6so3907223ieb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 09:02:58 -0800 (PST)
-In-Reply-To: <20150112142358.GA23680@amd>
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:46422 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190AbbAMRWX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jan 2015 12:22:23 -0500
+Received: by mail-ig0-f171.google.com with SMTP id z20so18050960igj.4
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Jan 2015 09:22:23 -0800 (PST)
+In-Reply-To: <1421113529.giGjG4IzLy@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Pavel,
-
-For the sake of argument, I'll respond to your points below, even
-though we fundamentally disagree on what is required for a general
-purpose server...
-
-On Mon, Jan 12, 2015 at 2:23 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Sat 2015-01-10 14:44:02, Grant Likely wrote:
-> Grant Likely published article about ACPI and ARM at
+On Mon, Jan 12, 2015 at 7:40 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 12 January 2015 12:00:31 Grant Likely wrote:
+>> On Mon, Jan 12, 2015 at 10:21 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > On Saturday 10 January 2015 14:44:02 Grant Likely wrote:
+>> >> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@linaro.org> wrote:
+>> > This seems like a great fit for AML indeed, but I wonder what exactly
+>> > we want to hotplug here, since everything I can think of wouldn't need
+>> > AML support for the specific use case of SBSA compliant servers:
+>>
+>> [...]
+>>
+>> I've trimmed the specific examples here because I think that misses
+>> the point. The point is that regardless of interface (either ACPI or
+>> DT) there are always going to be cases where the data needs to change
+>> at runtime. Not all platforms will need to change the CPU data, but
+>> some will (say for a machine that detects a failed CPU and removes
+>> it). Some PCI add-in boards will carry along with them additional data
+>> that needs to be inserted into the ACPI namespace or DT. Some
+>> platforms will have system level component (ie. non-PCI) that may not
+>> always be accessible.
 >
-> http://www.secretlab.ca/archives/151
+> Just to be sure I get this right: do you mean runtime or boot-time
+> (re-)configuration for those?
+
+Both are important.
+
+>> ACPI has an interface baked in already for tying data changes to
+>> events. DT currently needs platform specific support (which we can
+>> improve on). I'm not even trying to argue for ACPI over DT in this
+>> section, but I included it this document because it is one of the
+>> reasons often given for choosing ACPI and I felt it required a more
+>> nuanced discussion.
 >
-> . He acknowledges systems with ACPI are harder to debug, but because
-> Microsoft says so, we have to use ACPI (basically).
+> I can definitely see the need for an architected interface for
+> dynamic reconfiguration in cases like this, and I think the ACPI
+> model actually does this better than the IBM Power hypervisor
+> model, I just didn't see the need on servers as opposed to something
+> like a laptop docking station to give a more obvious example I know
+> from x86.
 >
-> I believe doing wrong technical choice "because Microsoft says so" is
-> a wrong thing to do.
+>> > * From the experience with x86, Linux tends to prefer using drivers
+>> >   for hardware registers over the AML based drivers when both are
+>> >   implemented, because of efficiency and correctness.
+>> >
+>> > We should probably discuss at some point how to get the best of
+>> > both. I really don't like the idea of putting the low-level
+>> > details that we tend to have DT into ACPI, but there are two
+>> > things we can do: For systems that have a high-level abstraction
+>> > for their PM in hardware (e.g. talking to an embedded controller
+>> > that does the actual work), the ACPI description should contain
+>> > enough information to implement a kernel-level driver for it as
+>> > we have on Intel machines. For more traditional SoCs that do everything
+>> > themselves, I would recommend to always have a working DT for
+>> > those people wanting to get the most of their hardware. This will
+>> > also enable any other SoC features that cannot be represented in
+>> > ACPI.
+>>
+>> The nice thing about ACPI is that we always have the option of
+>> ignoring it when the driver knows better since it is always executed
+>> under the control of the kernel interpreter. There is no ACPI going
+>> off and doing something behind the kernel's back. To start with we
+>> have the OSPM state model and devices can use additional ACPI methods
+>> as needed, but as an optimization, the driver can do those operations
+>> directly if the driver author has enough knowledge about the device.
 >
-> Yes, ACPI gives more flexibility to hardware vendors. Imagine
-> replacing block devices with interpretted bytecode coming from
-> ROM. That is obviously bad, right? Why is it good for power
-> management?
+> Ok, makes sense.
 >
-> It is not.
+>> >> Reliability, Availability & Serviceability (RAS)
+>> >> ------------------------------------------------
+>> >> 7. Support RAS interfaces
+>> >>
+>> >> This isn't a question of whether or not DT can support RAS. Of course
+>> >> it can. Rather it is a matter of RAS bindings already existing for
+>> >> ACPI, including a usage model. We've barely begun to explore this on
+>> >> DT. This item doesn't make ACPI technically superior to DT, but it
+>> >> certainly makes it more mature.
+>> >
+>> > Unfortunately, RAS can mean a lot of things to different people.
+>> > Is there some high-level description of what the APCI idea of RAS
+>> > is? On systems I've worked on in the past, this was generally done
+>> > out of band (e.g. in an IPMI BMC) because you can't really trust
+>> > the running OS when you report errors that may impact data consistency
+>> > of that OS.
+>>
+>> RAS is also something where every company already has something that
+>> they are using on their x86 machines. Those interfaces are being
+>> ported over to the ARM platforms and will be equivalent to what they
+>> already do for x86. So, for example, an ARM server from DELL will use
+>> mostly the same RAS interfaces as an x86 server from DELL.
 >
+> Right, I'm still curious about what those are, in case we have to
+> add DT bindings for them as well.
 
-Trying to equate a block driver with the things that are done by ACPI
-is a pretty big stretch. It doesn't even come close to the same level
-of complexity. ACPI is merely the glue between the OS and the
-behaviour of the HW & FW. (e.g. On platform A, the rfkill switch is a
-GPIO, but on platform B it is an i2c transaction to a
-microcontroller). There are lots of these little details on modern
-hardware, and most of them are pretty trivial aside from the fact that
-support requires either a kernel change (for every supported OS) or
-something like ACPI.
+Certainly.
 
-You just need to look at the x86 market to see that huge drivers in
-ACPI generally doesn't happen. In fact, aside from the high profile
-bad examples (we all like to watch a good scandal) the x86 market
-works really well.
-
-> Besides being harder to debug, there are more disadvantages:
+>> > I do think that this is in fact the most important argument in favor
+>> > of doing ACPI on Linux, because a number of companies are betting on
+>> > Windows (or some in-house OS that uses ACPI) support. At the same time,
+>> > I don't think talking of a single 'ARM server ecosystem' that needs to
+>> > agree on one interface is helpful here. Each server company has their
+>> > own business plan and their own constraints. I absolutely think that
+>> > getting as many companies as possible to agree on SBSA and UEFI is
+>> > helpful here because it reduces the the differences between the platforms
+>> > as seen by a distro. For companies that want to support Windows, it's
+>> > obvious they want to have ACPI on their machines, for others the
+>> > factors you mention above can be enough to justify the move to ACPI
+>> > even without Windows support. Then there are other companies for
+>> > which the tradeoffs are different, and I see no reason for forcing
+>> > it on them. Finally there are and will likely always be chips that
+>> > are not built around SBSA and someone will use the chips in creative
+>> > ways to build servers from them, so we already don't have a homogeneous
+>> > ecosystem.
+>>
+>> Allow me to clarify my position here. This entire document is about
+>> why ACPI was chosen for the ARM SBBR specification.
 >
-> * Size, speed and complexity disadvantage of bytecode interpretter in
-> the kernel.
+> I thought it was about why we should merge ACPI support into the kernel,
+> which seems to me like a different thing.
 
-The bytecode interpreter has been in the kernel for years. It works,
-It isn't on the hot path for computing power, and it meets the
-requirement for abstraction between the kernel and the platform.
+Nope! I'm not trying to make that argument here. This document is
+primarily to document the rationale for choosing ACPI in the ARM
+server SBBR document (from a Linux developer's perspective, granted).
 
-> * Many more drivers. Imagine GPIO       switch, controlling rfkill
->   (for
->   example). In device tree case, that's few lines in the .dts
->   specifying
->   which GPIO that switch is on.
+I'll make arguments about actually merging the patches in a different email. :-)
+
+>> As far as we (Linux maintainers) are concerned, we've also been really
+>> clear that DT is not a second class citizen to ACPI. Mainline cannot
+>> and should not force certain classes of machines to use ACPI and other
+>> classes of machines to use DT. As long as the code is well written and
+>> conforms to our rules for what ACPI or DT code is allowed to do, then
+>> we should be happy to take the patches.
 >
-> In ACPI case, each hardware vendor initially implements rfkill switch
-> in AML, differently. After few years, each vendor implements
-> (different) kernel<->AML interface for querying   rfkill state and
-> toggling it in software. Few years after that, we implement kernel
-> drivers for those AML interfaces, to properly integrate     them in
-> the
-> kernel.
+> What we are still missing though is a recommendation for a boot protocol.
+> The UEFI bits in SBBR are generally useful for having compatibility
+> across machines that we support in the kernel regardless of the device
+> description, and we also need to have guidelines along the lines of
+> "if you do ACPI, then do it like this" that are in SBBR. However, the
+> way that these two are coupled into "you have to use ACPI and UEFI
+> this way to build a compliant server" really does make the document
+> much less useful for Linux.
 
-I don't know what you're trying to argue here. If an AML interface
-works, we never bother with writing direct kernel support for it. Most
-of the time it works. When it doesn't, we write a quirk in the driver
-and move on.
+I don't follow your argument. Exactly what problem do you have with
+"You have to use ACPI and UEFI" to be compliant with the SBBR
+document? Vendors absolutely have the choice to ignore those
+documents, but doing so means they are explicitly rejecting the
+platform that ARM has defined for server machines, and by extension,
+explicitly rejecting the ecosystem and interoperability that goes with
+it.
 
-> * Incompatibility. ARM servers will now be very different from other
-> ARM systems.
+On the UEFI front, I don't see a problem. Linux mainline has the UEFI
+stub on ARM, and that is the boot protocol.
 
-If anything, ARM servers are an extension of the existing x86 server
-market, not any of the existing ARM markets. They don't look like
-mobile, and they don't look like embedded. The fact that the OS
-vendors and the HW vendors are independent companies completely
-changes how this hardware gets supported. The x86 market has figured
-this out and that is a big reason why it is able to scale to the size
-it has. ACPI is a direct result of what that kind of market needs.
+For UEFI providing DT, the interface is set. We defined it, and it
+works, but that is not part of the ARM server ecosystem as defined by
+ARM. Why would the SBBR cover it?
 
-> Now, are there some arguments for ACPI? Yes -- it allows hw vendors to
-> hack half-working drivers without touching kernel
-> sources. (Half-working: such drivers are not properly integrated in
-> all the various subsystems).
-
-That's an unsubstantiated claim. ACPI defines a model for the fiddly
-bits around the edges to be implemented by the platform, and performed
-under /kernel/ control, without requiring the kernel to explicitly
-have code for each and every possibility. It is a very good
-abstraction from that point of view.
-
-> Grant claims that power management is
-> somehow special, and requirement for real drivers is somehow ok for
-> normal drivers (block, video), but not for power management. Now,
-> getting driver merged into the kernel does not take that long -- less
-> than half a year if you know what you are doing. Plus, for power
-> management, you can really just initialize hardware in the bootloader
-> (into working but not optimal state). But basic drivers are likely to
-> merged fast, and then you'll just have to supply DT tables.
-
-The reality doesn't play out with the scenario you're describing. We
-have two major mass markets in the Linux world; Mobile and general
-purpose computing. For mobile, we have yet to have a device on the
-market that is well supported at launch by mainline. Vendors ship
-their own kernel because they only support a single OS, and we haven't
-figured out how to support their hardware at launch time (there is
-plenty of blame to go around on this issue; regardless of who is to
-blame, it is still a problem). The current mobile model doesn't even
-remotely address the needs of server vendors and traditional Linux
-distributions.
-
-The general purpose (or in this case, the server subset), is the only
-place where there is a large ecosystem of independent hardware and OS
-vendors. For all the complaints about technical problems, the existing
-x86 architecture using ACPI works well and it has spawned an awful lot
-of very interesting hardware.
-
-...
-
-Personally, I think ACPI is the wrong thing to be getting upset over.
-Even supposing ACPI was rejected, it doesn't say anything about
-firmware that is completely out of visibility of the kernel. Both ARM
-and x86 CPUs have secure modes that are the domain of firmware, not
-the kernel, and have basically free reign on the machine.
-
-ACPI on the other hand can be inspected. We know when the interpreter
-is running, because the kernel controls it. We can extract and
-decompile the ACPI tables. It isn't quite the hidden black box that
-the rhetoric against ACPI claims it to be.
-
-If you really want to challenge the industry, then push for vendors to
-open source and upstream their firmware. Heck, all the necessary
-building blocks are already open sourced in the Tianocore and ARM
-Trusted Firmware projects. This would actually improve the visibility
-and auditing of the platform behaviour. The really invisible stuff is
-there, not in ACPI, and believe me, if ACPI (or similar) isn't
-available then the vendors will be stuffing even more into firmware
-than they are now.
+My perspective is that Linux should support the SBSA+SBBR ecosystem,
+but we don't need to be exclusive about it. We'll happily support
+UEFI+DT platforms as well as UEFI+ACPI.
 
 g.
