@@ -1,128 +1,39 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [RFC] ACPI on arm64 TODO List
-Date: Tue, 13 Jan 2015 18:21:56 -0700
-Message-ID: <54B5C4B4.30708@redhat.com>
-References: <548F9668.6080900@linaro.org> <9355623.14GfrLxEB0@wuerfel> <CACxGe6vRN2Tc97=Sx05gri02goxBaHnZm30hR37q=002agFLAA@mail.gmail.com> <CACxGe6sbGu53x5rsx2sWVVVVCnnFvmkQAk3Se9ZGNOXCkqpi=A@mail.gmail.com> <20150112142358.GA23680@amd> <CACxGe6ub0UsUNs1-2NziK_sGEtpxTjcDD+Eto3YOsNkvWxaNcw@mail.gmail.com> <20150112193905.GB5281@amd>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/6] ACPI/EC: Enhance EC driver state machine
+Date: Wed, 14 Jan 2015 19:28:14 +0800
+Message-ID: <cover.1421234254.git.lv.zheng@intel.com>
+References: <cover.1418966602.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42839 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:39590 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751122AbbANBWo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Jan 2015 20:22:44 -0500
-In-Reply-To: <20150112193905.GB5281@amd>
+	id S1751028AbbAND2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Jan 2015 22:28:19 -0500
+In-Reply-To: <cover.1418966602.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Grant Likely <grant.likely@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-On 01/12/2015 12:39 PM, Pavel Machek wrote:
-> On Mon 2015-01-12 14:41:50, Grant Likely wrote:
->> On Mon, Jan 12, 2015 at 2:23 PM, Pavel Machek <pavel@ucw.cz> wrote:
->>> On Sat 2015-01-10 14:44:02, Grant Likely wrote:
->>>> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@linaro.org> wrote:
->>>>> On Tue, Dec 16, 2014 at 11:27 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->>>>>> On Monday 15 December 2014 19:18:16 Al Stone wrote:
->>>>>>> 7. Why is ACPI required?
->>>>>>>    * Problem:
->>>>>>>      * arm64 maintainers still haven't been convinced that ACPI is
->>>>>>>        necessary.
->>>>>>>      * Why do hardware and OS vendors say ACPI is required?
->>>>>>>    * Status: Al & Grant collecting statements from OEMs to be posted
->>>>>>>      publicly early in the new year; firmware summit for broader
->>>>>>>      discussion planned.
->>>>>>
->>>>>> I was particularly hoping to see better progress on this item. It
->>>>>> really shouldn't be that hard to explain why someone wants this feature.
->>>>>
->>>>> I've written something up in as a reply on the firmware summit thread.
->>>>> I'm going to rework it to be a standalone document and post it
->>>>> publicly. I hope that should resolve this issue.
->>>>
->>>> I've posted an article on my blog, but I'm reposting it here because
->>>> the mailing list is more conducive to discussion...
->>>>
->>>> http://www.secretlab.ca/archives/151
->>>
->>> Unfortunately, I seen the blog post before the mailing list post, so
->>> here's reply in blog format.
->>>
->>> Grant Likely published article about ACPI and ARM at
->>>
->>> http://www.secretlab.ca/archives/151
->>>
->>> . He acknowledges systems with ACPI are harder to debug, but because
->>> Microsoft says so, we have to use ACPI (basically).
->>
->> Please reread the blog post. Microsoft is a factor, but it is not the
->> primary driver by any means.
-> 
-> Ok, so what is the primary reason? As far as I could tell it is
-> "Microsoft wants ACPI" and "hardware people want Microsoft" and
-> "fragmentation is bad so we do ACPI" (1) (and maybe "someone at RedHat
-> says they want ACPI" -- but RedHat people should really speak for
-> themselves.)
+This patchset fixes several small issues in current EC driver.
+After applying this patchset, we can have all EC IRQ handling code
+collected in advance_transaction() which is the core function of the EC
+driver state machine.
 
-I have to say I found this statement fascinating.
+Lv Zheng (6):
+  ACPI/EC: Cleanup transaction wakeup code
+  ACPI/EC: Add reference counting for query handlers
+  ACPI/EC: Fix returning values in acpi_ec_sync_query()
+  ACPI/EC: Fix a code path that global lock is not held
+  ACPI/EC: Fix issues related to the SCI_EVT handling
+  ACPI/EC: Cleanup QR_EC related code
 
-I have been seconded to Linaro from Red Hat for over two years now,
-working on getting ACPI running, first as a prototype on an ARMv7 box,
-then on ARMv8.  I have been working with Grant since very early on when
-some of us first started talking about ARM servers in the enterprise
-market, and what sorts of standards, if any, would be needed to build an
-ecosystem.
-
-This is the first time in at least two years that I have had someone
-ask for Red Hat to speak up about ACPI on ARM servers; it's usually
-quite the opposite, as in "will you Red Hat folks please shut up about
-this already?" :).
-
-For all the reasons Grant has already mentioned, my Customers need to
-have ACPI on ARM servers for them to be successful in their business.
-I view my job as providing what my Customers need to be successful.
-So, here I am.  I want ACPI on ARMv8 for my Customers.
-
-> You snipped quite a lot of reasons why ACPI is inferior that were
-> below this line in email.
-> 
-> 									Pavel
-> 
-> (1) ignoring fact that it causes fragmentation between servers and phones.
-> 
-
-I see this very differently.  This is a "fact" only when viewed from
-the perspective of having two different technologies that can do very
-similar things.
-
-In my opinion, the issue is that these are two very, very different
-markets; technologies are only relevant as the tools to be used to be
-successful in those markets.
-
-Just on a surface level, phones are expected to be completely replaced
-every 18 months or less -- new hardware, new version of the OS, new
-everything. That's the driving force in the market.
-
-A server does not change that quickly; it is probable that the hardware
-will change, but it is unlikely to change at that speed.  It can take
-18 months just for some of the certification testing needed for new
-hardware or software.  Further, everything from the kernel on up is
-expected to be stable for a long time -- as long as 25 years, in some
-cases I have worked on.  "New" can be a bad word in this environment.
-
-Best I can tell, I need different tool sets to do well in each of these
-environments -- one that allows me to move quickly for phones, and one
-that allows me to carefully control change for servers.  I personally
-don't see that as fragmentation, but as using the right tool for the
-job.  If I'm building a phone, I want the speed and flexibility of DT.
-If I'm building a server, I want the long term stability of ACPI.
+ drivers/acpi/ec.c       |  183 +++++++++++++++++++++++------------------------
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 92 insertions(+), 92 deletions(-)
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+1.7.10
+
