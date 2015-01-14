@@ -1,70 +1,64 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/6] ACPI/EC: Fix returning values in acpi_ec_sync_query()
-Date: Wed, 14 Jan 2015 19:28:33 +0800
-Message-ID: <c87a06251675dc13fd05f778d46f853c2fbc2c3f.1421234254.git.lv.zheng@intel.com>
+Subject: [PATCH 4/6] ACPI/EC: Fix a code path that global lock is not held
+Date: Wed, 14 Jan 2015 19:28:41 +0800
+Message-ID: <c66cf9c07985d4fd34738dae927abd3d0383896a.1421234254.git.lv.zheng@intel.com>
 References: <cover.1418966602.git.lv.zheng@intel.com> <cover.1421234254.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14363 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:57865 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751028AbbAND2f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Jan 2015 22:28:35 -0500
+	id S1751028AbbAND2n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Jan 2015 22:28:43 -0500
 In-Reply-To: <cover.1421234254.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-The returning value of acpi_os_execute() is erroneously handled as errno.
-This patch corrects it by returning EBUSY to indicate the work queue item
-creation failure.
+Currently QR_EC is queued up on CPU 0 to be safe with SMM because there is
+no global lock held for acpi_ec_gpe_query(). As we are about to move QR_EC
+to a non CPU 0 bound work queue to avoid invoking kmalloc() in
+advance_transaction(), we have to acquire global lock for the new QR_EC
+work item to avoid regressions.
+
+Known issue:
+1. Global lock for acpi_ec_clear().
+   This is an existing issue that acpi_ec_clear() which invokes
+   acpi_ec_sync_query() also suffers from the same issue. But this patch's
+   target is only the code to invoke acpi_ec_sync_query() in a CPU 0 bound
+   work queue item, and the acpi_ec_clear() can be automatically fixed by
+   further patch that merges the redundant code, so it is left unchanged.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/acpi/ec.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 87b9911..a94ee9f 100644
+index a94ee9f..3c97122 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -660,14 +660,15 @@ static void acpi_ec_run(void *cxt)
- static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
+@@ -690,11 +690,21 @@ static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
+ static void acpi_ec_gpe_query(void *ec_cxt)
  {
- 	u8 value = 0;
--	int status;
-+	int result;
+ 	struct acpi_ec *ec = ec_cxt;
 +	acpi_status status;
- 	struct acpi_ec_query_handler *handler;
++	u32 glk;
  
--	status = acpi_ec_query_unlocked(ec, &value);
-+	result = acpi_ec_query_unlocked(ec, &value);
- 	if (data)
- 		*data = value;
--	if (status)
--		return status;
-+	if (result)
-+		return result;
- 
- 	list_for_each_entry(handler, &ec->list, node) {
- 		if (value == handler->query_bit) {
-@@ -675,12 +676,15 @@ static int acpi_ec_sync_query(struct acpi_ec *ec, u8 *data)
- 			handler = acpi_ec_get_query_handler(handler);
- 			pr_debug("##### Query(0x%02x) scheduled #####\n",
- 				 handler->query_bit);
--			return acpi_os_execute((handler->func) ?
-+			status = acpi_os_execute((handler->func) ?
- 				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
- 				acpi_ec_run, handler);
-+			if (ACPI_FAILURE(status))
-+				result = -EBUSY;
-+			break;
- 		}
- 	}
--	return 0;
-+	return result;
+ 	if (!ec)
+ 		return;
+ 	mutex_lock(&ec->mutex);
++	if (ec->global_lock) {
++		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
++		if (ACPI_FAILURE(status))
++			goto unlock;
++	}
+ 	acpi_ec_sync_query(ec, NULL);
++	if (ec->global_lock)
++		acpi_release_global_lock(glk);
++unlock:
+ 	mutex_unlock(&ec->mutex);
  }
  
- static void acpi_ec_gpe_query(void *ec_cxt)
 -- 
 1.7.10
 
