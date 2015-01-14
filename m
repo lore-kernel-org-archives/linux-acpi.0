@@ -1,50 +1,62 @@
-From: Moritz Fischer <moritz.fischer@ettus.com>
-Subject: [PATCH] acpi: nvs: Fixed checkpatch.pl warning.
-Date: Wed, 14 Jan 2015 11:18:53 +0100
-Message-ID: <1421230733-24149-2-git-send-email-moritz.fischer@ettus.com>
-References: <1421230733-24149-1-git-send-email-moritz.fischer@ettus.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Wed, 14 Jan 2015 23:04:48 +0800
+Message-ID: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:48122 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752154AbbANKTW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 05:19:22 -0500
-Received: by mail-we0-f180.google.com with SMTP id w62so7845675wes.11
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2015 02:19:20 -0800 (PST)
-In-Reply-To: <1421230733-24149-1-git-send-email-moritz.fischer@ettus.com>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:39561 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182AbbANPGx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 10:06:53 -0500
+Received: by mail-pd0-f173.google.com with SMTP id ft15so10249529pdb.4
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2015 07:06:53 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Moritz Fischer <moritz.fischer@ettus.com>
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Patch replaces printk(KERN_INFO with pr_info.
+Hi,
 
-Signed-off-by: Moritz Fischer <moritz.fischer@ettus.com>
----
- drivers/acpi/nvs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This is the v7 of ACPI core patches for ARM64 based on ACPI 5.1
 
-diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
-index 85287b8..e22235c 100644
---- a/drivers/acpi/nvs.c
-+++ b/drivers/acpi/nvs.c
-@@ -171,7 +171,7 @@ int suspend_nvs_save(void)
- {
- 	struct nvs_page *entry;
- 
--	printk(KERN_INFO "PM: Saving platform NVS memory\n");
-+	pr_info("PM: Saving platform NVS memory\n");
- 
- 	list_for_each_entry(entry, &nvs_list, node)
- 		if (entry->data) {
-@@ -203,7 +203,7 @@ void suspend_nvs_restore(void)
- {
- 	struct nvs_page *entry;
- 
--	printk(KERN_INFO "PM: Restoring platform NVS memory\n");
-+	pr_info("PM: Restoring platform NVS memory\n");
- 
- 	list_for_each_entry(entry, &nvs_list, node)
- 		if (entry->data)
--- 
-1.9.3
+updates from v6:
+  - Rebased on top of 3.19-rc4, add Mack Salter's patch to use
+    the early_ioremap after paging_init() for ACPI table mappings;
+
+  - Two patches about converting apic_id to phys_id to make it arch
+    agnostic were already merged into RC4 by Rafael.
+
+  - Split patch "Parse FADT table to get PSCI flags for PSCI init"
+    into two as Lorenzo's suggestion, also fix typo and lack of __init
+    for psci_0_2_set_functions() which is spotted by Lorenzo.
+
+  - Add Tested-by from Yijing Wang.
+
+previous version is here:
+v6: https://lkml.org/lkml/2015/1/4/40
+
+1. Why we need ACPI on ARM64?
+
+  - Grant already posted a blog about this, and stated clearly
+    why we need ACPI on ARM64:
+
+    http://www.secretlab.ca/archives/151
+
+
+2. What we need to do before the arm64 ACPI core patches
+   could be merged into the kernel?
+
+  - Al Stone posted a TODO list and updates v2 for the
+    progress we made:
+    http://www.spinics.net/lists/arm-kernel/msg390069.html
+
+  - so from the progress we can see that we already finished
+    most of the items, and _OSI we got a plan to fix it, RFC
+    patch is on the way.
+
+
+This patch set was tested on FVP by Fuwei, and booted ok as expected.
+(No functional change since last version)
+
+Thanks
+Hanjun
 
