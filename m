@@ -1,82 +1,68 @@
-From: "Muller, Francois-nicolas" <francois-nicolas.muller@intel.com>
-Subject: RE: [PATCH] TCO Watchdog warning interrupt driver creation
-Date: Thu, 15 Jan 2015 13:27:22 +0000
-Message-ID: <B9C02DB17496AC4197F41A146D371B9B075D41C0@hasmsx107.ger.corp.intel.com>
-References: <B9C02DB17496AC4197F41A146D371B9B075AF9DE@hasmsx107.ger.corp.intel.com>
- <20141211040404.GA28797@vmdeb7> <5489AA6B.9080802@roeck-us.net>
- <B9C02DB17496AC4197F41A146D371B9B075C5FE3@hasmsx107.ger.corp.intel.com>
- <E73BFCB9-87CB-447D-839C-9ED4031FC6E2@infradead.org>
- <B9C02DB17496AC4197F41A146D371B9B075C6189@hasmsx107.ger.corp.intel.com>
- <54AF6288.6040305@roeck-us.net>
- <B9C02DB17496AC4197F41A146D371B9B075CC9FA@hasmsx107.ger.corp.intel.com>
- <20150114181657.GB13907@roeck-us.net>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Thu, 15 Jan 2015 14:10:22 +0000
+Message-ID: <CACxGe6tjiE6u8i-1PHYzX2cOhxJkYN3cV9mqhCHRSMRdOQRfzg@mail.gmail.com>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org>
+ <1797489.PjmKzBFdQA@wuerfel> <20150106112000.GA8829@e104818-lin.cambridge.arm.com>
+ <3538097.dWBy3R9lty@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20150114181657.GB13907@roeck-us.net>
-Content-Language: en-US
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Darren Hart <dvhart@infradead.org>, "'platform-driver-x86@vger.kernel.org'" <platform-driver-x86@vger.kernel.org>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Wim Van Sebroeck <wim@iguana.be>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3538097.dWBy3R9lty@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi <linaro-acpi@lists.linaro.org>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "jcm@redhat.com" <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>
 List-Id: linux-acpi@vger.kernel.org
 
-TCO driver is anyway auto-loaded by mfd driver lpc_ich as a sub-functio=
-n of it.
+On Tue, Jan 6, 2015 at 1:59 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 06 January 2015 11:20:01 Catalin Marinas wrote:
+>> On Mon, Jan 05, 2015 at 08:16:30PM +0000, Arnd Bergmann wrote:
+>> > On Monday 05 January 2015 13:13:02 Catalin Marinas wrote:
+>> > > > since passing no DT tables to OS but
+>> > > > acpi=force is missing is a corner case, we can do a follow up patch to
+>> > > > fix that, does it make sense?
+>> > >
+>> > > Not entirely. Why would no dtb and no acpi=force be a corner case? I
+>> > > thought this should be the default when only ACPI tables are passed, no
+>> > > need for an additional acpi=force argument.
+>> >
+>> > We don't really support the case of only ACPI tables for now. The expectation
+>> > is that you always have working DT support, at least for the next few years
+>> > as ACPI features are ramping up, and without acpi=force it should not try
+>> > to use ACPI at all.
+>>
+>> So if both DT and ACPI are present, just use DT unless acpi=force is
+>> passed. So far I think we agree but what I want to avoid is always
+>> mandating acpi=force even when the DT tables are missing (in the long
+>> run).
+>>
+>> Now, what's preventing a vendor firmware from providing only ACPI
+>> tables? Do we enforce it in some way (arm-acpi.txt, kernel warning etc.)
+>> that both DT and ACPI are supported, or at least that dts files are
+>> merged in the kernel first?
+>
+> We have no way of enforcing what a board vendor ships, so if they want
+> to have ACPI-only machines for MS Windows, they just won't work by
+> default on Linux. Once ACPI support is mature enough, we can also
+> have a whitelist or a different default for using it automatically
+> when no DT is present.
+>
+> For drivers merged upstream, I would insist that every driver merged
+> for an ARM64 platform has a documented DT binding that is used in the
+> driver.
 
-The aim of my patch is only to add warning interrupt support in TCO dri=
-ver.
-=46or this it need the GPE number which is exposed by Bios in acpi tabl=
-es.
-So the patch registers also the TCO driver as an acpi driver to be able=
- to retrieve this value.
+That's a dumb rule. It will result in untested DT code paths being
+thrown into drivers just too meet the rules rather than on whether or
+not they will actually be used. It's fine to allow driver authors to
+only implement the ACPI code path if that is what they are working
+with. We can *always* add a DT path to the driver when it is needed.
 
-The acpi code part is only required by the interrupt handling support, =
-not needed for the loading of the driver itself (already done by lpc_ic=
-h).
+As you say, wecannot insist that vendors implement DT as well as ACPI.
+The most we can do is offer the recommendation that DT works now, but
+ACPI is immature for ARM. If they choose to do ACPI only, that is
+absolutely fine and they do so with the understanding that it will
+take time to stabilize to the point that we're comfortable
+guaranteeing support in mainline. However, that doesn't even remotely
+block getting each of their drivers merged as they become ready.
 
-In this context I don't see the point of dissociating the driver part f=
-rom the loading, unless the loading would need to be reverted later.
-
-Thanks,
-=46ran=E7ois-Nicolas
-
------Original Message-----
-=46rom: Guenter Roeck [mailto:linux@roeck-us.net]=20
-Sent: Wednesday, January 14, 2015 7:17 PM
-To: Muller, Francois-nicolas
-Cc: Darren Hart; 'platform-driver-x86@vger.kernel.org'; Rafael Wysocki;=
- Linux ACPI Mailing List; linux-watchdog@vger.kernel.org; Wim Van Sebro=
-eck
-Subject: Re: [PATCH] TCO Watchdog warning interrupt driver creation
-
-On Wed, Jan 14, 2015 at 04:32:33PM +0000, Muller, Francois-nicolas wrot=
-e:
-> Thanks for your review, my comments embedded below.
-> I'm sending the new version of the patch in the following email.
-> Fran=E7ois-Nicolas
->=20
-=2E..
-> >>
-> >> +static const struct acpi_device_id iTCO_wdt_ids[] =3D {
-> >> +	{"8086229C", 0},
-> >> +	{"", 0},
-> >> +};
-> >> +MODULE_DEVICE_TABLE(acpi, iTCO_wdt_ids);
-> >> +
-> >
-> >Doesn't that result in auto-loading the driver ?
->=20
-> The driver is loaded only when Bios exposes the acpi device and the b=
-oot param warn_irq is true.
-> Could you clarify ? I don't understand the issue.=20
->=20
-Unless I am missing something, you are making two changes in a single p=
-atch.
-
-- auto-load driver if acpi device is exposed by bios
-- Add interrupt handling support
-
-I suggested to separate those changes into two patches.
-
-Guenter
+g.
