@@ -1,87 +1,98 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 00/13] Add ACPI _DSD and unified device properties support
-Date: Thu, 15 Jan 2015 10:12:44 +0100
-Message-ID: <2657331.Z9mozUByf5@vostro.rjw.lan>
-References: <2660541.BycO7TFnA2@vostro.rjw.lan> <20141015131551.GC20034@leverpostej> <1421260943.14516.19.camel@infradead.org>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Thu, 15 Jan 2015 10:28:03 +0100
+Message-ID: <2901311.HTghqkaiPd@vostro.rjw.lan>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com> <CACRpkdY-yFKsYbCrMpnViMFoQEugyGQivaV0M+GDzLrbDO7i6Q@mail.gmail.com> <54B69A0C.7040505@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51882 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50357 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751175AbbAOIuV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 03:50:21 -0500
-In-Reply-To: <1421260943.14516.19.camel@infradead.org>
+	with SMTP id S1751256AbbAOJFi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 04:05:38 -0500
+In-Reply-To: <54B69A0C.7040505@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lu@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Bryan Wu <cooloney@gmail.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Darren Hart <dvhart@linux.intel.com>
+To: Darren Hart <dvhart@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Ortiz, Samuel" <samuel.ortiz@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wednesday, January 14, 2015 10:42:23 AM David Woodhouse wrote:
+On Wednesday, January 14, 2015 08:32:12 AM Darren Hart wrote:
 > 
-> --=-3dIl43yXcWwu/nzOqQWw
-> Content-Type: multipart/mixed; boundary="=-ca0AFM5hvqL+pJIndiHh"
+> On 1/14/15 4:58 AM, Linus Walleij wrote:
+> > On Thu, Dec 18, 2014 at 9:23 AM, Heikki Krogerus
+> > <heikki.krogerus@linux.intel.com> wrote:
+> > 
+> >> This makes it possible to assign GPIOs at runtime. The
+> >> motivation for it is because of need to forward GPIOs from
+> >> one device to an other. That feature may be useful for
+> >> example with some mfd devices, but initially it is needed
 > 
+> +Samuel Ortiz for his thoughts on applicability to MFD.
 > 
-> --=-ca0AFM5hvqL+pJIndiHh
-> Content-Type: text/plain; charset="UTF-8"
-> Content-Transfer-Encoding: quoted-printable
+> >> because on some Intel Braswell based ACPI platforms the GPIO
+> >> resources controlling signals of the USB PHY are given to
+> >> the controller device object for whatever reason, so the
+> >> driver of that controller needs be able to pass them to the
+> >> PHY device somehow.
+> >>
+> >> So basically this is meant to allow patching of bad (bad
+> >> from Linux kernels point of view) hardware descriptions
+> >> provided by system fw in the drivers.
+> >>
+> >> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> >> ---
+> >>
+> >> Hi,
+> >>
+> >> I'm sending this first as a RFC in case you guys have some better
+> >> idea how to solve our problem. I actually already have couple
+> >> platforms where the GPIO resources are given to the "wrong" device
+> >> objects now.
+> >>
+> >> Originally we were thinking about simply handling our problem with
+> >> hacks to the PHY drivers, basically also checking if the parent has
+> >> GPIOs. That would only work if the controller is always the parent,
+> >> which it's not, but even if it was, it would be too risky. The PHY
+> >> drivers don't know which controller they are attached to, so what is
+> >> to say that the GPIOs aren't really attached to the controller.
+> >>
+> >> So the safest way to handle our problem is to deal with it in quirks
+> >> in the controller drivers. Solving it by bouncing the GPIOs did not
+> >> feel ideal there doesn't seem to be any other way. The API is copied
+> >> from clkdev (clk_register_clkdev). In the end it's really only one
+> >> function for adding the lookups and one for removing them.
+> >>
+> >> The way it's implemented is by modifying the current style of handling
+> >> the lookups a little bit. The per device lookup table is basically
+> >> reverted back to the single linked-list format since it seems that
+> >> these lookups may have to be assigned from several sources.
+> > 
+> > Oh ain't that great.
+> > 
+> > So now we start patching around the kernel because the ACPI
+> > tables are erroneous for GPIOs. I'd like some feedback from
+> > Rafael &| Darren on this patch, i.e. if you two think this is a good
+> > way of accounting for bad GPIO descriptions in ACPI tables then
+> > ACK this patch.
+> > 
+> > I guess the other option would be to fix up the ACPI DSDT
+> > itself to put resources right, correct? Is this not possible?
 > 
-> I'm looking again at updating of_serial to work with ACPI properties.=20
-> 
-> Specifically, I want to support a serial port with a non-standard baud
-> rate, something like this:
-> 
->     Device(COM1) {
->         Name(_HID, EisaId("PNP0501"))
->         Name(_CID, EisaId("PRP0001"))
-> 	Name(_DSD, Package() {
-> 	    ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->             Package () {
-> 		Package () {"compatible", Package () {"ns16550a"}},
-> 		Package () {"clock-frequency", 2457600},
-> 	    }
-> 	})
->         ...
->     }
-> 
-> Firstly, the of_serial driver doesn't even get *invoked* unless I do
-> this:
-> 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 0d08373..eb1201a 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2083,6 +2086,8 @@ static int acpi_add_single_object(struct acpi_device =
-> **child,
->  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Added %s [%s] parent %s\n",
->  		dev_name(&device->dev), (char *) buffer.pointer,
->  		device->parent ? dev_name(&device->parent->dev) : "(null)"));
-> +	if (device->data.of_compatible)
-> +		acpi_create_platform_device(device);
->  	kfree(buffer.pointer);
->  	*child =3D device;
->  	return 0;
-> 
-> Now it doesn't work because it uses of_match_device() to look the device
-> up and find the corresponding *data* for that entry in its match table.
-> And without CONFIG_OF, I don't *have* of_match_device().
-> 
-> We've talked about the fact that the platform bus probe function doesn't
-> pass you the match ID. Is that something we could potentially fix now
-> that things are a little more unified?
+> This is my gut reaction as well.
 
-We can do that in my view.
+Pretty much agreed.
 
-> Or do we expect drivers still to have to use something like
-> of_match_id() to do the lookup again for themselves... and in that case
-> should we make of_match_id() available or produce a new
-> device_match_id() that they are expected to switch to?
+> Heikki, why can't we correct the firmware tables? That needs to be made clear
+> before we start adding hacks to the kernel.
 
-So far we've been targeting drivers that already have of_match_id() rather
-than ones that want to use the unified interface from the start and not
-necessarily with CONFIG_OF set.  That looks like an overlooked use case to me
-to be honest.
+We need to start working in that direction really.  Fixing problems in ACPI
+tables via kernel code is not going to scale sufficiently IMO.
+
+> You said, "Bad for Linux", why is this not a problem for other operating
+> systems?
+
+Good question. :-)
 
 -- 
 I speak only for myself.
