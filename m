@@ -1,132 +1,64 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Thu, 15 Jan 2015 11:40:03 +0200
-Message-ID: <20150115094003.GA22466@kuha.fi.intel.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
- <CACRpkdY-yFKsYbCrMpnViMFoQEugyGQivaV0M+GDzLrbDO7i6Q@mail.gmail.com>
- <54B69A0C.7040505@linux.intel.com>
- <2901311.HTghqkaiPd@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH] ACPI / LPSS: set first resuming device as a 'proxy'
+Date: Thu, 15 Jan 2015 13:10:44 +0200
+Message-ID: <1421320244-3490-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:65035 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:6157 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151AbbAOJmT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2015 04:42:19 -0500
-Content-Disposition: inline
-In-Reply-To: <2901311.HTghqkaiPd@vostro.rjw.lan>
+	id S1751475AbbAOLKo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2015 06:10:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Arnd Bergmann <arnd@arndb.de>, Alexandre Courbot <gnurou@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Ortiz, Samuel" <samuel.ortiz@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Thu, Jan 15, 2015 at 10:28:03AM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, January 14, 2015 08:32:12 AM Darren Hart wrote:
-> > 
-> > On 1/14/15 4:58 AM, Linus Walleij wrote:
-> > > On Thu, Dec 18, 2014 at 9:23 AM, Heikki Krogerus
-> > > <heikki.krogerus@linux.intel.com> wrote:
-> > > 
-> > >> This makes it possible to assign GPIOs at runtime. The
-> > >> motivation for it is because of need to forward GPIOs from
-> > >> one device to an other. That feature may be useful for
-> > >> example with some mfd devices, but initially it is needed
-> > 
-> > +Samuel Ortiz for his thoughts on applicability to MFD.
-> > 
-> > >> because on some Intel Braswell based ACPI platforms the GPIO
-> > >> resources controlling signals of the USB PHY are given to
-> > >> the controller device object for whatever reason, so the
-> > >> driver of that controller needs be able to pass them to the
-> > >> PHY device somehow.
-> > >>
-> > >> So basically this is meant to allow patching of bad (bad
-> > >> from Linux kernels point of view) hardware descriptions
-> > >> provided by system fw in the drivers.
-> > >>
-> > >> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > >> ---
-> > >>
-> > >> Hi,
-> > >>
-> > >> I'm sending this first as a RFC in case you guys have some better
-> > >> idea how to solve our problem. I actually already have couple
-> > >> platforms where the GPIO resources are given to the "wrong" device
-> > >> objects now.
-> > >>
-> > >> Originally we were thinking about simply handling our problem with
-> > >> hacks to the PHY drivers, basically also checking if the parent has
-> > >> GPIOs. That would only work if the controller is always the parent,
-> > >> which it's not, but even if it was, it would be too risky. The PHY
-> > >> drivers don't know which controller they are attached to, so what is
-> > >> to say that the GPIOs aren't really attached to the controller.
-> > >>
-> > >> So the safest way to handle our problem is to deal with it in quirks
-> > >> in the controller drivers. Solving it by bouncing the GPIOs did not
-> > >> feel ideal there doesn't seem to be any other way. The API is copied
-> > >> from clkdev (clk_register_clkdev). In the end it's really only one
-> > >> function for adding the lookups and one for removing them.
-> > >>
-> > >> The way it's implemented is by modifying the current style of handling
-> > >> the lookups a little bit. The per device lookup table is basically
-> > >> reverted back to the single linked-list format since it seems that
-> > >> these lookups may have to be assigned from several sources.
-> > > 
-> > > Oh ain't that great.
-> > > 
-> > > So now we start patching around the kernel because the ACPI
-> > > tables are erroneous for GPIOs. I'd like some feedback from
-> > > Rafael &| Darren on this patch, i.e. if you two think this is a good
-> > > way of accounting for bad GPIO descriptions in ACPI tables then
-> > > ACK this patch.
-> > > 
-> > > I guess the other option would be to fix up the ACPI DSDT
-> > > itself to put resources right, correct? Is this not possible?
-> > 
-> > This is my gut reaction as well.
-> 
-> Pretty much agreed.
-> 
-> > Heikki, why can't we correct the firmware tables? That needs to be made clear
-> > before we start adding hacks to the kernel.
-> 
-> We need to start working in that direction really.  Fixing problems in ACPI
-> tables via kernel code is not going to scale sufficiently IMO.
+We can't rely on the first enumerated device since it might be not probed yet
+when DMA driver wants to resume the device. This patch changes the place where
+we assign the 'proxy' device. From now on the first resumed device will be
+recognized as a 'proxy' because it is probed.
 
-Fixing the DSDT produced by the firmware was my first suggesting for
-this, but it just does not seem to be happening. These products are
-already out on the market (this is one of them [1]) and what I have
-understood is that the firmware just is what it is. It's almost as if
-there is nobody even developing it for these products anymore. Even
-fixes would not go in and this is not even considered a fix. Things
-work just find for them with their hacked kernel.
+Reported-by: Jerome Blin <jerome.blin@intel.com>
+Fixes: 6c17ee44d524 (ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA)
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-So the firmware and the ACPI tables it provides are not going to be
-fixed. What else can we do? Can we expect the users to always use
-custom DSDT, or maybe somekind of custom AML snipped (is something
-like that even possible), when using these products?
-
-> > You said, "Bad for Linux", why is this not a problem for other operating
-> > systems?
-> 
-> Good question. :-)
-
-I would imagine certain operating systems consider a component like
-PHY as something that should always be handled by the controller
-driver. It does not seem to be a problem for them even if every second
-product using the same SoC happens to have different PHY. All of them
-will have a custom controller driver in any case. Even though the
-example product below is an Android tablet, to me it looks like the
-style of writing software comes straight from those "other" operation
-systems.
-
-At least it seems clear that these guys don't understand that it's not
-possible to do things like write a new driver for every product using
-the same SoC in Linux.
-
-[1] http://www.trekstor.de/detail-surftabs-en/product/surftab-xintron-i-70.html
-
-Cheers,
-
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 4f3febf..d851290 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -374,8 +374,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	adev->driver_data = pdata;
+ 	pdev = acpi_create_platform_device(adev);
+ 	if (!IS_ERR_OR_NULL(pdev)) {
+-		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
+-			proxy_device = &pdev->dev;
+ 		return 1;
+ 	}
+ 
+@@ -615,10 +613,17 @@ static int acpi_lpss_runtime_resume(struct device *dev)
+ 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+ 	int ret;
+ 
+-	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
+-		ret = pm_runtime_get_sync(proxy_device);
+-		if (ret)
+-			return ret;
++	if (!proxy_device && pdata->dev_desc->flags & LPSS_DEV_PROXY)
++		proxy_device = dev;
++
++	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
++		if (proxy_device) {
++			ret = pm_runtime_get_sync(proxy_device);
++			if (ret)
++				return ret;
++		} else {
++			return -EPROBE_DEFER;
++		}
+ 	}
+ 
+ 	ret = acpi_dev_runtime_resume(dev);
 -- 
-heikki
+2.1.4
+
