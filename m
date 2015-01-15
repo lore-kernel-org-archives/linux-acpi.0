@@ -1,64 +1,82 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] ACPI / LPSS: set first resuming device as a 'proxy'
-Date: Thu, 15 Jan 2015 13:10:44 +0200
-Message-ID: <1421320244-3490-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:6157 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475AbbAOLKo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2015 06:10:44 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Muller, Francois-nicolas" <francois-nicolas.muller@intel.com>
+Subject: RE: [PATCH] TCO Watchdog warning interrupt driver creation
+Date: Thu, 15 Jan 2015 13:27:22 +0000
+Message-ID: <B9C02DB17496AC4197F41A146D371B9B075D41C0@hasmsx107.ger.corp.intel.com>
+References: <B9C02DB17496AC4197F41A146D371B9B075AF9DE@hasmsx107.ger.corp.intel.com>
+ <20141211040404.GA28797@vmdeb7> <5489AA6B.9080802@roeck-us.net>
+ <B9C02DB17496AC4197F41A146D371B9B075C5FE3@hasmsx107.ger.corp.intel.com>
+ <E73BFCB9-87CB-447D-839C-9ED4031FC6E2@infradead.org>
+ <B9C02DB17496AC4197F41A146D371B9B075C6189@hasmsx107.ger.corp.intel.com>
+ <54AF6288.6040305@roeck-us.net>
+ <B9C02DB17496AC4197F41A146D371B9B075CC9FA@hasmsx107.ger.corp.intel.com>
+ <20150114181657.GB13907@roeck-us.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20150114181657.GB13907@roeck-us.net>
+Content-Language: en-US
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Darren Hart <dvhart@infradead.org>, "'platform-driver-x86@vger.kernel.org'" <platform-driver-x86@vger.kernel.org>, Rafael Wysocki <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Wim Van Sebroeck <wim@iguana.be>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-We can't rely on the first enumerated device since it might be not probed yet
-when DMA driver wants to resume the device. This patch changes the place where
-we assign the 'proxy' device. From now on the first resumed device will be
-recognized as a 'proxy' because it is probed.
+TCO driver is anyway auto-loaded by mfd driver lpc_ich as a sub-functio=
+n of it.
 
-Reported-by: Jerome Blin <jerome.blin@intel.com>
-Fixes: 6c17ee44d524 (ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA)
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/acpi_lpss.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+The aim of my patch is only to add warning interrupt support in TCO dri=
+ver.
+=46or this it need the GPE number which is exposed by Bios in acpi tabl=
+es.
+So the patch registers also the TCO driver as an acpi driver to be able=
+ to retrieve this value.
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 4f3febf..d851290 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -374,8 +374,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 	adev->driver_data = pdata;
- 	pdev = acpi_create_platform_device(adev);
- 	if (!IS_ERR_OR_NULL(pdev)) {
--		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
--			proxy_device = &pdev->dev;
- 		return 1;
- 	}
- 
-@@ -615,10 +613,17 @@ static int acpi_lpss_runtime_resume(struct device *dev)
- 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
- 	int ret;
- 
--	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
--		ret = pm_runtime_get_sync(proxy_device);
--		if (ret)
--			return ret;
-+	if (!proxy_device && pdata->dev_desc->flags & LPSS_DEV_PROXY)
-+		proxy_device = dev;
-+
-+	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
-+		if (proxy_device) {
-+			ret = pm_runtime_get_sync(proxy_device);
-+			if (ret)
-+				return ret;
-+		} else {
-+			return -EPROBE_DEFER;
-+		}
- 	}
- 
- 	ret = acpi_dev_runtime_resume(dev);
--- 
-2.1.4
+The acpi code part is only required by the interrupt handling support, =
+not needed for the loading of the driver itself (already done by lpc_ic=
+h).
 
+In this context I don't see the point of dissociating the driver part f=
+rom the loading, unless the loading would need to be reverted later.
+
+Thanks,
+=46ran=E7ois-Nicolas
+
+-----Original Message-----
+=46rom: Guenter Roeck [mailto:linux@roeck-us.net]=20
+Sent: Wednesday, January 14, 2015 7:17 PM
+To: Muller, Francois-nicolas
+Cc: Darren Hart; 'platform-driver-x86@vger.kernel.org'; Rafael Wysocki;=
+ Linux ACPI Mailing List; linux-watchdog@vger.kernel.org; Wim Van Sebro=
+eck
+Subject: Re: [PATCH] TCO Watchdog warning interrupt driver creation
+
+On Wed, Jan 14, 2015 at 04:32:33PM +0000, Muller, Francois-nicolas wrot=
+e:
+> Thanks for your review, my comments embedded below.
+> I'm sending the new version of the patch in the following email.
+> Fran=E7ois-Nicolas
+>=20
+=2E..
+> >>
+> >> +static const struct acpi_device_id iTCO_wdt_ids[] =3D {
+> >> +	{"8086229C", 0},
+> >> +	{"", 0},
+> >> +};
+> >> +MODULE_DEVICE_TABLE(acpi, iTCO_wdt_ids);
+> >> +
+> >
+> >Doesn't that result in auto-loading the driver ?
+>=20
+> The driver is loaded only when Bios exposes the acpi device and the b=
+oot param warn_irq is true.
+> Could you clarify ? I don't understand the issue.=20
+>=20
+Unless I am missing something, you are making two changes in a single p=
+atch.
+
+- auto-load driver if acpi device is exposed by bios
+- Add interrupt handling support
+
+I suggested to separate those changes into two patches.
+
+Guenter
