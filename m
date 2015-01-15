@@ -1,169 +1,254 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] acpica: utpredef: Remove some unused functions
-Date: Thu, 15 Jan 2015 02:00:51 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B79CC@SHSMSX101.ccr.corp.intel.com>
-References: <1420384974-11745-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-	<1AE640813FDE7649BE1B193DEA596E88026B7475@SHSMSX101.ccr.corp.intel.com>
- <CAKXHbyN4ypE3W-exxYUy_TW8HLuBc3hbdwgcX7WkN9mXM5w76Q@mail.gmail.com>
+Subject: RE: [PATCH] ACPICA: rsdump: Remove some unused functions
+Date: Thu, 15 Jan 2015 03:29:08 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B7A16@SHSMSX101.ccr.corp.intel.com>
+References: <1421174632-5146-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKXHbyN4ypE3W-exxYUy_TW8HLuBc3hbdwgcX7WkN9mXM5w76Q@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:39188 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751031AbbAOD3c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 22:29:32 -0500
+In-Reply-To: <1421174632-5146-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogUmlja2FyZCBTdHJhbmRxdmlzdCBbbWFpbHRvOnJpY2thcmRfc3RyYW5k
-cXZpc3RAc3BlY3RydW1kaWdpdGFsLnNlXQ0KPiBTZW50OiBUaHVyc2RheSwgSmFudWFyeSAxNSwg
-MjAxNSA2OjUwIEFNDQo+IA0KPiAyMDE1LTAxLTE0IDk6NTUgR01UKzAxOjAwIFpoZW5nLCBMdiA8
-bHYuemhlbmdAaW50ZWwuY29tPjoNCj4gPiBIaSwgUmlja2FyZA0KPiA+DQo+ID4gVGhlIGZ1bmN0
-aW9ucyBiZWxvdyBzZWVtIGFscmVhZHkgbWFya2VkIGJ5ICJBQ1BJX0FTTF9DT01QSUxFUiB8fCBB
-Q1BJX0hFTFBfQVBQIi4NCj4gPiBIb3cgZGlkIHlvdSBkZXRlY3QgdGhlbSBhcyB1c2VkIGZ1bmN0
-aW9ucz8NCg0KRG8geW91IG1lYW4gc29tZXRoaW5nIGxpa2UgdGhpcz8NCg0KPD94bWwgdmVyc2lv
-bj0iMS4wIj8+DQo8ZGVmPg0KICA8ZGVmaW5lIG5hbWU9IkFDUElfQVNMX0NPTVBJTEVSIiB2YWx1
-ZT0iMCIvPg0KICA8ZGVmaW5lIG5hbWU9IkFDUElfSEVMUF9BUFAiIHZhbHVlPSIwIi8+DQo8L2Rl
-Zj4NCg0KQ2FuIENwcGNoZWNrIGF1dG9tYXRpY2FsbHkgcmVtb3ZlIGNvZGUgYmxvY2tzIGRlcGVu
-ZGluZyBvbiB0aGUgZGVmaW5lIHNldHRpbmdzIGR1cmluZyBwcmVwcm9jZXNzb3Igc3RhZ2U/DQoN
-ClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiA+DQo+ID4gVGhhbmtzDQo+ID4gLUx2
-DQo+ID4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBS
-aWNrYXJkIFN0cmFuZHF2aXN0IFttYWlsdG86cmlja2FyZF9zdHJhbmRxdmlzdEBzcGVjdHJ1bWRp
-Z2l0YWwuc2VdDQo+ID4+IFNlbnQ6IFN1bmRheSwgSmFudWFyeSAwNCwgMjAxNSAxMToyMyBQTQ0K
-PiA+PiBUbzogTW9vcmUsIFJvYmVydDsgWmhlbmcsIEx2DQo+ID4+IENjOiBSaWNrYXJkIFN0cmFu
-ZHF2aXN0OyBXeXNvY2tpLCBSYWZhZWwgSjsgTGVuIEJyb3duOyBsaW51eC1hY3BpQHZnZXIua2Vy
-bmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0K
-PiA+PiBTdWJqZWN0OiBbUEFUQ0hdIGFjcGljYTogdXRwcmVkZWY6IFJlbW92ZSBzb21lIHVudXNl
-ZCBmdW5jdGlvbnMNCj4gPj4NCj4gPj4gUmVtb3ZlcyBzb21lIGZ1bmN0aW9ucyB0aGF0IGFyZSBu
-b3QgdXNlZCBhbnl3aGVyZToNCj4gPj4gYWNwaV91dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoKCkg
-YWNwaV91dF9kaXNwbGF5X3ByZWRlZmluZWRfbWV0aG9kKCkgYWNwaV91dF9tYXRjaF9yZXNvdXJj
-ZV9uYW1lKCkNCj4gPj4NCj4gPj4gVGhpcyB3YXMgcGFydGlhbGx5IGZvdW5kIGJ5IHVzaW5nIGEg
-c3RhdGljIGNvZGUgYW5hbHlzaXMgcHJvZ3JhbSBjYWxsZWQgY3BwY2hlY2suDQo+ID4+DQo+ID4+
-IFNpZ25lZC1vZmYtYnk6IFJpY2thcmQgU3RyYW5kcXZpc3QgPHJpY2thcmRfc3RyYW5kcXZpc3RA
-c3BlY3RydW1kaWdpdGFsLnNlPg0KPiA+PiAtLS0NCj4gPj4gIGRyaXZlcnMvYWNwaS9hY3BpY2Ev
-YWN1dGlscy5oICB8ICAgIDkgLS0tDQo+ID4+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0cHJlZGVm
-LmMgfCAgMTM0IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPj4g
-IDIgZmlsZXMgY2hhbmdlZCwgMTQzIGRlbGV0aW9ucygtKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9hY3BpL2FjcGljYS9hY3V0aWxzLmggYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2Fj
-dXRpbHMuaA0KPiA+PiBpbmRleCA0ODZkMzQyLi45YjNmYWIxIDEwMDY0NA0KPiA+PiAtLS0gYS9k
-cml2ZXJzL2FjcGkvYWNwaWNhL2FjdXRpbHMuaA0KPiA+PiArKysgYi9kcml2ZXJzL2FjcGkvYWNw
-aWNhL2FjdXRpbHMuaA0KPiA+PiBAQCAtNTAyLDE3ICs1MDIsOCBAQCBjb25zdCB1bmlvbiBhY3Bp
-X3ByZWRlZmluZWRfaW5mbyAqYWNwaV91dF9nZXRfbmV4dF9wcmVkZWZpbmVkX21ldGhvZChjb25z
-dCB1bmlvbg0KPiA+Pg0KPiA+PiAgY29uc3QgdW5pb24gYWNwaV9wcmVkZWZpbmVkX2luZm8gKmFj
-cGlfdXRfbWF0Y2hfcHJlZGVmaW5lZF9tZXRob2QoY2hhciAqbmFtZSk7DQo+ID4+DQo+ID4+IC1j
-b25zdCB1bmlvbiBhY3BpX3ByZWRlZmluZWRfaW5mbyAqYWNwaV91dF9tYXRjaF9yZXNvdXJjZV9u
-YW1lKGNoYXIgKm5hbWUpOw0KPiA+PiAtDQo+ID4+IC12b2lkDQo+ID4+IC1hY3BpX3V0X2Rpc3Bs
-YXlfcHJlZGVmaW5lZF9tZXRob2QoY2hhciAqYnVmZmVyLA0KPiA+PiAtICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIGNvbnN0IHVuaW9uIGFjcGlfcHJlZGVmaW5lZF9pbmZvICp0aGlzX25h
-bWUsDQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdTggbXVsdGlfbGluZSk7
-DQo+ID4+IC0NCj4gPj4gIHZvaWQgYWNwaV91dF9nZXRfZXhwZWN0ZWRfcmV0dXJuX3R5cGVzKGNo
-YXIgKmJ1ZmZlciwgdTMyIGV4cGVjdGVkX2J0eXBlcyk7DQo+ID4+DQo+ID4+IC11MzIgYWNwaV91
-dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoKGNoYXIgKmJ1ZmZlciwgdTE2IHR5cGVzKTsNCj4gPj4g
-LQ0KPiA+PiAgLyoNCj4gPj4gICAqIHV0c3RhdGUgLSBHZW5lcmljIHN0YXRlIGNyZWF0aW9uL2Nh
-Y2hlIHJvdXRpbmVzDQo+ID4+ICAgKi8NCj4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9h
-Y3BpY2EvdXRwcmVkZWYuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRwcmVkZWYuYw0KPiA+PiBp
-bmRleCBkYjMwY2FmLi5mMWZmMzNjIDEwMDY0NA0KPiA+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNw
-aWNhL3V0cHJlZGVmLmMNCj4gPj4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS91dHByZWRlZi5j
-DQo+ID4+IEBAIC0yMDksMTA1ICsyMDksNiBAQCBzdGF0aWMgY29uc3QgY2hhciAqdXRfcmVzb3Vy
-Y2VfdHlwZV9uYW1lc1tdID0gew0KPiA+Pg0KPiA+PiAgLyoqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioN
-Cj4gPj4gICAqDQo+ID4+IC0gKiBGVU5DVElPTjogICAgYWNwaV91dF9tYXRjaF9yZXNvdXJjZV9u
-YW1lDQo+ID4+IC0gKg0KPiA+PiAtICogUEFSQU1FVEVSUzogIG5hbWUgICAgICAgICAgICAgICAg
-LSBOYW1lIHRvIGZpbmQNCj4gPj4gLSAqDQo+ID4+IC0gKiBSRVRVUk46ICAgICAgUG9pbnRlciB0
-byBlbnRyeSBpbiB0aGUgcmVzb3VyY2UgdGFibGUuIE5VTEwgaW5kaWNhdGVzIG5vdA0KPiA+PiAt
-ICogICAgICAgICAgICAgIGZvdW5kLg0KPiA+PiAtICoNCj4gPj4gLSAqIERFU0NSSVBUSU9OOiBD
-aGVjayBhbiBvYmplY3QgbmFtZSBhZ2FpbnN0IHRoZSBwcmVkZWZpbmVkIHJlc291cmNlDQo+ID4+
-IC0gKiAgICAgICAgICAgICAgZGVzY3JpcHRvciBvYmplY3QgbGlzdC4NCj4gPj4gLSAqDQo+ID4+
-IC0gKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqLw0KPiA+PiAtDQo+ID4+IC1jb25zdCB1bmlvbiBhY3Bp
-X3ByZWRlZmluZWRfaW5mbyAqYWNwaV91dF9tYXRjaF9yZXNvdXJjZV9uYW1lKGNoYXIgKm5hbWUp
-DQo+ID4+IC17DQo+ID4+IC0gICAgIGNvbnN0IHVuaW9uIGFjcGlfcHJlZGVmaW5lZF9pbmZvICp0
-aGlzX25hbWU7DQo+ID4+IC0NCj4gPj4gLSAgICAgLyogUXVpY2sgY2hlY2sgZm9yIGEgcHJlZGVm
-aW5lZCBuYW1lLCBmaXJzdCBjaGFyYWN0ZXIgbXVzdCBiZSB1bmRlcnNjb3JlICovDQo+ID4+IC0N
-Cj4gPj4gLSAgICAgaWYgKG5hbWVbMF0gIT0gJ18nKSB7DQo+ID4+IC0gICAgICAgICAgICAgcmV0
-dXJuIChOVUxMKTsNCj4gPj4gLSAgICAgfQ0KPiA+PiAtDQo+ID4+IC0gICAgIC8qIFNlYXJjaCBp
-bmZvIHRhYmxlIGZvciBhIHByZWRlZmluZWQgbWV0aG9kL29iamVjdCBuYW1lICovDQo+ID4+IC0N
-Cj4gPj4gLSAgICAgdGhpc19uYW1lID0gYWNwaV9nYmxfcmVzb3VyY2VfbmFtZXM7DQo+ID4+IC0g
-ICAgIHdoaWxlICh0aGlzX25hbWUtPmluZm8ubmFtZVswXSkgew0KPiA+PiAtICAgICAgICAgICAg
-IGlmIChBQ1BJX0NPTVBBUkVfTkFNRShuYW1lLCB0aGlzX25hbWUtPmluZm8ubmFtZSkpIHsNCj4g
-Pj4gLSAgICAgICAgICAgICAgICAgICAgIHJldHVybiAodGhpc19uYW1lKTsNCj4gPj4gLSAgICAg
-ICAgICAgICB9DQo+ID4+IC0NCj4gPj4gLSAgICAgICAgICAgICB0aGlzX25hbWUrKzsNCj4gPj4g
-LSAgICAgfQ0KPiA+PiAtDQo+ID4+IC0gICAgIHJldHVybiAoTlVMTCk7ICAgICAgICAgIC8qIE5v
-dCBmb3VuZCAqLw0KPiA+PiAtfQ0KPiA+PiAtDQo+ID4+IC0vKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-Kg0KPiA+PiAtICoNCj4gPj4gLSAqIEZVTkNUSU9OOiAgICBhY3BpX3V0X2Rpc3BsYXlfcHJlZGVm
-aW5lZF9tZXRob2QNCj4gPj4gLSAqDQo+ID4+IC0gKiBQQVJBTUVURVJTOiAgYnVmZmVyICAgICAg
-ICAgICAgICAtIFNjcmF0Y2ggYnVmZmVyIGZvciB0aGlzIGZ1bmN0aW9uDQo+ID4+IC0gKiAgICAg
-ICAgICAgICAgdGhpc19uYW1lICAgICAgICAgICAtIEVudHJ5IGluIHRoZSBwcmVkZWZpbmVkIG1l
-dGhvZC9uYW1lIHRhYmxlDQo+ID4+IC0gKiAgICAgICAgICAgICAgbXVsdGlfbGluZSAgICAgICAg
-ICAtIFRSVUUgaWYgb3V0cHV0IHNob3VsZCBiZSBvbiA+MSBsaW5lDQo+ID4+IC0gKg0KPiA+PiAt
-ICogUkVUVVJOOiAgICAgIE5vbmUNCj4gPj4gLSAqDQo+ID4+IC0gKiBERVNDUklQVElPTjogRGlz
-cGxheSBpbmZvcm1hdGlvbiBhYm91dCBhIHByZWRlZmluZWQgbWV0aG9kLiBOdW1iZXIgYW5kDQo+
-ID4+IC0gKiAgICAgICAgICAgICAgdHlwZSBvZiB0aGUgaW5wdXQgYXJndW1lbnRzLCBhbmQgZXhw
-ZWN0ZWQgdHlwZShzKSBmb3IgdGhlDQo+ID4+IC0gKiAgICAgICAgICAgICAgcmV0dXJuIHZhbHVl
-LCBpZiBhbnkuDQo+ID4+IC0gKg0KPiA+PiAtICoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8NCj4gPj4g
-LQ0KPiA+PiAtdm9pZA0KPiA+PiAtYWNwaV91dF9kaXNwbGF5X3ByZWRlZmluZWRfbWV0aG9kKGNo
-YXIgKmJ1ZmZlciwNCj4gPj4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCB1
-bmlvbiBhY3BpX3ByZWRlZmluZWRfaW5mbyAqdGhpc19uYW1lLA0KPiA+PiAtICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHU4IG11bHRpX2xpbmUpDQo+ID4+IC17DQo+ID4+IC0gICAgIHUz
-MiBhcmdfY291bnQ7DQo+ID4+IC0NCj4gPj4gLSAgICAgLyoNCj4gPj4gLSAgICAgICogR2V0IHRo
-ZSBhcmd1bWVudCBjb3VudCBhbmQgdGhlIHN0cmluZyBidWZmZXINCj4gPj4gLSAgICAgICogY29u
-dGFpbmluZyBhbGwgYXJndW1lbnQgdHlwZXMNCj4gPj4gLSAgICAgICovDQo+ID4+IC0gICAgIGFy
-Z19jb3VudCA9IGFjcGlfdXRfZ2V0X2FyZ3VtZW50X3R5cGVzKGJ1ZmZlciwNCj4gPj4gLSAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhpc19uYW1lLT5pbmZvLmFy
-Z3VtZW50X2xpc3QpOw0KPiA+PiAtDQo+ID4+IC0gICAgIGlmIChtdWx0aV9saW5lKSB7DQo+ID4+
-IC0gICAgICAgICAgICAgcHJpbnRmKCIgICAgICAiKTsNCj4gPj4gLSAgICAgfQ0KPiA+PiAtDQo+
-ID4+IC0gICAgIHByaW50ZigiJTQuNHMgICAgUmVxdWlyZXMgJXMldSBhcmd1bWVudCVzIiwNCj4g
-Pj4gLSAgICAgICAgICAgIHRoaXNfbmFtZS0+aW5mby5uYW1lLA0KPiA+PiAtICAgICAgICAgICAg
-KHRoaXNfbmFtZS0+aW5mby5hcmd1bWVudF9saXN0ICYgQVJHX0NPVU5UX0lTX01JTklNVU0pID8N
-Cj4gPj4gLSAgICAgICAgICAgICIoYXQgbGVhc3QpICIgOiAiIiwgYXJnX2NvdW50LCBhcmdfY291
-bnQgIT0gMSA/ICJzIiA6ICIiKTsNCj4gPj4gLQ0KPiA+PiAtICAgICAvKiBEaXNwbGF5IHRoZSB0
-eXBlcyBmb3IgYW55IGFyZ3VtZW50cyAqLw0KPiA+PiAtDQo+ID4+IC0gICAgIGlmIChhcmdfY291
-bnQgPiAwKSB7DQo+ID4+IC0gICAgICAgICAgICAgcHJpbnRmKCIgKCVzKSIsIGJ1ZmZlcik7DQo+
-ID4+IC0gICAgIH0NCj4gPj4gLQ0KPiA+PiAtICAgICBpZiAobXVsdGlfbGluZSkgew0KPiA+PiAt
-ICAgICAgICAgICAgIHByaW50ZigiXG4gICAgIik7DQo+ID4+IC0gICAgIH0NCj4gPj4gLQ0KPiA+
-PiAtICAgICAvKiBHZXQgdGhlIHJldHVybiB2YWx1ZSB0eXBlKHMpIGFsbG93ZWQgKi8NCj4gPj4g
-LQ0KPiA+PiAtICAgICBpZiAodGhpc19uYW1lLT5pbmZvLmV4cGVjdGVkX2J0eXBlcykgew0KPiA+
-PiAtICAgICAgICAgICAgIGFjcGlfdXRfZ2V0X2V4cGVjdGVkX3JldHVybl90eXBlcyhidWZmZXIs
-DQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRo
-aXNfbmFtZS0+aW5mby4NCj4gPj4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgZXhwZWN0ZWRfYnR5cGVzKTsNCj4gPj4gLSAgICAgICAgICAgICBwcmludGYo
-IiAgUmV0dXJuIHZhbHVlIHR5cGVzOiAlc1xuIiwgYnVmZmVyKTsNCj4gPj4gLSAgICAgfSBlbHNl
-IHsNCj4gPj4gLSAgICAgICAgICAgICBwcmludGYoIiAgTm8gcmV0dXJuIHZhbHVlXG4iKTsNCj4g
-Pj4gLSAgICAgfQ0KPiA+PiAtfQ0KPiA+PiAtDQo+ID4+IC0vKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-Kg0KPiA+PiAtICoNCj4gPj4gICAqIEZVTkNUSU9OOiAgICBhY3BpX3V0X2dldF9hcmd1bWVudF90
-eXBlcw0KPiA+PiAgICoNCj4gPj4gICAqIFBBUkFNRVRFUlM6ICBidWZmZXIgICAgICAgICAgICAg
-IC0gV2hlcmUgdG8gcmV0dXJuIHRoZSBmb3JtYXR0ZWQgdHlwZXMNCj4gPj4gQEAgLTM2MSwzOSAr
-MjYyLDQgQEAgc3RhdGljIHUzMiBhY3BpX3V0X2dldF9hcmd1bWVudF90eXBlcyhjaGFyICpidWZm
-ZXIsIHUxNiBhcmd1bWVudF90eXBlcykNCj4gPj4gICAgICAgcmV0dXJuIChhcmdfY291bnQpOw0K
-PiA+PiAgfQ0KPiA+Pg0KPiA+PiAtLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gPj4gLSAqDQo+
-ID4+IC0gKiBGVU5DVElPTjogICAgYWNwaV91dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoDQo+ID4+
-IC0gKg0KPiA+PiAtICogUEFSQU1FVEVSUzogIGJ1ZmZlciAgICAgICAgICAgICAgLSBXaGVyZSB0
-aGUgZm9ybWF0dGVkIHN0cmluZyBpcyByZXR1cm5lZA0KPiA+PiAtICogICAgICAgICAgICAgIHR5
-cGVzICAgICAgICAgICAgICAgLSBCaXRmaWVsZCBvZiBleHBlY3RlZCBkYXRhIHR5cGVzDQo+ID4+
-IC0gKg0KPiA+PiAtICogUkVUVVJOOiAgICAgIENvdW50IG9mIHJldHVybiB0eXBlcy4gRm9ybWF0
-dGVkIHN0cmluZyBpbiBCdWZmZXIuDQo+ID4+IC0gKg0KPiA+PiAtICogREVTQ1JJUFRJT046IEZv
-cm1hdCB0aGUgcmVzb3VyY2UgYml0IHdpZHRocyBpbnRvIGEgcHJpbnRhYmxlIHN0cmluZy4NCj4g
-Pj4gLSAqDQo+ID4+IC0gKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLw0KPiA+PiAtDQo+ID4+IC11MzIg
-YWNwaV91dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoKGNoYXIgKmJ1ZmZlciwgdTE2IHR5cGVzKQ0K
-PiA+PiAtew0KPiA+PiAtICAgICB1MzIgaTsNCj4gPj4gLSAgICAgdTE2IHN1Yl9pbmRleDsNCj4g
-Pj4gLSAgICAgdTMyIGZvdW5kOw0KPiA+PiAtDQo+ID4+IC0gICAgICpidWZmZXIgPSAwOw0KPiA+
-PiAtICAgICBzdWJfaW5kZXggPSAxOw0KPiA+PiAtICAgICBmb3VuZCA9IDA7DQo+ID4+IC0NCj4g
-Pj4gLSAgICAgZm9yIChpID0gMDsgaSA8IE5VTV9SRVNPVVJDRV9XSURUSFM7IGkrKykgew0KPiA+
-PiAtICAgICAgICAgICAgIGlmICh0eXBlcyAmIDEpIHsNCj4gPj4gLSAgICAgICAgICAgICAgICAg
-ICAgIHN0cmNhdChidWZmZXIsICYodXRfcmVzb3VyY2VfdHlwZV9uYW1lc1tpXVtzdWJfaW5kZXhd
-KSk7DQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICBzdWJfaW5kZXggPSAwOw0KPiA+PiAtICAg
-ICAgICAgICAgICAgICAgICAgZm91bmQrKzsNCj4gPj4gLSAgICAgICAgICAgICB9DQo+ID4+IC0N
-Cj4gPj4gLSAgICAgICAgICAgICB0eXBlcyA+Pj0gMTsNCj4gPj4gLSAgICAgfQ0KPiA+PiAtDQo+
-ID4+IC0gICAgIHJldHVybiAoZm91bmQpOw0KPiA+PiAtfQ0KPiA+PiAgI2VuZGlmDQo+ID4+IC0t
-DQo+ID4+IDEuNy4xMC40DQo+ID4NCj4gDQo+IEhpDQo+IA0KPiBDcHBjaGVjayBydW5uaW5nIGRl
-cGVuZGluZyBvbiB0aGUgc2V0dGluZ3MgYWxsIGRlZmluZSBvbiBhbmQgb2ZmLCBpZg0KPiB0aGF0
-J3Mgd2hhdCB5b3Ugd29uZGVyLg0KPiANCj4gT3RoZXJ3aXNlLCBJIGRpZCBhIGxpdHRsZSBkZWVw
-ZXIgZXhwbGFuYXRpb24gaG93IEkgbWFkZSBkaWQgdGhpcyB3aXRoDQo+IGNwcGNoZWNrLCBhbmQg
-c2FtZSBzY3JpcHRzLg0KPiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNS8xLzkvNTMxDQo+IA0K
-PiANCj4gS2luZCByZWdhcmRzDQo+IFJpY2thcmQgU3RyYW5kcXZpc3QNCg==
+Hi, Rickard
+
+I've done some corrections in the following commit for this report:
+https://github.com/zetalog/acpica/commit/f86ad0858eacfe890cbeae43846da2638c389c1c
+All other utilities related corrections are done in:
+https://github.com/zetalog/acpica/commit/06fb69ea0e4c47edc91544a90a69b983fd161963
+And the patches are now part of the 201501 release materials pending for review:
+https://github.com/acpica/acpica/pull/61
+
+I think I should also let you know my opinions against this kind of no usage functions.
+
+IMO, what you've done is useless and make source tree maintenance more difficult than anyone expects.
+
+Kernel compilation contains "strip" step which can automatically remove symbols without any references on them.
+So we don't need to maintain this in the source level.
+And there is a defect in maintaining it in the source level.
+
+A module could have native variables and functions accessing these native variables should be bounded to the same source file.
+So if there are 2 functions using one native variables in a source file like the following example:
+
+a.c
+
+static int a;
+
+int get_a(void)
+{
+	return a;
+}
+
+void set_a(int a)
+{
+	a = v;
+}
+
+If get_a is only used by a module enabled with CONFIG_DEVICE_X and set_a is only used by a module enabled with CONFIG_DEVICE_Y.
+Should we do such modifications?
+
+static int a;
+
+#ifdef CONFIG_DEVICE_X
+int get_a(void)
+{
+	return a;
+}
+#endif
+
+#ifdef CONFIG_DEVICE_Y
+void set_a(int a)
+{
+	a = v;
+}
+#endif
+
+I think no one will do this in the kernel.
+We simply will prepare another config itme for a.c, for example CONFIG_MODULE_A
+
+Then we will have dependencies in Kconfig:
+config DEVICE_X
+	bool
+	depends MODULE_A
+
+config DEVICE_Y
+	bool
+	depends MODULE_A
+
+And let the no user function automatically be deleted by "strip".
+Because if the references changes, the developers will need to check plenty of such "#ifdef" to correct compilation warnings...
+
+If you do want to do this in the upstream kernel, you'll find millions of functions need to be wrapped by such useless "#ifdef".
+A source file should only contain the self contained logics in it without considering the users.
+
+Thanks and best regards
+-Lv
+
+> -----Original Message-----
+> From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
+> Sent: Wednesday, January 14, 2015 2:44 AM
+> To: Moore, Robert; Zheng, Lv
+> Cc: Rickard Strandqvist; Wysocki, Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] ACPICA: rsdump: Remove some unused functions
+> 
+> Removes some functions that are not used anywhere:
+> acpi_rs_dump_irq_list() acpi_rs_dump_resource_list()
+> 
+> This was partially found by using a static code analysis program called cppcheck.
+> 
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+> ---
+>  drivers/acpi/acpica/acresrc.h |    7 ---
+>  drivers/acpi/acpica/rsdump.c  |  110 -----------------------------------------
+>  2 files changed, 117 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acresrc.h b/drivers/acpi/acpica/acresrc.h
+> index 4b008e8..4a4f8af 100644
+> --- a/drivers/acpi/acpica/acresrc.h
+> +++ b/drivers/acpi/acpica/acresrc.h
+> @@ -299,13 +299,6 @@ acpi_rs_set_resource_length(acpi_rsdesc_size total_length,
+>  			    union aml_resource *aml);
+> 
+>  /*
+> - * rsdump
+> - */
+> -void acpi_rs_dump_resource_list(struct acpi_resource *resource);
+> -
+> -void acpi_rs_dump_irq_list(u8 * route_table);
+> -
+> -/*
+>   * Resource conversion tables
+>   */
+>  extern struct acpi_rsconvert_info acpi_rs_convert_dma[];
+> diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
+> index c3c56b5..8bd41ec 100644
+> --- a/drivers/acpi/acpica/rsdump.c
+> +++ b/drivers/acpi/acpica/rsdump.c
+> @@ -357,116 +357,6 @@ static void acpi_rs_dump_address_common(union acpi_resource_data *resource)
+> 
+>  /*******************************************************************************
+>   *
+> - * FUNCTION:    acpi_rs_dump_resource_list
+> - *
+> - * PARAMETERS:  resource_list       - Pointer to a resource descriptor list
+> - *
+> - * RETURN:      None
+> - *
+> - * DESCRIPTION: Dispatches the structure to the correct dump routine.
+> - *
+> - ******************************************************************************/
+> -
+> -void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
+> -{
+> -	u32 count = 0;
+> -	u32 type;
+> -
+> -	ACPI_FUNCTION_ENTRY();
+> -
+> -	/* Check if debug output enabled */
+> -
+> -	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
+> -		return;
+> -	}
+> -
+> -	/* Walk list and dump all resource descriptors (END_TAG terminates) */
+> -
+> -	do {
+> -		acpi_os_printf("\n[%02X] ", count);
+> -		count++;
+> -
+> -		/* Validate Type before dispatch */
+> -
+> -		type = resource_list->type;
+> -		if (type > ACPI_RESOURCE_TYPE_MAX) {
+> -			acpi_os_printf
+> -			    ("Invalid descriptor type (%X) in resource list\n",
+> -			     resource_list->type);
+> -			return;
+> -		}
+> -
+> -		/* Sanity check the length. It must not be zero, or we loop forever */
+> -
+> -		if (!resource_list->length) {
+> -			acpi_os_printf
+> -			    ("Invalid zero length descriptor in resource list\n");
+> -			return;
+> -		}
+> -
+> -		/* Dump the resource descriptor */
+> -
+> -		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+> -			acpi_rs_dump_descriptor(&resource_list->data,
+> -						acpi_gbl_dump_serial_bus_dispatch
+> -						[resource_list->data.
+> -						 common_serial_bus.type]);
+> -		} else {
+> -			acpi_rs_dump_descriptor(&resource_list->data,
+> -						acpi_gbl_dump_resource_dispatch
+> -						[type]);
+> -		}
+> -
+> -		/* Point to the next resource structure */
+> -
+> -		resource_list = ACPI_NEXT_RESOURCE(resource_list);
+> -
+> -		/* Exit when END_TAG descriptor is reached */
+> -
+> -	} while (type != ACPI_RESOURCE_TYPE_END_TAG);
+> -}
+> -
+> -/*******************************************************************************
+> - *
+> - * FUNCTION:    acpi_rs_dump_irq_list
+> - *
+> - * PARAMETERS:  route_table     - Pointer to the routing table to dump.
+> - *
+> - * RETURN:      None
+> - *
+> - * DESCRIPTION: Print IRQ routing table
+> - *
+> - ******************************************************************************/
+> -
+> -void acpi_rs_dump_irq_list(u8 * route_table)
+> -{
+> -	struct acpi_pci_routing_table *prt_element;
+> -	u8 count;
+> -
+> -	ACPI_FUNCTION_ENTRY();
+> -
+> -	/* Check if debug output enabled */
+> -
+> -	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
+> -		return;
+> -	}
+> -
+> -	prt_element = ACPI_CAST_PTR(struct acpi_pci_routing_table, route_table);
+> -
+> -	/* Dump all table elements, Exit on zero length element */
+> -
+> -	for (count = 0; prt_element->length; count++) {
+> -		acpi_os_printf("\n[%02X] PCI IRQ Routing Table Package\n",
+> -			       count);
+> -		acpi_rs_dump_descriptor(prt_element, acpi_rs_dump_prt);
+> -
+> -		prt_element = ACPI_ADD_PTR(struct acpi_pci_routing_table,
+> -					   prt_element, prt_element->length);
+> -	}
+> -}
+> -
+> -/*******************************************************************************
+> - *
+>   * FUNCTION:    acpi_rs_out*
+>   *
+>   * PARAMETERS:  title       - Name of the resource field
+> --
+> 1.7.10.4
+
