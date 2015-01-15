@@ -1,38 +1,30 @@
 From: Mark Langsdorf <mlangsdo@redhat.com>
-Subject: Re: [PATCH v7 01/17] arm64: allow late use of early_ioremap
-Date: Thu, 15 Jan 2015 12:44:34 -0600
-Message-ID: <54B80A92.6050209@redhat.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-2-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH v7 03/17] ARM64 / ACPI: Introduce sleep-arm.c
+Date: Thu, 15 Jan 2015 12:45:24 -0600
+Message-ID: <54B80AC4.2030504@redhat.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-4-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37972 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752425AbbAOSqD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2015 13:46:03 -0500
-In-Reply-To: <1421247905-3749-2-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1421247905-3749-4-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Mark Salter <msalter@redhat.com>, Leif Lindholm <leif.lindholm@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, suravee.suthikulpanit@amd.com, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
 On 01/14/2015 09:04 AM, Hanjun Guo wrote:
-> From: Mark Salter <msalter@redhat.com>
+> From: Graeme Gregory <graeme.gregory@linaro.org>
 >
-> Commit 0e63ea48b4d8 (arm64/efi: add missing call to early_ioremap_reset())
-> added a missing call to early_ioremap_reset(). This triggers a BUG if code
-> tries using early_ioremap() after the early_ioremap_reset(). This is a
-> problem for some ACPI code which needs short-lived temporary mappings
-> after paging_init() but before acpi_early_init() in start_kernel(). This
-> patch adds definitions for the __late_set_fixmap() and __late_clear_fixmap()
-> which avoids the BUG by allowing later use of early_ioremap().
+> ACPI 5.1 does not currently support S states for ARM64 hardware but
+> ACPI code will call acpi_target_system_state() for device power
+> managment, so introduce sleep-arm.c to allow other drivers to function
+> until S states are defined.
 >
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> CC: Leif Lindholm <leif.lindholm@linaro.org>
-> CC: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> [hj: update the change log]
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
 Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-
