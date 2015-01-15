@@ -1,244 +1,169 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: Re: [PATCH] acpica: utpredef: Remove some unused functions
-Date: Wed, 14 Jan 2015 23:50:09 +0100
-Message-ID: <CAKXHbyN4ypE3W-exxYUy_TW8HLuBc3hbdwgcX7WkN9mXM5w76Q@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] acpica: utpredef: Remove some unused functions
+Date: Thu, 15 Jan 2015 02:00:51 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B79CC@SHSMSX101.ccr.corp.intel.com>
 References: <1420384974-11745-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 	<1AE640813FDE7649BE1B193DEA596E88026B7475@SHSMSX101.ccr.corp.intel.com>
+ <CAKXHbyN4ypE3W-exxYUy_TW8HLuBc3hbdwgcX7WkN9mXM5w76Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:43878 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbbANWuL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 17:50:11 -0500
-Received: by mail-ie0-f176.google.com with SMTP id tr6so11759840ieb.7
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2015 14:50:10 -0800 (PST)
-Received: from mail-ig0-f169.google.com (mail-ig0-f169.google.com. [209.85.213.169])
-        by mx.google.com with ESMTPSA id 27sm2370278ios.9.2015.01.14.14.50.09
-        for <linux-acpi@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 14 Jan 2015 14:50:09 -0800 (PST)
-Received: by mail-ig0-f169.google.com with SMTP id z20so368985igj.0
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2015 14:50:09 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026B7475@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAKXHbyN4ypE3W-exxYUy_TW8HLuBc3hbdwgcX7WkN9mXM5w76Q@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-2015-01-14 9:55 GMT+01:00 Zheng, Lv <lv.zheng@intel.com>:
-> Hi, Rickard
->
-> The functions below seem already marked by "ACPI_ASL_COMPILER || ACPI_HELP_APP".
-> How did you detect them as used functions?
->
-> Thanks
-> -Lv
->
->
->> -----Original Message-----
->> From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
->> Sent: Sunday, January 04, 2015 11:23 PM
->> To: Moore, Robert; Zheng, Lv
->> Cc: Rickard Strandqvist; Wysocki, Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
->> Subject: [PATCH] acpica: utpredef: Remove some unused functions
->>
->> Removes some functions that are not used anywhere:
->> acpi_ut_get_resource_bit_width() acpi_ut_display_predefined_method() acpi_ut_match_resource_name()
->>
->> This was partially found by using a static code analysis program called cppcheck.
->>
->> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
->> ---
->>  drivers/acpi/acpica/acutils.h  |    9 ---
->>  drivers/acpi/acpica/utpredef.c |  134 ----------------------------------------
->>  2 files changed, 143 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
->> index 486d342..9b3fab1 100644
->> --- a/drivers/acpi/acpica/acutils.h
->> +++ b/drivers/acpi/acpica/acutils.h
->> @@ -502,17 +502,8 @@ const union acpi_predefined_info *acpi_ut_get_next_predefined_method(const union
->>
->>  const union acpi_predefined_info *acpi_ut_match_predefined_method(char *name);
->>
->> -const union acpi_predefined_info *acpi_ut_match_resource_name(char *name);
->> -
->> -void
->> -acpi_ut_display_predefined_method(char *buffer,
->> -                               const union acpi_predefined_info *this_name,
->> -                               u8 multi_line);
->> -
->>  void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes);
->>
->> -u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types);
->> -
->>  /*
->>   * utstate - Generic state creation/cache routines
->>   */
->> diff --git a/drivers/acpi/acpica/utpredef.c b/drivers/acpi/acpica/utpredef.c
->> index db30caf..f1ff33c 100644
->> --- a/drivers/acpi/acpica/utpredef.c
->> +++ b/drivers/acpi/acpica/utpredef.c
->> @@ -209,105 +209,6 @@ static const char *ut_resource_type_names[] = {
->>
->>  /*******************************************************************************
->>   *
->> - * FUNCTION:    acpi_ut_match_resource_name
->> - *
->> - * PARAMETERS:  name                - Name to find
->> - *
->> - * RETURN:      Pointer to entry in the resource table. NULL indicates not
->> - *              found.
->> - *
->> - * DESCRIPTION: Check an object name against the predefined resource
->> - *              descriptor object list.
->> - *
->> - ******************************************************************************/
->> -
->> -const union acpi_predefined_info *acpi_ut_match_resource_name(char *name)
->> -{
->> -     const union acpi_predefined_info *this_name;
->> -
->> -     /* Quick check for a predefined name, first character must be underscore */
->> -
->> -     if (name[0] != '_') {
->> -             return (NULL);
->> -     }
->> -
->> -     /* Search info table for a predefined method/object name */
->> -
->> -     this_name = acpi_gbl_resource_names;
->> -     while (this_name->info.name[0]) {
->> -             if (ACPI_COMPARE_NAME(name, this_name->info.name)) {
->> -                     return (this_name);
->> -             }
->> -
->> -             this_name++;
->> -     }
->> -
->> -     return (NULL);          /* Not found */
->> -}
->> -
->> -/*******************************************************************************
->> - *
->> - * FUNCTION:    acpi_ut_display_predefined_method
->> - *
->> - * PARAMETERS:  buffer              - Scratch buffer for this function
->> - *              this_name           - Entry in the predefined method/name table
->> - *              multi_line          - TRUE if output should be on >1 line
->> - *
->> - * RETURN:      None
->> - *
->> - * DESCRIPTION: Display information about a predefined method. Number and
->> - *              type of the input arguments, and expected type(s) for the
->> - *              return value, if any.
->> - *
->> - ******************************************************************************/
->> -
->> -void
->> -acpi_ut_display_predefined_method(char *buffer,
->> -                               const union acpi_predefined_info *this_name,
->> -                               u8 multi_line)
->> -{
->> -     u32 arg_count;
->> -
->> -     /*
->> -      * Get the argument count and the string buffer
->> -      * containing all argument types
->> -      */
->> -     arg_count = acpi_ut_get_argument_types(buffer,
->> -                                            this_name->info.argument_list);
->> -
->> -     if (multi_line) {
->> -             printf("      ");
->> -     }
->> -
->> -     printf("%4.4s    Requires %s%u argument%s",
->> -            this_name->info.name,
->> -            (this_name->info.argument_list & ARG_COUNT_IS_MINIMUM) ?
->> -            "(at least) " : "", arg_count, arg_count != 1 ? "s" : "");
->> -
->> -     /* Display the types for any arguments */
->> -
->> -     if (arg_count > 0) {
->> -             printf(" (%s)", buffer);
->> -     }
->> -
->> -     if (multi_line) {
->> -             printf("\n    ");
->> -     }
->> -
->> -     /* Get the return value type(s) allowed */
->> -
->> -     if (this_name->info.expected_btypes) {
->> -             acpi_ut_get_expected_return_types(buffer,
->> -                                               this_name->info.
->> -                                               expected_btypes);
->> -             printf("  Return value types: %s\n", buffer);
->> -     } else {
->> -             printf("  No return value\n");
->> -     }
->> -}
->> -
->> -/*******************************************************************************
->> - *
->>   * FUNCTION:    acpi_ut_get_argument_types
->>   *
->>   * PARAMETERS:  buffer              - Where to return the formatted types
->> @@ -361,39 +262,4 @@ static u32 acpi_ut_get_argument_types(char *buffer, u16 argument_types)
->>       return (arg_count);
->>  }
->>
->> -/*******************************************************************************
->> - *
->> - * FUNCTION:    acpi_ut_get_resource_bit_width
->> - *
->> - * PARAMETERS:  buffer              - Where the formatted string is returned
->> - *              types               - Bitfield of expected data types
->> - *
->> - * RETURN:      Count of return types. Formatted string in Buffer.
->> - *
->> - * DESCRIPTION: Format the resource bit widths into a printable string.
->> - *
->> - ******************************************************************************/
->> -
->> -u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types)
->> -{
->> -     u32 i;
->> -     u16 sub_index;
->> -     u32 found;
->> -
->> -     *buffer = 0;
->> -     sub_index = 1;
->> -     found = 0;
->> -
->> -     for (i = 0; i < NUM_RESOURCE_WIDTHS; i++) {
->> -             if (types & 1) {
->> -                     strcat(buffer, &(ut_resource_type_names[i][sub_index]));
->> -                     sub_index = 0;
->> -                     found++;
->> -             }
->> -
->> -             types >>= 1;
->> -     }
->> -
->> -     return (found);
->> -}
->>  #endif
->> --
->> 1.7.10.4
->
-
-Hi
-
-Cppcheck running depending on the settings all define on and off, if
-that's what you wonder.
-
-Otherwise, I did a little deeper explanation how I made did this with
-cppcheck, and same scripts.
-https://lkml.org/lkml/2015/1/9/531
-
-
-Kind regards
-Rickard Strandqvist
+SGksDQoNCj4gRnJvbTogUmlja2FyZCBTdHJhbmRxdmlzdCBbbWFpbHRvOnJpY2thcmRfc3RyYW5k
+cXZpc3RAc3BlY3RydW1kaWdpdGFsLnNlXQ0KPiBTZW50OiBUaHVyc2RheSwgSmFudWFyeSAxNSwg
+MjAxNSA2OjUwIEFNDQo+IA0KPiAyMDE1LTAxLTE0IDk6NTUgR01UKzAxOjAwIFpoZW5nLCBMdiA8
+bHYuemhlbmdAaW50ZWwuY29tPjoNCj4gPiBIaSwgUmlja2FyZA0KPiA+DQo+ID4gVGhlIGZ1bmN0
+aW9ucyBiZWxvdyBzZWVtIGFscmVhZHkgbWFya2VkIGJ5ICJBQ1BJX0FTTF9DT01QSUxFUiB8fCBB
+Q1BJX0hFTFBfQVBQIi4NCj4gPiBIb3cgZGlkIHlvdSBkZXRlY3QgdGhlbSBhcyB1c2VkIGZ1bmN0
+aW9ucz8NCg0KRG8geW91IG1lYW4gc29tZXRoaW5nIGxpa2UgdGhpcz8NCg0KPD94bWwgdmVyc2lv
+bj0iMS4wIj8+DQo8ZGVmPg0KICA8ZGVmaW5lIG5hbWU9IkFDUElfQVNMX0NPTVBJTEVSIiB2YWx1
+ZT0iMCIvPg0KICA8ZGVmaW5lIG5hbWU9IkFDUElfSEVMUF9BUFAiIHZhbHVlPSIwIi8+DQo8L2Rl
+Zj4NCg0KQ2FuIENwcGNoZWNrIGF1dG9tYXRpY2FsbHkgcmVtb3ZlIGNvZGUgYmxvY2tzIGRlcGVu
+ZGluZyBvbiB0aGUgZGVmaW5lIHNldHRpbmdzIGR1cmluZyBwcmVwcm9jZXNzb3Igc3RhZ2U/DQoN
+ClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiA+DQo+ID4gVGhhbmtzDQo+ID4gLUx2
+DQo+ID4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBS
+aWNrYXJkIFN0cmFuZHF2aXN0IFttYWlsdG86cmlja2FyZF9zdHJhbmRxdmlzdEBzcGVjdHJ1bWRp
+Z2l0YWwuc2VdDQo+ID4+IFNlbnQ6IFN1bmRheSwgSmFudWFyeSAwNCwgMjAxNSAxMToyMyBQTQ0K
+PiA+PiBUbzogTW9vcmUsIFJvYmVydDsgWmhlbmcsIEx2DQo+ID4+IENjOiBSaWNrYXJkIFN0cmFu
+ZHF2aXN0OyBXeXNvY2tpLCBSYWZhZWwgSjsgTGVuIEJyb3duOyBsaW51eC1hY3BpQHZnZXIua2Vy
+bmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0K
+PiA+PiBTdWJqZWN0OiBbUEFUQ0hdIGFjcGljYTogdXRwcmVkZWY6IFJlbW92ZSBzb21lIHVudXNl
+ZCBmdW5jdGlvbnMNCj4gPj4NCj4gPj4gUmVtb3ZlcyBzb21lIGZ1bmN0aW9ucyB0aGF0IGFyZSBu
+b3QgdXNlZCBhbnl3aGVyZToNCj4gPj4gYWNwaV91dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoKCkg
+YWNwaV91dF9kaXNwbGF5X3ByZWRlZmluZWRfbWV0aG9kKCkgYWNwaV91dF9tYXRjaF9yZXNvdXJj
+ZV9uYW1lKCkNCj4gPj4NCj4gPj4gVGhpcyB3YXMgcGFydGlhbGx5IGZvdW5kIGJ5IHVzaW5nIGEg
+c3RhdGljIGNvZGUgYW5hbHlzaXMgcHJvZ3JhbSBjYWxsZWQgY3BwY2hlY2suDQo+ID4+DQo+ID4+
+IFNpZ25lZC1vZmYtYnk6IFJpY2thcmQgU3RyYW5kcXZpc3QgPHJpY2thcmRfc3RyYW5kcXZpc3RA
+c3BlY3RydW1kaWdpdGFsLnNlPg0KPiA+PiAtLS0NCj4gPj4gIGRyaXZlcnMvYWNwaS9hY3BpY2Ev
+YWN1dGlscy5oICB8ICAgIDkgLS0tDQo+ID4+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0cHJlZGVm
+LmMgfCAgMTM0IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPj4g
+IDIgZmlsZXMgY2hhbmdlZCwgMTQzIGRlbGV0aW9ucygtKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9hY3BpL2FjcGljYS9hY3V0aWxzLmggYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2Fj
+dXRpbHMuaA0KPiA+PiBpbmRleCA0ODZkMzQyLi45YjNmYWIxIDEwMDY0NA0KPiA+PiAtLS0gYS9k
+cml2ZXJzL2FjcGkvYWNwaWNhL2FjdXRpbHMuaA0KPiA+PiArKysgYi9kcml2ZXJzL2FjcGkvYWNw
+aWNhL2FjdXRpbHMuaA0KPiA+PiBAQCAtNTAyLDE3ICs1MDIsOCBAQCBjb25zdCB1bmlvbiBhY3Bp
+X3ByZWRlZmluZWRfaW5mbyAqYWNwaV91dF9nZXRfbmV4dF9wcmVkZWZpbmVkX21ldGhvZChjb25z
+dCB1bmlvbg0KPiA+Pg0KPiA+PiAgY29uc3QgdW5pb24gYWNwaV9wcmVkZWZpbmVkX2luZm8gKmFj
+cGlfdXRfbWF0Y2hfcHJlZGVmaW5lZF9tZXRob2QoY2hhciAqbmFtZSk7DQo+ID4+DQo+ID4+IC1j
+b25zdCB1bmlvbiBhY3BpX3ByZWRlZmluZWRfaW5mbyAqYWNwaV91dF9tYXRjaF9yZXNvdXJjZV9u
+YW1lKGNoYXIgKm5hbWUpOw0KPiA+PiAtDQo+ID4+IC12b2lkDQo+ID4+IC1hY3BpX3V0X2Rpc3Bs
+YXlfcHJlZGVmaW5lZF9tZXRob2QoY2hhciAqYnVmZmVyLA0KPiA+PiAtICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIGNvbnN0IHVuaW9uIGFjcGlfcHJlZGVmaW5lZF9pbmZvICp0aGlzX25h
+bWUsDQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdTggbXVsdGlfbGluZSk7
+DQo+ID4+IC0NCj4gPj4gIHZvaWQgYWNwaV91dF9nZXRfZXhwZWN0ZWRfcmV0dXJuX3R5cGVzKGNo
+YXIgKmJ1ZmZlciwgdTMyIGV4cGVjdGVkX2J0eXBlcyk7DQo+ID4+DQo+ID4+IC11MzIgYWNwaV91
+dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoKGNoYXIgKmJ1ZmZlciwgdTE2IHR5cGVzKTsNCj4gPj4g
+LQ0KPiA+PiAgLyoNCj4gPj4gICAqIHV0c3RhdGUgLSBHZW5lcmljIHN0YXRlIGNyZWF0aW9uL2Nh
+Y2hlIHJvdXRpbmVzDQo+ID4+ICAgKi8NCj4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9h
+Y3BpY2EvdXRwcmVkZWYuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRwcmVkZWYuYw0KPiA+PiBp
+bmRleCBkYjMwY2FmLi5mMWZmMzNjIDEwMDY0NA0KPiA+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNw
+aWNhL3V0cHJlZGVmLmMNCj4gPj4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS91dHByZWRlZi5j
+DQo+ID4+IEBAIC0yMDksMTA1ICsyMDksNiBAQCBzdGF0aWMgY29uc3QgY2hhciAqdXRfcmVzb3Vy
+Y2VfdHlwZV9uYW1lc1tdID0gew0KPiA+Pg0KPiA+PiAgLyoqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioN
+Cj4gPj4gICAqDQo+ID4+IC0gKiBGVU5DVElPTjogICAgYWNwaV91dF9tYXRjaF9yZXNvdXJjZV9u
+YW1lDQo+ID4+IC0gKg0KPiA+PiAtICogUEFSQU1FVEVSUzogIG5hbWUgICAgICAgICAgICAgICAg
+LSBOYW1lIHRvIGZpbmQNCj4gPj4gLSAqDQo+ID4+IC0gKiBSRVRVUk46ICAgICAgUG9pbnRlciB0
+byBlbnRyeSBpbiB0aGUgcmVzb3VyY2UgdGFibGUuIE5VTEwgaW5kaWNhdGVzIG5vdA0KPiA+PiAt
+ICogICAgICAgICAgICAgIGZvdW5kLg0KPiA+PiAtICoNCj4gPj4gLSAqIERFU0NSSVBUSU9OOiBD
+aGVjayBhbiBvYmplY3QgbmFtZSBhZ2FpbnN0IHRoZSBwcmVkZWZpbmVkIHJlc291cmNlDQo+ID4+
+IC0gKiAgICAgICAgICAgICAgZGVzY3JpcHRvciBvYmplY3QgbGlzdC4NCj4gPj4gLSAqDQo+ID4+
+IC0gKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqLw0KPiA+PiAtDQo+ID4+IC1jb25zdCB1bmlvbiBhY3Bp
+X3ByZWRlZmluZWRfaW5mbyAqYWNwaV91dF9tYXRjaF9yZXNvdXJjZV9uYW1lKGNoYXIgKm5hbWUp
+DQo+ID4+IC17DQo+ID4+IC0gICAgIGNvbnN0IHVuaW9uIGFjcGlfcHJlZGVmaW5lZF9pbmZvICp0
+aGlzX25hbWU7DQo+ID4+IC0NCj4gPj4gLSAgICAgLyogUXVpY2sgY2hlY2sgZm9yIGEgcHJlZGVm
+aW5lZCBuYW1lLCBmaXJzdCBjaGFyYWN0ZXIgbXVzdCBiZSB1bmRlcnNjb3JlICovDQo+ID4+IC0N
+Cj4gPj4gLSAgICAgaWYgKG5hbWVbMF0gIT0gJ18nKSB7DQo+ID4+IC0gICAgICAgICAgICAgcmV0
+dXJuIChOVUxMKTsNCj4gPj4gLSAgICAgfQ0KPiA+PiAtDQo+ID4+IC0gICAgIC8qIFNlYXJjaCBp
+bmZvIHRhYmxlIGZvciBhIHByZWRlZmluZWQgbWV0aG9kL29iamVjdCBuYW1lICovDQo+ID4+IC0N
+Cj4gPj4gLSAgICAgdGhpc19uYW1lID0gYWNwaV9nYmxfcmVzb3VyY2VfbmFtZXM7DQo+ID4+IC0g
+ICAgIHdoaWxlICh0aGlzX25hbWUtPmluZm8ubmFtZVswXSkgew0KPiA+PiAtICAgICAgICAgICAg
+IGlmIChBQ1BJX0NPTVBBUkVfTkFNRShuYW1lLCB0aGlzX25hbWUtPmluZm8ubmFtZSkpIHsNCj4g
+Pj4gLSAgICAgICAgICAgICAgICAgICAgIHJldHVybiAodGhpc19uYW1lKTsNCj4gPj4gLSAgICAg
+ICAgICAgICB9DQo+ID4+IC0NCj4gPj4gLSAgICAgICAgICAgICB0aGlzX25hbWUrKzsNCj4gPj4g
+LSAgICAgfQ0KPiA+PiAtDQo+ID4+IC0gICAgIHJldHVybiAoTlVMTCk7ICAgICAgICAgIC8qIE5v
+dCBmb3VuZCAqLw0KPiA+PiAtfQ0KPiA+PiAtDQo+ID4+IC0vKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+Kg0KPiA+PiAtICoNCj4gPj4gLSAqIEZVTkNUSU9OOiAgICBhY3BpX3V0X2Rpc3BsYXlfcHJlZGVm
+aW5lZF9tZXRob2QNCj4gPj4gLSAqDQo+ID4+IC0gKiBQQVJBTUVURVJTOiAgYnVmZmVyICAgICAg
+ICAgICAgICAtIFNjcmF0Y2ggYnVmZmVyIGZvciB0aGlzIGZ1bmN0aW9uDQo+ID4+IC0gKiAgICAg
+ICAgICAgICAgdGhpc19uYW1lICAgICAgICAgICAtIEVudHJ5IGluIHRoZSBwcmVkZWZpbmVkIG1l
+dGhvZC9uYW1lIHRhYmxlDQo+ID4+IC0gKiAgICAgICAgICAgICAgbXVsdGlfbGluZSAgICAgICAg
+ICAtIFRSVUUgaWYgb3V0cHV0IHNob3VsZCBiZSBvbiA+MSBsaW5lDQo+ID4+IC0gKg0KPiA+PiAt
+ICogUkVUVVJOOiAgICAgIE5vbmUNCj4gPj4gLSAqDQo+ID4+IC0gKiBERVNDUklQVElPTjogRGlz
+cGxheSBpbmZvcm1hdGlvbiBhYm91dCBhIHByZWRlZmluZWQgbWV0aG9kLiBOdW1iZXIgYW5kDQo+
+ID4+IC0gKiAgICAgICAgICAgICAgdHlwZSBvZiB0aGUgaW5wdXQgYXJndW1lbnRzLCBhbmQgZXhw
+ZWN0ZWQgdHlwZShzKSBmb3IgdGhlDQo+ID4+IC0gKiAgICAgICAgICAgICAgcmV0dXJuIHZhbHVl
+LCBpZiBhbnkuDQo+ID4+IC0gKg0KPiA+PiAtICoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8NCj4gPj4g
+LQ0KPiA+PiAtdm9pZA0KPiA+PiAtYWNwaV91dF9kaXNwbGF5X3ByZWRlZmluZWRfbWV0aG9kKGNo
+YXIgKmJ1ZmZlciwNCj4gPj4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCB1
+bmlvbiBhY3BpX3ByZWRlZmluZWRfaW5mbyAqdGhpc19uYW1lLA0KPiA+PiAtICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIHU4IG11bHRpX2xpbmUpDQo+ID4+IC17DQo+ID4+IC0gICAgIHUz
+MiBhcmdfY291bnQ7DQo+ID4+IC0NCj4gPj4gLSAgICAgLyoNCj4gPj4gLSAgICAgICogR2V0IHRo
+ZSBhcmd1bWVudCBjb3VudCBhbmQgdGhlIHN0cmluZyBidWZmZXINCj4gPj4gLSAgICAgICogY29u
+dGFpbmluZyBhbGwgYXJndW1lbnQgdHlwZXMNCj4gPj4gLSAgICAgICovDQo+ID4+IC0gICAgIGFy
+Z19jb3VudCA9IGFjcGlfdXRfZ2V0X2FyZ3VtZW50X3R5cGVzKGJ1ZmZlciwNCj4gPj4gLSAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhpc19uYW1lLT5pbmZvLmFy
+Z3VtZW50X2xpc3QpOw0KPiA+PiAtDQo+ID4+IC0gICAgIGlmIChtdWx0aV9saW5lKSB7DQo+ID4+
+IC0gICAgICAgICAgICAgcHJpbnRmKCIgICAgICAiKTsNCj4gPj4gLSAgICAgfQ0KPiA+PiAtDQo+
+ID4+IC0gICAgIHByaW50ZigiJTQuNHMgICAgUmVxdWlyZXMgJXMldSBhcmd1bWVudCVzIiwNCj4g
+Pj4gLSAgICAgICAgICAgIHRoaXNfbmFtZS0+aW5mby5uYW1lLA0KPiA+PiAtICAgICAgICAgICAg
+KHRoaXNfbmFtZS0+aW5mby5hcmd1bWVudF9saXN0ICYgQVJHX0NPVU5UX0lTX01JTklNVU0pID8N
+Cj4gPj4gLSAgICAgICAgICAgICIoYXQgbGVhc3QpICIgOiAiIiwgYXJnX2NvdW50LCBhcmdfY291
+bnQgIT0gMSA/ICJzIiA6ICIiKTsNCj4gPj4gLQ0KPiA+PiAtICAgICAvKiBEaXNwbGF5IHRoZSB0
+eXBlcyBmb3IgYW55IGFyZ3VtZW50cyAqLw0KPiA+PiAtDQo+ID4+IC0gICAgIGlmIChhcmdfY291
+bnQgPiAwKSB7DQo+ID4+IC0gICAgICAgICAgICAgcHJpbnRmKCIgKCVzKSIsIGJ1ZmZlcik7DQo+
+ID4+IC0gICAgIH0NCj4gPj4gLQ0KPiA+PiAtICAgICBpZiAobXVsdGlfbGluZSkgew0KPiA+PiAt
+ICAgICAgICAgICAgIHByaW50ZigiXG4gICAgIik7DQo+ID4+IC0gICAgIH0NCj4gPj4gLQ0KPiA+
+PiAtICAgICAvKiBHZXQgdGhlIHJldHVybiB2YWx1ZSB0eXBlKHMpIGFsbG93ZWQgKi8NCj4gPj4g
+LQ0KPiA+PiAtICAgICBpZiAodGhpc19uYW1lLT5pbmZvLmV4cGVjdGVkX2J0eXBlcykgew0KPiA+
+PiAtICAgICAgICAgICAgIGFjcGlfdXRfZ2V0X2V4cGVjdGVkX3JldHVybl90eXBlcyhidWZmZXIs
+DQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRo
+aXNfbmFtZS0+aW5mby4NCj4gPj4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgZXhwZWN0ZWRfYnR5cGVzKTsNCj4gPj4gLSAgICAgICAgICAgICBwcmludGYo
+IiAgUmV0dXJuIHZhbHVlIHR5cGVzOiAlc1xuIiwgYnVmZmVyKTsNCj4gPj4gLSAgICAgfSBlbHNl
+IHsNCj4gPj4gLSAgICAgICAgICAgICBwcmludGYoIiAgTm8gcmV0dXJuIHZhbHVlXG4iKTsNCj4g
+Pj4gLSAgICAgfQ0KPiA+PiAtfQ0KPiA+PiAtDQo+ID4+IC0vKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+Kg0KPiA+PiAtICoNCj4gPj4gICAqIEZVTkNUSU9OOiAgICBhY3BpX3V0X2dldF9hcmd1bWVudF90
+eXBlcw0KPiA+PiAgICoNCj4gPj4gICAqIFBBUkFNRVRFUlM6ICBidWZmZXIgICAgICAgICAgICAg
+IC0gV2hlcmUgdG8gcmV0dXJuIHRoZSBmb3JtYXR0ZWQgdHlwZXMNCj4gPj4gQEAgLTM2MSwzOSAr
+MjYyLDQgQEAgc3RhdGljIHUzMiBhY3BpX3V0X2dldF9hcmd1bWVudF90eXBlcyhjaGFyICpidWZm
+ZXIsIHUxNiBhcmd1bWVudF90eXBlcykNCj4gPj4gICAgICAgcmV0dXJuIChhcmdfY291bnQpOw0K
+PiA+PiAgfQ0KPiA+Pg0KPiA+PiAtLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gPj4gLSAqDQo+
+ID4+IC0gKiBGVU5DVElPTjogICAgYWNwaV91dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoDQo+ID4+
+IC0gKg0KPiA+PiAtICogUEFSQU1FVEVSUzogIGJ1ZmZlciAgICAgICAgICAgICAgLSBXaGVyZSB0
+aGUgZm9ybWF0dGVkIHN0cmluZyBpcyByZXR1cm5lZA0KPiA+PiAtICogICAgICAgICAgICAgIHR5
+cGVzICAgICAgICAgICAgICAgLSBCaXRmaWVsZCBvZiBleHBlY3RlZCBkYXRhIHR5cGVzDQo+ID4+
+IC0gKg0KPiA+PiAtICogUkVUVVJOOiAgICAgIENvdW50IG9mIHJldHVybiB0eXBlcy4gRm9ybWF0
+dGVkIHN0cmluZyBpbiBCdWZmZXIuDQo+ID4+IC0gKg0KPiA+PiAtICogREVTQ1JJUFRJT046IEZv
+cm1hdCB0aGUgcmVzb3VyY2UgYml0IHdpZHRocyBpbnRvIGEgcHJpbnRhYmxlIHN0cmluZy4NCj4g
+Pj4gLSAqDQo+ID4+IC0gKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLw0KPiA+PiAtDQo+ID4+IC11MzIg
+YWNwaV91dF9nZXRfcmVzb3VyY2VfYml0X3dpZHRoKGNoYXIgKmJ1ZmZlciwgdTE2IHR5cGVzKQ0K
+PiA+PiAtew0KPiA+PiAtICAgICB1MzIgaTsNCj4gPj4gLSAgICAgdTE2IHN1Yl9pbmRleDsNCj4g
+Pj4gLSAgICAgdTMyIGZvdW5kOw0KPiA+PiAtDQo+ID4+IC0gICAgICpidWZmZXIgPSAwOw0KPiA+
+PiAtICAgICBzdWJfaW5kZXggPSAxOw0KPiA+PiAtICAgICBmb3VuZCA9IDA7DQo+ID4+IC0NCj4g
+Pj4gLSAgICAgZm9yIChpID0gMDsgaSA8IE5VTV9SRVNPVVJDRV9XSURUSFM7IGkrKykgew0KPiA+
+PiAtICAgICAgICAgICAgIGlmICh0eXBlcyAmIDEpIHsNCj4gPj4gLSAgICAgICAgICAgICAgICAg
+ICAgIHN0cmNhdChidWZmZXIsICYodXRfcmVzb3VyY2VfdHlwZV9uYW1lc1tpXVtzdWJfaW5kZXhd
+KSk7DQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICBzdWJfaW5kZXggPSAwOw0KPiA+PiAtICAg
+ICAgICAgICAgICAgICAgICAgZm91bmQrKzsNCj4gPj4gLSAgICAgICAgICAgICB9DQo+ID4+IC0N
+Cj4gPj4gLSAgICAgICAgICAgICB0eXBlcyA+Pj0gMTsNCj4gPj4gLSAgICAgfQ0KPiA+PiAtDQo+
+ID4+IC0gICAgIHJldHVybiAoZm91bmQpOw0KPiA+PiAtfQ0KPiA+PiAgI2VuZGlmDQo+ID4+IC0t
+DQo+ID4+IDEuNy4xMC40DQo+ID4NCj4gDQo+IEhpDQo+IA0KPiBDcHBjaGVjayBydW5uaW5nIGRl
+cGVuZGluZyBvbiB0aGUgc2V0dGluZ3MgYWxsIGRlZmluZSBvbiBhbmQgb2ZmLCBpZg0KPiB0aGF0
+J3Mgd2hhdCB5b3Ugd29uZGVyLg0KPiANCj4gT3RoZXJ3aXNlLCBJIGRpZCBhIGxpdHRsZSBkZWVw
+ZXIgZXhwbGFuYXRpb24gaG93IEkgbWFkZSBkaWQgdGhpcyB3aXRoDQo+IGNwcGNoZWNrLCBhbmQg
+c2FtZSBzY3JpcHRzLg0KPiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxNS8xLzkvNTMxDQo+IA0K
+PiANCj4gS2luZCByZWdhcmRzDQo+IFJpY2thcmQgU3RyYW5kcXZpc3QNCg==
