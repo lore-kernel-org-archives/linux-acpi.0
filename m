@@ -1,47 +1,48 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 15 Jan 2015 15:04:37 -0500
-Message-ID: <20150115200437.GF24989@titan.lakedaemon.net>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com>
- <20150115182346.GE2329@e104818-lin.cambridge.arm.com>
- <20150115190220.GF3043@sirena.org.uk>
+From: Joseph Salisbury <joseph.salisbury@canonical.com>
+Subject: [PATCH][v3.16.y-ckt] ACPICA: Add new GPE public interface - acpi_mark_gpe_for_wake.
+Date: Thu, 15 Jan 2015 15:19:51 -0500
+Message-ID: <54B820E7.4080406@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150115190220.GF3043@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Yijing
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:49919 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109AbbAOUT6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 15:19:58 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Luis Henriques <luis.henriques@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, grant.likely@linaro.org, robh+dt@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, "stable@vger.kernel.org" <stable@vger.kernel.org>
 
-On Thu, Jan 15, 2015 at 07:02:20PM +0000, Mark Brown wrote:
-> On Thu, Jan 15, 2015 at 06:23:47PM +0000, Catalin Marinas wrote:
-> > On Thu, Jan 15, 2015 at 04:26:20PM +0000, Grant Likely wrote:
-> 
-> > > I'll get right to the point: Can we please have this series queued up
-> > > for v3.20?
-> 
-> > Before you even ask for this, please look at the patches and realise
-> > that there is a complete lack of Reviewed-by tags on the code (well,
-> > apart from trivial Kconfig changes). In addition, the series touches on
-> > other subsystems like clocksource, irqchip, acpi and I don't see any
-> > acks from the corresponding maintainers. So even if I wanted to merge
-> > the series, there is no way it can be done without additional
-> > reviews/acks. On the document (last patch), I'd like to see a statement
-> 
-> There's probably a bit of a process problem here - these patches are all
-> being posted as part of big and apparently controversial threads with
-> subject lines in the form "ARM / ACPI:" so people could be forgiven for
-> just not even reading the e-mails enough to notice changes to their
-> subsystems.  Is it worth posting those patches separately more directly
-> to the relevant maintainers?
+Hello,
 
-I think it's beneficial to post the entire series as one thread, but to
-change the subject line of each patch to adequately reflect the affected
-subsystem.
+Please consider including mainline commit c12f07d and bd9b2f9 in the
+next v3.16.y-ckt release.  They
+were included in the mainline tree as of v3.17-rc1.  A test kernel has
+been built and tested, which was confirmed to resolve:
+http://bugs.launchpad.net/bugs/1406767 .
 
-thx,
+commit c12f07d17c12193256a99e20c9a0f130fb8f7be8
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Wed Jul 23 13:12:16 2014 +0800
 
-Jason.
+    ACPICA: Add new GPE public interface - acpi_mark_gpe_for_wake.
+
+
+Commit c12f07d does not cherry-pick cleanly in 3.16.y.  However, it will
+if commit bd9b2f9aff26c185c1f8e0cd08a850ee4ace391a is cherry picked first:
+
+commit bd9b2f9aff26c185c1f8e0cd08a850ee4ace391a
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Mon Jul 14 22:41:41 2014 +0200
+
+    ACPI / scan: No implicit wake notification for buttons
+
+   
+
+
+Sincerely,
+Joseph Salisbury
+
+
