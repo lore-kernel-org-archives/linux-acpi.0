@@ -1,63 +1,84 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Thu, 15 Jan 2015 18:19:42 +0100
-Message-ID: <8006947.3odLx91sYj@wuerfel>
-References: <548F9668.6080900@linaro.org> <CACxGe6t9Rbrr5166UDm8T7UVM_4k9jBFv=ozJB1zY=Kvi6F1LQ@mail.gmail.com> <54B5B7B9.6090101@redhat.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
+Date: Thu, 15 Jan 2015 10:22:47 -0700
+Message-ID: <54B7F767.6060808@linaro.org>
+References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <CACxGe6tjiE6u8i-1PHYzX2cOhxJkYN3cV9mqhCHRSMRdOQRfzg@mail.gmail.com> <54B7E21E.2000901@redhat.com> <2277974.2klgILPa2Q@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:51398 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510AbbAORUN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 12:20:13 -0500
-In-Reply-To: <54B5B7B9.6090101@redhat.com>
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:42122 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751403AbbAORWu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 12:22:50 -0500
+Received: by mail-ig0-f181.google.com with SMTP id r2so13828782igi.2
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Jan 2015 09:22:50 -0800 (PST)
+In-Reply-To: <2277974.2klgILPa2Q@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Al Stone <ahs3@redhat.com>, Grant Likely <grant.likely@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org
+Cc: Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>
 
-On Tuesday 13 January 2015 17:26:33 Al Stone wrote:
-> On 01/13/2015 10:22 AM, Grant Likely wrote:
-> > On Mon, Jan 12, 2015 at 7:40 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> On Monday 12 January 2015 12:00:31 Grant Likely wrote:
-> >>> RAS is also something where every company already has something that
-> >>> they are using on their x86 machines. Those interfaces are being
-> >>> ported over to the ARM platforms and will be equivalent to what they
-> >>> already do for x86. So, for example, an ARM server from DELL will use
-> >>> mostly the same RAS interfaces as an x86 server from DELL.
-> >>
-> >> Right, I'm still curious about what those are, in case we have to
-> >> add DT bindings for them as well.
-> > 
-> > Certainly.
+On 01/15/2015 09:52 AM, Arnd Bergmann wrote:
+> On Thursday 15 January 2015 10:51:58 Jon Masters wrote:
+>> On 01/15/2015 09:10 AM, Grant Likely wrote:
+>>> On Tue, Jan 6, 2015 at 1:59 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>>>> For drivers merged upstream, I would insist that every driver merged
+>>>> for an ARM64 platform has a documented DT binding that is used in the
+>>>> driver.
+>>>
+>>> That's a dumb rule. It will result in untested DT code paths being
+>>> thrown into drivers just too meet the rules rather than on whether or
+>>> not they will actually be used. It's fine to allow driver authors to
+>>> only implement the ACPI code path if that is what they are working
+>>> with. We can *always* add a DT path to the driver when it is needed.
+>>
+>> It gets worse. There *will* be large numbers of ACPI only ARM servers
+>> landing over the coming year. Not only would DT code be untested, but
+>> insisting on keeping e.g. a DSDT and DT in sync is never going to work
+>> anyway. Already we have early stage servers that contain a DT used for
+>> bringup that is subsequently not being updated as often as the ACPI
+>> tables (those systems are now booting exclusively in labs with ACPI).
+>> Eventually, I am going to push for the DT data to be removed from these
+>> systems rather than have out of date unmaintained DT data in firmware.
 > 
-> In ACPI terms, the features used are called APEI (Advanced Platform
-> Error Interface), and defined in Section 18 of the specification.  The
-> tables describe what the possible error sources are, where details about
-> the error are stored, and what to do when the errors occur.  A lot of
-> the "RAS tools" out there that report and/or analyze error data rely on
-> this information being reported in the form given by the spec.
+> We will of course be able to relax the rule once ACPI has stabilized on
+> ARM64. At the moment, we haven't even agreed on how to represent basic
+> devices, so things are in flux and there is no way for a BIOS writer
+> to ship an image that we will guarantee to support in the long run.
 > 
-> I only put "RAS tools" in quotes because it is indeed a very loosely
-> defined term -- I've had everything from webmin to SNMP to ganglia,
-> nagios and Tivoli described to me as a RAS tool.  In all of those cases,
-> however, the basic idea was to capture errors as they occur, and try to
-> manage them properly.  That is, replace disks that seem to be heading
-> down hill, or look for faults in RAM, or dropped packets on LANs --
-> anything that could help me avoid a catastrophic failure by doing some
-> preventive maintenance up front.
+> At some point after we are reasonably sure we are able to keep supporting
+> all existing systems that are working with that kernel, we can take
+> support for new systems without having DT by default, and also support
+> booting those without acpi=force, which is related to this question.
 > 
-> And indeed a BMC is often used for handling errors in servers, or to
-> report errors out to something like nagios or ganglia.  It could
-> also just be a log in a bit of NVRAM, too, with a little daemon that
-> reports back somewhere.  But, this is why APEI is used: it tries to
-> provide a well defined interface between those reporting the error
-> (firmware, hardware, OS, ...) and those that need to act on the error
-> (the BMC, the OS, or even other bits of firmware).
+> 	Arnd
 > 
-> Does that help satisfy the curiosity a bit?
 
-Yes, it's much clearer now, thanks!
+Can I restate the position as I hear it, then?  I want to make sure
+I'm understanding what's being said.
 
-	Arnd
+What I'm reading seems to say: if an ARMv8 vendor wants Linux support
+in the upstream kernel, regardless of whether or not it is a mobile or
+server product, they must submit DT-based patches until such time as
+ACPI on arm64 is deemed "mature."  Do I have that correct?
+
+That implies to me that if I want to build an ACPI-only product, there
+is no way to predict when or if I can get Linux support.  And, that if
+I do want Linux support, and need ACPI for my end-users, I have to
+maintain both sets of firmware for some unknown time into the future.
+Is that what was meant?
+
+I'm not really trying to judge the position right this second, but I
+am trying to make sure I understand it.  English is not really the most
+precise of languages and I would prefer not to misinterpret.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
