@@ -1,52 +1,126 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Thu, 15 Jan 2015 17:52:31 +0100
-Message-ID: <2277974.2klgILPa2Q@wuerfel>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <CACxGe6tjiE6u8i-1PHYzX2cOhxJkYN3cV9mqhCHRSMRdOQRfzg@mail.gmail.com> <54B7E21E.2000901@redhat.com>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Thu, 15 Jan 2015 18:15:46 +0100
+Message-ID: <1565137.I9MJ5FjqHu@wuerfel>
+References: <548F9668.6080900@linaro.org> <54B5B7B9.6090101@redhat.com> <54B73D11.2020905@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:63660 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.131]:56149 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921AbbAOQxR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 11:53:17 -0500
-In-Reply-To: <54B7E21E.2000901@redhat.com>
+	with ESMTP id S1753203AbbAORPy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 12:15:54 -0500
+In-Reply-To: <54B73D11.2020905@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linaro-acpi@lists.linaro.org
-Cc: Jon Masters <jcm@redhat.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <ahs3@redhat.com>, Grant Likely <grant.likely@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 15 January 2015 10:51:58 Jon Masters wrote:
-> On 01/15/2015 09:10 AM, Grant Likely wrote:
-> > On Tue, Jan 6, 2015 at 1:59 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> For drivers merged upstream, I would insist that every driver merged
-> >> for an ARM64 platform has a documented DT binding that is used in the
-> >> driver.
-> > 
-> > That's a dumb rule. It will result in untested DT code paths being
-> > thrown into drivers just too meet the rules rather than on whether or
-> > not they will actually be used. It's fine to allow driver authors to
-> > only implement the ACPI code path if that is what they are working
-> > with. We can *always* add a DT path to the driver when it is needed.
-> 
-> It gets worse. There *will* be large numbers of ACPI only ARM servers
-> landing over the coming year. Not only would DT code be untested, but
-> insisting on keeping e.g. a DSDT and DT in sync is never going to work
-> anyway. Already we have early stage servers that contain a DT used for
-> bringup that is subsequently not being updated as often as the ACPI
-> tables (those systems are now booting exclusively in labs with ACPI).
-> Eventually, I am going to push for the DT data to be removed from these
-> systems rather than have out of date unmaintained DT data in firmware.
+On Thursday 15 January 2015 12:07:45 Hanjun Guo wrote:
+> On 2015=E5=B9=B401=E6=9C=8814=E6=97=A5 08:26, Al Stone wrote:
+> > On 01/13/2015 10:22 AM, Grant Likely wrote:
+> >> On Mon, Jan 12, 2015 at 7:40 PM, Arnd Bergmann <arnd@arndb.de> wro=
+te:
+> >>> On Monday 12 January 2015 12:00:31 Grant Likely wrote:
+> >>>> I've trimmed the specific examples here because I think that mis=
+ses
+> >>>> the point. The point is that regardless of interface (either ACP=
+I or
+> >>>> DT) there are always going to be cases where the data needs to c=
+hange
+> >>>> at runtime. Not all platforms will need to change the CPU data, =
+but
+> >>>> some will (say for a machine that detects a failed CPU and remov=
+es
+> >>>> it). Some PCI add-in boards will carry along with them additiona=
+l data
+> >>>> that needs to be inserted into the ACPI namespace or DT. Some
+> >>>> platforms will have system level component (ie. non-PCI) that ma=
+y not
+> >>>> always be accessible.
+> >>>
+> >>> Just to be sure I get this right: do you mean runtime or boot-tim=
+e
+> >>> (re-)configuration for those?
+> >>
+> >> Both are important.
 
-We will of course be able to relax the rule once ACPI has stabilized on
-ARM64. At the moment, we haven't even agreed on how to represent basic
-devices, so things are in flux and there is no way for a BIOS writer
-to ship an image that we will guarantee to support in the long run.
+But only one of the is relevant to the debate of what ACPI offers over
+DT. By mixing the two, it's no longer clear which of your examples
+are the ones that matter for runtime hotplugging.
 
-At some point after we are reasonably sure we are able to keep supporting
-all existing systems that are working with that kernel, we can take
-support for new systems without having DT by default, and also support
-booting those without acpi=force, which is related to this question.
+> >>>> ACPI has an interface baked in already for tying data changes to
+> >>>> events. DT currently needs platform specific support (which we c=
+an
+> >>>> improve on). I'm not even trying to argue for ACPI over DT in th=
+is
+> >>>> section, but I included it this document because it is one of th=
+e
+> >>>> reasons often given for choosing ACPI and I felt it required a m=
+ore
+> >>>> nuanced discussion.
+> >>>
+> >>> I can definitely see the need for an architected interface for
+> >>> dynamic reconfiguration in cases like this, and I think the ACPI
+> >>> model actually does this better than the IBM Power hypervisor
+> >>> model, I just didn't see the need on servers as opposed to someth=
+ing
+> >>> like a laptop docking station to give a more obvious example I kn=
+ow
+> >>> from x86.
+> >
+> > I know of at least one server product (non-ARM) that uses the
+> > hot-plugging of CPUs and memory as a key feature, using the
+> > ACPI OSPM model.  Essentially, the customer buys a system with
+> > a number of slots and pays for filling one or more of them up
+> > front.  As the need for capacity increases, CPUs and/or RAM gets
+> > enabled; i.e., you have spare capacity that you buy as you need
+> > it.  If you use up all the CPUs and RAM you have, you buy more
+> > cards, fill the additional slots, and turn on what you need.  This
+> > is very akin to the virtual machine model, but done with real hardw=
+are
+> > instead.
+
+Yes, this is a good example, normally called Capacity-on-Demand (CoD),
+and is a feature typically found in enterprise servers, but not in
+commodity x86 machines. It would be helpful to hear from someone who
+actually plans to do this on ARM, but I get the idea.
+
+> There is another important user case for RAS, systems running critica=
+l
+> missions such as bank billing system, system like that need high
+> reliability that the machine can't be stopped.
+>=20
+> So when error happened on hardware including CPU/memory DIMM on such
+> machines, we need to replace them at run-time.
+>
+> > Whether or not this product is still being sold, I do not know.  I
+> > have not worked for that company for eight years, and they were jus=
+t
+> > coming out as I left.  Regardless, this sort of hot-plug does make
+> > sense in the server world, and has been used in shipping products.
+>=20
+> I think it still will be, Linux developers put lots of effort to
+> enable memory hotplug and computer node hotplug in the kernel [1], an=
+d
+> the code already merged into mainline.
+>=20
+> [1]:
+> http://events.linuxfoundation.org/sites/events/files/lcjp13_chen.pdf
+
+The case of memory hotremove is interesting as well, but it has some
+very significant limitations, regarding system integrity after
+uncorrectable memory errors as well as nonmovable pages.  The cases
+I know either only support hot-add for CoD (see above), or they support
+hot-replace for mirrored memory only, but that does not require any
+interaction with the OS.
+
+Thanks for the examples!
 
 	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
