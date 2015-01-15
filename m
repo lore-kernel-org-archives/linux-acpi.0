@@ -1,116 +1,32 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
-Date: Thu, 15 Jan 2015 12:07:45 +0800
-Message-ID: <54B73D11.2020905@linaro.org>
-References: <548F9668.6080900@linaro.org> <1636716.eAYJb6Z2AV@wuerfel> <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com> <1421113529.giGjG4IzLy@wuerfel> <CACxGe6t9Rbrr5166UDm8T7UVM_4k9jBFv=ozJB1zY=Kvi6F1LQ@mail.gmail.com> <54B5B7B9.6090101@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Fix checkpatch warning in drivers/acpi/nvs.c
+Date: Thu, 15 Jan 2015 09:53:34 +0100
+Message-ID: <8169130.dsGWuzSOJ3@vostro.rjw.lan>
+References: <1421230733-24149-1-git-send-email-moritz.fischer@ettus.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:54451 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155AbbAOEHw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 23:07:52 -0500
-Received: by mail-pd0-f182.google.com with SMTP id y10so2517617pdj.13
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2015 20:07:51 -0800 (PST)
-In-Reply-To: <54B5B7B9.6090101@redhat.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:62312 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751045AbbAOIbJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 03:31:09 -0500
+In-Reply-To: <1421230733-24149-1-git-send-email-moritz.fischer@ettus.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Moritz Fischer <moritz.fischer@ettus.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2015=E5=B9=B401=E6=9C=8814=E6=97=A5 08:26, Al Stone wrote:
-> On 01/13/2015 10:22 AM, Grant Likely wrote:
->> On Mon, Jan 12, 2015 at 7:40 PM, Arnd Bergmann <arnd@arndb.de> wrote=
-:
->>> On Monday 12 January 2015 12:00:31 Grant Likely wrote:
->>>> On Mon, Jan 12, 2015 at 10:21 AM, Arnd Bergmann <arnd@arndb.de> wr=
-ote:
->>>>> On Saturday 10 January 2015 14:44:02 Grant Likely wrote:
->>>>>> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@lin=
-aro.org> wrote:
->>>>> This seems like a great fit for AML indeed, but I wonder what exa=
-ctly
->>>>> we want to hotplug here, since everything I can think of wouldn't=
- need
->>>>> AML support for the specific use case of SBSA compliant servers:
->>>>
->>>> [...]
->>>>
->>>> I've trimmed the specific examples here because I think that misse=
-s
->>>> the point. The point is that regardless of interface (either ACPI =
-or
->>>> DT) there are always going to be cases where the data needs to cha=
-nge
->>>> at runtime. Not all platforms will need to change the CPU data, bu=
-t
->>>> some will (say for a machine that detects a failed CPU and removes
->>>> it). Some PCI add-in boards will carry along with them additional =
-data
->>>> that needs to be inserted into the ACPI namespace or DT. Some
->>>> platforms will have system level component (ie. non-PCI) that may =
-not
->>>> always be accessible.
->>>
->>> Just to be sure I get this right: do you mean runtime or boot-time
->>> (re-)configuration for those?
->>
->> Both are important.
->>
->>>> ACPI has an interface baked in already for tying data changes to
->>>> events. DT currently needs platform specific support (which we can
->>>> improve on). I'm not even trying to argue for ACPI over DT in this
->>>> section, but I included it this document because it is one of the
->>>> reasons often given for choosing ACPI and I felt it required a mor=
-e
->>>> nuanced discussion.
->>>
->>> I can definitely see the need for an architected interface for
->>> dynamic reconfiguration in cases like this, and I think the ACPI
->>> model actually does this better than the IBM Power hypervisor
->>> model, I just didn't see the need on servers as opposed to somethin=
-g
->>> like a laptop docking station to give a more obvious example I know
->>> from x86.
->
-> I know of at least one server product (non-ARM) that uses the
-> hot-plugging of CPUs and memory as a key feature, using the
-> ACPI OSPM model.  Essentially, the customer buys a system with
-> a number of slots and pays for filling one or more of them up
-> front.  As the need for capacity increases, CPUs and/or RAM gets
-> enabled; i.e., you have spare capacity that you buy as you need
-> it.  If you use up all the CPUs and RAM you have, you buy more
-> cards, fill the additional slots, and turn on what you need.  This
-> is very akin to the virtual machine model, but done with real hardwar=
-e
-> instead.
+On Wednesday, January 14, 2015 11:18:52 AM Moritz Fischer wrote:
+> Hi,
+> 
+> attached a simple patch fixing a checkpatch warning about
+> printk(KERN_INFO vs pr_info.
 
-There is another important user case for RAS, systems running critical
-missions such as bank billing system, system like that need high
-reliability that the machine can't be stopped.
+Which is not going to be applied unless it fixes a functional problem.
 
-So when error happened on hardware including CPU/memory DIMM on such
-machines, we need to replace them at run-time.
+Thanks!
 
->
-> Whether or not this product is still being sold, I do not know.  I
-> have not worked for that company for eight years, and they were just
-> coming out as I left.  Regardless, this sort of hot-plug does make
-> sense in the server world, and has been used in shipping products.
-
-I think it still will be, Linux developers put lots of effort to
-enable memory hotplug and computer node hotplug in the kernel [1], and
-the code already merged into mainline.
-
-[1]:
-http://events.linuxfoundation.org/sites/events/files/lcjp13_chen.pdf
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
