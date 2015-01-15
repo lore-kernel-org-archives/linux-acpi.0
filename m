@@ -1,254 +1,116 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: rsdump: Remove some unused functions
-Date: Thu, 15 Jan 2015 03:29:08 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B7A16@SHSMSX101.ccr.corp.intel.com>
-References: <1421174632-5146-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [RFC] ACPI on arm64 TODO List
+Date: Thu, 15 Jan 2015 12:07:45 +0800
+Message-ID: <54B73D11.2020905@linaro.org>
+References: <548F9668.6080900@linaro.org> <1636716.eAYJb6Z2AV@wuerfel> <CACxGe6tMv7jz9h7RziPMj5jV5_0GZCx=enEXTwuaKS1GTsOouw@mail.gmail.com> <1421113529.giGjG4IzLy@wuerfel> <CACxGe6t9Rbrr5166UDm8T7UVM_4k9jBFv=ozJB1zY=Kvi6F1LQ@mail.gmail.com> <54B5B7B9.6090101@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:39188 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751031AbbAOD3c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 22:29:32 -0500
-In-Reply-To: <1421174632-5146-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Content-Language: en-US
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:54451 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155AbbAOEHw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Jan 2015 23:07:52 -0500
+Received: by mail-pd0-f182.google.com with SMTP id y10so2517617pdj.13
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Jan 2015 20:07:51 -0800 (PST)
+In-Reply-To: <54B5B7B9.6090101@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Al Stone <ahs3@redhat.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi, Rickard
+On 2015=E5=B9=B401=E6=9C=8814=E6=97=A5 08:26, Al Stone wrote:
+> On 01/13/2015 10:22 AM, Grant Likely wrote:
+>> On Mon, Jan 12, 2015 at 7:40 PM, Arnd Bergmann <arnd@arndb.de> wrote=
+:
+>>> On Monday 12 January 2015 12:00:31 Grant Likely wrote:
+>>>> On Mon, Jan 12, 2015 at 10:21 AM, Arnd Bergmann <arnd@arndb.de> wr=
+ote:
+>>>>> On Saturday 10 January 2015 14:44:02 Grant Likely wrote:
+>>>>>> On Wed, Dec 17, 2014 at 10:26 PM, Grant Likely <grant.likely@lin=
+aro.org> wrote:
+>>>>> This seems like a great fit for AML indeed, but I wonder what exa=
+ctly
+>>>>> we want to hotplug here, since everything I can think of wouldn't=
+ need
+>>>>> AML support for the specific use case of SBSA compliant servers:
+>>>>
+>>>> [...]
+>>>>
+>>>> I've trimmed the specific examples here because I think that misse=
+s
+>>>> the point. The point is that regardless of interface (either ACPI =
+or
+>>>> DT) there are always going to be cases where the data needs to cha=
+nge
+>>>> at runtime. Not all platforms will need to change the CPU data, bu=
+t
+>>>> some will (say for a machine that detects a failed CPU and removes
+>>>> it). Some PCI add-in boards will carry along with them additional =
+data
+>>>> that needs to be inserted into the ACPI namespace or DT. Some
+>>>> platforms will have system level component (ie. non-PCI) that may =
+not
+>>>> always be accessible.
+>>>
+>>> Just to be sure I get this right: do you mean runtime or boot-time
+>>> (re-)configuration for those?
+>>
+>> Both are important.
+>>
+>>>> ACPI has an interface baked in already for tying data changes to
+>>>> events. DT currently needs platform specific support (which we can
+>>>> improve on). I'm not even trying to argue for ACPI over DT in this
+>>>> section, but I included it this document because it is one of the
+>>>> reasons often given for choosing ACPI and I felt it required a mor=
+e
+>>>> nuanced discussion.
+>>>
+>>> I can definitely see the need for an architected interface for
+>>> dynamic reconfiguration in cases like this, and I think the ACPI
+>>> model actually does this better than the IBM Power hypervisor
+>>> model, I just didn't see the need on servers as opposed to somethin=
+g
+>>> like a laptop docking station to give a more obvious example I know
+>>> from x86.
+>
+> I know of at least one server product (non-ARM) that uses the
+> hot-plugging of CPUs and memory as a key feature, using the
+> ACPI OSPM model.  Essentially, the customer buys a system with
+> a number of slots and pays for filling one or more of them up
+> front.  As the need for capacity increases, CPUs and/or RAM gets
+> enabled; i.e., you have spare capacity that you buy as you need
+> it.  If you use up all the CPUs and RAM you have, you buy more
+> cards, fill the additional slots, and turn on what you need.  This
+> is very akin to the virtual machine model, but done with real hardwar=
+e
+> instead.
 
-I've done some corrections in the following commit for this report:
-https://github.com/zetalog/acpica/commit/f86ad0858eacfe890cbeae43846da2638c389c1c
-All other utilities related corrections are done in:
-https://github.com/zetalog/acpica/commit/06fb69ea0e4c47edc91544a90a69b983fd161963
-And the patches are now part of the 201501 release materials pending for review:
-https://github.com/acpica/acpica/pull/61
+There is another important user case for RAS, systems running critical
+missions such as bank billing system, system like that need high
+reliability that the machine can't be stopped.
 
-I think I should also let you know my opinions against this kind of no usage functions.
+So when error happened on hardware including CPU/memory DIMM on such
+machines, we need to replace them at run-time.
 
-IMO, what you've done is useless and make source tree maintenance more difficult than anyone expects.
+>
+> Whether or not this product is still being sold, I do not know.  I
+> have not worked for that company for eight years, and they were just
+> coming out as I left.  Regardless, this sort of hot-plug does make
+> sense in the server world, and has been used in shipping products.
 
-Kernel compilation contains "strip" step which can automatically remove symbols without any references on them.
-So we don't need to maintain this in the source level.
-And there is a defect in maintaining it in the source level.
+I think it still will be, Linux developers put lots of effort to
+enable memory hotplug and computer node hotplug in the kernel [1], and
+the code already merged into mainline.
 
-A module could have native variables and functions accessing these native variables should be bounded to the same source file.
-So if there are 2 functions using one native variables in a source file like the following example:
+[1]:
+http://events.linuxfoundation.org/sites/events/files/lcjp13_chen.pdf
 
-a.c
-
-static int a;
-
-int get_a(void)
-{
-	return a;
-}
-
-void set_a(int a)
-{
-	a = v;
-}
-
-If get_a is only used by a module enabled with CONFIG_DEVICE_X and set_a is only used by a module enabled with CONFIG_DEVICE_Y.
-Should we do such modifications?
-
-static int a;
-
-#ifdef CONFIG_DEVICE_X
-int get_a(void)
-{
-	return a;
-}
-#endif
-
-#ifdef CONFIG_DEVICE_Y
-void set_a(int a)
-{
-	a = v;
-}
-#endif
-
-I think no one will do this in the kernel.
-We simply will prepare another config itme for a.c, for example CONFIG_MODULE_A
-
-Then we will have dependencies in Kconfig:
-config DEVICE_X
-	bool
-	depends MODULE_A
-
-config DEVICE_Y
-	bool
-	depends MODULE_A
-
-And let the no user function automatically be deleted by "strip".
-Because if the references changes, the developers will need to check plenty of such "#ifdef" to correct compilation warnings...
-
-If you do want to do this in the upstream kernel, you'll find millions of functions need to be wrapped by such useless "#ifdef".
-A source file should only contain the self contained logics in it without considering the users.
-
-Thanks and best regards
--Lv
-
-> -----Original Message-----
-> From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
-> Sent: Wednesday, January 14, 2015 2:44 AM
-> To: Moore, Robert; Zheng, Lv
-> Cc: Rickard Strandqvist; Wysocki, Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH] ACPICA: rsdump: Remove some unused functions
-> 
-> Removes some functions that are not used anywhere:
-> acpi_rs_dump_irq_list() acpi_rs_dump_resource_list()
-> 
-> This was partially found by using a static code analysis program called cppcheck.
-> 
-> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-> ---
->  drivers/acpi/acpica/acresrc.h |    7 ---
->  drivers/acpi/acpica/rsdump.c  |  110 -----------------------------------------
->  2 files changed, 117 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acresrc.h b/drivers/acpi/acpica/acresrc.h
-> index 4b008e8..4a4f8af 100644
-> --- a/drivers/acpi/acpica/acresrc.h
-> +++ b/drivers/acpi/acpica/acresrc.h
-> @@ -299,13 +299,6 @@ acpi_rs_set_resource_length(acpi_rsdesc_size total_length,
->  			    union aml_resource *aml);
-> 
->  /*
-> - * rsdump
-> - */
-> -void acpi_rs_dump_resource_list(struct acpi_resource *resource);
-> -
-> -void acpi_rs_dump_irq_list(u8 * route_table);
-> -
-> -/*
->   * Resource conversion tables
->   */
->  extern struct acpi_rsconvert_info acpi_rs_convert_dma[];
-> diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
-> index c3c56b5..8bd41ec 100644
-> --- a/drivers/acpi/acpica/rsdump.c
-> +++ b/drivers/acpi/acpica/rsdump.c
-> @@ -357,116 +357,6 @@ static void acpi_rs_dump_address_common(union acpi_resource_data *resource)
-> 
->  /*******************************************************************************
->   *
-> - * FUNCTION:    acpi_rs_dump_resource_list
-> - *
-> - * PARAMETERS:  resource_list       - Pointer to a resource descriptor list
-> - *
-> - * RETURN:      None
-> - *
-> - * DESCRIPTION: Dispatches the structure to the correct dump routine.
-> - *
-> - ******************************************************************************/
-> -
-> -void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
-> -{
-> -	u32 count = 0;
-> -	u32 type;
-> -
-> -	ACPI_FUNCTION_ENTRY();
-> -
-> -	/* Check if debug output enabled */
-> -
-> -	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
-> -		return;
-> -	}
-> -
-> -	/* Walk list and dump all resource descriptors (END_TAG terminates) */
-> -
-> -	do {
-> -		acpi_os_printf("\n[%02X] ", count);
-> -		count++;
-> -
-> -		/* Validate Type before dispatch */
-> -
-> -		type = resource_list->type;
-> -		if (type > ACPI_RESOURCE_TYPE_MAX) {
-> -			acpi_os_printf
-> -			    ("Invalid descriptor type (%X) in resource list\n",
-> -			     resource_list->type);
-> -			return;
-> -		}
-> -
-> -		/* Sanity check the length. It must not be zero, or we loop forever */
-> -
-> -		if (!resource_list->length) {
-> -			acpi_os_printf
-> -			    ("Invalid zero length descriptor in resource list\n");
-> -			return;
-> -		}
-> -
-> -		/* Dump the resource descriptor */
-> -
-> -		if (type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-> -			acpi_rs_dump_descriptor(&resource_list->data,
-> -						acpi_gbl_dump_serial_bus_dispatch
-> -						[resource_list->data.
-> -						 common_serial_bus.type]);
-> -		} else {
-> -			acpi_rs_dump_descriptor(&resource_list->data,
-> -						acpi_gbl_dump_resource_dispatch
-> -						[type]);
-> -		}
-> -
-> -		/* Point to the next resource structure */
-> -
-> -		resource_list = ACPI_NEXT_RESOURCE(resource_list);
-> -
-> -		/* Exit when END_TAG descriptor is reached */
-> -
-> -	} while (type != ACPI_RESOURCE_TYPE_END_TAG);
-> -}
-> -
-> -/*******************************************************************************
-> - *
-> - * FUNCTION:    acpi_rs_dump_irq_list
-> - *
-> - * PARAMETERS:  route_table     - Pointer to the routing table to dump.
-> - *
-> - * RETURN:      None
-> - *
-> - * DESCRIPTION: Print IRQ routing table
-> - *
-> - ******************************************************************************/
-> -
-> -void acpi_rs_dump_irq_list(u8 * route_table)
-> -{
-> -	struct acpi_pci_routing_table *prt_element;
-> -	u8 count;
-> -
-> -	ACPI_FUNCTION_ENTRY();
-> -
-> -	/* Check if debug output enabled */
-> -
-> -	if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_RESOURCES, _COMPONENT)) {
-> -		return;
-> -	}
-> -
-> -	prt_element = ACPI_CAST_PTR(struct acpi_pci_routing_table, route_table);
-> -
-> -	/* Dump all table elements, Exit on zero length element */
-> -
-> -	for (count = 0; prt_element->length; count++) {
-> -		acpi_os_printf("\n[%02X] PCI IRQ Routing Table Package\n",
-> -			       count);
-> -		acpi_rs_dump_descriptor(prt_element, acpi_rs_dump_prt);
-> -
-> -		prt_element = ACPI_ADD_PTR(struct acpi_pci_routing_table,
-> -					   prt_element, prt_element->length);
-> -	}
-> -}
-> -
-> -/*******************************************************************************
-> - *
->   * FUNCTION:    acpi_rs_out*
->   *
->   * PARAMETERS:  title       - Name of the resource field
-> --
-> 1.7.10.4
-
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
