@@ -1,66 +1,78 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC Patch 16/19] ACPI: Introduce helper function
- acpi_dev_filter_resource_type()
-Date: Thu, 15 Jan 2015 22:30:50 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1501152228560.5526@nanos>
-References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1420684386-5975-17-git-send-email-jiang.liu@linux.intel.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 15 Jan 2015 15:33:00 -0600
+Message-ID: <54B8320C.5090201@amd.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:58522 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751566AbbAOVbN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Jan 2015 16:31:13 -0500
-In-Reply-To: <1420684386-5975-17-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-bn1bon0134.outbound.protection.outlook.com ([157.56.111.134]:46496
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932157AbbAOVdS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2015 16:33:18 -0500
+In-Reply-To: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Thu, 8 Jan 2015, Jiang Liu wrote:
+On 1/14/2015 9:04 AM, Hanjun Guo wrote:
+> Hi,
+>
+> This is the v7 of ACPI core patches for ARM64 based on ACPI 5.1
+>
+> updates from v6:
+>    - Rebased on top of 3.19-rc4, add Mack Salter's patch to use
+>      the early_ioremap after paging_init() for ACPI table mappings;
+>
+>    - Two patches about converting apic_id to phys_id to make it arch
+>      agnostic were already merged into RC4 by Rafael.
+>
+>    - Split patch "Parse FADT table to get PSCI flags for PSCI init"
+>      into two as Lorenzo's suggestion, also fix typo and lack of __init
+>      for psci_0_2_set_functions() which is spotted by Lorenzo.
+>
+>    - Add Tested-by from Yijing Wang.
+>
+> previous version is here:
+> v6: https://lkml.org/lkml/2015/1/4/40
+>
+> 1. Why we need ACPI on ARM64?
+>
+>    - Grant already posted a blog about this, and stated clearly
+>      why we need ACPI on ARM64:
+>
+>      http://www.secretlab.ca/archives/151
+>
+>
+> 2. What we need to do before the arm64 ACPI core patches
+>     could be merged into the kernel?
+>
+>    - Al Stone posted a TODO list and updates v2 for the
+>      progress we made:
+>      http://www.spinics.net/lists/arm-kernel/msg390069.html
+>
+>    - so from the progress we can see that we already finished
+>      most of the items, and _OSI we got a plan to fix it, RFC
+>      patch is on the way.
+>
+>
+> This patch set was tested on FVP by Fuwei, and booted ok as expected.
+> (No functional change since last version)
+>
+> Thanks
+> Hanjun
+>
 
-> Introduce helper function acpi_dev_filter_resource_type(), which may
-> be used by acpi_dev_get_resources() to filer out resource based on
-> resource type.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  drivers/acpi/resource.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h    |    1 +
->  2 files changed, 55 insertions(+)
-> 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 54204ac94f8e..8ea7c26d6915 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -570,3 +570,57 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
->  	return c.count;
->  }
->  EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
-> +
-> +/**
-> + * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
-> + *				   types
-> + * @ares: Input ACPI resource object.
-> + * @arg: Valid resource types of IORESOURCE_XXX
-> + *
-> + * This is a hepler function to support acpi_dev_get_resources(), which filters
-> + * ACPI resource objects according to resource types.
-> + */
-> +int acpi_dev_filter_resource_type(struct acpi_resource *ares, void *arg)
+The V7 patch series has also been re-tested on AMD Seattle server 
+platform along with the "Introduce ACPI support for ahci_platform 
+driver" patch series here (https://lkml.org/lkml/2015/1/5/662).
 
-Why is the filter a void pointer instead of an simple unsigned long?
-That does not make any sense as you convert it to unsigned long right away:
-
-> +{
-> +	unsigned long type = 0, types = (unsigned long)arg;
-
-So this should be:
-
-int acpi_dev_filter_resource_type(struct acpi_resource *ares, unsigned long type_mask)
-
-or something like that.
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
 Thanks,
 
-	tglx
+Suravee
+
