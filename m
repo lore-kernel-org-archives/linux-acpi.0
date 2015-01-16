@@ -1,94 +1,154 @@
-From: Tom Lendacky <thomas.lendacky@amd.com>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Fri, 16 Jan 2015 11:12:20 -0600
-Message-ID: <54B94674.10206@amd.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <2198633.UpIyI82Yon@wuerfel> <20150116153320.GU7091@arm.com>
- <1809831.d9GPSfLUEN@wuerfel> <20150116154913.GW7091@arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Fri, 16 Jan 2015 18:20:32 +0100
+Message-ID: <27357047.rXTtZ4bAbJ@wuerfel>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <20150115182346.GE2329@e104818-lin.cambridge.arm.com> <20150116162944.EE0E3C40BF1@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150116154913.GW7091@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.130]:54284 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416AbbAPRU5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 12:20:57 -0500
+In-Reply-To: <20150116162944.EE0E3C40BF1@trevor.secretlab.ca>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linaro-acpi@lists.linaro.org
+Cc: Grant Likely <grant.likely@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 
-On 01/16/2015 09:49 AM, Will Deacon wrote:
-> On Fri, Jan 16, 2015 at 03:40:28PM +0000, Arnd Bergmann wrote:
->> On Friday 16 January 2015 15:33:20 Will Deacon wrote:
->>> On Fri, Jan 16, 2015 at 03:14:13PM +0000, Arnd Bergmann wrote:
->>>> On Friday 16 January 2015 14:55:45 Will Deacon wrote:
->>>>> On Fri, Jan 16, 2015 at 02:45:30PM +0000, Tom Lendacky wrote:
->>>>>> I have tested ACPI-enablement patches for the amd-xgbe/amd-xgbe-phy
->>>>>> drivers that I'm about to submit upstream with the V7 patch series
->>>>>> on the AMD Seattle server platform. There does not appear to be support
->>>>>> for the _CCA attribute in this patch series. The amd-xgbe driver will
->>>>>> setup the device domain and cache attributes based on the presence of
->>>>>> this attribute, but it requires the arch support to assign the proper
->>>>>> DMA operations in order for it to all work correctly.
->>>>>>
->>>>>> Overriding the _CCA attribute in the driver, I was able to successfully
->>>>>> test the driver and this patch series.
->>>>>
->>>>> Hopefully this will all be addressed when the IORT parts of ACPI have
->>>>> settled down (the current proposal allows for these attributes to be
->>>>> described as well as their interaction with things like IOMMUs).
->>>>>
->>>>> In the meantime, are you falling back to non-coherent DMA? If so, what
->>>>> attributes have you settled on? We need to be really careful not to
->>>>> corrupt data during cache invalidatation when mapping a non-coherent
->>>>> buffer for the CPU.
->>>>
->>>> I think in case of ACPI we should use cache-coherent as the default,
->>>> as this is what all servers will use for DMA masters.
->>>
->>> I don't agree. The dma-coherent we have for device-tree isn't nearly
->>> expressive enough for the kind of things we want to describe and there's
->>> no reason to make the same mistake in ACPI, especially as it *is* being
->>> addressed by IORT. If we run with _CCA, then we're going to be stuck
->>> supporting something that isn't fit for purpose and which will likely be
->>> abused to describe both fixed features of the system and software
->>> configuration preferences. It also opens up a can of worms if we have to
->>> support a mixture of _CCA and IORT in the future.
->>>
->>> Or are you suggesting that we ignore _CCA and just assume cache-coherency?
->>> In that case, how do we support systems that aren't cache coherent, where
->>> not being cache coherent includes devices that require either device or
->>> IOMMU configuration to enable cacheable transactions?
->>
->> I was thinking we'd ignore _CCA because as you say a simple on/off flag
->> would not be enough to describe what we have to do for noncoherent
->> devices. I can't think of any reason why a server hardware would include
->> noncoherent devices, so if they are configurable they should be configured
->> into coherent mode by the firmware.
->
-> The on-board ethernet on Seattle requires the driver to program its AXI
-> attributes, so configuring it to be a coherent master actually means
-> "program the same cacheable AXI settings as you have on the CPU". That
-> sounds like Linux should be doing it to me, but even if the firmware takes
-> a guess at "normal cacheable WBRWA", it's not clear to me whether that
-> register persists across things like adapter reset.
->
-> Tom?
+On Friday 16 January 2015 16:29:44 Grant Likely wrote:
+> > > Instead, keeping these patches out means that hardware is getting
+> > > developed and tested against Fedora, early access RHEL and Linaro
+> > > kernels. It means that we're abdicating on any influence mainline has
+> > > over how those platforms are developed. The longer these patches stay
+> > > out of mainline, the greater the potential for delta between what is
+> > > in the vendor kernels and what we accept into mainline.
+> > 
+> > I'm not buying this argument. Putting pressure on maintainers to merge
+> > something because Fedora or some other distro has merged them is not the
+> > right approach. If such Linux vendors ignore arguments on the list just
+> > for the sake of providing ACPI support, there is a high chance that they
+> > will accept non-standard code any other time when the kernel community
+> > disagrees.
 
-The registers that contain the AxDOMAIN and AxCACHE settings do not
-persist across an adapter reset.
+Actually there is strong precedence for merging things because distros
+felt it was necessary. That's how we ended up with drivers/staging
+in the first place.
 
-Tom
+It's not the nicest way to merge stuff, but it's something we cannot
+ignore. Unfortunately it seems we already have the nonstandard code,
+as Fedora includes the APM Mustang support that in previous reviews
+we have concluded would not be suitable for upstream because it (in
+particular the PCI support) is too far from SBSA.
 
->
-> There's also the situation where the firmware hasn't initialised the
-> register and Linux realises this during probe. What should it do then?
->
-> Will
->
+> > > 4. Set clear expectations for those providing ACPI for use with Linux
+> > >    * We have a document that covers what we know so far, and will
+> > > continue to expand it. Also talking with the SBBR folks to move
+> > > relevant requirements into the SBBR doc.
+> > 
+> > Moving bits of it into SBBR is a good long term plan but it should not
+> > prevent the merging. However, I'd like to see more vendors ok'ing the
+> > kernel document.
+
+Agreed.
+
+> > > 5. Platform support patches need verification and review
+> > >    * ACPI core works on at least the Foundation model, Juno, APM
+> > > Mustang, and AMD Seattle
+> > >    * There still are driver patches being discussed. See Al's summary
+> > > for details
+> > >    * As I argued above, the state of driver patches isn't going to be
+> > 
+> > We are still lacking here. To quote Al, "First version for AMD Seattle
+> > has been posted to the public linaro-acpi mailing list for initial
+> > review". Sorry but I don't follow linaro-acpi list. I don't know what's
+> > in those patches and I can't tell which subsystems they touch, whether
+> > maintainers agree with them. So in conclusion, I'm not confident the
+> > arm64 hardware ACPI story looks that great yet.
+> > 
+> > As for Juno and foundation models, I don't consider them server
+> > platforms.
+
+I did a large part of the review. I raised some important concerns about
+the Seattle port, and addressing those will result in incompatible
+changes, but I did not see any show-stoppers there.
+
+To summarize, the main concerns were:
+
+- AMD specific bindings for generic devices (ARM pl061, pl022, ...)
+- network driver using _DSD with a binding that is incompatible with
+  the existing DT binding. I believe this one was getting addressed,
+  but I have not seen an update.
+
+> > > 6. How does the kernel handle_DSD usage?
+> > > While important, these issues are separate from whether or not to
+> > > merge the core aarch64 code. This work was defined and driven by Intel
+> > > for their embedded platforms, and it is already in mainline. Keeping
+> > > aarch64 support out isn't going to prevent drivers using it from being
+> > > merged. I don't think this should be a reason for blocking this
+> > > series.
+> > 
+> > Intel folk is coming from the other direction, relatively standard
+> > hardware getting slightly more non-standard and they need a few bits
+> > added in _DSD. On ARM, we have completely non-standard hardware with DT
+> > used to describe complex topology (clocks, pin controls, voltage
+> > regulators etc.) with a high risk that vendors see _DSD as a work around
+> > standardising hardware or doing it properly in ACPI (whatever that
+> > means, AML?).
+> 
+> Doing it properly in ACPI merely means giving the drivers the data
+> and/or methods that it needs. The ACPI spec does define some methods to
+> be used by OSPM, but everything else is completely arbitrary, and always
+> has been.
+> 
+> The *only* thing that _DSD does new is to define a specific format for
+> adding key-value properties to an ACPI object that follow the rules of
+> properties. Apple Mac hardware has done exactly the same thing for
+> years, except it stuffed that stuff into the _DSM method.
+> 
+> So, _DSD is no less "doing it property in ACPI" than AML methods would
+> be. In either case it is the responsibility of the driver to know what
+> extra properties/methods might be attached to the device, and to know
+> what to do with those properties/methods. The core OS doesn't care, and
+> won't touch them.
+
+What about PRP0001? Do we recommend against using it or should we try
+to get everyone to use it for devices that already have a DT binding?
+
+One result of the Seattle review was a patch to use class codes for
+standard devices like AHCI. This is great and I think it's being merged
+now, but we still have to figure out how to do this for standard
+licensed IP blocks that don't already have a PCI class code, and whose
+responsibility it should be to define a binding for such devices.
+
+> > > 7. Why is ACPI required?
+> > > I hope I've addressed this[1], but discussion continues.
+> > > 
+> > > [1] http://www.spinics.net/lists/arm-kernel/msg389955.html
+> > 
+> > That's great. I see this as a good reference for the future.
+> > 
+> > To complete the picture, we probably need a "Why *not* ACPI on ARM" blog
+> > as well explaining when ACPI is *not* suitable (e.g. no SBSA
+> > compliance). The arm-acpi.txt covers the ACPI requirements from the
+> > kernel perspective and, by contrast, DT would be better suited for
+> > certain platforms. The way you present it is that ACPI solves lots of
+> > problems that DT doesn't but not necessarily where the ACPI limitations
+> > are (vs DT).
+> 
+> I thought I was pretty clear in that document that ACPI is only
+> preferred for the general purpose ecosystem (OS vendor and HW vendor are
+> separate companies, and selected by the end user). Everywhere else the
+> preference is DT. However, I can write more on this topic and make it
+> clear that I'm talking about SBSA hardware. It will probably take me a
+> week or so to get that written. Certainly before we're in Hong Kong for
+> Connect.
+
+I think it would be helpful for the purpose of merging the patches if
+that statement can be stronger and say that DT is required for devices
+other than SBSA hardware, rather than recommended. We can always relax
+the rule later if there is a good reason, but it's hard to make it
+stricter after the fact.
+
+	Arnd
