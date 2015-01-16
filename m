@@ -1,40 +1,77 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: About 2 ACPICA table patches
-Date: Fri, 16 Jan 2015 00:44:38 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B7CAD@SHSMSX101.ccr.corp.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch 16/19] ACPI: Introduce helper function acpi_dev_filter_resource_type()
+Date: Fri, 16 Jan 2015 08:58:51 +0800
+Message-ID: <54B8624B.1050705@linux.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1420684386-5975-17-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1501152228560.5526@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Purdila, Octavian" <octavian.purdila@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:10327 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753128AbbAPA6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jan 2015 19:58:54 -0500
+In-Reply-To: <alpine.DEB.2.11.1501152228560.5526@nanos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi, Octavian
+On 2015/1/16 5:30, Thomas Gleixner wrote:
+> On Thu, 8 Jan 2015, Jiang Liu wrote:
+> 
+>> Introduce helper function acpi_dev_filter_resource_type(), which may
+>> be used by acpi_dev_get_resources() to filer out resource based on
+>> resource type.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>>  drivers/acpi/resource.c |   54 +++++++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/acpi.h    |    1 +
+>>  2 files changed, 55 insertions(+)
+>>
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index 54204ac94f8e..8ea7c26d6915 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -570,3 +570,57 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+>>  	return c.count;
+>>  }
+>>  EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+>> +
+>> +/**
+>> + * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
+>> + *				   types
+>> + * @ares: Input ACPI resource object.
+>> + * @arg: Valid resource types of IORESOURCE_XXX
+>> + *
+>> + * This is a hepler function to support acpi_dev_get_resources(), which filters
+>> + * ACPI resource objects according to resource types.
+>> + */
+>> +int acpi_dev_filter_resource_type(struct acpi_resource *ares, void *arg)
+> 
+> Why is the filter a void pointer instead of an simple unsigned long?
+> That does not make any sense as you convert it to unsigned long right away:
+> 
+>> +{
+>> +	unsigned long type = 0, types = (unsigned long)arg;
+> 
+> So this should be:
+> 
+> int acpi_dev_filter_resource_type(struct acpi_resource *ares, unsigned long type_mask)
+> 
+> or something like that.
+Hi Thomas,
+	I used void * instead of unsigned long for type_mask so
+acpi_dev_filter_resource_type() could directly used by
+acpi_dev_get_resources(). Otherwise we need to use something like
+acpi_dev_get_resources(..., (void *)acpi_dev_filter_resource_type, ...).
+I will find a way to solve this:)
+Regards!
+Gerry
 
-I noticed there are 2 patches you've sent to the community.
-But unfortunately I didn't find them in my mailbox.
-Let me comment you here.
-
-https://patchwork.kernel.org/patch/5501621/
-This patch seem to be correct.
-But Rafael should merge it directly via Linux because acpi_unload_table_id() is not in the ACPICA upstream.
-We expect the OSPMs to use acpi_unload_parent_table() instead.
-I have a divergences reduction series to achieve the transition.
-But they are pending for review for almost half a year.
-If you have an environment to test.
-Could you help to test this again?
-I can prepare the patchset for you.
-
-https://patchwork.kernel.org/patch/5501561/
-This patch is correct, I've put it in the 201501 ACPICA release materials for review:
-https://patchwork.kernel.org/patch/5501621/
-The patch can be found at:
-https://github.com/zetalog/acpica/commit/281ff873
-So if it is merged, you'll see it in the upstream after 201501 ACPICA release cycle.
-And hence Linux trees doesn't need to merge this patch directly.
-
-Thanks and best regards
--Lv
+> 
+> Thanks,
+> 
+> 	tglx
+> 
