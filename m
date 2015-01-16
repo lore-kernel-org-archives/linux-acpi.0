@@ -1,154 +1,352 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Fri, 16 Jan 2015 18:20:32 +0100
-Message-ID: <27357047.rXTtZ4bAbJ@wuerfel>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <20150115182346.GE2329@e104818-lin.cambridge.arm.com> <20150116162944.EE0E3C40BF1@trevor.secretlab.ca>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7 10/17] ARM64 / ACPI: Parse MADT for SMP initialization
+Date: Fri, 16 Jan 2015 18:18:36 +0000
+Message-ID: <20150116181836.GA15836@red-moon>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <1421247905-3749-11-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:54284 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416AbbAPRU5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 12:20:57 -0500
-In-Reply-To: <20150116162944.EE0E3C40BF1@trevor.secretlab.ca>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:36518 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbbAPSSt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 13:18:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1421247905-3749-11-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Grant Likely <grant.likely@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei.com
 
-On Friday 16 January 2015 16:29:44 Grant Likely wrote:
-> > > Instead, keeping these patches out means that hardware is getting
-> > > developed and tested against Fedora, early access RHEL and Linaro
-> > > kernels. It means that we're abdicating on any influence mainline has
-> > > over how those platforms are developed. The longer these patches stay
-> > > out of mainline, the greater the potential for delta between what is
-> > > in the vendor kernels and what we accept into mainline.
-> > 
-> > I'm not buying this argument. Putting pressure on maintainers to merge
-> > something because Fedora or some other distro has merged them is not the
-> > right approach. If such Linux vendors ignore arguments on the list just
-> > for the sake of providing ACPI support, there is a high chance that they
-> > will accept non-standard code any other time when the kernel community
-> > disagrees.
+Hi Hanjun,
 
-Actually there is strong precedence for merging things because distros
-felt it was necessary. That's how we ended up with drivers/staging
-in the first place.
+On Wed, Jan 14, 2015 at 03:04:58PM +0000, Hanjun Guo wrote:
 
-It's not the nicest way to merge stuff, but it's something we cannot
-ignore. Unfortunately it seems we already have the nonstandard code,
-as Fedora includes the APM Mustang support that in previous reviews
-we have concluded would not be suitable for upstream because it (in
-particular the PCI support) is too far from SBSA.
+[...]
 
-> > > 4. Set clear expectations for those providing ACPI for use with Linux
-> > >    * We have a document that covers what we know so far, and will
-> > > continue to expand it. Also talking with the SBBR folks to move
-> > > relevant requirements into the SBBR doc.
-> > 
-> > Moving bits of it into SBBR is a good long term plan but it should not
-> > prevent the merging. However, I'd like to see more vendors ok'ing the
-> > kernel document.
-
-Agreed.
-
-> > > 5. Platform support patches need verification and review
-> > >    * ACPI core works on at least the Foundation model, Juno, APM
-> > > Mustang, and AMD Seattle
-> > >    * There still are driver patches being discussed. See Al's summary
-> > > for details
-> > >    * As I argued above, the state of driver patches isn't going to be
-> > 
-> > We are still lacking here. To quote Al, "First version for AMD Seattle
-> > has been posted to the public linaro-acpi mailing list for initial
-> > review". Sorry but I don't follow linaro-acpi list. I don't know what's
-> > in those patches and I can't tell which subsystems they touch, whether
-> > maintainers agree with them. So in conclusion, I'm not confident the
-> > arm64 hardware ACPI story looks that great yet.
-> > 
-> > As for Juno and foundation models, I don't consider them server
-> > platforms.
-
-I did a large part of the review. I raised some important concerns about
-the Seattle port, and addressing those will result in incompatible
-changes, but I did not see any show-stoppers there.
-
-To summarize, the main concerns were:
-
-- AMD specific bindings for generic devices (ARM pl061, pl022, ...)
-- network driver using _DSD with a binding that is incompatible with
-  the existing DT binding. I believe this one was getting addressed,
-  but I have not seen an update.
-
-> > > 6. How does the kernel handle_DSD usage?
-> > > While important, these issues are separate from whether or not to
-> > > merge the core aarch64 code. This work was defined and driven by Intel
-> > > for their embedded platforms, and it is already in mainline. Keeping
-> > > aarch64 support out isn't going to prevent drivers using it from being
-> > > merged. I don't think this should be a reason for blocking this
-> > > series.
-> > 
-> > Intel folk is coming from the other direction, relatively standard
-> > hardware getting slightly more non-standard and they need a few bits
-> > added in _DSD. On ARM, we have completely non-standard hardware with DT
-> > used to describe complex topology (clocks, pin controls, voltage
-> > regulators etc.) with a high risk that vendors see _DSD as a work around
-> > standardising hardware or doing it properly in ACPI (whatever that
-> > means, AML?).
+> diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
+> index 780f82c..bf22650 100644
+> --- a/arch/arm64/include/asm/smp.h
+> +++ b/arch/arm64/include/asm/smp.h
+> @@ -39,9 +39,10 @@ extern void show_ipi_list(struct seq_file *p, int prec);
+>  extern void handle_IPI(int ipinr, struct pt_regs *regs);
 > 
-> Doing it properly in ACPI merely means giving the drivers the data
-> and/or methods that it needs. The ACPI spec does define some methods to
-> be used by OSPM, but everything else is completely arbitrary, and always
-> has been.
+>  /*
+> - * Setup the set of possible CPUs (via set_cpu_possible)
+> + * Discover the set of possible CPUs and determine their
+> + * SMP operations.
+>   */
+> -extern void smp_init_cpus(void);
+> +extern void of_smp_init_cpus(void);
 > 
-> The *only* thing that _DSD does new is to define a specific format for
-> adding key-value properties to an ACPI object that follow the rules of
-> properties. Apple Mac hardware has done exactly the same thing for
-> years, except it stuffed that stuff into the _DSM method.
+>  /*
+>   * Provide a function to raise an IPI cross call on CPUs in callmap.
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 4177758..55d99d9 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -24,6 +24,10 @@
+>  #include <linux/bootmem.h>
+>  #include <linux/smp.h>
 > 
-> So, _DSD is no less "doing it property in ACPI" than AML methods would
-> be. In either case it is the responsibility of the driver to know what
-> extra properties/methods might be attached to the device, and to know
-> what to do with those properties/methods. The core OS doesn't care, and
-> won't touch them.
+> +#include <asm/smp_plat.h>
+> +#include <asm/cputype.h>
+> +#include <asm/cpu_ops.h>
 
-What about PRP0001? Do we recommend against using it or should we try
-to get everyone to use it for devices that already have a DT binding?
+Alphabetical order please.
 
-One result of the Seattle review was a patch to use class codes for
-standard devices like AHCI. This is great and I think it's being merged
-now, but we still have to figure out how to do this for standard
-licensed IP blocks that don't already have a PCI class code, and whose
-responsibility it should be to define a binding for such devices.
-
-> > > 7. Why is ACPI required?
-> > > I hope I've addressed this[1], but discussion continues.
-> > > 
-> > > [1] http://www.spinics.net/lists/arm-kernel/msg389955.html
-> > 
-> > That's great. I see this as a good reference for the future.
-> > 
-> > To complete the picture, we probably need a "Why *not* ACPI on ARM" blog
-> > as well explaining when ACPI is *not* suitable (e.g. no SBSA
-> > compliance). The arm-acpi.txt covers the ACPI requirements from the
-> > kernel perspective and, by contrast, DT would be better suited for
-> > certain platforms. The way you present it is that ACPI solves lots of
-> > problems that DT doesn't but not necessarily where the ACPI limitations
-> > are (vs DT).
+> +
+>  int acpi_noirq;                        /* skip ACPI IRQ initialization */
+>  int acpi_disabled;
+>  EXPORT_SYMBOL(acpi_disabled);
+> @@ -31,6 +35,8 @@ EXPORT_SYMBOL(acpi_disabled);
+>  int acpi_pci_disabled;         /* skip ACPI PCI scan and IRQ initialization */
+>  EXPORT_SYMBOL(acpi_pci_disabled);
 > 
-> I thought I was pretty clear in that document that ACPI is only
-> preferred for the general purpose ecosystem (OS vendor and HW vendor are
-> separate companies, and selected by the end user). Everywhere else the
-> preference is DT. However, I can write more on this topic and make it
-> clear that I'm talking about SBSA hardware. It will probably take me a
-> week or so to get that written. Certainly before we're in Hong Kong for
-> Connect.
+> +static int enabled_cpus;       /* Processors (GICC) with enabled flag in MADT */
 
-I think it would be helpful for the purpose of merging the patches if
-that statement can be stronger and say that DT is required for devices
-other than SBSA hardware, rather than recommended. We can always relax
-the rule later if there is a good reason, but it's hard to make it
-stricter after the fact.
+Needed for hotplug ? Remember that each patch must be self-contained.
 
-	Arnd
+This patch is clearly not, if I did not know you need to carry this
+stuff over after boot for physical cpu hotplugging it would be hard to
+understand most of this code.
+
+Think about that for anyone looking at your commit-log as a stand alone
+entity in the kernel history.
+
+> +
+>  /*
+>   * __acpi_map_table() will be called before page_init(), so early_ioremap()
+>   * or early_memremap() should be called here to for ACPI table mapping.
+> @@ -51,6 +57,134 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+>         early_memunmap(map, size);
+>  }
+> 
+> +/**
+> + * acpi_map_gic_cpu_interface - generates a logical cpu number
+> + * and map to MPIDR represented by GICC structure
+> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
+> + * @enabled: this cpu is enabled or not
+> + *
+> + * Returns the logical cpu number which maps to MPIDR
+> + */
+> +static int acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
+
+It would be __init, except that you might need it after boot for
+hotplug, correct ?
+
+> +{
+> +       int cpu;
+> +
+> +       if (mpidr == INVALID_HWID) {
+> +               pr_info("Skip MADT cpu entry with invalid MPIDR\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       total_cpus++;
+> +       if (!enabled)
+> +               return -EINVAL;
+> +
+> +       if (enabled_cpus >=  NR_CPUS) {
+> +               pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
+> +                       NR_CPUS, total_cpus, mpidr);
+> +               return -EINVAL;
+> +       }
+> +
+> +       /* No need to check duplicate MPIDRs for the first CPU */
+> +       if (enabled_cpus) {
+> +               /*
+> +                * Duplicate MPIDRs are a recipe for disaster. Scan
+> +                * all initialized entries and check for
+> +                * duplicates. If any is found just ignore the CPU.
+> +                */
+> +               for_each_possible_cpu(cpu) {
+> +                       if (cpu_logical_map(cpu) == mpidr) {
+> +                               pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+> +                                      mpidr);
+> +                               return -EINVAL;
+> +                       }
+> +               }
+> +
+> +               /* allocate a logical cpu id for the new comer */
+> +               cpu = cpumask_next_zero(-1, cpu_possible_mask);
+> +       } else {
+> +               /*
+> +                * First GICC entry must be BSP as ACPI spec said
+> +                * in section 5.2.12.15
+> +                */
+> +               if  (cpu_logical_map(0) != mpidr) {
+> +                       pr_err("First GICC entry with MPIDR 0x%llx is not BSP\n",
+> +                              mpidr);
+> +                       return -EINVAL;
+> +               }
+> +
+> +               /*
+> +                * boot_cpu_init() already hold bit 0 in cpu_present_mask
+
+You mean cpu_possible_mask ? That's what you allocate from above.
+
+> +                * for BSP, no need to allocate again.
+> +                */
+> +               cpu = 0;
+> +       }
+> +
+> +       /* CPU 0 was already initialized */
+> +       if (cpu) {
+> +               cpu_ops[cpu] = cpu_get_ops(acpi_psci_present() ? "psci" : NULL);
+> +               if (!cpu_ops[cpu])
+> +                       return -EINVAL;
+> +
+> +               if (cpu_ops[cpu]->cpu_init(NULL, cpu))
+> +                       return -EOPNOTSUPP;
+> +
+> +               /* map the logical cpu id to cpu MPIDR */
+> +               cpu_logical_map(cpu) = mpidr;
+> +
+> +               set_cpu_possible(cpu, true);
+> +       } else {
+> +               /* get cpu0's ops, no need to return if ops is null */
+> +               cpu_ops[0] = cpu_get_ops(acpi_psci_present() ? "psci" : NULL);
+> +       }
+
+I do not see much point in calling cpu_get_ops with NULL, and adding
+the check in it to return NULL when the parameter is NULL.
+
+What would you expect from cpu_get_ops when called with NULL other than
+a NULL pointer ?
+
+You could move:
+
+cpu_ops[cpu] = cpu_get_ops(acpi_psci_present() ? "psci" : NULL);
+
+out of the if and remove the else, do not know if it makes code clearer,
+shorter for certain.
+
+> +
+> +       enabled_cpus++;
+> +       return cpu;
+> +}
+> +
+> +static int __init
+> +acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+> +                               const unsigned long end)
+> +{
+> +       struct acpi_madt_generic_interrupt *processor;
+> +
+> +       processor = (struct acpi_madt_generic_interrupt *)header;
+> +
+> +       if (BAD_MADT_ENTRY(processor, end))
+> +               return -EINVAL;
+> +
+> +       acpi_table_print_madt_entry(header);
+> +
+> +       acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITMASK,
+> +               processor->flags & ACPI_MADT_ENABLED);
+> +
+> +       return 0;
+> +}
+> +
+> +/* Parse GIC cpu interface entries in MADT for SMP init */
+> +void __init acpi_smp_init_cpus(void)
+> +{
+> +       int count;
+> +
+> +       /*
+> +        * do a partial walk of MADT to determine how many CPUs
+> +        * we have including disabled CPUs, and get information
+> +        * we need for SMP init
+> +        */
+> +       count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+> +                       acpi_parse_gic_cpu_interface, 0);
+> +
+> +       if (!count) {
+> +               pr_err("No GIC CPU interface entries present\n");
+> +               return;
+> +       } else if (count < 0) {
+> +               pr_err("Error parsing GIC CPU interface entry\n");
+> +               return;
+> +       }
+> +
+> +       /* Make boot-up look pretty */
+> +       pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+> +}
+> +
+>  static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>  {
+>         struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> @@ -62,8 +196,20 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>          * to get arm boot flags, or we will disable ACPI.
+>          */
+>         if (table->revision > 5 ||
+> -           (table->revision == 5 && fadt->minor_revision >= 1))
+> -               return 0;
+> +           (table->revision == 5 && fadt->minor_revision >= 1)) {
+> +               /*
+> +                * ACPI 5.1 only has two explicit methods to boot up SMP,
+> +                * PSCI and Parking protocol, but the Parking protocol is
+> +                * only specified for ARMv7 now, so make PSCI as the only
+> +                * way for the SMP boot protocol before some updates for
+> +                * the ACPI spec or the Parking protocol spec.
+> +                */
+> +               if (acpi_psci_present())
+> +                       return 0;
+> +
+> +               pr_warn("No PSCI support, will not bring up secondary CPUs\n");
+> +               return -EOPNOTSUPP;
+> +       }
+> 
+>         pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
+>                 table->revision, fadt->minor_revision);
+> diff --git a/arch/arm64/kernel/cpu_ops.c b/arch/arm64/kernel/cpu_ops.c
+> index cce9524..1ea7b9f 100644
+> --- a/arch/arm64/kernel/cpu_ops.c
+> +++ b/arch/arm64/kernel/cpu_ops.c
+> @@ -27,7 +27,7 @@ extern const struct cpu_operations cpu_psci_ops;
+> 
+>  const struct cpu_operations *cpu_ops[NR_CPUS];
+> 
+> -static const struct cpu_operations *supported_cpu_ops[] __initconst = {
+> +static const struct cpu_operations *supported_cpu_ops[] = {
+
+This __initconst removal should be explained either with code needing
+it or through a comment. You can't make changes with future patches
+in mind, since they may never get merged and you leave code in this
+patch incomplete.
+
+As far as I know if physical CPU hotplug can't/won't be done on ARM64 your
+patch would make changes that are not needed, and miss some changes
+that are (eg removing enabled_cpus or make it __initdata).
+
+You can't write a patch with assumptions on subsequent patches.
+
+>  #ifdef CONFIG_SMP
+>         &smp_spin_table_ops,
+>  #endif
+> @@ -35,10 +35,13 @@ static const struct cpu_operations *supported_cpu_ops[] __initconst = {
+>         NULL,
+>  };
+> 
+> -static const struct cpu_operations * __init cpu_get_ops(const char *name)
+> +const struct cpu_operations *cpu_get_ops(const char *name)
+
+Ditto.
+
+>  {
+>         const struct cpu_operations **ops = supported_cpu_ops;
+> 
+> +       if (!name)
+> +               return NULL;
+> +
+
+See above.
+
+>         while (*ops) {
+>                 if (!strcmp(name, (*ops)->name))
+>                         return *ops;
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index ef5b1e1..54e39e3 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -414,13 +414,16 @@ void __init setup_arch(char **cmdline_p)
+>         if (acpi_disabled) {
+>                 unflatten_device_tree();
+>                 psci_dt_init();
+> +               cpu_read_bootcpu_ops();
+> +#ifdef CONFIG_SMP
+> +               of_smp_init_cpus();
+> +#endif
+>         } else {
+>                 psci_acpi_init();
+> +               acpi_smp_init_cpus();
+
+With DT you call cpu_read_bootcpu_ops() and then of_smp_init_cpus()
+with acpi you have one function that does both, it is not really
+neat.
+
+Thanks,
+Lorenzo
+>         }
+> 
+> -       cpu_read_bootcpu_ops();
+>  #ifdef CONFIG_SMP
+> -       smp_init_cpus();
+>         smp_build_mpidr_hash();
+>  #endif
+> 
+> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+> index 7ae6ee0..5aaf5a4 100644
+> --- a/arch/arm64/kernel/smp.c
+> +++ b/arch/arm64/kernel/smp.c
+> @@ -323,7 +323,7 @@ void __init smp_prepare_boot_cpu(void)
+>   * cpu logical map array containing MPIDR values related to logical
+>   * cpus. Assumes that cpu_logical_map(0) has already been initialized.
+>   */
+> -void __init smp_init_cpus(void)
+> +void __init of_smp_init_cpus(void)
+>  {
+>         struct device_node *dn = NULL;
+>         unsigned int i, cpu = 1;
+> --
+> 1.9.1
+> 
+> 
