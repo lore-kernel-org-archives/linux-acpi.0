@@ -1,55 +1,40 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 15 Jan 2015 16:38:37 -0500
-Message-ID: <54B8335D.304@redhat.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com> <20150115182346.GE2329@e104818-lin.cambridge.arm.com> <54B831C9.3060700@redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: About 2 ACPICA table patches
+Date: Fri, 16 Jan 2015 00:44:38 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B7CAD@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36809 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751510AbbAOVkC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Jan 2015 16:40:02 -0500
-In-Reply-To: <54B831C9.3060700@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Purdila, Octavian" <octavian.purdila@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Grant Likely <grant.likely@linaro.org>
-Cc: Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Yijing Wang <wangyijing@huawei.com>, ACPI
 
-On 01/15/2015 04:31 PM, Al Stone wrote:
-> On 01/15/2015 11:23 AM, Catalin Marinas wrote:
->> On Thu, Jan 15, 2015 at 04:26:20PM +0000, Grant Likely wrote:
->>> On Wed, Jan 14, 2015 at 3:04 PM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->>>> This is the v7 of ACPI core patches for ARM64 based on ACPI 5.1
->>>
->>> I'll get right to the point: Can we please have this series queued up
->>> for v3.20?
->> [snip ... ]
-> 
->>> 5. Platform support patches need verification and review
->>>    * ACPI core works on at least the Foundation model, Juno, APM
->>> Mustang, and AMD Seattle
->>>    * There still are driver patches being discussed. See Al's summary
->>> for details
->>>    * As I argued above, the state of driver patches isn't going to be
->>
->> We are still lacking here. To quote Al, "First version for AMD Seattle
->> has been posted to the public linaro-acpi mailing list for initial
->> review". Sorry but I don't follow linaro-acpi list. I don't know what's
->> in those patches and I can't tell which subsystems they touch, whether
->> maintainers agree with them. So in conclusion, I'm not confident the
->> arm64 hardware ACPI story looks that great yet.
->>  
-> 
-> This is solely my fault -- too much time on processes, email, and
-> documentation, not enough time on the Seattle patches.  And not
-> enough Seattles to go around for someone else to pick up the slack.
+Hi, Octavian
 
-As an aside: a few of us have discretely assisted in ensuring that the
-right folks have access to hardware platforms over the past few months.
-If one of the upstream maintainers does not have v8 hardware and doing
-so will unblock progress please get in touch off list.
+I noticed there are 2 patches you've sent to the community.
+But unfortunately I didn't find them in my mailbox.
+Let me comment you here.
 
-Jon.
+https://patchwork.kernel.org/patch/5501621/
+This patch seem to be correct.
+But Rafael should merge it directly via Linux because acpi_unload_table_id() is not in the ACPICA upstream.
+We expect the OSPMs to use acpi_unload_parent_table() instead.
+I have a divergences reduction series to achieve the transition.
+But they are pending for review for almost half a year.
+If you have an environment to test.
+Could you help to test this again?
+I can prepare the patchset for you.
 
+https://patchwork.kernel.org/patch/5501561/
+This patch is correct, I've put it in the 201501 ACPICA release materials for review:
+https://patchwork.kernel.org/patch/5501621/
+The patch can be found at:
+https://github.com/zetalog/acpica/commit/281ff873
+So if it is merged, you'll see it in the upstream after 201501 ACPICA release cycle.
+And hence Linux trees doesn't need to merge this patch directly.
+
+Thanks and best regards
+-Lv
