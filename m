@@ -1,120 +1,82 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Fri, 16 Jan 2015 14:37:57 +0000
-Message-ID: <54B92245.6080306@arm.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org> <54B8F2E3.80306@arm.com> <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com>
+From: Tom Lendacky <thomas.lendacky@amd.com>
+Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Fri, 16 Jan 2015 08:45:30 -0600
+Message-ID: <54B9240A.7060003@amd.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com>
+ <20150115182346.GE2329@e104818-lin.cambridge.arm.com>
+ <54B8BB24.2020408@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huaw
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bon0116.outbound.protection.outlook.com ([157.56.111.116]:4768
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751312AbbAPOpq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 09:45:46 -0500
+In-Reply-To: <54B8BB24.2020408@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Grant Likely <grant.likely@linaro.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rj>
 
-On 16/01/15 13:54, Grant Likely wrote:
-> On Fri, Jan 16, 2015 at 11:15 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
->> On 14/01/15 15:05, Hanjun Guo wrote:
->>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+On 01/16/2015 01:17 AM, Hanjun Guo wrote:
+> On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 02:23, Catalin Marinas wrote:
+>> Hi Grant,
+>>
+>> On Thu, Jan 15, 2015 at 04:26:20PM +0000, Grant Likely wrote:
+>>> On Wed, Jan 14, 2015 at 3:04 PM, Hanjun Guo <hanjun.guo@linaro.org>
+>>> wrote:
+>>>> This is the v7 of ACPI core patches for ARM64 based on ACPI 5.1
 >>>
->>> ACPI kernel uses MADT table for proper GIC initialization. It needs to
->>> parse GIC related subtables, collect CPU interface and distributor
->>> addresses and call driver initialization function (which is hardware
->>> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
->>>
->>> NOTE: This commit allow to initialize GICv1/2 basic functionality.
->>> GICv2 vitalization extension, GICv3/4 and ITS are considered as next
->>> steps.
+>>> I'll get right to the point: Can we please have this series queued =
+up
+>>> for v3.20?
 >>
->> And so is GICv2m, apparently (see below).
->>
->>>
->>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>> Tested-by: Yijing Wang <wangyijing@huawei.com>
->>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>> ---
->>> +     /*
->>> +      * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
->>> +      * as default IRQ domain to allow for GSI registration and GSI to IRQ
->>> +      * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
->>> +      */
->>> +     gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->>
->> I assume you never tried to port the GICv2m driver to ACPI, right?
->> Because the above code actively prevents the GIC domain to be defined as
->> a stacked domain, making it impossible for the v2m widget to be
->> implemented on top of GIC. But maybe legacy interrupts are enough?
-> 
-> It's sufficient for what is supported right now, and easily changed in
-> a patch series to add GICv2m support. This shouldn't be a blocking
-> issue as it isn't actively dangerous. It is merely limited, and that
-> is okay.
-> 
->>> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
->>>  void __init irqchip_init(void)
->>>  {
->>>       of_irq_init(__irqchip_of_table);
->>> +
->>> +     acpi_gic_init();
->>
->> Have you realised that this file is probably compiled on multiple
->> architecture, none of which particularly cares about ACPI or the GIC?
->> This is (still) very ugly.
-> 
-> "very ugly?" That's overstating things a bit. We may quibble about the
-> name, but we're just talking about a setup hook function that may or
-> may not be implemented. How about we put acpi_irq_init() here and make
-> it an inline macro that directly calls acpi_gic_init() when ACPI is
-> enabled on AARCH64? Then the function can be extended by architectures
-> as needed, and default to an empty inline otherwise. When (if) we have
-> more than one hook that needs to be called from it, then we can
-> refactor it to be more like of_irq_init().
-> 
-> As for other architectures calling this function, but not caring about
-> ACPI, I believe it was your suggestion to put it here!  :-)
-> 
-> On Mon, 01 Sep 2014 18:35:18 +0100^M, Marc Zyngier <marc.zyngier@arm.com> wrote:
->> On 01/09/14 15:57, Hanjun Guo wrote:
->>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
->>>  void __init init_IRQ(void)
->>>  {
->>>     irqchip_init();
->>> +
->>> +   if (!handle_arch_irq)
->>> +           acpi_gic_init();
->>> +
->>
->> Why isn't this called from irqchip_init? It would seem like the logical
->> spot to probe an interrupt controller.
-> 
-> What has been done here isn't an unusual choice. We've got stuff all
-> over the kernel that may or may not be implemented depending on what
-> the architecture supports. If the function call is renamed to
-> acpi_init_irq(), are you content?
+>> Before you even ask for this, please look at the patches and realise
+>> that there is a complete lack of Reviewed-by tags on the code (well,
+>> apart from trivial Kconfig changes). In addition, the series touches=
+ on
+>> other subsystems like clocksource, irqchip, acpi and I don't see any
+>> acks from the corresponding maintainers. So even if I wanted to merg=
+e
+>
+> For the ACPI part, Rafael already said that "Having looked at the
+> patches recently, I don't see any major problems in them from the ACP=
+I
+> core perspective, so to me they are good to go." [1]
+> Is that kind of ack for this ?
+>
+> Thanks
+> Hanjun
+>
+> [1]:
+> http://lkml.iu.edu/hypermail/linux/kernel/1409.1/03363.html
+>
 
-My (full) suggestion was to do it like we've done it for DT, and I don't
-think I varied much from this point of view. Yes, calling it
-acpi_irq_init() would be a good start, and having the ACPI-compatible
-irqchips to be self-probable even better.
+I have tested ACPI-enablement patches for the amd-xgbe/amd-xgbe-phy
+drivers that I'm about to submit upstream with the V7 patch series
+on the AMD Seattle server platform. There does not appear to be support
+for the _CCA attribute in this patch series. The amd-xgbe driver will
+setup the device domain and cache attributes based on the presence of
+this attribute, but it requires the arch support to assign the proper
+DMA operations in order for it to all work correctly.
 
-<lack-of-sleep-rant>
-
-Hell, if nobody beats me to it, maybe I'll just write that code, with
-proper entry points in the various GIC drivers. Yes, this is
-infrastructure. Maybe it is grossly overdesigned. But I really spend too
-much time dealing with the crap that people are happy to pile on top of
-the GIC code to be madly enthusiastic about the general "good enough"
-attitude.
-
-</lack-of-sleep-rant>
-
-Or to put it in a slightly more diplomatic way: If ACPI is to be our
-future, can we please make the future look a bit better?
+Overriding the _CCA attribute in the driver, I was able to successfully
+test the driver and this patch series.
 
 Thanks,
+Tom
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
