@@ -1,54 +1,207 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Fri, 16 Jan 2015 15:24:15 +0800
-Message-ID: <54B8BC9F.3020106@linaro.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com> <20150115182346.GE2329@e104818-lin.cambridge.arm.com> <20150115190220.GF3043@sirena.org.uk> <20150115200437.GF24989@titan.lakedaemon.net> <20150115203159.GG3043@sirena.org.uk>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v7 06/17] ARM64 / ACPI: Make PCI optional for ACPI on
+ ARM64
+Date: Fri, 16 Jan 2015 09:49:13 +0000
+Message-ID: <20150116094913.GA13634@e104818-lin.cambridge.arm.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:60591 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbbAPHYZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 02:24:25 -0500
-Received: by mail-pa0-f41.google.com with SMTP id rd3so22672236pab.0
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Jan 2015 23:24:24 -0800 (PST)
-In-Reply-To: <20150115203159.GG3043@sirena.org.uk>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:35475 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751041AbbAPJtZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 04:49:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Jason Cooper <jason@lakedaemon.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Yijing Wang <wangyijing@huawei.com>, ACPI
+To: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei
 
-On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 04:31, Mark Brown wrote:
-> On Thu, Jan 15, 2015 at 03:04:37PM -0500, Jason Cooper wrote:
->> On Thu, Jan 15, 2015 at 07:02:20PM +0000, Mark Brown wrote:
->
->>> There's probably a bit of a process problem here - these patches ar=
-e all
->>> being posted as part of big and apparently controversial threads wi=
-th
->>> subject lines in the form "ARM / ACPI:" so people could be forgiven=
- for
->>> just not even reading the e-mails enough to notice changes to their
->>> subsystems.  Is it worth posting those patches separately more dire=
-ctly
->>> to the relevant maintainers?
->
->> I think it's beneficial to post the entire series as one thread, but=
- to
->> change the subject line of each patch to adequately reflect the affe=
-cted
->> subsystem.
->
-> Just changing the subject lines to be more suitable would help, but
+On Wed, Jan 14, 2015 at 03:04:54PM +0000, Hanjun Guo wrote:
+> Since PCI is not required in ACPI spec and ARM can run without
+> it, introduce some stub functions to make PCI optional for ACPI,
+> and make ACPI core run without CONFIG_PCI on ARM64.
+> 
+> When PCI is enabled on ARM64, ACPI core will need some PCI functions
+> to make it functional, so introduce some empty functions here and
+> implement it later.
+> 
+> Since ACPI on X86 and IA64 depends on PCI and this patch only makes
+> PCI optional for ARM64, it will not break anything on X86 and IA64.
+> 
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-OK, I will repost this patch set as you and Jason suggested soon.
+Is this patch still required, now that we have PCI for arm64? I know the
+ACPI spec doesn't require PCI but do we expect any arm64 servers aimed
+at ACPI without PCIe?
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Anyway, that's not the main point, see more below.
+
+> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+> index 872ba93..fded096 100644
+> --- a/arch/arm64/include/asm/pci.h
+> +++ b/arch/arm64/include/asm/pci.h
+> @@ -24,6 +24,12 @@
+>   */
+>  #define PCI_DMA_BUS_IS_PHYS	(0)
+>  
+> +static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+> +{
+> +	/* no legacy IRQ on arm64 */
+> +	return -ENODEV;
+> +}
+> +
+>  extern int isa_dma_bridge_buggy;
+>  
+>  #ifdef CONFIG_PCI
+> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> index ce5836c..42fb195 100644
+> --- a/arch/arm64/kernel/pci.c
+> +++ b/arch/arm64/kernel/pci.c
+> @@ -10,6 +10,7 @@
+>   *
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/init.h>
+>  #include <linux/io.h>
+>  #include <linux/kernel.h>
+> @@ -68,3 +69,30 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+>  	bus->domain_nr = domain;
+>  }
+>  #endif
+> +
+> +/*
+> + * raw_pci_read/write - Platform-specific PCI config space access.
+> + *
+> + * Default empty implementation.  Replace with an architecture-specific setup
+> + * routine, if necessary.
+> + */
+> +int raw_pci_read(unsigned int domain, unsigned int bus,
+> +		  unsigned int devfn, int reg, int len, u32 *val)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +int raw_pci_write(unsigned int domain, unsigned int bus,
+> +		unsigned int devfn, int reg, int len, u32 val)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +#ifdef CONFIG_ACPI
+> +/* Root bridge scanning */
+> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+> +{
+> +	/* TODO: Should be revisited when implementing PCI on ACPI */
+> +	return NULL;
+> +}
+> +#endif
+
+Do these functions have anything to do with the subject? You add them in
+arch/arm64/kernel/pci.c which is compiled only when CONFIG_PCI while the
+commit log implies that you add them to allow CONFIG_PCI to be off.
+
+When PCI is enabled and the above functions are compiled in, do they
+need to return any useful data or just -EINVAL. Are they ever called?
+
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 39f3ec1..c346011 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -43,7 +43,7 @@ acpi-y				+= processor_core.o
+>  acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>  acpi-y				+= ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+> -acpi-y				+= pci_root.o pci_link.o pci_irq.o
+> +acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
+>  acpi-y				+= acpi_lpss.o
+>  acpi-y				+= acpi_platform.o
+>  acpi-y				+= acpi_pnp.o
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 163e82f..c5ff8ba 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -26,8 +26,13 @@
+>  acpi_status acpi_os_initialize1(void);
+>  int init_acpi_device_notify(void);
+>  int acpi_scan_init(void);
+> +#ifdef CONFIG_PCI
+>  void acpi_pci_root_init(void);
+>  void acpi_pci_link_init(void);
+> +#else
+> +static inline void acpi_pci_root_init(void) {}
+> +static inline void acpi_pci_link_init(void) {}
+> +#endif
+>  void acpi_processor_init(void);
+>  void acpi_platform_init(void);
+>  void acpi_pnp_init(void);
+
+That's a good clean-up.
+
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 360a966..1476a66 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -564,15 +564,6 @@ struct pci_ops {
+>  	int (*write)(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 val);
+>  };
+>  
+> -/*
+> - * ACPI needs to be able to access PCI config space before we've done a
+> - * PCI bus scan and created pci_bus structures.
+> - */
+> -int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+> -		 int reg, int len, u32 *val);
+> -int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+> -		  int reg, int len, u32 val);
+> -
+>  struct pci_bus_region {
+>  	dma_addr_t start;
+>  	dma_addr_t end;
+> @@ -1329,6 +1320,16 @@ typedef int (*arch_set_vga_state_t)(struct pci_dev *pdev, bool decode,
+>  		      unsigned int command_bits, u32 flags);
+>  void pci_register_set_vga_state(arch_set_vga_state_t func);
+>  
+> +/*
+> + * ACPI needs to be able to access PCI config space before we've done a
+> + * PCI bus scan and created pci_bus structures.
+> + */
+> +int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+> +		 int reg, int len, u32 *val);
+> +int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+> +		  int reg, int len, u32 val);
+> +void pcibios_penalize_isa_irq(int irq, int active);
+> +
+>  #else /* CONFIG_PCI is not enabled */
+>  
+>  /*
+> @@ -1430,6 +1431,23 @@ static inline struct pci_dev *pci_get_bus_and_slot(unsigned int bus,
+>  						unsigned int devfn)
+>  { return NULL; }
+>  
+> +static inline struct pci_bus *pci_find_bus(int domain, int busnr)
+> +{ return NULL; }
+> +
+> +static inline int pci_bus_write_config_byte(struct pci_bus *bus,
+> +				unsigned int devfn, int where, u8 val)
+> +{ return -ENOSYS; }
+> +
+> +static inline int raw_pci_read(unsigned int domain, unsigned int bus,
+> +			unsigned int devfn, int reg, int len, u32 *val)
+> +{ return -ENOSYS; }
+> +
+> +static inline int raw_pci_write(unsigned int domain, unsigned int bus,
+> +			unsigned int devfn, int reg, int len, u32 val)
+> +{ return -ENOSYS; }
+
+So you implement the !CONFIG_PCI functions here to return -ENOSYS while
+the arm64 CONFIG_PCI ones would return -EINVAL. I'm confused.
+
+-- 
+Catalin
