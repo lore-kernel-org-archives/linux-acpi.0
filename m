@@ -1,57 +1,102 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Fri, 16 Jan 2015 12:29:22 +0000
-Message-ID: <20150116122922.GO7091@arm.com>
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
+Date: Fri, 16 Jan 2015 13:54:46 +0000
+Message-ID: <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com>
 References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com>
- <20150115182346.GE2329@e104818-lin.cambridge.arm.com>
- <20150115190220.GF3043@sirena.org.uk>
- <20150115200437.GF24989@titan.lakedaemon.net>
- <20150116101034.GC13634@e104818-lin.cambridge.arm.com>
- <20150116120518.GK3043@sirena.org.uk>
+ <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org> <54B8F2E3.80306@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:35916 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbbAPM33 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 07:29:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20150116120518.GK3043@sirena.org.uk>
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:43743 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbbAPNzH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 08:55:07 -0500
+Received: by mail-ie0-f175.google.com with SMTP id x19so20701506ier.6
+        for <linux-acpi@vger.kernel.org>; Fri, 16 Jan 2015 05:55:06 -0800 (PST)
+In-Reply-To: <54B8F2E3.80306@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, Jason Cooper <jason@lakedaemon.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "wangyijing@huawei.com" <wang>
 
-On Fri, Jan 16, 2015 at 12:05:18PM +0000, Mark Brown wrote:
-> On Fri, Jan 16, 2015 at 10:10:34AM +0000, Catalin Marinas wrote:
-> 
-> > Indeed, keeping the series as one thread is better. Apart from a
-> > slightly less misleading subject, I suggest Hanjun that he passes each
-> > patch via get_maintainer.pl and adds the corresponding Cc: lines to the
-> > commit log. I think that's a clearer way keep track of who needs to
-> > ack/review the patches.
-> 
-> I'm not saying stop sending them as part of this series, I'm saying it
-> might help to get people to look at them if they were also sent
-> disassociated from it - in the situations where I end up ignoring things
-> that look controversial but unexciting for my bit of it I know I won't
-> even bother opening the e-mails since I know it's just going to get
-> resent anyway quite often with revisions from whatever makes the rest of
-> the series controversial, I expect others will do the same.
-> 
-> Actually, another thing that might help would be if you and/or Will were
-> to prod the relevant people for review, letting them know that the
-> controversy isn't likely to affect their bits.
+On Fri, Jan 16, 2015 at 11:15 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> On 14/01/15 15:05, Hanjun Guo wrote:
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>
+>> ACPI kernel uses MADT table for proper GIC initialization. It needs to
+>> parse GIC related subtables, collect CPU interface and distributor
+>> addresses and call driver initialization function (which is hardware
+>> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+>>
+>> NOTE: This commit allow to initialize GICv1/2 basic functionality.
+>> GICv2 vitalization extension, GICv3/4 and ITS are considered as next
+>> steps.
+>
+> And so is GICv2m, apparently (see below).
+>
+>>
+>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> Tested-by: Yijing Wang <wangyijing@huawei.com>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>> +     /*
+>> +      * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+>> +      * as default IRQ domain to allow for GSI registration and GSI to IRQ
+>> +      * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
+>> +      */
+>> +     gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+>
+> I assume you never tried to port the GICv2m driver to ACPI, right?
+> Because the above code actively prevents the GIC domain to be defined as
+> a stacked domain, making it impossible for the v2m widget to be
+> implemented on top of GIC. But maybe legacy interrupts are enough?
 
-Hmm, we *could*, but having maintainers go round poking other people to
-review patches feels like the wrong way round to me. The authors should
-be taking ownership of this series and that's half of the problem we
-had in previous versions.
+It's sufficient for what is supported right now, and easily changed in
+a patch series to add GICv2m support. This shouldn't be a blocking
+issue as it isn't actively dangerous. It is merely limited, and that
+is okay.
 
-It needs to be clear that Hanjun/Al/Graeme are the ones running the show,
-not just now, but (even more importantly) when people start building on
-top of the base support. If Catalin and I have to go around asking for
-review, it sets us off on the wrong foot imo.
+>> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
+>>  void __init irqchip_init(void)
+>>  {
+>>       of_irq_init(__irqchip_of_table);
+>> +
+>> +     acpi_gic_init();
+>
+> Have you realised that this file is probably compiled on multiple
+> architecture, none of which particularly cares about ACPI or the GIC?
+> This is (still) very ugly.
 
-Will
+"very ugly?" That's overstating things a bit. We may quibble about the
+name, but we're just talking about a setup hook function that may or
+may not be implemented. How about we put acpi_irq_init() here and make
+it an inline macro that directly calls acpi_gic_init() when ACPI is
+enabled on AARCH64? Then the function can be extended by architectures
+as needed, and default to an empty inline otherwise. When (if) we have
+more than one hook that needs to be called from it, then we can
+refactor it to be more like of_irq_init().
+
+As for other architectures calling this function, but not caring about
+ACPI, I believe it was your suggestion to put it here!  :-)
+
+On Mon, 01 Sep 2014 18:35:18 +0100^M, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> On 01/09/14 15:57, Hanjun Guo wrote:
+> > @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
+> >  void __init init_IRQ(void)
+> >  {
+> >     irqchip_init();
+> > +
+> > +   if (!handle_arch_irq)
+> > +           acpi_gic_init();
+> > +
+>
+> Why isn't this called from irqchip_init? It would seem like the logical
+> spot to probe an interrupt controller.
+
+What has been done here isn't an unusual choice. We've got stuff all
+over the kernel that may or may not be implemented depending on what
+the architecture supports. If the function call is renamed to
+acpi_init_irq(), are you content?
+
+g.
