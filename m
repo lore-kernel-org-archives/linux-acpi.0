@@ -1,102 +1,69 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Fri, 16 Jan 2015 13:54:46 +0000
-Message-ID: <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org> <54B8F2E3.80306@arm.com>
+From: Luis Henriques <luis.henriques-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: Re: [PATCH][v3.16.y-ckt] ACPICA: Add new GPE public interface -
+ acpi_mark_gpe_for_wake.
+Date: Fri, 16 Jan 2015 14:21:46 +0000
+Message-ID: <20150116142146.GD2438@charon>
+References: <54B820E7.4080406@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:43743 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbbAPNzH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 08:55:07 -0500
-Received: by mail-ie0-f175.google.com with SMTP id x19so20701506ier.6
-        for <linux-acpi@vger.kernel.org>; Fri, 16 Jan 2015 05:55:06 -0800 (PST)
-In-Reply-To: <54B8F2E3.80306@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <54B820E7.4080406-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joseph Salisbury <joseph.salisbury-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "wangyijing@huawei.com" <wang>
 
-On Fri, Jan 16, 2015 at 11:15 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> On 14/01/15 15:05, Hanjun Guo wrote:
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> ACPI kernel uses MADT table for proper GIC initialization. It needs to
->> parse GIC related subtables, collect CPU interface and distributor
->> addresses and call driver initialization function (which is hardware
->> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
->>
->> NOTE: This commit allow to initialize GICv1/2 basic functionality.
->> GICv2 vitalization extension, GICv3/4 and ITS are considered as next
->> steps.
+On Thu, Jan 15, 2015 at 03:19:51PM -0500, Joseph Salisbury wrote:
+> Hello,
+>=20
+> Please consider including mainline commit c12f07d and bd9b2f9 in the
+> next v3.16.y-ckt release.  They
+> were included in the mainline tree as of v3.17-rc1.  A test kernel ha=
+s
+> been built and tested, which was confirmed to resolve:
+> http://bugs.launchpad.net/bugs/1406767 .
+>=20
+> commit c12f07d17c12193256a99e20c9a0f130fb8f7be8
+> Author: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Date:   Wed Jul 23 13:12:16 2014 +0800
+>=20
+>     ACPICA: Add new GPE public interface - acpi_mark_gpe_for_wake.
+>=20
+>=20
+> Commit c12f07d does not cherry-pick cleanly in 3.16.y.  However, it w=
+ill
+> if commit bd9b2f9aff26c185c1f8e0cd08a850ee4ace391a is cherry picked f=
+irst:
+>=20
+> commit bd9b2f9aff26c185c1f8e0cd08a850ee4ace391a
+> Author: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Date:   Mon Jul 14 22:41:41 2014 +0200
+>=20
+>     ACPI / scan: No implicit wake notification for buttons
+>=20
+>   =20
+>=20
 >
-> And so is GICv2m, apparently (see below).
->
->>
->> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Tested-by: Yijing Wang <wangyijing@huawei.com>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->> +     /*
->> +      * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
->> +      * as default IRQ domain to allow for GSI registration and GSI to IRQ
->> +      * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
->> +      */
->> +     gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->
-> I assume you never tried to port the GICv2m driver to ACPI, right?
-> Because the above code actively prevents the GIC domain to be defined as
-> a stacked domain, making it impossible for the v2m widget to be
-> implemented on top of GIC. But maybe legacy interrupts are enough?
 
-It's sufficient for what is supported right now, and easily changed in
-a patch series to add GICv2m support. This shouldn't be a blocking
-issue as it isn't actively dangerous. It is merely limited, and that
-is okay.
+Thanks, I'll queue both commits to the 3.16 kernel.
 
->> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
->>  void __init irqchip_init(void)
->>  {
->>       of_irq_init(__irqchip_of_table);
->> +
->> +     acpi_gic_init();
->
-> Have you realised that this file is probably compiled on multiple
-> architecture, none of which particularly cares about ACPI or the GIC?
-> This is (still) very ugly.
+Cheers,
+--
+Lu=EDs
 
-"very ugly?" That's overstating things a bit. We may quibble about the
-name, but we're just talking about a setup hook function that may or
-may not be implemented. How about we put acpi_irq_init() here and make
-it an inline macro that directly calls acpi_gic_init() when ACPI is
-enabled on AARCH64? Then the function can be extended by architectures
-as needed, and default to an empty inline otherwise. When (if) we have
-more than one hook that needs to be called from it, then we can
-refactor it to be more like of_irq_init().
 
-As for other architectures calling this function, but not caring about
-ACPI, I believe it was your suggestion to put it here!  :-)
-
-On Mon, 01 Sep 2014 18:35:18 +0100^M, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> On 01/09/14 15:57, Hanjun Guo wrote:
-> > @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
-> >  void __init init_IRQ(void)
-> >  {
-> >     irqchip_init();
-> > +
-> > +   if (!handle_arch_irq)
-> > +           acpi_gic_init();
-> > +
->
-> Why isn't this called from irqchip_init? It would seem like the logical
-> spot to probe an interrupt controller.
-
-What has been done here isn't an unusual choice. We've got stuff all
-over the kernel that may or may not be implemented depending on what
-the architecture supports. If the function call is renamed to
-acpi_init_irq(), are you content?
-
-g.
+> Sincerely,
+> Joseph Salisbury
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe stable" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
