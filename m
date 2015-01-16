@@ -1,75 +1,94 @@
-From: Mark Brown <broonie@kernel.org>
+From: Tom Lendacky <thomas.lendacky@amd.com>
 Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Fri, 16 Jan 2015 16:54:22 +0000
-Message-ID: <20150116165422.GE3856@sirena.org.uk>
+Date: Fri, 16 Jan 2015 11:12:20 -0600
+Message-ID: <54B94674.10206@amd.com>
 References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com>
- <20150115182346.GE2329@e104818-lin.cambridge.arm.com>
- <20150115190220.GF3043@sirena.org.uk>
- <20150115200437.GF24989@titan.lakedaemon.net>
- <20150116101034.GC13634@e104818-lin.cambridge.arm.com>
- <20150116120518.GK3043@sirena.org.uk>
- <20150116122922.GO7091@arm.com>
+ <2198633.UpIyI82Yon@wuerfel> <20150116153320.GU7091@arm.com>
+ <1809831.d9GPSfLUEN@wuerfel> <20150116154913.GW7091@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="k3qmt+ucFURmlhDS"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:39885 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014AbbAPQzX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 11:55:23 -0500
-Content-Disposition: inline
-In-Reply-To: <20150116122922.GO7091@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150116154913.GW7091@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, Rafael
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, Jason Cooper <jason@lakedaemon.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.>
 
+On 01/16/2015 09:49 AM, Will Deacon wrote:
+> On Fri, Jan 16, 2015 at 03:40:28PM +0000, Arnd Bergmann wrote:
+>> On Friday 16 January 2015 15:33:20 Will Deacon wrote:
+>>> On Fri, Jan 16, 2015 at 03:14:13PM +0000, Arnd Bergmann wrote:
+>>>> On Friday 16 January 2015 14:55:45 Will Deacon wrote:
+>>>>> On Fri, Jan 16, 2015 at 02:45:30PM +0000, Tom Lendacky wrote:
+>>>>>> I have tested ACPI-enablement patches for the amd-xgbe/amd-xgbe-phy
+>>>>>> drivers that I'm about to submit upstream with the V7 patch series
+>>>>>> on the AMD Seattle server platform. There does not appear to be support
+>>>>>> for the _CCA attribute in this patch series. The amd-xgbe driver will
+>>>>>> setup the device domain and cache attributes based on the presence of
+>>>>>> this attribute, but it requires the arch support to assign the proper
+>>>>>> DMA operations in order for it to all work correctly.
+>>>>>>
+>>>>>> Overriding the _CCA attribute in the driver, I was able to successfully
+>>>>>> test the driver and this patch series.
+>>>>>
+>>>>> Hopefully this will all be addressed when the IORT parts of ACPI have
+>>>>> settled down (the current proposal allows for these attributes to be
+>>>>> described as well as their interaction with things like IOMMUs).
+>>>>>
+>>>>> In the meantime, are you falling back to non-coherent DMA? If so, what
+>>>>> attributes have you settled on? We need to be really careful not to
+>>>>> corrupt data during cache invalidatation when mapping a non-coherent
+>>>>> buffer for the CPU.
+>>>>
+>>>> I think in case of ACPI we should use cache-coherent as the default,
+>>>> as this is what all servers will use for DMA masters.
+>>>
+>>> I don't agree. The dma-coherent we have for device-tree isn't nearly
+>>> expressive enough for the kind of things we want to describe and there's
+>>> no reason to make the same mistake in ACPI, especially as it *is* being
+>>> addressed by IORT. If we run with _CCA, then we're going to be stuck
+>>> supporting something that isn't fit for purpose and which will likely be
+>>> abused to describe both fixed features of the system and software
+>>> configuration preferences. It also opens up a can of worms if we have to
+>>> support a mixture of _CCA and IORT in the future.
+>>>
+>>> Or are you suggesting that we ignore _CCA and just assume cache-coherency?
+>>> In that case, how do we support systems that aren't cache coherent, where
+>>> not being cache coherent includes devices that require either device or
+>>> IOMMU configuration to enable cacheable transactions?
+>>
+>> I was thinking we'd ignore _CCA because as you say a simple on/off flag
+>> would not be enough to describe what we have to do for noncoherent
+>> devices. I can't think of any reason why a server hardware would include
+>> noncoherent devices, so if they are configurable they should be configured
+>> into coherent mode by the firmware.
+>
+> The on-board ethernet on Seattle requires the driver to program its AXI
+> attributes, so configuring it to be a coherent master actually means
+> "program the same cacheable AXI settings as you have on the CPU". That
+> sounds like Linux should be doing it to me, but even if the firmware takes
+> a guess at "normal cacheable WBRWA", it's not clear to me whether that
+> register persists across things like adapter reset.
+>
+> Tom?
 
---k3qmt+ucFURmlhDS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The registers that contain the AxDOMAIN and AxCACHE settings do not
+persist across an adapter reset.
 
-On Fri, Jan 16, 2015 at 12:29:22PM +0000, Will Deacon wrote:
-> On Fri, Jan 16, 2015 at 12:05:18PM +0000, Mark Brown wrote:
+Tom
 
-> > Actually, another thing that might help would be if you and/or Will were
-> > to prod the relevant people for review, letting them know that the
-> > controversy isn't likely to affect their bits.
-
-> Hmm, we *could*, but having maintainers go round poking other people to
-> review patches feels like the wrong way round to me. The authors should
-> be taking ownership of this series and that's half of the problem we
-> had in previous versions.
-
-> It needs to be clear that Hanjun/Al/Graeme are the ones running the show,
-> not just now, but (even more importantly) when people start building on
-> top of the base support. If Catalin and I have to go around asking for
-> review, it sets us off on the wrong foot imo.
-
-That's true in general but equally right now it's also fairly clear that
-this isn't going anywhere immediately (and one might assume potentially
-may end up needing substantial rework) for arm64 related reasons which
-creates a bit of stop energy that's more easily unblocked by the arm64
-maintainers than others.  From that point of view I guess just giving
-the ACPI folks something to point at to indicate that the remaining
-issues on the architecture side aren't likely to affect the relevant
-code would probably help also.
-
---k3qmt+ucFURmlhDS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJUuUI+AAoJECTWi3JdVIfQbhoH/0fmqLEKaN55GiCchLinunXH
-3CowG6cR8Rvx1t1XGZVq5LciTV/BwZ2IFCWVlDUrtuUyeahXPOnyK4rJ1AVD5u21
-FKj4EyuFh8pF2FQTEztQ5ZKKt6zVVwvU21OVA/YryZl35g+Qp0JfUyyq5gziGVXh
-b7GOT1XagEdIGvfOyxekbFcjWkXUAmA3uz5wVgjg0DY3esQgpF51KbL3VrZFss5f
-8h7sKOHKsRGzIhLBBj1v2OUFm8LAYEMASkOm/7BJHsQOj7b19QINCELxoUoVSXj1
-vvC1VfSnHfy0ikdSxSFu0GfdcZQvadanddVoQsC4RnuI1EQ9FfjkL3+IMY4LmpA=
-=LtRT
------END PGP SIGNATURE-----
-
---k3qmt+ucFURmlhDS--
+>
+> There's also the situation where the firmware hasn't initialised the
+> register and Linux realises this during probe. What should it do then?
+>
+> Will
+>
