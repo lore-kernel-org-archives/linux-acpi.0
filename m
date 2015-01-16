@@ -1,7 +1,7 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
+From: Will Deacon <will.deacon@arm.com>
 Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Fri, 16 Jan 2015 15:25:41 +0000
-Message-ID: <20150116152541.GG13634@e104818-lin.cambridge.arm.com>
+Date: Fri, 16 Jan 2015 15:33:20 +0000
+Message-ID: <20150116153320.GU7091@arm.com>
 References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
  <54B9240A.7060003@amd.com>
  <20150116145545.GR7091@arm.com>
@@ -9,16 +9,16 @@ References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:36197 "EHLO
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:36231 "EHLO
 	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753408AbbAPPZz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 10:25:55 -0500
+	with ESMTP id S1753044AbbAPPdg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 10:33:36 -0500
 Content-Disposition: inline
 In-Reply-To: <2198633.UpIyI82Yon@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Will Deacon <Will.Deacon@arm.com>, Tom Lendacky <thomas.lendacky@amd.com>, Mark Rutland <Mark.Rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Randy
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tom Lendacky <thomas.lendacky@amd.com>, Mark Rutland <Mark.Rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>
 
 On Fri, Jan 16, 2015 at 03:14:13PM +0000, Arnd Bergmann wrote:
 > On Friday 16 January 2015 14:55:45 Will Deacon wrote:
@@ -46,10 +46,18 @@ On Fri, Jan 16, 2015 at 03:14:13PM +0000, Arnd Bergmann wrote:
 > I think in case of ACPI we should use cache-coherent as the default,
 > as this is what all servers will use for DMA masters.
 
-Last time I heard in some call, it was agreed that _CCA properties
-should always be present and Linux should not make any assumption (there
-is no safe assumption here). While better options may appear in ACPI,
-_CCA is what we currently have.
+I don't agree. The dma-coherent we have for device-tree isn't nearly
+expressive enough for the kind of things we want to describe and there's
+no reason to make the same mistake in ACPI, especially as it *is* being
+addressed by IORT. If we run with _CCA, then we're going to be stuck
+supporting something that isn't fit for purpose and which will likely be
+abused to describe both fixed features of the system and software
+configuration preferences. It also opens up a can of worms if we have to
+support a mixture of _CCA and IORT in the future.
 
--- 
-Catalin
+Or are you suggesting that we ignore _CCA and just assume cache-coherency?
+In that case, how do we support systems that aren't cache coherent, where
+not being cache coherent includes devices that require either device or
+IOMMU configuration to enable cacheable transactions?
+
+Will
