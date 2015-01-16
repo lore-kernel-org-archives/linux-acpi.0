@@ -1,53 +1,75 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH v5 18/18] Documentation: ACPI for ARM64
-Date: Fri, 16 Jan 2015 17:35:24 +0100
-Message-ID: <3666560.Yq8BxWCZ3E@wuerfel>
-References: <1413553034-20956-1-git-send-email-hanjun.guo@linaro.org> <2277974.2klgILPa2Q@wuerfel> <54B7F767.6060808@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Fri, 16 Jan 2015 16:54:22 +0000
+Message-ID: <20150116165422.GE3856@sirena.org.uk>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com>
+ <20150115182346.GE2329@e104818-lin.cambridge.arm.com>
+ <20150115190220.GF3043@sirena.org.uk>
+ <20150115200437.GF24989@titan.lakedaemon.net>
+ <20150116101034.GC13634@e104818-lin.cambridge.arm.com>
+ <20150116120518.GK3043@sirena.org.uk>
+ <20150116122922.GO7091@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="k3qmt+ucFURmlhDS"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:54436 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756545AbbAPQgL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 11:36:11 -0500
-In-Reply-To: <54B7F767.6060808@linaro.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:39885 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753014AbbAPQzX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 11:55:23 -0500
+Content-Disposition: inline
+In-Reply-To: <20150116122922.GO7091@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linaro-acpi@lists.linaro.org, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, Jason Cooper <jason@lakedaemon.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.>
 
-On Thursday 15 January 2015 10:22:47 Al Stone wrote:
-> 
-> Can I restate the position as I hear it, then?  I want to make sure
-> I'm understanding what's being said.
-> 
-> What I'm reading seems to say: if an ARMv8 vendor wants Linux support
-> in the upstream kernel, regardless of whether or not it is a mobile or
-> server product, they must submit DT-based patches until such time as
-> ACPI on arm64 is deemed "mature."  Do I have that correct?
 
-I was specifically referring to SoC specific device drivers here.
-It's a bit unclear what a 'vendor' is in this context, but I'd hope
-that as long as we have basic support for a SoC, other people can
-build DT blobs for these machines and have them run Linux out of
-the box.
+--k3qmt+ucFURmlhDS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> That implies to me that if I want to build an ACPI-only product, there
-> is no way to predict when or if I can get Linux support.  And, that if
-> I do want Linux support, and need ACPI for my end-users, I have to
-> maintain both sets of firmware for some unknown time into the future.
-> Is that what was meant?
+On Fri, Jan 16, 2015 at 12:29:22PM +0000, Will Deacon wrote:
+> On Fri, Jan 16, 2015 at 12:05:18PM +0000, Mark Brown wrote:
 
-The firmware is normally not written by the people that do the SoC,
-and we have very little control over what someone puts in their
-firmware. Shipping an ACPI-only firmware would still work, but has
-the danger of breaking if we ever have to make incompatible changes
-to the way we interpret the ACPI tables and we have to support users
-that can't upgrade their firmware.
+> > Actually, another thing that might help would be if you and/or Will were
+> > to prod the relevant people for review, letting them know that the
+> > controversy isn't likely to affect their bits.
 
-Hopefully we can quickly get to the point where we don't have to
-make incompatible changes, but I don't think that is realistic
-from the day we first merge ACPI support.
+> Hmm, we *could*, but having maintainers go round poking other people to
+> review patches feels like the wrong way round to me. The authors should
+> be taking ownership of this series and that's half of the problem we
+> had in previous versions.
 
-	Arnd
+> It needs to be clear that Hanjun/Al/Graeme are the ones running the show,
+> not just now, but (even more importantly) when people start building on
+> top of the base support. If Catalin and I have to go around asking for
+> review, it sets us off on the wrong foot imo.
+
+That's true in general but equally right now it's also fairly clear that
+this isn't going anywhere immediately (and one might assume potentially
+may end up needing substantial rework) for arm64 related reasons which
+creates a bit of stop energy that's more easily unblocked by the arm64
+maintainers than others.  From that point of view I guess just giving
+the ACPI folks something to point at to indicate that the remaining
+issues on the architecture side aren't likely to affect the relevant
+code would probably help also.
+
+--k3qmt+ucFURmlhDS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJUuUI+AAoJECTWi3JdVIfQbhoH/0fmqLEKaN55GiCchLinunXH
+3CowG6cR8Rvx1t1XGZVq5LciTV/BwZ2IFCWVlDUrtuUyeahXPOnyK4rJ1AVD5u21
+FKj4EyuFh8pF2FQTEztQ5ZKKt6zVVwvU21OVA/YryZl35g+Qp0JfUyyq5gziGVXh
+b7GOT1XagEdIGvfOyxekbFcjWkXUAmA3uz5wVgjg0DY3esQgpF51KbL3VrZFss5f
+8h7sKOHKsRGzIhLBBj1v2OUFm8LAYEMASkOm/7BJHsQOj7b19QINCELxoUoVSXj1
+vvC1VfSnHfy0ikdSxSFu0GfdcZQvadanddVoQsC4RnuI1EQ9FfjkL3+IMY4LmpA=
+=LtRT
+-----END PGP SIGNATURE-----
+
+--k3qmt+ucFURmlhDS--
