@@ -1,69 +1,122 @@
-From: Luis Henriques <luis.henriques-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: Re: [PATCH][v3.16.y-ckt] ACPICA: Add new GPE public interface -
- acpi_mark_gpe_for_wake.
-Date: Fri, 16 Jan 2015 14:21:46 +0000
-Message-ID: <20150116142146.GD2438@charon>
-References: <54B820E7.4080406@canonical.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7 07/17] ARM64 / ACPI: Disable ACPI if FADT revision is
+ less than 5.1
+Date: Fri, 16 Jan 2015 14:33:37 +0000
+Message-ID: <20150116143337.GA14505@red-moon>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <1421247905-3749-8-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:36090 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751733AbbAPOdr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 09:33:47 -0500
 Content-Disposition: inline
-In-Reply-To: <54B820E7.4080406-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joseph Salisbury <joseph.salisbury-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1421247905-3749-8-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei.com
 
-On Thu, Jan 15, 2015 at 03:19:51PM -0500, Joseph Salisbury wrote:
-> Hello,
->=20
-> Please consider including mainline commit c12f07d and bd9b2f9 in the
-> next v3.16.y-ckt release.  They
-> were included in the mainline tree as of v3.17-rc1.  A test kernel ha=
-s
-> been built and tested, which was confirmed to resolve:
-> http://bugs.launchpad.net/bugs/1406767 .
->=20
-> commit c12f07d17c12193256a99e20c9a0f130fb8f7be8
-> Author: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Date:   Wed Jul 23 13:12:16 2014 +0800
->=20
->     ACPICA: Add new GPE public interface - acpi_mark_gpe_for_wake.
->=20
->=20
-> Commit c12f07d does not cherry-pick cleanly in 3.16.y.  However, it w=
-ill
-> if commit bd9b2f9aff26c185c1f8e0cd08a850ee4ace391a is cherry picked f=
-irst:
->=20
-> commit bd9b2f9aff26c185c1f8e0cd08a850ee4ace391a
-> Author: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Date:   Mon Jul 14 22:41:41 2014 +0200
->=20
->     ACPI / scan: No implicit wake notification for buttons
->=20
->   =20
->=20
->
+On Wed, Jan 14, 2015 at 03:04:55PM +0000, Hanjun Guo wrote:
+> FADT Major.Minor version was introduced in ACPI 5.1, it is the same
+> as ACPI version.
+> 
+> In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
+> MADT table for GIC and SMP init, without those updates, we can not
+> get the MPIDR for SMP init, and GICv2/3 related init information, so
+> we can't boot arm64 ACPI properly with table versions predating 5.1.
+> 
+> If firmware provides ACPI tables with ACPI version less than 5.1,
+> OS will be messed up with those information and have no way to init
 
-Thanks, I'll queue both commits to the 3.16 kernel.
+Nit: "that information"
 
-Cheers,
---
-Lu=EDs
+or
 
+"...OS has no way to retrieve the configuration data that is necessary
+to init SMP boot protocol and the GIC properly, so.."
 
-> Sincerely,
-> Joseph Salisbury
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe stable" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> smp and GIC, so disable ACPI if we get an FADT table with version
+> less that 5.1.
+> 
+
+Patch should be reordered in the series and must be sequenced before
+patch 5 for bisectability (that patch implements DT unflattening if ACPI
+is disabled), or squashed with previous patches.
+
+Lorenzo
+
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/kernel/acpi.c | 31 ++++++++++++++++++++++++++++++-
+>  1 file changed, 30 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 39a1655..4177758 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -13,6 +13,8 @@
+>   *  published by the Free Software Foundation.
+>   */
+>  
+> +#define pr_fmt(fmt) "ACPI: " fmt
+> +
+>  #include <linux/init.h>
+>  #include <linux/acpi.h>
+>  #include <linux/cpumask.h>
+> @@ -49,10 +51,32 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+>  	early_memunmap(map, size);
+>  }
+>  
+> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> +{
+> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> +
+> +	/*
+> +	 * Revision in table header is the FADT Major revision,
+> +	 * and there is a minor revision of FADT which was introduced
+> +	 * by ACPI 5.1, we only deal with ACPI 5.1 or newer revision
+> +	 * to get arm boot flags, or we will disable ACPI.
+> +	 */
+> +	if (table->revision > 5 ||
+> +	    (table->revision == 5 && fadt->minor_revision >= 1))
+> +		return 0;
+> +
+> +	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
+> +		table->revision, fadt->minor_revision);
+> +	disable_acpi();
+> +
+> +	return -EINVAL;
+> +}
+> +
+>  /*
+>   * acpi_boot_table_init() called from setup_arch(), always.
+>   *	1. find RSDP and get its address, and then find XSDT
+>   *	2. extract all tables and checksums them all
+> + *	3. check ACPI FADT revision
+>   *
+>   * We can parse ACPI boot-time tables such as MADT after
+>   * this function is called.
+> @@ -64,8 +88,13 @@ void __init acpi_boot_table_init(void)
+>  		return;
+>  
+>  	/* Initialize the ACPI boot-time table parser. */
+> -	if (acpi_table_init())
+> +	if (acpi_table_init()) {
+>  		disable_acpi();
+> +		return;
+> +	}
+> +
+> +	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt))
+> +		pr_err("Can't find FADT or error happened during parsing FADT\n");
+>  }
+>  
+>  static int __init parse_acpi(char *arg)
+> -- 
+> 1.9.1
+> 
+> 
