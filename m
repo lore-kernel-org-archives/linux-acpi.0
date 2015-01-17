@@ -1,57 +1,42 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: About 2 ACPICA table patches
-Date: Sat, 17 Jan 2015 17:02:31 +1100
-Message-ID: <CAE1zotJapkp83cSWndWuw5brR-rCZyAyr4a1rJCO3xRucq1-Og@mail.gmail.com>
-References: <1AE640813FDE7649BE1B193DEA596E88026B7CAD@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Yaowei Bai <bywxiaobai@163.com>
+Subject: [PATCH] MAINTAINERS: add the necessary '/' according to entry rules
+Date: Sat, 17 Jan 2015 15:31:07 +0800
+Message-ID: <1421479867-3550-1-git-send-email-bywxiaobai@163.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:45603 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115AbbAQGCh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2015 01:02:37 -0500
-Received: by mail-wi0-f182.google.com with SMTP id n3so5891910wiv.3
-        for <linux-acpi@vger.kernel.org>; Fri, 16 Jan 2015 22:02:36 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026B7CAD@SHSMSX101.ccr.corp.intel.com>
+Received: from m12-12.163.com ([220.181.12.12]:48471 "EHLO m12-12.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751135AbbAQHdb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Jan 2015 02:33:31 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jan 16, 2015 at 11:44 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi, Octavian
->
+Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+---
+ MAINTAINERS | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Hi Lv,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3589d67..d46a77c 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -270,12 +270,12 @@ F:	drivers/acpi/
+ F:	drivers/pnp/pnpacpi/
+ F:	include/linux/acpi.h
+ F:	include/acpi/
+-F:	Documentation/acpi
++F:	Documentation/acpi/
+ F:	Documentation/ABI/testing/sysfs-bus-acpi
+ F:	drivers/pci/*acpi*
+ F:	drivers/pci/*/*acpi*
+ F:	drivers/pci/*/*/*acpi*
+-F:	tools/power/acpi
++F:	tools/power/acpi/
+ 
+ ACPI COMPONENT ARCHITECTURE (ACPICA)
+ M:	Robert Moore <robert.moore@intel.com>
+-- 
+1.9.1
 
-> I noticed there are 2 patches you've sent to the community.
-> But unfortunately I didn't find them in my mailbox.
-> Let me comment you here.
->
-> https://patchwork.kernel.org/patch/5501621/
-> This patch seem to be correct.
-> But Rafael should merge it directly via Linux because acpi_unload_table_id() is not in the ACPICA upstream.
 
-OK, thanks for letting me know. Rafel, does the patch look ok to you?
-
-> We expect the OSPMs to use acpi_unload_parent_table() instead.
-> I have a divergences reduction series to achieve the transition.
-> But they are pending for review for almost half a year.
-> If you have an environment to test.
-> Could you help to test this again?
-> I can prepare the patchset for you.
->
-
-Sure, if you can point me to the patch-set I can test it on my setup.
-
-> https://patchwork.kernel.org/patch/5501561/
-> This patch is correct, I've put it in the 201501 ACPICA release materials for review:
-> https://patchwork.kernel.org/patch/5501621/
-> The patch can be found at:
-> https://github.com/zetalog/acpica/commit/281ff873
-> So if it is merged, you'll see it in the upstream after 201501 ACPICA release cycle.
-> And hence Linux trees doesn't need to merge this patch directly.
->
-
-Thanks,
-Tavi
