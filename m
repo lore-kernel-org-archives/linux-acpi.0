@@ -1,352 +1,238 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v7 10/17] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Fri, 16 Jan 2015 18:18:36 +0000
-Message-ID: <20150116181836.GA15836@red-moon>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-11-git-send-email-hanjun.guo@linaro.org>
+From: Antonio Ospite <ao2@ao2.it>
+Subject: About Goodix-TS on Bay Trail, and ACPI and interrupts
+Date: Sat, 17 Jan 2015 01:03:06 +0100
+Message-ID: <20150117010306.7e32b72524e4c0cf8296bbac@ao2.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:36518 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbbAPSSt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Jan 2015 13:18:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1421247905-3749-11-git-send-email-hanjun.guo@linaro.org>
+Received: from smtp206.alice.it ([82.57.200.102]:9551 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752034AbbAQAJN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Jan 2015 19:09:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei.com
+To: linux-input@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Bastien Nocera <hadess@hadess.net>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Mathias Nyman <mathias.nyman@linux.intel.com>
 
-Hi Hanjun,
+Hi,
 
-On Wed, Jan 14, 2015 at 03:04:58PM +0000, Hanjun Guo wrote:
+I am trying to make the Goodix driver (drivers/input/touchscreen/goodix.c)
+working with a Teclast X98 Air 3G, a tablet based on Intel Bay Trail,
+but I am new to ACPI and I could use some help.
 
-[...]
+I am working with a 3.19-rc4 kernel compiled for x86_64.
 
-> diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
-> index 780f82c..bf22650 100644
-> --- a/arch/arm64/include/asm/smp.h
-> +++ b/arch/arm64/include/asm/smp.h
-> @@ -39,9 +39,10 @@ extern void show_ipi_list(struct seq_file *p, int prec);
->  extern void handle_IPI(int ipinr, struct pt_regs *regs);
-> 
->  /*
-> - * Setup the set of possible CPUs (via set_cpu_possible)
-> + * Discover the set of possible CPUs and determine their
-> + * SMP operations.
->   */
-> -extern void smp_init_cpus(void);
-> +extern void of_smp_init_cpus(void);
-> 
->  /*
->   * Provide a function to raise an IPI cross call on CPUs in callmap.
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index 4177758..55d99d9 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -24,6 +24,10 @@
->  #include <linux/bootmem.h>
->  #include <linux/smp.h>
-> 
-> +#include <asm/smp_plat.h>
-> +#include <asm/cputype.h>
-> +#include <asm/cpu_ops.h>
+This is the DSDT section in the UEFI firmware:
 
-Alphabetical order please.
+            Device (TCS0)
+            {
+                Name (_ADR, Zero)  // _ADR: Address
+                Name (_HID, "GODX0911")  // _HID: Hardware ID
+                Name (_CID, "PNP0C50" /* HID Protocol Device (I2C bus) */)  // _CID: Compatible ID
+                Name (_S0W, Zero)  // _S0W: S0 Device Wake State
+                Name (_DEP, Package (0x02)  // _DEP: Dependencies
+                {
+                    GPO1, 
+                    I2C5
+                })
+                Method (_PS3, 0, Serialized)  // _PS3: Power State 3
+                {
+                    If ((^^^I2C5.PMIC.AVBG == One)) {}
+                }
 
-> +
->  int acpi_noirq;                        /* skip ACPI IRQ initialization */
->  int acpi_disabled;
->  EXPORT_SYMBOL(acpi_disabled);
-> @@ -31,6 +35,8 @@ EXPORT_SYMBOL(acpi_disabled);
->  int acpi_pci_disabled;         /* skip ACPI PCI scan and IRQ initialization */
->  EXPORT_SYMBOL(acpi_pci_disabled);
-> 
-> +static int enabled_cpus;       /* Processors (GICC) with enabled flag in MADT */
+                Method (_PS0, 0, Serialized)  // _PS0: Power State 0
+                {
+                    If ((^^^GPO1.AVBL == One))
+                    {
+                        ^^^GPO1.TCD3 = Zero
+                    }
 
-Needed for hotplug ? Remember that each patch must be self-contained.
+                    Sleep (0x05)
+                    If ((^^^I2C5.PMIC.AVBG == One)) {}
+                    Sleep (0x1E)
+                    If ((^^^GPO1.AVBL == One))
+                    {
+                        ^^^GPO1.TCD3 = One
+                    }
 
-This patch is clearly not, if I did not know you need to carry this
-stuff over after boot for physical cpu hotplugging it would be hard to
-understand most of this code.
+                    Sleep (0x78)
+                }
 
-Think about that for anyone looking at your commit-log as a stand alone
-entity in the kernel history.
+                Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+                {
+                    Name (RBUF, ResourceTemplate ()
+                    {
+                        I2cSerialBus (0x0014, ControllerInitiated, 0x0019F0A0,
+                            AddressingMode7Bit, "\\_SB.I2C4",
+                            0x00, ResourceConsumer, ,
+                            )
+                        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionInputOnly,
+                            "\\_SB.GPO2", 0x00, ResourceConsumer, ,
+                            )
+                            {   // Pin list
+                                0x0044
+                            }
+                    })
+                    Name (ABUF, ResourceTemplate ()
+                    {
+                        I2cSerialBus (0x0014, ControllerInitiated, 0x0019F0A0,
+                            AddressingMode7Bit, "\\_SB.I2C4",
+                            0x00, ResourceConsumer, ,
+                            )
+                        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionInputOnly,
+                            "\\_SB.GPO2", 0x00, ResourceConsumer, ,
+                            )
+                            {   // Pin list
+                                0x0044
+                            }
+                        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionOutputOnly,
+                            "\\_SB.GPO1", 0x00, ResourceConsumer, ,
+                            )
+                            {   // Pin list
+                                0x001A
+                            }
+                    })
+                    If ((OSSL && 0x80))
+                    {
+                        Return (ABUF) /* \_SB_.I2C4.TCS0._CRS.ABUF */
+                    }
+                    Else
+                    {
+                        Return (RBUF) /* \_SB_.I2C4.TCS0._CRS.RBUF */
+                    }
+                }
 
-> +
->  /*
->   * __acpi_map_table() will be called before page_init(), so early_ioremap()
->   * or early_memremap() should be called here to for ACPI table mapping.
-> @@ -51,6 +57,134 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
->         early_memunmap(map, size);
->  }
-> 
-> +/**
-> + * acpi_map_gic_cpu_interface - generates a logical cpu number
-> + * and map to MPIDR represented by GICC structure
-> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
-> + * @enabled: this cpu is enabled or not
-> + *
-> + * Returns the logical cpu number which maps to MPIDR
-> + */
-> +static int acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
+                Method (_DSM, 4, Serialized)  // _DSM: Device-Specific Method
+                {
+                    Name (_T_1, Zero)  // _T_x: Emitted by ASL Compiler
+                    Name (_T_0, Zero)  // _T_x: Emitted by ASL Compiler
+                    Debug = "Method _DSM begin"
+                    If ((Arg0 == ToUUID ("3cdff6f7-4267-4555-ad05-b30a3d8938de") /* HID I2C Device */))
+                    {
+                        While (One)
+                        {
+                            _T_0 = ToInteger (Arg2)
+                            If ((_T_0 == Zero))
+                            {
+                                While (One)
+                                {
+                                    _T_1 = ToInteger (Arg1)
+                                    If ((_T_1 == One))
+                                    {
+                                        Debug = "Method _DSM Function Query"
+                                        Return (Buffer (One)
+                                        {
+                                             0x03                                             /* . */
+                                        })
+                                    }
+                                    Else
+                                    {
+                                        Return (Buffer (One)
+                                        {
+                                             0x00                                             /* . */
+                                        })
+                                    }
 
-It would be __init, except that you might need it after boot for
-hotplug, correct ?
+                                    Break
+                                }
+                            }
+                            Else
+                            {
+                                If ((_T_0 == One))
+                                {
+                                    Debug = "Method _DSM Function HID"
+                                    Return (Zero)
+                                }
+                                Else
+                                {
+                                    Return (Zero)
+                                }
+                            }
 
-> +{
-> +       int cpu;
-> +
-> +       if (mpidr == INVALID_HWID) {
-> +               pr_info("Skip MADT cpu entry with invalid MPIDR\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       total_cpus++;
-> +       if (!enabled)
-> +               return -EINVAL;
-> +
-> +       if (enabled_cpus >=  NR_CPUS) {
-> +               pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
-> +                       NR_CPUS, total_cpus, mpidr);
-> +               return -EINVAL;
-> +       }
-> +
-> +       /* No need to check duplicate MPIDRs for the first CPU */
-> +       if (enabled_cpus) {
-> +               /*
-> +                * Duplicate MPIDRs are a recipe for disaster. Scan
-> +                * all initialized entries and check for
-> +                * duplicates. If any is found just ignore the CPU.
-> +                */
-> +               for_each_possible_cpu(cpu) {
-> +                       if (cpu_logical_map(cpu) == mpidr) {
-> +                               pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
-> +                                      mpidr);
-> +                               return -EINVAL;
-> +                       }
-> +               }
-> +
-> +               /* allocate a logical cpu id for the new comer */
-> +               cpu = cpumask_next_zero(-1, cpu_possible_mask);
-> +       } else {
-> +               /*
-> +                * First GICC entry must be BSP as ACPI spec said
-> +                * in section 5.2.12.15
-> +                */
-> +               if  (cpu_logical_map(0) != mpidr) {
-> +                       pr_err("First GICC entry with MPIDR 0x%llx is not BSP\n",
-> +                              mpidr);
-> +                       return -EINVAL;
-> +               }
-> +
-> +               /*
-> +                * boot_cpu_init() already hold bit 0 in cpu_present_mask
+                            Break
+                        }
+                    }
+                    Else
+                    {
+                        Return (Buffer (One)
+                        {
+                             0x00                                             /* . */
+                        })
+                    }
+                }
 
-You mean cpu_possible_mask ? That's what you allocate from above.
+                Method (_STA, 0, NotSerialized)  // _STA: Status
+                {
+                    If ((OSSL == 0x83))
+                    {
+                        Return (Zero)
+                    }
 
-> +                * for BSP, no need to allocate again.
-> +                */
-> +               cpu = 0;
-> +       }
-> +
-> +       /* CPU 0 was already initialized */
-> +       if (cpu) {
-> +               cpu_ops[cpu] = cpu_get_ops(acpi_psci_present() ? "psci" : NULL);
-> +               if (!cpu_ops[cpu])
-> +                       return -EINVAL;
-> +
-> +               if (cpu_ops[cpu]->cpu_init(NULL, cpu))
-> +                       return -EOPNOTSUPP;
-> +
-> +               /* map the logical cpu id to cpu MPIDR */
-> +               cpu_logical_map(cpu) = mpidr;
-> +
-> +               set_cpu_possible(cpu, true);
-> +       } else {
-> +               /* get cpu0's ops, no need to return if ops is null */
-> +               cpu_ops[0] = cpu_get_ops(acpi_psci_present() ? "psci" : NULL);
-> +       }
+                    Return (0x0F)
+                }
+            }
 
-I do not see much point in calling cpu_get_ops with NULL, and adding
-the check in it to return NULL when the parameter is NULL.
+BTW in the DSDT there are two TCS0 entries, but the one above should be
+the one referring to the actual hardware on my unit, and it's the one
+picked up by linux anyway.
 
-What would you expect from cpu_get_ops when called with NULL other than
-a NULL pointer ?
+Full DSDT here: http://ao2.it/tmp/Goodix-TS_Teclast-X98-Air-3G/dsdt.dsl
 
-You could move:
+I added the new ACPI _HID to the Goodix-TS driver and the driver gets
+loaded.
 
-cpu_ops[cpu] = cpu_get_ops(acpi_psci_present() ? "psci" : NULL);
+I2C communication seems to work fine as I can read the product id, but
+the driver probing fails to complete because it cannot request the IRQ.
 
-out of the if and remove the else, do not know if it makes code clearer,
-shorter for certain.
+Here is the full dmesg:
+http://ao2.it/tmp/Goodix-TS_Teclast-X98-Air-3G/dmesg_Teclast-X98-Air-3G_mainline.log
 
-> +
-> +       enabled_cpus++;
-> +       return cpu;
-> +}
-> +
-> +static int __init
-> +acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
-> +                               const unsigned long end)
-> +{
-> +       struct acpi_madt_generic_interrupt *processor;
-> +
-> +       processor = (struct acpi_madt_generic_interrupt *)header;
-> +
-> +       if (BAD_MADT_ENTRY(processor, end))
-> +               return -EINVAL;
-> +
-> +       acpi_table_print_madt_entry(header);
-> +
-> +       acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITMASK,
-> +               processor->flags & ACPI_MADT_ENABLED);
-> +
-> +       return 0;
-> +}
-> +
-> +/* Parse GIC cpu interface entries in MADT for SMP init */
-> +void __init acpi_smp_init_cpus(void)
-> +{
-> +       int count;
-> +
-> +       /*
-> +        * do a partial walk of MADT to determine how many CPUs
-> +        * we have including disabled CPUs, and get information
-> +        * we need for SMP init
-> +        */
-> +       count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-> +                       acpi_parse_gic_cpu_interface, 0);
-> +
-> +       if (!count) {
-> +               pr_err("No GIC CPU interface entries present\n");
-> +               return;
-> +       } else if (count < 0) {
-> +               pr_err("Error parsing GIC CPU interface entry\n");
-> +               return;
-> +       }
-> +
-> +       /* Make boot-up look pretty */
-> +       pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
-> +}
-> +
->  static int __init acpi_parse_fadt(struct acpi_table_header *table)
->  {
->         struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-> @@ -62,8 +196,20 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
->          * to get arm boot flags, or we will disable ACPI.
->          */
->         if (table->revision > 5 ||
-> -           (table->revision == 5 && fadt->minor_revision >= 1))
-> -               return 0;
-> +           (table->revision == 5 && fadt->minor_revision >= 1)) {
-> +               /*
-> +                * ACPI 5.1 only has two explicit methods to boot up SMP,
-> +                * PSCI and Parking protocol, but the Parking protocol is
-> +                * only specified for ARMv7 now, so make PSCI as the only
-> +                * way for the SMP boot protocol before some updates for
-> +                * the ACPI spec or the Parking protocol spec.
-> +                */
-> +               if (acpi_psci_present())
-> +                       return 0;
-> +
-> +               pr_warn("No PSCI support, will not bring up secondary CPUs\n");
-> +               return -EOPNOTSUPP;
-> +       }
-> 
->         pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
->                 table->revision, fadt->minor_revision);
-> diff --git a/arch/arm64/kernel/cpu_ops.c b/arch/arm64/kernel/cpu_ops.c
-> index cce9524..1ea7b9f 100644
-> --- a/arch/arm64/kernel/cpu_ops.c
-> +++ b/arch/arm64/kernel/cpu_ops.c
-> @@ -27,7 +27,7 @@ extern const struct cpu_operations cpu_psci_ops;
-> 
->  const struct cpu_operations *cpu_ops[NR_CPUS];
-> 
-> -static const struct cpu_operations *supported_cpu_ops[] __initconst = {
-> +static const struct cpu_operations *supported_cpu_ops[] = {
+Grepping for GODX0911 also shows that the i2c-hid driver tries to do
+something because of the _DSM method (also _CID == "PNP0C50").
 
-This __initconst removal should be explained either with code needing
-it or through a comment. You can't make changes with future patches
-in mind, since they may never get merged and you leave code in this
-patch incomplete.
+Comparing with Bastien's DSDT I noticed that there is no ACPI Interrupt
+resource listed above, and so I thought that linux couldn't get the irq
+number from ACPI.
 
-As far as I know if physical CPU hotplug can't/won't be done on ARM64 your
-patch would make changes that are not needed, and miss some changes
-that are (eg removing enabled_cpus or make it __initdata).
+However the Android driver works with IRQs, not in polling mode:
+<6>[    7.585262] Goodix_TS 4-0014: GTP I2C Address: 0x14
+<6>[    7.585354] Goodix_TS 4-0014: INT gpio 133 to irq 389
 
-You can't write a patch with assumptions on subsequent patches.
+Here is the full Android dmesg:
+http://ao2.it/tmp/Goodix-TS_Teclast-X98-Air-3G/dmesg_Teclast-X98-Air-3G_Android.log
 
->  #ifdef CONFIG_SMP
->         &smp_spin_table_ops,
->  #endif
-> @@ -35,10 +35,13 @@ static const struct cpu_operations *supported_cpu_ops[] __initconst = {
->         NULL,
->  };
-> 
-> -static const struct cpu_operations * __init cpu_get_ops(const char *name)
-> +const struct cpu_operations *cpu_get_ops(const char *name)
+They could have worked around the missing ACPI resource in the code, but
+Windows also works on this tablet (I do not have it installed tho).
+All the vendor firmwares I found use the same DSDT.
 
-Ditto.
+The pinctrl-baytrail driver used for the gpio setup _seems_ to be fine,
+i.e. input from other gpios works.
 
->  {
->         const struct cpu_operations **ops = supported_cpu_ops;
-> 
-> +       if (!name)
-> +               return NULL;
-> +
+Any ideas?
 
-See above.
+I tried retrieving the gpio number with devm_gpiod_get_index() from the
+GpioIo resource but I am not sure whether this is OK, is that resource
+meant to indicate the same "touch" irq which I would have expected in an
+Interrupt resource, or are those GpioIo for power/reset?
 
->         while (*ops) {
->                 if (!strcmp(name, (*ops)->name))
->                         return *ops;
-> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> index ef5b1e1..54e39e3 100644
-> --- a/arch/arm64/kernel/setup.c
-> +++ b/arch/arm64/kernel/setup.c
-> @@ -414,13 +414,16 @@ void __init setup_arch(char **cmdline_p)
->         if (acpi_disabled) {
->                 unflatten_device_tree();
->                 psci_dt_init();
-> +               cpu_read_bootcpu_ops();
-> +#ifdef CONFIG_SMP
-> +               of_smp_init_cpus();
-> +#endif
->         } else {
->                 psci_acpi_init();
-> +               acpi_smp_init_cpus();
+Patch is here, anyway:
+http://ao2.it/tmp/Goodix-TS_Teclast-X98-Air-3G/0001-XXX-goodix-add-support-for-GODX0911.patch
 
-With DT you call cpu_read_bootcpu_ops() and then of_smp_init_cpus()
-with acpi you have one function that does both, it is not really
-neat.
+Anyhow, even if this approach was OK, or we wanted to use the GpioIo to
+control power explicitly, I'd notice that the pin number is 0x44 (hex)
+on GPO2 (the third bank), but GPO2 has max 44 (decimal) pins, so it would
+be still invalid. 
+
+Obviously I am still missing something.
 
 Thanks,
-Lorenzo
->         }
-> 
-> -       cpu_read_bootcpu_ops();
->  #ifdef CONFIG_SMP
-> -       smp_init_cpus();
->         smp_build_mpidr_hash();
->  #endif
-> 
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index 7ae6ee0..5aaf5a4 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -323,7 +323,7 @@ void __init smp_prepare_boot_cpu(void)
->   * cpu logical map array containing MPIDR values related to logical
->   * cpus. Assumes that cpu_logical_map(0) has already been initialized.
->   */
-> -void __init smp_init_cpus(void)
-> +void __init of_smp_init_cpus(void)
->  {
->         struct device_node *dn = NULL;
->         unsigned int i, cpu = 1;
-> --
-> 1.9.1
-> 
-> 
+   Antonio
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
