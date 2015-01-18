@@ -1,27 +1,44 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Jon Masters <jcm@redhat.com>
 Subject: Re: [PATCH v7 06/17] ARM64 / ACPI: Make PCI optional for ACPI on
  ARM64
-Date: Sun, 18 Jan 2015 14:25:53 +0800
-Message-ID: <54BB51F1.8000900@linaro.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org> <20150116094913.GA13634@e104818-lin.cambridge.arm.com>
+Date: Sun, 18 Jan 2015 01:31:36 -0500 (EST)
+Message-ID: <508480149.12941388.1421562696311.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org> <20150116094913.GA13634@e104818-lin.cambridge.arm.com> <54BB51F1.8000900@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:42530 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710AbbARG0G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 01:26:06 -0500
-Received: by mail-pa0-f54.google.com with SMTP id fb1so32261440pad.13
-        for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2015 22:26:05 -0800 (PST)
-In-Reply-To: <20150116094913.GA13634@e104818-lin.cambridge.arm.com>
+Received: from mx4-phx2.redhat.com ([209.132.183.25]:59411 "EHLO
+	mx4-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbbARGdE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 01:33:04 -0500
+In-Reply-To: <54BB51F1.8000900@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Robert Richter <rric@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Rob Herring <robh@kernel.org>, grant.likel
 
-On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 17:49, Catalin Marinas wrote:
+Hi Folks,
+
+Sorry for top posting from bed. The mainstream servers will all likely =
+do PCIe but there are several that may not. They should not be excluded=
+=2E That said, if we booted a previously built kernel on a system witho=
+ut an MCFG and got no ECAM/root then things would probably still work.
+
+I think it'll work out either way but for the record there is no requir=
+ement to do PCIe on ARM servers that conform to spec.
+
+Jon.
+
+--=20
+Computer Architect | Sent from my #ARM Powered Mobile Device
+
+On Jan 18, 2015 1:26 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>
+> On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 17:49, Catalin Marinas wrote:=20
+> > On Wed, Jan 14, 2015 at 03:04:54PM +0000, Hanjun Guo wrote:=20
+> >> Since PCI iOn 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 17:49, Catalin M=
+arinas wrote:
 > On Wed, Jan 14, 2015 at 03:04:54PM +0000, Hanjun Guo wrote:
 >> Since PCI is not required in ACPI spec and ARM can run without
 >> it, introduce some stub functions to make PCI optional for ACPI,
@@ -244,6 +261,11 @@ return -ENOSYS in the arm64 CONFIG_PCI ones next version :)
 
 Thanks
 Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
