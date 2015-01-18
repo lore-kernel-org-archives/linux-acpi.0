@@ -1,77 +1,45 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Sun, 18 Jan 2015 14:36:11 +0800
-Message-ID: <54BB545B.5060800@linaro.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <CACxGe6v_BvCQqp8d=LaQ8HeaOU1Zh_HPpwFTdwOjHUbqXsnQ8g@mail.gmail.com> <20150115182346.GE2329@e104818-lin.cambridge.arm.com> <20150115190220.GF3043@sirena.org.uk> <20150115200437.GF24989@titan.lakedaemon.net> <20150116101034.GC13634@e104818-lin.cambridge.arm.com>
+Subject: Re: [PATCH v7 06/17] ARM64 / ACPI: Make PCI optional for ACPI on
+ ARM64
+Date: Sun, 18 Jan 2015 14:46:35 +0800
+Message-ID: <54BB56CB.7040701@linaro.org>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org> <20150116094913.GA13634@e104818-lin.cambridge.arm.com> <54BB51F1.8000900@linaro.org> <508480149.12941388.1421562696311.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
+Content-Type: text/plain; charset=utf-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:36130 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171AbbARGgW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 01:36:22 -0500
-Received: by mail-pd0-f176.google.com with SMTP id r10so30421942pdi.7
-        for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2015 22:36:22 -0800 (PST)
-In-Reply-To: <20150116101034.GC13634@e104818-lin.cambridge.arm.com>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:46272 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880AbbARGqq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 01:46:46 -0500
+Received: by mail-pa0-f42.google.com with SMTP id et14so32378362pad.1
+        for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2015 22:46:46 -0800 (PST)
+In-Reply-To: <508480149.12941388.1421562696311.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Jason Cooper <jason@lakedaemon.net>
-Cc: Mark Brown <broonie@kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Yijing Wang <wangyijing@huawei.com>, ACPI
+To: Jon Masters <jcm@redhat.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Robert Richter <rric@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Rob Herring <robh@kernel.org>, grant.likel
 
-On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 18:10, Catalin Marinas wrote:
-> On Thu, Jan 15, 2015 at 08:04:37PM +0000, Jason Cooper wrote:
->> On Thu, Jan 15, 2015 at 07:02:20PM +0000, Mark Brown wrote:
->>> On Thu, Jan 15, 2015 at 06:23:47PM +0000, Catalin Marinas wrote:
->>>> On Thu, Jan 15, 2015 at 04:26:20PM +0000, Grant Likely wrote:
->>>
->>>>> I'll get right to the point: Can we please have this series queue=
-d up
->>>>> for v3.20?
->>>
->>>> Before you even ask for this, please look at the patches and reali=
-se
->>>> that there is a complete lack of Reviewed-by tags on the code (wel=
-l,
->>>> apart from trivial Kconfig changes). In addition, the series touch=
-es on
->>>> other subsystems like clocksource, irqchip, acpi and I don't see a=
-ny
->>>> acks from the corresponding maintainers. So even if I wanted to me=
-rge
->>>> the series, there is no way it can be done without additional
->>>> reviews/acks. On the document (last patch), I'd like to see a stat=
-ement
->>>
->>> There's probably a bit of a process problem here - these patches ar=
-e all
->>> being posted as part of big and apparently controversial threads wi=
-th
->>> subject lines in the form "ARM / ACPI:" so people could be forgiven=
- for
->>> just not even reading the e-mails enough to notice changes to their
->>> subsystems.  Is it worth posting those patches separately more dire=
-ctly
->>> to the relevant maintainers?
->>
->> I think it's beneficial to post the entire series as one thread, but=
- to
->> change the subject line of each patch to adequately reflect the affe=
-cted
->> subsystem.
+On 2015=E5=B9=B401=E6=9C=8818=E6=97=A5 14:31, Jon Masters wrote:
+> Hi Folks,
 >
-> Indeed, keeping the series as one thread is better. Apart from a
-> slightly less misleading subject, I suggest Hanjun that he passes eac=
-h
-> patch via get_maintainer.pl and adds the corresponding Cc: lines to t=
-he
-> commit log. I think that's a clearer way keep track of who needs to
-> ack/review the patches.
+> Sorry for top posting from bed. The mainstream servers will all likel=
+y do
+ > PCIe but there are several that may not. They should not be excluded=
+=2E=20
+That said,
+ >if we booted a previously built kernel on a system without an MCFG an=
+d
+ > got no ECAM/root then things would probably still work.
+>
+> I think it'll work out either way but for the record there is no requ=
+irement to do PCIe on ARM servers that conform to spec.
 
-I already checked all the patches with get_maintainer.pl, and CC the=20
-maintainers in the CC list, I will add the corresponding Cc: lines in
-next version.
+OK, Catalin already said that was not the main point of the
+comments for this patch, I think the title and change log
+of the patch is inconsistent with the code makes Catalin confused,
+I will update them in next version.
 
 Thanks
 Hanjun
