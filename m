@@ -1,51 +1,62 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [Linaro-acpi] [PATCH v7 00/17] Introduce ACPI for ARM64 based on
- ACPI 5.1
-Date: Sat, 17 Jan 2015 11:53:56 -0600
-Message-ID: <CAL_JsqJzx62Vt09PK=G0WZsr0hXPj5oB=fxtVtfQD2Ys6=n-iQ@mail.gmail.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1809831.d9GPSfLUEN@wuerfel> <20150116154913.GW7091@arm.com> <1887263.kzglbjcc0t@wuerfel>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v7 07/17] ARM64 / ACPI: Disable ACPI if FADT revision
+ is less than 5.1
+Date: Sun, 18 Jan 2015 13:49:50 +0800
+Message-ID: <54BB497E.7050606@linaro.org>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-8-git-send-email-hanjun.guo@linaro.org> <20150116143337.GA14505@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:53929 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbbAQRyR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Jan 2015 12:54:17 -0500
-In-Reply-To: <1887263.kzglbjcc0t@wuerfel>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:53312 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710AbbARFuC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 00:50:02 -0500
+Received: by mail-pd0-f175.google.com with SMTP id g10so30284220pdj.6
+        for <linux-acpi@vger.kernel.org>; Sat, 17 Jan 2015 21:50:01 -0800 (PST)
+In-Reply-To: <20150116143337.GA14505@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Yijing Wang <wangyijing@huawei.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Tom Lendacky <thomas.lendacky@amd.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei.com
 
-On Fri, Jan 16, 2015 at 9:53 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 16 January 2015 15:49:13 Will Deacon wrote:
+On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 22:33, Lorenzo Pieralisi wrote:
+> On Wed, Jan 14, 2015 at 03:04:55PM +0000, Hanjun Guo wrote:
+>> FADT Major.Minor version was introduced in ACPI 5.1, it is the same
+>> as ACPI version.
 >>
->> The on-board ethernet on Seattle requires the driver to program its AXI
->> attributes, so configuring it to be a coherent master actually means
->> "program the same cacheable AXI settings as you have on the CPU". That
->> sounds like Linux should be doing it to me, but even if the firmware takes
->> a guess at "normal cacheable WBRWA", it's not clear to me whether that
->> register persists across things like adapter reset.
+>> In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
+>> MADT table for GIC and SMP init, without those updates, we can not
+>> get the MPIDR for SMP init, and GICv2/3 related init information, so
+>> we can't boot arm64 ACPI properly with table versions predating 5.1.
 >>
->> Tom?
->>
->> There's also the situation where the firmware hasn't initialised the
->> register and Linux realises this during probe. What should it do then?
+>> If firmware provides ACPI tables with ACPI version less than 5.1,
+>> OS will be messed up with those information and have no way to init
 >
-> In case of a 10gbit ethernet adapter, there really should be no question
-> regarding whether to set it coherent or not. Can't Linux just always
-> set this AXI attribute in the driver?
+> Nit: "that information"
+>
+> or
+>
+> "...OS has no way to retrieve the configuration data that is necessar=
+y
+> to init SMP boot protocol and the GIC properly, so.."
+>
+>> smp and GIC, so disable ACPI if we get an FADT table with version
+>> less that 5.1.
+>>
+>
+> Patch should be reordered in the series and must be sequenced before
+> patch 5 for bisectability (that patch implements DT unflattening if A=
+CPI
+> is disabled), or squashed with previous patches.
 
-Coherency is easy to get wrong, so the path could be broken. In fact
-on highbank, it is the non-coherent path that is broken. You could
-find out pretty far down the road that you need to change
-configuration. But yes, I agree with your point as you pretty much
-have to run coherently for decent performance on high speed
-peripherals.
+OK, I will reorder this patch set and update the change log above.
 
-If we are mucking with AXI specifics in the kernel on ACPI systems,
-we've already failed to abstract the platform. AXI is not even part of
-the architecture.
-
-Rob
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
