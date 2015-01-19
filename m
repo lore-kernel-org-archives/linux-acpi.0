@@ -1,109 +1,77 @@
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Subject: Re: if power button pressed 1x it creates the same ACPI event twice
-Date: Mon, 19 Jan 2015 14:21:55 +0100
-Message-ID: <13866742.20150119142155@eikelenboom.it>
-References: <618666178.20150113173510@eikelenboom.it> <1202643605.20150113174724@eikelenboom.it> <577867575.20150119140934@eikelenboom.it>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
+ and pass acpi=force to enable ACPI
+Date: Mon, 19 Jan 2015 13:51:45 +0000
+Message-ID: <20150119135144.GI11835@e104818-lin.cambridge.arm.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
+ <20150119114255.GF11835@e104818-lin.cambridge.arm.com>
+ <CAKv+Gu8vPKAdsNg7QC7xW+i8_BemWEx4mvBx6NrnAHi8Y+bNtw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vserver.eikelenboom.it ([84.200.39.61]:44089 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593AbbASNV7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jan 2015 08:21:59 -0500
-In-Reply-To: <577867575.20150119140934@eikelenboom.it>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:37999 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641AbbASNv5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jan 2015 08:51:57 -0500
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu8vPKAdsNg7QC7xW+i8_BemWEx4mvBx6NrnAHi8Y+bNtw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sander Eikelenboom <linux@eikelenboom.it>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 
+On Mon, Jan 19, 2015 at 11:55:32AM +0000, Ard Biesheuvel wrote:
+> On 19 January 2015 at 11:42, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > On Wed, Jan 14, 2015 at 03:04:52PM +0000, Hanjun Guo wrote:
+> >> From: Al Stone <al.stone@linaro.org>
+> >>
+> >> Introduce one early parameters "off" and "force" for "acpi", acpi=off
+> >> will be the default behavior for ARM64, so introduce acpi=force to
+> >> enable ACPI on ARM64.
+> >>
+> >> Disable ACPI before early parameters parsed, and enable it to pass
+> >> "acpi=force" if people want use ACPI on ARM64. This ensures DT be
+> >> the prefer one if ACPI table and DT both are provided at this moment.
+> > [...]
+> >> --- a/arch/arm64/kernel/setup.c
+> >> +++ b/arch/arm64/kernel/setup.c
+> >> @@ -62,6 +62,7 @@
+> >>  #include <asm/memblock.h>
+> >>  #include <asm/psci.h>
+> >>  #include <asm/efi.h>
+> >> +#include <asm/acpi.h>
+> >>
+> >>  unsigned int processor_id;
+> >>  EXPORT_SYMBOL(processor_id);
+> >> @@ -388,6 +389,8 @@ void __init setup_arch(char **cmdline_p)
+> >>       early_fixmap_init();
+> >>       early_ioremap_init();
+> >>
+> >> +     disable_acpi();
+> >> +
+> >>       parse_early_param();
+> >>
+> >>       /*
+> >
+> > Did we get to any conclusion here? DT being the preferred one is fine
+> > when both DT and ACPI are present but do we still want the kernel to
+> > ignore ACPI altogether if DT is not present? It's a bit harder to detect
+> > the presence of DT at this point since the EFI_STUB added one already. I
+> > guess we could move the "acpi=force" argument passing to EFI_STUB if no
+> > DT is present at boot.
+> 
+> Since the EFI stub populates the /chosen node in DT, I would prefer
+> for it to add a property there to indicate whether it created the DT
+> from scratch rather than adding ACPI specific stuff in there (even if
+> it is just a string to concatenate)
 
-Monday, January 19, 2015, 2:09:34 PM, you wrote:
+This works for me. So we could pass "acpi=force" in EFI stub if it
+created the DT from scratch *and* ACPI tables are present (can it detect
+the latter? And maybe it could print something if none are available).
+If that works, the actual kernel can assume that ACPI needs to be
+explicitly enabled via acpi=force, irrespective of how much information
+it has in DT.
 
-> Hello Sander,
-
-> Tuesday, January 13, 2015, 5:47:24 PM, you wrote:
-
->> Tuesday, January 13, 2015, 5:35:10 PM, you wrote:
-
->>> Hi Rafael / Len,
-
->>> When i press the power-button on my intel NUC, i get twp ACPI power-events shortly 
->>> after one another (within a second), instead of just one. 
-
->>> It doesn't matter if i have the old /proc/acpi interface enabled or disabled in the kernel config.
-
->>> I have tested a few older kernels lingering around on the box and 3.14 already 
->>> has this problem. 3.2 (from the debian repo) doesn't have the problem, it only 
->>> fires one event.
-
->>> I did find another report:
->>>     Re: lenovo ultrabay docking station: if power button pressed 1x it creates 2x the same ACPI event
->>>     http://www.spinics.net/lists/linux-acpi/msg54723.html
->>> But that hasn't come to a conclusion ...
-
-
->>> Unfortunately 3.2 - 3.19-rc4 is a bit of a largish bisect window, so that's 
->>> unfeasible :-)
-
->>> I compiled in apci debug support and tried:
->>>  echo "0x00080000" > /sys/module/acpi/parameters/debug_layer
->>>  echo "0xffffffff" > /sys/module/acpi/parameters/debug_level
-
->>> But i don't get any extra output in dmesg ?
-
->>> Do you have any ideas for a debug patch or better values to figure out what is going on ?
-
->>> --
->>> Sander
-
->> Hmm is it normal that it registers in this way (twice) ?
-
->> [    5.817980] input: Power Button as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0C:00/input/input0
->> [    5.837907] ACPI: Power Button [PWRB]
->> [    5.847540] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input1
->> [    5.866915] ACPI: Power Button [PWRF]
-
->> --
->> Sander
-
-> Hi Rafael / Len,
-
-> Got some more time to test:
-
-> - It's indeed giving one event for both registered power buttons (which in reality 
->   are just one hardware button) printing acpid's "%e" revealed that:
->   1421672289-161192235 | button/power PBTN 00000080 00000000
->   1421672289-279647745 | button/power LNXPWRBN:00 00000080 00000004
-
-> So i tested on another box (amd instead of intel), and that also registers 2 
-> power buttons:
-
-> # dmesg | grep -i button
-> [   13.435060] input: Power Button as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0C:00/input/input0
-> [   13.435294] ACPI: Power Button [PWRB]
-> [   13.435495] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input1
-> [   13.435683] ACPI: Power Button [PWRF]
->  
-> So the question is .. should both register and should scripts adjust to pick up just one of them ?
-> Or can, as a more general solution, just one be ignored when registering ?
-
-> --
-> Sander
-
-Whoops sorry for the fragmentation of the report ... but just thought the output 
-under kernel 3.2.0 could be handy as well .. as that only fires one event:
-
-[    4.003753] input: Power Button as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0C:00/input/input1
-[    4.003838] ACPI: Power Button [PWRB]
-[    4.003977] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input2
-[    4.005530] ACPI: Power Button [PWRF]
-
-It registers also two ..
-But when the power button is pressed only fires this one:
-
-1421673524-817561070 | button/power PBTN 00000080 00000000
-
---
-Sander
-
+-- 
+Catalin
