@@ -1,50 +1,97 @@
-From: David Vrabel <david.vrabel@citrix.com>
-Subject: Re: [Bugfix 3/3] x86/PCI: Refine the way to release PCI IRQ resources
-Date: Mon, 19 Jan 2015 14:24:13 +0000
-Message-ID: <54BD138D.3090403@citrix.com>
-References: <1421643344-17092-1-git-send-email-jiang.liu@linux.intel.com> <1421643344-17092-4-git-send-email-jiang.liu@linux.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch 00/19] Improve ACPI resource parsing interfaces and
+ data structures
+Date: Mon, 19 Jan 2015 22:26:00 +0800
+Message-ID: <54BD13F8.2040105@linux.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <2025625.5YhoBnTE03@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1421643344-17092-4-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sander Eikelenboom <linux@eikelenboom.it>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:35295 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751317AbbASO0E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Jan 2015 09:26:04 -0500
+In-Reply-To: <2025625.5YhoBnTE03@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 19/01/15 04:55, Jiang Liu wrote:
-> Some PCI device drivers assume that pci_dev->irq won't change after
-> calling pci_disable_device() and pci_enable_device() during suspend and
-> resume.
+On 2015/1/12 6:38, Rafael J. Wysocki wrote:
+> On Thursday, January 08, 2015 10:32:47 AM Jiang Liu wrote:
+>> During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
+>> in ACPI resource parsing interfaces. So this is an effort to improve them.
+>>
+>> Patch 1-12 improve ACPI resource parsing interfaces and also fixes some
+>> bugs.
+>>
+>> Patch 13-19 try to share the common data structure resource_list_entry
+>> between PCI and ACPI. It may also be shared with PNP too.
 > 
-> Commit c03b3b0738a56cf283b0d05256988d5e3c8bd719 ("x86, irq, mpparse:
-> Release IOAPIC pin when PCI device is disabled") frees PCI IRQ
-> resources when pci_disable_device() is called and reallocate IRQ
-> resources when pci_enable_device() is called again. This breaks
-> above assumption. So commit 3eec595235c1 ("x86, irq, PCI: Keep IRQ
-> assignment for PCI devices during suspend/hibernation") and
-> 9eabc99a635a ("x86, irq, PCI: Keep IRQ assignment for runtime power
-> management") fix the issue by avoiding freeing/reallocating IRQ
-> resources during PCI device suspend/resume. They achieve this by
-> checking dev.power.is_prepared and dev.power.runtime_status.
-> PM maintainer, Rafael, then pointed out that it's really an ugly fix
-> which leaking PM internal state information to IRQ subsystem.
+> I've looked at the patches briefly.
+> 
+> I like the changes at the general level, but there are some things I'm
+> potentially concerned about in them.  Need more time to look at them,
+> I'll do my best to do that this week while at the conference.
+Hi Rafael,
+	Thanks for your time. Any comments about this series?
+Regards,
+Gerry
 
-If this only affects pciback, perhaps it would be best to just fix it there?
-
-> Recently David Vrabel <david.vrabel@citrix.com> also reports an
-> regression in pciback driver caused by commit cffe0a2b5a34 ("x86, irq:
-> Keep balance of IOAPIC pin reference count"). Please refer to:
-
-Sander reported this regression.
-
-> So this patch refine the way to release PCI IRQ resources. Instead of
-> releasing PCI IRQ resources in pci_disable_device()/
-> pcibios_disable_device(), we now release it at driver unbinding
-> notification BUS_NOTIFY_UNBOUND_DRIVER. In other word, we only release
-> PCI IRQ resources when there's no driver bound to the PCI device, and
-> it keeps the assumption that pci_dev->irq won't through multiple
-> invocation of pci_enable_device()/pci_disable_device().
-
-David
+> 
+>> The patchset is based on v3.19-rc3 and you may get it from:
+>> https://github.com/jiangliu/linux.git acpires_v1
+>>
+>> Jiang Liu (11):
+>>   ACPI: Fix a bug in parsing ACPI Memroy24 resource
+>>   ACPI: Normalize return value of resource parser functions
+>>   ACPI: Set flag IORESOURCE_UNSET for unassigned resources
+>>   ACPI: Enforce stricter checks for address space descriptors
+>>   ACPI: Return translation offset when parsing ACPI address space
+>>     resources
+>>   ACPI: Translate resource into master side address for bridge window
+>>     resources
+>>   ACPI: Add field offset to struct resource_list_entry
+>>   ACPI: Introduce helper function acpi_dev_filter_resource_type()
+>>   resources: Move struct resource_list_entry from ACPI into resource
+>>     core
+>>   PCI: Use common resource list management code instead of private
+>>     implementation
+>>   x86/PCI/ACPI: Use common ACPI resource interfaces to simplify
+>>     implementation
+>>
+>> Thomas Gleixner (8):
+>>   ACPI: Remove redundant check in function
+>>     acpi_dev_resource_address_space()
+>>   ACPI: Implement proper length checks for mem resources
+>>   ACPI: Use the length check for io resources as well
+>>   ACPI: Let the parser return false for disabled resources
+>>   ACPI: Provide union for address_space64 and ext_address_space64
+>>   ACPI: Unify the parsing of address_space and ext_address_space
+>>   ACPI: Move the window flag logic to the combined parser
+>>   ACPI: Add prefetch decoding to the address space parser
+>>
+>>  arch/arm/kernel/bios32.c            |    5 +-
+>>  arch/x86/pci/acpi.c                 |  297 ++++++++++---------------------
+>>  arch/x86/pci/bus_numa.c             |    4 +-
+>>  drivers/acpi/acpi_lpss.c            |    6 +-
+>>  drivers/acpi/acpi_platform.c        |    2 +-
+>>  drivers/acpi/resource.c             |  333 ++++++++++++++++++++++-------------
+>>  drivers/dma/acpi-dma.c              |    8 +-
+>>  drivers/pci/bus.c                   |   18 +-
+>>  drivers/pci/host-bridge.c           |    8 +-
+>>  drivers/pci/host/pci-host-generic.c |    4 +-
+>>  drivers/pci/host/pci-xgene.c        |    4 +-
+>>  drivers/pci/host/pcie-xilinx.c      |    4 +-
+>>  drivers/pci/probe.c                 |   10 +-
+>>  drivers/pnp/pnpacpi/rsparser.c      |    4 +-
+>>  include/acpi/acrestyp.h             |   49 ++++--
+>>  include/linux/acpi.h                |   12 +-
+>>  include/linux/ioport.h              |   25 +++
+>>  include/linux/pci.h                 |    8 +-
+>>  kernel/resource.c                   |   48 +++++
+>>  19 files changed, 452 insertions(+), 397 deletions(-)
+>>
+>>
+> 
