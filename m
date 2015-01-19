@@ -1,103 +1,115 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
- and pass acpi=force to enable ACPI
-Date: Mon, 19 Jan 2015 18:01:22 +0000
-Message-ID: <20150119180122.GJ21553@leverpostej>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
- <20150119114255.GF11835@e104818-lin.cambridge.arm.com>
- <CAKv+Gu8vPKAdsNg7QC7xW+i8_BemWEx4mvBx6NrnAHi8Y+bNtw@mail.gmail.com>
- <20150119135144.GI11835@e104818-lin.cambridge.arm.com>
- <20150119151350.21B65C40948@trevor.secretlab.ca>
- <54BD3803.6020307@redhat.com>
- <20150119175233.GK11835@e104818-lin.cambridge.arm.com>
+From: Christoffer Dall <christoffer.dall@linaro.org>
+Subject: Re: [PATCH v6 17/17] Documentation: ACPI for ARM64
+Date: Mon, 19 Jan 2015 21:33:28 +0100
+Message-ID: <20150119203328.GB3766@cbox>
+References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
+ <1420368918-5086-18-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:34532 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751895AbbASUdc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jan 2015 15:33:32 -0500
+Received: by mail-la0-f46.google.com with SMTP id s18so9943786lam.5
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Jan 2015 12:33:30 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20150119175233.GK11835@e104818-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infra
+In-Reply-To: <1420368918-5086-18-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Graeme Gregory <graeme.gregory@linaro.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, phoenix.liyi@huawei.coml
 
-On Mon, Jan 19, 2015 at 05:52:33PM +0000, Catalin Marinas wrote:
-> On Mon, Jan 19, 2015 at 04:59:47PM +0000, Jon Masters wrote:
-> > On 01/19/2015 10:13 AM, Grant Likely wrote:
-> > > On Mon, 19 Jan 2015 13:51:45 +0000
-> > > , Catalin Marinas <catalin.marinas@arm.com>
-> > >  wrote:
-> > >> On Mon, Jan 19, 2015 at 11:55:32AM +0000, Ard Biesheuvel wrote:
-> > >>> On 19 January 2015 at 11:42, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > >>>> On Wed, Jan 14, 2015 at 03:04:52PM +0000, Hanjun Guo wrote:
-> > >>>>> From: Al Stone <al.stone@linaro.org>
-> > >>>>>
-> > >>>>> Introduce one early parameters "off" and "force" for "acpi", acpi=off
-> > >>>>> will be the default behavior for ARM64, so introduce acpi=force to
-> > >>>>> enable ACPI on ARM64.
-> > >>>>>
-> > >>>>> Disable ACPI before early parameters parsed, and enable it to pass
-> > >>>>> "acpi=force" if people want use ACPI on ARM64. This ensures DT be
-> > >>>>> the prefer one if ACPI table and DT both are provided at this moment.
-> > >>>> [...]
-> > >>>>> --- a/arch/arm64/kernel/setup.c
-> > >>>>> +++ b/arch/arm64/kernel/setup.c
-> > >>>>> @@ -62,6 +62,7 @@
-> > >>>>>  #include <asm/memblock.h>
-> > >>>>>  #include <asm/psci.h>
-> > >>>>>  #include <asm/efi.h>
-> > >>>>> +#include <asm/acpi.h>
-> > >>>>>
-> > >>>>>  unsigned int processor_id;
-> > >>>>>  EXPORT_SYMBOL(processor_id);
-> > >>>>> @@ -388,6 +389,8 @@ void __init setup_arch(char **cmdline_p)
-> > >>>>>       early_fixmap_init();
-> > >>>>>       early_ioremap_init();
-> > >>>>>
-> > >>>>> +     disable_acpi();
-> > >>>>> +
-> > >>>>>       parse_early_param();
-> > >>>>>
-> > >>>>>       /*
-> > >>>>
-> > >>>> Did we get to any conclusion here? DT being the preferred one is fine
-> > >>>> when both DT and ACPI are present but do we still want the kernel to
-> > >>>> ignore ACPI altogether if DT is not present? It's a bit harder to detect
-> > >>>> the presence of DT at this point since the EFI_STUB added one already. I
-> > >>>> guess we could move the "acpi=force" argument passing to EFI_STUB if no
-> > >>>> DT is present at boot.
-> > >>>
-> > >>> Since the EFI stub populates the /chosen node in DT, I would prefer
-> > >>> for it to add a property there to indicate whether it created the DT
-> > >>> from scratch rather than adding ACPI specific stuff in there (even if
-> > >>> it is just a string to concatenate)
-> > >>
-> > >> This works for me. So we could pass "acpi=force" in EFI stub if it
-> > >> created the DT from scratch *and* ACPI tables are present (can it detect
-> > >> the latter? And maybe it could print something if none are available).
-> > >> If that works, the actual kernel can assume that ACPI needs to be
-> > >> explicitly enabled via acpi=force, irrespective of how much information
-> > >> it has in DT.
-> > > 
-> > > Ditto for me. I think this is a fine solution. And, yes, the stub can
-> > > easily detect the presence of ACPI by looking in the UEFI config table.
-> > 
-> > I get the point behind doing this, but could we not have it pass in a
-> > different parameter than =force? Perhaps something new? I'd like to
-> > separate out the case that it was enabled automatically vs explicitly
-> > forced on by a user wanting to use ACPI on a system with both tables.
+Hi,
+
+On Sun, Jan 04, 2015 at 06:55:18PM +0800, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
 > 
-> Ard had a point, so we should probably not pass acpi=force from EFI stub
-> (especially since a user may explicitly pass acpi=off irrespective of DT
-> presence). Some other property in the chosen node? It's not even an ABI
-> since that's a contract between EFI stub and the rest of the kernel, so
-> an in-kernel only interface.
+> Add documentation for the guidelines of how to use ACPI
+> on ARM64.
+> 
+> Reviewed-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/arm64/arm-acpi.txt | 327 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 327 insertions(+)
+>  create mode 100644 Documentation/arm64/arm-acpi.txt
+> 
+> diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
+> new file mode 100644
+> index 0000000..21e7020
+> --- /dev/null
+> +++ b/Documentation/arm64/arm-acpi.txt
+> @@ -0,0 +1,327 @@
+> +ACPI on ARMv8 Servers
+> +---------------------
+> +ACPI can be used for ARMv8 general purpose servers designed to follow
+> +the ARM SBSA (Server Base System Architecture) and SBBR (Server Base
+> +Boot Requirements) specifications, currently available to those with
+> +an ARM login at http://silver.arm.com.
+> +
+> +The ARMv8 kernel implements the reduced hardware model of ACPI version
+> +5.1 and later.  Links to the specification and all external documents
+> +it refers to are managed by the UEFI Forum.  The specification is
+> +available at http://www.uefi.org/specifications and external documents
+> +can be found via http://www.uefi.org/acpi.
+> +
+> +If an ARMv8 system does not meet the requirements of the SBSA, or cannot
+> +be described using the mechanisms defined in the required ACPI specifications,
+> +then it is likely that Device Tree (DT) is more suitable than ACPI for the
+> +hardware.
+> +
+> +
+> +Relationship with Device Tree
+> +-----------------------------
+> +ACPI support in drivers and subsystems for ARMv8 should never be mutually
+> +exclusive with DT support at compile time.
+> +
+> +At boot time the kernel will only use one description method depending on
+> +parameters passed from the bootloader (including kernel bootargs).
+> +
+> +Regardless of whether DT or ACPI is used, the kernel must always be capable
+> +of booting with either scheme (in kernels with both schemes enabled at compile
+> +time).
+> +
+> +
+> +Booting using ACPI tables
+> +-------------------------
+> +The only defined method for passing ACPI tables to the kernel on ARMv8
+> +is via the UEFI system configuration table.
+> +
 
-Not strictly true once kexec is in place. Then it becomes a stub ->
-kernel -> kernel -> kernel -> ... interface, alnog with the rest of the
-properties the stub puts in the DTB.
+This is a bit concerning for the approach we are currently taking to
+support ACPI on Xen [1].
 
-Having something like /chosen/linux,uefi-stub-generated-dtb sounds sane
-regardless.
+Background: Xen is a tiny hypervisor which cannot parse the DSDT or any
+other non-static table. Xen relies on Linux in Dom0 to manage most
+(basically everything except the GIC, serial port, SMMU, and timers)
+hardware resources and relies on Dom0 to parse the ACPI tables.
 
-Mark.
+While Xen itself is typically booted by UEFI and finds RSDP through the
+UEFI system table, Xen does NOT run another UEFI instance to boot Dom0
+nor does it pass through the presence of UEFI to Dom0 in any way.
+Instead, it just created a DT (with modifications concerning the
+hardware mentioned above) and boots Linux in Dom0 directly (on x86 any
+required UEFI call is performed through paravirtualized hypercalls).
+
+In the case of ACPI, Xen adds a property to the chosen node and
+populates it with the RDSP in Dom0's address space.  Patches have not
+been posted yet, but we do have a working prototype of the
+implementation and the Linux changes are minimal to support this
+approach.  Parth Dixit (cc'ed) can provide more details on this if
+needed/wanted.
+
+With the current wording in this patch, it seems Xen is forced to
+emulate EFI or run a full UEFI instance for Dom0 which results in a
+really heavy boot sequnce for Xen.  Should we be concerned about this
+use case at this point and does anyone have suggestions on how to solve
+this?
+
+[1]: https://wiki.linaro.org/LEG/Engineering/Virtualization/ACPI_on_Xen
+
+Thanks,
+-Christoffer
