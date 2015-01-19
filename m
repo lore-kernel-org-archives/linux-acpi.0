@@ -1,286 +1,66 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: Re: [PATCH] acpica: utpredef: Remove some unused functions
-Date: Sun, 18 Jan 2015 18:54:08 +0100
-Message-ID: <CAKXHbyMDH-j362ebMio46xDOXaEyPGaHrC+xY4o4xOC1Wm_-Cw@mail.gmail.com>
-References: <1420384974-11745-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-	<1AE640813FDE7649BE1B193DEA596E88026B7475@SHSMSX101.ccr.corp.intel.com>
-	<CAKXHbyN4ypE3W-exxYUy_TW8HLuBc3hbdwgcX7WkN9mXM5w76Q@mail.gmail.com>
-	<1AE640813FDE7649BE1B193DEA596E88026B79CC@SHSMSX101.ccr.corp.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v7 06/17] ARM64 / ACPI: Make PCI optional for ACPI on
+ ARM64
+Date: Mon, 19 Jan 2015 12:26:22 +0800
+Message-ID: <54BC876E.3040402@linaro.org>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org> <20150116094913.GA13634@e104818-lin.cambridge.arm.com> <54BB51F1.8000900@linaro.org> <508480149.12941388.1421562696311.JavaMail.zimbra@zmail15.collab.prod.int.phx2.redhat.com> <54BB56CB.7040701@linaro.org> <20150118092955.GE6182@xora-haswell.xora.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f181.google.com ([209.85.213.181]:50086 "EHLO
-	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467AbbARRyK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 12:54:10 -0500
-Received: by mail-ig0-f181.google.com with SMTP id r2so9894386igi.2
-        for <linux-acpi@vger.kernel.org>; Sun, 18 Jan 2015 09:54:09 -0800 (PST)
-Received: from mail-ig0-f171.google.com (mail-ig0-f171.google.com. [209.85.213.171])
-        by mx.google.com with ESMTPSA id 27sm6364378ios.9.2015.01.18.09.54.09
-        for <linux-acpi@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 18 Jan 2015 09:54:09 -0800 (PST)
-Received: by mail-ig0-f171.google.com with SMTP id h15so2166063igd.4
-        for <linux-acpi@vger.kernel.org>; Sun, 18 Jan 2015 09:54:09 -0800 (PST)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026B79CC@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:56576 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276AbbASE0p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Jan 2015 23:26:45 -0500
+Received: by mail-pa0-f49.google.com with SMTP id hz1so5572644pad.8
+        for <linux-acpi@vger.kernel.org>; Sun, 18 Jan 2015 20:26:45 -0800 (PST)
+In-Reply-To: <20150118092955.GE6182@xora-haswell.xora.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Jon Masters <jcm@redhat.com>, Mark Rutland <Mark.Rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-2015-01-15 3:00 GMT+01:00 Zheng, Lv <lv.zheng@intel.com>:
-> Hi,
->
->> From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
->> Sent: Thursday, January 15, 2015 6:50 AM
+On 2015=E5=B9=B401=E6=9C=8818=E6=97=A5 17:29, Graeme Gregory wrote:
+> On Sun, Jan 18, 2015 at 02:46:35PM +0800, Hanjun Guo wrote:
+>> On 2015=E5=B9=B401=E6=9C=8818=E6=97=A5 14:31, Jon Masters wrote:
+>>> Hi Folks,
+>>>
+>>> Sorry for top posting from bed. The mainstream servers will all lik=
+ely do
+>>> PCIe but there are several that may not. They should not be exclude=
+d. That
+>> said,
+>>> if we booted a previously built kernel on a system without an MCFG =
+and
+>>> got no ECAM/root then things would probably still work.
+>>>
+>>> I think it'll work out either way but for the record there is no re=
+quirement to do PCIe on ARM servers that conform to spec.
 >>
->> 2015-01-14 9:55 GMT+01:00 Zheng, Lv <lv.zheng@intel.com>:
->> > Hi, Rickard
->> >
->> > The functions below seem already marked by "ACPI_ASL_COMPILER || ACPI_HELP_APP".
->> > How did you detect them as used functions?
->
-> Do you mean something like this?
->
-> <?xml version="1.0"?>
-> <def>
->   <define name="ACPI_ASL_COMPILER" value="0"/>
->   <define name="ACPI_HELP_APP" value="0"/>
-> </def>
->
-> Can Cppcheck automatically remove code blocks depending on the define settings during preprocessor stage?
->
-> Thanks and best regards
-> -Lv
->
->> >
->> > Thanks
->> > -Lv
->> >
->> >
->> >> -----Original Message-----
->> >> From: Rickard Strandqvist [mailto:rickard_strandqvist@spectrumdigital.se]
->> >> Sent: Sunday, January 04, 2015 11:23 PM
->> >> To: Moore, Robert; Zheng, Lv
->> >> Cc: Rickard Strandqvist; Wysocki, Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
->> >> Subject: [PATCH] acpica: utpredef: Remove some unused functions
->> >>
->> >> Removes some functions that are not used anywhere:
->> >> acpi_ut_get_resource_bit_width() acpi_ut_display_predefined_method() acpi_ut_match_resource_name()
->> >>
->> >> This was partially found by using a static code analysis program called cppcheck.
->> >>
->> >> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
->> >> ---
->> >>  drivers/acpi/acpica/acutils.h  |    9 ---
->> >>  drivers/acpi/acpica/utpredef.c |  134 ----------------------------------------
->> >>  2 files changed, 143 deletions(-)
->> >>
->> >> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
->> >> index 486d342..9b3fab1 100644
->> >> --- a/drivers/acpi/acpica/acutils.h
->> >> +++ b/drivers/acpi/acpica/acutils.h
->> >> @@ -502,17 +502,8 @@ const union acpi_predefined_info *acpi_ut_get_next_predefined_method(const union
->> >>
->> >>  const union acpi_predefined_info *acpi_ut_match_predefined_method(char *name);
->> >>
->> >> -const union acpi_predefined_info *acpi_ut_match_resource_name(char *name);
->> >> -
->> >> -void
->> >> -acpi_ut_display_predefined_method(char *buffer,
->> >> -                               const union acpi_predefined_info *this_name,
->> >> -                               u8 multi_line);
->> >> -
->> >>  void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes);
->> >>
->> >> -u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types);
->> >> -
->> >>  /*
->> >>   * utstate - Generic state creation/cache routines
->> >>   */
->> >> diff --git a/drivers/acpi/acpica/utpredef.c b/drivers/acpi/acpica/utpredef.c
->> >> index db30caf..f1ff33c 100644
->> >> --- a/drivers/acpi/acpica/utpredef.c
->> >> +++ b/drivers/acpi/acpica/utpredef.c
->> >> @@ -209,105 +209,6 @@ static const char *ut_resource_type_names[] = {
->> >>
->> >>  /*******************************************************************************
->> >>   *
->> >> - * FUNCTION:    acpi_ut_match_resource_name
->> >> - *
->> >> - * PARAMETERS:  name                - Name to find
->> >> - *
->> >> - * RETURN:      Pointer to entry in the resource table. NULL indicates not
->> >> - *              found.
->> >> - *
->> >> - * DESCRIPTION: Check an object name against the predefined resource
->> >> - *              descriptor object list.
->> >> - *
->> >> - ******************************************************************************/
->> >> -
->> >> -const union acpi_predefined_info *acpi_ut_match_resource_name(char *name)
->> >> -{
->> >> -     const union acpi_predefined_info *this_name;
->> >> -
->> >> -     /* Quick check for a predefined name, first character must be underscore */
->> >> -
->> >> -     if (name[0] != '_') {
->> >> -             return (NULL);
->> >> -     }
->> >> -
->> >> -     /* Search info table for a predefined method/object name */
->> >> -
->> >> -     this_name = acpi_gbl_resource_names;
->> >> -     while (this_name->info.name[0]) {
->> >> -             if (ACPI_COMPARE_NAME(name, this_name->info.name)) {
->> >> -                     return (this_name);
->> >> -             }
->> >> -
->> >> -             this_name++;
->> >> -     }
->> >> -
->> >> -     return (NULL);          /* Not found */
->> >> -}
->> >> -
->> >> -/*******************************************************************************
->> >> - *
->> >> - * FUNCTION:    acpi_ut_display_predefined_method
->> >> - *
->> >> - * PARAMETERS:  buffer              - Scratch buffer for this function
->> >> - *              this_name           - Entry in the predefined method/name table
->> >> - *              multi_line          - TRUE if output should be on >1 line
->> >> - *
->> >> - * RETURN:      None
->> >> - *
->> >> - * DESCRIPTION: Display information about a predefined method. Number and
->> >> - *              type of the input arguments, and expected type(s) for the
->> >> - *              return value, if any.
->> >> - *
->> >> - ******************************************************************************/
->> >> -
->> >> -void
->> >> -acpi_ut_display_predefined_method(char *buffer,
->> >> -                               const union acpi_predefined_info *this_name,
->> >> -                               u8 multi_line)
->> >> -{
->> >> -     u32 arg_count;
->> >> -
->> >> -     /*
->> >> -      * Get the argument count and the string buffer
->> >> -      * containing all argument types
->> >> -      */
->> >> -     arg_count = acpi_ut_get_argument_types(buffer,
->> >> -                                            this_name->info.argument_list);
->> >> -
->> >> -     if (multi_line) {
->> >> -             printf("      ");
->> >> -     }
->> >> -
->> >> -     printf("%4.4s    Requires %s%u argument%s",
->> >> -            this_name->info.name,
->> >> -            (this_name->info.argument_list & ARG_COUNT_IS_MINIMUM) ?
->> >> -            "(at least) " : "", arg_count, arg_count != 1 ? "s" : "");
->> >> -
->> >> -     /* Display the types for any arguments */
->> >> -
->> >> -     if (arg_count > 0) {
->> >> -             printf(" (%s)", buffer);
->> >> -     }
->> >> -
->> >> -     if (multi_line) {
->> >> -             printf("\n    ");
->> >> -     }
->> >> -
->> >> -     /* Get the return value type(s) allowed */
->> >> -
->> >> -     if (this_name->info.expected_btypes) {
->> >> -             acpi_ut_get_expected_return_types(buffer,
->> >> -                                               this_name->info.
->> >> -                                               expected_btypes);
->> >> -             printf("  Return value types: %s\n", buffer);
->> >> -     } else {
->> >> -             printf("  No return value\n");
->> >> -     }
->> >> -}
->> >> -
->> >> -/*******************************************************************************
->> >> - *
->> >>   * FUNCTION:    acpi_ut_get_argument_types
->> >>   *
->> >>   * PARAMETERS:  buffer              - Where to return the formatted types
->> >> @@ -361,39 +262,4 @@ static u32 acpi_ut_get_argument_types(char *buffer, u16 argument_types)
->> >>       return (arg_count);
->> >>  }
->> >>
->> >> -/*******************************************************************************
->> >> - *
->> >> - * FUNCTION:    acpi_ut_get_resource_bit_width
->> >> - *
->> >> - * PARAMETERS:  buffer              - Where the formatted string is returned
->> >> - *              types               - Bitfield of expected data types
->> >> - *
->> >> - * RETURN:      Count of return types. Formatted string in Buffer.
->> >> - *
->> >> - * DESCRIPTION: Format the resource bit widths into a printable string.
->> >> - *
->> >> - ******************************************************************************/
->> >> -
->> >> -u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types)
->> >> -{
->> >> -     u32 i;
->> >> -     u16 sub_index;
->> >> -     u32 found;
->> >> -
->> >> -     *buffer = 0;
->> >> -     sub_index = 1;
->> >> -     found = 0;
->> >> -
->> >> -     for (i = 0; i < NUM_RESOURCE_WIDTHS; i++) {
->> >> -             if (types & 1) {
->> >> -                     strcat(buffer, &(ut_resource_type_names[i][sub_index]));
->> >> -                     sub_index = 0;
->> >> -                     found++;
->> >> -             }
->> >> -
->> >> -             types >>= 1;
->> >> -     }
->> >> -
->> >> -     return (found);
->> >> -}
->> >>  #endif
->> >> --
->> >> 1.7.10.4
->> >
+>> OK, Catalin already said that was not the main point of the
+>> comments for this patch, I think the title and change log
+>> of the patch is inconsistent with the code makes Catalin confused,
+>> I will update them in next version.
 >>
->> Hi
->>
->> Cppcheck running depending on the settings all define on and off, if
->> that's what you wonder.
->>
->> Otherwise, I did a little deeper explanation how I made did this with
->> cppcheck, and same scripts.
->> https://lkml.org/lkml/2015/1/9/531
->>
->>
->> Kind regards
->> Rickard Strandqvist
+> Well what we are talking about is the presence of CONFIG_PCI=3Dy whic=
+h even
+> in Jons case will be true as he wants to run the same kernel on both
+> sets of hardware.
+>
+> Now the architecture has PCI support I think its safe to remove the m=
+ake
+> PCI optional part of the patch as this should be handled runtime not
+> compile time.
 
+I missed that part, must be something wrong work in Sunday :)
+I will update the patch with ACPI depends on PCI, which makes
+thing much simpler.
 
-Hi Lv
-
-Interesting question, myself have not had reason to investigate it.
-
-By default cppcheck will check all preprocessor configurations.
-I'm not sure if you can do so via an xml file, but you can give
-arguments to cppcheck define and unset with the -D and -U
-Ex:
-check all configurations when macro A is defined
-cppcheck -DA --force file.c
-
-Se the manual for cppcheck here see: "Chapter 3. Preprocessor configurations"
-
-http://cppcheck.sourceforge.net/manual.pdf
-
-
-Kind regards
-Rickard Strandqvist
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
