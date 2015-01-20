@@ -1,154 +1,65 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC PATCHv2 07/19] mfd: ab8500: Use power_supply_*() API for
- accessing function attrs
-Date: Tue, 20 Jan 2015 16:26:07 +0000
-Message-ID: <20150120162607.GA30656@x1>
-References: <1420472882-10463-1-git-send-email-k.kozlowski@samsung.com>
- <1420472882-10463-8-git-send-email-k.kozlowski@samsung.com>
- <20150120133617.GG13701@x1>
- <1421763376.8855.4.camel@AMDC1943>
- <20150120155149.GG13701@x1>
- <1421769706.1199.5.camel@AMDC1943>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: About Goodix-TS on Bay Trail, and ACPI and interrupts
+Date: Tue, 20 Jan 2015 11:31:52 -0500
+Message-ID: <20150120163152.GB23441@mail.corp.redhat.com>
+References: <20150117010306.7e32b72524e4c0cf8296bbac@ao2.it>
+ <20150119153758.GA18115@mail.corp.redhat.com>
+ <20150120100548.GG1850@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:43608 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754542AbbATQ0O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2015 11:26:14 -0500
-Received: by mail-ie0-f173.google.com with SMTP id tr6so7534440ieb.4
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Jan 2015 08:26:13 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:23319 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752639AbbATQcF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jan 2015 11:32:05 -0500
 Content-Disposition: inline
-In-Reply-To: <1421769706.1199.5.camel@AMDC1943>
+In-Reply-To: <20150120100548.GG1850@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@intel.com>
+Cc: Antonio Ospite <ao2@ao2.it>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Bastien Nocera <hadess@hadess.net>, Mathias Nyman <mathias.nyman@linux.intel.com>
 
-On Tue, 20 Jan 2015, Krzysztof Kozlowski wrote:
+On Jan 20 2015 or thereabouts, Mika Westerberg wrote:
+> On Mon, Jan 19, 2015 at 10:37:58AM -0500, Benjamin Tissoires wrote:
+> > Hi Antonio,
+> > 
+> > [adding Mika in CC, he implemented most of the ACPI and GPIO for
+> > i2c-hid]
+> > 
+> > On Jan 17 2015 or thereabouts, Antonio Ospite wrote:
+> > > Hi,
+> > > 
+> > > I am trying to make the Goodix driver (drivers/input/touchscreen/goodix.c)
+> > > working with a Teclast X98 Air 3G, a tablet based on Intel Bay Trail,
+> > > but I am new to ACPI and I could use some help.
+> > > 
+> > > I am working with a 3.19-rc4 kernel compiled for x86_64.
+> > > 
+> > > This is the DSDT section in the UEFI firmware:
+> > > 
+> > >             Device (TCS0)
+> > >             {
+> > >                 Name (_ADR, Zero)  // _ADR: Address
+> > >                 Name (_HID, "GODX0911")  // _HID: Hardware ID
+> > >                 Name (_CID, "PNP0C50" /* HID Protocol Device (I2C bus) */)  // _CID: Compatible ID
+> > 
+> > urgh, this is bad. It declares itself as i2c-hid, but it is not :(
+> > Anyway, according to your logs, i2c-hid probe() just fails, so it's not
+> > a big problem.
+> 
+> 
+> Actually, I think this device should use i2c-hid. All the ACPI plumbing
+> is there including _DSM.
+> 
+> What makes you think it should use the goodix driver?
 
-> On wto, 2015-01-20 at 15:51 +0000, Lee Jones wrote:
-> > On Tue, 20 Jan 2015, Krzysztof Kozlowski wrote:
-> >=20
-> > > On wto, 2015-01-20 at 13:36 +0000, Lee Jones wrote:
-> > > > On Mon, 05 Jan 2015, Krzysztof Kozlowski wrote:
-> > > >=20
-> > > > > Replace direct calls to power supply function attributes with=
- wrappers.
-> > > > > Wrappers provide safe access in case of unregistering the pow=
-er
-> > > > > supply (e.g. by removing the driver). Replace:
-> > > > >  - get_property -> power_supply_get_property
-> > > > >=20
-> > > > > Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> > > > > Acked-by: Jonghwa Lee <jonghwa3.lee@samusng.com>
-> > > > > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > > > > Acked-by: Lee Jones <lee.jones@linaro.org>
-> > > >=20
-> > > > You've sent this to me already Acked.  I don't see 00/00, so I =
-have no
-> > > > idea what's going on.  Do you want me to take this patch?  Can =
-it be
-> > > > taking on its own?
-> > >=20
-> > > git send-email automatically CC-you because you acked this. The d=
-epends
-> > > on previous patches adding this API so please do not pick it up.=20
-> >=20
-> > You should always send MFD related patches to me (either
-> > automatically, or manually).
-> >=20
-> > > Everything (with respective acks) should go through one power sup=
-ply
-> > > tree.
-> >=20
-> > That's not how it works.  We need to decide that amongst ourselves
-> > and it needs to culminate in pull-requests being sent out to all of
-> > the effected Maintainers.
->=20
-> OK, I understand. My reply sounded kind a imperative but that was not
-> what I wanted to say...=20
+The fact that the 3.19-rc4 log says:
+[    2.424370] i2c_hid i2c-GODX0911:01: unexpected HID descriptor bcdVersion (0x0000)
 
-It did, hence my response.  Thanks for the clarification.
+Which is rather troublesome and shows that we might have received a 0
+answer when requesting the HID descriptor. Then Antonio tried to poke
+the device with the goodix driver and got a better answer from the
+version point of view.
 
-> The patchset adds some API first so most of
-> patches cannot be picked independently.
-
-I appreciate that and I'm happy for the patches to go in via whichever
-tree is the most appropriate.
-
-> Thank you for proactive concern about the patch.
-
-You are welcome.
-
-> So go ahead and decide. If the patches are ok, I see no problem in it
-> going through power supply tree, and neither should you. I feel you
-> are making it more complex than it is.
-
-I think you are missing the point -- Krzysztof got it.  It's probably
-okay for some patches from one subsystem to go in via another, but
-it's usually prudent to at least tag them and offer others the chance
-of pulling them in to other trees.  This significantly aids in
-lessening the chances of a merge conflict during the merge-window and
-mitigates the possibility of an upset Linus.
-
-As I've already said, I'm happy for this set to go in via the Power
-Supply tree, but assumptions shouldn't be made and all affected
-Maintainers should at least have a vote in cases like this.
-
-> > > The same applies to patch 18/19.
-> > >=20
-> > > Best regards,
-> > > Krzysztof
-> > >=20
-> > > >=20
-> > > > > ---
-> > > > >  drivers/mfd/ab8500-sysctrl.c | 7 ++++---
-> > > > >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > > > >=20
-> > > > > diff --git a/drivers/mfd/ab8500-sysctrl.c b/drivers/mfd/ab850=
-0-sysctrl.c
-> > > > > index cfff0b643f1b..d4a4b24be7c6 100644
-> > > > > --- a/drivers/mfd/ab8500-sysctrl.c
-> > > > > +++ b/drivers/mfd/ab8500-sysctrl.c
-> > > > > @@ -49,7 +49,8 @@ static void ab8500_power_off(void)
-> > > > >  		if (!psy)
-> > > > >  			continue;
-> > > > > =20
-> > > > > -		ret =3D psy->get_property(psy, POWER_SUPPLY_PROP_ONLINE, &=
-val);
-> > > > > +		ret =3D power_supply_get_property(psy, POWER_SUPPLY_PROP_O=
-NLINE,
-> > > > > +				&val);
-> > > > > =20
-> > > > >  		if (!ret && val.intval) {
-> > > > >  			charger_present =3D true;
-> > > > > @@ -63,8 +64,8 @@ static void ab8500_power_off(void)
-> > > > >  	/* Check if battery is known */
-> > > > >  	psy =3D power_supply_get_by_name("ab8500_btemp");
-> > > > >  	if (psy) {
-> > > > > -		ret =3D psy->get_property(psy, POWER_SUPPLY_PROP_TECHNOLOG=
-Y,
-> > > > > -					&val);
-> > > > > +		ret =3D power_supply_get_property(psy,
-> > > > > +				POWER_SUPPLY_PROP_TECHNOLOGY, &val);
-> > > > >  		if (!ret && val.intval !=3D POWER_SUPPLY_TECHNOLOGY_UNKNOW=
-N) {
-> > > > >  			printk(KERN_INFO
-> > > > >  			       "Charger \"%s\" is connected with known battery."
-> > > >=20
-> > >=20
-> >=20
->=20
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Benjamin
