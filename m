@@ -1,68 +1,45 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v7 30/38] x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
-Date: Tue, 20 Jan 2015 11:08:33 +0800
-Message-ID: <1421723321-8386-31-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v7 31/38] x86/apb_timer: Remove unused function is_apbt_capable()
+Date: Tue, 20 Jan 2015 11:08:34 +0800
+Message-ID: <1421723321-8386-32-git-send-email-jiang.liu@linux.intel.com>
 References: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiri Kosina <trivial@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@linux.intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Correctly indent code in function sfi_parse_mtmr().
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 
+Remove the function is_apbt_capable() that is not used anywhere.
+
+This was partially found by using a static code analysis program called cppcheck.
+
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: H. Peter Anvin <hpa@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Jiri Kosina <trivial@kernel.org>
-Cc: David Cohen <david.a.cohen@linux.intel.com>
-Link: http://lkml.kernel.org/r/1416901802-24211-3-git-send-email-jiang.liu@linux.intel.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/x86/platform/intel-mid/sfi.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/kernel/apb_timer.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/arch/x86/platform/intel-mid/sfi.c b/arch/x86/platform/intel-mid/sfi.c
-index aa59f88868f8..9a16749935d4 100644
---- a/arch/x86/platform/intel-mid/sfi.c
-+++ b/arch/x86/platform/intel-mid/sfi.c
-@@ -95,16 +95,16 @@ int __init sfi_parse_mtmr(struct sfi_table_header *table)
- 		pr_debug("timer[%d]: paddr = 0x%08x, freq = %dHz, irq = %d\n",
- 			totallen, (u32)pentry->phys_addr,
- 			pentry->freq_hz, pentry->irq);
--			mp_irq.type = MP_INTSRC;
--			mp_irq.irqtype = mp_INT;
--/* triggering mode edge bit 2-3, active high polarity bit 0-1 */
--			mp_irq.irqflag = 5;
--			mp_irq.srcbus = MP_BUS_ISA;
--			mp_irq.srcbusirq = pentry->irq;	/* IRQ */
--			mp_irq.dstapic = MP_APIC_ALL;
--			mp_irq.dstirq = pentry->irq;
--			mp_save_irq(&mp_irq);
--			mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
-+		mp_irq.type = MP_INTSRC;
-+		mp_irq.irqtype = mp_INT;
-+		/* triggering mode edge bit 2-3, active high polarity bit 0-1 */
-+		mp_irq.irqflag = 5;
-+		mp_irq.srcbus = MP_BUS_ISA;
-+		mp_irq.srcbusirq = pentry->irq;	/* IRQ */
-+		mp_irq.dstapic = MP_APIC_ALL;
-+		mp_irq.dstirq = pentry->irq;
-+		mp_save_irq(&mp_irq);
-+		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
- 	}
+diff --git a/arch/x86/kernel/apb_timer.c b/arch/x86/kernel/apb_timer.c
+index 7cfdc5467922..ede92c3364d3 100644
+--- a/arch/x86/kernel/apb_timer.c
++++ b/arch/x86/kernel/apb_timer.c
+@@ -135,14 +135,6 @@ static inline void apbt_clear_mapping(void)
+ 	apbt_virt_address = NULL;
+ }
  
- 	return 0;
+-/*
+- * APBT timer interrupt enable / disable
+- */
+-static inline int is_apbt_capable(void)
+-{
+-	return apbt_virt_address ? 1 : 0;
+-}
+-
+ static int __init apbt_clockevent_register(void)
+ {
+ 	struct sfi_timer_table_entry *mtmr;
 -- 
 1.7.10.4
