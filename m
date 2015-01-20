@@ -1,159 +1,107 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
- and pass acpi=force to enable ACPI
-Date: Tue, 20 Jan 2015 10:56:55 +0000
-Message-ID: <20150120105655.GC25575@e104818-lin.cambridge.arm.com>
+Subject: Re: [PATCH v7 06/17] ARM64 / ACPI: Make PCI optional for ACPI on
+ ARM64
+Date: Tue, 20 Jan 2015 11:00:45 +0000
+Message-ID: <20150120110045.GD25575@e104818-lin.cambridge.arm.com>
 References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
- <20150119114255.GF11835@e104818-lin.cambridge.arm.com>
- <CAKv+Gu8vPKAdsNg7QC7xW+i8_BemWEx4mvBx6NrnAHi8Y+bNtw@mail.gmail.com>
- <20150119135144.GI11835@e104818-lin.cambridge.arm.com>
- <20150119151350.21B65C40948@trevor.secretlab.ca>
- <54BD3803.6020307@redhat.com>
- <20150119175233.GK11835@e104818-lin.cambridge.arm.com>
- <20150119180122.GJ21553@leverpostej>
- <54BE1FEA.5040109@linaro.org>
+ <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org>
+ <20150116094913.GA13634@e104818-lin.cambridge.arm.com>
+ <54BB51F1.8000900@linaro.org>
+ <20150119104240.GE11835@e104818-lin.cambridge.arm.com>
+ <54BDBFD4.7050207@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:38882 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753492AbbATK5H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2015 05:57:07 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54BE1FEA.5040109@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <54BDBFD4.7050207@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 20, 2015 at 09:29:14AM +0000, Hanjun Guo wrote:
-> On 2015=E5=B9=B401=E6=9C=8820=E6=97=A5 02:01, Mark Rutland wrote:
-> > On Mon, Jan 19, 2015 at 05:52:33PM +0000, Catalin Marinas wrote:
-> >> On Mon, Jan 19, 2015 at 04:59:47PM +0000, Jon Masters wrote:
-> >>> On 01/19/2015 10:13 AM, Grant Likely wrote:
-> >>>> On Mon, 19 Jan 2015 13:51:45 +0000
-> >>>> , Catalin Marinas <catalin.marinas@arm.com>
-> >>>>   wrote:
-> >>>>> On Mon, Jan 19, 2015 at 11:55:32AM +0000, Ard Biesheuvel wrote:
-> >>>>>> On 19 January 2015 at 11:42, Catalin Marinas <catalin.marinas@=
-arm.com> wrote:
-> >>>>>>> On Wed, Jan 14, 2015 at 03:04:52PM +0000, Hanjun Guo wrote:
-> >>>>>>>> From: Al Stone <al.stone@linaro.org>
-> >>>>>>>>
-> >>>>>>>> Introduce one early parameters "off" and "force" for "acpi",=
- acpi=3Doff
-> >>>>>>>> will be the default behavior for ARM64, so introduce acpi=3D=
-force to
-> >>>>>>>> enable ACPI on ARM64.
-> >>>>>>>>
-> >>>>>>>> Disable ACPI before early parameters parsed, and enable it t=
-o pass
-> >>>>>>>> "acpi=3Dforce" if people want use ACPI on ARM64. This ensure=
-s DT be
-> >>>>>>>> the prefer one if ACPI table and DT both are provided at thi=
-s moment.
-> >>>>>>> [...]
-> >>>>>>>> --- a/arch/arm64/kernel/setup.c
-> >>>>>>>> +++ b/arch/arm64/kernel/setup.c
-> >>>>>>>> @@ -62,6 +62,7 @@
-> >>>>>>>>   #include <asm/memblock.h>
-> >>>>>>>>   #include <asm/psci.h>
-> >>>>>>>>   #include <asm/efi.h>
-> >>>>>>>> +#include <asm/acpi.h>
-> >>>>>>>>
-> >>>>>>>>   unsigned int processor_id;
-> >>>>>>>>   EXPORT_SYMBOL(processor_id);
-> >>>>>>>> @@ -388,6 +389,8 @@ void __init setup_arch(char **cmdline_p)
-> >>>>>>>>        early_fixmap_init();
-> >>>>>>>>        early_ioremap_init();
-> >>>>>>>>
-> >>>>>>>> +     disable_acpi();
-> >>>>>>>> +
-> >>>>>>>>        parse_early_param();
-> >>>>>>>>
-> >>>>>>>>        /*
-> >>>>>>>
-> >>>>>>> Did we get to any conclusion here? DT being the preferred one=
- is fine
-> >>>>>>> when both DT and ACPI are present but do we still want the ke=
-rnel to
-> >>>>>>> ignore ACPI altogether if DT is not present? It's a bit harde=
-r to detect
-> >>>>>>> the presence of DT at this point since the EFI_STUB added one=
- already. I
-> >>>>>>> guess we could move the "acpi=3Dforce" argument passing to EF=
-I_STUB if no
-> >>>>>>> DT is present at boot.
-> >>>>>>
-> >>>>>> Since the EFI stub populates the /chosen node in DT, I would p=
-refer
-> >>>>>> for it to add a property there to indicate whether it created =
-the DT
-> >>>>>> from scratch rather than adding ACPI specific stuff in there (=
-even if
-> >>>>>> it is just a string to concatenate)
-> >>>>>
-> >>>>> This works for me. So we could pass "acpi=3Dforce" in EFI stub =
-if it
-> >>>>> created the DT from scratch *and* ACPI tables are present (can =
-it detect
-> >>>>> the latter? And maybe it could print something if none are avai=
-lable).
-> >>>>> If that works, the actual kernel can assume that ACPI needs to =
-be
-> >>>>> explicitly enabled via acpi=3Dforce, irrespective of how much i=
-nformation
-> >>>>> it has in DT.
+On Tue, Jan 20, 2015 at 02:39:16AM +0000, Hanjun Guo wrote:
+> On 2015=E5=B9=B401=E6=9C=8819=E6=97=A5 18:42, Catalin Marinas wrote:
+> > On Sun, Jan 18, 2015 at 06:25:53AM +0000, Hanjun Guo wrote:
+> >> On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 17:49, Catalin Marinas wrot=
+e:
+> >>> On Wed, Jan 14, 2015 at 03:04:54PM +0000, Hanjun Guo wrote:
+> >>>> --- a/arch/arm64/kernel/pci.c
+> >>>> +++ b/arch/arm64/kernel/pci.c
+> >>>> @@ -10,6 +10,7 @@
+> >>>>     *
+> >>>>     */
 > >>>>
-> >>>> Ditto for me. I think this is a fine solution. And, yes, the stu=
-b can
-> >>>> easily detect the presence of ACPI by looking in the UEFI config=
- table.
-> >>>
-> >>> I get the point behind doing this, but could we not have it pass =
-in a
-> >>> different parameter than =3Dforce? Perhaps something new? I'd lik=
-e to
-> >>> separate out the case that it was enabled automatically vs explic=
-itly
-> >>> forced on by a user wanting to use ACPI on a system with both tab=
-les.
+> >>>> +#include <linux/acpi.h>
+> >>>>    #include <linux/init.h>
+> >>>>    #include <linux/io.h>
+> >>>>    #include <linux/kernel.h>
+> >>>> @@ -68,3 +69,30 @@ void pci_bus_assign_domain_nr(struct pci_bus =
+*bus, struct device *parent)
+> >>>>    	bus->domain_nr =3D domain;
+> >>>>    }
+> >>>>    #endif
+> >>>> +
+> >>>> +/*
+> >>>> + * raw_pci_read/write - Platform-specific PCI config space acce=
+ss.
+> >>>> + *
+> >>>> + * Default empty implementation.  Replace with an architecture-=
+specific setup
+> >>>> + * routine, if necessary.
+> >>>> + */
+> >>>> +int raw_pci_read(unsigned int domain, unsigned int bus,
+> >>>> +		  unsigned int devfn, int reg, int len, u32 *val)
+> >>>> +{
+> >>>> +	return -EINVAL;
+> >>>> +}
+> >>>> +
+> >>>> +int raw_pci_write(unsigned int domain, unsigned int bus,
+> >>>> +		unsigned int devfn, int reg, int len, u32 val)
+> >>>> +{
+> >>>> +	return -EINVAL;
+> >>>> +}
+> >>>> +
+> >>>> +#ifdef CONFIG_ACPI
+> >>>> +/* Root bridge scanning */
+> >>>> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+> >>>> +{
+> >>>> +	/* TODO: Should be revisited when implementing PCI on ACPI */
+> >>>> +	return NULL;
+> >>>> +}
+> >>>> +#endif
+> > [...]
+> >>> When PCI is enabled and the above functions are compiled in, do t=
+hey
+> >>> need to return any useful data or just -EINVAL. Are they ever cal=
+led?
 > >>
-> >> Ard had a point, so we should probably not pass acpi=3Dforce from =
-EFI stub
-> >> (especially since a user may explicitly pass acpi=3Doff irrespecti=
-ve of DT
-> >> presence). Some other property in the chosen node? It's not even a=
-n ABI
-> >> since that's a contract between EFI stub and the rest of the kerne=
-l, so
-> >> an in-kernel only interface.
+> >> They will be called if PCI root bridge is defined in DSDT, should =
+I
+> >> print some warning message before it is implemented?
 > >
-> > Not strictly true once kexec is in place. Then it becomes a stub ->
-> > kernel -> kernel -> kernel -> ... interface, alnog with the rest of=
- the
-> > properties the stub puts in the DTB.
-> >
-> > Having something like /chosen/linux,uefi-stub-generated-dtb sounds =
-sane
-> > regardless.
+> > My point: do they need to return real data when a PCI root bridge i=
+s
+> > defined in DSDT or you always expect them to always return some -E*=
+? Can
+> > you explain why?
 >=20
-> How about the patch (just RFC, maybe it is horrible :) ) below:
+> Not always return -E* or NULL;
 >=20
-> When system supporting both DT and ACPI but firmware providing
-> no dtb, we can use this linux,uefi-stub-generated-dtb property
-> to let kernel know that we can try ACPI configuration data.
->=20
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> For raw_pci_read/write(), they are needed to access the PCI config sp=
+ace
+> before the PCI root bus is created. so they will return 0 if access t=
+o
+> PCI config space is ok; pci_acpi_scan_root() will return root bus
+> pointer if it is successfully created.
 
-I'm ok with the idea but I'll let Mark comment on the DT aspects.
+OK. So what's the plan for implementing these functions properly. For
+the raw_pci_read/write, the comment states "replace with an
+architecture-specific setup routine". What does this mean?
+
+=46or pci_acpi_scan_root(), at least the comment states a "TODO". Is th=
+ere
+anyone working on this or we don't expect servers with PCIe soon?
 
 --=20
 Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
