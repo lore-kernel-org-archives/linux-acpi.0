@@ -1,140 +1,222 @@
-From: Antonio Ospite <ao2@ao2.it>
-Subject: Re: About Goodix-TS on Bay Trail, and ACPI and interrupts
-Date: Tue, 20 Jan 2015 17:56:45 +0100
-Message-ID: <20150120175645.f0f95b83da0355b8fdc7dd0d@ao2.it>
-References: <20150117010306.7e32b72524e4c0cf8296bbac@ao2.it>
-	<20150119153758.GA18115@mail.corp.redhat.com>
-	<20150120100548.GG1850@lahna.fi.intel.com>
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Subject: Re: [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
+ and pass acpi=force to enable ACPI
+Date: Tue, 20 Jan 2015 19:20:06 +0000
+Message-ID: <alpine.DEB.2.02.1501201901190.12653@kaball.uk.xensource.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org> <20150119114255.GF11835@e104818-lin.cambridge.arm.com> <CAKv+Gu8vPKAdsNg7QC7xW+i8_BemWEx4mvBx6NrnAHi8Y+bNtw@mail.gmail.com>
+ <20150119135144.GI11835@e104818-lin.cambridge.arm.com> <20150119151350.21B65C40948@trevor.secretlab.ca> <54BD3803.6020307@redhat.com> <20150119175233.GK11835@e104818-lin.cambridge.arm.com> <20150119180122.GJ21553@leverpostej> <54BE1FEA.5040109@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20150120100548.GG1850@lahna.fi.intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@intel.com>
-Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Bastien Nocera <hadess@hadess.net>, Mathias Nyman <mathias.nyman@linux.intel.com>
+Content-Type: multipart/mixed;
+	boundary="1342847746-1975317034-1421780805=:12653"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54BE1FEA.5040109@linaro.org>
+Content-ID: <alpine.DEB.2.02.1501201906540.12653@kaball.uk.xensource.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 20 Jan 2015 12:05:48 +0200
-Mika Westerberg <mika.westerberg@intel.com> wrote:
+--1342847746-1975317034-1421780805=:12653
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.02.1501201906541.12653@kaball.uk.xensource.com>
 
-> On Mon, Jan 19, 2015 at 10:37:58AM -0500, Benjamin Tissoires wrote:
-> > Hi Antonio,
-> > 
-> > [adding Mika in CC, he implemented most of the ACPI and GPIO for
-> > i2c-hid]
-> > 
-> > On Jan 17 2015 or thereabouts, Antonio Ospite wrote:
-> > > Hi,
-> > > 
-> > > I am trying to make the Goodix driver (drivers/input/touchscreen/goodix.c)
-> > > working with a Teclast X98 Air 3G, a tablet based on Intel Bay Trail,
-> > > but I am new to ACPI and I could use some help.
-> > > 
-> > > I am working with a 3.19-rc4 kernel compiled for x86_64.
-> > > 
-> > > This is the DSDT section in the UEFI firmware:
-> > > 
-> > >             Device (TCS0)
-> > >             {
-> > >                 Name (_ADR, Zero)  // _ADR: Address
-> > >                 Name (_HID, "GODX0911")  // _HID: Hardware ID
-> > >                 Name (_CID, "PNP0C50" /* HID Protocol Device (I2C bus) */)  // _CID: Compatible ID
-> > 
-[...]
-> > >                     Name (ABUF, ResourceTemplate ()
-> > >                     {
-> > >                         I2cSerialBus (0x0014, ControllerInitiated, 0x0019F0A0,
-> > >                             AddressingMode7Bit, "\\_SB.I2C4",
-> > >                             0x00, ResourceConsumer, ,
-> > >                             )
-> > >                         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionInputOnly,
-> > >                             "\\_SB.GPO2", 0x00, ResourceConsumer, ,
-> > >                             )
-> > >                             {   // Pin list
-> > >                                 0x0044
-> > >                             }
-> > >                         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000, IoRestrictionOutputOnly,
-> > >                             "\\_SB.GPO1", 0x00, ResourceConsumer, ,
-> > >                             )
-> > >                             {   // Pin list
-> > >                                 0x001A
-> > >                             }
-> > >                     })
-> > 
-> > It looks like the GPIOs are correctly declared. The ACPI code should set
-> > the client->irq auto-magically. It's not the case, so I guess Mika
-> > should be able to tell us more on that.
-> 
-> The current i2c-hid.c does not cope with GPIO interrupts. I've attached
-> an experimental patch that should convert the driver to use them.
-> 
-> Antonio, can you try that out and check if i2c-hid driver gets you
-> working touch screen? Also please add "i2c_hid.debug=1" to the kernel
-> command line so we can see if it returns proper HID descriptor.
+On Tue, 20 Jan 2015, Hanjun Guo wrote:
+> On 2015=E5=B9=B401=E6=9C=8820=E6=97=A5 02:01, Mark Rutland wrote:
+> > On Mon, Jan 19, 2015 at 05:52:33PM +0000, Catalin Marinas wrote:
+> > > On Mon, Jan 19, 2015 at 04:59:47PM +0000, Jon Masters wrote:
+> > > > On 01/19/2015 10:13 AM, Grant Likely wrote:
+> > > > > On Mon, 19 Jan 2015 13:51:45 +0000
+> > > > > , Catalin Marinas <catalin.marinas@arm.com>
+> > > > >   wrote:
+> > > > > > On Mon, Jan 19, 2015 at 11:55:32AM +0000, Ard Biesheuvel wrote:
+> > > > > > > On 19 January 2015 at 11:42, Catalin Marinas
+> > > > > > > <catalin.marinas@arm.com> wrote:
+> > > > > > > > On Wed, Jan 14, 2015 at 03:04:52PM +0000, Hanjun Guo wrote:
+> > > > > > > > > From: Al Stone <al.stone@linaro.org>
+> > > > > > > > >=20
+> > > > > > > > > Introduce one early parameters "off" and "force" for "acp=
+i",
+> > > > > > > > > acpi=3Doff
+> > > > > > > > > will be the default behavior for ARM64, so introduce
+> > > > > > > > > acpi=3Dforce to
+> > > > > > > > > enable ACPI on ARM64.
+> > > > > > > > >=20
+> > > > > > > > > Disable ACPI before early parameters parsed, and enable i=
+t to
+> > > > > > > > > pass
+> > > > > > > > > "acpi=3Dforce" if people want use ACPI on ARM64. This ens=
+ures DT
+> > > > > > > > > be
+> > > > > > > > > the prefer one if ACPI table and DT both are provided at =
+this
+> > > > > > > > > moment.
+> > > > > > > > [...]
+> > > > > > > > > --- a/arch/arm64/kernel/setup.c
+> > > > > > > > > +++ b/arch/arm64/kernel/setup.c
+> > > > > > > > > @@ -62,6 +62,7 @@
+> > > > > > > > >   #include <asm/memblock.h>
+> > > > > > > > >   #include <asm/psci.h>
+> > > > > > > > >   #include <asm/efi.h>
+> > > > > > > > > +#include <asm/acpi.h>
+> > > > > > > > >=20
+> > > > > > > > >   unsigned int processor_id;
+> > > > > > > > >   EXPORT_SYMBOL(processor_id);
+> > > > > > > > > @@ -388,6 +389,8 @@ void __init setup_arch(char **cmdline=
+_p)
+> > > > > > > > >        early_fixmap_init();
+> > > > > > > > >        early_ioremap_init();
+> > > > > > > > >=20
+> > > > > > > > > +     disable_acpi();
+> > > > > > > > > +
+> > > > > > > > >        parse_early_param();
+> > > > > > > > >=20
+> > > > > > > > >        /*
+> > > > > > > >=20
+> > > > > > > > Did we get to any conclusion here? DT being the preferred o=
+ne is
+> > > > > > > > fine
+> > > > > > > > when both DT and ACPI are present but do we still want the
+> > > > > > > > kernel to
+> > > > > > > > ignore ACPI altogether if DT is not present? It's a bit har=
+der
+> > > > > > > > to detect
+> > > > > > > > the presence of DT at this point since the EFI_STUB added o=
+ne
+> > > > > > > > already. I
+> > > > > > > > guess we could move the "acpi=3Dforce" argument passing to
+> > > > > > > > EFI_STUB if no
+> > > > > > > > DT is present at boot.
+> > > > > > >=20
+> > > > > > > Since the EFI stub populates the /chosen node in DT, I would
+> > > > > > > prefer
+> > > > > > > for it to add a property there to indicate whether it created=
+ the
+> > > > > > > DT
+> > > > > > > from scratch rather than adding ACPI specific stuff in there =
+(even
+> > > > > > > if
+> > > > > > > it is just a string to concatenate)
+> > > > > >=20
+> > > > > > This works for me. So we could pass "acpi=3Dforce" in EFI stub =
+if it
+> > > > > > created the DT from scratch *and* ACPI tables are present (can =
+it
+> > > > > > detect
+> > > > > > the latter? And maybe it could print something if none are
+> > > > > > available).
+> > > > > > If that works, the actual kernel can assume that ACPI needs to =
+be
+> > > > > > explicitly enabled via acpi=3Dforce, irrespective of how much
+> > > > > > information
+> > > > > > it has in DT.
+> > > > >=20
+> > > > > Ditto for me. I think this is a fine solution. And, yes, the stub=
+ can
+> > > > > easily detect the presence of ACPI by looking in the UEFI config
+> > > > > table.
+> > > >=20
+> > > > I get the point behind doing this, but could we not have it pass in=
+ a
+> > > > different parameter than =3Dforce? Perhaps something new? I'd like =
+to
+> > > > separate out the case that it was enabled automatically vs explicit=
+ly
+> > > > forced on by a user wanting to use ACPI on a system with both table=
+s.
+> > >=20
+> > > Ard had a point, so we should probably not pass acpi=3Dforce from EFI=
+ stub
+> > > (especially since a user may explicitly pass acpi=3Doff irrespective =
+of DT
+> > > presence). Some other property in the chosen node? It's not even an A=
+BI
+> > > since that's a contract between EFI stub and the rest of the kernel, =
+so
+> > > an in-kernel only interface.
+> >=20
+> > Not strictly true once kexec is in place. Then it becomes a stub ->
+> > kernel -> kernel -> kernel -> ... interface, alnog with the rest of the
+> > properties the stub puts in the DTB.
+> >=20
+> > Having something like /chosen/linux,uefi-stub-generated-dtb sounds sane
+> > regardless.
+>=20
+> How about the patch (just RFC, maybe it is horrible :) ) below:
+>=20
+> When system supporting both DT and ACPI but firmware providing
+> no dtb, we can use this linux,uefi-stub-generated-dtb property
+> to let kernel know that we can try ACPI configuration data.
+>=20
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/devicetree/bindings/chosen.txt | 19 ++++++++++++++++
+>  arch/arm64/kernel/setup.c                    | 34
+> +++++++++++++++++++++++++++-
+>  drivers/firmware/efi/libstub/fdt.c           |  6 +++++
+>  3 files changed, 58 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/chosen.txt
+> b/Documentation/devicetree/bindings/chosen.txt
+> index ed838f4..18776b9 100644
+> --- a/Documentation/devicetree/bindings/chosen.txt
+> +++ b/Documentation/devicetree/bindings/chosen.txt
+> @@ -44,3 +44,22 @@ Implementation note: Linux will look for the property
+> "linux,stdout-path" or
+>  on PowerPC "stdout" if "stdout-path" is not found.  However, the
+>  "linux,stdout-path" and "stdout" properties are deprecated. New platform=
+s
+>  should only use the "stdout-path" property.
+> +
+> +
+> +linux,uefi-stub-generated-dtb property
+> +--------------------------------------
+> +
+> +UEFI stub will generate this property in the chosen node to let linux ke=
+rnel
+> +know that there is no DTB provided by firmware.
+> +
+> +There is a use case for system supporting both DT and ACPI, when firmwar=
+e
+> +doesn't provide DT, we can try ACPI configration data to boot the system=
+=2E
+> +
+> +Usage:
+> +
+> +linux,uefi-stub-generated-dtb =3D "true" means that it is true that the =
+dtb
+> +is generated by uefi stub
+> +
+> +or
+> +
+> +linux,uefi-stub-generated-dtb =3D "false" is the reverse.
 
-Hi Mika, I tested the patch but I still can't get the IRQ.
+I am sorry to have to make the discussion even more complex than already
+is, however we have one more use case to consider: Linux booting on Xen
+as Dom0.
 
-The new code in i2c-hid does more or less what I was trying to do in
-the goodix driver as proof of concept:
-http://ao2.it/tmp/Goodix-TS_Teclast-X98-Air-3G/0001-XXX-goodix-add-support-for-GODX0911.patch
+When booting as Dom0 on ACPI hardware, Linux doesn't have access to the
+UEFI firmware (no EFI stub). Xen passes a small device tree blob with
+a chosen node, memory information and a pointer to the ACPI tables.
+It looks similar to the DTB passed to Linux by the EFI stub but it is
+generated by Xen instead.
 
-The gpio chip correspondent to the pin can be retrieved, but the gpio
-descriptor can't be obtained and so the conversion from gpio to irq
-can't happen, here is the full dmesg:
-http://ao2.it/tmp/Goodix-TS_Teclast-X98-Air-3G/dmesg_Teclast_X98_Air_3G_mainline_i2c-hid_patch.log
+See also Christoffer's explanation:
 
-I am pasting here the interesting parts, with some more printouts I
-added to understand what was going on:
+http://marc.info/?l=3Dlinux-arm-kernel&m=3D142169977401658&w=3D2
 
-[    9.056071] i2c_hid i2c-GODX0911:01: GPIO lookup for consumer irq
-[    9.056080] i2c_hid i2c-GODX0911:01: using ACPI for GPIO lookup
-[    9.056086] acpi GODX0911:01: GPIO: looking up irq-gpios
-[    9.056093] acpi GODX0911:01: GPIO: _DSD returned GODX0911:01 3 0 0 1
-[    9.056160] acpi_find_gpio: ares->type: 19
-[    9.056164] acpi_find_gpio: ares->type: 17
-[    9.056167] acpi_find_gpio: pin_index: 0, agpio->pin_table_length: 1
-[    9.056170] acpi_get_gpiod: path: \_SB.GPO2 pin: 68
-[    9.056176] acpi_get_gpiod: handle found
-[    9.056180] acpi_get_gpiod: gpiochip found
-[    9.056183] acpi_get_gpiod: pin: 68
-[    9.056186] acpi_get_gpiod: offset: 68
-[    9.056189] gpiochip_get_desc: hwnum: 68 chip->ngpio: 44
-[    9.056192] acpi_find_gpio: desc_error: -22
-[    9.056195] acpi_find_gpio: ares->type: 17
-[    9.056198] acpi_find_gpio: ares->type: 7
-[    9.056204] acpi GODX0911:01: GPIO: looking up irq-gpio
-[    9.056209] acpi GODX0911:01: GPIO: looking up 0 in _CRS
-[    9.056272] acpi_find_gpio: ares->type: 19
-[    9.056276] acpi_find_gpio: ares->type: 17
-[    9.056280] acpi_find_gpio: pin_index: 0, agpio->pin_table_length: 1
-[    9.056283] acpi_get_gpiod: path: \_SB.GPO2 pin: 68
-[    9.056288] acpi_get_gpiod: handle found
-[    9.056291] acpi_get_gpiod: gpiochip found
-[    9.056294] acpi_get_gpiod: pin: 68
-[    9.056297] acpi_get_gpiod: offset: 68
-[    9.056300] gpiochip_get_desc: hwnum: 68 chip->ngpio: 44
-[    9.056303] acpi_find_gpio: desc_error: -22
-[    9.056306] acpi_find_gpio: ares->type: 17
-[    9.056308] acpi_find_gpio: ares->type: 7
-[    9.056314] i2c_hid i2c-GODX0911:01: lookup for GPIO irq failed
-[    9.056319] i2c_hid i2c-GODX0911:01: Failed to get GPIO interrupt
-[    9.073895] i2c_hid: probe of i2c-GODX0911:01 failed with error -22
+The actual patches haven't been posted to the list yet, but Linaro seems
+to have an internal prototype working already. We really need to
+document this interface properly soon if we expect future Linux and Xen
+to adhere to it (hint hint).
 
-As I was trying to say in the original mail, the DSDT declares a gpio
-pin number (68) grater than the number of gpios for GPO2 (which on Bay
-Trail is 44, isn't it?).
+In the Dom0 case Linux should parse the small device tree binary, then
+enable acpi.
 
-Is the DSDT just wrong? Or could there be anything missing in the
-pinctrl-baytrail driver?
+Maybe we could generalize the concept of this uefi-stub-generated-dtb
+variable and call it instead "enable_acpi", optionally exporting the
+RDSP, like Parth's patches to Xen are doing (I haven't seen the code yet
+so I don't know the details).
 
-Thanks,
-   Antonio
-
--- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+Do you think that would work for you?
+--1342847746-1975317034-1421780805=:12653--
