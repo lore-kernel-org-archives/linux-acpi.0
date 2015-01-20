@@ -1,117 +1,37 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 06/17] ARM64 / ACPI: Make PCI optional for ACPI on
- ARM64
-Date: Tue, 20 Jan 2015 19:56:34 +0800
-Message-ID: <54BE4272.3060406@linaro.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-7-git-send-email-hanjun.guo@linaro.org> <20150116094913.GA13634@e104818-lin.cambridge.arm.com> <54BB51F1.8000900@linaro.org> <20150119104240.GE11835@e104818-lin.cambridge.arm.com> <54BDBFD4.7050207@linaro.org> <20150120110045.GD25575@e104818-lin.cambridge.arm.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Tue, 20 Jan 2015 13:16:06 +0100
+Message-ID: <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
+	<CACRpkdY-yFKsYbCrMpnViMFoQEugyGQivaV0M+GDzLrbDO7i6Q@mail.gmail.com>
+	<CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150120110045.GD25575@e104818-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015=E5=B9=B401=E6=9C=8820=E6=97=A5 19:00, Catalin Marinas wrote:
-> On Tue, Jan 20, 2015 at 02:39:16AM +0000, Hanjun Guo wrote:
->> On 2015=E5=B9=B401=E6=9C=8819=E6=97=A5 18:42, Catalin Marinas wrote:
->>> On Sun, Jan 18, 2015 at 06:25:53AM +0000, Hanjun Guo wrote:
->>>> On 2015=E5=B9=B401=E6=9C=8816=E6=97=A5 17:49, Catalin Marinas wrot=
-e:
->>>>> On Wed, Jan 14, 2015 at 03:04:54PM +0000, Hanjun Guo wrote:
->>>>>> --- a/arch/arm64/kernel/pci.c
->>>>>> +++ b/arch/arm64/kernel/pci.c
->>>>>> @@ -10,6 +10,7 @@
->>>>>>      *
->>>>>>      */
->>>>>>
->>>>>> +#include <linux/acpi.h>
->>>>>>     #include <linux/init.h>
->>>>>>     #include <linux/io.h>
->>>>>>     #include <linux/kernel.h>
->>>>>> @@ -68,3 +69,30 @@ void pci_bus_assign_domain_nr(struct pci_bus =
-*bus, struct device *parent)
->>>>>>     	bus->domain_nr =3D domain;
->>>>>>     }
->>>>>>     #endif
->>>>>> +
->>>>>> +/*
->>>>>> + * raw_pci_read/write - Platform-specific PCI config space acce=
-ss.
->>>>>> + *
->>>>>> + * Default empty implementation.  Replace with an architecture-=
-specific setup
->>>>>> + * routine, if necessary.
->>>>>> + */
->>>>>> +int raw_pci_read(unsigned int domain, unsigned int bus,
->>>>>> +		  unsigned int devfn, int reg, int len, u32 *val)
->>>>>> +{
->>>>>> +	return -EINVAL;
->>>>>> +}
->>>>>> +
->>>>>> +int raw_pci_write(unsigned int domain, unsigned int bus,
->>>>>> +		unsigned int devfn, int reg, int len, u32 val)
->>>>>> +{
->>>>>> +	return -EINVAL;
->>>>>> +}
->>>>>> +
->>>>>> +#ifdef CONFIG_ACPI
->>>>>> +/* Root bridge scanning */
->>>>>> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->>>>>> +{
->>>>>> +	/* TODO: Should be revisited when implementing PCI on ACPI */
->>>>>> +	return NULL;
->>>>>> +}
->>>>>> +#endif
->>> [...]
->>>>> When PCI is enabled and the above functions are compiled in, do t=
-hey
->>>>> need to return any useful data or just -EINVAL. Are they ever cal=
-led?
->>>>
->>>> They will be called if PCI root bridge is defined in DSDT, should =
-I
->>>> print some warning message before it is implemented?
->>>
->>> My point: do they need to return real data when a PCI root bridge i=
-s
->>> defined in DSDT or you always expect them to always return some -E*=
-? Can
->>> you explain why?
->>
->> Not always return -E* or NULL;
->>
->> For raw_pci_read/write(), they are needed to access the PCI config s=
-pace
->> before the PCI root bus is created. so they will return 0 if access =
-to
->> PCI config space is ok; pci_acpi_scan_root() will return root bus
->> pointer if it is successfully created.
->
-> OK. So what's the plan for implementing these functions properly. For
+On Mon, Jan 19, 2015 at 6:59 AM, Alexandre Courbot <gnurou@gmail.com> wrote:
 
-We were planing to add the ACPI PCI support in later patch set, and
-actually Tomasz already prepared the RFC patch for this [1].
+> I am not really fond of this idea since it adds complexity to the
+> (already too complex) GPIO lookup, and only solves to a local level
+> (GPIO) what is a more global problem (bad ACPI tables that can affect
+> any subsystem).
+(...)
+> it
+> seems more to-the-point to find a way to fix/patch the ACPI tables at
+> runtime, if that is possible at all, to provide a more general
+> solution to this issue.
 
-> the raw_pci_read/write, the comment states "replace with an
-> architecture-specific setup routine". What does this mean?
+This is my position as well, until proven that this cannot be done.
+In device tree the same mechanism is called "device tree overlays"
+and I just have some vague feeling that such stuff is patched around in
+some Intel platforms already, but maybe that involves replacing
+the whole DSDT from userspace, surely the mechanism can be
+refined?
 
-Sorry, this comment should be removed for misleadings.
-
->
-> For pci_acpi_scan_root(), at least the comment states a "TODO". Is th=
-ere
-> anyone working on this or we don't expect servers with PCIe soon?
-
-Yes, we already have RFC patches [2], but need some clean up and
-update, we plan to post PCI patches again when ACPI core patches are
-merged.
-
-[1]: https://lkml.org/lkml/2014/11/19/437
-[2]: http://www.spinics.net/lists/linux-acpi/msg54053.html
-
-Thanks
-Hanjun
+Yours,
+Linus Walleij
