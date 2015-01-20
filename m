@@ -1,77 +1,84 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [RFC PATCHv2 07/19] mfd: ab8500: Use power_supply_*() API for
- accessing function attrs
-Date: Tue, 20 Jan 2015 15:16:16 +0100
-Message-ID: <1421763376.8855.4.camel@AMDC1943>
-References: <1420472882-10463-1-git-send-email-k.kozlowski@samsung.com>
- <1420472882-10463-8-git-send-email-k.kozlowski@samsung.com>
- <20150120133617.GG13701@x1>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / LPSS: set first resuming device as a 'proxy'
+Date: Tue, 20 Jan 2015 15:45:36 +0100
+Message-ID: <6322489.a8QUfpK4WQ@vostro.rjw.lan>
+References: <1421320244-3490-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20150120133617.GG13701@x1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:50984 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750771AbbATOXA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2015 09:23:00 -0500
+In-Reply-To: <1421320244-3490-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On wto, 2015-01-20 at 13:36 +0000, Lee Jones wrote:
-> On Mon, 05 Jan 2015, Krzysztof Kozlowski wrote:
+On Thursday, January 15, 2015 01:10:44 PM Andy Shevchenko wrote:
+> We can't rely on the first enumerated device since it might be not probed yet
+> when DMA driver wants to resume the device. This patch changes the place where
+> we assign the 'proxy' device. From now on the first resumed device will be
+> recognized as a 'proxy' because it is probed.
+
+I was about to apply this, but I realized that we couldn't do it this way. ->
+
+> Reported-by: Jerome Blin <jerome.blin@intel.com>
+> Fixes: 6c17ee44d524 (ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA)
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_lpss.c | 17 +++++++++++------
+>  1 file changed, 11 insertions(+), 6 deletions(-)
 > 
-> > Replace direct calls to power supply function attributes with wrappers.
-> > Wrappers provide safe access in case of unregistering the power
-> > supply (e.g. by removing the driver). Replace:
-> >  - get_property -> power_supply_get_property
-> > 
-> > Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> > Acked-by: Jonghwa Lee <jonghwa3.lee@samusng.com>
-> > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > Acked-by: Lee Jones <lee.jones@linaro.org>
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 4f3febf..d851290 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -374,8 +374,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>  	adev->driver_data = pdata;
+>  	pdev = acpi_create_platform_device(adev);
+>  	if (!IS_ERR_OR_NULL(pdev)) {
+> -		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
+> -			proxy_device = &pdev->dev;
+>  		return 1;
+>  	}
+>  
+> @@ -615,10 +613,17 @@ static int acpi_lpss_runtime_resume(struct device *dev)
+>  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+>  	int ret;
+>  
+> -	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
+> -		ret = pm_runtime_get_sync(proxy_device);
+> -		if (ret)
+> -			return ret;
+> +	if (!proxy_device && pdata->dev_desc->flags & LPSS_DEV_PROXY)
+> +		proxy_device = dev;
+
+-> OK, so what if the driver of proxy_device is removed later?
+
+> +
+> +	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
+> +		if (proxy_device) {
+> +			ret = pm_runtime_get_sync(proxy_device);
+> +			if (ret)
+> +				return ret;
+> +		} else {
+> +			return -EPROBE_DEFER;
+
+The error code returned here will disable runtime PM for dev forever,
+even if proxy_device becomes available at one point.  You could return
+-EBUSY instead, but why don't we add BUS_NOTIFY_BOUND_DRIVER and
+BUS_NOTIFY_UNBIND_DRIVER handling to acpi_lpss_platform_notify() and
+set/unset proxy_device from there? 
+
+> +		}
+>  	}
+>  
+>  	ret = acpi_dev_runtime_resume(dev);
 > 
-> You've sent this to me already Acked.  I don't see 00/00, so I have no
-> idea what's going on.  Do you want me to take this patch?  Can it be
-> taking on its own?
 
-git send-email automatically CC-you because you acked this. The depends
-on previous patches adding this API so please do not pick it up. 
-
-Everything (with respective acks) should go through one power supply
-tree.
-
-The same applies to patch 18/19.
-
-Best regards,
-Krzysztof
-
-> 
-> > ---
-> >  drivers/mfd/ab8500-sysctrl.c | 7 ++++---
-> >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/mfd/ab8500-sysctrl.c b/drivers/mfd/ab8500-sysctrl.c
-> > index cfff0b643f1b..d4a4b24be7c6 100644
-> > --- a/drivers/mfd/ab8500-sysctrl.c
-> > +++ b/drivers/mfd/ab8500-sysctrl.c
-> > @@ -49,7 +49,8 @@ static void ab8500_power_off(void)
-> >  		if (!psy)
-> >  			continue;
-> >  
-> > -		ret = psy->get_property(psy, POWER_SUPPLY_PROP_ONLINE, &val);
-> > +		ret = power_supply_get_property(psy, POWER_SUPPLY_PROP_ONLINE,
-> > +				&val);
-> >  
-> >  		if (!ret && val.intval) {
-> >  			charger_present = true;
-> > @@ -63,8 +64,8 @@ static void ab8500_power_off(void)
-> >  	/* Check if battery is known */
-> >  	psy = power_supply_get_by_name("ab8500_btemp");
-> >  	if (psy) {
-> > -		ret = psy->get_property(psy, POWER_SUPPLY_PROP_TECHNOLOGY,
-> > -					&val);
-> > +		ret = power_supply_get_property(psy,
-> > +				POWER_SUPPLY_PROP_TECHNOLOGY, &val);
-> >  		if (!ret && val.intval != POWER_SUPPLY_TECHNOLOGY_UNKNOWN) {
-> >  			printk(KERN_INFO
-> >  			       "Charger \"%s\" is connected with known battery."
-> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
