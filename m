@@ -1,44 +1,66 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 07/17] ARM64 / ACPI: Disable ACPI if FADT revision
- is less than 5.1
-Date: Tue, 20 Jan 2015 11:05:28 +0800
-Message-ID: <54BDC5F8.5000702@linaro.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-8-git-send-email-hanjun.guo@linaro.org> <20150119115017.GH11835@e104818-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v7 01/38] x86/irq: Save destination CPU ID in irq_cfg
+Date: Tue, 20 Jan 2015 11:08:04 +0800
+Message-ID: <1421723321-8386-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150119115017.GH11835@e104818-lin.cambridge.arm.com>
+In-Reply-To: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015=E5=B9=B401=E6=9C=8819=E6=97=A5 19:50, Catalin Marinas wrote:
-> On Wed, Jan 14, 2015 at 03:04:55PM +0000, Hanjun Guo wrote:
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
-> [...]
->> @@ -64,8 +88,13 @@ void __init acpi_boot_table_init(void)
->>   		return;
->>
->>   	/* Initialize the ACPI boot-time table parser. */
->> -	if (acpi_table_init())
->> +	if (acpi_table_init()) {
->>   		disable_acpi();
->> +		return;
->> +	}
->> +
->> +	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt))
->> +		pr_err("Can't find FADT or error happened during parsing FADT\n")=
-;
->>   }
->
-> Do you need a disable_acpi() call here as well?
+Cache destination CPU APIC ID into struct irq_cfg when assigning vector
+for interrupt. Upper layer just needs to read the cached APIC ID instead
+of calling apic->cpu_mask_to_apicid_and(), it helps to hide APIC driver
+details from IOAPIC/HPET/MSI drivers..
 
-Yes, if we can not find the FADT table, we should disable ACPI, I will
-update it in next version, thanks for pointing this out :)
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Link: http://lkml.kernel.org/r/1416894816-23245-2-git-send-email-jiang.liu@linux.intel.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/include/asm/hw_irq.h |    1 +
+ arch/x86/kernel/apic/vector.c |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-Thanks
-Hanjun
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index 9662290e0b20..b988ddf7434b 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -116,6 +116,7 @@ struct irq_data;
+ struct irq_cfg {
+ 	cpumask_var_t		domain;
+ 	cpumask_var_t		old_domain;
++	unsigned int		dest_apicid;
+ 	u8			vector;
+ 	u8			move_in_progress : 1;
+ #ifdef CONFIG_IRQ_REMAP
+diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+index 6cedd7914581..c724ef6b218c 100644
+--- a/arch/x86/kernel/apic/vector.c
++++ b/arch/x86/kernel/apic/vector.c
+@@ -188,6 +188,12 @@ next:
+ 	}
+ 	free_cpumask_var(tmp_mask);
+ 
++	if (!err) {
++		/* cache destination APIC IDs into cfg->dest_apicid */
++		err = apic->cpu_mask_to_apicid_and(mask, cfg->domain,
++						   &cfg->dest_apicid);
++	}
++
+ 	return err;
+ }
+ 
+-- 
+1.7.10.4
