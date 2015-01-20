@@ -1,231 +1,159 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Tue, 20 Jan 2015 11:40:14 +0100
-Message-ID: <54BE308E.8060407@linaro.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org> <54B8F2E3.80306@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
+ and pass acpi=force to enable ACPI
+Date: Tue, 20 Jan 2015 10:56:55 +0000
+Message-ID: <20150120105655.GC25575@e104818-lin.cambridge.arm.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
+ <20150119114255.GF11835@e104818-lin.cambridge.arm.com>
+ <CAKv+Gu8vPKAdsNg7QC7xW+i8_BemWEx4mvBx6NrnAHi8Y+bNtw@mail.gmail.com>
+ <20150119135144.GI11835@e104818-lin.cambridge.arm.com>
+ <20150119151350.21B65C40948@trevor.secretlab.ca>
+ <54BD3803.6020307@redhat.com>
+ <20150119175233.GK11835@e104818-lin.cambridge.arm.com>
+ <20150119180122.GJ21553@leverpostej>
+ <54BE1FEA.5040109@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54B8F2E3.80306@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>"linaro-acpi@lists.linaro.org" <lin>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:38882 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753492AbbATK5H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2015 05:57:07 -0500
+Content-Disposition: inline
+In-Reply-To: <54BE1FEA.5040109@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
 
-Hi Marc,
+On Tue, Jan 20, 2015 at 09:29:14AM +0000, Hanjun Guo wrote:
+> On 2015=E5=B9=B401=E6=9C=8820=E6=97=A5 02:01, Mark Rutland wrote:
+> > On Mon, Jan 19, 2015 at 05:52:33PM +0000, Catalin Marinas wrote:
+> >> On Mon, Jan 19, 2015 at 04:59:47PM +0000, Jon Masters wrote:
+> >>> On 01/19/2015 10:13 AM, Grant Likely wrote:
+> >>>> On Mon, 19 Jan 2015 13:51:45 +0000
+> >>>> , Catalin Marinas <catalin.marinas@arm.com>
+> >>>>   wrote:
+> >>>>> On Mon, Jan 19, 2015 at 11:55:32AM +0000, Ard Biesheuvel wrote:
+> >>>>>> On 19 January 2015 at 11:42, Catalin Marinas <catalin.marinas@=
+arm.com> wrote:
+> >>>>>>> On Wed, Jan 14, 2015 at 03:04:52PM +0000, Hanjun Guo wrote:
+> >>>>>>>> From: Al Stone <al.stone@linaro.org>
+> >>>>>>>>
+> >>>>>>>> Introduce one early parameters "off" and "force" for "acpi",=
+ acpi=3Doff
+> >>>>>>>> will be the default behavior for ARM64, so introduce acpi=3D=
+force to
+> >>>>>>>> enable ACPI on ARM64.
+> >>>>>>>>
+> >>>>>>>> Disable ACPI before early parameters parsed, and enable it t=
+o pass
+> >>>>>>>> "acpi=3Dforce" if people want use ACPI on ARM64. This ensure=
+s DT be
+> >>>>>>>> the prefer one if ACPI table and DT both are provided at thi=
+s moment.
+> >>>>>>> [...]
+> >>>>>>>> --- a/arch/arm64/kernel/setup.c
+> >>>>>>>> +++ b/arch/arm64/kernel/setup.c
+> >>>>>>>> @@ -62,6 +62,7 @@
+> >>>>>>>>   #include <asm/memblock.h>
+> >>>>>>>>   #include <asm/psci.h>
+> >>>>>>>>   #include <asm/efi.h>
+> >>>>>>>> +#include <asm/acpi.h>
+> >>>>>>>>
+> >>>>>>>>   unsigned int processor_id;
+> >>>>>>>>   EXPORT_SYMBOL(processor_id);
+> >>>>>>>> @@ -388,6 +389,8 @@ void __init setup_arch(char **cmdline_p)
+> >>>>>>>>        early_fixmap_init();
+> >>>>>>>>        early_ioremap_init();
+> >>>>>>>>
+> >>>>>>>> +     disable_acpi();
+> >>>>>>>> +
+> >>>>>>>>        parse_early_param();
+> >>>>>>>>
+> >>>>>>>>        /*
+> >>>>>>>
+> >>>>>>> Did we get to any conclusion here? DT being the preferred one=
+ is fine
+> >>>>>>> when both DT and ACPI are present but do we still want the ke=
+rnel to
+> >>>>>>> ignore ACPI altogether if DT is not present? It's a bit harde=
+r to detect
+> >>>>>>> the presence of DT at this point since the EFI_STUB added one=
+ already. I
+> >>>>>>> guess we could move the "acpi=3Dforce" argument passing to EF=
+I_STUB if no
+> >>>>>>> DT is present at boot.
+> >>>>>>
+> >>>>>> Since the EFI stub populates the /chosen node in DT, I would p=
+refer
+> >>>>>> for it to add a property there to indicate whether it created =
+the DT
+> >>>>>> from scratch rather than adding ACPI specific stuff in there (=
+even if
+> >>>>>> it is just a string to concatenate)
+> >>>>>
+> >>>>> This works for me. So we could pass "acpi=3Dforce" in EFI stub =
+if it
+> >>>>> created the DT from scratch *and* ACPI tables are present (can =
+it detect
+> >>>>> the latter? And maybe it could print something if none are avai=
+lable).
+> >>>>> If that works, the actual kernel can assume that ACPI needs to =
+be
+> >>>>> explicitly enabled via acpi=3Dforce, irrespective of how much i=
+nformation
+> >>>>> it has in DT.
+> >>>>
+> >>>> Ditto for me. I think this is a fine solution. And, yes, the stu=
+b can
+> >>>> easily detect the presence of ACPI by looking in the UEFI config=
+ table.
+> >>>
+> >>> I get the point behind doing this, but could we not have it pass =
+in a
+> >>> different parameter than =3Dforce? Perhaps something new? I'd lik=
+e to
+> >>> separate out the case that it was enabled automatically vs explic=
+itly
+> >>> forced on by a user wanting to use ACPI on a system with both tab=
+les.
+> >>
+> >> Ard had a point, so we should probably not pass acpi=3Dforce from =
+EFI stub
+> >> (especially since a user may explicitly pass acpi=3Doff irrespecti=
+ve of DT
+> >> presence). Some other property in the chosen node? It's not even a=
+n ABI
+> >> since that's a contract between EFI stub and the rest of the kerne=
+l, so
+> >> an in-kernel only interface.
+> >
+> > Not strictly true once kexec is in place. Then it becomes a stub ->
+> > kernel -> kernel -> kernel -> ... interface, alnog with the rest of=
+ the
+> > properties the stub puts in the DTB.
+> >
+> > Having something like /chosen/linux,uefi-stub-generated-dtb sounds =
+sane
+> > regardless.
+>=20
+> How about the patch (just RFC, maybe it is horrible :) ) below:
+>=20
+> When system supporting both DT and ACPI but firmware providing
+> no dtb, we can use this linux,uefi-stub-generated-dtb property
+> to let kernel know that we can try ACPI configuration data.
+>=20
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-On 16.01.2015 12:15, Marc Zyngier wrote:
-> On 14/01/15 15:05, Hanjun Guo wrote:
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> ACPI kernel uses MADT table for proper GIC initialization. It needs to
->> parse GIC related subtables, collect CPU interface and distributor
->> addresses and call driver initialization function (which is hardware
->> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
->>
->> NOTE: This commit allow to initialize GICv1/2 basic functionality.
->> GICv2 vitalization extension, GICv3/4 and ITS are considered as next
->> steps.
->
-> And so is GICv2m, apparently (see below).
->
->>
->> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Tested-by: Yijing Wang <wangyijing@huawei.com>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   arch/arm64/kernel/acpi.c             |  26 +++++++++
->>   drivers/irqchip/irq-gic.c            | 108 +++++++++++++++++++++++++++++++++++
->>   drivers/irqchip/irqchip.c            |   3 +
->>   include/linux/irqchip/arm-gic-acpi.h |  31 ++++++++++
->>   4 files changed, 168 insertions(+)
->>   create mode 100644 include/linux/irqchip/arm-gic-acpi.h
->>
->> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->> index c3e24c4..ea3c9fc 100644
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
->> @@ -23,6 +23,7 @@
->>   #include <linux/irqdomain.h>
->>   #include <linux/bootmem.h>
->>   #include <linux/smp.h>
->> +#include <linux/irqchip/arm-gic-acpi.h>
->>
->>   #include <asm/cputype.h>
->>   #include <asm/cpu_ops.h>
->> @@ -315,6 +316,31 @@ void __init acpi_boot_table_init(void)
->>   		pr_err("Can't find FADT or error happened during parsing FADT\n");
->>   }
->>
->> +void __init acpi_gic_init(void)
->> +{
->> +	struct acpi_table_header *table;
->> +	acpi_status status;
->> +	acpi_size tbl_size;
->> +	int err;
->> +
->> +	if (acpi_disabled)
->> +		return;
->> +
->> +	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
->> +	if (ACPI_FAILURE(status)) {
->> +		const char *msg = acpi_format_exception(status);
->> +
->> +		pr_err("Failed to get MADT table, %s\n", msg);
->> +		return;
->> +	}
->> +
->> +	err = gic_v2_acpi_init(table);
->> +	if (err)
->> +		pr_err("Failed to initialize GIC IRQ controller");
->> +
->> +	early_acpi_os_unmap_memory((char *)table, tbl_size);
->> +}
->> +
->>   static int __init parse_acpi(char *arg)
->>   {
->>   	if (!arg)
->> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
->> index d617ee5..89a8120 100644
->> --- a/drivers/irqchip/irq-gic.c
->> +++ b/drivers/irqchip/irq-gic.c
->> @@ -33,12 +33,14 @@
->>   #include <linux/of.h>
->>   #include <linux/of_address.h>
->>   #include <linux/of_irq.h>
->> +#include <linux/acpi.h>
->>   #include <linux/irqdomain.h>
->>   #include <linux/interrupt.h>
->>   #include <linux/percpu.h>
->>   #include <linux/slab.h>
->>   #include <linux/irqchip/chained_irq.h>
->>   #include <linux/irqchip/arm-gic.h>
->> +#include <linux/irqchip/arm-gic-acpi.h>
->>
->>   #include <asm/cputype.h>
->>   #include <asm/irq.h>
->> @@ -1083,3 +1085,109 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
->>   IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
->>
->>   #endif
->> +
->> +#ifdef CONFIG_ACPI
->> +static phys_addr_t dist_phy_base, cpu_phy_base;
->> +static int cpu_base_assigned;
->> +
->> +static int __init
->> +gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
->> +			const unsigned long end)
->> +{
->> +	struct acpi_madt_generic_interrupt *processor;
->> +	phys_addr_t gic_cpu_base;
->> +
->> +	processor = (struct acpi_madt_generic_interrupt *)header;
->> +
->> +	if (BAD_MADT_ENTRY(processor, end))
->> +		return -EINVAL;
->> +
->> +	/*
->> +	 * There is no support for non-banked GICv1/2 register in ACPI spec.
->> +	 * All CPU interface addresses have to be the same.
->> +	 */
->> +	gic_cpu_base = processor->base_address;
->> +	if (cpu_base_assigned && gic_cpu_base != cpu_phy_base)
->> +		return -EFAULT;
->
-> EFAULT? That feels weird. This error code should be returned if an
-> access would generate (or has actually generated) a fault, but this is
-> not the case here. Same for the other cases below.
-Right, will fix that and other cases too.
+I'm ok with the idea but I'll let Mark comment on the DT aspects.
 
->
->> +
->> +	cpu_phy_base = gic_cpu_base;
->> +	cpu_base_assigned = 1;
->> +	return 0;
->> +}
->> +
->> +static int __init
->> +gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
->> +				const unsigned long end)
->> +{
->> +	struct acpi_madt_generic_distributor *dist;
->> +
->> +	dist = (struct acpi_madt_generic_distributor *)header;
->> +
->> +	if (BAD_MADT_ENTRY(dist, end))
->> +		return -EINVAL;
->> +
->> +	dist_phy_base = dist->base_address;
->> +	return 0;
->> +}
->> +
->> +int __init
->> +gic_v2_acpi_init(struct acpi_table_header *table)
->> +{
->> +	void __iomem *cpu_base, *dist_base;
->> +	int count;
->> +
->> +	/* Collect CPU base addresses */
->> +	count = acpi_parse_entries(ACPI_SIG_MADT,
->> +				   sizeof(struct acpi_table_madt),
->> +				   gic_acpi_parse_madt_cpu, table,
->> +				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
->> +	if (count < 0) {
->> +		pr_err("Error during GICC entries parsing\n");
->> +		return -EFAULT;
->> +	} else if (!count) {
->> +		pr_err("No valid GICC entries exist\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	/*
->> +	 * Find distributor base address. We expect one distributor entry since
->> +	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
->> +	 */
->> +	count = acpi_parse_entries(ACPI_SIG_MADT,
->> +				   sizeof(struct acpi_table_madt),
->> +				   gic_acpi_parse_madt_distributor, table,
->> +				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
->> +	if (count <= 0) {
->> +		pr_err("Error during GICD entries parsing\n");
->> +		return -EFAULT;
->> +	} else if (!count) {
->> +		pr_err("No valid GICD entries exist\n");
->> +		return -EINVAL;
->> +	} else if (count > 1) {
->> +		pr_err("More than one GICD entry detected\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
->> +	if (!cpu_base) {
->> +		pr_err("Unable to map GICC registers\n");
->> +		return -ENOMEM;
->> +	}
->> +
->> +	dist_base = ioremap(dist_phy_base, ACPI_GICV2_DIST_MEM_SIZE);
->> +	if (!dist_base) {
->> +		pr_err("Unable to map GICD registers\n");
->> +		iounmap(cpu_base);
->> +		return -ENOMEM;
->> +	}
->> +
->> +	/*
->> +	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
->> +	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
->> +	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
->> +	 */
->> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->
-> I assume you never tried to port the GICv2m driver to ACPI, right?
-> Because the above code actively prevents the GIC domain to be defined as
-> a stacked domain, making it impossible for the v2m widget to be
-> implemented on top of GIC. But maybe legacy interrupts are enough?
-Yes, since stacked domain patches were merged to 3.19 we need to go back 
-to this. Some of us have already started addressing your comment.
-
-Regards,
-Tomasz
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
