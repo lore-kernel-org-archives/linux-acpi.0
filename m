@@ -1,78 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Tue, 20 Jan 2015 22:25:17 +0100
-Message-ID: <4078818.ecVtLF3hjd@vostro.rjw.lan>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com> <CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com> <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
+Subject: Re: About 2 ACPICA table patches
+Date: Tue, 20 Jan 2015 23:01:45 +0100
+Message-ID: <4186663.SkfriU6CkL@vostro.rjw.lan>
+References: <1AE640813FDE7649BE1B193DEA596E88026B7CAD@SHSMSX101.ccr.corp.intel.com> <2627056.UnZ45BKguv@vostro.rjw.lan> <CAE1zotKtpWh3VOR7p95_TB278fTqT1itMwLr3BPh4DtW7=Y6+w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE1zotKtpWh3VOR7p95_TB278fTqT1itMwLr3BPh4DtW7=Y6+w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, January 20, 2015 01:16:06 PM Linus Walleij wrote:
-> On Mon, Jan 19, 2015 at 6:59 AM, Alexandre Courbot <gnurou@gmail.com> wrote:
+On Tuesday, January 20, 2015 05:05:07 PM Octavian Purdila wrote:
+> On Tue, Jan 20, 2015 at 5:09 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >
+> > On Saturday, January 17, 2015 05:02:31 PM Octavian Purdila wrote:
+> > > On Fri, Jan 16, 2015 at 11:44 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> > > > Hi, Octavian
+> > > >
+> > >
+> > > Hi Lv,
+> > >
+> > > > I noticed there are 2 patches you've sent to the community.
+> > > > But unfortunately I didn't find them in my mailbox.
+> > > > Let me comment you here.
+> > > >
+> > > > https://patchwork.kernel.org/patch/5501621/
+> > > > This patch seem to be correct.
+> > > > But Rafael should merge it directly via Linux because acpi_unload_table_id() is not in the ACPICA upstream.
+> > >
+> > > OK, thanks for letting me know. Rafel, does the patch look ok to you?
+> >
+> > I'm Rafael, but that's OK.
+> >
 > 
-> > I am not really fond of this idea since it adds complexity to the
-> > (already too complex) GPIO lookup, and only solves to a local level
-> > (GPIO) what is a more global problem (bad ACPI tables that can affect
-> > any subsystem).
-> (...)
-> > it
-> > seems more to-the-point to find a way to fix/patch the ACPI tables at
-> > runtime, if that is possible at all, to provide a more general
-> > solution to this issue.
+> Oops, sorry about that, typo :(
 > 
-> This is my position as well, until proven that this cannot be done.
+> What about patch 3 of the original set [1], does it look better now?
+> 
+> [1] https://lkml.org/lkml/2014/12/16/290
 
-Well, that goes against the current practice, mind you, which *is* to put
-workarounds for buggy ACPI tables into the kernel.  I'm not going to defend
-that, but it has been done for several years now.
-
-Also someone may say to that: "Why don't *you* demonstrate that it can be done
-in the first place?"  And what if it can be done, but is too complex to be
-practical or similar?
-
-My personal opinion is that having a way to apply a fix on top of broken ACPI
-tables (or an extension on top of correct ones for that matter) without touching
-the kernel would be very useful indeed, but making it secure may be somewhat
-challenging, because in principle there's no reason why the kernel should trust
-such "external" fixes.
-
-> In device tree the same mechanism is called "device tree overlays"
-> and I just have some vague feeling that such stuff is patched around in
-> some Intel platforms already, but maybe that involves replacing
-> the whole DSDT from userspace,
-
->From initramfs rather than from user space, but yes, it does.
-
-> surely the mechanism can be refined?
-
-Yes, it can (in principle).  In fact, we have a plan to refine it, but it is
-going to take some time.  Once we've done that, we'll see how painful it is to
-"patch" ACPI tables this way in practice.
-
-Also there is an ecosystem problem related to distributing such "patches".
-Today, distributions don't need to worry about patching buggy platform
-firmware, because they get workarounds in the kernel, but if we switch over
-to the model in which platform firmware "overlays" need to be provided in
-addition to it, then suddenly questions arise about who should be responsible
-for making them available, how to avoid duplication of efforts between
-distributions etc.
-
-All of that needs to be clarified before we start making hard statements like
-"No in-kernel workarounds for that!"
-
-And, of course, there's the question of what the kernel should do if the given
-firmware patch is not effective, so it doesn't really fix the problem it is
-supposed to fix or it fixes that problem only partially or, worse yet, it
-introuces more bugs than it fixes.  Should the kernel simply fail then (and
-in what way if so) or should it try to carry out some default "sanitization"
-of what the firmare (and patch) tells it and try to continue on the best
-effort basis?
+I'm not entirely fond of it to be honest, but let me reply to it directly
+(if I can find the original).
 
 
 -- 
