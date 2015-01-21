@@ -1,46 +1,106 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3 V3] acpi:soc: merge common codes for creating platform device
-Date: Wed, 21 Jan 2015 15:40:50 +0100
-Message-ID: <3669963.UdpNKcqJC1@vostro.rjw.lan>
-References: <1418892285.17614.6.camel@kxue-X58A-UD3R> <20150121100901.GK1850@lahna.fi.intel.com> <CAHp75VfAAF2bTaMY32QLtsAGZGSw+D073eA4GDrjNO37=hgUfA@mail.gmail.com>
+Subject: Re: [RFC Patch 15/19] ACPI: Add field offset to struct resource_list_entry
+Date: Wed, 21 Jan 2015 15:47:35 +0100
+Message-ID: <5866060.ZvSTmUr2GQ@vostro.rjw.lan>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1524434.hGg7sZaCUr@vostro.rjw.lan> <54BF3B24.10209@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59060 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751972AbbAUOSQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jan 2015 09:18:16 -0500
-In-Reply-To: <CAHp75VfAAF2bTaMY32QLtsAGZGSw+D073eA4GDrjNO37=hgUfA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <54BF3B24.10209@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Ken Xue <Ken.Xue@amd.com>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>
 
-On Wednesday, January 21, 2015 12:26:28 PM Andy Shevchenko wrote:
-> On Wed, Jan 21, 2015 at 12:09 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > On Tue, Jan 20, 2015 at 04:12:16PM +0100, Rafael J. Wysocki wrote:
-> >> On Thursday, December 18, 2014 04:44:45 PM Ken Xue wrote:
-> >> >
-> >> > This patch is supposed to deliver some common codes for AMD APD and
-> >> > intel LPSS. It can help to convert some specific acpi devices to be
-> >> > platform devices.
-> >> >
-> >> > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
+On Wednesday, January 21, 2015 01:37:40 PM Jiang Liu wrote:
+> On 2015/1/21 8:53, Rafael J. Wysocki wrote:
+> > On Thursday, January 08, 2015 10:33:02 AM Jiang Liu wrote:
+> >> Add field offset to struct resource_list_entry to host address space
+> >> translation offset so it could be used to represent bridge resources.
 > >>
-> >> Mika, is the v3 fine with you?
-> >
-> > Yup, no objections from me.
-> >
-> > Andy, Heikki, do you have any comments?
-> 
-> There are style issues, mostly in the comments. I could review them,
-> but I really have not much time for that.
+> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> >> ---
+> >>  drivers/acpi/resource.c |   13 ++++++++-----
+> >>  include/linux/acpi.h    |    1 +
+> >>  2 files changed, 9 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> >> index 16d334a1ee25..54204ac94f8e 100644
+> >> --- a/drivers/acpi/resource.c
+> >> +++ b/drivers/acpi/resource.c
+> >> @@ -462,7 +462,8 @@ struct res_proc_context {
+> >>  };
+> >>  
+> >>  static acpi_status acpi_dev_new_resource_entry(struct resource *r,
+> >> -					       struct res_proc_context *c)
+> >> +					       struct res_proc_context *c,
+> >> +					       resource_size_t offset)
+> >>  {
+> >>  	struct resource_list_entry *rentry;
+> >>  
+> >> @@ -472,6 +473,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource *r,
+> >>  		return AE_NO_MEMORY;
+> >>  	}
+> >>  	rentry->res = *r;
+> >> +	rentry->offset = offset;
+> >>  	list_add_tail(&rentry->node, c->list);
+> >>  	c->count++;
+> >>  	return AE_OK;
+> >> @@ -480,6 +482,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource *r,
+> >>  static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+> >>  					     void *context)
+> >>  {
+> >> +	resource_size_t offset = 0;
+> >>  	struct res_proc_context *c = context;
+> >>  	struct resource r;
+> >>  	int i;
+> >> @@ -500,14 +503,14 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
+> >>  
+> >>  	if (acpi_dev_resource_memory(ares, &r)
+> >>  	    || acpi_dev_resource_io(ares, &r)
+> >> -	    || acpi_dev_resource_address_space(ares, &r, NULL)
+> >> -	    || acpi_dev_resource_ext_address_space(ares, &r, NULL))
+> >> -		return acpi_dev_new_resource_entry(&r, c);
+> >> +	    || acpi_dev_resource_address_space(ares, &r, &offset)
+> >> +	    || acpi_dev_resource_ext_address_space(ares, &r, &offset))
+> >> +		return acpi_dev_new_resource_entry(&r, c, offset);
+> >>  
+> >>  	for (i = 0; acpi_dev_resource_interrupt(ares, i, &r); i++) {
+> >>  		acpi_status status;
+> >>  
+> >> -		status = acpi_dev_new_resource_entry(&r, c);
+> >> +		status = acpi_dev_new_resource_entry(&r, c, 0);
+> >>  		if (ACPI_FAILURE(status))
+> >>  			return status;
+> >>  	}
+> >> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> >> index bde8119f5897..fea78e772450 100644
+> >> --- a/include/linux/acpi.h
+> >> +++ b/include/linux/acpi.h
+> >> @@ -300,6 +300,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+> >>  struct resource_list_entry {
+> >>  	struct list_head node;
+> >>  	struct resource res;
+> >> +	resource_size_t offset;
+> > 
+> > Well, so instead of adding the offset thing here and there, wouldn't it be
+> > cleaner to introduce something like
+> > 
+> > 	struct ext_resource {
+> > 		sturct resource res;
+> > 		resource_size_t offset;
+> > 	};
+> > 
+> > and use struct ext_resource instead of struct resource where an offset is needed?
+> > 
+> > Just a thought ...
+> Hi Rafael,
+> 	Following patches will achieve this by sharing struct resource_list_entry.
 
-OK, no worries, I can take care of these.
-
-Thanks guys!
+Well, yes, they will partially, but that still won't avoid the need to pass
+offset (or pointers to that) to several functions separately if I'm not
+mistaken.  Which is kind of ugly.
 
 
 -- 
