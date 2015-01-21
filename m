@@ -1,259 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: set first resuming device as a 'proxy'
-Date: Wed, 21 Jan 2015 03:37:43 +0100
-Message-ID: <15808134.zPSB1QlmdE@vostro.rjw.lan>
-References: <1421320244-3490-1-git-send-email-andriy.shevchenko@linux.intel.com> <6322489.a8QUfpK4WQ@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch 12/19] ACPI: Enforce stricter checks for address space
+ descriptors
+Date: Wed, 21 Jan 2015 10:18:25 +0800
+Message-ID: <54BF0C71.5080508@linux.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1420684386-5975-13-git-send-email-jiang.liu@linux.intel.com> <12267175.FvlCJYWCa5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63065 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752640AbbAUCPI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Jan 2015 21:15:08 -0500
-In-Reply-To: <6322489.a8QUfpK4WQ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <12267175.FvlCJYWCa5@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tuesday, January 20, 2015 03:45:36 PM Rafael J. Wysocki wrote:
-> On Thursday, January 15, 2015 01:10:44 PM Andy Shevchenko wrote:
-> > We can't rely on the first enumerated device since it might be not probed yet
-> > when DMA driver wants to resume the device. This patch changes the place where
-> > we assign the 'proxy' device. From now on the first resumed device will be
-> > recognized as a 'proxy' because it is probed.
+On 2015/1/21 8:45, Rafael J. Wysocki wrote:
+> On Thursday, January 08, 2015 10:32:59 AM Jiang Liu wrote:
+>> Enforce stricter checks for address space descriptors according to
+>> ACPI spec.
 > 
-> I was about to apply this, but I realized that we couldn't do it this way. ->
+> So is the spec the only reason for doing this?  If so, I'd say don't.
+Hi Rafael,
+	Yes, it's just for spec. I will drop this patch to avoid
+regressions.
+Regards!
+Gerry
+
 > 
-> > Reported-by: Jerome Blin <jerome.blin@intel.com>
-> > Fixes: 6c17ee44d524 (ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA)
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> >  drivers/acpi/acpi_lpss.c | 17 +++++++++++------
-> >  1 file changed, 11 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> > index 4f3febf..d851290 100644
-> > --- a/drivers/acpi/acpi_lpss.c
-> > +++ b/drivers/acpi/acpi_lpss.c
-> > @@ -374,8 +374,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
-> >  	adev->driver_data = pdata;
-> >  	pdev = acpi_create_platform_device(adev);
-> >  	if (!IS_ERR_OR_NULL(pdev)) {
-> > -		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
-> > -			proxy_device = &pdev->dev;
-> >  		return 1;
-> >  	}
-> >  
-> > @@ -615,10 +613,17 @@ static int acpi_lpss_runtime_resume(struct device *dev)
-> >  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-> >  	int ret;
-> >  
-> > -	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
-> > -		ret = pm_runtime_get_sync(proxy_device);
-> > -		if (ret)
-> > -			return ret;
-> > +	if (!proxy_device && pdata->dev_desc->flags & LPSS_DEV_PROXY)
-> > +		proxy_device = dev;
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>>  drivers/acpi/resource.c |    8 ++++++++
+>>  1 file changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index 26b47f1da523..e82149e44347 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -192,6 +192,14 @@ static bool acpi_decode_space(struct resource *res,
+>>  	bool wp = base->info.mem.write_protect;
+>>  	u64 len = addr->address_length;
+>>  
+>> +	/*
+>> +	 * Filter out invalid descriptor according to ACPI Spec 5.0, section
+>> +	 * 6.4.3.5 Address Space Resource Descriptors.
+>> +	 */
+>> +	if ((base->min_address_fixed != base->max_address_fixed && len) ||
+>> +	    (base->min_address_fixed && base->max_address_fixed && !len))
+>> +		return false;
+>> +
+>>  	res->start = addr->minimum;
+>>  	res->end = addr->maximum;
+>>  
+>>
 > 
-> -> OK, so what if the driver of proxy_device is removed later?
-> 
-> > +
-> > +	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
-> > +		if (proxy_device) {
-> > +			ret = pm_runtime_get_sync(proxy_device);
-> > +			if (ret)
-> > +				return ret;
-> > +		} else {
-> > +			return -EPROBE_DEFER;
-> 
-> The error code returned here will disable runtime PM for dev forever,
-> even if proxy_device becomes available at one point.  You could return
-> -EBUSY instead, but why don't we add BUS_NOTIFY_BOUND_DRIVER and
-> BUS_NOTIFY_UNBIND_DRIVER handling to acpi_lpss_platform_notify() and
-> set/unset proxy_device from there?
-
-Well, that's more complicated, because we need to be careful when we switch
-proxies while the old one has been reference counted.
-
-Maybe something like this (untested)?
-
----
- drivers/acpi/acpi_lpss.c |  103 +++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 90 insertions(+), 13 deletions(-)
-
-Index: linux-pm/drivers/acpi/acpi_lpss.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_lpss.c
-+++ linux-pm/drivers/acpi/acpi_lpss.c
-@@ -72,12 +72,20 @@ struct lpss_device_desc {
- 	void (*setup)(struct lpss_private_data *pdata);
- };
- 
--static struct device *proxy_device;
--
- static struct lpss_device_desc lpss_dma_desc = {
- 	.flags = LPSS_CLK | LPSS_PROXY_REQ,
- };
- 
-+struct lpss_proxy {
-+	struct device *dev;
-+	struct list_head node;
-+};
-+
-+static struct lpss_proxy *current_proxy;
-+static unsigned int current_proxy_count;
-+static LIST_HEAD(proxy_list);
-+static DEFINE_MUTEX(proxy_list_lock);
-+
- struct lpss_private_data {
- 	void __iomem *mmio_base;
- 	resource_size_t mmio_size;
-@@ -85,6 +93,7 @@ struct lpss_private_data {
- 	struct clk *clk;
- 	const struct lpss_device_desc *dev_desc;
- 	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
-+	struct lpss_proxy proxy_entry;
- };
- 
- /* UART Component Parameter Register */
-@@ -373,11 +382,8 @@ static int acpi_lpss_create_device(struc
- 
- 	adev->driver_data = pdata;
- 	pdev = acpi_create_platform_device(adev);
--	if (!IS_ERR_OR_NULL(pdev)) {
--		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
--			proxy_device = &pdev->dev;
-+	if (!IS_ERR_OR_NULL(pdev))
- 		return 1;
--	}
- 
- 	ret = PTR_ERR(pdev);
- 	adev->driver_data = NULL;
-@@ -591,23 +597,41 @@ static int acpi_lpss_resume_early(struct
- static int acpi_lpss_runtime_suspend(struct device *dev)
- {
- 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
-+	bool use_proxy;
- 	int ret;
- 
-+	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
-+		use_proxy = true;
-+		mutex_lock(&proxy_list_lock);
-+		if (!current_proxy) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
-+	} else {
-+		use_proxy = false;
-+	}
-+
- 	ret = pm_generic_runtime_suspend(dev);
- 	if (ret)
--		return ret;
-+		goto out;
- 
- 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
- 		acpi_lpss_save_ctx(dev, pdata);
- 
- 	ret = acpi_dev_runtime_suspend(dev);
- 	if (ret)
--		return ret;
-+		goto out;
- 
--	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device)
--		return pm_runtime_put_sync_suspend(proxy_device);
-+	if (use_proxy) {
-+		current_proxy_count--;
-+		ret = pm_runtime_put_sync_suspend(current_proxy->dev);
-+	}
- 
--	return 0;
-+ out:
-+	if (use_proxy)
-+		mutex_unlock(&proxy_list_lock);
-+
-+	return ret;
- }
- 
- static int acpi_lpss_runtime_resume(struct device *dev)
-@@ -615,8 +639,16 @@ static int acpi_lpss_runtime_resume(stru
- 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
- 	int ret;
- 
--	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
--		ret = pm_runtime_get_sync(proxy_device);
-+	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
-+		mutex_lock(&proxy_list_lock);
-+		if (current_proxy) {
-+			ret = pm_runtime_get_sync(current_proxy->dev);
-+			if (!ret)
-+				current_proxy_count++;
-+		} else {
-+			ret = -EBUSY;
-+		}
-+		mutex_unlock(&proxy_list_lock);
- 		if (ret)
- 			return ret;
- 	}
-@@ -652,6 +684,28 @@ static struct dev_pm_domain acpi_lpss_pm
- 	},
- };
- 
-+static void acpi_lpss_switch_proxy(void)
-+{
-+	struct lpss_private_data *lpd;
-+	unsigned int count;
-+	struct device *dev;
-+
-+	if (list_empty(&proxy_list)) {
-+		current_proxy = NULL;
-+		WARN_ON(current_proxy_count);
-+		return;
-+	}
-+	count = current_proxy_count;
-+	dev = current_proxy->dev;
-+	lpd = list_first_entry(&proxy_list, struct lpss_private_data,
-+			       proxy_entry.node);
-+	current_proxy = &lpd->proxy_entry;
-+	while (count--) {
-+		pm_runtime_put_noidle(dev);
-+		pm_runtime_get_sync(current_proxy->dev);
-+	}
-+}
-+
- static int acpi_lpss_platform_notify(struct notifier_block *nb,
- 				     unsigned long action, void *data)
- {
-@@ -689,6 +743,29 @@ static int acpi_lpss_platform_notify(str
- 			sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
- 		pdev->dev.pm_domain = NULL;
- 		break;
-+	case BUS_NOTIFY_BOUND_DRIVER:
-+		if (pdata->dev_desc->flags & LPSS_DEV_PROXY) {
-+			mutex_lock(&proxy_list_lock);
-+
-+			INIT_LIST_HEAD(&pdata->proxy_entry.node);
-+			pdata->proxy_entry.dev = &pdev->dev;
-+			list_add_tail(&pdata->proxy_entry.node, &proxy_list);
-+			if (!current_proxy)
-+				current_proxy = &pdata->proxy_entry;
-+
-+			mutex_unlock(&proxy_list_lock);
-+		}
-+		break;
-+	case BUS_NOTIFY_UNBIND_DRIVER:
-+		if (pdata->dev_desc->flags & LPSS_DEV_PROXY) {
-+			mutex_lock(&proxy_list_lock);
-+
-+			list_del(&pdata->proxy_entry.node);
-+			acpi_lpss_switch_proxy();
-+
-+			mutex_unlock(&proxy_list_lock);
-+		}
-+		break;
- 	default:
- 		break;
- 	}
-
