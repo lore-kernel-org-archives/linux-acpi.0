@@ -1,114 +1,157 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Patch 15/19] ACPI: Add field offset to struct resource_list_entry
-Date: Wed, 21 Jan 2015 23:01:34 +0800
-Message-ID: <54BFBF4E.8070302@linux.intel.com>
-References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1524434.hGg7sZaCUr@vostro.rjw.lan> <54BF3B24.10209@linux.intel.com> <5866060.ZvSTmUr2GQ@vostro.rjw.lan>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [RFC PATCHv2 00/19] power_supply: Allow safe usage of power
+ supply
+Date: Wed, 21 Jan 2015 16:22:17 +0100
+Message-ID: <20150121152216.GD13715@earth.universe>
+References: <1420472882-10463-1-git-send-email-k.kozlowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="8nsIa27JVQLqB7/C"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51363 "EHLO mga11.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:45169 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751484AbbAUPB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jan 2015 10:01:58 -0500
-In-Reply-To: <5866060.ZvSTmUr2GQ@vostro.rjw.lan>
+	id S1752226AbbAUPW1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jan 2015 10:22:27 -0500
+Content-Disposition: inline
+In-Reply-To: <1420472882-10463-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On 2015/1/21 22:47, Rafael J. Wysocki wrote:
-> On Wednesday, January 21, 2015 01:37:40 PM Jiang Liu wrote:
->> On 2015/1/21 8:53, Rafael J. Wysocki wrote:
->>> On Thursday, January 08, 2015 10:33:02 AM Jiang Liu wrote:
->>>> Add field offset to struct resource_list_entry to host address space
->>>> translation offset so it could be used to represent bridge resources.
->>>>
->>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>>> ---
->>>>  drivers/acpi/resource.c |   13 ++++++++-----
->>>>  include/linux/acpi.h    |    1 +
->>>>  2 files changed, 9 insertions(+), 5 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->>>> index 16d334a1ee25..54204ac94f8e 100644
->>>> --- a/drivers/acpi/resource.c
->>>> +++ b/drivers/acpi/resource.c
->>>> @@ -462,7 +462,8 @@ struct res_proc_context {
->>>>  };
->>>>  
->>>>  static acpi_status acpi_dev_new_resource_entry(struct resource *r,
->>>> -					       struct res_proc_context *c)
->>>> +					       struct res_proc_context *c,
->>>> +					       resource_size_t offset)
->>>>  {
->>>>  	struct resource_list_entry *rentry;
->>>>  
->>>> @@ -472,6 +473,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource *r,
->>>>  		return AE_NO_MEMORY;
->>>>  	}
->>>>  	rentry->res = *r;
->>>> +	rentry->offset = offset;
->>>>  	list_add_tail(&rentry->node, c->list);
->>>>  	c->count++;
->>>>  	return AE_OK;
->>>> @@ -480,6 +482,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource *r,
->>>>  static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
->>>>  					     void *context)
->>>>  {
->>>> +	resource_size_t offset = 0;
->>>>  	struct res_proc_context *c = context;
->>>>  	struct resource r;
->>>>  	int i;
->>>> @@ -500,14 +503,14 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
->>>>  
->>>>  	if (acpi_dev_resource_memory(ares, &r)
->>>>  	    || acpi_dev_resource_io(ares, &r)
->>>> -	    || acpi_dev_resource_address_space(ares, &r, NULL)
->>>> -	    || acpi_dev_resource_ext_address_space(ares, &r, NULL))
->>>> -		return acpi_dev_new_resource_entry(&r, c);
->>>> +	    || acpi_dev_resource_address_space(ares, &r, &offset)
->>>> +	    || acpi_dev_resource_ext_address_space(ares, &r, &offset))
->>>> +		return acpi_dev_new_resource_entry(&r, c, offset);
->>>>  
->>>>  	for (i = 0; acpi_dev_resource_interrupt(ares, i, &r); i++) {
->>>>  		acpi_status status;
->>>>  
->>>> -		status = acpi_dev_new_resource_entry(&r, c);
->>>> +		status = acpi_dev_new_resource_entry(&r, c, 0);
->>>>  		if (ACPI_FAILURE(status))
->>>>  			return status;
->>>>  	}
->>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->>>> index bde8119f5897..fea78e772450 100644
->>>> --- a/include/linux/acpi.h
->>>> +++ b/include/linux/acpi.h
->>>> @@ -300,6 +300,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
->>>>  struct resource_list_entry {
->>>>  	struct list_head node;
->>>>  	struct resource res;
->>>> +	resource_size_t offset;
->>>
->>> Well, so instead of adding the offset thing here and there, wouldn't it be
->>> cleaner to introduce something like
->>>
->>> 	struct ext_resource {
->>> 		sturct resource res;
->>> 		resource_size_t offset;
->>> 	};
->>>
->>> and use struct ext_resource instead of struct resource where an offset is needed?
->>>
->>> Just a thought ...
->> Hi Rafael,
->> 	Following patches will achieve this by sharing struct resource_list_entry.
-> 
-> Well, yes, they will partially, but that still won't avoid the need to pass
-> offset (or pointers to that) to several functions separately if I'm not
-> mistaken.  Which is kind of ugly.
-Hi Rafael,
-	Sorry, I missed your point with last reply. I have the basic
-idea about how to follow your suggestion now, will do it in next
-version.
-Regards,
-Gerry
+
+--8nsIa27JVQLqB7/C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Krzysztof,
+
+On Mon, Jan 05, 2015 at 04:47:43PM +0100, Krzysztof Kozlowski wrote:
+> This is RFC, please don't apply yet but let me know if this approach
+> is OK.
+
+I just reviewed the patchset. It looks fine to me.
+
+> TLDR
+> =3D=3D=3D=3D
+> Patchset tries to fix following race scenario:
+>=20
+> Thread 1: charger manager, CONSUMER
+> Thread 2: power supply driver, PROVIDER
+>=20
+> THREAD 1 (charger manager)         THREAD 2 (power supply driver)
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D         =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> psy =3D power_supply_get_by_name()
+>                                    Driver unbind, .remove
+>                                      power_supply_unregister()
+>                                      Device fully removed
+> psy->get_property()
+>=20
+> To properly fix the race the patchset:
+> 1. Adds power_supply_get_property()-like API for safe access by consumer.
+> 2. Moves ownership of power_supply structure from driver (provider) to
+>    power supply core.
+> 3. Adds power_supply_put() which will reclaim memory.
+
+Looks fine to me, thanks for doing this :)
+
+> Description
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=20
+> This is a little different than my previous approaches [1][2] for fixing
+> usage of power supply by some consumer, if driver implementing it is
+> unbound.
+>=20
+> The patchset is quite big and touches power supply API so a lot of
+> changes in drivers are needed. These changes *are not finished yet*.
+> I've done them only for:
+>  - bq24190_charger.c
+>  - charger-manager.c
+>  - max14577_charger.c
+>  - max17040_battery.c
+>  - max17042_battery.c
+>  - sbs-battery.c
+>  - tps65090-charger.c
+> So allyesconfig won't build.
+>
+> If this approach is OK, I'll prepare full patchset changing all the
+> drivers.
+
+Please do :)
+
+> My previous approach [1][2] limited the race but did not close it.
+> Still the consumer of power supply by calling power_supply_get_propert(ps=
+y...)
+> may reference invalid memory because the producer freed it.
+>=20
+> Actually, because struct power_supply is exposed to consumers, the
+> core should be the owner of it. This is accomplished in patch 11/19
+> ("power_supply: Change ownership from driver to core").
+>=20
+> What the patchset does in steps
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D
+> 1. Some preparation steps are necessary - patch 1 and 2. The driver
+>    implementing power supply won't be able to fill structure before
+>    calling power_supply_register(). So 'power_supply_config'
+>    is introduced in patch 2 ("power_supply: Move run-time configuration
+>    to separate structure"). Unfortunately this touches all drivers.
+
+$ grep -l power_supply_register **/*.c | grep -v mod.c | grep -v drivers/po=
+wer
+drivers/acpi/ac.c
+drivers/acpi/battery.c
+drivers/acpi/sbs.c
+drivers/hid/hid-input.c
+drivers/hid/hid-sony.c
+drivers/hid/hid-wiimote-modules.c
+drivers/hid/wacom_sys.c
+drivers/platform/x86/compal-laptop.c
+drivers/staging/nvec/nvec_power.c
+
+Please make sure to CC the respective maintainers for the patchset
+(e.g. current patch 14 and 15 should have CC'd x86 maintainers), so
+that they can Acknowledge the patchset.
+
+> 2. Safe API wrappers (and usage counter) are added (power_supply_*()).
+> 3. Patch 11: ownership of 'struct power_supply' is moved from driver
+>    to the core.
+> 4. power_supply_put() is added which reclaims resources.
+
+Looks fine to me.
+
+> The patchset is rebased on next-20141226. It should be pulled at once.
+> Bisectability is preserved.
+
+Fine with me, but I need acks from all involved maintainers. So for the
+patchset:
+
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--8nsIa27JVQLqB7/C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUv8QlAAoJENju1/PIO/qa7/cQAKL4AwZTQPD1sNk+v+xDrjK4
+giJzRnjte1Bsa7AdXWLpXG71JlnE0LQ60RYl7avSUPNku46mMc4DdngQ1w8vcIiE
+2/JhPhgv82nqt9nwQdgUC0lcpS7tJMbjoJg8JlwL2Z1pZJ8HEKDoTwVGH3YLNdS/
+iRv3m9eEEwwzle47tY9gFIZ5QWkHk7q4oNnqS2AVzSi5WrVDZny0voV9ZyQSBtg8
+Vs93aSeQFV05gmZ+f2ngmiACbGYI/zqKhLFKf5QnaHvoW4me77Wl4Esbont0v1CL
+MBqhQyigb4g+c/ITiHkpeDk48w1roKcFy72c57Cr6BDV+WtMKpcQQgBaFdLOMYtI
+VgjMkkfEgYI6rSUuwp8XBXyWctw5oPz5qQai1wrUCGhQI2cCMM7N1KJyUVX2IkgM
+7UhAYqG3B2ZoGso9n9UPKmNX4CICY7PsstYfnK2NPDgX+fnT4xZR5K7TZcYQQ0++
+EYgndueCOgkauTxGFn5zUG3y3eENeTW9KA74a92AXqb/LY4pQ4VaD2KtbxT8Q8sl
+J7j1Y9t+DvDSGX4Jd/T5OT6oqic6/XiIjKdjDa/l3RZ5yDCZR1+71Id5hkRmnmgZ
+FCau1Ribghyn01e+VqondCc1dFGKFdRwGkwGfC2THDCiETL/ZaEJISbF0kBHHuTa
+1dYIesxaekwazsjW5OSQ
+=VBKQ
+-----END PGP SIGNATURE-----
+
+--8nsIa27JVQLqB7/C--
