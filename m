@@ -1,110 +1,122 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC Patch 15/19] ACPI: Add field offset to struct resource_list_entry
-Date: Wed, 21 Jan 2015 13:37:40 +0800
-Message-ID: <54BF3B24.10209@linux.intel.com>
-References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1420684386-5975-16-git-send-email-jiang.liu@linux.intel.com> <1524434.hGg7sZaCUr@vostro.rjw.lan>
+Subject: Re: [RFC Patch 17/19] resources: Move struct resource_list_entry
+ from ACPI into resource core
+Date: Wed, 21 Jan 2015 14:37:05 +0800
+Message-ID: <54BF4911.7030906@linux.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1420684386-5975-18-git-send-email-jiang.liu@linux.intel.com> <3428063.tN1BxOoXSN@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:17021 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:46594 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796AbbAUFho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jan 2015 00:37:44 -0500
-In-Reply-To: <1524434.hGg7sZaCUr@vostro.rjw.lan>
+	id S1754691AbbAUGhK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jan 2015 01:37:10 -0500
+In-Reply-To: <3428063.tN1BxOoXSN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Travis <travis@sgi.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org
 
-On 2015/1/21 8:53, Rafael J. Wysocki wrote:
-> On Thursday, January 08, 2015 10:33:02 AM Jiang Liu wrote:
->> Add field offset to struct resource_list_entry to host address space
->> translation offset so it could be used to represent bridge resources.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> ---
->>  drivers/acpi/resource.c |   13 ++++++++-----
->>  include/linux/acpi.h    |    1 +
->>  2 files changed, 9 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> index 16d334a1ee25..54204ac94f8e 100644
->> --- a/drivers/acpi/resource.c
->> +++ b/drivers/acpi/resource.c
->> @@ -462,7 +462,8 @@ struct res_proc_context {
->>  };
+On 2015/1/21 9:10, Rafael J. Wysocki wrote:
+> On Thursday, January 08, 2015 10:33:04 AM Jiang Liu wrote:
+<snit>
+>> diff --git a/kernel/resource.c b/kernel/resource.c
+>> index 0bcebffc4e77..414183809383 100644
+>> --- a/kernel/resource.c
+>> +++ b/kernel/resource.c
+>> @@ -1529,6 +1529,54 @@ int iomem_is_exclusive(u64 addr)
+>>  	return err;
+>>  }
 >>  
->>  static acpi_status acpi_dev_new_resource_entry(struct resource *r,
->> -					       struct res_proc_context *c)
->> +					       struct res_proc_context *c,
->> +					       resource_size_t offset)
->>  {
->>  	struct resource_list_entry *rentry;
->>  
->> @@ -472,6 +473,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource *r,
->>  		return AE_NO_MEMORY;
->>  	}
->>  	rentry->res = *r;
->> +	rentry->offset = offset;
->>  	list_add_tail(&rentry->node, c->list);
->>  	c->count++;
->>  	return AE_OK;
->> @@ -480,6 +482,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource *r,
->>  static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
->>  					     void *context)
->>  {
->> +	resource_size_t offset = 0;
->>  	struct res_proc_context *c = context;
->>  	struct resource r;
->>  	int i;
->> @@ -500,14 +503,14 @@ static acpi_status acpi_dev_process_resource(struct acpi_resource *ares,
->>  
->>  	if (acpi_dev_resource_memory(ares, &r)
->>  	    || acpi_dev_resource_io(ares, &r)
->> -	    || acpi_dev_resource_address_space(ares, &r, NULL)
->> -	    || acpi_dev_resource_ext_address_space(ares, &r, NULL))
->> -		return acpi_dev_new_resource_entry(&r, c);
->> +	    || acpi_dev_resource_address_space(ares, &r, &offset)
->> +	    || acpi_dev_resource_ext_address_space(ares, &r, &offset))
->> +		return acpi_dev_new_resource_entry(&r, c, offset);
->>  
->>  	for (i = 0; acpi_dev_resource_interrupt(ares, i, &r); i++) {
->>  		acpi_status status;
->>  
->> -		status = acpi_dev_new_resource_entry(&r, c);
->> +		status = acpi_dev_new_resource_entry(&r, c, 0);
->>  		if (ACPI_FAILURE(status))
->>  			return status;
->>  	}
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index bde8119f5897..fea78e772450 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -300,6 +300,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
->>  struct resource_list_entry {
->>  	struct list_head node;
->>  	struct resource res;
->> +	resource_size_t offset;
+>> +struct resource_list_entry *resource_list_alloc(struct resource *res,
+>> +						size_t extra_size)
 > 
-> Well, so instead of adding the offset thing here and there, wouldn't it be
-> cleaner to introduce something like
+> What about create_resource_list_entry()?  Less confusing surely.
+Sure, I will rename it as resource_list_create_entry().
+
 > 
-> 	struct ext_resource {
-> 		sturct resource res;
-> 		resource_size_t offset;
-> 	};
+>> +{
+>> +	struct resource_list_entry *entry;
+>> +
+>> +	entry = kzalloc(sizeof(*entry) + extra_size, GFP_KERNEL);
+>> +	if (entry) {
+>> +		INIT_LIST_HEAD(&entry->node);
+>> +		entry->res = res ? res : &entry->__res;
+>> +	}
+>> +
+>> +	return entry;
+>> +}
+>> +EXPORT_SYMBOL(resource_list_alloc);
+>> +
+>> +void resource_list_free(struct resource_list_entry *entry)
+>> +{
+>> +	kfree(entry);
+>> +}
+>> +EXPORT_SYMBOL(resource_list_free);
 > 
-> and use struct ext_resource instead of struct resource where an offset is needed?
+> Well, I'm not sure I like this.  The name suggests that it would free the
+> entire list and what's wrong with using kfree() directly on "entry" anyway?
+I just want to make interface symmetric. We may also support some type
+of callback when freeing resources in future.
+
 > 
-> Just a thought ...
-Hi Rafael,
-	Following patches will achieve this by sharing struct resource_list_entry.
+>> +
+>> +void resource_list_insert(struct list_head *head,
+>> +			  struct resource_list_entry *entry, bool tail)
+> 
+> I would call this resource_list_add() if anything.
+> 
+> Also it may be better to have two helpers, one for "add" and one for "add_tail"
+> (and perhaps define them as static inline?).
+We can't use inline functions here because that needs pulling list.h
+into ioport.h, then causing building issues to header inclusion order.
+
+> 
+> And why change the ordering between "head" and "entry".  That's alomost
+> guaranteed to confuse people.
+My fault, will change in next version.
+> 
+>> +{
+>> +	if (tail)
+>> +		list_add_tail(&entry->node, head);
+>> +	else
+>> +		list_add(&entry->node, head);
+>> +}
+>> +EXPORT_SYMBOL(resource_list_insert);
+>> +
+>> +void resource_list_delete(struct resource_list_entry *entry)
+>> +{
+>> +	list_del(&entry->node);
+>> +}
+>> +EXPORT_SYMBOL(resource_list_delete);
+> 
+> Couldn't this be a static inline)?
+Inline will cause header file inclusion order issue:(
+
+> 
+> Or maybe we can combine the "list_del" with "kfree" in one function?
+There are callers which need separating list_del from kfree,
+so exported two interfaces here. Will add another helper interface
+resource_list_destroy_entry().
+
 Regards!
 Gerry
 > 
->>  };
->>  
->>  void acpi_dev_free_resource_list(struct list_head *list);
+>> +
+>> +void resource_list_free_list(struct list_head *head)
+>> +{
+>> +	struct resource_list_entry *entry, *tmp;
+>> +
+>> +	list_for_each_entry_safe(entry, tmp, head, node) {
+>> +		list_del(&entry->node);
+>> +		resource_list_free(entry);
+>> +	}
+>> +}
+>> +EXPORT_SYMBOL(resource_list_free_list);
+>> +
+>>  static int __init strict_iomem(char *str)
+>>  {
+>>  	if (strstr(str, "relaxed"))
 >>
 > 
