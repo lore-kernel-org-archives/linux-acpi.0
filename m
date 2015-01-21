@@ -1,71 +1,34 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param for "acpi"
- and pass acpi=force to enable ACPI
-Date: Wed, 21 Jan 2015 15:56:41 +0000
-Message-ID: <20150121155641.GE6858@xora-yoga-13.xora.org.uk>
-References: <20150119135144.GI11835@e104818-lin.cambridge.arm.com>
- <20150119151350.21B65C40948@trevor.secretlab.ca>
- <54BD3803.6020307@redhat.com>
- <20150119175233.GK11835@e104818-lin.cambridge.arm.com>
- <20150119180122.GJ21553@leverpostej>
- <54BE1FEA.5040109@linaro.org>
- <alpine.DEB.2.02.1501201901190.12653@kaball.uk.xensource.com>
- <20150121152326.GD6358@e104818-lin.cambridge.arm.com>
- <54BFC5F0.3020500@redhat.com>
- <20150121154243.GE6358@e104818-lin.cambridge.arm.com>
+From: Christoffer Dall <christoffer.dall@linaro.org>
+Subject: Re: [PATCH v6 17/17] Documentation: ACPI for ARM64
+Date: Wed, 21 Jan 2015 17:04:40 +0100
+Message-ID: <20150121160440.GC15076@cbox>
+References: <1420368918-5086-1-git-send-email-hanjun.guo@linaro.org>
+ <1420368918-5086-18-git-send-email-hanjun.guo@linaro.org>
+ <20150119203328.GB3766@cbox>
+ <54BF9D6C.7020807@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.xora.org.uk ([80.68.91.202]:38588 "EHLO
-	xora.vm.bytemark.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868AbbAUPz0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jan 2015 10:55:26 -0500
+Received: from mail-la0-f41.google.com ([209.85.215.41]:42377 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751145AbbAUQEl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jan 2015 11:04:41 -0500
+Received: by mail-la0-f41.google.com with SMTP id gm9so14934280lab.0
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Jan 2015 08:04:39 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20150121154243.GE6358@e104818-lin.cambridge.arm.com>
+In-Reply-To: <54BF9D6C.7020807@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jon Masters <jcm@redhat.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Graeme Gregory <graeme.gregory@linaro.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, phoenix.liyi@huawei.coml
 
-On Wed, Jan 21, 2015 at 03:42:43PM +0000, Catalin Marinas wrote:
-> On Wed, Jan 21, 2015 at 03:29:52PM +0000, Jon Masters wrote:
-> > On 01/21/2015 10:23 AM, Catalin Marinas wrote:
-> > > I have some questions for the ACPI and EFI folk:
-> > > 
-> > > 1. When booting with ACPI, are the EFI run-time services required for
-> > >    anything? If yes, Xen may have a bigger problem
-> > 
-> > Yes. At least for some things. For example, installing an Operating
-> > System would require that you make runtime services calls to set the
-> > BootOrder/BootNext variables, and so on. Further, we use the GetTime
-> > service and EFI based reboot to avoid having special drivers. I had
-> > those added to SBBR as requirements for that reason.
+On Wed, Jan 21, 2015 at 08:37:00PM +0800, Hanjun Guo wrote:
+> Hi Christoffer,
 > 
-> So what would a kexec'ed kernel do here? Or we usually expect it to be
-> short lived and doesn't need reboot, nor GetTime.
-> 
-> Xen is slightly more problematic but I wonder whether it could run a
-> (paravirtualised) UEFI.
-> 
-> > > 2. Could a boot loader (either kernel doing kexec or Xen) emulate the
-> > >    EFI system/config tables and still make them useful to the kernel but
-> > >    without EFI_BOOT or EFI_RUNTIME_SERVICES?
-> > 
-> > Yes. But again, without the other required pieces (including the
-> > services function pointers in the systab which are required) you'd crash
-> > soon after boot trying to make those calls.
-> 
-> My point was whether you can still pass information like RSDP address
-> via EFI tables but explicitly disable runtime services so that the
-> kernel won't try to make such calls (and crash).
-> 
-There is no specific dependency from ACPI->EFI its just the only current
-method defind to get the RSDP pointer. It would work just as well
-getting the pointer from /chosen/ if we just pick a node and document it
-for Xen/kexec/other usage.
+> Sorry for the late reply, I got no answer yet but
+> with one question below.
 
-We were running ACPI on machine from u-boot doing exactly this for
-a long time.
+no worries, I think the discussion has moved to Stefano's e-mail:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/318335.html
 
-Graeme
-
+-Christoffer
