@@ -1,45 +1,46 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 1/3 V3] acpi:soc: merge common codes for creating platform device
-Date: Wed, 21 Jan 2015 12:26:28 +0200
-Message-ID: <CAHp75VfAAF2bTaMY32QLtsAGZGSw+D073eA4GDrjNO37=hgUfA@mail.gmail.com>
-References: <1418892285.17614.6.camel@kxue-X58A-UD3R>
-	<1566252.Xx6LHhsTBM@vostro.rjw.lan>
-	<20150121100901.GK1850@lahna.fi.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC Patch 17/19] resources: Move struct resource_list_entry
+ from ACPI into resource core
+Date: Wed, 21 Jan 2015 20:32:06 +0800
+Message-ID: <54BF9C46.8060302@linux.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1420684386-5975-18-git-send-email-jiang.liu@linux.intel.com> <3428063.tN1BxOoXSN@vostro.rjw.lan> <54BF4911.7030906@linux.intel.com> <alpine.DEB.2.11.1501211043170.5526@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:52179 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945AbbAUK03 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jan 2015 05:26:29 -0500
-In-Reply-To: <20150121100901.GK1850@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1501211043170.5526@nanos>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Travis <travis@sgi.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ken Xue <Ken.Xue@amd.com>, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>
 
-On Wed, Jan 21, 2015 at 12:09 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Jan 20, 2015 at 04:12:16PM +0100, Rafael J. Wysocki wrote:
->> On Thursday, December 18, 2014 04:44:45 PM Ken Xue wrote:
->> >
->> > This patch is supposed to deliver some common codes for AMD APD and
->> > intel LPSS. It can help to convert some specific acpi devices to be
->> > platform devices.
->> >
->> > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
->>
->> Mika, is the v3 fine with you?
->
-> Yup, no objections from me.
->
-> Andy, Heikki, do you have any comments?
+On 2015/1/21 17:43, Thomas Gleixner wrote:
+> On Wed, 21 Jan 2015, Jiang Liu wrote:
+>> On 2015/1/21 9:10, Rafael J. Wysocki wrote:
+>>>> +
+>>>> +void resource_list_insert(struct list_head *head,
+>>>> +			  struct resource_list_entry *entry, bool tail)
+>>>
+>>> I would call this resource_list_add() if anything.
+>>>
+>>> Also it may be better to have two helpers, one for "add" and one for "add_tail"
+>>> (and perhaps define them as static inline?).
+>> We can't use inline functions here because that needs pulling list.h
+>> into ioport.h, then causing building issues to header inclusion order.
+> 
+> Create a new header file to avoid the circular dependencies then.
+Great, create include/linux/resource_list.h for it so we could
+inline those simple functions.
+Regards,
+Gerry
 
-There are style issues, mostly in the comments. I could review them,
-but I really have not much time for that.
-
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+> 
+> Thanks,
+> 
+> 	tglx
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
