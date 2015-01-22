@@ -1,90 +1,204 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/6] ACPI/EC: Cleanup transaction wakeup code
-Date: Thu, 22 Jan 2015 06:37:28 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B9F86@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1418966602.git.lv.zheng@intel.com>
- <cover.1421234254.git.lv.zheng@intel.com>
- <22c0b29810135db8762604f216ca8ea1c66fbdf0.1421234254.git.lv.zheng@intel.com>
- <5637874.BqR4k3zUAA@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH] ACPI: Introduce acpi_unload_parent_table() usages in Linux kernel.
+Date: Thu, 22 Jan 2015 14:37:49 +0800
+Message-ID: <0d37f4eecdd2c7e3203fca7adb1c2c03a16a40dd.1421907258.git.lv.zheng@intel.com>
+References: <1418746353-3481-2-git-send-email-octavian.purdila@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:11213 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:59649 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751034AbbAVGhk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jan 2015 01:37:40 -0500
-In-Reply-To: <5637874.BqR4k3zUAA@vostro.rjw.lan>
-Content-Language: en-US
+	id S1750979AbbAVGj1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jan 2015 01:39:27 -0500
+In-Reply-To: <1418746353-3481-2-git-send-email-octavian.purdila@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>, Prarit Bhargava <prarit@sgi.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBKYW51YXJ5IDIyLCAyMDE1IDY6MTcgQU0NCj4g
-DQo+IE9uIFdlZG5lc2RheSwgSmFudWFyeSAxNCwgMjAxNSAwNzoyODoyMiBQTSBMdiBaaGVuZyB3
-cm90ZToNCj4gPiBUaGlzIHBhdGNoIG1vdmVzIHRyYW5zYWN0aW9uIHdha2V1cCBjb2RlIGludG8g
-YWR2YW5jZV90cmFuc2FjdGlvbigpLg0KPiA+IE5vIGZ1bmN0aW9uYWwgY2hhbmdlcy4NCj4gPg0K
-PiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0t
-DQo+ID4gIGRyaXZlcnMvYWNwaS9lYy5jIHwgICAxNyArKysrKysrKystLS0tLS0tLQ0KPiA+ICAx
-IGZpbGUgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4g
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9lYy5jIGIvZHJpdmVycy9hY3BpL2VjLmMNCj4gPiBp
-bmRleCAxYjU4NTNmLi4zZTE5MTIzIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9lYy5j
-DQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2VjLmMNCj4gPiBAQCAtMjAwLDcgKzIwMCw3IEBAIHN0
-YXRpYyBpbnQgZWNfdHJhbnNhY3Rpb25fY29tcGxldGVkKHN0cnVjdCBhY3BpX2VjICplYykNCj4g
-PiAgCXJldHVybiByZXQ7DQo+ID4gIH0NCj4gPg0KPiA+IC1zdGF0aWMgYm9vbCBhZHZhbmNlX3Ry
-YW5zYWN0aW9uKHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiArc3RhdGljIHZvaWQgYWR2YW5jZV90
-cmFuc2FjdGlvbihzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gIHsNCj4gPiAgCXN0cnVjdCB0cmFu
-c2FjdGlvbiAqdDsNCj4gPiAgCXU4IHN0YXR1czsNCj4gPiBAQCAtMjM1LDcgKzIzNSw3IEBAIHN0
-YXRpYyBib29sIGFkdmFuY2VfdHJhbnNhY3Rpb24oc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiA+ICAJ
-CQl0LT5mbGFncyB8PSBBQ1BJX0VDX0NPTU1BTkRfQ09NUExFVEU7DQo+ID4gIAkJCXdha2V1cCA9
-IHRydWU7DQo+ID4gIAkJfQ0KPiA+IC0JCXJldHVybiB3YWtldXA7DQo+ID4gKwkJZ290byBvdXQ7
-DQo+ID4gIAl9IGVsc2Ugew0KPiA+ICAJCWlmIChFQ19GTEFHU19RVUVSWV9IQU5EU0hBS0UgJiYN
-Cj4gPiAgCQkgICAgIShzdGF0dXMgJiBBQ1BJX0VDX0ZMQUdfU0NJKSAmJg0KPiA+IEBAIC0yNTEs
-NyArMjUxLDcgQEAgc3RhdGljIGJvb2wgYWR2YW5jZV90cmFuc2FjdGlvbihzdHJ1Y3QgYWNwaV9l
-YyAqZWMpDQo+ID4gIAkJCXQtPmZsYWdzIHw9IEFDUElfRUNfQ09NTUFORF9QT0xMOw0KPiA+ICAJ
-CX0gZWxzZQ0KPiA+ICAJCQlnb3RvIGVycjsNCj4gPiAtCQlyZXR1cm4gd2FrZXVwOw0KPiA+ICsJ
-CWdvdG8gb3V0Ow0KPiA+ICAJfQ0KPiA+ICBlcnI6DQo+ID4gIAkvKg0KPiA+IEBAIC0yNjIsMTQg
-KzI2MiwxNiBAQCBlcnI6DQo+ID4gIAkJaWYgKGluX2ludGVycnVwdCgpICYmIHQpDQo+ID4gIAkJ
-CSsrdC0+aXJxX2NvdW50Ow0KPiA+ICAJfQ0KPiA+IC0JcmV0dXJuIHdha2V1cDsNCj4gPiArb3V0
-Og0KPiA+ICsJaWYgKHdha2V1cCAmJiBpbl9pbnRlcnJ1cHQoKSkNCj4gPiArCQl3YWtlX3VwKCZl
-Yy0+d2FpdCk7DQo+ID4gIH0NCj4gPg0KPiA+ICBzdGF0aWMgdm9pZCBzdGFydF90cmFuc2FjdGlv
-bihzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gIHsNCj4gPiAgCWVjLT5jdXJyLT5pcnFfY291bnQg
-PSBlYy0+Y3Vyci0+d2kgPSBlYy0+Y3Vyci0+cmkgPSAwOw0KPiA+ICAJZWMtPmN1cnItPmZsYWdz
-ID0gMDsNCj4gPiAtCSh2b2lkKWFkdmFuY2VfdHJhbnNhY3Rpb24oZWMpOw0KPiA+ICsJYWR2YW5j
-ZV90cmFuc2FjdGlvbihlYyk7DQo+IA0KPiBXZWxsLCB0aGlzIGxvb2tzIGxpa2UgYSBmdW5jdGlv
-bmFsIGNoYW5nZSwgYmVjYXVzZSB3ZSB3b3VsZG4ndCBjYWxsDQo+IHdha2VfdXAoJmVjLT53YWl0
-KSBoZXJlIGJlZm9yZS4NCg0KQWgsIFllcy4NCkJ1dCBoZXJlLCBzaW5jZSB0aGUgb25seSBhZHZh
-bmNlbWVudCB0aGF0IGNhbiBoYXBwZW4gaGVyZSBpcyB0byBzZW5kIHRoZSBFQyBjb21tYW5kIGFu
-ZCB0aGVyZSBhcmUgYWx3YXlzIGZ1cnRoZXIgYWR2YW5jZW1lbnRzIHVudGlsIHRyYW5zYWN0aW9u
-IGNvbXBsZXRpb24sIHRoZSB3YWtlX3VwKCkgd29uJ3QgYmUgaW52b2tlZCBhdCB0aGlzIHBvaW50
-Lg0KU28gSU1PLCB0aGVyZSBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZXMgaGVyZS4NCg0KPiANCj4g
-PiAgfQ0KPiA+DQo+ID4gIHN0YXRpYyBpbnQgYWNwaV9lY19zeW5jX3F1ZXJ5KHN0cnVjdCBhY3Bp
-X2VjICplYywgdTggKmRhdGEpOw0KPiA+IEBAIC0zMDQsNyArMzA2LDcgQEAgc3RhdGljIGludCBl
-Y19wb2xsKHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiAgCQkJCQlyZXR1cm4gMDsNCj4gPiAgCQkJ
-fQ0KPiA+ICAJCQlzcGluX2xvY2tfaXJxc2F2ZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4gPiAtCQkJ
-KHZvaWQpYWR2YW5jZV90cmFuc2FjdGlvbihlYyk7DQo+ID4gKwkJCWFkdmFuY2VfdHJhbnNhY3Rp
-b24oZWMpOw0KPiANCj4gRGl0dG8uDQoNClllcy4gSSBjaGFuZ2VkIHRoaXMgbG9naWMuDQoNCkJ5
-IGludm9raW5nIHdha2VfdXAoKSBoZXJlLCB3ZSBjYW4gYnJlYWsgdGhlIGVjX3BvbGwoKSBsb29w
-Lg0KQmVjYXVzZSBpZiB0aGUgdHJhbnNhY3Rpb24gaGFzIGNvbXBsZXRlZCBkdWUgdG8gdGhlIHBv
-bGxpbmcgYWR2YW5jZW1lbnQsIHdlIHJlYWxseSBkb24ndCBuZWVkIHRvIHdhaXQgZm9yIGFub3Ro
-ZXIgaW50ZXJydXB0Lg0KU28gdGhpcyBuZXcgbG9naWMgbWFrZXMgdGhpcyBwYXRjaCBtb3JlIGxp
-a2UgYSByYWNlIGZpeCwgbm90IGEgc2ltcGxlIGNsZWFudXAuDQpBbmQgSU1PLCBpdCBtaWdodCBh
-bHNvIGJlIGEgc3RhYmxlIG1hdGVyaWFsLg0KSSBkaWRuJ3Qgbm90aWNlIHRoaXMgcmFjZSBidWcg
-YmVjYXVzZSB0aGVyZSBpcyBubyBidWcgcmVwb3J0IGFnYWluc3QgdGhpcy4NCg0KU2hvdWxkIEkg
-Y2hhbmdlIHRoZSBkZXNjcmlwdGlvbiBhcm91bmQgdGhpcyBhbmQgcmUtc2VuZCB0aGUgcGF0Y2g/
-DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gT3IgYW0gSSBtaXNzaW5n
-IGFueXRoaW5nPw0KPiANCj4gPiAgCQkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ss
-IGZsYWdzKTsNCj4gPiAgCQl9IHdoaWxlICh0aW1lX2JlZm9yZShqaWZmaWVzLCBkZWxheSkpOw0K
-PiA+ICAJCXByX2RlYnVnKCJjb250cm9sbGVyIHJlc2V0LCByZXN0YXJ0IHRyYW5zYWN0aW9uXG4i
-KTsNCj4gPiBAQCAtNjg4LDggKzY5MCw3IEBAIHN0YXRpYyB1MzIgYWNwaV9lY19ncGVfaGFuZGxl
-cihhY3BpX2hhbmRsZSBncGVfZGV2aWNlLA0KPiA+ICAJc3RydWN0IGFjcGlfZWMgKmVjID0gZGF0
-YTsNCj4gPg0KPiA+ICAJc3Bpbl9sb2NrX2lycXNhdmUoJmVjLT5sb2NrLCBmbGFncyk7DQo+ID4g
-LQlpZiAoYWR2YW5jZV90cmFuc2FjdGlvbihlYykpDQo+ID4gLQkJd2FrZV91cCgmZWMtPndhaXQp
-Ow0KPiA+ICsJYWR2YW5jZV90cmFuc2FjdGlvbihlYyk7DQo+ID4gIAlzcGluX3VubG9ja19pcnFy
-ZXN0b3JlKCZlYy0+bG9jaywgZmxhZ3MpOw0KPiA+ICAJZWNfY2hlY2tfc2NpKGVjLCBhY3BpX2Vj
-X3JlYWRfc3RhdHVzKGVjKSk7DQo+ID4gIAlyZXR1cm4gQUNQSV9JTlRFUlJVUFRfSEFORExFRCB8
-IEFDUElfUkVFTkFCTEVfR1BFOw0KPiA+DQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15
-c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kg
-Q2VudGVyLg0K
+ACPICA has implemented acpi_unload_parent_table() which can exactly replace
+the acpi_get_id()/acpi_unload_table_id() implemented in Linux kernel.  The
+acpi_unload_parent_table() has been unit tested in ACPICA simulation
+environment.
+
+This patch can also help to reduce the source code differences between
+Linux and ACPICA.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Prarit Bhargava <prarit@sgi.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
+---
+ drivers/acpi/acpica/nsxfobj.c     |   44 -------------------------------------
+ drivers/acpi/acpica/tbxface.c     |   39 --------------------------------
+ drivers/pci/hotplug/sgi_hotplug.c |   13 ++++++-----
+ include/acpi/acpixf.h             |    6 -----
+ 4 files changed, 7 insertions(+), 95 deletions(-)
+
+diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
+index dae9401..51a8329 100644
+--- a/drivers/acpi/acpica/nsxfobj.c
++++ b/drivers/acpi/acpica/nsxfobj.c
+@@ -53,50 +53,6 @@ ACPI_MODULE_NAME("nsxfobj")
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_get_id
+- *
+- * PARAMETERS:  Handle          - Handle of object whose id is desired
+- *              ret_id          - Where the id will be placed
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: This routine returns the owner id associated with a handle
+- *
+- ******************************************************************************/
+-acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
+-{
+-	struct acpi_namespace_node *node;
+-	acpi_status status;
+-
+-	/* Parameter Validation */
+-
+-	if (!ret_id) {
+-		return (AE_BAD_PARAMETER);
+-	}
+-
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+-	if (ACPI_FAILURE(status)) {
+-		return (status);
+-	}
+-
+-	/* Convert and validate the handle */
+-
+-	node = acpi_ns_validate_handle(handle);
+-	if (!node) {
+-		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+-		return (AE_BAD_PARAMETER);
+-	}
+-
+-	*ret_id = node->owner_id;
+-
+-	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+-	return (status);
+-}
+-
+-ACPI_EXPORT_SYMBOL(acpi_get_id)
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_get_type
+  *
+  * PARAMETERS:  handle          - Handle of object whose type is desired
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index 6482b0d..0f9dd80 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -265,45 +265,6 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_header)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_unload_table_id
+- *
+- * PARAMETERS:  id            - Owner ID of the table to be removed.
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: This routine is used to force the unload of a table (by id)
+- *
+- ******************************************************************************/
+-acpi_status acpi_unload_table_id(acpi_owner_id id)
+-{
+-	int i;
+-	acpi_status status = AE_NOT_EXIST;
+-
+-	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
+-
+-	/* Find table in the global table list */
+-	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
+-		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
+-			continue;
+-		}
+-		/*
+-		 * Delete all namespace objects owned by this table. Note that these
+-		 * objects can appear anywhere in the namespace by virtue of the AML
+-		 * "Scope" operator. Thus, we need to track ownership by an ID, not
+-		 * simply a position within the hierarchy
+-		 */
+-		acpi_tb_delete_namespace_by_owner(i);
+-		status = acpi_tb_release_owner_id(i);
+-		acpi_tb_set_table_loaded_flag(i, FALSE);
+-		break;
+-	}
+-	return_ACPI_STATUS(status);
+-}
+-
+-ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_get_table_with_size
+  *
+  * PARAMETERS:  signature           - ACPI signature of needed table
+diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
+index bada2099..c32fb78 100644
+--- a/drivers/pci/hotplug/sgi_hotplug.c
++++ b/drivers/pci/hotplug/sgi_hotplug.c
+@@ -475,7 +475,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 	struct slot *slot = bss_hotplug_slot->private;
+ 	struct pci_dev *dev, *temp;
+ 	int rc;
+-	acpi_owner_id ssdt_id = 0;
++	acpi_handle ssdt_hdl = NULL;
+ 
+ 	/* Acquire update access to the bus */
+ 	mutex_lock(&sn_hotplug_mutex);
+@@ -522,7 +522,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 			if (ACPI_SUCCESS(ret) &&
+ 			    (adr>>16) == (slot->device_num + 1)) {
+ 				/* retain the owner id */
+-				acpi_get_id(chandle, &ssdt_id);
++				ssdt_hdl = chandle;
+ 
+ 				ret = acpi_bus_get_device(chandle,
+ 							  &device);
+@@ -547,12 +547,13 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 	pci_unlock_rescan_remove();
+ 
+ 	/* Remove the SSDT for the slot from the ACPI namespace */
+-	if (SN_ACPI_BASE_SUPPORT() && ssdt_id) {
++	if (SN_ACPI_BASE_SUPPORT() && ssdt_hdl) {
+ 		acpi_status ret;
+-		ret = acpi_unload_table_id(ssdt_id);
++		ret = acpi_unload_parent_table(ssdt_hdl);
+ 		if (ACPI_FAILURE(ret)) {
+-			printk(KERN_ERR "%s: acpi_unload_table_id failed (0x%x) for id %d\n",
+-			       __func__, ret, ssdt_id);
++			acpi_handle_err(ssdt_hdl,
++					"%s: acpi_unload_parent_table failed (0x%x)\n",
++					__func__, ret);
+ 			/* try to continue on */
+ 		}
+ 	}
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 5ba7846..5dd21bc 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -891,12 +891,6 @@ ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
+ ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap);
+ 
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+-			    acpi_get_id(acpi_handle object,
+-					acpi_owner_id * out_type))
+-
+-ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
+-
+-ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			    acpi_get_table_with_size(acpi_string signature,
+ 						     u32 instance,
+ 						     struct acpi_table_header
+-- 
+1.7.10
+
