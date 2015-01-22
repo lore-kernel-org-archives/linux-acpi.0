@@ -1,180 +1,209 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] mfd: dln2: add support for ACPI
-Date: Thu, 22 Jan 2015 23:09:33 +0100
-Message-ID: <1879413.uF8phu1QrE@vostro.rjw.lan>
-References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com> <2755822.qV1ICgGMEY@vostro.rjw.lan> <CAE1zotL9LsMjW6YC9E3iq-6Zf4u2=CpB1nh=LDUroQS9k5dTsQ@mail.gmail.com>
+Subject: Re: [RFC PATCH] ACPI: Introduce acpi_unload_parent_table() usages in Linux kernel.
+Date: Thu, 22 Jan 2015 23:43:16 +0100
+Message-ID: <8541914.sW9yU28g98@vostro.rjw.lan>
+References: <1418746353-3481-2-git-send-email-octavian.purdila@intel.com> <0d37f4eecdd2c7e3203fca7adb1c2c03a16a40dd.1421907258.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE1zotL9LsMjW6YC9E3iq-6Zf4u2=CpB1nh=LDUroQS9k5dTsQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Johan Hovold <johan@kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <0d37f4eecdd2c7e3203fca7adb1c2c03a16a40dd.1421907258.git.lv.zheng@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>, Prarit Bhargava <prarit@sgi.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, January 22, 2015 12:13:13 PM Octavian Purdila wrote:
-> On Thu, Jan 22, 2015 at 4:00 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >
+On Thursday, January 22, 2015 02:37:49 PM Lv Zheng wrote:
+> ACPICA has implemented acpi_unload_parent_table() which can exactly replace
+> the acpi_get_id()/acpi_unload_table_id() implemented in Linux kernel.  The
+> acpi_unload_parent_table() has been unit tested in ACPICA simulation
+> environment.
 > 
-> Hi Rafael,
+> This patch can also help to reduce the source code differences between
+> Linux and ACPICA.
+
+Looks OK to me.
+
+Do you want me to pick it up?
+
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Cc: Octavian Purdila <octavian.purdila@intel.com>
+> Cc: Prarit Bhargava <prarit@sgi.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: linux-pci@vger.kernel.org
+> Cc: Tony Luck <tony.luck@intel.com>
+> Cc: Fenghua Yu <fenghua.yu@intel.com>
+> Cc: linux-ia64@vger.kernel.org
+> ---
+>  drivers/acpi/acpica/nsxfobj.c     |   44 -------------------------------------
+>  drivers/acpi/acpica/tbxface.c     |   39 --------------------------------
+>  drivers/pci/hotplug/sgi_hotplug.c |   13 ++++++-----
+>  include/acpi/acpixf.h             |    6 -----
+>  4 files changed, 7 insertions(+), 95 deletions(-)
 > 
-> Thanks for reviewing the patch.
+> diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
+> index dae9401..51a8329 100644
+> --- a/drivers/acpi/acpica/nsxfobj.c
+> +++ b/drivers/acpi/acpica/nsxfobj.c
+> @@ -53,50 +53,6 @@ ACPI_MODULE_NAME("nsxfobj")
+>  
+>  /*******************************************************************************
+>   *
+> - * FUNCTION:    acpi_get_id
+> - *
+> - * PARAMETERS:  Handle          - Handle of object whose id is desired
+> - *              ret_id          - Where the id will be placed
+> - *
+> - * RETURN:      Status
+> - *
+> - * DESCRIPTION: This routine returns the owner id associated with a handle
+> - *
+> - ******************************************************************************/
+> -acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
+> -{
+> -	struct acpi_namespace_node *node;
+> -	acpi_status status;
+> -
+> -	/* Parameter Validation */
+> -
+> -	if (!ret_id) {
+> -		return (AE_BAD_PARAMETER);
+> -	}
+> -
+> -	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+> -	if (ACPI_FAILURE(status)) {
+> -		return (status);
+> -	}
+> -
+> -	/* Convert and validate the handle */
+> -
+> -	node = acpi_ns_validate_handle(handle);
+> -	if (!node) {
+> -		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+> -		return (AE_BAD_PARAMETER);
+> -	}
+> -
+> -	*ret_id = node->owner_id;
+> -
+> -	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+> -	return (status);
+> -}
+> -
+> -ACPI_EXPORT_SYMBOL(acpi_get_id)
+> -
+> -/*******************************************************************************
+> - *
+>   * FUNCTION:    acpi_get_type
+>   *
+>   * PARAMETERS:  handle          - Handle of object whose type is desired
+> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+> index 6482b0d..0f9dd80 100644
+> --- a/drivers/acpi/acpica/tbxface.c
+> +++ b/drivers/acpi/acpica/tbxface.c
+> @@ -265,45 +265,6 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_header)
+>  
+>  /*******************************************************************************
+>   *
+> - * FUNCTION:    acpi_unload_table_id
+> - *
+> - * PARAMETERS:  id            - Owner ID of the table to be removed.
+> - *
+> - * RETURN:      Status
+> - *
+> - * DESCRIPTION: This routine is used to force the unload of a table (by id)
+> - *
+> - ******************************************************************************/
+> -acpi_status acpi_unload_table_id(acpi_owner_id id)
+> -{
+> -	int i;
+> -	acpi_status status = AE_NOT_EXIST;
+> -
+> -	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
+> -
+> -	/* Find table in the global table list */
+> -	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
+> -		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
+> -			continue;
+> -		}
+> -		/*
+> -		 * Delete all namespace objects owned by this table. Note that these
+> -		 * objects can appear anywhere in the namespace by virtue of the AML
+> -		 * "Scope" operator. Thus, we need to track ownership by an ID, not
+> -		 * simply a position within the hierarchy
+> -		 */
+> -		acpi_tb_delete_namespace_by_owner(i);
+> -		status = acpi_tb_release_owner_id(i);
+> -		acpi_tb_set_table_loaded_flag(i, FALSE);
+> -		break;
+> -	}
+> -	return_ACPI_STATUS(status);
+> -}
+> -
+> -ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
+> -
+> -/*******************************************************************************
+> - *
+>   * FUNCTION:    acpi_get_table_with_size
+>   *
+>   * PARAMETERS:  signature           - ACPI signature of needed table
+> diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
+> index bada2099..c32fb78 100644
+> --- a/drivers/pci/hotplug/sgi_hotplug.c
+> +++ b/drivers/pci/hotplug/sgi_hotplug.c
+> @@ -475,7 +475,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+>  	struct slot *slot = bss_hotplug_slot->private;
+>  	struct pci_dev *dev, *temp;
+>  	int rc;
+> -	acpi_owner_id ssdt_id = 0;
+> +	acpi_handle ssdt_hdl = NULL;
+>  
+>  	/* Acquire update access to the bus */
+>  	mutex_lock(&sn_hotplug_mutex);
+> @@ -522,7 +522,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+>  			if (ACPI_SUCCESS(ret) &&
+>  			    (adr>>16) == (slot->device_num + 1)) {
+>  				/* retain the owner id */
+> -				acpi_get_id(chandle, &ssdt_id);
+> +				ssdt_hdl = chandle;
+>  
+>  				ret = acpi_bus_get_device(chandle,
+>  							  &device);
+> @@ -547,12 +547,13 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+>  	pci_unlock_rescan_remove();
+>  
+>  	/* Remove the SSDT for the slot from the ACPI namespace */
+> -	if (SN_ACPI_BASE_SUPPORT() && ssdt_id) {
+> +	if (SN_ACPI_BASE_SUPPORT() && ssdt_hdl) {
+>  		acpi_status ret;
+> -		ret = acpi_unload_table_id(ssdt_id);
+> +		ret = acpi_unload_parent_table(ssdt_hdl);
+>  		if (ACPI_FAILURE(ret)) {
+> -			printk(KERN_ERR "%s: acpi_unload_table_id failed (0x%x) for id %d\n",
+> -			       __func__, ret, ssdt_id);
+> +			acpi_handle_err(ssdt_hdl,
+> +					"%s: acpi_unload_parent_table failed (0x%x)\n",
+> +					__func__, ret);
+>  			/* try to continue on */
+>  		}
+>  	}
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index 5ba7846..5dd21bc 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -891,12 +891,6 @@ ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
+>  ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap);
+>  
+>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+> -			    acpi_get_id(acpi_handle object,
+> -					acpi_owner_id * out_type))
+> -
+> -ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
+> -
+> -ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>  			    acpi_get_table_with_size(acpi_string signature,
+>  						     u32 instance,
+>  						     struct acpi_table_header
 > 
-> > On Tuesday, December 16, 2014 06:12:32 PM Octavian Purdila wrote:
-> > > This patch adds support to load a custom ACPI table that describes
-> > > devices connected via the DLN2 USB to I2C/SPI/GPIO bridge.
-> > >
-> > > The ACPI table can be loaded either externally (from QEMU or with
-> > > CONFIG_ACPI_CUSTOM_DSDT) or it can be loaded as firmware file with the
-> > > name dln2.aml. The driver looks for an ACPI device entry with _HID set
-> > > to "DLN20000" and makes it the ACPI companion for DLN2 USB
-> > > sub-drivers.
-> > >
-> > > Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
-> > > ---
-> > >  Documentation/acpi/dln2-acpi.txt |  62 ++++++++++++++++++
-> > >  drivers/mfd/dln2.c               | 134 +++++++++++++++++++++++++++++++++++++++
-> > >  2 files changed, 196 insertions(+)
-> > >  create mode 100644 Documentation/acpi/dln2-acpi.txt
-> > >
-> > > diff --git a/Documentation/acpi/dln2-acpi.txt b/Documentation/acpi/dln2-acpi.txt
-> > > new file mode 100644
-> > > index 0000000..d76605f
-> > > --- /dev/null
-> > > +++ b/Documentation/acpi/dln2-acpi.txt
-> > > @@ -0,0 +1,62 @@
-> > > +Diolan DLN2 custom APCI table
-> > > +
-> > > +The Diolan DLN2 is an USB to I2C/SPI/GPIO bridge and as such it can be used to
-> > > +connect to various I2C or SPI devices. Because these busses lack an enumeration
-> > > +protocol, the driver obtains various information about the device (such as I2C
-> > > +address and GPIO pins) from either ACPI or device tree.
-> > > +
-> > > +To allow enumerating devices and their properties via ACPI, the Diolan
-> > > +driver looks for an ACPI tree with the root _HID set to "DLN20000". If
-> > > +it finds such an ACPI object it will set the ACPI companion to the
-> > > +DLN2 MFD driver and from their it will be propagated to all its
-> > > +sub-devices (I2C, GPIO, SPI).
-> > > +
-> > > +The user can either load the custom DSDT table with three methods:
-> >
-> > s/DSDT/ACPI/
-> 
-> OK.
-> 
-> > > +
-> > > +1. Via QEMU (see -acpitable)
-> > > +
-> > > +2. Via the CONFIG_ACPI_CUSTOM_DSDT kernel config option (see
-> > > +Documentation/acpi/dsdt-override.txt)
-> > > +
-> > > +3. By placing the custom DSDT in the firmware paths in a file name
-> > > +dln2.aml.
-> >
-> > Surely SSDT?
-> >
-> 
-> Correct.
-> 
-> <snip>
-> 
-> > > diff --git a/drivers/mfd/dln2.c b/drivers/mfd/dln2.c
-> > > index f9c4a0b..93f6d1d 100644
-> > > --- a/drivers/mfd/dln2.c
-> > > +++ b/drivers/mfd/dln2.c
-> > > @@ -23,6 +23,8 @@
-> > >  #include <linux/mfd/core.h>
-> > >  #include <linux/mfd/dln2.h>
-> > >  #include <linux/rculist.h>
-> > > +#include <linux/acpi.h>
-> > > +#include <linux/firmware.h>
-> > >
-> >
-> > OK, so correct me if I'm wrong.
-> >
-> > When the (USB) dnl2 device is probed, it is supposed to find an ACPI companion
-> > for itself and if it's not there, the driver will try to load a custom SSDT from
-> > a firmware blob in the hope that the companion will be there?
-> >
-> > So if I'm not wrong, why is this not broken?
-> >
-> > It is not sufficient to call ACPI_COMPANION_SET(dev, ai->dev) to set the device's
-> > companion.  acpi_bind_one() needs to be run in addition to that, but acpi_bind_one()
-> > is not to be called from drivers.  It is called by the core automatically during
-> > device registration and ACPI_COMPANION_SET() is to be used *before* that, not after.
-> >
-> > So if I'm not missing anything, the design here is entirely backwards and we
-> > need to talk about how to implement it correctly at the design level in the
-> > first place.
-> >
-> 
-> The idea here is to set the companion for the MFD sub-devices. Mika's
-> commit "mfd: Add ACPI support" propagates the parent's companion to
-> the MFD sub-devices, so it is sufficient to set the ACPI companion to
-> the USB device.
-
-For the USB device itself you'll then end up with an incomplete binding (you
-can't get back to the USB device from the ACPI object), so no, it isn't
-sufficient.
-
-> Then, the companion will be propagated to the sub-devices after which
-> acpi_bind_one() will be called for the sub-devices from
-> mfd_add_devices (via platform_device_add -> device_add ->
-> platform_notify).
-
-In fact, your use case doesn't seem to cover any of the use cases that
-the Mika's commit addressed.  Namely, your parent device doesn't have
-an ACPI companion to start with and you want your MFD cells to be bound
-to the "DLN2000" thing.  That's why you're setting the ACPI companion
-for the USB device, isn't it?
-
-> It is true that the USB dev will have its ACPI companion set without
-> having acpi_bind_one called but I do not see any harm in that. Even
-> though acpi_unbind_one() is called it will not find the USB dev on the
-> physical node list so no put_device() imbalance is caused.
-
-Well, there are places where it matters.  Some links in sysfs will be missing
-for one example.  Also please see the changelog of commit 52870786ff5d (ACPI:
-Use ACPI companion to match only the first physical device).
-
-Bottom line: You really should be using acpi_bind_one() here and
-acpi_unbind_one() on disconnect if you have to.
-
-> > And no, "Let's come up with a patch that sort of works, throw it at the maintainers
-> > and see what happens" is not an acceptable approach, sorry.
-> 
-> This patch is based on your feedback of the previous RFC patch set:
-
-Oh, is it?  I can't recall advising you to use request_firmware() for
-uploading ACPI tables or some other questionable things that the patch is
-doing.
-
-And if it still was an RFC, that wouldn't be a problem, but if you just send
-non-RFC patches out, that means you want people to merge them.  This is bad
-if the patches in question are not in a good enough shape and this one isn't.
-
-Now, why is this a bad idea to load ACPI tables from a driver using
-request_firmware()?  Because those tables are not device firmare.  They are
-not firmware that you load into a device to make it work (which then works
-with all instances of the given hardware), they are part of system configuration
-information and have to match what's there in the system.  For instance, if you
-ship your example SSDT with a general-purpose distro, it may just not match the
-hardware configuration of systems that people will try to use it with.
-
-So, while it is sort of OK to look up "DLN2000" and bind the USB device to
-that by hand (although this looks ugly to me), it is not OK to load a random
-custom SSDT if it is missing.
-
-We need to add a generic mechanism for loading custom SSDTs not present in the
-firmware image and maybe even to load them on demand, but that cannot happen in
-an ad-hoc way.  So the entire table loading-unloading code in your patch can go
-away for now and you need to fail probing if the "DLN2000" ACPI object is not
-present.
-
-Also I think you need to add "DLN2000" to the blacklist in drivers/acpi/acpi_platform.c
-to prevent the ACPI core from creating a platform device for it automatically.
-
 
 -- 
 I speak only for myself.
