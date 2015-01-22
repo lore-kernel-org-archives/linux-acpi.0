@@ -1,228 +1,216 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3 V3] acpi:soc: merge common codes for creating platform device
-Date: Thu, 22 Jan 2015 23:57:25 +0100
-Message-ID: <6052429.AmgHyeF3V4@vostro.rjw.lan>
-References: <1418892285.17614.6.camel@kxue-X58A-UD3R>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [RFC PATCH] ACPI: Introduce acpi_unload_parent_table() usages in
+ Linux kernel.
+Date: Thu, 22 Jan 2015 16:43:43 -0600
+Message-ID: <CAErSpo4G9cgoruHbnuHz_6NUV2bkkAprwR6Fce98zXmfvdBGpA@mail.gmail.com>
+References: <1418746353-3481-2-git-send-email-octavian.purdila@intel.com>
+ <0d37f4eecdd2c7e3203fca7adb1c2c03a16a40dd.1421907258.git.lv.zheng@intel.com> <8541914.sW9yU28g98@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62934 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753114AbbAVWer (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2015 17:34:47 -0500
-In-Reply-To: <1418892285.17614.6.camel@kxue-X58A-UD3R>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <8541914.sW9yU28g98@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Octavian Purdila <octavian.purdila@intel.com>, Prarit Bhargava <prarit@sgi.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ken Xue <Ken.Xue@amd.com>
-Cc: andy.shevchenko@gmail.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, December 18, 2014 04:44:45 PM Ken Xue wrote:
-> 
-> This patch is supposed to deliver some common codes for AMD APD and
-> intel LPSS. It can help to convert some specific acpi devices to be
-> platform devices.
-> 
-> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> ---
->  drivers/acpi/Makefile   |   2 +-
->  drivers/acpi/acpi_soc.c | 228 ++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/acpi_soc.h | 104 ++++++++++++++++++++++
->  3 files changed, 333 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/acpi/acpi_soc.c
->  create mode 100644 drivers/acpi/acpi_soc.h
-> 
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index f74317c..66c7457 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->  acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->  acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> -acpi-y				+= acpi_lpss.o
-> +acpi-y				+= acpi_soc.o acpi_lpss.o
->  acpi-y				+= acpi_platform.o
->  acpi-y				+= acpi_pnp.o
->  acpi-y				+= int340x_thermal.o
-> diff --git a/drivers/acpi/acpi_soc.c b/drivers/acpi/acpi_soc.c
-> new file mode 100644
-> index 0000000..2abbac9
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_soc.c
-> @@ -0,0 +1,228 @@
-> +/*
-> + * ACPI SOC support for Intel Lynxpoint LPSS and AMD APD.
-> + *
-> + * Copyright (C) 2013, 2014, Intel Corporation
-> + * Copyright (C) 2014, AMD Corporation
-> + * Authors: Ken Xue <Ken.Xue@amd.com>
-> + *		Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *		Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/err.h>
-> +#include <linux/list.h>
-> +#include <linux/pm_domain.h>
-> +#include <linux/platform_device.h>
-> +
-> +#include "acpi_soc.h"
-> +#include "internal.h"
-> +
-> +ACPI_MODULE_NAME("acpi_soc");
-> +
-> +/* A list for all ACPI SOC device */
-> +static LIST_HEAD(a_soc_list);
-> +
-> +static int is_memory(struct acpi_resource *res, void *not_used)
-> +{
-> +	struct resource r;
-> +
-> +	return !acpi_dev_resource_memory(res, &r);
-> +}
-> +
-> +static int acpi_soc_create_device(struct acpi_device *adev,
-> +				   const struct acpi_device_id *id)
-> +{
-> +	struct acpi_soc_dev_private_data *pdata;
-> +	struct acpi_soc_dev_desc *dev_desc;
-> +	struct resource_list_entry *rentry;
-> +	struct list_head resource_list;
-> +	struct platform_device *pdev;
-> +	int ret;
-> +
-> +	dev_desc = (struct acpi_soc_dev_desc *)id->driver_data;
-> +	if (!dev_desc) {
-> +		pdev = acpi_create_platform_device(adev);
-> +		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
-> +	}
-> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return -ENOMEM;
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +	ret = acpi_dev_get_resources(adev, &resource_list, is_memory, NULL);
-> +	if (ret < 0)
-> +		goto err_out;
-> +
-> +	list_for_each_entry(rentry, &resource_list, node)
-> +		if (resource_type(&rentry->res) == IORESOURCE_MEM) {
-> +			if (dev_desc->mem_size_override)
-> +				pdata->mmio_size = dev_desc->mem_size_override;
-> +			else
-> +				pdata->mmio_size = resource_size(&rentry->res);
-> +			pdata->mmio_base = ioremap(rentry->res.start,
-> +						   pdata->mmio_size);
-> +			break;
-> +		}
-> +
-> +	acpi_dev_free_resource_list(&resource_list);
-> +
-> +	pdata->adev = adev;
-> +	pdata->dev_desc = dev_desc;
-> +
-> +	if (dev_desc->setup) {
-> +		ret = dev_desc->setup(pdata);
-> +		if (ret)
-> +			goto err_out;
-> +	}
-> +
-> +	/*
-> +	 * This works around a known issue in ACPI tables where ACPI SOC devices
-> +	 * have _PS0 and _PS3 without _PSC (and no power resources), so
-> +	 * acpi_bus_init_power() will assume that the BIOS has put them into D0.
-> +	 */
-> +	ret = acpi_device_fix_up_power(adev);
-> +	if (ret) {
-> +		/* Skip the device, but continue the namespace scan. */
-> +		ret = 0;
-> +		goto err_out;
-> +	}
-> +
-> +	adev->driver_data = pdata;
-> +	pdev = acpi_create_platform_device(adev);
-> +	if (!IS_ERR_OR_NULL(pdev)) {
-> +		pdata->pdev = pdev;
-> +		if (dev_desc->post_setup) {
-> +			ret = dev_desc->post_setup(pdata);
-> +			if (ret)
-> +				goto err_out;
-> +		}
-> +		return 1;
-> +	}
-> +
-> +	ret = PTR_ERR(pdev);
-> +	adev->driver_data = NULL;
-> +
-> + err_out:
-> +	kfree(pdata);
-> +	return ret;
-> +}
-> +
-> +static int acpi_soc_platform_notify(struct notifier_block *nb,
-> +				     unsigned long action, void *data)
-> +{
-> +	struct platform_device *pdev = to_platform_device(data);
-> +	struct acpi_soc_dev_private_data *pdata;
-> +	const struct acpi_device_id *id = NULL;
-> +	struct acpi_soc *a_soc_entry;
-> +	struct acpi_device *adev;
-> +
-> +	list_for_each_entry(a_soc_entry, &a_soc_list, list) {
-> +		id = acpi_match_device(a_soc_entry->ids, &pdev->dev);
-> +		if (id)
-> +			break;
-> +	}
-> +
-> +	if (!id || !id->driver_data)
-> +		return 0;
-> +
-> +	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
-> +		return 0;
-> +
-> +	pdata = acpi_driver_data(adev);
-> +	if (!pdata || !pdata->mmio_base)
-> +		return 0;
-> +
-> +	switch (action) {
-> +	case BUS_NOTIFY_ADD_DEVICE:
-> +		if (pdata->dev_desc->flags & ACPI_SOC_PM) {
-> +			if (a_soc_entry->pm_domain)
-> +				pdev->dev.pm_domain = a_soc_entry->pm_domain;
-> +			else if (pdata->dev_desc->flags & ACPI_SOC_PM_ON)
-> +				dev_pm_domain_attach(&pdev->dev, true);
-> +			else
-> +				dev_pm_domain_attach(&pdev->dev, false);
-> +		}
-> +		if ((pdata->dev_desc->flags & ACPI_SOC_SYSFS)
-> +			&& a_soc_entry->attr_group)
-> +			sysfs_create_group(&pdev->dev.kobj,
-> +					  a_soc_entry->attr_group);
+On Thu, Jan 22, 2015 at 4:43 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, January 22, 2015 02:37:49 PM Lv Zheng wrote:
+>> ACPICA has implemented acpi_unload_parent_table() which can exactly replace
+>> the acpi_get_id()/acpi_unload_table_id() implemented in Linux kernel.  The
+>> acpi_unload_parent_table() has been unit tested in ACPICA simulation
+>> environment.
+>>
+>> This patch can also help to reduce the source code differences between
+>> Linux and ACPICA.
+>
+> Looks OK to me.
+>
+> Do you want me to pick it up?
 
-This triggers a build warning, because the return value of sysfs_create_group()
-is not checked.  You can simply return it as the original code does (it will
-be discarded anyway) or add a dev_dbg() message that will be printed if it is not
-zero.
+OK by me if you take it.
 
-Also it turns out that we have a bug in the original code modified by your patches.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-The currently considered fix is this one:
-
-	https://patchwork.kernel.org/patch/5677461/
-
-but it may not be final.
-
-This bug has to be fixed before your patches are applied, because we need the
-fix to be there in 3.19 (or at least in 3.19.y), so I'll ask you to rebase your
-patches on top of the final fix once we've got one.
-
-Thanks!
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> Cc: Octavian Purdila <octavian.purdila@intel.com>
+>> Cc: Prarit Bhargava <prarit@sgi.com>
+>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>> Cc: linux-pci@vger.kernel.org
+>> Cc: Tony Luck <tony.luck@intel.com>
+>> Cc: Fenghua Yu <fenghua.yu@intel.com>
+>> Cc: linux-ia64@vger.kernel.org
+>> ---
+>>  drivers/acpi/acpica/nsxfobj.c     |   44 -------------------------------------
+>>  drivers/acpi/acpica/tbxface.c     |   39 --------------------------------
+>>  drivers/pci/hotplug/sgi_hotplug.c |   13 ++++++-----
+>>  include/acpi/acpixf.h             |    6 -----
+>>  4 files changed, 7 insertions(+), 95 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
+>> index dae9401..51a8329 100644
+>> --- a/drivers/acpi/acpica/nsxfobj.c
+>> +++ b/drivers/acpi/acpica/nsxfobj.c
+>> @@ -53,50 +53,6 @@ ACPI_MODULE_NAME("nsxfobj")
+>>
+>>  /*******************************************************************************
+>>   *
+>> - * FUNCTION:    acpi_get_id
+>> - *
+>> - * PARAMETERS:  Handle          - Handle of object whose id is desired
+>> - *              ret_id          - Where the id will be placed
+>> - *
+>> - * RETURN:      Status
+>> - *
+>> - * DESCRIPTION: This routine returns the owner id associated with a handle
+>> - *
+>> - ******************************************************************************/
+>> -acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
+>> -{
+>> -     struct acpi_namespace_node *node;
+>> -     acpi_status status;
+>> -
+>> -     /* Parameter Validation */
+>> -
+>> -     if (!ret_id) {
+>> -             return (AE_BAD_PARAMETER);
+>> -     }
+>> -
+>> -     status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+>> -     if (ACPI_FAILURE(status)) {
+>> -             return (status);
+>> -     }
+>> -
+>> -     /* Convert and validate the handle */
+>> -
+>> -     node = acpi_ns_validate_handle(handle);
+>> -     if (!node) {
+>> -             (void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+>> -             return (AE_BAD_PARAMETER);
+>> -     }
+>> -
+>> -     *ret_id = node->owner_id;
+>> -
+>> -     status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+>> -     return (status);
+>> -}
+>> -
+>> -ACPI_EXPORT_SYMBOL(acpi_get_id)
+>> -
+>> -/*******************************************************************************
+>> - *
+>>   * FUNCTION:    acpi_get_type
+>>   *
+>>   * PARAMETERS:  handle          - Handle of object whose type is desired
+>> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+>> index 6482b0d..0f9dd80 100644
+>> --- a/drivers/acpi/acpica/tbxface.c
+>> +++ b/drivers/acpi/acpica/tbxface.c
+>> @@ -265,45 +265,6 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_header)
+>>
+>>  /*******************************************************************************
+>>   *
+>> - * FUNCTION:    acpi_unload_table_id
+>> - *
+>> - * PARAMETERS:  id            - Owner ID of the table to be removed.
+>> - *
+>> - * RETURN:      Status
+>> - *
+>> - * DESCRIPTION: This routine is used to force the unload of a table (by id)
+>> - *
+>> - ******************************************************************************/
+>> -acpi_status acpi_unload_table_id(acpi_owner_id id)
+>> -{
+>> -     int i;
+>> -     acpi_status status = AE_NOT_EXIST;
+>> -
+>> -     ACPI_FUNCTION_TRACE(acpi_unload_table_id);
+>> -
+>> -     /* Find table in the global table list */
+>> -     for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
+>> -             if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
+>> -                     continue;
+>> -             }
+>> -             /*
+>> -              * Delete all namespace objects owned by this table. Note that these
+>> -              * objects can appear anywhere in the namespace by virtue of the AML
+>> -              * "Scope" operator. Thus, we need to track ownership by an ID, not
+>> -              * simply a position within the hierarchy
+>> -              */
+>> -             acpi_tb_delete_namespace_by_owner(i);
+>> -             status = acpi_tb_release_owner_id(i);
+>> -             acpi_tb_set_table_loaded_flag(i, FALSE);
+>> -             break;
+>> -     }
+>> -     return_ACPI_STATUS(status);
+>> -}
+>> -
+>> -ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
+>> -
+>> -/*******************************************************************************
+>> - *
+>>   * FUNCTION:    acpi_get_table_with_size
+>>   *
+>>   * PARAMETERS:  signature           - ACPI signature of needed table
+>> diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
+>> index bada2099..c32fb78 100644
+>> --- a/drivers/pci/hotplug/sgi_hotplug.c
+>> +++ b/drivers/pci/hotplug/sgi_hotplug.c
+>> @@ -475,7 +475,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+>>       struct slot *slot = bss_hotplug_slot->private;
+>>       struct pci_dev *dev, *temp;
+>>       int rc;
+>> -     acpi_owner_id ssdt_id = 0;
+>> +     acpi_handle ssdt_hdl = NULL;
+>>
+>>       /* Acquire update access to the bus */
+>>       mutex_lock(&sn_hotplug_mutex);
+>> @@ -522,7 +522,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+>>                       if (ACPI_SUCCESS(ret) &&
+>>                           (adr>>16) == (slot->device_num + 1)) {
+>>                               /* retain the owner id */
+>> -                             acpi_get_id(chandle, &ssdt_id);
+>> +                             ssdt_hdl = chandle;
+>>
+>>                               ret = acpi_bus_get_device(chandle,
+>>                                                         &device);
+>> @@ -547,12 +547,13 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+>>       pci_unlock_rescan_remove();
+>>
+>>       /* Remove the SSDT for the slot from the ACPI namespace */
+>> -     if (SN_ACPI_BASE_SUPPORT() && ssdt_id) {
+>> +     if (SN_ACPI_BASE_SUPPORT() && ssdt_hdl) {
+>>               acpi_status ret;
+>> -             ret = acpi_unload_table_id(ssdt_id);
+>> +             ret = acpi_unload_parent_table(ssdt_hdl);
+>>               if (ACPI_FAILURE(ret)) {
+>> -                     printk(KERN_ERR "%s: acpi_unload_table_id failed (0x%x) for id %d\n",
+>> -                            __func__, ret, ssdt_id);
+>> +                     acpi_handle_err(ssdt_hdl,
+>> +                                     "%s: acpi_unload_parent_table failed (0x%x)\n",
+>> +                                     __func__, ret);
+>>                       /* try to continue on */
+>>               }
+>>       }
+>> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+>> index 5ba7846..5dd21bc 100644
+>> --- a/include/acpi/acpixf.h
+>> +++ b/include/acpi/acpixf.h
+>> @@ -891,12 +891,6 @@ ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
+>>  ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap);
+>>
+>>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>> -                         acpi_get_id(acpi_handle object,
+>> -                                     acpi_owner_id * out_type))
+>> -
+>> -ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
+>> -
+>> -ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>>                           acpi_get_table_with_size(acpi_string signature,
+>>                                                    u32 instance,
+>>                                                    struct acpi_table_header
+>>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
