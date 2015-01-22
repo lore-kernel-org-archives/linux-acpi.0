@@ -1,302 +1,90 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCH v2 4/4] PMC driver: Add Cherrytrail PMC interface
-Date: Thu, 22 Jan 2015 12:02:09 +0800
-Message-ID: <54C07641.7090706@linux.intel.com>
-References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com> <1421790603-30097-5-git-send-email-andriy.shevchenko@linux.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/6] ACPI/EC: Cleanup transaction wakeup code
+Date: Thu, 22 Jan 2015 06:37:28 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B9F86@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1418966602.git.lv.zheng@intel.com>
+ <cover.1421234254.git.lv.zheng@intel.com>
+ <22c0b29810135db8762604f216ca8ea1c66fbdf0.1421234254.git.lv.zheng@intel.com>
+ <5637874.BqR4k3zUAA@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:22113 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:11213 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752844AbbAVECL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jan 2015 23:02:11 -0500
-In-Reply-To: <1421790603-30097-5-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1751034AbbAVGhk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jan 2015 01:37:40 -0500
+In-Reply-To: <5637874.BqR4k3zUAA@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, x86@kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2015/1/21 5:50, Andy Shevchenko wrote:
-> The patch adds CHT PMC interface. This exposes all the South IP device power
-> states and S0ix states for CHT. The bit map of FUNC_DIS and D3_STS_0 registers
-> for SoCs are consistent. The D3_STS_1 and FUNC_DIS_2 registers, however, are
-> not aligned. This is fixed by splitting a common mapping on per register basis.
-> 
-Should we define the bit map table completely separate for different
-platforms? My concern is, when D3_STS_0 and FUNC_DIS becomes not
-consistent in a new SoC, the implementation in this patch has to be
-rewritten completely.
-
-Defining entire bit map table for different platform introduces
-reduplicated bit definitions, but when we add a new platform in future,
-we don't need to consider the existing platforms definition, and no need
-to change code structure any longer.
-
-Thoughts?
-
-Thanks,
--Aubrey
-
-> Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  arch/x86/include/asm/pmc_atom.h |  25 +++++++++
->  arch/x86/kernel/pmc_atom.c      | 118 ++++++++++++++++++++++++++++++----------
->  2 files changed, 114 insertions(+), 29 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/pmc_atom.h b/arch/x86/include/asm/pmc_atom.h
-> index bc0fc08..000a223 100644
-> --- a/arch/x86/include/asm/pmc_atom.h
-> +++ b/arch/x86/include/asm/pmc_atom.h
-> @@ -18,6 +18,8 @@
->  
->  /* ValleyView Power Control Unit PCI Device ID */
->  #define	PCI_DEVICE_ID_VLV_PMC	0x0F1C
-> +/* CherryTrail Power Control Unit PCI Device ID */
-> +#define	PCI_DEVICE_ID_CHT_PMC	0x229C
->  
->  /* PMC Memory mapped IO registers */
->  #define	PMC_BASE_ADDR_OFFSET	0x44
-> @@ -29,6 +31,10 @@
->  #define	PMC_FUNC_DIS		0x34
->  #define	PMC_FUNC_DIS_2		0x38
->  
-> +/* CHT specific bits in FUNC_DIS2 register */
-> +#define	BIT_FD_GMM		BIT(3)
-> +#define	BIT_FD_ISH		BIT(4)
-> +
->  /* S0ix wake event control */
->  #define	PMC_S0IX_WAKE_EN	0x3C
->  
-> @@ -75,6 +81,21 @@
->  #define PMC_PSS_BIT_USB			BIT(16)
->  #define PMC_PSS_BIT_USB_SUS		BIT(17)
->  
-> +/* CHT specific bits in PSS register */
-> +#define	PMC_PSS_BIT_CHT_UFS		BIT(7)
-> +#define	PMC_PSS_BIT_CHT_UXD		BIT(11)
-> +#define	PMC_PSS_BIT_CHT_UXD_FD		BIT(12)
-> +#define	PMC_PSS_BIT_CHT_UX_ENG		BIT(15)
-> +#define	PMC_PSS_BIT_CHT_USB_SUS		BIT(16)
-> +#define	PMC_PSS_BIT_CHT_GMM		BIT(17)
-> +#define	PMC_PSS_BIT_CHT_ISH		BIT(18)
-> +#define	PMC_PSS_BIT_CHT_DFX_MASTER	BIT(26)
-> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER1	BIT(27)
-> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER2	BIT(28)
-> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER3	BIT(29)
-> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER4	BIT(30)
-> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER5	BIT(31)
-> +
->  /* These registers reflect D3 status of functions */
->  #define	PMC_D3_STS_0		0xA0
->  
-> @@ -117,6 +138,10 @@
->  #define	BIT_USH_SS_PHY		BIT(2)
->  #define	BIT_DFX			BIT(3)
->  
-> +/* CHT specific bits in PMC_D3_STS_1 register */
-> +#define	BIT_STS_GMM		BIT(1)
-> +#define	BIT_STS_ISH		BIT(2)
-> +
->  /* PMC I/O Registers */
->  #define	ACPI_BASE_ADDR_OFFSET	0x40
->  #define	ACPI_BASE_ADDR_MASK	0xFFFFFE00
-> diff --git a/arch/x86/kernel/pmc_atom.c b/arch/x86/kernel/pmc_atom.c
-> index 0f24ef7..41f4a33 100644
-> --- a/arch/x86/kernel/pmc_atom.c
-> +++ b/arch/x86/kernel/pmc_atom.c
-> @@ -31,7 +31,10 @@ struct pmc_bit_map {
->  };
->  
->  struct pmc_reg_map {
-> -	const struct pmc_bit_map *dev;
-> +	const struct pmc_bit_map *d3_sts_0;
-> +	const struct pmc_bit_map *d3_sts_1;
-> +	const struct pmc_bit_map *func_dis;
-> +	const struct pmc_bit_map *func_dis_2;
->  	const struct pmc_bit_map *pss;
->  };
->  
-> @@ -48,7 +51,7 @@ struct pmc_dev {
->  static struct pmc_dev pmc_device;
->  static u32 acpi_base_addr;
->  
-> -static const struct pmc_bit_map dev_map[] = {
-> +static const struct pmc_bit_map d3_sts_0_map[] = {
->  	{"LPSS1_F0_DMA",	BIT_LPSS1_F0_DMA},
->  	{"LPSS1_F1_PWM1",	BIT_LPSS1_F1_PWM1},
->  	{"LPSS1_F2_PWM2",	BIT_LPSS1_F2_PWM2},
-> @@ -81,6 +84,10 @@ static const struct pmc_bit_map dev_map[] = {
->  	{"LPSS2_F5_I2C5",	BIT_LPSS2_F5_I2C5},
->  	{"LPSS2_F6_I2C6",	BIT_LPSS2_F6_I2C6},
->  	{"LPSS2_F7_I2C7",	BIT_LPSS2_F7_I2C7},
-> +	{},
-> +};
-> +
-> +static struct pmc_bit_map byt_d3_sts_1_map[] = {
->  	{"SMB",			BIT_SMB},
->  	{"OTG_SS_PHY",		BIT_OTG_SS_PHY},
->  	{"USH_SS_PHY",		BIT_USH_SS_PHY},
-> @@ -88,7 +95,21 @@ static const struct pmc_bit_map dev_map[] = {
->  	{},
->  };
->  
-> -static const struct pmc_bit_map pss_map[] = {
-> +static struct pmc_bit_map cht_d3_sts_1_map[] = {
-> +	{"SMB",			BIT_SMB},
-> +	{"GMM",			BIT_STS_GMM},
-> +	{"ISH",			BIT_STS_ISH},
-> +	{},
-> +};
-> +
-> +static struct pmc_bit_map cht_func_dis_2_map[] = {
-> +	{"SMB",			BIT_SMB},
-> +	{"GMM",			BIT_FD_GMM},
-> +	{"ISH",			BIT_FD_ISH},
-> +	{},
-> +};
-> +
-> +static const struct pmc_bit_map byt_pss_map[] = {
->  	{"GBE",			PMC_PSS_BIT_GBE},
->  	{"SATA",		PMC_PSS_BIT_SATA},
->  	{"HDA",			PMC_PSS_BIT_HDA},
-> @@ -110,9 +131,43 @@ static const struct pmc_bit_map pss_map[] = {
->  	{},
->  };
->  
-> -static const struct pmc_reg_map reg_map = {
-> -	.dev		= dev_map,
-> -	.pss		= pss_map,
-> +static const struct pmc_bit_map cht_pss_map[] = {
-> +	{"SATA",		PMC_PSS_BIT_SATA},
-> +	{"HDA",			PMC_PSS_BIT_HDA},
-> +	{"SEC",			PMC_PSS_BIT_SEC},
-> +	{"PCIE",		PMC_PSS_BIT_PCIE},
-> +	{"LPSS",		PMC_PSS_BIT_LPSS},
-> +	{"LPE",			PMC_PSS_BIT_LPE},
-> +	{"UFS",			PMC_PSS_BIT_CHT_UFS},
-> +	{"UXD",			PMC_PSS_BIT_CHT_UXD},
-> +	{"UXD_FD",		PMC_PSS_BIT_CHT_UXD_FD},
-> +	{"UX_ENG",		PMC_PSS_BIT_CHT_UX_ENG},
-> +	{"USB_SUS",		PMC_PSS_BIT_CHT_USB_SUS},
-> +	{"GMM",			PMC_PSS_BIT_CHT_GMM},
-> +	{"ISH",			PMC_PSS_BIT_CHT_ISH},
-> +	{"DFX_MASTER",		PMC_PSS_BIT_CHT_DFX_MASTER},
-> +	{"DFX_CLUSTER1",	PMC_PSS_BIT_CHT_DFX_CLUSTER1},
-> +	{"DFX_CLUSTER2",	PMC_PSS_BIT_CHT_DFX_CLUSTER2},
-> +	{"DFX_CLUSTER3",	PMC_PSS_BIT_CHT_DFX_CLUSTER3},
-> +	{"DFX_CLUSTER4",	PMC_PSS_BIT_CHT_DFX_CLUSTER4},
-> +	{"DFX_CLUSTER5",	PMC_PSS_BIT_CHT_DFX_CLUSTER5},
-> +	{},
-> +};
-> +
-> +static const struct pmc_reg_map byt_reg_map = {
-> +	.d3_sts_0	= d3_sts_0_map,
-> +	.d3_sts_1	= byt_d3_sts_1_map,
-> +	.func_dis	= d3_sts_0_map,
-> +	.func_dis_2	= byt_d3_sts_1_map,
-> +	.pss		= byt_pss_map,
-> +};
-> +
-> +static const struct pmc_reg_map cht_reg_map = {
-> +	.d3_sts_0	= d3_sts_0_map,
-> +	.d3_sts_1	= cht_d3_sts_1_map,
-> +	.func_dis	= d3_sts_0_map,
-> +	.func_dis_2	= cht_func_dis_2_map,
-> +	.pss		= cht_pss_map,
->  };
->  
->  static inline u32 pmc_reg_read(struct pmc_dev *pmc, int reg_offset)
-> @@ -156,36 +211,39 @@ static void pmc_hw_reg_setup(struct pmc_dev *pmc)
->  }
->  
->  #ifdef CONFIG_DEBUG_FS
-> +static void pmc_dev_state_print(struct seq_file *s, int reg_index,
-> +				u32 sts, const struct pmc_bit_map *sts_map,
-> +				u32 fd, const struct pmc_bit_map *fd_map)
-> +{
-> +	int offset = PMC_REG_BIT_WIDTH * reg_index;
-> +	int index;
-> +
-> +	for (index = 0; sts_map[index].name; index++) {
-> +		seq_printf(s, "Dev: %-2d - %-32s\tState: %s [%s]\n",
-> +			offset + index, sts_map[index].name,
-> +			fd_map[index].bit_mask & fd ?  "Disabled" : "Enabled ",
-> +			sts_map[index].bit_mask & sts ?  "D3" : "D0");
-> +	}
-> +}
-> +
->  static int pmc_dev_state_show(struct seq_file *s, void *unused)
->  {
->  	struct pmc_dev *pmc = s->private;
-> -	const struct pmc_bit_map *map = pmc->map->dev;
-> -	u32 func_dis, func_dis_2, func_dis_index;
-> -	u32 d3_sts_0, d3_sts_1, d3_sts_index;
-> -	int index, reg_index;
-> +	const struct pmc_reg_map *m = pmc->map;
-> +	u32 func_dis, func_dis_2;
-> +	u32 d3_sts_0, d3_sts_1;
->  
->  	func_dis = pmc_reg_read(pmc, PMC_FUNC_DIS);
->  	func_dis_2 = pmc_reg_read(pmc, PMC_FUNC_DIS_2);
->  	d3_sts_0 = pmc_reg_read(pmc, PMC_D3_STS_0);
->  	d3_sts_1 = pmc_reg_read(pmc, PMC_D3_STS_1);
->  
-> -	for (index = 0; map[index].name; index++) {
-> -		reg_index = index / PMC_REG_BIT_WIDTH;
-> -		if (reg_index) {
-> -			func_dis_index = func_dis_2;
-> -			d3_sts_index = d3_sts_1;
-> -		} else {
-> -			func_dis_index = func_dis;
-> -			d3_sts_index = d3_sts_0;
-> -		}
-> +	/* Low part */
-> +	pmc_dev_state_print(s, 0, d3_sts_0, m->d3_sts_0, func_dis, m->func_dis);
-> +
-> +	/* High part */
-> +	pmc_dev_state_print(s, 1, d3_sts_1, m->d3_sts_1, func_dis_2, m->func_dis_2);
->  
-> -		seq_printf(s, "Dev: %-2d - %-32s\tState: %s [%s]\n",
-> -			index, map[index].name,
-> -			map[index].bit_mask & func_dis_index ?
-> -			"Disabled" : "Enabled ",
-> -			map[index].bit_mask & d3_sts_index ?
-> -			"D3" : "D0");
-> -	}
->  	return 0;
->  }
->  
-> @@ -307,9 +365,10 @@ static int pmc_dbgfs_register(struct pmc_dev *pmc)
->  }
->  #endif /* CONFIG_DEBUG_FS */
->  
-> -static int pmc_setup_dev(struct pci_dev *pdev, const struct pmc_reg_map *map)
-> +static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
->  {
->  	struct pmc_dev *pmc = &pmc_device;
-> +	const struct pmc_reg_map *map = (struct pmc_reg_map *)ent->driver_data;
->  	int ret;
->  
->  	/* Obtain ACPI base address */
-> @@ -351,7 +410,8 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pmc_reg_map *map)
->   * a driver on the same PCI id.
->   */
->  static const struct pci_device_id pmc_pci_ids[] = {
-> -	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_VLV_PMC) },
-> +	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_VLV_PMC), (kernel_ulong_t)&byt_reg_map },
-> +	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_CHT_PMC), (kernel_ulong_t)&cht_reg_map },
->  	{ 0, },
->  };
->  
-> @@ -373,7 +433,7 @@ static int __init pmc_atom_init(void)
->  	for_each_pci_dev(pdev) {
->  		ent = pci_match_id(pmc_pci_ids, pdev);
->  		if (ent)
-> -			return pmc_setup_dev(pdev, &reg_map);
-> +			return pmc_setup_dev(pdev, ent);
->  	}
->  	/* Device not found. */
->  	return -ENODEV;
-> 
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBKYW51YXJ5IDIyLCAyMDE1IDY6MTcgQU0NCj4g
+DQo+IE9uIFdlZG5lc2RheSwgSmFudWFyeSAxNCwgMjAxNSAwNzoyODoyMiBQTSBMdiBaaGVuZyB3
+cm90ZToNCj4gPiBUaGlzIHBhdGNoIG1vdmVzIHRyYW5zYWN0aW9uIHdha2V1cCBjb2RlIGludG8g
+YWR2YW5jZV90cmFuc2FjdGlvbigpLg0KPiA+IE5vIGZ1bmN0aW9uYWwgY2hhbmdlcy4NCj4gPg0K
+PiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gLS0t
+DQo+ID4gIGRyaXZlcnMvYWNwaS9lYy5jIHwgICAxNyArKysrKysrKystLS0tLS0tLQ0KPiA+ICAx
+IGZpbGUgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9lYy5jIGIvZHJpdmVycy9hY3BpL2VjLmMNCj4gPiBp
+bmRleCAxYjU4NTNmLi4zZTE5MTIzIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9lYy5j
+DQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2VjLmMNCj4gPiBAQCAtMjAwLDcgKzIwMCw3IEBAIHN0
+YXRpYyBpbnQgZWNfdHJhbnNhY3Rpb25fY29tcGxldGVkKHN0cnVjdCBhY3BpX2VjICplYykNCj4g
+PiAgCXJldHVybiByZXQ7DQo+ID4gIH0NCj4gPg0KPiA+IC1zdGF0aWMgYm9vbCBhZHZhbmNlX3Ry
+YW5zYWN0aW9uKHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiArc3RhdGljIHZvaWQgYWR2YW5jZV90
+cmFuc2FjdGlvbihzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gIHsNCj4gPiAgCXN0cnVjdCB0cmFu
+c2FjdGlvbiAqdDsNCj4gPiAgCXU4IHN0YXR1czsNCj4gPiBAQCAtMjM1LDcgKzIzNSw3IEBAIHN0
+YXRpYyBib29sIGFkdmFuY2VfdHJhbnNhY3Rpb24oc3RydWN0IGFjcGlfZWMgKmVjKQ0KPiA+ICAJ
+CQl0LT5mbGFncyB8PSBBQ1BJX0VDX0NPTU1BTkRfQ09NUExFVEU7DQo+ID4gIAkJCXdha2V1cCA9
+IHRydWU7DQo+ID4gIAkJfQ0KPiA+IC0JCXJldHVybiB3YWtldXA7DQo+ID4gKwkJZ290byBvdXQ7
+DQo+ID4gIAl9IGVsc2Ugew0KPiA+ICAJCWlmIChFQ19GTEFHU19RVUVSWV9IQU5EU0hBS0UgJiYN
+Cj4gPiAgCQkgICAgIShzdGF0dXMgJiBBQ1BJX0VDX0ZMQUdfU0NJKSAmJg0KPiA+IEBAIC0yNTEs
+NyArMjUxLDcgQEAgc3RhdGljIGJvb2wgYWR2YW5jZV90cmFuc2FjdGlvbihzdHJ1Y3QgYWNwaV9l
+YyAqZWMpDQo+ID4gIAkJCXQtPmZsYWdzIHw9IEFDUElfRUNfQ09NTUFORF9QT0xMOw0KPiA+ICAJ
+CX0gZWxzZQ0KPiA+ICAJCQlnb3RvIGVycjsNCj4gPiAtCQlyZXR1cm4gd2FrZXVwOw0KPiA+ICsJ
+CWdvdG8gb3V0Ow0KPiA+ICAJfQ0KPiA+ICBlcnI6DQo+ID4gIAkvKg0KPiA+IEBAIC0yNjIsMTQg
+KzI2MiwxNiBAQCBlcnI6DQo+ID4gIAkJaWYgKGluX2ludGVycnVwdCgpICYmIHQpDQo+ID4gIAkJ
+CSsrdC0+aXJxX2NvdW50Ow0KPiA+ICAJfQ0KPiA+IC0JcmV0dXJuIHdha2V1cDsNCj4gPiArb3V0
+Og0KPiA+ICsJaWYgKHdha2V1cCAmJiBpbl9pbnRlcnJ1cHQoKSkNCj4gPiArCQl3YWtlX3VwKCZl
+Yy0+d2FpdCk7DQo+ID4gIH0NCj4gPg0KPiA+ICBzdGF0aWMgdm9pZCBzdGFydF90cmFuc2FjdGlv
+bihzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gIHsNCj4gPiAgCWVjLT5jdXJyLT5pcnFfY291bnQg
+PSBlYy0+Y3Vyci0+d2kgPSBlYy0+Y3Vyci0+cmkgPSAwOw0KPiA+ICAJZWMtPmN1cnItPmZsYWdz
+ID0gMDsNCj4gPiAtCSh2b2lkKWFkdmFuY2VfdHJhbnNhY3Rpb24oZWMpOw0KPiA+ICsJYWR2YW5j
+ZV90cmFuc2FjdGlvbihlYyk7DQo+IA0KPiBXZWxsLCB0aGlzIGxvb2tzIGxpa2UgYSBmdW5jdGlv
+bmFsIGNoYW5nZSwgYmVjYXVzZSB3ZSB3b3VsZG4ndCBjYWxsDQo+IHdha2VfdXAoJmVjLT53YWl0
+KSBoZXJlIGJlZm9yZS4NCg0KQWgsIFllcy4NCkJ1dCBoZXJlLCBzaW5jZSB0aGUgb25seSBhZHZh
+bmNlbWVudCB0aGF0IGNhbiBoYXBwZW4gaGVyZSBpcyB0byBzZW5kIHRoZSBFQyBjb21tYW5kIGFu
+ZCB0aGVyZSBhcmUgYWx3YXlzIGZ1cnRoZXIgYWR2YW5jZW1lbnRzIHVudGlsIHRyYW5zYWN0aW9u
+IGNvbXBsZXRpb24sIHRoZSB3YWtlX3VwKCkgd29uJ3QgYmUgaW52b2tlZCBhdCB0aGlzIHBvaW50
+Lg0KU28gSU1PLCB0aGVyZSBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZXMgaGVyZS4NCg0KPiANCj4g
+PiAgfQ0KPiA+DQo+ID4gIHN0YXRpYyBpbnQgYWNwaV9lY19zeW5jX3F1ZXJ5KHN0cnVjdCBhY3Bp
+X2VjICplYywgdTggKmRhdGEpOw0KPiA+IEBAIC0zMDQsNyArMzA2LDcgQEAgc3RhdGljIGludCBl
+Y19wb2xsKHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiAgCQkJCQlyZXR1cm4gMDsNCj4gPiAgCQkJ
+fQ0KPiA+ICAJCQlzcGluX2xvY2tfaXJxc2F2ZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4gPiAtCQkJ
+KHZvaWQpYWR2YW5jZV90cmFuc2FjdGlvbihlYyk7DQo+ID4gKwkJCWFkdmFuY2VfdHJhbnNhY3Rp
+b24oZWMpOw0KPiANCj4gRGl0dG8uDQoNClllcy4gSSBjaGFuZ2VkIHRoaXMgbG9naWMuDQoNCkJ5
+IGludm9raW5nIHdha2VfdXAoKSBoZXJlLCB3ZSBjYW4gYnJlYWsgdGhlIGVjX3BvbGwoKSBsb29w
+Lg0KQmVjYXVzZSBpZiB0aGUgdHJhbnNhY3Rpb24gaGFzIGNvbXBsZXRlZCBkdWUgdG8gdGhlIHBv
+bGxpbmcgYWR2YW5jZW1lbnQsIHdlIHJlYWxseSBkb24ndCBuZWVkIHRvIHdhaXQgZm9yIGFub3Ro
+ZXIgaW50ZXJydXB0Lg0KU28gdGhpcyBuZXcgbG9naWMgbWFrZXMgdGhpcyBwYXRjaCBtb3JlIGxp
+a2UgYSByYWNlIGZpeCwgbm90IGEgc2ltcGxlIGNsZWFudXAuDQpBbmQgSU1PLCBpdCBtaWdodCBh
+bHNvIGJlIGEgc3RhYmxlIG1hdGVyaWFsLg0KSSBkaWRuJ3Qgbm90aWNlIHRoaXMgcmFjZSBidWcg
+YmVjYXVzZSB0aGVyZSBpcyBubyBidWcgcmVwb3J0IGFnYWluc3QgdGhpcy4NCg0KU2hvdWxkIEkg
+Y2hhbmdlIHRoZSBkZXNjcmlwdGlvbiBhcm91bmQgdGhpcyBhbmQgcmUtc2VuZCB0aGUgcGF0Y2g/
+DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gT3IgYW0gSSBtaXNzaW5n
+IGFueXRoaW5nPw0KPiANCj4gPiAgCQkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmZWMtPmxvY2ss
+IGZsYWdzKTsNCj4gPiAgCQl9IHdoaWxlICh0aW1lX2JlZm9yZShqaWZmaWVzLCBkZWxheSkpOw0K
+PiA+ICAJCXByX2RlYnVnKCJjb250cm9sbGVyIHJlc2V0LCByZXN0YXJ0IHRyYW5zYWN0aW9uXG4i
+KTsNCj4gPiBAQCAtNjg4LDggKzY5MCw3IEBAIHN0YXRpYyB1MzIgYWNwaV9lY19ncGVfaGFuZGxl
+cihhY3BpX2hhbmRsZSBncGVfZGV2aWNlLA0KPiA+ICAJc3RydWN0IGFjcGlfZWMgKmVjID0gZGF0
+YTsNCj4gPg0KPiA+ICAJc3Bpbl9sb2NrX2lycXNhdmUoJmVjLT5sb2NrLCBmbGFncyk7DQo+ID4g
+LQlpZiAoYWR2YW5jZV90cmFuc2FjdGlvbihlYykpDQo+ID4gLQkJd2FrZV91cCgmZWMtPndhaXQp
+Ow0KPiA+ICsJYWR2YW5jZV90cmFuc2FjdGlvbihlYyk7DQo+ID4gIAlzcGluX3VubG9ja19pcnFy
+ZXN0b3JlKCZlYy0+bG9jaywgZmxhZ3MpOw0KPiA+ICAJZWNfY2hlY2tfc2NpKGVjLCBhY3BpX2Vj
+X3JlYWRfc3RhdHVzKGVjKSk7DQo+ID4gIAlyZXR1cm4gQUNQSV9JTlRFUlJVUFRfSEFORExFRCB8
+IEFDUElfUkVFTkFCTEVfR1BFOw0KPiA+DQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15
+c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kg
+Q2VudGVyLg0K
