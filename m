@@ -1,151 +1,103 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC Patch 05/19] ACPI: Provide union for address_space64 and
- ext_address_space64
-Date: Thu, 22 Jan 2015 03:24:52 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B9F36@SHSMSX101.ccr.corp.intel.com>
-References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
- <1420684386-5975-6-git-send-email-jiang.liu@linux.intel.com>
- <1AE640813FDE7649BE1B193DEA596E88026B9EFB@SHSMSX101.ccr.corp.intel.com>
- <54C06726.4090805@linux.intel.com>
+From: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Subject: Re: [PATCH v2 1/4] x86: pmc_atom: save struct device pointer in pmc
+Date: Thu, 22 Jan 2015 11:42:08 +0800
+Message-ID: <54C07190.3090403@linux.intel.com>
+References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com> <1421790603-30097-2-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54C06726.4090805@linux.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:51460 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750912AbbAVDmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jan 2015 22:42:11 -0500
+In-Reply-To: <1421790603-30097-2-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, x86@kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi, Gerry
+On 2015/1/21 5:50, Andy Shevchenko wrote:
+> The change allows to use dev_printk() type of macros in the module functions.
 
-> From: Jiang Liu [mailto:jiang.liu@linux.intel.com]
-> Sent: Thursday, January 22, 2015 10:58 AM
+The patch itself looks good to me, but not sure why do we need this
+change, will we use dev_prink in the subsequent patches?
+
+Thanks,
+-Aubrey
 > 
-> On 2015/1/22 10:32, Zheng, Lv wrote:
-> > Hi, Thomas and Jiang
-> >
-> >> From: Jiang Liu [mailto:jiang.liu@linux.intel.com]
-> >> Sent: Thursday, January 08, 2015 10:33 AM
-> >>
-> >> From: Thomas Gleixner <tglx@linutronix.de>
-> >>
-> >> address_space64 and ext_address_space64 share substracts just at
-> >> different offsets. To unify the parsing functions implement the two
-> >> structs as unions of their substructs, so we can extract the shared
-> >> data.
-> >>
-> >> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >> ---
-> >>  include/acpi/acrestyp.h |   49 ++++++++++++++++++++++++++++++++++-------------
-> >>  1 file changed, 36 insertions(+), 13 deletions(-)
-> >>
-> >> diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
-> >> index eb760ca0b2e0..307d5b2605c8 100644
-> >> --- a/include/acpi/acrestyp.h
-> >> +++ b/include/acpi/acrestyp.h
-> >> @@ -326,23 +326,46 @@ struct acpi_resource_address32 {
-> >>  	struct acpi_resource_source resource_source;
-> >>  };
-> >>
-> >> -struct acpi_resource_address64 {
-> >> -	ACPI_RESOURCE_ADDRESS_COMMON u64 granularity;
-> >> -	u64 minimum;
-> >> -	u64 maximum;
-> >> -	u64 translation_offset;
-> >> +#define ACPI_RESOURCE_ADDRESS64_COMMON \
-> >> +	u64 granularity;	       \
-> >> +	u64 minimum;		       \
-> >> +	u64 maximum;		       \
-> >> +	u64 translation_offset;	       \
-> >>  	u64 address_length;
-> >> -	struct acpi_resource_source resource_source;
-> >> +
-> >> +struct acpi_resource_address64_common {
-> >> +ACPI_RESOURCE_ADDRESS64_COMMON};
-> >> +
-> >> +struct acpi_resource_address64 {
-> >> +	union {
-> >> +		struct {
-> >> +			ACPI_RESOURCE_ADDRESS_COMMON
-> >> +			ACPI_RESOURCE_ADDRESS64_COMMON
-> >> +			struct acpi_resource_source resource_source;
-> >> +		};
-> >
-> > This looks wrong to ACPICA upstream.
-> >
-> >> +		struct {
-> >> +			struct acpi_resource_address base;
-> >> +			struct acpi_resource_address64_common addr;
-> >> +			struct acpi_resource_source resource_source;
-> >> +		} common;
-> >> +	};
-> >>  };
-> >
-> > And this.
-> > Though anonymous structs/unions are now C11 standard, I still didn't see it used in the ACPICA upstream.
-> > It could be a problem if someone still compiles ACPICA using old compilers.
-> >
-> >>
-> >>  struct acpi_resource_extended_address64 {
-> >> -	ACPI_RESOURCE_ADDRESS_COMMON u8 revision_ID;
-> >> -	u64 granularity;
-> >> -	u64 minimum;
-> >> -	u64 maximum;
-> >> -	u64 translation_offset;
-> >> -	u64 address_length;
-> >> -	u64 type_specific;
-> >> +	union {
-> >> +		struct {
-> >> +			ACPI_RESOURCE_ADDRESS_COMMON
-> >> +			u8 revision_ID;
-> >> +			ACPI_RESOURCE_ADDRESS64_COMMON
-> >> +			u64 type_specific;
-> >> +		};
-> >
-> > Ditto.
-> >
-> >> +		struct {
-> >> +			struct acpi_resource_address base;
-> >> +			u8 revision_ID;
-> >> +			struct acpi_resource_address64_common addr;
-> >> +			u64 type_specific;
-> >> +		} common;
-> >> +	};
-> >
-> > Ditto.
-> >
-> > I think what you want is the ability to access common.addr and common.base from different resource address64 types.
-> > So we can achieve this directly in the ACPICA upstream without using the union.
-> >
-> > I tried this in the ACPICA upstream and the result is:
-> > https://github.com/zetalog/acpica/commit/0f4ed510
-> > Let me send its linuxized version after this email.
-> Hi Lv,
-> 	Thanks for your great support:)
-> 	What's the normal process to propagate this patch into
-> linux kernel? Or how long will it take? We have another hotplug
-> patch set which depends on this patch set, then depends on this
-> ACPICA core change.
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  arch/x86/kernel/pmc_atom.c | 15 +++++++++------
+>  1 file changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/pmc_atom.c b/arch/x86/kernel/pmc_atom.c
+> index d66a4fe..d338222 100644
+> --- a/arch/x86/kernel/pmc_atom.c
+> +++ b/arch/x86/kernel/pmc_atom.c
+> @@ -26,6 +26,7 @@
+>  #include <asm/pmc_atom.h>
+>  
+>  struct pmc_dev {
+> +	struct device *dev;
+>  	u32 base_addr;
+>  	void __iomem *regmap;
+>  #ifdef CONFIG_DEBUG_FS
+> @@ -250,7 +251,7 @@ static void pmc_dbgfs_unregister(struct pmc_dev *pmc)
+>  	debugfs_remove_recursive(pmc->dbgfs_dir);
+>  }
+>  
+> -static int pmc_dbgfs_register(struct pmc_dev *pmc, struct pci_dev *pdev)
+> +static int pmc_dbgfs_register(struct pmc_dev *pmc)
+>  {
+>  	struct dentry *dir, *f;
+>  
+> @@ -263,21 +264,21 @@ static int pmc_dbgfs_register(struct pmc_dev *pmc, struct pci_dev *pdev)
+>  	f = debugfs_create_file("dev_state", S_IFREG | S_IRUGO,
+>  				dir, pmc, &pmc_dev_state_ops);
+>  	if (!f) {
+> -		dev_err(&pdev->dev, "dev_state register failed\n");
+> +		dev_err(pmc->dev, "dev_state register failed\n");
+>  		goto err;
+>  	}
+>  
+>  	f = debugfs_create_file("pss_state", S_IFREG | S_IRUGO,
+>  				dir, pmc, &pmc_pss_state_ops);
+>  	if (!f) {
+> -		dev_err(&pdev->dev, "pss_state register failed\n");
+> +		dev_err(pmc->dev, "pss_state register failed\n");
+>  		goto err;
+>  	}
+>  
+>  	f = debugfs_create_file("sleep_state", S_IFREG | S_IRUGO,
+>  				dir, pmc, &pmc_sleep_tmr_ops);
+>  	if (!f) {
+> -		dev_err(&pdev->dev, "sleep_state register failed\n");
+> +		dev_err(pmc->dev, "sleep_state register failed\n");
+>  		goto err;
+>  	}
+>  
+> @@ -287,7 +288,7 @@ err:
+>  	return -ENODEV;
+>  }
+>  #else
+> -static int pmc_dbgfs_register(struct pmc_dev *pmc, struct pci_dev *pdev)
+> +static int pmc_dbgfs_register(struct pmc_dev *pmc)
+>  {
+>  	return 0;
+>  }
+> @@ -315,10 +316,12 @@ static int pmc_setup_dev(struct pci_dev *pdev)
+>  		return -ENOMEM;
+>  	}
+>  
+> +	pmc->dev = &pdev->dev;
+> +
+>  	/* PMC hardware registers setup */
+>  	pmc_hw_reg_setup(pmc);
+>  
+> -	ret = pmc_dbgfs_register(pmc, pdev);
+> +	ret = pmc_dbgfs_register(pmc);
+>  	if (ret) {
+>  		iounmap(pmc->regmap);
+>  	}
+> 
 
-There won't be divergences if things are proceeded in this way:
-If we can reach an agreement on the linuxized version, then it can be merged directly by Rafael.
-And I'll zap it from the ACPICA release series.
-
-Thanks and best regards
--Lv
-
-> Regards!
-> Gerry
-> >
-> > Thanks and best regards
-> > -Lv
-> >
-> >>  };
-> >>
-> >>  struct acpi_resource_extended_irq {
-> >> --
-> >> 1.7.10.4
-> >
