@@ -1,142 +1,126 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] mfd: dln2: add support for ACPI
-Date: Thu, 22 Jan 2015 03:00:51 +0100
-Message-ID: <2755822.qV1ICgGMEY@vostro.rjw.lan>
-References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com> <1418746353-3481-4-git-send-email-octavian.purdila@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC Patch 05/19] ACPI: Provide union for address_space64 and
+ ext_address_space64
+Date: Thu, 22 Jan 2015 02:32:56 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B9EFB@SHSMSX101.ccr.corp.intel.com>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com>
+ <1420684386-5975-6-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1418746353-3481-4-git-send-email-octavian.purdila@intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: linus.walleij@linaro.org, lee.jones@linaro.org, johan@kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, heikki.krogerus@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1420684386-5975-6-git-send-email-jiang.liu@linux.intel.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, December 16, 2014 06:12:32 PM Octavian Purdila wrote:
-> This patch adds support to load a custom ACPI table that describes
-> devices connected via the DLN2 USB to I2C/SPI/GPIO bridge.
+Hi, Thomas and Jiang
+
+> From: Jiang Liu [mailto:jiang.liu@linux.intel.com]
+> Sent: Thursday, January 08, 2015 10:33 AM
 > 
-> The ACPI table can be loaded either externally (from QEMU or with
-> CONFIG_ACPI_CUSTOM_DSDT) or it can be loaded as firmware file with the
-> name dln2.aml. The driver looks for an ACPI device entry with _HID set
-> to "DLN20000" and makes it the ACPI companion for DLN2 USB
-> sub-drivers.
+> From: Thomas Gleixner <tglx@linutronix.de>
 > 
-> Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
+> address_space64 and ext_address_space64 share substracts just at
+> different offsets. To unify the parsing functions implement the two
+> structs as unions of their substructs, so we can extract the shared
+> data.
+> 
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->  Documentation/acpi/dln2-acpi.txt |  62 ++++++++++++++++++
->  drivers/mfd/dln2.c               | 134 +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 196 insertions(+)
->  create mode 100644 Documentation/acpi/dln2-acpi.txt
+>  include/acpi/acrestyp.h |   49 ++++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 36 insertions(+), 13 deletions(-)
 > 
-> diff --git a/Documentation/acpi/dln2-acpi.txt b/Documentation/acpi/dln2-acpi.txt
-> new file mode 100644
-> index 0000000..d76605f
-> --- /dev/null
-> +++ b/Documentation/acpi/dln2-acpi.txt
-> @@ -0,0 +1,62 @@
-> +Diolan DLN2 custom APCI table
+> diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
+> index eb760ca0b2e0..307d5b2605c8 100644
+> --- a/include/acpi/acrestyp.h
+> +++ b/include/acpi/acrestyp.h
+> @@ -326,23 +326,46 @@ struct acpi_resource_address32 {
+>  	struct acpi_resource_source resource_source;
+>  };
+> 
+> -struct acpi_resource_address64 {
+> -	ACPI_RESOURCE_ADDRESS_COMMON u64 granularity;
+> -	u64 minimum;
+> -	u64 maximum;
+> -	u64 translation_offset;
+> +#define ACPI_RESOURCE_ADDRESS64_COMMON \
+> +	u64 granularity;	       \
+> +	u64 minimum;		       \
+> +	u64 maximum;		       \
+> +	u64 translation_offset;	       \
+>  	u64 address_length;
+> -	struct acpi_resource_source resource_source;
 > +
-> +The Diolan DLN2 is an USB to I2C/SPI/GPIO bridge and as such it can be used to
-> +connect to various I2C or SPI devices. Because these busses lack an enumeration
-> +protocol, the driver obtains various information about the device (such as I2C
-> +address and GPIO pins) from either ACPI or device tree.
+> +struct acpi_resource_address64_common {
+> +ACPI_RESOURCE_ADDRESS64_COMMON};
 > +
-> +To allow enumerating devices and their properties via ACPI, the Diolan
-> +driver looks for an ACPI tree with the root _HID set to "DLN20000". If
-> +it finds such an ACPI object it will set the ACPI companion to the
-> +DLN2 MFD driver and from their it will be propagated to all its
-> +sub-devices (I2C, GPIO, SPI).
-> +
-> +The user can either load the custom DSDT table with three methods:
+> +struct acpi_resource_address64 {
+> +	union {
+> +		struct {
+> +			ACPI_RESOURCE_ADDRESS_COMMON
+> +			ACPI_RESOURCE_ADDRESS64_COMMON
+> +			struct acpi_resource_source resource_source;
+> +		};
 
-s/DSDT/ACPI/
+This looks wrong to ACPICA upstream.
 
-> +
-> +1. Via QEMU (see -acpitable)
-> +
-> +2. Via the CONFIG_ACPI_CUSTOM_DSDT kernel config option (see
-> +Documentation/acpi/dsdt-override.txt)
-> +
-> +3. By placing the custom DSDT in the firmware paths in a file name
-> +dln2.aml.
+> +		struct {
+> +			struct acpi_resource_address base;
+> +			struct acpi_resource_address64_common addr;
+> +			struct acpi_resource_source resource_source;
+> +		} common;
+> +	};
+>  };
 
-Surely SSDT?
+And this.
+Though anonymous structs/unions are now C11 standard, I still didn't see it used in the ACPICA upstream.
+It could be a problem if someone still compiles ACPICA using old compilers.
 
-> +
-> +Here is an example ACPI table that enumerates a BMC150 accelerometer
-> +and defines its I2C address and GPIO pin used as an interrupt source:
-> +
-> +DefinitionBlock ("ssdt.aml", "SSDT", 1, "INTEL ", "CpuDptf", 0x00000003)
-> +{
-> +	Device (DLN0)
-> +	{
-> +		Name (_ADR, Zero)
-> +		Name (_HID, "DLN2000")
-> +
-> +		Device (STAC)
-> +		{
-> +			Name (_ADR, Zero)
-> +			Name (_HID, "BMC150A")
-> +			Name (_CID, "INTACCL")
-> +			Name (_UID, One)
-> +
-> +			Method (_CRS, 0, Serialized)
-> +			{
-> +				Name (RBUF, ResourceTemplate ()
-> +				{
-> +					I2cSerialBus (0x0010, ControllerInitiated, 0x00061A80,
-> +						      AddressingMode7Bit, "\\DLN0",
-> +						      0x00, ResourceConsumer, ,)
-> +
-> +					GpioInt (Level, ActiveHigh, Exclusive, PullDown, 0x0000,
-> +						 "\\DLN0", 0x00, ResourceConsumer, , )
-> +					{ // Pin list
-> +						0
-> +					}
-> +				})
-> +				Return (RBUF)
-> +		       }
-> +		}
-> +	}
-> +}
-> +
-> +The resources defined in the devices under the DLN0 are those
-> +supported by the I2C, GPIO and SPI sub-systems.
-> diff --git a/drivers/mfd/dln2.c b/drivers/mfd/dln2.c
-> index f9c4a0b..93f6d1d 100644
-> --- a/drivers/mfd/dln2.c
-> +++ b/drivers/mfd/dln2.c
-> @@ -23,6 +23,8 @@
->  #include <linux/mfd/core.h>
->  #include <linux/mfd/dln2.h>
->  #include <linux/rculist.h>
-> +#include <linux/acpi.h>
-> +#include <linux/firmware.h>
->  
+> 
+>  struct acpi_resource_extended_address64 {
+> -	ACPI_RESOURCE_ADDRESS_COMMON u8 revision_ID;
+> -	u64 granularity;
+> -	u64 minimum;
+> -	u64 maximum;
+> -	u64 translation_offset;
+> -	u64 address_length;
+> -	u64 type_specific;
+> +	union {
+> +		struct {
+> +			ACPI_RESOURCE_ADDRESS_COMMON
+> +			u8 revision_ID;
+> +			ACPI_RESOURCE_ADDRESS64_COMMON
+> +			u64 type_specific;
+> +		};
 
-OK, so correct me if I'm wrong.
+Ditto.
 
-When the (USB) dnl2 device is probed, it is supposed to find an ACPI companion
-for itself and if it's not there, the driver will try to load a custom SSDT from
-a firmware blob in the hope that the companion will be there?
+> +		struct {
+> +			struct acpi_resource_address base;
+> +			u8 revision_ID;
+> +			struct acpi_resource_address64_common addr;
+> +			u64 type_specific;
+> +		} common;
+> +	};
 
-So if I'm not wrong, why is this not broken?
+Ditto.
 
-It is not sufficient to call ACPI_COMPANION_SET(dev, ai->dev) to set the device's
-companion.  acpi_bind_one() needs to be run in addition to that, but acpi_bind_one()
-is not to be called from drivers.  It is called by the core automatically during
-device registration and ACPI_COMPANION_SET() is to be used *before* that, not after.
+I think what you want is the ability to access common.addr and common.base from different resource address64 types.
+So we can achieve this directly in the ACPICA upstream without using the union.
 
-So if I'm not missing anything, the design here is entirely backwards and we
-need to talk about how to implement it correctly at the design level in the
-first place.
+I tried this in the ACPICA upstream and the result is:
+https://github.com/zetalog/acpica/commit/0f4ed510
+Let me send its linuxized version after this email.
 
-And no, "Let's come up with a patch that sort of works, throw it at the maintainers
-and see what happens" is not an acceptable approach, sorry.
+Thanks and best regards
+-Lv
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>  };
+> 
+>  struct acpi_resource_extended_irq {
+> --
+> 1.7.10.4
