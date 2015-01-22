@@ -1,221 +1,302 @@
 From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCH v2 2/4] x86: pmc_atom: print index of device in loop
-Date: Thu, 22 Jan 2015 11:45:11 +0800
-Message-ID: <54C07247.20902@linux.intel.com>
-References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com> <1421790603-30097-3-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 4/4] PMC driver: Add Cherrytrail PMC interface
+Date: Thu, 22 Jan 2015 12:02:09 +0800
+Message-ID: <54C07641.7090706@linux.intel.com>
+References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com> <1421790603-30097-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:48593 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:22113 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796AbbAVDpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jan 2015 22:45:14 -0500
-In-Reply-To: <1421790603-30097-3-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1752844AbbAVECL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jan 2015 23:02:11 -0500
+In-Reply-To: <1421790603-30097-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, x86@kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 On 2015/1/21 5:50, Andy Shevchenko wrote:
-> The register mapping may change from one platform to another. Thus, indices
-> might be not the same on different platforms. The patch makes the code to print
-> the device index dynamically at run time.
-
-Will another platform use the same table but different bit position? In
-my opinion, different platform should use different mapping table.
-
+> The patch adds CHT PMC interface. This exposes all the South IP device power
+> states and S0ix states for CHT. The bit map of FUNC_DIS and D3_STS_0 registers
+> for SoCs are consistent. The D3_STS_1 and FUNC_DIS_2 registers, however, are
+> not aligned. This is fixed by splitting a common mapping on per register basis.
 > 
-> The patch also changes the for loop to iterate over the map until a terminator
-> is found.
+Should we define the bit map table completely separate for different
+platforms? My concern is, when D3_STS_0 and FUNC_DIS becomes not
+consistent in a new SoC, the implementation in this patch has to be
+rewritten completely.
 
-Why do we need to do this? did you see any hurt from the existing
-implementation?
+Defining entire bit map table for different platform introduces
+reduplicated bit definitions, but when we add a new platform in future,
+we don't need to consider the existing platforms definition, and no need
+to change code structure any longer.
+
+Thoughts?
 
 Thanks,
 -Aubrey
-> 
+
+> Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
 > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > ---
->  arch/x86/kernel/pmc_atom.c | 129 ++++++++++++++++++++++-----------------------
->  1 file changed, 64 insertions(+), 65 deletions(-)
+>  arch/x86/include/asm/pmc_atom.h |  25 +++++++++
+>  arch/x86/kernel/pmc_atom.c      | 118 ++++++++++++++++++++++++++++++----------
+>  2 files changed, 114 insertions(+), 29 deletions(-)
 > 
+> diff --git a/arch/x86/include/asm/pmc_atom.h b/arch/x86/include/asm/pmc_atom.h
+> index bc0fc08..000a223 100644
+> --- a/arch/x86/include/asm/pmc_atom.h
+> +++ b/arch/x86/include/asm/pmc_atom.h
+> @@ -18,6 +18,8 @@
+>  
+>  /* ValleyView Power Control Unit PCI Device ID */
+>  #define	PCI_DEVICE_ID_VLV_PMC	0x0F1C
+> +/* CherryTrail Power Control Unit PCI Device ID */
+> +#define	PCI_DEVICE_ID_CHT_PMC	0x229C
+>  
+>  /* PMC Memory mapped IO registers */
+>  #define	PMC_BASE_ADDR_OFFSET	0x44
+> @@ -29,6 +31,10 @@
+>  #define	PMC_FUNC_DIS		0x34
+>  #define	PMC_FUNC_DIS_2		0x38
+>  
+> +/* CHT specific bits in FUNC_DIS2 register */
+> +#define	BIT_FD_GMM		BIT(3)
+> +#define	BIT_FD_ISH		BIT(4)
+> +
+>  /* S0ix wake event control */
+>  #define	PMC_S0IX_WAKE_EN	0x3C
+>  
+> @@ -75,6 +81,21 @@
+>  #define PMC_PSS_BIT_USB			BIT(16)
+>  #define PMC_PSS_BIT_USB_SUS		BIT(17)
+>  
+> +/* CHT specific bits in PSS register */
+> +#define	PMC_PSS_BIT_CHT_UFS		BIT(7)
+> +#define	PMC_PSS_BIT_CHT_UXD		BIT(11)
+> +#define	PMC_PSS_BIT_CHT_UXD_FD		BIT(12)
+> +#define	PMC_PSS_BIT_CHT_UX_ENG		BIT(15)
+> +#define	PMC_PSS_BIT_CHT_USB_SUS		BIT(16)
+> +#define	PMC_PSS_BIT_CHT_GMM		BIT(17)
+> +#define	PMC_PSS_BIT_CHT_ISH		BIT(18)
+> +#define	PMC_PSS_BIT_CHT_DFX_MASTER	BIT(26)
+> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER1	BIT(27)
+> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER2	BIT(28)
+> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER3	BIT(29)
+> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER4	BIT(30)
+> +#define	PMC_PSS_BIT_CHT_DFX_CLUSTER5	BIT(31)
+> +
+>  /* These registers reflect D3 status of functions */
+>  #define	PMC_D3_STS_0		0xA0
+>  
+> @@ -117,6 +138,10 @@
+>  #define	BIT_USH_SS_PHY		BIT(2)
+>  #define	BIT_DFX			BIT(3)
+>  
+> +/* CHT specific bits in PMC_D3_STS_1 register */
+> +#define	BIT_STS_GMM		BIT(1)
+> +#define	BIT_STS_ISH		BIT(2)
+> +
+>  /* PMC I/O Registers */
+>  #define	ACPI_BASE_ADDR_OFFSET	0x40
+>  #define	ACPI_BASE_ADDR_MASK	0xFFFFFE00
 > diff --git a/arch/x86/kernel/pmc_atom.c b/arch/x86/kernel/pmc_atom.c
-> index d338222..0bcfc9e 100644
+> index 0f24ef7..41f4a33 100644
 > --- a/arch/x86/kernel/pmc_atom.c
 > +++ b/arch/x86/kernel/pmc_atom.c
-> @@ -43,63 +43,65 @@ struct pmc_bit_map {
+> @@ -31,7 +31,10 @@ struct pmc_bit_map {
 >  };
 >  
->  static const struct pmc_bit_map dev_map[] = {
-> -	{"0  - LPSS1_F0_DMA",		BIT_LPSS1_F0_DMA},
-> -	{"1  - LPSS1_F1_PWM1",		BIT_LPSS1_F1_PWM1},
-> -	{"2  - LPSS1_F2_PWM2",		BIT_LPSS1_F2_PWM2},
-> -	{"3  - LPSS1_F3_HSUART1",	BIT_LPSS1_F3_HSUART1},
-> -	{"4  - LPSS1_F4_HSUART2",	BIT_LPSS1_F4_HSUART2},
-> -	{"5  - LPSS1_F5_SPI",		BIT_LPSS1_F5_SPI},
-> -	{"6  - LPSS1_F6_Reserved",	BIT_LPSS1_F6_XXX},
-> -	{"7  - LPSS1_F7_Reserved",	BIT_LPSS1_F7_XXX},
-> -	{"8  - SCC_EMMC",		BIT_SCC_EMMC},
-> -	{"9  - SCC_SDIO",		BIT_SCC_SDIO},
-> -	{"10 - SCC_SDCARD",		BIT_SCC_SDCARD},
-> -	{"11 - SCC_MIPI",		BIT_SCC_MIPI},
-> -	{"12 - HDA",			BIT_HDA},
-> -	{"13 - LPE",			BIT_LPE},
-> -	{"14 - OTG",			BIT_OTG},
-> -	{"15 - USH",			BIT_USH},
-> -	{"16 - GBE",			BIT_GBE},
-> -	{"17 - SATA",			BIT_SATA},
-> -	{"18 - USB_EHCI",		BIT_USB_EHCI},
-> -	{"19 - SEC",			BIT_SEC},
-> -	{"20 - PCIE_PORT0",		BIT_PCIE_PORT0},
-> -	{"21 - PCIE_PORT1",		BIT_PCIE_PORT1},
-> -	{"22 - PCIE_PORT2",		BIT_PCIE_PORT2},
-> -	{"23 - PCIE_PORT3",		BIT_PCIE_PORT3},
-> -	{"24 - LPSS2_F0_DMA",		BIT_LPSS2_F0_DMA},
-> -	{"25 - LPSS2_F1_I2C1",		BIT_LPSS2_F1_I2C1},
-> -	{"26 - LPSS2_F2_I2C2",		BIT_LPSS2_F2_I2C2},
-> -	{"27 - LPSS2_F3_I2C3",		BIT_LPSS2_F3_I2C3},
-> -	{"28 - LPSS2_F3_I2C4",		BIT_LPSS2_F4_I2C4},
-> -	{"29 - LPSS2_F5_I2C5",		BIT_LPSS2_F5_I2C5},
-> -	{"30 - LPSS2_F6_I2C6",		BIT_LPSS2_F6_I2C6},
-> -	{"31 - LPSS2_F7_I2C7",		BIT_LPSS2_F7_I2C7},
-> -	{"32 - SMB",			BIT_SMB},
-> -	{"33 - OTG_SS_PHY",		BIT_OTG_SS_PHY},
-> -	{"34 - USH_SS_PHY",		BIT_USH_SS_PHY},
-> -	{"35 - DFX",			BIT_DFX},
-> +	{"LPSS1_F0_DMA",	BIT_LPSS1_F0_DMA},
-> +	{"LPSS1_F1_PWM1",	BIT_LPSS1_F1_PWM1},
-> +	{"LPSS1_F2_PWM2",	BIT_LPSS1_F2_PWM2},
-> +	{"LPSS1_F3_HSUART1",	BIT_LPSS1_F3_HSUART1},
-> +	{"LPSS1_F4_HSUART2",	BIT_LPSS1_F4_HSUART2},
-> +	{"LPSS1_F5_SPI",	BIT_LPSS1_F5_SPI},
-> +	{"LPSS1_F6_Reserved",	BIT_LPSS1_F6_XXX},
-> +	{"LPSS1_F7_Reserved",	BIT_LPSS1_F7_XXX},
-> +	{"SCC_EMMC",		BIT_SCC_EMMC},
-> +	{"SCC_SDIO",		BIT_SCC_SDIO},
-> +	{"SCC_SDCARD",		BIT_SCC_SDCARD},
-> +	{"SCC_MIPI",		BIT_SCC_MIPI},
-> +	{"HDA",			BIT_HDA},
-> +	{"LPE",			BIT_LPE},
-> +	{"OTG",			BIT_OTG},
-> +	{"USH",			BIT_USH},
-> +	{"GBE",			BIT_GBE},
-> +	{"SATA",		BIT_SATA},
-> +	{"USB_EHCI",		BIT_USB_EHCI},
-> +	{"SEC",			BIT_SEC},
-> +	{"PCIE_PORT0",		BIT_PCIE_PORT0},
-> +	{"PCIE_PORT1",		BIT_PCIE_PORT1},
-> +	{"PCIE_PORT2",		BIT_PCIE_PORT2},
-> +	{"PCIE_PORT3",		BIT_PCIE_PORT3},
-> +	{"LPSS2_F0_DMA",	BIT_LPSS2_F0_DMA},
-> +	{"LPSS2_F1_I2C1",	BIT_LPSS2_F1_I2C1},
-> +	{"LPSS2_F2_I2C2",	BIT_LPSS2_F2_I2C2},
-> +	{"LPSS2_F3_I2C3",	BIT_LPSS2_F3_I2C3},
-> +	{"LPSS2_F3_I2C4",	BIT_LPSS2_F4_I2C4},
-> +	{"LPSS2_F5_I2C5",	BIT_LPSS2_F5_I2C5},
-> +	{"LPSS2_F6_I2C6",	BIT_LPSS2_F6_I2C6},
-> +	{"LPSS2_F7_I2C7",	BIT_LPSS2_F7_I2C7},
-> +	{"SMB",			BIT_SMB},
-> +	{"OTG_SS_PHY",		BIT_OTG_SS_PHY},
-> +	{"USH_SS_PHY",		BIT_USH_SS_PHY},
-> +	{"DFX",			BIT_DFX},
+>  struct pmc_reg_map {
+> -	const struct pmc_bit_map *dev;
+> +	const struct pmc_bit_map *d3_sts_0;
+> +	const struct pmc_bit_map *d3_sts_1;
+> +	const struct pmc_bit_map *func_dis;
+> +	const struct pmc_bit_map *func_dis_2;
+>  	const struct pmc_bit_map *pss;
+>  };
+>  
+> @@ -48,7 +51,7 @@ struct pmc_dev {
+>  static struct pmc_dev pmc_device;
+>  static u32 acpi_base_addr;
+>  
+> -static const struct pmc_bit_map dev_map[] = {
+> +static const struct pmc_bit_map d3_sts_0_map[] = {
+>  	{"LPSS1_F0_DMA",	BIT_LPSS1_F0_DMA},
+>  	{"LPSS1_F1_PWM1",	BIT_LPSS1_F1_PWM1},
+>  	{"LPSS1_F2_PWM2",	BIT_LPSS1_F2_PWM2},
+> @@ -81,6 +84,10 @@ static const struct pmc_bit_map dev_map[] = {
+>  	{"LPSS2_F5_I2C5",	BIT_LPSS2_F5_I2C5},
+>  	{"LPSS2_F6_I2C6",	BIT_LPSS2_F6_I2C6},
+>  	{"LPSS2_F7_I2C7",	BIT_LPSS2_F7_I2C7},
 > +	{},
+> +};
+> +
+> +static struct pmc_bit_map byt_d3_sts_1_map[] = {
+>  	{"SMB",			BIT_SMB},
+>  	{"OTG_SS_PHY",		BIT_OTG_SS_PHY},
+>  	{"USH_SS_PHY",		BIT_USH_SS_PHY},
+> @@ -88,7 +95,21 @@ static const struct pmc_bit_map dev_map[] = {
+>  	{},
 >  };
 >  
->  static const struct pmc_bit_map pss_map[] = {
-> -	{"0  - GBE",			PMC_PSS_BIT_GBE},
-> -	{"1  - SATA",			PMC_PSS_BIT_SATA},
-> -	{"2  - HDA",			PMC_PSS_BIT_HDA},
-> -	{"3  - SEC",			PMC_PSS_BIT_SEC},
-> -	{"4  - PCIE",			PMC_PSS_BIT_PCIE},
-> -	{"5  - LPSS",			PMC_PSS_BIT_LPSS},
-> -	{"6  - LPE",			PMC_PSS_BIT_LPE},
-> -	{"7  - DFX",			PMC_PSS_BIT_DFX},
-> -	{"8  - USH_CTRL",		PMC_PSS_BIT_USH_CTRL},
-> -	{"9  - USH_SUS",		PMC_PSS_BIT_USH_SUS},
-> -	{"10 - USH_VCCS",		PMC_PSS_BIT_USH_VCCS},
-> -	{"11 - USH_VCCA",		PMC_PSS_BIT_USH_VCCA},
-> -	{"12 - OTG_CTRL",		PMC_PSS_BIT_OTG_CTRL},
-> -	{"13 - OTG_VCCS",		PMC_PSS_BIT_OTG_VCCS},
-> -	{"14 - OTG_VCCA_CLK",		PMC_PSS_BIT_OTG_VCCA_CLK},
-> -	{"15 - OTG_VCCA",		PMC_PSS_BIT_OTG_VCCA},
-> -	{"16 - USB",			PMC_PSS_BIT_USB},
-> -	{"17 - USB_SUS",		PMC_PSS_BIT_USB_SUS},
-> +	{"GBE",			PMC_PSS_BIT_GBE},
+> -static const struct pmc_bit_map pss_map[] = {
+> +static struct pmc_bit_map cht_d3_sts_1_map[] = {
+> +	{"SMB",			BIT_SMB},
+> +	{"GMM",			BIT_STS_GMM},
+> +	{"ISH",			BIT_STS_ISH},
+> +	{},
+> +};
+> +
+> +static struct pmc_bit_map cht_func_dis_2_map[] = {
+> +	{"SMB",			BIT_SMB},
+> +	{"GMM",			BIT_FD_GMM},
+> +	{"ISH",			BIT_FD_ISH},
+> +	{},
+> +};
+> +
+> +static const struct pmc_bit_map byt_pss_map[] = {
+>  	{"GBE",			PMC_PSS_BIT_GBE},
+>  	{"SATA",		PMC_PSS_BIT_SATA},
+>  	{"HDA",			PMC_PSS_BIT_HDA},
+> @@ -110,9 +131,43 @@ static const struct pmc_bit_map pss_map[] = {
+>  	{},
+>  };
+>  
+> -static const struct pmc_reg_map reg_map = {
+> -	.dev		= dev_map,
+> -	.pss		= pss_map,
+> +static const struct pmc_bit_map cht_pss_map[] = {
 > +	{"SATA",		PMC_PSS_BIT_SATA},
 > +	{"HDA",			PMC_PSS_BIT_HDA},
 > +	{"SEC",			PMC_PSS_BIT_SEC},
 > +	{"PCIE",		PMC_PSS_BIT_PCIE},
 > +	{"LPSS",		PMC_PSS_BIT_LPSS},
 > +	{"LPE",			PMC_PSS_BIT_LPE},
-> +	{"DFX",			PMC_PSS_BIT_DFX},
-> +	{"USH_CTRL",		PMC_PSS_BIT_USH_CTRL},
-> +	{"USH_SUS",		PMC_PSS_BIT_USH_SUS},
-> +	{"USH_VCCS",		PMC_PSS_BIT_USH_VCCS},
-> +	{"USH_VCCA",		PMC_PSS_BIT_USH_VCCA},
-> +	{"OTG_CTRL",		PMC_PSS_BIT_OTG_CTRL},
-> +	{"OTG_VCCS",		PMC_PSS_BIT_OTG_VCCS},
-> +	{"OTG_VCCA_CLK",	PMC_PSS_BIT_OTG_VCCA_CLK},
-> +	{"OTG_VCCA",		PMC_PSS_BIT_OTG_VCCA},
-> +	{"USB",			PMC_PSS_BIT_USB},
-> +	{"USB_SUS",		PMC_PSS_BIT_USB_SUS},
+> +	{"UFS",			PMC_PSS_BIT_CHT_UFS},
+> +	{"UXD",			PMC_PSS_BIT_CHT_UXD},
+> +	{"UXD_FD",		PMC_PSS_BIT_CHT_UXD_FD},
+> +	{"UX_ENG",		PMC_PSS_BIT_CHT_UX_ENG},
+> +	{"USB_SUS",		PMC_PSS_BIT_CHT_USB_SUS},
+> +	{"GMM",			PMC_PSS_BIT_CHT_GMM},
+> +	{"ISH",			PMC_PSS_BIT_CHT_ISH},
+> +	{"DFX_MASTER",		PMC_PSS_BIT_CHT_DFX_MASTER},
+> +	{"DFX_CLUSTER1",	PMC_PSS_BIT_CHT_DFX_CLUSTER1},
+> +	{"DFX_CLUSTER2",	PMC_PSS_BIT_CHT_DFX_CLUSTER2},
+> +	{"DFX_CLUSTER3",	PMC_PSS_BIT_CHT_DFX_CLUSTER3},
+> +	{"DFX_CLUSTER4",	PMC_PSS_BIT_CHT_DFX_CLUSTER4},
+> +	{"DFX_CLUSTER5",	PMC_PSS_BIT_CHT_DFX_CLUSTER5},
 > +	{},
+> +};
+> +
+> +static const struct pmc_reg_map byt_reg_map = {
+> +	.d3_sts_0	= d3_sts_0_map,
+> +	.d3_sts_1	= byt_d3_sts_1_map,
+> +	.func_dis	= d3_sts_0_map,
+> +	.func_dis_2	= byt_d3_sts_1_map,
+> +	.pss		= byt_pss_map,
+> +};
+> +
+> +static const struct pmc_reg_map cht_reg_map = {
+> +	.d3_sts_0	= d3_sts_0_map,
+> +	.d3_sts_1	= cht_d3_sts_1_map,
+> +	.func_dis	= d3_sts_0_map,
+> +	.func_dis_2	= cht_func_dis_2_map,
+> +	.pss		= cht_pss_map,
 >  };
 >  
 >  static inline u32 pmc_reg_read(struct pmc_dev *pmc, int reg_offset)
-> @@ -148,16 +150,14 @@ static int pmc_dev_state_show(struct seq_file *s, void *unused)
+> @@ -156,36 +211,39 @@ static void pmc_hw_reg_setup(struct pmc_dev *pmc)
+>  }
+>  
+>  #ifdef CONFIG_DEBUG_FS
+> +static void pmc_dev_state_print(struct seq_file *s, int reg_index,
+> +				u32 sts, const struct pmc_bit_map *sts_map,
+> +				u32 fd, const struct pmc_bit_map *fd_map)
+> +{
+> +	int offset = PMC_REG_BIT_WIDTH * reg_index;
+> +	int index;
+> +
+> +	for (index = 0; sts_map[index].name; index++) {
+> +		seq_printf(s, "Dev: %-2d - %-32s\tState: %s [%s]\n",
+> +			offset + index, sts_map[index].name,
+> +			fd_map[index].bit_mask & fd ?  "Disabled" : "Enabled ",
+> +			sts_map[index].bit_mask & sts ?  "D3" : "D0");
+> +	}
+> +}
+> +
+>  static int pmc_dev_state_show(struct seq_file *s, void *unused)
+>  {
 >  	struct pmc_dev *pmc = s->private;
->  	u32 func_dis, func_dis_2, func_dis_index;
->  	u32 d3_sts_0, d3_sts_1, d3_sts_index;
-> -	int dev_num, dev_index, reg_index;
-> +	int dev_index, reg_index;
+> -	const struct pmc_bit_map *map = pmc->map->dev;
+> -	u32 func_dis, func_dis_2, func_dis_index;
+> -	u32 d3_sts_0, d3_sts_1, d3_sts_index;
+> -	int index, reg_index;
+> +	const struct pmc_reg_map *m = pmc->map;
+> +	u32 func_dis, func_dis_2;
+> +	u32 d3_sts_0, d3_sts_1;
 >  
 >  	func_dis = pmc_reg_read(pmc, PMC_FUNC_DIS);
 >  	func_dis_2 = pmc_reg_read(pmc, PMC_FUNC_DIS_2);
 >  	d3_sts_0 = pmc_reg_read(pmc, PMC_D3_STS_0);
 >  	d3_sts_1 = pmc_reg_read(pmc, PMC_D3_STS_1);
 >  
-> -	dev_num = ARRAY_SIZE(dev_map);
-> -
-> -	for (dev_index = 0; dev_index < dev_num; dev_index++) {
-> +	for (dev_index = 0; dev_map[dev_index].name; dev_index++) {
->  		reg_index = dev_index / PMC_REG_BIT_WIDTH;
->  		if (reg_index) {
->  			func_dis_index = func_dis_2;
-> @@ -167,8 +167,8 @@ static int pmc_dev_state_show(struct seq_file *s, void *unused)
->  			d3_sts_index = d3_sts_0;
->  		}
+> -	for (index = 0; map[index].name; index++) {
+> -		reg_index = index / PMC_REG_BIT_WIDTH;
+> -		if (reg_index) {
+> -			func_dis_index = func_dis_2;
+> -			d3_sts_index = d3_sts_1;
+> -		} else {
+> -			func_dis_index = func_dis;
+> -			d3_sts_index = d3_sts_0;
+> -		}
+> +	/* Low part */
+> +	pmc_dev_state_print(s, 0, d3_sts_0, m->d3_sts_0, func_dis, m->func_dis);
+> +
+> +	/* High part */
+> +	pmc_dev_state_print(s, 1, d3_sts_1, m->d3_sts_1, func_dis_2, m->func_dis_2);
 >  
-> -		seq_printf(s, "Dev: %-32s\tState: %s [%s]\n",
-> -			dev_map[dev_index].name,
-> +		seq_printf(s, "Dev: %-2d - %-32s\tState: %s [%s]\n",
-> +			dev_index, dev_map[dev_index].name,
->  			dev_map[dev_index].bit_mask & func_dis_index ?
->  			"Disabled" : "Enabled ",
->  			dev_map[dev_index].bit_mask & d3_sts_index ?
-> @@ -195,9 +195,9 @@ static int pmc_pss_state_show(struct seq_file *s, void *unused)
->  	u32 pss = pmc_reg_read(pmc, PMC_PSS);
->  	int pss_index;
->  
-> -	for (pss_index = 0; pss_index < ARRAY_SIZE(pss_map); pss_index++) {
-> -		seq_printf(s, "Island: %-32s\tState: %s\n",
-> -			pss_map[pss_index].name,
-> +	for (pss_index = 0; pss_map[pss_index].name; pss_index++) {
-> +		seq_printf(s, "Island: %-2d - %-32s\tState: %s\n",
-> +			pss_index, pss_map[pss_index].name,
->  			pss_map[pss_index].bit_mask & pss ? "Off" : "On");
->  	}
->  	return 0;
-> @@ -322,9 +322,8 @@ static int pmc_setup_dev(struct pci_dev *pdev)
->  	pmc_hw_reg_setup(pmc);
->  
->  	ret = pmc_dbgfs_register(pmc);
-> -	if (ret) {
-> +	if (ret)
->  		iounmap(pmc->regmap);
+> -		seq_printf(s, "Dev: %-2d - %-32s\tState: %s [%s]\n",
+> -			index, map[index].name,
+> -			map[index].bit_mask & func_dis_index ?
+> -			"Disabled" : "Enabled ",
+> -			map[index].bit_mask & d3_sts_index ?
+> -			"D3" : "D0");
 > -	}
->  
->  	return ret;
+>  	return 0;
 >  }
+>  
+> @@ -307,9 +365,10 @@ static int pmc_dbgfs_register(struct pmc_dev *pmc)
+>  }
+>  #endif /* CONFIG_DEBUG_FS */
+>  
+> -static int pmc_setup_dev(struct pci_dev *pdev, const struct pmc_reg_map *map)
+> +static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
+>  {
+>  	struct pmc_dev *pmc = &pmc_device;
+> +	const struct pmc_reg_map *map = (struct pmc_reg_map *)ent->driver_data;
+>  	int ret;
+>  
+>  	/* Obtain ACPI base address */
+> @@ -351,7 +410,8 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pmc_reg_map *map)
+>   * a driver on the same PCI id.
+>   */
+>  static const struct pci_device_id pmc_pci_ids[] = {
+> -	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_VLV_PMC) },
+> +	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_VLV_PMC), (kernel_ulong_t)&byt_reg_map },
+> +	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_CHT_PMC), (kernel_ulong_t)&cht_reg_map },
+>  	{ 0, },
+>  };
+>  
+> @@ -373,7 +433,7 @@ static int __init pmc_atom_init(void)
+>  	for_each_pci_dev(pdev) {
+>  		ent = pci_match_id(pmc_pci_ids, pdev);
+>  		if (ent)
+> -			return pmc_setup_dev(pdev, &reg_map);
+> +			return pmc_setup_dev(pdev, ent);
+>  	}
+>  	/* Device not found. */
+>  	return -ENODEV;
 > 
 
