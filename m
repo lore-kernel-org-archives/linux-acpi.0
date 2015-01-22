@@ -1,51 +1,55 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: About 2 ACPICA table patches
-Date: Thu, 22 Jan 2015 06:39:19 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026B9F96@SHSMSX101.ccr.corp.intel.com>
-References: <1AE640813FDE7649BE1B193DEA596E88026B7CAD@SHSMSX101.ccr.corp.intel.com>
- <CAE1zotJapkp83cSWndWuw5brR-rCZyAyr4a1rJCO3xRucq1-Og@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Thu, 22 Jan 2015 09:17:38 +0100
+Message-ID: <CACRpkdZpUU71suzt9JhiBZez2VuJ6-Zm3D1uvmn71bjdn=oU_A@mail.gmail.com>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
+	<CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
+	<CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
+	<4078818.ecVtLF3hjd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:35818 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750979AbbAVGjz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jan 2015 01:39:55 -0500
-In-Reply-To: <CAE1zotJapkp83cSWndWuw5brR-rCZyAyr4a1rJCO3xRucq1-Og@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:34252 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374AbbAVIRk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2015 03:17:40 -0500
+Received: by mail-ig0-f174.google.com with SMTP id b16so19899068igk.1
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Jan 2015 00:17:39 -0800 (PST)
+In-Reply-To: <4078818.ecVtLF3hjd@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Purdila, Octavian" <octavian.purdila@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Box, David E" <david.e.box@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-SGksIE9jdGF2aWFuDQoNCj4gRnJvbTogT2N0YXZpYW4gUHVyZGlsYSBbbWFpbHRvOm9jdGF2aWFu
-LnB1cmRpbGFAaW50ZWwuY29tXQ0KPiBTZW50OiBTYXR1cmRheSwgSmFudWFyeSAxNywgMjAxNSAy
-OjAzIFBNDQo+IA0KPiBPbiBGcmksIEphbiAxNiwgMjAxNSBhdCAxMTo0NCBBTSwgWmhlbmcsIEx2
-IDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+IEhpLCBPY3Rhdmlhbg0KPiA+DQo+IA0K
-PiBIaSBMdiwNCj4gDQo+ID4gSSBub3RpY2VkIHRoZXJlIGFyZSAyIHBhdGNoZXMgeW91J3ZlIHNl
-bnQgdG8gdGhlIGNvbW11bml0eS4NCj4gPiBCdXQgdW5mb3J0dW5hdGVseSBJIGRpZG4ndCBmaW5k
-IHRoZW0gaW4gbXkgbWFpbGJveC4NCj4gPiBMZXQgbWUgY29tbWVudCB5b3UgaGVyZS4NCj4gPg0K
-PiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNTUwMTYyMS8NCj4gPiBUaGlz
-IHBhdGNoIHNlZW0gdG8gYmUgY29ycmVjdC4NCj4gPiBCdXQgUmFmYWVsIHNob3VsZCBtZXJnZSBp
-dCBkaXJlY3RseSB2aWEgTGludXggYmVjYXVzZSBhY3BpX3VubG9hZF90YWJsZV9pZCgpIGlzIG5v
-dCBpbiB0aGUgQUNQSUNBIHVwc3RyZWFtLg0KPiANCj4gT0ssIHRoYW5rcyBmb3IgbGV0dGluZyBt
-ZSBrbm93LiBSYWZlbCwgZG9lcyB0aGUgcGF0Y2ggbG9vayBvayB0byB5b3U/DQo+IA0KPiA+IFdl
-IGV4cGVjdCB0aGUgT1NQTXMgdG8gdXNlIGFjcGlfdW5sb2FkX3BhcmVudF90YWJsZSgpIGluc3Rl
-YWQuDQo+ID4gSSBoYXZlIGEgZGl2ZXJnZW5jZXMgcmVkdWN0aW9uIHNlcmllcyB0byBhY2hpZXZl
-IHRoZSB0cmFuc2l0aW9uLg0KPiA+IEJ1dCB0aGV5IGFyZSBwZW5kaW5nIGZvciByZXZpZXcgZm9y
-IGFsbW9zdCBoYWxmIGEgeWVhci4NCj4gPiBJZiB5b3UgaGF2ZSBhbiBlbnZpcm9ubWVudCB0byB0
-ZXN0Lg0KPiA+IENvdWxkIHlvdSBoZWxwIHRvIHRlc3QgdGhpcyBhZ2Fpbj8NCj4gPiBJIGNhbiBw
-cmVwYXJlIHRoZSBwYXRjaHNldCBmb3IgeW91Lg0KPiA+DQo+IA0KPiBTdXJlLCBpZiB5b3UgY2Fu
-IHBvaW50IG1lIHRvIHRoZSBwYXRjaC1zZXQgSSBjYW4gdGVzdCBpdCBvbiBteSBzZXR1cC4NCg0K
-SSBkaWRuJ3QgaGF2ZSBlbnZpcm9ubWVudCB0byB0ZXN0LCBzbyBsZXQgbWUgc2VuZCBpdCBhcyBS
-RkMgd2l0aCBzb21lIHBjaS1ob3RwbHVnL2lhNjQgZ3V5cyBDY2VkLi4uDQoNClRoYW5rcw0KLUx2
-DQoNCg0KPiANCj4gPiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzU1MDE1NjEv
-DQo+ID4gVGhpcyBwYXRjaCBpcyBjb3JyZWN0LCBJJ3ZlIHB1dCBpdCBpbiB0aGUgMjAxNTAxIEFD
-UElDQSByZWxlYXNlIG1hdGVyaWFscyBmb3IgcmV2aWV3Og0KPiA+IGh0dHBzOi8vcGF0Y2h3b3Jr
-Lmtlcm5lbC5vcmcvcGF0Y2gvNTUwMTYyMS8NCj4gPiBUaGUgcGF0Y2ggY2FuIGJlIGZvdW5kIGF0
-Og0KPiA+IGh0dHBzOi8vZ2l0aHViLmNvbS96ZXRhbG9nL2FjcGljYS9jb21taXQvMjgxZmY4NzMN
-Cj4gPiBTbyBpZiBpdCBpcyBtZXJnZWQsIHlvdSdsbCBzZWUgaXQgaW4gdGhlIHVwc3RyZWFtIGFm
-dGVyIDIwMTUwMSBBQ1BJQ0EgcmVsZWFzZSBjeWNsZS4NCj4gPiBBbmQgaGVuY2UgTGludXggdHJl
-ZXMgZG9lc24ndCBuZWVkIHRvIG1lcmdlIHRoaXMgcGF0Y2ggZGlyZWN0bHkuDQo+ID4NCj4gDQo+
-IFRoYW5rcywNCj4gVGF2aQ0K
+On Tue, Jan 20, 2015 at 10:25 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+
+> Yes, it can (in principle).  In fact, we have a plan to refine it, but it is
+> going to take some time.  Once we've done that, we'll see how painful it is to
+> "patch" ACPI tables this way in practice.
+>
+> Also there is an ecosystem problem related to distributing such "patches".
+> Today, distributions don't need to worry about patching buggy platform
+> firmware, because they get workarounds in the kernel, but if we switch over
+> to the model in which platform firmware "overlays" need to be provided in
+> addition to it, then suddenly questions arise about who should be responsible
+> for making them available, how to avoid duplication of efforts between
+> distributions etc.
+>
+> All of that needs to be clarified before we start making hard statements like
+> "No in-kernel workarounds for that!"
+
+OK so why can't the patching happen in the kernel?
+
+If the kernel anyway has to supply some kind of workaround for
+the issue, it is more a question of where to place it. Whether it does
+so by patching the ACPI tables or by detecting a bad ACPI thing
+and working around it at runtime in a certain driver doesn't really
+matter, does it? They are both in-kernel ACPI fixes, just that one
+of the mechanisms is generic.
+
+I don't understand why this obsession with userspace having
+to do the ACPI table patching - if kernels should "just work" then
+put this stuff behind Kconfig and have it in the kernel.
+
+Yours,
+Linus Walleij
