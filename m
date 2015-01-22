@@ -1,208 +1,272 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] ACPI: Introduce acpi_unload_parent_table() usages in Linux kernel.
-Date: Thu, 22 Jan 2015 23:43:16 +0100
-Message-ID: <8541914.sW9yU28g98@vostro.rjw.lan>
-References: <1418746353-3481-2-git-send-email-octavian.purdila@intel.com> <0d37f4eecdd2c7e3203fca7adb1c2c03a16a40dd.1421907258.git.lv.zheng@intel.com>
+Subject: Re: [RFC PATCH] ACPICA: Resources: Provide common part for struct acpi_resource_address structures.
+Date: Thu, 22 Jan 2015 23:50:17 +0100
+Message-ID: <1829383.GqIMIsbMR3@vostro.rjw.lan>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <568a2ece839d4fc1df6f466494c5ff110112eee0.1421894417.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <0d37f4eecdd2c7e3203fca7adb1c2c03a16a40dd.1421907258.git.lv.zheng@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>, Prarit Bhargava <prarit@sgi.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:62517 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753802AbbAVW1j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2015 17:27:39 -0500
+In-Reply-To: <568a2ece839d4fc1df6f466494c5ff110112eee0.1421894417.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, "David E. Box" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-On Thursday, January 22, 2015 02:37:49 PM Lv Zheng wrote:
-> ACPICA has implemented acpi_unload_parent_table() which can exactly replace
-> the acpi_get_id()/acpi_unload_table_id() implemented in Linux kernel.  The
-> acpi_unload_parent_table() has been unit tested in ACPICA simulation
-> environment.
-> 
-> This patch can also help to reduce the source code differences between
-> Linux and ACPICA.
+On Thursday, January 22, 2015 10:46:00 AM Lv Zheng wrote:
+> struct acpi_resource_address and struct acpi_resource_extended_address64 share substracts
+> just at different offsets. To unify the parsing functions, OSPMs like Linux
+> need a new ACPI_ADDRESS64_ATTRIBUTE as their substructs, so they can
+> extract the shared data.
 
 Looks OK to me.
 
-Do you want me to pick it up?
-
+> Original-by: Thomas Gleixner <tglx@linutronix.de>
+> Original-by: Jiang Liu <jiang.liu@linux.intel.com>
 > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Octavian Purdila <octavian.purdila@intel.com>
-> Cc: Prarit Bhargava <prarit@sgi.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: linux-pci@vger.kernel.org
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: linux-ia64@vger.kernel.org
 > ---
->  drivers/acpi/acpica/nsxfobj.c     |   44 -------------------------------------
->  drivers/acpi/acpica/tbxface.c     |   39 --------------------------------
->  drivers/pci/hotplug/sgi_hotplug.c |   13 ++++++-----
->  include/acpi/acpixf.h             |    6 -----
->  4 files changed, 7 insertions(+), 95 deletions(-)
+>  drivers/acpi/acpica/rsaddr.c     |    9 +++---
+>  drivers/acpi/acpica/rsdumpinfo.c |   59 +++++++++++++++++++-------------------
+>  drivers/acpi/acpica/rsxface.c    |   10 +++----
+>  include/acpi/acrestyp.h          |   40 +++++++++++++++-----------
+>  4 files changed, 64 insertions(+), 54 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpica/nsxfobj.c b/drivers/acpi/acpica/nsxfobj.c
-> index dae9401..51a8329 100644
-> --- a/drivers/acpi/acpica/nsxfobj.c
-> +++ b/drivers/acpi/acpica/nsxfobj.c
-> @@ -53,50 +53,6 @@ ACPI_MODULE_NAME("nsxfobj")
+> diff --git a/drivers/acpi/acpica/rsaddr.c b/drivers/acpi/acpica/rsaddr.c
+> index 916fd09..94a3a05 100644
+> --- a/drivers/acpi/acpica/rsaddr.c
+> +++ b/drivers/acpi/acpica/rsaddr.c
+> @@ -74,7 +74,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address16[5] = {
+>  	 * Address Translation Offset
+>  	 * Address Length
+>  	 */
+> -	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.address16.granularity),
+> +	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.address16.address.granularity),
+>  	 AML_OFFSET(address16.granularity),
+>  	 5},
 >  
->  /*******************************************************************************
->   *
-> - * FUNCTION:    acpi_get_id
-> - *
-> - * PARAMETERS:  Handle          - Handle of object whose id is desired
-> - *              ret_id          - Where the id will be placed
-> - *
-> - * RETURN:      Status
-> - *
-> - * DESCRIPTION: This routine returns the owner id associated with a handle
-> - *
-> - ******************************************************************************/
-> -acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
-> -{
-> -	struct acpi_namespace_node *node;
-> -	acpi_status status;
-> -
-> -	/* Parameter Validation */
-> -
-> -	if (!ret_id) {
-> -		return (AE_BAD_PARAMETER);
-> -	}
-> -
-> -	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-> -	if (ACPI_FAILURE(status)) {
-> -		return (status);
-> -	}
-> -
-> -	/* Convert and validate the handle */
-> -
-> -	node = acpi_ns_validate_handle(handle);
-> -	if (!node) {
-> -		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-> -		return (AE_BAD_PARAMETER);
-> -	}
-> -
-> -	*ret_id = node->owner_id;
-> -
-> -	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-> -	return (status);
-> -}
-> -
-> -ACPI_EXPORT_SYMBOL(acpi_get_id)
-> -
-> -/*******************************************************************************
-> - *
->   * FUNCTION:    acpi_get_type
->   *
->   * PARAMETERS:  handle          - Handle of object whose type is desired
-> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-> index 6482b0d..0f9dd80 100644
-> --- a/drivers/acpi/acpica/tbxface.c
-> +++ b/drivers/acpi/acpica/tbxface.c
-> @@ -265,45 +265,6 @@ ACPI_EXPORT_SYMBOL(acpi_get_table_header)
+> @@ -112,7 +112,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address32[5] = {
+>  	 * Address Translation Offset
+>  	 * Address Length
+>  	 */
+> -	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.address32.granularity),
+> +	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.address32.address.granularity),
+>  	 AML_OFFSET(address32.granularity),
+>  	 5},
 >  
->  /*******************************************************************************
->   *
-> - * FUNCTION:    acpi_unload_table_id
-> - *
-> - * PARAMETERS:  id            - Owner ID of the table to be removed.
-> - *
-> - * RETURN:      Status
-> - *
-> - * DESCRIPTION: This routine is used to force the unload of a table (by id)
-> - *
-> - ******************************************************************************/
-> -acpi_status acpi_unload_table_id(acpi_owner_id id)
-> -{
-> -	int i;
-> -	acpi_status status = AE_NOT_EXIST;
-> -
-> -	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
-> -
-> -	/* Find table in the global table list */
-> -	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
-> -		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
-> -			continue;
-> -		}
-> -		/*
-> -		 * Delete all namespace objects owned by this table. Note that these
-> -		 * objects can appear anywhere in the namespace by virtue of the AML
-> -		 * "Scope" operator. Thus, we need to track ownership by an ID, not
-> -		 * simply a position within the hierarchy
-> -		 */
-> -		acpi_tb_delete_namespace_by_owner(i);
-> -		status = acpi_tb_release_owner_id(i);
-> -		acpi_tb_set_table_loaded_flag(i, FALSE);
-> -		break;
-> -	}
-> -	return_ACPI_STATUS(status);
-> -}
-> -
-> -ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
-> -
-> -/*******************************************************************************
-> - *
->   * FUNCTION:    acpi_get_table_with_size
->   *
->   * PARAMETERS:  signature           - ACPI signature of needed table
-> diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
-> index bada2099..c32fb78 100644
-> --- a/drivers/pci/hotplug/sgi_hotplug.c
-> +++ b/drivers/pci/hotplug/sgi_hotplug.c
-> @@ -475,7 +475,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
->  	struct slot *slot = bss_hotplug_slot->private;
->  	struct pci_dev *dev, *temp;
->  	int rc;
-> -	acpi_owner_id ssdt_id = 0;
-> +	acpi_handle ssdt_hdl = NULL;
+> @@ -150,7 +150,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address64[5] = {
+>  	 * Address Translation Offset
+>  	 * Address Length
+>  	 */
+> -	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.address64.granularity),
+> +	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.address64.address.granularity),
+>  	 AML_OFFSET(address64.granularity),
+>  	 5},
 >  
->  	/* Acquire update access to the bus */
->  	mutex_lock(&sn_hotplug_mutex);
-> @@ -522,7 +522,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
->  			if (ACPI_SUCCESS(ret) &&
->  			    (adr>>16) == (slot->device_num + 1)) {
->  				/* retain the owner id */
-> -				acpi_get_id(chandle, &ssdt_id);
-> +				ssdt_hdl = chandle;
+> @@ -194,7 +194,8 @@ struct acpi_rsconvert_info acpi_rs_convert_ext_address64[5] = {
+>  	 * Address Length
+>  	 * Type-Specific Attribute
+>  	 */
+> -	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.ext_address64.granularity),
+> +	{ACPI_RSC_MOVE64,
+> +	 ACPI_RS_OFFSET(data.ext_address64.address.granularity),
+>  	 AML_OFFSET(ext_address64.granularity),
+>  	 6}
+>  };
+> diff --git a/drivers/acpi/acpica/rsdumpinfo.c b/drivers/acpi/acpica/rsdumpinfo.c
+> index 2f9332d..6ba7ad5 100644
+> --- a/drivers/acpi/acpica/rsdumpinfo.c
+> +++ b/drivers/acpi/acpica/rsdumpinfo.c
+> @@ -183,15 +183,15 @@ struct acpi_rsdump_info acpi_rs_dump_address16[8] = {
+>  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address16),
+>  	 "16-Bit WORD Address Space", NULL},
+>  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.granularity), "Granularity",
+> -	 NULL},
+> -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.minimum), "Address Minimum",
+> -	 NULL},
+> -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.maximum), "Address Maximum",
+> -	 NULL},
+> -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.translation_offset),
+> +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.granularity),
+> +	 "Granularity", NULL},
+> +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.minimum),
+> +	 "Address Minimum", NULL},
+> +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.maximum),
+> +	 "Address Maximum", NULL},
+> +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.translation_offset),
+>  	 "Translation Offset", NULL},
+> -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address_length),
+> +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.address_length),
+>  	 "Address Length", NULL},
+>  	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address16.resource_source), NULL, NULL}
+>  };
+> @@ -200,15 +200,15 @@ struct acpi_rsdump_info acpi_rs_dump_address32[8] = {
+>  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address32),
+>  	 "32-Bit DWORD Address Space", NULL},
+>  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.granularity), "Granularity",
+> -	 NULL},
+> -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.minimum), "Address Minimum",
+> -	 NULL},
+> -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.maximum), "Address Maximum",
+> -	 NULL},
+> -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.translation_offset),
+> +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.granularity),
+> +	 "Granularity", NULL},
+> +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.minimum),
+> +	 "Address Minimum", NULL},
+> +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.maximum),
+> +	 "Address Maximum", NULL},
+> +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.translation_offset),
+>  	 "Translation Offset", NULL},
+> -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address_length),
+> +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.address_length),
+>  	 "Address Length", NULL},
+>  	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address32.resource_source), NULL, NULL}
+>  };
+> @@ -217,15 +217,15 @@ struct acpi_rsdump_info acpi_rs_dump_address64[8] = {
+>  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address64),
+>  	 "64-Bit QWORD Address Space", NULL},
+>  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.granularity), "Granularity",
+> -	 NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.minimum), "Address Minimum",
+> -	 NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.maximum), "Address Maximum",
+> -	 NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.translation_offset),
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.granularity),
+> +	 "Granularity", NULL},
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.minimum),
+> +	 "Address Minimum", NULL},
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.maximum),
+> +	 "Address Maximum", NULL},
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.translation_offset),
+>  	 "Translation Offset", NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address_length),
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.address_length),
+>  	 "Address Length", NULL},
+>  	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address64.resource_source), NULL, NULL}
+>  };
+> @@ -234,15 +234,16 @@ struct acpi_rsdump_info acpi_rs_dump_ext_address64[8] = {
+>  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_ext_address64),
+>  	 "64-Bit Extended Address Space", NULL},
+>  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.granularity),
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.granularity),
+>  	 "Granularity", NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.minimum),
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.minimum),
+>  	 "Address Minimum", NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.maximum),
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.maximum),
+>  	 "Address Maximum", NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.translation_offset),
+> +	{ACPI_RSD_UINT64,
+> +	 ACPI_RSD_OFFSET(ext_address64.address.translation_offset),
+>  	 "Translation Offset", NULL},
+> -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address_length),
+> +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.address_length),
+>  	 "Address Length", NULL},
+>  	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.type_specific),
+>  	 "Type-Specific Attribute", NULL}
+> diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
+> index 877ab92..2952878 100644
+> --- a/drivers/acpi/acpica/rsxface.c
+> +++ b/drivers/acpi/acpica/rsxface.c
+> @@ -60,11 +60,11 @@ ACPI_MODULE_NAME("rsxface")
+>  	ACPI_COPY_FIELD(out, in, min_address_fixed);         \
+>  	ACPI_COPY_FIELD(out, in, max_address_fixed);         \
+>  	ACPI_COPY_FIELD(out, in, info);                      \
+> -	ACPI_COPY_FIELD(out, in, granularity);               \
+> -	ACPI_COPY_FIELD(out, in, minimum);                   \
+> -	ACPI_COPY_FIELD(out, in, maximum);                   \
+> -	ACPI_COPY_FIELD(out, in, translation_offset);        \
+> -	ACPI_COPY_FIELD(out, in, address_length);            \
+> +	ACPI_COPY_FIELD(out, in, address.granularity);       \
+> +	ACPI_COPY_FIELD(out, in, address.minimum);           \
+> +	ACPI_COPY_FIELD(out, in, address.maximum);           \
+> +	ACPI_COPY_FIELD(out, in, address.translation_offset); \
+> +	ACPI_COPY_FIELD(out, in, address.address_length);    \
+>  	ACPI_COPY_FIELD(out, in, resource_source);
+>  /* Local prototypes */
+>  static acpi_status
+> diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
+> index eb760ca..023959d 100644
+> --- a/include/acpi/acrestyp.h
+> +++ b/include/acpi/acrestyp.h
+> @@ -305,43 +305,51 @@ struct acpi_resource_source {
+>  	u8                                      max_address_fixed; \
+>  	union acpi_resource_attribute           info;
 >  
->  				ret = acpi_bus_get_device(chandle,
->  							  &device);
-> @@ -547,12 +547,13 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
->  	pci_unlock_rescan_remove();
->  
->  	/* Remove the SSDT for the slot from the ACPI namespace */
-> -	if (SN_ACPI_BASE_SUPPORT() && ssdt_id) {
-> +	if (SN_ACPI_BASE_SUPPORT() && ssdt_hdl) {
->  		acpi_status ret;
-> -		ret = acpi_unload_table_id(ssdt_id);
-> +		ret = acpi_unload_parent_table(ssdt_hdl);
->  		if (ACPI_FAILURE(ret)) {
-> -			printk(KERN_ERR "%s: acpi_unload_table_id failed (0x%x) for id %d\n",
-> -			       __func__, ret, ssdt_id);
-> +			acpi_handle_err(ssdt_hdl,
-> +					"%s: acpi_unload_parent_table failed (0x%x)\n",
-> +					__func__, ret);
->  			/* try to continue on */
->  		}
->  	}
-> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-> index 5ba7846..5dd21bc 100644
-> --- a/include/acpi/acpixf.h
-> +++ b/include/acpi/acpixf.h
-> @@ -891,12 +891,6 @@ ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
->  ACPI_GLOBAL(u8, acpi_gbl_permanent_mmap);
->  
->  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
-> -			    acpi_get_id(acpi_handle object,
-> -					acpi_owner_id * out_type))
+> -struct acpi_resource_address {
+> -ACPI_RESOURCE_ADDRESS_COMMON};
 > -
-> -ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_unload_table_id(acpi_owner_id id))
-> -
-> -ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->  			    acpi_get_table_with_size(acpi_string signature,
->  						     u32 instance,
->  						     struct acpi_table_header
+> -struct acpi_resource_address16 {
+> -	ACPI_RESOURCE_ADDRESS_COMMON u16 granularity;
+> +struct acpi_address16_attribute {
+> +	u16 granularity;
+>  	u16 minimum;
+>  	u16 maximum;
+>  	u16 translation_offset;
+>  	u16 address_length;
+> -	struct acpi_resource_source resource_source;
+>  };
+>  
+> -struct acpi_resource_address32 {
+> -	ACPI_RESOURCE_ADDRESS_COMMON u32 granularity;
+> +struct acpi_address32_attribute {
+> +	u32 granularity;
+>  	u32 minimum;
+>  	u32 maximum;
+>  	u32 translation_offset;
+>  	u32 address_length;
+> -	struct acpi_resource_source resource_source;
+>  };
+>  
+> -struct acpi_resource_address64 {
+> -	ACPI_RESOURCE_ADDRESS_COMMON u64 granularity;
+> +struct acpi_address64_attribute {
+> +	u64 granularity;
+>  	u64 minimum;
+>  	u64 maximum;
+>  	u64 translation_offset;
+>  	u64 address_length;
+> +};
+> +
+> +struct acpi_resource_address {
+> +ACPI_RESOURCE_ADDRESS_COMMON};
+> +
+> +struct acpi_resource_address16 {
+> +	ACPI_RESOURCE_ADDRESS_COMMON ACPI_ADDRESS16_ATTRIBUTE address;
+> +	struct acpi_resource_source resource_source;
+> +};
+> +
+> +struct acpi_resource_address32 {
+> +	ACPI_RESOURCE_ADDRESS_COMMON ACPI_ADDRESS32_ATTRIBUTE address;
+> +	struct acpi_resource_source resource_source;
+> +};
+> +
+> +struct acpi_resource_address64 {
+> +	ACPI_RESOURCE_ADDRESS_COMMON ACPI_ADDRESS64_ATTRIBUTE address;
+>  	struct acpi_resource_source resource_source;
+>  };
+>  
+>  struct acpi_resource_extended_address64 {
+>  	ACPI_RESOURCE_ADDRESS_COMMON u8 revision_ID;
+> -	u64 granularity;
+> -	u64 minimum;
+> -	u64 maximum;
+> -	u64 translation_offset;
+> -	u64 address_length;
+> +	ACPI_ADDRESS64_ATTRIBUTE address;
+>  	u64 type_specific;
+>  };
+>  
 > 
 
 -- 
