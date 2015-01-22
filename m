@@ -1,76 +1,56 @@
-From: Antonio Ospite <ao2@ao2.it>
-Subject: Overriding DSDT and ignored resources
-Date: Thu, 22 Jan 2015 14:57:29 +0100
-Message-ID: <20150122145729.281f038e8326019a50612e37@ao2.it>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
+Date: Thu, 22 Jan 2015 14:46:09 +0000
+Message-ID: <54C10D31.1090203@arm.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org> <54B8F2E3.80306@arm.com> <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com> <54B92245.6080306@arm.com> <54C0F133.8060901@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:58121 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752639AbbAVN5d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jan 2015 08:57:33 -0500
-Received: from jcn (79.2.147.43) by smtp207.alice.it (8.6.060.28)
-        id 547D8BAA086F9AC1 for linux-acpi@vger.kernel.org; Thu, 22 Jan 2015 14:57:31 +0100
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:40998 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953AbbAVOqV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2015 09:46:21 -0500
+In-Reply-To: <54C0F133.8060901@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, linux-acpi@vger
 
-Hi,
+Hi Hanjun,
 
-it looks like linux can't use the correct PCI host resources when using
-an overridden DSDT table, even with an _unmodified_ one.
+On 22/01/15 12:46, Hanjun Guo wrote:
+> Hi Marc,
+> 
+> We (Tomasz, Suravee and me) are working on supporting stacked domain on
+> ACPI, and rework GIC ACPI related patch, before we going further, we
+> need your guidance to see if we are going the right direction.
+> 
+>    - You said that we spread GIC related code every where, so how
+>      about put all the ACPI related GIC init code in one file under
+>      drivers/irqchip/ with name irq-gic-acpi.c?
 
-I am using 3.19-rc5 rather vanilla (no acpi changes anyways) on a Bay
-Trail tablet.
+That would certainly be an improvement.
 
-When I override the DSDT table I get these messages, and most of the
-devices don't work anymore:
+>    - ACPI only support one GICD for now, so we assume that there
+>     only one gicv2/v3 core domain and every device not using MSI
+>      will refer to that irqdomain in default.
 
-[    0.000000] DSDT ACPI table found in initrd [kernel/firmware/acpi/dsdt.aml][0x103c3]
-[...]
-[    0.000000] ACPI: Override [DSDT-  A M I ], this is unsafe: tainting kernel
-[...]
-[    0.000000] ACPI: DSDT 0x000000007BCF1000 Physical table override, new table: 0x00000000792E9000
-[    0.000000] ACPI: DSDT 0x00000000792E9000 0103C3 (v02 ALASKA A M I    00000003 AMI  0100000D)
-[...]
-[    0.370871] acpi PNP0A08:00: host bridge window expanded to [mem 0x00000000-0xffffffff]; [mem 0x000a0000-0x000bffff] ignored 
-[    0.370880] acpi PNP0A08:00: host bridge window expanded to [mem 0x00000000-0xffffffff]; [mem 0x000c0000-0x000dffff] ignored 
-[    0.370887] acpi PNP0A08:00: host bridge window expanded to [mem 0x00000000-0xffffffff]; [mem 0x000e0000-0x000fffff] ignored 
-[    0.370893] acpi PNP0A08:00: host bridge window expanded to [mem 0x00000000-0xffffffff]; [mem 0x7d000001-0x7f000000] ignored 
-[    0.370900] acpi PNP0A08:00: host bridge window expanded to [mem 0x00000000-0xffffffff]; [mem 0x00000000-0xffffffff] ignored
-[...]
+That's good enough, provided that nobody comes up with any form of
+chained interrupt controller (in whatever way that's implemented). ACPI
+doesn't seem to cater for that anyway.
 
-Which I don't get without overriding the DSDT.
+But default domains are only a quick optimization (it is only there to
+cope with code that didn't know about irq domains at all). What we need
+is a proper integration of the ACPI namespace in the irq domain code.
+Being able to lookup a domain by ACPI table, for example (just like
+irq_find_host returns the domain associated to a DT node).
 
-Full dmesg here:
-http://ao2.it/tmp/ACPI_DSDT_override/dmesg_DSDT_override.log
-
-The dmesg with the original DSDT here:
-http://ao2.it/tmp/ACPI_DSDT_override/dmesg_original_DSDT.log
-
-These are the steps to reproduce the issue:
-  1. Extract the DSDT with acpidump;
-  2. Build an initrd with the intent to override the DSDT with the very
-     same extracted at 1., no modifications whatsoever.
-     The initrd is built just like explained in
-     Documentation/acpi/initrd_table_override.txt;
-  3. Boot with the modified initrd.
-
-I did the test with the _unmodified_ DSDT to exclude errors on my side
-when decompiling, editing and recompiling the DSDT table.
-
-Can anyone else reproduce that?
+This would ensure that we can reuse most of the existing code (stacked
+domains, per-device MSI domains [WIP]) without too much effort.
 
 Thanks,
-   Antonio
 
-P.S. Please CC me on reply, I am not subscribed to linux-acpi.
-
+	M.
 -- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+Jazz is not dead. It just smells funny...
