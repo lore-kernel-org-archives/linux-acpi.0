@@ -1,56 +1,312 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot support
-Date: Thu, 22 Jan 2015 14:46:09 +0000
-Message-ID: <54C10D31.1090203@arm.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org> <54B8F2E3.80306@arm.com> <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com> <54B92245.6080306@arm.com> <54C0F133.8060901@linaro.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: set first resuming device as a 'proxy'
+Date: Thu, 22 Jan 2015 17:16:56 +0200
+Message-ID: <1421939816.31903.126.camel@linux.intel.com>
+References: <1421320244-3490-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <6322489.a8QUfpK4WQ@vostro.rjw.lan> <15808134.zPSB1QlmdE@vostro.rjw.lan>
+	 <1826096.Y1k7UfFlRi@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:40998 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbbAVOqV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jan 2015 09:46:21 -0500
-In-Reply-To: <54C0F133.8060901@linaro.org>
+Received: from mga01.intel.com ([192.55.52.88]:55149 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752244AbbAVPRO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jan 2015 10:17:14 -0500
+In-Reply-To: <1826096.Y1k7UfFlRi@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, linux-acpi@vger
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Blin, Jerome" <jerome.blin@intel.com>
+Cc: linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Hanjun,
++ Jerome Blin
 
-On 22/01/15 12:46, Hanjun Guo wrote:
-> Hi Marc,
+Jerome, this is new version of patch from Rafael that I mentioned in
+LCK-1599. Please take it instead.
+
+On Wed, 2015-01-21 at 16:03 +0100, Rafael J. Wysocki wrote:
+> On Wednesday, January 21, 2015 03:37:43 AM Rafael J. Wysocki wrote:
+> > On Tuesday, January 20, 2015 03:45:36 PM Rafael J. Wysocki wrote:
+> > > On Thursday, January 15, 2015 01:10:44 PM Andy Shevchenko wrote:
+> > > > We can't rely on the first enumerated device since it might be not probed yet
+> > > > when DMA driver wants to resume the device. This patch changes the place where
+> > > > we assign the 'proxy' device. From now on the first resumed device will be
+> > > > recognized as a 'proxy' because it is probed.
+> > > 
+> > > I was about to apply this, but I realized that we couldn't do it this way. ->
+> > > 
+> > > > Reported-by: Jerome Blin <jerome.blin@intel.com>
+> > > > Fixes: 6c17ee44d524 (ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA)
+> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > ---
+> > > >  drivers/acpi/acpi_lpss.c | 17 +++++++++++------
+> > > >  1 file changed, 11 insertions(+), 6 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> > > > index 4f3febf..d851290 100644
+> > > > --- a/drivers/acpi/acpi_lpss.c
+> > > > +++ b/drivers/acpi/acpi_lpss.c
+> > > > @@ -374,8 +374,6 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+> > > >  	adev->driver_data = pdata;
+> > > >  	pdev = acpi_create_platform_device(adev);
+> > > >  	if (!IS_ERR_OR_NULL(pdev)) {
+> > > > -		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
+> > > > -			proxy_device = &pdev->dev;
+> > > >  		return 1;
+> > > >  	}
+> > > >  
+> > > > @@ -615,10 +613,17 @@ static int acpi_lpss_runtime_resume(struct device *dev)
+> > > >  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> > > >  	int ret;
+> > > >  
+> > > > -	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
+> > > > -		ret = pm_runtime_get_sync(proxy_device);
+> > > > -		if (ret)
+> > > > -			return ret;
+> > > > +	if (!proxy_device && pdata->dev_desc->flags & LPSS_DEV_PROXY)
+> > > > +		proxy_device = dev;
+> > > 
+> > > -> OK, so what if the driver of proxy_device is removed later?
+> > > 
+> > > > +
+> > > > +	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
+> > > > +		if (proxy_device) {
+> > > > +			ret = pm_runtime_get_sync(proxy_device);
+> > > > +			if (ret)
+> > > > +				return ret;
+> > > > +		} else {
+> > > > +			return -EPROBE_DEFER;
+> > > 
+> > > The error code returned here will disable runtime PM for dev forever,
+> > > even if proxy_device becomes available at one point.  You could return
+> > > -EBUSY instead, but why don't we add BUS_NOTIFY_BOUND_DRIVER and
+> > > BUS_NOTIFY_UNBIND_DRIVER handling to acpi_lpss_platform_notify() and
+> > > set/unset proxy_device from there?
+> > 
+> > Well, that's more complicated, because we need to be careful when we switch
+> > proxies while the old one has been reference counted.
+> > 
+> > Maybe something like this (untested)?
 > 
-> We (Tomasz, Suravee and me) are working on supporting stacked domain on
-> ACPI, and rework GIC ACPI related patch, before we going further, we
-> need your guidance to see if we are going the right direction.
+> That sill had a few problems.
 > 
->    - You said that we spread GIC related code every where, so how
->      about put all the ACPI related GIC init code in one file under
->      drivers/irqchip/ with name irq-gic-acpi.c?
+> The one below should be better (still untested, though).  It assumes that
+> the devices needing a proxy will never start as runtime-suspended and will
+> always be resumed before removal.
+> 
+> ---
+>  drivers/acpi/acpi_lpss.c |  126 ++++++++++++++++++++++++++++++++++++++++++-----
+>  1 file changed, 113 insertions(+), 13 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/acpi_lpss.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpi_lpss.c
+> +++ linux-pm/drivers/acpi/acpi_lpss.c
+> @@ -72,12 +72,21 @@ struct lpss_device_desc {
+>  	void (*setup)(struct lpss_private_data *pdata);
+>  };
+>  
+> -static struct device *proxy_device;
+> -
+>  static struct lpss_device_desc lpss_dma_desc = {
+>  	.flags = LPSS_CLK | LPSS_PROXY_REQ,
+>  };
+>  
+> +struct lpss_proxy {
+> +	struct device *dev;
+> +	struct list_head node;
+> +};
+> +
+> +static struct lpss_proxy *current_proxy;
+> +static unsigned int proxy_count;
+> +static unsigned int proxy_suspend_count;
+> +static LIST_HEAD(proxy_list);
+> +static DEFINE_MUTEX(proxy_lock);
+> +
+>  struct lpss_private_data {
+>  	void __iomem *mmio_base;
+>  	resource_size_t mmio_size;
+> @@ -85,6 +94,7 @@ struct lpss_private_data {
+>  	struct clk *clk;
+>  	const struct lpss_device_desc *dev_desc;
+>  	u32 prv_reg_ctx[LPSS_PRV_REG_COUNT];
+> +	struct lpss_proxy proxy_entry;
+>  };
+>  
+>  /* UART Component Parameter Register */
+> @@ -373,11 +383,8 @@ static int acpi_lpss_create_device(struc
+>  
+>  	adev->driver_data = pdata;
+>  	pdev = acpi_create_platform_device(adev);
+> -	if (!IS_ERR_OR_NULL(pdev)) {
+> -		if (!proxy_device && dev_desc->flags & LPSS_DEV_PROXY)
+> -			proxy_device = &pdev->dev;
+> +	if (!IS_ERR_OR_NULL(pdev))
+>  		return 1;
+> -	}
+>  
+>  	ret = PTR_ERR(pdev);
+>  	adev->driver_data = NULL;
+> @@ -591,23 +598,41 @@ static int acpi_lpss_resume_early(struct
+>  static int acpi_lpss_runtime_suspend(struct device *dev)
+>  {
+>  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +	bool use_proxy;
+>  	int ret;
+>  
+> +	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
+> +		use_proxy = true;
+> +		mutex_lock(&proxy_lock);
+> +		if (!current_proxy) {
+> +			ret = -EBUSY;
+> +			goto out;
+> +		}
+> +	} else {
+> +		use_proxy = false;
+> +	}
+> +
+>  	ret = pm_generic_runtime_suspend(dev);
+>  	if (ret)
+> -		return ret;
+> +		goto out;
+>  
+>  	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+>  		acpi_lpss_save_ctx(dev, pdata);
+>  
+>  	ret = acpi_dev_runtime_suspend(dev);
+>  	if (ret)
+> -		return ret;
+> +		goto out;
+>  
+> -	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device)
+> -		return pm_runtime_put_sync_suspend(proxy_device);
+> +	if (use_proxy) {
+> +		proxy_suspend_count++;
+> +		ret = pm_runtime_put_sync_suspend(current_proxy->dev);
+> +	}
+>  
+> -	return 0;
+> + out:
+> +	if (use_proxy)
+> +		mutex_unlock(&proxy_lock);
+> +
+> +	return ret;
+>  }
+>  
+>  static int acpi_lpss_runtime_resume(struct device *dev)
+> @@ -615,8 +640,16 @@ static int acpi_lpss_runtime_resume(stru
+>  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+>  	int ret;
+>  
+> -	if (pdata->dev_desc->flags & LPSS_PROXY_REQ && proxy_device) {
+> -		ret = pm_runtime_get_sync(proxy_device);
+> +	if (pdata->dev_desc->flags & LPSS_PROXY_REQ) {
+> +		mutex_lock(&proxy_lock);
+> +		if (current_proxy) {
+> +			ret = pm_runtime_get_sync(current_proxy->dev);
+> +			if (!ret)
+> +				proxy_suspend_count--;
+> +		} else {
+> +			ret = -EBUSY;
+> +		}
+> +		mutex_unlock(&proxy_lock);
+>  		if (ret)
+>  			return ret;
+>  	}
+> @@ -652,6 +685,29 @@ static struct dev_pm_domain acpi_lpss_pm
+>  	},
+>  };
+>  
+> +static void acpi_lpss_switch_proxy(void)
+> +{
+> +	struct device *dev = current_proxy ? current_proxy->dev : NULL;
+> +	unsigned int count = proxy_count - proxy_suspend_count;
+> +
+> +	if (list_empty(&proxy_list)) {
+> +		current_proxy = NULL;
+> +	} else {
+> +		struct lpss_private_data *lpd;
+> +
+> +		lpd = list_first_entry(&proxy_list, struct lpss_private_data,
+> +				       proxy_entry.node);
+> +		current_proxy = &lpd->proxy_entry;
+> +	}
+> +	while (count--) {
+> +		if (dev)
+> +			pm_runtime_put_noidle(dev);
+> +
+> +		if (current_proxy)
+> +			pm_runtime_get_sync(current_proxy->dev);
+> +	}
+> +}
+> +
+>  static int acpi_lpss_platform_notify(struct notifier_block *nb,
+>  				     unsigned long action, void *data)
+>  {
+> @@ -680,15 +736,59 @@ static int acpi_lpss_platform_notify(str
+>  	switch (action) {
+>  	case BUS_NOTIFY_ADD_DEVICE:
+>  		pdev->dev.pm_domain = &acpi_lpss_pm_domain;
+> +		if (pdata->dev_desc->flags & LPSS_DEV_PROXY) {
+> +			mutex_lock(&proxy_lock);
+> +
+> +			/* This assimes the device to be powered up. */
+> +			proxy_count++;
+> +			if (current_proxy)
+> +				pm_runtime_get_sync(current_proxy->dev);
+> +
+> +			mutex_unlock(&proxy_lock);
+> +		}
+>  		if (pdata->dev_desc->flags & LPSS_LTR)
+>  			return sysfs_create_group(&pdev->dev.kobj,
+>  						  &lpss_attr_group);
+>  		break;
+>  	case BUS_NOTIFY_DEL_DEVICE:
+> +		if (pdata->dev_desc->flags & LPSS_DEV_PROXY) {
+> +			mutex_lock(&proxy_lock);
+> +
+> +			/* This assumes that the device is not suspended. */
+> +			proxy_count--;
+> +			if (current_proxy)
+> +				pm_runtime_put(current_proxy->dev);
+> +
+> +			mutex_unlock(&proxy_lock);
+> +		}
+>  		if (pdata->dev_desc->flags & LPSS_LTR)
+>  			sysfs_remove_group(&pdev->dev.kobj, &lpss_attr_group);
+>  		pdev->dev.pm_domain = NULL;
+>  		break;
+> +	case BUS_NOTIFY_BOUND_DRIVER:
+> +		if (pdata->dev_desc->flags & LPSS_DEV_PROXY) {
+> +			mutex_lock(&proxy_lock);
+> +
+> +			INIT_LIST_HEAD(&pdata->proxy_entry.node);
+> +			pdata->proxy_entry.dev = &pdev->dev;
+> +			list_add_tail(&pdata->proxy_entry.node, &proxy_list);
+> +			if (!current_proxy)
+> +				acpi_lpss_switch_proxy();
+> +
+> +			mutex_unlock(&proxy_lock);
+> +		}
+> +		break;
+> +	case BUS_NOTIFY_UNBIND_DRIVER:
+> +		if (pdata->dev_desc->flags & LPSS_DEV_PROXY) {
+> +			mutex_lock(&proxy_lock);
+> +
+> +			list_del(&pdata->proxy_entry.node);
+> +			if (current_proxy == &pdata->proxy_entry)
+> +				acpi_lpss_switch_proxy();
+> +
+> +			mutex_unlock(&proxy_lock);
+> +		}
+> +		break;
+>  	default:
+>  		break;
+>  	}
+> 
 
-That would certainly be an improvement.
 
->    - ACPI only support one GICD for now, so we assume that there
->     only one gicv2/v3 core domain and every device not using MSI
->      will refer to that irqdomain in default.
-
-That's good enough, provided that nobody comes up with any form of
-chained interrupt controller (in whatever way that's implemented). ACPI
-doesn't seem to cater for that anyway.
-
-But default domains are only a quick optimization (it is only there to
-cope with code that didn't know about irq domains at all). What we need
-is a proper integration of the ACPI namespace in the irq domain code.
-Being able to lookup a domain by ACPI table, for example (just like
-irq_find_host returns the domain associated to a DT node).
-
-This would ensure that we can reuse most of the existing code (stacked
-domains, per-device MSI domains [WIP]) without too much effort.
-
-Thanks,
-
-	M.
 -- 
-Jazz is not dead. It just smells funny...
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
+
