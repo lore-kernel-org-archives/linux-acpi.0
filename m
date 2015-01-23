@@ -1,92 +1,96 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/6] ACPI/EC: Cleanup transaction wakeup code
-Date: Fri, 23 Jan 2015 02:18:10 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026BA171@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1418966602.git.lv.zheng@intel.com>
- <5637874.BqR4k3zUAA@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E88026B9F86@SHSMSX101.ccr.corp.intel.com>
- <10635172.oMTtcxH2fm@vostro.rjw.lan>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [PATCH 3/4] mfd: dln2: add support for ACPI
+Date: Fri, 23 Jan 2015 08:47:58 +0200
+Message-ID: <CAE1zotKyJ70ZqNoogC0ozjUsyRrTCe=oohFfawt0FqpCkRkotg@mail.gmail.com>
+References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com>
+	<2755822.qV1ICgGMEY@vostro.rjw.lan>
+	<CAE1zotL9LsMjW6YC9E3iq-6Zf4u2=CpB1nh=LDUroQS9k5dTsQ@mail.gmail.com>
+	<1879413.uF8phu1QrE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:25019 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752718AbbAWCXE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jan 2015 21:23:04 -0500
-In-Reply-To: <10635172.oMTtcxH2fm@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1879413.uF8phu1QrE@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Johan Hovold <johan@kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-SGksIFJhZmFlbA0KDQpJJ20gc29ycnkgc29tZXRoaW5nIGlzIHdyb25nIGluIG15IHByZXZpb3Vz
-IHJlcGx5Lg0KTGV0IG1lIGNvcnJlY3QgaXQuDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kg
-W21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogRnJpZGF5LCBKYW51YXJ5IDIzLCAy
-MDE1IDEyOjAxIEFNDQo+IA0KPiBPbiBUaHVyc2RheSwgSmFudWFyeSAyMiwgMjAxNSAwNjozNzoy
-OCBBTSBaaGVuZywgTHYgd3JvdGU6DQo+ID4gSGksIFJhZmFlbA0KPiA+DQo+ID4gPiBGcm9tOiBS
-YWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDog
-VGh1cnNkYXksIEphbnVhcnkgMjIsIDIwMTUgNjoxNyBBTQ0KPiA+ID4NCj4gPiA+IE9uIFdlZG5l
-c2RheSwgSmFudWFyeSAxNCwgMjAxNSAwNzoyODoyMiBQTSBMdiBaaGVuZyB3cm90ZToNCg0KPHNr
-aXA+DQoNCj4gPiA+ID4gQEAgLTI2MiwxNCArMjYyLDE2IEBAIGVycjoNCj4gPiA+ID4gIAkJaWYg
-KGluX2ludGVycnVwdCgpICYmIHQpDQo+ID4gPiA+ICAJCQkrK3QtPmlycV9jb3VudDsNCj4gPiA+
-ID4gIAl9DQo+ID4gPiA+IC0JcmV0dXJuIHdha2V1cDsNCj4gPiA+ID4gK291dDoNCj4gPiA+ID4g
-KwlpZiAod2FrZXVwICYmIGluX2ludGVycnVwdCgpKQ0KPiA+ID4gPiArCQl3YWtlX3VwKCZlYy0+
-d2FpdCk7DQo+ID4gPiA+ICB9DQo+ID4gPiA+DQoNCkkgZm9yZ290IHRoaXMgZGlmZiBibG9jay4N
-ClRoZSB3YWtlX3VwKCkgaXMgc3RpbGwgaW52b2tlZCBmb3IgdGhlIGFkdmFuY2VfdHJhbnNhY3Rp
-b24oKSBpbnZva2VkIGluDQp0aGUgR1BFIGhhbmRsZXIgYmVjYXVzZSBvZiBpbl9pbnRlcnJ1cHQo
-KSBjaGVjay4NCkZvciB0aGUgMiB0YXNrIGNvbnRleHQgaW52b2NhdGlvbnMsIHdha2VfdXAoKSB3
-b24ndCBiZSBpbnZva2VkLg0KDQo+ID4gPiA+ICBzdGF0aWMgdm9pZCBzdGFydF90cmFuc2FjdGlv
-bihzdHJ1Y3QgYWNwaV9lYyAqZWMpDQo+ID4gPiA+ICB7DQo+ID4gPiA+ICAJZWMtPmN1cnItPmly
-cV9jb3VudCA9IGVjLT5jdXJyLT53aSA9IGVjLT5jdXJyLT5yaSA9IDA7DQo+ID4gPiA+ICAJZWMt
-PmN1cnItPmZsYWdzID0gMDsNCj4gPiA+ID4gLQkodm9pZClhZHZhbmNlX3RyYW5zYWN0aW9uKGVj
-KTsNCj4gPiA+ID4gKwlhZHZhbmNlX3RyYW5zYWN0aW9uKGVjKTsNCj4gPiA+ID4gIH0NCj4gPiA+
-ID4NCj4gPiA+ID4gIHN0YXRpYyBpbnQgYWNwaV9lY19zeW5jX3F1ZXJ5KHN0cnVjdCBhY3BpX2Vj
-ICplYywgdTggKmRhdGEpOw0KPiA+ID4NCj4gPiA+IFdlbGwsIHRoaXMgbG9va3MgbGlrZSBhIGZ1
-bmN0aW9uYWwgY2hhbmdlLCBiZWNhdXNlIHdlIHdvdWxkbid0IGNhbGwNCj4gPiA+IHdha2VfdXAo
-JmVjLT53YWl0KSBoZXJlIGJlZm9yZS4NCj4gPg0KPiA+IEFoLCBZZXMuDQo+ID4gQnV0IGhlcmUs
-IHNpbmNlIHRoZSBvbmx5IGFkdmFuY2VtZW50IHRoYXQgY2FuIGhhcHBlbiBoZXJlIGlzIHRvIHNl
-bmQNCj4gPiB0aGUgRUMgY29tbWFuZCBhbmQgdGhlcmUgYXJlIGFsd2F5cyBmdXJ0aGVyIGFkdmFu
-Y2VtZW50cw0KPiA+IHVudGlsIHRyYW5zYWN0aW9uIGNvbXBsZXRpb24sIHRoZSB3YWtlX3VwKCkg
-d29uJ3QgYmUgaW52b2tlZCBhdCB0aGlzIHBvaW50Lg0KPiA+IFNvIElNTywgdGhlcmUgaXMgbm8g
-ZnVuY3Rpb25hbCBjaGFuZ2VzIGhlcmUuDQoNClRodXMgSSBkaWRuJ3QgY2hhbmdlIHRoZSBsb2dp
-YyBoZXJlLg0KDQo+ID4gPiA+IEBAIC0zMDQsNyArMzA2LDcgQEAgc3RhdGljIGludCBlY19wb2xs
-KHN0cnVjdCBhY3BpX2VjICplYykNCj4gPiA+ID4gIAkJCQkJcmV0dXJuIDA7DQo+ID4gPiA+ICAJ
-CQl9DQo+ID4gPiA+ICAJCQlzcGluX2xvY2tfaXJxc2F2ZSgmZWMtPmxvY2ssIGZsYWdzKTsNCj4g
-PiA+ID4gLQkJCSh2b2lkKWFkdmFuY2VfdHJhbnNhY3Rpb24oZWMpOw0KPiA+ID4gPiArCQkJYWR2
-YW5jZV90cmFuc2FjdGlvbihlYyk7DQo+ID4gPg0KPiA+ID4gRGl0dG8uDQo+ID4NCj4gPiBZZXMu
-IEkgY2hhbmdlZCB0aGlzIGxvZ2ljLg0KDQpBbmQgSSBkaWRuJ3QgY2hhbmdlIHRoZSBsb2dpYyBo
-ZXJlLg0KDQo+ID4gQnkgaW52b2tpbmcgd2FrZV91cCgpIGhlcmUsIHdlIGNhbiBicmVhayB0aGUg
-ZWNfcG9sbCgpIGxvb3AuDQo+ID4gQmVjYXVzZSBpZiB0aGUgdHJhbnNhY3Rpb24gaGFzIGNvbXBs
-ZXRlZCBkdWUgdG8gdGhlIHBvbGxpbmcgYWR2YW5jZW1lbnQsIHdlIHJlYWxseSBkb24ndCBuZWVk
-IHRvIHdhaXQgZm9yIGFub3RoZXIgaW50ZXJydXB0Lg0KDQpUaGlzIHN0YXRlbWVudCBpcyBhbHNv
-IHdyb25nLg0KQWZ0ZXIgY2hlY2tpbmcgaW5jbHVkZS9saW51eC93YWl0LmggSSByZWFsaXplZCB0
-aGF0IHdlIG9yaWdpbmFsbHkgYnJva2UNCmVjX3BvbGwoKSBsb29wIGJlY2F1c2Ugb2YgZWNfdHJh
-bnNhY3Rpb25fY29tcGxldGUoKSBjaGVjay4NCg0KU2VlIGluY2x1ZGUvbGludXgvd2FpdC5oOg0K
-VGhlIGNvbmRpdGlvbiBpcyBjaGVja2VkIGluIF9fd2FpdF9jb25kX3RpbWVvdXQoKSBwcmlvciB0
-aGFuIGRvaW5nDQpfX3dhaXRfZXZlbnRfdGltZW91dCgpIHdoaWNoIG1heSBwdXQgdGhlIHRhc2sg
-aW4gdGhlIHdhaXQgcXVldWUuDQpTbyBpZiB0aGUgY29uZGl0aW9uIGlzIG1hdGNoZWQsIHdhaXRf
-ZXZlbnRfdGltZW91dCgpIGp1c3QgcmV0dXJucy4NCg0KRm9yIHRoZSBhYm92ZSAyIGFkdmFuY2Vf
-dHJhbnNhY3Rpb24oKSBpbnZvY2F0aW9ucywgdGhleSBhcmUgYm90aA0KaW52b2tlZCBpbiB0aGUg
-dGFzayB0aGF0IG1pZ2h0IGJlIHB1dCBpbnRvIHRoZSB3YWl0IHF1ZXVlLg0KQnV0IGF0IHRoaXMg
-cG9pbnQsIHRoZSB0YXNrIGlzIGFscmVhZHkgaW4gdGhlIHJ1biBxdWV1ZSwgc28gd2FrZV91cCgp
-DQp0YWtlcyBubyBlZmZlY3QgdG8gdGhpcyBhbmQgd2FpdF9ldmVudF90aW1lb3V0KCkgY2FuIGJy
-ZWFrIGVjX3BvbGwoKQ0KYmVjYXVzZSBvZiB0aGUgY29uZGl0aW9uIGNoZWNrIChlY190cmFuc2Fj
-dGlvbl9jb21wbGV0ZSgpKS4NCg0KQXMgYSBjb25jbHVzaW9uLCBpbiBmYWN0LCBldmVuIHRoZXJl
-IGlzIG5vIGluX2ludGVycnVwdCgpIGNoZWNrIG1hZGUNCmJlZm9yZSB3YWtlX3VwKCksIHRoZSBt
-b2RpZmljYXRpb24gY2FuIHN0aWxsIGJlIGEgbm8tb3AuDQoNCj4gPiBTbyB0aGlzIG5ldyBsb2dp
-YyBtYWtlcyB0aGlzIHBhdGNoIG1vcmUgbGlrZSBhIHJhY2UgZml4LCBub3QgYSBzaW1wbGUgY2xl
-YW51cC4NCj4gPiBBbmQgSU1PLCBpdCBtaWdodCBhbHNvIGJlIGEgc3RhYmxlIG1hdGVyaWFsLg0K
-PiA+IEkgZGlkbid0IG5vdGljZSB0aGlzIHJhY2UgYnVnIGJlY2F1c2UgdGhlcmUgaXMgbm8gYnVn
-IHJlcG9ydCBhZ2FpbnN0IHRoaXMuDQoNClRoZXJlIGlzIG5vIGJ1ZyBiZWNhdXNlIGVjX3BvbGwo
-KSBpcyBicm9rZW4gd2l0aCBlY190cmFuc2FjdGlvbl9jb21wbGV0ZSgpDQpjaGVjay4gVGh1cyB0
-aGlzIGlzIG5vdCBhIGJ1ZyBmaXggYW5kIGNhbm5vdCBiZSBhIHN0YWJsZSBjYW5kaWRhdGUuDQoN
-Cj4gPiBTaG91bGQgSSBjaGFuZ2UgdGhlIGRlc2NyaXB0aW9uIGFyb3VuZCB0aGlzIGFuZCByZS1z
-ZW5kIHRoZSBwYXRjaD8NCg0KVGh1cyBJIG5lZWRuJ3QgY2hhbmdlIHRoZSBkZXNjcmlwdGlvbiBm
-b3IgdGhpcyBwYXRjaC4NCg0KPiBZZXMsIHBsZWFzZS4NCg0KSXQgc2VlbXMgSSBuZWVkbid0IHRv
-IGNoYW5nZSBhbnl0aGluZy4NClNvIGl0IG1pZ2h0IG5vdCBiZSBzdWl0YWJsZSB0byByZS1zZW5k
-IHRoZSBwYXRjaHNldCBiZWNhdXNlIG9mIHRoZSBhYm92ZSBkaXNjdXNzaW9uLg0KTXkgYmFkIHNv
-cnJ5IGZvciB0aGUgbWlzdGFrZS4NCg0KQ291bGQgeW91IGhlbHAgdG8gY2hlY2sgdGhlIHJlc3Qg
-cGF0Y2hlcyBvZiB0aGlzIHJldmlzaW9uLg0KVGhhbmtzIGluIGFkdmFuY2UuDQoNCkJlc3QgcmVn
-YXJkcw0KLUx2DQo=
+On Fri, Jan 23, 2015 at 12:09 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, January 22, 2015 12:13:13 PM Octavian Purdila wrote:
+>> On Thu, Jan 22, 2015 at 4:00 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+<snip>
+>> The idea here is to set the companion for the MFD sub-devices. Mika's
+>> commit "mfd: Add ACPI support" propagates the parent's companion to
+>> the MFD sub-devices, so it is sufficient to set the ACPI companion to
+>> the USB device.
+>
+> For the USB device itself you'll then end up with an incomplete binding (you
+> can't get back to the USB device from the ACPI object), so no, it isn't
+> sufficient.
+>
+>> Then, the companion will be propagated to the sub-devices after which
+>> acpi_bind_one() will be called for the sub-devices from
+>> mfd_add_devices (via platform_device_add -> device_add ->
+>> platform_notify).
+>
+> In fact, your use case doesn't seem to cover any of the use cases that
+> the Mika's commit addressed.  Namely, your parent device doesn't have
+> an ACPI companion to start with and you want your MFD cells to be bound
+> to the "DLN2000" thing.  That's why you're setting the ACPI companion
+> for the USB device, isn't it?
+>
+>> It is true that the USB dev will have its ACPI companion set without
+>> having acpi_bind_one called but I do not see any harm in that. Even
+>> though acpi_unbind_one() is called it will not find the USB dev on the
+>> physical node list so no put_device() imbalance is caused.
+>
+> Well, there are places where it matters.  Some links in sysfs will be missing
+> for one example.  Also please see the changelog of commit 52870786ff5d (ACPI:
+> Use ACPI companion to match only the first physical device).
+>
+> Bottom line: You really should be using acpi_bind_one() here and
+> acpi_unbind_one() on disconnect if you have to.
+>
+
+OK, I understand now.
+
+>> > And no, "Let's come up with a patch that sort of works, throw it at the maintainers
+>> > and see what happens" is not an acceptable approach, sorry.
+>>
+>> This patch is based on your feedback of the previous RFC patch set:
+>
+> Oh, is it?  I can't recall advising you to use request_firmware() for
+> uploading ACPI tables or some other questionable things that the patch is
+> doing.
+>
+> And if it still was an RFC, that wouldn't be a problem, but if you just send
+> non-RFC patches out, that means you want people to merge them.  This is bad
+> if the patches in question are not in a good enough shape and this one isn't.
+>
+
+Yes, this should have been tagged with RFC, sorry about that.
+
+> Now, why is this a bad idea to load ACPI tables from a driver using
+> request_firmware()?  Because those tables are not device firmare.  They are
+> not firmware that you load into a device to make it work (which then works
+> with all instances of the given hardware), they are part of system configuration
+> information and have to match what's there in the system.  For instance, if you
+> ship your example SSDT with a general-purpose distro, it may just not match the
+> hardware configuration of systems that people will try to use it with.
+>
+> So, while it is sort of OK to look up "DLN2000" and bind the USB device to
+> that by hand (although this looks ugly to me), it is not OK to load a random
+> custom SSDT if it is missing.
+>
+> We need to add a generic mechanism for loading custom SSDTs not present in the
+> firmware image and maybe even to load them on demand, but that cannot happen in
+> an ad-hoc way.  So the entire table loading-unloading code in your patch can go
+> away for now and you need to fail probing if the "DLN2000" ACPI object is not
+> present.
+>
+
+That sounds interesting, I like the idea of a generic mechanism for
+loading custom SSDTs. Do you have any initial thoughts/pointers for
+starting that?
+
+Thanks for the review and feedback.
