@@ -1,106 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Fri, 23 Jan 2015 16:14:13 +0100
-Message-ID: <4300012.3cqZ9mP0gj@vostro.rjw.lan>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com> <1564228.rcRekIyDUd@vostro.rjw.lan> <20150123112122.GD30522@kuha.fi.intel.com>
+Subject: Re: [PATCH 3/4] mfd: dln2: add support for ACPI
+Date: Fri, 23 Jan 2015 16:19:22 +0100
+Message-ID: <1999229.GgDndKFVKR@vostro.rjw.lan>
+References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com> <1879413.uF8phu1QrE@vostro.rjw.lan> <CAE1zotKyJ70ZqNoogC0ozjUsyRrTCe=oohFfawt0FqpCkRkotg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150123112122.GD30522@kuha.fi.intel.com>
+In-Reply-To: <CAE1zotKyJ70ZqNoogC0ozjUsyRrTCe=oohFfawt0FqpCkRkotg@mail.gmail.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Johan Hovold <johan@kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, January 23, 2015 01:21:22 PM Heikki Krogerus wrote:
+On Friday, January 23, 2015 08:47:58 AM Octavian Purdila wrote:
+> On Fri, Jan 23, 2015 at 12:09 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Thursday, January 22, 2015 12:13:13 PM Octavian Purdila wrote:
+> >> On Thu, Jan 22, 2015 at 4:00 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> <snip>
+> >> The idea here is to set the companion for the MFD sub-devices. Mika's
+> >> commit "mfd: Add ACPI support" propagates the parent's companion to
+> >> the MFD sub-devices, so it is sufficient to set the ACPI companion to
+> >> the USB device.
+> >
+> > For the USB device itself you'll then end up with an incomplete binding (you
+> > can't get back to the USB device from the ACPI object), so no, it isn't
+> > sufficient.
+> >
+> >> Then, the companion will be propagated to the sub-devices after which
+> >> acpi_bind_one() will be called for the sub-devices from
+> >> mfd_add_devices (via platform_device_add -> device_add ->
+> >> platform_notify).
+> >
+> > In fact, your use case doesn't seem to cover any of the use cases that
+> > the Mika's commit addressed.  Namely, your parent device doesn't have
+> > an ACPI companion to start with and you want your MFD cells to be bound
+> > to the "DLN2000" thing.  That's why you're setting the ACPI companion
+> > for the USB device, isn't it?
+> >
+> >> It is true that the USB dev will have its ACPI companion set without
+> >> having acpi_bind_one called but I do not see any harm in that. Even
+> >> though acpi_unbind_one() is called it will not find the USB dev on the
+> >> physical node list so no put_device() imbalance is caused.
+> >
+> > Well, there are places where it matters.  Some links in sysfs will be missing
+> > for one example.  Also please see the changelog of commit 52870786ff5d (ACPI:
+> > Use ACPI companion to match only the first physical device).
+> >
+> > Bottom line: You really should be using acpi_bind_one() here and
+> > acpi_unbind_one() on disconnect if you have to.
+> >
 > 
-> --Nq2Wo0NMKNjxTN9z
-> Content-Type: text/plain; charset=iso-8859-1
-> Content-Disposition: inline
-> Content-Transfer-Encoding: 8bit
+> OK, I understand now.
 > 
-> Hi guys,
+> >> > And no, "Let's come up with a patch that sort of works, throw it at the maintainers
+> >> > and see what happens" is not an acceptable approach, sorry.
+> >>
+> >> This patch is based on your feedback of the previous RFC patch set:
+> >
+> > Oh, is it?  I can't recall advising you to use request_firmware() for
+> > uploading ACPI tables or some other questionable things that the patch is
+> > doing.
+> >
+> > And if it still was an RFC, that wouldn't be a problem, but if you just send
+> > non-RFC patches out, that means you want people to merge them.  This is bad
+> > if the patches in question are not in a good enough shape and this one isn't.
+> >
 > 
-> On Thu, Jan 22, 2015 at 05:14:22PM +0100, Rafael J. Wysocki wrote:
-> > On Thursday, January 22, 2015 11:57:55 AM Alexandre Courbot wrote:
-> > > If we decide to go ahead with the solution proposed by this patch for
-> > > practical reasons (which are good reasons indeed), I still have one
-> > > problem with its current form.
-> > > 
-> > > As the discussion highlighted, this is an ACPI problem, so I'd very
-> > > much like it to be confined to the ACPI GPIO code, to be enabled only
-> > > when ACPI is, and to use function names that start with acpi_gpio.
-> > 
-> > I can agree with that.
-> > 
-> > > The current implementation leverages platform lookup, making said lookup
-> > > less efficient in the process and bringing confusion about its
-> > > purpose. Although the two processes are indeed similar, they are
-> > > separate things: one is a legitimate way to map GPIOs, the other is a
-> > > fixup for broken firmware.
-> > > 
-> > > I suppose we all agree this is a hackish fix, so let's confine it as
-> > > much as we can.
-> > 
-> > OK
-> > 
-> > Heikki, any comments?
+> Yes, this should have been tagged with RFC, sorry about that.
 > 
-> I'm fine with that.
+> > Now, why is this a bad idea to load ACPI tables from a driver using
+> > request_firmware()?  Because those tables are not device firmare.  They are
+> > not firmware that you load into a device to make it work (which then works
+> > with all instances of the given hardware), they are part of system configuration
+> > information and have to match what's there in the system.  For instance, if you
+> > ship your example SSDT with a general-purpose distro, it may just not match the
+> > hardware configuration of systems that people will try to use it with.
+> >
+> > So, while it is sort of OK to look up "DLN2000" and bind the USB device to
+> > that by hand (although this looks ugly to me), it is not OK to load a random
+> > custom SSDT if it is missing.
+> >
+> > We need to add a generic mechanism for loading custom SSDTs not present in the
+> > firmware image and maybe even to load them on demand, but that cannot happen in
+> > an ad-hoc way.  So the entire table loading-unloading code in your patch can go
+> > away for now and you need to fail probing if the "DLN2000" ACPI object is not
+> > present.
+> >
 > 
-> That actually makes me think that we could then drop the lookup tables
-> completely and use device properties instead with the help of "generic
-> property" (attached):
+> That sounds interesting, I like the idea of a generic mechanism for
+> loading custom SSDTs. Do you have any initial thoughts/pointers for
+> starting that?
 
-Which reminds me that I've lost track of this one.
+Thoughts - yes, pointers - not so much.  I'll get back to you when I'm done
+with the e-mail backlog from the last few weeks.
 
-Can you please resend it and CC something like linux-acpi?
+> Thanks for the review and feedback.
 
-Also I'm not sure what you mean by "drop the lookup tables completely".
-
-> We would just need to agree on the format how to describe a gpio
-> property, document it and of course convert the current users as
-> usual. The format could be something like this as an example (I'm
-> writing this out of my head so don't shoot me if you can see it would
-> not work. Just an example):
-> 
-> static const u32 example_gpio[] = { <gpio>, <flags>, };
-> 
-> static struct dev_gen_prop example_prop[] =
->         {
->                 .type = DEV_PROP_U32,
->                 .name = "gpio,<con_id>",
->                 .nval = 2,
->                 .num = &example_gpio,
->         },
->         { },
-> };
-> 
-> static struct platform_device example_pdev = {
->         ...
->         .dev = {
->                 .gen_prop = &example_prop,
->         },
-> }
-> 
-> 
-> In gpiolib.c we would then, instead of going through the lookups,
-> simply ask for that property:
-> 
->         ...
->         sprintf(propname, "gpio,%s", con_id);
->         device_property_read_u32_array(dev, propname, &val, 2);
->         ...
->         desc = gpio_to_desc(val[0]);
->         flags = val[1];
->         ...
-> 
-> 
-> So this is just and idea. I think it would be relatively easy to
-> implement. What do you guys think?
-
-Well, I need some time to think about that.
+No problem.
 
 -- 
 I speak only for myself.
