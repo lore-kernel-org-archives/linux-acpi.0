@@ -1,103 +1,291 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/4] mfd: dln2: add support for ACPI
-Date: Fri, 23 Jan 2015 16:19:22 +0100
-Message-ID: <1999229.GgDndKFVKR@vostro.rjw.lan>
-References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com> <1879413.uF8phu1QrE@vostro.rjw.lan> <CAE1zotKyJ70ZqNoogC0ozjUsyRrTCe=oohFfawt0FqpCkRkotg@mail.gmail.com>
+Subject: Re: [RFC PATCH] ACPICA: Resources: Provide common part for struct acpi_resource_address structures.
+Date: Fri, 23 Jan 2015 16:21:18 +0100
+Message-ID: <711042903.kTarCpRk9E@vostro.rjw.lan>
+References: <1420684386-5975-1-git-send-email-jiang.liu@linux.intel.com> <1829383.GqIMIsbMR3@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88026BA180@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CAE1zotKyJ70ZqNoogC0ozjUsyRrTCe=oohFfawt0FqpCkRkotg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Johan Hovold <johan@kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54393 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750829AbbAWO6j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Jan 2015 09:58:39 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026BA180@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Liu, Jiang" <jiang.liu@intel.com>, "Thomas Gleixner (tglx@linutronix.de)" <tglx@linutronix.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Box, David E" <david.e.box@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Friday, January 23, 2015 08:47:58 AM Octavian Purdila wrote:
-> On Fri, Jan 23, 2015 at 12:09 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, January 22, 2015 12:13:13 PM Octavian Purdila wrote:
-> >> On Thu, Jan 22, 2015 at 4:00 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> <snip>
-> >> The idea here is to set the companion for the MFD sub-devices. Mika's
-> >> commit "mfd: Add ACPI support" propagates the parent's companion to
-> >> the MFD sub-devices, so it is sufficient to set the ACPI companion to
-> >> the USB device.
-> >
-> > For the USB device itself you'll then end up with an incomplete binding (you
-> > can't get back to the USB device from the ACPI object), so no, it isn't
-> > sufficient.
-> >
-> >> Then, the companion will be propagated to the sub-devices after which
-> >> acpi_bind_one() will be called for the sub-devices from
-> >> mfd_add_devices (via platform_device_add -> device_add ->
-> >> platform_notify).
-> >
-> > In fact, your use case doesn't seem to cover any of the use cases that
-> > the Mika's commit addressed.  Namely, your parent device doesn't have
-> > an ACPI companion to start with and you want your MFD cells to be bound
-> > to the "DLN2000" thing.  That's why you're setting the ACPI companion
-> > for the USB device, isn't it?
-> >
-> >> It is true that the USB dev will have its ACPI companion set without
-> >> having acpi_bind_one called but I do not see any harm in that. Even
-> >> though acpi_unbind_one() is called it will not find the USB dev on the
-> >> physical node list so no put_device() imbalance is caused.
-> >
-> > Well, there are places where it matters.  Some links in sysfs will be missing
-> > for one example.  Also please see the changelog of commit 52870786ff5d (ACPI:
-> > Use ACPI companion to match only the first physical device).
-> >
-> > Bottom line: You really should be using acpi_bind_one() here and
-> > acpi_unbind_one() on disconnect if you have to.
-> >
+On Friday, January 23, 2015 02:21:30 AM Zheng, Lv wrote:
+> Hi, Rafael
 > 
-> OK, I understand now.
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Friday, January 23, 2015 6:50 AM
+> > 
+> > On Thursday, January 22, 2015 10:46:00 AM Lv Zheng wrote:
+> > > struct acpi_resource_address and struct acpi_resource_extended_address64 share substracts
+> > > just at different offsets. To unify the parsing functions, OSPMs like Linux
+> > > need a new ACPI_ADDRESS64_ATTRIBUTE as their substructs, so they can
+> > > extract the shared data.
+> > 
+> > Looks OK to me.
 > 
-> >> > And no, "Let's come up with a patch that sort of works, throw it at the maintainers
-> >> > and see what happens" is not an acceptable approach, sorry.
-> >>
-> >> This patch is based on your feedback of the previous RFC patch set:
-> >
-> > Oh, is it?  I can't recall advising you to use request_firmware() for
-> > uploading ACPI tables or some other questionable things that the patch is
-> > doing.
-> >
-> > And if it still was an RFC, that wouldn't be a problem, but if you just send
-> > non-RFC patches out, that means you want people to merge them.  This is bad
-> > if the patches in question are not in a good enough shape and this one isn't.
-> >
-> 
-> Yes, this should have been tagged with RFC, sorry about that.
-> 
-> > Now, why is this a bad idea to load ACPI tables from a driver using
-> > request_firmware()?  Because those tables are not device firmare.  They are
-> > not firmware that you load into a device to make it work (which then works
-> > with all instances of the given hardware), they are part of system configuration
-> > information and have to match what's there in the system.  For instance, if you
-> > ship your example SSDT with a general-purpose distro, it may just not match the
-> > hardware configuration of systems that people will try to use it with.
-> >
-> > So, while it is sort of OK to look up "DLN2000" and bind the USB device to
-> > that by hand (although this looks ugly to me), it is not OK to load a random
-> > custom SSDT if it is missing.
-> >
-> > We need to add a generic mechanism for loading custom SSDTs not present in the
-> > firmware image and maybe even to load them on demand, but that cannot happen in
-> > an ad-hoc way.  So the entire table loading-unloading code in your patch can go
-> > away for now and you need to fail probing if the "DLN2000" ACPI object is not
-> > present.
-> >
-> 
-> That sounds interesting, I like the idea of a generic mechanism for
-> loading custom SSDTs. Do you have any initial thoughts/pointers for
-> starting that?
+> Could you help to ship it with linux-next directly so that Gerry can re-base
+> his patchset on top of linux-next using this change?
+> I'll take care of remove this patch from ACPICA release cycle.
 
-Thoughts - yes, pointers - not so much.  I'll get back to you when I'm done
-with the e-mail backlog from the last few weeks.
+So do you want me to apply this one directly?  I can do that.
 
-> Thanks for the review and feedback.
 
-No problem.
+> > > Original-by: Thomas Gleixner <tglx@linutronix.de>
+> > > Original-by: Jiang Liu <jiang.liu@linux.intel.com>
+> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > > ---
+> > >  drivers/acpi/acpica/rsaddr.c     |    9 +++---
+> > >  drivers/acpi/acpica/rsdumpinfo.c |   59 +++++++++++++++++++-------------------
+> > >  drivers/acpi/acpica/rsxface.c    |   10 +++----
+> > >  include/acpi/acrestyp.h          |   40 +++++++++++++++-----------
+> > >  4 files changed, 64 insertions(+), 54 deletions(-)
+> > >
+> > > diff --git a/drivers/acpi/acpica/rsaddr.c b/drivers/acpi/acpica/rsaddr.c
+> > > index 916fd09..94a3a05 100644
+> > > --- a/drivers/acpi/acpica/rsaddr.c
+> > > +++ b/drivers/acpi/acpica/rsaddr.c
+> > > @@ -74,7 +74,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address16[5] = {
+> > >  	 * Address Translation Offset
+> > >  	 * Address Length
+> > >  	 */
+> > > -	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.address16.granularity),
+> > > +	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.address16.address.granularity),
+> > >  	 AML_OFFSET(address16.granularity),
+> > >  	 5},
+> > >
+> > > @@ -112,7 +112,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address32[5] = {
+> > >  	 * Address Translation Offset
+> > >  	 * Address Length
+> > >  	 */
+> > > -	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.address32.granularity),
+> > > +	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.address32.address.granularity),
+> > >  	 AML_OFFSET(address32.granularity),
+> > >  	 5},
+> > >
+> > > @@ -150,7 +150,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address64[5] = {
+> > >  	 * Address Translation Offset
+> > >  	 * Address Length
+> > >  	 */
+> > > -	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.address64.granularity),
+> > > +	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.address64.address.granularity),
+> > >  	 AML_OFFSET(address64.granularity),
+> > >  	 5},
+> > >
+> > > @@ -194,7 +194,8 @@ struct acpi_rsconvert_info acpi_rs_convert_ext_address64[5] = {
+> > >  	 * Address Length
+> > >  	 * Type-Specific Attribute
+> > >  	 */
+> > > -	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.ext_address64.granularity),
+> > > +	{ACPI_RSC_MOVE64,
+> > > +	 ACPI_RS_OFFSET(data.ext_address64.address.granularity),
+> > >  	 AML_OFFSET(ext_address64.granularity),
+> > >  	 6}
+> > >  };
+> > > diff --git a/drivers/acpi/acpica/rsdumpinfo.c b/drivers/acpi/acpica/rsdumpinfo.c
+> > > index 2f9332d..6ba7ad5 100644
+> > > --- a/drivers/acpi/acpica/rsdumpinfo.c
+> > > +++ b/drivers/acpi/acpica/rsdumpinfo.c
+> > > @@ -183,15 +183,15 @@ struct acpi_rsdump_info acpi_rs_dump_address16[8] = {
+> > >  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address16),
+> > >  	 "16-Bit WORD Address Space", NULL},
+> > >  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> > > -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.granularity), "Granularity",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.minimum), "Address Minimum",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.maximum), "Address Maximum",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.translation_offset),
+> > > +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.granularity),
+> > > +	 "Granularity", NULL},
+> > > +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.minimum),
+> > > +	 "Address Minimum", NULL},
+> > > +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.maximum),
+> > > +	 "Address Maximum", NULL},
+> > > +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.translation_offset),
+> > >  	 "Translation Offset", NULL},
+> > > -	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address_length),
+> > > +	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.address_length),
+> > >  	 "Address Length", NULL},
+> > >  	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address16.resource_source), NULL, NULL}
+> > >  };
+> > > @@ -200,15 +200,15 @@ struct acpi_rsdump_info acpi_rs_dump_address32[8] = {
+> > >  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address32),
+> > >  	 "32-Bit DWORD Address Space", NULL},
+> > >  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> > > -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.granularity), "Granularity",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.minimum), "Address Minimum",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.maximum), "Address Maximum",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.translation_offset),
+> > > +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.granularity),
+> > > +	 "Granularity", NULL},
+> > > +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.minimum),
+> > > +	 "Address Minimum", NULL},
+> > > +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.maximum),
+> > > +	 "Address Maximum", NULL},
+> > > +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.translation_offset),
+> > >  	 "Translation Offset", NULL},
+> > > -	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address_length),
+> > > +	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.address_length),
+> > >  	 "Address Length", NULL},
+> > >  	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address32.resource_source), NULL, NULL}
+> > >  };
+> > > @@ -217,15 +217,15 @@ struct acpi_rsdump_info acpi_rs_dump_address64[8] = {
+> > >  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address64),
+> > >  	 "64-Bit QWORD Address Space", NULL},
+> > >  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.granularity), "Granularity",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.minimum), "Address Minimum",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.maximum), "Address Maximum",
+> > > -	 NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.translation_offset),
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.granularity),
+> > > +	 "Granularity", NULL},
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.minimum),
+> > > +	 "Address Minimum", NULL},
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.maximum),
+> > > +	 "Address Maximum", NULL},
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.translation_offset),
+> > >  	 "Translation Offset", NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address_length),
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.address_length),
+> > >  	 "Address Length", NULL},
+> > >  	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address64.resource_source), NULL, NULL}
+> > >  };
+> > > @@ -234,15 +234,16 @@ struct acpi_rsdump_info acpi_rs_dump_ext_address64[8] = {
+> > >  	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_ext_address64),
+> > >  	 "64-Bit Extended Address Space", NULL},
+> > >  	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.granularity),
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.granularity),
+> > >  	 "Granularity", NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.minimum),
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.minimum),
+> > >  	 "Address Minimum", NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.maximum),
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.maximum),
+> > >  	 "Address Maximum", NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.translation_offset),
+> > > +	{ACPI_RSD_UINT64,
+> > > +	 ACPI_RSD_OFFSET(ext_address64.address.translation_offset),
+> > >  	 "Translation Offset", NULL},
+> > > -	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address_length),
+> > > +	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.address_length),
+> > >  	 "Address Length", NULL},
+> > >  	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.type_specific),
+> > >  	 "Type-Specific Attribute", NULL}
+> > > diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
+> > > index 877ab92..2952878 100644
+> > > --- a/drivers/acpi/acpica/rsxface.c
+> > > +++ b/drivers/acpi/acpica/rsxface.c
+> > > @@ -60,11 +60,11 @@ ACPI_MODULE_NAME("rsxface")
+> > >  	ACPI_COPY_FIELD(out, in, min_address_fixed);         \
+> > >  	ACPI_COPY_FIELD(out, in, max_address_fixed);         \
+> > >  	ACPI_COPY_FIELD(out, in, info);                      \
+> > > -	ACPI_COPY_FIELD(out, in, granularity);               \
+> > > -	ACPI_COPY_FIELD(out, in, minimum);                   \
+> > > -	ACPI_COPY_FIELD(out, in, maximum);                   \
+> > > -	ACPI_COPY_FIELD(out, in, translation_offset);        \
+> > > -	ACPI_COPY_FIELD(out, in, address_length);            \
+> > > +	ACPI_COPY_FIELD(out, in, address.granularity);       \
+> > > +	ACPI_COPY_FIELD(out, in, address.minimum);           \
+> > > +	ACPI_COPY_FIELD(out, in, address.maximum);           \
+> > > +	ACPI_COPY_FIELD(out, in, address.translation_offset); \
+> > > +	ACPI_COPY_FIELD(out, in, address.address_length);    \
+> > >  	ACPI_COPY_FIELD(out, in, resource_source);
+> > >  /* Local prototypes */
+> > >  static acpi_status
+> > > diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
+> > > index eb760ca..023959d 100644
+> > > --- a/include/acpi/acrestyp.h
+> > > +++ b/include/acpi/acrestyp.h
+> > > @@ -305,43 +305,51 @@ struct acpi_resource_source {
+> > >  	u8                                      max_address_fixed; \
+> > >  	union acpi_resource_attribute           info;
+> > >
+> > > -struct acpi_resource_address {
+> > > -ACPI_RESOURCE_ADDRESS_COMMON};
+> > > -
+> > > -struct acpi_resource_address16 {
+> > > -	ACPI_RESOURCE_ADDRESS_COMMON u16 granularity;
+> > > +struct acpi_address16_attribute {
+> > > +	u16 granularity;
+> > >  	u16 minimum;
+> > >  	u16 maximum;
+> > >  	u16 translation_offset;
+> > >  	u16 address_length;
+> > > -	struct acpi_resource_source resource_source;
+> > >  };
+> > >
+> > > -struct acpi_resource_address32 {
+> > > -	ACPI_RESOURCE_ADDRESS_COMMON u32 granularity;
+> > > +struct acpi_address32_attribute {
+> > > +	u32 granularity;
+> > >  	u32 minimum;
+> > >  	u32 maximum;
+> > >  	u32 translation_offset;
+> > >  	u32 address_length;
+> > > -	struct acpi_resource_source resource_source;
+> > >  };
+> > >
+> > > -struct acpi_resource_address64 {
+> > > -	ACPI_RESOURCE_ADDRESS_COMMON u64 granularity;
+> > > +struct acpi_address64_attribute {
+> > > +	u64 granularity;
+> > >  	u64 minimum;
+> > >  	u64 maximum;
+> > >  	u64 translation_offset;
+> > >  	u64 address_length;
+> > > +};
+> > > +
+> > > +struct acpi_resource_address {
+> > > +ACPI_RESOURCE_ADDRESS_COMMON};
+> > > +
+> > > +struct acpi_resource_address16 {
+> > > +	ACPI_RESOURCE_ADDRESS_COMMON ACPI_ADDRESS16_ATTRIBUTE address;
+> > > +	struct acpi_resource_source resource_source;
+> > > +};
+> > > +
+> > > +struct acpi_resource_address32 {
+> > > +	ACPI_RESOURCE_ADDRESS_COMMON ACPI_ADDRESS32_ATTRIBUTE address;
+> > > +	struct acpi_resource_source resource_source;
+> > > +};
+> > > +
+> > > +struct acpi_resource_address64 {
+> > > +	ACPI_RESOURCE_ADDRESS_COMMON ACPI_ADDRESS64_ATTRIBUTE address;
+> > >  	struct acpi_resource_source resource_source;
+> > >  };
+> > >
+> > >  struct acpi_resource_extended_address64 {
+> > >  	ACPI_RESOURCE_ADDRESS_COMMON u8 revision_ID;
+> > > -	u64 granularity;
+> > > -	u64 minimum;
+> > > -	u64 maximum;
+> > > -	u64 translation_offset;
+> > > -	u64 address_length;
+> > > +	ACPI_ADDRESS64_ATTRIBUTE address;
+> > >  	u64 type_specific;
+> > >  };
+> > >
+> > >
+> > 
+> > --
+> > I speak only for myself.
+> > Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
 
 -- 
 I speak only for myself.
