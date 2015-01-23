@@ -1,134 +1,197 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH 7/7] ACPI: use Linux as ACPI_OS_NAME for _OS on ARM64
-Date: Fri, 23 Jan 2015 09:34:50 -0700
-Message-ID: <54C2782A.8090200@redhat.com>
-References: <1421973884-13029-1-git-send-email-al.stone@linaro.org> <1421973884-13029-8-git-send-email-al.stone@linaro.org> <3375613.hf7nCUoE0P@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH][v3] PCI / PM: Avoid resuming PCI devices during system suspend
+Date: Fri, 23 Jan 2015 14:55:25 -0600
+Message-ID: <CAErSpo6CFNBWp_CDZQc3XmCFzR5nEjWSfLSVG5c549pEHn4g4Q@mail.gmail.com>
+References: <1460212.bInrzeZle0@vostro.rjw.lan> <1520491.dCOodSBFV9@vostro.rjw.lan>
+ <20035664.sy5Q5n4bIK@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36030 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755889AbbAWQfe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Jan 2015 11:35:34 -0500
-In-Reply-To: <3375613.hf7nCUoE0P@vostro.rjw.lan>
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:46456 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751614AbbAWUzr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Jan 2015 15:55:47 -0500
+Received: by mail-qc0-f181.google.com with SMTP id l6so8266949qcy.12
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Jan 2015 12:55:46 -0800 (PST)
+In-Reply-To: <20035664.sy5Q5n4bIK@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, al.stone@linaro.org
-Cc: tony.luck@intel.com, fenghua.yu@intel.com, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, robert.moore@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 01/23/2015 08:55 AM, Rafael J. Wysocki wrote:
-> On Thursday, January 22, 2015 05:44:44 PM al.stone@linaro.org wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> ACPI_OS_NAME is globally defined as "Microsoft Windows NT" for now.
->> That doesn't make much sense in the ARM context, so set it to "Linux"
->> when CONFIG_ARM64.
->>
->> If it is necessary to change the return value from \_OS_ (that is, return
->> some value other than the default in ACPI_OS_NAME), use the kernel parameter
->> "acpi_os_name=<string>".
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  arch/arm64/Kconfig              | 1 +
->>  drivers/acpi/Kconfig            | 8 ++++++++
->>  include/acpi/acconfig.h         | 2 ++
->>  include/acpi/platform/aclinux.h | 4 ++++
->>  4 files changed, 15 insertions(+)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 915aa16..20677d1 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -1,5 +1,6 @@
-> 
-> If you added
-> 
-> 	config ACPI_OS_NAME
-> 		string
-> 		default "Linux"
-> 		depends on ACPI
-> 
-> to this file, then you don't need to add the new select below and ->
-> 
->>  config ARM64
->>  	def_bool y
->> +	select ACPI_OS_NAME_LINUX if ACPI
->>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->>  	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
->>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 3e3bd35..024c5f0 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -369,6 +369,14 @@ config ACPI_REDUCED_HARDWARE_ONLY
->>  
->>  	  If you are unsure what to do, do not enable this option.
->>  
->> +config ACPI_OS_NAME_LINUX
->> +	bool "Using Linux for _OS method" if EXPERT
->> +	def_bool n
->> +	  When used, this option makes sure the _OS method returns
->> +	  the value "Linux".
->> +
->> +	  If you are unsure what to do, do not enable this option.
->> +
-> 
-> -> you don't need this at all ->>
-> 
->>  source "drivers/acpi/apei/Kconfig"
->>  
->>  config ACPI_EXTLOG
->> diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
->> index 5a0a3e5..1980bf4 100644
->> --- a/include/acpi/acconfig.h
->> +++ b/include/acpi/acconfig.h
->> @@ -69,7 +69,9 @@
->>   * code that will not execute the _OSI method unless _OS matches the string
->>   * below.  Therefore, change this string at your own risk.
->>   */
->> +#ifndef ACPI_OS_NAME
->>  #define ACPI_OS_NAME                    "Microsoft Windows NT"
->> +#endif
->>  
->>  /* Maximum objects in the various object caches */
->>  
->> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
->> index 1ba7c19..a8a7ee3 100644
->> --- a/include/acpi/platform/aclinux.h
->> +++ b/include/acpi/platform/aclinux.h
->> @@ -69,6 +69,10 @@
->>  #define ACPI_REDUCED_HARDWARE 1
->>  #endif
->>  
->> +#ifdef CONFIG_ACPI_OS_NAME_LINUX
->> +#define ACPI_OS_NAME "Linux"
->> +#endif
-> 
-> ->> and here you can do
-> 
-> +#ifdef CONFIG_ACPI_OS_NAME
-> +#define ACPI_OS_NAME CONFIG_ACPI_OS_NAME
-> +#endif
-> 
-> unless I'm missing something.
-> 
->> +
->>  #include <linux/string.h>
->>  #include <linux/kernel.h>
->>  #include <linux/ctype.h>
->>
-> 
+On Tue, Jan 20, 2015 at 7:17 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Commit f25c0ae2b4c4 (ACPI / PM: Avoid resuming devices in ACPI PM
+> domain during system suspend) modified the ACPI PM domain's system
+> suspend callbacks to allow devices attached to it to be left in the
+> runtime-suspended state during system suspend so as to optimize
+> the suspend process.
+>
+> This was based on the general mechanism introduced by commit
+> aae4518b3124 (PM / sleep: Mechanism to avoid resuming runtime-suspended
+> devices unnecessarily).
+>
+> Extend that approach to PCI devices by modifying the PCI bus type's
+> ->prepare callback to return 1 for devices that are runtime-suspended
+> when it is being executed and that are in a suitable power state and
+> need not be resumed going forward.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-D'oh.  Yup.  I'll correct it.
+I don't profess to understand this, and it seems like something you
+could merge via your PM tree.  So I trust you to do the right thing
+with it :)
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+> ---
+>
+> This version actually builds and need not be an RFC any more I suppose.
+>
+> ---
+>  drivers/pci/pci-acpi.c   |   17 +++++++++++++++++
+>  drivers/pci/pci-driver.c |   11 ++++++-----
+>  drivers/pci/pci.c        |   26 ++++++++++++++++++++++++++
+>  drivers/pci/pci.h        |    6 ++++++
+>  4 files changed, 55 insertions(+), 5 deletions(-)
+>
+> Index: linux-pm/drivers/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.c
+> +++ linux-pm/drivers/pci/pci.c
+> @@ -521,6 +521,11 @@ static inline int platform_pci_run_wake(
+>                         pci_platform_pm->run_wake(dev, enable) : -ENODEV;
+>  }
+>
+> +static inline bool platform_pci_need_resume(struct pci_dev *dev)
+> +{
+> +       return pci_platform_pm ? pci_platform_pm->need_resume(dev) : false;
+> +}
+> +
+>  /**
+>   * pci_raw_set_power_state - Use PCI PM registers to set the power state of
+>   *                           given PCI device
+> @@ -1999,6 +2004,27 @@ bool pci_dev_run_wake(struct pci_dev *de
+>  }
+>  EXPORT_SYMBOL_GPL(pci_dev_run_wake);
+>
+> +/**
+> + * pci_dev_keep_suspended - Check if the device can stay in the suspended state.
+> + * @pci_dev: Device to check.
+> + *
+> + * Return 'true' if the device is runtime-suspended, it doesn't have to be
+> + * reconfigured due to wakeup settings difference between system and runtime
+> + * suspend and the current power state of it is suitable for the upcoming
+> + * (system) transition.
+> + */
+> +bool pci_dev_keep_suspended(struct pci_dev *pci_dev)
+> +{
+> +       struct device *dev = &pci_dev->dev;
+> +
+> +       if (!pm_runtime_suspended(dev)
+> +           || (device_can_wakeup(dev) && !device_may_wakeup(dev))
+> +           || platform_pci_need_resume(pci_dev))
+> +               return false;
+> +
+> +       return pci_target_state(pci_dev) == pci_dev->current_state;
+> +}
+> +
+>  void pci_config_pm_runtime_get(struct pci_dev *pdev)
+>  {
+>         struct device *dev = &pdev->dev;
+> Index: linux-pm/drivers/pci/pci.h
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.h
+> +++ linux-pm/drivers/pci/pci.h
+> @@ -50,6 +50,10 @@ int pci_probe_reset_function(struct pci_
+>   *             for given device (the device's wake-up capability has to be
+>   *             enabled by @sleep_wake for this feature to work)
+>   *
+> + * @need_resume: returns 'true' if the given device (which is currently
+> + *             suspended) needs to be resumed to be configured for system
+> + *             wakeup.
+> + *
+>   * If given platform is generally capable of power managing PCI devices, all of
+>   * these callbacks are mandatory.
+>   */
+> @@ -59,6 +63,7 @@ struct pci_platform_pm_ops {
+>         pci_power_t (*choose_state)(struct pci_dev *dev);
+>         int (*sleep_wake)(struct pci_dev *dev, bool enable);
+>         int (*run_wake)(struct pci_dev *dev, bool enable);
+> +       bool (*need_resume)(struct pci_dev *dev);
+>  };
+>
+>  int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
+> @@ -67,6 +72,7 @@ void pci_power_up(struct pci_dev *dev);
+>  void pci_disable_enabled_device(struct pci_dev *dev);
+>  int pci_finish_runtime_suspend(struct pci_dev *dev);
+>  int __pci_pme_wakeup(struct pci_dev *dev, void *ign);
+> +bool pci_dev_keep_suspended(struct pci_dev *dev);
+>  void pci_config_pm_runtime_get(struct pci_dev *dev);
+>  void pci_config_pm_runtime_put(struct pci_dev *dev);
+>  void pci_pm_init(struct pci_dev *dev);
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -501,12 +501,29 @@ static int acpi_pci_run_wake(struct pci_
+>         return 0;
+>  }
+>
+> +static bool acpi_pci_need_resume(struct pci_dev *dev)
+> +{
+> +       struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+> +
+> +       if (!adev || !acpi_device_power_manageable(adev))
+> +               return false;
+> +
+> +       if (device_may_wakeup(&dev->dev) != !!adev->wakeup.prepare_count)
+> +               return true;
+> +
+> +       if (acpi_target_system_state() == ACPI_STATE_S0)
+> +               return false;
+> +
+> +       return !!adev->power.flags.dsw_present;
+> +}
+> +
+>  static struct pci_platform_pm_ops acpi_pci_platform_pm = {
+>         .is_manageable = acpi_pci_power_manageable,
+>         .set_state = acpi_pci_set_power_state,
+>         .choose_state = acpi_pci_choose_state,
+>         .sleep_wake = acpi_pci_sleep_wake,
+>         .run_wake = acpi_pci_run_wake,
+> +       .need_resume = acpi_pci_need_resume,
+>  };
+>
+>  void acpi_pci_add_bus(struct pci_bus *bus)
+> Index: linux-pm/drivers/pci/pci-driver.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-driver.c
+> +++ linux-pm/drivers/pci/pci-driver.c
+> @@ -653,7 +653,6 @@ static bool pci_has_legacy_pm_support(st
+>  static int pci_pm_prepare(struct device *dev)
+>  {
+>         struct device_driver *drv = dev->driver;
+> -       int error = 0;
+>
+>         /*
+>          * Devices having power.ignore_children set may still be necessary for
+> @@ -662,10 +661,12 @@ static int pci_pm_prepare(struct device
+>         if (dev->power.ignore_children)
+>                 pm_runtime_resume(dev);
+>
+> -       if (drv && drv->pm && drv->pm->prepare)
+> -               error = drv->pm->prepare(dev);
+> -
+> -       return error;
+> +       if (drv && drv->pm && drv->pm->prepare) {
+> +               int error = drv->pm->prepare(dev);
+> +               if (error)
+> +                       return error;
+> +       }
+> +       return pci_dev_keep_suspended(to_pci_dev(dev));
+>  }
+>
+>
+>
