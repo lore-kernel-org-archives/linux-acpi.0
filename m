@@ -1,81 +1,47 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Mon, 26 Jan 2015 15:06:47 +0200
-Message-ID: <20150126130647.GC28539@kuha.fi.intel.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1564228.rcRekIyDUd@vostro.rjw.lan>
- <20150123112122.GD30522@kuha.fi.intel.com>
- <4300012.3cqZ9mP0gj@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/4] int to bool conversion
+Date: Mon, 26 Jan 2015 14:32:46 +0100
+Message-ID: <2189735.DtT3OIbRBT@vostro.rjw.lan>
+References: <20150122084941.GA14651@sloth> <1659960.ohcxabvmYi@vostro.rjw.lan> <54C5FB3F.6000803@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4300012.3cqZ9mP0gj@vostro.rjw.lan>
-Sender: linux-gpio-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54C5FB3F.6000803@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Quentin Lambert <lambert.quentin@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 23, 2015 at 04:14:13PM +0100, Rafael J. Wysocki wrote:
-> > That actually makes me think that we could then drop the lookup tables
-> > completely and use device properties instead with the help of "generic
-> > property" (attached):
+On Monday, January 26, 2015 09:30:55 AM Quentin Lambert wrote:
+> Sorry for the delay in answering ....
 > 
-> Which reminds me that I've lost track of this one.
+> On 22/01/2015 17:18, Rafael J. Wysocki wrote:
+> > On Thursday, January 22, 2015 09:49:41 AM Quentin Lambert wrote:
+> >> These patches convert local variables from int to bool when relevant.
+> > And what exactly is the need for that?  Does that fix any functional problems?
+> >
+> >
+> It doesn't fix any functional problem. The point of this patch
+> is to increase the code readability by lifting some of the ambiguities
+> that appear when using an integer variable as boolean.
 > 
-> Can you please resend it and CC something like linux-acpi?
+> My understanding is that by explicitly using a boolean declaration
+> when it is relevant it clearly informs the reader that the variable
+> is going to represent a binary state. Moreover, using the keywords
+> true and false help indicate that the variable will not be involved
+> in any computation other than boolean arithmetic.
 
-OK, I'll resend it.
+Well, in the new code, yes.  The existing code is a different matter though
+and it doesn't actually hurt if you leave the ints where they are, so there's
+no reason to make those changes.
 
-> Also I'm not sure what you mean by "drop the lookup tables completely".
+If you change old code and the change is not trivial (eg. fixes of white space
+or comments, or kernel messages etc.) and someone enounters a bug that may be
+related to it, they will have to go through your changes to see if that's not
+the source of the bug.  That's not really productive.
 
-So I meant removing struct gpio_lookup and struct gpio_lookup_table.
-
-> > We would just need to agree on the format how to describe a gpio
-> > property, document it and of course convert the current users as
-> > usual. The format could be something like this as an example (I'm
-> > writing this out of my head so don't shoot me if you can see it would
-> > not work. Just an example):
-> > 
-> > static const u32 example_gpio[] = { <gpio>, <flags>, };
-> > 
-> > static struct dev_gen_prop example_prop[] =
-> >         {
-> >                 .type = DEV_PROP_U32,
-> >                 .name = "gpio,<con_id>",
-> >                 .nval = 2,
-> >                 .num = &example_gpio,
-> >         },
-> >         { },
-> > };
-> > 
-> > static struct platform_device example_pdev = {
-> >         ...
-> >         .dev = {
-> >                 .gen_prop = &example_prop,
-> >         },
-> > }
-> > 
-> > 
-> > In gpiolib.c we would then, instead of going through the lookups,
-> > simply ask for that property:
-> > 
-> >         ...
-> >         sprintf(propname, "gpio,%s", con_id);
-> >         device_property_read_u32_array(dev, propname, &val, 2);
-> >         ...
-> >         desc = gpio_to_desc(val[0]);
-> >         flags = val[1];
-> >         ...
-> > 
-> > 
-> > So this is just and idea. I think it would be relatively easy to
-> > implement. What do you guys think?
-> 
-> Well, I need some time to think about that.
-
-
-Cheers,
 
 -- 
-heikki
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
