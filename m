@@ -1,43 +1,56 @@
-From: Quentin Lambert <lambert.quentin@gmail.com>
-Subject: Re: [PATCH 0/4] int to bool conversion
-Date: Mon, 26 Jan 2015 09:30:55 +0100
-Message-ID: <54C5FB3F.6000803@gmail.com>
-References: <20150122084941.GA14651@sloth> <1659960.ohcxabvmYi@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/2] ACPICA: 201501xx fast path patches.
+Date: Mon, 26 Jan 2015 16:58:34 +0800
+Message-ID: <cover.1422261662.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:32823 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbbAZIbH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jan 2015 03:31:07 -0500
-In-Reply-To: <1659960.ohcxabvmYi@vostro.rjw.lan>
+Received: from mga03.intel.com ([134.134.136.65]:63948 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751623AbbAZI6n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jan 2015 03:58:43 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Sorry for the delay in answering ....
+This patchset contains ACPICA 201501xx release patches.
+They can be directly merged to the Linux kernel before the ACPICA 201501xx
+release.
 
-On 22/01/2015 17:18, Rafael J. Wysocki wrote:
-> On Thursday, January 22, 2015 09:49:41 AM Quentin Lambert wrote:
->> These patches convert local variables from int to bool when relevant.
-> And what exactly is the need for that?  Does that fix any functional problems?
->
->
-It doesn't fix any functional problem. The point of this patch
-is to increase the code readability by lifting some of the ambiguities
-that appear when using an integer variable as boolean.
+For PATCH 1, I rebased it on top of recent linux-next branch. Since we may
+need to wait for the confirmation from Octavian, I marked it as RFC.
 
-My understanding is that by explicitly using a boolean declaration
-when it is relevant it clearly informs the reader that the variable
-is going to represent a binary state. Moreover, using the keywords
-true and false help indicate that the variable will not be involved
-in any computation other than boolean arithmetic.
+For PATCH 2, build tests are passed against the following configurations:
+1. ia64/i386/x86_64 defconfig
+2. ia64/i386/x86_64 allyesconfig
+3. ia64/i386/x86_64 allnoconfig
+4. ia64/i386/x86_64 defconfig & CONFIG_ACPI=n
 
-That being said, I am new to kernel contribution and I feel that
-a more compelling case may be made here:
-http://lkml.iu.edu/hypermail/linux/kernel/0607.2/0791.html
+Lv Zheng (2):
+  ACPI: Introduce acpi_unload_parent_table() usages in Linux kernel.
+  ACPICA: Resources: Provide common part for struct
+    acpi_resource_address structures.
 
-BR,
-Quentin
+ arch/ia64/kernel/acpi-ext.c       |    6 ++--
+ arch/ia64/pci/pci.c               |   14 ++++-----
+ arch/x86/pci/acpi.c               |   26 ++++++++--------
+ arch/x86/pci/mmconfig-shared.c    |    6 ++--
+ drivers/acpi/acpi_memhotplug.c    |    8 ++---
+ drivers/acpi/acpica/nsxfobj.c     |   44 ---------------------------
+ drivers/acpi/acpica/rsaddr.c      |    9 +++---
+ drivers/acpi/acpica/rsdumpinfo.c  |   59 +++++++++++++++++++------------------
+ drivers/acpi/acpica/rsxface.c     |   10 +++----
+ drivers/acpi/acpica/tbxface.c     |   46 -----------------------------
+ drivers/acpi/pci_root.c           |    6 ++--
+ drivers/acpi/resource.c           |   24 +++++++--------
+ drivers/char/hpet.c               |    4 +--
+ drivers/hv/vmbus_drv.c            |    4 +--
+ drivers/pci/hotplug/sgi_hotplug.c |   13 ++++----
+ drivers/pnp/pnpacpi/rsparser.c    |   16 +++++-----
+ drivers/xen/xen-acpi-memhotplug.c |    8 ++---
+ include/acpi/acpixf.h             |    6 ----
+ include/acpi/acrestyp.h           |   40 +++++++++++++++----------
+ 19 files changed, 132 insertions(+), 217 deletions(-)
+
+-- 
+1.7.10
+
