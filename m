@@ -1,47 +1,276 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/4] int to bool conversion
-Date: Mon, 26 Jan 2015 14:32:46 +0100
-Message-ID: <2189735.DtT3OIbRBT@vostro.rjw.lan>
-References: <20150122084941.GA14651@sloth> <1659960.ohcxabvmYi@vostro.rjw.lan> <54C5FB3F.6000803@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54C5FB3F.6000803@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Quentin Lambert <lambert.quentin@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [resend PATCH] driver core: property: support for generic property
+Date: Mon, 26 Jan 2015 15:17:40 +0200
+Message-ID: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:34164 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751244AbbAZNRn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jan 2015 08:17:43 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-On Monday, January 26, 2015 09:30:55 AM Quentin Lambert wrote:
-> Sorry for the delay in answering ....
-> 
-> On 22/01/2015 17:18, Rafael J. Wysocki wrote:
-> > On Thursday, January 22, 2015 09:49:41 AM Quentin Lambert wrote:
-> >> These patches convert local variables from int to bool when relevant.
-> > And what exactly is the need for that?  Does that fix any functional problems?
-> >
-> >
-> It doesn't fix any functional problem. The point of this patch
-> is to increase the code readability by lifting some of the ambiguities
-> that appear when using an integer variable as boolean.
-> 
-> My understanding is that by explicitly using a boolean declaration
-> when it is relevant it clearly informs the reader that the variable
-> is going to represent a binary state. Moreover, using the keywords
-> true and false help indicate that the variable will not be involved
-> in any computation other than boolean arithmetic.
+This extends the unified device property interface by adding
+"Generic Property" to it for cases where device tree or ACPI
+are not being used.
 
-Well, in the new code, yes.  The existing code is a different matter though
-and it doesn't actually hurt if you leave the ints where they are, so there's
-no reason to make those changes.
+That makes the unified device property interface cover also
+most of the cases where information is extracted from custom
+platform_data in the drivers. So if before we had to check
+separately is there custom platform_data for a driver:
 
-If you change old code and the change is not trivial (eg. fixes of white space
-or comments, or kernel messages etc.) and someone enounters a bug that may be
-related to it, they will have to go through your changes to see if that's not
-the source of the bug.  That's not really productive.
+	if (pdata)
+		bar = pdata->bar;
+	else
+		device_property_read_u32(dev, "foo", &bar);
 
+we can now drop that check and simply always use the unified
+device property interface.
 
+That makes it possible to drop a lot of boiler plate from
+the drivers, plus quite a few header files under
+include/linux/ describing those driver specific platform
+data structures can be removed.
+
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/base/property.c  | 135 ++++++++++++++++++++++++++++++++++++++++++-----
+ include/linux/device.h   |   3 ++
+ include/linux/property.h |  17 ++++++
+ 3 files changed, 143 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index c458458..4ea6d27 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -15,6 +15,108 @@
+ #include <linux/acpi.h>
+ #include <linux/of.h>
+ 
++static struct dev_gen_prop *dev_prop_get(struct device *dev, const char *name)
++{
++	struct dev_gen_prop *prop;
++
++	if (!dev->gen_prop)
++		return NULL;
++
++	for (prop = dev->gen_prop; prop->name; prop++)
++		if (!strcmp(name, prop->name))
++			return prop;
++	return NULL;
++}
++
++static int dev_prop_copy_array_u8(u8 *src, u8 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++)
++		val[i] = src[i];
++	return 0;
++}
++
++static int dev_prop_copy_array_u16(u16 *src, u16 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++)
++		val[i] = src[i];
++	return 0;
++}
++
++static int dev_prop_copy_array_u32(u32 *src, u32 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++)
++		val[i] = src[i];
++	return 0;
++}
++
++static int dev_prop_copy_array_u64(u64 *src, u64 *val, size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++)
++		val[i] = src[i];
++	return 0;
++}
++
++static int dev_prop_copy_array_string(const char **src, const char **val,
++				      size_t nval)
++{
++	int i;
++
++	for (i = 0; i < nval; i++)
++		val[i] = src[i];
++	return 0;
++}
++
++static int dev_prop_read_array(struct device *dev, const char *name,
++			       enum dev_prop_type type, void *val, size_t nval)
++{
++	struct dev_gen_prop *prop;
++	int ret = 0;
++
++	prop = dev_prop_get(dev, name);
++	if (!prop)
++		return -ENODATA;
++
++	if (prop->type != type)
++		return -EPROTO;
++
++	if (prop->nval < nval)
++		return -EOVERFLOW;
++
++	switch (prop->type) {
++	case DEV_PROP_U8:
++		ret = dev_prop_copy_array_u8((u8 *)prop->num, (u8 *)val,
++					     nval);
++		break;
++	case DEV_PROP_U16:
++		ret = dev_prop_copy_array_u16((u16 *)prop->num, (u16 *)val,
++					      nval);
++		break;
++	case DEV_PROP_U32:
++		ret = dev_prop_copy_array_u32((u32 *)prop->num, (u32 *)val,
++					      nval);
++		break;
++	case DEV_PROP_U64:
++		ret = dev_prop_copy_array_u64(prop->num, (u64 *)val, nval);
++		break;
++	case DEV_PROP_STRING:
++		ret = dev_prop_copy_array_string(prop->str,
++						 (const char **)val, nval);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++	return ret;
++}
++
+ /**
+  * device_property_present - check if a property of a device is present
+  * @dev: Device whose property is being checked
+@@ -26,8 +128,9 @@ bool device_property_present(struct device *dev, const char *propname)
+ {
+ 	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+ 		return of_property_read_bool(dev->of_node, propname);
+-
+-	return !acpi_dev_prop_get(ACPI_COMPANION(dev), propname, NULL);
++	if (ACPI_HANDLE(dev))
++		return !acpi_dev_prop_get(ACPI_COMPANION(dev), propname, NULL);
++	return !!dev_prop_get(dev, propname);
+ }
+ EXPORT_SYMBOL_GPL(device_property_present);
+ 
+@@ -55,8 +158,11 @@ EXPORT_SYMBOL_GPL(fwnode_property_present);
+ 	IS_ENABLED(CONFIG_OF) && _dev_->of_node ? \
+ 		(OF_DEV_PROP_READ_ARRAY(_dev_->of_node, _propname_, _type_, \
+ 					_val_, _nval_)) : \
+-		acpi_dev_prop_read(ACPI_COMPANION(_dev_), _propname_, \
+-				   _proptype_, _val_, _nval_)
++		ACPI_HANDLE(_dev_) ? \
++			acpi_dev_prop_read(ACPI_COMPANION(_dev_), _propname_, \
++					   _proptype_, _val_, _nval_) : \
++			dev_prop_read_array(_dev_, _propname_, _proptype_, \
++					   _val_, _nval_)
+ 
+ /**
+  * device_property_read_u8_array - return a u8 array property of a device
+@@ -169,10 +275,13 @@ EXPORT_SYMBOL_GPL(device_property_read_u64_array);
+ int device_property_read_string_array(struct device *dev, const char *propname,
+ 				      const char **val, size_t nval)
+ {
+-	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
+-		of_property_read_string_array(dev->of_node, propname, val, nval) :
+-		acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
+-				   DEV_PROP_STRING, val, nval);
++	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
++		return of_property_read_string_array(dev->of_node, propname,
++						     val, nval);
++	if (ACPI_HANDLE(dev))
++		return acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
++					  DEV_PROP_STRING, val, nval);
++	return dev_prop_read_array(dev, propname, DEV_PROP_STRING, val, nval);
+ }
+ EXPORT_SYMBOL_GPL(device_property_read_string_array);
+ 
+@@ -193,10 +302,12 @@ EXPORT_SYMBOL_GPL(device_property_read_string_array);
+ int device_property_read_string(struct device *dev, const char *propname,
+ 				const char **val)
+ {
+-	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
+-		of_property_read_string(dev->of_node, propname, val) :
+-		acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
+-				   DEV_PROP_STRING, val, 1);
++	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
++		return of_property_read_string(dev->of_node, propname, val);
++	if (ACPI_HANDLE(dev))
++		return acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
++					  DEV_PROP_STRING, val, 1);
++	return dev_prop_read_array(dev, propname, DEV_PROP_STRING, val, 1);
+ }
+ EXPORT_SYMBOL_GPL(device_property_read_string);
+ 
+diff --git a/include/linux/device.h b/include/linux/device.h
+index fb50673..738dc25 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -27,6 +27,7 @@
+ #include <linux/ratelimit.h>
+ #include <linux/uidgid.h>
+ #include <linux/gfp.h>
++#include <linux/property.h>
+ #include <asm/device.h>
+ 
+ struct device;
+@@ -704,6 +705,7 @@ struct acpi_dev_node {
+  * @archdata:	For arch-specific additions.
+  * @of_node:	Associated device tree node.
+  * @acpi_node:	Associated ACPI device node.
++ * @gen_prop:	Generic device property
+  * @devt:	For creating the sysfs "dev".
+  * @id:		device instance
+  * @devres_lock: Spinlock to protect the resource of the device.
+@@ -780,6 +782,7 @@ struct device {
+ 
+ 	struct device_node	*of_node; /* associated device tree node */
+ 	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
++	struct dev_gen_prop	*gen_prop; /* generic device property */
+ 
+ 	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+ 	u32			id;	/* device instance */
+diff --git a/include/linux/property.h b/include/linux/property.h
+index a6a3d98..44e875f 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -26,6 +26,23 @@ enum dev_prop_type {
+ 	DEV_PROP_MAX,
+ };
+ 
++/**
++ * struct dev_gen_prop - Generic Device Property
++ * @name: property name
++ * @nval: number of elements in the array
++ * @str: value array of strings
++ * @num: value array of numbers
++ *
++ * Used when of_node and acpi_node are missing.
++ */
++struct dev_gen_prop {
++	enum dev_prop_type type;
++	const char *name;
++	size_t nval;
++	const char **str;
++	u64 *num;
++};
++
+ bool device_property_present(struct device *dev, const char *propname);
+ int device_property_read_u8_array(struct device *dev, const char *propname,
+ 				  u8 *val, size_t nval);
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+2.1.4
+
