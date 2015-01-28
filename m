@@ -1,176 +1,101 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 03/22] ACPI: Implement proper length checks for mem resources
-Date: Wed, 28 Jan 2015 18:57:21 +0800
-Message-ID: <1422442660-455-4-git-send-email-jiang.liu@linux.intel.com>
-References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:19584 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757414AbbA1UZq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:25:46 -0500
-In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH 3/4] Thermal/int340x: LPAT conversion for temperature
+Date: Wed, 28 Jan 2015 11:56:48 -0800
+Message-ID: <1422475009-20759-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+References: <1422475009-20759-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1422475009-20759-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: rui.zhang@intel.com, edubezval@gmail.com, rafael.j.wysocki@intel.com
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 
-From: Thomas Gleixner <tglx@linutronix.de>
+When LPAT table is present, we need to convert raw temperature to
+real temp using LPAT.
 
-Check whether the resulting length is the same as the given
-length. Check for start <= end as well.
-
-We need to hand in the resource for this, so we can apply the flags
-directly.
-
-[Jiang] Remove enforcement that resource starting address must be
-non-zero.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- drivers/acpi/resource.c |   62 ++++++++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 27 deletions(-)
+ .../thermal/int340x_thermal/int340x_thermal_zone.c   | 20 +++++++++++++++++---
+ .../thermal/int340x_thermal/int340x_thermal_zone.h   |  3 +++
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 1c616a56e007..3e7d9f6eb875 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -34,21 +34,37 @@
- #define valid_IRQ(i) (true)
- #endif
+diff --git a/drivers/thermal/int340x_thermal/int340x_thermal_zone.c b/drivers/thermal/int340x_thermal/int340x_thermal_zone.c
+index 162e545..f88b088 100644
+--- a/drivers/thermal/int340x_thermal/int340x_thermal_zone.c
++++ b/drivers/thermal/int340x_thermal/int340x_thermal_zone.c
+@@ -33,8 +33,17 @@ static int int340x_thermal_get_zone_temp(struct thermal_zone_device *zone,
+ 	if (ACPI_FAILURE(status))
+ 		return -EIO;
  
--static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
--						bool window)
-+static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
- {
--	unsigned long flags = IORESOURCE_MEM;
-+	u64 reslen = end - start + 1;
+-	/* _TMP returns the temperature in tenths of degrees Kelvin */
+-	*temp = DECI_KELVIN_TO_MILLICELSIUS(tmp);
++	if (d->lpat_table) {
++		int conv_temp;
++
++		conv_temp = acpi_lpat_raw_to_temp(d->lpat_table, (int)tmp);
++		if (conv_temp < 0)
++			return conv_temp;
++
++		*temp = (unsigned long)conv_temp * 10;
++	} else
++		/* _TMP returns the temperature in tenths of degrees Kelvin */
++		*temp = DECI_KELVIN_TO_MILLICELSIUS(tmp);
  
--	if (len == 0)
--		flags |= IORESOURCE_DISABLED;
-+	/*
-+	 * CHECKME: len might be required to check versus a minimum
-+	 * length as well. 1 for io is fine, but for memory it does
-+	 * not make any sense at all.
-+	 */
-+	if (len && reslen && reslen == len && start <= end)
-+		return true;
-+
-+	pr_info("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-+		io ? "io" : "mem", start, end, len);
-+
-+	return false;
-+}
-+
-+static void acpi_dev_memresource_flags(struct resource *res, u64 len,
-+				       u8 write_protect, bool window)
-+{
-+	res->flags = IORESOURCE_MEM;
-+
-+	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
-+		res->flags |= IORESOURCE_DISABLED;
- 
- 	if (write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
-+		res->flags |= IORESOURCE_MEM_WRITEABLE;
- 
- 	if (window)
--		flags |= IORESOURCE_WINDOW;
--
--	return flags;
-+		res->flags |= IORESOURCE_WINDOW;
+ 	return 0;
  }
- 
- static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
-@@ -56,7 +72,7 @@ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
- {
- 	res->start = start;
- 	res->end = start + len - 1;
--	res->flags = acpi_dev_memresource_flags(len, write_protect, false);
-+	acpi_dev_memresource_flags(res, len, write_protect, false);
- }
- 
- /**
-@@ -77,24 +93,18 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		memory24 = &ares->data.memory24;
--		if (!memory24->minimum && !memory24->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, memory24->minimum,
- 					 memory24->address_length,
- 					 memory24->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 		memory32 = &ares->data.memory32;
--		if (!memory32->minimum && !memory32->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, memory32->minimum,
- 					 memory32->address_length,
- 					 memory32->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 		fixed_memory32 = &ares->data.fixed_memory32;
--		if (!fixed_memory32->address && !fixed_memory32->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, fixed_memory32->address,
- 					 fixed_memory32->address_length,
- 					 fixed_memory32->write_protect);
-@@ -102,7 +112,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 	default:
- 		return false;
+@@ -227,6 +236,8 @@ struct int34x_thermal_zone *int340x_thermal_zone_add(struct acpi_device *adev,
+ 		int34x_thermal_zone->act_trips[i].id = trip_cnt++;
+ 		int34x_thermal_zone->act_trips[i].valid = true;
  	}
--	return true;
-+
-+	return !(res->flags & IORESOURCE_DISABLED);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
++	int34x_thermal_zone->lpat_table = acpi_lpat_get_conversion_table(
++								adev->handle);
  
-@@ -186,7 +197,6 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 	acpi_status status;
- 	struct acpi_resource_address64 addr;
- 	bool window;
--	u64 len;
- 	u8 io_decode;
+ 	int34x_thermal_zone->zone = thermal_zone_device_register(
+ 						acpi_device_bid(adev),
+@@ -237,11 +248,13 @@ struct int34x_thermal_zone *int340x_thermal_zone_add(struct acpi_device *adev,
+ 						0, 0);
+ 	if (IS_ERR(int34x_thermal_zone->zone)) {
+ 		ret = PTR_ERR(int34x_thermal_zone->zone);
+-		goto free_mem;
++		goto free_lpat;
+ 	}
  
- 	status = acpi_resource_to_address64(ares, &addr);
-@@ -199,10 +209,9 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 	return int34x_thermal_zone;
  
- 	switch(addr.resource_type) {
- 	case ACPI_MEMORY_RANGE:
--		len = addr.address.maximum - addr.address.minimum + 1;
--		res->flags = acpi_dev_memresource_flags(len,
--						addr.info.mem.write_protect,
--						window);
-+		acpi_dev_memresource_flags(res, addr.address.address_length,
-+					   addr.info.mem.write_protect,
-+					   window);
- 		break;
- 	case ACPI_IO_RANGE:
- 		io_decode = addr.address.granularity == 0xfff ?
-@@ -236,7 +245,6 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
++free_lpat:
++	acpi_lpat_free_conversion_table(int34x_thermal_zone->lpat_table);
+ free_mem:
+ 	kfree(int34x_thermal_zone);
+ 	return ERR_PTR(ret);
+@@ -252,6 +265,7 @@ void int340x_thermal_zone_remove(struct int34x_thermal_zone
+ 				 *int34x_thermal_zone)
  {
- 	struct acpi_resource_extended_address64 *ext_addr;
- 	bool window;
--	u64 len;
- 	u8 io_decode;
+ 	thermal_zone_device_unregister(int34x_thermal_zone->zone);
++	acpi_lpat_free_conversion_table(int34x_thermal_zone->lpat_table);
+ 	kfree(int34x_thermal_zone);
+ }
+ EXPORT_SYMBOL_GPL(int340x_thermal_zone_remove);
+diff --git a/drivers/thermal/int340x_thermal/int340x_thermal_zone.h b/drivers/thermal/int340x_thermal/int340x_thermal_zone.h
+index 11f2f52..9f38ab7 100644
+--- a/drivers/thermal/int340x_thermal/int340x_thermal_zone.h
++++ b/drivers/thermal/int340x_thermal/int340x_thermal_zone.h
+@@ -16,6 +16,8 @@
+ #ifndef __INT340X_THERMAL_ZONE_H__
+ #define __INT340X_THERMAL_ZONE_H__
  
- 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
-@@ -250,10 +258,10 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
++#include <acpi/acpi_lpat.h>
++
+ #define INT340X_THERMAL_MAX_ACT_TRIP_COUNT	10
  
- 	switch(ext_addr->resource_type) {
- 	case ACPI_MEMORY_RANGE:
--		len = ext_addr->address.maximum - ext_addr->address.minimum + 1;
--		res->flags = acpi_dev_memresource_flags(len,
--					ext_addr->info.mem.write_protect,
--					window);
-+		acpi_dev_memresource_flags(res,
-+					   ext_addr->address.address_length,
-+					   ext_addr->info.mem.write_protect,
-+					   window);
- 		break;
- 	case ACPI_IO_RANGE:
- 		io_decode = ext_addr->address.granularity == 0xfff ?
+ struct active_trip {
+@@ -38,6 +40,7 @@ struct int34x_thermal_zone {
+ 	struct thermal_zone_device *zone;
+ 	struct thermal_zone_device_ops *override_ops;
+ 	void *priv_data;
++	struct acpi_lpat_conversion_table *lpat_table;
+ };
+ 
+ struct int34x_thermal_zone *int340x_thermal_zone_add(struct acpi_device *,
 -- 
-1.7.10.4
+1.9.3
 
