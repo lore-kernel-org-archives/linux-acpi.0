@@ -1,54 +1,150 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce early_param
- for "acpi" and pass acpi=force to enable ACPI
-Date: Wed, 28 Jan 2015 12:18:44 -0600
-Message-ID: <54C92804.5090806@codeaurora.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
- <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com>
- <CAOZdJXXe+29rux1L3QYBX0yHLy3kdi+ZJrXVd=XfgYN=R6DtKA@mail.gmail.com>
- <20150128181453.GG31752@e104818-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150128181453.GG31752@e104818-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Rob Herring <robh@kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Brown <broonie@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jason Cooper <ja>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v2 06/22] ACPI: Unify the parsing of address_space and ext_address_space
+Date: Wed, 28 Jan 2015 18:57:24 +0800
+Message-ID: <1422442660-455-7-git-send-email-jiang.liu@linux.intel.com>
+References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 01/28/2015 12:14 PM, Catalin Marinas wrote:
->> >So it looks like there's a whole conversation about this already in
->> >this thread that I didn't notice.  However, reading through all of it,
->> >I still don't understand sure why the presence of ACPI tables is
->> >insufficient to enable ACPI.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-> Because ACPI on arm64 is still experimental, no matter how many people
-> claim that it is production ready in their private setups.
+With the unions in place which let us identify the substructs we can
+use a single parser for address_space and ext_address_space.
 
-Fair enough.  Does this mean that passing "acpi=force" on the kernel 
-command line is a requirement for ARM64 servers?
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/resource.c |   90 ++++++++++++++++++-----------------------------
+ 1 file changed, 34 insertions(+), 56 deletions(-)
 
->> >In what situation would we want to ignore ACPI tables that are
->> >present?
-
-> When DT tables are also present (and for the first platforms, that's
-> highly recommended, though not easily enforceable at the kernel level).
-
-My understanding is that the EFI stub creates a device tree (and it 
-contains some important information), so I don't understand how we can 
-ever have an ACPI-only platform on ARM64 servers.
-
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index cdb1a3c4a0b9..99903d196024 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -178,6 +178,35 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ 
++static bool acpi_decode_space(struct resource *res,
++			      struct acpi_resource_address *addr,
++			      struct acpi_address64_attribute *attr)
++{
++	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
++	bool window = addr->producer_consumer == ACPI_PRODUCER;
++	bool wp = addr->info.mem.write_protect;
++	u64 len = attr->address_length;
++
++	res->start = attr->minimum;
++	res->end = attr->maximum;
++
++	switch (addr->resource_type) {
++	case ACPI_MEMORY_RANGE:
++		acpi_dev_memresource_flags(res, len, wp, window);
++		break;
++	case ACPI_IO_RANGE:
++		acpi_dev_ioresource_flags(res, len, iodec, window);
++		break;
++	case ACPI_BUS_NUMBER_RANGE:
++		res->flags = IORESOURCE_BUS;
++		break;
++	default:
++		return false;
++	}
++
++	return !(res->flags & IORESOURCE_DISABLED);
++}
++
+ /**
+  * acpi_dev_resource_address_space - Extract ACPI address space information.
+  * @ares: Input ACPI resource object.
+@@ -190,39 +219,13 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 				     struct resource *res)
+ {
+-	acpi_status status;
+ 	struct acpi_resource_address64 addr;
+-	bool window;
+-	u8 io_decode;
+-
+-	status = acpi_resource_to_address64(ares, &addr);
+-	if (ACPI_FAILURE(status))
+-		return false;
+ 
+-	res->start = addr.address.minimum;
+-	res->end = addr.address.maximum;
+-	window = addr.producer_consumer == ACPI_PRODUCER;
+-
+-	switch(addr.resource_type) {
+-	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res, addr.address.address_length,
+-					   addr.info.mem.write_protect,
+-					   window);
+-		break;
+-	case ACPI_IO_RANGE:
+-		io_decode = addr.address.granularity == 0xfff ?
+-				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		acpi_dev_ioresource_flags(res, addr.address.address_length,
+-					  io_decode, window);
+-		break;
+-	case ACPI_BUS_NUMBER_RANGE:
+-		res->flags = IORESOURCE_BUS;
+-		break;
+-	default:
++	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
+ 		return false;
+-	}
+ 
+-	return !(res->flags & IORESOURCE_DISABLED);
++	return acpi_decode_space(res, (struct acpi_resource_address *)&addr,
++				 &addr.address);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
+ 
+@@ -239,39 +242,14 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 					 struct resource *res)
+ {
+ 	struct acpi_resource_extended_address64 *ext_addr;
+-	bool window;
+-	u8 io_decode;
+ 
+ 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
+ 		return false;
+ 
+ 	ext_addr = &ares->data.ext_address64;
+ 
+-	res->start = ext_addr->address.minimum;
+-	res->end = ext_addr->address.maximum;
+-	window = ext_addr->producer_consumer == ACPI_PRODUCER;
+-
+-	switch(ext_addr->resource_type) {
+-	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res,
+-					   ext_addr->address.address_length,
+-					   ext_addr->info.mem.write_protect,
+-					   window);
+-		break;
+-	case ACPI_IO_RANGE:
+-		io_decode = ext_addr->address.granularity == 0xfff ?
+-				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		acpi_dev_ioresource_flags(res, ext_addr->address.address_length,
+-					  io_decode, window);
+-		break;
+-	case ACPI_BUS_NUMBER_RANGE:
+-		res->flags = IORESOURCE_BUS;
+-		break;
+-	default:
+-		return false;
+-	}
+-
+-	return !(res->flags & IORESOURCE_DISABLED);
++	return acpi_decode_space(res, (struct acpi_resource_address *)ext_addr,
++				 &ext_addr->address);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
+ 
 -- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+1.7.10.4
