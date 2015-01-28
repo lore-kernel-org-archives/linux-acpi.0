@@ -1,213 +1,662 @@
-From: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [Patch Part2 v4] x86/irq: Kill x86_io_apic_ops.eoi_ioapic_pin and
-	related interfaces
-Date: Wed, 28 Jan 2015 09:56:11 +0800
-Message-ID: <1422410185-24982-1-git-send-email-jiang.liu@linux.intel.com>
-References: <1421733113-15704-7-git-send-email-jiang.liu@linux.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v2 01/22] ACPICA: Resources: Provide common part for struct
+ acpi_resource_address structures.
+Date: Wed, 28 Jan 2015 18:57:19 +0800
+Message-ID: <1422442660-455-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1421733113-15704-7-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Cohen <david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sander Eikelenboom <linux-6SM94LqRVpn6gRhOQ7JHfg@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, David Vrabel <david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Clemens Ladisch <clemens@ladisch.de>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>
+Cc: linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Jiang Liu <jiang.liu@linux.intel.com>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now there is no user of x86_io_apic_ops.eoi_ioapic_pin anymore, so kill
-it.
+From: Lv Zheng <lv.zheng@intel.com>
 
-Signed-off-by: Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Link: http://lkml.kernel.org/r/1416901802-24211-16-git-send-email-jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Signed-off-by: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Tested-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
----
-Hi Thomas,
-	This update fixes build failure when IOAPIC is disabled, which
-is introduced when rebasing the patch set.
-Regards,
-Gerry
----
- arch/x86/include/asm/io_apic.h  |    7 -------
- arch/x86/include/asm/x86_init.h |    1 -
- arch/x86/kernel/apic/io_apic.c  |   20 ++++----------------
- arch/x86/kernel/x86_init.c      |    1 -
- drivers/iommu/irq_remapping.c   |   19 -------------------
- 5 files changed, 4 insertions(+), 44 deletions(-)
+struct acpi_resource_address and struct acpi_resource_extended_address64 share substracts
+just at different offsets. To unify the parsing functions, OSPMs like Linux
+need a new ACPI_ADDRESS64_ATTRIBUTE as their substructs, so they can
+extract the shared data.
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index 0ff68daa9949..fa4b25ebd658 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -150,10 +150,6 @@ struct irq_cfg;
- extern void ioapic_insert_resources(void);
- extern int arch_early_ioapic_init(void);
+This patch also synchronizes the structure changes to the Linux kernel.
+The usages are searched by matching the following keywords:
+1. acpi_resource_address
+2. acpi_resource_extended_address
+3. ACPI_RESOURCE_TYPE_ADDRESS
+4. ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS
+And we found and fixed the usages in the following files:
+ arch/ia64/kernel/acpi-ext.c
+ arch/ia64/pci/pci.c
+ arch/x86/pci/acpi.c
+ arch/x86/pci/mmconfig-shared.c
+ drivers/xen/xen-acpi-memhotplug.c
+ drivers/acpi/acpi_memhotplug.c
+ drivers/acpi/pci_root.c
+ drivers/acpi/resource.c
+ drivers/char/hpet.c
+ drivers/pnp/pnpacpi/rsparser.c
+ drivers/hv/vmbus_drv.c
+
+Build tests are passed with defconfig/allnoconfig/allyesconfig and
+defconfig+CONFIG_ACPI=n.
+
+Original-by: Thomas Gleixner <tglx@linutronix.de>
+Original-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/ia64/kernel/acpi-ext.c       |    6 ++--
+ arch/ia64/pci/pci.c               |   14 ++++-----
+ arch/x86/pci/acpi.c               |   26 ++++++++--------
+ arch/x86/pci/mmconfig-shared.c    |    6 ++--
+ drivers/acpi/acpi_memhotplug.c    |    8 ++---
+ drivers/acpi/acpica/rsaddr.c      |    9 +++---
+ drivers/acpi/acpica/rsdumpinfo.c  |   59 +++++++++++++++++++------------------
+ drivers/acpi/acpica/rsxface.c     |   10 +++----
+ drivers/acpi/pci_root.c           |    6 ++--
+ drivers/acpi/resource.c           |   24 +++++++--------
+ drivers/char/hpet.c               |    4 +--
+ drivers/hv/vmbus_drv.c            |    4 +--
+ drivers/pnp/pnpacpi/rsparser.c    |   16 +++++-----
+ drivers/xen/xen-acpi-memhotplug.c |    8 ++---
+ include/acpi/acrestyp.h           |   40 +++++++++++++++----------
+ 15 files changed, 125 insertions(+), 115 deletions(-)
+
+diff --git a/arch/ia64/kernel/acpi-ext.c b/arch/ia64/kernel/acpi-ext.c
+index 8b9318d311a0..bd09bf74f187 100644
+--- a/arch/ia64/kernel/acpi-ext.c
++++ b/arch/ia64/kernel/acpi-ext.c
+@@ -69,10 +69,10 @@ static acpi_status find_csr_space(struct acpi_resource *resource, void *data)
+ 	status = acpi_resource_to_address64(resource, &addr);
+ 	if (ACPI_SUCCESS(status) &&
+ 	    addr.resource_type == ACPI_MEMORY_RANGE &&
+-	    addr.address_length &&
++	    addr.address.address_length &&
+ 	    addr.producer_consumer == ACPI_CONSUMER) {
+-		space->base = addr.minimum;
+-		space->length = addr.address_length;
++		space->base = addr.address.minimum;
++		space->length = addr.address.address_length;
+ 		return AE_CTRL_TERMINATE;
+ 	}
+ 	return AE_OK;		/* keep looking */
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 900cc93e5409..48cc65705db4 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -188,12 +188,12 @@ static u64 add_io_space(struct pci_root_info *info,
  
--extern void eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg);
--
--extern void native_eoi_ioapic_pin(int apic, int pin, int vector);
--
- extern int save_ioapic_entries(void);
- extern void mask_ioapic_entries(void);
- extern int restore_ioapic_entries(void);
-@@ -237,8 +233,6 @@ static inline void io_apic_modify(unsigned int apic, unsigned int reg, unsigned
- 	x86_io_apic_ops.modify(apic, reg, value);
- }
+ 	name = (char *)(iospace + 1);
  
--extern void io_apic_eoi(unsigned int apic, unsigned int vector);
--
- extern void setup_IO_APIC(void);
- extern void enable_IO_APIC(void);
- extern void disable_IO_APIC(void);
-@@ -282,7 +276,6 @@ static inline void disable_ioapic_support(void) { }
- #define native_io_apic_write		NULL
- #define native_io_apic_modify		NULL
- #define native_disable_io_apic		NULL
--#define native_eoi_ioapic_pin		NULL
+-	min = addr->minimum;
+-	max = min + addr->address_length - 1;
++	min = addr->address.minimum;
++	max = min + addr->address.address_length - 1;
+ 	if (addr->info.io.translation_type == ACPI_SPARSE_TRANSLATION)
+ 		sparse = 1;
  
- static inline void setup_IO_APIC(void) { }
- static inline void enable_IO_APIC(void) { }
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index f9f83cfabcaa..4ada3d3a0e86 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -191,7 +191,6 @@ struct x86_io_apic_ops {
- 	void		(*write)  (unsigned int apic, unsigned int reg, unsigned int value);
- 	void		(*modify) (unsigned int apic, unsigned int reg, unsigned int value);
- 	void		(*disable)(void);
--	void		(*eoi_ioapic_pin)(int apic, int pin, int vector);
- };
+-	space_nr = new_space(addr->translation_offset, sparse);
++	space_nr = new_space(addr->address.translation_offset, sparse);
+ 	if (space_nr == ~0)
+ 		goto free_resource;
  
- extern struct x86_init_ops x86_init;
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index fff17afdfe5d..8690334ad40c 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -273,7 +273,7 @@ static __attribute_const__ struct io_apic __iomem *io_apic_base(int idx)
- 		+ (mpc_ioapic_addr(idx) & ~PAGE_MASK);
- }
+@@ -247,7 +247,7 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
+ 	if (ACPI_SUCCESS(status) &&
+ 	    (addr->resource_type == ACPI_MEMORY_RANGE ||
+ 	     addr->resource_type == ACPI_IO_RANGE) &&
+-	    addr->address_length &&
++	    addr->address.address_length &&
+ 	    addr->producer_consumer == ACPI_PRODUCER)
+ 		return AE_OK;
  
--void io_apic_eoi(unsigned int apic, unsigned int vector)
-+static inline void io_apic_eoi(unsigned int apic, unsigned int vector)
- {
- 	struct io_apic __iomem *io_apic = io_apic_base(apic);
- 	writel(vector, &io_apic->eoi);
-@@ -529,7 +529,7 @@ static void unmask_ioapic_irq(struct irq_data *data)
-  * Otherwise, we simulate the EOI message manually by changing the trigger
-  * mode to edge and then back to level, with RTE being masked during this.
-  */
--void native_eoi_ioapic_pin(int apic, int pin, int vector)
-+static void __eoi_ioapic_pin(int apic, int pin, int vector)
- {
- 	if (mpc_ioapic_ver(apic) >= 0x20) {
- 		io_apic_eoi(apic, vector);
-@@ -560,19 +560,7 @@ void eoi_ioapic_pin(int vector, struct irq_cfg *cfg)
+@@ -284,7 +284,7 @@ static acpi_status add_window(struct acpi_resource *res, void *data)
+ 	if (addr.resource_type == ACPI_MEMORY_RANGE) {
+ 		flags = IORESOURCE_MEM;
+ 		root = &iomem_resource;
+-		offset = addr.translation_offset;
++		offset = addr.address.translation_offset;
+ 	} else if (addr.resource_type == ACPI_IO_RANGE) {
+ 		flags = IORESOURCE_IO;
+ 		root = &ioport_resource;
+@@ -297,8 +297,8 @@ static acpi_status add_window(struct acpi_resource *res, void *data)
+ 	resource = &info->res[info->res_num];
+ 	resource->name = info->name;
+ 	resource->flags = flags;
+-	resource->start = addr.minimum + offset;
+-	resource->end = resource->start + addr.address_length - 1;
++	resource->start = addr.address.minimum + offset;
++	resource->end = resource->start + addr.address.address_length - 1;
+ 	info->res_offset[info->res_num] = offset;
  
- 	raw_spin_lock_irqsave(&ioapic_lock, flags);
- 	for_each_irq_pin(entry, cfg->irq_2_pin)
--		native_eoi_ioapic_pin(entry->apic, entry->pin, vector);
--	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
--}
--
--void eoi_ioapic_irq(unsigned int irq, struct irq_cfg *cfg)
--{
--	struct irq_pin_list *entry;
--	unsigned long flags;
--
--	raw_spin_lock_irqsave(&ioapic_lock, flags);
--	for_each_irq_pin(entry, cfg->irq_2_pin)
--		x86_io_apic_ops.eoi_ioapic_pin(entry->apic, entry->pin,
--					       cfg->vector);
-+		__eoi_ioapic_pin(entry->apic, entry->pin, vector);
- 	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
- }
- 
-@@ -608,7 +596,7 @@ static void clear_IO_APIC_pin(unsigned int apic, unsigned int pin)
- 			ioapic_write_entry(apic, pin, entry);
+ 	if (insert_resource(root, resource)) {
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index cfd1b132b8e3..bb98afd0591e 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -231,23 +231,23 @@ static acpi_status resource_to_addr(struct acpi_resource *resource,
+ 	case ACPI_RESOURCE_TYPE_MEMORY24:
+ 		memory24 = &resource->data.memory24;
+ 		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->minimum = memory24->minimum;
+-		addr->address_length = memory24->address_length;
+-		addr->maximum = addr->minimum + addr->address_length - 1;
++		addr->address.minimum = memory24->minimum;
++		addr->address.address_length = memory24->address_length;
++		addr->address.maximum = addr->address.minimum + addr->address.address_length - 1;
+ 		return AE_OK;
+ 	case ACPI_RESOURCE_TYPE_MEMORY32:
+ 		memory32 = &resource->data.memory32;
+ 		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->minimum = memory32->minimum;
+-		addr->address_length = memory32->address_length;
+-		addr->maximum = addr->minimum + addr->address_length - 1;
++		addr->address.minimum = memory32->minimum;
++		addr->address.address_length = memory32->address_length;
++		addr->address.maximum = addr->address.minimum + addr->address.address_length - 1;
+ 		return AE_OK;
+ 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+ 		fixed_memory32 = &resource->data.fixed_memory32;
+ 		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->minimum = fixed_memory32->address;
+-		addr->address_length = fixed_memory32->address_length;
+-		addr->maximum = addr->minimum + addr->address_length - 1;
++		addr->address.minimum = fixed_memory32->address;
++		addr->address.address_length = fixed_memory32->address_length;
++		addr->address.maximum = addr->address.minimum + addr->address.address_length - 1;
+ 		return AE_OK;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS16:
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+@@ -256,7 +256,7 @@ static acpi_status resource_to_addr(struct acpi_resource *resource,
+ 		if (ACPI_SUCCESS(status) &&
+ 		    (addr->resource_type == ACPI_MEMORY_RANGE ||
+ 		    addr->resource_type == ACPI_IO_RANGE) &&
+-		    addr->address_length > 0) {
++		    addr->address.address_length > 0) {
+ 			return AE_OK;
  		}
- 		raw_spin_lock_irqsave(&ioapic_lock, flags);
--		native_eoi_ioapic_pin(apic, pin, entry.vector);
-+		__eoi_ioapic_pin(apic, pin, entry.vector);
- 		raw_spin_unlock_irqrestore(&ioapic_lock, flags);
+ 		break;
+@@ -298,8 +298,8 @@ static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
+ 	} else
+ 		return AE_OK;
+ 
+-	start = addr.minimum + addr.translation_offset;
+-	orig_end = end = addr.maximum + addr.translation_offset;
++	start = addr.address.minimum + addr.address.translation_offset;
++	orig_end = end = addr.address.maximum + addr.address.translation_offset;
+ 
+ 	/* Exclude non-addressable range or non-addressable portion of range */
+ 	end = min(end, (u64)iomem_resource.end);
+@@ -320,7 +320,7 @@ static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
+ 	res->flags = flags;
+ 	res->start = start;
+ 	res->end = end;
+-	info->res_offset[info->res_num] = addr.translation_offset;
++	info->res_offset[info->res_num] = addr.address.translation_offset;
+ 	info->res_num++;
+ 
+ 	if (!pci_use_crs)
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index 326198a4434e..5a8dceac3094 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -397,12 +397,12 @@ static acpi_status check_mcfg_resource(struct acpi_resource *res, void *data)
+ 
+ 	status = acpi_resource_to_address64(res, &address);
+ 	if (ACPI_FAILURE(status) ||
+-	   (address.address_length <= 0) ||
++	   (address.address.address_length <= 0) ||
+ 	   (address.resource_type != ACPI_MEMORY_RANGE))
+ 		return AE_OK;
+ 
+-	if ((mcfg_res->start >= address.minimum) &&
+-	    (mcfg_res->end < (address.minimum + address.address_length))) {
++	if ((mcfg_res->start >= address.address.minimum) &&
++	    (mcfg_res->end < (address.address.minimum + address.address.address_length))) {
+ 		mcfg_res->flags = 1;
+ 		return AE_CTRL_TERMINATE;
+ 	}
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 23e2319ead41..ee28f4d15625 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -101,8 +101,8 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+ 		/* Can we combine the resource range information? */
+ 		if ((info->caching == address64.info.mem.caching) &&
+ 		    (info->write_protect == address64.info.mem.write_protect) &&
+-		    (info->start_addr + info->length == address64.minimum)) {
+-			info->length += address64.address_length;
++		    (info->start_addr + info->length == address64.address.minimum)) {
++			info->length += address64.address.address_length;
+ 			return AE_OK;
+ 		}
+ 	}
+@@ -114,8 +114,8 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+ 	INIT_LIST_HEAD(&new->list);
+ 	new->caching = address64.info.mem.caching;
+ 	new->write_protect = address64.info.mem.write_protect;
+-	new->start_addr = address64.minimum;
+-	new->length = address64.address_length;
++	new->start_addr = address64.address.minimum;
++	new->length = address64.address.address_length;
+ 	list_add_tail(&new->list, &mem_device->res_list);
+ 
+ 	return AE_OK;
+diff --git a/drivers/acpi/acpica/rsaddr.c b/drivers/acpi/acpica/rsaddr.c
+index 916fd095ff34..94a3a057042c 100644
+--- a/drivers/acpi/acpica/rsaddr.c
++++ b/drivers/acpi/acpica/rsaddr.c
+@@ -74,7 +74,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address16[5] = {
+ 	 * Address Translation Offset
+ 	 * Address Length
+ 	 */
+-	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.address16.granularity),
++	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.address16.address.granularity),
+ 	 AML_OFFSET(address16.granularity),
+ 	 5},
+ 
+@@ -112,7 +112,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address32[5] = {
+ 	 * Address Translation Offset
+ 	 * Address Length
+ 	 */
+-	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.address32.granularity),
++	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.address32.address.granularity),
+ 	 AML_OFFSET(address32.granularity),
+ 	 5},
+ 
+@@ -150,7 +150,7 @@ struct acpi_rsconvert_info acpi_rs_convert_address64[5] = {
+ 	 * Address Translation Offset
+ 	 * Address Length
+ 	 */
+-	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.address64.granularity),
++	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.address64.address.granularity),
+ 	 AML_OFFSET(address64.granularity),
+ 	 5},
+ 
+@@ -194,7 +194,8 @@ struct acpi_rsconvert_info acpi_rs_convert_ext_address64[5] = {
+ 	 * Address Length
+ 	 * Type-Specific Attribute
+ 	 */
+-	{ACPI_RSC_MOVE64, ACPI_RS_OFFSET(data.ext_address64.granularity),
++	{ACPI_RSC_MOVE64,
++	 ACPI_RS_OFFSET(data.ext_address64.address.granularity),
+ 	 AML_OFFSET(ext_address64.granularity),
+ 	 6}
+ };
+diff --git a/drivers/acpi/acpica/rsdumpinfo.c b/drivers/acpi/acpica/rsdumpinfo.c
+index 2f9332d5c973..6ba7ad5faa9c 100644
+--- a/drivers/acpi/acpica/rsdumpinfo.c
++++ b/drivers/acpi/acpica/rsdumpinfo.c
+@@ -183,15 +183,15 @@ struct acpi_rsdump_info acpi_rs_dump_address16[8] = {
+ 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address16),
+ 	 "16-Bit WORD Address Space", NULL},
+ 	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+-	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.granularity), "Granularity",
+-	 NULL},
+-	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.minimum), "Address Minimum",
+-	 NULL},
+-	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.maximum), "Address Maximum",
+-	 NULL},
+-	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.translation_offset),
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.granularity),
++	 "Granularity", NULL},
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.minimum),
++	 "Address Minimum", NULL},
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.maximum),
++	 "Address Maximum", NULL},
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.translation_offset),
+ 	 "Translation Offset", NULL},
+-	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address_length),
++	{ACPI_RSD_UINT16, ACPI_RSD_OFFSET(address16.address.address_length),
+ 	 "Address Length", NULL},
+ 	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address16.resource_source), NULL, NULL}
+ };
+@@ -200,15 +200,15 @@ struct acpi_rsdump_info acpi_rs_dump_address32[8] = {
+ 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address32),
+ 	 "32-Bit DWORD Address Space", NULL},
+ 	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+-	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.granularity), "Granularity",
+-	 NULL},
+-	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.minimum), "Address Minimum",
+-	 NULL},
+-	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.maximum), "Address Maximum",
+-	 NULL},
+-	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.translation_offset),
++	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.granularity),
++	 "Granularity", NULL},
++	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.minimum),
++	 "Address Minimum", NULL},
++	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.maximum),
++	 "Address Maximum", NULL},
++	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.translation_offset),
+ 	 "Translation Offset", NULL},
+-	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address_length),
++	{ACPI_RSD_UINT32, ACPI_RSD_OFFSET(address32.address.address_length),
+ 	 "Address Length", NULL},
+ 	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address32.resource_source), NULL, NULL}
+ };
+@@ -217,15 +217,15 @@ struct acpi_rsdump_info acpi_rs_dump_address64[8] = {
+ 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_address64),
+ 	 "64-Bit QWORD Address Space", NULL},
+ 	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.granularity), "Granularity",
+-	 NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.minimum), "Address Minimum",
+-	 NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.maximum), "Address Maximum",
+-	 NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.translation_offset),
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.granularity),
++	 "Granularity", NULL},
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.minimum),
++	 "Address Minimum", NULL},
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.maximum),
++	 "Address Maximum", NULL},
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.translation_offset),
+ 	 "Translation Offset", NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address_length),
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(address64.address.address_length),
+ 	 "Address Length", NULL},
+ 	{ACPI_RSD_SOURCE, ACPI_RSD_OFFSET(address64.resource_source), NULL, NULL}
+ };
+@@ -234,15 +234,16 @@ struct acpi_rsdump_info acpi_rs_dump_ext_address64[8] = {
+ 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_ext_address64),
+ 	 "64-Bit Extended Address Space", NULL},
+ 	{ACPI_RSD_ADDRESS, 0, NULL, NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.granularity),
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.granularity),
+ 	 "Granularity", NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.minimum),
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.minimum),
+ 	 "Address Minimum", NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.maximum),
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.maximum),
+ 	 "Address Maximum", NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.translation_offset),
++	{ACPI_RSD_UINT64,
++	 ACPI_RSD_OFFSET(ext_address64.address.translation_offset),
+ 	 "Translation Offset", NULL},
+-	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address_length),
++	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.address.address_length),
+ 	 "Address Length", NULL},
+ 	{ACPI_RSD_UINT64, ACPI_RSD_OFFSET(ext_address64.type_specific),
+ 	 "Type-Specific Attribute", NULL}
+diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
+index 877ab9202133..295287891174 100644
+--- a/drivers/acpi/acpica/rsxface.c
++++ b/drivers/acpi/acpica/rsxface.c
+@@ -60,11 +60,11 @@ ACPI_MODULE_NAME("rsxface")
+ 	ACPI_COPY_FIELD(out, in, min_address_fixed);         \
+ 	ACPI_COPY_FIELD(out, in, max_address_fixed);         \
+ 	ACPI_COPY_FIELD(out, in, info);                      \
+-	ACPI_COPY_FIELD(out, in, granularity);               \
+-	ACPI_COPY_FIELD(out, in, minimum);                   \
+-	ACPI_COPY_FIELD(out, in, maximum);                   \
+-	ACPI_COPY_FIELD(out, in, translation_offset);        \
+-	ACPI_COPY_FIELD(out, in, address_length);            \
++	ACPI_COPY_FIELD(out, in, address.granularity);       \
++	ACPI_COPY_FIELD(out, in, address.minimum);           \
++	ACPI_COPY_FIELD(out, in, address.maximum);           \
++	ACPI_COPY_FIELD(out, in, address.translation_offset); \
++	ACPI_COPY_FIELD(out, in, address.address_length);    \
+ 	ACPI_COPY_FIELD(out, in, resource_source);
+ /* Local prototypes */
+ static acpi_status
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index c6bcb8c719d8..e53e0f659204 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -112,10 +112,10 @@ get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+ 	if (ACPI_FAILURE(status))
+ 		return AE_OK;
+ 
+-	if ((address.address_length > 0) &&
++	if ((address.address.address_length > 0) &&
+ 	    (address.resource_type == ACPI_BUS_NUMBER_RANGE)) {
+-		res->start = address.minimum;
+-		res->end = address.minimum + address.address_length - 1;
++		res->start = address.address.minimum;
++		res->end = address.address.minimum + address.address.address_length - 1;
  	}
  
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index f7e8eab3a7c4..f612dc018fb6 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -144,5 +144,4 @@ struct x86_io_apic_ops x86_io_apic_ops = {
- 	.write			= native_io_apic_write,
- 	.modify			= native_io_apic_modify,
- 	.disable		= native_disable_io_apic,
--	.eoi_ioapic_pin		= native_eoi_ioapic_pin,
+ 	return AE_OK;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 782a0d15c25f..d0a4d90c6bcc 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -202,22 +202,22 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 	if (ACPI_FAILURE(status))
+ 		return false;
+ 
+-	res->start = addr.minimum;
+-	res->end = addr.maximum;
++	res->start = addr.address.minimum;
++	res->end = addr.address.maximum;
+ 	window = addr.producer_consumer == ACPI_PRODUCER;
+ 
+ 	switch(addr.resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+-		len = addr.maximum - addr.minimum + 1;
++		len = addr.address.maximum - addr.address.minimum + 1;
+ 		res->flags = acpi_dev_memresource_flags(len,
+ 						addr.info.mem.write_protect,
+ 						window);
+ 		break;
+ 	case ACPI_IO_RANGE:
+-		io_decode = addr.granularity == 0xfff ?
++		io_decode = addr.address.granularity == 0xfff ?
+ 				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		res->flags = acpi_dev_ioresource_flags(addr.minimum,
+-						       addr.maximum,
++		res->flags = acpi_dev_ioresource_flags(addr.address.minimum,
++						       addr.address.maximum,
+ 						       io_decode, window);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+@@ -253,22 +253,22 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 
+ 	ext_addr = &ares->data.ext_address64;
+ 
+-	res->start = ext_addr->minimum;
+-	res->end = ext_addr->maximum;
++	res->start = ext_addr->address.minimum;
++	res->end = ext_addr->address.maximum;
+ 	window = ext_addr->producer_consumer == ACPI_PRODUCER;
+ 
+ 	switch(ext_addr->resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+-		len = ext_addr->maximum - ext_addr->minimum + 1;
++		len = ext_addr->address.maximum - ext_addr->address.minimum + 1;
+ 		res->flags = acpi_dev_memresource_flags(len,
+ 					ext_addr->info.mem.write_protect,
+ 					window);
+ 		break;
+ 	case ACPI_IO_RANGE:
+-		io_decode = ext_addr->granularity == 0xfff ?
++		io_decode = ext_addr->address.granularity == 0xfff ?
+ 				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		res->flags = acpi_dev_ioresource_flags(ext_addr->minimum,
+-						       ext_addr->maximum,
++		res->flags = acpi_dev_ioresource_flags(ext_addr->address.minimum,
++						       ext_addr->address.maximum,
+ 						       io_decode, window);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
+index d5d4cd82b9f7..5c0baa9ffc64 100644
+--- a/drivers/char/hpet.c
++++ b/drivers/char/hpet.c
+@@ -976,8 +976,8 @@ static acpi_status hpet_resources(struct acpi_resource *res, void *data)
+ 	status = acpi_resource_to_address64(res, &addr);
+ 
+ 	if (ACPI_SUCCESS(status)) {
+-		hdp->hd_phys_address = addr.minimum;
+-		hdp->hd_address = ioremap(addr.minimum, addr.address_length);
++		hdp->hd_phys_address = addr.address.minimum;
++		hdp->hd_address = ioremap(addr.address.minimum, addr.address.address_length);
+ 
+ 		if (hpet_is_known(hdp)) {
+ 			iounmap(hdp->hd_address);
+diff --git a/drivers/hv/vmbus_drv.c b/drivers/hv/vmbus_drv.c
+index 4d6b26979fbd..bb3725b672cf 100644
+--- a/drivers/hv/vmbus_drv.c
++++ b/drivers/hv/vmbus_drv.c
+@@ -861,8 +861,8 @@ static acpi_status vmbus_walk_resources(struct acpi_resource *res, void *ctx)
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		hyperv_mmio.start = res->data.address64.minimum;
+-		hyperv_mmio.end = res->data.address64.maximum;
++		hyperv_mmio.start = res->data.address64.address.minimum;
++		hyperv_mmio.end = res->data.address64.address.maximum;
+ 		break;
+ 	}
+ 
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 66977ebf13b3..2d9bc789af0f 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -410,12 +410,12 @@ static __init void pnpacpi_parse_address_option(struct pnp_dev *dev,
+ 	if (p->resource_type == ACPI_MEMORY_RANGE) {
+ 		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
+ 			flags = IORESOURCE_MEM_WRITEABLE;
+-		pnp_register_mem_resource(dev, option_flags, p->minimum,
+-					  p->minimum, 0, p->address_length,
++		pnp_register_mem_resource(dev, option_flags, p->address.minimum,
++					  p->address.minimum, 0, p->address.address_length,
+ 					  flags);
+ 	} else if (p->resource_type == ACPI_IO_RANGE)
+-		pnp_register_port_resource(dev, option_flags, p->minimum,
+-					   p->minimum, 0, p->address_length,
++		pnp_register_port_resource(dev, option_flags, p->address.minimum,
++					   p->address.minimum, 0, p->address.address_length,
+ 					   IORESOURCE_IO_FIXED);
+ }
+ 
+@@ -429,12 +429,12 @@ static __init void pnpacpi_parse_ext_address_option(struct pnp_dev *dev,
+ 	if (p->resource_type == ACPI_MEMORY_RANGE) {
+ 		if (p->info.mem.write_protect == ACPI_READ_WRITE_MEMORY)
+ 			flags = IORESOURCE_MEM_WRITEABLE;
+-		pnp_register_mem_resource(dev, option_flags, p->minimum,
+-					  p->minimum, 0, p->address_length,
++		pnp_register_mem_resource(dev, option_flags, p->address.minimum,
++					  p->address.minimum, 0, p->address.address_length,
+ 					  flags);
+ 	} else if (p->resource_type == ACPI_IO_RANGE)
+-		pnp_register_port_resource(dev, option_flags, p->minimum,
+-					   p->minimum, 0, p->address_length,
++		pnp_register_port_resource(dev, option_flags, p->address.minimum,
++					   p->address.minimum, 0, p->address.address_length,
+ 					   IORESOURCE_IO_FIXED);
+ }
+ 
+diff --git a/drivers/xen/xen-acpi-memhotplug.c b/drivers/xen/xen-acpi-memhotplug.c
+index 34e40b733f9a..4fc886cd5586 100644
+--- a/drivers/xen/xen-acpi-memhotplug.c
++++ b/drivers/xen/xen-acpi-memhotplug.c
+@@ -117,8 +117,8 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+ 	list_for_each_entry(info, &mem_device->res_list, list) {
+ 		if ((info->caching == address64.info.mem.caching) &&
+ 		    (info->write_protect == address64.info.mem.write_protect) &&
+-		    (info->start_addr + info->length == address64.minimum)) {
+-			info->length += address64.address_length;
++		    (info->start_addr + info->length == address64.address.minimum)) {
++			info->length += address64.address.address_length;
+ 			return AE_OK;
+ 		}
+ 	}
+@@ -130,8 +130,8 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+ 	INIT_LIST_HEAD(&new->list);
+ 	new->caching = address64.info.mem.caching;
+ 	new->write_protect = address64.info.mem.write_protect;
+-	new->start_addr = address64.minimum;
+-	new->length = address64.address_length;
++	new->start_addr = address64.address.minimum;
++	new->length = address64.address.address_length;
+ 	list_add_tail(&new->list, &mem_device->res_list);
+ 
+ 	return AE_OK;
+diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
+index eb760ca0b2e0..0b75e01212c7 100644
+--- a/include/acpi/acrestyp.h
++++ b/include/acpi/acrestyp.h
+@@ -305,43 +305,51 @@ struct acpi_resource_source {
+ 	u8                                      max_address_fixed; \
+ 	union acpi_resource_attribute           info;
+ 
+-struct acpi_resource_address {
+-ACPI_RESOURCE_ADDRESS_COMMON};
+-
+-struct acpi_resource_address16 {
+-	ACPI_RESOURCE_ADDRESS_COMMON u16 granularity;
++struct acpi_address16_attribute {
++	u16 granularity;
+ 	u16 minimum;
+ 	u16 maximum;
+ 	u16 translation_offset;
+ 	u16 address_length;
+-	struct acpi_resource_source resource_source;
  };
-diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-index 7baa54a13921..bca42550b1ad 100644
---- a/drivers/iommu/irq_remapping.c
-+++ b/drivers/iommu/irq_remapping.c
-@@ -43,21 +43,9 @@ static void irq_remapping_disable_io_apic(void)
- 		disconnect_bsp_APIC(0);
- }
  
--static void eoi_ioapic_pin_remapped(int apic, int pin, int vector)
--{
--	/*
--	 * Intr-remapping uses pin number as the virtual vector
--	 * in the RTE. Actual vector is programmed in
--	 * intr-remapping table entry. Hence for the io-apic
--	 * EOI we use the pin number.
--	 */
--	io_apic_eoi(apic, pin);
--}
--
- static void __init irq_remapping_modify_x86_ops(void)
- {
- 	x86_io_apic_ops.disable		= irq_remapping_disable_io_apic;
--	x86_io_apic_ops.eoi_ioapic_pin	= eoi_ioapic_pin_remapped;
- }
+-struct acpi_resource_address32 {
+-	ACPI_RESOURCE_ADDRESS_COMMON u32 granularity;
++struct acpi_address32_attribute {
++	u32 granularity;
+ 	u32 minimum;
+ 	u32 maximum;
+ 	u32 translation_offset;
+ 	u32 address_length;
+-	struct acpi_resource_source resource_source;
+ };
  
- static __init int setup_nointremap(char *str)
-@@ -171,12 +159,6 @@ void ir_ack_apic_edge(struct irq_data *data)
- 	ack_APIC_irq();
- }
+-struct acpi_resource_address64 {
+-	ACPI_RESOURCE_ADDRESS_COMMON u64 granularity;
++struct acpi_address64_attribute {
++	u64 granularity;
+ 	u64 minimum;
+ 	u64 maximum;
+ 	u64 translation_offset;
+ 	u64 address_length;
++};
++
++struct acpi_resource_address {
++ACPI_RESOURCE_ADDRESS_COMMON};
++
++struct acpi_resource_address16 {
++	ACPI_RESOURCE_ADDRESS_COMMON struct acpi_address16_attribute address;
++	struct acpi_resource_source resource_source;
++};
++
++struct acpi_resource_address32 {
++	ACPI_RESOURCE_ADDRESS_COMMON struct acpi_address32_attribute address;
++	struct acpi_resource_source resource_source;
++};
++
++struct acpi_resource_address64 {
++	ACPI_RESOURCE_ADDRESS_COMMON struct acpi_address64_attribute address;
+ 	struct acpi_resource_source resource_source;
+ };
  
--static void ir_ack_apic_level(struct irq_data *data)
--{
--	ack_APIC_irq();
--	eoi_ioapic_irq(data->irq, irqd_cfg(data));
--}
--
- static void ir_print_prefix(struct irq_data *data, struct seq_file *p)
- {
- 	seq_printf(p, " IR-%s", data->chip->name);
-@@ -186,7 +168,6 @@ void irq_remap_modify_chip_defaults(struct irq_chip *chip)
- {
- 	chip->irq_print_chip = ir_print_prefix;
- 	chip->irq_ack = ir_ack_apic_edge;
--	chip->irq_eoi = ir_ack_apic_level;
- }
+ struct acpi_resource_extended_address64 {
+ 	ACPI_RESOURCE_ADDRESS_COMMON u8 revision_ID;
+-	u64 granularity;
+-	u64 minimum;
+-	u64 maximum;
+-	u64 translation_offset;
+-	u64 address_length;
++	struct acpi_address64_attribute address;
+ 	u64 type_specific;
+ };
  
- bool setup_remapped_irq(int irq, struct irq_cfg *cfg, struct irq_chip *chip)
 -- 
 1.7.10.4
