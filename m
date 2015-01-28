@@ -1,16 +1,14 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [Patch v2 18/22] PCI: Use common resource list management code
- instead of private implementation
-Date: Wed, 28 Jan 2015 13:46:39 +0000
-Message-ID: <20150128134639.GN1569@arm.com>
-References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
- <1422442660-455-19-git-send-email-jiang.liu@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Wed, 28 Jan 2015 21:53:07 +0800
+Message-ID: <54C8E9C3.9010508@linaro.org>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <54C7CF0D.4050607@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1422442660-455-19-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <54C7CF0D.4050607@codeaurora.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,30 +18,24 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yijing Wang <wangyijing@huawei.com>, Russell King <linux@arm.linux.org.uk>, "x86@kernel.org" <x86@kernel.org>, Michal Simek <michal.simek@xilinx.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Srikanth Thokala <sthokal@xilinx.com>, Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Ingo Molnar <mingo@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>"linux-kernel@vger.kernel.org" <linux->
+To: Timur Tabi <timur@codeaurora.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
+Cc: Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, wangyijing@huawei.com, Mark Brown <broonie@kernel.org>, ashwin.chaugule@linaro.org, msalter@redhat.com, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, phoenix.liyi@huawei.com, linux-arm-kernel@lists.infradead.org, Charles.Garcia-Tobin@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 28, 2015 at 10:57:36AM +0000, Jiang Liu wrote:
-> Use common resource list management data structure and interfaces
-> instead of private implementation.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  arch/arm/kernel/bios32.c            |    5 ++---
->  arch/x86/pci/bus_numa.c             |    4 ++--
->  drivers/pci/bus.c                   |   18 ++++++------------
->  drivers/pci/host-bridge.c           |    8 ++++----
->  drivers/pci/host/pci-host-generic.c |    4 ++--
->  drivers/pci/host/pci-xgene.c        |    4 ++--
->  drivers/pci/host/pcie-xilinx.c      |    4 ++--
->  drivers/pci/probe.c                 |   10 +++++-----
->  include/linux/pci.h                 |    9 ++-------
->  9 files changed, 27 insertions(+), 39 deletions(-)
-
-The arch/arm/ and drivers/pci/host/pci-host-generic.c bits look fine to
-me:
-
-  Acked-by: Will Deacon <will.deacon@arm.com>
-
-Will
+T24gMjAxNeW5tDAx5pyIMjjml6UgMDE6NDYsIFRpbXVyIFRhYmkgd3JvdGU6Cj4gT24gMDEvMTQv
+MjAxNSAwOTowNCBBTSwgSGFuanVuIEd1byB3cm90ZToKPj4gVGhpcyBpcyB0aGUgdjcgb2YgQUNQ
+SSBjb3JlIHBhdGNoZXMgZm9yIEFSTTY0IGJhc2VkIG9uIEFDUEkgNS4xCj4+Cj4KPiBUZXN0ZWQt
+Ynk6IFRpbXVyIFRhYmkgPHRpbXVyQGNvZGVhdXJvcmEub3JnPgoKVGhhbmtzIQoKPgo+IEhvd2V2
+ZXIsIHRoZXNlIDE3IHBhdGNoZXMgYXJlIGluc3VmZmljaWVudCB0byBtYWtlIEFDUEkgd29yayBj
+b21wbGV0ZWx5Cj4gb24gQVJNNjQuICBJIG5lZWQgdG8gYWRkIHR3byBwYXRjaGVzOgo+Cj4gYWNw
+aTogYWRkIGFybSB0byB0aGUgcGxhdGZvcm1zIHRoYXQgdXNlIGlvcmVtYXAKPiBodHRwOi8vbGlz
+dHMubGluYXJvLm9yZy9waXBlcm1haWwvbGluYXJvLWFjcGkvMjAxNC1Ob3ZlbWJlci8wMDI5NDMu
+aHRtbAo+Cj4gYWNwaTogZml4IGFjcGlfb3NfaW9yZW1hcCBmb3IgYXJtNjQKPiBodHRwOi8vbGlz
+dHMubGluYXJvLm9yZy9waXBlcm1haWwvbGluYXJvLWFjcGkvMjAxNC1Ob3ZlbWJlci8wMDI4NTku
+aHRtbAo+Cj4gV2l0aG91dCB0aGVzZSB0d28gcGF0Y2hlcywgbXkgQUNQSS1iYXNlZCBkZXZpY2Ug
+ZHJpdmVycyBkb24ndCBwcm9iZS4gQ2FuCj4gd2UgYWRkIHRoZW0gdG8gdGhpcyAxNy1wYXRjaCBw
+YXRjaHNldD8KCkkgd2lsbCBhZGQgdGhlbSBpbnRvIG5leHQgdmVyc2lvbiA6KQoKQmVzdCBSZWdh
+cmRzLApIYW5qdW4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
+aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LWFybS1rZXJuZWwK
