@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 11/22] ACPI: Set flag IORESOURCE_UNSET for unassigned resources
-Date: Wed, 28 Jan 2015 18:57:29 +0800
-Message-ID: <1422442660-455-12-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 09/22] ACPI: Fix a bug in parsing ACPI Memroy24 resource
+Date: Wed, 28 Jan 2015 18:57:27 +0800
+Message-ID: <1422442660-455-10-git-send-email-jiang.liu@linux.intel.com>
 References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,48 +10,29 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Also set flag IORESOURCE_UNSET for unassigned resource in addition to
-IORESOURCE_DISABLED to mark resource as unassigned.
+According to ACPI spec 5, section 6.4.3.1 "24-Bit Memory Range Descriptor",
+minimum, maximum and address_length field in struct acpi_resource_memory24
+is in granularity of 256-bytes. So shift 8-bit left to get correct address.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/resource.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 32561290a4a0..5bf73a9f26d9 100644
+index 7ce00a63f695..5544c6d26f32 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -58,7 +58,7 @@ static void acpi_dev_memresource_flags(struct resource *res, u64 len,
- 	res->flags = IORESOURCE_MEM;
- 
- 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
--		res->flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
- 
- 	if (write_protect == ACPI_READ_WRITE_MEMORY)
- 		res->flags |= IORESOURCE_MEM_WRITEABLE;
-@@ -126,10 +126,10 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
- 	res->flags = IORESOURCE_IO;
- 
- 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
--		res->flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
- 
- 	if (res->end >= 0x10003)
--		res->flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
- 
- 	if (io_decode == ACPI_DECODE_16)
- 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
-@@ -304,7 +304,7 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
- {
- 	res->start = gsi;
- 	res->end = gsi;
--	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED;
-+	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
- }
- 
- static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
+@@ -90,8 +90,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ 	switch (ares->type) {
+ 	case ACPI_RESOURCE_TYPE_MEMORY24:
+ 		memory24 = &ares->data.memory24;
+-		acpi_dev_get_memresource(res, memory24->minimum,
+-					 memory24->address_length,
++		acpi_dev_get_memresource(res, memory24->minimum << 8,
++					 memory24->address_length << 8,
+ 					 memory24->write_protect);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_MEMORY32:
 -- 
 1.7.10.4
