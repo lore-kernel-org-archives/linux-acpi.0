@@ -1,150 +1,287 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 06/22] ACPI: Unify the parsing of address_space and ext_address_space
-Date: Wed, 28 Jan 2015 18:57:24 +0800
-Message-ID: <1422442660-455-7-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 17/22] resources: Move struct resource_list_entry from ACPI into resource core
+Date: Wed, 28 Jan 2015 18:57:35 +0800
+Message-ID: <1422442660-455-18-git-send-email-jiang.liu@linux.intel.com>
 References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, Jiang Liu <jiang.liu@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Mike Travis <travis@sgi.com>
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Currently ACPI, PCI and pnp all implement the same resource list
+management with different data structure. We need to transfer from
+one data structure into another when passing resources from one
+subsystem into another subsystem. Sp move struct resource_list_entry
+from ACPI into resource core, so it could be reused by different
+subystems and avoid the data structure conversion.
 
-With the unions in place which let us identify the substructs we can
-use a single parser for address_space and ext_address_space.
+Introduce dedicated header file resource_ext.h instead of embedding
+it into ioport.h to avoid header file inclusion order issues.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |   90 ++++++++++++++++++-----------------------------
- 1 file changed, 34 insertions(+), 56 deletions(-)
+ drivers/acpi/acpi_lpss.c     |    6 ++--
+ drivers/acpi/acpi_platform.c |    2 +-
+ drivers/acpi/resource.c      |   13 +++----
+ drivers/dma/acpi-dma.c       |    8 ++---
+ include/linux/acpi.h         |   12 +------
+ include/linux/resource_ext.h |   77 ++++++++++++++++++++++++++++++++++++++++++
+ kernel/resource.c            |   25 ++++++++++++++
+ 7 files changed, 115 insertions(+), 28 deletions(-)
+ create mode 100644 include/linux/resource_ext.h
 
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 4f3febf8a589..39b548dba70b 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -333,12 +333,12 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 		goto err_out;
+ 
+ 	list_for_each_entry(rentry, &resource_list, node)
+-		if (resource_type(&rentry->res) == IORESOURCE_MEM) {
++		if (resource_type(rentry->res) == IORESOURCE_MEM) {
+ 			if (dev_desc->prv_size_override)
+ 				pdata->mmio_size = dev_desc->prv_size_override;
+ 			else
+-				pdata->mmio_size = resource_size(&rentry->res);
+-			pdata->mmio_base = ioremap(rentry->res.start,
++				pdata->mmio_size = resource_size(rentry->res);
++			pdata->mmio_base = ioremap(rentry->res->start,
+ 						   pdata->mmio_size);
+ 			break;
+ 		}
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 6ba8beb6b9d2..238e32b9cbb0 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -71,7 +71,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 		}
+ 		count = 0;
+ 		list_for_each_entry(rentry, &resource_list, node)
+-			resources[count++] = rentry->res;
++			resources[count++] = *rentry->res;
+ 
+ 		acpi_dev_free_resource_list(&resource_list);
+ 	}
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index cdb1a3c4a0b9..99903d196024 100644
+index 3ea0d17eb951..f7648205416e 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -178,6 +178,35 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+@@ -444,12 +444,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_interrupt);
+  */
+ void acpi_dev_free_resource_list(struct list_head *list)
+ {
+-	struct resource_list_entry *rentry, *re;
+-
+-	list_for_each_entry_safe(rentry, re, list, node) {
+-		list_del(&rentry->node);
+-		kfree(rentry);
+-	}
++	resource_list_free(list);
  }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ EXPORT_SYMBOL_GPL(acpi_dev_free_resource_list);
  
-+static bool acpi_decode_space(struct resource *res,
-+			      struct acpi_resource_address *addr,
-+			      struct acpi_address64_attribute *attr)
+@@ -466,14 +461,14 @@ static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
+ {
+ 	struct resource_list_entry *rentry;
+ 
+-	rentry = kmalloc(sizeof(*rentry), GFP_KERNEL);
++	rentry = resource_list_create_entry(NULL, 0);
+ 	if (!rentry) {
+ 		c->error = -ENOMEM;
+ 		return AE_NO_MEMORY;
+ 	}
+-	rentry->res = win->res;
++	*rentry->res = win->res;
+ 	rentry->offset = win->offset;
+-	list_add_tail(&rentry->node, c->list);
++	resource_list_add_tail(rentry, c->list);
+ 	c->count++;
+ 	return AE_OK;
+ }
+diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
+index de361a156b34..1ce84abe0924 100644
+--- a/drivers/dma/acpi-dma.c
++++ b/drivers/dma/acpi-dma.c
+@@ -56,10 +56,10 @@ static int acpi_dma_parse_resource_group(const struct acpi_csrt_group *grp,
+ 		return 0;
+ 
+ 	list_for_each_entry(rentry, &resource_list, node) {
+-		if (resource_type(&rentry->res) == IORESOURCE_MEM)
+-			mem = rentry->res.start;
+-		else if (resource_type(&rentry->res) == IORESOURCE_IRQ)
+-			irq = rentry->res.start;
++		if (resource_type(rentry->res) == IORESOURCE_MEM)
++			mem = rentry->res->start;
++		else if (resource_type(rentry->res) == IORESOURCE_IRQ)
++			irq = rentry->res->start;
+ 	}
+ 
+ 	acpi_dev_free_resource_list(&resource_list);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e818decb631f..e53822148b6a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -27,6 +27,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/ioport.h>	/* for struct resource */
++#include <linux/resource_ext.h>
+ #include <linux/device.h>
+ #include <linux/property.h>
+ 
+@@ -285,11 +286,6 @@ extern int pnpacpi_disabled;
+ 
+ #define PXM_INVAL	(-1)
+ 
+-struct resource_win {
+-	struct resource res;
+-	resource_size_t offset;
+-};
+-
+ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res);
+ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
+ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+@@ -300,12 +296,6 @@ unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
+ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+ 				 struct resource *res);
+ 
+-struct resource_list_entry {
+-	struct list_head node;
+-	struct resource res;
+-	resource_size_t offset;
+-};
+-
+ void acpi_dev_free_resource_list(struct list_head *list);
+ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+ 			   int (*preproc)(struct acpi_resource *, void *),
+diff --git a/include/linux/resource_ext.h b/include/linux/resource_ext.h
+new file mode 100644
+index 000000000000..ea385e513ab1
+--- /dev/null
++++ b/include/linux/resource_ext.h
+@@ -0,0 +1,77 @@
++/*
++ * Copyright (C) 2015, Intel Corporation
++ * Author: Jiang Liu <jiang.liu@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#ifndef _LINUX_RESOURCE_EXT_H
++#define _LINUX_RESOURCE_EXT_H
++#include <linux/types.h>
++#include <linux/list.h>
++#include <linux/ioport.h>
++#include <linux/slab.h>
++
++/* Represent resource window for bridge devices */
++struct resource_win {
++	struct resource res;		/* In master (CPU) address space */
++	resource_size_t offset;		/* Translation offset for bridge */
++};
++
++/*
++ * Common resource list management data structure and interfaces to support
++ * ACPI, PNP and PCI host bridge etc.
++ */
++struct resource_list_entry {
++	struct list_head	node;
++	struct resource		*res;	/* In master (CPU) address space */
++	resource_size_t		offset;	/* Translation offset for bridge */
++	struct resource		__res;	/* Default storage for res */
++};
++
++extern struct resource_list_entry *
++resource_list_create_entry(struct resource *res, size_t extra_size);
++extern void resource_list_free(struct list_head *head);
++
++static inline void resource_list_add(struct resource_list_entry *entry,
++				     struct list_head *head)
 +{
-+	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
-+	bool window = addr->producer_consumer == ACPI_PRODUCER;
-+	bool wp = addr->info.mem.write_protect;
-+	u64 len = attr->address_length;
-+
-+	res->start = attr->minimum;
-+	res->end = attr->maximum;
-+
-+	switch (addr->resource_type) {
-+	case ACPI_MEMORY_RANGE:
-+		acpi_dev_memresource_flags(res, len, wp, window);
-+		break;
-+	case ACPI_IO_RANGE:
-+		acpi_dev_ioresource_flags(res, len, iodec, window);
-+		break;
-+	case ACPI_BUS_NUMBER_RANGE:
-+		res->flags = IORESOURCE_BUS;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	return !(res->flags & IORESOURCE_DISABLED);
++	list_add(&entry->node, head);
 +}
 +
- /**
-  * acpi_dev_resource_address_space - Extract ACPI address space information.
-  * @ares: Input ACPI resource object.
-@@ -190,39 +219,13 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
- bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 				     struct resource *res)
- {
--	acpi_status status;
- 	struct acpi_resource_address64 addr;
--	bool window;
--	u8 io_decode;
--
--	status = acpi_resource_to_address64(ares, &addr);
--	if (ACPI_FAILURE(status))
--		return false;
++static inline void resource_list_add_tail(struct resource_list_entry *entry,
++					  struct list_head *head)
++{
++	list_add_tail(&entry->node, head);
++}
++
++static inline void resource_list_del(struct resource_list_entry *entry)
++{
++	list_del(&entry->node);
++}
++
++static inline void resource_list_free_entry(struct resource_list_entry *entry)
++{
++	kfree(entry);
++}
++
++static inline void
++resource_list_destroy_entry(struct resource_list_entry *entry)
++{
++	resource_list_del(entry);
++	resource_list_free_entry(entry);
++}
++
++#define resource_list_for_each_entry(entry, list)	\
++	list_for_each_entry((entry), (list), node)
++
++#define resource_list_for_each_entry_safe(entry, tmp, list)	\
++	list_for_each_entry_safe((entry), (tmp), (list), node)
++
++#endif /* _LINUX_RESOURCE_EXT_H */
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 0bcebffc4e77..d8b3b0e9658a 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -22,6 +22,7 @@
+ #include <linux/device.h>
+ #include <linux/pfn.h>
+ #include <linux/mm.h>
++#include <linux/resource_ext.h>
+ #include <asm/io.h>
  
--	res->start = addr.address.minimum;
--	res->end = addr.address.maximum;
--	window = addr.producer_consumer == ACPI_PRODUCER;
--
--	switch(addr.resource_type) {
--	case ACPI_MEMORY_RANGE:
--		acpi_dev_memresource_flags(res, addr.address.address_length,
--					   addr.info.mem.write_protect,
--					   window);
--		break;
--	case ACPI_IO_RANGE:
--		io_decode = addr.address.granularity == 0xfff ?
--				ACPI_DECODE_10 : ACPI_DECODE_16;
--		acpi_dev_ioresource_flags(res, addr.address.address_length,
--					  io_decode, window);
--		break;
--	case ACPI_BUS_NUMBER_RANGE:
--		res->flags = IORESOURCE_BUS;
--		break;
--	default:
-+	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
- 		return false;
--	}
  
--	return !(res->flags & IORESOURCE_DISABLED);
-+	return acpi_decode_space(res, (struct acpi_resource_address *)&addr,
-+				 &addr.address);
+@@ -1529,6 +1530,30 @@ int iomem_is_exclusive(u64 addr)
+ 	return err;
  }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
  
-@@ -239,39 +242,14 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- 					 struct resource *res)
++struct resource_list_entry *resource_list_create_entry(struct resource *res,
++						       size_t extra_size)
++{
++	struct resource_list_entry *entry;
++
++	entry = kzalloc(sizeof(*entry) + extra_size, GFP_KERNEL);
++	if (entry) {
++		INIT_LIST_HEAD(&entry->node);
++		entry->res = res ? res : &entry->__res;
++	}
++
++	return entry;
++}
++EXPORT_SYMBOL(resource_list_create_entry);
++
++void resource_list_free(struct list_head *head)
++{
++	struct resource_list_entry *entry, *tmp;
++
++	list_for_each_entry_safe(entry, tmp, head, node)
++		resource_list_destroy_entry(entry);
++}
++EXPORT_SYMBOL(resource_list_free);
++
+ static int __init strict_iomem(char *str)
  {
- 	struct acpi_resource_extended_address64 *ext_addr;
--	bool window;
--	u8 io_decode;
- 
- 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
- 		return false;
- 
- 	ext_addr = &ares->data.ext_address64;
- 
--	res->start = ext_addr->address.minimum;
--	res->end = ext_addr->address.maximum;
--	window = ext_addr->producer_consumer == ACPI_PRODUCER;
--
--	switch(ext_addr->resource_type) {
--	case ACPI_MEMORY_RANGE:
--		acpi_dev_memresource_flags(res,
--					   ext_addr->address.address_length,
--					   ext_addr->info.mem.write_protect,
--					   window);
--		break;
--	case ACPI_IO_RANGE:
--		io_decode = ext_addr->address.granularity == 0xfff ?
--				ACPI_DECODE_10 : ACPI_DECODE_16;
--		acpi_dev_ioresource_flags(res, ext_addr->address.address_length,
--					  io_decode, window);
--		break;
--	case ACPI_BUS_NUMBER_RANGE:
--		res->flags = IORESOURCE_BUS;
--		break;
--	default:
--		return false;
--	}
--
--	return !(res->flags & IORESOURCE_DISABLED);
-+	return acpi_decode_space(res, (struct acpi_resource_address *)ext_addr,
-+				 &ext_addr->address);
- }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
- 
+ 	if (strstr(str, "relaxed"))
 -- 
 1.7.10.4
