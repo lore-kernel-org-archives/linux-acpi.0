@@ -1,230 +1,127 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH 2/4] ACPI / PMIC: Use common LPAT table handling functions
-Date: Wed, 28 Jan 2015 11:56:47 -0800
-Message-ID: <1422475009-20759-2-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1422475009-20759-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1422475009-20759-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: rui.zhang@intel.com, edubezval@gmail.com, rafael.j.wysocki@intel.com
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v2 04/22] ACPI: Use the length check for io resources as well
+Date: Wed, 28 Jan 2015 18:57:22 +0800
+Message-ID: <1422442660-455-5-git-send-email-jiang.liu@linux.intel.com>
+References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The LPAT table processing functions from this modules are moved to a
-standalone module with exported interface functions.
-Using new interface functions in this module.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Also apply length check to IO resources.
+
+[Jiang] Remove enforcement that resource starting address must be
+non-zero.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/pmic/intel_pmic.c | 133 ++++++-----------------------------------
- 1 file changed, 18 insertions(+), 115 deletions(-)
+ drivers/acpi/resource.c |   44 +++++++++++++++++++-------------------------
+ 1 file changed, 19 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-index a732e5d..bd772cd 100644
---- a/drivers/acpi/pmic/intel_pmic.c
-+++ b/drivers/acpi/pmic/intel_pmic.c
-@@ -16,20 +16,15 @@
- #include <linux/module.h>
- #include <linux/acpi.h>
- #include <linux/regmap.h>
-+#include <acpi/acpi_lpat.h>
- #include "intel_pmic.h"
- 
- #define PMIC_POWER_OPREGION_ID		0x8d
- #define PMIC_THERMAL_OPREGION_ID	0x8c
- 
--struct acpi_lpat {
--	int temp;
--	int raw;
--};
--
- struct intel_pmic_opregion {
- 	struct mutex lock;
--	struct acpi_lpat *lpat;
--	int lpat_count;
-+	struct acpi_lpat_conversion_table *lpat_table;
- 	struct regmap *regmap;
- 	struct intel_pmic_opregion_data *data;
- };
-@@ -50,105 +45,6 @@ static int pmic_get_reg_bit(int address, struct pmic_table *table,
- 	return -ENOENT;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 3e7d9f6eb875..16d291c60277 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -117,31 +117,30 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
  }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
  
--/**
-- * raw_to_temp(): Return temperature from raw value through LPAT table
-- *
-- * @lpat: the temperature_raw mapping table
-- * @count: the count of the above mapping table
-- * @raw: the raw value, used as a key to get the temerature from the
-- *       above mapping table
-- *
-- * A positive value will be returned on success, a negative errno will
-- * be returned in error cases.
-- */
--static int raw_to_temp(struct acpi_lpat *lpat, int count, int raw)
--{
--	int i, delta_temp, delta_raw, temp;
--
--	for (i = 0; i < count - 1; i++) {
--		if ((raw >= lpat[i].raw && raw <= lpat[i+1].raw) ||
--		    (raw <= lpat[i].raw && raw >= lpat[i+1].raw))
--			break;
--	}
--
--	if (i == count - 1)
--		return -ENOENT;
--
--	delta_temp = lpat[i+1].temp - lpat[i].temp;
--	delta_raw = lpat[i+1].raw - lpat[i].raw;
--	temp = lpat[i].temp + (raw - lpat[i].raw) * delta_temp / delta_raw;
--
--	return temp;
--}
--
--/**
-- * temp_to_raw(): Return raw value from temperature through LPAT table
-- *
-- * @lpat: the temperature_raw mapping table
-- * @count: the count of the above mapping table
-- * @temp: the temperature, used as a key to get the raw value from the
-- *        above mapping table
-- *
-- * A positive value will be returned on success, a negative errno will
-- * be returned in error cases.
-- */
--static int temp_to_raw(struct acpi_lpat *lpat, int count, int temp)
--{
--	int i, delta_temp, delta_raw, raw;
--
--	for (i = 0; i < count - 1; i++) {
--		if (temp >= lpat[i].temp && temp <= lpat[i+1].temp)
--			break;
--	}
--
--	if (i == count - 1)
--		return -ENOENT;
--
--	delta_temp = lpat[i+1].temp - lpat[i].temp;
--	delta_raw = lpat[i+1].raw - lpat[i].raw;
--	raw = lpat[i].raw + (temp - lpat[i].temp) * delta_raw / delta_temp;
--
--	return raw;
--}
--
--static void pmic_thermal_lpat(struct intel_pmic_opregion *opregion,
--			      acpi_handle handle, struct device *dev)
--{
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj_p, *obj_e;
--	int *lpat, i;
--	acpi_status status;
--
--	status = acpi_evaluate_object(handle, "LPAT", NULL, &buffer);
--	if (ACPI_FAILURE(status))
--		return;
--
--	obj_p = (union acpi_object *)buffer.pointer;
--	if (!obj_p || (obj_p->type != ACPI_TYPE_PACKAGE) ||
--	    (obj_p->package.count % 2) || (obj_p->package.count < 4))
--		goto out;
--
--	lpat = devm_kmalloc(dev, sizeof(int) * obj_p->package.count,
--			    GFP_KERNEL);
--	if (!lpat)
--		goto out;
--
--	for (i = 0; i < obj_p->package.count; i++) {
--		obj_e = &obj_p->package.elements[i];
--		if (obj_e->type != ACPI_TYPE_INTEGER) {
--			devm_kfree(dev, lpat);
--			goto out;
--		}
--		lpat[i] = (s64)obj_e->integer.value;
--	}
--
--	opregion->lpat = (struct acpi_lpat *)lpat;
--	opregion->lpat_count = obj_p->package.count / 2;
--
--out:
--	kfree(buffer.pointer);
--}
--
- static acpi_status intel_pmic_power_handler(u32 function,
- 		acpi_physical_address address, u32 bits, u64 *value64,
- 		void *handler_context, void *region_context)
-@@ -192,12 +88,12 @@ static int pmic_read_temp(struct intel_pmic_opregion *opregion,
- 	if (raw_temp < 0)
- 		return raw_temp;
- 
--	if (!opregion->lpat) {
-+	if (!opregion->lpat_table) {
- 		*value = raw_temp;
- 		return 0;
- 	}
- 
--	temp = raw_to_temp(opregion->lpat, opregion->lpat_count, raw_temp);
-+	temp = acpi_lpat_raw_to_temp(opregion->lpat_table, raw_temp);
- 	if (temp < 0)
- 		return temp;
- 
-@@ -223,9 +119,8 @@ static int pmic_thermal_aux(struct intel_pmic_opregion *opregion, int reg,
- 	if (!opregion->data->update_aux)
- 		return -ENXIO;
- 
--	if (opregion->lpat) {
--		raw_temp = temp_to_raw(opregion->lpat, opregion->lpat_count,
--				       *value);
-+	if (opregion->lpat_table) {
-+		raw_temp = acpi_lpat_temp_to_raw(opregion->lpat_table, *value);
- 		if (raw_temp < 0)
- 			return raw_temp;
- 	} else {
-@@ -314,6 +209,7 @@ int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
+-static unsigned int acpi_dev_ioresource_flags(u64 start, u64 end, u8 io_decode,
+-					      bool window)
++static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
++				      u8 io_decode, bool window)
  {
- 	acpi_status status;
- 	struct intel_pmic_opregion *opregion;
-+	int ret;
+-	int flags = IORESOURCE_IO;
++	res->flags = IORESOURCE_IO;
  
- 	if (!dev || !regmap || !d)
- 		return -EINVAL;
-@@ -327,14 +223,16 @@ int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
+-	if (io_decode == ACPI_DECODE_16)
+-		flags |= IORESOURCE_IO_16BIT_ADDR;
++	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
++		res->flags |= IORESOURCE_DISABLED;
  
- 	mutex_init(&opregion->lock);
- 	opregion->regmap = regmap;
--	pmic_thermal_lpat(opregion, handle, dev);
-+	opregion->lpat_table = acpi_lpat_get_conversion_table(handle);
+-	if (start > end || end >= 0x10003)
+-		flags |= IORESOURCE_DISABLED;
++	if (res->end >= 0x10003)
++		res->flags |= IORESOURCE_DISABLED;
  
- 	status = acpi_install_address_space_handler(handle,
- 						    PMIC_POWER_OPREGION_ID,
- 						    intel_pmic_power_handler,
- 						    NULL, opregion);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
-+	if (ACPI_FAILURE(status)) {
-+		ret = -ENODEV;
-+		goto out_error;
-+	}
+-	if (window)
+-		flags |= IORESOURCE_WINDOW;
++	if (io_decode == ACPI_DECODE_16)
++		res->flags |= IORESOURCE_IO_16BIT_ADDR;
  
- 	status = acpi_install_address_space_handler(handle,
- 						    PMIC_THERMAL_OPREGION_ID,
-@@ -343,11 +241,16 @@ int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
- 	if (ACPI_FAILURE(status)) {
- 		acpi_remove_address_space_handler(handle, PMIC_POWER_OPREGION_ID,
- 						  intel_pmic_power_handler);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto out_error;
- 	}
- 
- 	opregion->data = d;
- 	return 0;
-+
-+out_error:
-+	acpi_lpat_free_conversion_table(opregion->lpat_table);
-+	return ret;
+-	return flags;
++	if (window)
++		res->flags |= IORESOURCE_WINDOW;
  }
- EXPORT_SYMBOL_GPL(intel_pmic_install_opregion_handler);
  
+ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+ 				    u8 io_decode)
+ {
+-	u64 end = start + len - 1;
+-
+ 	res->start = start;
+-	res->end = end;
+-	res->flags = acpi_dev_ioresource_flags(start, end, io_decode, false);
++	res->end = start + len - 1;
++	acpi_dev_ioresource_flags(res, len, io_decode, false);
+ }
+ 
+ /**
+@@ -161,16 +160,12 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+ 	switch (ares->type) {
+ 	case ACPI_RESOURCE_TYPE_IO:
+ 		io = &ares->data.io;
+-		if (!io->minimum && !io->address_length)
+-			return false;
+ 		acpi_dev_get_ioresource(res, io->minimum,
+ 					io->address_length,
+ 					io->io_decode);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_FIXED_IO:
+ 		fixed_io = &ares->data.fixed_io;
+-		if (!fixed_io->address && !fixed_io->address_length)
+-			return false;
+ 		acpi_dev_get_ioresource(res, fixed_io->address,
+ 					fixed_io->address_length,
+ 					ACPI_DECODE_10);
+@@ -178,7 +173,8 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+ 	default:
+ 		return false;
+ 	}
+-	return true;
++
++	return !(res->flags & IORESOURCE_DISABLED);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ 
+@@ -216,9 +212,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 	case ACPI_IO_RANGE:
+ 		io_decode = addr.address.granularity == 0xfff ?
+ 				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		res->flags = acpi_dev_ioresource_flags(addr.address.minimum,
+-						       addr.address.maximum,
+-						       io_decode, window);
++		acpi_dev_ioresource_flags(res, addr.address.address_length,
++					  io_decode, window);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
+@@ -266,9 +261,8 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 	case ACPI_IO_RANGE:
+ 		io_decode = ext_addr->address.granularity == 0xfff ?
+ 				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		res->flags = acpi_dev_ioresource_flags(ext_addr->address.minimum,
+-						       ext_addr->address.maximum,
+-						       io_decode, window);
++		acpi_dev_ioresource_flags(res, ext_addr->address.address_length,
++					  io_decode, window);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
 -- 
-1.9.3
-
+1.7.10.4
