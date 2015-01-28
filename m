@@ -1,14 +1,15 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 00/17] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Wed, 28 Jan 2015 21:53:07 +0800
-Message-ID: <54C8E9C3.9010508@linaro.org>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
+ early_param for "acpi" and pass acpi=force to enable ACPI
+Date: Wed, 28 Jan 2015 11:58:54 -0600
+Message-ID: <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com>
 References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <54C7CF0D.4050607@codeaurora.org>
+ <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <54C7CF0D.4050607@codeaurora.org>
+In-Reply-To: <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,24 +19,27 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Timur Tabi <timur@codeaurora.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, wangyijing@huawei.com, Mark Brown <broonie@kernel.org>, ashwin.chaugule@linaro.org, msalter@redhat.com, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, phoenix.liyi@huawei.com, linux-arm-kernel@lists.infradead.org, Charles.Garcia-Tobin@arm.com
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, wangyijing@huawei.com, Rob Herring <robh@kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, phoenix.liyi@huawei.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Olof Johansson <olof@lixom.net>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjAxNeW5tDAx5pyIMjjml6UgMDE6NDYsIFRpbXVyIFRhYmkgd3JvdGU6Cj4gT24gMDEvMTQv
-MjAxNSAwOTowNCBBTSwgSGFuanVuIEd1byB3cm90ZToKPj4gVGhpcyBpcyB0aGUgdjcgb2YgQUNQ
-SSBjb3JlIHBhdGNoZXMgZm9yIEFSTTY0IGJhc2VkIG9uIEFDUEkgNS4xCj4+Cj4KPiBUZXN0ZWQt
-Ynk6IFRpbXVyIFRhYmkgPHRpbXVyQGNvZGVhdXJvcmEub3JnPgoKVGhhbmtzIQoKPgo+IEhvd2V2
-ZXIsIHRoZXNlIDE3IHBhdGNoZXMgYXJlIGluc3VmZmljaWVudCB0byBtYWtlIEFDUEkgd29yayBj
-b21wbGV0ZWx5Cj4gb24gQVJNNjQuICBJIG5lZWQgdG8gYWRkIHR3byBwYXRjaGVzOgo+Cj4gYWNw
-aTogYWRkIGFybSB0byB0aGUgcGxhdGZvcm1zIHRoYXQgdXNlIGlvcmVtYXAKPiBodHRwOi8vbGlz
-dHMubGluYXJvLm9yZy9waXBlcm1haWwvbGluYXJvLWFjcGkvMjAxNC1Ob3ZlbWJlci8wMDI5NDMu
-aHRtbAo+Cj4gYWNwaTogZml4IGFjcGlfb3NfaW9yZW1hcCBmb3IgYXJtNjQKPiBodHRwOi8vbGlz
-dHMubGluYXJvLm9yZy9waXBlcm1haWwvbGluYXJvLWFjcGkvMjAxNC1Ob3ZlbWJlci8wMDI4NTku
-aHRtbAo+Cj4gV2l0aG91dCB0aGVzZSB0d28gcGF0Y2hlcywgbXkgQUNQSS1iYXNlZCBkZXZpY2Ug
-ZHJpdmVycyBkb24ndCBwcm9iZS4gQ2FuCj4gd2UgYWRkIHRoZW0gdG8gdGhpcyAxNy1wYXRjaCBw
-YXRjaHNldD8KCkkgd2lsbCBhZGQgdGhlbSBpbnRvIG5leHQgdmVyc2lvbiA6KQoKQmVzdCBSZWdh
-cmRzLApIYW5qdW4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
-aW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LWFybS1rZXJuZWwK
+On Wed, Jan 14, 2015 at 9:04 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> From: Al Stone <al.stone@linaro.org>
+>
+> Introduce one early parameters "off" and "force" for "acpi", acpi=off
+> will be the default behavior for ARM64, so introduce acpi=force to
+> enable ACPI on ARM64.
+>
+> Disable ACPI before early parameters parsed, and enable it to pass
+> "acpi=force" if people want use ACPI on ARM64. This ensures DT be
+> the prefer one if ACPI table and DT both are provided at this moment.
+
+What is the reason to assume that DT is preferred over ACPI?  I would
+have thought that if ACPI is present, then it means we're on an ARM64
+server platform, and therefore it should be used.  It seems silly to
+require acpi=force on every ARM64 server platform.
+
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
