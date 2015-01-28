@@ -1,47 +1,44 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 15/22] ACPI: Add field offset to struct resource_list_entry
-Date: Wed, 28 Jan 2015 18:57:33 +0800
-Message-ID: <1422442660-455-16-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 02/22] ACPI: Remove redundant check in function acpi_dev_resource_address_space()
+Date: Wed, 28 Jan 2015 18:57:20 +0800
+Message-ID: <1422442660-455-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add field offset to struct resource_list_entry to host address space
-translation offset so it could be used to represent bridge resources.
+From: Thomas Gleixner <tglx@linutronix.de>
 
+The ACPI type is checked in acpi_resource_to_address64() anyway.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    1 +
- include/linux/acpi.h    |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/acpi/resource.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 4dc8cfb2e94e..1c3abae6f2fa 100644
+index d0a4d90c6bcc..1c616a56e007 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -472,6 +472,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
- 		return AE_NO_MEMORY;
- 	}
- 	rentry->res = win->res;
-+	rentry->offset = win->offset;
- 	list_add_tail(&rentry->node, c->list);
- 	c->count++;
- 	return AE_OK;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index be9eaee8f4ae..21dac3cb62d2 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -303,6 +303,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
- struct resource_list_entry {
- 	struct list_head node;
- 	struct resource res;
-+	resource_size_t offset;
- };
+@@ -189,15 +189,6 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 	u64 len;
+ 	u8 io_decode;
  
- void acpi_dev_free_resource_list(struct list_head *list);
+-	switch (ares->type) {
+-	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		break;
+-	default:
+-		return false;
+-	}
+-
+ 	status = acpi_resource_to_address64(ares, &addr);
+ 	if (ACPI_FAILURE(status))
+ 		return false;
 -- 
 1.7.10.4
