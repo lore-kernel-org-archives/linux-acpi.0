@@ -1,33 +1,43 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH] Documentation/acpi: add the missing '='
-Date: Wed, 28 Jan 2015 15:04:08 -0700
-Message-ID: <20150128150408.7c76ce05@lwn.net>
-References: <1421330356-4051-1-git-send-email-bywxiaobai@163.com>
-	<20150128120850.5f6504a7@lwn.net>
-	<2132979.yiiZbQ1huf@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch v2 20/22] x86/PCI: Refine the way to release PCI IRQ
+ resources
+Date: Wed, 28 Jan 2015 17:38:34 -0600
+Message-ID: <20150128233834.GF17623@google.com>
+References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+ <1422442660-455-21-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <2132979.yiiZbQ1huf@vostro.rjw.lan>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Yaowei Bai <bywxiaobai@163.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:39464 "EHLO
+	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbbA2BSD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Jan 2015 20:18:03 -0500
+Received: by mail-oi0-f47.google.com with SMTP id a141so22058248oig.6
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Jan 2015 17:18:02 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1422442660-455-21-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 28 Jan 2015 21:12:36 +0100
-"Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
-
-> > On Thu, 15 Jan 2015 21:59:16 +0800
-> > Yaowei Bai <bywxiaobai@163.com> wrote:
-> >   
-> > > -			.acpi_match_table  ACPI_PTR(mpu3050_acpi_match),
-> > > +			.acpi_match_table = ACPI_PTR(mpu3050_acpi_match),  
-> > 
-> > Applied to the docs tree, thanks.  
+On Wed, Jan 28, 2015 at 06:57:38PM +0800, Jiang Liu wrote:
+> Some PCI device drivers assume that pci_dev->irq won't change after
+> calling pci_disable_device() and pci_enable_device() during suspend and
+> resume.
 > 
-> I've applied this one too.  Should I drop it?
+> Commit c03b3b0738a56cf283b0d05256988d5e3c8bd719 ("x86, irq, mpparse:
 
-I'll drop it, no worries.
+Cosmetic: please use the conventional 12-char SHA1 as you did below.
 
-jon
+> Release IOAPIC pin when PCI device is disabled") frees PCI IRQ
+> resources when pci_disable_device() is called and reallocate IRQ
+> resources when pci_enable_device() is called again. This breaks
+> above assumption. So commit 3eec595235c1 ("x86, irq, PCI: Keep IRQ
+> assignment for PCI devices during suspend/hibernation") and
+> 9eabc99a635a ("x86, irq, PCI: Keep IRQ assignment for runtime power
+> management") fix the issue by avoiding freeing/reallocating IRQ
+> resources during PCI device suspend/resume. They achieve this by
+> checking dev.power.is_prepared and dev.power.runtime_status.
+> PM maintainer, Rafael, then pointed out that it's really an ugly fix
+> which leaking PM internal state information to IRQ subsystem.
