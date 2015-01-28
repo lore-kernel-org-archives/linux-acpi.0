@@ -1,210 +1,27 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 21/22] ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
-Date: Wed, 28 Jan 2015 18:57:39 +0800
-Message-ID: <1422442660-455-22-git-send-email-jiang.liu@linux.intel.com>
-References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Documentation/acpi: add the missing '='
+Date: Wed, 28 Jan 2015 21:12:36 +0100
+Message-ID: <2132979.yiiZbQ1huf@vostro.rjw.lan>
+References: <1421330356-4051-1-git-send-email-bywxiaobai@163.com> <20150128120850.5f6504a7@lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <20150128120850.5f6504a7@lwn.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Randy Dunlap <rdunlap@infradead.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Yaowei Bai <bywxiaobai@163.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yinghai Lu <yinghai@kernel.org>
+On Wednesday, January 28, 2015 12:08:50 PM Jonathan Corbet wrote:
+> On Thu, 15 Jan 2015 21:59:16 +0800
+> Yaowei Bai <bywxiaobai@163.com> wrote:
+> 
+> > -			.acpi_match_table  ACPI_PTR(mpu3050_acpi_match),
+> > +			.acpi_match_table = ACPI_PTR(mpu3050_acpi_match),
+> 
+> Applied to the docs tree, thanks.
 
-We need to parse APIC ID for IOAPIC registration for IOAPIC hotplug.
-ACPI _MAT method and MADT table are used to figure out IOAPIC ID, just
-like parsing CPU APIC ID for CPU hotplug.
+I've applied this one too.  Should I drop it?
 
-[ tglx: Fixed docbook comment ]
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Len Brown <lenb@kernel.org>
-Link: http://lkml.kernel.org/r/1414387308-27148-8-git-send-email-jiang.liu@linux.intel.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
----
- drivers/acpi/processor_core.c |  123 ++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h          |    4 ++
- 2 files changed, 118 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 02e48394276c..7962651cdbd4 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -4,6 +4,10 @@
-  *
-  *	Alex Chiang <achiang@hp.com>
-  *	- Unified x86/ia64 implementations
-+ *
-+ * I/O APIC hotplug support
-+ *	Yinghai Lu <yinghai@kernel.org>
-+ *	Jiang Liu <jiang.liu@intel.com>
-  */
- #include <linux/export.h>
- #include <linux/acpi.h>
-@@ -12,6 +16,21 @@
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_core");
- 
-+static struct acpi_table_madt *get_madt_table(void)
-+{
-+	static struct acpi_table_madt *madt;
-+	static int read_madt;
-+
-+	if (!read_madt) {
-+		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
-+					(struct acpi_table_header **)&madt)))
-+			madt = NULL;
-+		read_madt++;
-+	}
-+
-+	return madt;
-+}
-+
- static int map_lapic_id(struct acpi_subtable_header *entry,
- 		 u32 acpi_id, int *apic_id)
- {
-@@ -67,17 +86,10 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
--	static struct acpi_table_madt *madt;
--	static int read_madt;
- 	int phys_id = -1;	/* CPU hardware ID */
-+	struct acpi_table_madt *madt;
- 
--	if (!read_madt) {
--		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
--					(struct acpi_table_header **)&madt)))
--			madt = NULL;
--		read_madt++;
--	}
--
-+	madt = get_madt_table();
- 	if (!madt)
- 		return phys_id;
- 
-@@ -203,3 +215,96 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- 	return acpi_map_cpuid(phys_id, acpi_id);
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
-+
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
-+			 u64 *phys_addr, int *ioapic_id)
-+{
-+	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
-+
-+	if (ioapic->global_irq_base != gsi_base)
-+		return 0;
-+
-+	*phys_addr = ioapic->address;
-+	*ioapic_id = ioapic->id;
-+	return 1;
-+}
-+
-+static int parse_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
-+{
-+	struct acpi_subtable_header *hdr;
-+	unsigned long madt_end, entry;
-+	struct acpi_table_madt *madt;
-+	int apic_id = -1;
-+
-+	madt = get_madt_table();
-+	if (!madt)
-+		return apic_id;
-+
-+	entry = (unsigned long)madt;
-+	madt_end = entry + madt->header.length;
-+
-+	/* Parse all entries looking for a match. */
-+	entry += sizeof(struct acpi_table_madt);
-+	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-+		hdr = (struct acpi_subtable_header *)entry;
-+		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
-+		    get_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
-+			break;
-+		else
-+			entry += hdr->length;
-+	}
-+
-+	return apic_id;
-+}
-+
-+static int parse_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
-+				  u64 *phys_addr)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_subtable_header *header;
-+	union acpi_object *obj;
-+	int apic_id = -1;
-+
-+	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
-+		goto exit;
-+
-+	if (!buffer.length || !buffer.pointer)
-+		goto exit;
-+
-+	obj = buffer.pointer;
-+	if (obj->type != ACPI_TYPE_BUFFER ||
-+	    obj->buffer.length < sizeof(struct acpi_subtable_header))
-+		goto exit;
-+
-+	header = (struct acpi_subtable_header *)obj->buffer.pointer;
-+	if (header->type == ACPI_MADT_TYPE_IO_APIC)
-+		get_ioapic_id(header, gsi_base, phys_addr, &apic_id);
-+
-+exit:
-+	kfree(buffer.pointer);
-+	return apic_id;
-+}
-+
-+/**
-+ * acpi_get_ioapic_id - Get IOAPIC ID and physical address matching @gsi_base
-+ * @handle:	ACPI object for IOAPIC device
-+ * @gsi_base:	GSI base to match with
-+ * @phys_addr:	Pointer to store physical address of matching IOAPIC record
-+ *
-+ * Walk resources returned by ACPI_MAT method, then ACPI MADT table, to search
-+ * for an ACPI IOAPIC record matching @gsi_base.
-+ * Return IOAPIC id and store physical address in @phys_addr if found a match,
-+ * otherwise return <0.
-+ */
-+int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
-+{
-+	int apic_id;
-+
-+	apic_id = parse_mat_ioapic_entry(handle, gsi_base, phys_addr);
-+	if (apic_id == -1)
-+		apic_id = parse_madt_ioapic_entry(gsi_base, phys_addr);
-+
-+	return apic_id;
-+}
-+#endif /* CONFIG_ACPI_HOTPLUG_IOAPIC */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e53822148b6a..24c7aa8b1d20 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -152,6 +152,10 @@ int acpi_map_cpu(acpi_handle handle, int physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
-+#endif
-+
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
- int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
- int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base);
--- 
-1.7.10.4
+Rafael
