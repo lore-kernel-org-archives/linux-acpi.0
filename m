@@ -1,44 +1,52 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 02/22] ACPI: Remove redundant check in function acpi_dev_resource_address_space()
-Date: Wed, 28 Jan 2015 18:57:20 +0800
-Message-ID: <1422442660-455-3-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 14/22] ACPI: Translate resource into master side address for bridge window resources
+Date: Wed, 28 Jan 2015 18:57:32 +0800
+Message-ID: <1422442660-455-15-git-send-email-jiang.liu@linux.intel.com>
 References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Add translation_offset into the result address for bridge window
+resources to form the master side address.
 
-The ACPI type is checked in acpi_resource_to_address64() anyway.
+Currently acpi_dev_resource_{ext_}address_space() are only used for
+devices instead of bridges, so it won't break current users. Later
+it will be used to support PCI host bridge drivers.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/acpi/resource.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index d0a4d90c6bcc..1c616a56e007 100644
+index c902c8eece81..4dc8cfb2e94e 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -189,15 +189,6 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 	u64 len;
- 	u8 io_decode;
+@@ -205,6 +205,21 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	res->start = attr->minimum;
+ 	res->end = attr->maximum;
  
--	switch (ares->type) {
--	case ACPI_RESOURCE_TYPE_ADDRESS16:
--	case ACPI_RESOURCE_TYPE_ADDRESS32:
--	case ACPI_RESOURCE_TYPE_ADDRESS64:
--		break;
--	default:
--		return false;
--	}
--
- 	status = acpi_resource_to_address64(ares, &addr);
- 	if (ACPI_FAILURE(status))
- 		return false;
++	/*
++	 * For bridges that translate addresses across the bridge,
++	 * translation_offset is the offset that must be added to the
++	 * address on the secondary side to obtain the address on the
++	 * primary side. Non-bridge devices must list 0 for all Address
++	 * Translation offset bits.
++	 */
++	if (addr->producer_consumer == ACPI_PRODUCER) {
++		res->start += attr->translation_offset;
++		res->end += attr->translation_offset;
++	} else if (attr->translation_offset) {
++		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
++			 attr->translation_offset);
++	}
++
+ 	switch (addr->resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+ 		acpi_dev_memresource_flags(res, len, wp);
 -- 
 1.7.10.4
