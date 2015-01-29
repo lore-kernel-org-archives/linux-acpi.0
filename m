@@ -1,37 +1,39 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: Re: [Patch v2 19/22] x86/PCI/ACPI: Use common ACPI resource interfaces
  to simplify implementation
-Date: Thu, 29 Jan 2015 11:00:12 +0800
-Message-ID: <54C9A23C.4080807@linux.intel.com>
-References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com> <1422442660-455-20-git-send-email-jiang.liu@linux.intel.com> <20150128233700.GE17623@google.com>
+Date: Thu, 29 Jan 2015 11:11:34 +0800
+Message-ID: <54C9A4E6.5070907@linux.intel.com>
+References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com> <1422442660-455-20-git-send-email-jiang.liu@linux.intel.com> <20150128235114.GG17623@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150128233700.GE17623@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:22506 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1763757AbbA2DLk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Jan 2015 22:11:40 -0500
+In-Reply-To: <20150128235114.GG17623@google.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On 2015/1/29 7:37, Bjorn Helgaas wrote:
+On 2015/1/29 7:51, Bjorn Helgaas wrote:
 > On Wed, Jan 28, 2015 at 06:57:37PM +0800, Jiang Liu wrote:
 >> Use common ACPI resource discovery interfaces to simplify PCI host bridge
 >> resource enumeration.
 >>
 >> It also fixes the issue discovered by Thomas that function setup_resource()
 >> incorrectly validates IO port resources against iomem_resource.
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > 
-> Is it possible to split this bug fix into its own separate patch?  Mixing
-> things together makes git archaeology harder because it hides tiny bug
-> fixes inside big changes.
-Hi Bjorn,
-	I will split out a patch to fix the issue in next version.
-Thanks!
-Gerry
+> Nice cleanups, thanks.  A few more trival comments below.
+> 
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Thanks, Bjorn. Will fix following issues in next version.
 
 > 
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 >> ---
 >>  arch/x86/pci/acpi.c |  296 ++++++++++++++++-----------------------------------
 >>  1 file changed, 94 insertions(+), 202 deletions(-)
@@ -195,6 +197,10 @@ Gerry
 >> +			dev_info(dev, "host bridge window [%#llx-%#llx] (ignored, not CPU addressable)\n",
 >> +				 (unsigned long long)res1->start,
 >> +				 (unsigned long long)res1->end);
+> 
+> It looks like you have a struct resource now, so you should use %pR instead
+> of printing ->start and ->end by hand.
+> 
 >> +			free = true;
 >> +			goto next;
 >> +		} else if (res1->end != end) {
@@ -203,6 +209,10 @@ Gerry
 >> +				 (unsigned long long)res1->end,
 >> +				 (unsigned long long)end + 1,
 >> +				 (unsigned long long)res1->end);
+> 
+> Looks like you can use %pR here too (for the first one, not the second
+> unaddressable range).
+> 
 >> +			res1->end = end;
 >> +		}
 >>  
@@ -373,6 +383,9 @@ Gerry
 >> +	else if (ret == 0)
 >> +		dev_dbg(&device->dev,
 >> +			"no IO and memory resources present in _CRS.\n");
+> 
+> Most people don't bother with periods at the end of messages like these.
+> 
 >> +	else
 >> +		resource_list_for_each_entry(entry, list)
 >> +			entry->res->name = info->name;
