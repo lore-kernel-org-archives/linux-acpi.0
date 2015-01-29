@@ -1,56 +1,78 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
- early_param for "acpi" and pass acpi=force to enable ACPI
-Date: Thu, 29 Jan 2015 15:19:56 +0000
-Message-ID: <20150129151956.GF8951@e104818-lin.cambridge.arm.com>
+Subject: Re: [PATCH v7 13/17] ARM64 / ACPI: Add GICv2 specific ACPI boot
+ support
+Date: Thu, 29 Jan 2015 15:29:23 +0000
+Message-ID: <20150129152922.GG8951@e104818-lin.cambridge.arm.com>
 References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
- <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com>
- <CAOZdJXXe+29rux1L3QYBX0yHLy3kdi+ZJrXVd=XfgYN=R6DtKA@mail.gmail.com>
- <20150128181453.GG31752@e104818-lin.cambridge.arm.com>
- <54C92804.5090806@codeaurora.org>
+ <1421247905-3749-14-git-send-email-hanjun.guo@linaro.org>
+ <54B8F2E3.80306@arm.com>
+ <CACxGe6tBb8L8upS3zenZbrOc_c0E=MA=DqLjkSezEbregaAaaA@mail.gmail.com>
+ <54B92245.6080306@arm.com>
+ <CACxGe6vb8au6sc0gDMDu4kuzmYBCuOrcObWkbj1mDoCGTgVLVw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:46022 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476AbbA2P3g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jan 2015 10:29:36 -0500
 Content-Disposition: inline
-In-Reply-To: <54C92804.5090806@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>lkml <linux->
+In-Reply-To: <CACxGe6vb8au6sc0gDMDu4kuzmYBCuOrcObWkbj1mDoCGTgVLVw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Bjorn Helgaas <bhelgaas@google.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, wangyijing@huawei.com
 
-On Wed, Jan 28, 2015 at 06:18:44PM +0000, Timur Tabi wrote:
-> On 01/28/2015 12:14 PM, Catalin Marinas wrote:
-> >> >So it looks like there's a whole conversation about this already in
-> >> >this thread that I didn't notice.  However, reading through all of it,
-> >> >I still don't understand sure why the presence of ACPI tables is
-> >> >insufficient to enable ACPI.
+On Tue, Jan 27, 2015 at 04:12:08PM +0000, Grant Likely wrote:
+> On Fri, Jan 16, 2015 at 2:37 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> >>>> @@ -78,6 +79,10 @@ void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
+> >>>>  void __init init_IRQ(void)
+> >>>>  {
+> >>>>     irqchip_init();
+> >>>> +
+> >>>> +   if (!handle_arch_irq)
+> >>>> +           acpi_gic_init();
+> >>>> +
+> >>>
+> >>> Why isn't this called from irqchip_init? It would seem like the logical
+> >>> spot to probe an interrupt controller.
+> >>
+> >> What has been done here isn't an unusual choice. We've got stuff all
+> >> over the kernel that may or may not be implemented depending on what
+> >> the architecture supports. If the function call is renamed to
+> >> acpi_init_irq(), are you content?
+> >
+> > My (full) suggestion was to do it like we've done it for DT, and I don't
+> > think I varied much from this point of view. Yes, calling it
+> > acpi_irq_init() would be a good start, and having the ACPI-compatible
+> > irqchips to be self-probable even better.
+> >
+> > <lack-of-sleep-rant>
+> >
+> > Hell, if nobody beats me to it, maybe I'll just write that code, with
+> > proper entry points in the various GIC drivers. Yes, this is
+> > infrastructure. Maybe it is grossly overdesigned. But I really spend too
+> > much time dealing with the crap that people are happy to pile on top of
+> > the GIC code to be madly enthusiastic about the general "good enough"
+> > attitude.
+> >
+> > </lack-of-sleep-rant>
+> >
+> > Or to put it in a slightly more diplomatic way: If ACPI is to be our
+> > future, can we please make the future look a bit better?
 > 
-> > Because ACPI on arm64 is still experimental, no matter how many people
-> > claim that it is production ready in their private setups.
+> Hi Marc,
 > 
-> Fair enough.  Does this mean that passing "acpi=force" on the kernel 
-> command line is a requirement for ARM64 servers?
+> As per our off-list discussion, I completely agree. We don't want to
+> be adding hack upon hack, and I will be first in line to NAK any
+> patches taking that approach. However, for this initial series, it
+> only supports exactly one GIC that can be set up by ACPI. Can we agree
+> to leave it as is in this series, with the agreement that it will be
+> replaced for v2m and v3 support with a proper pluggable initializer?
 
-Please read my other email and ideally the whole sub-thread. The
-acpi=force should only be required if the SoC is described (from
-firmware) by both DT and ACPI.
-
-> >> >In what situation would we want to ignore ACPI tables that are
-> >> >present?
-> 
-> > When DT tables are also present (and for the first platforms, that's
-> > highly recommended, though not easily enforceable at the kernel level).
-> 
-> My understanding is that the EFI stub creates a device tree (and it 
-> contains some important information), so I don't understand how we can 
-> ever have an ACPI-only platform on ARM64 servers.
-
-If EFI stub creates the DT itself (not passed by firmware), it will
-write some information in the chosen node that the rest of the kernel
-can make use of and take the appropriate decision on whether to use ACPI
-or not. That's something that will be used by kexec and Xen as well
-which may want to boot with ACPI tables outside an EFI environment.
+Can we at least call it acpi_init_irq() and avoid #including
+gic-specific header files? IOW hide the apci_gic_init() behind some
+generically named macro until the full solution is in place.
 
 -- 
 Catalin
