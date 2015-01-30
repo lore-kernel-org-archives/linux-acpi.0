@@ -1,77 +1,29 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH v3 01/20] power_supply: Add driver private data
-Date: Fri, 30 Jan 2015 15:47:39 +0100
-Message-ID: <1422629278-12202-2-git-send-email-k.kozlowski@samsung.com>
-References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-reply-to: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
-Cc: Thomas Gleixner <tglx@linutronix.de>, Pavel Machek <pavel@ucw.cz>, Kyungmin Park <kyungmin.park@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
+ early_param for "acpi" and pass acpi=force to enable ACPI
+Date: Fri, 30 Jan 2015 08:48:21 -0600
+Message-ID: <54CB99B5.7070505@codeaurora.org>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org> <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com> <CAOZdJXXe+29rux1L3QYBX0yHLy3kdi+ZJrXVd=XfgYN=R6DtKA@mail.gmail.com> <20150128181453.GG31752@e104818-lin.cambridge.arm.com> <54C92804.5090806@codeaurora.org> <20150129151956.GF8951@e104818-lin.cambridge.arm.com> <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com> <20150130111311.GA27542@e104818-lin.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150130111311.GA27542@e104818-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Rob Herring <robh@kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Brown <broonie@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jason
 List-Id: linux-acpi@vger.kernel.org
 
-Allow drivers to store private data inside power_supply structure for
-later usage in power supply operations.
+Catalin Marinas wrote:
+> Anyway, rather than a "I-created-an-empty-dtb" property, I would
+> actually say something like "dtb-contains-no-hardware-description".
 
-Usage of driver private data is necessary to access driver's state
-container object from power supply calls (like get_property()) if struct
-'power_supply' is a stored there as a pointer, for example:
+Why do we need a property for this?  Wouldn't the absence of a hardware 
+description be the best way to see if the dtb contains no hardware 
+description?  It's like putting a sign on an empty bookshelf that says, 
+"there are no books here."
 
-struct some_driver_info {
-	struct i2c_client       *client;
-	struct power_supply     *power_supply;
-	...
-}
-
-In such case one cannot use container_of() and must store pointer to
-state container as private data.
-
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Reviewed-by: Sebastian Reichel <sre@kernel.org>
----
- drivers/power/power_supply_core.c | 6 ++++++
- include/linux/power_supply.h      | 4 ++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 694e8cddd5c1..84ef3f40e7bf 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -629,6 +629,12 @@ void power_supply_unregister(struct power_supply *psy)
- }
- EXPORT_SYMBOL_GPL(power_supply_unregister);
- 
-+void *power_supply_get_drvdata(struct power_supply *psy)
-+{
-+	return psy->drv_data;
-+}
-+EXPORT_SYMBOL_GPL(power_supply_get_drvdata);
-+
- static int __init power_supply_class_init(void)
- {
- 	power_supply_class = class_create(THIS_MODULE, "power_supply");
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index 096dbced02ac..a5743f24e03e 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -209,6 +209,9 @@ struct power_supply {
- 	/* For APM emulation, think legacy userspace. */
- 	int use_for_apm;
- 
-+	/* Driver private data */
-+	void *drv_data;
-+
- 	/* private */
- 	struct device *dev;
- 	struct work_struct changed_work;
-@@ -281,6 +284,7 @@ extern int power_supply_register_no_ws(struct device *parent,
- extern void power_supply_unregister(struct power_supply *psy);
- extern int power_supply_powers(struct power_supply *psy, struct device *dev);
- 
-+extern void *power_supply_get_drvdata(struct power_supply *psy);
- /* For APM emulation, think legacy userspace. */
- extern struct class *power_supply_class;
- 
 -- 
-1.9.1
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the
+Code Aurora Forum, hosted by The Linux Foundation.
