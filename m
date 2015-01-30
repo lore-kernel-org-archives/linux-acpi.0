@@ -1,49 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: Remove non-existing clock control from Intel Lynxpoint I2C
-Date: Fri, 30 Jan 2015 01:08:55 +0100
-Message-ID: <2768476.P0otSvAqZD@vostro.rjw.lan>
-References: <1421998959-6595-1-git-send-email-jarkko.nikula@linux.intel.com> <20150123105239.GO1850@lahna.fi.intel.com>
+Subject: Re: [PATCH] ACPI/sleep: mark acpi_sleep_dmi_check() __init
+Date: Fri, 30 Jan 2015 01:09:31 +0100
+Message-ID: <13078642.MlpeDpdLtA@vostro.rjw.lan>
+References: <54C2106602000078000588DF@mail.emea.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57475 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:65208 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752349AbbA2XqH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jan 2015 18:46:07 -0500
-In-Reply-To: <20150123105239.GO1850@lahna.fi.intel.com>
+	with SMTP id S1752349AbbA2Xqn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jan 2015 18:46:43 -0500
+In-Reply-To: <54C2106602000078000588DF@mail.emea.novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org
+To: Jan Beulich <JBeulich@suse.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Friday, January 23, 2015 12:52:39 PM Mika Westerberg wrote:
-> On Fri, Jan 23, 2015 at 09:42:39AM +0200, Jarkko Nikula wrote:
-> > Intel Lynxpoint I2C does not have clock parameter register like SPI and UART
-> > do have. Therefore remove LPSS_CLK_GATE flag from the Lynxpoint I2C device
-> > description in order to not needlessly toggle clock enable bit in
-> > non-existing register.
-> > 
-> > Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> > ---
-> > For linux-next branch. This has been here since commit f58b082aed43
-> > ("ACPI / scan: Add special handler for Intel Lynxpoint LPSS devices")
-> > without known problems.
-> > 
-> > Mika: I assumed this holds true for INT3432 and INT3433 too?
+On Friday, January 23, 2015 08:12:06 AM Jan Beulich wrote:
+> ACPI/sleep: mark acpi_sleep_dmi_check() __init
 > 
-> Yes.
+> This makes a difference if the compiler decides not to inline the
+> function, as then the function's reference to acpisleep_dmi_table[]
+> yields a section mismatch warning.
 > 
-> IIRC there used to be versions of Lynxpoint where the clock was actually
-> gated even if the document said the register is reserved. That's why the
-> I2C still tries to ungate the clock.
-> 
-> As long as you tested this properly,
-> 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
 
-Queued up for 3.20 then, thanks!
+Queued up for 3.20, thanks!
 
+> ---
+>  drivers/acpi/sleep.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- 3.19-rc5/drivers/acpi/sleep.c
+> +++ 3.19-rc5-ACPI-sleep-DMI-check-init/drivers/acpi/sleep.c
+> @@ -321,7 +321,7 @@ static struct dmi_system_id acpisleep_dm
+>  	{},
+>  };
+>  
+> -static void acpi_sleep_dmi_check(void)
+> +static void __init acpi_sleep_dmi_check(void)
+>  {
+>  	int year;
+>  
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
