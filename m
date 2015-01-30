@@ -1,156 +1,95 @@
-From: "Xue, Ken" <Ken.Xue@amd.com>
-Subject: RE: [PATCH 1/3 V3] acpi:soc: merge common codes for creating
- platform device
-Date: Fri, 30 Jan 2015 07:07:14 +0000
-Message-ID: <4AC89B18A26BAB43B540DB1C94E2802C05AA96E0@scybexdag03.amd.com>
-References: <1418892285.17614.6.camel@kxue-X58A-UD3R>
- <6052429.AmgHyeF3V4@vostro.rjw.lan>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
+ early_param for "acpi" and pass acpi=force to enable ACPI
+Date: Fri, 30 Jan 2015 11:13:11 +0000
+Message-ID: <20150130111311.GA27542@e104818-lin.cambridge.arm.com>
+References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
+ <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
+ <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com>
+ <CAOZdJXXe+29rux1L3QYBX0yHLy3kdi+ZJrXVd=XfgYN=R6DtKA@mail.gmail.com>
+ <20150128181453.GG31752@e104818-lin.cambridge.arm.com>
+ <54C92804.5090806@codeaurora.org>
+ <20150129151956.GF8951@e104818-lin.cambridge.arm.com>
+ <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0142.outbound.protection.outlook.com ([65.55.169.142]:38971
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752561AbbA3HlE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Jan 2015 02:41:04 -0500
-In-Reply-To: <6052429.AmgHyeF3V4@vostro.rjw.lan>
-Content-Language: en-US
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:46503 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842AbbA3LNX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Jan 2015 06:13:23 -0500
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Timur Tabi <timur@codeaurora.org>, Mark Rutland <Mark.Rutland@arm.com>, Rob Herring <robh@kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Brown <broonie@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kerne>
 
-SGkgUmFmYWVsLA0KCUkgbG9va2VkIGludG8geW91ciBwYXRjaCBpbiBodHRwczovL3BhdGNod29y
-ay5rZXJuZWwub3JnL3BhdGNoLzU2Nzc0NjEvLg0KCUkgZm91bmQgdGhhdCAiWFhYX3BsYXRmb3Jt
-X25vdGlmeSIgc2hvdWxkIGJlIGltcGxlbWVudGVkIHNlcGFyYXRlbHkgIGluIExQU1MgYW5kIEFQ
-RCBkcml2ZXIgIGluc3RlYWQgb2YgImFjcGlfc29jX3BsYXRmb3JtX25vdGlmeSIgaW4gYWNwaV9z
-b2MuDQoJQmVjYXVzZSB0aGVyZSBpcyBXQSBjYW4ndCBiZSBzaGFyZSB3aXRoIHR3byBkcml2ZXJz
-LiBBbmQgaXQgY2FuIG1ha2UgTFBTUyBvciBBUEQgZHJpdmVyIG1vcmUgZmxleGlibGUuDQoNCglU
-aGVuIG9ubHkgImFjcGlfc29jX2NyZWF0ZV9kZXZpY2UiIGNhbiBiZSBzaGFyZWQgYnkgTFBTUyBh
-bmQgQVBELiBNYXliZSwgdGhlIG1lYW5pbmcgb2YgYWNwaV9zb2MgYmVjb21lcyBsZXNzIHRoYW4g
-d2hhdCB3ZSBleHBlY3RlZC4NCglTbywgY2FuIHdlIGdvIGJhY2sgdG8gdHdvIHNlcGFyYXRlZCBk
-cml2ZXJzIHdpdGhvdXQgYW55IGJpbmRpbmc/IEFuZCB0cnkgdGhvdWdodHMgYWJvdXQgYWNwaV9z
-b2MsIGlmIHRoZXJlIHdlcmUgbW9yZSBjb21tb24gZmVhdHVyZXMuDQoNClJlZ2FyZHMsDQpLZW4N
-Cg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogUmFmYWVsIEouIFd5c29ja2kg
-W21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0gDQpTZW50OiBGcmlkYXksIEphbnVhcnkgMjMsIDIw
-MTUgNjo1NyBBTQ0KVG86IFh1ZSwgS2VuDQpDYzogYW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbTsg
-bWlrYS53ZXN0ZXJiZXJnQGxpbnV4LmludGVsLmNvbTsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5v
-cmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IFJlOiBbUEFUQ0ggMS8z
-IFYzXSBhY3BpOnNvYzogbWVyZ2UgY29tbW9uIGNvZGVzIGZvciBjcmVhdGluZyBwbGF0Zm9ybSBk
-ZXZpY2UNCg0KT24gVGh1cnNkYXksIERlY2VtYmVyIDE4LCAyMDE0IDA0OjQ0OjQ1IFBNIEtlbiBY
-dWUgd3JvdGU6DQo+IA0KPiBUaGlzIHBhdGNoIGlzIHN1cHBvc2VkIHRvIGRlbGl2ZXIgc29tZSBj
-b21tb24gY29kZXMgZm9yIEFNRCBBUEQgYW5kIA0KPiBpbnRlbCBMUFNTLiBJdCBjYW4gaGVscCB0
-byBjb252ZXJ0IHNvbWUgc3BlY2lmaWMgYWNwaSBkZXZpY2VzIHRvIGJlIA0KPiBwbGF0Zm9ybSBk
-ZXZpY2VzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogS2VuIFh1ZSA8S2VuLlh1ZUBhbWQuY29tPg0K
-PiAtLS0NCj4gIGRyaXZlcnMvYWNwaS9NYWtlZmlsZSAgIHwgICAyICstDQo+ICBkcml2ZXJzL2Fj
-cGkvYWNwaV9zb2MuYyB8IDIyOCANCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrDQo+ICBkcml2ZXJzL2FjcGkvYWNwaV9zb2MuaCB8IDEwNCArKysrKysr
-KysrKysrKysrKysrKysrDQo+ICAzIGZpbGVzIGNoYW5nZWQsIDMzMyBpbnNlcnRpb25zKCspLCAx
-IGRlbGV0aW9uKC0pICBjcmVhdGUgbW9kZSAxMDA2NDQgDQo+IGRyaXZlcnMvYWNwaS9hY3BpX3Nv
-Yy5jICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9hY3BpL2FjcGlfc29jLmgNCj4gDQo+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvTWFrZWZpbGUgYi9kcml2ZXJzL2FjcGkvTWFrZWZpbGUg
-aW5kZXggDQo+IGY3NDMxN2MuLjY2Yzc0NTcgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9N
-YWtlZmlsZQ0KPiArKysgYi9kcml2ZXJzL2FjcGkvTWFrZWZpbGUNCj4gQEAgLTQwLDcgKzQwLDcg
-QEAgYWNwaS0kKENPTkZJR19BUkNIX01JR0hUX0hBVkVfQUNQSV9QREMpICs9IHByb2Nlc3Nvcl9w
-ZGMubw0KPiAgYWNwaS15CQkJCSs9IGVjLm8NCj4gIGFjcGktJChDT05GSUdfQUNQSV9ET0NLKQkr
-PSBkb2NrLm8NCj4gIGFjcGkteQkJCQkrPSBwY2lfcm9vdC5vIHBjaV9saW5rLm8gcGNpX2lycS5v
-DQo+IC1hY3BpLXkJCQkJKz0gYWNwaV9scHNzLm8NCj4gK2FjcGkteQkJCQkrPSBhY3BpX3NvYy5v
-IGFjcGlfbHBzcy5vDQo+ICBhY3BpLXkJCQkJKz0gYWNwaV9wbGF0Zm9ybS5vDQo+ICBhY3BpLXkJ
-CQkJKz0gYWNwaV9wbnAubw0KPiAgYWNwaS15CQkJCSs9IGludDM0MHhfdGhlcm1hbC5vDQo+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV9zb2MuYyBiL2RyaXZlcnMvYWNwaS9hY3BpX3Nv
-Yy5jIG5ldyANCj4gZmlsZSBtb2RlIDEwMDY0NCBpbmRleCAwMDAwMDAwLi4yYWJiYWM5DQo+IC0t
-LSAvZGV2L251bGwNCj4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGlfc29jLmMNCj4gQEAgLTAsMCAr
-MSwyMjggQEANCj4gKy8qDQo+ICsgKiBBQ1BJIFNPQyBzdXBwb3J0IGZvciBJbnRlbCBMeW54cG9p
-bnQgTFBTUyBhbmQgQU1EIEFQRC4NCj4gKyAqDQo+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMTMsIDIw
-MTQsIEludGVsIENvcnBvcmF0aW9uDQo+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMTQsIEFNRCBDb3Jw
-b3JhdGlvbg0KPiArICogQXV0aG9yczogS2VuIFh1ZSA8S2VuLlh1ZUBhbWQuY29tPg0KPiArICoJ
-CU1pa2EgV2VzdGVyYmVyZyA8bWlrYS53ZXN0ZXJiZXJnQGxpbnV4LmludGVsLmNvbT4NCj4gKyAq
-CQlSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+ICsgKg0K
-PiArICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRl
-IGl0IGFuZC9vciANCj4gK21vZGlmeQ0KPiArICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBH
-TlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMNCj4gKyAqIHB1Ymxpc2hlZCBi
-eSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLg0KPiArICovDQo+ICsNCj4gKyNpbmNsdWRl
-IDxsaW51eC9lcnIuaD4NCj4gKyNpbmNsdWRlIDxsaW51eC9saXN0Lmg+DQo+ICsjaW5jbHVkZSA8
-bGludXgvcG1fZG9tYWluLmg+DQo+ICsjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+
-DQo+ICsNCj4gKyNpbmNsdWRlICJhY3BpX3NvYy5oIg0KPiArI2luY2x1ZGUgImludGVybmFsLmgi
-DQo+ICsNCj4gK0FDUElfTU9EVUxFX05BTUUoImFjcGlfc29jIik7DQo+ICsNCj4gKy8qIEEgbGlz
-dCBmb3IgYWxsIEFDUEkgU09DIGRldmljZSAqLw0KPiArc3RhdGljIExJU1RfSEVBRChhX3NvY19s
-aXN0KTsNCj4gKw0KPiArc3RhdGljIGludCBpc19tZW1vcnkoc3RydWN0IGFjcGlfcmVzb3VyY2Ug
-KnJlcywgdm9pZCAqbm90X3VzZWQpIHsNCj4gKwlzdHJ1Y3QgcmVzb3VyY2UgcjsNCj4gKw0KPiAr
-CXJldHVybiAhYWNwaV9kZXZfcmVzb3VyY2VfbWVtb3J5KHJlcywgJnIpOyB9DQo+ICsNCj4gK3N0
-YXRpYyBpbnQgYWNwaV9zb2NfY3JlYXRlX2RldmljZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXYs
-DQo+ICsJCQkJICAgY29uc3Qgc3RydWN0IGFjcGlfZGV2aWNlX2lkICppZCkgew0KPiArCXN0cnVj
-dCBhY3BpX3NvY19kZXZfcHJpdmF0ZV9kYXRhICpwZGF0YTsNCj4gKwlzdHJ1Y3QgYWNwaV9zb2Nf
-ZGV2X2Rlc2MgKmRldl9kZXNjOw0KPiArCXN0cnVjdCByZXNvdXJjZV9saXN0X2VudHJ5ICpyZW50
-cnk7DQo+ICsJc3RydWN0IGxpc3RfaGVhZCByZXNvdXJjZV9saXN0Ow0KPiArCXN0cnVjdCBwbGF0
-Zm9ybV9kZXZpY2UgKnBkZXY7DQo+ICsJaW50IHJldDsNCj4gKw0KPiArCWRldl9kZXNjID0gKHN0
-cnVjdCBhY3BpX3NvY19kZXZfZGVzYyAqKWlkLT5kcml2ZXJfZGF0YTsNCj4gKwlpZiAoIWRldl9k
-ZXNjKSB7DQo+ICsJCXBkZXYgPSBhY3BpX2NyZWF0ZV9wbGF0Zm9ybV9kZXZpY2UoYWRldik7DQo+
-ICsJCXJldHVybiBJU19FUlJfT1JfTlVMTChwZGV2KSA/IFBUUl9FUlIocGRldikgOiAxOw0KPiAr
-CX0NCj4gKwlwZGF0YSA9IGt6YWxsb2Moc2l6ZW9mKCpwZGF0YSksIEdGUF9LRVJORUwpOw0KPiAr
-CWlmICghcGRhdGEpDQo+ICsJCXJldHVybiAtRU5PTUVNOw0KPiArDQo+ICsJSU5JVF9MSVNUX0hF
-QUQoJnJlc291cmNlX2xpc3QpOw0KPiArCXJldCA9IGFjcGlfZGV2X2dldF9yZXNvdXJjZXMoYWRl
-diwgJnJlc291cmNlX2xpc3QsIGlzX21lbW9yeSwgTlVMTCk7DQo+ICsJaWYgKHJldCA8IDApDQo+
-ICsJCWdvdG8gZXJyX291dDsNCj4gKw0KPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocmVudHJ5LCAm
-cmVzb3VyY2VfbGlzdCwgbm9kZSkNCj4gKwkJaWYgKHJlc291cmNlX3R5cGUoJnJlbnRyeS0+cmVz
-KSA9PSBJT1JFU09VUkNFX01FTSkgew0KPiArCQkJaWYgKGRldl9kZXNjLT5tZW1fc2l6ZV9vdmVy
-cmlkZSkNCj4gKwkJCQlwZGF0YS0+bW1pb19zaXplID0gZGV2X2Rlc2MtPm1lbV9zaXplX292ZXJy
-aWRlOw0KPiArCQkJZWxzZQ0KPiArCQkJCXBkYXRhLT5tbWlvX3NpemUgPSByZXNvdXJjZV9zaXpl
-KCZyZW50cnktPnJlcyk7DQo+ICsJCQlwZGF0YS0+bW1pb19iYXNlID0gaW9yZW1hcChyZW50cnkt
-PnJlcy5zdGFydCwNCj4gKwkJCQkJCSAgIHBkYXRhLT5tbWlvX3NpemUpOw0KPiArCQkJYnJlYWs7
-DQo+ICsJCX0NCj4gKw0KPiArCWFjcGlfZGV2X2ZyZWVfcmVzb3VyY2VfbGlzdCgmcmVzb3VyY2Vf
-bGlzdCk7DQo+ICsNCj4gKwlwZGF0YS0+YWRldiA9IGFkZXY7DQo+ICsJcGRhdGEtPmRldl9kZXNj
-ID0gZGV2X2Rlc2M7DQo+ICsNCj4gKwlpZiAoZGV2X2Rlc2MtPnNldHVwKSB7DQo+ICsJCXJldCA9
-IGRldl9kZXNjLT5zZXR1cChwZGF0YSk7DQo+ICsJCWlmIChyZXQpDQo+ICsJCQlnb3RvIGVycl9v
-dXQ7DQo+ICsJfQ0KPiArDQo+ICsJLyoNCj4gKwkgKiBUaGlzIHdvcmtzIGFyb3VuZCBhIGtub3du
-IGlzc3VlIGluIEFDUEkgdGFibGVzIHdoZXJlIEFDUEkgU09DIGRldmljZXMNCj4gKwkgKiBoYXZl
-IF9QUzAgYW5kIF9QUzMgd2l0aG91dCBfUFNDIChhbmQgbm8gcG93ZXIgcmVzb3VyY2VzKSwgc28N
-Cj4gKwkgKiBhY3BpX2J1c19pbml0X3Bvd2VyKCkgd2lsbCBhc3N1bWUgdGhhdCB0aGUgQklPUyBo
-YXMgcHV0IHRoZW0gaW50byBEMC4NCj4gKwkgKi8NCj4gKwlyZXQgPSBhY3BpX2RldmljZV9maXhf
-dXBfcG93ZXIoYWRldik7DQo+ICsJaWYgKHJldCkgew0KPiArCQkvKiBTa2lwIHRoZSBkZXZpY2Us
-IGJ1dCBjb250aW51ZSB0aGUgbmFtZXNwYWNlIHNjYW4uICovDQo+ICsJCXJldCA9IDA7DQo+ICsJ
-CWdvdG8gZXJyX291dDsNCj4gKwl9DQo+ICsNCj4gKwlhZGV2LT5kcml2ZXJfZGF0YSA9IHBkYXRh
-Ow0KPiArCXBkZXYgPSBhY3BpX2NyZWF0ZV9wbGF0Zm9ybV9kZXZpY2UoYWRldik7DQo+ICsJaWYg
-KCFJU19FUlJfT1JfTlVMTChwZGV2KSkgew0KPiArCQlwZGF0YS0+cGRldiA9IHBkZXY7DQo+ICsJ
-CWlmIChkZXZfZGVzYy0+cG9zdF9zZXR1cCkgew0KPiArCQkJcmV0ID0gZGV2X2Rlc2MtPnBvc3Rf
-c2V0dXAocGRhdGEpOw0KPiArCQkJaWYgKHJldCkNCj4gKwkJCQlnb3RvIGVycl9vdXQ7DQo+ICsJ
-CX0NCj4gKwkJcmV0dXJuIDE7DQo+ICsJfQ0KPiArDQo+ICsJcmV0ID0gUFRSX0VSUihwZGV2KTsN
-Cj4gKwlhZGV2LT5kcml2ZXJfZGF0YSA9IE5VTEw7DQo+ICsNCj4gKyBlcnJfb3V0Og0KPiArCWtm
-cmVlKHBkYXRhKTsNCj4gKwlyZXR1cm4gcmV0Ow0KPiArfQ0KPiArDQo+ICtzdGF0aWMgaW50IGFj
-cGlfc29jX3BsYXRmb3JtX25vdGlmeShzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iLA0KPiArCQkJ
-CSAgICAgdW5zaWduZWQgbG9uZyBhY3Rpb24sIHZvaWQgKmRhdGEpIHsNCj4gKwlzdHJ1Y3QgcGxh
-dGZvcm1fZGV2aWNlICpwZGV2ID0gdG9fcGxhdGZvcm1fZGV2aWNlKGRhdGEpOw0KPiArCXN0cnVj
-dCBhY3BpX3NvY19kZXZfcHJpdmF0ZV9kYXRhICpwZGF0YTsNCj4gKwljb25zdCBzdHJ1Y3QgYWNw
-aV9kZXZpY2VfaWQgKmlkID0gTlVMTDsNCj4gKwlzdHJ1Y3QgYWNwaV9zb2MgKmFfc29jX2VudHJ5
-Ow0KPiArCXN0cnVjdCBhY3BpX2RldmljZSAqYWRldjsNCj4gKw0KPiArCWxpc3RfZm9yX2VhY2hf
-ZW50cnkoYV9zb2NfZW50cnksICZhX3NvY19saXN0LCBsaXN0KSB7DQo+ICsJCWlkID0gYWNwaV9t
-YXRjaF9kZXZpY2UoYV9zb2NfZW50cnktPmlkcywgJnBkZXYtPmRldik7DQo+ICsJCWlmIChpZCkN
-Cj4gKwkJCWJyZWFrOw0KPiArCX0NCj4gKw0KPiArCWlmICghaWQgfHwgIWlkLT5kcml2ZXJfZGF0
-YSkNCj4gKwkJcmV0dXJuIDA7DQo+ICsNCj4gKwlpZiAoYWNwaV9idXNfZ2V0X2RldmljZShBQ1BJ
-X0hBTkRMRSgmcGRldi0+ZGV2KSwgJmFkZXYpKQ0KPiArCQlyZXR1cm4gMDsNCj4gKw0KPiArCXBk
-YXRhID0gYWNwaV9kcml2ZXJfZGF0YShhZGV2KTsNCj4gKwlpZiAoIXBkYXRhIHx8ICFwZGF0YS0+
-bW1pb19iYXNlKQ0KPiArCQlyZXR1cm4gMDsNCj4gKw0KPiArCXN3aXRjaCAoYWN0aW9uKSB7DQo+
-ICsJY2FzZSBCVVNfTk9USUZZX0FERF9ERVZJQ0U6DQo+ICsJCWlmIChwZGF0YS0+ZGV2X2Rlc2Mt
-PmZsYWdzICYgQUNQSV9TT0NfUE0pIHsNCj4gKwkJCWlmIChhX3NvY19lbnRyeS0+cG1fZG9tYWlu
-KQ0KPiArCQkJCXBkZXYtPmRldi5wbV9kb21haW4gPSBhX3NvY19lbnRyeS0+cG1fZG9tYWluOw0K
-PiArCQkJZWxzZSBpZiAocGRhdGEtPmRldl9kZXNjLT5mbGFncyAmIEFDUElfU09DX1BNX09OKQ0K
-PiArCQkJCWRldl9wbV9kb21haW5fYXR0YWNoKCZwZGV2LT5kZXYsIHRydWUpOw0KPiArCQkJZWxz
-ZQ0KPiArCQkJCWRldl9wbV9kb21haW5fYXR0YWNoKCZwZGV2LT5kZXYsIGZhbHNlKTsNCj4gKwkJ
-fQ0KPiArCQlpZiAoKHBkYXRhLT5kZXZfZGVzYy0+ZmxhZ3MgJiBBQ1BJX1NPQ19TWVNGUykNCj4g
-KwkJCSYmIGFfc29jX2VudHJ5LT5hdHRyX2dyb3VwKQ0KPiArCQkJc3lzZnNfY3JlYXRlX2dyb3Vw
-KCZwZGV2LT5kZXYua29iaiwNCj4gKwkJCQkJICBhX3NvY19lbnRyeS0+YXR0cl9ncm91cCk7DQoN
-ClRoaXMgdHJpZ2dlcnMgYSBidWlsZCB3YXJuaW5nLCBiZWNhdXNlIHRoZSByZXR1cm4gdmFsdWUg
-b2Ygc3lzZnNfY3JlYXRlX2dyb3VwKCkgaXMgbm90IGNoZWNrZWQuICBZb3UgY2FuIHNpbXBseSBy
-ZXR1cm4gaXQgYXMgdGhlIG9yaWdpbmFsIGNvZGUgZG9lcyAoaXQgd2lsbCBiZSBkaXNjYXJkZWQg
-YW55d2F5KSBvciBhZGQgYSBkZXZfZGJnKCkgbWVzc2FnZSB0aGF0IHdpbGwgYmUgcHJpbnRlZCBp
-ZiBpdCBpcyBub3QgemVyby4NCg0KQWxzbyBpdCB0dXJucyBvdXQgdGhhdCB3ZSBoYXZlIGEgYnVn
-IGluIHRoZSBvcmlnaW5hbCBjb2RlIG1vZGlmaWVkIGJ5IHlvdXIgcGF0Y2hlcy4NCg0KVGhlIGN1
-cnJlbnRseSBjb25zaWRlcmVkIGZpeCBpcyB0aGlzIG9uZToNCg0KCWh0dHBzOi8vcGF0Y2h3b3Jr
-Lmtlcm5lbC5vcmcvcGF0Y2gvNTY3NzQ2MS8NCg0KYnV0IGl0IG1heSBub3QgYmUgZmluYWwuDQoN
-ClRoaXMgYnVnIGhhcyB0byBiZSBmaXhlZCBiZWZvcmUgeW91ciBwYXRjaGVzIGFyZSBhcHBsaWVk
-LCBiZWNhdXNlIHdlIG5lZWQgdGhlIGZpeCB0byBiZSB0aGVyZSBpbiAzLjE5IChvciBhdCBsZWFz
-dCBpbiAzLjE5LnkpLCBzbyBJJ2xsIGFzayB5b3UgdG8gcmViYXNlIHlvdXIgcGF0Y2hlcyBvbiB0
-b3Agb2YgdGhlIGZpbmFsIGZpeCBvbmNlIHdlJ3ZlIGdvdCBvbmUuDQoNClRoYW5rcyENCg0KDQot
-LQ0KSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQpSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3Bl
-biBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
+On Thu, Jan 29, 2015 at 06:20:06PM +0000, Ard Biesheuvel wrote:
+> On 29 January 2015 at 15:19, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > On Wed, Jan 28, 2015 at 06:18:44PM +0000, Timur Tabi wrote:
+> >> On 01/28/2015 12:14 PM, Catalin Marinas wrote:
+> >> >> >So it looks like there's a whole conversation about this already in
+> >> >> >this thread that I didn't notice.  However, reading through all of it,
+> >> >> >I still don't understand sure why the presence of ACPI tables is
+> >> >> >insufficient to enable ACPI.
+> >>
+> >> > Because ACPI on arm64 is still experimental, no matter how many people
+> >> > claim that it is production ready in their private setups.
+> >>
+> >> Fair enough.  Does this mean that passing "acpi=force" on the kernel
+> >> command line is a requirement for ARM64 servers?
+> >
+> > Please read my other email and ideally the whole sub-thread. The
+> > acpi=force should only be required if the SoC is described (from
+> > firmware) by both DT and ACPI.
+> >
+> >> >> >In what situation would we want to ignore ACPI tables that are
+> >> >> >present?
+> >>
+> >> > When DT tables are also present (and for the first platforms, that's
+> >> > highly recommended, though not easily enforceable at the kernel level).
+> >>
+> >> My understanding is that the EFI stub creates a device tree (and it
+> >> contains some important information), so I don't understand how we can
+> >> ever have an ACPI-only platform on ARM64 servers.
+> >
+> > If EFI stub creates the DT itself (not passed by firmware), it will
+> > write some information in the chosen node that the rest of the kernel
+> > can make use of and take the appropriate decision on whether to use ACPI
+> > or not. That's something that will be used by kexec and Xen as well
+> > which may want to boot with ACPI tables outside an EFI environment.
+
+For Timur's reference, here's Hanjun's proposal:
+
+http://article.gmane.org/gmane.linux.acpi.devel/73061
+
+> If we are going with this solution, we should also mandate that an
+> ACPI enabled firmware should not supply a non-DT DTB, or we wouldn't
+> spot the difference. Not sure how likely this is, but I could imagine
+> a firmware setting up an initrd and hence populating the /chosen node
+> in an otherwise empty DTB. In this case, the stub would not add its
+> 'I-created-an-empty-dtb' property.
+
+I think that's a sane requirement. For the normal case of UEFI firmware
+booting Linux as an EFI application (stub), if the firmware passes a DTB
+it _must_ contain the full SoC description and be able to boot the
+kernel without acpi=force. Passing initrd is really not a feature of the
+SoC to be described in DT by firmware. We leave this to the EFI stub to
+transfer the command line arguments into the chosen DT node.
+
+Apart from UEFI, we have Xen and kexec and I think the plan is to
+emulate the EFI stub behaviour when starting the kernel and they'll
+state whether the dtb contains SoC description or not. All we need to do
+here is make sure that the EFI stub <-> kernel protocol via the /chosen
+node is well documented. We won't be able to prevent, for example,
+U-Boot booting Linux with ACPI but I don't see why we should care.
+
+Anyway, rather than a "I-created-an-empty-dtb" property, I would
+actually say something like "dtb-contains-no-hardware-description".
+Alternatively, we could avoid any such properties and look for signs of
+hardware description like more nodes than /chosen, CPU nodes, "model"
+property etc. and we won't need to change the stub code at all.
+
+-- 
+Catalin
