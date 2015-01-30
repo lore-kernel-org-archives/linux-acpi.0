@@ -1,52 +1,119 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
- early_param for "acpi" and pass acpi=force to enable ACPI
-Date: Thu, 29 Jan 2015 23:30:53 +0000
-Message-ID: <20150129233053.GA24127@e104818-lin.cambridge.arm.com>
-References: <20150128181453.GG31752@e104818-lin.cambridge.arm.com>
- <54C92804.5090806@codeaurora.org>
- <20150129151956.GF8951@e104818-lin.cambridge.arm.com>
- <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com>
- <54CA7A42.5080800@codeaurora.org>
- <CAKv+Gu_a6_zjt=MsRuQH2rr05XxDayy0gACtbPXZaDAyhWrigg@mail.gmail.com>
- <54CA7D4A.5090709@codeaurora.org>
- <54CA7F94.6000305@redhat.com>
- <20150129231120.GA23786@e104818-lin.cambridge.arm.com>
- <54CABF46.3050701@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
+Date: Fri, 30 Jan 2015 01:01:29 +0100
+Message-ID: <4174933.zlqXrqM7AO@vostro.rjw.lan>
+References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <87vbl4lynj.fsf@frog.home> <2588457.Skz2ar9t5B@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:46317 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750767AbbA2XbL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Jan 2015 18:31:11 -0500
-Content-Disposition: inline
-In-Reply-To: <54CABF46.3050701@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2588457.Skz2ar9t5B@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jakub Sitnicki <jsitnicki@gmail.com>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Timur Tabi <timur@codeaurora.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Rob Herring <robh@kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Brown <broonie@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>"linux-arm-kernel@lists.infradead.org" <linux>
 
-On Thu, Jan 29, 2015 at 11:16:22PM +0000, Jon Masters wrote:
-> On 01/29/2015 06:11 PM, Catalin Marinas wrote:
+On Monday, December 22, 2014 11:34:48 PM Rafael J. Wysocki wrote:
+> On Monday, December 22, 2014 12:19:44 PM Jakub Sitnicki wrote:
+> > On Fri, Dec 12, 2014 at 08:47 AM CET, Jakub Sitnicki wrote:
+> > > Rafael J. Wysocki <rjw@rjwysocki.net> writes:
+> > >
+> > >> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
+> > >>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+> > >>> index 782e822..f980ff7 100644
+> > >>> --- a/drivers/pnp/resource.c
+> > >>> +++ b/drivers/pnp/resource.c
+> > >>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
+> > >>>  	/* check if the resource is already in use, skip if the
+> > >>>  	 * device is active because it itself may be in use */
+> > >>>  	if (!dev->active) {
+> > >>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
+> > >>> +		if (!request_region(*port, length(port, end), "pnp"))
+> > >>>  			return 0;
+> > >>> +		release_region(*port, length(port, end));
+> > >>
+> > >> Shouldn't we also release the resource returned by request_region() if it is
+> > >> not NULL?
+> > >>
+> > >
+> > > Thanks for taking a look at this. I think we're good here. If you please
+> > > bear with me for a moment:
+> > >
+> > > release_resource() removes an element from the list of resource parent's
+> > > children (and makes it an orphan):
+> > >
+> > > 	p = &old->parent->child;
+> > > 	for (;;) {
+> > > 		tmp = *p;
+> > > 		if (!tmp)
+> > > 			break;
+> > > 		if (tmp == old) {
+> > > 			*p = tmp->sibling;
+> > > 			old->parent = NULL;
+> > > 			return 0;
+> > > 		}
+> > > 		p = &tmp->sibling;
+> > > 	}
+> > >
+> > > release_region() does the same but with additional checks, and also
+> > > frees the resource:
+> > >
+> > > 	p = &parent->child;
+> > >         /* ... */
+> > > 	for (;;) {
+> > > 		struct resource *res = *p;
+> > >
+> > > 		if (!res)
+> > > 			break;
+> > > 		if (res->start <= start && res->end >= end) {
+> > >                         /* ... */
+> > > 			*p = res->sibling;
+> > >                         /* ... */
+> > > 			free_resource(res);
+> > > 			return;
+> > > 		}
+> > > 		p = &res->sibling;
+> > > 	}
+> > >
+> > > When making the change I've based on other code in the kernel which also
+> > > make use of request_region().
+> > >
+> > > To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
+> > > I/O port region when initialization fails like so:
+> > >
+> > > static int ne2k_pci_init_one(struct pci_dev *pdev,
+> > > 			     const struct pci_device_id *ent)
+> > > {
+> > >         /* ... */
+> > >
+> > > 	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
+> > > 		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
+> > > 			NE_IO_EXTENT, ioaddr);
+> > > 		return -EBUSY;
+> > > 	}
+> > >
+> > >         /* ... */
+> > >
+> > > 	dev = alloc_ei_netdev();
+> > > 	if (!dev) {
+> > > 		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
+> > > 		goto err_out_free_res;
+> > > 	}
+> > >
+> > >         /* ... */
+> > >
+> > > err_out_free_res:
+> > > 	release_region (ioaddr, NE_IO_EXTENT);
+> > > 	return -ENODEV;
+> > > }
+> > 
+> > Just wondering, do you have any further thoughts on this?
 > 
-> > Sorry Jon but statements like this make me wonder whether we should
-> > simply let the whole ARM ACPI be an out of tree distro business. We
-> > spend a long time discussing OS-agnostic firmware implementation,
-> > planning mini-summits, just to get certain Linux distro representative
-> > stating that the kernel-firmware interface we discuss here only matters
-> > for those planning to follow upstream. Certain Linux distros will play
-> > by other rules.
-> 
-> Oh, don't take it that way - I just mean that if someone needs a
-> different ACPI always on, they can do that separately.
+> I'll queue it up for 3.20 later in January.
 
-And that's exactly what I'm trying to get consensus on. ACPI always on
-together with DT always on, subject to config options being enabled (not
-patching). It's up to firmware (and vendor) to provide only ACPI tables
-to the kernel if not interested in DT. In such case I don't want to see
-additional kernel parameters. But if the firmware provides both, then it
-is a user choice which one to use, defaulting to DT.
+Done now.
+
 
 -- 
-Catalin
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
