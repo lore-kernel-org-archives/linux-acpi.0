@@ -1,119 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
-Date: Fri, 30 Jan 2015 01:01:29 +0100
-Message-ID: <4174933.zlqXrqM7AO@vostro.rjw.lan>
-References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <87vbl4lynj.fsf@frog.home> <2588457.Skz2ar9t5B@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH 1/4] ACPICA: take ACPI_MTX_INTERPRETER in acpi_unload_table_id
+Date: Fri, 30 Jan 2015 01:03:48 +0100
+Message-ID: <2246788.mX5nmqqL2I@vostro.rjw.lan>
+References: <1418746353-3481-1-git-send-email-octavian.purdila@intel.com> <1418746353-3481-2-git-send-email-octavian.purdila@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2588457.Skz2ar9t5B@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jakub Sitnicki <jsitnicki@gmail.com>
-Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1418746353-3481-2-git-send-email-octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, heikki.krogerus-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, December 22, 2014 11:34:48 PM Rafael J. Wysocki wrote:
-> On Monday, December 22, 2014 12:19:44 PM Jakub Sitnicki wrote:
-> > On Fri, Dec 12, 2014 at 08:47 AM CET, Jakub Sitnicki wrote:
-> > > Rafael J. Wysocki <rjw@rjwysocki.net> writes:
-> > >
-> > >> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
-> > >>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
-> > >>> index 782e822..f980ff7 100644
-> > >>> --- a/drivers/pnp/resource.c
-> > >>> +++ b/drivers/pnp/resource.c
-> > >>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
-> > >>>  	/* check if the resource is already in use, skip if the
-> > >>>  	 * device is active because it itself may be in use */
-> > >>>  	if (!dev->active) {
-> > >>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
-> > >>> +		if (!request_region(*port, length(port, end), "pnp"))
-> > >>>  			return 0;
-> > >>> +		release_region(*port, length(port, end));
-> > >>
-> > >> Shouldn't we also release the resource returned by request_region() if it is
-> > >> not NULL?
-> > >>
-> > >
-> > > Thanks for taking a look at this. I think we're good here. If you please
-> > > bear with me for a moment:
-> > >
-> > > release_resource() removes an element from the list of resource parent's
-> > > children (and makes it an orphan):
-> > >
-> > > 	p = &old->parent->child;
-> > > 	for (;;) {
-> > > 		tmp = *p;
-> > > 		if (!tmp)
-> > > 			break;
-> > > 		if (tmp == old) {
-> > > 			*p = tmp->sibling;
-> > > 			old->parent = NULL;
-> > > 			return 0;
-> > > 		}
-> > > 		p = &tmp->sibling;
-> > > 	}
-> > >
-> > > release_region() does the same but with additional checks, and also
-> > > frees the resource:
-> > >
-> > > 	p = &parent->child;
-> > >         /* ... */
-> > > 	for (;;) {
-> > > 		struct resource *res = *p;
-> > >
-> > > 		if (!res)
-> > > 			break;
-> > > 		if (res->start <= start && res->end >= end) {
-> > >                         /* ... */
-> > > 			*p = res->sibling;
-> > >                         /* ... */
-> > > 			free_resource(res);
-> > > 			return;
-> > > 		}
-> > > 		p = &res->sibling;
-> > > 	}
-> > >
-> > > When making the change I've based on other code in the kernel which also
-> > > make use of request_region().
-> > >
-> > > To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
-> > > I/O port region when initialization fails like so:
-> > >
-> > > static int ne2k_pci_init_one(struct pci_dev *pdev,
-> > > 			     const struct pci_device_id *ent)
-> > > {
-> > >         /* ... */
-> > >
-> > > 	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
-> > > 		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
-> > > 			NE_IO_EXTENT, ioaddr);
-> > > 		return -EBUSY;
-> > > 	}
-> > >
-> > >         /* ... */
-> > >
-> > > 	dev = alloc_ei_netdev();
-> > > 	if (!dev) {
-> > > 		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
-> > > 		goto err_out_free_res;
-> > > 	}
-> > >
-> > >         /* ... */
-> > >
-> > > err_out_free_res:
-> > > 	release_region (ioaddr, NE_IO_EXTENT);
-> > > 	return -ENODEV;
-> > > }
-> > 
-> > Just wondering, do you have any further thoughts on this?
+On Tuesday, December 16, 2014 06:12:30 PM Octavian Purdila wrote:
+> acpi_tb_delete_namespace_by_owner expects ACPI_MTX_INTERPRETER to be
+> taken. This fixes the following issue:
 > 
-> I'll queue it up for 3.20 later in January.
+> ACPI Error: Mutex [0x0] is not acquired, cannot release (20141107/utmutex-322)
+> Call Trace:
+>   [<ffffffff81b0bd28>] dump_stack+0x4f/0x7b
+>   [<ffffffff81546bfc>] acpi_ut_release_mutex+0x47/0x67
+>   [<ffffffff81542cf1>] acpi_tb_delete_namespace_by_owner+0x57/0x8d
+>   [<ffffffff81543ef1>] acpi_unload_table_id+0x3a/0x5e
+> 
+> Signed-off-by: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Done now.
+I've queued up this one for 3.20.
 
+> ---
+>  drivers/acpi/acpica/tbxface.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+> index 6482b0d..9520ae1 100644
+> --- a/drivers/acpi/acpica/tbxface.c
+> +++ b/drivers/acpi/acpica/tbxface.c
+> @@ -281,6 +281,11 @@ acpi_status acpi_unload_table_id(acpi_owner_id id)
+>  
+>  	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
+>  
+> +	status = acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
+> +	if (ACPI_FAILURE(status)) {
+> +		return_ACPI_STATUS(status);
+> +	}
+> +
+>  	/* Find table in the global table list */
+>  	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
+>  		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
+> @@ -297,6 +302,8 @@ acpi_status acpi_unload_table_id(acpi_owner_id id)
+>  		acpi_tb_set_table_loaded_flag(i, FALSE);
+>  		break;
+>  	}
+> +
+> +	(void)acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
+>  	return_ACPI_STATUS(status);
+>  }
+>  
+> 
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
