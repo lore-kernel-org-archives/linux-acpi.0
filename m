@@ -1,95 +1,36 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
- early_param for "acpi" and pass acpi=force to enable ACPI
-Date: Fri, 30 Jan 2015 11:13:11 +0000
-Message-ID: <20150130111311.GA27542@e104818-lin.cambridge.arm.com>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org>
- <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org>
- <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com>
- <CAOZdJXXe+29rux1L3QYBX0yHLy3kdi+ZJrXVd=XfgYN=R6DtKA@mail.gmail.com>
- <20150128181453.GG31752@e104818-lin.cambridge.arm.com>
- <54C92804.5090806@codeaurora.org>
- <20150129151956.GF8951@e104818-lin.cambridge.arm.com>
- <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/3 V3] acpi:soc: merge common codes for creating platform device
+Date: Fri, 30 Jan 2015 16:08:08 +0100
+Message-ID: <10727316.ODV2mHv2Vx@vostro.rjw.lan>
+References: <1418892285.17614.6.camel@kxue-X58A-UD3R> <6052429.AmgHyeF3V4@vostro.rjw.lan> <4AC89B18A26BAB43B540DB1C94E2802C05AA96E0@scybexdag03.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:46503 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbbA3LNX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Jan 2015 06:13:23 -0500
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4AC89B18A26BAB43B540DB1C94E2802C05AA96E0@scybexdag03.amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Xue, Ken" <Ken.Xue@amd.com>
+Cc: "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Timur Tabi <timur@codeaurora.org>, Mark Rutland <Mark.Rutland@arm.com>, Rob Herring <robh@kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Brown <broonie@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kerne>
 
-On Thu, Jan 29, 2015 at 06:20:06PM +0000, Ard Biesheuvel wrote:
-> On 29 January 2015 at 15:19, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > On Wed, Jan 28, 2015 at 06:18:44PM +0000, Timur Tabi wrote:
-> >> On 01/28/2015 12:14 PM, Catalin Marinas wrote:
-> >> >> >So it looks like there's a whole conversation about this already in
-> >> >> >this thread that I didn't notice.  However, reading through all of it,
-> >> >> >I still don't understand sure why the presence of ACPI tables is
-> >> >> >insufficient to enable ACPI.
-> >>
-> >> > Because ACPI on arm64 is still experimental, no matter how many people
-> >> > claim that it is production ready in their private setups.
-> >>
-> >> Fair enough.  Does this mean that passing "acpi=force" on the kernel
-> >> command line is a requirement for ARM64 servers?
-> >
-> > Please read my other email and ideally the whole sub-thread. The
-> > acpi=force should only be required if the SoC is described (from
-> > firmware) by both DT and ACPI.
-> >
-> >> >> >In what situation would we want to ignore ACPI tables that are
-> >> >> >present?
-> >>
-> >> > When DT tables are also present (and for the first platforms, that's
-> >> > highly recommended, though not easily enforceable at the kernel level).
-> >>
-> >> My understanding is that the EFI stub creates a device tree (and it
-> >> contains some important information), so I don't understand how we can
-> >> ever have an ACPI-only platform on ARM64 servers.
-> >
-> > If EFI stub creates the DT itself (not passed by firmware), it will
-> > write some information in the chosen node that the rest of the kernel
-> > can make use of and take the appropriate decision on whether to use ACPI
-> > or not. That's something that will be used by kexec and Xen as well
-> > which may want to boot with ACPI tables outside an EFI environment.
+On Friday, January 30, 2015 07:07:14 AM Xue, Ken wrote:
+> Hi Rafael,
+> 	I looked into your patch in https://patchwork.kernel.org/patch/5677461/.
+> 	I found that "XXX_platform_notify" should be implemented separately  in LPSS and APD driver  instead of "acpi_soc_platform_notify" in acpi_soc.
+> 	Because there is WA can't be share with two drivers. And it can make LPSS or APD driver more flexible.
+> 
+> 	Then only "acpi_soc_create_device" can be shared by LPSS and APD. Maybe, the meaning of acpi_soc becomes less than what we expected.
+> 	So, can we go back to two separated drivers without any binding?
 
-For Timur's reference, here's Hanjun's proposal:
+I don't want code duplication between them, though.  So if there's a function
+that may be shared between them, it should be shared.  And so on.  No duplicate
+data structure definitions etc.
 
-http://article.gmane.org/gmane.linux.acpi.devel/73061
+> And try thoughts about acpi_soc, if there were more common features.
 
-> If we are going with this solution, we should also mandate that an
-> ACPI enabled firmware should not supply a non-DT DTB, or we wouldn't
-> spot the difference. Not sure how likely this is, but I could imagine
-> a firmware setting up an initrd and hence populating the /chosen node
-> in an otherwise empty DTB. In this case, the stub would not add its
-> 'I-created-an-empty-dtb' property.
+As I said.  If you can do that without code duplication, please feel free to try.
 
-I think that's a sane requirement. For the normal case of UEFI firmware
-booting Linux as an EFI application (stub), if the firmware passes a DTB
-it _must_ contain the full SoC description and be able to boot the
-kernel without acpi=force. Passing initrd is really not a feature of the
-SoC to be described in DT by firmware. We leave this to the EFI stub to
-transfer the command line arguments into the chosen DT node.
-
-Apart from UEFI, we have Xen and kexec and I think the plan is to
-emulate the EFI stub behaviour when starting the kernel and they'll
-state whether the dtb contains SoC description or not. All we need to do
-here is make sure that the EFI stub <-> kernel protocol via the /chosen
-node is well documented. We won't be able to prevent, for example,
-U-Boot booting Linux with ACPI but I don't see why we should care.
-
-Anyway, rather than a "I-created-an-empty-dtb" property, I would
-actually say something like "dtb-contains-no-hardware-description".
-Alternatively, we could avoid any such properties and look for signs of
-hardware description like more nodes than /chosen, CPU nodes, "model"
-property etc. and we won't need to change the stub code at all.
 
 -- 
-Catalin
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
