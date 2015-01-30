@@ -1,29 +1,60 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [Linaro-acpi] [PATCH v7 04/17] ARM64 / ACPI: Introduce
- early_param for "acpi" and pass acpi=force to enable ACPI
-Date: Fri, 30 Jan 2015 08:48:21 -0600
-Message-ID: <54CB99B5.7070505@codeaurora.org>
-References: <1421247905-3749-1-git-send-email-hanjun.guo@linaro.org> <1421247905-3749-5-git-send-email-hanjun.guo@linaro.org> <CAOZdJXU2bFR1T4ZnGavvnrUXAp5e=vNt9g6WKX46H8qs1wz-TQ@mail.gmail.com> <CAOZdJXXe+29rux1L3QYBX0yHLy3kdi+ZJrXVd=XfgYN=R6DtKA@mail.gmail.com> <20150128181453.GG31752@e104818-lin.cambridge.arm.com> <54C92804.5090806@codeaurora.org> <20150129151956.GF8951@e104818-lin.cambridge.arm.com> <CAKv+Gu_=si=L5+vvg+8hRgwmTahqdePw5bZxUMFSZ8obk-VXFQ@mail.gmail.com> <20150130111311.GA27542@e104818-lin.cambridge.arm.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Fri, 30 Jan 2015 15:48:30 +0100
+Message-ID: <CACRpkdZWEq_6eNf_rj2rje0KzAKQZ7DeB6L5PW-nacE6=rzmEQ@mail.gmail.com>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
+	<4078818.ecVtLF3hjd@vostro.rjw.lan>
+	<CACRpkdZpUU71suzt9JhiBZez2VuJ6-Zm3D1uvmn71bjdn=oU_A@mail.gmail.com>
+	<4006695.qV8Mor20ru@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150130111311.GA27542@e104818-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Rob Herring <robh@kernel.org>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Will Deacon <Will.Deacon@arm.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Mark Brown <broonie@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Olof Johansson <olof@lixom.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jason
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <4006695.qV8Mor20ru@vostro.rjw.lan>
+Sender: linux-gpio-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Catalin Marinas wrote:
-> Anyway, rather than a "I-created-an-empty-dtb" property, I would
-> actually say something like "dtb-contains-no-hardware-description".
+On Thu, Jan 22, 2015 at 5:12 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, January 22, 2015 09:17:38 AM Linus Walleij wrote:
 
-Why do we need a property for this?  Wouldn't the absence of a hardware 
-description be the best way to see if the dtb contains no hardware 
-description?  It's like putting a sign on an empty bookshelf that says, 
-"there are no books here."
+>> If the kernel anyway has to supply some kind of workaround for
+>> the issue, it is more a question of where to place it. Whether it does
+>> so by patching the ACPI tables or by detecting a bad ACPI thing
+>> and working around it at runtime in a certain driver doesn't really
+>> matter, does it?
+>
+> It needs to know what to patch and how so the result is still consistent.
+>
+> How do you think the kernel is going to figure that out?
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, hosted by The Linux Foundation.
+Isn't every DSDT (etc) unique? So you could detect one by making
+a checksum of the binary or something.
+
+And then you'd know that the table with this checksum needs
+patching?
+
+>> They are both in-kernel ACPI fixes, just that one
+>> of the mechanisms is generic.
+>
+> I'm not following you here, sorry.
+
+As per above? Fix the firmware table, not work around the
+fact that it is buggy.
+
+>> I don't understand why this obsession with userspace having
+>> to do the ACPI table patching - if kernels should "just work" then
+>> put this stuff behind Kconfig and have it in the kernel.
+>
+> This is not an obsession and your suggestion here leads to having custom
+> per-board kernels which is not supportable in the long term.
+
+Not at all. The other suggestion leads to having custom per-board
+fixes in every driver for which broken ACPI descriptions exists,
+which is just as bad, isn't it? Instead of collecting the problem
+in one place (patch any broken ACPI table) it is distrubuted across
+N drivers, where each and every one has to detect that it is
+being malinformed by a broken ACPI table.
+
+Yours,
+Linus Walleij
