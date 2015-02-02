@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 14/23] ACPI: Translate resource into master side address for bridge window resources
-Date: Mon,  2 Feb 2015 10:42:59 +0800
-Message-ID: <1422844988-13854-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 11/23] ACPI: Set flag IORESOURCE_UNSET for unassigned resources
+Date: Mon,  2 Feb 2015 10:42:56 +0800
+Message-ID: <1422844988-13854-12-git-send-email-jiang.liu@linux.intel.com>
 References: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,43 +10,48 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add translation_offset into the result address for bridge window
-resources to form the master side address.
-
-Currently acpi_dev_resource_{ext_}address_space() are only used for
-devices instead of bridges, so it won't break current users. Later
-it will be used to support PCI host bridge drivers.
+Also set flag IORESOURCE_UNSET for unassigned resource in addition to
+IORESOURCE_DISABLED to mark resource as unassigned.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/acpi/resource.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index c902c8eece81..4dc8cfb2e94e 100644
+index 32561290a4a0..5bf73a9f26d9 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -205,6 +205,21 @@ static bool acpi_decode_space(struct resource_win *win,
- 	res->start = attr->minimum;
- 	res->end = attr->maximum;
+@@ -58,7 +58,7 @@ static void acpi_dev_memresource_flags(struct resource *res, u64 len,
+ 	res->flags = IORESOURCE_MEM;
  
-+	/*
-+	 * For bridges that translate addresses across the bridge,
-+	 * translation_offset is the offset that must be added to the
-+	 * address on the secondary side to obtain the address on the
-+	 * primary side. Non-bridge devices must list 0 for all Address
-+	 * Translation offset bits.
-+	 */
-+	if (addr->producer_consumer == ACPI_PRODUCER) {
-+		res->start += attr->translation_offset;
-+		res->end += attr->translation_offset;
-+	} else if (attr->translation_offset) {
-+		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
-+			 attr->translation_offset);
-+	}
-+
- 	switch (addr->resource_type) {
- 	case ACPI_MEMORY_RANGE:
- 		acpi_dev_memresource_flags(res, len, wp);
+ 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
+-		res->flags |= IORESOURCE_DISABLED;
++		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+ 
+ 	if (write_protect == ACPI_READ_WRITE_MEMORY)
+ 		res->flags |= IORESOURCE_MEM_WRITEABLE;
+@@ -126,10 +126,10 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+ 	res->flags = IORESOURCE_IO;
+ 
+ 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
+-		res->flags |= IORESOURCE_DISABLED;
++		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+ 
+ 	if (res->end >= 0x10003)
+-		res->flags |= IORESOURCE_DISABLED;
++		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+ 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+@@ -304,7 +304,7 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
+ {
+ 	res->start = gsi;
+ 	res->end = gsi;
+-	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED;
++	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
+ }
+ 
+ static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
 -- 
 1.7.10.4
