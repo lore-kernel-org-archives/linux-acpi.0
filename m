@@ -1,26 +1,25 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v8 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
-Date: Mon,  2 Feb 2015 20:45:43 +0800
-Message-ID: <1422881149-8177-16-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v8 17/21] clocksource / arch_timer: Parse GTDT to initialize arch timer
+Date: Mon,  2 Feb 2015 20:45:45 +0800
+Message-ID: <1422881149-8177-18-git-send-email-hanjun.guo@linaro.org>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:48967 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933182AbbBBMtn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2015 07:49:43 -0500
+Received: by mail-pa0-f41.google.com with SMTP id kq14so82120256pab.0
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Feb 2015 04:49:43 -0800 (PST)
 In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
 Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-Introduce ACPI_IRQ_MODEL_GIC which is needed for ARM64 as GIC is
-used, and then register device's gsi with the core IRQ subsystem.
+Using the information presented by GTDT (Generic Timer Description Table)
+to initialize the arch timer (not memory-mapped).
 
-acpi_register_gsi() is similar to DT based irq_of_parse_and_map(),
-since gsi is unique in the system, so use hwirq number directly
-for the mapping.
-
-We are going to implement stacked domains when GICv2m, GICv3, ITS
-support are added.
-
-CC: Marc Zyngier <marc.zyngier@arm.com>
+CC: Daniel Lezcano <daniel.lezcano@linaro.org>
 Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Yijing Wang <wangyijing@huawei.com>
@@ -29,127 +28,223 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/kernel/acpi.c | 73 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/bus.c       |  3 ++
- include/linux/acpi.h     |  1 +
- 3 files changed, 77 insertions(+)
+ arch/arm64/kernel/time.c             |   7 ++
+ drivers/clocksource/arm_arch_timer.c | 132 ++++++++++++++++++++++++++++-------
+ include/linux/clocksource.h          |   6 ++
+ 3 files changed, 118 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index f80caef..f86a982 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -38,6 +38,12 @@ EXPORT_SYMBOL(acpi_pci_disabled);
- static int enabled_cpus;	/* Processors (GICC) with enabled flag in MADT */
+diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+index 1a7125c..42f9195 100644
+--- a/arch/arm64/kernel/time.c
++++ b/arch/arm64/kernel/time.c
+@@ -35,6 +35,7 @@
+ #include <linux/delay.h>
+ #include <linux/clocksource.h>
+ #include <linux/clk-provider.h>
++#include <linux/acpi.h>
  
- /*
-+ * Since we're on ARM, the default interrupt routing model
-+ * clearly has to be GIC.
-+ */
-+enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+ #include <clocksource/arm_arch_timer.h>
+ 
+@@ -72,6 +73,12 @@ void __init time_init(void)
+ 
+ 	tick_setup_hrtimer_broadcast();
+ 
++	/*
++	 * Since ACPI or FDT will only one be available in the system,
++	 * we can use acpi_generic_timer_init() here safely
++	 */
++	acpi_generic_timer_init();
 +
-+/*
-  * __acpi_map_table() will be called before page_init(), so early_ioremap()
-  * or early_memremap() should be called here to for ACPI table mapping.
-  */
-@@ -185,6 +191,73 @@ void __init acpi_init_cpus(void)
- 	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+ 	arch_timer_rate = arch_timer_get_rate();
+ 	if (!arch_timer_rate)
+ 		panic("Unable to initialise architected timer.\n");
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 095c177..407aa63 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -21,6 +21,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/sched_clock.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/arch_timer.h>
+ #include <asm/virt.h>
+@@ -370,8 +371,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+ 	if (arch_timer_rate)
+ 		return;
+ 
+-	/* Try to determine the frequency from the device tree or CNTFRQ */
+-	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
++	/*
++	 * Try to determine the frequency from the device tree or CNTFRQ,
++	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
++	 */
++	if (!acpi_disabled ||
++	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
+ 		if (cntbase)
+ 			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
+ 		else
+@@ -690,28 +695,8 @@ static void __init arch_timer_common_init(void)
+ 	arch_timer_arch_init();
  }
  
-+int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-+{
-+	*irq = irq_find_mapping(NULL, gsi);
+-static void __init arch_timer_init(struct device_node *np)
++static void __init arch_timer_init(void)
+ {
+-	int i;
+-
+-	if (arch_timers_present & ARCH_CP15_TIMER) {
+-		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+-		return;
+-	}
+-
+-	arch_timers_present |= ARCH_CP15_TIMER;
+-	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+-		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+-	arch_timer_detect_rate(NULL, np);
+-
+-	/*
+-	 * If we cannot rely on firmware initializing the timer registers then
+-	 * we should use the physical timers instead.
+-	 */
+-	if (IS_ENABLED(CONFIG_ARM) &&
+-	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+-			arch_timer_use_virtual = false;
+-
+ 	/*
+ 	 * If HYP mode is available, we know that the physical timer
+ 	 * has been configured to be accessible from PL1. Use it, so
+@@ -730,13 +715,39 @@ static void __init arch_timer_init(struct device_node *np)
+ 		}
+ 	}
+ 
+-	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+-
+ 	arch_timer_register();
+ 	arch_timer_common_init();
+ }
+-CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
+-CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
 +
++static void __init arch_timer_of_init(struct device_node *np)
++{
++	int i;
++
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
++		return;
++	}
++
++	arch_timers_present |= ARCH_CP15_TIMER;
++	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
++		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
++
++	arch_timer_detect_rate(NULL, np);
++
++	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
++
++	/*
++	 * If we cannot rely on firmware initializing the timer registers then
++	 * we should use the physical timers instead.
++	 */
++	if (IS_ENABLED(CONFIG_ARM) &&
++	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
++			arch_timer_use_virtual = false;
++
++	arch_timer_init();
++}
++CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
++CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+ 
+ static void __init arch_timer_mem_init(struct device_node *np)
+ {
+@@ -803,3 +814,70 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
++
++#ifdef CONFIG_ACPI
++static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
++{
++	int trigger, polarity;
++
++	if (!interrupt)
++		return 0;
++
++	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
++			: ACPI_LEVEL_SENSITIVE;
++
++	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
++			: ACPI_ACTIVE_HIGH;
++
++	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
++}
++
++/* Initialize per-processor generic timer */
++static int __init arch_timer_acpi_init(struct acpi_table_header *table)
++{
++	struct acpi_table_gtdt *gtdt;
++
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: already initialized, skipping\n");
++		return -EINVAL;
++	}
++
++	gtdt = container_of(table, struct acpi_table_gtdt, header);
++
++	arch_timers_present |= ARCH_CP15_TIMER;
++
++	arch_timer_ppi[PHYS_SECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
++		gtdt->secure_el1_flags);
++
++	arch_timer_ppi[PHYS_NONSECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
++		gtdt->non_secure_el1_flags);
++
++	arch_timer_ppi[VIRT_PPI] =
++		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
++		gtdt->virtual_timer_flags);
++
++	arch_timer_ppi[HYP_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
++		gtdt->non_secure_el2_flags);
++
++	/* Get the frequency from CNTFRQ */
++	arch_timer_detect_rate(NULL, NULL);
++
++	/* Always-on capability */
++	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
++
++	arch_timer_init();
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
 +
-+/*
-+ * success: return IRQ number (>0)
-+ * failure: return =< 0
-+ */
-+int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
++/* Initialize all the generic timers presented in GTDT */
++void __init acpi_generic_timer_init(void)
 +{
-+	unsigned int irq;
-+	unsigned int irq_type;
++	if (acpi_disabled)
++		return;
 +
-+	/*
-+	 * ACPI have no bindings to indicate SPI or PPI, so we
-+	 * use different mappings from DT in ACPI.
-+	 *
-+	 * For FDT
-+	 * PPI interrupt: in the range [0, 15];
-+	 * SPI interrupt: in the range [0, 987];
-+	 *
-+	 * For ACPI, GSI should be unique so using
-+	 * the hwirq directly for the mapping:
-+	 * PPI interrupt: in the range [16, 31];
-+	 * SPI interrupt: in the range [32, 1019];
-+	 */
-+
-+	if (trigger == ACPI_EDGE_SENSITIVE &&
-+				polarity == ACPI_ACTIVE_LOW)
-+		irq_type = IRQ_TYPE_EDGE_FALLING;
-+	else if (trigger == ACPI_EDGE_SENSITIVE &&
-+				polarity == ACPI_ACTIVE_HIGH)
-+		irq_type = IRQ_TYPE_EDGE_RISING;
-+	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-+				polarity == ACPI_ACTIVE_LOW)
-+		irq_type = IRQ_TYPE_LEVEL_LOW;
-+	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-+				polarity == ACPI_ACTIVE_HIGH)
-+		irq_type = IRQ_TYPE_LEVEL_HIGH;
-+	else
-+		irq_type = IRQ_TYPE_NONE;
-+
-+	/*
-+	 * Since only one GIC is supported in ACPI 5.0, we can
-+	 * create mapping refer to the default domain
-+	 */
-+	irq = irq_create_mapping(NULL, gsi);
-+	if (!irq)
-+		return irq;
-+
-+	/* Set irq type if specified and different than the current one */
-+	if (irq_type != IRQ_TYPE_NONE &&
-+		irq_type != irq_get_trigger_type(irq))
-+		irq_set_irq_type(irq, irq_type);
-+	return irq;
++	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
 +}
-+EXPORT_SYMBOL_GPL(acpi_register_gsi);
-+
-+void acpi_unregister_gsi(u32 gsi)
-+{
-+}
-+EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-+
- static int __init acpi_parse_fadt(struct acpi_table_header *table)
- {
- 	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 8b67bd0..c412fdb 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -448,6 +448,9 @@ static int __init acpi_bus_init_irq(void)
- 	case ACPI_IRQ_MODEL_IOSAPIC:
- 		message = "IOSAPIC";
- 		break;
-+	case ACPI_IRQ_MODEL_GIC:
-+		message = "GIC";
-+		break;
- 	case ACPI_IRQ_MODEL_PLATFORM:
- 		message = "platform specific model";
- 		break;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d459cd1..87f365e 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -72,6 +72,7 @@ enum acpi_irq_model_id {
- 	ACPI_IRQ_MODEL_IOAPIC,
- 	ACPI_IRQ_MODEL_IOSAPIC,
- 	ACPI_IRQ_MODEL_PLATFORM,
-+	ACPI_IRQ_MODEL_GIC,
- 	ACPI_IRQ_MODEL_COUNT
- };
++#endif
+diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+index abcafaa..af6155a 100644
+--- a/include/linux/clocksource.h
++++ b/include/linux/clocksource.h
+@@ -346,4 +346,10 @@ extern void clocksource_of_init(void);
+ static inline void clocksource_of_init(void) {}
+ #endif
  
++#ifdef CONFIG_ACPI
++void acpi_generic_timer_init(void);
++#else
++static inline void acpi_generic_timer_init(void) { }
++#endif
++
+ #endif /* _LINUX_CLOCKSOURCE_H */
 -- 
 1.9.1
+
