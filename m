@@ -1,129 +1,150 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 00/23] Improve ACPI resource parsing interfaces and enable IOAPIC hotplug
-Date: Mon,  2 Feb 2015 10:42:45 +0800
-Message-ID: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [Patch v2 06/23] ACPI: Unify the parsing of address_space and ext_address_space
+Date: Mon,  2 Feb 2015 10:42:51 +0800
+Message-ID: <1422844988-13854-7-git-send-email-jiang.liu@linux.intel.com>
+References: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
-in ACPI resource parsing interfaces. So this is an effort to improve them.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Patch 1 refines ACPICA resource descriptors, which has already been
-merged into "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge"
+With the unions in place which let us identify the substructs we can
+use a single parser for address_space and ext_address_space.
 
-Patch 2-12 improve ACPI resource parsing interfaces and also fixes some
-bugs.
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/resource.c |   90 ++++++++++++++++++-----------------------------
+ 1 file changed, 34 insertions(+), 56 deletions(-)
 
-Patch 13-20 try to share the common data structure resource_list_entry
-between PCI and ACPI. It may also be shared with PNP too.
-
-Patch 21-23 enable ACPI based IOAPIC hotplug.
-
-The patchset is based on v3.19-rc6+ and passed Fengguang's 0day test
-suite. You may get it from:
-https://github.com/jiangliu/linux.git acpires_v2
-
-V2->V3:
-1) Split out the patch to fix bug in io resource check according to Bjorn's
-   suggestion
-2) Fix minor coding style bugs
-V1->V2:
-1) Refine the way to share common code between address space and extended
-   address space.
-2) Relax some checks to avoid regressions according to Rafael's suggestions.
-3) Introduce struct resource_win to avoiding add extra parameter "offset"
-   to several interfaces.
-4) Add patches to enable ACPI based IOAPIC hotplug, which has been reviwed
-   several rounds.
-5) Rebase to v3.19-rc6+
-
-Thanks,
-Gerry
-
-Jiang Liu (14):
-  ACPI: Fix a bug in parsing ACPI Memory24 resource
-  ACPI: Normalize return value of resource parser functions
-  ACPI: Set flag IORESOURCE_UNSET for unassigned resources
-  ACPI: Enforce stricter checks for address space descriptors
-  ACPI: Return translation offset when parsing ACPI address space
-    resources
-  ACPI: Translate resource into master side address for bridge window
-    resources
-  ACPI: Add field offset to struct resource_list_entry
-  ACPI: Introduce helper function acpi_dev_filter_resource_type()
-  resources: Move struct resource_list_entry from ACPI into resource
-    core
-  PCI: Use common resource list management code instead of private
-    implementation
-  x86/PCI: Fix the range check for IO resources
-  x86/PCI/ACPI: Use common ACPI resource interfaces to simplify
-    implementation
-  x86/PCI: Refine the way to release PCI IRQ resources
-  x86/irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
-
-Lv Zheng (1):
-  ACPICA: Resources: Provide common part for struct
-    acpi_resource_address structures.
-
-Thomas Gleixner (7):
-  ACPI: Remove redundant check in function
-    acpi_dev_resource_address_space()
-  ACPI: Implement proper length checks for mem resources
-  ACPI: Use the length check for io resources as well
-  ACPI: Let the parser return false for disabled resources
-  ACPI: Unify the parsing of address_space and ext_address_space
-  ACPI: Move the window flag logic to the combined parser
-  ACPI: Add prefetch decoding to the address space parser
-
-Yinghai Lu (1):
-  ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
-
- arch/arm/kernel/bios32.c            |    5 +-
- arch/ia64/kernel/acpi-ext.c         |    6 +-
- arch/ia64/pci/pci.c                 |   14 +-
- arch/x86/include/asm/pci_x86.h      |    2 -
- arch/x86/pci/acpi.c                 |  293 +++++++++--------------------
- arch/x86/pci/bus_numa.c             |    4 +-
- arch/x86/pci/common.c               |   30 ++-
- arch/x86/pci/intel_mid_pci.c        |    4 +-
- arch/x86/pci/irq.c                  |   15 +-
- arch/x86/pci/mmconfig-shared.c      |    6 +-
- drivers/acpi/Kconfig                |    6 +
- drivers/acpi/Makefile               |    1 +
- drivers/acpi/acpi_lpss.c            |    6 +-
- drivers/acpi/acpi_memhotplug.c      |    8 +-
- drivers/acpi/acpi_platform.c        |    2 +-
- drivers/acpi/acpica/rsaddr.c        |    9 +-
- drivers/acpi/acpica/rsdumpinfo.c    |   59 +++---
- drivers/acpi/acpica/rsxface.c       |   10 +-
- drivers/acpi/internal.h             |    7 +
- drivers/acpi/ioapic.c               |  229 +++++++++++++++++++++++
- drivers/acpi/pci_irq.c              |    9 +-
- drivers/acpi/pci_root.c             |    9 +-
- drivers/acpi/processor_core.c       |  123 +++++++++++-
- drivers/acpi/resource.c             |  349 +++++++++++++++++++++--------------
- drivers/char/hpet.c                 |    4 +-
- drivers/dma/acpi-dma.c              |    8 +-
- drivers/hv/vmbus_drv.c              |    4 +-
- drivers/pci/bus.c                   |   18 +-
- drivers/pci/host-bridge.c           |    8 +-
- drivers/pci/host/pci-host-generic.c |    4 +-
- drivers/pci/host/pci-xgene.c        |    4 +-
- drivers/pci/host/pcie-xilinx.c      |    4 +-
- drivers/pci/probe.c                 |   10 +-
- drivers/pnp/pnpacpi/rsparser.c      |   45 ++---
- drivers/xen/xen-acpi-memhotplug.c   |    8 +-
- include/acpi/acrestyp.h             |   40 ++--
- include/linux/acpi.h                |   22 ++-
- include/linux/pci.h                 |    9 +-
- include/linux/resource_ext.h        |   77 ++++++++
- kernel/resource.c                   |   25 +++
- 40 files changed, 965 insertions(+), 531 deletions(-)
- create mode 100644 drivers/acpi/ioapic.c
- create mode 100644 include/linux/resource_ext.h
-
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index cdb1a3c4a0b9..99903d196024 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -178,6 +178,35 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ 
++static bool acpi_decode_space(struct resource *res,
++			      struct acpi_resource_address *addr,
++			      struct acpi_address64_attribute *attr)
++{
++	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
++	bool window = addr->producer_consumer == ACPI_PRODUCER;
++	bool wp = addr->info.mem.write_protect;
++	u64 len = attr->address_length;
++
++	res->start = attr->minimum;
++	res->end = attr->maximum;
++
++	switch (addr->resource_type) {
++	case ACPI_MEMORY_RANGE:
++		acpi_dev_memresource_flags(res, len, wp, window);
++		break;
++	case ACPI_IO_RANGE:
++		acpi_dev_ioresource_flags(res, len, iodec, window);
++		break;
++	case ACPI_BUS_NUMBER_RANGE:
++		res->flags = IORESOURCE_BUS;
++		break;
++	default:
++		return false;
++	}
++
++	return !(res->flags & IORESOURCE_DISABLED);
++}
++
+ /**
+  * acpi_dev_resource_address_space - Extract ACPI address space information.
+  * @ares: Input ACPI resource object.
+@@ -190,39 +219,13 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 				     struct resource *res)
+ {
+-	acpi_status status;
+ 	struct acpi_resource_address64 addr;
+-	bool window;
+-	u8 io_decode;
+-
+-	status = acpi_resource_to_address64(ares, &addr);
+-	if (ACPI_FAILURE(status))
+-		return false;
+ 
+-	res->start = addr.address.minimum;
+-	res->end = addr.address.maximum;
+-	window = addr.producer_consumer == ACPI_PRODUCER;
+-
+-	switch(addr.resource_type) {
+-	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res, addr.address.address_length,
+-					   addr.info.mem.write_protect,
+-					   window);
+-		break;
+-	case ACPI_IO_RANGE:
+-		io_decode = addr.address.granularity == 0xfff ?
+-				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		acpi_dev_ioresource_flags(res, addr.address.address_length,
+-					  io_decode, window);
+-		break;
+-	case ACPI_BUS_NUMBER_RANGE:
+-		res->flags = IORESOURCE_BUS;
+-		break;
+-	default:
++	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
+ 		return false;
+-	}
+ 
+-	return !(res->flags & IORESOURCE_DISABLED);
++	return acpi_decode_space(res, (struct acpi_resource_address *)&addr,
++				 &addr.address);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
+ 
+@@ -239,39 +242,14 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 					 struct resource *res)
+ {
+ 	struct acpi_resource_extended_address64 *ext_addr;
+-	bool window;
+-	u8 io_decode;
+ 
+ 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
+ 		return false;
+ 
+ 	ext_addr = &ares->data.ext_address64;
+ 
+-	res->start = ext_addr->address.minimum;
+-	res->end = ext_addr->address.maximum;
+-	window = ext_addr->producer_consumer == ACPI_PRODUCER;
+-
+-	switch(ext_addr->resource_type) {
+-	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res,
+-					   ext_addr->address.address_length,
+-					   ext_addr->info.mem.write_protect,
+-					   window);
+-		break;
+-	case ACPI_IO_RANGE:
+-		io_decode = ext_addr->address.granularity == 0xfff ?
+-				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		acpi_dev_ioresource_flags(res, ext_addr->address.address_length,
+-					  io_decode, window);
+-		break;
+-	case ACPI_BUS_NUMBER_RANGE:
+-		res->flags = IORESOURCE_BUS;
+-		break;
+-	default:
+-		return false;
+-	}
+-
+-	return !(res->flags & IORESOURCE_DISABLED);
++	return acpi_decode_space(res, (struct acpi_resource_address *)ext_addr,
++				 &ext_addr->address);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
+ 
 -- 
 1.7.10.4
