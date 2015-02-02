@@ -1,250 +1,133 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v8 04/21] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Mon,  2 Feb 2015 20:45:32 +0800
-Message-ID: <1422881149-8177-5-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v8 08/21] dt / chosen: Add linux,uefi-stub-generated-dtb property
+Date: Mon,  2 Feb 2015 20:45:36 +0800
+Message-ID: <1422881149-8177-9-git-send-email-hanjun.guo@linaro.org>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:35095 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932299AbbBBMsc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2015 07:48:32 -0500
-Received: by mail-pa0-f54.google.com with SMTP id eu11so82051267pac.13
-        for <linux-acpi@vger.kernel.org>; Mon, 02 Feb 2015 04:48:32 -0800 (PST)
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:43109 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932271AbbBBMs6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2015 07:48:58 -0500
+Received: by mail-pa0-f45.google.com with SMTP id et14so82067547pad.4
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Feb 2015 04:48:58 -0800 (PST)
 In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>H
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Leif
 
-From: Al Stone <al.stone@linaro.org>
+When system supporting both DT and ACPI but firmware providing
+no dtb, we can use this linux,uefi-stub-generated-dtb property
+to let kernel know that we can try ACPI configuration data even
+if no "acpi=force" is passed in early parameters.
 
-As we want to get ACPI tables to parse and then use the information
-for system initialization, we should get the RSDP (Root System
-Description Pointer) first, it then locates Extended Root Description
-Table (XSDT) which contains all the 64-bit physical address that
-pointer to other boot-time tables.
-
-Introduce acpi.c and its related head file in this patch to provide
-fundamental needs of extern variables and functions for ACPI core,
-and then get boot-time tables as needed.
-  - asm/acenv.h for arch specific ACPICA environments and
-    implementation, It is needed unconditionally by ACPI core;
-  - asm/acpi.h for arch specific variables and functions needed by
-    ACPI driver core;
-  - acpi.c for ARM64 related ACPI implementation for ACPI driver
-    core;
-
-acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
-it will be called in setup_arch() before paging_init(), so we should
-use eary_memremap() mechanism here to get the RSDP and all the table
-pointers.
-
+CC: Mark Rutland <mark.rutland@arm.com>
+CC: Jonathan Corbet <corbet@lwn.net>
 CC: Catalin Marinas <catalin.marinas@arm.com>
 CC: Will Deacon <will.deacon@arm.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Yijing Wang <wangyijing@huawei.com>
-Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-Tested-by: Jon Masters <jcm@redhat.com>
-Tested-by: Timur Tabi <timur@codeaurora.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+CC: Leif Lindholm <leif.lindholm@linaro.org>
+CC: Grant Likely <grant.likely@linaro.org>
+CC: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acenv.h | 18 +++++++++++
- arch/arm64/include/asm/acpi.h  | 45 +++++++++++++++++++++++++++
- arch/arm64/kernel/Makefile     |  1 +
- arch/arm64/kernel/acpi.c       | 69 ++++++++++++++++++++++++++++++++++++++++++
- arch/arm64/kernel/setup.c      |  4 +++
- 5 files changed, 137 insertions(+)
- create mode 100644 arch/arm64/include/asm/acenv.h
- create mode 100644 arch/arm64/include/asm/acpi.h
- create mode 100644 arch/arm64/kernel/acpi.c
+ Documentation/arm/uefi.txt         |  3 +++
+ arch/arm64/include/asm/acpi.h      |  1 +
+ arch/arm64/kernel/setup.c          | 30 ++++++++++++++++++++++++++++++
+ drivers/firmware/efi/libstub/fdt.c |  8 ++++++++
+ 4 files changed, 42 insertions(+)
 
-diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-new file mode 100644
-index 0000000..b49166f
---- /dev/null
-+++ b/arch/arm64/include/asm/acenv.h
-@@ -0,0 +1,18 @@
-+/*
-+ * ARM64 specific ACPICA environments and implementation
-+ *
-+ * Copyright (C) 2014, Linaro Ltd.
-+ *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _ASM_ACENV_H
-+#define _ASM_ACENV_H
-+
-+/* It is required unconditionally by ACPI core, update it when needed. */
-+
-+#endif /* _ASM_ACENV_H */
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-new file mode 100644
-index 0000000..8b837ab
---- /dev/null
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -0,0 +1,45 @@
-+/*
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation;
-+ */
-+
-+#ifndef _ASM_ACPI_H
-+#define _ASM_ACPI_H
-+
-+/* Basic configuration for ACPI */
-+#ifdef	CONFIG_ACPI
-+#define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-+extern int acpi_disabled;
-+extern int acpi_noirq;
-+extern int acpi_pci_disabled;
-+
-+static inline void disable_acpi(void)
-+{
-+	acpi_disabled = 1;
-+	acpi_pci_disabled = 1;
-+	acpi_noirq = 1;
-+}
-+
-+/*
-+ * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-+ * with this check the ACPI core will not override the CPU index
-+ * obtained from GICC with 0 and not print some error message as well.
-+ * Since MADT must provide at least one GICC structure for GIC
-+ * initialization, CPU will be always available in MADT on ARM64.
-+ */
-+static inline bool acpi_has_cpu_in_madt(void)
-+{
-+	return true;
-+}
-+
-+static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-+
-+#endif /* CONFIG_ACPI */
-+
-+#endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index eaa77ed..8bdc6bd 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -34,6 +34,7 @@ arm64-obj-$(CONFIG_KGDB)		+= kgdb.o
- arm64-obj-$(CONFIG_EFI)			+= efi.o efi-stub.o efi-entry.o
- arm64-obj-$(CONFIG_PCI)			+= pci.o
- arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
-+arm64-obj-$(CONFIG_ACPI)		+= acpi.o
+diff --git a/Documentation/arm/uefi.txt b/Documentation/arm/uefi.txt
+index d60030a..5f86eae 100644
+--- a/Documentation/arm/uefi.txt
++++ b/Documentation/arm/uefi.txt
+@@ -60,5 +60,8 @@ linux,uefi-mmap-desc-ver  | 32-bit | Version of the mmap descriptor format.
+ --------------------------------------------------------------------------------
+ linux,uefi-stub-kern-ver  | string | Copy of linux_banner from build.
+ --------------------------------------------------------------------------------
++linux,uefi-stub-generated-dtb  | bool | Indication for no DTB provided by
++			       |      | firmware.
++--------------------------------------------------------------------------------
  
- obj-y					+= $(arm64-obj-y) vdso/
- obj-m					+= $(arm64-obj-m)
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-new file mode 100644
-index 0000000..7f67c01
---- /dev/null
-+++ b/arch/arm64/kernel/acpi.c
-@@ -0,0 +1,69 @@
-+/*
-+ *  ARM64 Specific Low-Level ACPI Boot Support
-+ *
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *	Author: Naresh Bhat <naresh.bhat@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/bootmem.h>
-+#include <linux/cpumask.h>
-+#include <linux/init.h>
-+#include <linux/irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/memblock.h>
-+#include <linux/smp.h>
-+
-+int acpi_noirq;			/* skip ACPI IRQ initialization */
-+int acpi_disabled;
-+EXPORT_SYMBOL(acpi_disabled);
-+
-+int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
-+EXPORT_SYMBOL(acpi_pci_disabled);
-+
-+/*
-+ * __acpi_map_table() will be called before page_init(), so early_ioremap()
-+ * or early_memremap() should be called here to for ACPI table mapping.
-+ */
-+char *__init __acpi_map_table(unsigned long phys, unsigned long size)
-+{
-+	if (!phys || !size)
-+		return NULL;
-+
-+	return early_memremap(phys, size);
-+}
-+
-+void __init __acpi_unmap_table(char *map, unsigned long size)
-+{
-+	if (!map || !size)
-+		return;
-+
-+	early_memunmap(map, size);
-+}
-+
-+/*
-+ * acpi_boot_table_init() called from setup_arch(), always.
-+ *	1. find RSDP and get its address, and then find XSDT
-+ *	2. extract all tables and checksums them all
-+ *
-+ * We can parse ACPI boot-time tables such as MADT after
-+ * this function is called.
-+ */
-+void __init acpi_boot_table_init(void)
-+{
-+	/* If acpi_disabled, bail out */
-+	if (acpi_disabled)
-+		return;
-+
-+	/* Initialize the ACPI boot-time table parser. */
-+	if (acpi_table_init())
-+		disable_acpi();
-+}
+ For verbose debug messages, specify 'uefi_debug' on the kernel command line.
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 496c33b..9fcf632 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -49,6 +49,7 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+ 
+ #else
+ static inline void disable_acpi(void) { }
++static inline void enable_acpi(void) { }
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*_ASM_ACPI_H*/
 diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index 20fe293..726b019 100644
+index fc4fb7b..510a681 100644
 --- a/arch/arm64/kernel/setup.c
 +++ b/arch/arm64/kernel/setup.c
-@@ -17,6 +17,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+@@ -371,6 +371,29 @@ static void __init request_standard_resources(void)
+ 	}
+ }
  
-+#include <linux/acpi.h>
- #include <linux/export.h>
- #include <linux/kernel.h>
- #include <linux/stddef.h>
-@@ -398,6 +399,9 @@ void __init setup_arch(char **cmdline_p)
- 	efi_init();
- 	arm64_memblock_init();
- 
-+	/* Parse the ACPI tables for possible boot-time configuration */
-+	acpi_boot_table_init();
++static int __init dt_scan_chosen(unsigned long node, const char *uname,
++			int depth, void *data)
++{
++	const char *p;
 +
- 	paging_init();
- 	request_standard_resources();
++	if (depth != 1 || !data || (strcmp(uname, "chosen") != 0))
++		return 0;
++
++	p = of_get_flat_dt_prop(node, "linux,uefi-stub-generated-dtb", NULL);
++	*(bool *)data = p ? true : false;
++
++	return 1;
++}
++
++static bool __init is_uefi_stub_generated_dtb(void)
++{
++	bool flag = false;
++
++	of_scan_flat_dt(dt_scan_chosen, &flag);
++
++	return flag;
++}
++
+ u64 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_HWID };
  
+ void __init setup_arch(char **cmdline_p)
+@@ -399,6 +422,13 @@ void __init setup_arch(char **cmdline_p)
+ 	parse_early_param();
+ 
+ 	/*
++	 * If no dtb provided by firmware, enable ACPI and give system a
++	 * chance to boot with ACPI configuration data
++	 */
++	if (is_uefi_stub_generated_dtb() && acpi_disabled)
++		enable_acpi();
++
++	/*
+ 	 *  Unmask asynchronous aborts after bringing up possible earlycon.
+ 	 * (Report possible System Errors once we can report this occurred)
+ 	 */
+diff --git a/drivers/firmware/efi/libstub/fdt.c b/drivers/firmware/efi/libstub/fdt.c
+index c846a96..3777d50 100644
+--- a/drivers/firmware/efi/libstub/fdt.c
++++ b/drivers/firmware/efi/libstub/fdt.c
+@@ -154,6 +154,14 @@ efi_status_t update_fdt(efi_system_table_t *sys_table, void *orig_fdt,
+ 	if (status)
+ 		goto fdt_set_fail;
+ 
++	/* Add a property to show the dtb is generated by uefi stub */
++	if (!orig_fdt) {
++		status = fdt_setprop(fdt, node,
++				     "linux,uefi-stub-generated-dtb", NULL, 0);
++		if (status)
++			goto fdt_set_fail;
++	}
++
+ 	return EFI_SUCCESS;
+ 
+ fdt_set_fail:
 -- 
 1.9.1
 
