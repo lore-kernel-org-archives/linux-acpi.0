@@ -1,104 +1,141 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v8 09/21] ARM64 / ACPI: Disable ACPI if FADT revision is less than 5.1
-Date: Mon,  2 Feb 2015 20:45:37 +0800
-Message-ID: <1422881149-8177-10-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v8 07/21] ARM64 / ACPI: Introduce early_param for "acpi" and pass acpi=force to enable ACPI
+Date: Mon,  2 Feb 2015 20:45:35 +0800
+Message-ID: <1422881149-8177-8-git-send-email-hanjun.guo@linaro.org>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.c>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-FADT Major.Minor version was introduced in ACPI 5.1, it is the same
-as ACPI version.
+From: Al Stone <al.stone@linaro.org>
 
-In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
-MADT table for GIC and SMP init, without those updates, we can not
-get the MPIDR for SMP init, and GICv2/3 related init information, so
-we can't boot arm64 ACPI properly with table versions predating 5.1.
+Introduce two early parameters "off" and "force" for "acpi", acpi=off
+will be the default behavior for ARM64, so introduce acpi=force to
+enable ACPI on ARM64.
 
-If firmware provides ACPI tables with ACPI version less than 5.1,
-OS has no way to retrieve the configuration data that is necessary
-to init SMP boot protocol and the GIC properly, so disable ACPI if
-we get an FADT table with version less that 5.1.
+Disable ACPI before early parameters parsed, and enable it to pass
+"acpi=force" if people want use ACPI on ARM64. This ensures DT be
+the prefer one if ACPI table and DT both are provided at this moment.
 
-CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 CC: Catalin Marinas <catalin.marinas@arm.com>
 CC: Will Deacon <will.deacon@arm.com>
+CC: Rafael J. Wysocki <rjw@rjwysocki.net>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Yijing Wang <wangyijing@huawei.com>
 Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
 Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
+Signed-off-by: Al Stone <al.stone@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/kernel/acpi.c | 34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |  3 ++-
+ arch/arm64/include/asm/acpi.h       |  9 +++++++++
+ arch/arm64/kernel/acpi.c            | 17 +++++++++++++++++
+ arch/arm64/kernel/setup.c           |  8 ++++++++
+ 4 files changed, 36 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index afe10b4..b9f64ec 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -13,6 +13,8 @@
-  *  published by the Free Software Foundation.
-  */
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 176d4fe..d6a952e 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
+ bytes respectively. Such letter suffixes can also be entirely omitted.
  
-+#define pr_fmt(fmt) "ACPI: " fmt
-+
- #include <linux/acpi.h>
- #include <linux/bootmem.h>
- #include <linux/cpumask.h>
-@@ -49,10 +51,32 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
- 	early_memunmap(map, size);
+ 
+-	acpi=		[HW,ACPI,X86]
++	acpi=		[HW,ACPI,X86,ARM64]
+ 			Advanced Configuration and Power Interface
+ 			Format: { force | off | strict | noirq | rsdt }
+ 			force -- enable ACPI if default was off
+@@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 				strictly ACPI specification compliant.
+ 			rsdt -- prefer RSDT over (default) XSDT
+ 			copy_dsdt -- copy DSDT to memory
++			For ARM64, ONLY "acpi=off" or "acpi=force" are available
+ 
+ 			See also Documentation/power/runtime_pm.txt, pci=noacpi
+ 
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 8b837ab..496c33b 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -26,6 +26,13 @@ static inline void disable_acpi(void)
+ 	acpi_noirq = 1;
  }
  
-+static int __init acpi_parse_fadt(struct acpi_table_header *table)
++static inline void enable_acpi(void)
 +{
-+	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-+
-+	/*
-+	 * Revision in table header is the FADT Major revision, and there
-+	 * is a minor revision of FADT which was introduced by ACPI 5.1,
-+	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
-+	 * boot protocol configuration data, or we will disable ACPI.
-+	 */
-+	if (table->revision > 5 ||
-+	    (table->revision == 5 && fadt->minor_revision >= 1))
-+		return 0;
-+
-+	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
-+		table->revision, fadt->minor_revision);
-+	disable_acpi();
-+
-+	return -EINVAL;
++	acpi_disabled = 0;
++	acpi_pci_disabled = 0;
++	acpi_noirq = 0;
 +}
 +
  /*
-  * acpi_boot_table_init() called from setup_arch(), always.
-  *	1. find RSDP and get its address, and then find XSDT
-  *	2. extract all tables and checksums them all
-+ *	3. check ACPI FADT revision
-  *
-  * We can parse ACPI boot-time tables such as MADT after
-  * this function is called.
-@@ -64,8 +88,16 @@ void __init acpi_boot_table_init(void)
- 		return;
+  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+  * with this check the ACPI core will not override the CPU index
+@@ -40,6 +47,8 @@ static inline bool acpi_has_cpu_in_madt(void)
  
- 	/* Initialize the ACPI boot-time table parser. */
--	if (acpi_table_init())
-+	if (acpi_table_init()) {
-+		disable_acpi();
-+		return;
-+	}
-+
-+	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
-+		/* disable ACPI if no FADT is found */
+ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+ 
++#else
++static inline void disable_acpi(void) { }
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 7f67c01..afe10b4 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -67,3 +67,20 @@ void __init acpi_boot_table_init(void)
+ 	if (acpi_table_init())
  		disable_acpi();
-+		pr_err("Can't find FADT\n");
-+	}
  }
++
++static int __init parse_acpi(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	/* "acpi=off" disables both ACPI table parsing and interpreter */
++	if (strcmp(arg, "off") == 0)
++		disable_acpi();
++	else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
++		enable_acpi();
++	else
++		return -EINVAL;	/* Core will print when we return error */
++
++	return 0;
++}
++early_param("acpi", parse_acpi);
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 726b019..fc4fb7b 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -62,6 +62,7 @@
+ #include <asm/memblock.h>
+ #include <asm/psci.h>
+ #include <asm/efi.h>
++#include <asm/acpi.h>
  
- static int __init parse_acpi(char *arg)
+ unsigned int processor_id;
+ EXPORT_SYMBOL(processor_id);
+@@ -388,6 +389,13 @@ void __init setup_arch(char **cmdline_p)
+ 	early_fixmap_init();
+ 	early_ioremap_init();
+ 
++	/*
++	 * Disable ACPI before early parameters parsed and
++	 * it will be enabled in parse_early_param() if
++	 * "acpi=force" is passed
++	 */
++	disable_acpi();
++
+ 	parse_early_param();
+ 
+ 	/*
 -- 
 1.9.1
