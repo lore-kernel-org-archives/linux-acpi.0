@@ -1,346 +1,155 @@
-From: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V2] acpi:apd:add AMD ACPI2Platform device support for x86
- system.
-Date: Mon, 2 Feb 2015 15:03:57 +0200
-Message-ID: <20150202130356.GS22740@lahna.fi.intel.com>
-References: <1422870652.2528.6.camel@kxue-X58A-UD3R>
+From: Leif Lindholm <leif.lindholm@linaro.org>
+Subject: Re: [PATCH v8 08/21] dt / chosen: Add linux,uefi-stub-generated-dtb
+ property
+Date: Mon, 2 Feb 2015 13:40:33 +0000
+Message-ID: <20150202134033.GR4278@bivouac.eciton.net>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+ <1422881149-8177-9-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:50987 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755473AbbBBNki (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2015 08:40:38 -0500
+Received: by mail-wi0-f181.google.com with SMTP id fb4so15178136wid.2
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Feb 2015 05:40:37 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1422870652.2528.6.camel@kxue-X58A-UD3R>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ken Xue <Ken.Xue@amd.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+In-Reply-To: <1422881149-8177-9-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.comMar
 
-On Mon, Feb 02, 2015 at 05:50:52PM +0800, Ken Xue wrote:
-> >From b9654ecbfaebde00aee746a024eec9fe8de24b97 Mon Sep 17 00:00:00 2001
-> From: Ken Xue <Ken.Xue@amd.com>
-> Date: Mon, 2 Feb 2015 17:32:24 +0800
-> Subject: [PATCH] This new feature is to interpret AMD specific ACPI device to
->  platform device such as I2C, UART found on AMD CZ and later chipsets. It
->  based on example INTEL LPSS. Now, it can support AMD I2C & UART.
-
-Looks good to me. There are few smallish issues still, see below.
-
-> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> ---
->  arch/x86/Kconfig        |  11 +++
->  drivers/acpi/Makefile   |   2 +-
->  drivers/acpi/acpi_apd.c | 208 ++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/internal.h |   2 +
->  drivers/acpi/scan.c     |   1 +
->  5 files changed, 223 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/acpi/acpi_apd.c
+On Mon, Feb 02, 2015 at 08:45:36PM +0800, Hanjun Guo wrote:
+> When system supporting both DT and ACPI but firmware providing
+> no dtb, we can use this linux,uefi-stub-generated-dtb property
+> to let kernel know that we can try ACPI configuration data even
+> if no "acpi=force" is passed in early parameters.
 > 
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 0dc9d01..ddf8d42 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -496,6 +496,17 @@ config X86_INTEL_LPSS
->  	  things like clock tree (common clock framework) and pincontrol
->  	  which are needed by the LPSS peripheral drivers.
+> CC: Mark Rutland <mark.rutland@arm.com>
+> CC: Jonathan Corbet <corbet@lwn.net>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> CC: Leif Lindholm <leif.lindholm@linaro.org>
+> CC: Grant Likely <grant.likely@linaro.org>
+> CC: Matt Fleming <matt.fleming@intel.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  Documentation/arm/uefi.txt         |  3 +++
+>  arch/arm64/include/asm/acpi.h      |  1 +
+>  arch/arm64/kernel/setup.c          | 30 ++++++++++++++++++++++++++++++
+>  drivers/firmware/efi/libstub/fdt.c |  8 ++++++++
+>  4 files changed, 42 insertions(+)
+> 
+> diff --git a/Documentation/arm/uefi.txt b/Documentation/arm/uefi.txt
+> index d60030a..5f86eae 100644
+> --- a/Documentation/arm/uefi.txt
+> +++ b/Documentation/arm/uefi.txt
+> @@ -60,5 +60,8 @@ linux,uefi-mmap-desc-ver  | 32-bit | Version of the mmap descriptor format.
+>  --------------------------------------------------------------------------------
+>  linux,uefi-stub-kern-ver  | string | Copy of linux_banner from build.
+>  --------------------------------------------------------------------------------
+> +linux,uefi-stub-generated-dtb  | bool | Indication for no DTB provided by
+> +			       |      | firmware.
+> +--------------------------------------------------------------------------------
+
+Apologies for the late bikeshedding, but the discussion on this topic
+previsously was lively enough that I thought I'd let it die down a bit
+before seeing if I had anything to add.
+
+That, and I just realised something:
+One alternative to this added DT entry is that we could treat the
+absence of a registered UEFI configuration table as the indication
+that no HW description was provided from firmware, since the stub does
+not call InstallConfigurationTable() on the DT it generates. This does
+move the ability to detect to after efi_init(), but this should be
+fine for ACPI-purposes.
+
+If that is deemed undesirable, I would still prefer Catalin's
+suggested name ("linux,bare-dtb"), which describes the state rather
+than the route we took to get there.
+
+>  For verbose debug messages, specify 'uefi_debug' on the kernel command line.
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 496c33b..9fcf632 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -49,6 +49,7 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
 >  
-> +config X86_AMD_PLATFORM_DEVICE
-> +	bool "AMD ACPI2Platform devices support"
-> +	depends on ACPI
-> +	select COMMON_CLK
-> +	select PINCTRL
-> +	---help---
-> +	  Select to interpret AMD specific ACPI device to platform device
-> +	  such as I2C, UART found on AMD Carrizo and later chipsets. Selecting
-> +	  this option enables things like clock tree (common clock framework)
-> +	  and pinctrl.
-> +
->  config IOSF_MBI
->  	tristate "Intel SoC IOSF Sideband support for SoC platforms"
->  	depends on PCI
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index f74317c..0071141 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->  acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->  acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> -acpi-y				+= acpi_lpss.o
-> +acpi-y				+= acpi_lpss.o acpi_apd.o
->  acpi-y				+= acpi_platform.o
->  acpi-y				+= acpi_pnp.o
->  acpi-y				+= int340x_thermal.o
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> new file mode 100644
-> index 0000000..b875ef6
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -0,0 +1,208 @@
-> +/*
-> + * AMD ACPI support for ACPI2platform device.
-> + *
-> + * Copyright (c) 2014,2015 AMD Corporation.
-> + * Authors: Ken Xue <Ken.Xue@amd.com>
-> + *	Wu, Jeff <Jeff.Wu@amd.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-
-Empty line here.
-
-> +#include <linux/clk-provider.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pm_domain.h>
-> +#include <linux/clkdev.h>
-> +#include <linux/acpi.h>
-> +#include <linux/err.h>
-> +#include <linux/clk.h>
-> +#include <linux/pm.h>
-> +
-> +#include "internal.h"
-> +
-> +
-
-Delete this empty line.
-
-> +ACPI_MODULE_NAME("acpi_apd");
-> +struct apd_private_data;
-> +
-> +/**
-> + * device flags of acpi_apd_dev_desc.
-> + * ACPI_APD_SYSFS : add device attributes in sysfs
-> + * ACPI_APD_PM : attach power domain to device
-> + * ACPI_APD_PM_ON : power on device when attach power domain
-> + */
-> +#define ACPI_APD_SYSFS	BIT(0)
-> +#define ACPI_APD_PM	BIT(1)
-> +#define ACPI_APD_PM_ON	BIT(2)
-> +
-> +/**
-> + * struct apd_device_desc - a descriptor for apd device
-> + * @flags: device flags like ACPI_APD_SYSFS ACPI_APD_PM ACPI_APD_PM_ON
-> + * @fixed_clk_rate: fixed rate input clock source for acpi device;
-> + *			0 means no fixed rate input clock source
-> + * @setup: a hook routine to set device resource during create platform device
-> + *
-> + * device description defined as acpi_device_id.driver_data
-> + */
-> +struct apd_device_desc {
-> +	unsigned int flags;
-> +	unsigned int fixed_clk_rate;
-> +	int (*setup)(struct apd_private_data *pdata);
-> +};
-> +
-> +struct apd_private_data {
-> +	struct clk *clk;
-> +	struct acpi_device *adev;
-> +	struct apd_device_desc *dev_desc;
-> +};
-> +
-> +
-
-Ditto.
-
-> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +#define APD_ADDR(desc)	((unsigned long)&desc)
-> +
-> +static int acpi_apd_setup(struct apd_private_data *pdata)
-> +{
-> +	struct apd_device_desc *dev_desc = pdata->dev_desc;
-> +	struct clk *clk = ERR_PTR(-ENODEV);
-> +
-> +	if (dev_desc->fixed_clk_rate) {
-> +		clk = clk_register_fixed_rate(&pdata->adev->dev,
-> +					dev_name(&pdata->adev->dev),
-> +					NULL, CLK_IS_ROOT,
-> +					dev_desc->fixed_clk_rate);
-> +		clk_register_clkdev(clk, NULL, dev_name(&pdata->adev->dev));
-> +		pdata->clk = clk;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct apd_device_desc cz_i2c_desc = {
-
-const?
-
-> +	.setup = acpi_apd_setup,
-> +	.fixed_clk_rate = 133000000,
-> +};
-> +
-> +static struct apd_device_desc cz_uart_desc = {
-> +	.setup = acpi_apd_setup,
-> +	.fixed_clk_rate = 48000000,
-> +};
-> +
-> +#else
-> +
-> +#define APD_ADDR(desc) (0UL)
-> +
-> +#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-> +
-> +static int acpi_apd_create_device(struct acpi_device *adev,
-> +				   const struct acpi_device_id *id)
-> +{
-> +	struct apd_private_data *pdata;
-> +	struct apd_device_desc *dev_desc;
-> +	struct platform_device *pdev;
-> +	int ret;
-> +
-> +	dev_desc = (struct apd_device_desc *)id->driver_data;
-> +	if (!dev_desc) {
-> +		pdev = acpi_create_platform_device(adev);
-> +		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
-> +	}
-> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return -ENOMEM;
-> +
-> +	pdata->adev = adev;
-> +	pdata->dev_desc = dev_desc;
-> +
-> +	if (dev_desc->setup) {
-> +		ret = dev_desc->setup(pdata);
-> +		if (ret)
-> +			goto err_out;
-> +	}
-> +
-> +	adev->driver_data = pdata;
-> +	pdev = acpi_create_platform_device(adev);
-> +	if (!IS_ERR_OR_NULL(pdev))
-> +		return 1;
-> +
-> +	ret = PTR_ERR(pdev);
-> +	adev->driver_data = NULL;
-> +
-> + err_out:
-> +	kfree(pdata);
-> +	return ret;
-> +}
-> +
-> +static struct acpi_device_id acpi_apd_device_ids[] = {
-> +	/* Generic apd devices */
-> +	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-> +	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-> +	{ }
-> +};
-> +
-> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +static int acpi_apd_platform_notify(struct notifier_block *nb,
-> +				     unsigned long action, void *data)
-> +{
-> +	struct platform_device *pdev = to_platform_device(data);
-> +	struct apd_private_data *pdata;
-> +	const struct acpi_device_id *id = NULL;
-> +	struct acpi_device *adev;
-> +	int ret;
-> +
-> +	id = acpi_match_device(acpi_apd_device_ids, &pdev->dev);
-> +	if (!id || !id->driver_data)
-> +		return 0;
-> +
-> +	if (!id || !id->driver_data)
-> +		return 0;
-
-Doubled check, remove.
-
-> +
-> +	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
-> +		return 0;
-> +
-> +	pdata = acpi_driver_data(adev);
-> +	if (!pdata || !pdata->dev_desc)
-> +		return 0;
-> +
-> +	switch (action) {
-> +	case BUS_NOTIFY_ADD_DEVICE:
-> +		if (pdata->dev_desc->flags & ACPI_APD_PM) {
-> +			if (pdata->dev_desc->flags & ACPI_APD_PM_ON)
-> +				ret = dev_pm_domain_attach(&pdev->dev, true);
-> +			else
-> +				ret = dev_pm_domain_attach(&pdev->dev, false);
-
-How about:
-
-	power_on = !!(pdata->dev_desc->flags & ACPI_APD_PM_ON)
-	ret = dev_pm_domain_attach(&pdev->dev, power_on);
-
-?
-
-Furthermore I think this is not needed at all. If you check
-platform_drv_probe() it calls dev_pm_domain_attach() already.
-
-> +
-> +			if (ret)
-> +				dev_dbg(&pdev->dev,
-> +				"failed to attached pm domain (%d)\n", ret);
-> +		}
-> +		break;
-> +	case BUS_NOTIFY_DEL_DEVICE:
-> +		if (pdata->dev_desc->flags & ACPI_APD_PM) {
-> +			if (pdata->dev_desc->flags & ACPI_APD_PM_ON)
-> +				dev_pm_domain_detach(&pdev->dev, true);
-> +			else
-> +				dev_pm_domain_detach(&pdev->dev, false);
-
-Ditto.
-
-> +		}
-> +		break;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static struct notifier_block acpi_apd_nb = {
-
-const?
-
-> +	.notifier_call = acpi_apd_platform_notify,
-> +};
-> +#endif
-> +
-> +static struct acpi_scan_handler apd_handler = {
-> +	.ids = acpi_apd_device_ids,
-> +	.attach = acpi_apd_create_device,
-> +};
-> +
-> +void __init acpi_apd_init(void)
-> +{
-> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +	bus_register_notifier(&platform_bus_type, &acpi_apd_nb);
-> +#endif
-> +
-> +	acpi_scan_add_handler(&apd_handler);
-> +}
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 163e82f..c24ae9d 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -68,6 +68,8 @@ static inline void acpi_debugfs_init(void) { return; }
->  #endif
->  void acpi_lpss_init(void);
+>  #else
+>  static inline void disable_acpi(void) { }
+> +static inline void enable_acpi(void) { }
+>  #endif /* CONFIG_ACPI */
 >  
-> +void acpi_apd_init(void);
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index fc4fb7b..510a681 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -371,6 +371,29 @@ static void __init request_standard_resources(void)
+>  	}
+>  }
+>  
+> +static int __init dt_scan_chosen(unsigned long node, const char *uname,
+> +			int depth, void *data)
+> +{
+> +	const char *p;
 > +
->  acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
->  bool acpi_queue_hotplug_work(struct work_struct *work);
->  void acpi_device_hotplug(struct acpi_device *adev, u32 src);
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index dc4d896..bbca783 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2544,6 +2544,7 @@ int __init acpi_scan_init(void)
->  	acpi_pci_link_init();
->  	acpi_processor_init();
->  	acpi_lpss_init();
-> +	acpi_apd_init();
->  	acpi_cmos_rtc_init();
->  	acpi_container_init();
->  	acpi_memory_hotplug_init();
+> +	if (depth != 1 || !data || (strcmp(uname, "chosen") != 0))
+> +		return 0;
+> +
+> +	p = of_get_flat_dt_prop(node, "linux,uefi-stub-generated-dtb", NULL);
+> +	*(bool *)data = p ? true : false;
+> +
+> +	return 1;
+> +}
+> +
+> +static bool __init is_uefi_stub_generated_dtb(void)
+> +{
+> +	bool flag = false;
+> +
+> +	of_scan_flat_dt(dt_scan_chosen, &flag);
+> +
+> +	return flag;
+> +}
+> +
+>  u64 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_HWID };
+>  
+>  void __init setup_arch(char **cmdline_p)
+> @@ -399,6 +422,13 @@ void __init setup_arch(char **cmdline_p)
+>  	parse_early_param();
+>  
+>  	/*
+> +	 * If no dtb provided by firmware, enable ACPI and give system a
+> +	 * chance to boot with ACPI configuration data
+> +	 */
+> +	if (is_uefi_stub_generated_dtb() && acpi_disabled)
+> +		enable_acpi();
+> +
+> +	/*
+>  	 *  Unmask asynchronous aborts after bringing up possible earlycon.
+>  	 * (Report possible System Errors once we can report this occurred)
+>  	 */
+> diff --git a/drivers/firmware/efi/libstub/fdt.c b/drivers/firmware/efi/libstub/fdt.c
+> index c846a96..3777d50 100644
+> --- a/drivers/firmware/efi/libstub/fdt.c
+> +++ b/drivers/firmware/efi/libstub/fdt.c
+> @@ -154,6 +154,14 @@ efi_status_t update_fdt(efi_system_table_t *sys_table, void *orig_fdt,
+>  	if (status)
+>  		goto fdt_set_fail;
+>  
+> +	/* Add a property to show the dtb is generated by uefi stub */
+> +	if (!orig_fdt) {
+> +		status = fdt_setprop(fdt, node,
+> +				     "linux,uefi-stub-generated-dtb", NULL, 0);
+> +		if (status)
+> +			goto fdt_set_fail;
+> +	}
+> +
+>  	return EFI_SUCCESS;
+>  
+>  fdt_set_fail:
 > -- 
 > 1.9.1
-> 
 > 
