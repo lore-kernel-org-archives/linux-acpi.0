@@ -1,47 +1,69 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 0/6] PCI: MMCONFIG clean up
-Date: Mon, 2 Feb 2015 14:42:53 -0600
-Message-ID: <20150202204253.GB5176@google.com>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
+Date: Mon, 02 Feb 2015 23:14:39 +0100
+Message-ID: <2422968.Es7R0p3loO@vostro.rjw.lan>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60369 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933531AbbBBVvq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Feb 2015 16:51:46 -0500
+In-Reply-To: <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyij
 
-On Wed, Nov 19, 2014 at 05:04:45PM +0100, Tomasz Nowicki wrote:
-> MMCFG ACPI table has no arch dependencies so it can be used across all
-> architectures. Currently MMCONFIG related code resides in arch/x86 directories.
-> This patch set is goint to isolate non-architecure specific code and make
-> it accessible from drivers/pci/ directory.
+On Monday, February 02, 2015 08:45:30 PM Hanjun Guo wrote:
+> From: Mark Salter <msalter@redhat.com>
 > 
-> Tomasz Nowicki (6):
->   x86, acpi, pci: Reorder logic of pci_mmconfig_insert() function
->   x86, acpi, pci: Move arch-agnostic MMCFG code out of arch/x86/
->     directory
->   x86, acpi, pci: Move PCI config space accessors.
->   x86, acpi, pci: mmconfig_{32,64}.c code refactoring - remove code
->     duplication.
->   x86, acpi, pci: mmconfig_64.c becomes default implementation for arch
->     agnostic low-level direct PCI config space accessors via MMCONFIG.
->   pci, acpi: Share ACPI PCI config space accessors.
+> The acpi_os_ioremap() function may be used to map normal RAM or IO
+> regions. The current implementation simply uses ioremap_cache(). This
+> will work for some architectures, but arm64 ioremap_cache() cannot be
+> used to map IO regions which don't support caching. So for arm64, use
+> ioremap() for non-RAM regions.
+> 
+> CC: Rafael J Wysocki <rjw@rjwysocki.net>
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  include/acpi/acpi_io.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
+> index 444671e..9d573db 100644
+> --- a/include/acpi/acpi_io.h
+> +++ b/include/acpi/acpi_io.h
+> @@ -1,11 +1,17 @@
+>  #ifndef _ACPI_IO_H_
+>  #define _ACPI_IO_H_
+>  
+> +#include <linux/mm.h>
+>  #include <linux/io.h>
+>  
+>  static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+>  					    acpi_size size)
+>  {
+> +#ifdef CONFIG_ARM64
+> +	if (!page_is_ram(phys >> PAGE_SHIFT))
+> +		return ioremap(phys, size);
+> +#endif
 
-Hi Tomasz,
+I don't want to see #ifdef CONFIG_ARM64 in this file.
 
-I'm just checking to make sure we aren't deadlocked here, with me waiting
-for you and you waiting for me.  I gave you some comments about
-abbreviations (MCFG/MMCFG/MMCONFIG/ECAM), weak functions, code placement
-(drivers/acpi vs. drivers/pci), and the mmio_config_*() naming, so I've
-been waiting to continue those discussions.  But maybe you're waiting for
-me, too?
+There are multiple examples of how things like this are done.  Generally,
+the logic is "If the architecture provides its own function for this, use
+that one, or use the generic one provided here otherwise."
 
-I think this sort of cleanup is a great idea and I hope we can make some
-progress on it.  If it's easier to do it in small pieces, e.g., starting
-out by moving code and renaming things with no functional changes, that
-would be great with me.
+> +
+>         return ioremap_cache(phys, size);
+>  }
+>  
+> 
 
-Bjorn
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
