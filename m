@@ -1,210 +1,415 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 22/23] ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
-Date: Mon,  2 Feb 2015 10:43:07 +0800
-Message-ID: <1422844988-13854-23-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 20/23] x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation
+Date: Mon,  2 Feb 2015 10:43:05 +0800
+Message-ID: <1422844988-13854-21-git-send-email-jiang.liu@linux.intel.com>
 References: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Randy Dunlap <rdunlap@infradead.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yinghai Lu <yinghai@kernel.org>
+Use common ACPI resource discovery interfaces to simplify PCI host bridge
+resource enumeration.
 
-We need to parse APIC ID for IOAPIC registration for IOAPIC hotplug.
-ACPI _MAT method and MADT table are used to figure out IOAPIC ID, just
-like parsing CPU APIC ID for CPU hotplug.
-
-[ tglx: Fixed docbook comment ]
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Len Brown <lenb@kernel.org>
-Link: http://lkml.kernel.org/r/1414387308-27148-8-git-send-email-jiang.liu@linux.intel.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/acpi/processor_core.c |  123 ++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h          |    4 ++
- 2 files changed, 118 insertions(+), 9 deletions(-)
+ arch/x86/pci/acpi.c |  295 ++++++++++++++++-----------------------------------
+ 1 file changed, 91 insertions(+), 204 deletions(-)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 02e48394276c..7962651cdbd4 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -4,6 +4,10 @@
-  *
-  *	Alex Chiang <achiang@hp.com>
-  *	- Unified x86/ia64 implementations
-+ *
-+ * I/O APIC hotplug support
-+ *	Yinghai Lu <yinghai@kernel.org>
-+ *	Jiang Liu <jiang.liu@intel.com>
-  */
- #include <linux/export.h>
- #include <linux/acpi.h>
-@@ -12,6 +16,21 @@
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_core");
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 1d725d99963d..962836a0b071 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -10,9 +10,6 @@
+ struct pci_root_info {
+ 	struct acpi_device *bridge;
+ 	char name[16];
+-	unsigned int res_num;
+-	struct resource *res;
+-	resource_size_t *res_offset;
+ 	struct pci_sysdata sd;
+ #ifdef	CONFIG_PCI_MMCONFIG
+ 	bool mcfg_added;
+@@ -218,132 +215,41 @@ static void teardown_mcfg_map(struct pci_root_info *info)
+ }
+ #endif
  
-+static struct acpi_table_madt *get_madt_table(void)
-+{
-+	static struct acpi_table_madt *madt;
-+	static int read_madt;
-+
-+	if (!read_madt) {
-+		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
-+					(struct acpi_table_header **)&madt)))
-+			madt = NULL;
-+		read_madt++;
-+	}
-+
-+	return madt;
-+}
-+
- static int map_lapic_id(struct acpi_subtable_header *entry,
- 		 u32 acpi_id, int *apic_id)
+-static acpi_status resource_to_addr(struct acpi_resource *resource,
+-				    struct acpi_resource_address64 *addr)
+-{
+-	acpi_status status;
+-	struct acpi_resource_memory24 *memory24;
+-	struct acpi_resource_memory32 *memory32;
+-	struct acpi_resource_fixed_memory32 *fixed_memory32;
+-
+-	memset(addr, 0, sizeof(*addr));
+-	switch (resource->type) {
+-	case ACPI_RESOURCE_TYPE_MEMORY24:
+-		memory24 = &resource->data.memory24;
+-		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->address.minimum = memory24->minimum;
+-		addr->address.address_length = memory24->address_length;
+-		addr->address.maximum = addr->address.minimum + addr->address.address_length - 1;
+-		return AE_OK;
+-	case ACPI_RESOURCE_TYPE_MEMORY32:
+-		memory32 = &resource->data.memory32;
+-		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->address.minimum = memory32->minimum;
+-		addr->address.address_length = memory32->address_length;
+-		addr->address.maximum = addr->address.minimum + addr->address.address_length - 1;
+-		return AE_OK;
+-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+-		fixed_memory32 = &resource->data.fixed_memory32;
+-		addr->resource_type = ACPI_MEMORY_RANGE;
+-		addr->address.minimum = fixed_memory32->address;
+-		addr->address.address_length = fixed_memory32->address_length;
+-		addr->address.maximum = addr->address.minimum + addr->address.address_length - 1;
+-		return AE_OK;
+-	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		status = acpi_resource_to_address64(resource, addr);
+-		if (ACPI_SUCCESS(status) &&
+-		    (addr->resource_type == ACPI_MEMORY_RANGE ||
+-		    addr->resource_type == ACPI_IO_RANGE) &&
+-		    addr->address.address_length > 0) {
+-			return AE_OK;
+-		}
+-		break;
+-	}
+-	return AE_ERROR;
+-}
+-
+-static acpi_status count_resource(struct acpi_resource *acpi_res, void *data)
++static void validate_resources(struct device *dev, struct list_head *crs_res,
++			       unsigned long type)
  {
-@@ -67,17 +86,10 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- static int map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
--	static struct acpi_table_madt *madt;
--	static int read_madt;
- 	int phys_id = -1;	/* CPU hardware ID */
-+	struct acpi_table_madt *madt;
+-	struct pci_root_info *info = data;
+-	struct acpi_resource_address64 addr;
+-	acpi_status status;
+-
+-	status = resource_to_addr(acpi_res, &addr);
+-	if (ACPI_SUCCESS(status))
+-		info->res_num++;
+-	return AE_OK;
+-}
+-
+-static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
+-{
+-	struct pci_root_info *info = data;
+-	struct resource *res;
+-	struct acpi_resource_address64 addr;
+-	acpi_status status;
+-	unsigned long flags;
+-	u64 start, orig_end, end, res_end;
+-
+-	status = resource_to_addr(acpi_res, &addr);
+-	if (!ACPI_SUCCESS(status))
+-		return AE_OK;
+-
+-	if (addr.resource_type == ACPI_MEMORY_RANGE) {
+-		flags = IORESOURCE_MEM;
+-		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
+-			flags |= IORESOURCE_PREFETCH;
+-		res_end = (u64)iomem_resource.end;
+-	} else if (addr.resource_type == ACPI_IO_RANGE) {
+-		flags = IORESOURCE_IO;
+-		res_end = (u64)ioport_resource.end;
+-	} else
+-		return AE_OK;
+-
+-	start = addr.address.minimum + addr.address.translation_offset;
+-	orig_end = end = addr.address.maximum + addr.address.translation_offset;
+-
+-	/* Exclude non-addressable range or non-addressable portion of range */
+-	end = min(end, res_end);
+-	if (end <= start) {
+-		dev_info(&info->bridge->dev,
+-			"host bridge window [%#llx-%#llx] "
+-			"(ignored, not CPU addressable)\n", start, orig_end);
+-		return AE_OK;
+-	} else if (orig_end != end) {
+-		dev_info(&info->bridge->dev,
+-			"host bridge window [%#llx-%#llx] "
+-			"([%#llx-%#llx] ignored, not CPU addressable)\n", 
+-			start, orig_end, end + 1, orig_end);
+-	}
++	LIST_HEAD(list);
++	struct resource *res1, *res2, *root = NULL;
++	struct resource_list_entry *tmp, *entry, *entry2;
  
--	if (!read_madt) {
--		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
--					(struct acpi_table_header **)&madt)))
--			madt = NULL;
--		read_madt++;
+-	res = &info->res[info->res_num];
+-	res->name = info->name;
+-	res->flags = flags;
+-	res->start = start;
+-	res->end = end;
+-	info->res_offset[info->res_num] = addr.address.translation_offset;
+-	info->res_num++;
++	BUG_ON((type & (IORESOURCE_MEM | IORESOURCE_IO)) == 0);
++	root = (type & IORESOURCE_MEM) ? &iomem_resource : &ioport_resource;
+ 
+-	if (!pci_use_crs)
+-		dev_printk(KERN_DEBUG, &info->bridge->dev,
+-			   "host bridge window %pR (ignored)\n", res);
++	list_splice_init(crs_res, &list);
++	resource_list_for_each_entry_safe(entry, tmp, &list) {
++		bool free = false;
++		resource_size_t end;
+ 
+-	return AE_OK;
+-}
+-
+-static void coalesce_windows(struct pci_root_info *info, unsigned long type)
+-{
+-	int i, j;
+-	struct resource *res1, *res2;
+-
+-	for (i = 0; i < info->res_num; i++) {
+-		res1 = &info->res[i];
++		res1 = entry->res;
+ 		if (!(res1->flags & type))
+-			continue;
++			goto next;
++
++		/* Exclude non-addressable range or non-addressable portion */
++		end = min(res1->end, root->end);
++		if (end <= res1->start) {
++			dev_info(dev, "host bridge window %pR (ignored, not CPU addressable)\n",
++				 res1);
++			free = true;
++			goto next;
++		} else if (res1->end != end) {
++			dev_info(dev, "host bridge window %pR ([%#llx-%#llx] ignored, not CPU addressable)\n",
++				 res1, (unsigned long long)end + 1,
++				 (unsigned long long)res1->end);
++			res1->end = end;
++		}
+ 
+-		for (j = i + 1; j < info->res_num; j++) {
+-			res2 = &info->res[j];
++		resource_list_for_each_entry(entry2, crs_res) {
++			res2 = entry2->res;
+ 			if (!(res2->flags & type))
+ 				continue;
+ 
+@@ -355,118 +261,92 @@ static void coalesce_windows(struct pci_root_info *info, unsigned long type)
+ 			if (resource_overlaps(res1, res2)) {
+ 				res2->start = min(res1->start, res2->start);
+ 				res2->end = max(res1->end, res2->end);
+-				dev_info(&info->bridge->dev,
+-					 "host bridge window expanded to %pR; %pR ignored\n",
++				dev_info(dev, "host bridge window expanded to %pR; %pR ignored\n",
+ 					 res2, res1);
+-				res1->flags = 0;
++				free = true;
++				goto next;
+ 			}
+ 		}
++
++next:
++		resource_list_del(entry);
++		if (free)
++			resource_list_free_entry(entry);
++		else
++			resource_list_add_tail(entry, crs_res);
+ 	}
+ }
+ 
+ static void add_resources(struct pci_root_info *info,
+-			  struct list_head *resources)
++			  struct list_head *resources,
++			  struct list_head *crs_res)
+ {
+-	int i;
+-	struct resource *res, *root, *conflict;
+-
+-	coalesce_windows(info, IORESOURCE_MEM);
+-	coalesce_windows(info, IORESOURCE_IO);
++	struct resource_list_entry *entry, *tmp;
++	struct resource *res, *conflict, *root = NULL;
+ 
+-	for (i = 0; i < info->res_num; i++) {
+-		res = &info->res[i];
++	validate_resources(&info->bridge->dev, crs_res, IORESOURCE_MEM);
++	validate_resources(&info->bridge->dev, crs_res, IORESOURCE_IO);
+ 
++	resource_list_for_each_entry_safe(entry, tmp, crs_res) {
++		res = entry->res;
+ 		if (res->flags & IORESOURCE_MEM)
+ 			root = &iomem_resource;
+ 		else if (res->flags & IORESOURCE_IO)
+ 			root = &ioport_resource;
+ 		else
+-			continue;
++			BUG_ON(res);
+ 
+ 		conflict = insert_resource_conflict(root, res);
+-		if (conflict)
++		if (conflict) {
+ 			dev_info(&info->bridge->dev,
+ 				 "ignoring host bridge window %pR (conflicts with %s %pR)\n",
+ 				 res, conflict->name, conflict);
+-		else
+-			pci_add_resource_offset(resources, res,
+-					info->res_offset[i]);
++			resource_list_destroy_entry(entry);
++		}
+ 	}
+-}
+ 
+-static void free_pci_root_info_res(struct pci_root_info *info)
+-{
+-	kfree(info->res);
+-	info->res = NULL;
+-	kfree(info->res_offset);
+-	info->res_offset = NULL;
+-	info->res_num = 0;
++	list_splice_tail(crs_res, resources);
+ }
+ 
+-static void __release_pci_root_info(struct pci_root_info *info)
++static void release_pci_root_info(struct pci_host_bridge *bridge)
+ {
+-	int i;
+ 	struct resource *res;
++	struct resource_list_entry *entry;
++	struct pci_root_info *info = bridge->release_data;
+ 
+-	for (i = 0; i < info->res_num; i++) {
+-		res = &info->res[i];
+-
+-		if (!res->parent)
+-			continue;
+-
+-		if (!(res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
+-			continue;
+-
+-		release_resource(res);
++	resource_list_for_each_entry(entry, &bridge->windows) {
++		res = entry->res;
++		if (res->parent &&
++		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
++			release_resource(res);
+ 	}
+ 
+-	free_pci_root_info_res(info);
+-
+ 	teardown_mcfg_map(info);
+-
+ 	kfree(info);
+ }
+ 
+-static void release_pci_root_info(struct pci_host_bridge *bridge)
+-{
+-	struct pci_root_info *info = bridge->release_data;
+-
+-	__release_pci_root_info(info);
+-}
+-
+ static void probe_pci_root_info(struct pci_root_info *info,
+ 				struct acpi_device *device,
+-				int busnum, int domain)
++				int busnum, int domain,
++				struct list_head *list)
+ {
+-	size_t size;
++	int ret;
++	struct resource_list_entry *entry;
+ 
+ 	sprintf(info->name, "PCI Bus %04x:%02x", domain, busnum);
+ 	info->bridge = device;
+-
+-	info->res_num = 0;
+-	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_resource,
+-				info);
+-	if (!info->res_num)
+-		return;
+-
+-	size = sizeof(*info->res) * info->res_num;
+-	info->res = kzalloc_node(size, GFP_KERNEL, info->sd.node);
+-	if (!info->res) {
+-		info->res_num = 0;
+-		return;
 -	}
 -
-+	madt = get_madt_table();
- 	if (!madt)
- 		return phys_id;
- 
-@@ -203,3 +215,96 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- 	return acpi_map_cpuid(phys_id, acpi_id);
+-	size = sizeof(*info->res_offset) * info->res_num;
+-	info->res_num = 0;
+-	info->res_offset = kzalloc_node(size, GFP_KERNEL, info->sd.node);
+-	if (!info->res_offset) {
+-		kfree(info->res);
+-		info->res = NULL;
+-		return;
+-	}
+-
+-	acpi_walk_resources(device->handle, METHOD_NAME__CRS, setup_resource,
+-				info);
++	ret = acpi_dev_get_resources(device, list,
++				     acpi_dev_filter_resource_type_cb,
++				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
++	if (ret < 0)
++		dev_warn(&device->dev,
++			 "failed to parse _CRS method, error code %d\n", ret);
++	else if (ret == 0)
++		dev_dbg(&device->dev,
++			"no IO and memory resources present in _CRS\n");
++	else
++		resource_list_for_each_entry(entry, list)
++			entry->res->name = info->name;
  }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
-+
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
-+			 u64 *phys_addr, int *ioapic_id)
-+{
-+	struct acpi_madt_io_apic *ioapic = (struct acpi_madt_io_apic *)entry;
-+
-+	if (ioapic->global_irq_base != gsi_base)
-+		return 0;
-+
-+	*phys_addr = ioapic->address;
-+	*ioapic_id = ioapic->id;
-+	return 1;
-+}
-+
-+static int parse_madt_ioapic_entry(u32 gsi_base, u64 *phys_addr)
-+{
-+	struct acpi_subtable_header *hdr;
-+	unsigned long madt_end, entry;
-+	struct acpi_table_madt *madt;
-+	int apic_id = -1;
-+
-+	madt = get_madt_table();
-+	if (!madt)
-+		return apic_id;
-+
-+	entry = (unsigned long)madt;
-+	madt_end = entry + madt->header.length;
-+
-+	/* Parse all entries looking for a match. */
-+	entry += sizeof(struct acpi_table_madt);
-+	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-+		hdr = (struct acpi_subtable_header *)entry;
-+		if (hdr->type == ACPI_MADT_TYPE_IO_APIC &&
-+		    get_ioapic_id(hdr, gsi_base, phys_addr, &apic_id))
-+			break;
-+		else
-+			entry += hdr->length;
-+	}
-+
-+	return apic_id;
-+}
-+
-+static int parse_mat_ioapic_entry(acpi_handle handle, u32 gsi_base,
-+				  u64 *phys_addr)
-+{
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct acpi_subtable_header *header;
-+	union acpi_object *obj;
-+	int apic_id = -1;
-+
-+	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
-+		goto exit;
-+
-+	if (!buffer.length || !buffer.pointer)
-+		goto exit;
-+
-+	obj = buffer.pointer;
-+	if (obj->type != ACPI_TYPE_BUFFER ||
-+	    obj->buffer.length < sizeof(struct acpi_subtable_header))
-+		goto exit;
-+
-+	header = (struct acpi_subtable_header *)obj->buffer.pointer;
-+	if (header->type == ACPI_MADT_TYPE_IO_APIC)
-+		get_ioapic_id(header, gsi_base, phys_addr, &apic_id);
-+
-+exit:
-+	kfree(buffer.pointer);
-+	return apic_id;
-+}
-+
-+/**
-+ * acpi_get_ioapic_id - Get IOAPIC ID and physical address matching @gsi_base
-+ * @handle:	ACPI object for IOAPIC device
-+ * @gsi_base:	GSI base to match with
-+ * @phys_addr:	Pointer to store physical address of matching IOAPIC record
-+ *
-+ * Walk resources returned by ACPI_MAT method, then ACPI MADT table, to search
-+ * for an ACPI IOAPIC record matching @gsi_base.
-+ * Return IOAPIC id and store physical address in @phys_addr if found a match,
-+ * otherwise return <0.
-+ */
-+int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr)
-+{
-+	int apic_id;
-+
-+	apic_id = parse_mat_ioapic_entry(handle, gsi_base, phys_addr);
-+	if (apic_id == -1)
-+		apic_id = parse_madt_ioapic_entry(gsi_base, phys_addr);
-+
-+	return apic_id;
-+}
-+#endif /* CONFIG_ACPI_HOTPLUG_IOAPIC */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e53822148b6a..24c7aa8b1d20 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -152,6 +152,10 @@ int acpi_map_cpu(acpi_handle handle, int physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
  
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
-+#endif
+ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+@@ -475,6 +355,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	struct pci_root_info *info;
+ 	int domain = root->segment;
+ 	int busnum = root->secondary.start;
++	struct resource_list_entry *res_entry;
++	LIST_HEAD(crs_res);
+ 	LIST_HEAD(resources);
+ 	struct pci_bus *bus;
+ 	struct pci_sysdata *sd;
+@@ -522,18 +404,22 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		memcpy(bus->sysdata, sd, sizeof(*sd));
+ 		kfree(info);
+ 	} else {
+-		probe_pci_root_info(info, device, busnum, domain);
+-
+ 		/* insert busn res at first */
+ 		pci_add_resource(&resources,  &root->secondary);
 +
- int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
- int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
- int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base);
+ 		/*
+ 		 * _CRS with no apertures is normal, so only fall back to
+ 		 * defaults or native bridge info if we're ignoring _CRS.
+ 		 */
+-		if (pci_use_crs)
+-			add_resources(info, &resources);
+-		else {
+-			free_pci_root_info_res(info);
++		probe_pci_root_info(info, device, busnum, domain, &crs_res);
++		if (pci_use_crs) {
++			add_resources(info, &resources, &crs_res);
++		} else {
++			resource_list_for_each_entry(res_entry, &crs_res)
++				dev_printk(KERN_DEBUG, &device->dev,
++					   "host bridge window %pR (ignored)\n",
++					   res_entry->res);
++			resource_list_free(&crs_res);
+ 			x86_pci_root_bus_resources(busnum, &resources);
+ 		}
+ 
+@@ -548,8 +434,9 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 				to_pci_host_bridge(bus->bridge),
+ 				release_pci_root_info, info);
+ 		} else {
+-			pci_free_resource_list(&resources);
+-			__release_pci_root_info(info);
++			resource_list_free(&resources);
++			teardown_mcfg_map(info);
++			kfree(info);
+ 		}
+ 	}
+ 
 -- 
 1.7.10.4
