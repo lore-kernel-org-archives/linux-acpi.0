@@ -1,141 +1,58 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v8 07/21] ARM64 / ACPI: Introduce early_param for "acpi" and pass acpi=force to enable ACPI
-Date: Mon,  2 Feb 2015 20:45:35 +0800
-Message-ID: <1422881149-8177-8-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v8 01/21] acpi: add arm64 to the platforms that use ioremap
+Date: Mon,  2 Feb 2015 20:45:29 +0800
+Message-ID: <1422881149-8177-2-git-send-email-hanjun.guo@linaro.org>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Langsdorf <mlangsdo@redhat.com>, linaro-acpi@lists.linaro.org, wangyijing@huawei.com, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-acpi@vger.kernel.org, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Ashwin Chaugule <ashwinc@codeaurora.org>, Graeme Gregory <graeme.gregory@linaro.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-Introduce two early parameters "off" and "force" for "acpi", acpi=off
-will be the default behavior for ARM64, so introduce acpi=force to
-enable ACPI on ARM64.
+Now with the base changes to the arm memory mapping it is safe
+to convert to using ioremap to map in the tables after
+acpi_gbl_permanent_mmap is set.
 
-Disable ACPI before early parameters parsed, and enable it to pass
-"acpi=force" if people want use ACPI on ARM64. This ensures DT be
-the prefer one if ACPI table and DT both are provided at this moment.
-
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Yijing Wang <wangyijing@huawei.com>
-Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-Tested-by: Jon Masters <jcm@redhat.com>
-Tested-by: Timur Tabi <timur@codeaurora.org>
+CC: Rafael J Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Al Stone <al.stone@linaro.org>
 Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- Documentation/kernel-parameters.txt |  3 ++-
- arch/arm64/include/asm/acpi.h       |  9 +++++++++
- arch/arm64/kernel/acpi.c            | 17 +++++++++++++++++
- arch/arm64/kernel/setup.c           |  8 ++++++++
- 4 files changed, 36 insertions(+), 1 deletion(-)
+ drivers/acpi/osl.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 176d4fe..d6a952e 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
- bytes respectively. Such letter suffixes can also be entirely omitted.
- 
- 
--	acpi=		[HW,ACPI,X86]
-+	acpi=		[HW,ACPI,X86,ARM64]
- 			Advanced Configuration and Power Interface
- 			Format: { force | off | strict | noirq | rsdt }
- 			force -- enable ACPI if default was off
-@@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 				strictly ACPI specification compliant.
- 			rsdt -- prefer RSDT over (default) XSDT
- 			copy_dsdt -- copy DSDT to memory
-+			For ARM64, ONLY "acpi=off" or "acpi=force" are available
- 
- 			See also Documentation/power/runtime_pm.txt, pci=noacpi
- 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 8b837ab..496c33b 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -26,6 +26,13 @@ static inline void disable_acpi(void)
- 	acpi_noirq = 1;
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f9eeae8..39748bb 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -336,11 +336,11 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
+ 	return NULL;
  }
  
-+static inline void enable_acpi(void)
-+{
-+	acpi_disabled = 0;
-+	acpi_pci_disabled = 0;
-+	acpi_noirq = 0;
-+}
-+
- /*
-  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-  * with this check the ACPI core will not override the CPU index
-@@ -40,6 +47,8 @@ static inline bool acpi_has_cpu_in_madt(void)
- 
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
- 
+-#ifndef CONFIG_IA64
+-#define should_use_kmap(pfn)   page_is_ram(pfn)
+-#else
++#if defined(CONFIG_IA64) || defined(CONFIG_ARM64)
+ /* ioremap will take care of cache attributes */
+ #define should_use_kmap(pfn)   0
 +#else
-+static inline void disable_acpi(void) { }
- #endif /* CONFIG_ACPI */
++#define should_use_kmap(pfn)   page_is_ram(pfn)
+ #endif
  
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 7f67c01..afe10b4 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -67,3 +67,20 @@ void __init acpi_boot_table_init(void)
- 	if (acpi_table_init())
- 		disable_acpi();
- }
-+
-+static int __init parse_acpi(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	/* "acpi=off" disables both ACPI table parsing and interpreter */
-+	if (strcmp(arg, "off") == 0)
-+		disable_acpi();
-+	else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
-+		enable_acpi();
-+	else
-+		return -EINVAL;	/* Core will print when we return error */
-+
-+	return 0;
-+}
-+early_param("acpi", parse_acpi);
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index 726b019..fc4fb7b 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -62,6 +62,7 @@
- #include <asm/memblock.h>
- #include <asm/psci.h>
- #include <asm/efi.h>
-+#include <asm/acpi.h>
- 
- unsigned int processor_id;
- EXPORT_SYMBOL(processor_id);
-@@ -388,6 +389,13 @@ void __init setup_arch(char **cmdline_p)
- 	early_fixmap_init();
- 	early_ioremap_init();
- 
-+	/*
-+	 * Disable ACPI before early parameters parsed and
-+	 * it will be enabled in parse_early_param() if
-+	 * "acpi=force" is passed
-+	 */
-+	disable_acpi();
-+
- 	parse_early_param();
- 
- 	/*
+ static void __iomem *acpi_map(acpi_physical_address pg_off, unsigned long pg_sz)
 -- 
 1.9.1
