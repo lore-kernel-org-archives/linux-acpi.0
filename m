@@ -1,143 +1,63 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v2 00/23] Improve ACPI resource parsing interfaces and
- enable IOAPIC hotplug
-Date: Mon, 02 Feb 2015 11:15:50 +0800
-Message-ID: <54CEEBE6.3060600@linux.intel.com>
-References: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
+From: Marc Dietrich <marvin24-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: [PATCH v3 00/20] power_supply: Allow safe usage of power supply
+Date: Mon, 02 Feb 2015 09:58:57 +0100
+Message-ID: <13686747.WJugMFr0nf@fb07-iapwap2>
+References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15001 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752423AbbBBDP4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Feb 2015 22:15:56 -0500
-In-Reply-To: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="nextPart11668177.gtCQM2pIVG"; micalg="pgp-sha256"; protocol="application/pgp-signature"
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1422629278-12202-1-git-send-email-k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, David Herrmann <dh.herrmann-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Cezary Jackiewicz <cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Support Opensource <support.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Julian Andres Klode <jak-4HMq4SXA452hPH1hqNUYSQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, patches-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, ac100-oU9gvf+ajcQ97yFScArB1dHuzzzSOjJt@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>L
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi all,
-	Sorry, this patch set should be v3 instead of v2.
-Regards!
-Gerry
 
-On 2015/2/2 10:42, Jiang Liu wrote:
-> During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
-> in ACPI resource parsing interfaces. So this is an effort to improve them.
+--nextPart11668177.gtCQM2pIVG
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
+
+Am Freitag, 30. Januar 2015, 15:47:38 schrieb Krzysztof Kozlowski:
+> Hi,
 > 
-> Patch 1 refines ACPICA resource descriptors, which has already been
-> merged into "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge"
+> The patchset changes power supply API and drivers implementing
+> power supply class.
 > 
-> Patch 2-12 improve ACPI resource parsing interfaces and also fixes some
-> bugs.
 > 
-> Patch 13-20 try to share the common data structure resource_list_entry
-> between PCI and ACPI. It may also be shared with PNP too.
+> TLDR for driver and subsystem maintainers
+> =========================================
+> Two patches of patchset change power_supply_register() function so in
+> the same time they touch all drivers. I am kindly asking for acks,
+> review and help in testing.
 > 
-> Patch 21-23 enable ACPI based IOAPIC hotplug.
+> Please look at:
+>  - patch 2: power_supply: Move run-time configuration to separate structure
+>  - patch 11: power_supply: Change ownership from driver to core
 > 
-> The patchset is based on v3.19-rc6+ and passed Fengguang's 0day test
-> suite. You may get it from:
-> https://github.com/jiangliu/linux.git acpires_v2
-> 
-> V2->V3:
-> 1) Split out the patch to fix bug in io resource check according to Bjorn's
->    suggestion
-> 2) Fix minor coding style bugs
-> V1->V2:
-> 1) Refine the way to share common code between address space and extended
->    address space.
-> 2) Relax some checks to avoid regressions according to Rafael's suggestions.
-> 3) Introduce struct resource_win to avoiding add extra parameter "offset"
->    to several interfaces.
-> 4) Add patches to enable ACPI based IOAPIC hotplug, which has been reviwed
->    several rounds.
-> 5) Rebase to v3.19-rc6+
-> 
-> Thanks,
-> Gerry
-> 
-> Jiang Liu (14):
->   ACPI: Fix a bug in parsing ACPI Memory24 resource
->   ACPI: Normalize return value of resource parser functions
->   ACPI: Set flag IORESOURCE_UNSET for unassigned resources
->   ACPI: Enforce stricter checks for address space descriptors
->   ACPI: Return translation offset when parsing ACPI address space
->     resources
->   ACPI: Translate resource into master side address for bridge window
->     resources
->   ACPI: Add field offset to struct resource_list_entry
->   ACPI: Introduce helper function acpi_dev_filter_resource_type()
->   resources: Move struct resource_list_entry from ACPI into resource
->     core
->   PCI: Use common resource list management code instead of private
->     implementation
->   x86/PCI: Fix the range check for IO resources
->   x86/PCI/ACPI: Use common ACPI resource interfaces to simplify
->     implementation
->   x86/PCI: Refine the way to release PCI IRQ resources
->   x86/irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
-> 
-> Lv Zheng (1):
->   ACPICA: Resources: Provide common part for struct
->     acpi_resource_address structures.
-> 
-> Thomas Gleixner (7):
->   ACPI: Remove redundant check in function
->     acpi_dev_resource_address_space()
->   ACPI: Implement proper length checks for mem resources
->   ACPI: Use the length check for io resources as well
->   ACPI: Let the parser return false for disabled resources
->   ACPI: Unify the parsing of address_space and ext_address_space
->   ACPI: Move the window flag logic to the combined parser
->   ACPI: Add prefetch decoding to the address space parser
-> 
-> Yinghai Lu (1):
->   ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
-> 
->  arch/arm/kernel/bios32.c            |    5 +-
->  arch/ia64/kernel/acpi-ext.c         |    6 +-
->  arch/ia64/pci/pci.c                 |   14 +-
->  arch/x86/include/asm/pci_x86.h      |    2 -
->  arch/x86/pci/acpi.c                 |  293 +++++++++--------------------
->  arch/x86/pci/bus_numa.c             |    4 +-
->  arch/x86/pci/common.c               |   30 ++-
->  arch/x86/pci/intel_mid_pci.c        |    4 +-
->  arch/x86/pci/irq.c                  |   15 +-
->  arch/x86/pci/mmconfig-shared.c      |    6 +-
->  drivers/acpi/Kconfig                |    6 +
->  drivers/acpi/Makefile               |    1 +
->  drivers/acpi/acpi_lpss.c            |    6 +-
->  drivers/acpi/acpi_memhotplug.c      |    8 +-
->  drivers/acpi/acpi_platform.c        |    2 +-
->  drivers/acpi/acpica/rsaddr.c        |    9 +-
->  drivers/acpi/acpica/rsdumpinfo.c    |   59 +++---
->  drivers/acpi/acpica/rsxface.c       |   10 +-
->  drivers/acpi/internal.h             |    7 +
->  drivers/acpi/ioapic.c               |  229 +++++++++++++++++++++++
->  drivers/acpi/pci_irq.c              |    9 +-
->  drivers/acpi/pci_root.c             |    9 +-
->  drivers/acpi/processor_core.c       |  123 +++++++++++-
->  drivers/acpi/resource.c             |  349 +++++++++++++++++++++--------------
->  drivers/char/hpet.c                 |    4 +-
->  drivers/dma/acpi-dma.c              |    8 +-
->  drivers/hv/vmbus_drv.c              |    4 +-
->  drivers/pci/bus.c                   |   18 +-
->  drivers/pci/host-bridge.c           |    8 +-
->  drivers/pci/host/pci-host-generic.c |    4 +-
->  drivers/pci/host/pci-xgene.c        |    4 +-
->  drivers/pci/host/pcie-xilinx.c      |    4 +-
->  drivers/pci/probe.c                 |   10 +-
->  drivers/pnp/pnpacpi/rsparser.c      |   45 ++---
->  drivers/xen/xen-acpi-memhotplug.c   |    8 +-
->  include/acpi/acrestyp.h             |   40 ++--
->  include/linux/acpi.h                |   22 ++-
->  include/linux/pci.h                 |    9 +-
->  include/linux/resource_ext.h        |   77 ++++++++
->  kernel/resource.c                   |   25 +++
->  40 files changed, 965 insertions(+), 531 deletions(-)
->  create mode 100644 drivers/acpi/ioapic.c
->  create mode 100644 include/linux/resource_ext.h
-> 
+> These are huge.
+
+Patches 2 and 11 are Reviewed-By: Marc Dietrich <marvin24-Mmb7MZpHnFY@public.gmane.org> # for the 
+nvec part.
+
+Thanks!
+
+Marc
+
+--nextPart11668177.gtCQM2pIVG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABCAAGBQJUzzxRAAoJEKyeR39HFBto2BUH/2Dr/MSrGuZhAUOk3vetM4Yu
+2HFNcuXw9lsKK0djNbT7XGCi/18cSN/TckPAi1XEkXkTzVuM/OXSUxaHKgPs+HHy
+ovE8bgKXc9c8SgIL309znX4RSSj5dJd9olhEw0+vuQvMNLbxYsbpvT7mz0wHE2Lh
+oEI2MxM+1hjTZvpb2qnpzj2q4oaXnIj3CeS9KNYfkizj76XCL1Cq9vFI/4SpeW3b
+IqEqaZcbMY2o6pNMWzyrKKwHLLpk/wKitqWapkYkiV9lT/ink75GrvlfPSvdWmFp
+jIACNgW6MT6oCICVmH/OhHjjSatJdTXKaEvMmlZa79ZUSljKYsNlbHOl0x53cpw=
+=eWOk
+-----END PGP SIGNATURE-----
+
+--nextPart11668177.gtCQM2pIVG--
