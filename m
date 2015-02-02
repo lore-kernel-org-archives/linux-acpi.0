@@ -1,307 +1,346 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v8 16/21] irqchip: Add GICv2 specific ACPI boot support
-Date: Mon,  2 Feb 2015 20:45:44 +0800
-Message-ID: <1422881149-8177-17-git-send-email-hanjun.guo@linaro.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+From: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH V2] acpi:apd:add AMD ACPI2Platform device support for x86
+ system.
+Date: Mon, 2 Feb 2015 15:03:57 +0200
+Message-ID: <20150202130356.GS22740@lahna.fi.intel.com>
+References: <1422870652.2528.6.camel@kxue-X58A-UD3R>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <1422870652.2528.6.camel@kxue-X58A-UD3R>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+To: Ken Xue <Ken.Xue@amd.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+On Mon, Feb 02, 2015 at 05:50:52PM +0800, Ken Xue wrote:
+> >From b9654ecbfaebde00aee746a024eec9fe8de24b97 Mon Sep 17 00:00:00 2001
+> From: Ken Xue <Ken.Xue@amd.com>
+> Date: Mon, 2 Feb 2015 17:32:24 +0800
+> Subject: [PATCH] This new feature is to interpret AMD specific ACPI device to
+>  platform device such as I2C, UART found on AMD CZ and later chipsets. It
+>  based on example INTEL LPSS. Now, it can support AMD I2C & UART.
 
-ACPI kernel uses MADT table for proper GIC initialization. It needs to
-parse GIC related subtables, collect CPU interface and distributor
-addresses and call driver initialization function (which is hardware
-abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+Looks good to me. There are few smallish issues still, see below.
 
-NOTE: This commit allow to initialize GICv1/2 basic functionality.
-While now simple GICv2 init call is used, any further GIC features
-require generic infrastructure for proper ACPI irqchip initialization.
-That mechanism and stacked irqdomains to support GICv2 MSI/vitalization
-extension, GICv3/4 and its ITS are considered as next steps.
+> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
+> ---
+>  arch/x86/Kconfig        |  11 +++
+>  drivers/acpi/Makefile   |   2 +-
+>  drivers/acpi/acpi_apd.c | 208 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/internal.h |   2 +
+>  drivers/acpi/scan.c     |   1 +
+>  5 files changed, 223 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/acpi/acpi_apd.c
+> 
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 0dc9d01..ddf8d42 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -496,6 +496,17 @@ config X86_INTEL_LPSS
+>  	  things like clock tree (common clock framework) and pincontrol
+>  	  which are needed by the LPSS peripheral drivers.
+>  
+> +config X86_AMD_PLATFORM_DEVICE
+> +	bool "AMD ACPI2Platform devices support"
+> +	depends on ACPI
+> +	select COMMON_CLK
+> +	select PINCTRL
+> +	---help---
+> +	  Select to interpret AMD specific ACPI device to platform device
+> +	  such as I2C, UART found on AMD Carrizo and later chipsets. Selecting
+> +	  this option enables things like clock tree (common clock framework)
+> +	  and pinctrl.
+> +
+>  config IOSF_MBI
+>  	tristate "Intel SoC IOSF Sideband support for SoC platforms"
+>  	depends on PCI
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index f74317c..0071141 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>  acpi-y				+= ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+>  acpi-y				+= pci_root.o pci_link.o pci_irq.o
+> -acpi-y				+= acpi_lpss.o
+> +acpi-y				+= acpi_lpss.o acpi_apd.o
+>  acpi-y				+= acpi_platform.o
+>  acpi-y				+= acpi_pnp.o
+>  acpi-y				+= int340x_thermal.o
+> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> new file mode 100644
+> index 0000000..b875ef6
+> --- /dev/null
+> +++ b/drivers/acpi/acpi_apd.c
+> @@ -0,0 +1,208 @@
+> +/*
+> + * AMD ACPI support for ACPI2platform device.
+> + *
+> + * Copyright (c) 2014,2015 AMD Corporation.
+> + * Authors: Ken Xue <Ken.Xue@amd.com>
+> + *	Wu, Jeff <Jeff.Wu@amd.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 
-CC: Jason Cooper <jason@lakedaemon.net>
-CC: Marc Zyngier <marc.zyngier@arm.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Yijing Wang <wangyijing@huawei.com>
-Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-Tested-by: Jon Masters <jcm@redhat.com>
-Tested-by: Timur Tabi <timur@codeaurora.org>
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/arm64/include/asm/acpi.h        |   2 +
- arch/arm64/kernel/acpi.c             |  25 +++++++++
- drivers/irqchip/irq-gic.c            | 102 +++++++++++++++++++++++++++++++++++
- drivers/irqchip/irqchip.c            |   3 ++
- include/linux/acpi.h                 |  15 ++++++
- include/linux/irqchip/arm-gic-acpi.h |  31 +++++++++++
- 6 files changed, 178 insertions(+)
- create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+Empty line here.
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 7e825b9..ea4d2b3 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -12,6 +12,8 @@
- #ifndef _ASM_ACPI_H
- #define _ASM_ACPI_H
- 
-+#include <linux/irqchip/arm-gic-acpi.h>
-+
- #include <asm/smp_plat.h>
- 
- /* Basic configuration for ACPI */
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index f86a982..437315e 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -319,6 +319,31 @@ void __init acpi_boot_table_init(void)
- 	}
- }
- 
-+void __init acpi_gic_init(void)
-+{
-+	struct acpi_table_header *table;
-+	acpi_status status;
-+	acpi_size tbl_size;
-+	int err;
-+
-+	if (acpi_disabled)
-+		return;
-+
-+	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
-+	if (ACPI_FAILURE(status)) {
-+		const char *msg = acpi_format_exception(status);
-+
-+		pr_err("Failed to get MADT table, %s\n", msg);
-+		return;
-+	}
-+
-+	err = gic_v2_acpi_init(table);
-+	if (err)
-+		pr_err("Failed to initialize GIC IRQ controller");
-+
-+	early_acpi_os_unmap_memory((char *)table, tbl_size);
-+}
-+
- static int __init parse_acpi(char *arg)
- {
- 	if (!arg)
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index d617ee5..7f874d6 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -33,12 +33,14 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- #include <linux/of_irq.h>
-+#include <linux/acpi.h>
- #include <linux/irqdomain.h>
- #include <linux/interrupt.h>
- #include <linux/percpu.h>
- #include <linux/slab.h>
- #include <linux/irqchip/chained_irq.h>
- #include <linux/irqchip/arm-gic.h>
-+#include <linux/irqchip/arm-gic-acpi.h>
- 
- #include <asm/cputype.h>
- #include <asm/irq.h>
-@@ -1083,3 +1085,103 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
- IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
- 
- #endif
-+
-+#ifdef CONFIG_ACPI
-+static phys_addr_t dist_phy_base, cpu_phy_base;
-+static int cpu_base_assigned;
-+
-+static int __init
-+gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
-+			const unsigned long end)
-+{
-+	struct acpi_madt_generic_interrupt *processor;
-+	phys_addr_t gic_cpu_base;
-+
-+	processor = (struct acpi_madt_generic_interrupt *)header;
-+
-+	if (BAD_MADT_ENTRY(processor, end))
-+		return -EINVAL;
-+
-+	/*
-+	 * There is no support for non-banked GICv1/2 register in ACPI spec.
-+	 * All CPU interface addresses have to be the same.
-+	 */
-+	gic_cpu_base = processor->base_address;
-+	if (cpu_base_assigned && gic_cpu_base != cpu_phy_base)
-+		return -EINVAL;
-+
-+	cpu_phy_base = gic_cpu_base;
-+	cpu_base_assigned = 1;
-+	return 0;
-+}
-+
-+static int __init
-+gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
-+				const unsigned long end)
-+{
-+	struct acpi_madt_generic_distributor *dist;
-+
-+	dist = (struct acpi_madt_generic_distributor *)header;
-+
-+	if (BAD_MADT_ENTRY(dist, end))
-+		return -EINVAL;
-+
-+	dist_phy_base = dist->base_address;
-+	return 0;
-+}
-+
-+int __init
-+gic_v2_acpi_init(struct acpi_table_header *table)
-+{
-+	void __iomem *cpu_base, *dist_base;
-+	int count;
-+
-+	/* Collect CPU base addresses */
-+	count = acpi_parse_entries(ACPI_SIG_MADT,
-+				   sizeof(struct acpi_table_madt),
-+				   gic_acpi_parse_madt_cpu, table,
-+				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
-+	if (count <= 0) {
-+		pr_err("No valid GICC entries exist\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Find distributor base address. We expect one distributor entry since
-+	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
-+	 */
-+	count = acpi_parse_entries(ACPI_SIG_MADT,
-+				   sizeof(struct acpi_table_madt),
-+				   gic_acpi_parse_madt_distributor, table,
-+				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
-+	if (count <= 0) {
-+		pr_err("No valid GICD entries exist\n");
-+		return -EINVAL;
-+	} else if (count > 1) {
-+		pr_err("More than one GICD entry detected\n");
-+		return -EINVAL;
-+	}
-+
-+	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
-+	if (!cpu_base) {
-+		pr_err("Unable to map GICC registers\n");
-+		return -ENOMEM;
-+	}
-+
-+	dist_base = ioremap(dist_phy_base, ACPI_GICV2_DIST_MEM_SIZE);
-+	if (!dist_base) {
-+		pr_err("Unable to map GICD registers\n");
-+		iounmap(cpu_base);
-+		return -ENOMEM;
-+	}
-+
-+	/*
-+	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
-+	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
-+	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-+	 */
-+	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
-+	irq_set_default_host(gic_data[0].domain);
-+	return 0;
-+}
-+#endif
-diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
-index 0fe2f71..5855240 100644
---- a/drivers/irqchip/irqchip.c
-+++ b/drivers/irqchip/irqchip.c
-@@ -8,6 +8,7 @@
-  * warranty of any kind, whether express or implied.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/of_irq.h>
- #include <linux/irqchip.h>
-@@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
- void __init irqchip_init(void)
- {
- 	of_irq_init(__irqchip_of_table);
-+
-+	acpi_irq_init();
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 87f365e..536991b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -162,6 +162,16 @@ extern u32 acpi_irq_not_handled;
- extern int sbf_port;
- extern unsigned long acpi_realmode_flags;
- 
-+static inline void acpi_irq_init(void)
-+{
-+	/*
-+	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
-+	 * Proper irqchip infrastructure will be implemented along with
-+	 * incoming  GICv2m|GICv3|ITS bits.
-+	 */
-+	acpi_gic_init();
-+}
-+
- int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
-@@ -508,6 +518,11 @@ static inline int acpi_table_parse(char *id,
- 	return -ENODEV;
- }
- 
-+static inline void acpi_irq_init(void)
-+{
-+	return;
-+}
-+
- static inline int acpi_nvs_register(__u64 start, __u64 size)
- {
- 	return 0;
-diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-new file mode 100644
-index 0000000..ad5b577
---- /dev/null
-+++ b/include/linux/irqchip/arm-gic-acpi.h
-@@ -0,0 +1,31 @@
-+/*
-+ * Copyright (C) 2014, Linaro Ltd.
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef ARM_GIC_ACPI_H_
-+#define ARM_GIC_ACPI_H_
-+
-+#ifdef CONFIG_ACPI
-+
-+/*
-+ * Hard code here, we can not get memory size from MADT (but FDT does),
-+ * Actually no need to do that, because this size can be inferred
-+ * from GIC spec.
-+ */
-+#define ACPI_GICV2_DIST_MEM_SIZE	(SZ_4K)
-+#define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
-+
-+struct acpi_table_header;
-+
-+void acpi_gic_init(void);
-+int gic_v2_acpi_init(struct acpi_table_header *table);
-+#else
-+static inline void acpi_gic_init(void) { }
-+#endif
-+
-+#endif /* ARM_GIC_ACPI_H_ */
--- 
-1.9.1
+> +#include <linux/clk-provider.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pm_domain.h>
+> +#include <linux/clkdev.h>
+> +#include <linux/acpi.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/pm.h>
+> +
+> +#include "internal.h"
+> +
+> +
+
+Delete this empty line.
+
+> +ACPI_MODULE_NAME("acpi_apd");
+> +struct apd_private_data;
+> +
+> +/**
+> + * device flags of acpi_apd_dev_desc.
+> + * ACPI_APD_SYSFS : add device attributes in sysfs
+> + * ACPI_APD_PM : attach power domain to device
+> + * ACPI_APD_PM_ON : power on device when attach power domain
+> + */
+> +#define ACPI_APD_SYSFS	BIT(0)
+> +#define ACPI_APD_PM	BIT(1)
+> +#define ACPI_APD_PM_ON	BIT(2)
+> +
+> +/**
+> + * struct apd_device_desc - a descriptor for apd device
+> + * @flags: device flags like ACPI_APD_SYSFS ACPI_APD_PM ACPI_APD_PM_ON
+> + * @fixed_clk_rate: fixed rate input clock source for acpi device;
+> + *			0 means no fixed rate input clock source
+> + * @setup: a hook routine to set device resource during create platform device
+> + *
+> + * device description defined as acpi_device_id.driver_data
+> + */
+> +struct apd_device_desc {
+> +	unsigned int flags;
+> +	unsigned int fixed_clk_rate;
+> +	int (*setup)(struct apd_private_data *pdata);
+> +};
+> +
+> +struct apd_private_data {
+> +	struct clk *clk;
+> +	struct acpi_device *adev;
+> +	struct apd_device_desc *dev_desc;
+> +};
+> +
+> +
+
+Ditto.
+
+> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+> +#define APD_ADDR(desc)	((unsigned long)&desc)
+> +
+> +static int acpi_apd_setup(struct apd_private_data *pdata)
+> +{
+> +	struct apd_device_desc *dev_desc = pdata->dev_desc;
+> +	struct clk *clk = ERR_PTR(-ENODEV);
+> +
+> +	if (dev_desc->fixed_clk_rate) {
+> +		clk = clk_register_fixed_rate(&pdata->adev->dev,
+> +					dev_name(&pdata->adev->dev),
+> +					NULL, CLK_IS_ROOT,
+> +					dev_desc->fixed_clk_rate);
+> +		clk_register_clkdev(clk, NULL, dev_name(&pdata->adev->dev));
+> +		pdata->clk = clk;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct apd_device_desc cz_i2c_desc = {
+
+const?
+
+> +	.setup = acpi_apd_setup,
+> +	.fixed_clk_rate = 133000000,
+> +};
+> +
+> +static struct apd_device_desc cz_uart_desc = {
+> +	.setup = acpi_apd_setup,
+> +	.fixed_clk_rate = 48000000,
+> +};
+> +
+> +#else
+> +
+> +#define APD_ADDR(desc) (0UL)
+> +
+> +#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
+> +
+> +static int acpi_apd_create_device(struct acpi_device *adev,
+> +				   const struct acpi_device_id *id)
+> +{
+> +	struct apd_private_data *pdata;
+> +	struct apd_device_desc *dev_desc;
+> +	struct platform_device *pdev;
+> +	int ret;
+> +
+> +	dev_desc = (struct apd_device_desc *)id->driver_data;
+> +	if (!dev_desc) {
+> +		pdev = acpi_create_platform_device(adev);
+> +		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
+> +	}
+> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		return -ENOMEM;
+> +
+> +	pdata->adev = adev;
+> +	pdata->dev_desc = dev_desc;
+> +
+> +	if (dev_desc->setup) {
+> +		ret = dev_desc->setup(pdata);
+> +		if (ret)
+> +			goto err_out;
+> +	}
+> +
+> +	adev->driver_data = pdata;
+> +	pdev = acpi_create_platform_device(adev);
+> +	if (!IS_ERR_OR_NULL(pdev))
+> +		return 1;
+> +
+> +	ret = PTR_ERR(pdev);
+> +	adev->driver_data = NULL;
+> +
+> + err_out:
+> +	kfree(pdata);
+> +	return ret;
+> +}
+> +
+> +static struct acpi_device_id acpi_apd_device_ids[] = {
+> +	/* Generic apd devices */
+> +	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
+> +	{ "AMD0020", APD_ADDR(cz_uart_desc) },
+> +	{ }
+> +};
+> +
+> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+> +static int acpi_apd_platform_notify(struct notifier_block *nb,
+> +				     unsigned long action, void *data)
+> +{
+> +	struct platform_device *pdev = to_platform_device(data);
+> +	struct apd_private_data *pdata;
+> +	const struct acpi_device_id *id = NULL;
+> +	struct acpi_device *adev;
+> +	int ret;
+> +
+> +	id = acpi_match_device(acpi_apd_device_ids, &pdev->dev);
+> +	if (!id || !id->driver_data)
+> +		return 0;
+> +
+> +	if (!id || !id->driver_data)
+> +		return 0;
+
+Doubled check, remove.
+
+> +
+> +	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
+> +		return 0;
+> +
+> +	pdata = acpi_driver_data(adev);
+> +	if (!pdata || !pdata->dev_desc)
+> +		return 0;
+> +
+> +	switch (action) {
+> +	case BUS_NOTIFY_ADD_DEVICE:
+> +		if (pdata->dev_desc->flags & ACPI_APD_PM) {
+> +			if (pdata->dev_desc->flags & ACPI_APD_PM_ON)
+> +				ret = dev_pm_domain_attach(&pdev->dev, true);
+> +			else
+> +				ret = dev_pm_domain_attach(&pdev->dev, false);
+
+How about:
+
+	power_on = !!(pdata->dev_desc->flags & ACPI_APD_PM_ON)
+	ret = dev_pm_domain_attach(&pdev->dev, power_on);
+
+?
+
+Furthermore I think this is not needed at all. If you check
+platform_drv_probe() it calls dev_pm_domain_attach() already.
+
+> +
+> +			if (ret)
+> +				dev_dbg(&pdev->dev,
+> +				"failed to attached pm domain (%d)\n", ret);
+> +		}
+> +		break;
+> +	case BUS_NOTIFY_DEL_DEVICE:
+> +		if (pdata->dev_desc->flags & ACPI_APD_PM) {
+> +			if (pdata->dev_desc->flags & ACPI_APD_PM_ON)
+> +				dev_pm_domain_detach(&pdev->dev, true);
+> +			else
+> +				dev_pm_domain_detach(&pdev->dev, false);
+
+Ditto.
+
+> +		}
+> +		break;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct notifier_block acpi_apd_nb = {
+
+const?
+
+> +	.notifier_call = acpi_apd_platform_notify,
+> +};
+> +#endif
+> +
+> +static struct acpi_scan_handler apd_handler = {
+> +	.ids = acpi_apd_device_ids,
+> +	.attach = acpi_apd_create_device,
+> +};
+> +
+> +void __init acpi_apd_init(void)
+> +{
+> +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+> +	bus_register_notifier(&platform_bus_type, &acpi_apd_nb);
+> +#endif
+> +
+> +	acpi_scan_add_handler(&apd_handler);
+> +}
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 163e82f..c24ae9d 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -68,6 +68,8 @@ static inline void acpi_debugfs_init(void) { return; }
+>  #endif
+>  void acpi_lpss_init(void);
+>  
+> +void acpi_apd_init(void);
+> +
+>  acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
+>  bool acpi_queue_hotplug_work(struct work_struct *work);
+>  void acpi_device_hotplug(struct acpi_device *adev, u32 src);
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index dc4d896..bbca783 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -2544,6 +2544,7 @@ int __init acpi_scan_init(void)
+>  	acpi_pci_link_init();
+>  	acpi_processor_init();
+>  	acpi_lpss_init();
+> +	acpi_apd_init();
+>  	acpi_cmos_rtc_init();
+>  	acpi_container_init();
+>  	acpi_memory_hotplug_init();
+> -- 
+> 1.9.1
+> 
+> 
