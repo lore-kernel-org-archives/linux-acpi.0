@@ -1,105 +1,63 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part2 v4 00/33] Clean up obsoleted x86 interrupt manangement
- code and interfaces
-Date: Tue, 03 Feb 2015 10:52:05 +0800
-Message-ID: <54D037D5.7080704@linux.intel.com>
-References: <1421733113-15704-1-git-send-email-jiang.liu@linux.intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 0/6] PCI: MMCONFIG clean up
+Date: Tue, 03 Feb 2015 08:42:01 +0100
+Message-ID: <54D07BC9.1040506@linaro.org>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <20150202204253.GB5176@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21845 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965737AbbBCCwM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Feb 2015 21:52:12 -0500
-In-Reply-To: <1421733113-15704-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35344 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932312AbbBCHmI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 02:42:08 -0500
+Received: by mail-wi0-f178.google.com with SMTP id bs8so19840951wib.5
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Feb 2015 23:42:07 -0800 (PST)
+In-Reply-To: <20150202204253.GB5176@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Ping)
+On 02.02.2015 21:42, Bjorn Helgaas wrote:
+> On Wed, Nov 19, 2014 at 05:04:45PM +0100, Tomasz Nowicki wrote:
+>> MMCFG ACPI table has no arch dependencies so it can be used across all
+>> architectures. Currently MMCONFIG related code resides in arch/x86 directories.
+>> This patch set is goint to isolate non-architecure specific code and make
+>> it accessible from drivers/pci/ directory.
+>>
+>> Tomasz Nowicki (6):
+>>    x86, acpi, pci: Reorder logic of pci_mmconfig_insert() function
+>>    x86, acpi, pci: Move arch-agnostic MMCFG code out of arch/x86/
+>>      directory
+>>    x86, acpi, pci: Move PCI config space accessors.
+>>    x86, acpi, pci: mmconfig_{32,64}.c code refactoring - remove code
+>>      duplication.
+>>    x86, acpi, pci: mmconfig_64.c becomes default implementation for arch
+>>      agnostic low-level direct PCI config space accessors via MMCONFIG.
+>>    pci, acpi: Share ACPI PCI config space accessors.
+>
+> Hi Tomasz,
+>
+> I'm just checking to make sure we aren't deadlocked here, with me waiting
+> for you and you waiting for me.  I gave you some comments about
+> abbreviations (MCFG/MMCFG/MMCONFIG/ECAM), weak functions, code placement
+> (drivers/acpi vs. drivers/pci), and the mmio_config_*() naming, so I've
+> been waiting to continue those discussions.  But maybe you're waiting for
+> me, too?
+>
+> I think this sort of cleanup is a great idea and I hope we can make some
+> progress on it.  If it's easier to do it in small pieces, e.g., starting
+> out by moving code and renaming things with no functional changes, that
+> would be great with me.
 
-On 2015/1/20 13:51, Jiang Liu wrote:
-> This is a following-on patch of "[Patch Part1 v7 00/38] Convert x86 to
-> hierarchy irqdomain and stacked irqchip" at
-> https://lkml.org/lkml/2015/1/19/685
-> 
-> The precedent patch has convert x86 interrupt management subsystem to
-> hierarchy irqdomain and stacked irqchip, so this patch set cleans up
-> code and interfaces obsoleted by the precedent patch set.
-> 
-> Main changes since last version:
-> 1) rebased onto v3.19-rc5
-> 2) add patch 33 to avoid memory allocation/free when assigning CPU vector 
-> 
-> Regards,
-> Gerry
-> 
-> Jiang Liu (29):
->   x86/irq: Kill unused old IOAPIC irqdomain interfaces
->   x86/irq: Kill unused struct mp_pin_info
->   x86/irq: Kill x86_io_apic_ops.print_entries and related interfaces
->   x86/irq: Kill x86_io_apic_ops.setup_entry and related interfaces
->   x86/irq: Kill x86_io_apic_ops.set_affinity and related interfaces
->   x86/irq: Kill x86_io_apic_ops.eoi_ioapic_pin and related interfaces
->   x86/irq: Kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
->   x86/irq: Clean up unused forward declarations in x86_init.h
->   irq_remapping: Clean up unsued code to support IOAPIC
->   irq_remapping/vt-d: Clean up unsued code
->   irq_remapping/amd: Clean up unsued code
->   irq_remapping: Clean up unused interfaces
->   x86/irq: Kill irq_cfg.irq_remapped
->   irq_remapping/vt-d: Move struct irq_2_iommu into
->     intel_irq_remapping.c
->   irq_remapping/amd: Move struct irq_2_irte into amd_iommu.c
->   x86/irq: Move irq_cfg.irq_2_pin into io_apic.c
->   x86/irq: Kill struct io_apic_irq_attr
->   x86/irq: Kill x86_io_apic_ops.write and x86_io_apic_ops.modify
->   x86/irq: Clean up io_apic.h
->   x86/irq: Use cached IOAPIC entry instead of reading from hardware
->   x86/irq: Kill unused alloc_irq_and_cfg_at()
->   x86/irq: Change functions only used in vector.c as static
->   x86/irq: Kill function apic_set_affinity()
->   x86/irq: Move check of cfg->move_in_progress into
->     send_cleanup_vector()
->   x86/irq: Move private data in struct irq_cfg into dedicated data
->     structure
->   x86/irq: Refine the way to calculate NR_IRQS
->   x86/irq, ACPI: Kill private function mp_register_gsi()/
->     mp_unregister_gsi()
->   x86/irq: Move irqdomain specific code into asm/irqdomain.h
->   x86/irq: Avoid memory allocation in __assign_irq_vector()
-> 
-> Thomas Gleixner (4):
->   x86/irq: Remove sis apic bug workaround
->   x86, ioapic: Use proper defines for the entry fields
->   x86,ioapic: Cleanup irq_trigger/polarity()
->   x86: Cleanup irq_domain ops
-> 
->  arch/x86/Kconfig                     |    1 -
->  arch/x86/include/asm/hw_irq.h        |   63 ---
->  arch/x86/include/asm/io_apic.h       |  108 +----
->  arch/x86/include/asm/irq_remapping.h |   38 +-
->  arch/x86/include/asm/irq_vectors.h   |   18 +-
->  arch/x86/include/asm/irqdomain.h     |   63 +++
->  arch/x86/include/asm/x86_init.h      |   16 -
->  arch/x86/kernel/acpi/boot.c          |   70 +--
->  arch/x86/kernel/apic/htirq.c         |    2 +-
->  arch/x86/kernel/apic/io_apic.c       |  868 +++++++++-------------------------
->  arch/x86/kernel/apic/msi.c           |    2 +-
->  arch/x86/kernel/apic/vector.c        |  342 ++++++--------
->  arch/x86/kernel/devicetree.c         |   12 +-
->  arch/x86/kernel/hpet.c               |    2 +-
->  arch/x86/kernel/mpparse.c            |    9 +-
->  arch/x86/kernel/x86_init.c           |    6 -
->  arch/x86/platform/sfi/sfi.c          |   10 +-
->  arch/x86/platform/uv/uv_irq.c        |    5 +-
->  drivers/iommu/amd_iommu.c            |  153 +-----
->  drivers/iommu/intel_irq_remapping.c  |  206 +-------
->  drivers/iommu/irq_remapping.c        |   80 ----
->  drivers/iommu/irq_remapping.h        |   16 -
->  drivers/pci/quirks.c                 |    7 -
->  23 files changed, 490 insertions(+), 1607 deletions(-)
->  create mode 100644 arch/x86/include/asm/irqdomain.h
-> 
+Hi Bjorn,
+
+It is not deadlock, it is rather me suffering with lack of time :)
+
+I definitely want to make that cleanup happen and was about to start 
+working on it again. Thanks for remanding me, patches/comments should 
+come up soon.
+
+Regards,
+Tomasz
