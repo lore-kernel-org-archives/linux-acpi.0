@@ -1,305 +1,133 @@
-From: Ken Xue <Ken.Xue@amd.com>
-Subject: [PATCH V3] acpi:apd:add AMD ACPI2Platform device support for x86
- system.
-Date: Tue, 3 Feb 2015 09:54:20 +0800
-Message-ID: <1422928460.2528.16.camel@kxue-X58A-UD3R>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch Part1 v7 00/38] Convert x86 to hierarchy irqdomain and
+ stacked irqchip
+Date: Tue, 03 Feb 2015 10:51:45 +0800
+Message-ID: <54D037C1.7030802@linux.intel.com>
+References: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0101.outbound.protection.outlook.com ([207.46.100.101]:51381
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755680AbbBCCFb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Feb 2015 21:05:31 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This new feature is to interpret AMD specific ACPI device to
-platform device such as I2C, UART found on AMD CZ and later chipsets. It
-based on example intel LPSS. Now, it can support AMD I2C & UART.
+Ping:)
 
-Signed-off-by: Ken Xue <Ken.Xue@amd.com>
----
- arch/x86/Kconfig        |  11 +++
- drivers/acpi/Makefile   |   2 +-
- drivers/acpi/acpi_apd.c | 201 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |   2 +
- drivers/acpi/scan.c     |   1 +
- 5 files changed, 216 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/acpi_apd.c
-
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 0dc9d01..ddf8d42 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -496,6 +496,17 @@ config X86_INTEL_LPSS
- 	  things like clock tree (common clock framework) and pincontrol
- 	  which are needed by the LPSS peripheral drivers.
- 
-+config X86_AMD_PLATFORM_DEVICE
-+	bool "AMD ACPI2Platform devices support"
-+	depends on ACPI
-+	select COMMON_CLK
-+	select PINCTRL
-+	---help---
-+	  Select to interpret AMD specific ACPI device to platform device
-+	  such as I2C, UART found on AMD Carrizo and later chipsets. Selecting
-+	  this option enables things like clock tree (common clock framework)
-+	  and pinctrl.
-+
- config IOSF_MBI
- 	tristate "Intel SoC IOSF Sideband support for SoC platforms"
- 	depends on PCI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index f74317c..0071141 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
--acpi-y				+= acpi_lpss.o
-+acpi-y				+= acpi_lpss.o acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-y				+= int340x_thermal.o
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-new file mode 100644
-index 0000000..b27bc1c
---- /dev/null
-+++ b/drivers/acpi/acpi_apd.c
-@@ -0,0 +1,201 @@
-+/*
-+ * AMD ACPI support for ACPI2platform device.
-+ *
-+ * Copyright (c) 2014,2015 AMD Corporation.
-+ * Authors: Ken Xue <Ken.Xue@amd.com>
-+ *	Wu, Jeff <Jeff.Wu@amd.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_domain.h>
-+#include <linux/clkdev.h>
-+#include <linux/acpi.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/pm.h>
-+
-+#include "internal.h"
-+
-+ACPI_MODULE_NAME("acpi_apd");
-+struct apd_private_data;
-+
-+/**
-+ * device flags of acpi_apd_dev_desc.
-+ * ACPI_APD_SYSFS : add device attributes in sysfs
-+ * ACPI_APD_PM : attach power domain to device
-+ * ACPI_APD_PM_ON : power on device when attach power domain
-+ */
-+#define ACPI_APD_SYSFS	BIT(0)
-+#define ACPI_APD_PM	BIT(1)
-+#define ACPI_APD_PM_ON	BIT(2)
-+
-+/**
-+ * struct apd_device_desc - a descriptor for apd device
-+ * @flags: device flags like ACPI_APD_SYSFS ACPI_APD_PM ACPI_APD_PM_ON
-+ * @fixed_clk_rate: fixed rate input clock source for acpi device;
-+ *			0 means no fixed rate input clock source
-+ * @setup: a hook routine to set device resource during create platform device
-+ *
-+ * device description defined as acpi_device_id.driver_data
-+ */
-+struct apd_device_desc {
-+	unsigned int flags;
-+	unsigned int fixed_clk_rate;
-+	int (*setup)(struct apd_private_data *pdata);
-+};
-+
-+struct apd_private_data {
-+	struct clk *clk;
-+	struct acpi_device *adev;
-+	const struct apd_device_desc *dev_desc;
-+};
-+
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+#define APD_ADDR(desc)	((unsigned long)&desc)
-+
-+static int acpi_apd_setup(struct apd_private_data *pdata)
-+{
-+	const struct apd_device_desc *dev_desc = pdata->dev_desc;
-+	struct clk *clk = ERR_PTR(-ENODEV);
-+
-+	if (dev_desc->fixed_clk_rate) {
-+		clk = clk_register_fixed_rate(&pdata->adev->dev,
-+					dev_name(&pdata->adev->dev),
-+					NULL, CLK_IS_ROOT,
-+					dev_desc->fixed_clk_rate);
-+		clk_register_clkdev(clk, NULL, dev_name(&pdata->adev->dev));
-+		pdata->clk = clk;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct apd_device_desc cz_i2c_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 133000000,
-+};
-+
-+static struct apd_device_desc cz_uart_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 48000000,
-+};
-+
-+#else
-+
-+#define APD_ADDR(desc) (0UL)
-+
-+#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-+
-+static int acpi_apd_create_device(struct acpi_device *adev,
-+				   const struct acpi_device_id *id)
-+{
-+	const struct apd_device_desc *dev_desc;
-+	struct apd_private_data *pdata;
-+	struct platform_device *pdev;
-+	int ret;
-+
-+	dev_desc = (struct apd_device_desc *)id->driver_data;
-+	if (!dev_desc) {
-+		pdev = acpi_create_platform_device(adev);
-+		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
-+	}
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
-+
-+	pdata->adev = adev;
-+	pdata->dev_desc = dev_desc;
-+
-+	if (dev_desc->setup) {
-+		ret = dev_desc->setup(pdata);
-+		if (ret)
-+			goto err_out;
-+	}
-+
-+	adev->driver_data = pdata;
-+	pdev = acpi_create_platform_device(adev);
-+	if (!IS_ERR_OR_NULL(pdev))
-+		return 1;
-+
-+	ret = PTR_ERR(pdev);
-+	adev->driver_data = NULL;
-+
-+ err_out:
-+	kfree(pdata);
-+	return ret;
-+}
-+
-+static const struct acpi_device_id acpi_apd_device_ids[] = {
-+	/* Generic apd devices */
-+	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-+	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-+	{ }
-+};
-+
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+static int acpi_apd_platform_notify(struct notifier_block *nb,
-+				     unsigned long action, void *data)
-+{
-+	struct platform_device *pdev = to_platform_device(data);
-+	const struct acpi_device_id *id = NULL;
-+	struct apd_private_data *pdata;
-+	struct acpi_device *adev;
-+	bool power_on;
-+	int ret;
-+
-+	id = acpi_match_device(acpi_apd_device_ids, &pdev->dev);
-+	if (!id || !id->driver_data)
-+		return 0;
-+
-+	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
-+		return 0;
-+
-+	pdata = acpi_driver_data(adev);
-+	if (!pdata || !pdata->dev_desc)
-+		return 0;
-+
-+	switch (action) {
-+	case BUS_NOTIFY_ADD_DEVICE:
-+		if (pdata->dev_desc->flags & ACPI_APD_PM) {
-+			power_on = !!(pdata->dev_desc->flags & ACPI_APD_PM_ON);
-+			ret = dev_pm_domain_attach(&pdev->dev, power_on);
-+
-+			if (ret)
-+				dev_dbg(&pdev->dev,
-+				"failed to attached pm domain (%d)\n", ret);
-+		}
-+		break;
-+	case BUS_NOTIFY_DEL_DEVICE:
-+		if (pdata->dev_desc->flags & ACPI_APD_PM) {
-+			power_on = !!(pdata->dev_desc->flags & ACPI_APD_PM_ON);
-+			dev_pm_domain_detach(&pdev->dev, power_on);
-+		}
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct notifier_block acpi_apd_nb = {
-+	.notifier_call = acpi_apd_platform_notify,
-+};
-+#endif
-+
-+static struct acpi_scan_handler apd_handler = {
-+	.ids = acpi_apd_device_ids,
-+	.attach = acpi_apd_create_device,
-+};
-+
-+void __init acpi_apd_init(void)
-+{
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+	bus_register_notifier(&platform_bus_type, &acpi_apd_nb);
-+#endif
-+
-+	acpi_scan_add_handler(&apd_handler);
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 163e82f..c24ae9d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -68,6 +68,8 @@ static inline void acpi_debugfs_init(void) { return; }
- #endif
- void acpi_lpss_init(void);
- 
-+void acpi_apd_init(void);
-+
- acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
- bool acpi_queue_hotplug_work(struct work_struct *work);
- void acpi_device_hotplug(struct acpi_device *adev, u32 src);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index dc4d896..bbca783 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2544,6 +2544,7 @@ int __init acpi_scan_init(void)
- 	acpi_pci_link_init();
- 	acpi_processor_init();
- 	acpi_lpss_init();
-+	acpi_apd_init();
- 	acpi_cmos_rtc_init();
- 	acpi_container_init();
- 	acpi_memory_hotplug_init();
--- 
-1.9.1
-
-
-
+On 2015/1/20 11:08, Jiang Liu wrote:
+> Hi all,
+> 	The generic hierarchy irqdomain and stacked irqchip implementation
+> has been merged into v3.19, so this patch set converts x86 interupt
+> management to hierarchy irqdomain and stacked irqchip. I will send out
+> another following-on patch set to clean up code and interfaces obseleted
+> by this patch set.
+> 
+> 	This patch set has been reviewed several times and it missed v3.19
+> merging because several got fixed just before the merging window.
+> 	The main changes since last review are:
+> 1) Rebased the patch set onto v3.19-rc5.
+> 2) Merged bugfixes into the patch introducing the bug so it won't break
+>    bisecting.
+> 
+> Hi Thomas,
+> 	Rafael needs more time to review the patch set to refine ACPI
+> resource paring interface, and we are nearing to v3.19-rc6. So it would
+> be helpful to move onto the x86 hierarchy irqdomain patch set first, so
+> we may catch up with v3.20 merging window.
+> Thanks!
+> Gerry
+> 
+> Jiang Liu (36):
+>   x86/irq: Save destination CPU ID in irq_cfg
+>   x86/irq: Use hierarchy irqdomain to manage CPU interrupt vectors
+>   x86/hpet: Use new irqdomain interfaces to allocate/free IRQ
+>   x86/MSI: Use new irqdomain interfaces to allocate/free IRQ
+>   x86/uv: Use new irqdomain interfaces to allocate/free IRQ
+>   x86/htirq: Use new irqdomain interfaces to allocate/free IRQ
+>   x86/dmar: Use new irqdomain interfaces to allocate/free IRQ
+>   irq_remapping: Introduce new interfaces to support hierarchy
+>     irqdomain
+>   irq_remapping/vt-d: Change prototypes to prepare for enabling
+>     hierarchy irqdomain
+>   irq_remapping/vt-d: Enhance Intel IR driver to suppport hierarchy
+>     irqdomain
+>   irq_remapping/amd: Enhance AMD IR driver to suppport hierarchy
+>     irqdomain
+>   x86/hpet: Enhance HPET IRQ to support hierarchy irqdomain
+>   x86/MSI: Use hierarchy irqdomain to manage MSI interrupts
+>   x86/irq: Directly call native_compose_msi_msg() for DMAR IRQ
+>   irq_remapping/vt-d: Clean up unused MSI related code
+>   irq_remapping/amd: Clean up unused MSI related code
+>   irq_remapping: Clean up unused MSI related code
+>   x86/MSI: Clean up unused MSI related code and interfaces
+>   iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
+>   x86/irq: Use hierarchy irqdomain to manage DMAR interrupts
+>   x86/htirq: Use hierarchy irqdomain to manage Hypertransport
+>     interrupts
+>   x86/uv: Use hierarchy irqdomain to manage UV interrupts
+>   x86/irq: Normalize x86 irq_chip name
+>   x86/MSI: Simplify the way to deal with remapped MSI interrupts
+>   x86/MSI: Replace msi_update_msg() with irq_chip_compose_msi_msg()
+>   x86/irq: Implement irq_chip.irq_write_msi_msg for MSI/DMAR/HPET
+>     irq_chips
+>   x86/irq: Simplify MSI/DMAR/HPET implementation by using common code
+>   irq_remapping: Kill unused function irq_remapping_print_chip()
+>   x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
+>   x86/irq: Kill unused pre_init_apic_IRQ0()
+>   x86/irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
+>   x86/irq: Implement callbacks to enable hierarchy irqdomain on IOAPICs
+>   x86/irq: Refine the way to allocate irq_cfg for legacy IRQs
+>   x86/irq: Simplify the way to print IOAPIC entry
+>   x86/irq: Introduce helper functions to support hierarchy irqdomain
+>     for IOAPIC
+>   x86/irq: Convert IOAPIC to use hierarchy irqdomain interfaces
+> 
+> Rickard Strandqvist (1):
+>   x86/apb_timer: Remove unused function is_apbt_capable()
+> 
+> Thomas Gleixner (1):
+>   x86/intel-mid: Delay initialization of APB timer
+> 
+>  arch/ia64/include/asm/irq_remapping.h              |    2 -
+>  arch/ia64/kernel/msi_ia64.c                        |   30 +-
+>  arch/x86/Kconfig                                   |    4 +-
+>  arch/x86/include/asm/hpet.h                        |   16 +-
+>  arch/x86/include/asm/hw_irq.h                      |   91 +++
+>  arch/x86/include/asm/io_apic.h                     |   25 +-
+>  arch/x86/include/asm/irq_remapping.h               |   45 +-
+>  arch/x86/include/asm/msi.h                         |    7 +
+>  arch/x86/include/asm/pci.h                         |    5 -
+>  arch/x86/include/asm/x86_init.h                    |    4 -
+>  arch/x86/kernel/acpi/boot.c                        |   20 +-
+>  arch/x86/kernel/apb_timer.c                        |   12 -
+>  arch/x86/kernel/apic/htirq.c                       |  173 ++++--
+>  arch/x86/kernel/apic/io_apic.c                     |  600 +++++++++++++++-----
+>  arch/x86/kernel/apic/msi.c                         |  416 ++++++++------
+>  arch/x86/kernel/apic/vector.c                      |  205 ++++++-
+>  arch/x86/kernel/devicetree.c                       |   37 +-
+>  arch/x86/kernel/hpet.c                             |   57 +-
+>  arch/x86/kernel/mpparse.c                          |    6 +-
+>  arch/x86/kernel/x86_init.c                         |    2 -
+>  arch/x86/pci/intel_mid_pci.c                       |    6 +-
+>  .../platform/intel-mid/device_libs/platform_wdt.c  |    5 +-
+>  arch/x86/platform/intel-mid/intel-mid.c            |   18 +-
+>  arch/x86/platform/intel-mid/sfi.c                  |   30 +-
+>  arch/x86/platform/sfi/sfi.c                        |    5 +-
+>  arch/x86/platform/uv/uv_irq.c                      |  299 ++++------
+>  drivers/iommu/amd_iommu.c                          |  376 +++++++++---
+>  drivers/iommu/amd_iommu_init.c                     |    4 +
+>  drivers/iommu/amd_iommu_proto.h                    |    9 +
+>  drivers/iommu/amd_iommu_types.h                    |    5 +
+>  drivers/iommu/dmar.c                               |   19 +-
+>  drivers/iommu/intel_irq_remapping.c                |  451 ++++++++++-----
+>  drivers/iommu/irq_remapping.c                      |  178 ++----
+>  drivers/iommu/irq_remapping.h                      |   20 +-
+>  drivers/pci/htirq.c                                |   48 +-
+>  include/linux/dmar.h                               |    3 +-
+>  include/linux/htirq.h                              |   22 +-
+>  include/linux/intel-iommu.h                        |    4 +
+>  38 files changed, 2100 insertions(+), 1159 deletions(-)
+>  create mode 100644 arch/x86/include/asm/msi.h
+> 
