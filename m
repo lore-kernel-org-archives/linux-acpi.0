@@ -1,23 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/2] ACPI / cpuidle: More code complexity/duplication reduction
-Date: Tue, 03 Feb 2015 22:14:20 +0100
-Message-ID: <2355370.OryAt3A2Tj@vostro.rjw.lan>
+Subject: Re: [Patch v2 00/23] Improve ACPI resource parsing interfaces and enable IOAPIC hotplug
+Date: Tue, 03 Feb 2015 22:54:53 +0100
+Message-ID: <10471247.hI8hB2sD9x@vostro.rjw.lan>
+References: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:63399 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932131AbbBCVb7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 16:31:59 -0500
+In-Reply-To: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+On Monday, February 02, 2015 10:42:45 AM Jiang Liu wrote:
+> During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
+> in ACPI resource parsing interfaces. So this is an effort to improve them.
+> 
+> Patch 1 refines ACPICA resource descriptors, which has already been
+> merged into "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge"
+> 
+> Patch 2-12 improve ACPI resource parsing interfaces and also fixes some
+> bugs.
+> 
+> Patch 13-20 try to share the common data structure resource_list_entry
+> between PCI and ACPI. It may also be shared with PNP too.
+> 
+> Patch 21-23 enable ACPI based IOAPIC hotplug.
+> 
+> The patchset is based on v3.19-rc6+ and passed Fengguang's 0day test
+> suite. You may get it from:
+> https://github.com/jiangliu/linux.git acpires_v2
 
-Two more ACPI cpuidle patches on top of the ones I sent a few days ago:
+Patch [1/23] has been in linux-next for a while already.
 
-https://lkml.org/lkml/2015/1/29/779
+I've just queued up patches [2-20/23] for 3.20.
 
-They don't break anything for me and preserve the original logic AFAICS,
-but please holler if you see any problems with them.
+I have some questions to patch [21/23] which I'll ask in a reply to that one.
+ 
+If [22-23/23] do not depend on [21/23] in any way, I can queue them up too, so
+please let me know if that's the case.
 
 Thanks!
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
