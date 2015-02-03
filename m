@@ -1,253 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 17/21] clocksource / arch_timer: Parse GTDT to initialize arch timer
-Date: Mon, 02 Feb 2015 23:23:58 +0100
-Message-ID: <3447958.XfVzbZ6OCs@vostro.rjw.lan>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-18-git-send-email-hanjun.guo@linaro.org>
+From: Ken Xue <Ken.Xue@amd.com>
+Subject: Re: [PATCH V2] acpi:apd:add AMD ACPI2Platform device support for
+ x86 system.
+Date: Tue, 3 Feb 2015 09:04:55 +0800
+Message-ID: <1422925495.2528.12.camel@kxue-X58A-UD3R>
+References: <1422870652.2528.6.camel@kxue-X58A-UD3R>
+	 <20150202130356.GS22740@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1422881149-8177-18-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyij
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bn0101.outbound.protection.outlook.com ([157.56.110.101]:47117
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932612AbbBCBsW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Feb 2015 20:48:22 -0500
+In-Reply-To: <20150202130356.GS22740@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Monday, February 02, 2015 08:45:45 PM Hanjun Guo wrote:
-> Using the information presented by GTDT (Generic Timer Description Table)
-> to initialize the arch timer (not memory-mapped).
+On Mon, 2015-02-02 at 15:03 +0200, mika.westerberg@linux.intel.com
+wrote:
+> On Mon, Feb 02, 2015 at 05:50:52PM +0800, Ken Xue wrote:
+> > >From b9654ecbfaebde00aee746a024eec9fe8de24b97 Mon Sep 17 00:00:00 2001
+> > From: Ken Xue <Ken.Xue@amd.com>
+> > Date: Mon, 2 Feb 2015 17:32:24 +0800
+> > Subject: [PATCH] This new feature is to interpret AMD specific ACPI device to
+> >  platform device such as I2C, UART found on AMD CZ and later chipsets. It
+> >  based on example INTEL LPSS. Now, it can support AMD I2C & UART.
 > 
-> CC: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Yijing Wang <wangyijing@huawei.com>
-> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-> Tested-by: Jon Masters <jcm@redhat.com>
-> Tested-by: Timur Tabi <timur@codeaurora.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/kernel/time.c             |   7 ++
->  drivers/clocksource/arm_arch_timer.c | 132 ++++++++++++++++++++++++++++-------
-
-An ACK from Thomas Gleixner is necessary for that.
-
->  include/linux/clocksource.h          |   6 ++
->  3 files changed, 118 insertions(+), 27 deletions(-)
+> Looks good to me. There are few smallish issues still, see below.
 > 
-> diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-> index 1a7125c..42f9195 100644
-> --- a/arch/arm64/kernel/time.c
-> +++ b/arch/arm64/kernel/time.c
-> @@ -35,6 +35,7 @@
->  #include <linux/delay.h>
->  #include <linux/clocksource.h>
->  #include <linux/clk-provider.h>
-> +#include <linux/acpi.h>
->  
->  #include <clocksource/arm_arch_timer.h>
->  
-> @@ -72,6 +73,12 @@ void __init time_init(void)
->  
->  	tick_setup_hrtimer_broadcast();
->  
-> +	/*
-> +	 * Since ACPI or FDT will only one be available in the system,
-> +	 * we can use acpi_generic_timer_init() here safely
-> +	 */
-> +	acpi_generic_timer_init();
-> +
->  	arch_timer_rate = arch_timer_get_rate();
->  	if (!arch_timer_rate)
->  		panic("Unable to initialise architected timer.\n");
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index 095c177..407aa63 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -21,6 +21,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/sched_clock.h>
-> +#include <linux/acpi.h>
->  
->  #include <asm/arch_timer.h>
->  #include <asm/virt.h>
-> @@ -370,8 +371,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
->  	if (arch_timer_rate)
->  		return;
->  
-> -	/* Try to determine the frequency from the device tree or CNTFRQ */
-> -	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-> +	/*
-> +	 * Try to determine the frequency from the device tree or CNTFRQ,
-> +	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-> +	 */
-> +	if (!acpi_disabled ||
-> +	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
->  		if (cntbase)
->  			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
->  		else
-> @@ -690,28 +695,8 @@ static void __init arch_timer_common_init(void)
->  	arch_timer_arch_init();
->  }
->  
-> -static void __init arch_timer_init(struct device_node *np)
-> +static void __init arch_timer_init(void)
->  {
-> -	int i;
-> -
-> -	if (arch_timers_present & ARCH_CP15_TIMER) {
-> -		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-> -		return;
-> -	}
-> -
-> -	arch_timers_present |= ARCH_CP15_TIMER;
-> -	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
-> -		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
-> -	arch_timer_detect_rate(NULL, np);
-> -
-> -	/*
-> -	 * If we cannot rely on firmware initializing the timer registers then
-> -	 * we should use the physical timers instead.
-> -	 */
-> -	if (IS_ENABLED(CONFIG_ARM) &&
-> -	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
-> -			arch_timer_use_virtual = false;
-> -
->  	/*
->  	 * If HYP mode is available, we know that the physical timer
->  	 * has been configured to be accessible from PL1. Use it, so
-> @@ -730,13 +715,39 @@ static void __init arch_timer_init(struct device_node *np)
->  		}
->  	}
->  
-> -	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
-> -
->  	arch_timer_register();
->  	arch_timer_common_init();
->  }
-> -CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
-> -CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
-> +
-> +static void __init arch_timer_of_init(struct device_node *np)
-> +{
-> +	int i;
-> +
-> +	if (arch_timers_present & ARCH_CP15_TIMER) {
-> +		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-> +		return;
-> +	}
-> +
-> +	arch_timers_present |= ARCH_CP15_TIMER;
-> +	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
-> +		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
-> +
-> +	arch_timer_detect_rate(NULL, np);
-> +
-> +	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
-> +
-> +	/*
-> +	 * If we cannot rely on firmware initializing the timer registers then
-> +	 * we should use the physical timers instead.
-> +	 */
-> +	if (IS_ENABLED(CONFIG_ARM) &&
-> +	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
-> +			arch_timer_use_virtual = false;
-> +
-> +	arch_timer_init();
-> +}
-> +CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
-> +CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
->  
->  static void __init arch_timer_mem_init(struct device_node *np)
->  {
-> @@ -803,3 +814,70 @@ static void __init arch_timer_mem_init(struct device_node *np)
->  }
->  CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
->  		       arch_timer_mem_init);
-> +
-> +#ifdef CONFIG_ACPI
-> +static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
-> +{
-> +	int trigger, polarity;
-> +
-> +	if (!interrupt)
-> +		return 0;
-> +
-> +	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-> +			: ACPI_LEVEL_SENSITIVE;
-> +
-> +	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-> +			: ACPI_ACTIVE_HIGH;
-> +
-> +	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
-> +}
-> +
-> +/* Initialize per-processor generic timer */
-> +static int __init arch_timer_acpi_init(struct acpi_table_header *table)
-> +{
-> +	struct acpi_table_gtdt *gtdt;
-> +
-> +	if (arch_timers_present & ARCH_CP15_TIMER) {
-> +		pr_warn("arch_timer: already initialized, skipping\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	gtdt = container_of(table, struct acpi_table_gtdt, header);
-> +
-> +	arch_timers_present |= ARCH_CP15_TIMER;
-> +
-> +	arch_timer_ppi[PHYS_SECURE_PPI] =
-> +		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
-> +		gtdt->secure_el1_flags);
-> +
-> +	arch_timer_ppi[PHYS_NONSECURE_PPI] =
-> +		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
-> +		gtdt->non_secure_el1_flags);
-> +
-> +	arch_timer_ppi[VIRT_PPI] =
-> +		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
-> +		gtdt->virtual_timer_flags);
-> +
-> +	arch_timer_ppi[HYP_PPI] =
-> +		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
-> +		gtdt->non_secure_el2_flags);
-> +
-> +	/* Get the frequency from CNTFRQ */
-> +	arch_timer_detect_rate(NULL, NULL);
-> +
-> +	/* Always-on capability */
-> +	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-> +
-> +	arch_timer_init();
-> +	return 0;
-> +}
-> +
-> +/* Initialize all the generic timers presented in GTDT */
-> +void __init acpi_generic_timer_init(void)
-> +{
-> +	if (acpi_disabled)
-> +		return;
-> +
-> +	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
-> +}
-> +#endif
-> diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-> index abcafaa..af6155a 100644
-> --- a/include/linux/clocksource.h
-> +++ b/include/linux/clocksource.h
-> @@ -346,4 +346,10 @@ extern void clocksource_of_init(void);
->  static inline void clocksource_of_init(void) {}
->  #endif
->  
-> +#ifdef CONFIG_ACPI
-> +void acpi_generic_timer_init(void);
-> +#else
-> +static inline void acpi_generic_timer_init(void) { }
-> +#endif
-> +
->  #endif /* _LINUX_CLOCKSOURCE_H */
-> 
+...
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > +	switch (action) {
+> > +	case BUS_NOTIFY_ADD_DEVICE:
+> > +		if (pdata->dev_desc->flags & ACPI_APD_PM) {
+> > +			if (pdata->dev_desc->flags & ACPI_APD_PM_ON)
+> > +				ret = dev_pm_domain_attach(&pdev->dev, true);
+> > +			else
+> > +				ret = dev_pm_domain_attach(&pdev->dev, false);
+> 
+> How about:
+> 
+> 	power_on = !!(pdata->dev_desc->flags & ACPI_APD_PM_ON)
+> 	ret = dev_pm_domain_attach(&pdev->dev, power_on);
+> 
+> ?
+good 
+
+> 
+> Furthermore I think this is not needed at all. If you check
+> platform_drv_probe() it calls dev_pm_domain_attach() already.
+> 
+as you said, platform_drv_probe calls dev_pm_domain_attach(). but
+platform_drv_probe just is a default probe routine. Not all platform
+device drivers use this probe routine. so, codes here may be still
+necessary.
+
+
+
