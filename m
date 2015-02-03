@@ -1,68 +1,177 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Tue, 03 Feb 2015 17:08:42 +0800
-Message-ID: <54D0901A.2080406@linaro.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org> <2422968.Es7R0p3loO@vostro.rjw.lan>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 3/6] x86, acpi, pci: Move PCI config space accessors.
+Date: Tue, 03 Feb 2015 10:30:00 +0100
+Message-ID: <54D09518.4040103@linaro.org>
+References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org> <1416413091-13452-4-git-send-email-tomasz.nowicki@linaro.org> <20141210231746.GF6692@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2422968.Es7R0p3loO@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyij
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:44146 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752692AbbBCJaI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 04:30:08 -0500
+Received: by mail-la0-f42.google.com with SMTP id ms9so49590268lab.1
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Feb 2015 01:30:07 -0800 (PST)
+In-Reply-To: <20141210231746.GF6692@google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 2015=E5=B9=B402=E6=9C=8803=E6=97=A5 06:14, Rafael J. Wysocki wrote:
-> On Monday, February 02, 2015 08:45:30 PM Hanjun Guo wrote:
->> From: Mark Salter <msalter@redhat.com>
+On 11.12.2014 00:17, Bjorn Helgaas wrote:
+> On Wed, Nov 19, 2014 at 05:04:48PM +0100, Tomasz Nowicki wrote:
+>> We are going to use mmio_config_{} name convention across all architectures.
+>
+> mmio_config_*() are workarounds for an AMD Fam10h defect [1].  I would prefer
+> not to extend these names to other architectures, because they should be
+> able to use readb()/writeb()/etc. directly, as we did on x86 before
+> 3320ad994afb ("x86: Work around mmio config space quirk on AMD Fam10h").
+>
+> In fact, it would be nice if we could use readb()/writeb()/etc. on x86, and
+> only use mmio_config_*() when we're on AMD Fam10h.  Maybe there could be a
+> "struct pci_raw_ops pci_mmcfg_amd_fam10h" that used mmio_config_*(), and we
+> could set raw_pci_ext_ops to those ops instead of the default ones when
+> we're on AMD Fam10h.  Then x86 should be able to use the generic
+> readb()-based ops on most platforms.
+That's good point, I will readb()/writeb() instead.
+
+>
+> Bjorn
+>
+> [1] 3320ad994afb ("x86: Work around mmio config space quirk on AMD Fam10h")
+>
+> Somewhere in this process, I'd like to update the AMD Fam10h comment to fix
+> the typos and reference the spec that talks about this, i.e., the "BIOS and
+> Kernel Developer's Guide (BKDG) For AMD Family 10h Processors," rev 3.48,
+> sec 2.11.1, "MMIO Configuration Coding Requirements."
+>
+> That can be a separate patch since it's only cosmetic.
+
+Sure, will do.
+
+Regards,
+Tomasz
+
+>
+>> Currently it belongs to asm/pci_x86.h header which should be included
+>> only for x86 specific files. From now on, those accessors are in asm/pci.h
+>> header which can be included in non-architecture code much easier.
 >>
->> The acpi_os_ioremap() function may be used to map normal RAM or IO
->> regions. The current implementation simply uses ioremap_cache(). Thi=
-s
->> will work for some architectures, but arm64 ioremap_cache() cannot b=
-e
->> used to map IO regions which don't support caching. So for arm64, us=
-e
->> ioremap() for non-RAM regions.
->>
->> CC: Rafael J Wysocki <rjw@rjwysocki.net>
->> Signed-off-by: Mark Salter <msalter@redhat.com>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>   include/acpi/acpi_io.h | 6 ++++++
->>   1 file changed, 6 insertions(+)
+>>   arch/x86/include/asm/pci.h     | 42 +++++++++++++++++++++++++++++++++++++++++
+>>   arch/x86/include/asm/pci_x86.h | 43 ------------------------------------------
+>>   2 files changed, 42 insertions(+), 43 deletions(-)
 >>
->> diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
->> index 444671e..9d573db 100644
->> --- a/include/acpi/acpi_io.h
->> +++ b/include/acpi/acpi_io.h
->> @@ -1,11 +1,17 @@
->>   #ifndef _ACPI_IO_H_
->>   #define _ACPI_IO_H_
+>> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+>> index 0892ea0..5ba3720 100644
+>> --- a/arch/x86/include/asm/pci.h
+>> +++ b/arch/x86/include/asm/pci.h
+>> @@ -71,6 +71,48 @@ void pcibios_set_master(struct pci_dev *dev);
+>>   struct irq_routing_table *pcibios_get_irq_routing_table(void);
+>>   int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
 >>
->> +#include <linux/mm.h>
->>   #include <linux/io.h>
+>> +/*
+>> + * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+>> + * on their northbrige except through the * %eax register. As such, you MUST
+>> + * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
+>> + * accessor functions.
+>> + * In fact just use pci_config_*, nothing else please.
+>> + */
+>> +static inline unsigned char mmio_config_readb(void __iomem *pos)
+>> +{
+>> +	u8 val;
+>> +	asm volatile("movb (%1),%%al" : "=a" (val) : "r" (pos));
+>> +	return val;
+>> +}
+>> +
+>> +static inline unsigned short mmio_config_readw(void __iomem *pos)
+>> +{
+>> +	u16 val;
+>> +	asm volatile("movw (%1),%%ax" : "=a" (val) : "r" (pos));
+>> +	return val;
+>> +}
+>> +
+>> +static inline unsigned int mmio_config_readl(void __iomem *pos)
+>> +{
+>> +	u32 val;
+>> +	asm volatile("movl (%1),%%eax" : "=a" (val) : "r" (pos));
+>> +	return val;
+>> +}
+>> +
+>> +static inline void mmio_config_writeb(void __iomem *pos, u8 val)
+>> +{
+>> +	asm volatile("movb %%al,(%1)" : : "a" (val), "r" (pos) : "memory");
+>> +}
+>> +
+>> +static inline void mmio_config_writew(void __iomem *pos, u16 val)
+>> +{
+>> +	asm volatile("movw %%ax,(%1)" : : "a" (val), "r" (pos) : "memory");
+>> +}
+>> +
+>> +static inline void mmio_config_writel(void __iomem *pos, u32 val)
+>> +{
+>> +	asm volatile("movl %%eax,(%1)" : : "a" (val), "r" (pos) : "memory");
+>> +}
 >>
->>   static inline void __iomem *acpi_os_ioremap(acpi_physical_address =
-phys,
->>   					    acpi_size size)
->>   {
->> +#ifdef CONFIG_ARM64
->> +	if (!page_is_ram(phys >> PAGE_SHIFT))
->> +		return ioremap(phys, size);
->> +#endif
->
-> I don't want to see #ifdef CONFIG_ARM64 in this file.
->
-> There are multiple examples of how things like this are done.  Genera=
-lly,
-> the logic is "If the architecture provides its own function for this,=
- use
-> that one, or use the generic one provided here otherwise."
-
-OK. I think weak function would work.
-
-Thanks
-Hanjun
+>>   #define HAVE_PCI_MMAP
+>>   extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+>> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+>> index caba141..42e7332 100644
+>> --- a/arch/x86/include/asm/pci_x86.h
+>> +++ b/arch/x86/include/asm/pci_x86.h
+>> @@ -121,49 +121,6 @@ extern int __init pcibios_init(void);
+>>   extern int pci_legacy_init(void);
+>>   extern void pcibios_fixup_irqs(void);
+>>
+>> -/*
+>> - * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+>> - * on their northbrige except through the * %eax register. As such, you MUST
+>> - * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
+>> - * accessor functions.
+>> - * In fact just use pci_config_*, nothing else please.
+>> - */
+>> -static inline unsigned char mmio_config_readb(void __iomem *pos)
+>> -{
+>> -	u8 val;
+>> -	asm volatile("movb (%1),%%al" : "=a" (val) : "r" (pos));
+>> -	return val;
+>> -}
+>> -
+>> -static inline unsigned short mmio_config_readw(void __iomem *pos)
+>> -{
+>> -	u16 val;
+>> -	asm volatile("movw (%1),%%ax" : "=a" (val) : "r" (pos));
+>> -	return val;
+>> -}
+>> -
+>> -static inline unsigned int mmio_config_readl(void __iomem *pos)
+>> -{
+>> -	u32 val;
+>> -	asm volatile("movl (%1),%%eax" : "=a" (val) : "r" (pos));
+>> -	return val;
+>> -}
+>> -
+>> -static inline void mmio_config_writeb(void __iomem *pos, u8 val)
+>> -{
+>> -	asm volatile("movb %%al,(%1)" : : "a" (val), "r" (pos) : "memory");
+>> -}
+>> -
+>> -static inline void mmio_config_writew(void __iomem *pos, u16 val)
+>> -{
+>> -	asm volatile("movw %%ax,(%1)" : : "a" (val), "r" (pos) : "memory");
+>> -}
+>> -
+>> -static inline void mmio_config_writel(void __iomem *pos, u32 val)
+>> -{
+>> -	asm volatile("movl %%eax,(%1)" : : "a" (val), "r" (pos) : "memory");
+>> -}
+>> -
+>>   #ifdef CONFIG_PCI
+>>   # ifdef CONFIG_ACPI
+>>   #  define x86_default_pci_init		pci_acpi_init
+>> --
+>> 1.9.1
+>>
