@@ -1,278 +1,184 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v8 14/21] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Tue, 3 Feb 2015 20:09:36 +0000
-Message-ID: <20150203200936.GA21731@e104818-lin.cambridge.arm.com>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <1422881149-8177-15-git-send-email-hanjun.guo@linaro.org>
- <20150203141749.GA32536@leverpostej>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 2/2] ACPI / cpuidle: Common callback routine for entering states
+Date: Tue, 03 Feb 2015 22:15:47 +0100
+Message-ID: <2697166.UnmvnKYZSU@vostro.rjw.lan>
+References: <2355370.OryAt3A2Tj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:40956 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755939AbbBCUJz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 15:09:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20150203141749.GA32536@leverpostej>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2355370.OryAt3A2Tj@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@co>
 
-On Tue, Feb 03, 2015 at 02:17:49PM +0000, Mark Rutland wrote:
-> On Mon, Feb 02, 2015 at 12:45:42PM +0000, Hanjun Guo wrote:
-> > Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-> > from the GICC Structure introduced by ACPI 5.1.
-> > 
-> > MPIDR is the CPU hardware ID as local APIC ID on x86 platform, so we use
-> > MPIDR not the GIC CPU interface ID to identify CPUs.
-> > 
-> > Further steps would typedef a phys_id_t for in arch code(with
-> > appropriate size and a corresponding invalid value, say ~0) and use that
-> > instead of an int in drivers/acpi/processor_core.c to store phys_id, then
-> > no need for mpidr packing.
-> 
-> I don't understand why we don't fix this now, and I'm very worried that
-> this patch leaves much potential for FW bugs due to potential Linux
-> bugs.
-> 
-> Having a function called cpu_physical_id which _does not_ return a
-> physical ID makes no sense to me. Any time we really need a physical
-> ID, we're still going to have to unpack it (in an architecture-specific
-> manner).
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Do you mean something like this? Only briefly tested on Juno and I may
-have missed other calls:
+Introduce a common ->enter callback routine for the ACPI cpuidle
+driver, acpi_idle_enter(), which helps to reduce code complexity,
+size and duplication and prevents theoretically possible failues that
+an incorrect routine may be run to enter the given idle state due to
+a firmware bug (eg. when _CST returns a different set of states for
+each processor).
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index ea4d2b35c57b..4fafd62b1b86 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -49,33 +49,12 @@ static inline void enable_acpi(void)
- 	acpi_noirq = 0;
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/processor_idle.c |  118 ++++++++++++++++--------------------------
+ 1 file changed, 45 insertions(+), 73 deletions(-)
+
+Index: linux-pm/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/processor_idle.c
++++ linux-pm/drivers/acpi/processor_idle.c
+@@ -737,74 +737,17 @@ static bool acpi_idle_fallback_to_c1(str
+ 		!pr->flags.has_cst;
  }
  
--/* MPIDR value provided in GICC structure is 64 bits, but the
-- * existing phys_id (CPU hardware ID) using in acpi processor
-- * driver is 32-bit, to conform to the same datatype we need
-- * to repack the GICC structure MPIDR.
-- *
-- * bits other than following 32 bits are defined as 0, so it
-- * will be no information lost after repacked.
-- *
-- * Bits [0:7] Aff0;
-- * Bits [8:15] Aff1;
-- * Bits [16:23] Aff2;
-- * Bits [32:39] Aff3;
+-/**
+- * acpi_idle_enter_simple - enters a CPU idle state without BM handling
+- * @dev: the target CPU
+- * @drv: cpuidle driver with cpuidle state information
+- * @index: the index of suggested state
 - */
--static inline u32 pack_mpidr(u64 mpidr)
+-static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+-		struct cpuidle_driver *drv, int index)
 -{
--	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+-	struct acpi_processor *pr;
+-	struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
+-
+-	pr = __this_cpu_read(processors);
+-
+-	if (unlikely(!pr))
+-		return -EINVAL;
+-
+-	if (cx->type != ACPI_STATE_C1 && acpi_idle_fallback_to_c1(pr)) {
+-		index = CPUIDLE_DRIVER_STATE_START;
+-		cx = per_cpu(acpi_cstate[index], dev->cpu);
+-	}
+-
+-	lapic_timer_state_broadcast(pr, cx, 1);
+-
+-	if (cx->type == ACPI_STATE_C3)
+-		ACPI_FLUSH_CPU_CACHE();
+-
+-	acpi_idle_do_entry(cx);
+-
+-	lapic_timer_state_broadcast(pr, cx, 0);
+-	return index;
 -}
 -
- /*
-  * The ACPI processor driver for ACPI core code needs this macro
-  * to find out this cpu was already mapped (mapping from CPU hardware
-  * ID to CPU logical ID) or not.
+ static int c3_cpu_count;
+ static DEFINE_RAW_SPINLOCK(c3_lock);
+ 
+ /**
+  * acpi_idle_enter_bm - enters C3 with proper BM handling
+- * @dev: the target CPU
+- * @drv: cpuidle driver containing state data
+- * @index: the index of suggested state
 - *
-- * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cpu,
-- * and MPIDR is the cpu hardware ID we needed to pack.
+- * If BM is detected, the deepest non-C3 idle state is entered instead.
++ * @pr: Target processor
++ * @cx: Target state context
   */
--#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
-+#define cpu_physical_id(cpu) cpu_logical_map(cpu)
- 
- /*
-  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-diff --git a/arch/arm64/include/asm/smp_plat.h b/arch/arm64/include/asm/smp_plat.h
-index 59e282311b58..a492276e008d 100644
---- a/arch/arm64/include/asm/smp_plat.h
-+++ b/arch/arm64/include/asm/smp_plat.h
-@@ -40,4 +40,6 @@ static inline u32 mpidr_hash_size(void)
- extern u64 __cpu_logical_map[NR_CPUS];
- #define cpu_logical_map(cpu)    __cpu_logical_map[cpu]
- 
-+typedef u64 cpuid_t;
-+
- #endif /* __ASM_SMP_PLAT_H */
-diff --git a/arch/ia64/include/asm/smp.h b/arch/ia64/include/asm/smp.h
-index fea21e986022..251c6af899d6 100644
---- a/arch/ia64/include/asm/smp.h
-+++ b/arch/ia64/include/asm/smp.h
-@@ -41,6 +41,8 @@ ia64_get_lid (void)
- 
- #define hard_smp_processor_id()		ia64_get_lid()
- 
-+typedef int cpuid_t;
-+
- #ifdef CONFIG_SMP
- 
- #define XTP_OFFSET		0x1e0008
-diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
-index 8cd1cc3bc835..638f7562ba99 100644
---- a/arch/x86/include/asm/smp.h
-+++ b/arch/x86/include/asm/smp.h
-@@ -83,6 +83,8 @@ struct smp_ops {
- /* Globals due to paravirt */
- extern void set_cpu_sibling_map(int cpu);
- 
-+typedef int cpuid_t;
-+
- #ifdef CONFIG_SMP
- #ifndef CONFIG_PARAVIRT
- #define startup_ipi_hook(phys_apicid, start_eip, start_esp) do { } while (0)
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 1020b1b53a17..3e1a6b3ee3b8 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -215,7 +215,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	union acpi_object object = { 0 };
- 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
- 	struct acpi_processor *pr = acpi_driver_data(device);
--	int phys_id, cpu_index, device_declaration = 0;
-+	cpuid_t phys_id;
-+	int cpu_index, device_declaration = 0;
- 	acpi_status status = AE_OK;
- 	static int cpu0_initialized;
- 	unsigned long long value;
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 5ac12e40fedd..a2735c315ef7 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -13,7 +13,7 @@
- ACPI_MODULE_NAME("processor_core");
- 
- static int map_lapic_id(struct acpi_subtable_header *entry,
--		 u32 acpi_id, int *apic_id)
-+		 u32 acpi_id, cpuid_t *apic_id)
+-static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+-		struct cpuidle_driver *drv, int index)
++static void acpi_idle_enter_bm(struct acpi_processor *pr,
++			       struct acpi_processor_cx *cx)
  {
- 	struct acpi_madt_local_apic *lapic =
- 		container_of(entry, struct acpi_madt_local_apic, header);
-@@ -29,7 +29,7 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
- }
+-	struct acpi_processor *pr;
+-	struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
+-
+-	pr = __this_cpu_read(processors);
+-
+-	if (unlikely(!pr))
+-		return -EINVAL;
+-
+-	if (acpi_idle_fallback_to_c1(pr))
+-		return acpi_idle_enter_simple(dev, drv, CPUIDLE_DRIVER_STATE_START);
+-
+-	if (!cx->bm_sts_skip && acpi_idle_bm_check()) {
+-		if (drv->safe_state_index >= 0) {
+-			return drv->states[drv->safe_state_index].enter(dev,
+-						drv, drv->safe_state_index);
+-		} else {
+-			acpi_safe_halt();
+-			return -EBUSY;
+-		}
+-	}
+-
+ 	acpi_unlazy_tlb(smp_processor_id());
  
- static int map_x2apic_id(struct acpi_subtable_header *entry,
--			 int device_declaration, u32 acpi_id, int *apic_id)
-+			 int device_declaration, u32 acpi_id, cpuid_t *apic_id)
- {
- 	struct acpi_madt_local_x2apic *apic =
- 		container_of(entry, struct acpi_madt_local_x2apic, header);
-@@ -46,7 +46,7 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
- }
- 
- static int map_lsapic_id(struct acpi_subtable_header *entry,
--		int device_declaration, u32 acpi_id, int *apic_id)
-+		int device_declaration, u32 acpi_id, cpuid_t *apic_id)
- {
- 	struct acpi_madt_local_sapic *lsapic =
- 		container_of(entry, struct acpi_madt_local_sapic, header);
-@@ -69,7 +69,7 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
-  * on Intel platforms
-  */
- static int map_gicc_mpidr(struct acpi_subtable_header *entry,
--		int device_declaration, u32 acpi_id, int *mpidr)
-+		int device_declaration, u32 acpi_id, cpuid_t *mpidr)
- {
- 	struct acpi_madt_generic_interrupt *gicc =
- 	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-@@ -84,24 +84,21 @@ static int map_gicc_mpidr(struct acpi_subtable_header *entry,
- 	if (device_declaration && (gicc->uid == acpi_id)) {
- 		/*
- 		 * bits other than [0:7] Aff0, [8:15] Aff1, [16:23] Aff2 and
--		 * [32:39] Aff3 must be 0 which is defined in ACPI 5.1, so pack
--		 * the Affx fields into a single 32 bit identifier to accommodate
--		 * the acpi processor drivers.
-+		 * [32:39] Aff3 must be 0 which is defined in ACPI 5.1
- 		 */
--		*mpidr = ((gicc->arm_mpidr & 0xff00000000) >> 8)
--			 | gicc->arm_mpidr;
-+		*mpidr = gicc->arm_mpidr & 0xff00ffffffUL;
- 		return 0;
+ 	/*
+@@ -842,6 +785,45 @@ static int acpi_idle_enter_bm(struct cpu
  	}
  
- 	return -EINVAL;
+ 	lapic_timer_state_broadcast(pr, cx, 0);
++}
++
++static int acpi_idle_enter(struct cpuidle_device *dev,
++			   struct cpuidle_driver *drv, int index)
++{
++	struct acpi_processor_cx *cx = per_cpu(acpi_cstate[index], dev->cpu);
++	struct acpi_processor *pr;
++
++	pr = __this_cpu_read(processors);
++	if (unlikely(!pr))
++		return -EINVAL;
++
++	if (cx->type != ACPI_STATE_C1) {
++		if (acpi_idle_fallback_to_c1(pr)) {
++			index = CPUIDLE_DRIVER_STATE_START;
++			cx = per_cpu(acpi_cstate[index], dev->cpu);
++		} else if (cx->type == ACPI_STATE_C3 && pr->flags.bm_check) {
++			if (cx->bm_sts_skip || !acpi_idle_bm_check()) {
++				acpi_idle_enter_bm(pr, cx);
++				return index;
++			} else if (drv->safe_state_index >= 0) {
++				index = drv->safe_state_index;
++				cx = per_cpu(acpi_cstate[index], dev->cpu);
++			} else {
++				acpi_safe_halt();
++				return -EBUSY;
++			}
++		}
++	}
++
++	lapic_timer_state_broadcast(pr, cx, 1);
++
++	if (cx->type == ACPI_STATE_C3)
++		ACPI_FLUSH_CPU_CACHE();
++
++	acpi_idle_do_entry(cx);
++
++	lapic_timer_state_broadcast(pr, cx, 0);
++
+ 	return index;
  }
  
--static int map_madt_entry(int type, u32 acpi_id)
-+static cpuid_t map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
- 	static struct acpi_table_madt *madt;
- 	static int read_madt;
--	int phys_id = -1;	/* CPU hardware ID */
-+	cpuid_t phys_id = -1;	/* CPU hardware ID */
+@@ -936,22 +918,12 @@ static int acpi_processor_setup_cpuidle_
+ 		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
+ 		state->exit_latency = cx->latency;
+ 		state->target_residency = cx->latency * latency_factor;
++		state->enter = acpi_idle_enter;
  
- 	if (!read_madt) {
- 		if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
-@@ -145,7 +142,7 @@ static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *obj;
- 	struct acpi_subtable_header *header;
--	int phys_id = -1;
-+	cpuid_t phys_id = -1;
+ 		state->flags = 0;
+-		switch (cx->type) {
+-
+-		case ACPI_STATE_C1:
+-		case ACPI_STATE_C2:
+-			state->enter = acpi_idle_enter_simple;
++		if (cx->type == ACPI_STATE_C1 || cx->type == ACPI_STATE_C2) {
+ 			state->enter_dead = acpi_idle_play_dead;
+ 			drv->safe_state_index = count;
+-			break;
+-
+-		case ACPI_STATE_C3:
+-			state->enter = pr->flags.bm_check ?
+-					acpi_idle_enter_bm :
+-					acpi_idle_enter_simple;
+-			break;
+ 		}
  
- 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
- 		goto exit;
-@@ -174,7 +171,7 @@ exit:
- 	return phys_id;
- }
- 
--int acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
-+cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
- {
- 	int phys_id;
- 
-@@ -185,7 +182,7 @@ int acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
- 	return phys_id;
- }
- 
--int acpi_map_cpuid(int phys_id, u32 acpi_id)
-+int acpi_map_cpuid(cpuid_t phys_id, u32 acpi_id)
- {
- #ifdef CONFIG_SMP
- 	int i;
-@@ -213,9 +210,9 @@ int acpi_map_cpuid(int phys_id, u32 acpi_id)
- 		 * Return -1 for other CPU's handle.
- 		 */
- 		if (nr_cpu_ids <= 1 && acpi_id == 0)
--			return acpi_id;
-+			return 0;
- 		else
--			return phys_id;
-+			return -1;
- 	}
- 
- #ifdef CONFIG_SMP
-@@ -233,7 +230,7 @@ int acpi_map_cpuid(int phys_id, u32 acpi_id)
- 
- int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- {
--	int phys_id;
-+	cpuid_t phys_id;
- 
- 	phys_id = acpi_get_phys_id(handle, type, acpi_id);
- 
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index b95dc32a6e6b..30ebdbf0d961 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -196,7 +196,7 @@ struct acpi_processor_flags {
- struct acpi_processor {
- 	acpi_handle handle;
- 	u32 acpi_id;
--	u32 phys_id;	/* CPU hardware ID such as APIC ID for x86 */
-+	cpuid_t phys_id;	/* CPU hardware ID such as APIC ID for x86 */
- 	u32 id;		/* CPU logical ID allocated by OS */
- 	u32 pblk;
- 	int performance_platform_limit;
-@@ -310,8 +310,8 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
- #endif				/* CONFIG_CPU_FREQ */
- 
- /* in processor_core.c */
--int acpi_get_phys_id(acpi_handle, int type, u32 acpi_id);
--int acpi_map_cpuid(int phys_id, u32 acpi_id);
-+cpuid_t acpi_get_phys_id(acpi_handle, int type, u32 acpi_id);
-+int acpi_map_cpuid(cpuid_t phys_id, u32 acpi_id);
- int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
- 
- /* in processor_pdc.c */
+ 		count++;
+
