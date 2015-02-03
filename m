@@ -1,133 +1,105 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch Part1 v7 00/38] Convert x86 to hierarchy irqdomain and
- stacked irqchip
-Date: Tue, 03 Feb 2015 10:51:45 +0800
-Message-ID: <54D037C1.7030802@linux.intel.com>
-References: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [Patch Part2 v4 00/33] Clean up obsoleted x86 interrupt manangement
+ code and interfaces
+Date: Tue, 03 Feb 2015 10:52:05 +0800
+Message-ID: <54D037D5.7080704@linux.intel.com>
+References: <1421733113-15704-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1421723321-8386-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:21845 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965737AbbBCCwM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Feb 2015 21:52:12 -0500
+In-Reply-To: <1421733113-15704-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Ping:)
+Ping)
 
-On 2015/1/20 11:08, Jiang Liu wrote:
-> Hi all,
-> 	The generic hierarchy irqdomain and stacked irqchip implementation
-> has been merged into v3.19, so this patch set converts x86 interupt
-> management to hierarchy irqdomain and stacked irqchip. I will send out
-> another following-on patch set to clean up code and interfaces obseleted
-> by this patch set.
+On 2015/1/20 13:51, Jiang Liu wrote:
+> This is a following-on patch of "[Patch Part1 v7 00/38] Convert x86 to
+> hierarchy irqdomain and stacked irqchip" at
+> https://lkml.org/lkml/2015/1/19/685
 > 
-> 	This patch set has been reviewed several times and it missed v3.19
-> merging because several got fixed just before the merging window.
-> 	The main changes since last review are:
-> 1) Rebased the patch set onto v3.19-rc5.
-> 2) Merged bugfixes into the patch introducing the bug so it won't break
->    bisecting.
+> The precedent patch has convert x86 interrupt management subsystem to
+> hierarchy irqdomain and stacked irqchip, so this patch set cleans up
+> code and interfaces obsoleted by the precedent patch set.
 > 
-> Hi Thomas,
-> 	Rafael needs more time to review the patch set to refine ACPI
-> resource paring interface, and we are nearing to v3.19-rc6. So it would
-> be helpful to move onto the x86 hierarchy irqdomain patch set first, so
-> we may catch up with v3.20 merging window.
-> Thanks!
+> Main changes since last version:
+> 1) rebased onto v3.19-rc5
+> 2) add patch 33 to avoid memory allocation/free when assigning CPU vector 
+> 
+> Regards,
 > Gerry
 > 
-> Jiang Liu (36):
->   x86/irq: Save destination CPU ID in irq_cfg
->   x86/irq: Use hierarchy irqdomain to manage CPU interrupt vectors
->   x86/hpet: Use new irqdomain interfaces to allocate/free IRQ
->   x86/MSI: Use new irqdomain interfaces to allocate/free IRQ
->   x86/uv: Use new irqdomain interfaces to allocate/free IRQ
->   x86/htirq: Use new irqdomain interfaces to allocate/free IRQ
->   x86/dmar: Use new irqdomain interfaces to allocate/free IRQ
->   irq_remapping: Introduce new interfaces to support hierarchy
->     irqdomain
->   irq_remapping/vt-d: Change prototypes to prepare for enabling
->     hierarchy irqdomain
->   irq_remapping/vt-d: Enhance Intel IR driver to suppport hierarchy
->     irqdomain
->   irq_remapping/amd: Enhance AMD IR driver to suppport hierarchy
->     irqdomain
->   x86/hpet: Enhance HPET IRQ to support hierarchy irqdomain
->   x86/MSI: Use hierarchy irqdomain to manage MSI interrupts
->   x86/irq: Directly call native_compose_msi_msg() for DMAR IRQ
->   irq_remapping/vt-d: Clean up unused MSI related code
->   irq_remapping/amd: Clean up unused MSI related code
->   irq_remapping: Clean up unused MSI related code
->   x86/MSI: Clean up unused MSI related code and interfaces
->   iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
->   x86/irq: Use hierarchy irqdomain to manage DMAR interrupts
->   x86/htirq: Use hierarchy irqdomain to manage Hypertransport
->     interrupts
->   x86/uv: Use hierarchy irqdomain to manage UV interrupts
->   x86/irq: Normalize x86 irq_chip name
->   x86/MSI: Simplify the way to deal with remapped MSI interrupts
->   x86/MSI: Replace msi_update_msg() with irq_chip_compose_msi_msg()
->   x86/irq: Implement irq_chip.irq_write_msi_msg for MSI/DMAR/HPET
->     irq_chips
->   x86/irq: Simplify MSI/DMAR/HPET implementation by using common code
->   irq_remapping: Kill unused function irq_remapping_print_chip()
->   x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
->   x86/irq: Kill unused pre_init_apic_IRQ0()
->   x86/irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
->   x86/irq: Implement callbacks to enable hierarchy irqdomain on IOAPICs
->   x86/irq: Refine the way to allocate irq_cfg for legacy IRQs
->   x86/irq: Simplify the way to print IOAPIC entry
->   x86/irq: Introduce helper functions to support hierarchy irqdomain
->     for IOAPIC
->   x86/irq: Convert IOAPIC to use hierarchy irqdomain interfaces
+> Jiang Liu (29):
+>   x86/irq: Kill unused old IOAPIC irqdomain interfaces
+>   x86/irq: Kill unused struct mp_pin_info
+>   x86/irq: Kill x86_io_apic_ops.print_entries and related interfaces
+>   x86/irq: Kill x86_io_apic_ops.setup_entry and related interfaces
+>   x86/irq: Kill x86_io_apic_ops.set_affinity and related interfaces
+>   x86/irq: Kill x86_io_apic_ops.eoi_ioapic_pin and related interfaces
+>   x86/irq: Kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
+>   x86/irq: Clean up unused forward declarations in x86_init.h
+>   irq_remapping: Clean up unsued code to support IOAPIC
+>   irq_remapping/vt-d: Clean up unsued code
+>   irq_remapping/amd: Clean up unsued code
+>   irq_remapping: Clean up unused interfaces
+>   x86/irq: Kill irq_cfg.irq_remapped
+>   irq_remapping/vt-d: Move struct irq_2_iommu into
+>     intel_irq_remapping.c
+>   irq_remapping/amd: Move struct irq_2_irte into amd_iommu.c
+>   x86/irq: Move irq_cfg.irq_2_pin into io_apic.c
+>   x86/irq: Kill struct io_apic_irq_attr
+>   x86/irq: Kill x86_io_apic_ops.write and x86_io_apic_ops.modify
+>   x86/irq: Clean up io_apic.h
+>   x86/irq: Use cached IOAPIC entry instead of reading from hardware
+>   x86/irq: Kill unused alloc_irq_and_cfg_at()
+>   x86/irq: Change functions only used in vector.c as static
+>   x86/irq: Kill function apic_set_affinity()
+>   x86/irq: Move check of cfg->move_in_progress into
+>     send_cleanup_vector()
+>   x86/irq: Move private data in struct irq_cfg into dedicated data
+>     structure
+>   x86/irq: Refine the way to calculate NR_IRQS
+>   x86/irq, ACPI: Kill private function mp_register_gsi()/
+>     mp_unregister_gsi()
+>   x86/irq: Move irqdomain specific code into asm/irqdomain.h
+>   x86/irq: Avoid memory allocation in __assign_irq_vector()
 > 
-> Rickard Strandqvist (1):
->   x86/apb_timer: Remove unused function is_apbt_capable()
+> Thomas Gleixner (4):
+>   x86/irq: Remove sis apic bug workaround
+>   x86, ioapic: Use proper defines for the entry fields
+>   x86,ioapic: Cleanup irq_trigger/polarity()
+>   x86: Cleanup irq_domain ops
 > 
-> Thomas Gleixner (1):
->   x86/intel-mid: Delay initialization of APB timer
-> 
->  arch/ia64/include/asm/irq_remapping.h              |    2 -
->  arch/ia64/kernel/msi_ia64.c                        |   30 +-
->  arch/x86/Kconfig                                   |    4 +-
->  arch/x86/include/asm/hpet.h                        |   16 +-
->  arch/x86/include/asm/hw_irq.h                      |   91 +++
->  arch/x86/include/asm/io_apic.h                     |   25 +-
->  arch/x86/include/asm/irq_remapping.h               |   45 +-
->  arch/x86/include/asm/msi.h                         |    7 +
->  arch/x86/include/asm/pci.h                         |    5 -
->  arch/x86/include/asm/x86_init.h                    |    4 -
->  arch/x86/kernel/acpi/boot.c                        |   20 +-
->  arch/x86/kernel/apb_timer.c                        |   12 -
->  arch/x86/kernel/apic/htirq.c                       |  173 ++++--
->  arch/x86/kernel/apic/io_apic.c                     |  600 +++++++++++++++-----
->  arch/x86/kernel/apic/msi.c                         |  416 ++++++++------
->  arch/x86/kernel/apic/vector.c                      |  205 ++++++-
->  arch/x86/kernel/devicetree.c                       |   37 +-
->  arch/x86/kernel/hpet.c                             |   57 +-
->  arch/x86/kernel/mpparse.c                          |    6 +-
->  arch/x86/kernel/x86_init.c                         |    2 -
->  arch/x86/pci/intel_mid_pci.c                       |    6 +-
->  .../platform/intel-mid/device_libs/platform_wdt.c  |    5 +-
->  arch/x86/platform/intel-mid/intel-mid.c            |   18 +-
->  arch/x86/platform/intel-mid/sfi.c                  |   30 +-
->  arch/x86/platform/sfi/sfi.c                        |    5 +-
->  arch/x86/platform/uv/uv_irq.c                      |  299 ++++------
->  drivers/iommu/amd_iommu.c                          |  376 +++++++++---
->  drivers/iommu/amd_iommu_init.c                     |    4 +
->  drivers/iommu/amd_iommu_proto.h                    |    9 +
->  drivers/iommu/amd_iommu_types.h                    |    5 +
->  drivers/iommu/dmar.c                               |   19 +-
->  drivers/iommu/intel_irq_remapping.c                |  451 ++++++++++-----
->  drivers/iommu/irq_remapping.c                      |  178 ++----
->  drivers/iommu/irq_remapping.h                      |   20 +-
->  drivers/pci/htirq.c                                |   48 +-
->  include/linux/dmar.h                               |    3 +-
->  include/linux/htirq.h                              |   22 +-
->  include/linux/intel-iommu.h                        |    4 +
->  38 files changed, 2100 insertions(+), 1159 deletions(-)
->  create mode 100644 arch/x86/include/asm/msi.h
+>  arch/x86/Kconfig                     |    1 -
+>  arch/x86/include/asm/hw_irq.h        |   63 ---
+>  arch/x86/include/asm/io_apic.h       |  108 +----
+>  arch/x86/include/asm/irq_remapping.h |   38 +-
+>  arch/x86/include/asm/irq_vectors.h   |   18 +-
+>  arch/x86/include/asm/irqdomain.h     |   63 +++
+>  arch/x86/include/asm/x86_init.h      |   16 -
+>  arch/x86/kernel/acpi/boot.c          |   70 +--
+>  arch/x86/kernel/apic/htirq.c         |    2 +-
+>  arch/x86/kernel/apic/io_apic.c       |  868 +++++++++-------------------------
+>  arch/x86/kernel/apic/msi.c           |    2 +-
+>  arch/x86/kernel/apic/vector.c        |  342 ++++++--------
+>  arch/x86/kernel/devicetree.c         |   12 +-
+>  arch/x86/kernel/hpet.c               |    2 +-
+>  arch/x86/kernel/mpparse.c            |    9 +-
+>  arch/x86/kernel/x86_init.c           |    6 -
+>  arch/x86/platform/sfi/sfi.c          |   10 +-
+>  arch/x86/platform/uv/uv_irq.c        |    5 +-
+>  drivers/iommu/amd_iommu.c            |  153 +-----
+>  drivers/iommu/intel_irq_remapping.c  |  206 +-------
+>  drivers/iommu/irq_remapping.c        |   80 ----
+>  drivers/iommu/irq_remapping.h        |   16 -
+>  drivers/pci/quirks.c                 |    7 -
+>  23 files changed, 490 insertions(+), 1607 deletions(-)
+>  create mode 100644 arch/x86/include/asm/irqdomain.h
 > 
