@@ -1,92 +1,134 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v8 09/21] ARM64 / ACPI: Disable ACPI if FADT revision is
- less than 5.1
-Date: Tue, 3 Feb 2015 17:20:48 +0000
-Message-ID: <20150203172047.GA13339@e104818-lin.cambridge.arm.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
+Date: Tue, 03 Feb 2015 12:29:36 -0500
+Message-ID: <1422984576.18187.82.camel@deneb.redhat.com>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <1422881149-8177-10-git-send-email-hanjun.guo@linaro.org>
+	 <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
+	 <2422968.Es7R0p3loO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:40938 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756030AbbBCRVL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 12:21:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1422881149-8177-10-git-send-email-hanjun.guo@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:48193 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752494AbbBCRbH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Feb 2015 12:31:07 -0500
+In-Reply-To: <2422968.Es7R0p3loO@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.comMark
 
-On Mon, Feb 02, 2015 at 12:45:37PM +0000, Hanjun Guo wrote:
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index afe10b4..b9f64ec 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -13,6 +13,8 @@
->   *  published by the Free Software Foundation.
->   */
->  
-> +#define pr_fmt(fmt) "ACPI: " fmt
-> +
->  #include <linux/acpi.h>
->  #include <linux/bootmem.h>
->  #include <linux/cpumask.h>
-> @@ -49,10 +51,32 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
->  	early_memunmap(map, size);
->  }
->  
-> +static int __init acpi_parse_fadt(struct acpi_table_header *table)
-> +{
-> +	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-> +
-> +	/*
-> +	 * Revision in table header is the FADT Major revision, and there
-> +	 * is a minor revision of FADT which was introduced by ACPI 5.1,
-> +	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
-> +	 * boot protocol configuration data, or we will disable ACPI.
-> +	 */
-> +	if (table->revision > 5 ||
-> +	    (table->revision == 5 && fadt->minor_revision >= 1))
-> +		return 0;
-> +
-> +	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
-> +		table->revision, fadt->minor_revision);
-> +	disable_acpi();
-> +
-> +	return -EINVAL;
-> +}
-> +
->  /*
->   * acpi_boot_table_init() called from setup_arch(), always.
->   *	1. find RSDP and get its address, and then find XSDT
->   *	2. extract all tables and checksums them all
-> + *	3. check ACPI FADT revision
->   *
->   * We can parse ACPI boot-time tables such as MADT after
->   * this function is called.
-> @@ -64,8 +88,16 @@ void __init acpi_boot_table_init(void)
->  		return;
->  
->  	/* Initialize the ACPI boot-time table parser. */
-> -	if (acpi_table_init())
-> +	if (acpi_table_init()) {
-> +		disable_acpi();
-> +		return;
-> +	}
-> +
-> +	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
-> +		/* disable ACPI if no FADT is found */
->  		disable_acpi();
-> +		pr_err("Can't find FADT\n");
-> +	}
->  }
+On Mon, 2015-02-02 at 23:14 +0100, Rafael J. Wysocki wrote:
+> On Monday, February 02, 2015 08:45:30 PM Hanjun Guo wrote:
+> > From: Mark Salter <msalter@redhat.com>
+> > 
+> > The acpi_os_ioremap() function may be used to map normal RAM or IO
+> > regions. The current implementation simply uses ioremap_cache(). This
+> > will work for some architectures, but arm64 ioremap_cache() cannot be
+> > used to map IO regions which don't support caching. So for arm64, use
+> > ioremap() for non-RAM regions.
+> > 
+> > CC: Rafael J Wysocki <rjw@rjwysocki.net>
+> > Signed-off-by: Mark Salter <msalter@redhat.com>
+> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > ---
+> >  include/acpi/acpi_io.h | 6 ++++++
+> >  1 file changed, 6 insertions(+)
+> > 
+> > diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
+> > index 444671e..9d573db 100644
+> > --- a/include/acpi/acpi_io.h
+> > +++ b/include/acpi/acpi_io.h
+> > @@ -1,11 +1,17 @@
+> >  #ifndef _ACPI_IO_H_
+> >  #define _ACPI_IO_H_
+> >  
+> > +#include <linux/mm.h>
+> >  #include <linux/io.h>
+> >  
+> >  static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+> >  					    acpi_size size)
+> >  {
+> > +#ifdef CONFIG_ARM64
+> > +	if (!page_is_ram(phys >> PAGE_SHIFT))
+> > +		return ioremap(phys, size);
+> > +#endif
+> 
+> I don't want to see #ifdef CONFIG_ARM64 in this file.
+> 
 
-It looks fine to call disable_acpi() here but a bit weird to call it
-again in acpi_parse_fadt(). I guess that's because acpi_table_parse()
-ignores the return value of the handler() call. I think it's better to
-fix the core code (can be an additional patch on top of this series).
+How about something like:
 
+From: Mark Salter <msalter@redhat.com>
+Date: Tue, 3 Feb 2015 10:51:16 -0500
+Subject: [PATCH] acpi: fix acpi_os_ioremap for arm64
+
+The acpi_os_ioremap() function may be used to map normal RAM or IO
+regions. The current implementation simply uses ioremap_cache(). This
+will work for some architectures, but arm64 ioremap_cache() cannot be
+used to map IO regions which don't support caching. So for arm64, use
+ioremap() for non-RAM regions.
+
+CC: Rafael J Wysocki <rjw@rjwysocki.net>
+Signed-off-by: Mark Salter <msalter@redhat.com>
+---
+ arch/arm64/include/asm/acpi.h | 14 ++++++++++++++
+ include/acpi/acpi_io.h        |  3 +++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index ea4d2b3..db82bc3 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/irqchip/arm-gic-acpi.h>
+ 
++#include <linux/mm.h>
+ #include <asm/smp_plat.h>
+ 
+ /* Basic configuration for ACPI */
+@@ -100,4 +101,17 @@ static inline bool acpi_psci_use_hvc(void) { return false; }
+ static inline void acpi_init_cpus(void) { }
+ #endif /* CONFIG_ACPI */
+ 
++/*
++ * ACPI table mapping
++ */
++static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
++					    acpi_size size)
++{
++	if (!page_is_ram(phys >> PAGE_SHIFT))
++		return ioremap(phys, size);
++
++       return ioremap_cache(phys, size);
++}
++#define acpi_os_ioremap acpi_os_ioremap
++
+ #endif /*_ASM_ACPI_H*/
+diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
+index 444671e..48f504a 100644
+--- a/include/acpi/acpi_io.h
++++ b/include/acpi/acpi_io.h
+@@ -2,12 +2,15 @@
+ #define _ACPI_IO_H_
+ 
+ #include <linux/io.h>
++#include <asm/acpi.h>
+ 
++#ifndef acpi_os_ioremap
+ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+ 					    acpi_size size)
+ {
+        return ioremap_cache(phys, size);
+ }
++#endif
+ 
+ void __iomem *__init_refok
+ acpi_os_map_iomem(acpi_physical_address phys, acpi_size size);
 -- 
-Catalin
+1.8.3.1
+
+
+
