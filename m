@@ -1,84 +1,105 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI PCC probe failed.
-Date: Thu, 05 Feb 2015 00:04:13 +0100
-Message-ID: <3901813.ZV5Z0Wofju@vostro.rjw.lan>
-References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com> <2240641.KgmUOJm3t4@vostro.rjw.lan> <CAJ5Y-eY=1YAeD3jCxSzuws=9qZQu2vcTgG9eBR0Nu+C6qNst2g@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 1/5] ACPI: move acpi_os_handler() so it can be made
+ arch-dependent later
+Date: Wed, 04 Feb 2015 15:44:50 -0700
+Message-ID: <54D2A0E2.8050504@redhat.com>
+References: <1423009304-5007-1-git-send-email-al.stone@linaro.org> <1423009304-5007-2-git-send-email-al.stone@linaro.org> <3836210.OLr0JokInG@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJ5Y-eY=1YAeD3jCxSzuws=9qZQu2vcTgG9eBR0Nu+C6qNst2g@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <3836210.OLr0JokInG@vostro.rjw.lan>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, al.stone@linaro.org
+Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 04, 2015 05:06:26 PM Ashwin Chaugule wrote:
-> On 4 February 2015 at 17:14, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, February 04, 2015 09:56:20 AM Ashwin Chaugule wrote:
-> >> Hi Rafael,
-> >>
-> >> On 4 February 2015 at 08:48, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > On Tuesday, February 03, 2015 09:44:36 PM Cristian wrote:
-> >> >> 2015-02-03 12:11 GMT-03:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
-> >> >> > On Tuesday, February 03, 2015 10:40:00 AM Cristian wrote:
-> >> >
-> >> > So it looks like you build the PCC mailbox driver which is new in 3.19-rc and
-> >> > that driver fails to load, because it doesn't find hardware to work with.
-> >> >
-> >> > The message is harmless, but it also is not useful.  The driver in question
-> >> > seems to be overly verbose to me in general.
-> >>
-> >> Apologies. Looks like leftover from some early "printk" style debugging. :)
-> >
-> > Well, does that mean I should apply the patch below?
+On 02/04/2015 06:50 AM, Rafael J. Wysocki wrote:
+> On Tuesday, February 03, 2015 05:21:40 PM al.stone@linaro.org wrote:
+>> From: Al Stone <al.stone@linaro.org>
+>>
+>> In order to deprecate the use of _OSI for arm64 or other new architectures,
+>> we need to make the default handler something we can change for various
+>> platforms.  This patch moves the definition of acpi_osi_handler() -- the
+>> function used by ACPICA as a callback for evaluating _OSI -- into a separate
+>> file.  Subsequent patches will change which files get built so that we can
+>> then build the version of _OSI we need for a particular architecture.
+>>
+>> There is no functional change.
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>  drivers/acpi/Makefile |   2 +-
+>>  drivers/acpi/osi.c    | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  drivers/acpi/osl.c    |  24 ------------
+>>  include/linux/acpi.h  |   1 +
+>>  4 files changed, 102 insertions(+), 25 deletions(-)
+>>  create mode 100644 drivers/acpi/osi.c
+>>
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index c346011..df348b3 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -18,7 +18,7 @@ obj-y				+= acpi.o \
+>>  					acpica/
+>>  
+>>  # All the builtin files are in the "acpi." module_param namespace.
+>> -acpi-y				+= osl.o utils.o reboot.o
+>> +acpi-y				+= osl.o utils.o reboot.o osi.o
+>>  acpi-y				+= nvs.o
+>>  
+>>  # Power management related files
+>> diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+>> new file mode 100644
+>> index 0000000..fff2b0c
+>> --- /dev/null
+>> +++ b/drivers/acpi/osi.c
+>> @@ -0,0 +1,100 @@
+>> +/*
+>> + *  osi.c - _OSI implementation (moved from drivers/acpi/osl.c)
+>> + *
+>> + *  Copyright (C) 2000       Andrew Henroid
+>> + *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>> + *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>> + *  Copyright (c) 2008 Intel Corporation
+>> + *   Author: Matthew Wilcox <willy@linux.intel.com>
+>> + *
+>> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>> + *
+>> + *  This program is free software; you can redistribute it and/or modify
+>> + *  it under the terms of the GNU General Public License as published by
+>> + *  the Free Software Foundation; either version 2 of the License, or
+>> + *  (at your option) any later version.
+>> + *
+>> + *  This program is distributed in the hope that it will be useful,
+>> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + *  GNU General Public License for more details.
 > 
-> Sure. Thanks.
-> 
-> >
-> >> > The patch below should make the message go away unless the printing of debug
-> >> > messages is on.
-> >> >
-> >> > Ashwin, that whole thing requires cleaning up:
-> >> >  - It prints uninteresting debug messages with KERN_ERR or warning priority in
-> >> >    *many* places.
-> >> >  - The error codes from acpi_pcc_probe() are ignored, so why bother to return
-> >> >    any error codes from there?
-> >> >  - If platform_create_bundle() fails, the debug message doesn't tell us the
-> >> >    reason, so why bother to print it?
-> >> >
-> >> > I'm not going to consider any users of this for merging before that cleanup
-> >> > happens.
-> >>
-> >> In V4 of the CPPC patchset I've simplified the PCC code a lot which
-> >> should make many of the prints go away. Can we consider that patch
-> >> (I'll add any more pr_debugs to it) or would you prefer having a
-> >> separate cleanup patch for this?
-> >
-> > This is a patch for the mailbox subsystem maintainer to consider.  If it is
-> > accepted and if there are any of these excessvely verbose messages still present,
-> > I'll expect them to be fixed in a separate patch.
-> 
-> Ok.
-> 
-> >
-> > I have one more concern about this driver.  Namely, what benefit is there to
-> > people like Cristian from it at all?
-> 
-> Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
-> Looks like PCC was explicitly enabled in this kernel.
-> 
-> config PCC
-> bool "Platform Communication Channel Driver"
-> depends on ACPI
+> Nit: The street address of the FSF is not really useful here.  What if they move? :-)
 
-Can we make it depend on the clients instead and be set automatically
-when at least one of the clients is enabled?
+This was one of the things checkpatch complained about, understandably :).  It's
+a direct cut'n'paste from osl.c.
 
-Otherwise distros will have a problem with deciding whether or not they
-should enable this driver and most of them will end up enabling it.
+I can clean these up in the new file; would it help to clean up osl.c (at least
+from checkpatch's point of view), as long as I'm at it?
 
+>> + *
+>> + *  You should have received a copy of the GNU General Public License
+>> + *  along with this program; if not, write to the Free Software
+>> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+>> + *
+>> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>> + *
+>> + */
+[snip...]
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
