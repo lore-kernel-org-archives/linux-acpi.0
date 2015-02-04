@@ -1,104 +1,94 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v2 3/5] ACPI: add arch-specific compilation for _OSI and
- the blacklist
-Date: Wed, 04 Feb 2015 15:46:17 -0700
-Message-ID: <54D2A139.5030602@redhat.com>
-References: <1423009304-5007-1-git-send-email-al.stone@linaro.org> <1423009304-5007-4-git-send-email-al.stone@linaro.org> <2298661.ffvhncbLpr@vostro.rjw.lan> <2903181.4VVp3X75UK@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/5] ACPI: move acpi_os_handler() so it can be made arch-dependent later
+Date: Thu, 05 Feb 2015 00:21:34 +0100
+Message-ID: <31637855.MY7BmyVont@vostro.rjw.lan>
+References: <1423009304-5007-1-git-send-email-al.stone@linaro.org> <3836210.OLr0JokInG@vostro.rjw.lan> <54D2A0E2.8050504@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49299 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965179AbbBDWqz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Feb 2015 17:46:55 -0500
-In-Reply-To: <2903181.4VVp3X75UK@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <54D2A0E2.8050504@redhat.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: al.stone@linaro.org, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, al.stone@linaro.org
-Cc: fenghua.yu@intel.com, tony.luck@intel.com, linux-ia64@vger.kernel.org, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, patches@linaro.org, will.deacon@arm.com, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-kernel@lists.linaro.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 
-On 02/04/2015 07:03 AM, Rafael J. Wysocki wrote:
-> On Wednesday, February 04, 2015 03:00:15 PM Rafael J. Wysocki wrote:
->> On Tuesday, February 03, 2015 05:21:42 PM al.stone@linaro.org wrote:
->>> From: Al Stone <al.stone@linaro.org>
->>>
->>> Now that all of the _OSI functionality has been separated out, we can
->>> provide arch-specific functionality for it.  This also allows us to do
->>> the same for the acpi_blacklisted() function.
->>>
->>> Whether arch-specific functions are used or not now depends on the config
->>> options CONFIG_ACPI_ARCH_SPECIFIC_OSI and CONFIG_ARCH_SPECIFIC_BLACKLIST.
->>> By default, both are set false which causes the x86/ia64 versions to be
->>> used, just as is done today.  Setting one or both of these options true
->>> will cause architecture-specific implementations to be built instead; this
->>> patch also provides arm64 implementations.
->>>
->>> For x86/ia64, there is no functional change.
->>>
->>> For arm64, any use of _OSI will issue a warning that it is deprecated.
->>> All use of _OSI will return false -- i.e., it will return no useful
->>> information to any firmware using it.  The ability to temporarily turn
->>> on _OSI, or turn off _OSI, or affect it in other ways from the command
->>> line is no longer available for arm64, either.  The blacklist for ACPI
->>> on arm64 is empty.  This will, of course, require ACPI to be enabled
->>> for arm64.
->>>
->>> Signed-off-by: Al Stone <al.stone@linaro.org>
->>> ---
->>>  drivers/acpi/Kconfig         | 22 ++++++++++++++++++++++
->>>  drivers/acpi/Makefile        | 19 ++++++++++++++++++-
->>>  drivers/acpi/blacklist-arm.c | 20 ++++++++++++++++++++
->>>  drivers/acpi/blacklist.c     |  5 +++++
->>>  drivers/acpi/osi-arm.c       | 25 +++++++++++++++++++++++++
->>>  5 files changed, 90 insertions(+), 1 deletion(-)
->>>  create mode 100644 drivers/acpi/blacklist-arm.c
->>>  create mode 100644 drivers/acpi/osi-arm.c
->>>
->>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->>> index 3e3bd35..4190940 100644
->>> --- a/drivers/acpi/Kconfig
->>> +++ b/drivers/acpi/Kconfig
->>> @@ -369,6 +369,28 @@ config ACPI_REDUCED_HARDWARE_ONLY
->>>  
->>>  	  If you are unsure what to do, do not enable this option.
->>>  
->>> +config ACPI_ARCH_SPECIFIC_OSI
->>
->> I woulnd't make this and the other one user-selectable.  Let architectures
->> select them from their top-level Kconfig files.
->>
->> That's what we do with the other CONFIG_ARCH_ things.
->>
->> So in the architecture-specific Kconfig you'll have
->>
->> config ACPI_ARCH_SPECIFIC_OSI
->> 	def_bool n
->> 	depends on ACPI
->>
->> Moreover, I'd call that ARCH_SPECIFIC_ACPI_OSI.
+On Wednesday, February 04, 2015 03:44:50 PM Al Stone wrote:
+> On 02/04/2015 06:50 AM, Rafael J. Wysocki wrote:
+> > On Tuesday, February 03, 2015 05:21:40 PM al.stone@linaro.org wrote:
+> >> From: Al Stone <al.stone@linaro.org>
+> >>
+> >> In order to deprecate the use of _OSI for arm64 or other new architectures,
+> >> we need to make the default handler something we can change for various
+> >> platforms.  This patch moves the definition of acpi_osi_handler() -- the
+> >> function used by ACPICA as a callback for evaluating _OSI -- into a separate
+> >> file.  Subsequent patches will change which files get built so that we can
+> >> then build the version of _OSI we need for a particular architecture.
+> >>
+> >> There is no functional change.
+> >>
+> >> Signed-off-by: Al Stone <al.stone@linaro.org>
+> >> ---
+> >>  drivers/acpi/Makefile |   2 +-
+> >>  drivers/acpi/osi.c    | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
+> >>  drivers/acpi/osl.c    |  24 ------------
+> >>  include/linux/acpi.h  |   1 +
+> >>  4 files changed, 102 insertions(+), 25 deletions(-)
+> >>  create mode 100644 drivers/acpi/osi.c
+> >>
+> >> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> >> index c346011..df348b3 100644
+> >> --- a/drivers/acpi/Makefile
+> >> +++ b/drivers/acpi/Makefile
+> >> @@ -18,7 +18,7 @@ obj-y				+= acpi.o \
+> >>  					acpica/
+> >>  
+> >>  # All the builtin files are in the "acpi." module_param namespace.
+> >> -acpi-y				+= osl.o utils.o reboot.o
+> >> +acpi-y				+= osl.o utils.o reboot.o osi.o
+> >>  acpi-y				+= nvs.o
+> >>  
+> >>  # Power management related files
+> >> diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
+> >> new file mode 100644
+> >> index 0000000..fff2b0c
+> >> --- /dev/null
+> >> +++ b/drivers/acpi/osi.c
+> >> @@ -0,0 +1,100 @@
+> >> +/*
+> >> + *  osi.c - _OSI implementation (moved from drivers/acpi/osl.c)
+> >> + *
+> >> + *  Copyright (C) 2000       Andrew Henroid
+> >> + *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+> >> + *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+> >> + *  Copyright (c) 2008 Intel Corporation
+> >> + *   Author: Matthew Wilcox <willy@linux.intel.com>
+> >> + *
+> >> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> >> + *
+> >> + *  This program is free software; you can redistribute it and/or modify
+> >> + *  it under the terms of the GNU General Public License as published by
+> >> + *  the Free Software Foundation; either version 2 of the License, or
+> >> + *  (at your option) any later version.
+> >> + *
+> >> + *  This program is distributed in the hope that it will be useful,
+> >> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >> + *  GNU General Public License for more details.
+> > 
+> > Nit: The street address of the FSF is not really useful here.  What if they move? :-)
 > 
-> Or even better, you can define them here (drivers/acpi/Kconfig/) as
+> This was one of the things checkpatch complained about, understandably :).  It's
+> a direct cut'n'paste from osl.c.
 > 
-> config ARCH_SPECIFIC_ACPI_OSI
-> 	def_bool n
-> 
-> and then do
-> 
-> 	select ARCH_SPECIFIC_ACPI_OSI if ACPI
-> 
-> as you did in [4/5].
-> 
-> 
+> I can clean these up in the new file; would it help to clean up osl.c (at least
+> from checkpatch's point of view), as long as I'm at it?
 
-Ah, indeed I did.  Okay; I'll touch that up.
+Yeah, won't hurt. :-)
+
+In a separate patch please, though.
+
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
