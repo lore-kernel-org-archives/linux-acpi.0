@@ -1,126 +1,214 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Wed, 04 Feb 2015 14:22:10 +0100
-Message-ID: <1918367.3D21c7WuYp@vostro.rjw.lan>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <8901765.mLfPOCUyAN@vostro.rjw.lan> <20150204104832.GF8656@n2100.arm.linux.org.uk>
+Subject: Re: [Patch v3] x86/PCI: Refine the way to release PCI IRQ resources
+Date: Wed, 04 Feb 2015 14:26:04 +0100
+Message-ID: <1765479.Gge1hOO47N@vostro.rjw.lan>
+References: <1432434.BPb1XrlA2r@vostro.rjw.lan> <1423038920-6136-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58898 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:53405 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S965549AbbBDM7Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 07:59:16 -0500
-In-Reply-To: <20150204104832.GF8656@n2100.arm.linux.org.uk>
+	with SMTP id S965646AbbBDNDK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 08:03:10 -0500
+In-Reply-To: <1423038920-6136-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mark Salter <msalter@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, wangyijing@huawei.com, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Ashwin Chaugule <ashwinc@codeaurora.org>, Graeme Gregory <graeme.gregory@linaro>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, February 04, 2015 10:48:32 AM Russell King - ARM Linux wrote:
-> On Tue, Feb 03, 2015 at 11:04:27PM +0100, Rafael J. Wysocki wrote:
-> > On Tuesday, February 03, 2015 12:29:36 PM Mark Salter wrote:
-> > > On Mon, 2015-02-02 at 23:14 +0100, Rafael J. Wysocki wrote:
-> > > > On Monday, February 02, 2015 08:45:30 PM Hanjun Guo wrote:
-> > > > > From: Mark Salter <msalter@redhat.com>
-> > > > > 
-> > > > > The acpi_os_ioremap() function may be used to map normal RAM or IO
-> > > > > regions. The current implementation simply uses ioremap_cache(). This
-> > > > > will work for some architectures, but arm64 ioremap_cache() cannot be
-> > > > > used to map IO regions which don't support caching. So for arm64, use
-> > > > > ioremap() for non-RAM regions.
-> > > > > 
-> > > > > CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> > > > > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > > > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > > > ---
-> > > > >  include/acpi/acpi_io.h | 6 ++++++
-> > > > >  1 file changed, 6 insertions(+)
-> > > > > 
-> > > > > diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-> > > > > index 444671e..9d573db 100644
-> > > > > --- a/include/acpi/acpi_io.h
-> > > > > +++ b/include/acpi/acpi_io.h
-> > > > > @@ -1,11 +1,17 @@
-> > > > >  #ifndef _ACPI_IO_H_
-> > > > >  #define _ACPI_IO_H_
-> > > > >  
-> > > > > +#include <linux/mm.h>
-> > > > >  #include <linux/io.h>
-> > > > >  
-> > > > >  static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-> > > > >  					    acpi_size size)
-> > > > >  {
-> > > > > +#ifdef CONFIG_ARM64
-> > > > > +	if (!page_is_ram(phys >> PAGE_SHIFT))
-> > > > > +		return ioremap(phys, size);
-> > > > > +#endif
-> > > > 
-> > > > I don't want to see #ifdef CONFIG_ARM64 in this file.
-> > > > 
-> > > 
-> > > How about something like:
-> > > 
-> > > From: Mark Salter <msalter@redhat.com>
-> > > Date: Tue, 3 Feb 2015 10:51:16 -0500
-> > > Subject: [PATCH] acpi: fix acpi_os_ioremap for arm64
-> > > 
-> > > The acpi_os_ioremap() function may be used to map normal RAM or IO
-> > > regions. The current implementation simply uses ioremap_cache(). This
-> > > will work for some architectures, but arm64 ioremap_cache() cannot be
-> > > used to map IO regions which don't support caching. So for arm64, use
-> > > ioremap() for non-RAM regions.
-> > > 
-> > > CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> > > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > > ---
-> > >  arch/arm64/include/asm/acpi.h | 14 ++++++++++++++
-> > >  include/acpi/acpi_io.h        |  3 +++
-> > >  2 files changed, 17 insertions(+)
-> > > 
-> > > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> > > index ea4d2b3..db82bc3 100644
-> > > --- a/arch/arm64/include/asm/acpi.h
-> > > +++ b/arch/arm64/include/asm/acpi.h
-> > > @@ -14,6 +14,7 @@
-> > >  
-> > >  #include <linux/irqchip/arm-gic-acpi.h>
-> > >  
-> > > +#include <linux/mm.h>
-> > >  #include <asm/smp_plat.h>
-> > >  
-> > >  /* Basic configuration for ACPI */
-> > > @@ -100,4 +101,17 @@ static inline bool acpi_psci_use_hvc(void) { return false; }
-> > >  static inline void acpi_init_cpus(void) { }
-> > >  #endif /* CONFIG_ACPI */
-> > >  
-> > > +/*
-> > > + * ACPI table mapping
-> > > + */
-> > > +static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-> > > +					    acpi_size size)
-> > > +{
-> > > +	if (!page_is_ram(phys >> PAGE_SHIFT))
-> > > +		return ioremap(phys, size);
-> > > +
-> > > +       return ioremap_cache(phys, size);
-> > > +}
-> > > +#define acpi_os_ioremap acpi_os_ioremap
-> > 
-> > If you want to do it this way, use __weak.  You won't need the #define then.
-> > Otherwise, please use a proper CONFIG_ARCH_ symbol.
+On Wednesday, February 04, 2015 04:35:16 PM Jiang Liu wrote:
+> Some PCI device drivers assume that pci_dev->irq won't change after
+> calling pci_disable_device() and pci_enable_device() during suspend and
+> resume.
 > 
-> How does __weak work with inline functions?  I don't believe it does.
+> Commit c03b3b0738a5 ("x86, irq, mpparse: Release IOAPIC pin when
+> PCI device is disabled") frees PCI IRQ resources when pci_disable_device()
+> is called and reallocate IRQ resources when pci_enable_device() is
+> called again. This breaks above assumption. So commit 3eec595235c1
+> ("x86, irq, PCI: Keep IRQ assignment for PCI devices during
+> suspend/hibernation") and 9eabc99a635a ("x86, irq, PCI: Keep IRQ
+> assignment for runtime power management") fix the issue by avoiding
+> freeing/reallocating IRQ resources during PCI device suspend/resume.
+> They achieve this by checking dev.power.is_prepared and
+> dev.power.runtime_status.  PM maintainer, Rafael, then pointed out that
+> it's really an ugly fix which leaking PM internal state information to
+> IRQ subsystem.
+> 
+> Recently David Vrabel <david.vrabel@citrix.com> also reports an
+> regression in pciback driver caused by commit cffe0a2b5a34 ("x86, irq:
+> Keep balance of IOAPIC pin reference count"). Please refer to:
+> http://lkml.org/lkml/2015/1/14/546
+> 
+> So this patch refine the way to release PCI IRQ resources. Instead of
+> releasing PCI IRQ resources in pci_disable_device()/
+> pcibios_disable_device(), we now release it at driver unbinding
+> notification BUS_NOTIFY_UNBOUND_DRIVER. In other word, we only release
+> PCI IRQ resources when there's no driver bound to the PCI device, and
+> it keeps the assumption that pci_dev->irq won't through multiple
+> invocation of pci_enable_device()/pci_disable_device().
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+> Hi Rafael,
+> 	How about this version, which moves comments near to
+> pci_irq_notifier() and kills pcibios_disable_device() as suggested?
+> Regards!
 
-It doesn't work with inline funtions, but the function here doesn't have to be
-inline.
+It looks better to me, thanks!
 
-> Moreover, __weak is positively harmful when you consider it adds bloat
-> and dead code - the overriden __weak function is left behind in the
-> resulting final image.
-
-Fair enough.
-
+> ---
+>  arch/x86/include/asm/pci_x86.h |    2 --
+>  arch/x86/pci/common.c          |   34 ++++++++++++++++++++++++++++------
+>  arch/x86/pci/intel_mid_pci.c   |    4 ++--
+>  arch/x86/pci/irq.c             |   15 +--------------
+>  drivers/acpi/pci_irq.c         |    9 +--------
+>  5 files changed, 32 insertions(+), 32 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+> index 164e3f8d3c3d..fa1195dae425 100644
+> --- a/arch/x86/include/asm/pci_x86.h
+> +++ b/arch/x86/include/asm/pci_x86.h
+> @@ -93,8 +93,6 @@ extern raw_spinlock_t pci_config_lock;
+>  extern int (*pcibios_enable_irq)(struct pci_dev *dev);
+>  extern void (*pcibios_disable_irq)(struct pci_dev *dev);
+>  
+> -extern bool mp_should_keep_irq(struct device *dev);
+> -
+>  struct pci_raw_ops {
+>  	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn,
+>  						int reg, int len, u32 *val);
+> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+> index 7b20bccf3648..ff1f0afa5ed1 100644
+> --- a/arch/x86/pci/common.c
+> +++ b/arch/x86/pci/common.c
+> @@ -497,6 +497,31 @@ void __init pcibios_set_cache_line_size(void)
+>  	}
+>  }
+>  
+> +/*
+> + * Some device drivers assume dev->irq won't change after calling
+> + * pci_disable_device(). So delay releasing of IRQ resource to driver
+> + * unbinding time. Otherwise it will break PM subsystem and drivers
+> + * like xen-pciback etc.
+> + */
+> +static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
+> +			    void *data)
+> +{
+> +	struct pci_dev *dev = to_pci_dev(data);
+> +
+> +	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
+> +		return NOTIFY_DONE;
+> +
+> +	if (pcibios_disable_irq)
+> +		pcibios_disable_irq(dev);
+> +
+> +	return NOTIFY_OK;
+> +}
+> +
+> +static struct notifier_block pci_irq_nb = {
+> +	.notifier_call = pci_irq_notifier,
+> +	.priority = INT_MIN,
+> +};
+> +
+>  int __init pcibios_init(void)
+>  {
+>  	if (!raw_pci_ops) {
+> @@ -509,6 +534,9 @@ int __init pcibios_init(void)
+>  
+>  	if (pci_bf_sort >= pci_force_bf)
+>  		pci_sort_breadthfirst();
+> +
+> +	bus_register_notifier(&pci_bus_type, &pci_irq_nb);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -667,12 +695,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+>  	return 0;
+>  }
+>  
+> -void pcibios_disable_device (struct pci_dev *dev)
+> -{
+> -	if (!pci_dev_msi_enabled(dev) && pcibios_disable_irq)
+> -		pcibios_disable_irq(dev);
+> -}
+> -
+>  int pci_ext_cfg_avail(void)
+>  {
+>  	if (raw_pci_ext_ops)
+> diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
+> index 44b9271580b5..95c2471f6819 100644
+> --- a/arch/x86/pci/intel_mid_pci.c
+> +++ b/arch/x86/pci/intel_mid_pci.c
+> @@ -234,10 +234,10 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+>  
+>  static void intel_mid_pci_irq_disable(struct pci_dev *dev)
+>  {
+> -	if (!mp_should_keep_irq(&dev->dev) && dev->irq_managed &&
+> -	    dev->irq > 0) {
+> +	if (dev->irq_managed && dev->irq > 0) {
+>  		mp_unmap_irq(dev->irq);
+>  		dev->irq_managed = 0;
+> +		dev->irq = 0;
+>  	}
+>  }
+>  
+> diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+> index 5dc6ca5e1741..e71b3dbd87b8 100644
+> --- a/arch/x86/pci/irq.c
+> +++ b/arch/x86/pci/irq.c
+> @@ -1256,22 +1256,9 @@ static int pirq_enable_irq(struct pci_dev *dev)
+>  	return 0;
+>  }
+>  
+> -bool mp_should_keep_irq(struct device *dev)
+> -{
+> -	if (dev->power.is_prepared)
+> -		return true;
+> -#ifdef CONFIG_PM
+> -	if (dev->power.runtime_status == RPM_SUSPENDING)
+> -		return true;
+> -#endif
+> -
+> -	return false;
+> -}
+> -
+>  static void pirq_disable_irq(struct pci_dev *dev)
+>  {
+> -	if (io_apic_assign_pci_irqs && !mp_should_keep_irq(&dev->dev) &&
+> -	    dev->irq_managed && dev->irq) {
+> +	if (io_apic_assign_pci_irqs && dev->irq_managed && dev->irq) {
+>  		mp_unmap_irq(dev->irq);
+>  		dev->irq = 0;
+>  		dev->irq_managed = 0;
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index b1def411c0b8..e7f718d6918a 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -485,14 +485,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+>  	if (!pin || !dev->irq_managed || dev->irq <= 0)
+>  		return;
+>  
+> -	/* Keep IOAPIC pin configuration when suspending */
+> -	if (dev->dev.power.is_prepared)
+> -		return;
+> -#ifdef	CONFIG_PM
+> -	if (dev->dev.power.runtime_status == RPM_SUSPENDING)
+> -		return;
+> -#endif
+> -
+>  	entry = acpi_pci_irq_lookup(dev, pin);
+>  	if (!entry)
+>  		return;
+> @@ -513,5 +505,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+>  	if (gsi >= 0) {
+>  		acpi_unregister_gsi(gsi);
+>  		dev->irq_managed = 0;
+> +		dev->irq = 0;
+>  	}
+>  }
+> 
 
 -- 
 I speak only for myself.
