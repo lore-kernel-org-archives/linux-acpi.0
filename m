@@ -1,72 +1,52 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Wed, 04 Feb 2015 14:29:34 -0600
-Message-ID: <54D2812E.9060804@codeaurora.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI power management fix for final 3.19
+Date: Wed, 4 Feb 2015 22:46:04 +0100
+Message-ID: <CAJZ5v0jNMWJ0HDmpqq4fZmv9_6qr1U-ebRadeWaUdZWx9YFBpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:50639 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161337AbbBDU3j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 15:29:39 -0500
-In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:50105 "EHLO
+	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932593AbbBDVqH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 16:46:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-On 02/02/2015 06:45 AM, Hanjun Guo wrote:
-> Hi,
->
-> This is the v8 of ACPI core patches for ARM64 based on ACPI 5.1, there are
-> some updates since v7:
+Hi Linus,
 
-All 21 patches:
+Please pull from
 
-Tested-by: Timur Tabi <timur@codeaurora.org>
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.19-fin
 
-I no longer need to use "acpi=force", so that's nice.
+to receive an ACPI power management fix for final v3.19 as commit
+3df2da96874402722d760e5d4eb2968737e5bb01
 
->
->   - Add two more documantation to explain why we need ACPI in ARM64 servers
+ Revert "ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA"
 
-"documentation"
+on top of commit e36f014edff70fc02b3d3d79cead1d58f289332e
 
+ Linux 3.19-rc7
 
->     by Grant, and recommendations and prohibitions on the use of the numerous
->     ACPI tables and objects by Al Stone.
->
->   - Add two patches which is need to map acpi tables after acpi_gbl_permanent_mmap
->     is set
->
->   - Add another patch "dt / chosen: Add linux,uefi-stub-generated-dtb property"
->     to address that if firmware providing no dtb, we can try ACPI configuration data
->     even if no "acpi=force" is passed in early parameters. (I think ACPI for XEN and
->     kexec need consider sperately as disscussed, correct me if I'm wrong).
+This is a revert of an ACPI Low-power Subsystem (LPSS) driver change
+that was supposed to improve power management of the LPSS DMA controller,
+but introduced more serious problems.
 
-"need to be considered separately", "discussed"
+Since fixing them turns out to be non-trivial, it is better to revert
+the commit in question at this point and try to fix the original issue
+differently in the next cycle.
 
->
->   - Add CC in the patch to the subsystem maintainers and modify the subject
->     of the patch to explicitly show the subsystem touched by this patch set,
->     please help us to review and ack them if they make sense, thanks.
->
->   - Add Tested-by from Qualcomm and Redhat;
->
->   - Make ACPI depends on PCI suggested by Catalin;
->
->   - Clean up SMP init function as Lorenzo suggested, remove physical
->     CPU hot-plug code in the patch;
->
->   - Address some comments from Marc and explicitly state that will
->     implment statcked irqdomain and GIC init framework when GICv3 and
-
-"implement", "stacked"
+Thanks!
 
 
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+---------------
+
+Rafael J. Wysocki (1):
+      Revert "ACPI / LPSS: introduce a 'proxy' device to power on LPSS for DMA"
+
+---------------
+
+ drivers/acpi/acpi_lpss.c | 35 +++++++----------------------------
+ 1 file changed, 7 insertions(+), 28 deletions(-)
