@@ -1,436 +1,57 @@
-From: Ken Xue <Ken.Xue@amd.com>
-Subject: Re: [PATCH V3] acpi:apd:add AMD ACPI2Platform device support for
- x86 system.
-Date: Wed, 4 Feb 2015 11:40:34 +0800
-Message-ID: <1423021234.18208.31.camel@kxue-X58A-UD3R>
-References: <1422928460.2528.16.camel@kxue-X58A-UD3R>
-	 <CAHp75Vd9fEJkFw50Ri4gzQwUHo4=Y2jKz4SOURsod1OrhH5sdw@mail.gmail.com>
-	 <1856062.BZP7yNCLav@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v2 00/23] Improve ACPI resource parsing interfaces and
+ enable IOAPIC hotplug
+Date: Wed, 04 Feb 2015 13:32:14 +0800
+Message-ID: <54D1AEDE.1070901@linux.intel.com>
+References: <1422844988-13854-1-git-send-email-jiang.liu@linux.intel.com> <10471247.hI8hB2sD9x@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0144.outbound.protection.outlook.com ([157.56.110.144]:48496
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751851AbbBDDwe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 22:52:34 -0500
-In-Reply-To: <1856062.BZP7yNCLav@vostro.rjw.lan>
+Received: from mga03.intel.com ([134.134.136.65]:23749 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750826AbbBDFcT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Feb 2015 00:32:19 -0500
+In-Reply-To: <10471247.hI8hB2sD9x@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-
-On Tue, 2015-02-03 at 23:07 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, February 03, 2015 12:06:06 PM Andy Shevchenko wrote:
-> > On Tue, Feb 3, 2015 at 3:54 AM, Ken Xue <Ken.Xue@amd.com> wrote:
-> > > This new feature is to interpret AMD specific ACPI device to
-> > > platform device such as I2C, UART found on AMD CZ and later chips=
-ets. It
-> > > based on example intel LPSS. Now, it can support AMD I2C & UART.
-> > >
-> >=20
-> > Few minor things below.
-> > Be free to fix in depend on what Mika and Rafael confirm.
-> >=20
-> > Anyway,
-> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->=20
-> Thanks Andy!
->=20
-> Ken, please address the Andy's comments given below, they all make se=
-nse to me.
->=20
-Thanks for all your comments.
-
-> > > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> > > ---
-> > >  arch/x86/Kconfig        |  11 +++
-> > >  drivers/acpi/Makefile   |   2 +-
-> > >  drivers/acpi/acpi_apd.c | 201 ++++++++++++++++++++++++++++++++++=
-++++++++++++++
-> > >  drivers/acpi/internal.h |   2 +
-> > >  drivers/acpi/scan.c     |   1 +
-> > >  5 files changed, 216 insertions(+), 1 deletion(-)
-> > >  create mode 100644 drivers/acpi/acpi_apd.c
-> > >
-> > > diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> > > index 0dc9d01..ddf8d42 100644
-> > > --- a/arch/x86/Kconfig
-> > > +++ b/arch/x86/Kconfig
-> > > @@ -496,6 +496,17 @@ config X86_INTEL_LPSS
-> > >           things like clock tree (common clock framework) and pin=
-control
-> > >           which are needed by the LPSS peripheral drivers.
-> > >
-> > > +config X86_AMD_PLATFORM_DEVICE
-> > > +       bool "AMD ACPI2Platform devices support"
-> > > +       depends on ACPI
-> > > +       select COMMON_CLK
-> > > +       select PINCTRL
-> > > +       ---help---
-> > > +         Select to interpret AMD specific ACPI device to platfor=
-m device
-> > > +         such as I2C, UART found on AMD Carrizo and later chipse=
-ts. Selecting
-> > > +         this option enables things like clock tree (common cloc=
-k framework)
-> > > +         and pinctrl.
-> >=20
-> > Sounds 'like' is redundant here. It explicitly enables common clock
-> > and pin control frameworks.
-> >=20
-I just copy the last sentence from description of X86_INTEL_LPSS. but i=
-t
-is OK, i will remove it from next release.
-
-> > > +
-> > >  config IOSF_MBI
-> > >         tristate "Intel SoC IOSF Sideband support for SoC platfor=
-ms"
-> > >         depends on PCI
-> > > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> > > index f74317c..0071141 100644
-> > > --- a/drivers/acpi/Makefile
-> > > +++ b/drivers/acpi/Makefile
-> > > @@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) +=3D pr=
-ocessor_pdc.o
-> > >  acpi-y                         +=3D ec.o
-> > >  acpi-$(CONFIG_ACPI_DOCK)       +=3D dock.o
-> > >  acpi-y                         +=3D pci_root.o pci_link.o pci_ir=
-q.o
-> > > -acpi-y                         +=3D acpi_lpss.o
-> > > +acpi-y                         +=3D acpi_lpss.o acpi_apd.o
-> > >  acpi-y                         +=3D acpi_platform.o
-> > >  acpi-y                         +=3D acpi_pnp.o
-> > >  acpi-y                         +=3D int340x_thermal.o
-> > > diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> > > new file mode 100644
-> > > index 0000000..b27bc1c
-> > > --- /dev/null
-> > > +++ b/drivers/acpi/acpi_apd.c
-> > > @@ -0,0 +1,201 @@
-> > > +/*
-> > > + * AMD ACPI support for ACPI2platform device.
-> > > + *
-> > > + * Copyright (c) 2014,2015 AMD Corporation.
-> > > + * Authors: Ken Xue <Ken.Xue@amd.com>
-> > > + *     Wu, Jeff <Jeff.Wu@amd.com>
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or=
- modify
-> > > + * it under the terms of the GNU General Public License version =
-2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +
-> > > +#include <linux/clk-provider.h>
-> > > +#include <linux/platform_device.h>
-> > > +#include <linux/pm_domain.h>
-> > > +#include <linux/clkdev.h>
-> > > +#include <linux/acpi.h>
-> > > +#include <linux/err.h>
-> > > +#include <linux/clk.h>
-> > > +#include <linux/pm.h>
-> > > +
-> > > +#include "internal.h"
-> > > +
-> > > +ACPI_MODULE_NAME("acpi_apd");
-> > > +struct apd_private_data;
-> > > +
-> > > +/**
-> >=20
-> > /*, or use description on per flag basis.
-> >=20
-OK.
-
-> > > + * device flags of acpi_apd_dev_desc.
-> > > + * ACPI_APD_SYSFS : add device attributes in sysfs
-> > > + * ACPI_APD_PM : attach power domain to device
-> > > + * ACPI_APD_PM_ON : power on device when attach power domain
-> > > + */
-> > > +#define ACPI_APD_SYSFS BIT(0)
-> > > +#define ACPI_APD_PM    BIT(1)
-> > > +#define ACPI_APD_PM_ON BIT(2)
-> > > +
-> > > +/**
-> > > + * struct apd_device_desc - a descriptor for apd device
-> > > + * @flags: device flags like ACPI_APD_SYSFS ACPI_APD_PM ACPI_APD=
-_PM_ON
-> >=20
-> > %ACPI_APD_SYSFS, %ACPI_APD_PM, %ACPI_APD_APM_ON.
-> >=20
-> > Could it be combination? State this explicitly.
-> >=20
-OK.
-
-> > > + * @fixed_clk_rate: fixed rate input clock source for acpi devic=
-e;
-> > > + *                     0 means no fixed rate input clock source
-> > > + * @setup: a hook routine to set device resource during create p=
-latform device
-> > > + *
-> > > + * device description defined as acpi_device_id.driver_data
-> >=20
-> > d -> D
-> >=20
-OK.
-
-> > > + */
-> > > +struct apd_device_desc {
-> > > +       unsigned int flags;
-> > > +       unsigned int fixed_clk_rate;
-> > > +       int (*setup)(struct apd_private_data *pdata);
-> > > +};
-> > > +
-> > > +struct apd_private_data {
-> > > +       struct clk *clk;
-> > > +       struct acpi_device *adev;
-> > > +       const struct apd_device_desc *dev_desc;
-> > > +};
-> > > +
-> > > +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> > > +#define APD_ADDR(desc) ((unsigned long)&desc)
-> > > +
-> > > +static int acpi_apd_setup(struct apd_private_data *pdata)
-> > > +{
-> > > +       const struct apd_device_desc *dev_desc =3D pdata->dev_des=
-c;
-> > > +       struct clk *clk =3D ERR_PTR(-ENODEV);
-> > > +
-> > > +       if (dev_desc->fixed_clk_rate) {
-> > > +               clk =3D clk_register_fixed_rate(&pdata->adev->dev=
-,
-> > > +                                       dev_name(&pdata->adev->de=
-v),
-> > > +                                       NULL, CLK_IS_ROOT,
-> > > +                                       dev_desc->fixed_clk_rate)=
-;
-> > > +               clk_register_clkdev(clk, NULL, dev_name(&pdata->a=
-dev->dev));
-> > > +               pdata->clk =3D clk;
-> > > +       }
-> >=20
-> > What about
-> > if (!=E2=80=A6clk_rate)
-> >  return 0;
-> > =E2=80=A6
-OK.
-
-> > return 0; ?
-> >=20
-> > And question why we need int to be returned at all?
-> >
-It just provides a possibility to return error. In current use case,
-there is no need to return. But i believe it is better to reserve this
-design.
-
-> =20
-> > > +
-> > > +       return 0;
-> > > +}
-> > > +
-> > > +static struct apd_device_desc cz_i2c_desc =3D {
-> > > +       .setup =3D acpi_apd_setup,
-> > > +       .fixed_clk_rate =3D 133000000,
-> > > +};
-> > > +
-> > > +static struct apd_device_desc cz_uart_desc =3D {
-> > > +       .setup =3D acpi_apd_setup,
-> > > +       .fixed_clk_rate =3D 48000000,
-> > > +};
-> > > +
-> > > +#else
-> > > +
-> > > +#define APD_ADDR(desc) (0UL)
-> > > +
-> > > +#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-> > > +
-> > > +static int acpi_apd_create_device(struct acpi_device *adev,
-> > > +                                  const struct acpi_device_id *i=
-d)
-> > > +{
-> > > +       const struct apd_device_desc *dev_desc;
-> > > +       struct apd_private_data *pdata;
-> > > +       struct platform_device *pdev;
-> > > +       int ret;
-> > > +
-> > > +       dev_desc =3D (struct apd_device_desc *)id->driver_data;
-> >=20
-> > You may move this assignment to the definition block. And if it
-> > doesn't fit one line you may cast to (void *), though I don't know =
-if
-> > Rafael likes such trick.
-> >=20
-OK.
-
-> > > +       if (!dev_desc) {
-> > > +               pdev =3D acpi_create_platform_device(adev);
-> > > +               return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
-> >=20
-> > I guess it worth to add a comment what means return code here.
-> >=20
-OK.
-
-> > > +       }
-> > > +       pdata =3D kzalloc(sizeof(*pdata), GFP_KERNEL);
-> > > +       if (!pdata)
-> > > +               return -ENOMEM;
-> > > +
-> > > +       pdata->adev =3D adev;
-> > > +       pdata->dev_desc =3D dev_desc;
-> > > +
-> > > +       if (dev_desc->setup) {
-> > > +               ret =3D dev_desc->setup(pdata);
-> > > +               if (ret)
-> > > +                       goto err_out;
-> > > +       }
-> > > +
-> > > +       adev->driver_data =3D pdata;
-> > > +       pdev =3D acpi_create_platform_device(adev);
-> > > +       if (!IS_ERR_OR_NULL(pdev))
-> > > +               return 1;
-> > > +
-> > > +       ret =3D PTR_ERR(pdev);
-> > > +       adev->driver_data =3D NULL;
-> > > +
-> > > + err_out:
-> > > +       kfree(pdata);
-> > > +       return ret;
-> > > +}
-> > > +
-> > > +static const struct acpi_device_id acpi_apd_device_ids[] =3D {
-> > > +       /* Generic apd devices */
-> > > +       { "AMD0010", APD_ADDR(cz_i2c_desc) },
-> > > +       { "AMD0020", APD_ADDR(cz_uart_desc) },
-> > > +       { }
-> > > +};
-> > > +
-> > > +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> > > +static int acpi_apd_platform_notify(struct notifier_block *nb,
-> > > +                                    unsigned long action, void *=
-data)
-> > > +{
-> > > +       struct platform_device *pdev =3D to_platform_device(data)=
-;
-> > > +       const struct acpi_device_id *id =3D NULL;
-> >=20
-> > Redundant assignment.
-> >=20
-OK.
-
-> > > +       struct apd_private_data *pdata;
-> > > +       struct acpi_device *adev;
-> > > +       bool power_on;
-> > > +       int ret;
-> > > +
-> > > +       id =3D acpi_match_device(acpi_apd_device_ids, &pdev->dev)=
-;
-> > > +       if (!id || !id->driver_data)
-> > > +               return 0;
-> > > +
-> > > +       if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
-> >=20
-> > Better of course to do like
-> > status =3D =E2=80=A6
-> > if (status) [don't remember how to check status with ACPI API]
-> >  return 0;
-> >=20
-I use same coding style as LPSS and other examples in current kernel.
-I don't think it is really need to be changed.
-
-> > > +               return 0;
-> > > +
-> > > +       pdata =3D acpi_driver_data(adev);
-> > > +       if (!pdata || !pdata->dev_desc)
-> > > +               return 0;
-> > > +
-> > > +       switch (action) {
-> > > +       case BUS_NOTIFY_ADD_DEVICE:
-> > > +               if (pdata->dev_desc->flags & ACPI_APD_PM) {
-> > > +                       power_on =3D !!(pdata->dev_desc->flags & =
-ACPI_APD_PM_ON);
-> > > +                       ret =3D dev_pm_domain_attach(&pdev->dev, =
-power_on);
-> > > +
-> > > +                       if (ret)
-> > > +                               dev_dbg(&pdev->dev,
-> > > +                               "failed to attached pm domain (%d=
-)\n", ret);
-> > > +               }
-> > > +               break;
-> > > +       case BUS_NOTIFY_DEL_DEVICE:
-> > > +               if (pdata->dev_desc->flags & ACPI_APD_PM) {
-> > > +                       power_on =3D !!(pdata->dev_desc->flags & =
-ACPI_APD_PM_ON);
-> > > +                       dev_pm_domain_detach(&pdev->dev, power_on=
-);
-> > > +               }
-> > > +               break;
-> > > +       }
-> > > +
-> > > +       return 0;
-> > > +}
-> > > +
-> > > +static struct notifier_block acpi_apd_nb =3D {
-> > > +       .notifier_call =3D acpi_apd_platform_notify,
-> > > +};
-> > > +#endif
-> > > +
-> > > +static struct acpi_scan_handler apd_handler =3D {
-> > > +       .ids =3D acpi_apd_device_ids,
-> > > +       .attach =3D acpi_apd_create_device,
-> > > +};
-> > > +
-> > > +void __init acpi_apd_init(void)
-> > > +{
-> > > +#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> > > +       bus_register_notifier(&platform_bus_type, &acpi_apd_nb);
-> > > +#endif
-> > > +
-> > > +       acpi_scan_add_handler(&apd_handler);
-> > > +}
-> > > diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> > > index 163e82f..c24ae9d 100644
-> > > --- a/drivers/acpi/internal.h
-> > > +++ b/drivers/acpi/internal.h
-> > > @@ -68,6 +68,8 @@ static inline void acpi_debugfs_init(void) { re=
-turn; }
-> > >  #endif
-> > >  void acpi_lpss_init(void);
-> > >
-> > > +void acpi_apd_init(void);
-> > > +
-> > >  acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 =
-src);
-> > >  bool acpi_queue_hotplug_work(struct work_struct *work);
-> > >  void acpi_device_hotplug(struct acpi_device *adev, u32 src);
-> > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > > index dc4d896..bbca783 100644
-> > > --- a/drivers/acpi/scan.c
-> > > +++ b/drivers/acpi/scan.c
-> > > @@ -2544,6 +2544,7 @@ int __init acpi_scan_init(void)
-> > >         acpi_pci_link_init();
-> > >         acpi_processor_init();
-> > >         acpi_lpss_init();
-> > > +       acpi_apd_init();
-> > >         acpi_cmos_rtc_init();
-> > >         acpi_container_init();
-> > >         acpi_memory_hotplug_init();
-> > > --
-> > > 1.9.1
-> > >
-> > >
-> > >
-> >=20
-> >=20
-> >=20
-> >=20
->=20
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+On 2015/2/4 5:54, Rafael J. Wysocki wrote:
+> On Monday, February 02, 2015 10:42:45 AM Jiang Liu wrote:
+>> During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
+>> in ACPI resource parsing interfaces. So this is an effort to improve them.
+>>
+>> Patch 1 refines ACPICA resource descriptors, which has already been
+>> merged into "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge"
+>>
+>> Patch 2-12 improve ACPI resource parsing interfaces and also fixes some
+>> bugs.
+>>
+>> Patch 13-20 try to share the common data structure resource_list_entry
+>> between PCI and ACPI. It may also be shared with PNP too.
+>>
+>> Patch 21-23 enable ACPI based IOAPIC hotplug.
+>>
+>> The patchset is based on v3.19-rc6+ and passed Fengguang's 0day test
+>> suite. You may get it from:
+>> https://github.com/jiangliu/linux.git acpires_v2
+> 
+> Patch [1/23] has been in linux-next for a while already.
+> 
+> I've just queued up patches [2-20/23] for 3.20.
+> 
+> I have some questions to patch [21/23] which I'll ask in a reply to that one.
+>  
+> If [22-23/23] do not depend on [21/23] in any way, I can queue them up too, so
+> please let me know if that's the case.
+Yes, we could apply all other patches without 21/23.
+Thanks!
+
+> 
+> Thanks!
+> 
+> 
