@@ -1,123 +1,98 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Wed, 4 Feb 2015 10:48:32 +0000
-Message-ID: <20150204104832.GF8656@n2100.arm.linux.org.uk>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v8 14/21] ACPI / processor: Make it possible to get CPU
+ hardware ID via GICC
+Date: Wed, 4 Feb 2015 11:21:05 +0000
+Message-ID: <20150204112105.GA26006@e104818-lin.cambridge.arm.com>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <2422968.Es7R0p3loO@vostro.rjw.lan>
- <1422984576.18187.82.camel@deneb.redhat.com>
- <8901765.mLfPOCUyAN@vostro.rjw.lan>
+ <1422881149-8177-15-git-send-email-hanjun.guo@linaro.org>
+ <20150203141749.GA32536@leverpostej>
+ <20150203200936.GA21731@e104818-lin.cambridge.arm.com>
+ <54D1EAD5.4080105@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:47499 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933347AbbBDKs7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 05:48:59 -0500
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:41015 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149AbbBDLVS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 06:21:18 -0500
 Content-Disposition: inline
-In-Reply-To: <8901765.mLfPOCUyAN@vostro.rjw.lan>
+In-Reply-To: <54D1EAD5.4080105@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mark Salter <msalter@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, wangyijing@huawei.com, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Ashwin Chaugule <ashwinc@codeaurora.org>, Graeme Gregory <graeme.gregory@linaro>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
 
-On Tue, Feb 03, 2015 at 11:04:27PM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, February 03, 2015 12:29:36 PM Mark Salter wrote:
-> > On Mon, 2015-02-02 at 23:14 +0100, Rafael J. Wysocki wrote:
-> > > On Monday, February 02, 2015 08:45:30 PM Hanjun Guo wrote:
-> > > > From: Mark Salter <msalter@redhat.com>
-> > > > 
-> > > > The acpi_os_ioremap() function may be used to map normal RAM or IO
-> > > > regions. The current implementation simply uses ioremap_cache(). This
-> > > > will work for some architectures, but arm64 ioremap_cache() cannot be
-> > > > used to map IO regions which don't support caching. So for arm64, use
-> > > > ioremap() for non-RAM regions.
-> > > > 
-> > > > CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> > > > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > > ---
-> > > >  include/acpi/acpi_io.h | 6 ++++++
-> > > >  1 file changed, 6 insertions(+)
-> > > > 
-> > > > diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-> > > > index 444671e..9d573db 100644
-> > > > --- a/include/acpi/acpi_io.h
-> > > > +++ b/include/acpi/acpi_io.h
-> > > > @@ -1,11 +1,17 @@
-> > > >  #ifndef _ACPI_IO_H_
-> > > >  #define _ACPI_IO_H_
-> > > >  
-> > > > +#include <linux/mm.h>
-> > > >  #include <linux/io.h>
-> > > >  
-> > > >  static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-> > > >  					    acpi_size size)
-> > > >  {
-> > > > +#ifdef CONFIG_ARM64
-> > > > +	if (!page_is_ram(phys >> PAGE_SHIFT))
-> > > > +		return ioremap(phys, size);
-> > > > +#endif
-> > > 
-> > > I don't want to see #ifdef CONFIG_ARM64 in this file.
-> > > 
-> > 
-> > How about something like:
-> > 
-> > From: Mark Salter <msalter@redhat.com>
-> > Date: Tue, 3 Feb 2015 10:51:16 -0500
-> > Subject: [PATCH] acpi: fix acpi_os_ioremap for arm64
-> > 
-> > The acpi_os_ioremap() function may be used to map normal RAM or IO
-> > regions. The current implementation simply uses ioremap_cache(). This
-> > will work for some architectures, but arm64 ioremap_cache() cannot be
-> > used to map IO regions which don't support caching. So for arm64, use
-> > ioremap() for non-RAM regions.
-> > 
-> > CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > ---
-> >  arch/arm64/include/asm/acpi.h | 14 ++++++++++++++
-> >  include/acpi/acpi_io.h        |  3 +++
-> >  2 files changed, 17 insertions(+)
-> > 
-> > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> > index ea4d2b3..db82bc3 100644
+On Wed, Feb 04, 2015 at 09:48:05AM +0000, Hanjun Guo wrote:
+> On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 04:09, Catalin Marinas wrote:
+> > diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm=
+/acpi.h
+> > index ea4d2b35c57b..4fafd62b1b86 100644
 > > --- a/arch/arm64/include/asm/acpi.h
 > > +++ b/arch/arm64/include/asm/acpi.h
-> > @@ -14,6 +14,7 @@
-> >  
-> >  #include <linux/irqchip/arm-gic-acpi.h>
-> >  
-> > +#include <linux/mm.h>
-> >  #include <asm/smp_plat.h>
-> >  
-> >  /* Basic configuration for ACPI */
-> > @@ -100,4 +101,17 @@ static inline bool acpi_psci_use_hvc(void) { return false; }
-> >  static inline void acpi_init_cpus(void) { }
-> >  #endif /* CONFIG_ACPI */
-> >  
-> > +/*
-> > + * ACPI table mapping
-> > + */
-> > +static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-> > +					    acpi_size size)
-> > +{
-> > +	if (!page_is_ram(phys >> PAGE_SHIFT))
-> > +		return ioremap(phys, size);
-> > +
-> > +       return ioremap_cache(phys, size);
-> > +}
-> > +#define acpi_os_ioremap acpi_os_ioremap
-> 
-> If you want to do it this way, use __weak.  You won't need the #define then.
-> Otherwise, please use a proper CONFIG_ARCH_ symbol.
+> > @@ -49,33 +49,12 @@ static inline void enable_acpi(void)
+> >   	acpi_noirq =3D 0;
+> >   }
+> >
+> > -/* MPIDR value provided in GICC structure is 64 bits, but the
+> > - * existing phys_id (CPU hardware ID) using in acpi processor
+> > - * driver is 32-bit, to conform to the same datatype we need
+> > - * to repack the GICC structure MPIDR.
+> > - *
+> > - * bits other than following 32 bits are defined as 0, so it
+> > - * will be no information lost after repacked.
+> > - *
+> > - * Bits [0:7] Aff0;
+> > - * Bits [8:15] Aff1;
+> > - * Bits [16:23] Aff2;
+> > - * Bits [32:39] Aff3;
+> > - */
+> > -static inline u32 pack_mpidr(u64 mpidr)
+> > -{
+> > -	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
+> > -}
+> > -
+> >   /*
+> >    * The ACPI processor driver for ACPI core code needs this macro
+> >    * to find out this cpu was already mapped (mapping from CPU hard=
+ware
+> >    * ID to CPU logical ID) or not.
+> > - *
+> > - * cpu_logical_map(cpu) is the mapping of MPIDR and the logical cp=
+u,
+> > - * and MPIDR is the cpu hardware ID we needed to pack.
+> >    */
+> > -#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
+> > +#define cpu_physical_id(cpu) cpu_logical_map(cpu)
+> >
+> >   /*
+> >    * It's used from ACPI core in kdump to boot UP system with SMP k=
+ernel,
+> > diff --git a/arch/arm64/include/asm/smp_plat.h b/arch/arm64/include=
+/asm/smp_plat.h
+> > index 59e282311b58..a492276e008d 100644
+> > --- a/arch/arm64/include/asm/smp_plat.h
+> > +++ b/arch/arm64/include/asm/smp_plat.h
+> > @@ -40,4 +40,6 @@ static inline u32 mpidr_hash_size(void)
+> >   extern u64 __cpu_logical_map[NR_CPUS];
+> >   #define cpu_logical_map(cpu)    __cpu_logical_map[cpu]
+> >
+> > +typedef u64 cpuid_t;
+>=20
+> I think cpuid_t is a little confused because people may recognize
+> it as cpu logical id, its original meaning is the physical cpu ID,
+> so how about:
+>=20
+> typedef u64 phys_id_t; ?
 
-How does __weak work with inline functions?  I don't believe it does.
+I would keep "cpu" somewhere in the name as "phys" is too generic, mayb=
+e
+phys_cpuid_t.
 
-Moreover, __weak is positively harmful when you consider it adds bloat
-and dead code - the overriden __weak function is left behind in the
-resulting final image.
-
--- 
-FTTC broadband for 0.8mile line: currently at 10.5Mbps down 400kbps up
-according to speedtest.net.
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
