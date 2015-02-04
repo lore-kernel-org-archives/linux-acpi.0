@@ -1,45 +1,256 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Wed, 4 Feb 2015 10:41:11 -0600
-Message-ID: <CAErSpo69LoS0P_bzJ2JJyF=H_YyJua85FCJ7DdMi2_na=aHRiA@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v8 11/21] ARM64 / ACPI: Get PSCI flags in FADT for PSCI
+ init
+Date: Wed, 4 Feb 2015 16:43:28 +0000
+Message-ID: <20150204164328.GF22035@red-moon>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <2422968.Es7R0p3loO@vostro.rjw.lan> <1422984576.18187.82.camel@deneb.redhat.com>
- <8901765.mLfPOCUyAN@vostro.rjw.lan> <20150204104832.GF8656@n2100.arm.linux.org.uk>
- <CAErSpo71fVU5mJgXnxMwiE_TUrNyfSYHo5RDF-=u2BK5grDYAw@mail.gmail.com> <20150204162536.GJ8656@n2100.arm.linux.org.uk>
+ <1422881149-8177-12-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f177.google.com ([209.85.216.177]:47214 "EHLO
-	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965319AbbBDQlc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 11:41:32 -0500
-Received: by mail-qc0-f177.google.com with SMTP id p6so2110640qcv.8
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Feb 2015 08:41:32 -0800 (PST)
-In-Reply-To: <20150204162536.GJ8656@n2100.arm.linux.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1422881149-8177-12-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Salter <msalter@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, phoenix.liyi@huawei.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.o>
 
-On Wed, Feb 4, 2015 at 10:25 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Feb 04, 2015 at 09:53:28AM -0600, Bjorn Helgaas wrote:
->> On Wed, Feb 4, 2015 at 4:48 AM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > Moreover, __weak is positively harmful when you consider it adds bloat
->> > and dead code - the overriden __weak function is left behind in the
->> > resulting final image.
->>
->> Huh, I didn't realize that.  Is that a linker bug, or is there some
->> reason the weak function has to be in the final image?  I tried a
->> trivial test on x86 with gcc-4.8.2/ld-2.24, and I think the weak
->> function text was omitted, but a string constant used only by the weak
->> function was included.
-> ...
-> The reason this happens is because normally, each function text is
-> emitted into the .text section of the object file, one after each
-> other.  When the image is linked, the linker copies the contents of
-> the complete input section to the output file, and then resolves the
-> symbolic information and relocations.
+On Mon, Feb 02, 2015 at 12:45:39PM +0000, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+> 
+> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
+> the former signals to the OS that the firmware is PSCI compliant.
+> The latter selects the appropriate conduit for PSCI calls by
+> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
+> (SMC).
+> 
+> FADT table contains such information in ACPI 5.1, FADT table was
+> parsed in ACPI table init and copy to struct acpi_gbl_FADT, so
+> use the flags in struct acpi_gbl_FADT for PSCI init.
 
-OK, that makes sense.  Thanks a lot for the detailed explanation!
+So you do rely on a global FADT being available, if you use it for PSCI
+detection you can use it for ACPI revision detection too, right ?
+
+Point is, either we should not use the global FADT table, or we use
+it consistently, or there is something I am unaware of that prevents
+you from using in some code paths and I would like to understand
+why.
+
+Thanks,
+Lorenzo
+
+> 
+> Since ACPI 5.1 doesn't support self defined PSCI function IDs,
+> which means that only PSCI 0.2+ is supported in ACPI.
+> 
+> CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> Tested-by: Jon Masters <jcm@redhat.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h | 14 ++++++++
+>  arch/arm64/include/asm/psci.h |  3 +-
+>  arch/arm64/kernel/psci.c      | 78 ++++++++++++++++++++++++++++++-------------
+>  arch/arm64/kernel/setup.c     |  8 +++--
+>  4 files changed, 75 insertions(+), 28 deletions(-)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 9fcf632..1aea87c 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -19,6 +19,18 @@ extern int acpi_disabled;
+>  extern int acpi_noirq;
+>  extern int acpi_pci_disabled;
+>  
+> +/* 1 to indicate PSCI 0.2+ is implemented */
+> +static inline bool acpi_psci_present(void)
+> +{
+> +	return acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_COMPLIANT;
+> +}
+> +
+> +/* 1 to indicate HVC must be used instead of SMC as the PSCI conduit */
+> +static inline bool acpi_psci_use_hvc(void)
+> +{
+> +	return acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_USE_HVC;
+> +}
+> +
+>  static inline void disable_acpi(void)
+>  {
+>  	acpi_disabled = 1;
+> @@ -50,6 +62,8 @@ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+>  #else
+>  static inline void disable_acpi(void) { }
+>  static inline void enable_acpi(void) { }
+> +static inline bool acpi_psci_present(void) { return false; }
+> +static inline bool acpi_psci_use_hvc(void) { return false; }
+>  #endif /* CONFIG_ACPI */
+>  
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/include/asm/psci.h b/arch/arm64/include/asm/psci.h
+> index e5312ea..2454bc5 100644
+> --- a/arch/arm64/include/asm/psci.h
+> +++ b/arch/arm64/include/asm/psci.h
+> @@ -14,6 +14,7 @@
+>  #ifndef __ASM_PSCI_H
+>  #define __ASM_PSCI_H
+>  
+> -int psci_init(void);
+> +int psci_dt_init(void);
+> +int psci_acpi_init(void);
+>  
+>  #endif /* __ASM_PSCI_H */
+> diff --git a/arch/arm64/kernel/psci.c b/arch/arm64/kernel/psci.c
+> index f1dbca7..0ec0dc5 100644
+> --- a/arch/arm64/kernel/psci.c
+> +++ b/arch/arm64/kernel/psci.c
+> @@ -15,6 +15,7 @@
+>  
+>  #define pr_fmt(fmt) "psci: " fmt
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/init.h>
+>  #include <linux/of.h>
+>  #include <linux/smp.h>
+> @@ -24,6 +25,7 @@
+>  #include <linux/slab.h>
+>  #include <uapi/linux/psci.h>
+>  
+> +#include <asm/acpi.h>
+>  #include <asm/compiler.h>
+>  #include <asm/cpu_ops.h>
+>  #include <asm/errno.h>
+> @@ -304,6 +306,33 @@ static void psci_sys_poweroff(void)
+>  	invoke_psci_fn(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
+>  }
+>  
+> +static void __init psci_0_2_set_functions(void)
+> +{
+> +	pr_info("Using standard PSCI v0.2 function IDs\n");
+> +	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
+> +	psci_ops.cpu_suspend = psci_cpu_suspend;
+> +
+> +	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
+> +	psci_ops.cpu_off = psci_cpu_off;
+> +
+> +	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
+> +	psci_ops.cpu_on = psci_cpu_on;
+> +
+> +	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
+> +	psci_ops.migrate = psci_migrate;
+> +
+> +	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
+> +	psci_ops.affinity_info = psci_affinity_info;
+> +
+> +	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
+> +		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
+> +	psci_ops.migrate_info_type = psci_migrate_info_type;
+> +
+> +	arm_pm_restart = psci_sys_reset;
+> +
+> +	pm_power_off = psci_sys_poweroff;
+> +}
+> +
+>  /*
+>   * PSCI Function IDs for v0.2+ are well defined so use
+>   * standard values.
+> @@ -337,29 +366,7 @@ static int __init psci_0_2_init(struct device_node *np)
+>  		}
+>  	}
+>  
+> -	pr_info("Using standard PSCI v0.2 function IDs\n");
+> -	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
+> -	psci_ops.cpu_suspend = psci_cpu_suspend;
+> -
+> -	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
+> -	psci_ops.cpu_off = psci_cpu_off;
+> -
+> -	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
+> -	psci_ops.cpu_on = psci_cpu_on;
+> -
+> -	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
+> -	psci_ops.migrate = psci_migrate;
+> -
+> -	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
+> -	psci_ops.affinity_info = psci_affinity_info;
+> -
+> -	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
+> -		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
+> -	psci_ops.migrate_info_type = psci_migrate_info_type;
+> -
+> -	arm_pm_restart = psci_sys_reset;
+> -
+> -	pm_power_off = psci_sys_poweroff;
+> +	psci_0_2_set_functions();
+>  
+>  out_put_node:
+>  	of_node_put(np);
+> @@ -412,7 +419,7 @@ static const struct of_device_id psci_of_match[] __initconst = {
+>  	{},
+>  };
+>  
+> -int __init psci_init(void)
+> +int __init psci_dt_init(void)
+>  {
+>  	struct device_node *np;
+>  	const struct of_device_id *matched_np;
+> @@ -427,6 +434,29 @@ int __init psci_init(void)
+>  	return init_fn(np);
+>  }
+>  
+> +/*
+> + * We use PSCI 0.2+ when ACPI is deployed on ARM64 and it's
+> + * explicitly clarified in SBBR
+> + */
+> +int __init psci_acpi_init(void)
+> +{
+> +	if (!acpi_psci_present()) {
+> +		pr_info("is not implemented in ACPI.\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	pr_info("probing for conduit method from ACPI.\n");
+> +
+> +	if (acpi_psci_use_hvc())
+> +		invoke_psci_fn = __invoke_psci_fn_hvc;
+> +	else
+> +		invoke_psci_fn = __invoke_psci_fn_smc;
+> +
+> +	psci_0_2_set_functions();
+> +
+> +	return 0;
+> +}
+> +
+>  #ifdef CONFIG_SMP
+>  
+>  static int __init cpu_psci_cpu_init(struct device_node *dn, unsigned int cpu)
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index 553967d..43ae914 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -446,10 +446,12 @@ void __init setup_arch(char **cmdline_p)
+>  	efi_idmap_init();
+>  	early_ioremap_reset();
+>  
+> -	if (acpi_disabled)
+> +	if (acpi_disabled) {
+>  		unflatten_device_tree();
+> -
+> -	psci_init();
+> +		psci_dt_init();
+> +	} else {
+> +		psci_acpi_init();
+> +	}
+>  
+>  	cpu_read_bootcpu_ops();
+>  #ifdef CONFIG_SMP
+> -- 
+> 1.9.1
+> 
+> 
