@@ -1,94 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/5] ACPI: move acpi_os_handler() so it can be made arch-dependent later
-Date: Thu, 05 Feb 2015 00:21:34 +0100
-Message-ID: <31637855.MY7BmyVont@vostro.rjw.lan>
-References: <1423009304-5007-1-git-send-email-al.stone@linaro.org> <3836210.OLr0JokInG@vostro.rjw.lan> <54D2A0E2.8050504@redhat.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: ACPI PCC probe failed.
+Date: Wed, 4 Feb 2015 18:38:39 -0500
+Message-ID: <CAJ5Y-eY7H=3su7Ahnk47CCfDt+Gnwz0zUAC7XqizyydhhTuG-Q@mail.gmail.com>
+References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com>
+	<2240641.KgmUOJm3t4@vostro.rjw.lan>
+	<CAJ5Y-eY=1YAeD3jCxSzuws=9qZQu2vcTgG9eBR0Nu+C6qNst2g@mail.gmail.com>
+	<3901813.ZV5Z0Wofju@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <54D2A0E2.8050504@redhat.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: al.stone@linaro.org, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <3901813.ZV5Z0Wofju@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 04, 2015 03:44:50 PM Al Stone wrote:
-> On 02/04/2015 06:50 AM, Rafael J. Wysocki wrote:
-> > On Tuesday, February 03, 2015 05:21:40 PM al.stone@linaro.org wrote:
-> >> From: Al Stone <al.stone@linaro.org>
-> >>
-> >> In order to deprecate the use of _OSI for arm64 or other new architectures,
-> >> we need to make the default handler something we can change for various
-> >> platforms.  This patch moves the definition of acpi_osi_handler() -- the
-> >> function used by ACPICA as a callback for evaluating _OSI -- into a separate
-> >> file.  Subsequent patches will change which files get built so that we can
-> >> then build the version of _OSI we need for a particular architecture.
-> >>
-> >> There is no functional change.
-> >>
-> >> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >> ---
-> >>  drivers/acpi/Makefile |   2 +-
-> >>  drivers/acpi/osi.c    | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> >>  drivers/acpi/osl.c    |  24 ------------
-> >>  include/linux/acpi.h  |   1 +
-> >>  4 files changed, 102 insertions(+), 25 deletions(-)
-> >>  create mode 100644 drivers/acpi/osi.c
-> >>
-> >> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> >> index c346011..df348b3 100644
-> >> --- a/drivers/acpi/Makefile
-> >> +++ b/drivers/acpi/Makefile
-> >> @@ -18,7 +18,7 @@ obj-y				+= acpi.o \
-> >>  					acpica/
-> >>  
-> >>  # All the builtin files are in the "acpi." module_param namespace.
-> >> -acpi-y				+= osl.o utils.o reboot.o
-> >> +acpi-y				+= osl.o utils.o reboot.o osi.o
-> >>  acpi-y				+= nvs.o
-> >>  
-> >>  # Power management related files
-> >> diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
-> >> new file mode 100644
-> >> index 0000000..fff2b0c
-> >> --- /dev/null
-> >> +++ b/drivers/acpi/osi.c
-> >> @@ -0,0 +1,100 @@
-> >> +/*
-> >> + *  osi.c - _OSI implementation (moved from drivers/acpi/osl.c)
-> >> + *
-> >> + *  Copyright (C) 2000       Andrew Henroid
-> >> + *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-> >> + *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-> >> + *  Copyright (c) 2008 Intel Corporation
-> >> + *   Author: Matthew Wilcox <willy@linux.intel.com>
-> >> + *
-> >> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> >> + *
-> >> + *  This program is free software; you can redistribute it and/or modify
-> >> + *  it under the terms of the GNU General Public License as published by
-> >> + *  the Free Software Foundation; either version 2 of the License, or
-> >> + *  (at your option) any later version.
-> >> + *
-> >> + *  This program is distributed in the hope that it will be useful,
-> >> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >> + *  GNU General Public License for more details.
-> > 
-> > Nit: The street address of the FSF is not really useful here.  What if they move? :-)
-> 
-> This was one of the things checkpatch complained about, understandably :).  It's
-> a direct cut'n'paste from osl.c.
-> 
-> I can clean these up in the new file; would it help to clean up osl.c (at least
-> from checkpatch's point of view), as long as I'm at it?
+On 4 February 2015 at 18:04, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, February 04, 2015 05:06:26 PM Ashwin Chaugule wrote:
+>> > I have one more concern about this driver.  Namely, what benefit is there to
+>> > people like Cristian from it at all?
+>>
+>> Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
+>> Looks like PCC was explicitly enabled in this kernel.
+>>
+>> config PCC
+>> bool "Platform Communication Channel Driver"
+>> depends on ACPI
+>
+> Can we make it depend on the clients instead and be set automatically
+> when at least one of the clients is enabled?
+>
+> Otherwise distros will have a problem with deciding whether or not they
+> should enable this driver and most of them will end up enabling it.
 
-Yeah, won't hurt. :-)
+I see your point, but I'm not aware of any upstreamed client as of
+yet. There might be folks using this driver internally though with
+other clients. In such a case, is there a way to keep PCC disabled
+until a client (e.g. CPPC) is upstreamed?
 
-In a separate patch please, though.
+Alternately, is it that bad to keep it the way it is, given that the
+driver wont do anything unless PCCT is detected in firmware and a PCC
+client explicitly uses its API?
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks,
+Ashwin
