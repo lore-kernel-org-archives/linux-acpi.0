@@ -1,91 +1,183 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: ACPI PCC probe failed.
-Date: Wed, 4 Feb 2015 17:06:26 -0500
-Message-ID: <CAJ5Y-eY=1YAeD3jCxSzuws=9qZQu2vcTgG9eBR0Nu+C6qNst2g@mail.gmail.com>
-References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com>
-	<158128306.gX9FjqECDu@vostro.rjw.lan>
-	<CAJ5Y-eaBH6q7X5ZC-UgCLnxOO9nXnJPY-kdq417qHhG0M-+obw@mail.gmail.com>
-	<2240641.KgmUOJm3t4@vostro.rjw.lan>
+From: Al Stone <al.stone@linaro.org>
+Subject: [RFC v3] ACPI on arm64 TODO List, 4 Feb 2015
+Date: Wed, 04 Feb 2015 15:39:16 -0700
+Message-ID: <54D29F94.4080709@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37907 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932669AbbBDWGb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 17:06:31 -0500
-Received: by mail-wi0-f174.google.com with SMTP id n3so35089367wiv.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Feb 2015 14:06:30 -0800 (PST)
-In-Reply-To: <2240641.KgmUOJm3t4@vostro.rjw.lan>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:44937 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964887AbbBDWjU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 17:39:20 -0500
+Received: by mail-ie0-f170.google.com with SMTP id y20so5924216ier.1
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Feb 2015 14:39:19 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
 
-On 4 February 2015 at 17:14, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, February 04, 2015 09:56:20 AM Ashwin Chaugule wrote:
->> Hi Rafael,
->>
->> On 4 February 2015 at 08:48, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Tuesday, February 03, 2015 09:44:36 PM Cristian wrote:
->> >> 2015-02-03 12:11 GMT-03:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
->> >> > On Tuesday, February 03, 2015 10:40:00 AM Cristian wrote:
->> >
->> > So it looks like you build the PCC mailbox driver which is new in 3.19-rc and
->> > that driver fails to load, because it doesn't find hardware to work with.
->> >
->> > The message is harmless, but it also is not useful.  The driver in question
->> > seems to be overly verbose to me in general.
->>
->> Apologies. Looks like leftover from some early "printk" style debugging. :)
->
-> Well, does that mean I should apply the patch below?
+Update for 4 Feb 2015:
 
-Sure. Thanks.
+Back in September 2014, a meeting was held at Linaro Connect where we
+discussed what issues remained before the arm64 ACPI core patches could
+be merged into the kernel, creating the TODO list below.  I should have
+published this list sooner; I got focused on trying to resolve some of
+the issues instead.
 
->
->> > The patch below should make the message go away unless the printing of debug
->> > messages is on.
->> >
->> > Ashwin, that whole thing requires cleaning up:
->> >  - It prints uninteresting debug messages with KERN_ERR or warning priority in
->> >    *many* places.
->> >  - The error codes from acpi_pcc_probe() are ignored, so why bother to return
->> >    any error codes from there?
->> >  - If platform_create_bundle() fails, the debug message doesn't tell us the
->> >    reason, so why bother to print it?
->> >
->> > I'm not going to consider any users of this for merging before that cleanup
->> > happens.
->>
->> In V4 of the CPPC patchset I've simplified the PCC code a lot which
->> should make many of the prints go away. Can we consider that patch
->> (I'll add any more pr_debugs to it) or would you prefer having a
->> separate cleanup patch for this?
->
-> This is a patch for the mailbox subsystem maintainer to consider.  If it is
-> accepted and if there are any of these excessvely verbose messages still present,
-> I'll expect them to be fixed in a separate patch.
+We have made some progress on all of these items.  But, I want to make
+sure we haven't missed something.  Since this list was compiled by only
+the people in the room at Connect, it is probable we have.  I, for one,
+do not yet claim omniscience.
 
-Ok.
+So, I want to ask the ARM and ACPI communities:
 
->
-> I have one more concern about this driver.  Namely, what benefit is there to
-> people like Cristian from it at all?
+  -- Is this list correct?
 
-Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
-Looks like PCC was explicitly enabled in this kernel.
+  -- Is this list complete?
 
-config PCC
-bool "Platform Communication Channel Driver"
-depends on ACPI
-help
- ACPI 5.0+ spec defines a generic mode of communication
- between the OS and a platform such as the BMC. This medium
- (PCC) is typically used by CPPC (ACPI CPU Performance management),
- RAS (ACPI reliability protocol) and MPST (ACPI Memory power
- states). Select this driver if your platform implements the
- PCC clients mentioned above.
+Below is what we currently know about; very brief notes on status are
+included.  The TL;DR versions of the TODO list and the current status
+can be found at:
+
+   https://wiki.linaro.org/LEG/Engineering/Kernel/ACPI/CoreUpstreamNotes
+
+and I'll do my best to kept that up to date.
+
+Thanks.  Any and all feedback is greatly appreciated.
 
 
-Thanks,
-Ashwin
+Changes since 11 Jan 2015:
+-- v7 of ACPI core patches posted; lots of discussion around GICs,
+   documentation, and how to handle acpi=force
+-- Merging requested, discussed, NAK'd until further changes and sign-offs
+   and ACKs from subsystem maintainers
+-- v8 of ACPI core patches posted, updated per v7 discussions; significant
+   changes to GIC handling and documentation, much larger collection of
+   sign-offs of all kinds; _OSC and _DSD review processes suggested; handling
+   of acpi=force codified
+-- v1 of _OSI patches posted; v2 posted today; _OSC addressed in ACPI core v8
+   patches
+-- Additional FWTS runs, CI loop integration
+-- luvOS v1 patches posted and reviewed; working on updating GRUB and FWTS; CI
+   loop built and running
+-- _DSD process suggested in ACPI core v8 patches
+-- Grant's summary of the ACPI rationale now part of the documentation
+
+
+Changes since 14 Dec 2014:
+-- v6 of ACPI core patches posted
+-- Good progress in _OSI investigation, started preparing RFC for the
+   mailing lists
+-- Precise definition of kernel behavior when defaulting to DT and/or
+   using acpi=force being discussed again
+-- FWTS now runs and results posted after each merge of leg-kernel
+   (includes ACPI) with Linus' tree (i.e., each -rc).
+-- ACPI on arm64 kernel document updated, under extensive discussion on
+   the lists; starting coordination with SBBR content.
+-- Firmware Summit: planned for 26 Mar 2015, San Jose, CA, at the ARM
+   office; mailing list (with archives) now up and running; updated
+   agenda being prepared
+-- Merged items "Demonstrate the ACPI core patches work", and "Platform
+   support patches need review" because of their similarity.
+-- Further discussions have occurred regarding "Why ACPI?" and the
+   usage of _DSD, more still needed
+
+
+TODO List for ACPI on arm64:
+============================
+1. Define how Aarch64 OS identifies itself to firmware
+   * Problem:
+     * _OSI method is demonstrably unreliable. On x86, Linux claims to
+       be Windows.
+     * Proposal to use _OSC method as replacement is complicated and
+       creates an explosion of combinations
+   * Solution:
+     * Draft and propose OS identification rules to ABST and ASWG for
+       inclusion in ACPI spec.
+     * Draft and propose recommended practice for current ACPI 5.1 spec
+       platforms.
+   * Status: general agreement to deprecate _OSI completely, replace _OS_,
+     and v2 of patches to do so posted (https://lkml.org/lkml/2015/2/3/877);
+     _OSC process suggested in ACPI on arm64 documentation
+
+2. Linux must choose DT booting by default when offered both ACPI and DT
+   on arm64
+   * Status: DONE, again, after incorporating discussion into v8 of core patches
+
+3. Linux UEFI/ACPI testing tools must be made available
+   * Problem:
+     * Hardware/Firmware vendors do not have tools to test Linux compatibility.
+     * Common problems go undetected if not tested for.
+   * Solution:
+     * Port FWTS tool and LuvOS distribution to AArch64
+     * Make LuvOS images readily available
+     * Require hardware vendors to actively test against old and new kernels.
+   * Status:
+     * LuvOS and FWTS ported to arm64; patches in mainline; additional test
+       cases being written.
+     * CI loop set up to run FWTS on Foundation model for each -rc merge of
+       Linus' tree into leg-kernel.
+     * AMD Seattle results pending updated kernel patches.
+     * LuvOS details at https://wiki.linaro.org/LEG/Engineering/luvOS
+       * v1 patches out and reviewed
+       * CI loop up and running
+       * Working on update of GRUB2 and FWTS
+
+4. Set clear expectations for those providing ACPI for use with Linux
+   * Problem:
+     * Hardware/Firmware vendors can and will create ACPI tables that
+       cannot be used by Linux without some guidance
+     * Kernel developers cannot determine whether the kernel or firmware
+       is broken without knowing what the firmware should do
+   * Solution: document the expectations, and iterate as needed.  Enforce
+     when we must.
+   * Status: significant rewrite and additions to kernel documentation;
+     starting to coordinate content with SBBR; firmware summit date and
+     location firm, agenda updated, kernel docs shared for discussion.
+
+5. Platform support patches need verification and review
+   * Problem: the core Aarch64 patches have been reviewed and are in good
+     shape, but there is not yet a good example of server platform support
+     patches that use them.
+   * Solution: post *good* patches for multiple ACPI platforms, demonstrating
+     that both the core patches work, and that the use of the ACPI core makes
+     sense.
+   * Status:
+     * Lots of changes to subsystem patches (GIC, PCI, ...) all over the place
+     * ACPI core works on at least the Foundation model, Juno, APM Mustang,
+       and AMD Seattle
+     * FWTS results for the Foundation model have been posted
+     * First version for AMD Seattle has been posted to the public linaro-acpi
+       mailing list for initial review, refined versions to be posted to
+       broader lists after a few iterations for basic cleanup
+
+6. How does the kernel handle_DSD usage?
+   * Problem:
+     * _DSD defines key-value properties in the DT style. How do we ensure
+       _DSD bindings are well defined?
+     * How do we ensure DT and _DSD bindings remain consistent with each other?
+   * Solution: public documentation for all bindings, and a process for
+     defining them
+   * Status: proposal documented in ACPI core patches to require patch authors
+     to submit bindings with drivers, then register with UEFI Forum; kernel
+     Documentation/devicetree/bindings remains the default if no other location
+     exists.
+
+7. Why is ACPI required?
+   * Problem:
+     * arm64 maintainers still haven't been convinced that ACPI is necessary.
+     * Why do hardware and OS vendors say ACPI is required?
+   * Solution: discussions between those who want ACPI and arm64 maintainers
+   * Status: DONE, and documentation added to proposed kernel docs; firmware
+     summit for broader discussion still planned.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
