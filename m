@@ -1,93 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 3/5] ACPI: add arch-specific compilation for _OSI and the blacklist
-Date: Wed, 04 Feb 2015 15:03:22 +0100
-Message-ID: <2903181.4VVp3X75UK@vostro.rjw.lan>
-References: <1423009304-5007-1-git-send-email-al.stone@linaro.org> <1423009304-5007-4-git-send-email-al.stone@linaro.org> <2298661.ffvhncbLpr@vostro.rjw.lan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v3 03/20] power_supply: Add API for safe access of power
+ supply function attrs
+Date: Wed, 4 Feb 2015 14:44:56 +0100
+Message-ID: <20150204134456.GA8312@amd>
+References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
+ <1422629278-12202-4-git-send-email-k.kozlowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64650 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S965000AbbBDNk2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 08:40:28 -0500
-In-Reply-To: <2298661.ffvhncbLpr@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1422629278-12202-4-git-send-email-k.kozlowski@samsung.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
 List-Id: linux-acpi@vger.kernel.org
-To: al.stone@linaro.org
-Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On Wednesday, February 04, 2015 03:00:15 PM Rafael J. Wysocki wrote:
-> On Tuesday, February 03, 2015 05:21:42 PM al.stone@linaro.org wrote:
-> > From: Al Stone <al.stone@linaro.org>
-> > 
-> > Now that all of the _OSI functionality has been separated out, we can
-> > provide arch-specific functionality for it.  This also allows us to do
-> > the same for the acpi_blacklisted() function.
-> > 
-> > Whether arch-specific functions are used or not now depends on the config
-> > options CONFIG_ACPI_ARCH_SPECIFIC_OSI and CONFIG_ARCH_SPECIFIC_BLACKLIST.
-> > By default, both are set false which causes the x86/ia64 versions to be
-> > used, just as is done today.  Setting one or both of these options true
-> > will cause architecture-specific implementations to be built instead; this
-> > patch also provides arm64 implementations.
-> > 
-> > For x86/ia64, there is no functional change.
-> > 
-> > For arm64, any use of _OSI will issue a warning that it is deprecated.
-> > All use of _OSI will return false -- i.e., it will return no useful
-> > information to any firmware using it.  The ability to temporarily turn
-> > on _OSI, or turn off _OSI, or affect it in other ways from the command
-> > line is no longer available for arm64, either.  The blacklist for ACPI
-> > on arm64 is empty.  This will, of course, require ACPI to be enabled
-> > for arm64.
-> > 
-> > Signed-off-by: Al Stone <al.stone@linaro.org>
-> > ---
-> >  drivers/acpi/Kconfig         | 22 ++++++++++++++++++++++
-> >  drivers/acpi/Makefile        | 19 ++++++++++++++++++-
-> >  drivers/acpi/blacklist-arm.c | 20 ++++++++++++++++++++
-> >  drivers/acpi/blacklist.c     |  5 +++++
-> >  drivers/acpi/osi-arm.c       | 25 +++++++++++++++++++++++++
-> >  5 files changed, 90 insertions(+), 1 deletion(-)
-> >  create mode 100644 drivers/acpi/blacklist-arm.c
-> >  create mode 100644 drivers/acpi/osi-arm.c
-> > 
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 3e3bd35..4190940 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -369,6 +369,28 @@ config ACPI_REDUCED_HARDWARE_ONLY
-> >  
-> >  	  If you are unsure what to do, do not enable this option.
-> >  
-> > +config ACPI_ARCH_SPECIFIC_OSI
+On Fri 2015-01-30 15:47:41, Krzysztof Kozlowski wrote:
+> Add simple wrappers for accessing power supply's function attributes:
+>  - get_property -> power_supply_get_property
+>  - set_property -> power_supply_set_property
+>  - property_is_writeable -> power_supply_property_is_writeable
+>  - external_power_changed -> power_supply_external_power_changed
 > 
-> I woulnd't make this and the other one user-selectable.  Let architectures
-> select them from their top-level Kconfig files.
+> This API along with atomic usage counter adds a safe way of accessing a
+> power supply from another driver. If power supply is unregistered after
+> obtaining reference to it by some driver, then the API wrappers won't be
+> executed in invalid (freed) context.
 > 
-> That's what we do with the other CONFIG_ARCH_ things.
+> Next patch changing the ownership of power supply class is still needed
+> to fully fix race conditions in accessing freed power supply.
 > 
-> So in the architecture-specific Kconfig you'll have
-> 
-> config ACPI_ARCH_SPECIFIC_OSI
-> 	def_bool n
-> 	depends on ACPI
-> 
-> Moreover, I'd call that ARCH_SPECIFIC_ACPI_OSI.
+> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Reviewed-by: Sebastian Reichel <sre@kernel.org>
 
-Or even better, you can define them here (drivers/acpi/Kconfig/) as
-
-config ARCH_SPECIFIC_ACPI_OSI
-	def_bool n
-
-and then do
-
-	select ARCH_SPECIFIC_ACPI_OSI if ACPI
-
-as you did in [4/5].
-
+For 1-3: Acked-by: Pavel Machek <pavel@ucw.cz>
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
