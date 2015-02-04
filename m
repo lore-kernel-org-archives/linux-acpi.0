@@ -1,196 +1,212 @@
 From: al.stone@linaro.org
-Subject: [PATCH v2 3/5] ACPI: add arch-specific compilation for _OSI and the blacklist
-Date: Tue,  3 Feb 2015 17:21:42 -0700
-Message-ID: <1423009304-5007-4-git-send-email-al.stone@linaro.org>
+Subject: [PATCH v2 1/5] ACPI: move acpi_os_handler() so it can be made
+ arch-dependent later
+Date: Tue,  3 Feb 2015 17:21:40 -0700
+Message-ID: <1423009304-5007-2-git-send-email-al.stone@linaro.org>
 References: <1423009304-5007-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:37921 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933591AbbBDAWD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Feb 2015 19:22:03 -0500
-Received: by mail-ig0-f177.google.com with SMTP id z20so382737igj.4
-        for <linux-acpi@vger.kernel.org>; Tue, 03 Feb 2015 16:22:03 -0800 (PST)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1423009304-5007-1-git-send-email-al.stone@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com
-Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+Cc: linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: Al Stone <al.stone@linaro.org>
 
-Now that all of the _OSI functionality has been separated out, we can
-provide arch-specific functionality for it.  This also allows us to do
-the same for the acpi_blacklisted() function.
+In order to deprecate the use of _OSI for arm64 or other new architectures,
+we need to make the default handler something we can change for various
+platforms.  This patch moves the definition of acpi_osi_handler() -- the
+function used by ACPICA as a callback for evaluating _OSI -- into a separate
+file.  Subsequent patches will change which files get built so that we can
+then build the version of _OSI we need for a particular architecture.
 
-Whether arch-specific functions are used or not now depends on the config
-options CONFIG_ACPI_ARCH_SPECIFIC_OSI and CONFIG_ARCH_SPECIFIC_BLACKLIST.
-By default, both are set false which causes the x86/ia64 versions to be
-used, just as is done today.  Setting one or both of these options true
-will cause architecture-specific implementations to be built instead; this
-patch also provides arm64 implementations.
-
-For x86/ia64, there is no functional change.
-
-For arm64, any use of _OSI will issue a warning that it is deprecated.
-All use of _OSI will return false -- i.e., it will return no useful
-information to any firmware using it.  The ability to temporarily turn
-on _OSI, or turn off _OSI, or affect it in other ways from the command
-line is no longer available for arm64, either.  The blacklist for ACPI
-on arm64 is empty.  This will, of course, require ACPI to be enabled
-for arm64.
+There is no functional change.
 
 Signed-off-by: Al Stone <al.stone@linaro.org>
 ---
- drivers/acpi/Kconfig         | 22 ++++++++++++++++++++++
- drivers/acpi/Makefile        | 19 ++++++++++++++++++-
- drivers/acpi/blacklist-arm.c | 20 ++++++++++++++++++++
- drivers/acpi/blacklist.c     |  5 +++++
- drivers/acpi/osi-arm.c       | 25 +++++++++++++++++++++++++
- 5 files changed, 90 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/blacklist-arm.c
- create mode 100644 drivers/acpi/osi-arm.c
+ drivers/acpi/Makefile |   2 +-
+ drivers/acpi/osi.c    | 100 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/osl.c    |  24 ------------
+ include/linux/acpi.h  |   1 +
+ 4 files changed, 102 insertions(+), 25 deletions(-)
+ create mode 100644 drivers/acpi/osi.c
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 3e3bd35..4190940 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -369,6 +369,28 @@ config ACPI_REDUCED_HARDWARE_ONLY
- 
- 	  If you are unsure what to do, do not enable this option.
- 
-+config ACPI_ARCH_SPECIFIC_OSI
-+	bool "Use an arch-specific _OSI implementation" if EXPERT
-+	def_bool n
-+	help
-+	  If this option is set, the ACPI driver will use an
-+	  implementation of _OSI that is specific to the target
-+	  architecture, instead of the default implementation
-+	  originally created for x86 and then used on ia64.
-+
-+	  If you are unsure what to do, do not enable this option.
-+
-+config ACPI_ARCH_SPECIFIC_BLACKLIST
-+	bool "Use an arch-specific ACPI blacklist" if EXPERT
-+	def_bool n
-+	help
-+	  If this option is set, the ACPI driver will use a blacklist
-+	  that is specific to the target architecture, instead of the
-+	  default implementation originally created for x86 and then
-+	  used on ia64.
-+
-+	  If you are unsure what to do, do not enable this option.
-+
- source "drivers/acpi/apei/Kconfig"
- 
- config ACPI_EXTLOG
 diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index df348b3..beefb17 100644
+index c346011..df348b3 100644
 --- a/drivers/acpi/Makefile
 +++ b/drivers/acpi/Makefile
-@@ -18,9 +18,26 @@ obj-y				+= acpi.o \
+@@ -18,7 +18,7 @@ obj-y				+= acpi.o \
  					acpica/
  
  # All the builtin files are in the "acpi." module_param namespace.
--acpi-y				+= osl.o utils.o reboot.o osi.o
-+acpi-y				+= osl.o utils.o reboot.o
+-acpi-y				+= osl.o utils.o reboot.o
++acpi-y				+= osl.o utils.o reboot.o osi.o
  acpi-y				+= nvs.o
  
-+# _OSI related files
-+ifeq ($(CONFIG_ACPI_ARCH_SPECIFIC_OSI), y)
-+ifeq ($(ARCH), arm64)
-+acpi-y				+= osi-arm.o
-+endif
-+else # X86, IA64
-+acpi-y				+= osi.o
-+endif
-+
-+ifeq ($(CONFIG_ACPI_ARCH_SPECIFIC_BLACKLIST), y)
-+ifeq ($(ARCH), arm64)
-+acpi-y				+= blacklist-arm.o
-+endif
-+else # X86, IA64
-+acpi-y				+= blacklist.o
-+endif
-+
  # Power management related files
- acpi-y				+= wakeup.o
- ifeq ($(ARCH), arm64)
-diff --git a/drivers/acpi/blacklist-arm.c b/drivers/acpi/blacklist-arm.c
+diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
 new file mode 100644
-index 0000000..1be6a56
+index 0000000..fff2b0c
 --- /dev/null
-+++ b/drivers/acpi/blacklist-arm.c
-@@ -0,0 +1,20 @@
++++ b/drivers/acpi/osi.c
+@@ -0,0 +1,100 @@
 +/*
-+ *  ARM64 Specific ACPI Blacklist Support
++ *  osi.c - _OSI implementation (moved from drivers/acpi/osl.c)
 + *
-+ *  Copyright (C) 2015, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
++ *  Copyright (C) 2000       Andrew Henroid
++ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
++ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
++ *  Copyright (c) 2008 Intel Corporation
++ *   Author: Matthew Wilcox <willy@linux.intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
 + *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
 + */
-+
-+#define pr_fmt(fmt) "ACPI: " fmt
 +
 +#include <linux/acpi.h>
 +
-+/* The arm64 ACPI blacklist is currently empty.  */
-+int __init acpi_blacklisted(void)
-+{
-+	return 0;
-+}
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 3931e19..222c82d 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -34,9 +34,14 @@
- 
- #include "internal.h"
- 
-+#ifdef CONFIG_ACPI_ARCH_SPECIFIC_OSI
-+void __init acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d) { }
-+void __init acpi_osi_setup(char *str) { }
-+#else
- extern void __init acpi_dmi_osi_linux(int enable,
- 				      const struct dmi_system_id *d);
- extern void __init acpi_osi_setup(char *str);
-+#endif
- 
- enum acpi_blacklist_predicates {
- 	all_versions,
-diff --git a/drivers/acpi/osi-arm.c b/drivers/acpi/osi-arm.c
-new file mode 100644
-index 0000000..bb351f4
---- /dev/null
-+++ b/drivers/acpi/osi-arm.c
-@@ -0,0 +1,25 @@
-+/*
-+ *  ARM64 Specific ACPI _OSI Support
-+ *
-+ *  Copyright (C) 2015, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
++#define _COMPONENT		ACPI_OS_SERVICES
++ACPI_MODULE_NAME("osl");
 +
-+#define pr_fmt(fmt) "ACPI: " fmt
-+
-+#include <linux/acpi.h>
++#define PREFIX			"ACPI: "
 +
 +/*
-+ * Consensus is to deprecate _OSI for all new ACPI-supported architectures.
-+ * So, for arm64, reduce _OSI to a warning message, and tell the firmware
-+ * nothing of value.
++ * The story of _OSI(Linux)
++ *
++ * From pre-history through Linux-2.6.22,
++ * Linux responded TRUE upon a BIOS OSI(Linux) query.
++ *
++ * Unfortunately, reference BIOS writers got wind of this
++ * and put OSI(Linux) in their example code, quickly exposing
++ * this string as ill-conceived and opening the door to
++ * an un-bounded number of BIOS incompatibilities.
++ *
++ * For example, OSI(Linux) was used on resume to re-POST a
++ * video card on one system, because Linux at that time
++ * could not do a speedy restore in its native driver.
++ * But then upon gaining quick native restore capability,
++ * Linux has no way to tell the BIOS to skip the time-consuming
++ * POST -- putting Linux at a permanent performance disadvantage.
++ * On another system, the BIOS writer used OSI(Linux)
++ * to infer native OS support for IPMI!  On other systems,
++ * OSI(Linux) simply got in the way of Linux claiming to
++ * be compatible with other operating systems, exposing
++ * BIOS issues such as skipped device initialization.
++ *
++ * So "Linux" turned out to be a really poor chose of
++ * OSI string, and from Linux-2.6.23 onward we respond FALSE.
++ *
++ * BIOS writers should NOT query _OSI(Linux) on future systems.
++ * Linux will complain on the console when it sees it, and return FALSE.
++ * To get Linux to return TRUE for your system  will require
++ * a kernel source update to add a DMI entry,
++ * or boot with "acpi_osi=Linux"
 + */
++
++static struct osi_linux {
++	unsigned int	enable:1;
++	unsigned int	dmi:1;
++	unsigned int	cmdline:1;
++	unsigned int	default_disabling:1;
++} osi_linux = {0, 0, 0, 0};
++
 +u32 acpi_osi_handler(acpi_string interface, u32 supported)
 +{
-+	pr_warn("_OSI was called, but is deprecated for this architecture.\n");
-+	return false;
++	if (!strcmp("Linux", interface)) {
++
++		printk_once(KERN_NOTICE FW_BUG PREFIX
++			"BIOS _OSI(Linux) query %s%s\n",
++			osi_linux.enable ? "honored" : "ignored",
++			osi_linux.cmdline ? " via cmdline" :
++			osi_linux.dmi ? " via DMI" : "");
++	}
++
++	if (!strcmp("Darwin", interface)) {
++		/*
++		 * Apple firmware will behave poorly if it receives positive
++		 * answers to "Darwin" and any other OS. Respond positively
++		 * to Darwin and then disable all other vendor strings.
++		 */
++		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
++		supported = ACPI_UINT32_MAX;
++	}
++
++	return supported;
 +}
++
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f9eeae8..c7f1cd6 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -141,30 +141,6 @@ static struct osi_linux {
+ 	unsigned int	default_disabling:1;
+ } osi_linux = {0, 0, 0, 0};
+ 
+-static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+-{
+-	if (!strcmp("Linux", interface)) {
+-
+-		printk_once(KERN_NOTICE FW_BUG PREFIX
+-			"BIOS _OSI(Linux) query %s%s\n",
+-			osi_linux.enable ? "honored" : "ignored",
+-			osi_linux.cmdline ? " via cmdline" :
+-			osi_linux.dmi ? " via DMI" : "");
+-	}
+-
+-	if (!strcmp("Darwin", interface)) {
+-		/*
+-		 * Apple firmware will behave poorly if it receives positive
+-		 * answers to "Darwin" and any other OS. Respond positively
+-		 * to Darwin and then disable all other vendor strings.
+-		 */
+-		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
+-		supported = ACPI_UINT32_MAX;
+-	}
+-
+-	return supported;
+-}
+-
+ static void __init acpi_request_region (struct acpi_generic_address *gas,
+ 	unsigned int length, char *desc)
+ {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 87f365e..ec18ab0 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -271,6 +271,7 @@ static inline int acpi_video_display_switch_support(void)
+ extern int acpi_blacklisted(void);
+ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
+ extern void acpi_osi_setup(char *str);
++extern u32 acpi_osi_handler(acpi_string interface, u32 supported);
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ int acpi_get_node(acpi_handle handle);
 -- 
 2.1.0
-
