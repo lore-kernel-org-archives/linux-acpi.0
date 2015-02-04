@@ -1,82 +1,104 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Wed, 4 Feb 2015 16:11:51 +0200
-Message-ID: <20150204141151.GB18189@kuha.fi.intel.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
- <4006695.qV8Mor20ru@vostro.rjw.lan>
- <CACRpkdZWEq_6eNf_rj2rje0KzAKQZ7DeB6L5PW-nacE6=rzmEQ@mail.gmail.com>
- <2116821.DVmvasqCz1@vostro.rjw.lan>
- <CACRpkdbpJXHih0-Yhpi=AjvVjxZwEAhqe_iBWbd=5Cjz+sQZxQ@mail.gmail.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: ACPI PCC probe failed.
+Date: Wed, 4 Feb 2015 09:56:20 -0500
+Message-ID: <CAJ5Y-eaBH6q7X5ZC-UgCLnxOO9nXnJPY-kdq417qHhG0M-+obw@mail.gmail.com>
+References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com>
+	<3337572.5q6DLI5fhi@vostro.rjw.lan>
+	<CABwnbUmOwf1VGwD0i9AW12No6nueHda+M7NnhX87uRLwKzw=aA@mail.gmail.com>
+	<158128306.gX9FjqECDu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdbpJXHih0-Yhpi=AjvVjxZwEAhqe_iBWbd=5Cjz+sQZxQ@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <158128306.gX9FjqECDu@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 04, 2015 at 10:51:27AM +0100, Linus Walleij wrote:
-> On Fri, Jan 30, 2015 at 5:17 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Friday, January 30, 2015 03:48:30 PM Linus Walleij wrote:
-> 
-> >> So you could detect one by making a checksum of the binary or something.
-> >>
-> >> And then you'd know that the table with this checksum needs patching?
-> >
-> > At a single table level it is generally difficult to say whether or not
-> > things are going to work.
-> >
-> > What needs to work is the namespace which is built from all of the tables
-> > provided combined.  So the namespace needs to be populated first and then
-> > fixes applied on top of that (presumably by deleting, adding or replacing
-> > objects).
-> >
-> > Now, in theory, you *may* be able to figure out that combination of tables
-> > A produces namespace B which then will require fix X if the system is Y,
-> > but quite frankly I wouldn't count on that.
-> >
-> > Moreover, fixups (or "patches" as I called them, but that wasn't exactly
-> > correct) need to be provided in the form of AML definition blocks to apply on
-> > top of an already populated namespace and if you want to use a binary kernel image,
-> > you can't really afford putting all that stuff for all systems it can possibly
-> > run on into it.  This means that distros need to be able to combine a fixup for
-> > the ACPI tables with the binary kernel and install the result into the system's
-> > boot medium (whatever it is).  Also it should be possible to update the fixup
-> > and the kernel image separately if necessary.
-> >
-> > Now from the kernel's perspective that raises the question: "What if the
-> > ACPI tables fixup provided by the distro is not sufficient?"
-> >
-> > That needs to be addressed somehow in the code.
-> 
-> Yeah I guess I'm convinced that we need to handle this particular
-> weirdness in the gpio-acpi code... if it can be contained there as
-> expressed by Alexandre.
+Hi Rafael,
 
-I'm still fine if we want to confine this "gpio forwarding" to acpi
-if you guys want it, but I was looking at the Sound SoC drivers and I
-realised that we do have places which pass gpio descriptors to other
-devices in platform data. And these of course aren't always used on
-acpi platforms. By greping gpio_desc I saw at least these files are
-passing it in platform data structures:
+On 4 February 2015 at 08:48, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, February 03, 2015 09:44:36 PM Cristian wrote:
+>> 2015-02-03 12:11 GMT-03:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
+>> > On Tuesday, February 03, 2015 10:40:00 AM Cristian wrote:
+>> >> Hello,
+>> >>
+>> >> linux 3.19-rc7
+>> >> Ubuntu Vivid 14.04 alpha
+>> >>
+>> >> dmesg:
+>> >> [    1.293820] ACPI PCC probe failed.
+>> >>
+>> >> https://bugzilla.kernel.org/show_bug.cgi?id=92551
+>> >
+>> > Is that a functional problem or just the message?
+>> >
+>> >
+>> > --
+>> > I speak only for myself.
+>> > Rafael J. Wysocki, Intel Open Source Technology Center.
+>>
+>> Apparently one message.
+>
+> So it looks like you build the PCC mailbox driver which is new in 3.19-rc and
+> that driver fails to load, because it doesn't find hardware to work with.
+>
+> The message is harmless, but it also is not useful.  The driver in question
+> seems to be overly verbose to me in general.
 
-include/sound/soc.h
-include/linux/leds.h
-include/linux/usb/usb_phy_generic.h
+Apologies. Looks like leftover from some early "printk" style debugging. :)
 
-There are probable others but I checked those. And of course now there
-is nothing preventing people from adding more of them.
+>
+> The patch below should make the message go away unless the printing of debug
+> messages is on.
+>
+> Ashwin, that whole thing requires cleaning up:
+>  - It prints uninteresting debug messages with KERN_ERR or warning priority in
+>    *many* places.
+>  - The error codes from acpi_pcc_probe() are ignored, so why bother to return
+>    any error codes from there?
+>  - If platform_create_bundle() fails, the debug message doesn't tell us the
+>    reason, so why bother to print it?
+>
+> I'm not going to consider any users of this for merging before that cleanup
+> happens.
 
-So we could use my original idea with them. I think most of the
-drivers using those are tied to separate handling for dt and pdata
-only because of the way the gpio descriptor is delivered to them.
+In V4 of the CPPC patchset I've simplified the PCC code a lot which
+should make many of the prints go away. Can we consider that patch
+(I'll add any more pr_debugs to it) or would you prefer having a
+separate cleanup patch for this?
 
-What do you guys think?
+Thanks,
+Ashwin
 
-
-Cheers,
-
--- 
-heikki
+>
+> Rafael
+>
+>
+> ---
+>  drivers/mailbox/pcc.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> Index: linux-pm/drivers/mailbox/pcc.c
+> ===================================================================
+> --- linux-pm.orig/drivers/mailbox/pcc.c
+> +++ linux-pm/drivers/mailbox/pcc.c
+> @@ -386,7 +386,7 @@ static int __init pcc_init(void)
+>         ret = acpi_pcc_probe();
+>
+>         if (ret) {
+> -               pr_err("ACPI PCC probe failed.\n");
+> +               pr_debug("ACPI PCC probe failed.\n");
+>                 return -ENODEV;
+>         }
+>
+> @@ -394,7 +394,7 @@ static int __init pcc_init(void)
+>                         pcc_mbox_probe, NULL, 0, NULL, 0);
+>
+>         if (!pcc_pdev) {
+> -               pr_err("Err creating PCC platform bundle\n");
+> +               pr_debug("Err creating PCC platform bundle\n");
+>                 return -ENODEV;
+>         }
+>
+>
