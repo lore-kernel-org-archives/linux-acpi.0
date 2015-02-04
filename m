@@ -1,104 +1,29 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: ACPI PCC probe failed.
-Date: Wed, 4 Feb 2015 09:56:20 -0500
-Message-ID: <CAJ5Y-eaBH6q7X5ZC-UgCLnxOO9nXnJPY-kdq417qHhG0M-+obw@mail.gmail.com>
-References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com>
-	<3337572.5q6DLI5fhi@vostro.rjw.lan>
-	<CABwnbUmOwf1VGwD0i9AW12No6nueHda+M7NnhX87uRLwKzw=aA@mail.gmail.com>
-	<158128306.gX9FjqECDu@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
+Date: Wed, 4 Feb 2015 09:53:28 -0600
+Message-ID: <CAErSpo71fVU5mJgXnxMwiE_TUrNyfSYHo5RDF-=u2BK5grDYAw@mail.gmail.com>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+ <2422968.Es7R0p3loO@vostro.rjw.lan> <1422984576.18187.82.camel@deneb.redhat.com>
+ <8901765.mLfPOCUyAN@vostro.rjw.lan> <20150204104832.GF8656@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <158128306.gX9FjqECDu@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150204104832.GF8656@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Salter <msalter@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, linaro-acpi@lists.linaro.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Yijing Wang <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, phoenix.liyi@huawei.com, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.o>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Wed, Feb 4, 2015 at 4:48 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Moreover, __weak is positively harmful when you consider it adds bloat
+> and dead code - the overriden __weak function is left behind in the
+> resulting final image.
 
-On 4 February 2015 at 08:48, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, February 03, 2015 09:44:36 PM Cristian wrote:
->> 2015-02-03 12:11 GMT-03:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
->> > On Tuesday, February 03, 2015 10:40:00 AM Cristian wrote:
->> >> Hello,
->> >>
->> >> linux 3.19-rc7
->> >> Ubuntu Vivid 14.04 alpha
->> >>
->> >> dmesg:
->> >> [    1.293820] ACPI PCC probe failed.
->> >>
->> >> https://bugzilla.kernel.org/show_bug.cgi?id=92551
->> >
->> > Is that a functional problem or just the message?
->> >
->> >
->> > --
->> > I speak only for myself.
->> > Rafael J. Wysocki, Intel Open Source Technology Center.
->>
->> Apparently one message.
->
-> So it looks like you build the PCC mailbox driver which is new in 3.19-rc and
-> that driver fails to load, because it doesn't find hardware to work with.
->
-> The message is harmless, but it also is not useful.  The driver in question
-> seems to be overly verbose to me in general.
+Huh, I didn't realize that.  Is that a linker bug, or is there some
+reason the weak function has to be in the final image?  I tried a
+trivial test on x86 with gcc-4.8.2/ld-2.24, and I think the weak
+function text was omitted, but a string constant used only by the weak
+function was included.
 
-Apologies. Looks like leftover from some early "printk" style debugging. :)
-
->
-> The patch below should make the message go away unless the printing of debug
-> messages is on.
->
-> Ashwin, that whole thing requires cleaning up:
->  - It prints uninteresting debug messages with KERN_ERR or warning priority in
->    *many* places.
->  - The error codes from acpi_pcc_probe() are ignored, so why bother to return
->    any error codes from there?
->  - If platform_create_bundle() fails, the debug message doesn't tell us the
->    reason, so why bother to print it?
->
-> I'm not going to consider any users of this for merging before that cleanup
-> happens.
-
-In V4 of the CPPC patchset I've simplified the PCC code a lot which
-should make many of the prints go away. Can we consider that patch
-(I'll add any more pr_debugs to it) or would you prefer having a
-separate cleanup patch for this?
-
-Thanks,
-Ashwin
-
->
-> Rafael
->
->
-> ---
->  drivers/mailbox/pcc.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> Index: linux-pm/drivers/mailbox/pcc.c
-> ===================================================================
-> --- linux-pm.orig/drivers/mailbox/pcc.c
-> +++ linux-pm/drivers/mailbox/pcc.c
-> @@ -386,7 +386,7 @@ static int __init pcc_init(void)
->         ret = acpi_pcc_probe();
->
->         if (ret) {
-> -               pr_err("ACPI PCC probe failed.\n");
-> +               pr_debug("ACPI PCC probe failed.\n");
->                 return -ENODEV;
->         }
->
-> @@ -394,7 +394,7 @@ static int __init pcc_init(void)
->                         pcc_mbox_probe, NULL, 0, NULL, 0);
->
->         if (!pcc_pdev) {
-> -               pr_err("Err creating PCC platform bundle\n");
-> +               pr_debug("Err creating PCC platform bundle\n");
->                 return -ENODEV;
->         }
->
->
+Bjorn
