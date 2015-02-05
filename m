@@ -1,38 +1,55 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 09/23] ACPI: Fix a bug in parsing ACPI Memory24 resource
-Date: Thu,  5 Feb 2015 13:44:35 +0800
-Message-ID: <1423115089-12904-10-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 05/23] ACPI: Let the parser return false for disabled resources
+Date: Thu,  5 Feb 2015 13:44:31 +0800
+Message-ID: <1423115089-12904-6-git-send-email-jiang.liu@linux.intel.com>
 References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-According to ACPI spec 5, section 6.4.3.1 "24-Bit Memory Range Descriptor",
-minimum, maximum and address_length field in struct acpi_resource_memory24
-is in granularity of 256-bytes. So shift 8-bit left to get correct address.
+From: Thomas Gleixner <tglx@linutronix.de>
 
+If the parser disables a resource during parsing, let it return false,
+so the calling code does not need to implement further checks.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/resource.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 7ce00a63f695..5544c6d26f32 100644
+index 16d291c60277..cdb1a3c4a0b9 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -90,8 +90,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- 	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		memory24 = &ares->data.memory24;
--		acpi_dev_get_memresource(res, memory24->minimum,
--					 memory24->address_length,
-+		acpi_dev_get_memresource(res, memory24->minimum << 8,
-+					 memory24->address_length << 8,
- 					 memory24->write_protect);
+@@ -219,10 +219,10 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 		res->flags = IORESOURCE_BUS;
  		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
+ 	default:
+-		res->flags = 0;
++		return false;
+ 	}
+ 
+-	return true;
++	return !(res->flags & IORESOURCE_DISABLED);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
+ 
+@@ -268,10 +268,10 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 		res->flags = IORESOURCE_BUS;
+ 		break;
+ 	default:
+-		res->flags = 0;
++		return false;
+ 	}
+ 
+-	return true;
++	return !(res->flags & IORESOURCE_DISABLED);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
+ 
 -- 
 1.7.10.4
