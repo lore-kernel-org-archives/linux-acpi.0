@@ -1,52 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI PCC probe failed.
-Date: Thu, 05 Feb 2015 02:28:08 +0100
-Message-ID: <6825579.hyRLxbRUP5@vostro.rjw.lan>
-References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com> <3901813.ZV5Z0Wofju@vostro.rjw.lan> <CAJ5Y-eY7H=3su7Ahnk47CCfDt+Gnwz0zUAC7XqizyydhhTuG-Q@mail.gmail.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [Patch v2 17/22] resources: Move struct resource_list_entry from
+ ACPI into resource core
+Date: Wed, 4 Feb 2015 17:56:07 -0800
+Message-ID: <20150205015607.GM4489@intel.com>
+References: <1422442660-455-1-git-send-email-jiang.liu@linux.intel.com>
+ <1422442660-455-18-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJ5Y-eY7H=3su7Ahnk47CCfDt+Gnwz0zUAC7XqizyydhhTuG-Q@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1422442660-455-18-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Mike Travis <travis@sgi.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 04, 2015 06:38:39 PM Ashwin Chaugule wrote:
-> On 4 February 2015 at 18:04, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, February 04, 2015 05:06:26 PM Ashwin Chaugule wrote:
-> >> > I have one more concern about this driver.  Namely, what benefit is there to
-> >> > people like Cristian from it at all?
-> >>
-> >> Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
-> >> Looks like PCC was explicitly enabled in this kernel.
-> >>
-> >> config PCC
-> >> bool "Platform Communication Channel Driver"
-> >> depends on ACPI
-> >
-> > Can we make it depend on the clients instead and be set automatically
-> > when at least one of the clients is enabled?
-> >
-> > Otherwise distros will have a problem with deciding whether or not they
-> > should enable this driver and most of them will end up enabling it.
+On Wed, Jan 28, 2015 at 06:57:35PM +0800, Jiang Liu wrote:
+> Currently ACPI, PCI and pnp all implement the same resource list
+> management with different data structure. We need to transfer from
+> one data structure into another when passing resources from one
+> subsystem into another subsystem. Sp move struct resource_list_entry
+Typo				    ^^
+> from ACPI into resource core, so it could be reused by different
+> subystems and avoid the data structure conversion.
 > 
-> I see your point, but I'm not aware of any upstreamed client as of
-> yet. There might be folks using this driver internally though with
-> other clients. In such a case, is there a way to keep PCC disabled
-> until a client (e.g. CPPC) is upstreamed?
+> Introduce dedicated header file resource_ext.h instead of embedding
+> it into ioport.h to avoid header file inclusion order issues.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_lpss.c     |    6 ++--
+>  drivers/acpi/acpi_platform.c |    2 +-
+>  drivers/acpi/resource.c      |   13 +++----
+>  drivers/dma/acpi-dma.c       |    8 ++---
+For dmaengine:
 
-Make it depend on EXPERT or something like that until the first client is
-added and then make it depend on that client. :-)
-
-> Alternately, is it that bad to keep it the way it is, given that the
-> driver wont do anything unless PCCT is detected in firmware and a PCC
-> client explicitly uses its API?
-
-Well, is it really useful this way?
-
+Acked-by: Vinod Koul <vinod.koul@intel.com>
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+~Vinod
