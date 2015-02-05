@@ -1,121 +1,129 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] ACPI / table: remove duplicate NULL check for the handler of acpi_table_parse()
-Date: Thu,  5 Feb 2015 17:33:14 +0800
-Message-ID: <1423128794-4680-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:38367 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753268AbbBEJdl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 04:33:41 -0500
-Received: by pdbft15 with SMTP id ft15so6722843pdb.5
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2015 01:33:41 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: Re: [PATCH v8 09/21] ARM64 / ACPI: Disable ACPI if FADT revision
+ is less than 5.1
+Date: Thu, 05 Feb 2015 17:45:36 +0800
+Message-ID: <54D33BC0.4050305@linaro.org>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-10-git-send-email-hanjun.guo@linaro.org> <20150203172047.GA13339@e104818-lin.cambridge.arm.com> <54D1E891.80405@linaro.org> <20150204130626.GE22035@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150204130626.GE22035@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 
-In acpi_table_parse(), pointer of the table to pass to handler() is
-checked before handler() called, so remove all the duplicate NULL
-check in the handler function.
+On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 21:06, Lorenzo Pieralisi wrote:
+> On Wed, Feb 04, 2015 at 09:38:25AM +0000, Hanjun Guo wrote:
+>> On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 01:20, Catalin Marinas wrote:
+>>> On Mon, Feb 02, 2015 at 12:45:37PM +0000, Hanjun Guo wrote:
+>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>>> index afe10b4..b9f64ec 100644
+>>>> --- a/arch/arm64/kernel/acpi.c
+>>>> +++ b/arch/arm64/kernel/acpi.c
+>>>> @@ -13,6 +13,8 @@
+>>>>     *  published by the Free Software Foundation.
+>>>>     */
+>>>>
+>>>> +#define pr_fmt(fmt) "ACPI: " fmt
+>>>> +
+>>>>    #include <linux/acpi.h>
+>>>>    #include <linux/bootmem.h>
+>>>>    #include <linux/cpumask.h>
+>>>> @@ -49,10 +51,32 @@ void __init __acpi_unmap_table(char *map, unsi=
+gned long size)
+>>>>    	early_memunmap(map, size);
+>>>>    }
+>>>>
+>>>> +static int __init acpi_parse_fadt(struct acpi_table_header *table=
+)
+>>>> +{
+>>>> +	struct acpi_table_fadt *fadt =3D (struct acpi_table_fadt *)table=
+;
+>>>> +
+>>>> +	/*
+>>>> +	 * Revision in table header is the FADT Major revision, and ther=
+e
+>>>> +	 * is a minor revision of FADT which was introduced by ACPI 5.1,
+>>>> +	 * we only deal with ACPI 5.1 or newer revision to get GIC and S=
+MP
+>>>> +	 * boot protocol configuration data, or we will disable ACPI.
+>>>> +	 */
+>>>> +	if (table->revision > 5 ||
+>>>> +	    (table->revision =3D=3D 5 && fadt->minor_revision >=3D 1))
+>>>> +		return 0;
+>>>> +
+>>>> +	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will d=
+isable ACPI\n",
+>>>> +		table->revision, fadt->minor_revision);
+>>>> +	disable_acpi();
+>>>> +
+>>>> +	return -EINVAL;
+>>>> +}
+>>>> +
+>>>>    /*
+>>>>     * acpi_boot_table_init() called from setup_arch(), always.
+>>>>     *	1. find RSDP and get its address, and then find XSDT
+>>>>     *	2. extract all tables and checksums them all
+>>>> + *	3. check ACPI FADT revision
+>>>>     *
+>>>>     * We can parse ACPI boot-time tables such as MADT after
+>>>>     * this function is called.
+>>>> @@ -64,8 +88,16 @@ void __init acpi_boot_table_init(void)
+>>>>    		return;
+>>>>
+>>>>    	/* Initialize the ACPI boot-time table parser. */
+>>>> -	if (acpi_table_init())
+>>>> +	if (acpi_table_init()) {
+>>>> +		disable_acpi();
+>>>> +		return;
+>>>> +	}
+>>>> +
+>>>> +	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
+>>>> +		/* disable ACPI if no FADT is found */
+>>>>    		disable_acpi();
+>>>> +		pr_err("Can't find FADT\n");
+>>>> +	}
+>>>>    }
+>>>
+>>> It looks fine to call disable_acpi() here but a bit weird to call i=
+t
+>>> again in acpi_parse_fadt(). I guess that's because acpi_table_parse=
+()
+>>> ignores the return value of the handler() call. I think it's better=
+ to
+>>> fix the core code (can be an additional patch on top of this series=
+).
+>>
+>> I checked all the code calling acpi_table_parse() and I found that i=
+t
+>> will be no functional change if we return the value of handler(), bu=
+t
+>> I need Rafael's confirm on it.
+>
+> Are you sure ? All calls to acpi_table_parse() that checks the return
+> value are affected. I guess that depends on what an error return from
+> the handler means, from acpi_table_parse():
+>
+> * Return 0 if table found, -errno if not.
 
-CC: Tony Luck <tony.luck@intel.com>
-CC: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/ia64/kernel/acpi.c     |  6 ------
- arch/x86/kernel/acpi/boot.c | 16 ++--------------
- drivers/acpi/numa.c         | 12 ++----------
- 3 files changed, 4 insertions(+), 30 deletions(-)
+Yes, you are right. What I mean for the "no functional change" because
+of most handler passed to acpi_table_parse() just return 0, I didn't
+describe it clearly, my bad.
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index e795cb8..2c44989 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -380,9 +380,6 @@ static void __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
- 
- static int __init acpi_parse_madt(struct acpi_table_header *table)
- {
--	if (!table)
--		return -EINVAL;
--
- 	acpi_madt = (struct acpi_table_madt *)table;
- 
- 	acpi_madt_rev = acpi_madt->header.revision;
-@@ -645,9 +642,6 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
- 	struct acpi_table_header *fadt_header;
- 	struct acpi_table_fadt *fadt;
- 
--	if (!table)
--		return -EINVAL;
--
- 	fadt_header = (struct acpi_table_header *)table;
- 	if (fadt_header->revision != 3)
- 		return -ENODEV;	/* Only deal with ACPI 2.0 FADT */
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index b9e30da..14d3652 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -843,13 +843,7 @@ int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base)
- 
- static int __init acpi_parse_sbf(struct acpi_table_header *table)
- {
--	struct acpi_table_boot *sb;
--
--	sb = (struct acpi_table_boot *)table;
--	if (!sb) {
--		printk(KERN_WARNING PREFIX "Unable to map SBF\n");
--		return -ENODEV;
--	}
-+	struct acpi_table_boot *sb = (struct acpi_table_boot *)table;
- 
- 	sbf_port = sb->cmos_index;	/* Save CMOS port */
- 
-@@ -863,13 +857,7 @@ static struct resource *hpet_res __initdata;
- 
- static int __init acpi_parse_hpet(struct acpi_table_header *table)
- {
--	struct acpi_table_hpet *hpet_tbl;
--
--	hpet_tbl = (struct acpi_table_hpet *)table;
--	if (!hpet_tbl) {
--		printk(KERN_WARNING PREFIX "Unable to map HPET\n");
--		return -ENODEV;
--	}
-+	struct acpi_table_hpet *hpet_tbl = (struct acpi_table_hpet *)table;
- 
- 	if (hpet_tbl->address.space_id != ACPI_SPACE_MEM) {
- 		printk(KERN_WARNING PREFIX "HPET timers must be located in "
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 24b5476..1333cbdc 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -177,12 +177,7 @@ static int __init slit_valid(struct acpi_table_slit *slit)
- 
- static int __init acpi_parse_slit(struct acpi_table_header *table)
- {
--	struct acpi_table_slit *slit;
--
--	if (!table)
--		return -EINVAL;
--
--	slit = (struct acpi_table_slit *)table;
-+	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
- 
- 	if (!slit_valid(slit)) {
- 		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
-@@ -260,11 +255,8 @@ acpi_parse_memory_affinity(struct acpi_subtable_header * header,
- 
- static int __init acpi_parse_srat(struct acpi_table_header *table)
- {
--	struct acpi_table_srat *srat;
--	if (!table)
--		return -EINVAL;
-+	struct acpi_table_srat *srat = (struct acpi_table_srat *)table;
- 
--	srat = (struct acpi_table_srat *)table;
- 	acpi_srat_revision = srat->header.revision;
- 
- 	/* Real work done in acpi_table_parse_srat below. */
--- 
-1.9.1
+In ARM64 case, I find that we can not disable ACPI even if we return
+error for the handler, for example, we return -EOPNOTSUPP when there is
+no PSCI support, we can go on with cpu0 boot only.
 
+>
+> So, if table is found but parsing fails that acpi_table_parse()
+> signature should be changed if the handler barfs with an error and
+> it is propagated. Still, I share Catalin's comment.
+
+Sorry, I don't understand the last sentence, do you mean you agree
+with Catalin to return the result of handler()?
+
+Thanks
+Hanjun
