@@ -1,9 +1,8 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
 Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Thu, 5 Feb 2015 10:59:45 +0000
-Message-ID: <20150205105945.GC18158@e104818-lin.cambridge.arm.com>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
+Date: Thu, 5 Feb 2015 11:14:43 +0000
+Message-ID: <20150205111443.GC24474@xora-haswell.xora.org.uk>
+References: <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
  <2422968.Es7R0p3loO@vostro.rjw.lan>
  <1422984576.18187.82.camel@deneb.redhat.com>
  <20150204112508.GB26006@e104818-lin.cambridge.arm.com>
@@ -12,60 +11,73 @@ References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
  <1423076294.18187.103.camel@deneb.redhat.com>
  <20150205104149.GA18158@e104818-lin.cambridge.arm.com>
  <CAKv+Gu-tqY4C0eaRvp5FAzx9PqOGMg+sFNzxr2f25omdJKr7JA@mail.gmail.com>
+ <20150205105945.GC18158@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu-tqY4C0eaRvp5FAzx9PqOGMg+sFNzxr2f25omdJKr7JA@mail.gmail.com>
+In-Reply-To: <20150205105945.GC18158@e104818-lin.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "msalter@redhat.com" <msalter@redhat.com>, Mark Rutland <Mark.Rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>, Mark Rutland <Mark.Rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 05, 2015 at 10:47:23AM +0000, Ard Biesheuvel wrote:
-> On 5 February 2015 at 10:41, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > On Wed, Feb 04, 2015 at 06:58:14PM +0000, Mark Salter wrote:
-> >> On Wed, 2015-02-04 at 17:57 +0000, Catalin Marinas wrote:
-> >> > On Wed, Feb 04, 2015 at 04:08:27PM +0000, Mark Salter wrote:
-> >> > > acpi_os_remap() is used to map ACPI tables. These tables may be in ram
-> >> > > which are already included in the kernel's linear RAM mapping. So we
-> >> > > need ioremap_cache to avoid two mappings to the same physical page
-> >> > > having different caching attributes.
-> >> >
-> >> > What's the call path to acpi_os_ioremap() on such tables already in the
-> >> > linear mapping? I can see an acpi_map() function which already takes
-> >> > care of the RAM mapping case but there are other cases where
-> >> > acpi_os_ioremap() is called directly. For example,
-> >> > acpi_os_read_memory(), can it be called on both RAM and I/O?
-> >>
-> >> acpi_map() is the one I've seen.
-> >
-> > By default, if should_use_kmap() is not patched for arm64, it translates
-> > to page_is_ram(); acpi_map() would simply use a kmap() which returns the
-> > current kernel linear mapping on arm64.
-> >
-> >> I'm not sure about others.
-> >
-> > Question for the ARM ACPI guys: what happens if you implement
-> > acpi_os_ioremap() on arm64 as just ioremap()? Do you get any WARN_ON()
-> > (__ioremap_caller() checks whether the memory is RAM)?
+On Thu, Feb 05, 2015 at 10:59:45AM +0000, Catalin Marinas wrote:
+> On Thu, Feb 05, 2015 at 10:47:23AM +0000, Ard Biesheuvel wrote:
+> > On 5 February 2015 at 10:41, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > > On Wed, Feb 04, 2015 at 06:58:14PM +0000, Mark Salter wrote:
+> > >> On Wed, 2015-02-04 at 17:57 +0000, Catalin Marinas wrote:
+> > >> > On Wed, Feb 04, 2015 at 04:08:27PM +0000, Mark Salter wrote:
+> > >> > > acpi_os_remap() is used to map ACPI tables. These tables may be in ram
+> > >> > > which are already included in the kernel's linear RAM mapping. So we
+> > >> > > need ioremap_cache to avoid two mappings to the same physical page
+> > >> > > having different caching attributes.
+> > >> >
+> > >> > What's the call path to acpi_os_ioremap() on such tables already in the
+> > >> > linear mapping? I can see an acpi_map() function which already takes
+> > >> > care of the RAM mapping case but there are other cases where
+> > >> > acpi_os_ioremap() is called directly. For example,
+> > >> > acpi_os_read_memory(), can it be called on both RAM and I/O?
+> > >>
+> > >> acpi_map() is the one I've seen.
+> > >
+> > > By default, if should_use_kmap() is not patched for arm64, it translates
+> > > to page_is_ram(); acpi_map() would simply use a kmap() which returns the
+> > > current kernel linear mapping on arm64.
+> > >
+> > >> I'm not sure about others.
+> > >
+> > > Question for the ARM ACPI guys: what happens if you implement
+> > > acpi_os_ioremap() on arm64 as just ioremap()? Do you get any WARN_ON()
+> > > (__ioremap_caller() checks whether the memory is RAM)?
+> > 
+> > Regardless of whether you hit any WARN_ON()s now,
 > 
-> Regardless of whether you hit any WARN_ON()s now,
+> Actually following the WARN_ON(), ioremap() returns NULL, so it may not
+> go entirely unnoticed.
+> 
+> > we still need to distinguish between MMIO ranges with device
+> > semantics, and ACPI or other tables whose data may not be naturally
+> > aligned all the time, and hence requiring memory semantics.
+> > acpi_os_ioremap() may be used for both, afaik
+> 
+> Is acpi_os_ioremap() called directly (outside acpi_map()) to map RAM
+> that already part of the kernel linear memory? If yes, then I agree that
+> we need to do such check.
+> 
+> Another question, can we distinguish, in the ACPI core code, whether the
+> mapping is for an ACPI table in RAM or some I/O space?
+> 
 
-Actually following the WARN_ON(), ioremap() returns NULL, so it may not
-go entirely unnoticed.
+Yes I think we do,
 
-> we still need to distinguish between MMIO ranges with device
-> semantics, and ACPI or other tables whose data may not be naturally
-> aligned all the time, and hence requiring memory semantics.
-> acpi_os_ioremap() may be used for both, afaik
+acpi_os_map_memory() is called to map tables
 
-Is acpi_os_ioremap() called directly (outside acpi_map()) to map RAM
-that already part of the kernel linear memory? If yes, then I agree that
-we need to do such check.
+acpi_os_map_iomem() is called to map device IO
 
-Another question, can we distinguish, in the ACPI core code, whether the
-mapping is for an ACPI table in RAM or some I/O space?
+currently both end up in acpi_map but I guess they do not have to or
+we can add extra arguments as its an internal API.
 
--- 
-Catalin
+But I have not checked that no user sneaks in direct calls.
+
+Graeme
