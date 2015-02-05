@@ -1,52 +1,150 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 14/23] ACPI: Translate resource into master side address for bridge window resources
-Date: Thu,  5 Feb 2015 13:44:40 +0800
-Message-ID: <1423115089-12904-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 06/23] ACPI: Unify the parsing of address_space and ext_address_space
+Date: Thu,  5 Feb 2015 13:44:32 +0800
+Message-ID: <1423115089-12904-7-git-send-email-jiang.liu@linux.intel.com>
 References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add translation_offset into the result address for bridge window
-resources to form the master side address.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Currently acpi_dev_resource_{ext_}address_space() are only used for
-devices instead of bridges, so it won't break current users. Later
-it will be used to support PCI host bridge drivers.
+With the unions in place which let us identify the substructs we can
+use a single parser for address_space and ext_address_space.
 
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/acpi/resource.c |   90 ++++++++++++++++++-----------------------------
+ 1 file changed, 34 insertions(+), 56 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index c902c8eece81..4dc8cfb2e94e 100644
+index cdb1a3c4a0b9..99903d196024 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -205,6 +205,21 @@ static bool acpi_decode_space(struct resource_win *win,
- 	res->start = attr->minimum;
- 	res->end = attr->maximum;
+@@ -178,6 +178,35 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
  
-+	/*
-+	 * For bridges that translate addresses across the bridge,
-+	 * translation_offset is the offset that must be added to the
-+	 * address on the secondary side to obtain the address on the
-+	 * primary side. Non-bridge devices must list 0 for all Address
-+	 * Translation offset bits.
-+	 */
-+	if (addr->producer_consumer == ACPI_PRODUCER) {
-+		res->start += attr->translation_offset;
-+		res->end += attr->translation_offset;
-+	} else if (attr->translation_offset) {
-+		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
-+			 attr->translation_offset);
++static bool acpi_decode_space(struct resource *res,
++			      struct acpi_resource_address *addr,
++			      struct acpi_address64_attribute *attr)
++{
++	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
++	bool window = addr->producer_consumer == ACPI_PRODUCER;
++	bool wp = addr->info.mem.write_protect;
++	u64 len = attr->address_length;
++
++	res->start = attr->minimum;
++	res->end = attr->maximum;
++
++	switch (addr->resource_type) {
++	case ACPI_MEMORY_RANGE:
++		acpi_dev_memresource_flags(res, len, wp, window);
++		break;
++	case ACPI_IO_RANGE:
++		acpi_dev_ioresource_flags(res, len, iodec, window);
++		break;
++	case ACPI_BUS_NUMBER_RANGE:
++		res->flags = IORESOURCE_BUS;
++		break;
++	default:
++		return false;
 +	}
 +
- 	switch (addr->resource_type) {
- 	case ACPI_MEMORY_RANGE:
- 		acpi_dev_memresource_flags(res, len, wp);
++	return !(res->flags & IORESOURCE_DISABLED);
++}
++
+ /**
+  * acpi_dev_resource_address_space - Extract ACPI address space information.
+  * @ares: Input ACPI resource object.
+@@ -190,39 +219,13 @@ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
+ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ 				     struct resource *res)
+ {
+-	acpi_status status;
+ 	struct acpi_resource_address64 addr;
+-	bool window;
+-	u8 io_decode;
+-
+-	status = acpi_resource_to_address64(ares, &addr);
+-	if (ACPI_FAILURE(status))
+-		return false;
+ 
+-	res->start = addr.address.minimum;
+-	res->end = addr.address.maximum;
+-	window = addr.producer_consumer == ACPI_PRODUCER;
+-
+-	switch(addr.resource_type) {
+-	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res, addr.address.address_length,
+-					   addr.info.mem.write_protect,
+-					   window);
+-		break;
+-	case ACPI_IO_RANGE:
+-		io_decode = addr.address.granularity == 0xfff ?
+-				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		acpi_dev_ioresource_flags(res, addr.address.address_length,
+-					  io_decode, window);
+-		break;
+-	case ACPI_BUS_NUMBER_RANGE:
+-		res->flags = IORESOURCE_BUS;
+-		break;
+-	default:
++	if (ACPI_FAILURE(acpi_resource_to_address64(ares, &addr)))
+ 		return false;
+-	}
+ 
+-	return !(res->flags & IORESOURCE_DISABLED);
++	return acpi_decode_space(res, (struct acpi_resource_address *)&addr,
++				 &addr.address);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
+ 
+@@ -239,39 +242,14 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 					 struct resource *res)
+ {
+ 	struct acpi_resource_extended_address64 *ext_addr;
+-	bool window;
+-	u8 io_decode;
+ 
+ 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
+ 		return false;
+ 
+ 	ext_addr = &ares->data.ext_address64;
+ 
+-	res->start = ext_addr->address.minimum;
+-	res->end = ext_addr->address.maximum;
+-	window = ext_addr->producer_consumer == ACPI_PRODUCER;
+-
+-	switch(ext_addr->resource_type) {
+-	case ACPI_MEMORY_RANGE:
+-		acpi_dev_memresource_flags(res,
+-					   ext_addr->address.address_length,
+-					   ext_addr->info.mem.write_protect,
+-					   window);
+-		break;
+-	case ACPI_IO_RANGE:
+-		io_decode = ext_addr->address.granularity == 0xfff ?
+-				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		acpi_dev_ioresource_flags(res, ext_addr->address.address_length,
+-					  io_decode, window);
+-		break;
+-	case ACPI_BUS_NUMBER_RANGE:
+-		res->flags = IORESOURCE_BUS;
+-		break;
+-	default:
+-		return false;
+-	}
+-
+-	return !(res->flags & IORESOURCE_DISABLED);
++	return acpi_decode_space(res, (struct acpi_resource_address *)ext_addr,
++				 &ext_addr->address);
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
+ 
 -- 
 1.7.10.4
