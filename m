@@ -1,137 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Thu, 05 Feb 2015 02:24:24 +0100
-Message-ID: <24983147.QcR5BoZPKE@vostro.rjw.lan>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <2422968.Es7R0p3loO@vostro.rjw.lan> <1422984576.18187.82.camel@deneb.redhat.com>
+Subject: Re: ACPI PCC probe failed.
+Date: Thu, 05 Feb 2015 02:28:08 +0100
+Message-ID: <6825579.hyRLxbRUP5@vostro.rjw.lan>
+References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com> <3901813.ZV5Z0Wofju@vostro.rjw.lan> <CAJ5Y-eY7H=3su7Ahnk47CCfDt+Gnwz0zUAC7XqizyydhhTuG-Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60918 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751058AbbBEBBb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Feb 2015 20:01:31 -0500
-In-Reply-To: <1422984576.18187.82.camel@deneb.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJ5Y-eY7H=3su7Ahnk47CCfDt+Gnwz0zUAC7XqizyydhhTuG-Q@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.comMark
 
-On Tuesday, February 03, 2015 12:29:36 PM Mark Salter wrote:
-> On Mon, 2015-02-02 at 23:14 +0100, Rafael J. Wysocki wrote:
-> > On Monday, February 02, 2015 08:45:30 PM Hanjun Guo wrote:
-> > > From: Mark Salter <msalter@redhat.com>
-> > > 
-> > > The acpi_os_ioremap() function may be used to map normal RAM or IO
-> > > regions. The current implementation simply uses ioremap_cache(). This
-> > > will work for some architectures, but arm64 ioremap_cache() cannot be
-> > > used to map IO regions which don't support caching. So for arm64, use
-> > > ioremap() for non-RAM regions.
-> > > 
-> > > CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> > > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > ---
-> > >  include/acpi/acpi_io.h | 6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > > 
-> > > diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-> > > index 444671e..9d573db 100644
-> > > --- a/include/acpi/acpi_io.h
-> > > +++ b/include/acpi/acpi_io.h
-> > > @@ -1,11 +1,17 @@
-> > >  #ifndef _ACPI_IO_H_
-> > >  #define _ACPI_IO_H_
-> > >  
-> > > +#include <linux/mm.h>
-> > >  #include <linux/io.h>
-> > >  
-> > >  static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-> > >  					    acpi_size size)
-> > >  {
-> > > +#ifdef CONFIG_ARM64
-> > > +	if (!page_is_ram(phys >> PAGE_SHIFT))
-> > > +		return ioremap(phys, size);
-> > > +#endif
-> > 
-> > I don't want to see #ifdef CONFIG_ARM64 in this file.
-> > 
+On Wednesday, February 04, 2015 06:38:39 PM Ashwin Chaugule wrote:
+> On 4 February 2015 at 18:04, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, February 04, 2015 05:06:26 PM Ashwin Chaugule wrote:
+> >> > I have one more concern about this driver.  Namely, what benefit is there to
+> >> > people like Cristian from it at all?
+> >>
+> >> Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
+> >> Looks like PCC was explicitly enabled in this kernel.
+> >>
+> >> config PCC
+> >> bool "Platform Communication Channel Driver"
+> >> depends on ACPI
+> >
+> > Can we make it depend on the clients instead and be set automatically
+> > when at least one of the clients is enabled?
+> >
+> > Otherwise distros will have a problem with deciding whether or not they
+> > should enable this driver and most of them will end up enabling it.
 > 
-> How about something like:
-> 
-> From: Mark Salter <msalter@redhat.com>
-> Date: Tue, 3 Feb 2015 10:51:16 -0500
-> Subject: [PATCH] acpi: fix acpi_os_ioremap for arm64
-> 
-> The acpi_os_ioremap() function may be used to map normal RAM or IO
-> regions. The current implementation simply uses ioremap_cache(). This
-> will work for some architectures, but arm64 ioremap_cache() cannot be
-> used to map IO regions which don't support caching. So for arm64, use
-> ioremap() for non-RAM regions.
-> 
-> CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> ---
->  arch/arm64/include/asm/acpi.h | 14 ++++++++++++++
->  include/acpi/acpi_io.h        |  3 +++
->  2 files changed, 17 insertions(+)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index ea4d2b3..db82bc3 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -14,6 +14,7 @@
->  
->  #include <linux/irqchip/arm-gic-acpi.h>
->  
-> +#include <linux/mm.h>
->  #include <asm/smp_plat.h>
->  
->  /* Basic configuration for ACPI */
-> @@ -100,4 +101,17 @@ static inline bool acpi_psci_use_hvc(void) { return false; }
->  static inline void acpi_init_cpus(void) { }
->  #endif /* CONFIG_ACPI */
->  
-> +/*
-> + * ACPI table mapping
-> + */
-> +static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-> +					    acpi_size size)
-> +{
-> +	if (!page_is_ram(phys >> PAGE_SHIFT))
-> +		return ioremap(phys, size);
-> +
-> +       return ioremap_cache(phys, size);
-> +}
-> +#define acpi_os_ioremap acpi_os_ioremap
+> I see your point, but I'm not aware of any upstreamed client as of
+> yet. There might be folks using this driver internally though with
+> other clients. In such a case, is there a way to keep PCC disabled
+> until a client (e.g. CPPC) is upstreamed?
 
-Actually, I see that we use similar #defines in other places too, so the
-patch is fine by me as is (modulo the other concerns that people seem to
-have about this).
+Make it depend on EXPERT or something like that until the first client is
+added and then make it depend on that client. :-)
 
-> +
->  #endif /*_ASM_ACPI_H*/
-> diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-> index 444671e..48f504a 100644
-> --- a/include/acpi/acpi_io.h
-> +++ b/include/acpi/acpi_io.h
-> @@ -2,12 +2,15 @@
->  #define _ACPI_IO_H_
->  
->  #include <linux/io.h>
-> +#include <asm/acpi.h>
->  
-> +#ifndef acpi_os_ioremap
->  static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
->  					    acpi_size size)
->  {
->         return ioremap_cache(phys, size);
->  }
-> +#endif
->  
->  void __iomem *__init_refok
->  acpi_os_map_iomem(acpi_physical_address phys, acpi_size size);
-> 
+> Alternately, is it that bad to keep it the way it is, given that the
+> driver wont do anything unless PCCT is detected in firmware and a PCC
+> client explicitly uses its API?
+
+Well, is it really useful this way?
+
 
 -- 
 I speak only for myself.
