@@ -1,129 +1,59 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v8 09/21] ARM64 / ACPI: Disable ACPI if FADT revision
- is less than 5.1
-Date: Thu, 05 Feb 2015 17:45:36 +0800
-Message-ID: <54D33BC0.4050305@linaro.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-10-git-send-email-hanjun.guo@linaro.org> <20150203172047.GA13339@e104818-lin.cambridge.arm.com> <54D1E891.80405@linaro.org> <20150204130626.GE22035@red-moon>
+Subject: Re: [PATCH v8 11/21] ARM64 / ACPI: Get PSCI flags in FADT for PSCI
+ init
+Date: Thu, 05 Feb 2015 17:48:37 +0800
+Message-ID: <54D33C75.8030405@linaro.org>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-12-git-send-email-hanjun.guo@linaro.org> <20150204164328.GF22035@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
+Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150204130626.GE22035@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:48590 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756808AbbBEJsr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 04:48:47 -0500
+Received: by mail-pa0-f45.google.com with SMTP id et14so9019468pad.4
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2015 01:48:47 -0800 (PST)
+In-Reply-To: <20150204164328.GF22035@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
-List-Id: linux-acpi@vger.kernel.org
 
-On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 21:06, Lorenzo Pieralisi wrote:
-> On Wed, Feb 04, 2015 at 09:38:25AM +0000, Hanjun Guo wrote:
->> On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 01:20, Catalin Marinas wrote:
->>> On Mon, Feb 02, 2015 at 12:45:37PM +0000, Hanjun Guo wrote:
->>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->>>> index afe10b4..b9f64ec 100644
->>>> --- a/arch/arm64/kernel/acpi.c
->>>> +++ b/arch/arm64/kernel/acpi.c
->>>> @@ -13,6 +13,8 @@
->>>>     *  published by the Free Software Foundation.
->>>>     */
->>>>
->>>> +#define pr_fmt(fmt) "ACPI: " fmt
->>>> +
->>>>    #include <linux/acpi.h>
->>>>    #include <linux/bootmem.h>
->>>>    #include <linux/cpumask.h>
->>>> @@ -49,10 +51,32 @@ void __init __acpi_unmap_table(char *map, unsi=
-gned long size)
->>>>    	early_memunmap(map, size);
->>>>    }
->>>>
->>>> +static int __init acpi_parse_fadt(struct acpi_table_header *table=
-)
->>>> +{
->>>> +	struct acpi_table_fadt *fadt =3D (struct acpi_table_fadt *)table=
-;
->>>> +
->>>> +	/*
->>>> +	 * Revision in table header is the FADT Major revision, and ther=
-e
->>>> +	 * is a minor revision of FADT which was introduced by ACPI 5.1,
->>>> +	 * we only deal with ACPI 5.1 or newer revision to get GIC and S=
-MP
->>>> +	 * boot protocol configuration data, or we will disable ACPI.
->>>> +	 */
->>>> +	if (table->revision > 5 ||
->>>> +	    (table->revision =3D=3D 5 && fadt->minor_revision >=3D 1))
->>>> +		return 0;
->>>> +
->>>> +	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will d=
-isable ACPI\n",
->>>> +		table->revision, fadt->minor_revision);
->>>> +	disable_acpi();
->>>> +
->>>> +	return -EINVAL;
->>>> +}
->>>> +
->>>>    /*
->>>>     * acpi_boot_table_init() called from setup_arch(), always.
->>>>     *	1. find RSDP and get its address, and then find XSDT
->>>>     *	2. extract all tables and checksums them all
->>>> + *	3. check ACPI FADT revision
->>>>     *
->>>>     * We can parse ACPI boot-time tables such as MADT after
->>>>     * this function is called.
->>>> @@ -64,8 +88,16 @@ void __init acpi_boot_table_init(void)
->>>>    		return;
->>>>
->>>>    	/* Initialize the ACPI boot-time table parser. */
->>>> -	if (acpi_table_init())
->>>> +	if (acpi_table_init()) {
->>>> +		disable_acpi();
->>>> +		return;
->>>> +	}
->>>> +
->>>> +	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
->>>> +		/* disable ACPI if no FADT is found */
->>>>    		disable_acpi();
->>>> +		pr_err("Can't find FADT\n");
->>>> +	}
->>>>    }
->>>
->>> It looks fine to call disable_acpi() here but a bit weird to call i=
-t
->>> again in acpi_parse_fadt(). I guess that's because acpi_table_parse=
-()
->>> ignores the return value of the handler() call. I think it's better=
- to
->>> fix the core code (can be an additional patch on top of this series=
-).
+On 2015=E5=B9=B402=E6=9C=8805=E6=97=A5 00:43, Lorenzo Pieralisi wrote:
+> On Mon, Feb 02, 2015 at 12:45:39PM +0000, Hanjun Guo wrote:
+>> From: Graeme Gregory <graeme.gregory@linaro.org>
 >>
->> I checked all the code calling acpi_table_parse() and I found that i=
-t
->> will be no functional change if we return the value of handler(), bu=
-t
->> I need Rafael's confirm on it.
+>> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
+>> the former signals to the OS that the firmware is PSCI compliant.
+>> The latter selects the appropriate conduit for PSCI calls by
+>> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
+>> (SMC).
+>>
+>> FADT table contains such information in ACPI 5.1, FADT table was
+>> parsed in ACPI table init and copy to struct acpi_gbl_FADT, so
+>> use the flags in struct acpi_gbl_FADT for PSCI init.
 >
-> Are you sure ? All calls to acpi_table_parse() that checks the return
-> value are affected. I guess that depends on what an error return from
-> the handler means, from acpi_table_parse():
->
-> * Return 0 if table found, -errno if not.
+> So you do rely on a global FADT being available, if you use it for PS=
+CI
+> detection you can use it for ACPI revision detection too, right ?
 
-Yes, you are right. What I mean for the "no functional change" because
-of most handler passed to acpi_table_parse() just return 0, I didn't
-describe it clearly, my bad.
-
-In ARM64 case, I find that we can not disable ACPI even if we return
-error for the handler, for example, we return -EOPNOTSUPP when there is
-no PSCI support, we can go on with cpu0 boot only.
+Yes, I think so.
 
 >
-> So, if table is found but parsing fails that acpi_table_parse()
-> signature should be changed if the handler barfs with an error and
-> it is propagated. Still, I share Catalin's comment.
+> Point is, either we should not use the global FADT table, or we use
+> it consistently, or there is something I am unaware of that prevents
+> you from using in some code paths and I would like to understand
+> why.
 
-Sorry, I don't understand the last sentence, do you mean you agree
-with Catalin to return the result of handler()?
+global FADT table is initialized when parsing the tables from RSDP in
+ACPICA core, and it should be work on ARM64 too.
 
 Thanks
 Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
