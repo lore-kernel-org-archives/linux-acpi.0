@@ -1,112 +1,71 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v8 14/21] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Thu, 5 Feb 2015 10:52:02 +0000
-Message-ID: <20150205105202.GB18158@e104818-lin.cambridge.arm.com>
+Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
+Date: Thu, 5 Feb 2015 10:59:45 +0000
+Message-ID: <20150205105945.GC18158@e104818-lin.cambridge.arm.com>
 References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <1422881149-8177-15-git-send-email-hanjun.guo@linaro.org>
- <20150203141749.GA32536@leverpostej>
- <20150203200936.GA21731@e104818-lin.cambridge.arm.com>
- <54D1EAD5.4080105@linaro.org>
- <20150204112105.GA26006@e104818-lin.cambridge.arm.com>
- <54D33773.5090000@linaro.org>
+ <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
+ <2422968.Es7R0p3loO@vostro.rjw.lan>
+ <1422984576.18187.82.camel@deneb.redhat.com>
+ <20150204112508.GB26006@e104818-lin.cambridge.arm.com>
+ <1423066107.18187.99.camel@deneb.redhat.com>
+ <20150204175734.GI26006@e104818-lin.cambridge.arm.com>
+ <1423076294.18187.103.camel@deneb.redhat.com>
+ <20150205104149.GA18158@e104818-lin.cambridge.arm.com>
+ <CAKv+Gu-tqY4C0eaRvp5FAzx9PqOGMg+sFNzxr2f25omdJKr7JA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:41910 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652AbbBEKwP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 05:52:15 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54D33773.5090000@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAKv+Gu-tqY4C0eaRvp5FAzx9PqOGMg+sFNzxr2f25omdJKr7JA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "msalter@redhat.com" <msalter@redhat.com>, Mark Rutland <Mark.Rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
 
-On Thu, Feb 05, 2015 at 09:27:15AM +0000, Hanjun Guo wrote:
-> On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 19:21, Catalin Marinas wrote:
-> > On Wed, Feb 04, 2015 at 09:48:05AM +0000, Hanjun Guo wrote:
-> >> On 2015=E5=B9=B402=E6=9C=8804=E6=97=A5 04:09, Catalin Marinas wrot=
-e:
-> >>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/a=
-sm/acpi.h
-> >>> index ea4d2b35c57b..4fafd62b1b86 100644
-> >>> --- a/arch/arm64/include/asm/acpi.h
-> >>> +++ b/arch/arm64/include/asm/acpi.h
-> >>> @@ -49,33 +49,12 @@ static inline void enable_acpi(void)
-> >>>    	acpi_noirq =3D 0;
-> >>>    }
-> >>>
-> >>> -/* MPIDR value provided in GICC structure is 64 bits, but the
-> >>> - * existing phys_id (CPU hardware ID) using in acpi processor
-> >>> - * driver is 32-bit, to conform to the same datatype we need
-> >>> - * to repack the GICC structure MPIDR.
-> >>> - *
-> >>> - * bits other than following 32 bits are defined as 0, so it
-> >>> - * will be no information lost after repacked.
-> >>> - *
-> >>> - * Bits [0:7] Aff0;
-> >>> - * Bits [8:15] Aff1;
-> >>> - * Bits [16:23] Aff2;
-> >>> - * Bits [32:39] Aff3;
-> >>> - */
-> >>> -static inline u32 pack_mpidr(u64 mpidr)
-> >>> -{
-> >>> -	return (u32) ((mpidr & 0xff00000000) >> 8) | mpidr;
-> >>> -}
-> >>> -
-> >>>    /*
-> >>>     * The ACPI processor driver for ACPI core code needs this mac=
-ro
-> >>>     * to find out this cpu was already mapped (mapping from CPU h=
-ardware
-> >>>     * ID to CPU logical ID) or not.
-> >>> - *
-> >>> - * cpu_logical_map(cpu) is the mapping of MPIDR and the logical =
-cpu,
-> >>> - * and MPIDR is the cpu hardware ID we needed to pack.
-> >>>     */
-> >>> -#define cpu_physical_id(cpu) pack_mpidr(cpu_logical_map(cpu))
-> >>> +#define cpu_physical_id(cpu) cpu_logical_map(cpu)
-> >>>
-> >>>    /*
-> >>>     * It's used from ACPI core in kdump to boot UP system with SM=
-P kernel,
-> >>> diff --git a/arch/arm64/include/asm/smp_plat.h b/arch/arm64/inclu=
-de/asm/smp_plat.h
-> >>> index 59e282311b58..a492276e008d 100644
-> >>> --- a/arch/arm64/include/asm/smp_plat.h
-> >>> +++ b/arch/arm64/include/asm/smp_plat.h
-> >>> @@ -40,4 +40,6 @@ static inline u32 mpidr_hash_size(void)
-> >>>    extern u64 __cpu_logical_map[NR_CPUS];
-> >>>    #define cpu_logical_map(cpu)    __cpu_logical_map[cpu]
-> >>>
-> >>> +typedef u64 cpuid_t;
+On Thu, Feb 05, 2015 at 10:47:23AM +0000, Ard Biesheuvel wrote:
+> On 5 February 2015 at 10:41, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > On Wed, Feb 04, 2015 at 06:58:14PM +0000, Mark Salter wrote:
+> >> On Wed, 2015-02-04 at 17:57 +0000, Catalin Marinas wrote:
+> >> > On Wed, Feb 04, 2015 at 04:08:27PM +0000, Mark Salter wrote:
+> >> > > acpi_os_remap() is used to map ACPI tables. These tables may be in ram
+> >> > > which are already included in the kernel's linear RAM mapping. So we
+> >> > > need ioremap_cache to avoid two mappings to the same physical page
+> >> > > having different caching attributes.
+> >> >
+> >> > What's the call path to acpi_os_ioremap() on such tables already in the
+> >> > linear mapping? I can see an acpi_map() function which already takes
+> >> > care of the RAM mapping case but there are other cases where
+> >> > acpi_os_ioremap() is called directly. For example,
+> >> > acpi_os_read_memory(), can it be called on both RAM and I/O?
 > >>
-> >> I think cpuid_t is a little confused because people may recognize
-> >> it as cpu logical id, its original meaning is the physical cpu ID,
-> >> so how about:
-> >>
-> >> typedef u64 phys_id_t; ?
+> >> acpi_map() is the one I've seen.
 > >
-> > I would keep "cpu" somewhere in the name as "phys" is too generic, =
-maybe
-> > phys_cpuid_t.
->=20
-> This is pretty fine to me too :)
->=20
-> x86 and IA64 use 32 bit cpu phys_id (apic_id) everywhere in the arch
-> code, but I think I don't need to touch them in this patch.
+> > By default, if should_use_kmap() is not patched for arm64, it translates
+> > to page_is_ram(); acpi_map() would simply use a kmap() which returns the
+> > current kernel linear mapping on arm64.
+> >
+> >> I'm not sure about others.
+> >
+> > Question for the ARM ACPI guys: what happens if you implement
+> > acpi_os_ioremap() on arm64 as just ioremap()? Do you get any WARN_ON()
+> > (__ioremap_caller() checks whether the memory is RAM)?
+> 
+> Regardless of whether you hit any WARN_ON()s now,
 
-No, as long as you define phys_cpuid_t to be 32-bit (I guess an int) on
-these architectures.
+Actually following the WARN_ON(), ioremap() returns NULL, so it may not
+go entirely unnoticed.
 
---=20
+> we still need to distinguish between MMIO ranges with device
+> semantics, and ACPI or other tables whose data may not be naturally
+> aligned all the time, and hence requiring memory semantics.
+> acpi_os_ioremap() may be used for both, afaik
+
+Is acpi_os_ioremap() called directly (outside acpi_map()) to map RAM
+that already part of the kernel linear memory? If yes, then I agree that
+we need to do such check.
+
+Another question, can we distinguish, in the ACPI core code, whether the
+mapping is for an ACPI table in RAM or some I/O space?
+
+-- 
 Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
