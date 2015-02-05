@@ -1,113 +1,45 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Thu, 5 Feb 2015 14:50:19 +0000
-Message-ID: <20150205145018.GA21970@e104818-lin.cambridge.arm.com>
-References: <20150204112508.GB26006@e104818-lin.cambridge.arm.com>
- <1423066107.18187.99.camel@deneb.redhat.com>
- <20150204175734.GI26006@e104818-lin.cambridge.arm.com>
- <1423076294.18187.103.camel@deneb.redhat.com>
- <20150205104149.GA18158@e104818-lin.cambridge.arm.com>
- <CAKv+Gu-tqY4C0eaRvp5FAzx9PqOGMg+sFNzxr2f25omdJKr7JA@mail.gmail.com>
- <20150205105945.GC18158@e104818-lin.cambridge.arm.com>
- <20150205111443.GC24474@xora-haswell.xora.org.uk>
- <20150205120720.GD18158@e104818-lin.cambridge.arm.com>
- <20150205125208.GE24474@xora-haswell.xora.org.uk>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Patch v4 00/23] Improve ACPI resource parsing interfaces and enable IOAPIC hotplug
+Date: Thu, 05 Feb 2015 16:16:44 +0100
+Message-ID: <2064980.4nxN3J5VNl@vostro.rjw.lan>
+References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:42053 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757275AbbBEOud (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 09:50:33 -0500
-Content-Disposition: inline
-In-Reply-To: <20150205125208.GE24474@xora-haswell.xora.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Mark Langsdorf <mlangsdo@redhat.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "msalter@redhat.com" <msalter@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google>
 
-On Thu, Feb 05, 2015 at 12:52:08PM +0000, Graeme Gregory wrote:
-> On Thu, Feb 05, 2015 at 12:07:20PM +0000, Catalin Marinas wrote:
-> > On Thu, Feb 05, 2015 at 11:14:43AM +0000, Graeme Gregory wrote:
-> > > On Thu, Feb 05, 2015 at 10:59:45AM +0000, Catalin Marinas wrote:
-> > > > On Thu, Feb 05, 2015 at 10:47:23AM +0000, Ard Biesheuvel wrote:
-> > > > > On 5 February 2015 at 10:41, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > > > > On Wed, Feb 04, 2015 at 06:58:14PM +0000, Mark Salter wrote:
-> > > > > >> On Wed, 2015-02-04 at 17:57 +0000, Catalin Marinas wrote:
-> > > > > >> > On Wed, Feb 04, 2015 at 04:08:27PM +0000, Mark Salter wrote:
-> > > > > >> > > acpi_os_remap() is used to map ACPI tables. These tables may be in ram
-> > > > > >> > > which are already included in the kernel's linear RAM mapping. So we
-> > > > > >> > > need ioremap_cache to avoid two mappings to the same physical page
-> > > > > >> > > having different caching attributes.
-> > > > > >> >
-> > > > > >> > What's the call path to acpi_os_ioremap() on such tables already in the
-> > > > > >> > linear mapping? I can see an acpi_map() function which already takes
-> > > > > >> > care of the RAM mapping case but there are other cases where
-> > > > > >> > acpi_os_ioremap() is called directly. For example,
-> > > > > >> > acpi_os_read_memory(), can it be called on both RAM and I/O?
-> > > > > >>
-> > > > > >> acpi_map() is the one I've seen.
-> > > > > >
-> > > > > > By default, if should_use_kmap() is not patched for arm64, it translates
-> > > > > > to page_is_ram(); acpi_map() would simply use a kmap() which returns the
-> > > > > > current kernel linear mapping on arm64.
-> > > > > >
-> > > > > >> I'm not sure about others.
-> > > > > >
-> > > > > > Question for the ARM ACPI guys: what happens if you implement
-> > > > > > acpi_os_ioremap() on arm64 as just ioremap()? Do you get any WARN_ON()
-> > > > > > (__ioremap_caller() checks whether the memory is RAM)?
-> > > > > 
-> > > > > Regardless of whether you hit any WARN_ON()s now,
-> > > > 
-> > > > Actually following the WARN_ON(), ioremap() returns NULL, so it may not
-> > > > go entirely unnoticed.
-> > > > 
-> > > > > we still need to distinguish between MMIO ranges with device
-> > > > > semantics, and ACPI or other tables whose data may not be naturally
-> > > > > aligned all the time, and hence requiring memory semantics.
-> > > > > acpi_os_ioremap() may be used for both, afaik
-> > > > 
-> > > > Is acpi_os_ioremap() called directly (outside acpi_map()) to map RAM
-> > > > that already part of the kernel linear memory? If yes, then I agree that
-> > > > we need to do such check.
-> > > > 
-> > > > Another question, can we distinguish, in the ACPI core code, whether the
-> > > > mapping is for an ACPI table in RAM or some I/O space?
-> > > 
-> > > Yes I think we do,
-> > > 
-> > > acpi_os_map_memory() is called to map tables
-> > > 
-> > > acpi_os_map_iomem() is called to map device IO
-> > > 
-> > > currently both end up in acpi_map but I guess they do not have to or
-> > > we can add extra arguments as its an internal API.
-> > 
-> > Ending up in acpi_map() is ok as this function checks whether it should
-> > use kmap() or acpi_os_ioremap().
-> > 
-> > > But I have not checked that no user sneaks in direct calls.
-> > 
-> > Grep'ing for acpi_os_ioremap():
-> > 
-> > suspend_nvs_save() - we don't care about this yet for arm64 as the
-> > function is only compiled in if CONFIG_ACPI_SLEEP
-> > 
-> > acpi_os_read_memory() and acpi_os_write_memory() - do you know what kind
-> > of memory are these used on?
-> > 
+On Thursday, February 05, 2015 01:44:26 PM Jiang Liu wrote:
+> During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
+> in ACPI resource parsing interfaces. So this is an effort to improve them.
 > 
-> They are used when an operating region is set to SystemMemory type.
+> Patch 1 refines ACPICA resource descriptors, which has already been
+> merged into "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge"
 > 
-> From table 19-326
+> Patch 2-12 improve ACPI resource parsing interfaces and also fixes some
+> bugs.
 > 
-> Region Type: SystemMemory
-> Permitted Access Type: ByteAcc, WordAcc, DWordAcc, QWordAcc, or AnyAcc
-> Description: All access allowed
+> Patch 13-20 try to share the common data structure resource_list_entry
+> between PCI and ACPI. It may also be shared with PNP too.
+> 
+> Patch 21-23 enable ACPI based IOAPIC hotplug.
+> 
+> The patchset is based on v3.19-rc6+ and passed Fengguang's 0day test
+> suite. You may get it from:
+> https://github.com/jiangliu/linux.git acpires_v2
+> 
+> V3->V4:
+> 1) rename resource_list_entry as resource_entry to avoid conflicts
+> 2) kill pcibios_disable_device()
+> 3) Patch 1-16 are the same with v3
 
-OK. So I guess these would fall under the page_is_ram() category in
-Linux.
+OK, I've applied patches [17-23/23] on top of the previous [1-16/23], thanks!
+
 
 -- 
-Catalin
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
