@@ -1,70 +1,62 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/10] ACPICA: Events: Back port "ACPICA: Save current masks of enabled GPEs after enable register writes".
-Date: Thu,  5 Feb 2015 15:19:48 +0800
-Message-ID: <8a4eebacaf4919b67f9102ea1b78d76309714fab.1423119574.git.lv.zheng@intel.com>
+Subject: [PATCH 02/10] ACPICA: Events: Remove duplicated sanity check in acpi_ev_enable_gpe().
+Date: Thu,  5 Feb 2015 15:19:54 +0800
+Message-ID: <a313e233a49f4b7c45a03e29aea163ef377baa97.1423119574.git.lv.zheng@intel.com>
 References: <cover.1423119574.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1423119574.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "David E. Box" <david.e.box@linux.intel.com>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This is the back port result of the Linux commit:
-  Commit c50f13c672df758b59e026c15b9118f3ed46edc4
-  Subject: ACPICA: Save current masks of enabled GPEs after enable register writes
+ACPICA commit ca10324788bc9bdaf47fa9e51145129c1299144d
 
-Besides of the indent divergences, only a missing prototype added due to
-the ACPICA internal coding style.
+This patch deletes a sanity check from acpi_ev_enable_gpe().
 
+This kind of check is already done in
+acpi_enable_gpe()/acpi_remove_gpe_handler()/acpi_update_all_gpes() before invoking
+acpi_ev_enable_gpe():
+1. acpi_enable_gpe(): same check (skip if DISPATCH_NONE) is now implemented.
+2. acpi_remove_gpe_handler(): a more strict check (skip if !DISPATCH_HANDLER)
+                           is implemented.
+3. acpi_update_all_gpes(): a more strict check (skip if DISPATCH_NONE ||
+                        DISPATCH_HANDLER || CAN_WAKE)
+4. acpi_set_gpe(): since it is invoked by the OSPM driver where the GPE
+                 handler is known to be available, such check isn't needed.
+So we can simply remove this duplicated check from acpi_ev_enable_gpe().
+Lv Zheng.
+
+Link: https://github.com/acpica/acpica/commit/ca103247
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: David E. Box <david.e.box@linux.intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/evgpeutil.c |    4 ++--
- drivers/acpi/acpica/evxfgpe.c   |    1 -
- drivers/acpi/acpica/hwgpe.c     |    4 ++++
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/evgpe.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evgpeutil.c b/drivers/acpi/acpica/evgpeutil.c
-index 17e4bbf..9e2b94c 100644
---- a/drivers/acpi/acpica/evgpeutil.c
-+++ b/drivers/acpi/acpica/evgpeutil.c
-@@ -167,8 +167,8 @@ u8 acpi_ev_valid_gpe_event(struct acpi_gpe_event_info *gpe_event_info)
-  ******************************************************************************/
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index aa70154..b2e63e7 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -114,17 +114,6 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
  
- acpi_status
--acpi_ev_get_gpe_device(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
--		       struct acpi_gpe_block_info *gpe_block, void *context)
-+acpi_ev_get_gpe_device(struct acpi_gpe_xrupt_info * gpe_xrupt_info,
-+		       struct acpi_gpe_block_info * gpe_block, void *context)
- {
- 	struct acpi_gpe_device_info *info = context;
+ 	ACPI_FUNCTION_TRACE(ev_enable_gpe);
  
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index e889a53..c637666 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -604,7 +604,6 @@ ACPI_EXPORT_SYMBOL(acpi_enable_all_runtime_gpes)
-  *              all GPE blocks.
-  *
-  ******************************************************************************/
+-	/*
+-	 * We will only allow a GPE to be enabled if it has either an associated
+-	 * method (_Lxx/_Exx) or a handler, or is using the implicit notify
+-	 * feature. Otherwise, the GPE will be immediately disabled by
+-	 * acpi_ev_gpe_dispatch the first time it fires.
+-	 */
+-	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
+-	    ACPI_GPE_DISPATCH_NONE) {
+-		return_ACPI_STATUS(AE_NO_HANDLER);
+-	}
 -
- acpi_status acpi_enable_all_wakeup_gpes(void)
- {
- 	acpi_status status;
-diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-index 494027f..6a955a9 100644
---- a/drivers/acpi/acpica/hwgpe.c
-+++ b/drivers/acpi/acpica/hwgpe.c
-@@ -54,6 +54,10 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 				struct acpi_gpe_block_info *gpe_block,
- 				void *context);
+ 	/* Clear the GPE (of stale events) */
  
-+static acpi_status
-+acpi_hw_gpe_enable_write(u8 enable_mask,
-+			 struct acpi_gpe_register_info *gpe_register_info);
-+
- /******************************************************************************
-  *
-  * FUNCTION:	acpi_hw_get_gpe_register_bit
+ 	status = acpi_hw_clear_gpe(gpe_event_info);
 -- 
 1.7.10
