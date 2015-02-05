@@ -1,59 +1,48 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v8 11/21] ARM64 / ACPI: Get PSCI flags in FADT for PSCI
- init
-Date: Thu, 05 Feb 2015 17:48:37 +0800
-Message-ID: <54D33C75.8030405@linaro.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-12-git-send-email-hanjun.guo@linaro.org> <20150204164328.GF22035@red-moon>
+From: David Vrabel <david.vrabel@citrix.com>
+Subject: Re: [Xen-devel] [Patch v4 01/23] ACPICA: Resources: Provide common
+ part for struct acpi_resource_address structures.
+Date: Thu, 5 Feb 2015 10:05:01 +0000
+Message-ID: <54D3404D.90404@citrix.com>
+References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com> <1423115089-12904-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:48590 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756808AbbBEJsr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 04:48:47 -0500
-Received: by mail-pa0-f45.google.com with SMTP id et14so9019468pad.4
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2015 01:48:47 -0800 (PST)
-In-Reply-To: <20150204164328.GF22035@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1423115089-12904-2-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Clemens Ladisch <clemens@ladisch.de>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>
+Cc: linux-ia64@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>
 
-On 2015=E5=B9=B402=E6=9C=8805=E6=97=A5 00:43, Lorenzo Pieralisi wrote:
-> On Mon, Feb 02, 2015 at 12:45:39PM +0000, Hanjun Guo wrote:
->> From: Graeme Gregory <graeme.gregory@linaro.org>
->>
->> There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
->> the former signals to the OS that the firmware is PSCI compliant.
->> The latter selects the appropriate conduit for PSCI calls by
->> toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
->> (SMC).
->>
->> FADT table contains such information in ACPI 5.1, FADT table was
->> parsed in ACPI table init and copy to struct acpi_gbl_FADT, so
->> use the flags in struct acpi_gbl_FADT for PSCI init.
->
-> So you do rely on a global FADT being available, if you use it for PS=
-CI
-> detection you can use it for ACPI revision detection too, right ?
+On 05/02/15 05:44, Jiang Liu wrote:
+> 
+> --- a/drivers/xen/xen-acpi-memhotplug.c
+> +++ b/drivers/xen/xen-acpi-memhotplug.c
+> @@ -117,8 +117,8 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+>  	list_for_each_entry(info, &mem_device->res_list, list) {
+>  		if ((info->caching == address64.info.mem.caching) &&
+>  		    (info->write_protect == address64.info.mem.write_protect) &&
+> -		    (info->start_addr + info->length == address64.minimum)) {
+> -			info->length += address64.address_length;
+> +		    (info->start_addr + info->length == address64.address.minimum)) {
+> +			info->length += address64.address.address_length;
+>  			return AE_OK;
+>  		}
+>  	}
+> @@ -130,8 +130,8 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+>  	INIT_LIST_HEAD(&new->list);
+>  	new->caching = address64.info.mem.caching;
+>  	new->write_protect = address64.info.mem.write_protect;
+> -	new->start_addr = address64.minimum;
+> -	new->length = address64.address_length;
+> +	new->start_addr = address64.address.minimum;
+> +	new->length = address64.address.address_length;
+>  	list_add_tail(&new->list, &mem_device->res_list);
+>  
+>  	return AE_OK;
 
-Yes, I think so.
+Xen parts:
 
->
-> Point is, either we should not use the global FADT table, or we use
-> it consistently, or there is something I am unaware of that prevents
-> you from using in some code paths and I would like to understand
-> why.
+Acked-by: David Vrabel <david.vrabel@citrix.com>
 
-global FADT table is initialized when parsing the tables from RSDP in
-ACPICA core, and it should be work on ARM64 too.
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+David
