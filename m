@@ -1,22 +1,18 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 03/23] ACPI: Implement proper length checks for mem resources
-Date: Thu,  5 Feb 2015 13:44:29 +0800
-Message-ID: <1423115089-12904-4-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 04/23] ACPI: Use the length check for io resources as well
+Date: Thu,  5 Feb 2015 13:44:30 +0800
+Message-ID: <1423115089-12904-5-git-send-email-jiang.liu@linux.intel.com>
 References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
 Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Check whether the resulting length is the same as the given
-length. Check for start <= end as well.
-
-We need to hand in the resource for this, so we can apply the flags
-directly.
+Also apply length check to IO resources.
 
 [Jiang] Remove enforcement that resource starting address must be
 non-zero.
@@ -24,95 +20,76 @@ non-zero.
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |   62 ++++++++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 27 deletions(-)
+ drivers/acpi/resource.c |   44 +++++++++++++++++++-------------------------
+ 1 file changed, 19 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 1c616a56e007..3e7d9f6eb875 100644
+index 3e7d9f6eb875..16d291c60277 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -34,21 +34,37 @@
- #define valid_IRQ(i) (true)
- #endif
+@@ -117,31 +117,30 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
  
--static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
--						bool window)
-+static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
+-static unsigned int acpi_dev_ioresource_flags(u64 start, u64 end, u8 io_decode,
+-					      bool window)
++static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
++				      u8 io_decode, bool window)
  {
--	unsigned long flags = IORESOURCE_MEM;
-+	u64 reslen = end - start + 1;
+-	int flags = IORESOURCE_IO;
++	res->flags = IORESOURCE_IO;
  
--	if (len == 0)
--		flags |= IORESOURCE_DISABLED;
-+	/*
-+	 * CHECKME: len might be required to check versus a minimum
-+	 * length as well. 1 for io is fine, but for memory it does
-+	 * not make any sense at all.
-+	 */
-+	if (len && reslen && reslen == len && start <= end)
-+		return true;
-+
-+	pr_info("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-+		io ? "io" : "mem", start, end, len);
-+
-+	return false;
-+}
-+
-+static void acpi_dev_memresource_flags(struct resource *res, u64 len,
-+				       u8 write_protect, bool window)
-+{
-+	res->flags = IORESOURCE_MEM;
-+
-+	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
+-	if (io_decode == ACPI_DECODE_16)
+-		flags |= IORESOURCE_IO_16BIT_ADDR;
++	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
 +		res->flags |= IORESOURCE_DISABLED;
  
- 	if (write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
-+		res->flags |= IORESOURCE_MEM_WRITEABLE;
+-	if (start > end || end >= 0x10003)
+-		flags |= IORESOURCE_DISABLED;
++	if (res->end >= 0x10003)
++		res->flags |= IORESOURCE_DISABLED;
  
- 	if (window)
+-	if (window)
 -		flags |= IORESOURCE_WINDOW;
--
++	if (io_decode == ACPI_DECODE_16)
++		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+ 
 -	return flags;
++	if (window)
 +		res->flags |= IORESOURCE_WINDOW;
  }
  
- static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
-@@ -56,7 +72,7 @@ static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
+ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+ 				    u8 io_decode)
  {
+-	u64 end = start + len - 1;
+-
  	res->start = start;
- 	res->end = start + len - 1;
--	res->flags = acpi_dev_memresource_flags(len, write_protect, false);
-+	acpi_dev_memresource_flags(res, len, write_protect, false);
+-	res->end = end;
+-	res->flags = acpi_dev_ioresource_flags(start, end, io_decode, false);
++	res->end = start + len - 1;
++	acpi_dev_ioresource_flags(res, len, io_decode, false);
  }
  
  /**
-@@ -77,24 +93,18 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+@@ -161,16 +160,12 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
  	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		memory24 = &ares->data.memory24;
--		if (!memory24->minimum && !memory24->address_length)
+ 	case ACPI_RESOURCE_TYPE_IO:
+ 		io = &ares->data.io;
+-		if (!io->minimum && !io->address_length)
 -			return false;
- 		acpi_dev_get_memresource(res, memory24->minimum,
- 					 memory24->address_length,
- 					 memory24->write_protect);
+ 		acpi_dev_get_ioresource(res, io->minimum,
+ 					io->address_length,
+ 					io->io_decode);
  		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 		memory32 = &ares->data.memory32;
--		if (!memory32->minimum && !memory32->address_length)
+ 	case ACPI_RESOURCE_TYPE_FIXED_IO:
+ 		fixed_io = &ares->data.fixed_io;
+-		if (!fixed_io->address && !fixed_io->address_length)
 -			return false;
- 		acpi_dev_get_memresource(res, memory32->minimum,
- 					 memory32->address_length,
- 					 memory32->write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 		fixed_memory32 = &ares->data.fixed_memory32;
--		if (!fixed_memory32->address && !fixed_memory32->address_length)
--			return false;
- 		acpi_dev_get_memresource(res, fixed_memory32->address,
- 					 fixed_memory32->address_length,
- 					 fixed_memory32->write_protect);
-@@ -102,7 +112,8 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ 		acpi_dev_get_ioresource(res, fixed_io->address,
+ 					fixed_io->address_length,
+ 					ACPI_DECODE_10);
+@@ -178,7 +173,8 @@ bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
  	default:
  		return false;
  	}
@@ -120,52 +97,31 @@ index 1c616a56e007..3e7d9f6eb875 100644
 +
 +	return !(res->flags & IORESOURCE_DISABLED);
  }
- EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
  
-@@ -186,7 +197,6 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 	acpi_status status;
- 	struct acpi_resource_address64 addr;
- 	bool window;
--	u64 len;
- 	u8 io_decode;
- 
- 	status = acpi_resource_to_address64(ares, &addr);
-@@ -199,10 +209,9 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
- 
- 	switch(addr.resource_type) {
- 	case ACPI_MEMORY_RANGE:
--		len = addr.address.maximum - addr.address.minimum + 1;
--		res->flags = acpi_dev_memresource_flags(len,
--						addr.info.mem.write_protect,
--						window);
-+		acpi_dev_memresource_flags(res, addr.address.address_length,
-+					   addr.info.mem.write_protect,
-+					   window);
- 		break;
+@@ -216,9 +212,8 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
  	case ACPI_IO_RANGE:
  		io_decode = addr.address.granularity == 0xfff ?
-@@ -236,7 +245,6 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- {
- 	struct acpi_resource_extended_address64 *ext_addr;
- 	bool window;
--	u64 len;
- 	u8 io_decode;
- 
- 	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
-@@ -250,10 +258,10 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
- 
- 	switch(ext_addr->resource_type) {
- 	case ACPI_MEMORY_RANGE:
--		len = ext_addr->address.maximum - ext_addr->address.minimum + 1;
--		res->flags = acpi_dev_memresource_flags(len,
--					ext_addr->info.mem.write_protect,
--					window);
-+		acpi_dev_memresource_flags(res,
-+					   ext_addr->address.address_length,
-+					   ext_addr->info.mem.write_protect,
-+					   window);
+ 				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		res->flags = acpi_dev_ioresource_flags(addr.address.minimum,
+-						       addr.address.maximum,
+-						       io_decode, window);
++		acpi_dev_ioresource_flags(res, addr.address.address_length,
++					  io_decode, window);
  		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
+@@ -266,9 +261,8 @@ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
  	case ACPI_IO_RANGE:
  		io_decode = ext_addr->address.granularity == 0xfff ?
+ 				ACPI_DECODE_10 : ACPI_DECODE_16;
+-		res->flags = acpi_dev_ioresource_flags(ext_addr->address.minimum,
+-						       ext_addr->address.maximum,
+-						       io_decode, window);
++		acpi_dev_ioresource_flags(res, ext_addr->address.address_length,
++					  io_decode, window);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
 -- 
 1.7.10.4
