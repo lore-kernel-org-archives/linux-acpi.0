@@ -1,262 +1,133 @@
-From: Ken Xue <Ken.Xue@amd.com>
-Subject: [PATCH V4] acpi:apd:add AMD ACPI2Platform device support for x86
- system.
-Date: Thu, 5 Feb 2015 11:07:17 +0800
-Message-ID: <1423105637.18208.35.camel@kxue-X58A-UD3R>
-References: <1422928460.2528.16.camel@kxue-X58A-UD3R>
-	 <CAHp75Vd9fEJkFw50Ri4gzQwUHo4=Y2jKz4SOURsod1OrhH5sdw@mail.gmail.com>
-	 <1856062.BZP7yNCLav@vostro.rjw.lan>
-	 <1423021234.18208.31.camel@kxue-X58A-UD3R>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0121.outbound.protection.outlook.com ([207.46.100.121]:31455
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752756AbbBEDSa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Feb 2015 22:18:30 -0500
-In-Reply-To: <1423021234.18208.31.camel@kxue-X58A-UD3R>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v4 00/23] Improve ACPI resource parsing interfaces and enable IOAPIC hotplug
+Date: Thu,  5 Feb 2015 13:44:26 +0800
+Message-ID: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
->From d22789f089ee644413a144633f368f45cb0ac9d8 Mon Sep 17 00:00:00 2001
-From: Ken Xue <Ken.Xue@amd.com>
-Date: Thu, 5 Feb 2015 11:04:44 +0800
-Subject: [PATCH] acpi:apd:add AMD ACPI2Platform device support for x86 system.
+During enabling ACPI based IOAPIC hotplug, Thomas noticed some issues
+in ACPI resource parsing interfaces. So this is an effort to improve them.
 
-This new feature is to interpret AMD specific ACPI device to
-platform device such as I2C, UART found on AMD CZ and later chipsets. It
-based on example intel LPSS. Now, it can support AMD I2C & UART.
----
- arch/x86/Kconfig        |  11 ++++
- drivers/acpi/Makefile   |   2 +-
- drivers/acpi/acpi_apd.c | 150 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/internal.h |   2 +
- drivers/acpi/scan.c     |   1 +
- 5 files changed, 165 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/acpi_apd.c
+Patch 1 refines ACPICA resource descriptors, which has already been
+merged into "git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge"
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 0dc9d01..3e15cee 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -496,6 +496,17 @@ config X86_INTEL_LPSS
- 	  things like clock tree (common clock framework) and pincontrol
- 	  which are needed by the LPSS peripheral drivers.
- 
-+config X86_AMD_PLATFORM_DEVICE
-+	bool "AMD ACPI2Platform devices support"
-+	depends on ACPI
-+	select COMMON_CLK
-+	select PINCTRL
-+	---help---
-+	  Select to interpret AMD specific ACPI device to platform device
-+	  such as I2C, UART, GPIO found on AMD Carrizo and later chipsets.
-+	  I2C and UART depend on COMMON_CLK to set clock. GPIO driver is
-+	  implemented under PINCTRL subsystem.
-+
- config IOSF_MBI
- 	tristate "Intel SoC IOSF Sideband support for SoC platforms"
- 	depends on PCI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index f74317c..0071141 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -40,7 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
--acpi-y				+= acpi_lpss.o
-+acpi-y				+= acpi_lpss.o acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-y				+= int340x_thermal.o
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-new file mode 100644
-index 0000000..3984ea9
---- /dev/null
-+++ b/drivers/acpi/acpi_apd.c
-@@ -0,0 +1,150 @@
-+/*
-+ * AMD ACPI support for ACPI2platform device.
-+ *
-+ * Copyright (c) 2014,2015 AMD Corporation.
-+ * Authors: Ken Xue <Ken.Xue@amd.com>
-+ *	Wu, Jeff <Jeff.Wu@amd.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_domain.h>
-+#include <linux/clkdev.h>
-+#include <linux/acpi.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/pm.h>
-+
-+#include "internal.h"
-+
-+ACPI_MODULE_NAME("acpi_apd");
-+struct apd_private_data;
-+
-+/**
-+ * ACPI_APD_SYSFS : add device attributes in sysfs
-+ * ACPI_APD_PM : attach power domain to device
-+ */
-+#define ACPI_APD_SYSFS	BIT(0)
-+#define ACPI_APD_PM	BIT(1)
-+
-+/**
-+ * struct apd_device_desc - a descriptor for apd device
-+ * @flags: device flags like %ACPI_APD_SYSFS, %ACPI_APD_PM
-+ * @fixed_clk_rate: fixed rate input clock source for acpi device;
-+ *			0 means no fixed rate input clock source
-+ * @setup: a hook routine to set device resource during create platform device
-+ *
-+ * Device description defined as acpi_device_id.driver_data
-+ */
-+struct apd_device_desc {
-+	unsigned int flags;
-+	unsigned int fixed_clk_rate;
-+	int (*setup)(struct apd_private_data *pdata);
-+};
-+
-+struct apd_private_data {
-+	struct clk *clk;
-+	struct acpi_device *adev;
-+	const struct apd_device_desc *dev_desc;
-+};
-+
-+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+#define APD_ADDR(desc)	((unsigned long)&desc)
-+
-+static int acpi_apd_setup(struct apd_private_data *pdata)
-+{
-+	const struct apd_device_desc *dev_desc = pdata->dev_desc;
-+	struct clk *clk = ERR_PTR(-ENODEV);
-+
-+	if (dev_desc->fixed_clk_rate) {
-+		clk = clk_register_fixed_rate(&pdata->adev->dev,
-+					dev_name(&pdata->adev->dev),
-+					NULL, CLK_IS_ROOT,
-+					dev_desc->fixed_clk_rate);
-+		clk_register_clkdev(clk, NULL, dev_name(&pdata->adev->dev));
-+		pdata->clk = clk;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct apd_device_desc cz_i2c_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 133000000,
-+};
-+
-+static struct apd_device_desc cz_uart_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 48000000,
-+};
-+
-+#else
-+
-+#define APD_ADDR(desc) (0UL)
-+
-+#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-+
-+/**
-+* Create platform device during acpi scan attach handle.
-+* Return value > 0 on success of creating device.
-+*/
-+static int acpi_apd_create_device(struct acpi_device *adev,
-+				   const struct acpi_device_id *id)
-+{
-+	const struct apd_device_desc *dev_desc = (void *)id->driver_data;
-+	struct apd_private_data *pdata;
-+	struct platform_device *pdev;
-+	int ret;
-+
-+	if (!dev_desc) {
-+		pdev = acpi_create_platform_device(adev);
-+		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
-+	}
-+
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
-+
-+	pdata->adev = adev;
-+	pdata->dev_desc = dev_desc;
-+
-+	if (dev_desc->setup) {
-+		ret = dev_desc->setup(pdata);
-+		if (ret)
-+			goto err_out;
-+	}
-+
-+	adev->driver_data = pdata;
-+	pdev = acpi_create_platform_device(adev);
-+	if (!IS_ERR_OR_NULL(pdev))
-+		return 1;
-+
-+	ret = PTR_ERR(pdev);
-+	adev->driver_data = NULL;
-+
-+ err_out:
-+	kfree(pdata);
-+	return ret;
-+}
-+
-+static const struct acpi_device_id acpi_apd_device_ids[] = {
-+	/* Generic apd devices */
-+	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-+	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-+	{ "AMD0030", },
-+	{ }
-+};
-+
-+static struct acpi_scan_handler apd_handler = {
-+	.ids = acpi_apd_device_ids,
-+	.attach = acpi_apd_create_device,
-+};
-+
-+void __init acpi_apd_init(void)
-+{
-+	acpi_scan_add_handler(&apd_handler);
-+}
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 163e82f..c24ae9d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -68,6 +68,8 @@ static inline void acpi_debugfs_init(void) { return; }
- #endif
- void acpi_lpss_init(void);
- 
-+void acpi_apd_init(void);
-+
- acpi_status acpi_hotplug_schedule(struct acpi_device *adev, u32 src);
- bool acpi_queue_hotplug_work(struct work_struct *work);
- void acpi_device_hotplug(struct acpi_device *adev, u32 src);
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index dc4d896..bbca783 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2544,6 +2544,7 @@ int __init acpi_scan_init(void)
- 	acpi_pci_link_init();
- 	acpi_processor_init();
- 	acpi_lpss_init();
-+	acpi_apd_init();
- 	acpi_cmos_rtc_init();
- 	acpi_container_init();
- 	acpi_memory_hotplug_init();
+Patch 2-12 improve ACPI resource parsing interfaces and also fixes some
+bugs.
+
+Patch 13-20 try to share the common data structure resource_list_entry
+between PCI and ACPI. It may also be shared with PNP too.
+
+Patch 21-23 enable ACPI based IOAPIC hotplug.
+
+The patchset is based on v3.19-rc6+ and passed Fengguang's 0day test
+suite. You may get it from:
+https://github.com/jiangliu/linux.git acpires_v2
+
+V3->V4:
+1) rename resource_list_entry as resource_entry to avoid conflicts
+2) kill pcibios_disable_device()
+3) Patch 1-16 are the same with v3
+
+
+V2->V3:
+1) Split out the patch to fix bug in io resource check according to Bjorn's
+   suggestion
+2) Fix minor coding style bugs
+
+V1->V2:
+1) Refine the way to share common code between address space and extended
+   address space.
+2) Relax some checks to avoid regressions according to Rafael's suggestions.
+3) Introduce struct resource_win to avoiding add extra parameter "offset"
+   to several interfaces.
+4) Add patches to enable ACPI based IOAPIC hotplug, which has been reviwed
+   several rounds.
+5) Rebase to v3.19-rc6+
+
+Jiang Liu (14):
+  ACPI: Fix a bug in parsing ACPI Memory24 resource
+  ACPI: Normalize return value of resource parser functions
+  ACPI: Set flag IORESOURCE_UNSET for unassigned resources
+  ACPI: Enforce stricter checks for address space descriptors
+  ACPI: Return translation offset when parsing ACPI address space
+    resources
+  ACPI: Translate resource into master side address for bridge window
+    resources
+  ACPI: Add field offset to struct resource_list_entry
+  ACPI: Introduce helper function acpi_dev_filter_resource_type()
+  resources: Move struct resource_list_entry from ACPI into resource
+    core
+  PCI: Use common resource list management code instead of private
+    implementation
+  x86/PCI: Fix the range check for IO resources
+  x86/PCI/ACPI: Use common ACPI resource interfaces to simplify
+    implementation
+  x86/PCI: Refine the way to release PCI IRQ resources
+  x86/irq, ACPI: Implement ACPI driver to support IOAPIC hotplug
+
+Lv Zheng (1):
+  ACPICA: Resources: Provide common part for struct
+    acpi_resource_address structures.
+
+Thomas Gleixner (7):
+  ACPI: Remove redundant check in function
+    acpi_dev_resource_address_space()
+  ACPI: Implement proper length checks for mem resources
+  ACPI: Use the length check for io resources as well
+  ACPI: Let the parser return false for disabled resources
+  ACPI: Unify the parsing of address_space and ext_address_space
+  ACPI: Move the window flag logic to the combined parser
+  ACPI: Add prefetch decoding to the address space parser
+
+Yinghai Lu (1):
+  ACPI: Add interfaces to parse IOAPIC ID for IOAPIC hotplug
+
+ arch/arm/kernel/bios32.c            |    5 +-
+ arch/ia64/kernel/acpi-ext.c         |    6 +-
+ arch/ia64/pci/pci.c                 |   14 +-
+ arch/x86/include/asm/pci_x86.h      |    2 -
+ arch/x86/pci/acpi.c                 |  293 +++++++++--------------------
+ arch/x86/pci/bus_numa.c             |    4 +-
+ arch/x86/pci/common.c               |   34 +++-
+ arch/x86/pci/intel_mid_pci.c        |    4 +-
+ arch/x86/pci/irq.c                  |   15 +-
+ arch/x86/pci/mmconfig-shared.c      |    6 +-
+ drivers/acpi/Kconfig                |    6 +
+ drivers/acpi/Makefile               |    1 +
+ drivers/acpi/acpi_lpss.c            |    8 +-
+ drivers/acpi/acpi_memhotplug.c      |    8 +-
+ drivers/acpi/acpi_platform.c        |    4 +-
+ drivers/acpi/acpica/rsaddr.c        |    9 +-
+ drivers/acpi/acpica/rsdumpinfo.c    |   59 +++---
+ drivers/acpi/acpica/rsxface.c       |   10 +-
+ drivers/acpi/internal.h             |    7 +
+ drivers/acpi/ioapic.c               |  229 +++++++++++++++++++++++
+ drivers/acpi/pci_irq.c              |    9 +-
+ drivers/acpi/pci_root.c             |    9 +-
+ drivers/acpi/processor_core.c       |  123 +++++++++++-
+ drivers/acpi/resource.c             |  353 +++++++++++++++++++++--------------
+ drivers/char/hpet.c                 |    4 +-
+ drivers/dma/acpi-dma.c              |   10 +-
+ drivers/hv/vmbus_drv.c              |    4 +-
+ drivers/pci/bus.c                   |   18 +-
+ drivers/pci/host-bridge.c           |    8 +-
+ drivers/pci/host/pci-host-generic.c |    4 +-
+ drivers/pci/host/pci-xgene.c        |    4 +-
+ drivers/pci/host/pcie-xilinx.c      |    4 +-
+ drivers/pci/probe.c                 |   10 +-
+ drivers/pnp/pnpacpi/rsparser.c      |   45 ++---
+ drivers/xen/xen-acpi-memhotplug.c   |    8 +-
+ include/acpi/acrestyp.h             |   40 ++--
+ include/linux/acpi.h                |   22 ++-
+ include/linux/pci.h                 |    9 +-
+ include/linux/resource_ext.h        |   77 ++++++++
+ kernel/resource.c                   |   25 +++
+ 40 files changed, 970 insertions(+), 540 deletions(-)
+ create mode 100644 drivers/acpi/ioapic.c
+ create mode 100644 include/linux/resource_ext.h
+
 -- 
-1.9.1
-
-
-
+1.7.10.4
