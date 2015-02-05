@@ -1,143 +1,41 @@
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: Crash in acpi_ps_peek_opcode when booting kernel 3.19 as Xen dom0
-Date: Thu, 05 Feb 2015 15:33:02 +0100
-Message-ID: <54D37F1E.5060208@canonical.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V4] acpi:apd:add AMD ACPI2Platform device support for x86 system.
+Date: Thu, 05 Feb 2015 16:09:38 +0100
+Message-ID: <1767774.KlJWFImEzb@vostro.rjw.lan>
+References: <1422928460.2528.16.camel@kxue-X58A-UD3R> <1423105637.18208.35.camel@kxue-X58A-UD3R> <20150205120214.GR18758@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="9vK7u1Fb51rkoTLbi5UHBiubxEjeAjXda"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:35319 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757475AbbBEOdO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 09:33:14 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150205120214.GR18758@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, Ken Xue <Ken.Xue@amd.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---9vK7u1Fb51rkoTLbi5UHBiubxEjeAjXda
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+On Thursday, February 05, 2015 02:02:14 PM mika.westerberg@linux.intel.com wrote:
+> On Thu, Feb 05, 2015 at 11:07:17AM +0800, Ken Xue wrote:
+> > >From d22789f089ee644413a144633f368f45cb0ac9d8 Mon Sep 17 00:00:00 2001
+> > From: Ken Xue <Ken.Xue@amd.com>
+> > Date: Thu, 5 Feb 2015 11:04:44 +0800
+> > Subject: [PATCH] acpi:apd:add AMD ACPI2Platform device support for x86 system.
+> > 
+> > This new feature is to interpret AMD specific ACPI device to
+> > platform device such as I2C, UART found on AMD CZ and later chipsets. It
+> > based on example intel LPSS. Now, it can support AMD I2C & UART.
+> 
+> You are missing Signed-off-by here.
+> 
+> Anyway looks good to me,
+> 
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-While experimenting/testing various kernel versions I discovered that try=
-ing to
-boot a Haswell based hosts will always crash when booting as Xen dom0
-(Xen-4.4.1). The same crash happens since v3.19-rc1 and still does happen=
- with
-v3.19-rc7. A bare metal boot is having no issues and also an Opteron base=
-d host
-is having no issues (dom0 and bare metal).
-Could be a table that the other host does not have and since its only hap=
-pening
-in dom0 maybe some cpu capability that needs to be passed on?
+Thanks!
 
-[    2.108038] ACPI: Core revision 20141107
-[    2.108153] ACPI Warning: Unsupported module-level executable opcode 0=
-x91 at
-table offset 0x002B (20141107/psloop-225)
-[    2.108264] ACPI Warning: Unsupported module-level executable opcode 0=
-x91 at
-table offset 0x0033 (20141107/psloop-225)
-[    2.108375] ACPI Warning: Unsupported module-level executable opcode 0=
-x95 at
-table offset 0x0038 (20141107/psloop-225)
-[    2.108489] ACPI Warning: Unsupported module-level executable opcode 0=
-x95 at
-table offset 0x0041 (20141107/psloop-225)
-[    2.108613] ACPI Warning: Unsupported module-level executable opcode 0=
-x7D at
-table offset 0x040D (20141107/psloop-225)
-[    2.108751] BUG: unable to handle kernel paging request at ffffc90000e=
-e74e0
-[    2.108835] IP: [<ffffffff814573db>] acpi_ps_peek_opcode+0xd/0x1f
-[    2.108902] PGD 1f4be067 PUD 1f4bd067 PMD 1488f067 PTE 0
-[    2.109018] Oops: 0000 [#1] SMP
-[    2.109094] Modules linked in:
-[    2.109153] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.19.0-031900rc7=
--generi
-c #201502020035
-[    2.109220] Hardware name: Intel Corporation Shark Bay Client platform=
-/Flathe
-ad Creek Crb, BIOS HSWLPTU1.86C.0109.R03.1301282055 01/28/2013
-[    2.109295] task: ffffffff81c1c500 ti: ffffffff81c00000 task.ti: fffff=
-fff81c0
-0000
-[    2.109360] RIP: e030:[<ffffffff814573db>]  [<ffffffff814573db>] acpi_=
-ps_peek
-_opcode+0xd/0x1f
-[    2.109445] RSP: e02b:ffffffff81c03ce8  EFLAGS: 00010283
-[    2.109490] RAX: 000000000000000c RBX: ffff880014887000 RCX: ffffffff8=
-1c03d50
-[    2.109539] RDX: ffffc90000ee74e0 RSI: ffff880014887030 RDI: ffff88001=
-4887030
-[    2.109587] RBP: ffffffff81c03ce8 R08: ffffea0000522600 R09: ffffffff8=
-1432c4f
-[    2.109635] R10: ffff880014899090 R11: 00000000000000ba R12: ffff88001=
-4887030
-[    2.109684] R13: ffff880014887000 R14: ffffffff81c03d50 R15: 000000000=
-000000d
-[    2.109735] FS:  0000000000000000(0000) GS:ffff880018c00000(0000) knlG=
-S:00000
-00000000000
-[    2.109836] CS:  e033 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    2.109881] CR2: ffffc90000ee74e0 CR3: 0000000001c15000 CR4: 000000000=
-0042660
-[    2.109930] Stack:
-[    2.109968]  ffffffff81c03d38 ffffffff81456537 ffffffff81c03d28 ffffff=
-ff81457
-a40
-[    2.110104]  ffff880014887000 ffff880014887000 ffff8800148990c0 ffffc9=
-0000ee7
-4e0
-[    2.110238]  ffff880014887030 0000000000000000 ffffffff81c03d78 ffffff=
-ff81456
-760
-[    2.110373] Call Trace:
-[    2.110413]  [<ffffffff81456537>] acpi_ps_get_next_arg+0x114/0x1f9
-[    2.110461]  [<ffffffff81457a40>] ? acpi_ps_pop_scope+0x54/0x72
-[    2.110508]  [<ffffffff81456760>] acpi_ps_get_arguments+0x91/0x228
-[    2.110555]  [<ffffffff81456ad2>] acpi_ps_parse_loop+0x1db/0x311
-[    2.110602]  [<ffffffff81457705>] acpi_ps_parse_aml+0x96/0x275
-[    2.110649]  [<ffffffff8145322f>] acpi_ns_one_complete_parse+0xf7/0x11=
-4
-[    2.110698]  [<ffffffff817d149a>] ? _raw_spin_lock_irqsave+0x1a/0x60
-[    2.110746]  [<ffffffff8145326c>] acpi_ns_parse_table+0x20/0x38
-[    2.110792]  [<ffffffff81452c20>] acpi_ns_load_table+0x4c/0x90
-[    2.110840]  [<ffffffff817c50b5>] acpi_tb_load_namespace+0xa6/0x14a
-[    2.110889]  [<ffffffff81d83269>] acpi_load_tables+0xc/0x35
-[    2.110935]  [<ffffffff81454bf6>] ? acpi_ns_get_node+0xb7/0xc9
-[    2.110982]  [<ffffffff81d825cf>] acpi_early_init+0x73/0x105
-[    2.111029]  [<ffffffff81d3b083>] start_kernel+0x348/0x3f0
-[    2.111075]  [<ffffffff81d3abcd>] ? set_init_arg+0x56/0x56
-[    2.111121]  [<ffffffff81d3a5f8>] x86_64_start_reservations+0x2a/0x2c
-[    2.111169]  [<ffffffff81d3e88c>] xen_start_kernel+0x4f5/0x4f7
-[    2.111215] Code: 8a 87 60 05 87 81 5d c3 e8 73 cc 37 00 55 81 ff 00 0=
-1 00 00
- 19 c0 48 89 e5 83 c0 02 5d c3 e8 5d cc 3
+Ken, can you please resend this one with a sign-off?  I can't apply it
+otherwise.
 
 
---9vK7u1Fb51rkoTLbi5UHBiubxEjeAjXda
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJU038nAAoJEOhnXe7L7s6jjfoP/jhs5HablGkLwIv+OW+ifaPf
-+cav6J06wdkyaMC827hdEdP3WdQ2UKHJRnSgW+JtxpAWz4vGBJ3tsqOHSu17rniL
-8Thhkea5uuGhIc8TiU8P8VeojSP1CdXqhrybynedx5WYHdUEDwPDBTJ3rf+fBVgG
-HL3t0sdw7FVtLfAmTFEmDPYUChjKs/tEiIWnJ3v3FDcF7W/wG+Wn01PrTHIeSGAR
-8ifrssVSGclac4baOO6yWJ1XS1W6yCqiuvqqxYViyFnwFsbCLvqmO3OeK7FjnxAk
-MHFe0lKuubgXkSUGnSjPEy52voaDAjwxxSRmSKZxOFlBVg6ISuvCKqIGudzVeoeP
-ME6lfHauu8ay4C6OIK3O2THNdS+x9Jtpdu2exlw3HrZKCMlQLm6g7tvq/OY4pwNl
-+aablC4LMEzkGarhv4TPCzq+k70CbeoMFEXDOVwFV290s1L/ufVTqVE05/tRQ3eC
-3aoIMKQITJvnT56zPcDVdEEh6+P1FcMleL+d2Eh+Uv+ptscPESl2/zx71q7euMz6
-eTe3SkRhKTngRNxnpZsgB8WhWL+rVMYNAOhkHSi8vTpCAXwsz8JENaP5dqB5UfjQ
-i1qFaadGE7cch4dMoBzt0bqiFazTOkzQwktgwOyBP5s71B66Eg8YqRY7+eeNXYeu
-9OYI3eVukBfP/TkWmwU4
-=H7E1
------END PGP SIGNATURE-----
-
---9vK7u1Fb51rkoTLbi5UHBiubxEjeAjXda--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
