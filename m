@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 11/23] ACPI: Set flag IORESOURCE_UNSET for unassigned resources
-Date: Thu,  5 Feb 2015 13:44:37 +0800
-Message-ID: <1423115089-12904-12-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 12/23] ACPI: Enforce stricter checks for address space descriptors
+Date: Thu,  5 Feb 2015 13:44:38 +0800
+Message-ID: <1423115089-12904-13-git-send-email-jiang.liu@linux.intel.com>
 References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,48 +10,33 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Also set flag IORESOURCE_UNSET for unassigned resource in addition to
-IORESOURCE_DISABLED to mark resource as unassigned.
+Enforce stricter checks for address space descriptors according to
+ACPI spec.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/acpi/resource.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 32561290a4a0..5bf73a9f26d9 100644
+index 5bf73a9f26d9..57891a621b96 100644
 --- a/drivers/acpi/resource.c
 +++ b/drivers/acpi/resource.c
-@@ -58,7 +58,7 @@ static void acpi_dev_memresource_flags(struct resource *res, u64 len,
- 	res->flags = IORESOURCE_MEM;
+@@ -192,6 +192,15 @@ static bool acpi_decode_space(struct resource *res,
+ 	bool wp = addr->info.mem.write_protect;
+ 	u64 len = attr->address_length;
  
- 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, false))
--		res->flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
++	/*
++	 * Filter out invalid descriptor according to ACPI Spec 5.0, section
++	 * 6.4.3.5 Address Space Resource Descriptors.
++	 */
++	if ((addr->min_address_fixed != addr->max_address_fixed && len) ||
++	    (addr->min_address_fixed && addr->max_address_fixed && !len))
++		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
++			 addr->min_address_fixed, addr->max_address_fixed, len);
++
+ 	res->start = attr->minimum;
+ 	res->end = attr->maximum;
  
- 	if (write_protect == ACPI_READ_WRITE_MEMORY)
- 		res->flags |= IORESOURCE_MEM_WRITEABLE;
-@@ -126,10 +126,10 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
- 	res->flags = IORESOURCE_IO;
- 
- 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
--		res->flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
- 
- 	if (res->end >= 0x10003)
--		res->flags |= IORESOURCE_DISABLED;
-+		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
- 
- 	if (io_decode == ACPI_DECODE_16)
- 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
-@@ -304,7 +304,7 @@ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
- {
- 	res->start = gsi;
- 	res->end = gsi;
--	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED;
-+	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED | IORESOURCE_UNSET;
- }
- 
- static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
 -- 
 1.7.10.4
