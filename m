@@ -1,58 +1,52 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v4 19/23] x86/PCI: Fix the range check for IO resources
-Date: Thu,  5 Feb 2015 13:44:45 +0800
-Message-ID: <1423115089-12904-20-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v4 14/23] ACPI: Translate resource into master side address for bridge window resources
+Date: Thu,  5 Feb 2015 13:44:40 +0800
+Message-ID: <1423115089-12904-15-git-send-email-jiang.liu@linux.intel.com>
 References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The range check in setup_res() checks the IO range against
-iomem_resource. That's just wrong.
+Add translation_offset into the result address for bridge window
+resources to form the master side address.
 
-Reworked based on Thomas original patch.
+Currently acpi_dev_resource_{ext_}address_space() are only used for
+devices instead of bridges, so it won't break current users. Later
+it will be used to support PCI host bridge drivers.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/pci/acpi.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/resource.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index bb98afd0591e..1d725d99963d 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -283,7 +283,7 @@ static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
- 	struct acpi_resource_address64 addr;
- 	acpi_status status;
- 	unsigned long flags;
--	u64 start, orig_end, end;
-+	u64 start, orig_end, end, res_end;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index c902c8eece81..4dc8cfb2e94e 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -205,6 +205,21 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	res->start = attr->minimum;
+ 	res->end = attr->maximum;
  
- 	status = resource_to_addr(acpi_res, &addr);
- 	if (!ACPI_SUCCESS(status))
-@@ -293,8 +293,10 @@ static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
- 		flags = IORESOURCE_MEM;
- 		if (addr.info.mem.caching == ACPI_PREFETCHABLE_MEMORY)
- 			flags |= IORESOURCE_PREFETCH;
-+		res_end = (u64)iomem_resource.end;
- 	} else if (addr.resource_type == ACPI_IO_RANGE) {
- 		flags = IORESOURCE_IO;
-+		res_end = (u64)ioport_resource.end;
- 	} else
- 		return AE_OK;
- 
-@@ -302,7 +304,7 @@ static acpi_status setup_resource(struct acpi_resource *acpi_res, void *data)
- 	orig_end = end = addr.address.maximum + addr.address.translation_offset;
- 
- 	/* Exclude non-addressable range or non-addressable portion of range */
--	end = min(end, (u64)iomem_resource.end);
-+	end = min(end, res_end);
- 	if (end <= start) {
- 		dev_info(&info->bridge->dev,
- 			"host bridge window [%#llx-%#llx] "
++	/*
++	 * For bridges that translate addresses across the bridge,
++	 * translation_offset is the offset that must be added to the
++	 * address on the secondary side to obtain the address on the
++	 * primary side. Non-bridge devices must list 0 for all Address
++	 * Translation offset bits.
++	 */
++	if (addr->producer_consumer == ACPI_PRODUCER) {
++		res->start += attr->translation_offset;
++		res->end += attr->translation_offset;
++	} else if (attr->translation_offset) {
++		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
++			 attr->translation_offset);
++	}
++
+ 	switch (addr->resource_type) {
+ 	case ACPI_MEMORY_RANGE:
+ 		acpi_dev_memresource_flags(res, len, wp);
 -- 
 1.7.10.4
