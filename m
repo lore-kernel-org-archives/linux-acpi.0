@@ -1,100 +1,54 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 05 Feb 2015 18:16:15 +0800
-Message-ID: <54D342EF.40606@linaro.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <54D2812E.9060804@codeaurora.org>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
+Date: Thu, 5 Feb 2015 10:41:49 +0000
+Message-ID: <20150205104149.GA18158@e104818-lin.cambridge.arm.com>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
+ <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
+ <2422968.Es7R0p3loO@vostro.rjw.lan>
+ <1422984576.18187.82.camel@deneb.redhat.com>
+ <20150204112508.GB26006@e104818-lin.cambridge.arm.com>
+ <1423066107.18187.99.camel@deneb.redhat.com>
+ <20150204175734.GI26006@e104818-lin.cambridge.arm.com>
+ <1423076294.18187.103.camel@deneb.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:39555 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756779AbbBEKQ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 05:16:28 -0500
-Received: by mail-pa0-f41.google.com with SMTP id kq14so9225575pab.0
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2015 02:16:28 -0800 (PST)
-In-Reply-To: <54D2812E.9060804@codeaurora.org>
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:41895 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060AbbBEKmN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 05:42:13 -0500
+Content-Disposition: inline
+In-Reply-To: <1423076294.18187.103.camel@deneb.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Mark Salter <msalter@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Robert Richter <rric@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Timur Tabi <timur@codeaur>
 
-On 2015=E5=B9=B402=E6=9C=8805=E6=97=A5 04:29, Timur Tabi wrote:
-> On 02/02/2015 06:45 AM, Hanjun Guo wrote:
->> Hi,
->>
->> This is the v8 of ACPI core patches for ARM64 based on ACPI 5.1, the=
-re
->> are
->> some updates since v7:
->
-> All 21 patches:
->
-> Tested-by: Timur Tabi <timur@codeaurora.org>
+On Wed, Feb 04, 2015 at 06:58:14PM +0000, Mark Salter wrote:
+> On Wed, 2015-02-04 at 17:57 +0000, Catalin Marinas wrote:
+> > On Wed, Feb 04, 2015 at 04:08:27PM +0000, Mark Salter wrote:
+> > > acpi_os_remap() is used to map ACPI tables. These tables may be in ram
+> > > which are already included in the kernel's linear RAM mapping. So we
+> > > need ioremap_cache to avoid two mappings to the same physical page
+> > > having different caching attributes.
+> > 
+> > What's the call path to acpi_os_ioremap() on such tables already in the
+> > linear mapping? I can see an acpi_map() function which already takes
+> > care of the RAM mapping case but there are other cases where
+> > acpi_os_ioremap() is called directly. For example,
+> > acpi_os_read_memory(), can it be called on both RAM and I/O?
+> 
+> acpi_map() is the one I've seen.
 
-Hi Timur, thank you very much :)
+By default, if should_use_kmap() is not patched for arm64, it translates
+to page_is_ram(); acpi_map() would simply use a kmap() which returns the
+current kernel linear mapping on arm64.
 
->
-> I no longer need to use "acpi=3Dforce", so that's nice.
->
->>
->>   - Add two more documantation to explain why we need ACPI in ARM64
->> servers
->
-> "documentation"
->
->
->>     by Grant, and recommendations and prohibitions on the use of the
->> numerous
->>     ACPI tables and objects by Al Stone.
->>
->>   - Add two patches which is need to map acpi tables after
->> acpi_gbl_permanent_mmap
->>     is set
->>
->>   - Add another patch "dt / chosen: Add linux,uefi-stub-generated-dt=
-b
->> property"
->>     to address that if firmware providing no dtb, we can try ACPI
->> configuration data
->>     even if no "acpi=3Dforce" is passed in early parameters. (I thin=
-k
->> ACPI for XEN and
->>     kexec need consider sperately as disscussed, correct me if I'm
->> wrong).
->
-> "need to be considered separately", "discussed"
->
->>
->>   - Add CC in the patch to the subsystem maintainers and modify the
->> subject
->>     of the patch to explicitly show the subsystem touched by this
->> patch set,
->>     please help us to review and ack them if they make sense, thanks=
-=2E
->>
->>   - Add Tested-by from Qualcomm and Redhat;
->>
->>   - Make ACPI depends on PCI suggested by Catalin;
->>
->>   - Clean up SMP init function as Lorenzo suggested, remove physical
->>     CPU hot-plug code in the patch;
->>
->>   - Address some comments from Marc and explicitly state that will
->>     implment statcked irqdomain and GIC init framework when GICv3 an=
-d
->
-> "implement", "stacked"
+> I'm not sure about others.
 
-Sorry for that, I'm not a native English speaker but I'm glad that you
-you got the meaning of what I said :)
+Question for the ARM ACPI guys: what happens if you implement
+acpi_os_ioremap() on arm64 as just ioremap()? Do you get any WARN_ON()
+(__ioremap_caller() checks whether the memory is RAM)?
 
-Thank you again for the test.
-
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Catalin
