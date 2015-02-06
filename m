@@ -1,71 +1,72 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v8 02/21] acpi: fix acpi_os_ioremap for arm64
-Date: Thu, 5 Feb 2015 22:16:03 +0000
-Message-ID: <CAKv+Gu922UwYRN7ZgFNTR7yGGKPLTU8Us7KbvXX-Q8=rqLKNog@mail.gmail.com>
-References: <1422881149-8177-3-git-send-email-hanjun.guo@linaro.org>
-	<2422968.Es7R0p3loO@vostro.rjw.lan>
-	<1422984576.18187.82.camel@deneb.redhat.com>
-	<20150204112508.GB26006@e104818-lin.cambridge.arm.com>
-	<1423066107.18187.99.camel@deneb.redhat.com>
-	<20150204175734.GI26006@e104818-lin.cambridge.arm.com>
-	<1423076294.18187.103.camel@deneb.redhat.com>
-	<20150205104149.GA18158@e104818-lin.cambridge.arm.com>
-	<1423144447.18187.110.camel@deneb.redhat.com>
-	<54D39D6B.5090304@linaro.org>
-	<20150205174826.GD21970@e104818-lin.cambridge.arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI PCC probe failed.
+Date: Fri, 06 Feb 2015 01:49:20 +0100
+Message-ID: <2809506.4Qklo5lDla@vostro.rjw.lan>
+References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com> <6825579.hyRLxbRUP5@vostro.rjw.lan> <CAJ5Y-eaPjOsm82PDiCBM9pcO4h6bzKHkTu5tNgQqqfRbrqbTcw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:57476 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751203AbbBEWQF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 17:16:05 -0500
-Received: by mail-ig0-f182.google.com with SMTP id h15so2155818igd.3
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Feb 2015 14:16:03 -0800 (PST)
-In-Reply-To: <20150205174826.GD21970@e104818-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJ5Y-eaPjOsm82PDiCBM9pcO4h6bzKHkTu5tNgQqqfRbrqbTcw@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Al Stone <al.stone@linaro.org>, Mark Langsdorf <mlangsdo@redhat.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "msalter@redhat.com" <msalter@redhat.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Randy Dunlap <rdunlap@infrad>
 
-On 5 February 2015 at 17:48, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> On Thu, Feb 05, 2015 at 04:42:19PM +0000, Al Stone wrote:
->> On 02/05/2015 06:54 AM, Mark Salter wrote:
->> > On Thu, 2015-02-05 at 10:41 +0000, Catalin Marinas wrote:
->> >> On Wed, Feb 04, 2015 at 06:58:14PM +0000, Mark Salter wrote:
->> >>> On Wed, 2015-02-04 at 17:57 +0000, Catalin Marinas wrote:
->> >>>> On Wed, Feb 04, 2015 at 04:08:27PM +0000, Mark Salter wrote:
->> >>>>> acpi_os_remap() is used to map ACPI tables. These tables may be in ram
->> >>>>> which are already included in the kernel's linear RAM mapping. So we
->> >>>>> need ioremap_cache to avoid two mappings to the same physical page
->> >>>>> having different caching attributes.
->> >>>>
->> >>>> What's the call path to acpi_os_ioremap() on such tables already in the
->> >>>> linear mapping? I can see an acpi_map() function which already takes
->> >>>> care of the RAM mapping case but there are other cases where
->> >>>> acpi_os_ioremap() is called directly. For example,
->> >>>> acpi_os_read_memory(), can it be called on both RAM and I/O?
->> >>>
->> >>> acpi_map() is the one I've seen.
->> >>
->> >> By default, if should_use_kmap() is not patched for arm64, it translates
->> >> to page_is_ram(); acpi_map() would simply use a kmap() which returns the
->> >> current kernel linear mapping on arm64.
->> >
->> > The problem with kmap() is that it only maps a single page. I've seen
->> > tables over 4k which is why I patched acpi_map() not to use kmap() on
->> > arm64.
->>
->> Right.  Mark replied to this before I could; using kmap() enforced a 4k
->> (one page) limit that we kept breaking with some ACPI tables being larger
->> than that (DSDTs and SSDTs, fwiw).  This would lead to some very odd behaviors
->> when most but not all of a device definition was within the page; using the
->> table checksums was one way of detecting the issues.
->
-> OK. So I think Mark's original patch was ok, assuming that the System
-> Memory cases mentioned by Graeme are detected with page_is_ram().
->
+On Thursday, February 05, 2015 10:44:13 AM Ashwin Chaugule wrote:
+> Hi Rafael,
+> 
+> On 4 February 2015 at 20:28, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, February 04, 2015 06:38:39 PM Ashwin Chaugule wrote:
+> >> On 4 February 2015 at 18:04, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> > On Wednesday, February 04, 2015 05:06:26 PM Ashwin Chaugule wrote:
+> >> >> > I have one more concern about this driver.  Namely, what benefit is there to
+> >> >> > people like Cristian from it at all?
+> >> >>
+> >> >> Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
+> >> >> Looks like PCC was explicitly enabled in this kernel.
+> >> >>
+> >> >> config PCC
+> >> >> bool "Platform Communication Channel Driver"
+> >> >> depends on ACPI
+> >> >
+> >> > Can we make it depend on the clients instead and be set automatically
+> >> > when at least one of the clients is enabled?
+> >> >
+> >> > Otherwise distros will have a problem with deciding whether or not they
+> >> > should enable this driver and most of them will end up enabling it.
+> >>
+> >> I see your point, but I'm not aware of any upstreamed client as of
+> >> yet. There might be folks using this driver internally though with
+> >> other clients. In such a case, is there a way to keep PCC disabled
+> >> until a client (e.g. CPPC) is upstreamed?
+> >
+> > Make it depend on EXPERT or something like that until the first client is
+> > added and then make it depend on that client. :-)
+> 
+> Doesn't sound too bad. Hope that doesn't end up enabling unintended
+> options in the kernel which aren't exposed in kconfig.
+> FWIW, I think its better to make it depend on CPPC as part of the PCC
+> cleanup patch that I have going in the CPPC patchset.
 
-page_is_ram() returns whether a pfn is covered by the linear mapping,
-so memory before the kernel or after a mem= limit will be
-misidentified.
+That's fine by me.
+
+> >> Alternately, is it that bad to keep it the way it is, given that the
+> >> driver wont do anything unless PCCT is detected in firmware and a PCC
+> >> client explicitly uses its API?
+> >
+> > Well, is it really useful this way?
+> 
+> Not really, but not particularly harmful either. :) Besides, it seems
+> like for the sake of genericness, distros enable several options that
+> are irrelevant to a platform. In this case, PCC would be harmlessly
+> enabled only until CPPC makes its way upstream (which is actively
+> being worked on anyway).
+
+For one, I don't like it being easy to enable by mistake on x86 where it is
+not useful at all (and won't be at least for some time).
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
