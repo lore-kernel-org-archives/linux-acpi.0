@@ -1,142 +1,107 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal SoC management updates for v3.20 #1
-Date: Thu, 5 Feb 2015 23:39:56 -0400
-Message-ID: <20150206033952.GE3486@developer.amazonguestwifi.org>
+From: Antonio Ospite <ao2@ao2.it>
+Subject: Re: About Goodix-TS on Bay Trail, and ACPI and interrupts
+Date: Fri, 6 Feb 2015 17:00:13 +0100
+Message-ID: <20150206170013.90a20c05fae6393ea92312df@ao2.it>
+References: <20150117010306.7e32b72524e4c0cf8296bbac@ao2.it>
+	<20150119153758.GA18115@mail.corp.redhat.com>
+	<20150120100548.GG1850@lahna.fi.intel.com>
+	<20150120175645.f0f95b83da0355b8fdc7dd0d@ao2.it>
+	<20150121101654.GM1850@lahna.fi.intel.com>
+	<20150127154559.5baae4c2d2540f6f4362e3c6@ao2.it>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qftxBdZWiueWNAVY"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:61726 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964AbbBFPyk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Feb 2015 10:54:40 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20150127154559.5baae4c2d2540f6f4362e3c6@ao2.it>
+Sender: linux-input-owner@vger.kernel.org
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, linux-input@vger.kernel.org, linux-acpi@vger.kernel.org, Bastien Nocera <hadess@hadess.net>, Mathias Nyman <mathias.nyman@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
+On Tue, 27 Jan 2015 15:45:59 +0100
+Antonio Ospite <ao2@ao2.it> wrote:
 
---qftxBdZWiueWNAVY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Wed, 21 Jan 2015 12:16:54 +0200
+> Mika Westerberg <mika.westerberg@intel.com> wrote:
+> 
+> > On Tue, Jan 20, 2015 at 05:56:45PM +0100, Antonio Ospite wrote:
+[...]
+> > > [    9.056300] gpiochip_get_desc: hwnum: 68 chip->ngpio: 44
+> > > [    9.056303] acpi_find_gpio: desc_error: -22
+> > > [    9.056306] acpi_find_gpio: ares->type: 17
+> > > [    9.056308] acpi_find_gpio: ares->type: 7
+> > > [    9.056314] i2c_hid i2c-GODX0911:01: lookup for GPIO irq failed
+> > > [    9.056319] i2c_hid i2c-GODX0911:01: Failed to get GPIO interrupt
+> > > [    9.073895] i2c_hid: probe of i2c-GODX0911:01 failed with error -22
+> > > 
+> > > As I was trying to say in the original mail, the DSDT declares a gpio
+> > > pin number (68) grater than the number of gpios for GPO2 (which on Bay
+> > > Trail is 44, isn't it?).
+> > 
+> > That's right.
+> > 
+> > > Is the DSDT just wrong? Or could there be anything missing in the
+> > > pinctrl-baytrail driver?
+> > 
+> > I think the DSDT is wrong here.
+> > 
+> > I found out from my mail archives that similar Goodix panel was used on
+> > some internal reference design boards (it also used Goodix driver, btw).
+> > Those also had the 0x44 GPIO there but that was wrong and it looked like
+> > the correct GPIO number is 3 (in GPO2).
+> 
 
-Hello Rui,
+And indeed it was the DSDT which had wrong both the interrupt pin _and_
+the reset pin (GPO1.TCD3)...
 
-Please pull from
+Now I am sure that the android kernel doesn't use the platform data from
+ACPI but provides it to drivers with some machine specific code, which I
+don't have access to.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.=
-git fixes
+I was able to make the touchscreen work by using these resources:
+	Reset line (GPO1.TCD3) is: pin 9 on GPO1
+	Interrupt line is:         pin 3 on GPO2
 
-to receive Thermal SoC Management updates for v3.20 with top-most
+The reset sequence is performed when calling the _PS0 method, and with
+the correct values the goodix driver can even retrieve the stored
+configuration, no need to use the hardcoded default one.
 
-6c247393cfdd6695717f80ff31f9fd9af8c2c525:
+Last doubt, now that I am fixing the DSDT I am going to add an
+Interrupt resource, but what is the correct way to specify its value?
+Pin 3 of GPO2 is mapped to IRQ 220 by the mainline kernel, so I added
+this:
 
-  thermal: exynos: Add TMU support for Exynos7 SoC (2015-01-31 15:20:45 -04=
-00)
+  Interrupt (ResourceConsumer, Edge, ActiveHigh, Exclusive, ,, )
+  {
+    0x000000DC,
+  }
 
-on top of commit b97f880c8342fd6e49a02c9ef7507a678722b2b3:
+And it works, but doesn't this rely on the way linux maps interrupt
+numbers? Is this going to be OS agnostic? My doubt arises from the
+fact that on the Android kernel the same pin is mapped to IRQ
+389.
 
-  Merge branch 'for-3.19-fixes' of git://git.kernel.org/pub/scm/linux/kerne=
-l/git/tj/libata (2015-01-21 07:54:16 +1200)
+JFTR since I had no access to the kernel source (the device
+manufacturer does not reply...), I had to derive the correct gpios from
+the running Android kernel.
 
-Specifics:
+The interrupt one was easy, to verify that it was pin 3 of GPO2 I looked
+in /proc/interrupts, done some subtractions and figured it out.
 
-- Exynos thermal driver refactoring. Several cleanups, code optimization, u=
-nused
-symbols removal, and unused feature removal in Exynos thermal driver. Thanks
-Lukasz for this effort.
-- Exynos thermal driver support to OF thermal. After the code refactoring,
-the driver earned the support to OF thermal. Chip thermal data were moved
-=66rom driver code to DTS, reducing the code footprint. Thanks Lukasz for t=
-his.
-- After receiving the OF thermal support, the exynos thermal driver now must
-allow modular build. Thanks Arnd for detecting, reporting and fixing this.
-- Exynos thermal driver support to Exynos 7 SoC. Thanks Abhilash for this.
-- Accurate temperature reporting on Rockchip thermal driver, thanks to Caes=
-ar.
-- Fix on how OF thermal enables its zones, thanks Lukasz for fixing.
-- Fixes in OF thermal examples under Documentation/. Thanks Srinivas for fi=
-xing.
+The reset line was trickier for me, first I thought that I could rmmod
+the android goodix driver and look at some status changes, but the
+driver was not rmmod-safe, the kernel hung... then I thought that the
+touchscreen may be turned off when the screen is turned off and that did
+it; in the end I managed to spot it by comparing /sys/kernel/debug/gpio
+with the screen on and off; inteltool from coreboot would have worked
+just as well.
 
+Thanks,
+   Antonio
 
-PS: I might be sending more changes regarding Thermal Zone Binding
-Parameters and how we represent weights. I need to finish a couple of
-testing on that code. But it should make 3.20 too.
+-- 
+Antonio Ospite
+http://ao2.it
 
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Abhilash Kesavan (2):
-      dts: Documentation: Add documentation for Exynos7 SoC thermal bindings
-      thermal: exynos: Add TMU support for Exynos7 SoC
-
-Arnd Bergmann (1):
-      cpufreq: exynos: allow modular build
-
-Caesar Wang (1):
-      thermal: rockchip: make temperature reporting much more accurate
-
-Lukasz Majewski (12):
-      thermal: of: Enable thermal_zoneX when sensor is correctly added
-      thermal: exynos: cosmetic: Correct comment format
-      thermal: exynos: Provide thermal_exynos.h file to be included in devi=
-ce tree files
-      thermal: exynos: Modify exynos thermal code to use device tree for cp=
-u cooling configuration
-      cpufreq: exynos: Use device tree to determine if cpufreq cooling shou=
-ld be registered
-      dts: Documentation: Extending documentation entry for exynos-thermal
-      dts: Documentation: Update exynos-thermal.txt example for Exynos5440
-      thermal: samsung: core: Exynos TMU rework to use device tree for conf=
-iguration
-      thermal: exynos: Remove exynos_thermal_common.[c|h] files
-      thermal: exynos: Remove exynos_tmu_data.c file
-      thermal: Kconfig: Remove config for not used EXYNOS_THERMAL_CORE
-      thermal: exynos: Correct sanity check at exynos_report_trigger() func=
-tion
-
-Srinivas Kandagatla (1):
-      thermal: Fix examples in DT documentation
-
- .../devicetree/bindings/thermal/exynos-thermal.txt |  21 +
- .../devicetree/bindings/thermal/thermal.txt        |  74 +--
- drivers/cpufreq/Kconfig.arm                        |  44 +-
- drivers/cpufreq/Makefile                           |   9 +-
- drivers/cpufreq/exynos-cpufreq.c                   |  33 +-
- drivers/thermal/of-thermal.c                       |   3 +
- drivers/thermal/rockchip_thermal.c                 |  36 +-
- drivers/thermal/samsung/Kconfig                    |   9 -
- drivers/thermal/samsung/Makefile                   |   2 -
- drivers/thermal/samsung/exynos_thermal_common.c    | 427 ----------------
- drivers/thermal/samsung/exynos_thermal_common.h    | 106 ----
- drivers/thermal/samsung/exynos_tmu.c               | 553 ++++++++++++++++-=
-----
- drivers/thermal/samsung/exynos_tmu.h               |  77 +--
- drivers/thermal/samsung/exynos_tmu_data.c          | 264 ----------
- include/dt-bindings/thermal/thermal_exynos.h       |  28 ++
- 15 files changed, 596 insertions(+), 1090 deletions(-)
- delete mode 100644 drivers/thermal/samsung/exynos_thermal_common.c
- delete mode 100644 drivers/thermal/samsung/exynos_thermal_common.h
- delete mode 100644 drivers/thermal/samsung/exynos_tmu_data.c
- create mode 100644 include/dt-bindings/thermal/thermal_exynos.h
-
---qftxBdZWiueWNAVY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJU1Dd/AAoJEMLUO4d9pOJW+w0H/3gnOSBES3becR0KzI2BNCxK
-rYX1RyxPAs5WW8Efr1O8Q6T9t30HbRk913rSCXG/lRMqGeJ3XJ556/5D3DbiKQmI
-khJ5zWSEZXArPFSvp6AXWiAhdAcA5pqUDJEBKyEhf5898LdlTWoT0hfharwhKn3r
-pTaG7vg6a+AdcUGwesBwtOXE7J55T/Pduq3ohozsDkbEQr28FDeom8KIJns1vGcw
-xn3IZaqIKfxpv5J+87qaJEQ1PDTkxBskI84+HoPuPXMZFg9KGyad/hs26bEnvopu
-aDZ0UHb2VLgrwx12GdQYxZl24yE+V4JOsEE0MbQ25/Dc/zPbCuVrE/DZy4s3hak=
-=u9hm
------END PGP SIGNATURE-----
-
---qftxBdZWiueWNAVY--
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
