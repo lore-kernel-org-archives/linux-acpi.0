@@ -1,71 +1,129 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI PCC probe failed.
-Date: Fri, 06 Feb 2015 01:49:20 +0100
-Message-ID: <2809506.4Qklo5lDla@vostro.rjw.lan>
-References: <CABwnbUkGNJEZkW5bL9pXvcZwqz4fZKiub_-vTRDLp=FeiQq8cw@mail.gmail.com> <6825579.hyRLxbRUP5@vostro.rjw.lan> <CAJ5Y-eaPjOsm82PDiCBM9pcO4h6bzKHkTu5tNgQqqfRbrqbTcw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / table: remove duplicate NULL check for the handler of acpi_table_parse()
+Date: Fri, 06 Feb 2015 01:59:56 +0100
+Message-ID: <14843787.5RuRk4hTkJ@vostro.rjw.lan>
+References: <1423128794-4680-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJ5Y-eaPjOsm82PDiCBM9pcO4h6bzKHkTu5tNgQqqfRbrqbTcw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Cristian <caravena@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60178 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751401AbbBFAg7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Feb 2015 19:36:59 -0500
+In-Reply-To: <1423128794-4680-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Thursday, February 05, 2015 10:44:13 AM Ashwin Chaugule wrote:
-> Hi Rafael,
+On Thursday, February 05, 2015 05:33:14 PM Hanjun Guo wrote:
+> In acpi_table_parse(), pointer of the table to pass to handler() is
+> checked before handler() called, so remove all the duplicate NULL
+> check in the handler function.
 > 
-> On 4 February 2015 at 20:28, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, February 04, 2015 06:38:39 PM Ashwin Chaugule wrote:
-> >> On 4 February 2015 at 18:04, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > On Wednesday, February 04, 2015 05:06:26 PM Ashwin Chaugule wrote:
-> >> >> > I have one more concern about this driver.  Namely, what benefit is there to
-> >> >> > people like Cristian from it at all?
-> >> >>
-> >> >> Its of use only if they have a PCC client (MPST, CPPC, RAS) driver.
-> >> >> Looks like PCC was explicitly enabled in this kernel.
-> >> >>
-> >> >> config PCC
-> >> >> bool "Platform Communication Channel Driver"
-> >> >> depends on ACPI
-> >> >
-> >> > Can we make it depend on the clients instead and be set automatically
-> >> > when at least one of the clients is enabled?
-> >> >
-> >> > Otherwise distros will have a problem with deciding whether or not they
-> >> > should enable this driver and most of them will end up enabling it.
-> >>
-> >> I see your point, but I'm not aware of any upstreamed client as of
-> >> yet. There might be folks using this driver internally though with
-> >> other clients. In such a case, is there a way to keep PCC disabled
-> >> until a client (e.g. CPPC) is upstreamed?
-> >
-> > Make it depend on EXPERT or something like that until the first client is
-> > added and then make it depend on that client. :-)
+> CC: Tony Luck <tony.luck@intel.com>
+> CC: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Queued up for 3.20, thanks!
+
+> ---
+>  arch/ia64/kernel/acpi.c     |  6 ------
+>  arch/x86/kernel/acpi/boot.c | 16 ++--------------
+>  drivers/acpi/numa.c         | 12 ++----------
+>  3 files changed, 4 insertions(+), 30 deletions(-)
 > 
-> Doesn't sound too bad. Hope that doesn't end up enabling unintended
-> options in the kernel which aren't exposed in kconfig.
-> FWIW, I think its better to make it depend on CPPC as part of the PCC
-> cleanup patch that I have going in the CPPC patchset.
-
-That's fine by me.
-
-> >> Alternately, is it that bad to keep it the way it is, given that the
-> >> driver wont do anything unless PCCT is detected in firmware and a PCC
-> >> client explicitly uses its API?
-> >
-> > Well, is it really useful this way?
+> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> index e795cb8..2c44989 100644
+> --- a/arch/ia64/kernel/acpi.c
+> +++ b/arch/ia64/kernel/acpi.c
+> @@ -380,9 +380,6 @@ static void __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
+>  
+>  static int __init acpi_parse_madt(struct acpi_table_header *table)
+>  {
+> -	if (!table)
+> -		return -EINVAL;
+> -
+>  	acpi_madt = (struct acpi_table_madt *)table;
+>  
+>  	acpi_madt_rev = acpi_madt->header.revision;
+> @@ -645,9 +642,6 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>  	struct acpi_table_header *fadt_header;
+>  	struct acpi_table_fadt *fadt;
+>  
+> -	if (!table)
+> -		return -EINVAL;
+> -
+>  	fadt_header = (struct acpi_table_header *)table;
+>  	if (fadt_header->revision != 3)
+>  		return -ENODEV;	/* Only deal with ACPI 2.0 FADT */
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index b9e30da..14d3652 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -843,13 +843,7 @@ int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base)
+>  
+>  static int __init acpi_parse_sbf(struct acpi_table_header *table)
+>  {
+> -	struct acpi_table_boot *sb;
+> -
+> -	sb = (struct acpi_table_boot *)table;
+> -	if (!sb) {
+> -		printk(KERN_WARNING PREFIX "Unable to map SBF\n");
+> -		return -ENODEV;
+> -	}
+> +	struct acpi_table_boot *sb = (struct acpi_table_boot *)table;
+>  
+>  	sbf_port = sb->cmos_index;	/* Save CMOS port */
+>  
+> @@ -863,13 +857,7 @@ static struct resource *hpet_res __initdata;
+>  
+>  static int __init acpi_parse_hpet(struct acpi_table_header *table)
+>  {
+> -	struct acpi_table_hpet *hpet_tbl;
+> -
+> -	hpet_tbl = (struct acpi_table_hpet *)table;
+> -	if (!hpet_tbl) {
+> -		printk(KERN_WARNING PREFIX "Unable to map HPET\n");
+> -		return -ENODEV;
+> -	}
+> +	struct acpi_table_hpet *hpet_tbl = (struct acpi_table_hpet *)table;
+>  
+>  	if (hpet_tbl->address.space_id != ACPI_SPACE_MEM) {
+>  		printk(KERN_WARNING PREFIX "HPET timers must be located in "
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index 24b5476..1333cbdc 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -177,12 +177,7 @@ static int __init slit_valid(struct acpi_table_slit *slit)
+>  
+>  static int __init acpi_parse_slit(struct acpi_table_header *table)
+>  {
+> -	struct acpi_table_slit *slit;
+> -
+> -	if (!table)
+> -		return -EINVAL;
+> -
+> -	slit = (struct acpi_table_slit *)table;
+> +	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
+>  
+>  	if (!slit_valid(slit)) {
+>  		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
+> @@ -260,11 +255,8 @@ acpi_parse_memory_affinity(struct acpi_subtable_header * header,
+>  
+>  static int __init acpi_parse_srat(struct acpi_table_header *table)
+>  {
+> -	struct acpi_table_srat *srat;
+> -	if (!table)
+> -		return -EINVAL;
+> +	struct acpi_table_srat *srat = (struct acpi_table_srat *)table;
+>  
+> -	srat = (struct acpi_table_srat *)table;
+>  	acpi_srat_revision = srat->header.revision;
+>  
+>  	/* Real work done in acpi_table_parse_srat below. */
 > 
-> Not really, but not particularly harmful either. :) Besides, it seems
-> like for the sake of genericness, distros enable several options that
-> are irrelevant to a platform. In this case, PCC would be harmlessly
-> enabled only until CPPC makes its way upstream (which is actively
-> being worked on anyway).
-
-For one, I don't like it being easy to enable by mistake on x86 where it is
-not useful at all (and won't be at least for some time).
-
 
 -- 
 I speak only for myself.
