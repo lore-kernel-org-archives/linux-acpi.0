@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/5] ACPI / EC: Add command flushing support.
-Date: Fri,  6 Feb 2015 08:57:59 +0800
-Message-ID: <991bf8b675e1a0a04ddf3af8d8dd792239ffef03.1423183648.git.lv.zheng@intel.com>
+Subject: [PATCH v2 1/5] ACPI / EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
+Date: Fri,  6 Feb 2015 08:57:52 +0800
+Message-ID: <aefbdd96f6594b4e7eb0c448aea4944f4806c42c.1423183648.git.lv.zheng@intel.com>
 References: <20141119121615.GA2514@node.dhcp.inet.fi> <cover.1423183647.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,177 +13,205 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch implements the EC command flushing support.
+By using the 2 flags, we can indicate an inter-mediate state where the
+current transactions should be completed while the new transactions sho=
+uld
+be dropped.
 
-During the grace period indicated by EC_FLAGS_STARTED and EC_FLAGS_STOP=
-PED,
-all submitted EC command transactions can be completed and new submissi=
-ons
-are prevented before suspending so that the EC hardware can be ensured =
-to
-be in the idle state when the system is resumed.
+The comparison of the old flag and the new flags:
+  Old			New
+  about to set BLOCKED	STOPPED set / STARTED set
+  BLOCKED set		STOPPED clear / STARTED clear
+  BLOCKED clear		STOPPED clear / STARTED set
+A new period can be indicated by the 2 flags. The new period is between=
+ the
+point where we are about to set BLOCKED and the point when the BLOCKED =
+is
+set. The new flags facilitate us with acpi_ec_started() check to allow =
+the
+EC transaction to be submitted during the new period. This period thus =
+can
+be used as a grace period for the EC transaction flushing.
 
-There is a good indicator for flush support:
-All acpi_ec_submit_request() is invoked after checking driver state wit=
-h
-acpi_ec_started() except the first one. This means all code paths can b=
-e
-flushed as fast as possible by discarding the requests occurred after t=
-he
-flush operation. The reference increased for such kind of code path is
-wrapped by acpi_ec_submit_flushable_request().
+The only functional change after applying this patch is:
+1. The GPE enabling/disabling is protected by the EC specific lock. We =
+can
+   do this because of recent ACPICA GPE API enhancement. This is reason=
+able
+   as the GPE disabling/enabling state should only be determined by the=
+ EC
+   driver's state machine which is protected by the EC spinlock.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Tested-by: Ortwin Gl=C3=BCck <odi@odi.ch>
 ---
- drivers/acpi/ec.c       |   68 +++++++++++++++++++++++++++++++++++++++=
-+++++---
- drivers/acpi/internal.h |    1 +
- 2 files changed, 66 insertions(+), 3 deletions(-)
+ drivers/acpi/ec.c |   65 ++++++++++++++++++++++++++++++++++++++++++++-=
+--------
+ 1 file changed, 54 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a6179b7..1fa1463 100644
+index 5563253..a6179b7 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -145,6 +145,11 @@ static bool acpi_ec_started(struct acpi_ec *ec)
- 	       !test_bit(EC_FLAGS_STOPPED, &ec->flags);
- }
+@@ -80,7 +80,8 @@ enum {
+ 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
+ 	EC_FLAGS_HANDLERS_INSTALLED,	/* Handlers for GPE and
+ 					 * OpReg are installed */
+-	EC_FLAGS_BLOCKED,		/* Transactions are blocked */
++	EC_FLAGS_STARTED,		/* Driver is started */
++	EC_FLAGS_STOPPED,		/* Driver is stopped */
+ };
 =20
-+static bool acpi_ec_flushed(struct acpi_ec *ec)
+ #define ACPI_EC_COMMAND_POLL		0x01 /* Available for command byte */
+@@ -135,6 +136,16 @@ static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi=
+_ec_clear() on boot/resume */
+ static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when SCI_EV=
+T set */
+=20
+ /* -------------------------------------------------------------------=
+-------
++ *                           Device Flags
++ * -------------------------------------------------------------------=
+------- */
++
++static bool acpi_ec_started(struct acpi_ec *ec)
 +{
-+	return ec->reference_count =3D=3D 1;
++	return test_bit(EC_FLAGS_STARTED, &ec->flags) &&
++	       !test_bit(EC_FLAGS_STOPPED, &ec->flags);
 +}
 +
- /* -------------------------------------------------------------------=
++/* -------------------------------------------------------------------=
 -------
   *                           EC Registers
   * -------------------------------------------------------------------=
 ------- */
-@@ -266,6 +271,44 @@ static inline void acpi_ec_clear_gpe(struct acpi_e=
-c *ec)
-  *                           Transaction Management
-  * -------------------------------------------------------------------=
-------- */
 =20
-+static void acpi_ec_submit_request(struct acpi_ec *ec)
-+{
-+	ec->reference_count++;
-+	if (ec->reference_count =3D=3D 1)
-+		acpi_ec_enable_gpe(ec, true);
-+}
-+
-+static void acpi_ec_complete_request(struct acpi_ec *ec)
-+{
-+	bool flushed =3D false;
-+
-+	ec->reference_count--;
-+	if (ec->reference_count =3D=3D 0)
-+		acpi_ec_disable_gpe(ec, true);
-+	flushed =3D acpi_ec_flushed(ec);
-+	if (flushed)
-+		wake_up(&ec->wait);
-+}
-+
-+/*
-+ * acpi_ec_submit_flushable_request() - Increase the reference count u=
-nless
-+ *                                      the flush operation is not in
-+ *                                      progress
-+ * @ec: the EC device
-+ *
-+ * This function must be used before taking a new action that should h=
-old
-+ * the reference count.  If this function returns false, then the acti=
-on
-+ * must be discarded or it will prevent the flush operation from being
-+ * completed.
-+ */
-+static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
-+{
-+	if (!acpi_ec_started(ec))
-+		return false;
-+	acpi_ec_submit_request(ec);
-+	return true;
-+}
-+
- static void acpi_ec_submit_query(struct acpi_ec *ec)
- {
- 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
-@@ -426,7 +469,8 @@ static int acpi_ec_transaction_unlocked(struct acpi=
-_ec *ec,
+@@ -415,6 +426,10 @@ static int acpi_ec_transaction_unlocked(struct acp=
+i_ec *ec,
  		udelay(ACPI_EC_MSI_UDELAY);
  	/* start transaction */
  	spin_lock_irqsave(&ec->lock, tmp);
--	if (!acpi_ec_started(ec)) {
-+	/* Enable GPE for command processing (IBF=3D0/OBF=3D1) */
-+	if (!acpi_ec_submit_flushable_request(ec)) {
- 		ret =3D -EINVAL;
- 		goto unlock;
- 	}
-@@ -441,6 +485,8 @@ static int acpi_ec_transaction_unlocked(struct acpi=
++	if (!acpi_ec_started(ec)) {
++		ret =3D -EINVAL;
++		goto unlock;
++	}
+ 	/* following two actions should be kept atomic */
+ 	ec->curr =3D t;
+ 	pr_debug("***** Command(%s) started *****\n",
+@@ -426,6 +441,7 @@ static int acpi_ec_transaction_unlocked(struct acpi=
 _ec *ec,
  	pr_debug("***** Command(%s) stopped *****\n",
  		 acpi_ec_cmd_string(t->command));
  	ec->curr =3D NULL;
-+	/* Disable GPE for command processing (IBF=3D0/OBF=3D1) */
-+	acpi_ec_complete_request(ec);
- unlock:
++unlock:
  	spin_unlock_irqrestore(&ec->lock, tmp);
  	return ret;
-@@ -614,13 +660,25 @@ static void acpi_ec_start(struct acpi_ec *ec, boo=
-l resuming)
- 	spin_lock_irqsave(&ec->lock, flags);
- 	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags)) {
- 		pr_debug("+++++ Starting EC +++++\n");
-+		/* Enable GPE for event processing (SCI_EVT=3D1) */
- 		if (!resuming)
--			acpi_ec_enable_gpe(ec, true);
-+			acpi_ec_submit_request(ec);
- 		pr_info("+++++ EC started +++++\n");
- 	}
- 	spin_unlock_irqrestore(&ec->lock, flags);
+ }
+@@ -440,10 +456,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec,=
+ struct transaction *t)
+ 	if (t->rdata)
+ 		memset(t->rdata, 0, t->rlen);
+ 	mutex_lock(&ec->mutex);
+-	if (test_bit(EC_FLAGS_BLOCKED, &ec->flags)) {
+-		status =3D -EINVAL;
+-		goto unlock;
+-	}
+ 	if (ec->global_lock) {
+ 		status =3D acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+ 		if (ACPI_FAILURE(status)) {
+@@ -595,6 +607,37 @@ static void acpi_ec_clear(struct acpi_ec *ec)
+ 		pr_info("%d stale EC events cleared\n", i);
  }
 =20
-+static bool acpi_ec_stopped(struct acpi_ec *ec)
++static void acpi_ec_start(struct acpi_ec *ec, bool resuming)
 +{
 +	unsigned long flags;
-+	bool flushed;
 +
 +	spin_lock_irqsave(&ec->lock, flags);
-+	flushed =3D acpi_ec_flushed(ec);
++	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags)) {
++		pr_debug("+++++ Starting EC +++++\n");
++		if (!resuming)
++			acpi_ec_enable_gpe(ec, true);
++		pr_info("+++++ EC started +++++\n");
++	}
 +	spin_unlock_irqrestore(&ec->lock, flags);
-+	return flushed;
 +}
 +
- static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
++static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&ec->lock, flags);
++	if (acpi_ec_started(ec)) {
++		pr_debug("+++++ Stopping EC +++++\n");
++		set_bit(EC_FLAGS_STOPPED, &ec->flags);
++		if (!suspending)
++			acpi_ec_disable_gpe(ec, true);
++		clear_bit(EC_FLAGS_STARTED, &ec->flags);
++		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
++		pr_info("+++++ EC stopped +++++\n");
++	}
++	spin_unlock_irqrestore(&ec->lock, flags);
++}
++
+ void acpi_ec_block_transactions(void)
  {
- 	unsigned long flags;
-@@ -629,8 +687,12 @@ static void acpi_ec_stop(struct acpi_ec *ec, bool =
-suspending)
- 	if (acpi_ec_started(ec)) {
- 		pr_debug("+++++ Stopping EC +++++\n");
- 		set_bit(EC_FLAGS_STOPPED, &ec->flags);
-+		spin_unlock_irqrestore(&ec->lock, flags);
-+		wait_event(ec->wait, acpi_ec_stopped(ec));
-+		spin_lock_irqsave(&ec->lock, flags);
-+		/* Disable GPE for event processing (SCI_EVT=3D1) */
- 		if (!suspending)
+ 	struct acpi_ec *ec =3D first_ec;
+@@ -604,7 +647,7 @@ void acpi_ec_block_transactions(void)
+=20
+ 	mutex_lock(&ec->mutex);
+ 	/* Prevent transactions from being carried out */
+-	set_bit(EC_FLAGS_BLOCKED, &ec->flags);
++	acpi_ec_stop(ec, true);
+ 	mutex_unlock(&ec->mutex);
+ }
+=20
+@@ -616,7 +659,7 @@ void acpi_ec_unblock_transactions(void)
+ 		return;
+=20
+ 	/* Allow transactions to be carried out again */
+-	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
++	acpi_ec_start(ec, true);
+=20
+ 	if (EC_FLAGS_CLEAR_ON_RESUME)
+ 		acpi_ec_clear(ec);
+@@ -629,7 +672,7 @@ void acpi_ec_unblock_transactions_early(void)
+ 	 * atomic context during wakeup, so we don't need to acquire the mute=
+x).
+ 	 */
+ 	if (first_ec)
+-		clear_bit(EC_FLAGS_BLOCKED, &first_ec->flags);
++		acpi_ec_start(first_ec, true);
+ }
+=20
+ /* -------------------------------------------------------------------=
+-------
+@@ -894,7 +937,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+=20
+-	acpi_ec_enable_gpe(ec, true);
++	acpi_ec_start(ec, false);
+ 	status =3D acpi_install_address_space_handler(ec->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_ec_space_handler,
+@@ -909,7 +952,7 @@ static int ec_install_handlers(struct acpi_ec *ec)
+ 			pr_err("Fail in evaluating the _REG object"
+ 				" of EC device. Broken bios is suspected.\n");
+ 		} else {
 -			acpi_ec_disable_gpe(ec, true);
-+			acpi_ec_complete_request(ec);
- 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
- 		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
- 		pr_info("+++++ EC stopped +++++\n");
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 63e3495..6a4420d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -129,6 +129,7 @@ struct acpi_ec {
- 	unsigned long data_addr;
- 	unsigned long global_lock;
- 	unsigned long flags;
-+	unsigned long reference_count;
- 	struct mutex mutex;
- 	wait_queue_head_t wait;
- 	struct list_head list;
++			acpi_ec_stop(ec, false);
+ 			acpi_remove_gpe_handler(NULL, ec->gpe,
+ 				&acpi_ec_gpe_handler);
+ 			return -ENODEV;
+@@ -924,7 +967,7 @@ static void ec_remove_handlers(struct acpi_ec *ec)
+ {
+ 	if (!test_bit(EC_FLAGS_HANDLERS_INSTALLED, &ec->flags))
+ 		return;
+-	acpi_ec_disable_gpe(ec, true);
++	acpi_ec_stop(ec, false);
+ 	if (ACPI_FAILURE(acpi_remove_address_space_handler(ec->handle,
+ 				ACPI_ADR_SPACE_EC, &acpi_ec_space_handler)))
+ 		pr_err("failed to remove space handler\n");
 --=20
 1.7.10
