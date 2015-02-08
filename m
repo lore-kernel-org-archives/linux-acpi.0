@@ -1,29 +1,57 @@
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH v3 20/20] arm: mach-pxa: Decrement the power supply's device reference counter
-Date: Sat, 07 Feb 2015 13:54:13 +0100
-Message-ID: <87iofd991m.fsf@free.fr>
-References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
-	<1422629278-12202-21-git-send-email-k.kozlowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1422629278-12202-21-git-send-email-k.kozlowski@samsung.com>
-	(Krzysztof Kozlowski's message of "Fri, 30 Jan 2015 15:47:58 +0100")
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
+From: Andreas Ruprecht <rupran@einserver.de>
+Subject: [PATCH] acpi: Remove unneeded nested #ifdef
+Date: Sun,  8 Feb 2015 14:12:59 +0100
+Message-ID: <1423401179-12545-1-git-send-email-rupran@einserver.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Ruprecht <rupran@einserver.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Krzysztof Kozlowski <k.kozlowski@samsung.com> writes:
+In commit 5de21bb998b8 ("ACPI / PM: Drop CONFIG_PM_RUNTIME from the
+ACPI core"), all occurrences of CONFIG_PM_RUNTIME were replaced with
+CONFIG_PM. This created the following structure of #ifdef blocks in
+the code:
 
-> Use power_supply_put() to decrement the power supply's device reference
-> counter.
->
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Reviewed-by: Sebastian Reichel <sre@kernel.org>
+ [...]
+ #ifdef CONFIG_PM
+ #ifdef CONFIG_PM
+ /* always on / undead */
+ #ifdef CONFIG_PM_SLEEP
+ [...]
+ #endif
+ #endif
+ [...]
+ #endif
 
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+This patch removes the inner "#ifdef CONFIG_PM" block as it will
+always be enabled when the outer block is enabled. This inconsistency
+was found using the undertaker-checkpatch tool.
 
---
-Robert
+Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
+---
+ drivers/acpi/device_pm.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index c0d44d3..735db11 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -1027,7 +1027,6 @@ EXPORT_SYMBOL_GPL(acpi_subsys_freeze);
+ 
+ static struct dev_pm_domain acpi_general_pm_domain = {
+ 	.ops = {
+-#ifdef CONFIG_PM
+ 		.runtime_suspend = acpi_subsys_runtime_suspend,
+ 		.runtime_resume = acpi_subsys_runtime_resume,
+ #ifdef CONFIG_PM_SLEEP
+@@ -1041,7 +1040,6 @@ static struct dev_pm_domain acpi_general_pm_domain = {
+ 		.poweroff_late = acpi_subsys_suspend_late,
+ 		.restore_early = acpi_subsys_resume_early,
+ #endif
+-#endif
+ 	},
+ };
+ 
+-- 
+1.9.1
