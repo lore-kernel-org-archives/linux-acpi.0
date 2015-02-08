@@ -1,57 +1,60 @@
-From: Andreas Ruprecht <rupran@einserver.de>
-Subject: [PATCH] acpi: Remove unneeded nested #ifdef
-Date: Sun,  8 Feb 2015 14:12:59 +0100
-Message-ID: <1423401179-12545-1-git-send-email-rupran@einserver.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Ruprecht <rupran@einserver.de>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [V3 PATCH 0/2] Introduce ACPI support for ahci_platform driver
+Date: Mon, 9 Feb 2015 00:20:02 +0800
+Message-ID: <1423412404-4690-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, grant.likely@linaro.org
+Cc: hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In commit 5de21bb998b8 ("ACPI / PM: Drop CONFIG_PM_RUNTIME from the
-ACPI core"), all occurrences of CONFIG_PM_RUNTIME were replaced with
-CONFIG_PM. This created the following structure of #ifdef blocks in
-the code:
+This patch series introduce ACPI support for non-PCI AHCI platform driver.
+Existing ACPI support for AHCI assumes the device controller is a PCI device.
 
- [...]
- #ifdef CONFIG_PM
- #ifdef CONFIG_PM
- /* always on / undead */
- #ifdef CONFIG_PM_SLEEP
- [...]
- #endif
- #endif
- [...]
- #endif
+Also, since there is no ACPI _HID/_CID for generic AHCI controller, the driver
+could not use them for matching devices. Therefore, this patch introduces
+a mechanism for drivers to match devices using ACPI _CLS method.
 
-This patch removes the inner "#ifdef CONFIG_PM" block as it will
-always be enabled when the outer block is enabled. This inconsistency
-was found using the undertaker-checkpatch tool.
+This patch series is rebased from and tested with:
 
-Signed-off-by: Andreas Ruprecht <rupran@einserver.de>
----
- drivers/acpi/device_pm.c | 2 --
- 1 file changed, 2 deletions(-)
+    http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v8
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index c0d44d3..735db11 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -1027,7 +1027,6 @@ EXPORT_SYMBOL_GPL(acpi_subsys_freeze);
- 
- static struct dev_pm_domain acpi_general_pm_domain = {
- 	.ops = {
--#ifdef CONFIG_PM
- 		.runtime_suspend = acpi_subsys_runtime_suspend,
- 		.runtime_resume = acpi_subsys_runtime_resume,
- #ifdef CONFIG_PM_SLEEP
-@@ -1041,7 +1040,6 @@ static struct dev_pm_domain acpi_general_pm_domain = {
- 		.poweroff_late = acpi_subsys_suspend_late,
- 		.restore_early = acpi_subsys_resume_early,
- #endif
--#endif
- 	},
- };
- 
+This topic was discussed earlier here (as part of introducing support for
+AMD Seattle SATA controller):
+
+    http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
+
+Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
+	* Update with review comment from Rafael in patch 1/2
+	* Rebased and tested with acpi-5.1-v8
+
+Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
+	* Rebased to 3.19.0-rc2
+	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
+	* Change the matching logic in acpi_driver_match_device() due to the new
+	  special PRP0001 _HID.
+	* Simplify the return type of acpi_match_device_cls() to boolean.
+
+Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
+	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
+	  as inline. (per Arnd)
+	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
+
+Suravee Suthikulpanit (2):
+  ACPI / scan: Add support for ACPI _CLS device matching
+  ata: ahci_platform: Add ACPI _CLS matching
+
+ drivers/acpi/scan.c             | 75 +++++++++++++++++++++++++++++++++++++++--
+ drivers/ata/Kconfig             |  2 +-
+ drivers/ata/ahci_platform.c     |  3 ++
+ include/acpi/acnames.h          |  1 +
+ include/linux/acpi.h            | 10 ++++++
+ include/linux/device.h          |  1 +
+ include/linux/mod_devicetable.h |  6 ++++
+ 7 files changed, 94 insertions(+), 4 deletions(-)
+
 -- 
-1.9.1
+2.1.0
+
