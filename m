@@ -1,45 +1,67 @@
-From: Stefan Wahren <stefan.wahren@i2se.com>
-Subject: Re: [PATCH v3 04/20] power_supply: sysfs: Use power_supply_*() API
- for accessing function attrs
-Date: Mon, 9 Feb 2015 20:02:21 +0100 (CET)
-Message-ID: <70066540.345820.1423508541546.JavaMail.open-xchange@oxbaltgw00.schlund.de>
-References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com> <1422629278-12202-5-git-send-email-k.kozlowski@samsung.com>
-Reply-To: Stefan Wahren <stefan.wahren@i2se.com>
+From: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [V3 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
+ matching
+Date: Mon, 9 Feb 2015 21:02:11 +0000
+Message-ID: <D0FF3AEC.1020B%suravee.suthikulpanit@amd.com>
+References: <20150209111538.GB1480@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1422629278-12202-5-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Support Opensource <support.opensource@diasemi.com>, Darren Hart <dvhart@infradead.org>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-pm@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, ac100@lists.launchpad.net, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Russell King <linux@arm.linux.org.uk>, patches@opensource.wolfsonmicro.com, Milo Kim <milo.kim@ti.com>, David Herrmann <dh.herrmann@googlemail.com>, devel@driverdev.osuosl.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-input@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-tegra@vger.kernel.org, Daniel Mack <daniel@zonque.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, platf
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0114.outbound.protection.outlook.com ([207.46.100.114]:23167
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1761099AbbBIVCU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Feb 2015 16:02:20 -0500
+In-Reply-To: <20150209111538.GB1480@lahna.fi.intel.com>
+Content-Language: en-US
+Content-ID: <633C5637961F3042AB258E2B2FAEFCAF@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lv Zheng <lv.zheng@intel.com>
 
-Hi Krzysztof,
+On 2/9/15, 19:15, "Mika Westerberg" <mika.westerberg@linux.intel.com>
+wrote:
 
-> Krzysztof Kozlowski <k.kozlowski@samsung.com> hat am 30. Januar 2015 um 15:47
-> geschrieben:
+>On Mon, Feb 09, 2015 at 12:02:43AM +0100, Rafael J. Wysocki wrote:
+>> On Monday, February 09, 2015 12:20:03 AM Suravee Suthikulpanit wrote:
+>> > Device drivers typically use ACPI _HIDs/_CIDs listed in struct
+>>device_driver
+>> > acpi_match_table to match devices. However, for generic drivers, we do
+>> > not want to list _HID for all supported devices, and some device
+>>classes
+>> > do not have _CID (e.g. SATA, USB). Instead, we can leverage ACPI _CLS,
+>> > which specifies PCI-defined class code (i.e. base-class, subclass and
+>> > programming interface).
+>> > 
+>> > This patch adds support for matching ACPI devices using the _CLS
+>>method.
+>> > 
+>> > Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> 
+>> Greg, Mika, any problems with this?
 >
+>Is there some specific reason why this cannot be done in similar way
+>than PCI already does?
 >
-> Replace direct calls to power supply function attributes with wrappers.
-> Wrappers provide safe access in case of unregistering the power
-> supply (e.g. by removing the driver). Replace:
-> - get_property -> power_supply_get_property
-> - set_property -> power_supply_set_property
-> - property_is_writeable -> power_supply_property_is_writeable
->
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Acked-by: Jonghwa Lee <jonghwa3.lee@samusng.com>
+>In other words, stuff _CLS fields to struct acpi_device_id and make
+>match functions match against those if they are != 0.
 
-just a nit. It looks like a typo in the mail address which is also in patch 5 -
-10.
+That was my original thought. Then I realized that the acpi_device_id is
+used
+to create the device matching table, in which could contain several
+_HID/_CID.
+However, most of the added _CLS field would likely ended up being unused
+and
+taking up space.
 
-I applied patch 1 - 14 to my repo with a upcoming power driver (mxs_power) and
-didn't see any problems with your patches.
+In contrast to _HID/_CID, a driver is likely to match just a single _CLS.
+So, I think it is cleaner to have just a dedicate struct acpi_device_cls,
+and 
+a matching function for it.
 
-Stefan
+Thanks,
 
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Reviewed-by: Sebastian Reichel <sre@kernel.org>
-> ---
+Suravee
+
