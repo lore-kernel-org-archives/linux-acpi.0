@@ -1,40 +1,57 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [V3 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
- matching
-Date: Mon, 9 Feb 2015 07:36:28 +0800
-Message-ID: <20150208233628.GA8354@kroah.com>
-References: <1423412404-4690-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1423412404-4690-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <6495379.TIpKZohZf0@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 0/5] ACPI / EC: Add reference counting for requests
+ and cleans up the grace periods support.
+Date: Mon, 9 Feb 2015 02:23:37 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026D4B94@SHSMSX101.ccr.corp.intel.com>
+References: <20141119121615.GA2514@node.dhcp.inet.fi>
+ <cover.1423183647.git.lv.zheng@intel.com> <1711204.9KEDEeQMDo@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40497 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755428AbbBHXgd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Feb 2015 18:36:33 -0500
-Content-Disposition: inline
-In-Reply-To: <6495379.TIpKZohZf0@vostro.rjw.lan>
+Received: from mga02.intel.com ([134.134.136.20]:49647 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755625AbbBICXo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 8 Feb 2015 21:23:44 -0500
+In-Reply-To: <1711204.9KEDEeQMDo@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, grant.likely@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Lv Zheng <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Feb 09, 2015 at 12:02:43AM +0100, Rafael J. Wysocki wrote:
-> On Monday, February 09, 2015 12:20:03 AM Suravee Suthikulpanit wrote:
-> > Device drivers typically use ACPI _HIDs/_CIDs listed in struct device_driver
-> > acpi_match_table to match devices. However, for generic drivers, we do
-> > not want to list _HID for all supported devices, and some device classes
-> > do not have _CID (e.g. SATA, USB). Instead, we can leverage ACPI _CLS,
-> > which specifies PCI-defined class code (i.e. base-class, subclass and
-> > programming interface).
-> > 
-> > This patch adds support for matching ACPI devices using the _CLS method.
-> > 
-> > Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> 
-> Greg, Mika, any problems with this?
-
-None from me:
-
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IEZyaWRheSwgRmVicnVhcnkgMDYsIDIwMTUgOToyNyBBTQ0KPiAN
+Cj4gT24gRnJpZGF5LCBGZWJydWFyeSAwNiwgMjAxNSAwODo1NzozNyBBTSBMdiBaaGVuZyB3cm90
+ZToNCj4gPiBUaGlzIHBhdGNoc2V0IGNvbnRhaW5zIDMgY2xlYW51cHMgcmVsYXRlZCB0byB0aGUg
+RUMgZHJpdmVyOg0KPiA+IDEuIENvbW1hbmQgZmx1c2hpbmcgKGNvbW1hbmQgZ3JhY2UgcGVyaW9k
+KQ0KPiA+ICAgIFRoaXMgcGF0Y2hzZXQgZmx1c2hlcyBFQyBjb21tYW5kcyBiZWZvcmUgc3VzcGVu
+ZGluZy9yZXN1bWluZywgc28gdGhhdA0KPiA+ICAgIHRoZXJlIHdvbid0IGJlIHRpbWVvdXQgZm9y
+IHRoZSBpbmNvbXBsZXRlIGNvbW1hbmRzIGFmdGVyIHJlc3VtaW5nLg0KPiA+IDIuIFF1ZXJ5IGZs
+dXNoaW5nIChxdWVyeSBncmFjZSBwZXJpb2QpDQo+ID4gICAgVGhpcyBwYXRjaHNldCBmbHVzaGVz
+IEVDIGV2ZW50IHF1ZXJpZXMgYmVmb3JlIHN1c3BlbmRpbmcvcmVzdW1pbmcsIHNvDQo+ID4gICAg
+dGhhdCB0aGVyZSB3b24ndCBiZSBicm9rZW4gZXZlbnRzIHJlbWFpbmVkIGluIHRoZSBmaXJtd2Fy
+ZSBxdWV1ZS4NCj4gPiAzLiBDb21tYW5kIHN0b3JtaW5nIHByZXZlbnRpb24NCj4gPiAgICBUaGlz
+IHBhdGNoc2V0IGNvcnJlY3RzIGNvbW1hbmQgc3Rvcm1pbmcgcHJldmVudGlvbiBsb2dpYyBiZWNh
+dXNlIG9mDQo+ID4gICAgdGhlIEdQRSByYXcgaGFuZGxlciBtb2RlLg0KPiA+IFRoZSByZXF1ZXN0
+IHJlZmVyZW5jZSBjb3VudCBkZWJ1Z2dpbmcgbWVzc2FnZXMgY2FuIGJlIHVzZWQgdG8gZGV0ZWN0
+IGJyb2tlbg0KPiA+IEVDIHRyYW5zYWN0aW9ucy4gSXQgc2hvdWxkIGFsd2F5cyBkcm9wIHRvIDEg
+d2hlbiB0aGUgZHJpdmVyIGlzIGlkbGUgZHVyaW5nDQo+ID4gdGhlIHJ1bnRpbWUuDQo+ID4NCj4g
+PiBOb3RlIHRoYXQgYWZ0ZXIgZmx1c2hpbmcgYmVmb3JlIHN1c3BlbmRpbmcsIEVDIEdQRSBpcyBz
+dGlsbCBlbmFibGVkIHRvIGtlZXANCj4gPiB0aGUgb2xkIGJlaGF2aW9yLg0KPiA+DQo+ID4gTHYg
+WmhlbmcgKDUpOg0KPiA+ICAgQUNQSS9FQzogSW50cm9kdWNlIFNUQVJURUQvU1RPUFBFRCBmbGFn
+cyB0byByZXBsYWNlIEJMT0NLRUQgZmxhZy4NCj4gPiAgIEFDUEkvRUM6IEFkZCBjb21tYW5kIGZs
+dXNoaW5nIHN1cHBvcnQuDQo+ID4gICBBQ1BJL0VDOiBSZWZpbmUgY29tbWFuZCBzdG9ybSBwcmV2
+ZW50aW9uIHN1cHBvcnQuDQo+ID4gICBBQ1BJL0VDOiBBZGQgcXVlcnkgZmx1c2hpbmcgc3VwcG9y
+dC4NCj4gPiAgIEFDUEkvRUM6IEFkZCBHUEUgcmVmZXJlbmNlIGNvdW50aW5nIGRlYnVnZ2luZyBt
+ZXNzYWdlcy4NCj4gPg0KPiA+ICBkcml2ZXJzL2FjcGkvZWMuYyAgICAgICB8ICAyOTUgKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0NCj4gPiAgZHJpdmVycy9h
+Y3BpL2ludGVybmFsLmggfCAgICAxICsNCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAyNTQgaW5zZXJ0
+aW9ucygrKSwgNDIgZGVsZXRpb25zKC0pDQo+IA0KPiBTbyB0aGlzIGlzIG9uIHRvcCBvZiB0aGUg
+RUMgcGF0Y2hlcyB5b3Ugc2VudCBwcmV2aW91c2x5LCByaWdodD8NCg0KWWVzLg0KDQpUaGUgc2Vx
+dWVuY2UgaXM6DQpBQ1BJQ0EgMjAxNTAyMDQgcmVsZWFzZTogaHR0cDovL3d3dy5zcGluaWNzLm5l
+dC9saXN0cy9saW51eC1hY3BpL21zZzU1NjIzLmh0bWwNCkFDUEkgRUMgR1BFIHJhY2UgZml4ZXM6
+IGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtYWNwaS9tc2c1NTYzMy5odG1sDQpB
+bmQgdGhpcyBzZXJpZXMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KDQo+IA0K
+PiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tp
+LCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
