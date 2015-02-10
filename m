@@ -1,86 +1,62 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Tue, 10 Feb 2015 18:44:34 +0900
-Message-ID: <CAAVeFu+JHMf__s0hfCJq31kZP-mp02bbzVywq+eZ9JVyP9boSw@mail.gmail.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
- <4006695.qV8Mor20ru@vostro.rjw.lan> <CACRpkdZWEq_6eNf_rj2rje0KzAKQZ7DeB6L5PW-nacE6=rzmEQ@mail.gmail.com>
- <2116821.DVmvasqCz1@vostro.rjw.lan> <CACRpkdbpJXHih0-Yhpi=AjvVjxZwEAhqe_iBWbd=5Cjz+sQZxQ@mail.gmail.com>
- <20150204141151.GB18189@kuha.fi.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [V3 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
+ matching
+Date: Tue, 10 Feb 2015 11:59:32 +0200
+Message-ID: <20150210095932.GN1480@lahna.fi.intel.com>
+References: <20150209111538.GB1480@lahna.fi.intel.com>
+ <D0FF3AEC.1020B%suravee.suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150204141151.GB18189@kuha.fi.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <D0FF3AEC.1020B%suravee.suthikulpanit@amd.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 4, 2015 at 11:11 PM, Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
-> On Wed, Feb 04, 2015 at 10:51:27AM +0100, Linus Walleij wrote:
->> On Fri, Jan 30, 2015 at 5:17 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Friday, January 30, 2015 03:48:30 PM Linus Walleij wrote:
->>
->> >> So you could detect one by making a checksum of the binary or something.
->> >>
->> >> And then you'd know that the table with this checksum needs patching?
->> >
->> > At a single table level it is generally difficult to say whether or not
->> > things are going to work.
->> >
->> > What needs to work is the namespace which is built from all of the tables
->> > provided combined.  So the namespace needs to be populated first and then
->> > fixes applied on top of that (presumably by deleting, adding or replacing
->> > objects).
->> >
->> > Now, in theory, you *may* be able to figure out that combination of tables
->> > A produces namespace B which then will require fix X if the system is Y,
->> > but quite frankly I wouldn't count on that.
->> >
->> > Moreover, fixups (or "patches" as I called them, but that wasn't exactly
->> > correct) need to be provided in the form of AML definition blocks to apply on
->> > top of an already populated namespace and if you want to use a binary kernel image,
->> > you can't really afford putting all that stuff for all systems it can possibly
->> > run on into it.  This means that distros need to be able to combine a fixup for
->> > the ACPI tables with the binary kernel and install the result into the system's
->> > boot medium (whatever it is).  Also it should be possible to update the fixup
->> > and the kernel image separately if necessary.
->> >
->> > Now from the kernel's perspective that raises the question: "What if the
->> > ACPI tables fixup provided by the distro is not sufficient?"
->> >
->> > That needs to be addressed somehow in the code.
->>
->> Yeah I guess I'm convinced that we need to handle this particular
->> weirdness in the gpio-acpi code... if it can be contained there as
->> expressed by Alexandre.
->
-> I'm still fine if we want to confine this "gpio forwarding" to acpi
-> if you guys want it, but I was looking at the Sound SoC drivers and I
-> realised that we do have places which pass gpio descriptors to other
-> devices in platform data. And these of course aren't always used on
-> acpi platforms. By greping gpio_desc I saw at least these files are
-> passing it in platform data structures:
->
-> include/sound/soc.h
-> include/linux/leds.h
-> include/linux/usb/usb_phy_generic.h
->
-> There are probable others but I checked those. And of course now there
-> is nothing preventing people from adding more of them.
+On Mon, Feb 09, 2015 at 09:02:11PM +0000, Suthikulpanit, Suravee wrote:
+> On 2/9/15, 19:15, "Mika Westerberg" <mika.westerberg@linux.intel.com>
+> wrote:
+> 
+> >On Mon, Feb 09, 2015 at 12:02:43AM +0100, Rafael J. Wysocki wrote:
+> >> On Monday, February 09, 2015 12:20:03 AM Suravee Suthikulpanit wrote:
+> >> > Device drivers typically use ACPI _HIDs/_CIDs listed in struct
+> >>device_driver
+> >> > acpi_match_table to match devices. However, for generic drivers, we do
+> >> > not want to list _HID for all supported devices, and some device
+> >>classes
+> >> > do not have _CID (e.g. SATA, USB). Instead, we can leverage ACPI _CLS,
+> >> > which specifies PCI-defined class code (i.e. base-class, subclass and
+> >> > programming interface).
+> >> > 
+> >> > This patch adds support for matching ACPI devices using the _CLS
+> >>method.
+> >> > 
+> >> > Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> >> 
+> >> Greg, Mika, any problems with this?
+> >
+> >Is there some specific reason why this cannot be done in similar way
+> >than PCI already does?
+> >
+> >In other words, stuff _CLS fields to struct acpi_device_id and make
+> >match functions match against those if they are != 0.
+> 
+> That was my original thought. Then I realized that the acpi_device_id is
+> used
+> to create the device matching table, in which could contain several
+> _HID/_CID.
+> However, most of the added _CLS field would likely ended up being unused
+> and
+> taking up space.
 
-For sound/soc.h, the member is indeed public but I don't see it being
-used to pass descriptors around between drivers.
+Well, PCI is doing that already :)
 
-For linux/leds.h, I think this is the reason why we introduced
-devm_get_gpiod_from_child()
+> In contrast to _HID/_CID, a driver is likely to match just a single _CLS.
+> So, I think it is cleaner to have just a dedicate struct acpi_device_cls,
+> and 
+> a matching function for it.
 
-These looks more like a bad usage of GPIO descriptors, but AFAICT they
-can be fixed by fixing the drivers and, by all means, this is where we
-should do it.
-
-This is a different situation from yours where we are trying to deal
-with broken firmware and need to resort to tricks at one point or the
-other.
-
-Or am I missing your point?
+IMHO cleaner version is the one following PCI. Besides, how do you
+support modules with this? Or did I miss something?
