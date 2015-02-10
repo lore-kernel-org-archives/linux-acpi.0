@@ -1,49 +1,104 @@
-From: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 04/20] power_supply: sysfs: Use power_supply_*() API for
- accessing function attrs
-Date: Tue, 10 Feb 2015 08:39:19 +0100
-Message-ID: <1423553959.1327.1.camel@AMDC1943>
-References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
- <1422629278-12202-5-git-send-email-k.kozlowski@samsung.com>
- <70066540.345820.1423508541546.JavaMail.open-xchange@oxbaltgw00.schlund.de>
+From: Alexandre Courbot <gnurou@gmail.com>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Tue, 10 Feb 2015 18:32:46 +0900
+Message-ID: <CAAVeFuJUdigJC+WcriOi+SEYDz0HCzU=KatDPfmzdA6ytBOd_A@mail.gmail.com>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <4078818.ecVtLF3hjd@vostro.rjw.lan> <CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
+ <1564228.rcRekIyDUd@vostro.rjw.lan> <20150123112122.GD30522@kuha.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <70066540.345820.1423508541546.JavaMail.open-xchange-h4m1HHXQYNHZ78VGacPtK8gmgJlYmuWJ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stefan Wahren <stefan.wahren-eS4NqCHxEME@public.gmane.org>
-Cc: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Support Opensource <support.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, ac100-oU9gvf+ajcQ97yFScArB1dHuzzzSOjJt@public.gmane.org, Cezary Jackiewicz <cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, patches-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, David Herrmann <dh.herrmann-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150123112122.GD30522@kuha.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On pon, 2015-02-09 at 20:02 +0100, Stefan Wahren wrote:
-> Hi Krzysztof,
-> 
-> > Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> hat am 30. Januar 2015 um 15:47
-> > geschrieben:
-> >
-> >
-> > Replace direct calls to power supply function attributes with wrappers.
-> > Wrappers provide safe access in case of unregistering the power
-> > supply (e.g. by removing the driver). Replace:
-> > - get_property -> power_supply_get_property
-> > - set_property -> power_supply_set_property
-> > - property_is_writeable -> power_supply_property_is_writeable
-> >
-> > Signed-off-by: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> > Acked-by: Jonghwa Lee <jonghwa3.lee-Ns6yrYG9TJBBDgjK7y7TUQ@public.gmane.org>
-> 
-> just a nit. It looks like a typo in the mail address which is also in patch 5 -
-> 10.
+On Fri, Jan 23, 2015 at 8:21 PM, Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
+> Hi guys,
+>
+> On Thu, Jan 22, 2015 at 05:14:22PM +0100, Rafael J. Wysocki wrote:
+>> On Thursday, January 22, 2015 11:57:55 AM Alexandre Courbot wrote:
+>> > If we decide to go ahead with the solution proposed by this patch =
+for
+>> > practical reasons (which are good reasons indeed), I still have on=
+e
+>> > problem with its current form.
+>> >
+>> > As the discussion highlighted, this is an ACPI problem, so I'd ver=
+y
+>> > much like it to be confined to the ACPI GPIO code, to be enabled o=
+nly
+>> > when ACPI is, and to use function names that start with acpi_gpio.
+>>
+>> I can agree with that.
+>>
+>> > The current implementation leverages platform lookup, making said =
+lookup
+>> > less efficient in the process and bringing confusion about its
+>> > purpose. Although the two processes are indeed similar, they are
+>> > separate things: one is a legitimate way to map GPIOs, the other i=
+s a
+>> > fixup for broken firmware.
+>> >
+>> > I suppose we all agree this is a hackish fix, so let's confine it =
+as
+>> > much as we can.
+>>
+>> OK
+>>
+>> Heikki, any comments?
+>
+> I'm fine with that.
+>
+> That actually makes me think that we could then drop the lookup table=
+s
+> completely and use device properties instead with the help of "generi=
+c
+> property" (attached):
+>
+> We would just need to agree on the format how to describe a gpio
+> property, document it and of course convert the current users as
+> usual. The format could be something like this as an example (I'm
+> writing this out of my head so don't shoot me if you can see it would
+> not work. Just an example):
+>
+> static const u32 example_gpio[] =3D { <gpio>, <flags>,=E7=88=99;
+>
+> static struct dev_gen_prop example_prop[] =3D
+>         {
+>                 .type =3D DEV_PROP_U32,
+>                 .name =3D "gpio,<con_id>",
+>                 .nval =3D 2,
+>                 .num =3D &example_gpio,
+>         },
+>         { },
+> };
+>
+> static struct platform_device example_pdev =3D {
+>         ...
+>         .dev =3D {
+>                 .gen_prop =3D &example_prop,
+>         },
+> }
+>
+>
+> In gpiolib.c we would then, instead of going through the lookups,
+> simply ask for that property:
+>
+>         ...
+>         sprintf(propname, "gpio,%s", con_id);
+>         device_property_read_u32_array(dev, propname, &val, 2);
+>         ...
+>         desc =3D gpio_to_desc(val[0]);
+>         flags =3D val[1];
+>         ...
+>
+>
+> So this is just and idea. I think it would be relatively easy to
+> implement. What do you guys think?
 
-Right, I copied it directly from Jonghwa's response. Thank you for
-noticing it.
-
-> 
-> I applied patch 1 - 14 to my repo with a upcoming power driver (mxs_power) and
-> didn't see any problems with your patches.
-
-Great, thanks!
-
-Best regards,
-Krzysztof
+At first sight, that looks like a very good idea and a great use of
+the device properties API. Are you willing to explore it further?
