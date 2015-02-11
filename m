@@ -1,50 +1,30 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI if power button pressed 1x it creates the same ACPI event twice
-Date: Wed, 11 Feb 2015 01:37:32 +0100
-Message-ID: <2062077.TXpRYWcx5S@vostro.rjw.lan>
-References: <618666178.20150113173510@eikelenboom.it> <13866742.20150119142155@eikelenboom.it> <1891343962.20150210234617@eikelenboom.it>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Fwd: [Bug 92111] Power regression from 3.17 to 3.18 and 3.19
+Date: Wed, 11 Feb 2015 00:26:02 +0000
+Message-ID: <20150211002601.GA13363@srcf.ucam.org>
+References: <1790277.SYbcblnshn@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65354 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750808AbbBKAO3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2015 19:14:29 -0500
-In-Reply-To: <1891343962.20150210234617@eikelenboom.it>
+Received: from cavan.codon.org.uk ([93.93.128.6]:41260 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385AbbBKA0G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Feb 2015 19:26:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1790277.SYbcblnshn@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andreas Noever <andreas.noever@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, attila.jakosa@gmail.com
 
-On Tuesday, February 10, 2015 11:46:17 PM Sander Eikelenboom wrote:
-
-[cut]
-
-> Hi Rafael / Len,
+On Wed, Feb 11, 2015 at 01:29:36AM +0100, Rafael J. Wysocki wrote:
+> Hi,
 > 
-> Unfortunately haven't heard anything back .. and with 3.19-rc6 it seems 
-> miraculously fixed, i receive only one event on a powerbutton press.
+> The _OSI("Darwin") support seems to break CPU power management for Attila.
 > 
-> However with 3.19.0 (final) .. it was back again .. 1 press .. 2 events.
-> 
-> So i bisected ... but i came out on the netlink commit below. Now seems acpid to 
-> be using input layer and netlink if the deprecated /proc/apci/events is not compiled in (which 
-> isn't at present) according to [1]. 
-> 
-> But how the fsck this relates to one another... the only thing i can imagine is 
-> that i have to take that text literal: It uses both input layer and netlink 
-> simultaneously and will receive an event via both of those ways which slightly 
-> differ in naming but have the same origin ?
+> Is there anything we can possibly do about that?
 
-That's unlikely.
-
-I'm not sure what the problem is ATM and I suppose it would require some serious
-debugging, so I'd recomment filing an ACPI bug at bugzilla.kernel.org and adding
-this information to it.  That increases the chances that someone will take care
-of it sooner that I can.
-
-
+Hm. It's not clear to me what the bug is describing. If we're not waking 
+up more frequently, why aren't we entering PC6?
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Matthew Garrett | mjg59@srcf.ucam.org
