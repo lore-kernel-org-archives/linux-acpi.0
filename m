@@ -1,102 +1,93 @@
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Subject: Re: [PATCH v8 08/21] dt / chosen: Add linux,uefi-stub-generated-dtb
- property
-Date: Wed, 11 Feb 2015 07:07:45 +0000
-Message-ID: <alpine.DEB.2.02.1502110704420.29696@kaball.uk.xensource.com>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <1422881149-8177-9-git-send-email-hanjun.guo@linaro.org> <20150202134033.GR4278@bivouac.eciton.net> <20150202135051.GA3825@xora-haswell.xora.org.uk> <20150202163253.GG21175@leverpostej>
- <CAGCh1+nL7YMXYp42ekWAqmw_m5cy=s_7NszLDAXj=bUr2aZVig@mail.gmail.com> <54D5884A.6050009@linaro.org> <CAKv+Gu-oDRjYPC3SxSDVZ7rV7eG9DCct=kNS0xBVd28YoV5fSg@mail.gmail.com> <20150209114624.GD4250@leverpostej> <CAKv+Gu-fnpxr-3T9RPuf4de2DGVE6xkDEcfFyzYp5KJCJH_fzw@mail.gmail.com>
- <alpine.DEB.2.02.1502110607250.29696@kaball.uk.xensource.com> <CAKv+Gu_uXs7tto3JdEOoEfqFpjUKdwFo4dSN3X3399uc+sJKrQ@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v3 20/20] arm: mach-pxa: Decrement the power supply's
+ device reference counter
+Date: Wed, 11 Feb 2015 23:12:33 +0100
+Message-ID: <20150211221233.GD11313@amd>
+References: <1422629278-12202-1-git-send-email-k.kozlowski@samsung.com>
+ <1422629278-12202-21-git-send-email-k.kozlowski@samsung.com>
+ <20150206134953.GA25683@amd>
+ <1423233788.31516.5.camel@AMDC1943>
+ <20150206145904.GA7872@amd>
+ <1423476432.4909.15.camel@AMDC1943>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:23454 "EHLO
-	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751062AbbBKHIU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Feb 2015 02:08:20 -0500
-In-Reply-To: <CAKv+Gu_uXs7tto3JdEOoEfqFpjUKdwFo4dSN3X3399uc+sJKrQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1423476432.4909.15.camel@AMDC1943>
+Sender: linux-input-owner@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
 List-Id: linux-acpi@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Mark Rutland <mark.rutland@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Leif Lindholm <leif.lindholm@linaro.org>, Mark Langsdorf <mlangsdo@redhat.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "wangyijing@huawei.com" <wangyijing@huawei.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Jonathan Corbet <corbet@lwn.net>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "phoenix.liyi@huawei.com" <phoenix.liyi@huawei.com>
 
-On Wed, 11 Feb 2015, Ard Biesheuvel wrote:
-> > Given that Dom0 is not booted via EFI but as zImage, how are we going to
-> > pass the two EFI table pointers to Linux? Via Device Tree? It doesn't
-> > look like a great improvement to me.
-> >
-> 
-> The EFI system table and memory map pointers shall be passed to the
-> kernel in the exact same way as the stub does: via the /chosen node.
-> This is currently documented in Documentation/arm/uefi.txt but it
-> should be promoted to a proper binding.
+On Mon 2015-02-09 11:07:12, Krzysztof Kozlowski wrote:
+> On pi=C4=85, 2015-02-06 at 15:59 +0100, Pavel Machek wrote:
+> > On Fri 2015-02-06 15:43:08, Krzysztof Kozlowski wrote:
+> > > On pi=C4=85, 2015-02-06 at 14:49 +0100, Pavel Machek wrote:
+> > > > On Fri 2015-01-30 15:47:58, Krzysztof Kozlowski wrote:
+> > > > > Use power_supply_put() to decrement the power supply's device=
+ reference
+> > > > > counter.
+> > > > >=20
+> > > > > Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> > > > > Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.=
+com>
+> > > > > Reviewed-by: Sebastian Reichel <sre@kernel.org>
+> > > >=20
+> > > > 11,13,20 nothing obviously wrong. But I'm not sure if I studied=
+ them
+> > > > closely enough to warrant an ACK.
+> > > >=20
+> > > > It would be good to get this into kernel -- I seen no bad comme=
+nts,
+> > > > and it is not going to improve without merge into mainline.
+> > >=20
+> > > Thanks for looking at patchset. It would be really nice if this c=
+ould be
+> > > tested for some time in linux-next. Such testing would help a lot=
+=2E But I
+> > > need acks from various maintainers for that.
+> >=20
+> > Actually, you don't. The various maintainers clearly don't care at
+> > this point. They had enough time. So you select one maintainer you
+> > want to push this through, and you push it.
+> >=20
+> > Someone may complain, so you'll solve the feedback...
+>=20
+> I am thinking also on another way of solving this huge-patch problem:
+> 1. Mark all drivers broken (CONFIG_BROKEN).
+> 2. Introduce change in power_supply_register() API. Broken drivers
+>    will fail to build.
+> 3. Convert broken drivers to new API incrementally (one driver
+>    per patch) marking them also non-broken.
+>=20
+> This would be much easier to review but also this would break
+> build-bisectability for drivers and some platforms using them (like
+> OLPC, compal-laptop, ACPI).
 
-Ah, right.
+It is easy enough to review as it is, playing with CONFIG_BROKEN will
+not improve it. Just push the patch...
 
+> I pushed the patchset here:
+> https://git.linaro.org/people/marek.szyprowski/linux-srpol.git/shortl=
+og/refs/heads/v3.19-next-power-supply-core-ownership
+> (actually this is v4: added acks/reviews and minor issue fixed; merge
+> window has opened so I'll wait with sending this to LKML).
 
-> > Generating those two EFI tables shouldn't be a problem though.
-> >
-> >
-> 
-> Good.
-> 
-> >> As this basically promotes the stub<->kernel interface to an external
-> >> ABI, the current documentation about the /chosen node properties
-> >> should also be promoted to a proper binding, with the above mandated
-> >> minimal subset added as well.
-> >>
-> >> There are some minimal changes required to the current kernel code to
-> >> adhere to the above: primarlly to deal with a NULL runtime services
-> >> pointer, which is arguably an improvement anyway.
-> >
-> > This is not needed, if not for the first generation of patches
-> >
-> >
-> 
-> It is needed: the UEFI code needs to understand that the runtime
-> pointer in the EFI system table may be NULL, in which case no virtual
-> remapping or installation of the runtime services should take place.
-> Whether Xen ends up installing its own runtime services is a separate
-> matter.
-> 
-> >> Topic #2: how to identify an 'empty' DTB
-> >>
-> >> The proposed policy regarding whether DT or ACPI should be preferred
-> >> if both methods are available hinges on being able to identify a DTB
-> >> as containing a platform description or not. One suggested way of
-> >> doing this is to make the stub add a /chosen node property that
-> >> indicates that it didn't receive a DTB from the firmware, nor loaded
-> >> one from the file system, but created an empty one from scratch.
-> >>
-> >> Considering the previous topic, i.e., the promotion of the
-> >> stub<->kernel interface to external ABI, we should not be frivolous
-> >> about adding new properties, and adding a 'stub-generated-dtb'
-> >> property should be avoided if there is a better way to deal with this.
-> >> Also, e.g., when booting via GRUB, it may in fact be GRUB and not the
-> >> stub that creates the DTB (when booting with an initrd, for instance)
-> >> so GRUB would have to be modified as well. (If not, simply adding a
-> >> initrd= property to the command line would result in the kernel
-> >> preferring DT over ACPI all of a sudden, which surely, we all agree is
-> >> undesirable behavior)
-> >>
-> >> So instead, we propose to use a heuristic to decide whether a DTB
-> >> should be considered empty or not:
-> >> If /chosen is the only level 1 node in the tree, the DTB is empty,
-> >> otherwise it is not.
-> >>
-> >> This can be trivially implemented into the existing EFI early FDT
-> >> discovery code, and does not require any other changes to the stub or
-> >> GRUB.
-> >>
-> >> Please, could those affected by this comment whether this is feasible
-> >> or not? Other comments/remarks also highly appreciated, of course,
-> >
-> > Wouldn't it make sense to use the same interface between Xen and Dom0
-> > and between stub and kernel?
-> 
-> That is exactly the point: the stub communicates the EFI entry points
-> (system table and memmap) via the device tree. If you are not booting
-> via UEFI, there is no way you can execute the stub, so Xen needs to
-> add those properties to the /chosen node directly, and make them point
-> to data that the UEFI layer can understand.
+Great... now you just need one of maintainers to merge it...
 
-OK, it looks like the right way of doing it to me.
+POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
+M:      Sebastian Reichel <sre@kernel.org>
+M:      Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+M:      David Woodhouse <dwmw2@infradead.org>
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
