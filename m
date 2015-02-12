@@ -1,119 +1,76 @@
-From: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [V3 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
- matching
-Date: Wed, 11 Feb 2015 22:35:25 +0000
-Message-ID: <D101F3FB.108F7%suravee.suthikulpanit@amd.com>
-References: <2016200.TRfI2dfssZ@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH v2 0/5] ACPI / EC: Add reference counting for requests
+ and cleans up the grace periods support.
+Date: Thu, 12 Feb 2015 02:17:42 +0100
+Message-ID: <54DBFF36.3060603@intel.com>
+References: <20141119121615.GA2514@node.dhcp.inet.fi> <cover.1423183647.git.lv.zheng@intel.com> <1711204.9KEDEeQMDo@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88026D4B94@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <2016200.TRfI2dfssZ@vostro.rjw.lan>
-Content-Language: en-US
-Content-ID: <BB79D78C7947F347A9A2C3AE49690788@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026D4B94@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 2/10/15, 23:07, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
-
->On Tuesday, February 10, 2015 11:59:32 AM Mika Westerberg wrote:
->> On Mon, Feb 09, 2015 at 09:02:11PM +0000, Suthikulpanit, Suravee wro=
-te:
->> > On 2/9/15, 19:15, "Mika Westerberg" <mika.westerberg@linux.intel.c=
-om>
->> > wrote:
->> >=20
->> > >On Mon, Feb 09, 2015 at 12:02:43AM +0100, Rafael J. Wysocki wrote=
-:
->> > >> On Monday, February 09, 2015 12:20:03 AM Suravee Suthikulpanit
->>wrote:
->> > >> > Device drivers typically use ACPI _HIDs/_CIDs listed in struc=
-t
->> > >>device_driver
->> > >> > acpi_match_table to match devices. However, for generic drive=
-rs,
->>we do
->> > >> > not want to list _HID for all supported devices, and some dev=
-ice
->> > >>classes
->> > >> > do not have _CID (e.g. SATA, USB). Instead, we can leverage A=
-CPI
->>_CLS,
->> > >> > which specifies PCI-defined class code (i.e. base-class,
->>subclass and
->> > >> > programming interface).
->> > >> >=20
->> > >> > This patch adds support for matching ACPI devices using the _=
-CLS
->> > >>method.
->> > >> >=20
->> > >> > Signed-off-by: Suravee Suthikulpanit
->><Suravee.Suthikulpanit@amd.com>
->> > >>=20
->> > >> Greg, Mika, any problems with this?
->> > >
->> > >Is there some specific reason why this cannot be done in similar =
-way
->> > >than PCI already does?
->> > >
->> > >In other words, stuff _CLS fields to struct acpi_device_id and ma=
-ke
->> > >match functions match against those if they are !=3D 0.
->> >=20
->> > That was my original thought. Then I realized that the acpi_device=
-_id
->>is
->> > used
->> > to create the device matching table, in which could contain severa=
-l
->> > _HID/_CID.
->> > However, most of the added _CLS field would likely ended up being
->>unused
->> > and
->> > taking up space.
->>=20
->> Well, PCI is doing that already :)
->>=20
->> > In contrast to _HID/_CID, a driver is likely to match just a singl=
-e
->>_CLS.
->> > So, I think it is cleaner to have just a dedicate struct
->>acpi_device_cls,
->> > and=20
->> > a matching function for it.
->>=20
->> IMHO cleaner version is the one following PCI.
+On 2/9/2015 3:23 AM, Zheng, Lv wrote:
+> Hi, Rafael
 >
->I agree.
-
-Ok, let me reimplement this part to put "u32 cls" in the struct
-acpi_device_id, and use that for matching then.
-
+>> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+>> Sent: Friday, February 06, 2015 9:27 AM
+>>
+>> On Friday, February 06, 2015 08:57:37 AM Lv Zheng wrote:
+>>> This patchset contains 3 cleanups related to the EC driver:
+>>> 1. Command flushing (command grace period)
+>>>     This patchset flushes EC commands before suspending/resuming, so that
+>>>     there won't be timeout for the incomplete commands after resuming.
+>>> 2. Query flushing (query grace period)
+>>>     This patchset flushes EC event queries before suspending/resuming, so
+>>>     that there won't be broken events remained in the firmware queue.
+>>> 3. Command storming prevention
+>>>     This patchset corrects command storming prevention logic because of
+>>>     the GPE raw handler mode.
+>>> The request reference count debugging messages can be used to detect broken
+>>> EC transactions. It should always drop to 1 when the driver is idle during
+>>> the runtime.
+>>>
+>>> Note that after flushing before suspending, EC GPE is still enabled to keep
+>>> the old behavior.
+>>>
+>>> Lv Zheng (5):
+>>>    ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
+>>>    ACPI/EC: Add command flushing support.
+>>>    ACPI/EC: Refine command storm prevention support.
+>>>    ACPI/EC: Add query flushing support.
+>>>    ACPI/EC: Add GPE reference counting debugging messages.
+>>>
+>>>   drivers/acpi/ec.c       |  295 ++++++++++++++++++++++++++++++++++++++++-------
+>>>   drivers/acpi/internal.h |    1 +
+>>>   2 files changed, 254 insertions(+), 42 deletions(-)
+>> So this is on top of the EC patches you sent previously, right?
+> Yes.
 >
->> Besides, how do you support modules with this? Or did I miss somethi=
-ng?
->
->Good question.
+> The sequence is:
+> ACPICA 20150204 release: http://www.spinics.net/lists/linux-acpi/msg55623.html
+> ACPI EC GPE race fixes: http://www.spinics.net/lists/linux-acpi/msg55633.html
+> And this series.
 
-Ah. I didn=B9t think about this part earlier.
+Unfortunately, patch [4/5] from this series broke system suspend on Acer 
+Aspire S5 for me.
 
-IIUC, the current ACPI driver would create modules.alias entry with for=
-mat:
-	acpi:<HID>:<CID>
+Apparently, the box hangs hard during the last stage of suspend (after 
+offlining nonboot CPUs).
 
-What do you think if we append the _CLS of the device using the followi=
-ng
-format:
-	acpi:<HID>:<CID>:<CLS>
+The issue is 100% reproducible and reverting the patch (along with [5/5] 
+that depends on it) fixes the problem, so I'm going to push the reverts 
+to Linus on Friday.
 
-In case of PCI_CLASS_STORAGE_SATA_AHCI, this would become:
-	acpi:::0x10601
+I can send you an acpidump output from the affected machine, but I won't 
+be able to do any testing on it before Feb 23, so reverting is the only 
+viable option for the time being.
 
-Thanks,
+Please let me know if you want the acpidump output.
 
-Suravee
-
+Kind regards,
+Rafael
