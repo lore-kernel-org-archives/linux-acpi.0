@@ -1,76 +1,58 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH v2 0/5] ACPI / EC: Add reference counting for requests
- and cleans up the grace periods support.
-Date: Thu, 12 Feb 2015 02:17:42 +0100
-Message-ID: <54DBFF36.3060603@intel.com>
-References: <20141119121615.GA2514@node.dhcp.inet.fi> <cover.1423183647.git.lv.zheng@intel.com> <1711204.9KEDEeQMDo@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88026D4B94@SHSMSX101.ccr.corp.intel.com>
+From: Robert Richter <rric@kernel.org>
+Subject: Re: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 12 Feb 2015 11:02:35 +0100
+Message-ID: <20150212100235.GA30412@rric.localhost>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026D4B94@SHSMSX101.ccr.corp.intel.com>
+Content-Disposition: inline
+In-Reply-To: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2/9/2015 3:23 AM, Zheng, Lv wrote:
-> Hi, Rafael
->
->> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
->> Sent: Friday, February 06, 2015 9:27 AM
->>
->> On Friday, February 06, 2015 08:57:37 AM Lv Zheng wrote:
->>> This patchset contains 3 cleanups related to the EC driver:
->>> 1. Command flushing (command grace period)
->>>     This patchset flushes EC commands before suspending/resuming, so that
->>>     there won't be timeout for the incomplete commands after resuming.
->>> 2. Query flushing (query grace period)
->>>     This patchset flushes EC event queries before suspending/resuming, so
->>>     that there won't be broken events remained in the firmware queue.
->>> 3. Command storming prevention
->>>     This patchset corrects command storming prevention logic because of
->>>     the GPE raw handler mode.
->>> The request reference count debugging messages can be used to detect broken
->>> EC transactions. It should always drop to 1 when the driver is idle during
->>> the runtime.
->>>
->>> Note that after flushing before suspending, EC GPE is still enabled to keep
->>> the old behavior.
->>>
->>> Lv Zheng (5):
->>>    ACPI/EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag.
->>>    ACPI/EC: Add command flushing support.
->>>    ACPI/EC: Refine command storm prevention support.
->>>    ACPI/EC: Add query flushing support.
->>>    ACPI/EC: Add GPE reference counting debugging messages.
->>>
->>>   drivers/acpi/ec.c       |  295 ++++++++++++++++++++++++++++++++++++++++-------
->>>   drivers/acpi/internal.h |    1 +
->>>   2 files changed, 254 insertions(+), 42 deletions(-)
->> So this is on top of the EC patches you sent previously, right?
-> Yes.
->
-> The sequence is:
-> ACPICA 20150204 release: http://www.spinics.net/lists/linux-acpi/msg55623.html
-> ACPI EC GPE race fixes: http://www.spinics.net/lists/linux-acpi/msg55633.html
-> And this series.
+On 02.02.15 20:45:28, Hanjun Guo wrote:
+> This is the v8 of ACPI core patches for ARM64 based on ACPI 5.1, there are
+> some updates since v7:
+> 
+>  - Add two more documantation to explain why we need ACPI in ARM64 servers
+>    by Grant, and recommendations and prohibitions on the use of the numerous
+>    ACPI tables and objects by Al Stone.
+> 
+>  - Add two patches which is need to map acpi tables after acpi_gbl_permanent_mmap
+>    is set
+> 
+>  - Add another patch "dt / chosen: Add linux,uefi-stub-generated-dtb property"
+>    to address that if firmware providing no dtb, we can try ACPI configuration data
+>    even if no "acpi=force" is passed in early parameters. (I think ACPI for XEN and
+>    kexec need consider sperately as disscussed, correct me if I'm wrong).
+> 
+>  - Add CC in the patch to the subsystem maintainers and modify the subject
+>    of the patch to explicitly show the subsystem touched by this patch set,
+>    please help us to review and ack them if they make sense, thanks.
+> 
+>  - Add Tested-by from Qualcomm and Redhat;
+> 
+>  - Make ACPI depends on PCI suggested by Catalin;
+> 
+>  - Clean up SMP init function as Lorenzo suggested, remove physical
+>    CPU hot-plug code in the patch;
+> 
+>  - Address some comments from Marc and explicitly state that will
+>    implment statcked irqdomain and GIC init framework when GICv3 and
+>    ITS, GICv2m are implemented;
+> 
+>  - Rebased on top of 3.19-rc7.
 
-Unfortunately, patch [4/5] from this series broke system suspend on Acer 
-Aspire S5 for me.
+Patches tested on Cavium ThunderX. For the whole series:
 
-Apparently, the box hangs hard during the last stage of suspend (after 
-offlining nonboot CPUs).
+ Tested-by: Robert Richter <rrichter@cavium.com>
+ Acked-by: Robert Richter <rrichter@cavium.com>
 
-The issue is 100% reproducible and reverting the patch (along with [5/5] 
-that depends on it) fixes the problem, so I'm going to push the reverts 
-to Linus on Friday.
+Please apply.
 
-I can send you an acpidump output from the affected machine, but I won't 
-be able to do any testing on it before Feb 23, so reverting is the only 
-viable option for the time being.
+Thanks,
 
-Please let me know if you want the acpidump output.
-
-Kind regards,
-Rafael
+-Robert
