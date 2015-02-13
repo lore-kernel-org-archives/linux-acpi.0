@@ -1,156 +1,299 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/6] timekeeping: Make it safe to use the fast timekeeper while suspended
-Date: Fri, 13 Feb 2015 15:32:17 +0100
-Message-ID: <2177558.2TEykqeHuz@vostro.rjw.lan>
-References: <8292243.ibkmfVtXac@vostro.rjw.lan> <2403461.IZYtJE89Ir@vostro.rjw.lan> <CALAqxLWviqCvcgOgJOdWuTw+qHM9RW0480Ge5dNHf5Nonv75bQ@mail.gmail.com>
+From: "SK" <aneurer@paulbunyan.net>
+Subject: Affiliate
+Date: Fri, 13 Feb 2015 13:33:47 -0300
+Message-ID: <20150213163756.21BC71B285C9@smtpauth.paulbunyan.net>
+Reply-To: skwan50@sina.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/mixed; boundary="===============1503821586=="
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52617 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752469AbbBMOJJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Feb 2015 09:09:09 -0500
-In-Reply-To: <CALAqxLWviqCvcgOgJOdWuTw+qHM9RW0480Ge5dNHf5Nonv75bQ@mail.gmail.com>
+Received: from smtpauth.paulbunyan.net ([209.191.199.150]:50783 "EHLO
+	smtpauth.paulbunyan.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752924AbbBMQ4S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Feb 2015 11:56:18 -0500
+Received: from server08.uab.edu (unknown [190.193.84.212])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: aneurer@paulbunyan.net)
+	by smtpauth.paulbunyan.net (Postfix) with ESMTP id 21BC71B285C9
+	for <linux-acpi@vger.kernel.org>; Fri, 13 Feb 2015 10:37:55 -0600 (CST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@linux.intel.com>, "Li, Aubrey" <aubrey.li@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Friday, February 13, 2015 05:03:51 PM John Stultz wrote:
-> On Fri, Feb 13, 2015 at 10:03 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Friday, February 13, 2015 08:53:38 AM John Stultz wrote:
-> >> On Wed, Feb 11, 2015 at 12:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> >
-> >> > Theoretically, ktime_get_mono_fast_ns() may be executed after
-> >> > timekeeping has been suspended (or before it is resumed) which
-> >> > in turn may lead to undefined behavior, for example, when the
-> >> > clocksource read from timekeeping_get_ns() called by it is
-> >> > not accessible at that time.
-> >>
-> >> And the callers of the ktime_get_mono_fast_ns() have to get back a
-> >> value?
-> >
-> > Yes, they do.
-> >
-> >> Or can we return an error on timekeeping_suspended like we do
-> >> w/ __getnstimeofday64()?
-> >
-> > No, we can't.
-> >
-> >> Also, what exactly is the case when the clocksource being read isn't
-> >> accessible? I see this is conditionalized on
-> >> CLOCK_SOURCE_SUSPEND_NONSTOP, so is the concern on resume we read the
-> >> clocksource and its been reset causing a crazy time value?
-> >
-> > The clocksource's ->suspend method may have been called (during suspend)
-> > and depending on what that did we may even crash things theoretically.
-> >
-> > During resume, before the clocksource's ->resume callback, it may just
-> > be undefined behavior (random data etc).
-> >
-> > For system suspend as we have today the window is quite narrow, but after
-> > patch [4/6] from this series suspend-to-idle may suspend timekeeping and
-> > just sit there in idle for extended time (hours even) which broadens the
-> > potential exposure quite a bit.
-> >
-> > Of course, it does that with interrupts disabled, but ktime_get_mono_fast_ns()
-> > is for NMI, so theoretically, if an NMI happens while we're in suspend-to-idle
-> > with timekeeping suspended and the clocksource is not CLOCK_SOURCE_SUSPEND_NONSTOP
-> > and the NMI calls ktime_get_mono_fast_ns(), strange and undesirable things may
-> > happen.
-> 
-> Ok.. No objection to the approach then. But maybe could you wrap the
-> new logic in a halt_fast_timekeeper() function? Also is there much
-> value in not halting it for SUSPEND_NONSTOP clocksources? If not,
-> might as well halt it in all cases just to simplify the conditions we
-> have to keep track of in our heads. :)
+You will not see this in a MIME-aware mail reader.
+--===============1503821586==
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
 
-I don't see a problem with doing that unconditionally.
+Your aid is needed to consummate a venture in Asia. Find details herewith
+--===============1503821586==
+Content-Type: application/pdf
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Proposition.pdf"
 
-What about the appended version of the patch, then?
+JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKL0xh
+bmcgKOMQxiYeKQovU3RydWN0VHJlZVJvb3QgMTcgMCBSCi9NYXJrSW5mbyA8PAovTWFya2VkIHRy
+dWUKPj4KPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9Db3VudCAyCi9LaWRzIFsg
+MyAwIFIgMTEgMCBSIF0KPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAy
+IDAgUgovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA1IDAgUgo+PgovUHJvY1NldCBbIC9QREYg
+L1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PgovQW5ub3RzIFsgNyAwIFIgOCAwIFIg
+OSAwIFIgMTAgMCBSIF0KL01lZGlhQm94IFsgMCAwIDU5NS4zMiA4NDEuOTIgXQovQ29udGVudHMg
+NCAwIFIKL0dyb3VwIDw8Ci9UeXBlIC9Hcm91cAovUyAvVHJhbnNwYXJlbmN5Ci9DUyAvRGV2aWNl
+UkdCCj4+Ci9UYWJzIC9TCi9TdHJ1Y3RQYXJlbnRzIDAKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Zp
+bHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCAyODMyCj4+CnN0cmVhbQqZ9K0mB93O/3cm87nBj6Aq
+hkaAwfUBE+vbBVQJoNa93gNtUjxwscw2+45kP5QT3W/Y5hIKyXh+S77P7Fleuky8AOOEOMPChavn
+Y89hx2jLUJ1BO39cHAlO64PdAjpjsytCqDLweWpogjJbO4xxhu565htDwcEnBBEhTeyLViSM6nGs
+i9MTvnyEYqX7mlt36juz3v3VA76g1nYh4UqL+Cx7/cIrRXNEWa6U0Egy81ZCOdRanL9Cr7tHCqkz
+Hkw+v7uf9FhVC4Oc4131T7iF2TzXqDmS8chgzIQ6NYorFAudJ3eCj5ZO/vRpT+Ts1H5Lf4uUEUbr
+18xm8tPlcwK9pcY+2/2cb7KBWChTEvP8yPmMXwD2y8efXD6MiB0ANqf7HrT+/iOOWKYJiiJud7UM
+dEhI0r5NWqybdmKo4tpiO349gcDDxK9yLhNft6QA03F3WVvzJFmGL1FqjqxL3hrR2JFiysVQAmW0
+MZ5IT+UCtRlBTiMUiDQXp0Ne3637A+/21tIzFupWV+1lR1Xh/EfdvGXkvKx9/yM8UNMluwcHl12w
+7BMO26G9xgERPRMTD+UgcxXgz3hMBV9QZNp08RMNnKbbfBydnZLD77jwQglm62c4vEvOiW7PWdKo
+4s3K+A5NE7VNTlfgm6jk/SPSD50GW4YSZbasNhHfnwo1dFo1JVREGutgI9L5o8M8/XPr+oJk1P/D
+mMwSsmEB6O4XnsNIOfagZUKU0/SGuhvMDRdl5Yoi+WJIscK+L8dyw4k9YMWyKoIUjhG5+mjgCiiC
+bzY+ziKe/sloR2udyq70N0LCC48u2Jvs5dohoLJLBcqYwTB9j2RGUezMn3JNj5SkMaSflNnrmMvw
+FC/3VToLO1IPc7Ht2YNXwahg8BTL3IOQYRxLpAp0FohXXMSBu8RJxAjLLDAsRhYAKz2AooCOH3vE
+W6BgVOGFGTf3iaOfvTTh1yWMS2Y0Rkln7dEfaH4wWa3oekmKnUyvJkOg+WjfGDnVmQQUpx+b6ZQ5
+kqdneBB2kkPHwEwuGgEkPpVgSirlrXndQYiUUZjNi3Rxwys+y4oyELpXHfyx1wMQswWILTuuLdQ+
+8SwIwAeNaYh6g1a8AqRjGlqXdY+r70Eb97PsyvbUUsRso6x3C38x6IbN91p4ixlGUzivqXS8tAUo
+27W86k3QhrNT/19GEPw6eDiveDQ1XAy0wmumeJ1SEK4y897NNHbXI3qVGzhzVyTzhJmMI7X9diem
+gyx0Sr9OCcWG8Yk4/88aCZZQdO9yOWt6YeRbSTu/KuRVUiwfMLHWhf0oQNQCGWzyXTCBwMiAYYam
+6Zitn5rtoiynw/vw1fL+L73L9DcEjg7XVQSb3x9FH7sIoWGSU7TiX4NMXKAp/jZpUw71h6slWrO8
+dEAlDnOmzv3319j3wJ0Ldo8F/DjAbDH4fy/I/6SB7VYz9kuzr7duYhYlRgXfVokgTQBlolhNHzGn
+QU8GHMKQyUJUgux7Y2lZki1GMvrWHduOGmYTp0TDfSOaapGrgEafrtMRd0Noj/YOQkpZ67ZhHSeB
+khWn4vA1uVKz8JdmmZqLV1sooDrJotp7Vj53XgweAyxa2mI5F2z+qel2fo8JRBvaF7gx6g3TDgCa
+/69guIvRZdYtFpraDCfnAOdAJpbQCj6g7ka10aGSOyGzPrxJhbbVPzly+f7WVK/P4CH9aLGEEYiI
+NLaEHanpNTnjqzmFWdm/DDJK8MbOuVhjmakgQd4r+pR23HUkVK2px717cudYlONygTsjSPwOMUvn
+/F3o8LUJxL/l3E6y8BIlMw4HvX68vJHBa5hVzdTVq7QnJH/WCyVmZJPQzBDK91zi04vI7/t7kioj
+ZbB6x1OWqwrLekoCT3mEUo7g5IJwcSVVteasAsStYAzSDl2jhk+wg/N1RFAEYq95AztxhTgPFHVR
+kgfY/jOP2w48hhS6+1KPtsQm9fSZNrwfaUhnb3CvwAPZI/6uuOk0Re86t6HAQaudkKHFLicg0k3K
+edMOgAG66t/O/K2ly3EfBquMYLnmWxCEvL148/g0utYLQcK5bkYpN60nVr3IRNwhlvRK0ByOTQAG
+cuz+/0mQGQd49x1W9eSSks5hbvzNRhL8hyBnk7tBuNrs0x6nUWE3t1D0l7fyEMdmGPq9YzZeYCFh
+HmxQRl0KmxSyAzymMN8RUP0zBicW4KBMK0+Eh6MzaheVZF9tAqew9RvMsxSol3kMAFN2zWldbXfi
+93VeAgFK9izHTJbw+78IME9oR1tBy73EfSdH+F+iWHwVy72vOvMqUpW7EdAw3EAmd3lco9f2aDzJ
+X0hWOOGABbdUMyfxyiAb3lljDQnTFON6sNOPj8UZnxcHEaP9Ik7JRpLe8xh6e9hCdva8QR66SHpX
+qcvW9yZ53F/XCH4g9Ax/eOLy0OJAahOAvJ/JH4SWnoRqUHXWXiOyJpXQktr/hdl7hQEW3AFTZfM1
+VPtbXf37YkKXIJsTxHmDuz01IQdHfd9uzBjThMMu/WyLtDT6y3cVfUqR2f0voN579uAEWhCJJ+wP
++jvPQnH8bB3aH4ivVbTSos634tbXbam1hBmgHYs+X5LCGTSTuoN7+HXLlGMxV+m1VdmcD5vj4xia
+oUOpFV+eR6Qfx+vr8D6703gBtgONnpt8vqPALkuuR7mTI6XE5mLNs0KfA8B2fwBBdUOwcUkTvyE4
+jzJPVvCx/xA8YSWd8qpkbOMSl4xaxSen28QkRKTPvlSbrCcik9vn75rrmbsDyN3B8Qj8asMKmwNc
+JL5uPKwGFJQ4yu9cVaTmrElOsDHYn+Sj+djjJ89FLcaLazq4KlJsKxrfkIpGurEqU9nx5XjKH/Y0
+XlbhW869gcF8Itn8y9w+aHmT6lqEAMZX8XmSxQKZ3nTUzXlY6MVPyMmnGTNTV6dBG1n+gLuA9LKh
+FphCQWvJ7bKE48VZ6c9bbJSHm9+Tg6fXo+U+xOgo/RVZtU8GVIky+Vy9vRvB7xqk+0ld80+K8Av2
+DRZkaq7AsCW5+ZfJ2sPH39twJPanugwYmXuPzH81yBVzE9FTSpVx8LyAZO+kBy2v+SjhtwRX51i5
+Qgp/+GF0N+PKA8HKm3Wt683CtDXnLtLr86g8rjnl+d2kKEzucAzwu6A1bo/tY7cmJt1hpwkBUXLy
+EFvNgPgVZBOUJnIXGs1GsZ1NnZFuwK7UOBxeYKwBzmY56D0ZiKGNXTd6eVXYu+i2sX9J6sS/MBGz
+JSFG06XpHKxVpaeIbdfqIiQT/yh0YXAbI/K300YOvn3MYuAmjRULl+skcf2QAArhS7uIOTj7H+7L
+J2rxzzKk3PQ1qellWDwKmxxObiK8Sx+5A7SX2+St5/bAF3SJWC/uJOnhiXrhw60blWig8Udk9m+R
+BWGhkHDhcio5oFn8dAg5cx//iKu3j1nqNgYjakPTGBzfT5YrkxOlwc1QxjbwhEPH0fmtWryS2jtS
+3jXwY2nCDq72IPc1p2zwAYoZyFE6tK1fLOciqD75IihK6gmmfANayESwM4zQLisEWg5WCt8GJpGZ
+ABYivQLXYRkVOLPIgNd76KO28F4vdj5oCw5NqAG7JA9ETMgkkh2SPUS7HeBmVbfZvIFgCg7Ot364
+IhNeuKul6posBOCHKEGXnb1oR2olkhLZtsotyiMpUQ5zeBIkMRT9Of5TY0SJXWiFMG0EkR4VUERN
+oMua//pPfc84SxVqXIOmIUu5mUiL+DxR5DbR6QXfBNk/jRgDcAfvFmIXxPOXSoMC+hVdUOeJZL4U
+hsbkBRo/qE99bZYHC5jLEHf6DTZpqs8KZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8Ci9UeXBl
+IC9Gb250Ci9TdWJ0eXBlIC9UcnVlVHlwZQovTmFtZSAvRjEKL0Jhc2VGb250IC9UaW1lcyMyME5l
+dyMyMFJvbWFuCi9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nCi9Gb250RGVzY3JpcHRvciA2IDAg
+UgovRmlyc3RDaGFyIDMyCi9MYXN0Q2hhciAxMjIKL1dpZHRocyA2MCAwIFIKPj4KZW5kb2JqCjYg
+MCBvYmoKPDwKL1R5cGUgL0ZvbnREZXNjcmlwdG9yCi9Gb250TmFtZSAvVGltZXMjMjBOZXcjMjBS
+b21hbgovRmxhZ3MgMzIKL0l0YWxpY0FuZ2xlIDAKL0FzY2VudCA4OTEKL0Rlc2NlbnQgLTIxNgov
+Q2FwSGVpZ2h0IDY5MwovQXZnV2lkdGggNDAxCi9NYXhXaWR0aCAyNjE0Ci9Gb250V2VpZ2h0IDQw
+MAovWEhlaWdodCAyNTAKL0xlYWRpbmcgNDIKL1N0ZW1WIDQwCi9Gb250QkJveCBbIC01NjggLTIx
+NiAyMDQ2IDY5MyBdCj4+CmVuZG9iago3IDAgb2JqCjw8Ci9TdWJ0eXBlIC9MaW5rCi9SZWN0IFsg
+NjkuNzUgMjg3LjM0IDQ2Ny41IDMxMy4yIF0KL0JTIDw8Ci9XIDAKPj4KL0YgNAovQSA8PAovVHlw
+ZSAvQWN0aW9uCi9TIC9VUkkKL1VSSSAosvpWPmum5IUR8dG+9bYqYbhsY5gVv4jeZ5xSQL6reCId
+iktmXCkDjkekydv/mnBfghAwjCbQFcnBzgNwPpmDGpfCFuTRePIpCj4+Ci9TdHJ1Y3RQYXJlbnQg
+MQo+PgplbmRvYmoKOCAwIG9iago8PAovU3VidHlwZSAvTGluawovUmVjdCBbIDY5Ljc1IDI3MS40
+NyA1MjUuNTUgMjg3LjM0IF0KL0JTIDw8Ci9XIDAKPj4KL0YgNAovQSA8PAovVHlwZSAvQWN0aW9u
+Ci9TIC9VUkkKL1VSSSAoNUxTI5zS1sPgBcPIqcTHMwWqVJiO8bm+ZDCBoZgsefqTNXzsk0tFc9fD
+GvUTyeReslxmOy7hs1ximzEQGfqixee+M74j+2BGw8zqPaVxsZu3i1BBoYhsbSFcKXbC09fjAzB7
+ykJ5PikKPj4KL1N0cnVjdFBhcmVudCAyCj4+CmVuZG9iago5IDAgb2JqCjw8Ci9TdWJ0eXBlIC9M
+aW5rCi9SZWN0IFsgNjkuNzUgMjQ1LjYgMTcxLjI1IDI3MS40NyBdCi9CUyA8PAovVyAwCj4+Ci9G
+IDQKL0EgPDwKL1R5cGUgL0FjdGlvbgovUyAvVVJJCi9VUkkgKI63Ej0Dd9RtUgXjVxbvPkwbd7n2
+FL57rEqFay28YYw+jpgsNa0/St5U9fpdgH6w07c1prC+yWyMXqrfXFxVpEZpKlkz1QNMVNkyWJuV
+XHJnZ9qrZMiDPSww9nRVOdUUK3YHYi2O+SkKPj4KL1N0cnVjdFBhcmVudCAzCj4+CmVuZG9iagox
+MCAwIG9iago8PAovU3VidHlwZSAvTGluawovUmVjdCBbIDY5Ljc1IDIxOS43MyA0MjIuMTkgMjQ1
+LjYgXQovQlMgPDwKL1cgMAo+PgovRiA0Ci9BIDw8Ci9UeXBlIC9BY3Rpb24KL1MgL1VSSQovVVJJ
+ICjySfGEHLr/Kh+xwtyhliurcf/Jn/IlXGIYXCjz4JT+/SezXFyjHzU+hp0A42I9OCY8D11F9ZIS
+9Mvr3EGIvh3rWEOiYg/MhDWeMykKPj4KL1N0cnVjdFBhcmVudCA0Cj4+CmVuZG9iagoxMSAwIG9i
+ago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0Yy
+IDEzIDAgUgovRjEgNSAwIFIKPj4KL0V4dEdTdGF0ZSA8PAovR1MxNSAxNSAwIFIKPj4KL1Byb2NT
+ZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4KL01lZGlhQm94IFsg
+MCAwIDU5NS4zMiA4NDEuOTIgXQovQ29udGVudHMgMTIgMCBSCi9Hcm91cCA8PAovVHlwZSAvR3Jv
+dXAKL1MgL1RyYW5zcGFyZW5jeQovQ1MgL0RldmljZVJHQgo+PgovVGFicyAvUwovU3RydWN0UGFy
+ZW50cyA1Cj4+CmVuZG9iagoxMiAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3Ro
+IDE2MzYKPj4Kc3RyZWFtCgX1506BI1UYQzh09dxEiy8qjcirdO3+r51x1cTf/2MTwUjO93deZT59
+X3RynSnNrn4a0IOs0GO3TPgz1dJxaRIe9a7nsH5SvtDQpmSdOPgK8A9fuKzTSjRzUYyhw0bs8VKp
+Mr2qhc37jeXw64cFHmf4vEEpOq5U6ixno5bx1DoV3FtJKmYqBrvPzVJyrJn+WNKdx1FhOJ8Vbz+p
+v4tal8RflHeCI9H6ZTUE7bsbb4vJmLHpuRu07MVaXt3WERS7ME5O10fXKP03QLYBDabRarnWYdGf
+NZLcLJi5LO0EEOMh786YmLDPsFpm2+KhL7FPneXU4QuDRUdlAgGXhhTM9pzPZ0za9YdABw63ijB/
+EZaNZhguMgjlHVjoVB4joHk7otaoa8cXEz2Faz6mEUEmnMuXpWtJULwam1lYMBYuiIQeBOl5RXjM
+Lqcru8uZc4MH6SjN2z6ZhJRDC9W0lBzpTwiFL/Q9LqXjcyAnvg0TXGVwU1LQprquaIwH2fZ2zBQ2
+MtBTULIkDXBBekF0G1Y3dog5NGVE7O+0biDkIX0whQrLD0mKano/ppVkmmyyr3QD4fa5VI73kYMo
+LaFoRrCI2UqERrQ70vIqGfaVXfTtWNZ+NzKPaGJkbx1ra+usfpYFDOViRWm8dlZ6md/0vtMo7Jnz
+PqpLoaV9/TwMdaRCxGB5QmCBFMBgGc8VbR870a4/5WLlra8FzhiGTTh5p6Xq6RjFhUJYxK2H/lQv
+qlYjN6LxqnFp3ZGTsicXJA6Fhoow7O9xY4JMRCh1de6AVfau54YRfsgR6jhxUcK9a7+s+uE9VFfc
+nAOUaMApyWku7+Tpv8461GZ/lx9E7HP7ZNT/+t4kchAKGvn9qeV4ybVeRBsb0SPwEgl1WnO1k4hG
+pOlXzQH95NIkGSslSInDlko9r/oGCTs6TKtoepODMUmUfpKKTvFzr4kYG2SUpehTNZ3PV0OxjzHL
+VsZ3wzFKM8c4cMeOWmvtJZpUw+RwvShA8zY66MUBro+r/PI4vFypLjVSeoGPYqWYExUJLav3qxvl
+I5BtujHkMLjZJB9sr5sJ5kbaBHhc84rK2UXTTtIML3H6YtKuXCzms4RVIe/P9GsdLqY9jkYS8dNE
++Y45ZJi9A0dT0dDupk4hgWVg7G2hfB0k4aRu1r84gdPJ1EcY+RkAT/97gk3u+OYRnhMdjxR+dfVl
+ogQ0gJ/aZNnubXb8gMLHrLvwdP4j0dQ7AO/IummjKmQJ66PtzlspGYIQc0f8Dp7fF2BDUCTCEwba
+p6+RSqSrynpBg0IjNR5xTiyINpDfWaschwstuXlVVTigaekzL8aSAzbnc7S3N7cNGslUIiLX+cs+
+rZyTPST1z/E/t1p5jrxjMXdyLUfD0ciw5yPLj/HtJ2cWgQWJxQuQf5lTV3Z83xwWjDmHsWZPoy99
+8Dd2morqpXfs9DxY0ud0iWYGmXNvMZc+Ci6YlzcDYpUD4FRANRepquw3JC7PNJGCT7lam1L6y8SC
+nnL2N9Nh7u4TxVaPqb0RFLagB/BOfS1Z9dTNlvXMB+erOXYTcN/9c/YTfFGbqOSnSFI4LRU0zolq
+l9jiRXJy+C7NA8VnvTjyQYvhmSQAY68Cl9itahSgXq39ejjxqBGJaO/MAZtCxIuWcHixuR88+vsL
+uW/payXjz2m1uFQJCs7gbbk7U/JNed3MA7yGXh/P6WLkTq5oGCI7BQ9+ojvTa5CElH57jSgh+fKi
+lwXcR3bTFD8kPDhD8mtnHZvxM47gb0CibbfHR3c1PcOuZbdAv4kkURGVxirCXKWAjUer6f3pj6Dd
+aREi2j1ZoKPAdGsr8skOFuTQiBF+4hHJIcMoO90yNO/H09InySU2/Ko6Bgf+CemT4GIdI1KaXpr/
+6UtVF+sXQHf/59XCa80SyKJnW+jOKsb+lTqqANesrpJPwCMpl47loKsDYpQe+QFHJNfUDwINpfEu
+xPSlLeEXRKVrMsdvkbZ1JqRmgv19ITiUyBScwVIxp2EkP6PdSzwRl8bsBjoSg9E8c6nDdSespf7l
+DitJT9Qkd5pQzi2sE60XzUveu0uVuYRdCK2ZBjZymBNcLX9hFB4tI3os4J/DIhX73W39eTL3/HR5
+HGFpVLJwO3qVimE0WbjfyPrx9UwARP4g7rNFO2KE2NbbRNvSOCaFj+HjMkBJxBsINbxahPolrPcK
+ZW5kc3RyZWFtCmVuZG9iagoxMyAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHJ1ZVR5
+cGUKL05hbWUgL0YyCi9CYXNlRm9udCAvVGltZXMjMjBOZXcjMjBSb21hbixCb2xkCi9FbmNvZGlu
+ZyAvV2luQW5zaUVuY29kaW5nCi9Gb250RGVzY3JpcHRvciAxNCAwIFIKL0ZpcnN0Q2hhciAzMgov
+TGFzdENoYXIgODcKL1dpZHRocyA2MSAwIFIKPj4KZW5kb2JqCjE0IDAgb2JqCjw8Ci9UeXBlIC9G
+b250RGVzY3JpcHRvcgovRm9udE5hbWUgL1RpbWVzIzIwTmV3IzIwUm9tYW4sQm9sZAovRmxhZ3Mg
+MzIKL0l0YWxpY0FuZ2xlIDAKL0FzY2VudCA4OTEKL0Rlc2NlbnQgLTIxNgovQ2FwSGVpZ2h0IDY3
+NwovQXZnV2lkdGggNDI3Ci9NYXhXaWR0aCAyNTU4Ci9Gb250V2VpZ2h0IDcwMAovWEhlaWdodCAy
+NTAKL0xlYWRpbmcgNDIKL1N0ZW1WIDQyCi9Gb250QkJveCBbIC01NTggLTIxNiAyMDAwIDY3NyBd
+Cj4+CmVuZG9iagoxNSAwIG9iago8PAovVHlwZSAvRXh0R1N0YXRlCi9CTSAvTm9ybWFsCi9jYSAx
+Cj4+CmVuZG9iagoxNiAwIG9iago8PAovQXV0aG9yICiupWcXSf+OKQovQ3JlYXRvciAoFB8rFmnG
+zRTYqQZZ1I5YXvv+66FQB2/8QES6E4cZTb3V4WvwUC8uXHLFaSkKL0NyZWF0aW9uRGF0ZSAortoZ
+a1ia/Ubo7TcE5cttAdCo2vJgmUgpCi9Nb2REYXRlICiu2hlrWJr9RujtNwTly20B0Kja8mCZSCkK
+L1Byb2R1Y2VyICgUHysWacbNFNipBlnUjlhe+/7roVAHb/xARLoThxlNvdXha/BQLy5ccsVpKQo+
+PgplbmRvYmoKMTcgMCBvYmoKPDwKL1R5cGUgL1N0cnVjdFRyZWVSb290Ci9Sb2xlTWFwIDE4IDAg
+UgovUGFyZW50VHJlZSAxOSAwIFIKL0sgWyAyMCAwIFIgXQovUGFyZW50VHJlZU5leHRLZXkgNgo+
+PgplbmRvYmoKMTggMCBvYmoKPDwKL0Zvb3Rub3RlIC9Ob3RlCi9FbmRub3RlIC9Ob3RlCi9UZXh0
+Ym94IC9TZWN0Ci9IZWFkZXIgL1NlY3QKL0Zvb3RlciAvU2VjdAovSW5saW5lU2hhcGUgL1NlY3QK
+L0Fubm90YXRpb24gL1NlY3QKL0FydGlmYWN0IC9TZWN0Ci9Xb3JrYm9vayAvRG9jdW1lbnQKL1dv
+cmtzaGVldCAvUGFydAovTWFjcm9zaGVldCAvUGFydAovQ2hhcnRzaGVldCAvUGFydAovRGlhbG9n
+c2hlZXQgL1BhcnQKL1NsaWRlIC9QYXJ0Ci9DaGFydCAvU2VjdAovRGlhZ3JhbSAvRmlndXJlCj4+
+CmVuZG9iagoxOSAwIG9iago8PAovTnVtcyBbIDAgMjIgMCBSIDEgMzAgMCBSIDIgMzUgMCBSIDMg
+MzUgMCBSIDQgNDEgMCBSIDUgNTAgMCBSIF0KPj4KZW5kb2JqCjIwIDAgb2JqCjw8Ci9QIDE3IDAg
+UgovUyAvUGFydAovVHlwZSAvU3RydWN0RWxlbQovSyBbIDIxIDAgUiAyNCAwIFIgMjUgMCBSIDI2
+IDAgUiAyNyAwIFIgMjggMCBSIDI5IDAgUiAzNCAwIFIgNDAgMCBSIDQ1IDAgUiA0NiAwIFIgNDcg
+MCBSIAo0OCAwIFIgNDkgMCBSIDUxIDAgUiA1MiAwIFIgNTMgMCBSIDU0IDAgUiA1NSAwIFIgNTYg
+MCBSIDU3IDAgUiA1OCAwIFIgNTkgMCBSIF0KPj4KZW5kb2JqCjIxIDAgb2JqCjw8Ci9QIDIwIDAg
+UgovUyAvUAovVHlwZSAvU3RydWN0RWxlbQovSyBbIDAgXQovUGcgMyAwIFIKPj4KZW5kb2JqCjIy
+IDAgb2JqClsgMjEgMCBSIDI0IDAgUiAyNSAwIFIgMjYgMCBSIDI3IDAgUiAyOCAwIFIgMzIgMCBS
+IDMzIDAgUiAzOCAwIFIgMzkgMCBSIDQzIDAgUiA0NCAwIFIgCjQ1IDAgUiA0NiAwIFIgNDcgMCBS
+IDQ4IDAgUiBdCmVuZG9iagoyMyAwIG9iago8PAovVHlwZSAvT2JqU3RtCi9OIDQyCi9GaXJzdCAz
+MTMKL0ZpbHRlciAvRmxhdGVEZWNvZGUKL0xlbmd0aCA3NDkKPj4Kc3RyZWFtCm9Tq5tp2OCyjJks
+9Zer8nI1r5pfJfi6HXMGV4lr+CJIVOA+vtR1E7vUaz/CrBOD3bTnpiRzJVob7TuRgxeATnL/eIs5
+sxX338yJk9anurGHT86dpWCAUqqX/MMvzuXOqmkdhIvWwqNCVFFPqV6nXiQII2pJ3HyJPofhYWG4
+cV0CA4uv5H7hWLeXiFdaUk7Mdcu9w1Pd+OvrMv9tz5+h/UgcNecvNZCeBLFVqGSYDVMuGtsk8K4g
+1zRD73/htbtAaNnMISrRvALr9urnPCwjaR/H5fsEWnkD3AD8NqAl2ocNm+0foHWAl9ovoK95vRvw
+IOnoLiCh8EDcNl/95D+GP0/Q/rdqB/EuWya2mHbUHiFw9hxuXZKqKwPNfnB42KlyNvp8Sokghyxn
+Ax+Pr7EFkYJ+CbTbzg09jjnz0yPJWBiLt1iOioTByrb/PKMQHsFkgvvhSb8SqfZXcmpRXFLnwOfS
+u69PZPyrMpccZnqU5r2pQngGo0QomVKYihqVu1wepNjEvS6myJMsRnyh5XfQl6WO5ILG9ptxRwHc
+lK6VzEWr6UdR8g5pctZrqib5rwL4GMEj8GbEs3OKl6PfPyWipgumnT3epSesUHRTvvVF6tBzUDIM
+jd2p8IgPETRfVaTl9/3nftRlMIoOcISPRWP6ub0V10+wfRT6F4AZ8L43CqLyWlr05/1AO2OCUMkC
+WmxZBcTMDJzlkUO22Vem6gZSJ7ttp02jPsOyGeBo8EBifrA6HTvWmkpLdzw79has/kQPt+vvvSxC
+5B1gCp7R+qgLX07tCILRAx2vCjxbwyUQCiWkcnEoPE5p7HIiNgEvqwzqR9e71JpdyvZuGuOKI84I
+3SiY/3l23nCXTuLvhbeAyAlTWAPaqTG0zejs6X6bKr8aRo5hvNjy0QF3ulrfEChNPfkT65l7Qu5W
+1km+DNFsNdJf3qvekVBfHS5wl8O8lqXLlR+4CxAVqX8WSCLLiHWb7RPJOD2r4R088TZttoVpCmVu
+ZHN0cmVhbQplbmRvYmoKMjQgMCBvYmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RF
+bGVtCi9LIFsgMSBdCi9QZyAzIDAgUgo+PgplbmRvYmoKMjUgMCBvYmoKPDwKL1AgMjAgMCBSCi9T
+IC9QCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgMiBdCi9QZyAzIDAgUgo+PgplbmRvYmoKMjYgMCBv
+YmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgMyBdCi9QZyAzIDAg
+Ugo+PgplbmRvYmoKMjcgMCBvYmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RFbGVt
+Ci9LIFsgNCBdCi9QZyAzIDAgUgo+PgplbmRvYmoKMjggMCBvYmoKPDwKL1AgMjAgMCBSCi9TIC9Q
+Ci9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgNSBdCi9QZyAzIDAgUgo+PgplbmRvYmoKMjkgMCBvYmoK
+PDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgMzAgMCBSIDMzIDAgUiBd
+Ci9QZyAzIDAgUgo+PgplbmRvYmoKMzAgMCBvYmoKPDwKL1AgMjkgMCBSCi9TIC9MaW5rCi9UeXBl
+IC9TdHJ1Y3RFbGVtCi9LIFsgMzEgMCBSIDMyIDAgUiBdCi9QZyAzIDAgUgo+PgplbmRvYmoKMzEg
+MCBvYmoKPDwKL1R5cGUgL09CSlIKL09iaiA3IDAgUgovUGcgMyAwIFIKPj4KZW5kb2JqCjMyIDAg
+b2JqCjw8Ci9QIDMwIDAgUgovUyAvU3BhbgovVHlwZSAvU3RydWN0RWxlbQovUGcgMyAwIFIKL0sg
+Ngo+PgplbmRvYmoKMzMgMCBvYmoKPDwKL1AgMjkgMCBSCi9TIC9TcGFuCi9UeXBlIC9TdHJ1Y3RF
+bGVtCi9QZyAzIDAgUgovSyA3Cj4+CmVuZG9iagozNCAwIG9iago8PAovUCAyMCAwIFIKL1MgL1AK
+L1R5cGUgL1N0cnVjdEVsZW0KL0sgWyAzNSAwIFIgMzkgMCBSIF0KL1BnIDMgMCBSCj4+CmVuZG9i
+agozNSAwIG9iago8PAovUCAzNCAwIFIKL1MgL0xpbmsKL1R5cGUgL1N0cnVjdEVsZW0KL0sgWyAz
+NiAwIFIgMzcgMCBSIDM4IDAgUiBdCi9QZyAzIDAgUgo+PgplbmRvYmoKMzYgMCBvYmoKPDwKL1R5
+cGUgL09CSlIKL09iaiA4IDAgUgovUGcgMyAwIFIKPj4KZW5kb2JqCjM3IDAgb2JqCjw8Ci9UeXBl
+IC9PQkpSCi9PYmogOSAwIFIKL1BnIDMgMCBSCj4+CmVuZG9iagozOCAwIG9iago8PAovUCAzNSAw
+IFIKL1MgL1NwYW4KL1R5cGUgL1N0cnVjdEVsZW0KL1BnIDMgMCBSCi9LIDgKPj4KZW5kb2JqCjM5
+IDAgb2JqCjw8Ci9QIDM0IDAgUgovUyAvU3BhbgovVHlwZSAvU3RydWN0RWxlbQovUGcgMyAwIFIK
+L0sgOQo+PgplbmRvYmoKNDAgMCBvYmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RF
+bGVtCi9LIFsgNDEgMCBSIDQ0IDAgUiBdCi9QZyAzIDAgUgo+PgplbmRvYmoKNDEgMCBvYmoKPDwK
+L1AgNDAgMCBSCi9TIC9MaW5rCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgNDIgMCBSIDQzIDAgUiBd
+Ci9QZyAzIDAgUgo+PgplbmRvYmoKNDIgMCBvYmoKPDwKL1R5cGUgL09CSlIKL09iaiAxMCAwIFIK
+L1BnIDMgMCBSCj4+CmVuZG9iago0MyAwIG9iago8PAovUCA0MSAwIFIKL1MgL1NwYW4KL1R5cGUg
+L1N0cnVjdEVsZW0KL1BnIDMgMCBSCi9LIDEwCj4+CmVuZG9iago0NCAwIG9iago8PAovUCA0MCAw
+IFIKL1MgL1NwYW4KL1R5cGUgL1N0cnVjdEVsZW0KL1BnIDMgMCBSCi9LIDExCj4+CmVuZG9iago0
+NSAwIG9iago8PAovUCAyMCAwIFIKL1MgL1AKL1R5cGUgL1N0cnVjdEVsZW0KL0sgWyAxMiBdCi9Q
+ZyAzIDAgUgo+PgplbmRvYmoKNDYgMCBvYmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1
+Y3RFbGVtCi9LIFsgMTMgXQovUGcgMyAwIFIKPj4KZW5kb2JqCjQ3IDAgb2JqCjw8Ci9QIDIwIDAg
+UgovUyAvUAovVHlwZSAvU3RydWN0RWxlbQovSyBbIDE0IF0KL1BnIDMgMCBSCj4+CmVuZG9iago0
+OCAwIG9iago8PAovUCAyMCAwIFIKL1MgL1AKL1R5cGUgL1N0cnVjdEVsZW0KL0sgWyAxNSBdCi9Q
+ZyAzIDAgUgo+PgplbmRvYmoKNDkgMCBvYmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1
+Y3RFbGVtCi9LIFsgMCBdCi9QZyAxMSAwIFIKPj4KZW5kb2JqCjUwIDAgb2JqClsgNDkgMCBSIDUx
+IDAgUiA1MiAwIFIgNTMgMCBSIDU0IDAgUiA1NSAwIFIgNTYgMCBSIDU3IDAgUiA1OCAwIFIgNTkg
+MCBSIF0KZW5kb2JqCjUxIDAgb2JqCjw8Ci9QIDIwIDAgUgovUyAvUAovVHlwZSAvU3RydWN0RWxl
+bQovSyBbIDEgXQovUGcgMTEgMCBSCj4+CmVuZG9iago1MiAwIG9iago8PAovUCAyMCAwIFIKL1Mg
+L1AKL1R5cGUgL1N0cnVjdEVsZW0KL0sgWyAyIF0KL1BnIDExIDAgUgo+PgplbmRvYmoKNTMgMCBv
+YmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgMyBdCi9QZyAxMSAw
+IFIKPj4KZW5kb2JqCjU0IDAgb2JqCjw8Ci9QIDIwIDAgUgovUyAvUAovVHlwZSAvU3RydWN0RWxl
+bQovSyBbIDQgXQovUGcgMTEgMCBSCj4+CmVuZG9iago1NSAwIG9iago8PAovUCAyMCAwIFIKL1Mg
+L1AKL1R5cGUgL1N0cnVjdEVsZW0KL0sgWyA1IF0KL1BnIDExIDAgUgo+PgplbmRvYmoKNTYgMCBv
+YmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgNiBdCi9QZyAxMSAw
+IFIKPj4KZW5kb2JqCjU3IDAgb2JqCjw8Ci9QIDIwIDAgUgovUyAvUAovVHlwZSAvU3RydWN0RWxl
+bQovSyBbIDcgXQovUGcgMTEgMCBSCj4+CmVuZG9iago1OCAwIG9iago8PAovUCAyMCAwIFIKL1Mg
+L1AKL1R5cGUgL1N0cnVjdEVsZW0KL0sgWyA4IF0KL1BnIDExIDAgUgo+PgplbmRvYmoKNTkgMCBv
+YmoKPDwKL1AgMjAgMCBSCi9TIC9QCi9UeXBlIC9TdHJ1Y3RFbGVtCi9LIFsgOSBdCi9QZyAxMSAw
+IFIKPj4KZW5kb2JqCjYwIDAgb2JqClsgMjUwIDAgMCA1MDAgNTAwIDgzMyA3NzggMCAzMzMgMzMz
+IDAgMCAyNTAgMzMzIDI1MCAyNzggNTAwIDUwMCA1MDAgNTAwIDUwMCA1MDAgNTAwIAo1MDAgNTAw
+IDUwMCAyNzggMCAwIDAgMCAwIDAgNzIyIDY2NyA2NjcgNzIyIDYxMSA1NTYgNzIyIDcyMiAzMzMg
+MCA3MjIgMCA4ODkgNzIyIDcyMiAKNTU2IDAgNjY3IDU1NiA2MTEgNzIyIDAgOTQ0IDAgNzIyIDAg
+MCAwIDAgMCA1MDAgMCA0NDQgNTAwIDQ0NCA1MDAgNDQ0IDMzMyA1MDAgNTAwIAoyNzggMjc4IDUw
+MCAyNzggNzc4IDUwMCA1MDAgNTAwIDUwMCAzMzMgMzg5IDI3OCA1MDAgNTAwIDcyMiA1MDAgNTAw
+IDQ0NCBdCmVuZG9iago2MSAwIG9iagpbIDI1MCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAg
+MCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCA1MDAgMCA3MjIgNjY3IDAgCjcyMiA2Njcg
+MCAwIDc3OCAzODkgMCAwIDAgMCA3MjIgNzc4IDAgMCAwIDU1NiA2NjcgMCAwIDEwMDAgXQplbmRv
+YmoKNjIgMCBvYmoKPDwKL1R5cGUgL1hSZWYKL1NpemUgNjIKL1cgWyAxIDQgMiBdCi9Sb290IDEg
+MCBSCi9JbmZvIDE2IDAgUgovSUQgWyA8N0E5MTU1OTBFODM4RUM0QzgwRTU0ODY3MEVEQ0Y0OEE+
+IDw3QTkxNTU5MEU4MzhFQzRDODBFNTQ4NjcwRURDRjQ4QT4gXQovRmlsdGVyIC9GbGF0ZURlY29k
+ZQovTGVuZ3RoIDE3MQo+PgpzdHJlYW0KeJw10MsRwXAQx/GN9yuJCCIP4hkUoAgdaEMBCjCjADeN
+uHB1VIMGNBB/+2UP+5md2Z2d+YmYynPLdE/kywGuivVQ7AyeinNT3KPS3iveTunMFH+jhC8lOivx
+Ce4iBfMhkAVksIQ5/FZW5iC5/CcLClCEEpShATWoQBXq0AYHmtACG1zogQ8edKALfQhgACFEsIYY
+EhjCCFIYwwSmMDMRpG+NbrIV+QDQvRTqCmVuZHN0cmVhbQplbmRvYmoKNjMgMCBvYmoKPDwKL0Zp
+bHRlciAvU3RhbmRhcmQKL1YgMgovUiAzCi9MZW5ndGggMTI4Ci9PIDwwOTJGOUZDREI3QkRGRjBF
+MjEwQ0FDQkY4OTFEMTI0RTRGQkQ4OTI0QTE3NzA1NUEzQTMxQjYyQTBFNTU3RDZDPgovVSA8ODlF
+RUVFODBBMUE4RTk3Mzk2OUE4NzIyMDkzMzY0OTYwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw
+MDAwMD4KL1AgNjE2MzIKPj4KZW5kb2JqCjY0IDAgb2JqCjw8Ci9GaWx0ZXIgL1N0YW5kYXJkCi9W
+IDIKL1IgMwovTGVuZ3RoIDEyOAovTyA8MDkyRjlGQ0RCN0JERkYwRTIxMENBQ0JGODkxRDEyNEU0
+RkJEODkyNEExNzcwNTVBM0EzMUI2MkEwRTU1N0Q2Qz4KL1UgPDg5RUVFRTgwQTFBOEU5NzM5NjlB
+ODcyMjA5MzM2NDk2MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA+Ci9QIDYxNjMyCj4+
+CmVuZG9iagp4cmVmCjAgNjUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4g
+CjAwMDAwMDAxMzAgMDAwMDAgbiAKMDAwMDAwMDE5NiAwMDAwMCBuIAowMDAwMDAwNDk5IDAwMDAw
+IG4gCjAwMDAwMDM0MDQgMDAwMDAgbiAKMDAwMDAwMzU4OSAwMDAwMCBuIAowMDAwMDAzODQyIDAw
+MDAwIG4gCjAwMDAwMDQwNTkgMDAwMDAgbiAKMDAwMDAwNDMxMCAwMDAwMCBuIAowMDAwMDA0NTU5
+IDAwMDAwIG4gCjAwMDAwMDQ3ODEgMDAwMDAgbiAKMDAwMDAwNTA5MCAwMDAwMCBuIAowMDAwMDA2
+ODAwIDAwMDAwIG4gCjAwMDAwMDY5OTEgMDAwMDAgbiAKMDAwMDAwNzI1MCAwMDAwMCBuIAowMDAw
+MDA3MzA3IDAwMDAwIG4gCjAwMDAwMDc1MzMgMDAwMDAgbiAKMDAwMDAwNzY0NyAwMDAwMCBuIAow
+MDAwMDA3OTMxIDAwMDAwIG4gCjAwMDAwMDgwMTcgMDAwMDAgbiAKMDAwMDAwODI0NSAwMDAwMCBu
+IAowMDAwMDA4MzIwIDAwMDAwIG4gCjAwMDAwMDg0NTMgMDAwMDAgbiAKMDAwMDAwOTMwNiAwMDAw
+MCBuIAowMDAwMDA5MzgxIDAwMDAwIG4gCjAwMDAwMDk0NTYgMDAwMDAgbiAKMDAwMDAwOTUzMSAw
+MDAwMCBuIAowMDAwMDA5NjA2IDAwMDAwIG4gCjAwMDAwMDk2ODEgMDAwMDAgbiAKMDAwMDAwOTc2
+OCAwMDAwMCBuIAowMDAwMDA5ODU4IDAwMDAwIG4gCjAwMDAwMDk5MTMgMDAwMDAgbiAKMDAwMDAw
+OTk4NyAwMDAwMCBuIAowMDAwMDEwMDYxIDAwMDAwIG4gCjAwMDAwMTAxNDggMDAwMDAgbiAKMDAw
+MDAxMDI0NSAwMDAwMCBuIAowMDAwMDEwMzAwIDAwMDAwIG4gCjAwMDAwMTAzNTUgMDAwMDAgbiAK
+MDAwMDAxMDQyOSAwMDAwMCBuIAowMDAwMDEwNTAzIDAwMDAwIG4gCjAwMDAwMTA1OTAgMDAwMDAg
+biAKMDAwMDAxMDY4MCAwMDAwMCBuIAowMDAwMDEwNzM2IDAwMDAwIG4gCjAwMDAwMTA4MTEgMDAw
+MDAgbiAKMDAwMDAxMDg4NiAwMDAwMCBuIAowMDAwMDEwOTYyIDAwMDAwIG4gCjAwMDAwMTEwMzgg
+MDAwMDAgbiAKMDAwMDAxMTExNCAwMDAwMCBuIAowMDAwMDExMTkwIDAwMDAwIG4gCjAwMDAwMTEy
+NjYgMDAwMDAgbiAKMDAwMDAxMTM1NiAwMDAwMCBuIAowMDAwMDExNDMyIDAwMDAwIG4gCjAwMDAw
+MTE1MDggMDAwMDAgbiAKMDAwMDAxMTU4NCAwMDAwMCBuIAowMDAwMDExNjYwIDAwMDAwIG4gCjAw
+MDAwMTE3MzYgMDAwMDAgbiAKMDAwMDAxMTgxMiAwMDAwMCBuIAowMDAwMDExODg4IDAwMDAwIG4g
+CjAwMDAwMTE5NjQgMDAwMDAgbiAKMDAwMDAxMjA0MCAwMDAwMCBuIAowMDAwMDEyMzgzIDAwMDAw
+IG4gCjAwMDAwMTI1NDMgMDAwMDAgbiAKMDAwMDAxMjkyNCAwMDAwMCBuIAowMDAwMDEzMTM1IDAw
+MDAwIG4gCnRyYWlsZXIKPDwKL1Jvb3QgMSAwIFIKL0luZm8gMTYgMCBSCi9JRCBbIDw3QTkxNTU5
+MEU4MzhFQzRDODBFNTQ4NjcwRURDRjQ4QT4gPDBDQzU4OTM2RTIzRjNERDZEQ0JDQjEzMUM5NTkz
+RUJEPiBdCi9YUmVmU3RtIDg2ODMKL1NpemUgNjUKL0VuY3J5cHQgNjQgMCBSCj4+CnN0YXJ0eHJl
+ZgoxMzM0NgolJUVPRgo=
 
-Rafael
-
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: timekeeping: Make it safe to use the fast timekeeper while suspended
-
-Theoretically, ktime_get_mono_fast_ns() may be executed after
-timekeeping has been suspended (or before it is resumed) which
-in turn may lead to undefined behavior, for example, when the
-clocksource read from timekeeping_get_ns() called by it is
-not accessible at that time.
-
-Prevent that from happening by setting up a dummy readout base for
-the fast timekeeper during timekeeping_suspend() such that it will
-always return the same number of cycles.
-
-After the last timekeeping_update() in timekeeping_suspend() the
-clocksource is read and the result is stored as cycles_at_suspend.
-The readout base from the current timekeeper is copied onto the
-dummy and the ->read pointer of the dummy is set to a routine
-unconditionally returning cycles_at_suspend.  Next, the dummy is
-passed to update_fast_timekeeper().
-
-Then, ktime_get_mono_fast_ns() will work until the subsequent
-timekeeping_resume() and the proper readout base for the fast
-timekeeper will be restored by the timekeeping_update() called
-right after clearing timekeeping_suspended.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- kernel/time/timekeeping.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
-
-Index: linux-pm/kernel/time/timekeeping.c
-===================================================================
---- linux-pm.orig/kernel/time/timekeeping.c
-+++ linux-pm/kernel/time/timekeeping.c
-@@ -332,6 +332,35 @@ u64 notrace ktime_get_mono_fast_ns(void)
- }
- EXPORT_SYMBOL_GPL(ktime_get_mono_fast_ns);
- 
-+/* Suspend-time cycles value for halted fast timekeeper. */
-+static cycle_t cycles_at_suspend;
-+
-+static cycle_t dummy_clock_read(struct clocksource *cs)
-+{
-+	return cycles_at_suspend;
-+}
-+
-+/**
-+ * halt_fast_timekeeper - Prevent fast timekeeper from accessing clocksource.
-+ * @tk: Timekeeper to snapshot.
-+ *
-+ * It generally is unsafe to access the clocksource after timekeeping has been
-+ * suspended, so take a snapshot of the readout base of @tk and use it as the
-+ * fast timekeeper's readout base while suspended.  It will return the same
-+ * number of cycles every time until timekeeping is resumed at which time the
-+ * proper readout base for the fast timekeeper will be restored automatically.
-+ */
-+static void halt_fast_timekeeper(struct timekeeper *tk)
-+{
-+	static struct tk_read_base tkr_dummy;
-+	struct tk_read_base *tkr = &tk->tkr;
-+
-+	memcpy(&tkr_dummy, tkr, sizeof(tkr_dummy));
-+	cycles_at_suspend = tkr->read(tkr->clock);
-+	tkr_dummy.read = dummy_clock_read;
-+	update_fast_timekeeper(&tkr_dummy);
-+}
-+
- #ifdef CONFIG_GENERIC_TIME_VSYSCALL_OLD
- 
- static inline void update_vsyscall(struct timekeeper *tk)
-@@ -1294,6 +1323,7 @@ static int timekeeping_suspend(void)
- 	}
- 
- 	timekeeping_update(tk, TK_MIRROR);
-+	halt_fast_timekeeper(tk);
- 	write_seqcount_end(&tk_core.seq);
- 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
- 
-
+--===============1503821586==--
