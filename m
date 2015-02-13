@@ -1,135 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/6] timekeeping: Make it safe to use the fast timekeeper while suspended
-Date: Fri, 13 Feb 2015 03:03:20 +0100
-Message-ID: <2403461.IZYtJE89Ir@vostro.rjw.lan>
-References: <8292243.ibkmfVtXac@vostro.rjw.lan> <1521825.MkZ1sG1M8S@vostro.rjw.lan> <CALAqxLWEceEHf=nhrznmGK+cuGU2xs+9HNHowB=bBQpVu4jRJQ@mail.gmail.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Fri, 13 Feb 2015 10:48:18 +0800
+Message-ID: <54DD65F2.9050108@linaro.org>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <20150212100235.GA30412@rric.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53624 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750944AbbBMBkO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Feb 2015 20:40:14 -0500
-In-Reply-To: <CALAqxLWEceEHf=nhrznmGK+cuGU2xs+9HNHowB=bBQpVu4jRJQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150212100235.GA30412@rric.localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Richter <rric@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@linux.intel.com>, "Li, Aubrey" <aubrey.li@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <len.brown@intel.com>
 
-On Friday, February 13, 2015 08:53:38 AM John Stultz wrote:
-> On Wed, Feb 11, 2015 at 12:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > Theoretically, ktime_get_mono_fast_ns() may be executed after
-> > timekeeping has been suspended (or before it is resumed) which
-> > in turn may lead to undefined behavior, for example, when the
-> > clocksource read from timekeeping_get_ns() called by it is
-> > not accessible at that time.
-> 
-> And the callers of the ktime_get_mono_fast_ns() have to get back a
-> value?
+On 2015=E5=B9=B402=E6=9C=8812=E6=97=A5 18:02, Robert Richter wrote:
+> On 02.02.15 20:45:28, Hanjun Guo wrote:
+>> This is the v8 of ACPI core patches for ARM64 based on ACPI 5.1, the=
+re are
+>> some updates since v7:
+>>
+>>   - Add two more documantation to explain why we need ACPI in ARM64 =
+servers
+>>     by Grant, and recommendations and prohibitions on the use of the=
+ numerous
+>>     ACPI tables and objects by Al Stone.
+>>
+>>   - Add two patches which is need to map acpi tables after acpi_gbl_=
+permanent_mmap
+>>     is set
+>>
+>>   - Add another patch "dt / chosen: Add linux,uefi-stub-generated-dt=
+b property"
+>>     to address that if firmware providing no dtb, we can try ACPI co=
+nfiguration data
+>>     even if no "acpi=3Dforce" is passed in early parameters. (I thin=
+k ACPI for XEN and
+>>     kexec need consider sperately as disscussed, correct me if I'm w=
+rong).
+>>
+>>   - Add CC in the patch to the subsystem maintainers and modify the =
+subject
+>>     of the patch to explicitly show the subsystem touched by this pa=
+tch set,
+>>     please help us to review and ack them if they make sense, thanks=
+=2E
+>>
+>>   - Add Tested-by from Qualcomm and Redhat;
+>>
+>>   - Make ACPI depends on PCI suggested by Catalin;
+>>
+>>   - Clean up SMP init function as Lorenzo suggested, remove physical
+>>     CPU hot-plug code in the patch;
+>>
+>>   - Address some comments from Marc and explicitly state that will
+>>     implment statcked irqdomain and GIC init framework when GICv3 an=
+d
+>>     ITS, GICv2m are implemented;
+>>
+>>   - Rebased on top of 3.19-rc7.
+>
+> Patches tested on Cavium ThunderX. For the whole series:
+>
+>   Tested-by: Robert Richter <rrichter@cavium.com>
+>   Acked-by: Robert Richter <rrichter@cavium.com>
 
-Yes, they do.
+Hi Robert, thank you very much.
 
-> Or can we return an error on timekeeping_suspended like we do
-> w/ __getnstimeofday64()?
+I'm going to send out v9 to address some of the comments, I think
+your Acked-by still apply if no objection from you :)
 
-No, we can't.
-
-> Also, what exactly is the case when the clocksource being read isn't
-> accessible? I see this is conditionalized on
-> CLOCK_SOURCE_SUSPEND_NONSTOP, so is the concern on resume we read the
-> clocksource and its been reset causing a crazy time value?
-
-The clocksource's ->suspend method may have been called (during suspend)
-and depending on what that did we may even crash things theoretically.
-
-During resume, before the clocksource's ->resume callback, it may just
-be undefined behavior (random data etc).
-
-For system suspend as we have today the window is quite narrow, but after
-patch [4/6] from this series suspend-to-idle may suspend timekeeping and
-just sit there in idle for extended time (hours even) which broadens the
-potential exposure quite a bit.
-
-Of course, it does that with interrupts disabled, but ktime_get_mono_fast_ns()
-is for NMI, so theoretically, if an NMI happens while we're in suspend-to-idle
-with timekeeping suspended and the clocksource is not CLOCK_SOURCE_SUSPEND_NONSTOP
-and the NMI calls ktime_get_mono_fast_ns(), strange and undesirable things may
-happen.
-
-> > Prevent that from happening by setting up a dummy readout base for
-> > the fast timekeeper during timekeeping_suspend() such that it will
-> > always return the same number of cycles.
-> >
-> > After the last timekeeping_update() in timekeeping_suspend() the
-> > clocksource is read and the result is stored as cycles_at_suspend.
-> > The readout base from the current timekeeper is copied onto the
-> > dummy and the ->read pointer of the dummy is set to a routine
-> > unconditionally returning cycles_at_suspend.  Next, the dummy is
-> > passed to update_fast_timekeeper().
-> >
-> > Then, ktime_get_mono_fast_ns() will work until the subsequent
-> > timekeeping_resume() and the proper readout base for the fast
-> > timekeeper will be restored by the timekeeping_update() called
-> > right after clearing timekeeping_suspended.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  kernel/time/timekeeping.c |   22 ++++++++++++++++++++++
-> >  1 file changed, 22 insertions(+)
-> >
-> > Index: linux-pm/kernel/time/timekeeping.c
-> > ===================================================================
-> > --- linux-pm.orig/kernel/time/timekeeping.c
-> > +++ linux-pm/kernel/time/timekeeping.c
-> > @@ -1249,9 +1249,23 @@ static void timekeeping_resume(void)
-> >         hrtimers_resume();
-> >  }
-> >
-> > +/*
-> > + * Dummy readout base and suspend-time cycles value for the fast timekeeper to
-> > + * work in a consistent way after timekeeping has been suspended if the core
-> > + * timekeeper clocksource is not suspend-nonstop.
-> > + */
-> > +static struct tk_read_base tkr_dummy;
-> > +static cycle_t cycles_at_suspend;
-> > +
-> > +static cycle_t dummy_clock_read(struct clocksource *cs)
-> > +{
-> > +       return cycles_at_suspend;
-> > +}
-> > +
-> >  static int timekeeping_suspend(void)
-> >  {
-> >         struct timekeeper *tk = &tk_core.timekeeper;
-> > +       struct clocksource *clock = tk->tkr.clock;
-> >         unsigned long flags;
-> >         struct timespec64               delta, delta_delta;
-> >         static struct timespec64        old_delta;
-> > @@ -1294,6 +1308,14 @@ static int timekeeping_suspend(void)
-> >         }
-> >
-> >         timekeeping_update(tk, TK_MIRROR);
-> > +
-> > +       if (!(clock->flags & CLOCK_SOURCE_SUSPEND_NONSTOP)) {
-> > +               memcpy(&tkr_dummy, &tk->tkr, sizeof(tkr_dummy));
-> > +               cycles_at_suspend = tk->tkr.read(clock);
-> > +               tkr_dummy.read = dummy_clock_read;
-> > +               update_fast_timekeeper(&tkr_dummy);
-> > +       }
-> 
-> Its a little ugly... though I'm not sure I have a better idea right off.
-> 
-> thanks
-> -john
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks
+Hanjun
