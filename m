@@ -1,42 +1,66 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [PATCH 2/6] timekeeping: Pass readout base to update_fast_timekeeper()
-Date: Fri, 13 Feb 2015 08:29:13 +0800
-Message-ID: <CALAqxLV1fKx+8oMT__pb2sTds+cMv+DmdXHFHd-voTiiVgar4Q@mail.gmail.com>
-References: <8292243.ibkmfVtXac@vostro.rjw.lan>
-	<1973562.AfpZ97hsgV@vostro.rjw.lan>
+From: "Jonathan \(Zhixiong\) Zhang" <zjzhang@codeaurora.org>
+Subject: RE: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 12 Feb 2015 16:50:33 -0800
+Message-ID: <003301d04727$1390fcb0$3ab2f610$@codeaurora.org>
+References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <a314cdbbefb349acbb8f47d6e806989f@NASANEXM01D.na.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f54.google.com ([209.85.216.54]:64016 "EHLO
-	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325AbbBMA3O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Feb 2015 19:29:14 -0500
-Received: by mail-qa0-f54.google.com with SMTP id x12so10340453qac.13
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Feb 2015 16:29:14 -0800 (PST)
-In-Reply-To: <1973562.AfpZ97hsgV@vostro.rjw.lan>
+Received: from smtp.codeaurora.org ([198.145.29.96]:58186 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbbBMAug (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Feb 2015 19:50:36 -0500
+In-Reply-To: <a314cdbbefb349acbb8f47d6e806989f@NASANEXM01D.na.qualcomm.com>
+Content-Language: en-us
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@linux.intel.com>, "Li, Aubrey" <aubrey.li@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <len.brown@intel.com>
+To: 'Hanjun Guo' <hanjun.guo@linaro.org>, 'Catalin Marinas' <catalin.marinas@arm.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Olof Johansson' <olof@lixom.net>, 'Arnd Bergmann' <arnd@arndb.de>, 'Mark Rutland' <mark.rutland@arm.com>, 'Grant Likely' <grant.likely@linaro.org>, 'Will Deacon' <will.deacon@arm.com>
+Cc: 'Lorenzo Pieralisi' <Lorenzo.Pieralisi@arm.com>, 'Graeme Gregory' <graeme.gregory@linaro.org>, 'Sudeep Holla' <Sudeep.Holla@arm.com>, 'Jon Masters' <jcm@redhat.com>, 'Jason Cooper' <jason@lakedaemon.net>, 'Marc Zyngier' <marc.zyngier@arm.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Daniel Lezcano' <daniel.lezcano@linaro.org>, 'Mark Brown' <broonie@kernel.org>, 'Rob Herring' <robh@kernel.org>, 'Robert Richter' <rric@kernel.org>, 'Randy Dunlap' <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, 'Timur Tabi' <timur@codeaurora.org>, 'Ashwin Chaugule' <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, 'Mark Langsdorf' <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wed, Feb 11, 2015 at 12:01 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Modify update_fast_timekeeper() to take a struct tk_read_base
-> pointer as its argument (instead of a struct timekeeper pointer)
-> and update its kerneldoc comment to reflect that.
->
-> That will allow a struct tk_read_base that is not part of a
-> struct timekeeper to be passed to it in the next patch.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 02/02/2015 05:45 AM, Hanjun Guo wrote:
+> From: Al Stone <al.stone at linaro.org>
+> 
+> Two more documentation files are also being added:
+> (1) A verbatim copy of the "Why ACPI on ARM?" blog posting by Grant
+Likely,
+>     which is also summarized in arm-acpi.txt, and
+> 
+> (2) A section by section review of the ACPI spec (acpi_object_usage.txt)
+>     to note recommendations and prohibitions on the use of the numerous
+>     ACPI tables and objects.  This sets out the current expectations of
+>     the firmware by Linux very explicitly (or as explicitly as I can, for
+>     now).
+> 
+[snip....]
+> +ERST	Section 18.5 (signature == "ERST")
+> +	== Error Record Serialization Table ==
+> +	Must be supplied if RAS support is provided by the platform.  It
+> +	is recommended this table be supplied.
 
-Thomas was really behind the update_fast_timekeeper design so I'm not
-sure I can critique if this fits in the larger vision here, but I
-don't see anything wrong and its not breaking in any of my tests,
-so...
+The above text related to ERST table could lead to misunderstanding.
+Following is what the ACPI spec (section 18.5) says:
+"The error record serialization feature is used to save and retrieve
+hardware error information to and from a persistent store. OSPM interacts
+with the platform through a platform interface. On UEFI-based platforms, the
+UEFI runtime variable services can be used to carry out error record
+persistence operations. On non-UEFI based platforms, the ACPI solution
+described below is used."
 
-Acked-by: John Stultz <john.stultz@linaro.org>
+When RAS support is provided by the platform, ERST table may not be supplied
+when it is UEFI-based and when UEFI run time service provides the ability to
+save and retrieve hardware error information to and from a persistent store
+(UEFI spec section 7.2.3). Therefore, following text might be more accurate:
+" On a platform supports RAS, this table must be supplied if it is not
+UEFI-based; if it is UEFI-based, this table may be supplied, consult your
+firmware vendor if you are not sure. When this table is not present, UEFI
+run time service will be utilized to save and retrieve hardware error
+information to and from a persistent store."
 
-thanks
--john
+====
+Jonathan (Zhixiong) Zhang
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum, a
+Linux Foundation Collaborative Project.
+
