@@ -1,66 +1,99 @@
-From: "Jonathan \(Zhixiong\) Zhang" <zjzhang@codeaurora.org>
-Subject: RE: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 12 Feb 2015 16:50:33 -0800
-Message-ID: <003301d04727$1390fcb0$3ab2f610$@codeaurora.org>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org> <a314cdbbefb349acbb8f47d6e806989f@NASANEXM01D.na.qualcomm.com>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: [PATCH 3/6] timekeeping: Make it safe to use the fast timekeeper
+ while suspended
+Date: Fri, 13 Feb 2015 08:53:38 +0800
+Message-ID: <CALAqxLWEceEHf=nhrznmGK+cuGU2xs+9HNHowB=bBQpVu4jRJQ@mail.gmail.com>
+References: <8292243.ibkmfVtXac@vostro.rjw.lan>
+	<1521825.MkZ1sG1M8S@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58186 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbbBMAug (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Feb 2015 19:50:36 -0500
-In-Reply-To: <a314cdbbefb349acbb8f47d6e806989f@NASANEXM01D.na.qualcomm.com>
-Content-Language: en-us
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1521825.MkZ1sG1M8S@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@linux.intel.com>, "Li, Aubrey" <aubrey.li@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: 'Hanjun Guo' <hanjun.guo@linaro.org>, 'Catalin Marinas' <catalin.marinas@arm.com>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Olof Johansson' <olof@lixom.net>, 'Arnd Bergmann' <arnd@arndb.de>, 'Mark Rutland' <mark.rutland@arm.com>, 'Grant Likely' <grant.likely@linaro.org>, 'Will Deacon' <will.deacon@arm.com>
-Cc: 'Lorenzo Pieralisi' <Lorenzo.Pieralisi@arm.com>, 'Graeme Gregory' <graeme.gregory@linaro.org>, 'Sudeep Holla' <Sudeep.Holla@arm.com>, 'Jon Masters' <jcm@redhat.com>, 'Jason Cooper' <jason@lakedaemon.net>, 'Marc Zyngier' <marc.zyngier@arm.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Daniel Lezcano' <daniel.lezcano@linaro.org>, 'Mark Brown' <broonie@kernel.org>, 'Rob Herring' <robh@kernel.org>, 'Robert Richter' <rric@kernel.org>, 'Randy Dunlap' <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, 'Timur Tabi' <timur@codeaurora.org>, 'Ashwin Chaugule' <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, 'Mark Langsdorf' <mlangsdo@redhat.com>, wangyijing@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 02/02/2015 05:45 AM, Hanjun Guo wrote:
-> From: Al Stone <al.stone at linaro.org>
-> 
-> Two more documentation files are also being added:
-> (1) A verbatim copy of the "Why ACPI on ARM?" blog posting by Grant
-Likely,
->     which is also summarized in arm-acpi.txt, and
-> 
-> (2) A section by section review of the ACPI spec (acpi_object_usage.txt)
->     to note recommendations and prohibitions on the use of the numerous
->     ACPI tables and objects.  This sets out the current expectations of
->     the firmware by Linux very explicitly (or as explicitly as I can, for
->     now).
-> 
-[snip....]
-> +ERST	Section 18.5 (signature == "ERST")
-> +	== Error Record Serialization Table ==
-> +	Must be supplied if RAS support is provided by the platform.  It
-> +	is recommended this table be supplied.
+On Wed, Feb 11, 2015 at 12:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Theoretically, ktime_get_mono_fast_ns() may be executed after
+> timekeeping has been suspended (or before it is resumed) which
+> in turn may lead to undefined behavior, for example, when the
+> clocksource read from timekeeping_get_ns() called by it is
+> not accessible at that time.
 
-The above text related to ERST table could lead to misunderstanding.
-Following is what the ACPI spec (section 18.5) says:
-"The error record serialization feature is used to save and retrieve
-hardware error information to and from a persistent store. OSPM interacts
-with the platform through a platform interface. On UEFI-based platforms, the
-UEFI runtime variable services can be used to carry out error record
-persistence operations. On non-UEFI based platforms, the ACPI solution
-described below is used."
+And the callers of the ktime_get_mono_fast_ns() have to get back a
+value? Or can we return an error on timekeeping_suspended like we do
+w/ __getnstimeofday64()?
 
-When RAS support is provided by the platform, ERST table may not be supplied
-when it is UEFI-based and when UEFI run time service provides the ability to
-save and retrieve hardware error information to and from a persistent store
-(UEFI spec section 7.2.3). Therefore, following text might be more accurate:
-" On a platform supports RAS, this table must be supplied if it is not
-UEFI-based; if it is UEFI-based, this table may be supplied, consult your
-firmware vendor if you are not sure. When this table is not present, UEFI
-run time service will be utilized to save and retrieve hardware error
-information to and from a persistent store."
+Also, what exactly is the case when the clocksource being read isn't
+accessible? I see this is conditionalized on
+CLOCK_SOURCE_SUSPEND_NONSTOP, so is the concern on resume we read the
+clocksource and its been reset causing a crazy time value?
 
-====
-Jonathan (Zhixiong) Zhang
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum, a
-Linux Foundation Collaborative Project.
+> Prevent that from happening by setting up a dummy readout base for
+> the fast timekeeper during timekeeping_suspend() such that it will
+> always return the same number of cycles.
+>
+> After the last timekeeping_update() in timekeeping_suspend() the
+> clocksource is read and the result is stored as cycles_at_suspend.
+> The readout base from the current timekeeper is copied onto the
+> dummy and the ->read pointer of the dummy is set to a routine
+> unconditionally returning cycles_at_suspend.  Next, the dummy is
+> passed to update_fast_timekeeper().
+>
+> Then, ktime_get_mono_fast_ns() will work until the subsequent
+> timekeeping_resume() and the proper readout base for the fast
+> timekeeper will be restored by the timekeeping_update() called
+> right after clearing timekeeping_suspended.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  kernel/time/timekeeping.c |   22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+>
+> Index: linux-pm/kernel/time/timekeeping.c
+> ===================================================================
+> --- linux-pm.orig/kernel/time/timekeeping.c
+> +++ linux-pm/kernel/time/timekeeping.c
+> @@ -1249,9 +1249,23 @@ static void timekeeping_resume(void)
+>         hrtimers_resume();
+>  }
+>
+> +/*
+> + * Dummy readout base and suspend-time cycles value for the fast timekeeper to
+> + * work in a consistent way after timekeeping has been suspended if the core
+> + * timekeeper clocksource is not suspend-nonstop.
+> + */
+> +static struct tk_read_base tkr_dummy;
+> +static cycle_t cycles_at_suspend;
+> +
+> +static cycle_t dummy_clock_read(struct clocksource *cs)
+> +{
+> +       return cycles_at_suspend;
+> +}
+> +
+>  static int timekeeping_suspend(void)
+>  {
+>         struct timekeeper *tk = &tk_core.timekeeper;
+> +       struct clocksource *clock = tk->tkr.clock;
+>         unsigned long flags;
+>         struct timespec64               delta, delta_delta;
+>         static struct timespec64        old_delta;
+> @@ -1294,6 +1308,14 @@ static int timekeeping_suspend(void)
+>         }
+>
+>         timekeeping_update(tk, TK_MIRROR);
+> +
+> +       if (!(clock->flags & CLOCK_SOURCE_SUSPEND_NONSTOP)) {
+> +               memcpy(&tkr_dummy, &tk->tkr, sizeof(tkr_dummy));
+> +               cycles_at_suspend = tk->tkr.read(clock);
+> +               tkr_dummy.read = dummy_clock_read;
+> +               update_fast_timekeeper(&tkr_dummy);
+> +       }
 
+Its a little ugly... though I'm not sure I have a better idea right off.
+
+thanks
+-john
