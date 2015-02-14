@@ -1,166 +1,84 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [PATCH 3/6] timekeeping: Make it safe to use the fast timekeeper
- while suspended
-Date: Sun, 15 Feb 2015 01:30:42 +0800
-Message-ID: <CALAqxLXS77Nso1iH0mUnHUwb+fxrSkcOqwkzLX1izVam2g_RFA@mail.gmail.com>
-References: <8292243.ibkmfVtXac@vostro.rjw.lan>
-	<2403461.IZYtJE89Ir@vostro.rjw.lan>
-	<CALAqxLWviqCvcgOgJOdWuTw+qHM9RW0480Ge5dNHf5Nonv75bQ@mail.gmail.com>
-	<2177558.2TEykqeHuz@vostro.rjw.lan>
+From: Jens Reyer <jens.reyer@gmail.com>
+Subject: [PATCH] ACPI / video: Add disable_native_backlight quirk for SAMSUNG
+ 900X3C/900X3D/900X3E/900X4C/900X4D
+Date: Sun, 15 Feb 2015 00:20:50 +0100
+Message-ID: <54DFD852.4080000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/mixed;
+ boundary="------------030609090205050205080301"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f48.google.com ([209.85.192.48]:63657 "EHLO
-	mail-qg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934AbbBNRam (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Feb 2015 12:30:42 -0500
-Received: by mail-qg0-f48.google.com with SMTP id a108so17871801qge.7
-        for <linux-acpi@vger.kernel.org>; Sat, 14 Feb 2015 09:30:42 -0800 (PST)
-In-Reply-To: <2177558.2TEykqeHuz@vostro.rjw.lan>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:63446 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754490AbbBNXUy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Feb 2015 18:20:54 -0500
+Received: by mail-wg0-f46.google.com with SMTP id a1so23111485wgh.5
+        for <linux-acpi@vger.kernel.org>; Sat, 14 Feb 2015 15:20:52 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@linux.intel.com>, "Li, Aubrey" <aubrey.li@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <len.brown@intel.com>
+To: linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Fri, Feb 13, 2015 at 10:32 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, February 13, 2015 05:03:51 PM John Stultz wrote:
->> On Fri, Feb 13, 2015 at 10:03 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Friday, February 13, 2015 08:53:38 AM John Stultz wrote:
->> >> On Wed, Feb 11, 2015 at 12:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> >> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >> >
->> >> > Theoretically, ktime_get_mono_fast_ns() may be executed after
->> >> > timekeeping has been suspended (or before it is resumed) which
->> >> > in turn may lead to undefined behavior, for example, when the
->> >> > clocksource read from timekeeping_get_ns() called by it is
->> >> > not accessible at that time.
->> >>
->> >> And the callers of the ktime_get_mono_fast_ns() have to get back a
->> >> value?
->> >
->> > Yes, they do.
->> >
->> >> Or can we return an error on timekeeping_suspended like we do
->> >> w/ __getnstimeofday64()?
->> >
->> > No, we can't.
->> >
->> >> Also, what exactly is the case when the clocksource being read isn't
->> >> accessible? I see this is conditionalized on
->> >> CLOCK_SOURCE_SUSPEND_NONSTOP, so is the concern on resume we read the
->> >> clocksource and its been reset causing a crazy time value?
->> >
->> > The clocksource's ->suspend method may have been called (during suspend)
->> > and depending on what that did we may even crash things theoretically.
->> >
->> > During resume, before the clocksource's ->resume callback, it may just
->> > be undefined behavior (random data etc).
->> >
->> > For system suspend as we have today the window is quite narrow, but after
->> > patch [4/6] from this series suspend-to-idle may suspend timekeeping and
->> > just sit there in idle for extended time (hours even) which broadens the
->> > potential exposure quite a bit.
->> >
->> > Of course, it does that with interrupts disabled, but ktime_get_mono_fast_ns()
->> > is for NMI, so theoretically, if an NMI happens while we're in suspend-to-idle
->> > with timekeeping suspended and the clocksource is not CLOCK_SOURCE_SUSPEND_NONSTOP
->> > and the NMI calls ktime_get_mono_fast_ns(), strange and undesirable things may
->> > happen.
->>
->> Ok.. No objection to the approach then. But maybe could you wrap the
->> new logic in a halt_fast_timekeeper() function? Also is there much
->> value in not halting it for SUSPEND_NONSTOP clocksources? If not,
->> might as well halt it in all cases just to simplify the conditions we
->> have to keep track of in our heads. :)
->
-> I don't see a problem with doing that unconditionally.
->
-> What about the appended version of the patch, then?
->
-> Rafael
->
->
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: timekeeping: Make it safe to use the fast timekeeper while suspended
->
-> Theoretically, ktime_get_mono_fast_ns() may be executed after
-> timekeeping has been suspended (or before it is resumed) which
-> in turn may lead to undefined behavior, for example, when the
-> clocksource read from timekeeping_get_ns() called by it is
-> not accessible at that time.
->
-> Prevent that from happening by setting up a dummy readout base for
-> the fast timekeeper during timekeeping_suspend() such that it will
-> always return the same number of cycles.
->
-> After the last timekeeping_update() in timekeeping_suspend() the
-> clocksource is read and the result is stored as cycles_at_suspend.
-> The readout base from the current timekeeper is copied onto the
-> dummy and the ->read pointer of the dummy is set to a routine
-> unconditionally returning cycles_at_suspend.  Next, the dummy is
-> passed to update_fast_timekeeper().
->
-> Then, ktime_get_mono_fast_ns() will work until the subsequent
-> timekeeping_resume() and the proper readout base for the fast
-> timekeeper will be restored by the timekeeping_update() called
-> right after clearing timekeeping_suspended.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  kernel/time/timekeeping.c |   30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
->
-> Index: linux-pm/kernel/time/timekeeping.c
-> ===================================================================
-> --- linux-pm.orig/kernel/time/timekeeping.c
-> +++ linux-pm/kernel/time/timekeeping.c
-> @@ -332,6 +332,35 @@ u64 notrace ktime_get_mono_fast_ns(void)
->  }
->  EXPORT_SYMBOL_GPL(ktime_get_mono_fast_ns);
->
-> +/* Suspend-time cycles value for halted fast timekeeper. */
-> +static cycle_t cycles_at_suspend;
-> +
-> +static cycle_t dummy_clock_read(struct clocksource *cs)
-> +{
-> +       return cycles_at_suspend;
-> +}
-> +
-> +/**
-> + * halt_fast_timekeeper - Prevent fast timekeeper from accessing clocksource.
-> + * @tk: Timekeeper to snapshot.
-> + *
-> + * It generally is unsafe to access the clocksource after timekeeping has been
-> + * suspended, so take a snapshot of the readout base of @tk and use it as the
-> + * fast timekeeper's readout base while suspended.  It will return the same
-> + * number of cycles every time until timekeeping is resumed at which time the
-> + * proper readout base for the fast timekeeper will be restored automatically.
-> + */
-> +static void halt_fast_timekeeper(struct timekeeper *tk)
-> +{
-> +       static struct tk_read_base tkr_dummy;
-> +       struct tk_read_base *tkr = &tk->tkr;
-> +
-> +       memcpy(&tkr_dummy, tkr, sizeof(tkr_dummy));
-> +       cycles_at_suspend = tkr->read(tkr->clock);
-> +       tkr_dummy.read = dummy_clock_read;
-> +       update_fast_timekeeper(&tkr_dummy);
-> +}
-> +
->  #ifdef CONFIG_GENERIC_TIME_VSYSCALL_OLD
->
->  static inline void update_vsyscall(struct timekeeper *tk)
-> @@ -1294,6 +1323,7 @@ static int timekeeping_suspend(void)
->         }
->
->         timekeeping_update(tk, TK_MIRROR);
-> +       halt_fast_timekeeper(tk);
->         write_seqcount_end(&tk_core.seq);
->         raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+This is a multi-part message in MIME format.
+--------------030609090205050205080301
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
+Hi
 
-Yep, this looks much nicer. Thanks for respinning it!
+The native intel backlight controls do not work correctly on SAMSUNG
+900X3C/900X3D/900X3E/900X4C/900X4D laptops as I reported in
+https://bugs.freedesktop.org/show_bug.cgi?id=87286 (and
+https://bugs.debian.org/772440).
 
-Untested, but...
-Acked-by: John Stultz <john.stultz@linaro.org>
+Aaron Lu told me there to speak up here/to Rafael.
+
+Please find attached a patch to disable the native backlight on this
+laptop model, like it was already done for some other older models.
+
+I assume this would be the proper commit comments (or should it be
+signed-off?):
+Bug-Link: https://bugs.freedesktop.org/show_bug.cgi?id=87286.
+Reported-and-tested-by: Jens Reyer <jens.reyer@gmail.com>
+
+The patch applies to
+https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+branch linux-next, head at
+389a8d43d64711b0e7282d227e05a6a71b43753d
+Rafael J. Wysocki 2015-02-12 22:43:26
+
+I verified the issues are still present in linux-next and get solved
+with this patch.
+
+Just tell me if there is anything else I can do to get this applied.
+
+Thanks
+Jens Reyer/jre <jre.winesim@gmail.com>
+
+--------------030609090205050205080301
+Content-Type: text/x-patch;
+ name="disable_native_backlight_Samsung_900X.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="disable_native_backlight_Samsung_900X.patch"
+
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 88a4f99..debd309 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -540,6 +540,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "730U3E/740U3E"),
+ 		},
+ 	},
++	{
++	 /* https://bugs.freedesktop.org/show_bug.cgi?id=87286 */
++	 .callback = video_disable_native_backlight,
++	 .ident = "SAMSUNG 900X3C/900X3D/900X3E/900X4C/900X4D",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "900X3C/900X3D/900X3E/900X4C/900X4D"),
++		},
++	},
+ 
+ 	{
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
+
+--------------030609090205050205080301--
