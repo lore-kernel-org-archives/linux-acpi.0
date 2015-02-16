@@ -1,98 +1,127 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 1/3] ACPI / processor: remove incorrect comparison of
- phys_id
-Date: Mon, 16 Feb 2015 10:08:25 +0000
-Message-ID: <54E1C199.6060306@arm.com>
-References: <1416926930-792-1-git-send-email-sudeep.holla@arm.com> <9584090.hqdaL9kipZ@vostro.rjw.lan> <5478C765.30504@arm.com> <25335106.4A2H4B9kq8@vostro.rjw.lan> <54DDAE42.3080104@linaro.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: [PATCH 01/35] ACPI/acpi_pad: Remove the local apic nonsense
+Date: Mon, 16 Feb 2015 13:14:36 +0100
+Message-ID: <20150216122412.023909722@infradead.org>
+References: <20150216121435.203983131@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:49410 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754302AbbBPKII convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Feb 2015 05:08:08 -0500
-In-Reply-To: <54DDAE42.3080104@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline; filename=acpi-pad-kill-lapic-nonsense.patch
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, mingo@kernel.org, rjw@rjwysocki.net
+Cc: tglx@linutronix.de, peterz@infradead.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+From: Thomas Gleixner <tglx@linutronix.de>
 
+While looking through the (ab)use of the clockevents_notify() function
+I stumbled over the following gem in the acpi_pad code:
 
-On 13/02/15 07:56, Hanjun Guo wrote:
-> On 2014=E5=B9=B411=E6=9C=8829=E6=97=A5 07:26, Rafael J. Wysocki wrote=
-:
->> On Friday, November 28, 2014 07:05:09 PM Sudeep Holla wrote:
->>> Hi Rafael,
->>>
->>> On 26/11/14 22:26, Rafael J. Wysocki wrote:
->>>> On Wednesday, November 26, 2014 10:33:04 AM Sudeep Holla wrote:
->>>>> Hi Hanjun,
->>>>>
->>>>> On 26/11/14 09:53, Hanjun Guo wrote:
->>>>>> Hi Sudeep,
->>>>>>
->>>>>> On 2014-11-25 22:48, Sudeep Holla wrote:
->>>
->>> [...]
->>>
->>>>>>>
->>>>>>> This patch removes that incorrect comparision in
->>>>>>> acpi_processor_hotadd_init as the lone user of this function is
->>>>>>> already checking for correctness of phys_id before calling it.
->>>>>>
->>>>>> if (apic_id < 0) acpi_handle_debug(pr->handle, "failed to get CP=
-U
->>>>>> APIC ID.\n");
->>>>>>
->>>>>> it only check the value and print debug message but no returns, =
-so I
->>>>>> think the check in the following patch is still needed.
->>>>>>
->>>>>
->>>>> Agreed, but that's something we need to fix in the logic and not =
-by
->>>>> changing these identifiers to signed values in the structures.
->>>>
->>>> I'd rather not change data structures just because of what one fun=
-tion returns.
->>>>
->>>> Instead, I'd do something like
->>>>
->>>> 	#define CPU_PHYS_ID_INVALID	(u32)(-1)
->>>>
->>>> change the function in question to return CPU_PHYS_ID_INVALID inst=
-ead of -1
->>>> and change the check to
->>>>
->>>> 	if (phys_id =3D=3D CPU_PHYS_ID_INVALID)
->>>> 		...
->>>>
->>>
->>> Do I need to rebase this on top of Hanjun's cleanups to convert api=
-c_id
->>> to phys_id ? Since the variable is getting renamed it will conflict=
-=2E
->>
->> Yes, it's better to rebase IMO.
->
-> Hi Sudeep, any updates for this patch? I'm working on introducing
-> typedef u32 phys_cpuid_t for x86 and ia64 for phys_id, and need
-> this CPU_PHYS_ID_INVALID macro, if you are not working on that, I
-> will restart the work to address the comments from Lorenzo and
-> Catalin [1].
->
+  if (lapic_detected_unstable && !lapic_marked_unstable) {
+     /* LAPIC could halt in idle, so notify users */
+     for_each_online_cpu(i)
+       clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &i);
+     lapic_marked_unstable = 1;
+  }
 
-IMO, it would be good if you work on that instead, so that there's no
-dependency created as it's needed for your ARM64 port anyway.
+This code calls on the cpu which detects the lapic unstable condition
+first clockevents_notify() to tell the core code that the broadcast
+should be enabled on all online cpus. Brilliant stuff that as it
+notifies the core code a num_online_cpus() times that the broadcast
+should be enabled on the current cpu.
 
-Regards,
-Sudeep
+This probably has never been noticed because that code got never
+tested with NOHZ=n and HIGHRES_TIMER=n or it just worked by chance
+because one of the other mechanisms told the core in the right way
+that the local apic timer is wreckaged.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sigh, this is:
+
+ - The 4th incarnation of idle drivers which has their own mechanism
+   to detect and deal with X86_FEATURE_ARAT.
+
+ - The 2nd incarnation of fake idle mechanisms with a different set of
+   brainmelting bugs.
+
+ - Has been merged against an explicit NAK of the scheduler
+   maintainer with the promise to improve it over time.
+
+ - Another example of featuritis driven trainwreck engineering.
+
+ - Another pointless waste of my time.
+
+Fix this nonsense by removing that lapic detection and notification
+logic and simply call into the clockevents code unconditonally. The
+ARAT feature is marked in the lapic clockevent already so the core
+code will just ignore the requests and return.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>
+---
+ drivers/acpi/acpi_pad.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
+
+Index: linux/drivers/acpi/acpi_pad.c
+===================================================================
+--- linux.orig/drivers/acpi/acpi_pad.c
++++ linux/drivers/acpi/acpi_pad.c
+@@ -41,8 +41,6 @@ static unsigned long power_saving_mwait_
+ 
+ static unsigned char tsc_detected_unstable;
+ static unsigned char tsc_marked_unstable;
+-static unsigned char lapic_detected_unstable;
+-static unsigned char lapic_marked_unstable;
+ 
+ static void power_saving_mwait_init(void)
+ {
+@@ -82,13 +80,10 @@ static void power_saving_mwait_init(void
+ 		 */
+ 		if (!boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
+ 			tsc_detected_unstable = 1;
+-		if (!boot_cpu_has(X86_FEATURE_ARAT))
+-			lapic_detected_unstable = 1;
+ 		break;
+ 	default:
+-		/* TSC & LAPIC could halt in idle */
++		/* TSC could halt in idle */
+ 		tsc_detected_unstable = 1;
+-		lapic_detected_unstable = 1;
+ 	}
+ #endif
+ }
+@@ -177,28 +172,17 @@ static int power_saving_thread(void *dat
+ 				mark_tsc_unstable("TSC halts in idle");
+ 				tsc_marked_unstable = 1;
+ 			}
+-			if (lapic_detected_unstable && !lapic_marked_unstable) {
+-				int i;
+-				/* LAPIC could halt in idle, so notify users */
+-				for_each_online_cpu(i)
+-					clockevents_notify(
+-						CLOCK_EVT_NOTIFY_BROADCAST_ON,
+-						&i);
+-				lapic_marked_unstable = 1;
+-			}
++			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
++
+ 			local_irq_disable();
+ 			cpu = smp_processor_id();
+-			if (lapic_marked_unstable)
+-				clockevents_notify(
+-					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
++			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
+ 			stop_critical_timings();
+ 
+ 			mwait_idle_with_hints(power_saving_mwait_eax, 1);
+ 
+ 			start_critical_timings();
+-			if (lapic_marked_unstable)
+-				clockevents_notify(
+-					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
++			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+ 			local_irq_enable();
+ 
+ 			if (time_before(expire_time, jiffies)) {
