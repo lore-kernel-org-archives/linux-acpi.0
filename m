@@ -1,64 +1,81 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [PATCH] x86, irq: Fix regression caused by commit b568b8601f05
-Date: Mon, 16 Feb 2015 10:11:13 +0800
-Message-ID: <1424052673-22974-1-git-send-email-jiang.liu@linux.intel.com>
-References: <1424039150-4115-1-git-send-email-syrjala@sci.fi>
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: Re: [PATCH] ACPI / video: Add disable_native_backlight quirk for
+ SAMSUNG 900X3C/900X3D/900X3E/900X4C/900X4D
+Date: Mon, 16 Feb 2015 13:25:20 +0800
+Message-ID: <20150216052443.GA11266@aaronlu.sh.intel.com>
+References: <54DFD852.4080000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31860 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752565AbbBPCIa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Feb 2015 21:08:30 -0500
-In-Reply-To: <1424039150-4115-1-git-send-email-syrjala@sci.fi>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:39657 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbbBPF00 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Feb 2015 00:26:26 -0500
+Received: by mail-pa0-f50.google.com with SMTP id hz1so32742471pad.9
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Feb 2015 21:26:26 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <54DFD852.4080000@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <syrjala@sci.fi>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jens Reyer <jens.reyer@gmail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Commit b568b8601f05 ("Treat SCI interrupt as normal GSI interrupt")
-accidently removes support of legacy PIC interrupt when fixing a
-regression for Xen, which causes a nasty regression on HP/Compaq
-nc6000 where we fail to register the ACPI interrupt, and thus
-lose eg. thermal notifications leading a potentially overheated
-machine.
+On Sun, Feb 15, 2015 at 12:20:50AM +0100, Jens Reyer wrote:
+> Hi
+> 
+> The native intel backlight controls do not work correctly on SAMSUNG
+> 900X3C/900X3D/900X3E/900X4C/900X4D laptops as I reported in
+> https://bugs.freedesktop.org/show_bug.cgi?id=87286 (and
+> https://bugs.debian.org/772440).
+> 
+> Aaron Lu told me there to speak up here/to Rafael.
+> 
+> Please find attached a patch to disable the native backlight on this
+> laptop model, like it was already done for some other older models.
+> 
+> I assume this would be the proper commit comments (or should it be
+> signed-off?):
+> Bug-Link: https://bugs.freedesktop.org/show_bug.cgi?id=87286.
+> Reported-and-tested-by: Jens Reyer <jens.reyer@gmail.com>
 
-So reintroduce support of legacy PIC based ACPI SCI interrupt.
+You will need to add the Signed-off-by: line to get the patch merged.
 
-Reported-by: Ville Syrj=C3=A4l=C3=A4 <syrjala@sci.fi>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
-Hi Ville,
-	Could you please help to try this patch instead of revert commit
-b568b8601f05?
-Thanks!
-Gerry
----
- arch/x86/kernel/acpi/boot.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Thanks,
+Aaron
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index ae97ed0873c6..3d525c6124f6 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -613,6 +613,11 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irqp)
- {
- 	int rc, irq, trigger, polarity;
-=20
-+	if (acpi_irq_model =3D=3D ACPI_IRQ_MODEL_PIC) {
-+		*irqp =3D gsi;
-+		return 0;
-+	}
-+
- 	rc =3D acpi_get_override_irq(gsi, &trigger, &polarity);
- 	if (rc =3D=3D 0) {
- 		trigger =3D trigger ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
---=20
-1.7.10.4
+> 
+> The patch applies to
+> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+> branch linux-next, head at
+> 389a8d43d64711b0e7282d227e05a6a71b43753d
+> Rafael J. Wysocki 2015-02-12 22:43:26
+> 
+> I verified the issues are still present in linux-next and get solved
+> with this patch.
+> 
+> Just tell me if there is anything else I can do to get this applied.
+> 
+> Thanks
+> Jens Reyer/jre <jre.winesim@gmail.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 88a4f99..debd309 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -540,6 +540,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "730U3E/740U3E"),
+>  		},
+>  	},
+> +	{
+> +	 /* https://bugs.freedesktop.org/show_bug.cgi?id=87286 */
+> +	 .callback = video_disable_native_backlight,
+> +	 .ident = "SAMSUNG 900X3C/900X3D/900X3E/900X4C/900X4D",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "900X3C/900X3D/900X3E/900X4C/900X4D"),
+> +		},
+> +	},
+>  
+>  	{
+>  	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
+
