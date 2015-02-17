@@ -1,59 +1,159 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 0/4] int to bool conversion
-Date: Wed, 18 Feb 2015 19:09:28 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D27FE3F@ORSMSX112.amr.corp.intel.com>
-References: <20150122084941.GA14651@sloth>
- <1659960.ohcxabvmYi@vostro.rjw.lan> <54C5FB3F.6000803@gmail.com>
- <2189735.DtT3OIbRBT@vostro.rjw.lan>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [GIT PULL] Thermal SoC management updates for v3.20 #1
+Date: Mon, 16 Feb 2015 23:19:28 -0400
+Message-ID: <20150217031926.GA3952@developer.amazonguestwifi.org>
+References: <20150206033952.GE3486@developer.amazonguestwifi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14483 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753987AbbBRTJc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Feb 2015 14:09:32 -0500
-In-Reply-To: <2189735.DtT3OIbRBT@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:32946 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360AbbBRUkh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 15:40:37 -0500
+Content-Disposition: inline
+In-Reply-To: <20150206033952.GE3486@developer.amazonguestwifi.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Quentin Lambert <lambert.quentin@gmail.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-ImJvb2wiIGNhbiBiZSBwcm9ibGVtYXRpYyBhcyBpdCBpc24ndCB0b3RhbGx5IHBvcnRhYmxlLiBJ
-dCBpcyB1c3VhbGx5IGltcGxlbWVudGVkIGFzIGEgbWFjcm8uDQoNClRoYXTigJlzIHdoeSBBQ1BJ
-Q0EgZG9lc24ndCB1c2UgaXQuDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBG
-cm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBTZW50
-OiBNb25kYXksIEphbnVhcnkgMjYsIDIwMTUgNTozMyBBTQ0KPiBUbzogUXVlbnRpbiBMYW1iZXJ0
-DQo+IENjOiBaaGFuZywgUnVpOyBNb29yZSwgUm9iZXJ0OyBaaGVuZywgTHY7IFd5c29ja2ksIFJh
-ZmFlbCBKOyBMZW4gQnJvd247DQo+IFNoYW9odWEgTGk7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
-b3JnOyBkZXZlbEBhY3BpY2Eub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZw0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIDAvNF0gaW50IHRvIGJvb2wgY29udmVyc2lvbg0KPiANCj4g
-T24gTW9uZGF5LCBKYW51YXJ5IDI2LCAyMDE1IDA5OjMwOjU1IEFNIFF1ZW50aW4gTGFtYmVydCB3
-cm90ZToNCj4gPiBTb3JyeSBmb3IgdGhlIGRlbGF5IGluIGFuc3dlcmluZyAuLi4uDQo+ID4NCj4g
-PiBPbiAyMi8wMS8yMDE1IDE3OjE4LCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiA+IE9u
-IFRodXJzZGF5LCBKYW51YXJ5IDIyLCAyMDE1IDA5OjQ5OjQxIEFNIFF1ZW50aW4gTGFtYmVydCB3
-cm90ZToNCj4gPiA+PiBUaGVzZSBwYXRjaGVzIGNvbnZlcnQgbG9jYWwgdmFyaWFibGVzIGZyb20g
-aW50IHRvIGJvb2wgd2hlbiByZWxldmFudC4NCj4gPiA+IEFuZCB3aGF0IGV4YWN0bHkgaXMgdGhl
-IG5lZWQgZm9yIHRoYXQ/ICBEb2VzIHRoYXQgZml4IGFueSBmdW5jdGlvbmFsDQo+IHByb2JsZW1z
-Pw0KPiA+ID4NCj4gPiA+DQo+ID4gSXQgZG9lc24ndCBmaXggYW55IGZ1bmN0aW9uYWwgcHJvYmxl
-bS4gVGhlIHBvaW50IG9mIHRoaXMgcGF0Y2ggaXMgdG8NCj4gPiBpbmNyZWFzZSB0aGUgY29kZSBy
-ZWFkYWJpbGl0eSBieSBsaWZ0aW5nIHNvbWUgb2YgdGhlIGFtYmlndWl0aWVzIHRoYXQNCj4gPiBh
-cHBlYXIgd2hlbiB1c2luZyBhbiBpbnRlZ2VyIHZhcmlhYmxlIGFzIGJvb2xlYW4uDQo+ID4NCj4g
-PiBNeSB1bmRlcnN0YW5kaW5nIGlzIHRoYXQgYnkgZXhwbGljaXRseSB1c2luZyBhIGJvb2xlYW4g
-ZGVjbGFyYXRpb24NCj4gPiB3aGVuIGl0IGlzIHJlbGV2YW50IGl0IGNsZWFybHkgaW5mb3JtcyB0
-aGUgcmVhZGVyIHRoYXQgdGhlIHZhcmlhYmxlIGlzDQo+ID4gZ29pbmcgdG8gcmVwcmVzZW50IGEg
-YmluYXJ5IHN0YXRlLiBNb3Jlb3ZlciwgdXNpbmcgdGhlIGtleXdvcmRzIHRydWUNCj4gPiBhbmQg
-ZmFsc2UgaGVscCBpbmRpY2F0ZSB0aGF0IHRoZSB2YXJpYWJsZSB3aWxsIG5vdCBiZSBpbnZvbHZl
-ZCBpbiBhbnkNCj4gPiBjb21wdXRhdGlvbiBvdGhlciB0aGFuIGJvb2xlYW4gYXJpdGhtZXRpYy4N
-Cj4gDQo+IFdlbGwsIGluIHRoZSBuZXcgY29kZSwgeWVzLiAgVGhlIGV4aXN0aW5nIGNvZGUgaXMg
-YSBkaWZmZXJlbnQgbWF0dGVyDQo+IHRob3VnaCBhbmQgaXQgZG9lc24ndCBhY3R1YWxseSBodXJ0
-IGlmIHlvdSBsZWF2ZSB0aGUgaW50cyB3aGVyZSB0aGV5IGFyZSwNCj4gc28gdGhlcmUncyBubyBy
-ZWFzb24gdG8gbWFrZSB0aG9zZSBjaGFuZ2VzLg0KPiANCj4gSWYgeW91IGNoYW5nZSBvbGQgY29k
-ZSBhbmQgdGhlIGNoYW5nZSBpcyBub3QgdHJpdmlhbCAoZWcuIGZpeGVzIG9mIHdoaXRlDQo+IHNw
-YWNlIG9yIGNvbW1lbnRzLCBvciBrZXJuZWwgbWVzc2FnZXMgZXRjLikgYW5kIHNvbWVvbmUgZW5v
-dW50ZXJzIGEgYnVnDQo+IHRoYXQgbWF5IGJlIHJlbGF0ZWQgdG8gaXQsIHRoZXkgd2lsbCBoYXZl
-IHRvIGdvIHRocm91Z2ggeW91ciBjaGFuZ2VzIHRvDQo+IHNlZSBpZiB0aGF0J3Mgbm90IHRoZSBz
-b3VyY2Ugb2YgdGhlIGJ1Zy4gIFRoYXQncyBub3QgcmVhbGx5IHByb2R1Y3RpdmUuDQo+IA0KPiAN
-Cj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJ
-bnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
+
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Rui,
+
+On Thu, Feb 05, 2015 at 11:39:56PM -0400, Eduardo Valentin wrote:
+> Hello Rui,
+>=20
+> Please pull from
+>=20
+>   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-therma=
+l.git fixes
+>=20
+> to receive Thermal SoC Management updates for v3.20 with top-most
+>=20
+> 6c247393cfdd6695717f80ff31f9fd9af8c2c525:
+>=20
+>   thermal: exynos: Add TMU support for Exynos7 SoC (2015-01-31 15:20:45 -=
+0400)
+>=20
+> on top of commit b97f880c8342fd6e49a02c9ef7507a678722b2b3:
+>=20
+>   Merge branch 'for-3.19-fixes' of git://git.kernel.org/pub/scm/linux/ker=
+nel/git/tj/libata (2015-01-21 07:54:16 +1200)
+>=20
+> Specifics:
+>=20
+> - Exynos thermal driver refactoring. Several cleanups, code optimization,=
+ unused
+> symbols removal, and unused feature removal in Exynos thermal driver. Tha=
+nks
+> Lukasz for this effort.
+> - Exynos thermal driver support to OF thermal. After the code refactoring,
+> the driver earned the support to OF thermal. Chip thermal data were moved
+> from driver code to DTS, reducing the code footprint. Thanks Lukasz for t=
+his.
+> - After receiving the OF thermal support, the exynos thermal driver now m=
+ust
+> allow modular build. Thanks Arnd for detecting, reporting and fixing this.
+> - Exynos thermal driver support to Exynos 7 SoC. Thanks Abhilash for this.
+> - Accurate temperature reporting on Rockchip thermal driver, thanks to Ca=
+esar.
+> - Fix on how OF thermal enables its zones, thanks Lukasz for fixing.
+> - Fixes in OF thermal examples under Documentation/. Thanks Srinivas for =
+fixing.
+>=20
+
+A gentle reminder. Please pull this one.
+
+>=20
+> PS: I might be sending more changes regarding Thermal Zone Binding
+> Parameters and how we represent weights. I need to finish a couple of
+> testing on that code. But it should make 3.20 too.
+
+These patches won't be sent now. They are still under review. Please
+consider only the current pull request.
+
+>=20
+> BR,
+>=20
+> Eduardo Valentin
+> ----------------------------------------------------------------
+> Abhilash Kesavan (2):
+>       dts: Documentation: Add documentation for Exynos7 SoC thermal bindi=
+ngs
+>       thermal: exynos: Add TMU support for Exynos7 SoC
+>=20
+> Arnd Bergmann (1):
+>       cpufreq: exynos: allow modular build
+>=20
+> Caesar Wang (1):
+>       thermal: rockchip: make temperature reporting much more accurate
+>=20
+> Lukasz Majewski (12):
+>       thermal: of: Enable thermal_zoneX when sensor is correctly added
+>       thermal: exynos: cosmetic: Correct comment format
+>       thermal: exynos: Provide thermal_exynos.h file to be included in de=
+vice tree files
+>       thermal: exynos: Modify exynos thermal code to use device tree for =
+cpu cooling configuration
+>       cpufreq: exynos: Use device tree to determine if cpufreq cooling sh=
+ould be registered
+>       dts: Documentation: Extending documentation entry for exynos-thermal
+>       dts: Documentation: Update exynos-thermal.txt example for Exynos5440
+>       thermal: samsung: core: Exynos TMU rework to use device tree for co=
+nfiguration
+>       thermal: exynos: Remove exynos_thermal_common.[c|h] files
+>       thermal: exynos: Remove exynos_tmu_data.c file
+>       thermal: Kconfig: Remove config for not used EXYNOS_THERMAL_CORE
+>       thermal: exynos: Correct sanity check at exynos_report_trigger() fu=
+nction
+>=20
+> Srinivas Kandagatla (1):
+>       thermal: Fix examples in DT documentation
+>=20
+>  .../devicetree/bindings/thermal/exynos-thermal.txt |  21 +
+>  .../devicetree/bindings/thermal/thermal.txt        |  74 +--
+>  drivers/cpufreq/Kconfig.arm                        |  44 +-
+>  drivers/cpufreq/Makefile                           |   9 +-
+>  drivers/cpufreq/exynos-cpufreq.c                   |  33 +-
+>  drivers/thermal/of-thermal.c                       |   3 +
+>  drivers/thermal/rockchip_thermal.c                 |  36 +-
+>  drivers/thermal/samsung/Kconfig                    |   9 -
+>  drivers/thermal/samsung/Makefile                   |   2 -
+>  drivers/thermal/samsung/exynos_thermal_common.c    | 427 ----------------
+>  drivers/thermal/samsung/exynos_thermal_common.h    | 106 ----
+>  drivers/thermal/samsung/exynos_tmu.c               | 553 +++++++++++++++=
++-----
+>  drivers/thermal/samsung/exynos_tmu.h               |  77 +--
+>  drivers/thermal/samsung/exynos_tmu_data.c          | 264 ----------
+>  include/dt-bindings/thermal/thermal_exynos.h       |  28 ++
+>  15 files changed, 596 insertions(+), 1090 deletions(-)
+>  delete mode 100644 drivers/thermal/samsung/exynos_thermal_common.c
+>  delete mode 100644 drivers/thermal/samsung/exynos_thermal_common.h
+>  delete mode 100644 drivers/thermal/samsung/exynos_tmu_data.c
+>  create mode 100644 include/dt-bindings/thermal/thermal_exynos.h
+
+
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJU4rM1AAoJEMLUO4d9pOJWINUH/Aw/8GQytj0bh2t+7QZ4hV+I
+2vvZnmn6oaO3YU4F29GJ1KQo9H8cPiXbWGAPU2pQoHUJyq8j1lBB8pPOiBo1gvvx
+j2X8eDVFZewcxJwouHuIvi10mv3MjNzYjaV9LS/RgpFwRArOdIH2QXDZRhvtTR9W
+FxCgoHRSFHu/fp3S9O6gRdTyjs8MT4glmDplF5eFStJzGzBNAj8WbvqPdetUvY+J
+SlddfMPEQsNX5vNeVZMg+Svg/7eFfpY4RNY9R0HHrNxrlC/FWAnPR5ATdrZQMyUf
+nsTRK2nm2M7mL41maslVRbT4z69HSrIUs4/tzHRxf4hv8nQo7II5IXMP5PaG288=
+=oMMM
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
