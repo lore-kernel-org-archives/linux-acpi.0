@@ -1,58 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / EC: Remove non-standard log emphasis
-Date: Wed, 18 Feb 2015 07:18:43 +0100
-Message-ID: <7706896.L1jj2myRTu@vostro.rjw.lan>
-References: <alpine.LNX.2.11.1502151932250.630@localhost>
+Subject: [PATCH] ACPI / resources: Change pr_info() to pr_debug() for debug information
+Date: Wed, 18 Feb 2015 07:20:46 +0100
+Message-ID: <7237946.IUPQ258J4L@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54556 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57933 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750787AbbBRFza (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:55:30 -0500
-In-Reply-To: <alpine.LNX.2.11.1502151932250.630@localhost>
+	with SMTP id S1750783AbbBRF5d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:57:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Scot Doyle <lkml14@scotdoyle.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>
 
-On Sunday, February 15, 2015 07:43:08 PM Scot Doyle wrote:
-> Remove unusual pr_info() visual emphasis introduced in ad479e7f47ca
-> "ACPI / EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag".
-> 
-> Signed-off-by: Scot Doyle <lkml14@scotdoyle.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applied, thanks!
+Annoying and noisy ACPI debug messages are printed with pr_info()
+after the recent ACPI resources handling rework.  Replace the
+pr_info() with pr_debug() to reduce to noise level.
 
-> ---
->  drivers/acpi/ec.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 982b67f..857175e 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -680,7 +680,7 @@ static void acpi_ec_start(struct acpi_ec *ec, bool resuming)
->  		/* Enable GPE for event processing (SCI_EVT=1) */
->  		if (!resuming)
->  			acpi_ec_submit_request(ec);
-> -		pr_info("+++++ EC started +++++\n");
-> +		pr_info("EC started\n");
->  	}
->  	spin_unlock_irqrestore(&ec->lock, flags);
->  }
-> @@ -712,7 +712,7 @@ static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
->  			acpi_ec_complete_request(ec);
->  		clear_bit(EC_FLAGS_STARTED, &ec->flags);
->  		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
-> -		pr_info("+++++ EC stopped +++++\n");
-> +		pr_info("EC stopped\n");
->  	}
->  	spin_unlock_irqrestore(&ec->lock, flags);
->  }
-> 
+Reported-by: Borislav Petkov <bp@alien8.de>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/resource.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/resource.c
++++ linux-pm/drivers/acpi/resource.c
+@@ -46,7 +46,7 @@ static bool acpi_dev_resource_len_valid(
+ 	if (len && reslen && reslen == len && start <= end)
+ 		return true;
+ 
+-	pr_info("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
++	pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
+ 		io ? "io" : "mem", start, end, len);
+ 
+ 	return false;
+
