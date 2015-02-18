@@ -1,60 +1,68 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] Revert "ACPI / LPSS: Remove non-existing clock control from Intel Lynxpoint I2C"
-Date: Wed, 18 Feb 2015 07:16:27 +0100
-Message-ID: <1912364.L5Uad8UjkH@vostro.rjw.lan>
-References: <1424075188-23834-1-git-send-email-jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH 01/35] ACPI/acpi_pad: Remove the local apic nonsense
+Date: Wed, 18 Feb 2015 07:16:58 +0100
+Message-ID: <1505923.WBzzAyg8Mf@vostro.rjw.lan>
+References: <20150216121435.203983131@infradead.org> <20150216122412.023909722@infradead.org> <1621111.kx7SauspkE@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58266 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750783AbbBRFxP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:53:15 -0500
-In-Reply-To: <1424075188-23834-1-git-send-email-jarkko.nikula@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1621111.kx7SauspkE@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: linux-kernel@vger.kernel.org, mingo@kernel.org, tglx@linutronix.de, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Chris Rorvick <chris@rorvick.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Monday, February 16, 2015 10:26:28 AM Jarkko Nikula wrote:
-> Revert commit b893e80e3147 ("ACPI / LPSS: Remove non-existing clock control
-> from Intel Lynxpoint I2C") because it causes touchpad to not load on Dell
-> XPS13.
+On Monday, February 16, 2015 07:54:12 PM Rafael J. Wysocki wrote:
+> On Monday, February 16, 2015 01:14:36 PM Peter Zijlstra wrote:
+> > From: Thomas Gleixner <tglx@linutronix.de>
+> > 
+> > While looking through the (ab)use of the clockevents_notify() function
+> > I stumbled over the following gem in the acpi_pad code:
+> > 
+> >   if (lapic_detected_unstable && !lapic_marked_unstable) {
+> >      /* LAPIC could halt in idle, so notify users */
+> >      for_each_online_cpu(i)
+> >        clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &i);
+> >      lapic_marked_unstable = 1;
+> >   }
+> > 
+> > This code calls on the cpu which detects the lapic unstable condition
+> > first clockevents_notify() to tell the core code that the broadcast
+> > should be enabled on all online cpus. Brilliant stuff that as it
+> > notifies the core code a num_online_cpus() times that the broadcast
+> > should be enabled on the current cpu.
+> > 
+> > This probably has never been noticed because that code got never
+> > tested with NOHZ=n and HIGHRES_TIMER=n or it just worked by chance
+> > because one of the other mechanisms told the core in the right way
+> > that the local apic timer is wreckaged.
+> > 
+> > Sigh, this is:
+> > 
+> >  - The 4th incarnation of idle drivers which has their own mechanism
+> >    to detect and deal with X86_FEATURE_ARAT.
+> > 
+> >  - The 2nd incarnation of fake idle mechanisms with a different set of
+> >    brainmelting bugs.
+> > 
+> >  - Has been merged against an explicit NAK of the scheduler
+> >    maintainer with the promise to improve it over time.
+> > 
+> >  - Another example of featuritis driven trainwreck engineering.
+> > 
+> >  - Another pointless waste of my time.
+> > 
+> > Fix this nonsense by removing that lapic detection and notification
+> > logic and simply call into the clockevents code unconditonally. The
+> > ARAT feature is marked in the lapic clockevent already so the core
+> > code will just ignore the requests and return.
+> > 
+> > Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 > 
-> Regression is a clear indication that not only some early prototype version
-> of Lynxpoint I2C but also newer versions can be doing clock gating even
-> documentation does not state it.
-> 
-> Therefore it is best to revert since this clock gating haven't caused known
-> issues on those Lynxpoint version which don't do clock gating.
-> 
-> Reported-by: Chris Rorvick <chris@rorvick.com>
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applied, thanks!
+Or I can apply it right away if you want me to.
 
-> ---
-> For v3.20.
-> ---
->  drivers/acpi/acpi_lpss.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 02e835f3cf8a..fa0e3d61e5e7 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -125,7 +125,7 @@ static struct lpss_device_desc lpt_dev_desc = {
->  };
->  
->  static struct lpss_device_desc lpt_i2c_dev_desc = {
-> -	.flags = LPSS_CLK | LPSS_LTR,
-> +	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR,
->  	.prv_offset = 0x800,
->  };
->  
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Rafael
