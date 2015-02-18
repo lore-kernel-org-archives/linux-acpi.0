@@ -1,159 +1,124 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [GIT PULL] Thermal SoC management updates for v3.20 #1
-Date: Mon, 16 Feb 2015 23:19:28 -0400
-Message-ID: <20150217031926.GA3952@developer.amazonguestwifi.org>
-References: <20150206033952.GE3486@developer.amazonguestwifi.org>
+From: Jakub Sitnicki <jsitnicki@gmail.com>
+Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
+Date: Wed, 18 Feb 2015 21:51:25 +0100
+Message-ID: <87d257c59u.fsf@frog.home>
+References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <87vbl4lynj.fsf@frog.home> <2588457.Skz2ar9t5B@vostro.rjw.lan> <4174933.zlqXrqM7AO@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:32946 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360AbbBRUkh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 15:40:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20150206033952.GE3486@developer.amazonguestwifi.org>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:34083 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752202AbbBRUv2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 15:51:28 -0500
+In-reply-to: <4174933.zlqXrqM7AO@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Fri, Jan 30, 2015 at 01:01 AM CET, Rafael J. Wysocki wrote:
+> On Monday, December 22, 2014 11:34:48 PM Rafael J. Wysocki wrote:
+>> On Monday, December 22, 2014 12:19:44 PM Jakub Sitnicki wrote:
+>> > On Fri, Dec 12, 2014 at 08:47 AM CET, Jakub Sitnicki wrote:
+>> > > Rafael J. Wysocki <rjw@rjwysocki.net> writes:
+>> > >
+>> > >> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
+>> > >>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+>> > >>> index 782e822..f980ff7 100644
+>> > >>> --- a/drivers/pnp/resource.c
+>> > >>> +++ b/drivers/pnp/resource.c
+>> > >>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
+>> > >>>  	/* check if the resource is already in use, skip if the
+>> > >>>  	 * device is active because it itself may be in use */
+>> > >>>  	if (!dev->active) {
+>> > >>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
+>> > >>> +		if (!request_region(*port, length(port, end), "pnp"))
+>> > >>>  			return 0;
+>> > >>> +		release_region(*port, length(port, end));
+>> > >>
+>> > >> Shouldn't we also release the resource returned by request_region() if it is
+>> > >> not NULL?
+>> > >>
+>> > >
+>> > > Thanks for taking a look at this. I think we're good here. If you please
+>> > > bear with me for a moment:
+>> > >
+>> > > release_resource() removes an element from the list of resource parent's
+>> > > children (and makes it an orphan):
+>> > >
+>> > > 	p = &old->parent->child;
+>> > > 	for (;;) {
+>> > > 		tmp = *p;
+>> > > 		if (!tmp)
+>> > > 			break;
+>> > > 		if (tmp == old) {
+>> > > 			*p = tmp->sibling;
+>> > > 			old->parent = NULL;
+>> > > 			return 0;
+>> > > 		}
+>> > > 		p = &tmp->sibling;
+>> > > 	}
+>> > >
+>> > > release_region() does the same but with additional checks, and also
+>> > > frees the resource:
+>> > >
+>> > > 	p = &parent->child;
+>> > >         /* ... */
+>> > > 	for (;;) {
+>> > > 		struct resource *res = *p;
+>> > >
+>> > > 		if (!res)
+>> > > 			break;
+>> > > 		if (res->start <= start && res->end >= end) {
+>> > >                         /* ... */
+>> > > 			*p = res->sibling;
+>> > >                         /* ... */
+>> > > 			free_resource(res);
+>> > > 			return;
+>> > > 		}
+>> > > 		p = &res->sibling;
+>> > > 	}
+>> > >
+>> > > When making the change I've based on other code in the kernel which also
+>> > > make use of request_region().
+>> > >
+>> > > To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
+>> > > I/O port region when initialization fails like so:
+>> > >
+>> > > static int ne2k_pci_init_one(struct pci_dev *pdev,
+>> > > 			     const struct pci_device_id *ent)
+>> > > {
+>> > >         /* ... */
+>> > >
+>> > > 	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
+>> > > 		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
+>> > > 			NE_IO_EXTENT, ioaddr);
+>> > > 		return -EBUSY;
+>> > > 	}
+>> > >
+>> > >         /* ... */
+>> > >
+>> > > 	dev = alloc_ei_netdev();
+>> > > 	if (!dev) {
+>> > > 		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
+>> > > 		goto err_out_free_res;
+>> > > 	}
+>> > >
+>> > >         /* ... */
+>> > >
+>> > > err_out_free_res:
+>> > > 	release_region (ioaddr, NE_IO_EXTENT);
+>> > > 	return -ENODEV;
+>> > > }
+>> > 
+>> > Just wondering, do you have any further thoughts on this?
+>> 
+>> I'll queue it up for 3.20 later in January.
+>
+> Done now.
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If you don't mind me asking, is this going to go through the linux-pm
+tree?
 
-Rui,
-
-On Thu, Feb 05, 2015 at 11:39:56PM -0400, Eduardo Valentin wrote:
-> Hello Rui,
->=20
-> Please pull from
->=20
->   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-therma=
-l.git fixes
->=20
-> to receive Thermal SoC Management updates for v3.20 with top-most
->=20
-> 6c247393cfdd6695717f80ff31f9fd9af8c2c525:
->=20
->   thermal: exynos: Add TMU support for Exynos7 SoC (2015-01-31 15:20:45 -=
-0400)
->=20
-> on top of commit b97f880c8342fd6e49a02c9ef7507a678722b2b3:
->=20
->   Merge branch 'for-3.19-fixes' of git://git.kernel.org/pub/scm/linux/ker=
-nel/git/tj/libata (2015-01-21 07:54:16 +1200)
->=20
-> Specifics:
->=20
-> - Exynos thermal driver refactoring. Several cleanups, code optimization,=
- unused
-> symbols removal, and unused feature removal in Exynos thermal driver. Tha=
-nks
-> Lukasz for this effort.
-> - Exynos thermal driver support to OF thermal. After the code refactoring,
-> the driver earned the support to OF thermal. Chip thermal data were moved
-> from driver code to DTS, reducing the code footprint. Thanks Lukasz for t=
-his.
-> - After receiving the OF thermal support, the exynos thermal driver now m=
-ust
-> allow modular build. Thanks Arnd for detecting, reporting and fixing this.
-> - Exynos thermal driver support to Exynos 7 SoC. Thanks Abhilash for this.
-> - Accurate temperature reporting on Rockchip thermal driver, thanks to Ca=
-esar.
-> - Fix on how OF thermal enables its zones, thanks Lukasz for fixing.
-> - Fixes in OF thermal examples under Documentation/. Thanks Srinivas for =
-fixing.
->=20
-
-A gentle reminder. Please pull this one.
-
->=20
-> PS: I might be sending more changes regarding Thermal Zone Binding
-> Parameters and how we represent weights. I need to finish a couple of
-> testing on that code. But it should make 3.20 too.
-
-These patches won't be sent now. They are still under review. Please
-consider only the current pull request.
-
->=20
-> BR,
->=20
-> Eduardo Valentin
-> ----------------------------------------------------------------
-> Abhilash Kesavan (2):
->       dts: Documentation: Add documentation for Exynos7 SoC thermal bindi=
-ngs
->       thermal: exynos: Add TMU support for Exynos7 SoC
->=20
-> Arnd Bergmann (1):
->       cpufreq: exynos: allow modular build
->=20
-> Caesar Wang (1):
->       thermal: rockchip: make temperature reporting much more accurate
->=20
-> Lukasz Majewski (12):
->       thermal: of: Enable thermal_zoneX when sensor is correctly added
->       thermal: exynos: cosmetic: Correct comment format
->       thermal: exynos: Provide thermal_exynos.h file to be included in de=
-vice tree files
->       thermal: exynos: Modify exynos thermal code to use device tree for =
-cpu cooling configuration
->       cpufreq: exynos: Use device tree to determine if cpufreq cooling sh=
-ould be registered
->       dts: Documentation: Extending documentation entry for exynos-thermal
->       dts: Documentation: Update exynos-thermal.txt example for Exynos5440
->       thermal: samsung: core: Exynos TMU rework to use device tree for co=
-nfiguration
->       thermal: exynos: Remove exynos_thermal_common.[c|h] files
->       thermal: exynos: Remove exynos_tmu_data.c file
->       thermal: Kconfig: Remove config for not used EXYNOS_THERMAL_CORE
->       thermal: exynos: Correct sanity check at exynos_report_trigger() fu=
-nction
->=20
-> Srinivas Kandagatla (1):
->       thermal: Fix examples in DT documentation
->=20
->  .../devicetree/bindings/thermal/exynos-thermal.txt |  21 +
->  .../devicetree/bindings/thermal/thermal.txt        |  74 +--
->  drivers/cpufreq/Kconfig.arm                        |  44 +-
->  drivers/cpufreq/Makefile                           |   9 +-
->  drivers/cpufreq/exynos-cpufreq.c                   |  33 +-
->  drivers/thermal/of-thermal.c                       |   3 +
->  drivers/thermal/rockchip_thermal.c                 |  36 +-
->  drivers/thermal/samsung/Kconfig                    |   9 -
->  drivers/thermal/samsung/Makefile                   |   2 -
->  drivers/thermal/samsung/exynos_thermal_common.c    | 427 ----------------
->  drivers/thermal/samsung/exynos_thermal_common.h    | 106 ----
->  drivers/thermal/samsung/exynos_tmu.c               | 553 +++++++++++++++=
-+-----
->  drivers/thermal/samsung/exynos_tmu.h               |  77 +--
->  drivers/thermal/samsung/exynos_tmu_data.c          | 264 ----------
->  include/dt-bindings/thermal/thermal_exynos.h       |  28 ++
->  15 files changed, 596 insertions(+), 1090 deletions(-)
->  delete mode 100644 drivers/thermal/samsung/exynos_thermal_common.c
->  delete mode 100644 drivers/thermal/samsung/exynos_thermal_common.h
->  delete mode 100644 drivers/thermal/samsung/exynos_tmu_data.c
->  create mode 100644 include/dt-bindings/thermal/thermal_exynos.h
-
-
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJU4rM1AAoJEMLUO4d9pOJWINUH/Aw/8GQytj0bh2t+7QZ4hV+I
-2vvZnmn6oaO3YU4F29GJ1KQo9H8cPiXbWGAPU2pQoHUJyq8j1lBB8pPOiBo1gvvx
-j2X8eDVFZewcxJwouHuIvi10mv3MjNzYjaV9LS/RgpFwRArOdIH2QXDZRhvtTR9W
-FxCgoHRSFHu/fp3S9O6gRdTyjs8MT4glmDplF5eFStJzGzBNAj8WbvqPdetUvY+J
-SlddfMPEQsNX5vNeVZMg+Svg/7eFfpY4RNY9R0HHrNxrlC/FWAnPR5ATdrZQMyUf
-nsTRK2nm2M7mL41maslVRbT4z69HSrIUs4/tzHRxf4hv8nQo7II5IXMP5PaG288=
-=oMMM
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+Thanks,
+Jakub
