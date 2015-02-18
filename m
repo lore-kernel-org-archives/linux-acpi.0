@@ -1,43 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / resources: Change pr_info() to pr_debug() for debug information
-Date: Wed, 18 Feb 2015 07:20:46 +0100
-Message-ID: <7237946.IUPQ258J4L@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57933 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750783AbbBRF5d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:57:33 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 2/2] ACPI / LPSS: Deassert resets for SPI host controllers on Braswell
+Date: Wed, 18 Feb 2015 13:50:17 +0200
+Message-ID: <1424260217-7719-2-git-send-email-mika.westerberg@linux.intel.com>
+References: <1424260217-7719-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424260217-7719-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Yang A Fang <yang.a.fang@intel.com>, Yu Chen <yu.c.chen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On some Braswell systems BIOS leaves resets for SPI host controllers
+active. This prevents the SPI driver from transferring messages on wire.
 
-Annoying and noisy ACPI debug messages are printed with pr_info()
-after the recent ACPI resources handling rework.  Replace the
-pr_info() with pr_debug() to reduce to noise level.
+Fix this in similar way that we do for I2C already by deasserting resets
+for the SPI host controllers.
 
-Reported-by: Borislav Petkov <bp@alien8.de>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reported-by: Yang A Fang <yang.a.fang@intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/resource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpi_lpss.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-Index: linux-pm/drivers/acpi/resource.c
-===================================================================
---- linux-pm.orig/drivers/acpi/resource.c
-+++ linux-pm/drivers/acpi/resource.c
-@@ -46,7 +46,7 @@ static bool acpi_dev_resource_len_valid(
- 	if (len && reslen && reslen == len && start <= end)
- 		return true;
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 64ccc3bb0826..7d5880ded78a 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -105,9 +105,7 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
+ 	}
+ }
  
--	pr_info("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-+	pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
- 		io ? "io" : "mem", start, end, len);
+-#define LPSS_I2C_ENABLE			0x6c
+-
+-static void byt_i2c_setup(struct lpss_private_data *pdata)
++static void lpss_deassert_reset(struct lpss_private_data *pdata)
+ {
+ 	unsigned int offset;
+ 	u32 val;
+@@ -116,6 +114,13 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
+ 	val = readl(pdata->mmio_base + offset);
+ 	val |= LPSS_RESETS_RESET_APB | LPSS_RESETS_RESET_FUNC;
+ 	writel(val, pdata->mmio_base + offset);
++}
++
++#define LPSS_I2C_ENABLE			0x6c
++
++static void byt_i2c_setup(struct lpss_private_data *pdata)
++{
++	lpss_deassert_reset(pdata);
  
- 	return false;
-
+ 	if (readl(pdata->mmio_base + pdata->dev_desc->prv_offset))
+ 		pdata->fixed_clk_rate = 133000000;
+@@ -170,6 +175,12 @@ static struct lpss_device_desc byt_i2c_dev_desc = {
+ 	.setup = byt_i2c_setup,
+ };
+ 
++static struct lpss_device_desc bsw_spi_dev_desc = {
++	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_SAVE_CTX,
++	.prv_offset = 0x400,
++	.setup = lpss_deassert_reset,
++};
++
+ #else
+ 
+ #define LPSS_ADDR(desc) (0UL)
+@@ -202,7 +213,7 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+ 	/* Braswell LPSS devices */
+ 	{ "80862288", LPSS_ADDR(byt_pwm_dev_desc) },
+ 	{ "8086228A", LPSS_ADDR(byt_uart_dev_desc) },
+-	{ "8086228E", LPSS_ADDR(byt_spi_dev_desc) },
++	{ "8086228E", LPSS_ADDR(bsw_spi_dev_desc) },
+ 	{ "808622C1", LPSS_ADDR(byt_i2c_dev_desc) },
+ 
+ 	{ "INT3430", LPSS_ADDR(lpt_dev_desc) },
+-- 
+2.1.4
