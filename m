@@ -1,68 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / video: Disable native backlight on Samsung Series 9 laptops
-Date: Wed, 18 Feb 2015 07:17:38 +0100
-Message-ID: <1668253.lH3vbgZ7Zy@vostro.rjw.lan>
-References: <20150216052443.GA11266@aaronlu.sh.intel.com> <1424196449-21813-1-git-send-email-jens.reyer@gmail.com>
+Subject: Re: [PATCH] ACPI / EC: Remove non-standard log emphasis
+Date: Wed, 18 Feb 2015 07:18:43 +0100
+Message-ID: <7706896.L1jj2myRTu@vostro.rjw.lan>
+References: <alpine.LNX.2.11.1502151932250.630@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63258 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:54556 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751137AbbBRFyZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:54:25 -0500
-In-Reply-To: <1424196449-21813-1-git-send-email-jens.reyer@gmail.com>
+	with SMTP id S1750787AbbBRFza (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:55:30 -0500
+In-Reply-To: <alpine.LNX.2.11.1502151932250.630@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jens Reyer <jens.reyer@gmail.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Scot Doyle <lkml14@scotdoyle.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, February 17, 2015 07:07:29 PM Jens Reyer wrote:
-> Add video_disable_native_backlight quirk for SAMSUNG 900X3C/900X3D/
-> 900X3E/900X4C/900X4D laptops.
+On Sunday, February 15, 2015 07:43:08 PM Scot Doyle wrote:
+> Remove unusual pr_info() visual emphasis introduced in ad479e7f47ca
+> "ACPI / EC: Introduce STARTED/STOPPED flags to replace BLOCKED flag".
 > 
-> The native intel backlight controls do not work correctly on SAMSUNG
-> Series 9 (900X3C/900X3D/900X3E/900X4C/900X4D) laptops:
-> One machine has an completely dimmed (= black) display after boot at the
-> GDM login screen and brightness controls work only between 0 and 5%
-> (= no effect).
-> Another machine has the same brightness control issues if an external
-> HDMI monitor is or gets connected, although the initial brightness is
-> ok.
-> After login to Gnome both machines always work fine.
-> 
-> Tested on both machines.
-> 
-> Bug-Link: https://bugs.freedesktop.org/show_bug.cgi?id=87286
-> Bug-Link: https://bugs.debian.org/772440
-> Signed-off-by: Jens Reyer <jens.reyer@gmail.com>
+> Signed-off-by: Scot Doyle <lkml14@scotdoyle.com>
 
 Applied, thanks!
 
 > ---
->  drivers/acpi/video.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
+>  drivers/acpi/ec.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 88a4f99..debd309 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -540,6 +540,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "730U3E/740U3E"),
->  		},
->  	},
-> +	{
-> +	 /* https://bugs.freedesktop.org/show_bug.cgi?id=87286 */
-> +	 .callback = video_disable_native_backlight,
-> +	 .ident = "SAMSUNG 900X3C/900X3D/900X3E/900X4C/900X4D",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "900X3C/900X3D/900X3E/900X4C/900X4D"),
-> +		},
-> +	},
->  
->  	{
->  	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 982b67f..857175e 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -680,7 +680,7 @@ static void acpi_ec_start(struct acpi_ec *ec, bool resuming)
+>  		/* Enable GPE for event processing (SCI_EVT=1) */
+>  		if (!resuming)
+>  			acpi_ec_submit_request(ec);
+> -		pr_info("+++++ EC started +++++\n");
+> +		pr_info("EC started\n");
+>  	}
+>  	spin_unlock_irqrestore(&ec->lock, flags);
+>  }
+> @@ -712,7 +712,7 @@ static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
+>  			acpi_ec_complete_request(ec);
+>  		clear_bit(EC_FLAGS_STARTED, &ec->flags);
+>  		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
+> -		pr_info("+++++ EC stopped +++++\n");
+> +		pr_info("EC stopped\n");
+>  	}
+>  	spin_unlock_irqrestore(&ec->lock, flags);
+>  }
 > 
 
 -- 
