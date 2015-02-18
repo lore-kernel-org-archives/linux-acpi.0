@@ -1,65 +1,59 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 3/6] x86, acpi, pci: Move PCI config space accessors.
-Date: Wed, 18 Feb 2015 13:02:56 -0600
-Message-ID: <CAL_Jsq+vR2-YbfVqQ2hFCRLyWUZJW4_Ki+ZFRz1=JTeOiE07Lw@mail.gmail.com>
-References: <1416413091-13452-1-git-send-email-tomasz.nowicki@linaro.org>
- <1416413091-13452-4-git-send-email-tomasz.nowicki@linaro.org>
- <20141210231746.GF6692@google.com> <54E33C05.9010300@linaro.org> <20150218182739.GA17462@google.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 0/4] int to bool conversion
+Date: Wed, 18 Feb 2015 19:09:28 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D27FE3F@ORSMSX112.amr.corp.intel.com>
+References: <20150122084941.GA14651@sloth>
+ <1659960.ohcxabvmYi@vostro.rjw.lan> <54C5FB3F.6000803@gmail.com>
+ <2189735.DtT3OIbRBT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:51653 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753542AbbBRTDS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 14:03:18 -0500
-In-Reply-To: <20150218182739.GA17462@google.com>
+Received: from mga02.intel.com ([134.134.136.20]:14483 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753987AbbBRTJc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Feb 2015 14:09:32 -0500
+In-Reply-To: <2189735.DtT3OIbRBT@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, "x86@kernel.org" <x86@kernel.org>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, "H. Peter Anvin" <hpa@zytor.com>, Yijing Wang <wangyijing@huawei.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Quentin Lambert <lambert.quentin@gmail.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Shaohua Li <shaohua.li@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Feb 18, 2015 at 12:27 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Tue, Feb 17, 2015 at 02:03:01PM +0100, Tomasz Nowicki wrote:
->> On 11.12.2014 00:17, Bjorn Helgaas wrote:
->> >On Wed, Nov 19, 2014 at 05:04:48PM +0100, Tomasz Nowicki wrote:
->> >>We are going to use mmio_config_{} name convention across all architectures.
->> >
->> >mmio_config_*() are workarounds for an AMD Fam10h defect [1].  I would prefer
->> >not to extend these names to other architectures, because they should be
->> >able to use readb()/writeb()/etc. directly, as we did on x86 before
->> >3320ad994afb ("x86: Work around mmio config space quirk on AMD Fam10h").
->> >
->> >In fact, it would be nice if we could use readb()/writeb()/etc. on x86, and
->> >only use mmio_config_*() when we're on AMD Fam10h.  Maybe there could be a
->> >"struct pci_raw_ops pci_mmcfg_amd_fam10h" that used mmio_config_*(), and we
->> >could set raw_pci_ext_ops to those ops instead of the default ones when
->> >we're on AMD Fam10h.  Then x86 should be able to use the generic
->> >readb()-based ops on most platforms.
->>
->> While I do agree we should use readb()/writeb()... methods, I am not
->> sure there is a nice way to use mmio_config_*() exclusively for AMD
->> Fam10h. For x86, right now, we have three PCI config accessors sets:
->> mmconfig_32.c, mmconfig_64.c, numachip.c and each are different. So
->> one pci_mmcfg_amd_fam10h pci_raw_ops is not enough. I am thinking of
->> having additional structure (integrated with "struct
->> pci_mmcfg_region") that keeps MMIO accessors where readb()/writeb()
->> would be the default one. For AMD Fam10h case we could tweak it as
->> necessary. What do you thing Bjorn?
->
-> It's OK if we use mmio_config_*() for all x86 (not just AMD Fam10h); that's
-> what we do today.  It'd be *nicer* if we could use the workaround only for
-> Fam10h, but if it complicates the code, don't bother.
->
-> My main point is that I think your v1 posting requires every arch to
-> implement mmio_config_*(), and they will all be the same.  If an arch
-> doesn't require a workaround, it shouldn't have to supply anything and we
-> should default to readb/writeb/etc.
-
-Perhaps the abstraction needs to move up a level to pci_ops functions.
-Then x86 can use the generic ones I added and AMD can use custom ones.
-
-BTW, there are some cases on MIPS that need special accessors. It's
-mainly a function of whether the accessors need to do endian swapping
-or not.
-
-Rob
+ImJvb2wiIGNhbiBiZSBwcm9ibGVtYXRpYyBhcyBpdCBpc24ndCB0b3RhbGx5IHBvcnRhYmxlLiBJ
+dCBpcyB1c3VhbGx5IGltcGxlbWVudGVkIGFzIGEgbWFjcm8uDQoNClRoYXTigJlzIHdoeSBBQ1BJ
+Q0EgZG9lc24ndCB1c2UgaXQuDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBG
+cm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBTZW50
+OiBNb25kYXksIEphbnVhcnkgMjYsIDIwMTUgNTozMyBBTQ0KPiBUbzogUXVlbnRpbiBMYW1iZXJ0
+DQo+IENjOiBaaGFuZywgUnVpOyBNb29yZSwgUm9iZXJ0OyBaaGVuZywgTHY7IFd5c29ja2ksIFJh
+ZmFlbCBKOyBMZW4gQnJvd247DQo+IFNoYW9odWEgTGk7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
+b3JnOyBkZXZlbEBhY3BpY2Eub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZw0K
+PiBTdWJqZWN0OiBSZTogW1BBVENIIDAvNF0gaW50IHRvIGJvb2wgY29udmVyc2lvbg0KPiANCj4g
+T24gTW9uZGF5LCBKYW51YXJ5IDI2LCAyMDE1IDA5OjMwOjU1IEFNIFF1ZW50aW4gTGFtYmVydCB3
+cm90ZToNCj4gPiBTb3JyeSBmb3IgdGhlIGRlbGF5IGluIGFuc3dlcmluZyAuLi4uDQo+ID4NCj4g
+PiBPbiAyMi8wMS8yMDE1IDE3OjE4LCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiA+IE9u
+IFRodXJzZGF5LCBKYW51YXJ5IDIyLCAyMDE1IDA5OjQ5OjQxIEFNIFF1ZW50aW4gTGFtYmVydCB3
+cm90ZToNCj4gPiA+PiBUaGVzZSBwYXRjaGVzIGNvbnZlcnQgbG9jYWwgdmFyaWFibGVzIGZyb20g
+aW50IHRvIGJvb2wgd2hlbiByZWxldmFudC4NCj4gPiA+IEFuZCB3aGF0IGV4YWN0bHkgaXMgdGhl
+IG5lZWQgZm9yIHRoYXQ/ICBEb2VzIHRoYXQgZml4IGFueSBmdW5jdGlvbmFsDQo+IHByb2JsZW1z
+Pw0KPiA+ID4NCj4gPiA+DQo+ID4gSXQgZG9lc24ndCBmaXggYW55IGZ1bmN0aW9uYWwgcHJvYmxl
+bS4gVGhlIHBvaW50IG9mIHRoaXMgcGF0Y2ggaXMgdG8NCj4gPiBpbmNyZWFzZSB0aGUgY29kZSBy
+ZWFkYWJpbGl0eSBieSBsaWZ0aW5nIHNvbWUgb2YgdGhlIGFtYmlndWl0aWVzIHRoYXQNCj4gPiBh
+cHBlYXIgd2hlbiB1c2luZyBhbiBpbnRlZ2VyIHZhcmlhYmxlIGFzIGJvb2xlYW4uDQo+ID4NCj4g
+PiBNeSB1bmRlcnN0YW5kaW5nIGlzIHRoYXQgYnkgZXhwbGljaXRseSB1c2luZyBhIGJvb2xlYW4g
+ZGVjbGFyYXRpb24NCj4gPiB3aGVuIGl0IGlzIHJlbGV2YW50IGl0IGNsZWFybHkgaW5mb3JtcyB0
+aGUgcmVhZGVyIHRoYXQgdGhlIHZhcmlhYmxlIGlzDQo+ID4gZ29pbmcgdG8gcmVwcmVzZW50IGEg
+YmluYXJ5IHN0YXRlLiBNb3Jlb3ZlciwgdXNpbmcgdGhlIGtleXdvcmRzIHRydWUNCj4gPiBhbmQg
+ZmFsc2UgaGVscCBpbmRpY2F0ZSB0aGF0IHRoZSB2YXJpYWJsZSB3aWxsIG5vdCBiZSBpbnZvbHZl
+ZCBpbiBhbnkNCj4gPiBjb21wdXRhdGlvbiBvdGhlciB0aGFuIGJvb2xlYW4gYXJpdGhtZXRpYy4N
+Cj4gDQo+IFdlbGwsIGluIHRoZSBuZXcgY29kZSwgeWVzLiAgVGhlIGV4aXN0aW5nIGNvZGUgaXMg
+YSBkaWZmZXJlbnQgbWF0dGVyDQo+IHRob3VnaCBhbmQgaXQgZG9lc24ndCBhY3R1YWxseSBodXJ0
+IGlmIHlvdSBsZWF2ZSB0aGUgaW50cyB3aGVyZSB0aGV5IGFyZSwNCj4gc28gdGhlcmUncyBubyBy
+ZWFzb24gdG8gbWFrZSB0aG9zZSBjaGFuZ2VzLg0KPiANCj4gSWYgeW91IGNoYW5nZSBvbGQgY29k
+ZSBhbmQgdGhlIGNoYW5nZSBpcyBub3QgdHJpdmlhbCAoZWcuIGZpeGVzIG9mIHdoaXRlDQo+IHNw
+YWNlIG9yIGNvbW1lbnRzLCBvciBrZXJuZWwgbWVzc2FnZXMgZXRjLikgYW5kIHNvbWVvbmUgZW5v
+dW50ZXJzIGEgYnVnDQo+IHRoYXQgbWF5IGJlIHJlbGF0ZWQgdG8gaXQsIHRoZXkgd2lsbCBoYXZl
+IHRvIGdvIHRocm91Z2ggeW91ciBjaGFuZ2VzIHRvDQo+IHNlZSBpZiB0aGF0J3Mgbm90IHRoZSBz
+b3VyY2Ugb2YgdGhlIGJ1Zy4gIFRoYXQncyBub3QgcmVhbGx5IHByb2R1Y3RpdmUuDQo+IA0KPiAN
+Cj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJ
+bnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
