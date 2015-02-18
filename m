@@ -1,45 +1,60 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] x86, irq: Fix regression caused by commit b568b8601f05
-Date: Tue, 17 Feb 2015 19:50:12 +0100
-Message-ID: <20150217185012.GI7119@twins.programming.kicks-ass.net>
-References: <1424039150-4115-1-git-send-email-syrjala@sci.fi>
- <1424052673-22974-1-git-send-email-jiang.liu@linux.intel.com>
- <20150216193637.GA13497@amd>
- <14690730.85W95cg85M@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Revert "ACPI / LPSS: Remove non-existing clock control from Intel Lynxpoint I2C"
+Date: Wed, 18 Feb 2015 07:16:27 +0100
+Message-ID: <1912364.L5Uad8UjkH@vostro.rjw.lan>
+References: <1424075188-23834-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <14690730.85W95cg85M@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <jiang.liu@linux.intel.com>, Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Sander Eikelenboom <linux@eikelenboom.it>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58266 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750783AbbBRFxP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 00:53:15 -0500
+In-Reply-To: <1424075188-23834-1-git-send-email-jarkko.nikula@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Chris Rorvick <chris@rorvick.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tue, Feb 17, 2015 at 06:55:14PM +0100, Rafael J. Wysocki wrote:
-> On Monday, February 16, 2015 08:36:37 PM Pavel Machek wrote:
-> > On Mon 2015-02-16 10:11:13, Jiang Liu wrote:
-> > > Commit b568b8601f05 ("Treat SCI interrupt as normal GSI interrupt=
-")
-> > > accidently removes support of legacy PIC interrupt when fixing a
-> >=20
-> > accidentaly?
-> >=20
-> > > regression for Xen, which causes a nasty regression on HP/Compaq
-> > > nc6000 where we fail to register the ACPI interrupt, and thus
-> > > lose eg. thermal notifications leading a potentially overheated
-> > > machine.
-> > >=20
-> > > So reintroduce support of legacy PIC based ACPI SCI interrupt.
-> > >=20
-> > > Reported-by: Ville Syrj=E4l=E4 <syrjala@sci.fi>
-> > > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >=20
-> > Acked-by: Pavel Machek <pavel@ucw.cz>
->=20
-> Is anyone taking care of this one or should I take it?
->=20
-> Ingo, Peter?
+On Monday, February 16, 2015 10:26:28 AM Jarkko Nikula wrote:
+> Revert commit b893e80e3147 ("ACPI / LPSS: Remove non-existing clock control
+> from Intel Lynxpoint I2C") because it causes touchpad to not load on Dell
+> XPS13.
+> 
+> Regression is a clear indication that not only some early prototype version
+> of Lynxpoint I2C but also newer versions can be doing clock gating even
+> documentation does not state it.
+> 
+> Therefore it is best to revert since this clock gating haven't caused known
+> issues on those Lynxpoint version which don't do clock gating.
+> 
+> Reported-by: Chris Rorvick <chris@rorvick.com>
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-Gots it, thanks!
+Applied, thanks!
+
+> ---
+> For v3.20.
+> ---
+>  drivers/acpi/acpi_lpss.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 02e835f3cf8a..fa0e3d61e5e7 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -125,7 +125,7 @@ static struct lpss_device_desc lpt_dev_desc = {
+>  };
+>  
+>  static struct lpss_device_desc lpt_i2c_dev_desc = {
+> -	.flags = LPSS_CLK | LPSS_LTR,
+> +	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR,
+>  	.prv_offset = 0x800,
+>  };
+>  
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
