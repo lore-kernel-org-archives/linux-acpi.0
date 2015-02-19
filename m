@@ -1,124 +1,35 @@
-From: Jakub Sitnicki <jsitnicki@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Subject: Re: [PATCH] PNP: Switch from __check_region() to __request_region()
-Date: Wed, 18 Feb 2015 21:51:25 +0100
-Message-ID: <87d257c59u.fsf@frog.home>
-References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <87vbl4lynj.fsf@frog.home> <2588457.Skz2ar9t5B@vostro.rjw.lan> <4174933.zlqXrqM7AO@vostro.rjw.lan>
+Date: Thu, 19 Feb 2015 02:04:55 +0100
+Message-ID: <2438859.gjgd37P7OQ@vostro.rjw.lan>
+References: <1418072517-5413-1-git-send-email-jsitnicki@gmail.com> <4174933.zlqXrqM7AO@vostro.rjw.lan> <87d257c59u.fsf@frog.home>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:34083 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752202AbbBRUv2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Feb 2015 15:51:28 -0500
-In-reply-to: <4174933.zlqXrqM7AO@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87d257c59u.fsf@frog.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jakub Sitnicki <jsitnicki@gmail.com>
 Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 30, 2015 at 01:01 AM CET, Rafael J. Wysocki wrote:
-> On Monday, December 22, 2014 11:34:48 PM Rafael J. Wysocki wrote:
->> On Monday, December 22, 2014 12:19:44 PM Jakub Sitnicki wrote:
->> > On Fri, Dec 12, 2014 at 08:47 AM CET, Jakub Sitnicki wrote:
->> > > Rafael J. Wysocki <rjw@rjwysocki.net> writes:
->> > >
->> > >> On Monday, December 08, 2014 10:01:57 PM Jakub Sitnicki wrote:
->> > >>> diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
->> > >>> index 782e822..f980ff7 100644
->> > >>> --- a/drivers/pnp/resource.c
->> > >>> +++ b/drivers/pnp/resource.c
->> > >>> @@ -179,8 +179,9 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
->> > >>>  	/* check if the resource is already in use, skip if the
->> > >>>  	 * device is active because it itself may be in use */
->> > >>>  	if (!dev->active) {
->> > >>> -		if (__check_region(&ioport_resource, *port, length(port, end)))
->> > >>> +		if (!request_region(*port, length(port, end), "pnp"))
->> > >>>  			return 0;
->> > >>> +		release_region(*port, length(port, end));
->> > >>
->> > >> Shouldn't we also release the resource returned by request_region() if it is
->> > >> not NULL?
->> > >>
->> > >
->> > > Thanks for taking a look at this. I think we're good here. If you please
->> > > bear with me for a moment:
->> > >
->> > > release_resource() removes an element from the list of resource parent's
->> > > children (and makes it an orphan):
->> > >
->> > > 	p = &old->parent->child;
->> > > 	for (;;) {
->> > > 		tmp = *p;
->> > > 		if (!tmp)
->> > > 			break;
->> > > 		if (tmp == old) {
->> > > 			*p = tmp->sibling;
->> > > 			old->parent = NULL;
->> > > 			return 0;
->> > > 		}
->> > > 		p = &tmp->sibling;
->> > > 	}
->> > >
->> > > release_region() does the same but with additional checks, and also
->> > > frees the resource:
->> > >
->> > > 	p = &parent->child;
->> > >         /* ... */
->> > > 	for (;;) {
->> > > 		struct resource *res = *p;
->> > >
->> > > 		if (!res)
->> > > 			break;
->> > > 		if (res->start <= start && res->end >= end) {
->> > >                         /* ... */
->> > > 			*p = res->sibling;
->> > >                         /* ... */
->> > > 			free_resource(res);
->> > > 			return;
->> > > 		}
->> > > 		p = &res->sibling;
->> > > 	}
->> > >
->> > > When making the change I've based on other code in the kernel which also
->> > > make use of request_region().
->> > >
->> > > To quote one example, drivers/net/ethernet/8390/ne2k-pci.c cleans up its
->> > > I/O port region when initialization fails like so:
->> > >
->> > > static int ne2k_pci_init_one(struct pci_dev *pdev,
->> > > 			     const struct pci_device_id *ent)
->> > > {
->> > >         /* ... */
->> > >
->> > > 	if (request_region (ioaddr, NE_IO_EXTENT, DRV_NAME) == NULL) {
->> > > 		dev_err(&pdev->dev, "I/O resource 0x%x @ 0x%lx busy\n",
->> > > 			NE_IO_EXTENT, ioaddr);
->> > > 		return -EBUSY;
->> > > 	}
->> > >
->> > >         /* ... */
->> > >
->> > > 	dev = alloc_ei_netdev();
->> > > 	if (!dev) {
->> > > 		dev_err(&pdev->dev, "cannot allocate ethernet device\n");
->> > > 		goto err_out_free_res;
->> > > 	}
->> > >
->> > >         /* ... */
->> > >
->> > > err_out_free_res:
->> > > 	release_region (ioaddr, NE_IO_EXTENT);
->> > > 	return -ENODEV;
->> > > }
->> > 
->> > Just wondering, do you have any further thoughts on this?
->> 
->> I'll queue it up for 3.20 later in January.
->
-> Done now.
+On Wednesday, February 18, 2015 09:51:25 PM Jakub Sitnicki wrote:
+> On Fri, Jan 30, 2015 at 01:01 AM CET, Rafael J. Wysocki wrote:
 
-If you don't mind me asking, is this going to go through the linux-pm
-tree?
+[cut]
+ 
+> >> I'll queue it up for 3.20 later in January.
+> >
+> > Done now.
+> 
+> If you don't mind me asking, is this going to go through the linux-pm
+> tree?
 
-Thanks,
-Jakub
+Yes, but unfortunately I skipped the pnp branch accidentally last time.
+
+I'll add it to the next pull request.
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
