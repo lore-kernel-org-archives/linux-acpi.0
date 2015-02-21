@@ -1,88 +1,126 @@
-From: Robert Richter <rric@kernel.org>
-Subject: Re: [PATCH v8 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 19 Feb 2015 17:10:48 +0100
-Message-ID: <20150219161048.GD4201@rric.localhost>
-References: <1422881149-8177-1-git-send-email-hanjun.guo@linaro.org>
- <20150212100235.GA30412@rric.localhost>
- <54DD65F2.9050108@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] More power management and ACPI updates for 3.20-rc1
+Date: Sat, 21 Feb 2015 05:05:41 +0100
+Message-ID: <CAJZ5v0j3cvMNxmzm8eueY_iHKPE7WvseFdsH9uaaYRCiKJ9OVA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:40780 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784AbbBSQKy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Feb 2015 11:10:54 -0500
-Content-Disposition: inline
-In-Reply-To: <54DD65F2.9050108@linaro.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:35655 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932112AbbBUEFm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Feb 2015 23:05:42 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Grant Likely <grant.likely@linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Mark Brown <broonie@kernel.org>, Rob Herring <robh@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Charles.Garcia-Tobin@arm.com, phoenix.liyi@huawei.com, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, Mark Langsdorf <mlangsdo@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 13.02.15 10:48:18, Hanjun Guo wrote:
-> On 2015=E5=B9=B402=E6=9C=8812=E6=97=A5 18:02, Robert Richter wrote:
-> >On 02.02.15 20:45:28, Hanjun Guo wrote:
-> >>This is the v8 of ACPI core patches for ARM64 based on ACPI 5.1, th=
-ere are
-> >>some updates since v7:
-> >>
-> >>  - Add two more documantation to explain why we need ACPI in ARM64=
- servers
-> >>    by Grant, and recommendations and prohibitions on the use of th=
-e numerous
-> >>    ACPI tables and objects by Al Stone.
-> >>
-> >>  - Add two patches which is need to map acpi tables after acpi_gbl=
-_permanent_mmap
-> >>    is set
-> >>
-> >>  - Add another patch "dt / chosen: Add linux,uefi-stub-generated-d=
-tb property"
-> >>    to address that if firmware providing no dtb, we can try ACPI c=
-onfiguration data
-> >>    even if no "acpi=3Dforce" is passed in early parameters. (I thi=
-nk ACPI for XEN and
-> >>    kexec need consider sperately as disscussed, correct me if I'm =
-wrong).
-> >>
-> >>  - Add CC in the patch to the subsystem maintainers and modify the=
- subject
-> >>    of the patch to explicitly show the subsystem touched by this p=
-atch set,
-> >>    please help us to review and ack them if they make sense, thank=
-s.
-> >>
-> >>  - Add Tested-by from Qualcomm and Redhat;
-> >>
-> >>  - Make ACPI depends on PCI suggested by Catalin;
-> >>
-> >>  - Clean up SMP init function as Lorenzo suggested, remove physica=
-l
-> >>    CPU hot-plug code in the patch;
-> >>
-> >>  - Address some comments from Marc and explicitly state that will
-> >>    implment statcked irqdomain and GIC init framework when GICv3 a=
-nd
-> >>    ITS, GICv2m are implemented;
-> >>
-> >>  - Rebased on top of 3.19-rc7.
-> >
-> >Patches tested on Cavium ThunderX. For the whole series:
-> >
-> >  Tested-by: Robert Richter <rrichter@cavium.com>
-> >  Acked-by: Robert Richter <rrichter@cavium.com>
->=20
-> Hi Robert, thank you very much.
->=20
-> I'm going to send out v9 to address some of the comments, I think
-> your Acked-by still apply if no objection from you :)
+Hi Linus,
 
-Right, unless you hear from me. ;)
+Please pull from
 
--Robert
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-3.20-rc1-3
+
+to receive one more batch of power management and ACPI updates for
+v3.20-rc1 or v4.0-rc1 (whichever that will be) with top-most commit
+3466b547e37b988723dc93465b7cb06b4b1f731f
+
+ Merge branches 'pnp', 'pm-cpuidle' and 'pm-cpufreq'
+
+on top of commit 99fa0ad92c4fd8b529c89b3640b42323984be761
+
+ Merge tag 'suspend-to-idle-3.20-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+These are mostly fixes on top of the previously merged recent PM and
+ACPI material.
+
+First, one commit that broke the ACPI LPSS (Low-Power Subsystem) driver
+on a Dell box is reverted and there are two stable-candidate fixes for
+that driver.  Another fix cleans up two recently added ACPI EC messages
+that look odd and the printk level of a noisy debug message in the core
+ACPI resources handling code is reduced.
+
+In addition to that we have two stable-candidate fixes for the s3c
+cpufreq driver, two cpuidle powernv driver updates related to Device
+Trees and a PNP subsystem cleanup that will allow us to get rid of some
+old ugliness going forward.  Also there is a new blacklist entry for the
+ACPI backlight code.
+
+Specifics:
+
+ - Revert a recent ACPI LPSS driver commit that prevented the touchpad
+   driver from loading on Dell XPS13 (Jarkko Nikula).
+
+ - Make the ACPI LPSS driver disable the I2C controllers and deassert
+   SPI host controllers resets at startup on Intel BayTrail and Braswell
+   SoCs in case they have been left in wrong states by the platform
+   firmware which then may casuse fatal controller driver failures during
+   resume from hibernation (Mika Westerberg).
+
+ - Make two recently added ACPI EC messages look better (Scot Doyle).
+
+ - Reduce the printk level of a recently added debug message related to
+   ACPI resources that may become noisy in some cases (Rafael J Wysocki).
+
+ - Add a new ACPI backlight blacklist entry for Samsung Series 9
+   (900X3C/900X3D/900X3E/900X4C/900X4D) laptops where the native backlight
+   interface doesn't work while the ACPI based one does (Jens Reyer).
+
+ - Make the PNP sybsystem's core code use __request_region() followed by
+   __release_region() instead of __check_region() which then will allow
+   us to get rid of the latter as it has no more users (Jakub Sitnicki).
+
+ - Fix a build breakage and an issue with two __init functions that may be
+   called after initialization in the s3c cpufreq driver (Arnd Bergmann).
+
+ - Make the powernv cpuidle driver read target_residency values for idle
+   states from a Device Tree (as we have the suitable DT bindings for that
+   now) and improve the parsing of the powermgmt DT node in that driver
+   (Preeti U Murthy).
+
+Thanks!
+
+
+---------------
+
+Arnd Bergmann (2):
+      cpufreq: s3c: remove incorrect __init annotations
+      cpufreq: s3c: remove last use of resume_clocks callback
+
+Jakub Sitnicki (1):
+      PNP: Switch from __check_region() to __request_region()
+
+Jarkko Nikula (1):
+      Revert "ACPI / LPSS: Remove non-existing clock control from
+Intel Lynxpoint I2C"
+
+Jens Reyer (1):
+      ACPI / video: Disable native backlight on Samsung Series 9 laptops
+
+Mika Westerberg (2):
+      ACPI / LPSS: Always disable I2C host controllers
+      ACPI / LPSS: Deassert resets for SPI host controllers on Braswell
+
+Preeti U Murthy (2):
+      cpuidle: powernv: Read target_residency value of idle states
+from DT if available
+      cpuidle: powernv: Avoid endianness conversions while parsing DT
+
+Rafael J. Wysocki (1):
+      ACPI / resources: Change pr_info() to pr_debug() for debug information
+
+Scot Doyle (1):
+      ACPI / EC: Remove non-standard log emphasis
+
+---------------
+
+ drivers/acpi/acpi_lpss.c          | 21 ++++++++--
+ drivers/acpi/ec.c                 |  4 +-
+ drivers/acpi/resource.c           |  2 +-
+ drivers/acpi/video.c              |  9 +++++
+ drivers/cpufreq/s3c2416-cpufreq.c |  4 +-
+ drivers/cpufreq/s3c24xx-cpufreq.c | 10 +----
+ drivers/cpuidle/cpuidle-powernv.c | 84 +++++++++++++++++++++++----------------
+ drivers/pnp/resource.c            |  6 ++-
+ 8 files changed, 86 insertions(+), 54 deletions(-)
