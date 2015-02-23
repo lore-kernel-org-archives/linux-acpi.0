@@ -1,51 +1,28 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
-Date: Mon, 23 Feb 2015 14:45:52 +0200
-Message-ID: <1424695552.14897.7.camel@linux.intel.com>
-References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v4 00/20] power_supply: Allow safe usage of power supply
+Date: Mon, 23 Feb 2015 23:18:36 +0100
+Message-ID: <20150223221836.GA4929@amd>
+References: <1424692061-30624-1-git-send-email-k.kozlowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18307 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752131AbbBWMp4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Feb 2015 07:45:56 -0500
-In-Reply-To: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1424692061-30624-1-git-send-email-k.kozlowski@samsung.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
 List-Id: linux-acpi@vger.kernel.org
-To: x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: Aubrey Li <aubrey.li@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org
 
-On Tue, 2015-01-20 at 23:49 +0200, Andy Shevchenko wrote:
-> This is the reworked patch series which had been sent earlier [1] to support
-> Intel CherryTrail SoC.
+Hi!
 > 
-> The patches were tested on both BayTrail and CherryTrail SoCs.
-> 
-> [1] https://patchwork.kernel.org/patch/5235891/
+> The patchset fixes invalid memory accesses in certain race scenarios by
+> moving ownership of struct power_supply to the core. All drivers are
+> modified.
 
-Aubrey, is everything is clear for you now? Can I send v3 with your
-Ack's?
+Ok, who can apply the patches? Sebastian?
 
-> 
-> Changes to v1:
->  - rebased on top of recent pmc_atom changes
->  - cleaned up, reqorked and split to few smaller patches
-> 
-> Andy Shevchenko (4):
->   x86: pmc_atom: save struct device pointer in pmc
->   x86: pmc_atom: print index of device in loop
->   x86: pmc_atom: supply register mappings via pmc object
->   PMC driver: Add Cherrytrail PMC interface
-> 
->  arch/x86/include/asm/pmc_atom.h |  25 ++++
->  arch/x86/kernel/pmc_atom.c      | 270 +++++++++++++++++++++++++---------------
->  2 files changed, 198 insertions(+), 97 deletions(-)
-> 
-
+									Pavel
 
 -- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
