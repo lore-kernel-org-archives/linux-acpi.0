@@ -1,28 +1,30 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v4 00/20] power_supply: Allow safe usage of power supply
-Date: Mon, 23 Feb 2015 23:18:36 +0100
-Message-ID: <20150223221836.GA4929@amd>
-References: <1424692061-30624-1-git-send-email-k.kozlowski@samsung.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [v3.20] ACPI backlight problem
+Date: Tue, 24 Feb 2015 00:18:41 +0100
+Message-ID: <21928294.T4sOdDMpFC@vostro.rjw.lan>
+References: <CADDKRnDuC8y_shfPEBcBnxg3BXzwMyv0AUhEsYcSUx8a9-mXsg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1424692061-30624-1-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CADDKRnDuC8y_shfPEBcBnxg3BXzwMyv0AUhEsYcSUx8a9-mXsg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-> 
-> The patchset fixes invalid memory accesses in certain race scenarios by
-> moving ownership of struct power_supply to the core. All drivers are
-> modified.
+On Sunday, February 22, 2015 05:53:11 PM J=C3=B6rg Otte wrote:
+> When I press backlight keys then normally OSD is shown and
+> backlight follows immediately the keystrokes step by step.
 
-Ok, who can apply the patches? Sebastian?
+That's how it works in 3.19, right?
 
-									Pavel
+> Now in v3.20 it behaves different:
+> When I press backlight keys at first nothing happens. If I watch a
+> video it is being stopped.
+> After some seconds OSD is shown, backlight changes - in one step - to
+> the new level and video continues.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+So what machine is that?
+
+Rafael
