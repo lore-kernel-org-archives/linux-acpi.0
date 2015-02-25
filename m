@@ -1,129 +1,238 @@
 From: al.stone@linaro.org
-Subject: [PATCH v3 8/9] ACPI: arm64: use an arch-specific ACPI _OSI method and ACPI blacklist
-Date: Tue, 24 Feb 2015 17:36:24 -0700
-Message-ID: <1424824585-6405-9-git-send-email-al.stone@linaro.org>
+Subject: [PATCH v3 3/9] ACPI: clean up checkpatch warnings for various bits of syntax
+Date: Tue, 24 Feb 2015 17:36:19 -0700
+Message-ID: <1424824585-6405-4-git-send-email-al.stone@linaro.org>
 References: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:37394 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753392AbbBYAg6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Feb 2015 19:36:58 -0500
-Received: by mail-ig0-f177.google.com with SMTP id z20so1788634igj.4
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Feb 2015 16:36:57 -0800 (PST)
+Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-ia64-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com
 Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: Al Stone <al.stone@linaro.org>
 
-Now that all of the _OSI functionality has been separated out, we can
-provide arch-specific functionality for it.  This also allows us to do
-the same for the acpi_blacklisted() function.  We also make sure the
-defaults for the arm64 kernel are set so that the arch-specific _OSI
-method and blacklist are always used for ACPI.
+In preparation for later splitting out some of the arch-dependent code from
+osl.c, clean up a bunch of warnings for odd bits of syntax:
 
-For arm64, any use of _OSI will issue a warning that it is deprecated.
-All use of _OSI will return false -- i.e., it will return no useful
-information to any firmware using it.  The ability to temporarily turn
-on _OSI, or turn off _OSI, or affect it in other ways from the command
-line is no longer available for arm64, either.  The blacklist for ACPI
-on arm64 is empty.  This will, of course, require ACPI to be enabled
-for arm64.
+   -- remove CVS keyword markers
+   -- remove a space from between a function name and an opening parenthesis
+   -- clean up all but one line > 80 characters (one just looks silly if you
+      make it less than 80)
+   -- add blank lines after declarations in functions
+   -- remove extraneous braces ({})
 
 Signed-off-by: Al Stone <al.stone@linaro.org>
 ---
- arch/arm64/Kconfig                 |  1 +
- arch/arm64/kernel/Makefile         |  2 +-
- arch/arm64/kernel/acpi-blacklist.c | 20 ++++++++++++++++++++
- arch/arm64/kernel/acpi-osi.c       | 25 +++++++++++++++++++++++++
- 4 files changed, 47 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm64/kernel/acpi-blacklist.c
- create mode 100644 arch/arm64/kernel/acpi-osi.c
+ drivers/acpi/osl.c | 75 ++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 44 insertions(+), 31 deletions(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 3f08727..e441d28 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -7,6 +7,7 @@ config ARM64
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_SPECIFIC_ACPI_OSI if ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index 79bdd3b..b5e1268 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -35,7 +35,7 @@ arm64-obj-$(CONFIG_KGDB)		+= kgdb.o
- arm64-obj-$(CONFIG_EFI)			+= efi.o efi-stub.o efi-entry.o
- arm64-obj-$(CONFIG_PCI)			+= pci.o
- arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
--arm64-obj-$(CONFIG_ACPI)		+= acpi.o
-+arm64-obj-$(CONFIG_ACPI)		+= acpi.o acpi-osi.o acpi-blacklist.o
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 865317c..46317ff 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1,5 +1,5 @@
+ /*
+- *  acpi_osl.c - OS-dependent functions ($Revision: 83 $)
++ *  acpi_osl.c - OS-dependent functions
+  *
+  *  Copyright (C) 2000       Andrew Henroid
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+@@ -161,7 +161,7 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 	return supported;
+ }
  
- obj-y					+= $(arm64-obj-y) vdso/
- obj-m					+= $(arm64-obj-m)
-diff --git a/arch/arm64/kernel/acpi-blacklist.c b/arch/arm64/kernel/acpi-blacklist.c
-new file mode 100644
-index 0000000..1be6a56
---- /dev/null
-+++ b/arch/arm64/kernel/acpi-blacklist.c
-@@ -0,0 +1,20 @@
-+/*
-+ *  ARM64 Specific ACPI Blacklist Support
-+ *
-+ *  Copyright (C) 2015, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
+-static void __init acpi_request_region (struct acpi_generic_address *gas,
++static void __init acpi_request_region(struct acpi_generic_address *gas,
+ 	unsigned int length, char *desc)
+ {
+ 	u64 addr;
+@@ -180,33 +180,41 @@ static void __init acpi_request_region (struct acpi_generic_address *gas,
+ 
+ static int __init acpi_reserve_resources(void)
+ {
+-	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
+-		"ACPI PM1a_EVT_BLK");
++	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block,
++			    acpi_gbl_FADT.pm1_event_length,
++			    "ACPI PM1a_EVT_BLK");
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block, acpi_gbl_FADT.pm1_event_length,
+-		"ACPI PM1b_EVT_BLK");
++	acpi_request_region(&acpi_gbl_FADT.xpm1b_event_block,
++			    acpi_gbl_FADT.pm1_event_length,
++			    "ACPI PM1b_EVT_BLK");
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block, acpi_gbl_FADT.pm1_control_length,
+-		"ACPI PM1a_CNT_BLK");
++	acpi_request_region(&acpi_gbl_FADT.xpm1a_control_block,
++			    acpi_gbl_FADT.pm1_control_length,
++			    "ACPI PM1a_CNT_BLK");
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block, acpi_gbl_FADT.pm1_control_length,
+-		"ACPI PM1b_CNT_BLK");
++	acpi_request_region(&acpi_gbl_FADT.xpm1b_control_block,
++			    acpi_gbl_FADT.pm1_control_length,
++			    "ACPI PM1b_CNT_BLK");
+ 
+ 	if (acpi_gbl_FADT.pm_timer_length == 4)
+-		acpi_request_region(&acpi_gbl_FADT.xpm_timer_block, 4, "ACPI PM_TMR");
++		acpi_request_region(&acpi_gbl_FADT.xpm_timer_block, 4,
++				    "ACPI PM_TMR");
+ 
+-	acpi_request_region(&acpi_gbl_FADT.xpm2_control_block, acpi_gbl_FADT.pm2_control_length,
+-		"ACPI PM2_CNT_BLK");
++	acpi_request_region(&acpi_gbl_FADT.xpm2_control_block,
++			    acpi_gbl_FADT.pm2_control_length,
++			    "ACPI PM2_CNT_BLK");
+ 
+ 	/* Length of GPE blocks must be a non-negative multiple of 2 */
+ 
+ 	if (!(acpi_gbl_FADT.gpe0_block_length & 0x1))
+ 		acpi_request_region(&acpi_gbl_FADT.xgpe0_block,
+-			       acpi_gbl_FADT.gpe0_block_length, "ACPI GPE0_BLK");
++				    acpi_gbl_FADT.gpe0_block_length,
++				    "ACPI GPE0_BLK");
+ 
+ 	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
+ 		acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
+-			       acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
++				    acpi_gbl_FADT.gpe1_block_length,
++				    "ACPI GPE1_BLK");
+ 
+ 	return 0;
+ }
+@@ -215,6 +223,7 @@ device_initcall(acpi_reserve_resources);
+ void acpi_os_printf(const char *fmt, ...)
+ {
+ 	va_list args;
 +
-+#define pr_fmt(fmt) "ACPI: " fmt
+ 	va_start(args, fmt);
+ 	acpi_os_vprintf(fmt, args);
+ 	va_end(args);
+@@ -227,11 +236,10 @@ void acpi_os_vprintf(const char *fmt, va_list args)
+ 	vsprintf(buffer, fmt, args);
+ 
+ #ifdef ENABLE_DEBUGGER
+-	if (acpi_in_debugger) {
++	if (acpi_in_debugger)
+ 		kdb_printf("%s", buffer);
+-	} else {
++	else
+ 		pr_cont("%s", buffer);
+-	}
+ #else
+ 	pr_cont("%s", buffer);
+ #endif
+@@ -879,6 +887,7 @@ void acpi_os_stall(u32 us)
+ u64 acpi_os_get_timer(void)
+ {
+ 	u64 time_ns = ktime_to_ns(ktime_get());
 +
-+#include <linux/acpi.h>
+ 	do_div(time_ns, 100);
+ 	return time_ns;
+ }
+@@ -891,15 +900,14 @@ acpi_status acpi_os_read_port(acpi_io_address port, u32 *value, u32 width)
+ 		value = &dummy;
+ 
+ 	*value = 0;
+-	if (width <= 8) {
++	if (width <= 8)
+ 		*(u8 *) value = inb(port);
+-	} else if (width <= 16) {
++	else if (width <= 16)
+ 		*(u16 *) value = inw(port);
+-	} else if (width <= 32) {
++	else if (width <= 32)
+ 		*(u32 *) value = inl(port);
+-	} else {
++	else
+ 		BUG();
+-	}
+ 
+ 	return AE_OK;
+ }
+@@ -908,15 +916,14 @@ EXPORT_SYMBOL(acpi_os_read_port);
+ 
+ acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u32 width)
+ {
+-	if (width <= 8) {
++	if (width <= 8)
+ 		outb(value, port);
+-	} else if (width <= 16) {
++	else if (width <= 16)
+ 		outw(value, port);
+-	} else if (width <= 32) {
++	else if (width <= 32)
+ 		outl(value, port);
+-	} else {
++	else
+ 		BUG();
+-	}
+ 
+ 	return AE_OK;
+ }
+@@ -932,6 +939,7 @@ static inline u64 read64(const volatile void __iomem *addr)
+ static inline u64 read64(const volatile void __iomem *addr)
+ {
+ 	u64 l, h;
 +
-+/* The arm64 ACPI blacklist is currently empty.  */
-+int __init acpi_blacklisted(void)
-+{
-+	return 0;
-+}
-diff --git a/arch/arm64/kernel/acpi-osi.c b/arch/arm64/kernel/acpi-osi.c
-new file mode 100644
-index 0000000..bb351f4
---- /dev/null
-+++ b/arch/arm64/kernel/acpi-osi.c
-@@ -0,0 +1,25 @@
-+/*
-+ *  ARM64 Specific ACPI _OSI Support
-+ *
-+ *  Copyright (C) 2015, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
+ 	l = readl(addr);
+ 	h = readl(addr+4);
+ 	return l | (h << 32);
+@@ -1116,8 +1124,8 @@ static void acpi_os_execute_deferred(struct work_struct *work)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Depending on type, either queues function for deferred execution or
+- *              immediately executes function on a separate thread.
++ * DESCRIPTION: Depending on type, either queues function for deferred
++ *		execution or immediately executes function on a separate thread.
+  *
+  ******************************************************************************/
+ 
+@@ -1128,6 +1136,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
+ 	struct acpi_os_dpc *dpc;
+ 	struct workqueue_struct *queue;
+ 	int ret;
 +
-+#define pr_fmt(fmt) "ACPI: " fmt
+ 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+ 			  "Scheduling function [%p(%p)] for deferred execution.\n",
+ 			  function, context));
+@@ -1199,7 +1208,8 @@ struct acpi_hp_work {
+ 
+ static void acpi_hotplug_work_fn(struct work_struct *work)
+ {
+-	struct acpi_hp_work *hpw = container_of(work, struct acpi_hp_work, work);
++	struct acpi_hp_work *hpw = container_of(work, struct acpi_hp_work,
++						work);
+ 
+ 	acpi_os_wait_events_complete();
+ 	acpi_device_hotplug(hpw->adev, hpw->src);
+@@ -1693,6 +1703,7 @@ void acpi_os_delete_lock(acpi_spinlock handle)
+ acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock lockp)
+ {
+ 	acpi_cpu_flags flags;
 +
-+#include <linux/acpi.h>
+ 	spin_lock_irqsave(lockp, flags);
+ 	return flags;
+ }
+@@ -1869,6 +1880,7 @@ acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
+ 				  u32 pm1b_control)
+ {
+ 	int rc = 0;
 +
-+/*
-+ * Consensus is to deprecate _OSI for all new ACPI-supported architectures.
-+ * So, for arm64, reduce _OSI to a warning message, and tell the firmware
-+ * nothing of value.
-+ */
-+u32 acpi_osi_handler(acpi_string interface, u32 supported)
-+{
-+	pr_warn("_OSI was called, but is deprecated for this architecture.\n");
-+	return false;
-+}
+ 	if (__acpi_os_prepare_sleep)
+ 		rc = __acpi_os_prepare_sleep(sleep_state,
+ 					     pm1a_control, pm1b_control);
+@@ -1890,6 +1902,7 @@ acpi_status acpi_os_prepare_extended_sleep(u8 sleep_state, u32 val_a,
+ 				  u32 val_b)
+ {
+ 	int rc = 0;
++
+ 	if (__acpi_os_prepare_extended_sleep)
+ 		rc = __acpi_os_prepare_extended_sleep(sleep_state,
+ 					     val_a, val_b);
 -- 
 2.1.0
 
