@@ -1,67 +1,190 @@
 From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH v3 2/9] ACPI: clear up warnings on use of printk reported
- by checkpatch.pl
-Date: Wed, 25 Feb 2015 13:56:04 -0700
-Message-ID: <54EE36E4.5070404@linaro.org>
-References: <1424824585-6405-1-git-send-email-al.stone@linaro.org> <1424824585-6405-3-git-send-email-al.stone@linaro.org> <54EDC64D.8040301@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v3 4/9] ACPI: clean up checkpatch warnings
+ for items with possible semantic value
+Date: Wed, 25 Feb 2015 13:57:27 -0700
+Message-ID: <54EE3737.2040300@linaro.org>
+References: <1424824585-6405-1-git-send-email-al.stone@linaro.org> <1424824585-6405-5-git-send-email-al.stone@linaro.org> <54EDC957.9050000@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:49701 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646AbbBYU4I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 15:56:08 -0500
-Received: by mail-ig0-f176.google.com with SMTP id hl2so39028477igb.3
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2015 12:56:07 -0800 (PST)
-In-Reply-To: <54EDC64D.8040301@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <54EDC957.9050000@linaro.org>
+Sender: linux-ia64-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com
 Cc: linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org
+List-Id: linux-acpi@vger.kernel.org
 
-On 02/25/2015 05:55 AM, Hanjun Guo wrote:
+On 02/25/2015 06:08 AM, Hanjun Guo wrote:
 > On 2015=E5=B9=B402=E6=9C=8825=E6=97=A5 08:36, al.stone@linaro.org wro=
 te:
 >> From: Al Stone <al.stone@linaro.org>
 >>
 >> In preparation for later splitting out some of the arch-dependent co=
 de from
->> osl.c, clear up all the warnings reported by checkpatch.pl where pr_=
-* should
->> be used instead of printk(KERN_* ...).
+>> osl.c, clean up some warnings from checkpatch that fall into more se=
+mantic
+>> issues; none of these should change functionality, but they do touch=
+ lines
+>> of code with semantic significance:
+>>
+>>     -- replaced #include <asm/foo.h> with #include <linux/foo.h>
+>>     -- replaced extern that was only being used for sizeof() with a =
+#define
+>>     -- removed use of else after breaks/returns when not useful
+>>     -- moved __initdata to the proper place in a definition
+>>     -- moved EXPORT_SYMBOL to a line immediately after the function
+>>     -- removed unnecessary return statements from void functions
 >>
 >> Signed-off-by: Al Stone <al.stone@linaro.org>
 >> ---
->>   drivers/acpi/osl.c | 46 +++++++++++++++++++-----------------------=
-----
->>   1 file changed, 19 insertions(+), 27 deletions(-)
+>>   drivers/acpi/osl.c | 31 ++++++++++---------------------
+>>   1 file changed, 10 insertions(+), 21 deletions(-)
 >>
 >> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index 1dc3a3b..865317c 100644
+>> index 46317ff..af6dda7 100644
 >> --- a/drivers/acpi/osl.c
 >> +++ b/drivers/acpi/osl.c
->> @@ -141,7 +141,7 @@ static u32 acpi_osi_handler(acpi_string interfac=
-e, u32
->> supported)
->>   {
->>       if (!strcmp("Linux", interface)) {
+>> @@ -40,9 +40,8 @@
+>>   #include <linux/list.h>
+>>   #include <linux/jiffies.h>
+>>   #include <linux/semaphore.h>
+>> -
+>> -#include <asm/io.h>
+>> -#include <asm/uaccess.h>
+>> +#include <linux/io.h>
+>> +#include <linux/uaccess.h>
 >>
->> -        printk_once(KERN_NOTICE FW_BUG PREFIX
->> +        pr_notice_once(FW_BUG PREFIX
+>>   #include "internal.h"
+>>
+>> @@ -66,7 +65,7 @@ struct acpi_os_dpc {
+>>   int acpi_in_debugger;
+>>   EXPORT_SYMBOL(acpi_in_debugger);
+>>
+>> -extern char line_buf[80];
+>> +#define DEBUGGER_LINE_BUFLEN    80
+>>   #endif                /*ENABLE_DEBUGGER */
+>>
+>>   static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctr=
+l,
+>> @@ -268,10 +267,8 @@ acpi_physical_address __init acpi_os_get_root_p=
+ointer(void)
+>>               return efi.acpi20;
+>>           else if (efi.acpi !=3D EFI_INVALID_TABLE_ADDR)
+>>               return efi.acpi;
+>> -        else {
+>> -            pr_err(PREFIX "System description tables not found\n");
+>> -            return 0;
+>> -        }
+>> +        pr_err(PREFIX "System description tables not found\n");
+>> +        return 0;
+>>       } else if (IS_ENABLED(CONFIG_ACPI_LEGACY_TABLES_LOOKUP)) {
+>>           acpi_physical_address pa =3D 0;
+>>
+>> @@ -594,7 +591,7 @@ static const char * const table_sigs[] =3D {
+>>   #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
+>>
+>>   #define ACPI_OVERRIDE_TABLES 64
+>> -static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_=
+TABLES];
+>> +static struct cpio_data acpi_initrd_files[ACPI_OVERRIDE_TABLES] __i=
+nitdata;
+>>
+>>   #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+>>
+>> @@ -806,10 +803,10 @@ static irqreturn_t acpi_irq(int irq, void *dev=
+_id)
+>>       if (handled) {
+>>           acpi_irq_handled++;
+>>           return IRQ_HANDLED;
+>> -    } else {
+>> -        acpi_irq_not_handled++;
+>> -        return IRQ_NONE;
+>>       }
+>> +
+>> +    acpi_irq_not_handled++;
+>> +    return IRQ_NONE;
+>>   }
+>>
+>>   acpi_status
+>> @@ -911,7 +908,6 @@ acpi_status acpi_os_read_port(acpi_io_address po=
+rt, u32
+>> *value, u32 width)
+>>
+>>       return AE_OK;
+>>   }
+>> -
+>>   EXPORT_SYMBOL(acpi_os_read_port);
+>>
+>>   acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u3=
+2 width)
+>> @@ -927,7 +923,6 @@ acpi_status acpi_os_write_port(acpi_io_address p=
+ort, u32
+>> value, u32 width)
+>>
+>>       return AE_OK;
+>>   }
+>> -
+>>   EXPORT_SYMBOL(acpi_os_write_port);
+>>
+>>   #ifdef readq
+>> @@ -1362,7 +1357,7 @@ u32 acpi_os_get_line(char *buffer)
+>>       if (acpi_in_debugger) {
+>>           u32 chars;
+>>
+>> -        kdb_read(buffer, sizeof(line_buf));
+>> +        kdb_read(buffer, sizeof(DEBUGGER_LINE_BUFLEN));
 >=20
-> I think you can use pr_fmt() and then remove all the PREFIX in
-> this patch, just
+> I think kdb_read(buffer, DEBUGGER_LINE_BUFLEN); will be fine.
 >=20
-> #define pr_fmt(fmt) "ACPI: " fmt
+> other than that,
 >=20
-> in top of this file before all #includes.
+> Reviewd-by: Hanjun Guo <hanjun.guo@linaro.org>
 >=20
 > Thanks
 > Hanjun
 
-Argh.  Yup, you're right.  That was an oversight on my part.
-=46ixed in next version.
+Whups.  Boy, was that just plain wrong.  Thanks.  Fixed.
+
+>>
+>>           /* remove the CR kdb includes */
+>>           chars =3D strlen(buffer) - 1;
+>> @@ -1490,8 +1485,6 @@ static void __init set_osi_linux(unsigned int =
+enable)
+>>           acpi_osi_setup("Linux");
+>>       else
+>>           acpi_osi_setup("!Linux");
+>> -
+>> -    return;
+>>   }
+>>
+>>   static void __init acpi_cmdline_osi_linux(unsigned int enable)
+>> @@ -1499,8 +1492,6 @@ static void __init acpi_cmdline_osi_linux(unsi=
+gned int
+>> enable)
+>>       osi_linux.cmdline =3D 1;    /* cmdline set the default and ove=
+rride DMI */
+>>       osi_linux.dmi =3D 0;
+>>       set_osi_linux(enable);
+>> -
+>> -    return;
+>>   }
+>>
+>>   void __init acpi_dmi_osi_linux(int enable, const struct dmi_system=
+_id *d)
+>> @@ -1512,8 +1503,6 @@ void __init acpi_dmi_osi_linux(int enable, con=
+st struct
+>> dmi_system_id *d)
+>>
+>>       osi_linux.dmi =3D 1;    /* DMI knows that this box asks OSI(Li=
+nux) */
+>>       set_osi_linux(enable);
+>> -
+>> -    return;
+>>   }
+>>
+>>   /*
+>>
+
 
 --=20
 ciao,
@@ -73,7 +196,7 @@ Linaro Enterprise Group
 al.stone@linaro.org
 -----------------------------------
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
 n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
