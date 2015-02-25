@@ -1,196 +1,44 @@
-From: al.stone@linaro.org
-Subject: [PATCH v3 5/9] ACPI: move acpi_os_handler() so it can be made arch-dependent later
-Date: Tue, 24 Feb 2015 17:36:21 -0700
-Message-ID: <1424824585-6405-6-git-send-email-al.stone@linaro.org>
-References: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com
-Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+From: Alexandre Courbot <gnurou@gmail.com>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Wed, 25 Feb 2015 10:34:45 +0900
+Message-ID: <CAAVeFuKhD2VBf3EOCjHqJK5CLx4qC8Quire2My9nMqboZzSNZQ@mail.gmail.com>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
+ <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
+ <4078818.ecVtLF3hjd@vostro.rjw.lan> <CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
+ <20150224203459.GC13094@psi-dev26.jf.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150224203459.GC13094@psi-dev26.jf.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Cohen <david.a.cohen@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+On Wed, Feb 25, 2015 at 5:34 AM, David Cohen
+<david.a.cohen@linux.intel.com> wrote:
+> Hi,
+>
+>> If we decide to go ahead with the solution proposed by this patch for
+>> practical reasons (which are good reasons indeed), I still have one
+>> problem with its current form.
+>>
+>> As the discussion highlighted, this is an ACPI problem, so I'd very
+>> much like it to be confined to the ACPI GPIO code, to be enabled only
+>> when ACPI is, and to use function names that start with acpi_gpio. The
+>> current implementation leverages platform lookup, making said lookup
+>> less efficient in the process and bringing confusion about its
+>> purpose. Although the two processes are indeed similar, they are
+>> separate things: one is a legitimate way to map GPIOs, the other is a
+>> fixup for broken firmware.
+>>
+>> I suppose we all agree this is a hackish fix, so let's confine it as
+>> much as we can.
+>
+> Are we considering MFD cases hackish as well?
+> i.e. if we have a driver that needs to register children devices and this
+> driver needs to pass GPIO to a child.
 
-In order to deprecate the use of _OSI for arm64 or other new architectures,
-we need to make the default handler something we can change for various
-platforms.  This patch moves the definition of acpi_osi_handler() -- the
-function used by ACPICA as a callback for evaluating _OSI -- into a separate
-file.  Subsequent patches will change which files get built so that we can
-then build the version of _OSI we need for a particular architecture.
-
-There is no functional change.
-
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- drivers/acpi/Makefile |  2 +-
- drivers/acpi/osi.c    | 95 +++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/osl.c    | 24 -------------
- include/linux/acpi.h  |  1 +
- 4 files changed, 97 insertions(+), 25 deletions(-)
- create mode 100644 drivers/acpi/osi.c
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 13536d8..97191eb 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -18,7 +18,7 @@ obj-y				+= acpi.o \
- 					acpica/
- 
- # All the builtin files are in the "acpi." module_param namespace.
--acpi-y				+= osl.o utils.o reboot.o
-+acpi-y				+= osl.o utils.o reboot.o osi.o
- acpi-y				+= nvs.o
- 
- # Power management related files
-diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
-new file mode 100644
-index 0000000..f23aa70
---- /dev/null
-+++ b/drivers/acpi/osi.c
-@@ -0,0 +1,95 @@
-+/*
-+ *  osi.c - _OSI implementation (moved from drivers/acpi/osl.c)
-+ *
-+ *  Copyright (C) 2000       Andrew Henroid
-+ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-+ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-+ *  Copyright (c) 2008 Intel Corporation
-+ *   Author: Matthew Wilcox <willy@linux.intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ */
-+
-+#include <linux/acpi.h>
-+
-+#define _COMPONENT		ACPI_OS_SERVICES
-+ACPI_MODULE_NAME("osi");
-+
-+#define PREFIX			"ACPI: "
-+
-+/*
-+ * The story of _OSI(Linux)
-+ *
-+ * From pre-history through Linux-2.6.22,
-+ * Linux responded TRUE upon a BIOS OSI(Linux) query.
-+ *
-+ * Unfortunately, reference BIOS writers got wind of this
-+ * and put OSI(Linux) in their example code, quickly exposing
-+ * this string as ill-conceived and opening the door to
-+ * an un-bounded number of BIOS incompatibilities.
-+ *
-+ * For example, OSI(Linux) was used on resume to re-POST a
-+ * video card on one system, because Linux at that time
-+ * could not do a speedy restore in its native driver.
-+ * But then upon gaining quick native restore capability,
-+ * Linux has no way to tell the BIOS to skip the time-consuming
-+ * POST -- putting Linux at a permanent performance disadvantage.
-+ * On another system, the BIOS writer used OSI(Linux)
-+ * to infer native OS support for IPMI!  On other systems,
-+ * OSI(Linux) simply got in the way of Linux claiming to
-+ * be compatible with other operating systems, exposing
-+ * BIOS issues such as skipped device initialization.
-+ *
-+ * So "Linux" turned out to be a really poor chose of
-+ * OSI string, and from Linux-2.6.23 onward we respond FALSE.
-+ *
-+ * BIOS writers should NOT query _OSI(Linux) on future systems.
-+ * Linux will complain on the console when it sees it, and return FALSE.
-+ * To get Linux to return TRUE for your system  will require
-+ * a kernel source update to add a DMI entry,
-+ * or boot with "acpi_osi=Linux"
-+ */
-+
-+static struct osi_linux {
-+	unsigned int	enable:1;
-+	unsigned int	dmi:1;
-+	unsigned int	cmdline:1;
-+	unsigned int	default_disabling:1;
-+} osi_linux = {0, 0, 0, 0};
-+
-+u32 acpi_osi_handler(acpi_string interface, u32 supported)
-+{
-+	if (!strcmp("Linux", interface)) {
-+
-+		pr_notice_once(FW_BUG PREFIX
-+			"BIOS _OSI(Linux) query %s%s\n",
-+			osi_linux.enable ? "honored" : "ignored",
-+			osi_linux.cmdline ? " via cmdline" :
-+			osi_linux.dmi ? " via DMI" : "");
-+	}
-+
-+	if (!strcmp("Darwin", interface)) {
-+		/*
-+		 * Apple firmware will behave poorly if it receives positive
-+		 * answers to "Darwin" and any other OS. Respond positively
-+		 * to Darwin and then disable all other vendor strings.
-+		 */
-+		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
-+		supported = ACPI_UINT32_MAX;
-+	}
-+
-+	return supported;
-+}
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index af6dda7..823a08f 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -136,30 +136,6 @@ static struct osi_linux {
- 	unsigned int	default_disabling:1;
- } osi_linux = {0, 0, 0, 0};
- 
--static u32 acpi_osi_handler(acpi_string interface, u32 supported)
--{
--	if (!strcmp("Linux", interface)) {
--
--		pr_notice_once(FW_BUG PREFIX
--			"BIOS _OSI(Linux) query %s%s\n",
--			osi_linux.enable ? "honored" : "ignored",
--			osi_linux.cmdline ? " via cmdline" :
--			osi_linux.dmi ? " via DMI" : "");
--	}
--
--	if (!strcmp("Darwin", interface)) {
--		/*
--		 * Apple firmware will behave poorly if it receives positive
--		 * answers to "Darwin" and any other OS. Respond positively
--		 * to Darwin and then disable all other vendor strings.
--		 */
--		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
--		supported = ACPI_UINT32_MAX;
--	}
--
--	return supported;
--}
--
- static void __init acpi_request_region(struct acpi_generic_address *gas,
- 	unsigned int length, char *desc)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 9a01d5d..a7c402a 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -281,6 +281,7 @@ static inline int acpi_video_display_switch_support(void)
- extern int acpi_blacklisted(void);
- extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
- extern void acpi_osi_setup(char *str);
-+extern u32 acpi_osi_handler(acpi_string interface, u32 supported);
- 
- #ifdef CONFIG_ACPI_NUMA
- int acpi_get_node(acpi_handle handle);
--- 
-2.1.0
-
+In that case wouldn't the GPIO be best defined in the child node
+itself, for the child device's driver to directly probe?
