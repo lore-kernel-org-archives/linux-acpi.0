@@ -1,7 +1,7 @@
 From: al.stone@linaro.org
-Subject: [PATCH v3 7/9] ACPI: enable arch-specific compilation for _OSI and the blacklist
-Date: Tue, 24 Feb 2015 17:36:23 -0700
-Message-ID: <1424824585-6405-8-git-send-email-al.stone@linaro.org>
+Subject: [PATCH v3 9/9] ACPI: arm64: use "Linux" as ACPI_OS_NAME for _OS on arm64
+Date: Tue, 24 Feb 2015 17:36:25 -0700
+Message-ID: <1424824585-6405-10-git-send-email-al.stone@linaro.org>
 References: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
@@ -12,77 +12,68 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Al Stone <al.stone@linaro.org>
 
-Whether arch-specific functions are used or not now depends on the config
-option CONFIG_ARCH_SPECIFIC_ACPI_OSI.  By default, this is set false which
-causes the x86/ia64 versions to be used, just as is done today.  Setting
-this option true causes architecture-specific implementations to be built
-instead; this patch also provides arm64 implementations.
+ACPI_OS_NAME is globally defined as "Microsoft Windows NT" for now.
+That doesn't make much sense in the ARM context, so set it to "Linux"
+when CONFIG_ARM64.
 
-For x86/ia64, there is no functional change.  Other architectures will have
-to add files to provide their specific functionality.
+If it is necessary to change the return value from \_OS_ (that is, return
+some value other than the default in ACPI_OS_NAME), use the kernel parameter
+"acpi_os_name=<string>".
 
+Many thanks to Rafael Wysocki for this greatly simplified form of the patch.
+
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Al Stone <al.stone@linaro.org>
 ---
- drivers/acpi/Kconfig  | 3 +++
- drivers/acpi/Makefile | 7 ++++++-
- include/linux/acpi.h  | 8 ++++++++
- 3 files changed, 17 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig              | 5 +++++
+ include/acpi/acconfig.h         | 2 ++
+ include/acpi/platform/aclinux.h | 4 ++++
+ 3 files changed, 11 insertions(+)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b340509..4d91f22 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -53,6 +53,9 @@ config ACPI_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index e441d28..d812113 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -87,6 +87,11 @@ config ARM64
+ config 64BIT
+ 	def_bool y
  
-+config ARCH_SPECIFIC_ACPI_OSI
-+	def_bool n
++config ACPI_OS_NAME
++	string
++	default "Linux"
++	depends on ACPI
 +
- config ACPI_PROCFS_POWER
- 	bool "Deprecated power /proc/acpi directories"
- 	depends on PROC_FS
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 97191eb..1428464 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -18,9 +18,14 @@ obj-y				+= acpi.o \
- 					acpica/
+ config ARCH_PHYS_ADDR_T_64BIT
+ 	def_bool y
  
- # All the builtin files are in the "acpi." module_param namespace.
--acpi-y				+= osl.o utils.o reboot.o osi.o
-+acpi-y				+= osl.o utils.o reboot.o
- acpi-y				+= nvs.o
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 5a0a3e5..1980bf4 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -69,7 +69,9 @@
+  * code that will not execute the _OSI method unless _OS matches the string
+  * below.  Therefore, change this string at your own risk.
+  */
++#ifndef ACPI_OS_NAME
+ #define ACPI_OS_NAME                    "Microsoft Windows NT"
++#endif
  
-+# _OSI related files
-+ifneq ($(CONFIG_ARCH_SPECIFIC_ACPI_OSI), y)
-+acpi-y				+= osi.o
-+endif
-+
- # Power management related files
- acpi-y				+= wakeup.o
- acpi-y				+= sleep.o
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 71cdeb6..97185a1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -279,9 +279,17 @@ static inline int acpi_video_display_switch_support(void)
- #endif /* defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE) */
+ /* Maximum objects in the various object caches */
  
- extern int acpi_blacklisted(void);
-+
-+#ifdef CONFIG_ARCH_SPECIFIC_ACPI_OSI
-+static inline void __init acpi_dmi_osi_linux(int enable,
-+					     const struct dmi_system_id *d) { }
-+static inline void __init acpi_osi_setup(char *str) { }
-+#else
- extern void __init acpi_dmi_osi_linux(int enable,
- 				      const struct dmi_system_id *d);
- extern void __init acpi_osi_setup(char *str);
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 1ba7c19..a871cdd 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -69,6 +69,10 @@
+ #define ACPI_REDUCED_HARDWARE 1
+ #endif
+ 
++#ifdef CONFIG_ACPI_OS_NAME
++#define ACPI_OS_NAME CONFIG_ACPI_OS_NAME
 +#endif
 +
- extern u32 acpi_osi_handler(acpi_string interface, u32 supported);
- 
- #ifdef CONFIG_ACPI_NUMA
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/ctype.h>
 -- 
 2.1.0
