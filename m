@@ -1,49 +1,118 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: regression in 4.0.0-rc1 with r8169 ethernet
-Date: Wed, 25 Feb 2015 18:03:56 +1000
-Message-ID: <CAPM=9txFHJXbhXQsSyL=h2oG83tr5ZnJj7G6cFtVQ+EDWdXv6w@mail.gmail.com>
-References: <CAPM=9tz8HQAZbdfgE15++i++NkArjxqiY3-BjANqDBTo1g-pOw@mail.gmail.com>
-	<CAErSpo4kG_RrpFtZ6QyRFkMO51Zx62q94L+r60-HfSZY3VHD1g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:34565 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764AbbBYID6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 03:03:58 -0500
-In-Reply-To: <CAErSpo4kG_RrpFtZ6QyRFkMO51Zx62q94L+r60-HfSZY3VHD1g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v9 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Wed, 25 Feb 2015 16:39:40 +0800
+Message-ID: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
 
-> * v3.19 ignored [io  0x0cf8-0x0cff], but v4.0 includes it.  I think
-> it's wrong to include it because that's the configuration space
-> address/data registers, so it's consumed by the host bridge and not
-> produced on the downstream side.
->
-> * v3.19 includes [mem 0x7ff00000-0xfebfffff], but v4.0 does not.  This
-> is what's screwing up the devices.
->
-> I think all the windows should be marked as ACPI_PRODUCER in _CRS
-> since the space is "produced" on the downstream side of the bridge.
-> The [io  0x0cf8-0x0cff] region should probably be marked
-> ACPI_CONSUMER, and maybe that accounts for why v3.19 ignores it.  But
-> I haven't found the code that does that yet.
->
-> I suspect this is all related to the ACPI resource parsing rework.  I
-> looked through that briefly, but no issues jumped out at me, so this
-> is just a heads-up in case it is obvious to you guys.
->
-> Dave, it'd be useful if you could collect an acpidump so we can look
-> at the _CRS data in more detail.
+Changes since v8:
+  - remove MPIDR packing things by introducing phys_cpuid_t;
 
-acpidump fails here with a /dev/mem warning in the kernel,
+  - update patch acpi: fix acpi_os_ioremap for arm64 to follow
+    Rafael's suggestion;
 
-now I'm not near the machine again until next week most likely, so I
-only have ssh for now,
-and the kernel it is running for which I don't have the source anymore!
+  - Squash patch (disable ACPI if ACPI less than 5.1) to patch
+    (Get RSDP and ACPI boot-time table);
 
-is there any of tables from /sys I can grab instead?
+  - Move sleep_arm.c to arch/arm64/ and rename it as acpi_sleep.c 
 
-Dave.
+  - Rework the uefi generated empty dtb to enable acpi when no dtb
+    is available, thanks Ard for the updated patch.
+
+  - rework the function of register cpu for kexec case
+
+  - use pr_debug() instead of pr_info() when scanning MADT.
+
+  - rebase on top of 4.0-rc1
+
+Thanks
+Hanjun
+
+Al Stone (4):
+  ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+  ARM64 / ACPI: Introduce early_param "acpi=" to enable/disable ACPI
+  ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
+    ARM64
+  ARM64 / ACPI: additions of ACPI documentation for arm64
+
+Graeme Gregory (6):
+  ACPI: add arm64 to the platforms that use ioremap
+  ACPI / sleep: Introduce arm64 specific acpi_sleep.c
+  ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+  ARM64 / ACPI: Get PSCI flags in FADT for PSCI init
+  ARM64 / ACPI: Enable ARM64 in Kconfig
+  Documentation: ACPI for ARM64
+
+Hanjun Guo (8):
+  ACPI / table: Use pr_debug() instead of pr_info() for MADT table
+    scanning
+  ACPI / processor: Introduce phys_cpuid_t for CPU hardware ID
+  ARM64 / ACPI: Introduce PCI stub functions for ACPI
+  ACPI / table: Print GIC information when MADT is parsed
+  ARM64 / ACPI: Parse MADT for SMP initialization
+  ACPI / processor: Make it possible to get CPU hardware ID via GICC
+  ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+  clocksource / arch_timer: Parse GTDT to initialize arch timer
+
+Mark Salter (2):
+  ARM64: allow late use of early_ioremap
+  ACPI: fix acpi_os_ioremap for arm64
+
+Tomasz Nowicki (1):
+  irqchip: Add GICv2 specific ACPI boot support
+
+ Documentation/arm64/acpi_object_usage.txt | 594 ++++++++++++++++++++++++++++++
+ Documentation/arm64/arm-acpi.txt          | 506 +++++++++++++++++++++++++
+ Documentation/arm64/why_use_acpi.txt      | 231 ++++++++++++
+ Documentation/kernel-parameters.txt       |   3 +-
+ arch/arm64/Kconfig                        |   3 +
+ arch/arm64/include/asm/acenv.h            |  18 +
+ arch/arm64/include/asm/acpi.h             |  96 +++++
+ arch/arm64/include/asm/cpu_ops.h          |   1 +
+ arch/arm64/include/asm/fixmap.h           |   3 +
+ arch/arm64/include/asm/pci.h              |   6 +
+ arch/arm64/include/asm/psci.h             |   3 +-
+ arch/arm64/include/asm/smp.h              |   5 +-
+ arch/arm64/kernel/Makefile                |   1 +
+ arch/arm64/kernel/acpi.c                  | 386 +++++++++++++++++++
+ arch/arm64/kernel/acpi_sleep.c            |  28 ++
+ arch/arm64/kernel/cpu_ops.c               |   2 +-
+ arch/arm64/kernel/pci.c                   |  25 ++
+ arch/arm64/kernel/psci.c                  |  78 ++--
+ arch/arm64/kernel/setup.c                 |  21 +-
+ arch/arm64/kernel/smp.c                   |   2 +-
+ arch/arm64/kernel/time.c                  |   7 +
+ arch/ia64/include/asm/acpi.h              |   4 +
+ arch/ia64/kernel/acpi.c                   |   2 +-
+ arch/x86/include/asm/acpi.h               |   4 +
+ arch/x86/kernel/acpi/boot.c               |   2 +-
+ drivers/acpi/Kconfig                      |   3 +-
+ drivers/acpi/Makefile                     |   2 +
+ drivers/acpi/acpi_processor.c             |   7 +-
+ drivers/acpi/bus.c                        |   3 +
+ drivers/acpi/osl.c                        |   6 +-
+ drivers/acpi/processor_core.c             |  60 ++-
+ drivers/acpi/tables.c                     |  52 ++-
+ drivers/clocksource/arm_arch_timer.c      | 132 +++++--
+ drivers/irqchip/irq-gic.c                 | 102 +++++
+ drivers/irqchip/irqchip.c                 |   3 +
+ include/acpi/acpi_io.h                    |   4 +
+ include/acpi/processor.h                  |   6 +-
+ include/linux/acpi.h                      |  17 +-
+ include/linux/clocksource.h               |   6 +
+ include/linux/irqchip/arm-gic-acpi.h      |  29 ++
+ 40 files changed, 2359 insertions(+), 104 deletions(-)
+ create mode 100644 Documentation/arm64/acpi_object_usage.txt
+ create mode 100644 Documentation/arm64/arm-acpi.txt
+ create mode 100644 Documentation/arm64/why_use_acpi.txt
+ create mode 100644 arch/arm64/include/asm/acenv.h
+ create mode 100644 arch/arm64/include/asm/acpi.h
+ create mode 100644 arch/arm64/kernel/acpi.c
+ create mode 100644 arch/arm64/kernel/acpi_sleep.c
+ create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+
+-- 
+1.9.1
