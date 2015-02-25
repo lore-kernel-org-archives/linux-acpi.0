@@ -1,42 +1,172 @@
-From: David Cohen <david.a.cohen@linux.intel.com>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Tue, 24 Feb 2015 12:34:59 -0800
-Message-ID: <20150224203459.GC13094@psi-dev26.jf.intel.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
- <CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
- <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
- <4078818.ecVtLF3hjd@vostro.rjw.lan>
- <CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+From: al.stone@linaro.org
+Subject: [PATCH v3 1/9] ACPI: fix all errors reported by cleanpatch.pl in osl.c
+Date: Tue, 24 Feb 2015 17:36:17 -0700
+Message-ID: <1424824585-6405-2-git-send-email-al.stone@linaro.org>
+References: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com
+Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Al Stone <al.stone@linaro.org>
 
-> If we decide to go ahead with the solution proposed by this patch for
-> practical reasons (which are good reasons indeed), I still have one
-> problem with its current form.
-> 
-> As the discussion highlighted, this is an ACPI problem, so I'd very
-> much like it to be confined to the ACPI GPIO code, to be enabled only
-> when ACPI is, and to use function names that start with acpi_gpio. The
-> current implementation leverages platform lookup, making said lookup
-> less efficient in the process and bringing confusion about its
-> purpose. Although the two processes are indeed similar, they are
-> separate things: one is a legitimate way to map GPIOs, the other is a
-> fixup for broken firmware.
-> 
-> I suppose we all agree this is a hackish fix, so let's confine it as
-> much as we can.
+In preparation for later splitting out some of the arch-dependent code from
+osl.c, clean up the errors reported by checkpatch.pl.  They fell into these
+classes:
 
-Are we considering MFD cases hackish as well?
-i.e. if we have a driver that needs to register children devices and this
-driver needs to pass GPIO to a child.
+   -- remove the FSF address from the GPL notice
+   -- "foo * bar" should be "foo *bar" (and the ** variation of same)
+   -- a return is not a function, so parentheses are not required.
 
-Br, David
+Signed-off-by: Al Stone <al.stone@linaro.org>
+---
+ drivers/acpi/osl.c | 38 +++++++++++++++++---------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 39748bb..1dc3a3b 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -19,10 +19,6 @@
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+  *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+  */
+@@ -526,7 +522,7 @@ EXPORT_SYMBOL(acpi_os_unmap_generic_address);
+ 
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status
+-acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
++acpi_os_get_physical_address(void *virt, acpi_physical_address *phys)
+ {
+ 	if (!phys || !virt)
+ 		return AE_BAD_PARAMETER;
+@@ -543,7 +539,7 @@ static char acpi_os_name[ACPI_MAX_OVERRIDE_LEN];
+ 
+ acpi_status
+ acpi_os_predefined_override(const struct acpi_predefined_names *init_val,
+-			    acpi_string * new_val)
++			    acpi_string *new_val)
+ {
+ 	if (!init_val || !new_val)
+ 		return AE_BAD_PARAMETER;
+@@ -714,8 +710,8 @@ static void acpi_table_taint(struct acpi_table_header *table)
+ 
+ 
+ acpi_status
+-acpi_os_table_override(struct acpi_table_header * existing_table,
+-		       struct acpi_table_header ** new_table)
++acpi_os_table_override(struct acpi_table_header *existing_table,
++		       struct acpi_table_header **new_table)
+ {
+ 	if (!existing_table || !new_table)
+ 		return AE_BAD_PARAMETER;
+@@ -889,7 +885,7 @@ u64 acpi_os_get_timer(void)
+ 	return time_ns;
+ }
+ 
+-acpi_status acpi_os_read_port(acpi_io_address port, u32 * value, u32 width)
++acpi_status acpi_os_read_port(acpi_io_address port, u32 *value, u32 width)
+ {
+ 	u32 dummy;
+ 
+@@ -1046,7 +1042,7 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u64 value, u32 width)
+ }
+ 
+ acpi_status
+-acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
++acpi_os_read_pci_configuration(struct acpi_pci_id *pci_id, u32 reg,
+ 			       u64 *value, u32 width)
+ {
+ 	int result, size;
+@@ -1074,11 +1070,11 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 				reg, size, &value32);
+ 	*value = value32;
+ 
+-	return (result ? AE_ERROR : AE_OK);
++	return result ? AE_ERROR : AE_OK;
+ }
+ 
+ acpi_status
+-acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
++acpi_os_write_pci_configuration(struct acpi_pci_id *pci_id, u32 reg,
+ 				u64 value, u32 width)
+ {
+ 	int result, size;
+@@ -1101,7 +1097,7 @@ acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
+ 				PCI_DEVFN(pci_id->device, pci_id->function),
+ 				reg, size, value);
+ 
+-	return (result ? AE_ERROR : AE_OK);
++	return result ? AE_ERROR : AE_OK;
+ }
+ 
+ static void acpi_os_execute_deferred(struct work_struct *work)
+@@ -1247,7 +1243,7 @@ bool acpi_queue_hotplug_work(struct work_struct *work)
+ }
+ 
+ acpi_status
+-acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle * handle)
++acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle *handle)
+ {
+ 	struct semaphore *sem = NULL;
+ 
+@@ -1735,7 +1731,7 @@ void acpi_os_release_lock(acpi_spinlock lockp, acpi_cpu_flags flags)
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
++acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t **cache)
+ {
+ 	*cache = kmem_cache_create(name, size, 0, 0, NULL);
+ 	if (*cache == NULL)
+@@ -1756,10 +1752,10 @@ acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
++acpi_status acpi_os_purge_cache(acpi_cache_t *cache)
+ {
+ 	kmem_cache_shrink(cache);
+-	return (AE_OK);
++	return AE_OK;
+ }
+ 
+ /*******************************************************************************
+@@ -1775,10 +1771,10 @@ acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
++acpi_status acpi_os_delete_cache(acpi_cache_t *cache)
+ {
+ 	kmem_cache_destroy(cache);
+-	return (AE_OK);
++	return AE_OK;
+ }
+ 
+ /*******************************************************************************
+@@ -1795,10 +1791,10 @@ acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
++acpi_status acpi_os_release_object(acpi_cache_t *cache, void *object)
+ {
+ 	kmem_cache_free(cache, object);
+-	return (AE_OK);
++	return AE_OK;
+ }
+ #endif
+ 
+-- 
+2.1.0
+
