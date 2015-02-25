@@ -1,66 +1,90 @@
-From: David Cohen <david.a.cohen@linux.intel.com>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Wed, 25 Feb 2015 10:25:02 -0800
-Message-ID: <20150225182502.GA7586@psi-dev26.jf.intel.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
- <CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
- <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
- <4078818.ecVtLF3hjd@vostro.rjw.lan>
- <CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
- <20150224203459.GC13094@psi-dev26.jf.intel.com>
- <CAAVeFuKhD2VBf3EOCjHqJK5CLx4qC8Quire2My9nMqboZzSNZQ@mail.gmail.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal SoC management updates for v4.0-rc2
+Date: Wed, 25 Feb 2015 15:32:13 -0400
+Message-ID: <20150225193210.GB2983@developer.amazonguestwifi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mxv5cy4qt+RJ9ypb"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:35320 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013AbbBYTcS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 14:32:18 -0500
 Content-Disposition: inline
-In-Reply-To: <CAAVeFuKhD2VBf3EOCjHqJK5CLx4qC8Quire2My9nMqboZzSNZQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, Feb 25, 2015 at 10:34:45AM +0900, Alexandre Courbot wrote:
-> On Wed, Feb 25, 2015 at 5:34 AM, David Cohen
-> <david.a.cohen@linux.intel.com> wrote:
-> > Hi,
-> >
-> >> If we decide to go ahead with the solution proposed by this patch for
-> >> practical reasons (which are good reasons indeed), I still have one
-> >> problem with its current form.
-> >>
-> >> As the discussion highlighted, this is an ACPI problem, so I'd very
-> >> much like it to be confined to the ACPI GPIO code, to be enabled only
-> >> when ACPI is, and to use function names that start with acpi_gpio. The
-> >> current implementation leverages platform lookup, making said lookup
-> >> less efficient in the process and bringing confusion about its
-> >> purpose. Although the two processes are indeed similar, they are
-> >> separate things: one is a legitimate way to map GPIOs, the other is a
-> >> fixup for broken firmware.
-> >>
-> >> I suppose we all agree this is a hackish fix, so let's confine it as
-> >> much as we can.
-> >
-> > Are we considering MFD cases hackish as well?
-> > i.e. if we have a driver that needs to register children devices and this
-> > driver needs to pass GPIO to a child.
-> 
-> In that case wouldn't the GPIO be best defined in the child node
-> itself, for the child device's driver to directly probe?
 
-In my case [1] I need 2 "virtual devices" (and more in future) to be
-part of an USB OTG port control. I call it virtual because they are too
-simple components connected to no bus and controlled by GPIOs:
-- a fixed regulator controlled by GPIO
-- a generic mux controlled by GPIO
+--mxv5cy4qt+RJ9ypb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'd need to request official ACPI HID for them in order to make them
-self-sufficient.
+Hello Rui,
 
-I can go ahead with this approach, but we have many examples of drivers
-on upstream that are platform driver expecting to receive gpio via
-platform data (e.g. extcon-gpio). The ACPI table of some products on
-market were defined following this concept and won't change anymore.
+Please pull from
 
-Br, David
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git fixes
 
-[1] https://lkml.org/lkml/2015/2/19/411
+to receive Thermal SoC Management updates for v4.0-rc2 with top-most
+
+b71d399c7f2fe06b60b96155ec0b9ae167334e4a:
+
+  thermal: exynos: Clean-up code to use oneline entry for exynos compatible table (2015-02-24 15:00:00 -0400)
+
+on top of commit c517d838eb7d07bbe9507871fab3931deccff539:
+
+  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
+
+Specifics:
+- Fixes in RCAR thermal driver to remove race conditions and fix fail path
+- Fixes in TI thermal driver: removal of unnecessary code and build fix if !CONFIG_PM_SLEEP
+- Cleanups in exynos thermal driver
+- Add stubs for include/linux/thermal.h. Now drivers using thermal calls but that also work
+without CONFIG_THERMAL will be able to compile for systems that don't care about thermal.
+
+BR,
+
+Eduardo Valentin
+----------------------------------------------------------------
+Chanwoo Choi (1):
+      thermal: exynos: Clean-up code to use oneline entry for exynos compatible table
+
+Geert Uytterhoeven (2):
+      thermal: rcar: Fix race condition between init and interrupt
+      thermal: rcar: Make error and remove paths symmetrical with init
+
+Grygorii Strashko (1):
+      thermal: ti-soc-thermal: bandgap: Fix build warning if !CONFIG_PM_SLEEP
+
+Markus Elfring (1):
+      ti-soc-thermal: Delete an unnecessary check before the function call "cpufreq_cooling_unregister"
+
+Nishanth Menon (1):
+      thermal: Introduce dummy functions when thermal is not defined
+
+ drivers/thermal/rcar_thermal.c                     | 26 +++++-----
+ drivers/thermal/samsung/exynos_tmu.c               | 38 ++++-----------
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  2 +-
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
+ include/linux/thermal.h                            | 56 +++++++++++++++++++++-
+ 5 files changed, 77 insertions(+), 47 deletions(-)
+
+--mxv5cy4qt+RJ9ypb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJU7iMwAAoJEMLUO4d9pOJWaAIH/RgEPnvdTLC7G4UAB6zMJZlx
+67HONdWFuegCesi5MWI9q936VxjP6nbxT2nZkyEYAWRzRgqwEik/cb+lP06ofZpE
+UwCLrvB79QY0AjFJcxq9eGN7zXoBOaj6QL1rGoVpWTchQpO7msIgbMsN+nfSHJhS
+VCWV2waQ1bd2Jrd/9LCIqyxiJyfUg4G7mUZY4gHc9SFXeF5IOpX6eCzfhps9T43e
+GyReMKKFB98DSqB4BAHTiP3YbZLBLP8qMd16nDAnbL+fxtaN/+hLGYdmsMqdwVIB
+e26XvexccO3cTv5tBrMo5iOKc1DbFdlFjrCLo70YklnkUbJESZOkpCQhD7qdAzo=
+=Ovud
+-----END PGP SIGNATURE-----
+
+--mxv5cy4qt+RJ9ypb--
