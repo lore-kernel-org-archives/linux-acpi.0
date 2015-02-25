@@ -1,90 +1,79 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal SoC management updates for v4.0-rc2
-Date: Wed, 25 Feb 2015 15:32:13 -0400
-Message-ID: <20150225193210.GB2983@developer.amazonguestwifi.org>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v3 2/9] ACPI: clear up warnings on use of printk reported
+ by checkpatch.pl
+Date: Wed, 25 Feb 2015 13:56:04 -0700
+Message-ID: <54EE36E4.5070404@linaro.org>
+References: <1424824585-6405-1-git-send-email-al.stone@linaro.org> <1424824585-6405-3-git-send-email-al.stone@linaro.org> <54EDC64D.8040301@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mxv5cy4qt+RJ9ypb"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:35320 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013AbbBYTcS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 14:32:18 -0500
-Content-Disposition: inline
+Received: from mail-ig0-f176.google.com ([209.85.213.176]:49701 "EHLO
+	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752646AbbBYU4I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 15:56:08 -0500
+Received: by mail-ig0-f176.google.com with SMTP id hl2so39028477igb.3
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2015 12:56:07 -0800 (PST)
+In-Reply-To: <54EDC64D.8040301@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com
+Cc: linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devel@acpica.org
 
+On 02/25/2015 05:55 AM, Hanjun Guo wrote:
+> On 2015=E5=B9=B402=E6=9C=8825=E6=97=A5 08:36, al.stone@linaro.org wro=
+te:
+>> From: Al Stone <al.stone@linaro.org>
+>>
+>> In preparation for later splitting out some of the arch-dependent co=
+de from
+>> osl.c, clear up all the warnings reported by checkpatch.pl where pr_=
+* should
+>> be used instead of printk(KERN_* ...).
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>   drivers/acpi/osl.c | 46 +++++++++++++++++++-----------------------=
+----
+>>   1 file changed, 19 insertions(+), 27 deletions(-)
+>>
+>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>> index 1dc3a3b..865317c 100644
+>> --- a/drivers/acpi/osl.c
+>> +++ b/drivers/acpi/osl.c
+>> @@ -141,7 +141,7 @@ static u32 acpi_osi_handler(acpi_string interfac=
+e, u32
+>> supported)
+>>   {
+>>       if (!strcmp("Linux", interface)) {
+>>
+>> -        printk_once(KERN_NOTICE FW_BUG PREFIX
+>> +        pr_notice_once(FW_BUG PREFIX
+>=20
+> I think you can use pr_fmt() and then remove all the PREFIX in
+> this patch, just
+>=20
+> #define pr_fmt(fmt) "ACPI: " fmt
+>=20
+> in top of this file before all #includes.
+>=20
+> Thanks
+> Hanjun
 
---mxv5cy4qt+RJ9ypb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Argh.  Yup, you're right.  That was an oversight on my part.
+=46ixed in next version.
 
-Hello Rui,
-
-Please pull from
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git fixes
-
-to receive Thermal SoC Management updates for v4.0-rc2 with top-most
-
-b71d399c7f2fe06b60b96155ec0b9ae167334e4a:
-
-  thermal: exynos: Clean-up code to use oneline entry for exynos compatible table (2015-02-24 15:00:00 -0400)
-
-on top of commit c517d838eb7d07bbe9507871fab3931deccff539:
-
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
-
-Specifics:
-- Fixes in RCAR thermal driver to remove race conditions and fix fail path
-- Fixes in TI thermal driver: removal of unnecessary code and build fix if !CONFIG_PM_SLEEP
-- Cleanups in exynos thermal driver
-- Add stubs for include/linux/thermal.h. Now drivers using thermal calls but that also work
-without CONFIG_THERMAL will be able to compile for systems that don't care about thermal.
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Chanwoo Choi (1):
-      thermal: exynos: Clean-up code to use oneline entry for exynos compatible table
-
-Geert Uytterhoeven (2):
-      thermal: rcar: Fix race condition between init and interrupt
-      thermal: rcar: Make error and remove paths symmetrical with init
-
-Grygorii Strashko (1):
-      thermal: ti-soc-thermal: bandgap: Fix build warning if !CONFIG_PM_SLEEP
-
-Markus Elfring (1):
-      ti-soc-thermal: Delete an unnecessary check before the function call "cpufreq_cooling_unregister"
-
-Nishanth Menon (1):
-      thermal: Introduce dummy functions when thermal is not defined
-
- drivers/thermal/rcar_thermal.c                     | 26 +++++-----
- drivers/thermal/samsung/exynos_tmu.c               | 38 ++++-----------
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  2 +-
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
- include/linux/thermal.h                            | 56 +++++++++++++++++++++-
- 5 files changed, 77 insertions(+), 47 deletions(-)
-
---mxv5cy4qt+RJ9ypb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJU7iMwAAoJEMLUO4d9pOJWaAIH/RgEPnvdTLC7G4UAB6zMJZlx
-67HONdWFuegCesi5MWI9q936VxjP6nbxT2nZkyEYAWRzRgqwEik/cb+lP06ofZpE
-UwCLrvB79QY0AjFJcxq9eGN7zXoBOaj6QL1rGoVpWTchQpO7msIgbMsN+nfSHJhS
-VCWV2waQ1bd2Jrd/9LCIqyxiJyfUg4G7mUZY4gHc9SFXeF5IOpX6eCzfhps9T43e
-GyReMKKFB98DSqB4BAHTiP3YbZLBLP8qMd16nDAnbL+fxtaN/+hLGYdmsMqdwVIB
-e26XvexccO3cTv5tBrMo5iOKc1DbFdlFjrCLo70YklnkUbJESZOkpCQhD7qdAzo=
-=Ovud
------END PGP SIGNATURE-----
-
---mxv5cy4qt+RJ9ypb--
+--=20
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
