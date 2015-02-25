@@ -1,86 +1,55 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v9 06/21] ACPI: fix acpi_os_ioremap for arm64
-Date: Wed, 25 Feb 2015 16:39:46 +0800
-Message-ID: <1424853601-6675-7-git-send-email-hanjun.guo@linaro.org>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:39077 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753102AbbBYIln (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 03:41:43 -0500
-Received: by pdjy10 with SMTP id y10so3390057pdj.6
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Feb 2015 00:41:42 -0800 (PST)
-In-Reply-To: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / EC: Remove non-standard log emphasis
+Date: Wed, 25 Feb 2015 08:41:33 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026D8036@SHSMSX101.ccr.corp.intel.com>
+References: <alpine.LNX.2.11.1502151932250.630@localhost>
+ <7706896.L1jj2myRTu@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7706896.L1jj2myRTu@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Scot Doyle <lkml14@scotdoyle.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Mark Salter <msalter@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Mark Salter <msalter@redhat.com>
-
-The acpi_os_ioremap() function may be used to map normal RAM or IO
-regions. The current implementation simply uses ioremap_cache(). This
-will work for some architectures, but arm64 ioremap_cache() cannot be
-used to map IO regions which don't support caching. So for arm64, use
-ioremap() for non-RAM regions.
-
-CC: Rafael J Wysocki <rjw@rjwysocki.net>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Robert Richter <rrichter@cavium.com>
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/arm64/include/asm/acpi.h | 13 +++++++++++++
- include/acpi/acpi_io.h        |  4 ++++
- 2 files changed, 17 insertions(+)
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 8b837ab..40e0924 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -12,8 +12,21 @@
- #ifndef _ASM_ACPI_H
- #define _ASM_ACPI_H
- 
-+#include <linux/mm.h>
-+
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
-+/* ACPI table mapping after acpi_gbl_permanent_mmap is set */
-+static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-+					    acpi_size size)
-+{
-+	if (!page_is_ram(phys >> PAGE_SHIFT))
-+		return ioremap(phys, size);
-+
-+	return ioremap_cache(phys, size);
-+}
-+#define acpi_os_ioremap acpi_os_ioremap
-+
- #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
- extern int acpi_disabled;
- extern int acpi_noirq;
-diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-index 444671e..dd86c5f 100644
---- a/include/acpi/acpi_io.h
-+++ b/include/acpi/acpi_io.h
-@@ -3,11 +3,15 @@
- 
- #include <linux/io.h>
- 
-+#include <asm/acpi.h>
-+
-+#ifndef acpi_os_ioremap
- static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
- 					    acpi_size size)
- {
-        return ioremap_cache(phys, size);
- }
-+#endif
- 
- void __iomem *__init_refok
- acpi_os_map_iomem(acpi_physical_address phys, acpi_size size);
--- 
-1.9.1
-
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSAxOCwgMjAxNSAyOjE5IFBNDQo+IFRvOiBT
+Y290IERveWxlDQo+IENjOiBaaGVuZywgTHY7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBs
+aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEkg
+LyBFQzogUmVtb3ZlIG5vbi1zdGFuZGFyZCBsb2cgZW1waGFzaXMNCj4gDQo+IE9uIFN1bmRheSwg
+RmVicnVhcnkgMTUsIDIwMTUgMDc6NDM6MDggUE0gU2NvdCBEb3lsZSB3cm90ZToNCj4gPiBSZW1v
+dmUgdW51c3VhbCBwcl9pbmZvKCkgdmlzdWFsIGVtcGhhc2lzIGludHJvZHVjZWQgaW4gYWQ0Nzll
+N2Y0N2NhDQo+ID4gIkFDUEkgLyBFQzogSW50cm9kdWNlIFNUQVJURUQvU1RPUFBFRCBmbGFncyB0
+byByZXBsYWNlIEJMT0NLRUQgZmxhZyIuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTY290IERv
+eWxlIDxsa21sMTRAc2NvdGRveWxlLmNvbT4NCj4gDQo+IEFwcGxpZWQsIHRoYW5rcyENCj4gDQo+
+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9lYy5jIHwgNCArKy0tDQo+ID4gIDEgZmlsZSBjaGFu
+Z2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9hY3BpL2VjLmMgYi9kcml2ZXJzL2FjcGkvZWMuYw0KPiA+IGluZGV4IDk4MmI2
+N2YuLjg1NzE3NWUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2VjLmMNCj4gPiArKysg
+Yi9kcml2ZXJzL2FjcGkvZWMuYw0KPiA+IEBAIC02ODAsNyArNjgwLDcgQEAgc3RhdGljIHZvaWQg
+YWNwaV9lY19zdGFydChzdHJ1Y3QgYWNwaV9lYyAqZWMsIGJvb2wgcmVzdW1pbmcpDQo+ID4gIAkJ
+LyogRW5hYmxlIEdQRSBmb3IgZXZlbnQgcHJvY2Vzc2luZyAoU0NJX0VWVD0xKSAqLw0KPiA+ICAJ
+CWlmICghcmVzdW1pbmcpDQo+ID4gIAkJCWFjcGlfZWNfc3VibWl0X3JlcXVlc3QoZWMpOw0KPiA+
+IC0JCXByX2luZm8oIisrKysrIEVDIHN0YXJ0ZWQgKysrKytcbiIpOw0KPiA+ICsJCXByX2luZm8o
+IkVDIHN0YXJ0ZWRcbiIpOw0KPiA+ICAJfQ0KPiA+ICAJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgm
+ZWMtPmxvY2ssIGZsYWdzKTsNCj4gPiAgfQ0KPiA+IEBAIC03MTIsNyArNzEyLDcgQEAgc3RhdGlj
+IHZvaWQgYWNwaV9lY19zdG9wKHN0cnVjdCBhY3BpX2VjICplYywgYm9vbCBzdXNwZW5kaW5nKQ0K
+PiA+ICAJCQlhY3BpX2VjX2NvbXBsZXRlX3JlcXVlc3QoZWMpOw0KPiA+ICAJCWNsZWFyX2JpdChF
+Q19GTEFHU19TVEFSVEVELCAmZWMtPmZsYWdzKTsNCj4gPiAgCQljbGVhcl9iaXQoRUNfRkxBR1Nf
+U1RPUFBFRCwgJmVjLT5mbGFncyk7DQo+ID4gLQkJcHJfaW5mbygiKysrKysgRUMgc3RvcHBlZCAr
+KysrK1xuIik7DQo+ID4gKwkJcHJfaW5mbygiRUMgc3RvcHBlZFxuIik7DQo+ID4gIAl9DQo+ID4g
+IAlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZlYy0+bG9jaywgZmxhZ3MpOw0KPiA+ICB9DQo+ID4N
+Cg0KSSB3YXMgdXNpbmcgIisrKysrIi8iIyMjIyMiLyIqKioqKiIgdG8gZmlsdGVyIGRpZmZlcmVu
+dCBFQyBsb2cgZW50cmllcyB3aGljaCBtYWtlcyBkZWJ1Z2dpbmcgZWFzaWVyLg0KQW5kLCBpZiB3
+ZSBjaGFuZ2VkIHRoaXMgZnJvbSBwcl9pbmZvIGludG8gcHJfZGVidWcsIHRoZW4gd2Ugd2lsbCBo
+YXZlIG5vdGhpbmcgaW4gdGhlIHN1c3BlbmQvcmVzdW1lIGxvZ3MgZm9yIHRoZSBFQyBkZXZpY2Uu
+DQpXaGlsZSB0aGVyZSBhcmUgcGxlbnR5IG9mIHN1Y2ggbG9nIGVudHJpZXMgZm9yIGVhY2ggb2Yg
+b3RoZXIgZGV2aWNlcy4NClNvIEkgcmVhbGx5IGRvdWJ0IHdoYXQncyB0aGUgbWVhbmluZyBvZiBz
+dWNoIGEgY2hhbmdlLg0KQ291bGQgaXQgaW1wcm92ZSBhbnl0aGluZyBvciBqdXN0IG1ha2UgZGVi
+dWdnaW5nIG1vcmUgZGlmZmljdWx0IGZvciBkZXZlbG9wZXJzPw0KDQpUaGFua3MgYW5kIGJlc3Qg
+cmVnYXJkcw0KLUx2DQoNCg0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+
+IFJhZmFlbCBKLiBXeXNvY2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4N
+Cg==
