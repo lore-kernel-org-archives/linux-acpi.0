@@ -1,45 +1,66 @@
-From: Scot Doyle <lkml14@scotdoyle.com>
-Subject: RE: [PATCH] ACPI / EC: Remove non-standard log emphasis
-Date: Wed, 25 Feb 2015 15:01:08 +0000 (UTC)
-Message-ID: <alpine.LNX.2.11.1502251459001.14861@localhost>
-References: <alpine.LNX.2.11.1502151932250.630@localhost> <7706896.L1jj2myRTu@vostro.rjw.lan>  <1AE640813FDE7649BE1B193DEA596E88026D8057@SHSMSX101.ccr.corp.intel.com>
+From: David Cohen <david.a.cohen@linux.intel.com>
+Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
+Date: Wed, 25 Feb 2015 10:25:02 -0800
+Message-ID: <20150225182502.GA7586@psi-dev26.jf.intel.com>
+References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
+ <CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
+ <4078818.ecVtLF3hjd@vostro.rjw.lan>
+ <CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
+ <20150224203459.GC13094@psi-dev26.jf.intel.com>
+ <CAAVeFuKhD2VBf3EOCjHqJK5CLx4qC8Quire2My9nMqboZzSNZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.scotdoyle.com ([23.226.141.211]:36825 "EHLO
-	mx1.scotdoyle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbbBYPDk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 10:03:40 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88026D8057@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAAVeFuKhD2VBf3EOCjHqJK5CLx4qC8Quire2My9nMqboZzSNZQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandre Courbot <gnurou@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, 25 Feb 2015, Zheng, Lv wrote:
-...
-> > I was using "+++++"/"#####"/"*****" to filter different EC log entries which makes debugging easier.
-> > And, if we changed this from pr_info into pr_debug, then we will have nothing in the suspend/resume logs for the EC device.
-> > While there are plenty of such log entries for each of other devices.
-> > So I really doubt what's the meaning of such a change.
-> > Could it improve anything or just make debugging more difficult for developers?
+On Wed, Feb 25, 2015 at 10:34:45AM +0900, Alexandre Courbot wrote:
+> On Wed, Feb 25, 2015 at 5:34 AM, David Cohen
+> <david.a.cohen@linux.intel.com> wrote:
+> > Hi,
+> >
+> >> If we decide to go ahead with the solution proposed by this patch for
+> >> practical reasons (which are good reasons indeed), I still have one
+> >> problem with its current form.
+> >>
+> >> As the discussion highlighted, this is an ACPI problem, so I'd very
+> >> much like it to be confined to the ACPI GPIO code, to be enabled only
+> >> when ACPI is, and to use function names that start with acpi_gpio. The
+> >> current implementation leverages platform lookup, making said lookup
+> >> less efficient in the process and bringing confusion about its
+> >> purpose. Although the two processes are indeed similar, they are
+> >> separate things: one is a legitimate way to map GPIOs, the other is a
+> >> fixup for broken firmware.
+> >>
+> >> I suppose we all agree this is a hackish fix, so let's confine it as
+> >> much as we can.
+> >
+> > Are we considering MFD cases hackish as well?
+> > i.e. if we have a driver that needs to register children devices and this
+> > driver needs to pass GPIO to a child.
 > 
-> IMO, it's better to introduce such kind of code in the head of ec.c:
-> 
-> #ifdef DEBUG_FILTER
-> #define EC_LOG_DEV "+++++"
-> #define EC_LOG_CMD "*****"
-> #define EC_LOG_EVT "#####"
-> ...
-> #else
-> #define EC_LOG_DEV
-> #define EC_LOG_CMD
-> #define EC_LOG_EVT
-> #endif
-> 
-> And wrap the pr_info, pr_debug using filter enabled new macros - ec_info, ec_debug so that we won't see the filters in the normal dmesg output and the filters are still available for the developers.
-> 
-> Thanks and best regards
-> -Lv
+> In that case wouldn't the GPIO be best defined in the child node
+> itself, for the child device's driver to directly probe?
 
-I agree, would you be willing to submit it?
+In my case [1] I need 2 "virtual devices" (and more in future) to be
+part of an USB OTG port control. I call it virtual because they are too
+simple components connected to no bus and controlled by GPIOs:
+- a fixed regulator controlled by GPIO
+- a generic mux controlled by GPIO
+
+I'd need to request official ACPI HID for them in order to make them
+self-sufficient.
+
+I can go ahead with this approach, but we have many examples of drivers
+on upstream that are platform driver expecting to receive gpio via
+platform data (e.g. extcon-gpio). The ACPI table of some products on
+market were defined following this concept and won't change anymore.
+
+Br, David
+
+[1] https://lkml.org/lkml/2015/2/19/411
