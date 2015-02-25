@@ -1,53 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: regression in 4.0.0-rc1 with r8169 ethernet
-Date: Wed, 25 Feb 2015 23:42:26 +0100
-Message-ID: <16779086.0bGZj9locs@vostro.rjw.lan>
-References: <CAPM=9tz8HQAZbdfgE15++i++NkArjxqiY3-BjANqDBTo1g-pOw@mail.gmail.com> <CAErSpo4kG_RrpFtZ6QyRFkMO51Zx62q94L+r60-HfSZY3VHD1g@mail.gmail.com> <CAPM=9txFHJXbhXQsSyL=h2oG83tr5ZnJj7G6cFtVQ+EDWdXv6w@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / EC: Remove non-standard log emphasis
+Date: Wed, 25 Feb 2015 23:55:51 +0100
+Message-ID: <3416235.WAfNBEHG25@vostro.rjw.lan>
+References: <alpine.LNX.2.11.1502151932250.630@localhost> <1AE640813FDE7649BE1B193DEA596E88026D8057@SHSMSX101.ccr.corp.intel.com> <alpine.LNX.2.11.1502251459001.14861@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAPM=9txFHJXbhXQsSyL=h2oG83tr5ZnJj7G6cFtVQ+EDWdXv6w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52007 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753621AbbBYWc1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Feb 2015 17:32:27 -0500
+In-Reply-To: <alpine.LNX.2.11.1502251459001.14861@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Scot Doyle <lkml14@scotdoyle.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wednesday, February 25, 2015 06:03:56 PM Dave Airlie wrote:
-> > * v3.19 ignored [io  0x0cf8-0x0cff], but v4.0 includes it.  I think
-> > it's wrong to include it because that's the configuration space
-> > address/data registers, so it's consumed by the host bridge and not
-> > produced on the downstream side.
-> >
-> > * v3.19 includes [mem 0x7ff00000-0xfebfffff], but v4.0 does not.  This
-> > is what's screwing up the devices.
-> >
-> > I think all the windows should be marked as ACPI_PRODUCER in _CRS
-> > since the space is "produced" on the downstream side of the bridge.
-> > The [io  0x0cf8-0x0cff] region should probably be marked
-> > ACPI_CONSUMER, and maybe that accounts for why v3.19 ignores it.  But
-> > I haven't found the code that does that yet.
-> >
-> > I suspect this is all related to the ACPI resource parsing rework.  I
-> > looked through that briefly, but no issues jumped out at me, so this
-> > is just a heads-up in case it is obvious to you guys.
-> >
-> > Dave, it'd be useful if you could collect an acpidump so we can look
-> > at the _CRS data in more detail.
+On Wednesday, February 25, 2015 03:01:08 PM Scot Doyle wrote:
+> On Wed, 25 Feb 2015, Zheng, Lv wrote:
+> ...
+> > > I was using "+++++"/"#####"/"*****" to filter different EC log entries which makes debugging easier.
+> > > And, if we changed this from pr_info into pr_debug, then we will have nothing in the suspend/resume logs for the EC device.
+> > > While there are plenty of such log entries for each of other devices.
+> > > So I really doubt what's the meaning of such a change.
+> > > Could it improve anything or just make debugging more difficult for developers?
+> > 
+> > IMO, it's better to introduce such kind of code in the head of ec.c:
+> > 
+> > #ifdef DEBUG_FILTER
+> > #define EC_LOG_DEV "+++++"
+> > #define EC_LOG_CMD "*****"
+> > #define EC_LOG_EVT "#####"
+> > ...
+> > #else
+> > #define EC_LOG_DEV
+> > #define EC_LOG_CMD
+> > #define EC_LOG_EVT
+> > #endif
+> > 
+> > And wrap the pr_info, pr_debug using filter enabled new macros - ec_info, ec_debug so that we won't see the filters in the normal dmesg output and the filters are still available for the developers.
+> > 
+> > Thanks and best regards
+> > -Lv
 > 
-> acpidump fails here with a /dev/mem warning in the kernel,
-> 
-> now I'm not near the machine again until next week most likely, so I
-> only have ssh for now,
-> and the kernel it is running for which I don't have the source anymore!
-> 
-> is there any of tables from /sys I can grab instead?
+> I agree, would you be willing to submit it?
 
-/sys/firmware/acpi/tables/DSDT
-/sys/firmware/acpi/tables/SSDT*
+Yes, sounds good to me too!
 
-Also I'm wondering if reverting commit 2ea3d266bab3 (ACPI: Translate
-resource into master side address for bridge window resources) makes
-any difference?
 
-Rafael
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
