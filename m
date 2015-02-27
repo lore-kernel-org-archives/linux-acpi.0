@@ -1,51 +1,28 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v9 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 26 Feb 2015 21:20:34 -0600
-Message-ID: <54EFE282.1090305@codeaurora.org>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/2] ACPI / EC: Enhance logging/debugging.
+Date: Fri, 27 Feb 2015 14:48:07 +0800
+Message-ID: <cover.1425019470.git.lv.zheng@intel.com>
+References: <alpine.LNX.2.11.1502151932250.630@localhost>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:41962 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750947AbbB0GsO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Feb 2015 01:48:14 -0500
+In-Reply-To: <alpine.LNX.2.11.1502151932250.630@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 02/25/2015 02:39 AM, Hanjun Guo wrote:
-> Changes since v8:
+This patchset enhances logging/debugging support in EC driver.
 
-I'm still debugging it, but v9 on the 4.0-rc1 kernel crashes after 
-calling the UEFI boot time services exit function.  That is, this line:
+Lv Zheng (2):
+  ACPI / EC: Cleanup logging/debugging splitter support.
+  ACPI / EC: Add GPE reference counting debugging messages.
 
-status = sys_table->boottime->exit_boot_services(handle, mmap_key);
-
-in allocate_new_fdt_and_exit_boot() gets called, and then soon after it 
-returns, the kernel crashes.  It's really early because the UEFI 
-exception handler is called.
-
-I did not have this problem with v8 patchset on 3.19.
-
-
-Also, you still have a couple whitespace problems in these patches:
-
-Applying: ARM64 / ACPI: additions of ACPI documentation for arm64
-/local/mnt/workspace/linux.0/.git/rebase-apply/patch:607: new blank line 
-at EOF.
-+
-/local/mnt/workspace/linux.0/.git/rebase-apply/patch:844: new blank line 
-at EOF.
-+
-warning: 2 lines add whitespace errors.
-Applying: Documentation: ACPI for ARM64
-/local/mnt/workspace/linux.0/.git/rebase-apply/patch:517: new blank line 
-at EOF.
-+
-warning: 1 line adds whitespace errors.
-
+ drivers/acpi/ec.c |  120 +++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 84 insertions(+), 36 deletions(-)
 
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, hosted by The Linux Foundation.
+1.7.10
+
