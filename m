@@ -1,296 +1,264 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/2] ACPI / EC: Cleanup logging/debugging splitter support.
-Date: Fri, 27 Feb 2015 14:48:15 +0800
-Message-ID: <79307c846d7ca93d0423829b84cb0354e276fb73.1425019470.git.lv.zheng@intel.com>
-References: <alpine.LNX.2.11.1502151932250.630@localhost> <cover.1425019470.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1425019470.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH v5 00/20] power_supply: Allow safe usage of power supply
+Date: Fri, 27 Feb 2015 09:19:41 +0100
+Message-ID: <1425025201-15926-1-git-send-email-k.kozlowski@samsung.com>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, David Herrmann <dh.herrmann-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Cezary Jackiewicz <cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Support Opensource <support.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Julian Andres Klode <jak-4HMq4SXA452hPH1hqNUYSQ@public.gmane.org>, Marc Dietrich <marvin24-Mmb7MZpHnFY@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, patches-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, ac100-oU9gvf+ajcQ97yFScArB1dHuzzzSOjJt@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch refines logging/debugging splitter support so that when DEBUG is
-disabled, splitters won't be visible in the kernel logs while they are
-still available for developers when DEBUG is enabled.
+Hi,
 
-This patch also refines the splitters to mark the following handling
-process boundaries:
-  +++++: boundary of driver starting/stopping
-         boundary of IRQ storming
-  =====: boundary of transaction advancement
-  *****: boundary of EC command
-         boundary of EC query
-  #####: boundary of EC _Qxx evaluation
 
-The following 2 log entries are originally logged using pr_info() in order
-to be used as the boot/suspend/resume log entries for the EC device, this
-patch also restores them to pr_info() logging level:
- ACPI : EC: EC started
- ACPI : EC: EC stopped
+The patchset fixes invalid memory accesses in certain race scenarios by
+moving ownership of struct power_supply to the core. All drivers are
+modified.
 
-In this patch, one log entry around "Polling quirk" is converted into
-ec_dbg_raw() which doesn't contain the boundary marker.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |  108 ++++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 74 insertions(+), 34 deletions(-)
+TLDR for driver and subsystem maintainers
+=========================================
+Two patches of patchset change power_supply_register() function so in
+the same time they touch all drivers. I am kindly asking for acks,
+review and help in testing.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a8dd2f7..07426c8 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -137,6 +137,48 @@ static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
- static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when SCI_EVT set */
- 
- /* --------------------------------------------------------------------------
-+ *                           Logging/Debugging
-+ * -------------------------------------------------------------------------- */
-+
-+/*
-+ * Splitters used by the developers to track the boundary of the EC
-+ * handling processes.
-+ */
-+#ifdef DEBUG
-+#define EC_DBG_SEP	" "
-+#define EC_DBG_DRV	"+++++"
-+#define EC_DBG_STM	"====="
-+#define EC_DBG_REQ	"*****"
-+#define EC_DBG_EVT	"#####"
-+#else
-+#define EC_DBG_SEP	""
-+#define EC_DBG_DRV
-+#define EC_DBG_STM
-+#define EC_DBG_REQ
-+#define EC_DBG_EVT
-+#endif
-+
-+#define ec_log_raw(fmt, ...) \
-+	pr_info(fmt "\n", ##__VA_ARGS__)
-+#define ec_dbg_raw(fmt, ...) \
-+	pr_debug(fmt "\n", ##__VA_ARGS__)
-+#define ec_log(filter, fmt, ...) \
-+	ec_log_raw(filter EC_DBG_SEP fmt EC_DBG_SEP filter, ##__VA_ARGS__)
-+#define ec_dbg(filter, fmt, ...) \
-+	ec_dbg_raw(filter EC_DBG_SEP fmt EC_DBG_SEP filter, ##__VA_ARGS__)
-+
-+#define ec_log_drv(fmt, ...) \
-+	ec_log(EC_DBG_DRV, fmt, ##__VA_ARGS__)
-+#define ec_dbg_drv(fmt, ...) \
-+	ec_dbg(EC_DBG_DRV, fmt, ##__VA_ARGS__)
-+#define ec_dbg_stm(fmt, ...) \
-+	ec_dbg(EC_DBG_STM, fmt, ##__VA_ARGS__)
-+#define ec_dbg_req(fmt, ...) \
-+	ec_dbg(EC_DBG_REQ, fmt, ##__VA_ARGS__)
-+#define ec_dbg_evt(fmt, ...) \
-+	ec_dbg(EC_DBG_EVT, fmt, ##__VA_ARGS__)
-+
-+/* --------------------------------------------------------------------------
-  *                           Device Flags
-  * -------------------------------------------------------------------------- */
- 
-@@ -159,14 +201,14 @@ static inline u8 acpi_ec_read_status(struct acpi_ec *ec)
- {
- 	u8 x = inb(ec->command_addr);
- 
--	pr_debug("EC_SC(R) = 0x%2.2x "
--		 "SCI_EVT=%d BURST=%d CMD=%d IBF=%d OBF=%d\n",
--		 x,
--		 !!(x & ACPI_EC_FLAG_SCI),
--		 !!(x & ACPI_EC_FLAG_BURST),
--		 !!(x & ACPI_EC_FLAG_CMD),
--		 !!(x & ACPI_EC_FLAG_IBF),
--		 !!(x & ACPI_EC_FLAG_OBF));
-+	ec_dbg_raw("EC_SC(R) = 0x%2.2x "
-+		   "SCI_EVT=%d BURST=%d CMD=%d IBF=%d OBF=%d",
-+		   x,
-+		   !!(x & ACPI_EC_FLAG_SCI),
-+		   !!(x & ACPI_EC_FLAG_BURST),
-+		   !!(x & ACPI_EC_FLAG_CMD),
-+		   !!(x & ACPI_EC_FLAG_IBF),
-+		   !!(x & ACPI_EC_FLAG_OBF));
- 	return x;
- }
- 
-@@ -175,20 +217,20 @@ static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
- 	u8 x = inb(ec->data_addr);
- 
- 	ec->curr->timestamp = jiffies;
--	pr_debug("EC_DATA(R) = 0x%2.2x\n", x);
-+	ec_dbg_raw("EC_DATA(R) = 0x%2.2x", x);
- 	return x;
- }
- 
- static inline void acpi_ec_write_cmd(struct acpi_ec *ec, u8 command)
- {
--	pr_debug("EC_SC(W) = 0x%2.2x\n", command);
-+	ec_dbg_raw("EC_SC(W) = 0x%2.2x", command);
- 	outb(command, ec->command_addr);
- 	ec->curr->timestamp = jiffies;
- }
- 
- static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- {
--	pr_debug("EC_DATA(W) = 0x%2.2x\n", data);
-+	ec_dbg_raw("EC_DATA(W) = 0x%2.2x", data);
- 	outb(data, ec->data_addr);
- 	ec->curr->timestamp = jiffies;
- }
-@@ -240,7 +282,7 @@ static inline void acpi_ec_enable_gpe(struct acpi_ec *ec, bool open)
- 		 * software need to manually trigger a pseudo GPE event on
- 		 * EN=1 writes.
- 		 */
--		pr_debug("***** Polling quirk *****\n");
-+		ec_dbg_raw("Polling quirk");
- 		advance_transaction(ec);
- 	}
- }
-@@ -299,7 +341,7 @@ static void acpi_ec_set_storm(struct acpi_ec *ec, u8 flag)
- {
- 	if (!test_bit(flag, &ec->flags)) {
- 		acpi_ec_disable_gpe(ec, false);
--		pr_debug("+++++ Polling enabled +++++\n");
-+		ec_dbg_drv("Polling enabled");
- 		set_bit(flag, &ec->flags);
- 	}
- }
-@@ -309,7 +351,7 @@ static void acpi_ec_clear_storm(struct acpi_ec *ec, u8 flag)
- 	if (test_bit(flag, &ec->flags)) {
- 		clear_bit(flag, &ec->flags);
- 		acpi_ec_enable_gpe(ec, false);
--		pr_debug("+++++ Polling disabled +++++\n");
-+		ec_dbg_drv("Polling disabled");
- 	}
- }
- 
-@@ -335,7 +377,7 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
- static void acpi_ec_submit_query(struct acpi_ec *ec)
- {
- 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
--		pr_debug("***** Event started *****\n");
-+		ec_dbg_req("Event started");
- 		schedule_work(&ec->work);
- 	}
- }
-@@ -344,7 +386,7 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
- {
- 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY) {
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--		pr_debug("***** Event stopped *****\n");
-+		ec_dbg_req("Event stopped");
- 	}
- }
- 
-@@ -366,8 +408,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 	u8 status;
- 	bool wakeup = false;
- 
--	pr_debug("===== %s (%d) =====\n",
--		 in_interrupt() ? "IRQ" : "TASK", smp_processor_id());
-+	ec_dbg_stm("%s (%d)", in_interrupt() ? "IRQ" : "TASK",
-+		   smp_processor_id());
- 	/*
- 	 * By always clearing STS before handling all indications, we can
- 	 * ensure a hardware STS 0->1 change after this clearing can always
-@@ -390,8 +432,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 				if (t->rlen == t->ri) {
- 					t->flags |= ACPI_EC_COMMAND_COMPLETE;
- 					if (t->command == ACPI_EC_COMMAND_QUERY)
--						pr_debug("***** Command(%s) hardware completion *****\n",
--							 acpi_ec_cmd_string(t->command));
-+						ec_dbg_req("Command(%s) hardware completion",
-+							   acpi_ec_cmd_string(t->command));
- 					wakeup = true;
- 				}
- 			} else
-@@ -410,8 +452,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 			acpi_ec_complete_query(ec);
- 			t->rdata[t->ri++] = 0x00;
- 			t->flags |= ACPI_EC_COMMAND_COMPLETE;
--			pr_debug("***** Command(%s) software completion *****\n",
--				 acpi_ec_cmd_string(t->command));
-+			ec_dbg_req("Command(%s) software completion",
-+				   acpi_ec_cmd_string(t->command));
- 			wakeup = true;
- 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
- 			acpi_ec_write_cmd(ec, t->command);
-@@ -504,16 +546,14 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 	}
- 	/* following two actions should be kept atomic */
- 	ec->curr = t;
--	pr_debug("***** Command(%s) started *****\n",
--		 acpi_ec_cmd_string(t->command));
-+	ec_dbg_req("Command(%s) started", acpi_ec_cmd_string(t->command));
- 	start_transaction(ec);
- 	spin_unlock_irqrestore(&ec->lock, tmp);
- 	ret = ec_poll(ec);
- 	spin_lock_irqsave(&ec->lock, tmp);
- 	if (t->irq_count == ec_storm_threshold)
- 		acpi_ec_clear_storm(ec, EC_FLAGS_COMMAND_STORM);
--	pr_debug("***** Command(%s) stopped *****\n",
--		 acpi_ec_cmd_string(t->command));
-+	ec_dbg_req("Command(%s) stopped", acpi_ec_cmd_string(t->command));
- 	ec->curr = NULL;
- 	/* Disable GPE for command processing (IBF=0/OBF=1) */
- 	acpi_ec_complete_request(ec);
-@@ -676,11 +716,11 @@ static void acpi_ec_start(struct acpi_ec *ec, bool resuming)
- 
- 	spin_lock_irqsave(&ec->lock, flags);
- 	if (!test_and_set_bit(EC_FLAGS_STARTED, &ec->flags)) {
--		pr_debug("+++++ Starting EC +++++\n");
-+		ec_dbg_drv("Starting EC");
- 		/* Enable GPE for event processing (SCI_EVT=1) */
- 		if (!resuming)
- 			acpi_ec_submit_request(ec);
--		pr_debug("EC started\n");
-+		ec_log_drv("EC started");
- 	}
- 	spin_unlock_irqrestore(&ec->lock, flags);
- }
-@@ -702,7 +742,7 @@ static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
- 
- 	spin_lock_irqsave(&ec->lock, flags);
- 	if (acpi_ec_started(ec)) {
--		pr_debug("+++++ Stopping EC +++++\n");
-+		ec_dbg_drv("Stopping EC");
- 		set_bit(EC_FLAGS_STOPPED, &ec->flags);
- 		spin_unlock_irqrestore(&ec->lock, flags);
- 		wait_event(ec->wait, acpi_ec_stopped(ec));
-@@ -712,7 +752,7 @@ static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
- 			acpi_ec_complete_request(ec);
- 		clear_bit(EC_FLAGS_STARTED, &ec->flags);
- 		clear_bit(EC_FLAGS_STOPPED, &ec->flags);
--		pr_debug("EC stopped\n");
-+		ec_log_drv("EC stopped");
- 	}
- 	spin_unlock_irqrestore(&ec->lock, flags);
- }
-@@ -824,12 +864,12 @@ static void acpi_ec_run(void *cxt)
- 
- 	if (!handler)
- 		return;
--	pr_debug("##### Query(0x%02x) started #####\n", handler->query_bit);
-+	ec_dbg_evt("Query(0x%02x) started", handler->query_bit);
- 	if (handler->func)
- 		handler->func(handler->data);
- 	else if (handler->handle)
- 		acpi_evaluate_object(handler->handle, NULL, NULL, NULL);
--	pr_debug("##### Query(0x%02x) stopped #####\n", handler->query_bit);
-+	ec_dbg_evt("Query(0x%02x) stopped", handler->query_bit);
- 	acpi_ec_put_query_handler(handler);
- }
- 
-@@ -861,8 +901,8 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 		if (value == handler->query_bit) {
- 			/* have custom handler for this bit */
- 			handler = acpi_ec_get_query_handler(handler);
--			pr_debug("##### Query(0x%02x) scheduled #####\n",
--				 handler->query_bit);
-+			ec_dbg_evt("Query(0x%02x) scheduled",
-+				   handler->query_bit);
- 			status = acpi_os_execute((handler->func) ?
- 				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
- 				acpi_ec_run, handler);
+Especially please take a look at:
+ - patch 2: power_supply: Move run-time configuration to separate structure
+ - patch 11: power_supply: Change ownership from driver to core
+
+I still need acks for changes in subsystems:
+1. x86/olpc,
+2. ACPI,
+3. HID.
+
+
+Problem to fix
+==============
+Patchset tries to fix invalid memory accesses occurring in following
+race scenario:
+
+Thread 1: charger manager, CONSUMER
+Thread 2: power supply driver, PROVIDER
+
+THREAD 1 (consumer)                THREAD 2 (provider)
+===================                ===================
+psy = power_supply_get_by_name()
+                                   Driver unbind, .remove
+                                     power_supply_unregister()
+                                     Device fully removed
+psy->get_property()
+
+The consumer of power supply will reference invalid memory because
+the provider already freed it.
+
+
+The fix
+=======
+To properly fix the race the patchset:
+1. Moves ownership of power_supply structure from driver (provider) to
+   power supply core.
+2. Adds power_supply_get_property()-like API for safe access by consumer.
+3. Adds power_supply_put() which will reclaim memory.
+
+
+I modifed all drivers I found. However I only compile tested them
+(plus Smatch, Sparse and coccicheck). I did not test them on real
+hardware (except max14577, max77693, max17040, max17042
+and charger-manager).
+
+
+What the patchset does in steps
+===============================
+1. Some preparation steps are necessary - patch 1 and 2. The driver
+   implementing power supply won't be able to fill structure before
+   calling power_supply_register(). So 'power_supply_config'
+   is introduced in patch 2 ("power_supply: Move run-time configuration
+   to separate structure"). Unfortunately this touches all drivers.
+   *All drivers are touched.*
+
+2. Safe API wrappers (and usage counter) are added (power_supply_*()).
+
+3. Patch 11: ownership of 'struct power_supply' is moved from driver
+   to the core.
+   *All drivers are touched.*
+
+4. power_supply_put() is added which reclaims resources.
+
+
+Dependencies
+============
+The patchset is rebased on v4.0-rc1, latest battery tree and my latest
+power supply changes:
+1. compal-laptop: two fixes [1].
+
+Bisect-ability is preserved. All later patches depend on previous ones
+so it could be pulled in steps, but cherry-picking won't work.
+
+Patchset is available also here:
+https://git.linaro.org/people/marek.szyprowski/linux-srpol.git
+branch: v4.0-rc1-power-supply-core-ownership
+
+
+Changes since v4
+================
+1. Rebased on current battery tree. This introduced new changes:
+   - new devm-like register functions,
+   - new driver: da9150-charger.
+2. Add acks: Darren Hart (compal-laptop.c, p. 11), Lee Jones
+   (mfd, p. 11).
+
+Changes since v3
+================
+1. Fix Jonghwa's email in his ack (spotted by Stefan Wahren)
+2. Update power_supply_register() documentation.
+3. Fix putting the reference to power supply in bq2415x_charger.c (put
+   it when it is non-NULL).
+4. Add acks: Robert Jarzmik (patch 20), Darren Hart (p. 2), Pavel
+   Machek (p. 1-3), Marc Dietrich (p. 2 and 11).
+
+Changes since v2
+================
+1. Rewrite all drivers to new power_supply_register().
+2. Add reviewed-by Bartlomiej Zolnierkiewicz (internal review)
+3. Add reviewed-by Sebastian Reichel [2] (to patches which I did not
+   change in major way between v2 and v3).
+4. Use atomic usage counter of power supply on each of:
+   a. register/unregister,
+   b. get/put.
+
+Changes since v1
+================
+1. Add new patches (1, 2, 11, 19).
+2. Preserved ack-s where there weren't any changes.
+3. Patch 3: Add use counter.
+4. Patch 3: Don't add wrapper for set_charged() because already exists
+   one.
+
+
+[1] https://lkml.org/lkml/2015/1/21/471
+[2] https://lkml.org/lkml/2015/2/20/150
+
+Best regards,
+Krzysztof
+
+
+Krzysztof Kozlowski (20):
+  power_supply: Add driver private data
+  power_supply: Move run-time configuration to separate structure
+  power_supply: Add API for safe access of power supply function attrs
+  power_supply: sysfs: Use power_supply_*() API for accessing function
+    attrs
+  power_supply: 88pm860x_charger: Use power_supply_*() API for accessing
+    function attrs
+  power_supply: ab8500: Use power_supply_*() API for accessing function
+    attrs
+  mfd: ab8500: Use power_supply_*() API for accessing function attrs
+  power_supply: apm_power: Use power_supply_*() API for accessing
+    function attrs
+  power_supply: bq2415x_charger: Use power_supply_*() API for accessing
+    function attrs
+  power_supply: charger-manager: Use power_supply_*() API for accessing
+    function attrs
+  power_supply: Change ownership from driver to core
+  power_supply: Add power_supply_put for decrementing device reference
+    counter
+  power_supply: Increment power supply use counter when obtaining
+    references
+  power_supply: charger-manager: Decrement the power supply's device
+    reference counter
+  x86/olpc/xo1/sci: Use newly added power_supply_put API
+  x86/olpc/xo15/sci: Use newly added power_supply_put API
+  power_supply: 88pm860x_charger: Decrement the power supply's device
+    reference counter
+  power_supply: bq2415x_charger: Decrement the power supply's device
+    reference counter
+  mfd: ab8500: Decrement the power supply's device reference counter
+  arm: mach-pxa: Decrement the power supply's device reference counter
+
+ arch/arm/mach-pxa/raumfeld.c              |   4 +-
+ arch/x86/platform/olpc/olpc-xo1-sci.c     |   4 +-
+ arch/x86/platform/olpc/olpc-xo15-sci.c    |   4 +-
+ drivers/acpi/ac.c                         |  32 +--
+ drivers/acpi/battery.c                    |  54 ++---
+ drivers/acpi/sbs.c                        |  68 +++---
+ drivers/hid/hid-input.c                   |  51 +++--
+ drivers/hid/hid-sony.c                    |  43 ++--
+ drivers/hid/hid-wiimote-modules.c         |  41 ++--
+ drivers/hid/hid-wiimote.h                 |   3 +-
+ drivers/hid/wacom.h                       |   8 +-
+ drivers/hid/wacom_sys.c                   |  70 +++---
+ drivers/mfd/ab8500-sysctrl.c              |   9 +-
+ drivers/platform/x86/compal-laptop.c      |  29 ++-
+ drivers/power/88pm860x_battery.c          |  40 ++--
+ drivers/power/88pm860x_charger.c          |  61 ++++--
+ drivers/power/ab8500_btemp.c              |  75 ++++---
+ drivers/power/ab8500_charger.c            | 139 ++++++------
+ drivers/power/ab8500_fg.c                 | 130 +++++------
+ drivers/power/abx500_chargalg.c           |  98 ++++-----
+ drivers/power/apm_power.c                 |   6 +-
+ drivers/power/bq2415x_charger.c           | 107 +++++-----
+ drivers/power/bq24190_charger.c           | 103 +++++----
+ drivers/power/bq24735-charger.c           |  53 ++---
+ drivers/power/bq27x00_battery.c           |  70 +++---
+ drivers/power/charger-manager.c           | 159 ++++++++------
+ drivers/power/collie_battery.c            |  75 ++++---
+ drivers/power/da9030_battery.c            |  33 +--
+ drivers/power/da9052-battery.c            |  25 ++-
+ drivers/power/da9150-charger.c            |  80 +++----
+ drivers/power/ds2760_battery.c            |  56 ++---
+ drivers/power/ds2780_battery.c            |  45 ++--
+ drivers/power/ds2781_battery.c            |  47 ++--
+ drivers/power/ds2782_battery.c            |  30 +--
+ drivers/power/generic-adc-battery.c       |  54 ++---
+ drivers/power/goldfish_battery.c          |  63 +++---
+ drivers/power/gpio-charger.c              |  42 ++--
+ drivers/power/intel_mid_battery.c         |  57 +++--
+ drivers/power/ipaq_micro_battery.c        |  34 +--
+ drivers/power/isp1704_charger.c           |  49 +++--
+ drivers/power/jz4740-battery.c            |  37 ++--
+ drivers/power/lp8727_charger.c            |  94 ++++----
+ drivers/power/lp8788-charger.c            |  62 +++---
+ drivers/power/ltc2941-battery-gauge.c     |  51 +++--
+ drivers/power/max14577_charger.c          |  34 +--
+ drivers/power/max17040_battery.c          |  31 +--
+ drivers/power/max17042_battery.c          |  45 ++--
+ drivers/power/max77693_charger.c          |  32 +--
+ drivers/power/max8903_charger.c           |  52 ++---
+ drivers/power/max8925_power.c             |  98 +++++----
+ drivers/power/max8997_charger.c           |  31 +--
+ drivers/power/max8998_charger.c           |  32 +--
+ drivers/power/olpc_battery.c              |  54 ++---
+ drivers/power/pcf50633-charger.c          | 105 +++++----
+ drivers/power/pda_power.c                 |  66 +++---
+ drivers/power/pm2301_charger.c            |  48 +++--
+ drivers/power/pm2301_charger.h            |   1 +
+ drivers/power/pmu_battery.c               |  42 ++--
+ drivers/power/power_supply_core.c         | 344 +++++++++++++++++++++++-------
+ drivers/power/power_supply_leds.c         |  25 +--
+ drivers/power/power_supply_sysfs.c        |  24 +--
+ drivers/power/rt5033_battery.c            |  27 ++-
+ drivers/power/rx51_battery.c              |  27 ++-
+ drivers/power/s3c_adc_battery.c           |  77 ++++---
+ drivers/power/sbs-battery.c               |  71 +++---
+ drivers/power/smb347-charger.c            | 108 +++++-----
+ drivers/power/test_power.c                |  53 +++--
+ drivers/power/tosa_battery.c              | 112 ++++++----
+ drivers/power/tps65090-charger.c          |  43 ++--
+ drivers/power/twl4030_charger.c           |  65 +++---
+ drivers/power/twl4030_madc_battery.c      |  41 ++--
+ drivers/power/wm831x_backup.c             |  26 ++-
+ drivers/power/wm831x_power.c              |  95 +++++----
+ drivers/power/wm8350_power.c              |  89 ++++----
+ drivers/power/wm97xx_battery.c            |  37 ++--
+ drivers/power/z2_battery.c                |  60 +++---
+ drivers/staging/nvec/nvec_power.c         |  34 +--
+ include/linux/hid.h                       |   6 +-
+ include/linux/mfd/abx500/ux500_chargalg.h |  11 +-
+ include/linux/mfd/rt5033.h                |   2 +-
+ include/linux/mfd/wm8350/supply.h         |   6 +-
+ include/linux/power/charger-manager.h     |   3 +-
+ include/linux/power_supply.h              |  82 +++++--
+ 83 files changed, 2608 insertions(+), 1926 deletions(-)
+
 -- 
-1.7.10
+1.9.1
