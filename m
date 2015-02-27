@@ -1,54 +1,57 @@
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v2 8/9] pci, acpi, mcfg: Share ACPI PCI config space accessors.
-Date: Fri, 27 Feb 2015 16:00:43 +0100
-Message-ID: <1425049244-19331-9-git-send-email-tomasz.nowicki@linaro.org>
+Subject: [PATCH v2 1/9] x86,
+ pci: Clean up comment about buggy MMIO config space access for AMD
+ Fam10h CPUs.
+Date: Fri, 27 Feb 2015 16:00:36 +0100
+Message-ID: <1425049244-19331-2-git-send-email-tomasz.nowicki@linaro.org>
 References: <1425049244-19331-1-git-send-email-tomasz.nowicki@linaro.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1425049244-19331-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, al.stone@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-MCFG can be used perfectly for all architectures which support ACPI.
-ACPI mandates MCFG to describe PCI config space ranges which means
-we should use MMCONFIG accessors by default.
+- fix typo
+- improve explanation
+- add reference to the related document
 
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 ---
- drivers/acpi/mcfg.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ arch/x86/include/asm/pci_x86.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-index 1e646fc..e285f62 100644
---- a/drivers/acpi/mcfg.c
-+++ b/drivers/acpi/mcfg.c
-@@ -13,6 +13,26 @@
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index 164e3f8..eddf8f0 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -154,10 +154,13 @@ extern struct list_head pci_mmcfg_list;
  
- #define	PREFIX	"MCFG: "
- 
-+/*
-+ * raw_pci_read/write - ACPI PCI config space accessors.
+ /*
+  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+- * on their northbrige except through the * %eax register. As such, you MUST
+- * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
++ * on their northbridge except through the * %eax register. As such, you MUST
++ * NOT use normal IOMEM accesses, you need to only use the magic mmio_config_*
+  * accessor functions.
+- * In fact just use pci_config_*, nothing else please.
 + *
-+ * ACPI spec defines MCFG table as the way we can describe access to PCI config
-+ * space, so let MCFG be default (__weak).
-+ *
-+ * If platform needs more fancy stuff, should provides its own implementation.
-+ */
-+int __weak raw_pci_read(unsigned int domain, unsigned int bus,
-+			unsigned int devfn, int reg, int len, u32 *val)
-+{
-+	return pci_mmcfg_read(domain, bus, devfn, reg, len, val);
-+}
-+
-+int __weak raw_pci_write(unsigned int domain, unsigned int bus,
-+			 unsigned int devfn, int reg, int len, u32 val)
-+{
-+	return pci_mmcfg_write(domain, bus, devfn, reg, len, val);
-+}
-+
- static int __init acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
- 					struct acpi_mcfg_allocation *cfg)
++ * Please refer to the following doc:
++ * "BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors",
++ * rev. 3.48, sec 2.11.1, "MMIO Configuration Coding Requirements".
+  */
+ static inline unsigned char mmio_config_readb(void __iomem *pos)
  {
 -- 
 1.9.1
