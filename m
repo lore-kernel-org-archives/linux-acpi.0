@@ -1,44 +1,51 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [PATCH v4 11/20] power_supply: Change ownership from driver to core
-Date: Thu, 26 Feb 2015 10:30:00 +0100
-Message-ID: <1424943000.27971.7.camel@AMDC1943>
-References: <1424692061-30624-1-git-send-email-k.kozlowski@samsung.com>
- <1424692061-30624-12-git-send-email-k.kozlowski@samsung.com>
- <20150226004522.GB885@earth>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / EC: Remove non-standard log emphasis
+Date: Fri, 27 Feb 2015 00:30:17 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88026D82CE@SHSMSX101.ccr.corp.intel.com>
+References: <alpine.LNX.2.11.1502151932250.630@localhost>
+ <1AE640813FDE7649BE1B193DEA596E88026D8057@SHSMSX101.ccr.corp.intel.com>
+ <alpine.LNX.2.11.1502251459001.14861@localhost>
+ <3416235.WAfNBEHG25@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-reply-to: <20150226004522.GB885@earth>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:60063 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753882AbbB0AaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Feb 2015 19:30:23 -0500
+In-Reply-To: <3416235.WAfNBEHG25@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Scot Doyle <lkml14@scotdoyle.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On czw, 2015-02-26 at 01:45 +0100, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Mon, Feb 23, 2015 at 12:47:32PM +0100, Krzysztof Kozlowski wrote:
-> > Change the ownership of power_supply structure from each driver
-> > implementing the class to the power supply core.
-> > 
-
-(...)
-
-> 
-> I would like to merge this via the power supply subsystem. Some of
-> the files being patched are not under my maintainence, though. It
-> would be nice if I get an Acked-By from their maintainers.
-> 
-> As far as I can see this patch is currently missing feedback from:
-> 
-> arch/x86/platform/olpc: x86 Maintainers
-> drivers/acpi: Rafael J. Wysocki, Len Brown
-> drivers/hid: Jiri Kosina
-> drivers/platform/x86: Darren Hart
-
-I'll respin with v5 because new power supply driver appeared in your
-tree (DA9150 Charger). However this does not affect other subsystems.
-
-Best regards,
-Krzysztof
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDI2LCAyMDE1IDY6NTYgQU0NCj4gDQo+IE9u
+IFdlZG5lc2RheSwgRmVicnVhcnkgMjUsIDIwMTUgMDM6MDE6MDggUE0gU2NvdCBEb3lsZSB3cm90
+ZToNCj4gPiBPbiBXZWQsIDI1IEZlYiAyMDE1LCBaaGVuZywgTHYgd3JvdGU6DQo+ID4gLi4uDQo+
+ID4gPiA+IEkgd2FzIHVzaW5nICIrKysrKyIvIiMjIyMjIi8iKioqKioiIHRvIGZpbHRlciBkaWZm
+ZXJlbnQgRUMgbG9nIGVudHJpZXMgd2hpY2ggbWFrZXMgZGVidWdnaW5nIGVhc2llci4NCj4gPiA+
+ID4gQW5kLCBpZiB3ZSBjaGFuZ2VkIHRoaXMgZnJvbSBwcl9pbmZvIGludG8gcHJfZGVidWcsIHRo
+ZW4gd2Ugd2lsbCBoYXZlIG5vdGhpbmcgaW4gdGhlIHN1c3BlbmQvcmVzdW1lIGxvZ3MgZm9yIHRo
+ZSBFQyBkZXZpY2UuDQo+ID4gPiA+IFdoaWxlIHRoZXJlIGFyZSBwbGVudHkgb2Ygc3VjaCBsb2cg
+ZW50cmllcyBmb3IgZWFjaCBvZiBvdGhlciBkZXZpY2VzLg0KPiA+ID4gPiBTbyBJIHJlYWxseSBk
+b3VidCB3aGF0J3MgdGhlIG1lYW5pbmcgb2Ygc3VjaCBhIGNoYW5nZS4NCj4gPiA+ID4gQ291bGQg
+aXQgaW1wcm92ZSBhbnl0aGluZyBvciBqdXN0IG1ha2UgZGVidWdnaW5nIG1vcmUgZGlmZmljdWx0
+IGZvciBkZXZlbG9wZXJzPw0KPiA+ID4NCj4gPiA+IElNTywgaXQncyBiZXR0ZXIgdG8gaW50cm9k
+dWNlIHN1Y2gga2luZCBvZiBjb2RlIGluIHRoZSBoZWFkIG9mIGVjLmM6DQo+ID4gPg0KPiA+ID4g
+I2lmZGVmIERFQlVHX0ZJTFRFUg0KPiA+ID4gI2RlZmluZSBFQ19MT0dfREVWICIrKysrKyINCj4g
+PiA+ICNkZWZpbmUgRUNfTE9HX0NNRCAiKioqKioiDQo+ID4gPiAjZGVmaW5lIEVDX0xPR19FVlQg
+IiMjIyMjIg0KPiA+ID4gLi4uDQo+ID4gPiAjZWxzZQ0KPiA+ID4gI2RlZmluZSBFQ19MT0dfREVW
+DQo+ID4gPiAjZGVmaW5lIEVDX0xPR19DTUQNCj4gPiA+ICNkZWZpbmUgRUNfTE9HX0VWVA0KPiA+
+ID4gI2VuZGlmDQo+ID4gPg0KPiA+ID4gQW5kIHdyYXAgdGhlIHByX2luZm8sIHByX2RlYnVnIHVz
+aW5nIGZpbHRlciBlbmFibGVkIG5ldyBtYWNyb3MgLSBlY19pbmZvLCBlY19kZWJ1ZyBzbyB0aGF0
+IHdlIHdvbid0IHNlZSB0aGUgZmlsdGVycyBpbiB0aGUNCj4gbm9ybWFsIGRtZXNnIG91dHB1dCBh
+bmQgdGhlIGZpbHRlcnMgYXJlIHN0aWxsIGF2YWlsYWJsZSBmb3IgdGhlIGRldmVsb3BlcnMuDQo+
+ID4gPg0KPiA+ID4gVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCj4gPiA+IC1Mdg0KPiA+DQo+ID4g
+SSBhZ3JlZSwgd291bGQgeW91IGJlIHdpbGxpbmcgdG8gc3VibWl0IGl0Pw0KPiANCj4gWWVzLCBz
+b3VuZHMgZ29vZCB0byBtZSB0b28hDQoNCk9LLiBMZXQgbWUgdHJ5IGl0IGFuZCBzZW5kIHRoZSBy
+ZXZpc2VkIG9uZSBhZnRlciB0ZXN0aW5nLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2
+DQoNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEou
+IFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
