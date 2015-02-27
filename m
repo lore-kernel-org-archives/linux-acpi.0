@@ -1,31 +1,58 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v5 20/20] arm: mach-pxa: Decrement the power supply's
- device reference counter
-Date: Fri, 27 Feb 2015 20:26:59 +0100
-Message-ID: <20150227192659.GA13676@amd>
-References: <1425025201-15926-1-git-send-email-k.kozlowski@samsung.com>
- <1425025201-15926-21-git-send-email-k.kozlowski@samsung.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v9 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Fri, 27 Feb 2015 15:05:47 -0600
+Message-ID: <54F0DC2B.5010802@codeaurora.org>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>	<54EFE282.1090305@codeaurora.org> <CAKv+Gu-LxaX6X=qApp=zhzfmNfv=tjfscf9npFCpNW314pZvvg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1425025201-15926-21-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Julian Andres Klode <jak@jak-linux.org>, Marc Dietrich <marvin24@gmx.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, patches@opensource.wolfsonmicro.com, ac100@lists.launchpad.net, linux-tegra@vger.kernel.org, devel@driverdev.osuosl.org, Linus Walleij <linus.walleij@linaro.org>, Samuel
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:56740 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340AbbB0VFv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Feb 2015 16:05:51 -0500
+In-Reply-To: <CAKv+Gu-LxaX6X=qApp=zhzfmNfv=tjfscf9npFCpNW314pZvvg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Sudeep Holla <Sudeep.Holla@arm.com>
 
-On Fri 2015-02-27 09:20:01, Krzysztof Kozlowski wrote:
-> Use power_supply_put() to decrement the power supply's device reference
-> counter.
-> 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Reviewed-by: Sebastian Reichel <sre@kernel.org>
-> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+On 02/27/2015 02:50 AM, Ard Biesheuvel wrote:
+> On 27 February 2015 at 03:20, Timur Tabi <timur@codeaurora.org> wrote:
+>> On 02/25/2015 02:39 AM, Hanjun Guo wrote:
+>>>
+>>> Changes since v8:
+>>
+>>
+>> I'm still debugging it, but v9 on the 4.0-rc1 kernel crashes after calling
+>> the UEFI boot time services exit function.  That is, this line:
+>>
+>> status = sys_table->boottime->exit_boot_services(handle, mmap_key);
+>>
+>> in allocate_new_fdt_and_exit_boot() gets called, and then soon after it
+>> returns, the kernel crashes.  It's really early because the UEFI exception
+>> handler is called.
+>>
+>> I did not have this problem with v8 patchset on 3.19.
+>>
+>
+> Are you not seeing this on v4.0-rc1 without the patchset applied?
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+You're right -- I get the same crash even without the patchset applied.
+
+> Could the crash be inside the subsequent call to
+> SetVirtualAddressMap() instead of inside ExitBootServices()?
+
+It looks that way.  I'm going to have to debug that.
+
+> If so, you have a firmware bug: Mark Rutland spotted a similar bug in
+> the AMD Seattle firmware, which has been fixed in the mean time.
+> It has to do with the firmware dereferencing the virtual mapping as it
+> is being installed, which violates the UEFI spec.
+
+Thanks.
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
