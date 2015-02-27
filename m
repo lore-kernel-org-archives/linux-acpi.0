@@ -1,51 +1,51 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI / EC: Remove non-standard log emphasis
-Date: Fri, 27 Feb 2015 00:30:17 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88026D82CE@SHSMSX101.ccr.corp.intel.com>
-References: <alpine.LNX.2.11.1502151932250.630@localhost>
- <1AE640813FDE7649BE1B193DEA596E88026D8057@SHSMSX101.ccr.corp.intel.com>
- <alpine.LNX.2.11.1502251459001.14861@localhost>
- <3416235.WAfNBEHG25@vostro.rjw.lan>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v9 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 26 Feb 2015 21:20:34 -0600
+Message-ID: <54EFE282.1090305@codeaurora.org>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:60063 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753882AbbB0AaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Feb 2015 19:30:23 -0500
-In-Reply-To: <3416235.WAfNBEHG25@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Scot Doyle <lkml14@scotdoyle.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
-dF0NCj4gU2VudDogVGh1cnNkYXksIEZlYnJ1YXJ5IDI2LCAyMDE1IDY6NTYgQU0NCj4gDQo+IE9u
-IFdlZG5lc2RheSwgRmVicnVhcnkgMjUsIDIwMTUgMDM6MDE6MDggUE0gU2NvdCBEb3lsZSB3cm90
-ZToNCj4gPiBPbiBXZWQsIDI1IEZlYiAyMDE1LCBaaGVuZywgTHYgd3JvdGU6DQo+ID4gLi4uDQo+
-ID4gPiA+IEkgd2FzIHVzaW5nICIrKysrKyIvIiMjIyMjIi8iKioqKioiIHRvIGZpbHRlciBkaWZm
-ZXJlbnQgRUMgbG9nIGVudHJpZXMgd2hpY2ggbWFrZXMgZGVidWdnaW5nIGVhc2llci4NCj4gPiA+
-ID4gQW5kLCBpZiB3ZSBjaGFuZ2VkIHRoaXMgZnJvbSBwcl9pbmZvIGludG8gcHJfZGVidWcsIHRo
-ZW4gd2Ugd2lsbCBoYXZlIG5vdGhpbmcgaW4gdGhlIHN1c3BlbmQvcmVzdW1lIGxvZ3MgZm9yIHRo
-ZSBFQyBkZXZpY2UuDQo+ID4gPiA+IFdoaWxlIHRoZXJlIGFyZSBwbGVudHkgb2Ygc3VjaCBsb2cg
-ZW50cmllcyBmb3IgZWFjaCBvZiBvdGhlciBkZXZpY2VzLg0KPiA+ID4gPiBTbyBJIHJlYWxseSBk
-b3VidCB3aGF0J3MgdGhlIG1lYW5pbmcgb2Ygc3VjaCBhIGNoYW5nZS4NCj4gPiA+ID4gQ291bGQg
-aXQgaW1wcm92ZSBhbnl0aGluZyBvciBqdXN0IG1ha2UgZGVidWdnaW5nIG1vcmUgZGlmZmljdWx0
-IGZvciBkZXZlbG9wZXJzPw0KPiA+ID4NCj4gPiA+IElNTywgaXQncyBiZXR0ZXIgdG8gaW50cm9k
-dWNlIHN1Y2gga2luZCBvZiBjb2RlIGluIHRoZSBoZWFkIG9mIGVjLmM6DQo+ID4gPg0KPiA+ID4g
-I2lmZGVmIERFQlVHX0ZJTFRFUg0KPiA+ID4gI2RlZmluZSBFQ19MT0dfREVWICIrKysrKyINCj4g
-PiA+ICNkZWZpbmUgRUNfTE9HX0NNRCAiKioqKioiDQo+ID4gPiAjZGVmaW5lIEVDX0xPR19FVlQg
-IiMjIyMjIg0KPiA+ID4gLi4uDQo+ID4gPiAjZWxzZQ0KPiA+ID4gI2RlZmluZSBFQ19MT0dfREVW
-DQo+ID4gPiAjZGVmaW5lIEVDX0xPR19DTUQNCj4gPiA+ICNkZWZpbmUgRUNfTE9HX0VWVA0KPiA+
-ID4gI2VuZGlmDQo+ID4gPg0KPiA+ID4gQW5kIHdyYXAgdGhlIHByX2luZm8sIHByX2RlYnVnIHVz
-aW5nIGZpbHRlciBlbmFibGVkIG5ldyBtYWNyb3MgLSBlY19pbmZvLCBlY19kZWJ1ZyBzbyB0aGF0
-IHdlIHdvbid0IHNlZSB0aGUgZmlsdGVycyBpbiB0aGUNCj4gbm9ybWFsIGRtZXNnIG91dHB1dCBh
-bmQgdGhlIGZpbHRlcnMgYXJlIHN0aWxsIGF2YWlsYWJsZSBmb3IgdGhlIGRldmVsb3BlcnMuDQo+
-ID4gPg0KPiA+ID4gVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCj4gPiA+IC1Mdg0KPiA+DQo+ID4g
-SSBhZ3JlZSwgd291bGQgeW91IGJlIHdpbGxpbmcgdG8gc3VibWl0IGl0Pw0KPiANCj4gWWVzLCBz
-b3VuZHMgZ29vZCB0byBtZSB0b28hDQoNCk9LLiBMZXQgbWUgdHJ5IGl0IGFuZCBzZW5kIHRoZSBy
-ZXZpc2VkIG9uZSBhZnRlciB0ZXN0aW5nLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2
-DQoNCj4gDQo+IA0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEou
-IFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+On 02/25/2015 02:39 AM, Hanjun Guo wrote:
+> Changes since v8:
+
+I'm still debugging it, but v9 on the 4.0-rc1 kernel crashes after 
+calling the UEFI boot time services exit function.  That is, this line:
+
+status = sys_table->boottime->exit_boot_services(handle, mmap_key);
+
+in allocate_new_fdt_and_exit_boot() gets called, and then soon after it 
+returns, the kernel crashes.  It's really early because the UEFI 
+exception handler is called.
+
+I did not have this problem with v8 patchset on 3.19.
+
+
+Also, you still have a couple whitespace problems in these patches:
+
+Applying: ARM64 / ACPI: additions of ACPI documentation for arm64
+/local/mnt/workspace/linux.0/.git/rebase-apply/patch:607: new blank line 
+at EOF.
++
+/local/mnt/workspace/linux.0/.git/rebase-apply/patch:844: new blank line 
+at EOF.
++
+warning: 2 lines add whitespace errors.
+Applying: Documentation: ACPI for ARM64
+/local/mnt/workspace/linux.0/.git/rebase-apply/patch:517: new blank line 
+at EOF.
++
+warning: 1 line adds whitespace errors.
+
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the
+Code Aurora Forum, hosted by The Linux Foundation.
