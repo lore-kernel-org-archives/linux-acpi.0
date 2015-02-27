@@ -1,38 +1,61 @@
-From: Thomas Voegtle <tv@lio96.de>
-Subject: Re: regression in 4.0.0-rc1 with r8169 ethernet
-Date: Fri, 27 Feb 2015 15:50:32 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1502271534570.10799@er-systems.de>
-References: <CAPM=9tz8HQAZbdfgE15++i++NkArjxqiY3-BjANqDBTo1g-pOw@mail.gmail.com> <CAErSpo4kG_RrpFtZ6QyRFkMO51Zx62q94L+r60-HfSZY3VHD1g@mail.gmail.com> <CAPM=9txFHJXbhXQsSyL=h2oG83tr5ZnJj7G6cFtVQ+EDWdXv6w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPM=9txFHJXbhXQsSyL=h2oG83tr5ZnJj7G6cFtVQ+EDWdXv6w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH v2 0/9] PCI: MMCONFIG clean up
+Date: Fri, 27 Feb 2015 16:00:35 +0100
+Message-ID: <1425049244-19331-1-git-send-email-tomasz.nowicki@linaro.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, al.stone@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
+MCFG ACPI table and PCI ECAM standard have no arch dependencies so it can be
+used across all architectures. Currently MMCONFIG related code resides in
+arch/x86 directories. This patch set is going to isolate non-architecure
+specific code and make it accessible for all architectures.
 
-Hi,
+v1 -> v2 changes:
+- use generic readb/readw etc. accessors instead of AMD Fam10h workaround
+- separate ACPI and ECAM code
+- improve ECAM code naming
 
-I have the same problem with a Asrock Q1900B-ITX mainboard with 
-a Intel Celeron J1900 onboard.
+Tomasz Nowicki (9):
+  x86, pci: Clean up comment about buggy MMIO config space access for
+    AMD Fam10h CPUs.
+  x86, pci: Abstract PCI config accessors and use AMD Fam10h workaround
+    exclusively.
+  x86, pci: Reorder logic of pci_mmconfig_insert() function
+  x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+    out of arch/x86/ directory
+  pci, acpi, mcfg: Provide generic implementation of MCFG code
+    initialization.
+  x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+    duplication.
+  x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+    driver.
+  pci, acpi, mcfg: Share ACPI PCI config space accessors.
+  pci, ecam: Improve naming for ecam.c content and areas where it is
+    used.
 
-I did a bisect and ended up with:
+ arch/x86/Kconfig               |   3 +
+ arch/x86/include/asm/pci_x86.h |  34 +---
+ arch/x86/pci/Makefile          |   5 +-
+ arch/x86/pci/acpi.c            |   3 +-
+ arch/x86/pci/mmconfig-shared.c | 340 +++++++++++----------------------------
+ arch/x86/pci/mmconfig_32.c     |  47 ++----
+ arch/x86/pci/mmconfig_64.c     | 153 ------------------
+ arch/x86/pci/numachip.c        |  27 +---
+ drivers/acpi/Makefile          |   1 +
+ drivers/acpi/mcfg.c            | 121 ++++++++++++++
+ drivers/pci/Kconfig            |   7 +
+ drivers/pci/Makefile           |   5 +
+ drivers/pci/ecam.c             | 356 +++++++++++++++++++++++++++++++++++++++++
+ drivers/xen/pci.c              |   6 +-
+ include/linux/ecam.h           |  56 +++++++
+ 15 files changed, 668 insertions(+), 496 deletions(-)
+ delete mode 100644 arch/x86/pci/mmconfig_64.c
+ create mode 100644 drivers/acpi/mcfg.c
+ create mode 100644 drivers/pci/ecam.c
+ create mode 100644 include/linux/ecam.h
 
-593669c2ac0fe18baee04a3cd5539a148aa48574 is the first bad commit
-
-commit 593669c2ac0fe18baee04a3cd5539a148aa48574
-Author: Jiang Liu <jiang.liu@linux.intel.com>
-Date:   Thu Feb 5 13:44:46 2015 +0800
-
-     x86/PCI/ACPI: Use common ACPI resource interfaces to simplify 
-implementation
-
-
-I can revert this quite big commit on current git head (4f671fe) with no 
-problems and then everything is fine again.
-
-
-
-       Thomas
+-- 
+1.9.1
