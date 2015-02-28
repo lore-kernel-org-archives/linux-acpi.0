@@ -1,89 +1,66 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: Re: regression in 4.0.0-rc1 with r8169 ethernet
-Date: Sat, 28 Feb 2015 16:43:34 +0800
-Message-ID: <54F17FB6.8040308@linux.intel.com>
-References: <CAPM=9tz8HQAZbdfgE15++i++NkArjxqiY3-BjANqDBTo1g-pOw@mail.gmail.com> <CAErSpo4kG_RrpFtZ6QyRFkMO51Zx62q94L+r60-HfSZY3VHD1g@mail.gmail.com>
+Date: Sat, 28 Feb 2015 16:45:11 +0800
+Message-ID: <54F18017.7060203@linux.intel.com>
+References: <CAPM=9tz8HQAZbdfgE15++i++NkArjxqiY3-BjANqDBTo1g-pOw@mail.gmail.com> <CAPM=9txFHJXbhXQsSyL=h2oG83tr5ZnJj7G6cFtVQ+EDWdXv6w@mail.gmail.com> <alpine.LSU.2.11.1502271534570.10799@er-systems.de> <1588858.OaSxSRONoY@vostro.rjw.lan> <54F17715.6050506@linux.intel.com> <32040DE9-54EE-4A7D-883A-F578ACFE4338@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:24341 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:3112 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750885AbbB1Ink (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Feb 2015 03:43:40 -0500
-In-Reply-To: <CAErSpo4kG_RrpFtZ6QyRFkMO51Zx62q94L+r60-HfSZY3VHD1g@mail.gmail.com>
+	id S1750814AbbB1IpS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Feb 2015 03:45:18 -0500
+In-Reply-To: <32040DE9-54EE-4A7D-883A-F578ACFE4338@holtmann.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Dave Airlie <airlied@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Rafael Wysocki <rjw@rjwysocki.net>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+To: Marcel Holtmann <marcel@holtmann.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Dave Airlie <airlied@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
 
-On 2015/2/25 15:10, Bjorn Helgaas wrote:
-> [+cc Jiang, Thomas, Lv, Rafael, linux-pci, linux-acpi]
+On 2015/2/28 16:36, Marcel Holtmann wrote:
+> Hi Jiang,
 > 
-> On Tue, Feb 24, 2015 at 9:47 PM, Dave Airlie <airlied@gmail.com> wrote:
->> Hey,
->>
->> just booted an old AMD rs780 box with new kernel and my ethernet
->> failed to come up!
->>
->> Looks like the MAC addr is all ff's because the PCI bridge windows are
->> messed up.
->>
->> I've attached two dmesg one from a 3.19.0-rc6 I had on it, and one
->> failing from the 4.0.0-rc1 time.
->>
->> b24e2bdde4af656bb0679a101265ebb8f8735d3c is latest Linus commit in
->> that tree (I have some radeon patches on top).
->>
->> motherboard is a Gigabyte GA-MA78GM-S2H, lspci also attached.
+>>>> I have the same problem with a Asrock Q1900B-ITX mainboard with 
+>>>> a Intel Celeron J1900 onboard.
+>>>>
+>>>> I did a bisect and ended up with:
+>>>>
+>>>> 593669c2ac0fe18baee04a3cd5539a148aa48574 is the first bad commit
+>>>>
+>>>> commit 593669c2ac0fe18baee04a3cd5539a148aa48574
+>>>> Author: Jiang Liu <jiang.liu@linux.intel.com>
+>>>> Date:   Thu Feb 5 13:44:46 2015 +0800
+>>>>
+>>>>     x86/PCI/ACPI: Use common ACPI resource interfaces to simplify 
+>>>> implementation
+>>>>
+>>>>
+>>>> I can revert this quite big commit on current git head (4f671fe) with no 
+>>>> problems and then everything is fine again.
+>>>
+>>> Thanks for nailing this one!
+>>>
+>>> It really wasn't supposed to make any functional difference, though, so there
+>>> must be some subtle mistake that escaped everyone in it.
+>>>
+>>> I'll have a look at that and hopefully Jiang Liu will be able to help in the
+>>> meantime too.
+>> Hi all,
+>> 	Sorry for slow response, just return from Chinese New Holidays:)
+>> Hi Thomas,
+>> 	Could you please help to provide the dmesgs before and after the
+>> revert?
 > 
-> Here's the dmesg diff that looks relevant to me:
-> 
-> -pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7]
-> -pci_bus 0000:00: root bus resource [io  0x0d00-0xffff]
-> -pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff]
-> -pci_bus 0000:00: root bus resource [mem 0x000c0000-0x000dffff]
-> -pci_bus 0000:00: root bus resource [mem 0xfed40000-0xfed44fff]
-> -pci_bus 0000:00: root bus resource [mem 0x7ff00000-0xfebfffff]
-> +pci_bus 0000:00: root bus resource [io  0x0cf8-0x0cff]
-> +pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
-> +pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
-> +pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
-> +pci_bus 0000:00: root bus resource [mem 0x000c0000-0x000dffff window]
-> +pci_bus 0000:00: root bus resource [mem 0xfed40000-0xfed44fff window]
-> 
-> What's interesting is:
-> 
-> * v3.19 ignored [io  0x0cf8-0x0cff], but v4.0 includes it.  I think
-> it's wrong to include it because that's the configuration space
-> address/data registers, so it's consumed by the host bridge and not
-> produced on the downstream side.
-Hi Bjorn,
-	We should ignore resources occupied by host bridge itself.
-Will work out a patch to fix this issue.
-
-> 
-> * v3.19 includes [mem 0x7ff00000-0xfebfffff], but v4.0 does not.  This
-> is what's screwing up the devices.
-I need more information to figure out why resource [mem
-0x7ff00000-0xfebfffff] is ignored by new ACPI parser.
-Could you please help to forward the original dmesg attachments?
-Regards!
+> just grab a Minnowboard Max and test this by yourself. It has the same problem. The MAC address is ff:ff:ff:ff:ff:ff with this patch. Once I reverted it, the MAC address is correctly read again.
+Hi Marcel,
+	I have no access to any Minnowboard Max board, so couldn't test
+it by myself. Could you please help to forward the two dmesg files you
+have sent to Bjorn in the original email?
+Thanks!
 Gerry
 
 > 
-> I think all the windows should be marked as ACPI_PRODUCER in _CRS
-> since the space is "produced" on the downstream side of the bridge.
-> The [io  0x0cf8-0x0cff] region should probably be marked
-> ACPI_CONSUMER, and maybe that accounts for why v3.19 ignores it.  But
-> I haven't found the code that does that yet.
+> Regards
 > 
-> I suspect this is all related to the ACPI resource parsing rework.  I
-> looked through that briefly, but no issues jumped out at me, so this
-> is just a heads-up in case it is obvious to you guys.
-> 
-> Dave, it'd be useful if you could collect an acpidump so we can look
-> at the _CRS data in more detail.
-> 
-> Bjorn
+> Marcel
 > 
