@@ -1,18 +1,18 @@
 From: ALI ABDUSSALAM TARHOUNI <hassankhaled900@gmail.com>
 Subject: Former Minister for Oil and Finance
-Date: Sat, 28 Feb 2015 11:19:08 -0800
-Message-ID: <CAJwzwykoq3Sw9=wm4v5=+noxvqzu=yP2QGGrKa8i-rVcCRb+BA@mail.gmail.com>
+Date: Sat, 28 Feb 2015 12:32:29 -0800
+Message-ID: <CAJwzwymeeBOas_iMY7ZL5YXypojtpn--A1b-sD3h2ahCQsVcuw@mail.gmail.com>
 Reply-To: abdussalamtarhouni@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f196.google.com ([209.85.217.196]:36072 "EHLO
-	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbbB1TTK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Feb 2015 14:19:10 -0500
-Received: by lbiw7 with SMTP id w7so3906738lbi.3
-        for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2015 11:19:08 -0800 (PST)
+Received: from mail-lb0-f195.google.com ([209.85.217.195]:34842 "EHLO
+	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217AbbB1Ucb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Feb 2015 15:32:31 -0500
+Received: by lbdu10 with SMTP id u10so3925738lbd.2
+        for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2015 12:32:29 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
