@@ -1,67 +1,38 @@
-From: ALI ABDUSSALAM TARHOUNI <hassankhaled900@gmail.com>
-Subject: Former Minister for Oil and Finance
-Date: Sat, 28 Feb 2015 12:32:29 -0800
-Message-ID: <CAJwzwymeeBOas_iMY7ZL5YXypojtpn--A1b-sD3h2ahCQsVcuw@mail.gmail.com>
-Reply-To: abdussalamtarhouni@gmail.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI regression with 3.19+
+Date: Sun, 01 Mar 2015 01:00:35 +0100
+Message-ID: <1674953.ShOInfAyGW@vostro.rjw.lan>
+References: <54F18BD9.8040200@punnoor.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f195.google.com ([209.85.217.195]:34842 "EHLO
-	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217AbbB1Ucb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Feb 2015 15:32:31 -0500
-Received: by lbdu10 with SMTP id u10so3925738lbd.2
-        for <linux-acpi@vger.kernel.org>; Sat, 28 Feb 2015 12:32:29 -0800 (PST)
+Received: from v094114.home.net.pl ([79.96.170.134]:56202 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751434AbbB1XhG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Feb 2015 18:37:06 -0500
+In-Reply-To: <54F18BD9.8040200@punnoor.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prakash Punnoor <prakash@punnoor.de>
+Cc: jiang.liu@linux.intel.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-=46rom: Ali Abdussalam Tarhouni
-=46ormer Minister for Oil and Finance
-Tripoli- Libya,North Africa.
-Telephone No: +2189169574360
-+226 766 66 100.
+On Saturday, February 28, 2015 10:35:21 AM Prakash Punnoor wrote:
+> This is a multi-part message in MIME format.
+> --------------080704070901080904040008
+> Content-Type: text/plain; charset=utf-8
+> Content-Transfer-Encoding: 7bit
+> 
+> Hallo,
+> 
+> my system won't boot with current GIT kernel (see attached screenshot).
+> The system seems somewhat frozen (cannot ssh into it), but magic sysrq
+> still works. I bisected the problem to commit
+> 593669c2ac0fe18baee04a3cd5539a148aa48574.
 
- Dear Partner,
-                        PROPOSAL
-
-
-I am former Minister for Oil and Finance on the National Transitional
-Council, but presently I'm here in Burkina Faso (West Africa).Due to
-the crisis that going on in my country.
-
-Please I'm consulting you for my personal investment plan which I will
-like to discuss with you and to know the possibility of how we can
-co-operate and work together as foreign business partner;
-Which I believe it will be the benefit to both parties if handled with
-honesty.
-
-If you have idea of any business in your country where we can invest th=
-e
-sum of US Dollars $22.650 Million,
-
-However, due to the crises in my country Libya, I find it necessary to
-diversify my investments to outside my country to safe guard against
-the future of my family. For your kind assistant. I=E2=80=99m willing t=
-o offer
-you 40% of the total amount for your assistance, while the balance
-shall be my capital investment in your country when I come over with
-my Family.
-
-Kindly reply me urgently on this and we will discuss on how to achieve =
-this
-effectively.
+Thanks for reporting, we're working on it.
 
 
-Yours Sincerely,
-
-Mr.Ali Abdussalam Tarhouni
-=46ormer Minister for Oil and Finance
-Tripoli- Libya,North Africa.
-Telephone No: +2189169574360
-+226 766 66 100
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
