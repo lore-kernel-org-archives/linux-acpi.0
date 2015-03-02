@@ -1,50 +1,67 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: [PATCH 2/2] acpi/video: Propagate the error code for
-	acpi_video_register
-Date: Sun,  1 Mar 2015 10:41:38 +0000
-Message-ID: <1425206498-1615-2-git-send-email-chris@chris-wilson.co.uk>
-References: <1425206498-1615-1-git-send-email-chris@chris-wilson.co.uk>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: [Question] cpu<->node relationship changed with node online/offline
+Date: Mon, 2 Mar 2015 09:43:30 +0800
+Message-ID: <54F3C042.8090607@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <1425206498-1615-1-git-send-email-chris@chris-wilson.co.uk>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: intel-gfx@lists.freedesktop.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:3847 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752221AbbCBCAt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Mar 2015 21:00:49 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: linux-numa@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>, Lai Jiangshan <laijs@cn.fujitsu.com>
 
-UmVwb3J0IHRoZSBhY3R1YWwgZXJyb3IgY29kZSBmcm9tIGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZl
-cigpLCBpdCBtYXkKaGVscCBmdXR1cmUgZGVidWdnaW5nICh0eXBpY2FsbHkgRU5PREVWIGFzIHBy
-ZXZpb3VzbHkgcmVwb3J0ZWQsIGJ1dCB0aGUKdW51c3VhbCBjYXNlcyBhcmUgd2hlcmUgaXQgbWF5
-IGhlbHAgbW9zdCkuCgpTaWduZWQtb2ZmLWJ5OiBDaHJpcyBXaWxzb24gPGNocmlzQGNocmlzLXdp
-bHNvbi5jby51az4KQ2M6IERhbmllbCBWZXR0ZXIgPGRhbmllbC52ZXR0ZXJAZmZ3bGwuY2g+CkNj
-OiBaaGFuZyBSdWkgPHJ1aS56aGFuZ0BpbnRlbC5jb20+CkNjOiAiUmFmYWVsIEouIFd5c29ja2ki
-IDxyandAcmp3eXNvY2tpLm5ldD4KQ2M6IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPgpDYzog
-bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5v
-cmcKLS0tCiBkcml2ZXJzL2FjcGkvdmlkZW8uYyB8IDkgKysrKystLS0tCiAxIGZpbGUgY2hhbmdl
-ZCwgNSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-YWNwaS92aWRlby5jIGIvZHJpdmVycy9hY3BpL3ZpZGVvLmMKaW5kZXggM2I3NmFlZjc5YTFjLi5j
-OWQ1ZDA2MGI5NzAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS92aWRlby5jCisrKyBiL2RyaXZl
-cnMvYWNwaS92aWRlby5jCkBAIC0yMTEwLDcgKzIxMTAsOCBAQCBzdGF0aWMgaW50IF9faW5pdCBp
-bnRlbF9vcHJlZ2lvbl9wcmVzZW50KHZvaWQpCiAKIGludCBhY3BpX3ZpZGVvX3JlZ2lzdGVyKHZv
-aWQpCiB7Ci0JaW50IHJlc3VsdCA9IDA7CisJaW50IHJldDsKKwogCWlmIChyZWdpc3Rlcl9jb3Vu
-dCkgewogCQkvKgogCQkgKiBpZiB0aGUgZnVuY3Rpb24gb2YgYWNwaV92aWRlb19yZWdpc3RlciBp
-cyBhbHJlYWR5IGNhbGxlZCwKQEAgLTIxMjIsOSArMjEyMyw5IEBAIGludCBhY3BpX3ZpZGVvX3Jl
-Z2lzdGVyKHZvaWQpCiAJbXV0ZXhfaW5pdCgmdmlkZW9fbGlzdF9sb2NrKTsKIAlJTklUX0xJU1Rf
-SEVBRCgmdmlkZW9fYnVzX2hlYWQpOwogCi0JcmVzdWx0ID0gYWNwaV9idXNfcmVnaXN0ZXJfZHJp
-dmVyKCZhY3BpX3ZpZGVvX2J1cyk7Ci0JaWYgKHJlc3VsdCA8IDApCi0JCXJldHVybiAtRU5PREVW
-OworCXJldCA9IGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlcigmYWNwaV92aWRlb19idXMpOworCWlm
-IChyZXQpCisJCXJldHVybiByZXQ7CiAKIAkvKgogCSAqIFdoZW4gdGhlIGFjcGlfdmlkZW9fYnVz
-IGlzIGxvYWRlZCBzdWNjZXNzZnVsbHksIGluY3JlYXNlCi0tIAoyLjEuNAoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlz
-dApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3Rv
-cC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+Hi numa guys,
+
+Yasuaki Ishimatsu found a phenomenon that the numa mapping (cpu<->node relationship)
+changed when hot add/remove node. 
+And this change will cause allocation failure bug to workqueue sub-system:
+...
+  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+  node 0: slabs: 6172, objs: 259224, free: 245741
+  node 1: slabs: 3261, objs: 136962, free: 127656
+...
+
+It happened in the following situation:
+
+1) System Node/CPU before offline/online:
+	       | CPU
+	------------------------
+	node 0 |  0-14, 60-74
+	node 1 | 15-29, 75-89
+	node 2 | 30-44, 90-104
+	node 3 | 45-59, 105-119
+
+2) A system-board (contains node2 and node3) is offline:
+	       | CPU
+	------------------------
+	node 0 |  0-14, 60-74
+	node 1 | 15-29, 75-89
+
+3) A new system-board (also contains two nodes) is online, two new node
+   IDs are allocated for the two node of the SB, but the old CPU IDs
+   are allocated for the SB, here the NUMA mapping between node and CPU
+   is changed.
+   (the node of CPU#30 is changed from node#2 to node#4, for example)
+	       | CPU
+	------------------------
+	node 0 |  0-14, 60-74
+	node 1 | 15-29, 75-89
+	node 4 | 30-59
+	node 5 | 90-119
+
+4) now, the NUMA mapping is changed.
+
+So the question is *why the NUMA mapping needs to be changed?*
+We can reuse the free CPU IDs for new cpus, why not reuse the free
+node IDs and keep the mapping the same as before?
+
+Looking forward to your response, thanks.
+
+Best regards,
+Gu
