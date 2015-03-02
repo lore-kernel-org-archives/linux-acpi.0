@@ -1,67 +1,119 @@
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: [Question] cpu<->node relationship changed with node online/offline
-Date: Mon, 2 Mar 2015 09:43:30 +0800
-Message-ID: <54F3C042.8090607@cn.fujitsu.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal management updates for v4.0-rc2
+Date: Sun, 1 Mar 2015 22:38:59 -0400
+Message-ID: <20150302023857.GB8925@developer.hsd1.ca.comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:3847 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752221AbbCBCAt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Mar 2015 21:00:49 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: linux-numa@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Tejun Heo <tj@kernel.org>, Lai Jiangshan <laijs@cn.fujitsu.com>
 
-Hi numa guys,
 
-Yasuaki Ishimatsu found a phenomenon that the numa mapping (cpu<->node relationship)
-changed when hot add/remove node. 
-And this change will cause allocation failure bug to workqueue sub-system:
-...
-  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
-  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
-  node 0: slabs: 6172, objs: 259224, free: 245741
-  node 1: slabs: 3261, objs: 136962, free: 127656
-...
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It happened in the following situation:
+Hello Linus,
 
-1) System Node/CPU before offline/online:
-	       | CPU
-	------------------------
-	node 0 |  0-14, 60-74
-	node 1 | 15-29, 75-89
-	node 2 | 30-44, 90-104
-	node 3 | 45-59, 105-119
+Please pull from
 
-2) A system-board (contains node2 and node3) is offline:
-	       | CPU
-	------------------------
-	node 0 |  0-14, 60-74
-	node 1 | 15-29, 75-89
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git fixes-for-4.0-rc2
 
-3) A new system-board (also contains two nodes) is online, two new node
-   IDs are allocated for the two node of the SB, but the old CPU IDs
-   are allocated for the SB, here the NUMA mapping between node and CPU
-   is changed.
-   (the node of CPU#30 is changed from node#2 to node#4, for example)
-	       | CPU
-	------------------------
-	node 0 |  0-14, 60-74
-	node 1 | 15-29, 75-89
-	node 4 | 30-59
-	node 5 | 90-119
+to receive Thermal Management updates for v4.0-rc2 with top-most
 
-4) now, the NUMA mapping is changed.
+5912e264d9eec512598d8faf33440630a3aee989:
 
-So the question is *why the NUMA mapping needs to be changed?*
-We can reuse the free CPU IDs for new cpus, why not reuse the free
-node IDs and keep the mapping the same as before?
+  Merge branch 'tmon-fixes' of .git into next (2015-02-28 14:07:03 +0800)
 
-Looking forward to your response, thanks.
+on top of commit c517d838eb7d07bbe9507871fab3931deccff539:
 
-Best regards,
-Gu
+  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
+
+Specifics:
+- Several fixes in tmon tool.
+- Fixes in intel int340x for _ART and _TRT tables.
+- Add id for Avoton SoC into powerclamp driver.
+- Fixes in RCAR thermal driver to remove race conditions and fix fail path
+- Fixes in TI thermal driver: removal of unnecessary code and build fix if !CONFIG_PM_SLEEP
+- Cleanups in exynos thermal driver
+- Add stubs for include/linux/thermal.h. Now drivers using thermal calls but that also work
+without CONFIG_THERMAL will be able to compile for systems that don't care about thermal.
+
+Note: I am sending this pull on Rui's behalf while he fixes issues in
+his Linux box.
+
+BR,
+
+Eduardo Valentin
+----------------------------------------------------------------
+Brian Norris (8):
+      tools/thermal: tmon: add --target-temp parameter
+      tools/thermal: tmon: add min/max macros
+      tools/thermal: tmon: tui: don't hard-code dialog window size assumptions
+      tools/thermal: tmon: fixup tui windowing calculations
+      tools/thermal: tmon: add .gitignore
+      tools/thermal: tmon: support cross-compiling
+      tools/thermal: tmon: use pkg-config to determine library dependencies
+      tools/thermal: tmon: silence 'set but not used' warnings
+
+Chanwoo Choi (1):
+      thermal: exynos: Clean-up code to use oneline entry for exynos compatible table
+
+Geert Uytterhoeven (2):
+      thermal: rcar: Fix race condition between init and interrupt
+      thermal: rcar: Make error and remove paths symmetrical with init
+
+Grygorii Strashko (1):
+      thermal: ti-soc-thermal: bandgap: Fix build warning if !CONFIG_PM_SLEEP
+
+Markus Elfring (1):
+      ti-soc-thermal: Delete an unnecessary check before the function call "cpufreq_cooling_unregister"
+
+Miguel Bernal Marin (1):
+      thermal/intel_powerclamp: add id for Avoton SoC
+
+Nishanth Menon (1):
+      thermal: Introduce dummy functions when thermal is not defined
+
+Srinivas Pandruvada (1):
+      thermal: int340x_thermal: Ignore missing _ART, _TRT tables
+
+Zhang Rui (1):
+      Merge branch 'tmon-fixes' of .git into next
+
+ drivers/thermal/int340x_thermal/int3400_thermal.c  | 10 ++--
+ drivers/thermal/intel_powerclamp.c                 |  1 +
+ drivers/thermal/rcar_thermal.c                     | 26 +++++-----
+ drivers/thermal/samsung/exynos_tmu.c               | 38 ++++-----------
+ drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  2 +-
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |  2 +-
+ include/linux/thermal.h                            | 56 +++++++++++++++++++++-
+ tools/thermal/tmon/.gitignore                      |  1 +
+ tools/thermal/tmon/Makefile                        | 15 ++++--
+ tools/thermal/tmon/tmon.8                          |  2 +
+ tools/thermal/tmon/tmon.c                          | 14 +++++-
+ tools/thermal/tmon/tui.c                           | 45 +++++++++++++----
+ 12 files changed, 145 insertions(+), 67 deletions(-)
+ create mode 100644 tools/thermal/tmon/.gitignore
+
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJU8802AAoJEMLUO4d9pOJWxp8H/iEbvLfLBLLT8yeOrtToGYcX
+f96LL9yn/OyW8alFMv5ht/ZvnH4/ws7FREWG5W3qDM0OLFYCTgqUPdFXAgsVvcwf
+uiuwrJ9VNiM34Hve5j9EeT7KQcYPaQbwFqzrUBBt/zAVAyNIEN9CbFxguPbM+1Us
+12fYYF0tNNfyAMVzulhOtEUcMuruNgQoXZjXysMPWh10nNCIJGU05QtHwSXQE2PW
+6RmI0UdO7c+3I9RG0PZug8u6tQ8zPZkouGAkYAziPhCVf+kXv+cokUWX3AXfQ+7j
+i5mPpOIKj7yt+IgIVHuNasEwH35tMCgagMASLL7iRd4oHhq0JM7XnXYrhpTneQo=
+=YDyo
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
