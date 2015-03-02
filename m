@@ -1,70 +1,55 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Debug 2/2] x86/PCI/ACPI: Gather debug info
-Date: Mon,  2 Mar 2015 12:33:21 +0800
-Message-ID: <1425270801-20270-3-git-send-email-jiang.liu@linux.intel.com>
-References: <alpine.LSU.2.11.1502281100540.15780@er-systems.de>
- <1425270801-20270-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1425270801-20270-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Voegtle <tv@lio96.de>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Dave Airlie <airlied@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+From: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
+Date: Mon, 02 Mar 2015 14:26:51 +0800
+Message-ID: <54F402AB.8070603@linux.intel.com>
+References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com> <1424695552.14897.7.camel@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:49679 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750823AbbCBG05 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Mar 2015 01:26:57 -0500
+In-Reply-To: <1424695552.14897.7.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org
 
+On 2015/2/23 20:45, Andy Shevchenko wrote:
+> On Tue, 2015-01-20 at 23:49 +0200, Andy Shevchenko wrote:
+>> This is the reworked patch series which had been sent earlier [1] to support
+>> Intel CherryTrail SoC.
+>>
+>> The patches were tested on both BayTrail and CherryTrail SoCs.
+>>
+>> [1] https://patchwork.kernel.org/patch/5235891/
+> 
+> Aubrey, is everything is clear for you now? Can I send v3 with your
+> Ack's?
+> 
+Sorry for the late response due to Chinese New Year holiday, I'll send
+my comments or Ack soon.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/pci/acpi.c     |    3 +++
- drivers/acpi/resource.c |    2 ++
- 2 files changed, 5 insertions(+)
+Thanks,
+-Aubrey
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index ddafc9e8b9b3..d5e4e77684ef 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -230,6 +230,7 @@ static void validate_resources(struct device *dev, struct list_head *crs_res,
- 		bool free = false;
- 		resource_size_t end;
- 
-+		pr_warn("pci_root validate resource %pR\n", entry->res);
- 		res1 = entry->res;
- 		if (!(res1->flags & type))
- 			goto next;
-@@ -288,6 +289,7 @@ static void add_resources(struct pci_root_info *info,
- 	validate_resources(&info->bridge->dev, crs_res, IORESOURCE_IO);
- 
- 	resource_list_for_each_entry_safe(entry, tmp, crs_res) {
-+		pr_warn("pci_root add resource %pR\n", entry->res);
- 		res = entry->res;
- 		if (res->flags & IORESOURCE_MEM)
- 			root = &iomem_resource;
-@@ -346,6 +348,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
- 			"no IO and memory resources present in _CRS\n");
- 	else
- 		resource_list_for_each_entry_safe(entry, tmp, list) {
-+			pr_warn("pci_root probe resource %pR\n", entry->res);
- 			if (entry->res->flags & IORESOURCE_WINDOW)
- 				entry->res->name = info->name;
- 			else
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 4752b9939987..55cfd9423ff4 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -470,6 +470,7 @@ static acpi_status acpi_dev_new_resource_entry(struct resource_win *win,
- 	rentry->offset = win->offset;
- 	resource_list_add_tail(rentry, c->list);
- 	c->count++;
-+	pr_warn("acpi new resource %pR\n", rentry->res);
- 	return AE_OK;
- }
- 
-@@ -615,6 +616,7 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
- 	default:
- 		break;
- 	}
-+	pr_warn("acpi filter resource type %lx, types %lx\n", type, types);
- 
- 	return (type & types) ? 0 : 1;
- }
--- 
-1.7.10.4
+>>
+>> Changes to v1:
+>>  - rebased on top of recent pmc_atom changes
+>>  - cleaned up, reqorked and split to few smaller patches
+>>
+>> Andy Shevchenko (4):
+>>   x86: pmc_atom: save struct device pointer in pmc
+>>   x86: pmc_atom: print index of device in loop
+>>   x86: pmc_atom: supply register mappings via pmc object
+>>   PMC driver: Add Cherrytrail PMC interface
+>>
+>>  arch/x86/include/asm/pmc_atom.h |  25 ++++
+>>  arch/x86/kernel/pmc_atom.c      | 270 +++++++++++++++++++++++++---------------
+>>  2 files changed, 198 insertions(+), 97 deletions(-)
+>>
+> 
+> 
+
