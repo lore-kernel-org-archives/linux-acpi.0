@@ -1,55 +1,95 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
-Date: Mon, 02 Mar 2015 14:26:51 +0800
-Message-ID: <54F402AB.8070603@linux.intel.com>
-References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com> <1424695552.14897.7.camel@linux.intel.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [V4 PATCH 2/2] ata: ahci_platform: Add ACPI _CLS matching
+Date: Mon, 2 Mar 2015 02:27:20 -0600
+Message-ID: <1425284840-9233-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+References: <1425284840-9233-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49679 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750823AbbCBG05 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Mar 2015 01:26:57 -0500
-In-Reply-To: <1424695552.14897.7.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1425284840-9233-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lv.zheng@intel.com, hpa@linux.intel.com
+Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org
 
-On 2015/2/23 20:45, Andy Shevchenko wrote:
-> On Tue, 2015-01-20 at 23:49 +0200, Andy Shevchenko wrote:
->> This is the reworked patch series which had been sent earlier [1] to support
->> Intel CherryTrail SoC.
->>
->> The patches were tested on both BayTrail and CherryTrail SoCs.
->>
->> [1] https://patchwork.kernel.org/patch/5235891/
-> 
-> Aubrey, is everything is clear for you now? Can I send v3 with your
-> Ack's?
-> 
-Sorry for the late response due to Chinese New Year holiday, I'll send
-my comments or Ack soon.
+This patch adds ACPI supports for AHCI platform driver, which uses _CLS
+method to match the device.
 
-Thanks,
--Aubrey
+The following is an example of ASL structure in DSDT for a SATA controller,
+which contains _CLS package to be matched by the ahci_platform driver:
 
->>
->> Changes to v1:
->>  - rebased on top of recent pmc_atom changes
->>  - cleaned up, reqorked and split to few smaller patches
->>
->> Andy Shevchenko (4):
->>   x86: pmc_atom: save struct device pointer in pmc
->>   x86: pmc_atom: print index of device in loop
->>   x86: pmc_atom: supply register mappings via pmc object
->>   PMC driver: Add Cherrytrail PMC interface
->>
->>  arch/x86/include/asm/pmc_atom.h |  25 ++++
->>  arch/x86/kernel/pmc_atom.c      | 270 +++++++++++++++++++++++++---------------
->>  2 files changed, 198 insertions(+), 97 deletions(-)
->>
-> 
-> 
+  Device (AHC0) // AHCI Controller
+  {
+    Name(_HID, "AMDI0600")
+    Name (_CCA, 1)
+    Name (_CLS, Package (3)
+    {
+      0x01, // Base Class: Mass Storage
+      0x06, // Sub-Class: serial ATA
+      0x01, // Interface: AHCI
+    })
+    Name (_CRS, ResourceTemplate ()
+    {
+      Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
+      Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
+    })
+  }
+
+Also, since ATA driver should not require PCI support for ATA_ACPI,
+this patch removes dependency in the driver/ata/Kconfig.
+
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
+ drivers/ata/Kconfig         | 2 +-
+ drivers/ata/ahci_platform.c | 9 +++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+index 5f60155..50305e3 100644
+--- a/drivers/ata/Kconfig
++++ b/drivers/ata/Kconfig
+@@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
+ 
+ config ATA_ACPI
+ 	bool "ATA ACPI Support"
+-	depends on ACPI && PCI
++	depends on ACPI
+ 	default y
+ 	help
+ 	  This option adds support for ATA-related ACPI objects.
+diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
+index 78d6ae0..842cd13 100644
+--- a/drivers/ata/ahci_platform.c
++++ b/drivers/ata/ahci_platform.c
+@@ -20,6 +20,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/libata.h>
+ #include <linux/ahci_platform.h>
++#include <linux/acpi.h>
++#include <linux/pci_ids.h>
+ #include "ahci.h"
+ 
+ #define DRV_NAME "ahci"
+@@ -78,12 +80,19 @@ static const struct of_device_id ahci_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, ahci_of_match);
+ 
++static const struct acpi_device_id ahci_acpi_match[] = {
++	{ "", 0, PCI_CLASS_STORAGE_SATA_AHCI },
++	{},
++};
++MODULE_DEVICE_TABLE(acpi, ahci_acpi_match);
++
+ static struct platform_driver ahci_driver = {
+ 	.probe = ahci_probe,
+ 	.remove = ata_platform_remove_one,
+ 	.driver = {
+ 		.name = DRV_NAME,
+ 		.of_match_table = ahci_of_match,
++		.acpi_match_table = ahci_acpi_match,
+ 		.pm = &ahci_pm_ops,
+ 	},
+ };
+-- 
+2.1.0
 
