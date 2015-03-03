@@ -1,48 +1,35 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: [PATCH] ACPI / blacklist: blacklist Win8 OSI for HP Pavilion dv6
-Date: Tue,  3 Mar 2015 14:39:14 +0800
-Message-ID: <1425364754-31900-1-git-send-email-alex.hung@canonical.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [RFC PATCH 0/2] acpi: video: Allow forcing native backlight on non win8 laptops
+Date: Tue,  3 Mar 2015 08:39:08 +0100
+Message-ID: <1425368350-4028-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:51862 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828AbbCCGjW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Mar 2015 01:39:22 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:55266 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752603AbbCCHjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Mar 2015 02:39:16 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, alex.hung@canonical.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-The brightness hotkeys of HP Pavilion dv6 does not work with Win8 OSI. Due
-to insufficient documentation for the driver implementation, blacklist
-it as a workaround.
+Hi All,
 
-Signed-off-by: Alex Hung <alex.hung@canonical.com>
----
- drivers/acpi/blacklist.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+I've long wanted to have a way for users to force native-backlight behavior as
+that makes debugging backlight problems a bit easier.
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 9b693d5..98aa360 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -300,6 +300,18 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	},
- 
- 	/*
-+	 * The brightness hotkeys do not work on those machines when
-+	 * returning true for _OSI("Windows 2012")
-+	 */
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "HP Pavilion dv6",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv6 Notebook PC"),
-+		},
-+	},
-+	/*
- 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
- 	 * Linux ignores it, except for the machines enumerated below.
- 	 */
--- 
-1.7.9.5
+And now a laptop has shown up which needs native backlight behavior for things
+to work, has a non win8 ready bios, and I cannot use a quirk in the vendor
+backlight driver as it implements both the acer-wmi and ideapad-laptop vendor
+interfaces and putting the same quirk in 2 places is just wrong.
 
+So I've finally written a small patch to allow forcing native-backlight
+behavior as well as a second patch using this to add a quirk for said laptop.
+
+For now this is just a RFC series as I'm waiting for confirmation from the
+user that this actually fixes things, but I wanted to get the discussion going
+beforehand in case anyone has any objections against the solution I've come
+up with.
+
+Regards,
+
+Hans
