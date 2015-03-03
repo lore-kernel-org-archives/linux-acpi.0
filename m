@@ -1,38 +1,33 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Debug 2/2] x86/PCI/ACPI: Relax ACPI resource descriptor checks to work around BIOS bugs
-Date: Tue,  3 Mar 2015 12:25:41 +0800
-Message-ID: <1425356741-26789-3-git-send-email-jiang.liu@linux.intel.com>
+From: Dave Airlie <airlied@gmail.com>
+Subject: Re: [Debug 0/2] Fix regressions caused by commit 593669c2ac0f
+Date: Tue, 3 Mar 2015 14:34:25 +1000
+Message-ID: <CAPM=9txLQMWzEw0M6v0J8wdCtmH17NMMY_jckiBmAC+keHSTHw@mail.gmail.com>
 References: <1425356741-26789-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1425356741-26789-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Prakash Punnoor <prakash@punnoor.de>, Francois Romieu <romieu@fr.zoreil.com>, Dave Airlie <airlied@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Prakash Punnoor <prakash@punnoor.de>, Francois Romieu <romieu@fr.zoreil.com>, Marcel Holtmann <marcel@holtmann.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Some BIOSes report incorrect length for ACPI address space descriptors,
-so relax the checks to avoid regressions.
+On 3 March 2015 at 14:25, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> Commit 593669c2ac0f (x86/PCI/ACPI: Use common ACPI resource interfaces
+> to simplify implementation) causes regression to several platforms,
+> which is caused by stricter checks in new ACPI resource parsing code
+> and BIOSes report incorrect ACPI resource descriptors.  So try to relax
+> the check to avoid regressions.
+>
+> Jiang Liu (2):
+>   x86/PCI/ACPI: Ignore resources consumed by host bridge itself
+>   x86/PCI/ACPI: Relax ACPI resource descriptor checks to work around
+>     BIOS bugs
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/acpi/resource.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I've booted my machine with that lost its r8169 and it appears to be
+working now.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index c723668e3e27..5589a6e2a023 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -42,8 +42,10 @@ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
- 	 * CHECKME: len might be required to check versus a minimum
- 	 * length as well. 1 for io is fine, but for memory it does
- 	 * not make any sense at all.
-+	 * Note: some BIOSes report incorrect length for ACPI address space
-+	 * descriptor, so remove check of 'reslen == len' to avoid regression.
- 	 */
--	if (len && reslen && reslen == len && start <= end)
-+	if (len && reslen && start <= end)
- 		return true;
- 
- 	pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
--- 
-1.7.10.4
+So from the regression POV:
+Tested-by: Dave Airlie <airlied@redhat.com>
+
+Dave.
