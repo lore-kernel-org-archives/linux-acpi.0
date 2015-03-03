@@ -1,39 +1,48 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Debug 0/2] Fix regressions caused by commit 593669c2ac0f
-Date: Tue, 03 Mar 2015 13:02:56 +0800
-Message-ID: <54F54080.2060403@linux.intel.com>
-References: <1425356741-26789-1-git-send-email-jiang.liu@linux.intel.com> <CAPM=9txLQMWzEw0M6v0J8wdCtmH17NMMY_jckiBmAC+keHSTHw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPM=9txLQMWzEw0M6v0J8wdCtmH17NMMY_jckiBmAC+keHSTHw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Prakash Punnoor <prakash@punnoor.de>, Francois Romieu <romieu@fr.zoreil.com>, Marcel Holtmann <marcel@holtmann.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: [PATCH] ACPI / blacklist: blacklist Win8 OSI for HP Pavilion dv6
+Date: Tue,  3 Mar 2015 14:39:14 +0800
+Message-ID: <1425364754-31900-1-git-send-email-alex.hung@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:51862 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751828AbbCCGjW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Mar 2015 01:39:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, alex.hung@canonical.com
 
+The brightness hotkeys of HP Pavilion dv6 does not work with Win8 OSI. Due
+to insufficient documentation for the driver implementation, blacklist
+it as a workaround.
 
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
+---
+ drivers/acpi/blacklist.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-On 2015/3/3 12:34, Dave Airlie wrote:
-> On 3 March 2015 at 14:25, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->> Commit 593669c2ac0f (x86/PCI/ACPI: Use common ACPI resource interfaces
->> to simplify implementation) causes regression to several platforms,
->> which is caused by stricter checks in new ACPI resource parsing code
->> and BIOSes report incorrect ACPI resource descriptors.  So try to relax
->> the check to avoid regressions.
->>
->> Jiang Liu (2):
->>   x86/PCI/ACPI: Ignore resources consumed by host bridge itself
->>   x86/PCI/ACPI: Relax ACPI resource descriptor checks to work around
->>     BIOS bugs
-> 
-> I've booted my machine with that lost its r8169 and it appears to be
-> working now.
-> 
-> So from the regression POV:
-> Tested-by: Dave Airlie <airlied@redhat.com>
-Thanks for testing, Dave:)
-> 
-> Dave.
-> 
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 9b693d5..98aa360 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -300,6 +300,18 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	},
+ 
+ 	/*
++	 * The brightness hotkeys do not work on those machines when
++	 * returning true for _OSI("Windows 2012")
++	 */
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "HP Pavilion dv6",
++	.matches = {
++		    DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		    DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv6 Notebook PC"),
++		},
++	},
++	/*
+ 	 * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+ 	 * Linux ignores it, except for the machines enumerated below.
+ 	 */
+-- 
+1.7.9.5
+
