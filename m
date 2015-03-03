@@ -1,54 +1,46 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Debug 2/2] x86/PCI/ACPI: Relax ACPI resource descriptor checks
- to work around BIOS bugs
-Date: Tue, 3 Mar 2015 09:18:03 -0600
-Message-ID: <CAErSpo6MtTj+DM0dtm0QxUXGV=rC7a0Sygs03sU0617mWO-DpA@mail.gmail.com>
-References: <1425356741-26789-1-git-send-email-jiang.liu@linux.intel.com> <1425356741-26789-3-git-send-email-jiang.liu@linux.intel.com>
+From: Prakash Punnoor <prakash@punnoor.de>
+Subject: Re: [Debug 0/2] Fix regressions caused by commit 593669c2ac0f
+Date: Tue, 03 Mar 2015 18:19:46 +0100
+Message-ID: <54F5ED32.6070200@punnoor.de>
+References: <1425356741-26789-1-git-send-email-jiang.liu@linux.intel.com> <CAPM=9txLQMWzEw0M6v0J8wdCtmH17NMMY_jckiBmAC+keHSTHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425356741-26789-3-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Prakash Punnoor <prakash@punnoor.de>, Francois Romieu <romieu@fr.zoreil.com>, Dave Airlie <airlied@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:41301 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756803AbbCCRTr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Mar 2015 12:19:47 -0500
+In-Reply-To: <CAPM=9txLQMWzEw0M6v0J8wdCtmH17NMMY_jckiBmAC+keHSTHw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Airlie <airlied@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Francois Romieu <romieu@fr.zoreil.com>, Marcel Holtmann <marcel@holtmann.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
 
-On Mon, Mar 2, 2015 at 10:25 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> Some BIOSes report incorrect length for ACPI address space descriptors,
-> so relax the checks to avoid regressions.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+On 03.03.2015 05:34, Dave Airlie wrote:
+> On 3 March 2015 at 14:25, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+>> Commit 593669c2ac0f (x86/PCI/ACPI: Use common ACPI resource interfaces
+>> to simplify implementation) causes regression to several platforms,
+>> which is caused by stricter checks in new ACPI resource parsing code
+>> and BIOSes report incorrect ACPI resource descriptors.  So try to relax
+>> the check to avoid regressions.
+>>
+>> Jiang Liu (2):
+>>   x86/PCI/ACPI: Ignore resources consumed by host bridge itself
+>>   x86/PCI/ACPI: Relax ACPI resource descriptor checks to work around
+>>     BIOS bugs
+> 
+> I've booted my machine with that lost its r8169 and it appears to be
+> working now.
+> 
+> So from the regression POV:
+> Tested-by: Dave Airlie <airlied@redhat.com>
 
-It'd be nice to have a DSDT archived and referenced in this changelog
-for future reference.  This sounds similar to previous issues:
+Works for me, as well. Thanks!
 
-3162b6f0c5e1 ("PNPACPI: truncate _CRS windows with _LEN > _MAX - _MIN + 1")
-d558b483d5a7 ("x86/PCI: truncate _CRS windows with _LEN > _MAX - _MIN + 1")
-f238b414a74a ("PNPACPI: compute Address Space length rather than using _LEN")
-48728e077480 ("x86/PCI: compute Address Space length rather than using _LEN")
+Tested-by: Prakash Punnoor <prakash@punnoor.de>
 
-I assume your work fixes both these paths and avoids the issues we fixed above.
 
-> ---
->  drivers/acpi/resource.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index c723668e3e27..5589a6e2a023 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -42,8 +42,10 @@ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
->          * CHECKME: len might be required to check versus a minimum
->          * length as well. 1 for io is fine, but for memory it does
->          * not make any sense at all.
-> +        * Note: some BIOSes report incorrect length for ACPI address space
-> +        * descriptor, so remove check of 'reslen == len' to avoid regression.
->          */
-> -       if (len && reslen && reslen == len && start <= end)
-> +       if (len && reslen && start <= end)
->                 return true;
->
->         pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-> --
-> 1.7.10.4
->
+Regards,
+
+Prakash
