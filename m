@@ -1,69 +1,53 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [RFC PATCH 2/2] acpi: video: Add force native backlight quirk for Lenovo Ideapad Z570
-Date: Tue,  3 Mar 2015 08:39:10 +0100
-Message-ID: <1425368350-4028-3-git-send-email-hdegoede@redhat.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [RFC PATCH 0/2] acpi: video: Allow forcing native backlight on
+ non win8 laptops
+Date: Tue, 03 Mar 2015 16:25:48 +0800
+Message-ID: <54F5700C.8050200@intel.com>
 References: <1425368350-4028-1-git-send-email-hdegoede@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37798 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:4108 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753534AbbCCHjS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Mar 2015 02:39:18 -0500
+	id S1753007AbbCCI1G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Mar 2015 03:27:06 -0500
 In-Reply-To: <1425368350-4028-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-The Lenovo Ideapad Z570 (which is an Acer in disguise like some other Ideapads)
-has a broken acpi_video interface and is too old for the acpi-video code to
-automatically prefer the native backlight interface, so add a quirk for it.
+On 03/03/2015 03:39 PM, Hans de Goede wrote:
+> Hi All,
+> 
+> I've long wanted to have a way for users to force native-backlight behavior as
+> that makes debugging backlight problems a bit easier.
 
-Note that this cannot be done with a quirk in the vendor backlight driver as
-is the normal way to fix this as the Z570 offers both acer-wmi and
-ideapad-laptop vendor backlight interfaces, so this would require the same
-quirk in 2 places which is the wrong thing to do.
+I agree.
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1187004
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+> 
+> And now a laptop has shown up which needs native backlight behavior for things
+> to work, has a non win8 ready bios, and I cannot use a quirk in the vendor
+> backlight driver as it implements both the acer-wmi and ideapad-laptop vendor
+> interfaces and putting the same quirk in 2 places is just wrong.
+> 
+> So I've finally written a small patch to allow forcing native-backlight
+> behavior as well as a second patch using this to add a quirk for said laptop.
+> 
+> For now this is just a RFC series as I'm waiting for confirmation from the
+> user that this actually fixes things, but I wanted to get the discussion going
+> beforehand in case anyone has any objections against the solution I've come
+> up with.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 9817b52..70a7ec3 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -419,6 +419,12 @@ static int __init video_disable_native_backlight(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init video_force_native_backlight(const struct dmi_system_id *d)
-+{
-+	use_native_backlight_dmi = 2;
-+	return 0;
-+}
-+
- static struct dmi_system_id video_dmi_table[] __initdata = {
- 	/*
- 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-@@ -560,6 +566,17 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "XPS L521X"),
- 		},
- 	},
-+
-+	/* Non win8 machines which need native backlight nevertheless */
-+	{
-+	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1187004 */
-+	 .callback = video_force_native_backlight,
-+	 .ident = "Lenovo Ideapad Z570",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "102434U"),
-+		},
-+	},
- 	{}
- };
- 
--- 
-2.3.1
+See my comments for patch 1.
+
+Thanks,
+Aaron
+
+> 
+> Regards,
+> 
+> Hans
+> 
 
