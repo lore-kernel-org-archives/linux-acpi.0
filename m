@@ -1,224 +1,125 @@
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [Patch v4 21/23] x86/PCI: Refine the way to release PCI IRQ
- resources
-Date: Wed, 04 Mar 2015 09:06:53 -0700
-Message-ID: <1425485213.5200.230.camel@redhat.com>
-References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
-	 <1423115089-12904-22-git-send-email-jiang.liu@linux.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: PCIe 32-bit MMIO exhaustion
+Date: Wed, 4 Mar 2015 11:01:59 -0600
+Message-ID: <20150304170159.GC22299@google.com>
+References: <54C8A10B.3070207@numascale.com>
+ <CAErSpo4t94BXYhhE+bh5-3_PsdKTSa113beqqz14W+_emdCGMQ@mail.gmail.com>
+ <54EC0013.7000100@numascale.com>
+ <20150303223816.GB22299@google.com>
+ <54F6B044.7000609@numascale.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44647 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757758AbbCDQH2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Mar 2015 11:07:28 -0500
-In-Reply-To: <1423115089-12904-22-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:36024 "EHLO
+	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758277AbbCDRCO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 12:02:14 -0500
+Received: by oiba3 with SMTP id a3so6764810oib.3
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Mar 2015 09:02:13 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <54F6B044.7000609@numascale.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Daniel J Blueman <daniel@numascale.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel <linux-kernel@vger.kernel.org>, Steffen Persvold <sp@numascale.com>, "x86@kernel.org" <x86@kernel.org>, Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
-
-I'm getting a regression from this patch when using VFIO for device
-assignment to a QEMU VM.  I have a device initially bound to the nouveau
-driver, which is unbound from that driver and bound to vfio-pci for use
-by userspace.  vfio-pci calls pci_enable_device, but when userspace
-attempts to setup the legacy INTx interrupt, pci_dev->irq is zero and
-vfio-pci errors with -ENODEV.
-
-Where is pci_dev->irq supposed to be getting re-initialized in this
-case?  Am I missing an important initialization step in vfio-pci?  I
-certainly don't think I should be calling request_irq(pci_dev->irq, ...
-when pci_dev->irq is zero.  Thanks,
-
-Alex
-
-
-On Thu, 2015-02-05 at 13:44 +0800, Jiang Liu wrote:
-> Some PCI device drivers assume that pci_dev->irq won't change after
-> calling pci_disable_device() and pci_enable_device() during suspend and
-> resume.
+On Wed, Mar 04, 2015 at 03:12:04PM +0800, Daniel J Blueman wrote:
+> Your patch solves the conflicts nicely [1] with:
 > 
-> Commit c03b3b0738a5 ("x86, irq, mpparse: Release IOAPIC pin when
-> PCI device is disabled") frees PCI IRQ resources when pci_disable_device()
-> is called and reallocate IRQ resources when pci_enable_device() is
-> called again. This breaks above assumption. So commit 3eec595235c1
-> ("x86, irq, PCI: Keep IRQ assignment for PCI devices during
-> suspend/hibernation") and 9eabc99a635a ("x86, irq, PCI: Keep IRQ
-> assignment for runtime power management") fix the issue by avoiding
-> freeing/reallocating IRQ resources during PCI device suspend/resume.
-> They achieve this by checking dev.power.is_prepared and
-> dev.power.runtime_status.  PM maintainer, Rafael, then pointed out that
-> it's really an ugly fix which leaking PM internal state information to
-> IRQ subsystem.
+> From f835b16b0758a1dde6042a0e4c8aa5a2e8be5f21 Mon Sep 17 00:00:00 2001
+> From: Daniel J Blueman <daniel@numascale.com>
+> Date: Wed, 4 Mar 2015 14:53:00 +0800
+> Subject: [PATCH] Mark PCI BARs with address 0 as unset
 > 
-> Recently David Vrabel <david.vrabel@citrix.com> also reports an
-> regression in pciback driver caused by commit cffe0a2b5a34 ("x86, irq:
-> Keep balance of IOAPIC pin reference count"). Please refer to:
-> http://lkml.org/lkml/2015/1/14/546
+> Allow the kernel to activate the unset flag for PCI BAR resources if
+> the firmware assigns address 0 (invalid as legacy IO is in this range).
 > 
-> So this patch refine the way to release PCI IRQ resources. Instead of
-> releasing PCI IRQ resources in pci_disable_device()/
-> pcibios_disable_device(), we now release it at driver unbinding
-> notification BUS_NOTIFY_UNBOUND_DRIVER. In other word, we only release
-> PCI IRQ resources when there's no driver bound to the PCI device, and
-> it keeps the assumption that pci_dev->irq won't through multiple
-> invocation of pci_enable_device()/pci_disable_device().
+> This allows preventing conflicts with legacy IO/ACPI PNP resources in
+> this range.
 > 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Signed-off-by: Daniel J Blueman <daniel@numascale.com>
 > ---
->  arch/x86/include/asm/pci_x86.h |    2 --
->  arch/x86/pci/common.c          |   34 ++++++++++++++++++++++++++++------
->  arch/x86/pci/intel_mid_pci.c   |    4 ++--
->  arch/x86/pci/irq.c             |   15 +--------------
->  drivers/acpi/pci_irq.c         |    9 +--------
->  5 files changed, 32 insertions(+), 32 deletions(-)
+>  drivers/pci/probe.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
-> index 164e3f8d3c3d..fa1195dae425 100644
-> --- a/arch/x86/include/asm/pci_x86.h
-> +++ b/arch/x86/include/asm/pci_x86.h
-> @@ -93,8 +93,6 @@ extern raw_spinlock_t pci_config_lock;
->  extern int (*pcibios_enable_irq)(struct pci_dev *dev);
->  extern void (*pcibios_disable_irq)(struct pci_dev *dev);
->  
-> -extern bool mp_should_keep_irq(struct device *dev);
-> -
->  struct pci_raw_ops {
->  	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn,
->  						int reg, int len, u32 *val);
-> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-> index 7b20bccf3648..ff1f0afa5ed1 100644
-> --- a/arch/x86/pci/common.c
-> +++ b/arch/x86/pci/common.c
-> @@ -497,6 +497,31 @@ void __init pcibios_set_cache_line_size(void)
->  	}
->  }
->  
-> +/*
-> + * Some device drivers assume dev->irq won't change after calling
-> + * pci_disable_device(). So delay releasing of IRQ resource to driver
-> + * unbinding time. Otherwise it will break PM subsystem and drivers
-> + * like xen-pciback etc.
-> + */
-> +static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
-> +			    void *data)
-> +{
-> +	struct pci_dev *dev = to_pci_dev(data);
-> +
-> +	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
-> +		return NOTIFY_DONE;
-> +
-> +	if (pcibios_disable_irq)
-> +		pcibios_disable_irq(dev);
-> +
-> +	return NOTIFY_OK;
-> +}
-> +
-> +static struct notifier_block pci_irq_nb = {
-> +	.notifier_call = pci_irq_notifier,
-> +	.priority = INT_MIN,
-> +};
-> +
->  int __init pcibios_init(void)
->  {
->  	if (!raw_pci_ops) {
-> @@ -509,6 +534,9 @@ int __init pcibios_init(void)
->  
->  	if (pci_bf_sort >= pci_force_bf)
->  		pci_sort_breadthfirst();
-> +
-> +	bus_register_notifier(&pci_bus_type, &pci_irq_nb);
-> +
->  	return 0;
->  }
->  
-> @@ -667,12 +695,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
->  	return 0;
->  }
->  
-> -void pcibios_disable_device (struct pci_dev *dev)
-> -{
-> -	if (!pci_dev_msi_enabled(dev) && pcibios_disable_irq)
-> -		pcibios_disable_irq(dev);
-> -}
-> -
->  int pci_ext_cfg_avail(void)
->  {
->  	if (raw_pci_ext_ops)
-> diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
-> index 44b9271580b5..95c2471f6819 100644
-> --- a/arch/x86/pci/intel_mid_pci.c
-> +++ b/arch/x86/pci/intel_mid_pci.c
-> @@ -234,10 +234,10 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
->  
->  static void intel_mid_pci_irq_disable(struct pci_dev *dev)
->  {
-> -	if (!mp_should_keep_irq(&dev->dev) && dev->irq_managed &&
-> -	    dev->irq > 0) {
-> +	if (dev->irq_managed && dev->irq > 0) {
->  		mp_unmap_irq(dev->irq);
->  		dev->irq_managed = 0;
-> +		dev->irq = 0;
->  	}
->  }
->  
-> diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
-> index 5dc6ca5e1741..e71b3dbd87b8 100644
-> --- a/arch/x86/pci/irq.c
-> +++ b/arch/x86/pci/irq.c
-> @@ -1256,22 +1256,9 @@ static int pirq_enable_irq(struct pci_dev *dev)
->  	return 0;
->  }
->  
-> -bool mp_should_keep_irq(struct device *dev)
-> -{
-> -	if (dev->power.is_prepared)
-> -		return true;
-> -#ifdef CONFIG_PM
-> -	if (dev->power.runtime_status == RPM_SUSPENDING)
-> -		return true;
-> -#endif
-> -
-> -	return false;
-> -}
-> -
->  static void pirq_disable_irq(struct pci_dev *dev)
->  {
-> -	if (io_apic_assign_pci_irqs && !mp_should_keep_irq(&dev->dev) &&
-> -	    dev->irq_managed && dev->irq) {
-> +	if (io_apic_assign_pci_irqs && dev->irq_managed && dev->irq) {
->  		mp_unmap_irq(dev->irq);
->  		dev->irq = 0;
->  		dev->irq_managed = 0;
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> index b1def411c0b8..e7f718d6918a 100644
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -485,14 +485,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
->  	if (!pin || !dev->irq_managed || dev->irq <= 0)
->  		return;
->  
-> -	/* Keep IOAPIC pin configuration when suspending */
-> -	if (dev->dev.power.is_prepared)
-> -		return;
-> -#ifdef	CONFIG_PM
-> -	if (dev->dev.power.runtime_status == RPM_SUSPENDING)
-> -		return;
-> -#endif
-> -
->  	entry = acpi_pci_irq_lookup(dev, pin);
->  	if (!entry)
->  		return;
-> @@ -513,5 +505,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
->  	if (gsi >= 0) {
->  		acpi_unregister_gsi(gsi);
->  		dev->irq_managed = 0;
-> +		dev->irq = 0;
->  	}
->  }
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 8d2f400..ef43652 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -281,6 +281,13 @@ int __pci_read_base(struct pci_dev *dev, enum
+> pci_bar_type type,
+>  	pcibios_resource_to_bus(dev->bus, &inverted_region, res);
+> 
+>  	/*
+> +	 * If firmware doesn't assign a valid PCI address (as legacy IO is below
+> +	 * PCI IO), mark resource unset to prevent later resource conflicts
+> +	 */
+> +	if (region.start == 0)
+> +		res->flags |= IORESOURCE_UNSET;
+
+It's true that an uninitialized BAR should contain zero.  But an
+initialized BAR may also contain zero, since zero is a valid PCI memory or
+I/O address, so I don't really want to preclude that here.  On large
+systems with host bridges that support address translation, it would be
+reasonable to have something like this:
+
+  pci_bus 0001:00: root bus resource [mem 0x100000000-0x1ffffffff] (bus address [0x00000000-0xffffffff])
+
+In that case, an initialized BAR may contain zero and that should not be an
+error.
+
+On your system, I don't think you advertise an I/O aperture to bus 0001:00.
+I'd like to make the PCI core smart enough to notice that and just ignore
+any I/O BARs on that bus.
+
+There's an argument for doing this immediately, here inside
+__pci_read_base(): we could look for an upstream window that contains the
+BAR we're reading.  I'd like to be able to do that someday, but I'm not
+sure we have enough of the upstream topology set up to do that.
+
+Can you try the patch below, which tries to do it a little later?
+
+> +	/*
+>  	 * If "A" is a BAR value (a bus address), "bus_to_resource(A)" is
+>  	 * the corresponding resource address (the physical address used by
+>  	 * the CPU.  Converting that resource address back to a bus address
+> 
+> [1] https://resource.numascale.com/dmesg-4.0.0-rc2.txt
+
+This URL doesn't work for me.
+
+Bjorn
 
 
+commit 66c15b678466cb217f2615d4078d12a2ee4c99ac
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Wed Mar 4 10:47:35 2015 -0600
 
+    PCI: Mark invalid BARs as unassigned
+    
+    If a BAR is not inside any upstream bridge window, or if it conflicts with
+    another resource, mark it as IORESOURCE_UNSET so we don't try to use it.
+    We may be able to assign a different address for it.
+    
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+diff --git a/drivers/pci/setup-res.c b/drivers/pci/setup-res.c
+index b7c3a5ea1fca..232f9254c11a 100644
+--- a/drivers/pci/setup-res.c
++++ b/drivers/pci/setup-res.c
+@@ -120,6 +120,7 @@ int pci_claim_resource(struct pci_dev *dev, int resource)
+ 	if (!root) {
+ 		dev_info(&dev->dev, "can't claim BAR %d %pR: no compatible bridge window\n",
+ 			 resource, res);
++		res->flags |= IORESOURCE_UNSET;
+ 		return -EINVAL;
+ 	}
+ 
+@@ -127,6 +128,7 @@ int pci_claim_resource(struct pci_dev *dev, int resource)
+ 	if (conflict) {
+ 		dev_info(&dev->dev, "can't claim BAR %d %pR: address conflict with %s %pR\n",
+ 			 resource, res, conflict->name, conflict);
++		res->flags |= IORESOURCE_UNSET;
+ 		return -EBUSY;
+ 	}
+ 
