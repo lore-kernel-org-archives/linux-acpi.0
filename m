@@ -1,79 +1,101 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 6/9] ACPI: move _OSI support functions to allow arch-dependent implementation
-Date: Thu, 05 Mar 2015 00:09:27 +0100
-Message-ID: <2609016.EPbkEHRv6B@vostro.rjw.lan>
-References: <1424824585-6405-1-git-send-email-al.stone@linaro.org> <1424824585-6405-7-git-send-email-al.stone@linaro.org>
+Subject: Re: [PATCH v3 7/9] ACPI: enable arch-specific compilation for _OSI and the blacklist
+Date: Thu, 05 Mar 2015 00:11:24 +0100
+Message-ID: <15870247.dI8jiUeRfk@vostro.rjw.lan>
+References: <1424824585-6405-1-git-send-email-al.stone@linaro.org> <1424824585-6405-8-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65308 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52307 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752929AbbCDWpv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 17:45:51 -0500
-In-Reply-To: <1424824585-6405-7-git-send-email-al.stone@linaro.org>
+	with SMTP id S1750958AbbCDWrt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 17:47:49 -0500
+In-Reply-To: <1424824585-6405-8-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: al.stone@linaro.org
 Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On Tuesday, February 24, 2015 05:36:22 PM al.stone@linaro.org wrote:
+On Tuesday, February 24, 2015 05:36:23 PM al.stone@linaro.org wrote:
 > From: Al Stone <al.stone@linaro.org>
 > 
-> Having moved the _OSI callback function needed by ACPICA from
-> drivers/acpi/osl.c to drivers/acpi/osi.c, we now move all the
-> remaining _OSI support functions to osi.c.
+> Whether arch-specific functions are used or not now depends on the config
+> option CONFIG_ARCH_SPECIFIC_ACPI_OSI.  By default, this is set false which
+> causes the x86/ia64 versions to be used, just as is done today.  Setting
+> this option true causes architecture-specific implementations to be built
+> instead; this patch also provides arm64 implementations.
 > 
-> This patch is much larger than I had wanted it to be; several of the
-> functions that implemented acpi_osi* command line options, or did the
-> set up of the interfaces to be provided by _OSI, shared a static struct.
-> Hence, I ended up moving a bunch of code at once rather than perhaps a
-> function at a time.
-> 
-> With this patch, all the _OSI-associated code has now been moved
-> to osi.c, and we next change the build so that we can make the
-> _OSI implementation arch-dependent.
-> 
-> There is no functional change.
+> For x86/ia64, there is no functional change.  Other architectures will have
+> to add files to provide their specific functionality.
 > 
 > Signed-off-by: Al Stone <al.stone@linaro.org>
+
+This one is fine by me.
+
 > ---
->  drivers/acpi/osi.c   | 152 ++++++++++++++++++++++++++++++++++++++++-
->  drivers/acpi/osl.c   | 187 ---------------------------------------------------
->  include/linux/acpi.h |   5 +-
->  3 files changed, 154 insertions(+), 190 deletions(-)
+>  drivers/acpi/Kconfig  | 3 +++
+>  drivers/acpi/Makefile | 7 ++++++-
+>  include/linux/acpi.h  | 8 ++++++++
+>  3 files changed, 17 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
-> index f23aa70..9943b7a 100644
-> --- a/drivers/acpi/osi.c
-> +++ b/drivers/acpi/osi.c
-> @@ -30,6 +30,8 @@ ACPI_MODULE_NAME("osi");
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index b340509..4d91f22 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -53,6 +53,9 @@ config ACPI_SLEEP
+>  	depends on SUSPEND || HIBERNATION
+>  	default y
 >  
->  #define PREFIX			"ACPI: "
->  
-> +static void __init acpi_osi_setup_late(void);
+> +config ARCH_SPECIFIC_ACPI_OSI
+> +	def_bool n
 > +
->  /*
->   * The story of _OSI(Linux)
->   *
-> @@ -68,10 +70,14 @@ static struct osi_linux {
->  	unsigned int	dmi:1;
->  	unsigned int	cmdline:1;
->  	unsigned int	default_disabling:1;
-> -} osi_linux = {0, 0, 0, 0};
-> +	unsigned int	interfaces_added:1;
-> +} osi_linux = {0, 0, 0, 0, 0};
+>  config ACPI_PROCFS_POWER
+>  	bool "Deprecated power /proc/acpi directories"
+>  	depends on PROC_FS
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 97191eb..1428464 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -18,9 +18,14 @@ obj-y				+= acpi.o \
+>  					acpica/
 >  
->  u32 acpi_osi_handler(acpi_string interface, u32 supported)
->  {
-> +	if (!osi_linux.interfaces_added)
-> +		acpi_osi_setup_late();
+>  # All the builtin files are in the "acpi." module_param namespace.
+> -acpi-y				+= osl.o utils.o reboot.o osi.o
+> +acpi-y				+= osl.o utils.o reboot.o
+>  acpi-y				+= nvs.o
+>  
+> +# _OSI related files
+> +ifneq ($(CONFIG_ARCH_SPECIFIC_ACPI_OSI), y)
+> +acpi-y				+= osi.o
+> +endif
 > +
-
-This wasn't there in the old code.
-
-Please don't mix moving code around with adding new things to it.
-
+>  # Power management related files
+>  acpi-y				+= wakeup.o
+>  acpi-y				+= sleep.o
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 71cdeb6..97185a1 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -279,9 +279,17 @@ static inline int acpi_video_display_switch_support(void)
+>  #endif /* defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE) */
+>  
+>  extern int acpi_blacklisted(void);
+> +
+> +#ifdef CONFIG_ARCH_SPECIFIC_ACPI_OSI
+> +static inline void __init acpi_dmi_osi_linux(int enable,
+> +					     const struct dmi_system_id *d) { }
+> +static inline void __init acpi_osi_setup(char *str) { }
+> +#else
+>  extern void __init acpi_dmi_osi_linux(int enable,
+>  				      const struct dmi_system_id *d);
+>  extern void __init acpi_osi_setup(char *str);
+> +#endif
+> +
+>  extern u32 acpi_osi_handler(acpi_string interface, u32 supported);
+>  
+>  #ifdef CONFIG_ACPI_NUMA
+> 
 
 -- 
 I speak only for myself.
