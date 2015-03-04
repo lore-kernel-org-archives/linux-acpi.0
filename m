@@ -1,51 +1,55 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
-Date: Wed, 04 Mar 2015 12:44:53 +0200
-Message-ID: <1425465893.14897.163.camel@linux.intel.com>
-References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1424695552.14897.7.camel@linux.intel.com>
-	 <54F52C8E.2050705@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54F52C8E.2050705@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] acpi: The count field of counter_show() function should be an unsigned value
+Date: Wed,  4 Mar 2015 18:48:35 +0800
+Message-ID: <1425466115-26306-1-git-send-email-jlee@suse.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:36575 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933064AbbCDKtR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 05:49:17 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Nan Li <nli@suse.com>
 
-On Tue, 2015-03-03 at 11:37 +0800, Li, Aubrey wrote:
-> On 2015/2/23 20:45, Andy Shevchenko wrote:
-> > On Tue, 2015-01-20 at 23:49 +0200, Andy Shevchenko wrote:
-> >> This is the reworked patch series which had been sent earlier [1] to support
-> >> Intel CherryTrail SoC.
-> >>
-> >> The patches were tested on both BayTrail and CherryTrail SoCs.
-> >>
-> >> [1] https://patchwork.kernel.org/patch/5235891/
-> > 
-> > Aubrey, is everything is clear for you now? Can I send v3 with your
-> > Ack's?
+From: Nan Li <nli@suse.com>
 
-> The patches overall look good to me, except a few minor comments need to
-> be addressed in the last conversation. For example, I think we don't
-> need patch 1/4 if we won't use dev_print.
+The count field is an unsigned 32bit value, and the
+counter_show() function should also treat it as a unsigned
+value.
 
-We still use them. Like I said the patch has no relations to the series,
-though it simplifies already existing function.
+Otherwise the counter may show negative number as we found on a
+machine:
+...
+gpe23:        0   invalid
+gpe24: -2071733   enabled
+gpe25:        0   invalid
+...
+gpe_all: -2070980
+sci: -2070949
 
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Nan Li <nli@suse.com>
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ drivers/acpi/sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->  some other changes might be
-> necessary only if they makes code cleaner and works better.
-
-Thus, I think the patch 1/4 is still useful.
-
-> Certainly, it would be better if other x86 maintainers can take a look
-> at these patches.
-
-Agree.
-
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 13e577c..0876d77 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -527,7 +527,7 @@ static ssize_t counter_show(struct kobject *kobj,
+ 	    acpi_irq_not_handled;
+ 	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_GPE].count =
+ 	    acpi_gpe_count;
+-	size = sprintf(buf, "%8d", all_counters[index].count);
++	size = sprintf(buf, "%8u", all_counters[index].count);
+ 
+ 	/* "gpe_all" or "sci" */
+ 	if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
 -- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
+1.8.4.5
+
