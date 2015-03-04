@@ -1,88 +1,125 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 9/9] ACPI: arm64: use "Linux" as ACPI_OS_NAME for _OS on arm64
-Date: Thu, 05 Mar 2015 00:17:33 +0100
-Message-ID: <1826593.dqIcOSxkcP@vostro.rjw.lan>
-References: <1424824585-6405-1-git-send-email-al.stone@linaro.org> <1424824585-6405-10-git-send-email-al.stone@linaro.org>
+Subject: Re: [PATCH v9 07/21] ACPI / sleep: Introduce arm64 specific acpi_sleep.c
+Date: Thu, 05 Mar 2015 00:25:54 +0100
+Message-ID: <2489018.mr9Fb0WeOy@vostro.rjw.lan>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <2076446.VFvTauDDiK@vostro.rjw.lan> <CAGCh1+=RWVfcFoG549_03AZx3Y548GrJUMAXMgmdFFMmiE40KQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1424824585-6405-10-git-send-email-al.stone@linaro.org>
+In-Reply-To: <CAGCh1+=RWVfcFoG549_03AZx3Y548GrJUMAXMgmdFFMmiE40KQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: al.stone@linaro.org
-Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, robert.moore@intel.com, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: G Gregory <graeme.gregory@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Tomasz
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, February 24, 2015 05:36:25 PM al.stone@linaro.org wrote:
-> From: Al Stone <al.stone@linaro.org>
-> 
-> ACPI_OS_NAME is globally defined as "Microsoft Windows NT" for now.
-> That doesn't make much sense in the ARM context, so set it to "Linux"
-> when CONFIG_ARM64.
-> 
-> If it is necessary to change the return value from \_OS_ (that is, return
-> some value other than the default in ACPI_OS_NAME), use the kernel parameter
-> "acpi_os_name=<string>".
-> 
-> Many thanks to Rafael Wysocki for this greatly simplified form of the patch.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Al Stone <al.stone@linaro.org>
+On Wednesday, March 04, 2015 10:49:25 PM G Gregory wrote:
+> On 4 March 2015 at 22:38, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, February 25, 2015 04:39:47 PM Hanjun Guo wrote:
+> >> From: Graeme Gregory <graeme.gregory@linaro.org>
+> >>
+> >> ACPI 5.1 does not currently support S states for ARM64 hardware but
+> >> ACPI code will call acpi_target_system_state() for device power
+> >> management, so introduce acpi_sleep.c to allow other drivers to function
+> >> until S states are defined.
+> >>
+> >> Since it is arm64 specific stub holder, so let acpi_sleep.c to ARM64
+> >> specific.
+> >>
+> >> TODO: merge this with drivers/acpi/sleep.c once we fix the specification.
+> >>
+> >> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> >> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> >> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> >> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> >> Tested-by: Jon Masters <jcm@redhat.com>
+> >> Tested-by: Timur Tabi <timur@codeaurora.org>
+> >> Tested-by: Robert Richter <rrichter@cavium.com>
+> >> Acked-by: Robert Richter <rrichter@cavium.com>
+> >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> ---
+> >>  arch/arm64/kernel/Makefile     |  2 +-
+> >>  arch/arm64/kernel/acpi_sleep.c | 28 ++++++++++++++++++++++++++++
+> >>  drivers/acpi/Makefile          |  2 ++
+> >>  3 files changed, 31 insertions(+), 1 deletion(-)
+> >>  create mode 100644 arch/arm64/kernel/acpi_sleep.c
+> >>
+> >> diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+> >> index 218eb7e..4435943 100644
+> >> --- a/arch/arm64/kernel/Makefile
+> >> +++ b/arch/arm64/kernel/Makefile
+> >> @@ -34,7 +34,7 @@ arm64-obj-$(CONFIG_KGDB)            += kgdb.o
+> >>  arm64-obj-$(CONFIG_EFI)                      += efi.o efi-stub.o efi-entry.o
+> >>  arm64-obj-$(CONFIG_PCI)                      += pci.o
+> >>  arm64-obj-$(CONFIG_ARMV8_DEPRECATED) += armv8_deprecated.o
+> >> -arm64-obj-$(CONFIG_ACPI)             += acpi.o
+> >> +arm64-obj-$(CONFIG_ACPI)             += acpi.o acpi_sleep.o
+> >>
+> >>  obj-y                                        += $(arm64-obj-y) vdso/
+> >>  obj-m                                        += $(arm64-obj-m)
+> >> diff --git a/arch/arm64/kernel/acpi_sleep.c b/arch/arm64/kernel/acpi_sleep.c
+> >> new file mode 100644
+> >> index 0000000..54578ef
+> >> --- /dev/null
+> >> +++ b/arch/arm64/kernel/acpi_sleep.c
+> >> @@ -0,0 +1,28 @@
+> >> +/*
+> >> + *  ARM64 Specific Sleep Functionality
+> >> + *
+> >> + *  Copyright (C) 2013-2014, Linaro Ltd.
+> >> + *      Author: Graeme Gregory <graeme.gregory@linaro.org>
+> >> + *
+> >> + *  This program is free software; you can redistribute it and/or modify
+> >> + *  it under the terms of the GNU General Public License version 2 as
+> >> + *  published by the Free Software Foundation.
+> >> + */
+> >> +
+> >> +#include <linux/acpi.h>
+> >> +
+> >> +/*
+> >> + * Currently the ACPI 5.1 standard does not define S states in a
+> >> + * manner which is usable for ARM64. These two stubs are sufficient
+> >> + * that system initialises and device PM works.
+> >> + */
+> >> +u32 acpi_target_system_state(void)
+> >> +{
+> >> +     return ACPI_STATE_S0;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(acpi_target_system_state);
+> >> +
+> >> +int __init acpi_sleep_init(void)
+> >> +{
+> >> +     return -ENOSYS;
+> >> +}
+> >> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> >> index 623b117..c32edf5 100644
+> >> --- a/drivers/acpi/Makefile
+> >> +++ b/drivers/acpi/Makefile
+> >> @@ -23,7 +23,9 @@ acpi-y                              += nvs.o
+> >>
+> >>  # Power management related files
+> >>  acpi-y                               += wakeup.o
+> >> +ifneq (,$(findstring $(ARCH),x86 ia64))
+> >
+> > This is super-ugly.  Isn't there a better way to do that?
+> >
+> Its the standard example in the GNU Make manual,
 
-Yup, fine by me.
+It is never used in the kernel this way, though, and I'm not going to let
+that slip through.
 
-> ---
->  arch/arm64/Kconfig              | 5 +++++
->  include/acpi/acconfig.h         | 2 ++
->  include/acpi/platform/aclinux.h | 4 ++++
->  3 files changed, 11 insertions(+)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index e441d28..d812113 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -87,6 +87,11 @@ config ARM64
->  config 64BIT
->  	def_bool y
->  
-> +config ACPI_OS_NAME
-> +	string
-> +	default "Linux"
-> +	depends on ACPI
-> +
->  config ARCH_PHYS_ADDR_T_64BIT
->  	def_bool y
->  
-> diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-> index 5a0a3e5..1980bf4 100644
-> --- a/include/acpi/acconfig.h
-> +++ b/include/acpi/acconfig.h
-> @@ -69,7 +69,9 @@
->   * code that will not execute the _OSI method unless _OS matches the string
->   * below.  Therefore, change this string at your own risk.
->   */
-> +#ifndef ACPI_OS_NAME
->  #define ACPI_OS_NAME                    "Microsoft Windows NT"
-> +#endif
->  
->  /* Maximum objects in the various object caches */
->  
-> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-> index 1ba7c19..a871cdd 100644
-> --- a/include/acpi/platform/aclinux.h
-> +++ b/include/acpi/platform/aclinux.h
-> @@ -69,6 +69,10 @@
->  #define ACPI_REDUCED_HARDWARE 1
->  #endif
->  
-> +#ifdef CONFIG_ACPI_OS_NAME
-> +#define ACPI_OS_NAME CONFIG_ACPI_OS_NAME
-> +#endif
-> +
->  #include <linux/string.h>
->  #include <linux/kernel.h>
->  #include <linux/ctype.h>
-> 
+> I would certainly love if someone had a batter suggestion.
+
+Define ACPI_GENERIC_SLEEP in drivers/acpi/Kconfig as
+
+	config ACPI_GENERIC_SLEEP
+		bool
+		depends on IA64 || X86
+
+and build the file conditional on that.
+
 
 -- 
 I speak only for myself.
