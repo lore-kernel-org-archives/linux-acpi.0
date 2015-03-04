@@ -1,63 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix 2/2] x86/PCI/ACPI: Relax ACPI resource descriptor checks to work around BIOS bugs
-Date: Wed, 04 Mar 2015 15:26:04 +0100
-Message-ID: <3849431.yNgBMZCl9m@vostro.rjw.lan>
-References: <1425458832-28777-1-git-send-email-jiang.liu@linux.intel.com> <1425458832-28777-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [PATCH 1/2] acpi/video: Load the module even if ACPI is disabled
+Date: Wed, 04 Mar 2015 15:39:27 +0100
+Message-ID: <4640975.h9PWU3GnN9@vostro.rjw.lan>
+References: <1425206498-1615-1-git-send-email-chris@chris-wilson.co.uk> <20150304015443.GA6943@aaronlu.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49560 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752207AbbCDOC2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 09:02:28 -0500
-In-Reply-To: <1425458832-28777-2-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150304015443.GA6943@aaronlu.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, intel-gfx@lists.freedesktop.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Jani Nikula <jani.nikula@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Prakash Punnoor <prakash@punnoor.de>, Francois Romieu <romieu@fr.zoreil.com>, Dave Airlie <airlied@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
 
-On Wednesday, March 04, 2015 04:47:12 PM Jiang Liu wrote:
-> Some BIOSes report incorrect length for ACPI address space descriptors,
-> so relax the checks to avoid regressions. This issue has appeared several
-> times as:
-> 3162b6f0c5e1 ("PNPACPI: truncate _CRS windows with _LEN > _MAX - _MIN + 1")
-> d558b483d5a7 ("x86/PCI: truncate _CRS windows with _LEN > _MAX - _MIN + 1")
-> f238b414a74a ("PNPACPI: compute Address Space length rather than using _LEN")
-> 48728e077480 ("x86/PCI: compute Address Space length rather than using _LEN")
+On Wednesday, March 04, 2015 09:55:55 AM Aaron Lu wrote:
+> On Sun, Mar 01, 2015 at 10:41:37AM +0000, Chris Wilson wrote:
+> > i915.ko depends upon the acpi/video.ko module and so refuses to load if
+> > ACPI is disabled at runtime if for example the BIOS is broken beyond
+> > repair. acpi/video provides an optional service for i915.ko and so we
+> > should just allow the modules to load, but do no nothing in order to let
+> > the machines boot correctly.
+> > 
+> > Reported-by: Bill Augur <bill-auger@programmer.net>
+> > Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> > Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > Cc: Jani Nikula <jani.nikula@intel.com>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: linux-acpi@vger.kernel.org
+> > Cc: linux-kernel@vger.kernel.org
+> > Cc: stable@vger.kernel.org
 > 
-> Please refer to https://bugzilla.kernel.org/show_bug.cgi?id=94221
-> for more details and example malformed ACPI resource descriptors.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Tested-by: Dave Airlie <airlied@redhat.com>
-> Tested-by: Prakash Punnoor <prakash@punnoor.de>
+> For both patches:
+> Acked-by: Aaron Lu <aaron.lu@intel.com>
 
-Queued up for 4.0-rc3, thanks!
+Both applied, thanks!
 
-Bjorn, please let me know if you have any objections.
-
-> ---
->  drivers/acpi/resource.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index c723668e3e27..5589a6e2a023 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -42,8 +42,10 @@ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
->  	 * CHECKME: len might be required to check versus a minimum
->  	 * length as well. 1 for io is fine, but for memory it does
->  	 * not make any sense at all.
-> +	 * Note: some BIOSes report incorrect length for ACPI address space
-> +	 * descriptor, so remove check of 'reslen == len' to avoid regression.
->  	 */
-> -	if (len && reslen && reslen == len && start <= end)
-> +	if (len && reslen && start <= end)
->  		return true;
->  
->  	pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
-> 
 
 -- 
 I speak only for myself.
