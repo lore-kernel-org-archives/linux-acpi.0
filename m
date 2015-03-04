@@ -1,52 +1,41 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v9 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Wed, 04 Mar 2015 17:18:12 -0600
-Message-ID: <54F792B4.3060600@codeaurora.org>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>	<54EFE282.1090305@codeaurora.org> <CAKv+Gu-LxaX6X=qApp=zhzfmNfv=tjfscf9npFCpNW314pZvvg@mail.gmail.com>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [Patch v4 21/23] x86/PCI: Refine the way to release PCI IRQ
+ resources
+Date: Wed, 04 Mar 2015 16:48:43 -0700
+Message-ID: <1425512923.5200.318.camel@redhat.com>
+References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
+	 <1423115089-12904-22-git-send-email-jiang.liu@linux.intel.com>
+	 <1425485213.5200.230.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44024 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbbCDXSR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 18:18:17 -0500
-In-Reply-To: <CAKv+Gu-LxaX6X=qApp=zhzfmNfv=tjfscf9npFCpNW314pZvvg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425485213.5200.230.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Sudeep Holla <Sudeep.Holla@arm.com>
 
-On 02/27/2015 02:50 AM, Ard Biesheuvel wrote:
-> Are you not seeing this on v4.0-rc1 without the patchset applied?
->
-> Could the crash be inside the subsequent call to
-> SetVirtualAddressMap() instead of inside ExitBootServices()?
->
-> If so, you have a firmware bug: Mark Rutland spotted a similar bug in
-> the AMD Seattle firmware, which has been fixed in the mean time.
-> It has to do with the firmware dereferencing the virtual mapping as it
-> is being installed, which violates the UEFI spec.
+On Wed, 2015-03-04 at 09:06 -0700, Alex Williamson wrote:
+> Hi,
+> 
+> I'm getting a regression from this patch when using VFIO for device
+> assignment to a QEMU VM.  I have a device initially bound to the nouveau
+> driver, which is unbound from that driver and bound to vfio-pci for use
+> by userspace.  vfio-pci calls pci_enable_device, but when userspace
+> attempts to setup the legacy INTx interrupt, pci_dev->irq is zero and
+> vfio-pci errors with -ENODEV.
+> 
+> Where is pci_dev->irq supposed to be getting re-initialized in this
+> case?  Am I missing an important initialization step in vfio-pci?  I
+> certainly don't think I should be calling request_irq(pci_dev->irq, ...
+> when pci_dev->irq is zero.  Thanks,
 
-It looks like you are right.  We fixed the bug in our UEFI and now this 
-patchset works.
+It looks like the imbalance is in pci_dev->enable_cnt.  Any call to
+pci_disable_device() will clear pci_dev->irq, but pci_enable_device()
+does effectively nothing unless it's called with enable_cnt == zero.  So
+I'm at the mercy of the previous driver behaving relatively sanely in
+order to re-enable legacy interrupts for a device :-\  Maybe the unbound
+notifier needs to do some sanitizing of the device?  Thanks,
 
-So all 21 patches:
-
-Tested-by: Timur Tabi <timur@codeaurora.org>
-
-
-However, I did notice one thing.  Booting the kernel displays this line:
-
-	[   69.424001] Failed to find cpu0 device node
-
-That's because CONFIG_OF is still defined (part of "config ARM64"), and 
-therefore cache_setup_of_node() attempts to get the cache information 
-from the device tree.
-
-Should CONFIG_OF still be defined?
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+Alex
