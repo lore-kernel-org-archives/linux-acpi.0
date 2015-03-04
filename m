@@ -1,41 +1,36 @@
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [Patch v4 21/23] x86/PCI: Refine the way to release PCI IRQ
- resources
-Date: Wed, 04 Mar 2015 16:48:43 -0700
-Message-ID: <1425512923.5200.318.camel@redhat.com>
-References: <1423115089-12904-1-git-send-email-jiang.liu@linux.intel.com>
-	 <1423115089-12904-22-git-send-email-jiang.liu@linux.intel.com>
-	 <1425485213.5200.230.camel@redhat.com>
+From: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Subject: Re: [PATCH 5/6] intel_idle: Add ->enter_freeze callbacks
+Date: Thu, 05 Mar 2015 07:50:26 +0800
+Message-ID: <54F79A42.9070801@linux.intel.com>
+References: <8292243.ibkmfVtXac@vostro.rjw.lan> <2407992.WHaFxrNaoa@vostro.rjw.lan> <20150212132643.GY23123@twins.programming.kicks-ass.net> <25445086.IBiaGBbm1j@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425485213.5200.230.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <25445086.IBiaGBbm1j@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, John Stultz <john.stultz@linaro.org>, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2015-03-04 at 09:06 -0700, Alex Williamson wrote:
-> Hi,
+On 2015/2/13 0:24, Rafael J. Wysocki wrote:
+> On Thursday, February 12, 2015 02:26:43 PM Peter Zijlstra wrote:
+>>
+>> Why bother with enter_freeze() for any but the deepest state (C6 in this
+>> case)?
 > 
-> I'm getting a regression from this patch when using VFIO for device
-> assignment to a QEMU VM.  I have a device initially bound to the nouveau
-> driver, which is unbound from that driver and bound to vfio-pci for use
-> by userspace.  vfio-pci calls pci_enable_device, but when userspace
-> attempts to setup the legacy INTx interrupt, pci_dev->irq is zero and
-> vfio-pci errors with -ENODEV.
+> User space may disable the deepest one (and any of them in general) via sysfs
+> and there's no good reason to ignore its choice in this particular case while
+> we're honoring it otherwise.
 > 
-> Where is pci_dev->irq supposed to be getting re-initialized in this
-> case?  Am I missing an important initialization step in vfio-pci?  I
-> certainly don't think I should be calling request_irq(pci_dev->irq, ...
-> when pci_dev->irq is zero.  Thanks,
+> So the logic is basically "find the deepest one which isn't disabled" and
+> setting the pointers costs us nothing really.
+> 
 
-It looks like the imbalance is in pci_dev->enable_cnt.  Any call to
-pci_disable_device() will clear pci_dev->irq, but pci_enable_device()
-does effectively nothing unless it's called with enable_cnt == zero.  So
-I'm at the mercy of the previous driver behaving relatively sanely in
-order to re-enable legacy interrupts for a device :-\  Maybe the unbound
-notifier needs to do some sanitizing of the device?  Thanks,
+If the user has chance to disable C6 via /sys, that means c6 works?
+Shouldn't we ignore user space setting during freeze? Otherwise, we will
+lost S0ix?
 
-Alex
+Thanks,
+-Aubrey
+
