@@ -1,48 +1,51 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix 2/2] x86/PCI/ACPI: Relax ACPI resource descriptor checks to work around BIOS bugs
-Date: Wed,  4 Mar 2015 16:47:12 +0800
-Message-ID: <1425458832-28777-2-git-send-email-jiang.liu@linux.intel.com>
-References: <1425458832-28777-1-git-send-email-jiang.liu@linux.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
+Date: Wed, 04 Mar 2015 12:44:53 +0200
+Message-ID: <1425465893.14897.163.camel@linux.intel.com>
+References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1424695552.14897.7.camel@linux.intel.com>
+	 <54F52C8E.2050705@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425458832-28777-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <54F52C8E.2050705@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Voegtle <tv@lio96.de>, Hudd <hedede.l@gmail.com>, Prakash Punnoor <prakash@punnoor.de>, Francois Romieu <romieu@fr.zoreil.com>, Dave Airlie <airlied@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Lv Zheng <lv.zheng@intel.com>
+To: "Li, Aubrey" <aubrey.li@linux.intel.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Some BIOSes report incorrect length for ACPI address space descriptors,
-so relax the checks to avoid regressions. This issue has appeared several
-times as:
-3162b6f0c5e1 ("PNPACPI: truncate _CRS windows with _LEN > _MAX - _MIN + 1")
-d558b483d5a7 ("x86/PCI: truncate _CRS windows with _LEN > _MAX - _MIN + 1")
-f238b414a74a ("PNPACPI: compute Address Space length rather than using _LEN")
-48728e077480 ("x86/PCI: compute Address Space length rather than using _LEN")
+On Tue, 2015-03-03 at 11:37 +0800, Li, Aubrey wrote:
+> On 2015/2/23 20:45, Andy Shevchenko wrote:
+> > On Tue, 2015-01-20 at 23:49 +0200, Andy Shevchenko wrote:
+> >> This is the reworked patch series which had been sent earlier [1] to support
+> >> Intel CherryTrail SoC.
+> >>
+> >> The patches were tested on both BayTrail and CherryTrail SoCs.
+> >>
+> >> [1] https://patchwork.kernel.org/patch/5235891/
+> > 
+> > Aubrey, is everything is clear for you now? Can I send v3 with your
+> > Ack's?
 
-Please refer to https://bugzilla.kernel.org/show_bug.cgi?id=94221
-for more details and example malformed ACPI resource descriptors.
+> The patches overall look good to me, except a few minor comments need to
+> be addressed in the last conversation. For example, I think we don't
+> need patch 1/4 if we won't use dev_print.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Tested-by: Dave Airlie <airlied@redhat.com>
-Tested-by: Prakash Punnoor <prakash@punnoor.de>
----
- drivers/acpi/resource.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+We still use them. Like I said the patch has no relations to the series,
+though it simplifies already existing function.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index c723668e3e27..5589a6e2a023 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -42,8 +42,10 @@ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
- 	 * CHECKME: len might be required to check versus a minimum
- 	 * length as well. 1 for io is fine, but for memory it does
- 	 * not make any sense at all.
-+	 * Note: some BIOSes report incorrect length for ACPI address space
-+	 * descriptor, so remove check of 'reslen == len' to avoid regression.
- 	 */
--	if (len && reslen && reslen == len && start <= end)
-+	if (len && reslen && start <= end)
- 		return true;
- 
- 	pr_debug("ACPI: invalid or unassigned resource %s [%016llx - %016llx] length [%016llx]\n",
+
+>  some other changes might be
+> necessary only if they makes code cleaner and works better.
+
+Thus, I think the patch 1/4 is still useful.
+
+> Certainly, it would be better if other x86 maintainers can take a look
+> at these patches.
+
+Agree.
+
 -- 
-1.7.10.4
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
