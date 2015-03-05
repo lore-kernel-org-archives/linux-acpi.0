@@ -1,63 +1,26 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v9 14/21] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Thu, 5 Mar 2015 15:19:15 +0000
-Message-ID: <20150305151915.GB11447@e104818-lin.cambridge.arm.com>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
- <1424853601-6675-15-git-send-email-hanjun.guo@linaro.org>
- <2411054.s4TkmAUKjT@vostro.rjw.lan>
- <54F80DC9.3090808@huawei.com>
- <20150305112707.GB7712@e104818-lin.cambridge.arm.com>
- <CAJZ5v0iHstGiXLT0DPHu2=xH3bD-kD=WCqfuB1XaTgNSnthcLQ@mail.gmail.com>
+From: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
+Subject: APEI BERT driver
+Date: Thu, 05 Mar 2015 08:59:08 -0800
+Message-ID: <54F88B5C.2070806@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57535 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753470AbbCEPTX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Mar 2015 10:19:23 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iHstGiXLT0DPHu2=xH3bD-kD=WCqfuB1XaTgNSnthcLQ@mail.gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:36941 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758001AbbCEQ7K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 11:59:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Graeme Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>
+To: ying.huang@intel.com, tomasz.nowicki@linaro.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-On Thu, Mar 05, 2015 at 02:13:58PM +0100, Rafael J. Wysocki wrote:
-> On Thu, Mar 5, 2015 at 12:27 PM, Catalin Marinas
-> <catalin.marinas@arm.com> wrote:
-> > On Thu, Mar 05, 2015 at 04:03:21PM +0800, Hanjun Guo wrote:
-> >> On 2015/3/5 6:46, Rafael J. Wysocki wrote:
-> >> > IMO, you really need to define phys_cpuid_t in a common place or people will
-> >> > forget that it may be 64-bit, because they'll only be looking at their arch.
-> >>
-> >> Since x86 and ARM64 are using different types for phys_cpuid_t, we need to
-> >> introduce something like following if define it in common place:
-> >>
-> >> in linux/acpi.h,
-> >>
-> >> #if defined(CONFIG_X86) || defined(CONFIG_IA64)
-> >> typedef u32 phys_cpuid_t;
-> >> #define PHYS_CPUID_INVALID (phys_cpuid_t)(-1)
-> >> #else if defined(CONFIG_ARM64)
-> >> typedef u64 phys_cpuid_t;
-> >> #define PHYS_CPUID_INVALID INVALID_HWID
-> >> #endif
-> >>
-> >> I think it's awful, did I miss something?
-> 
-> Well, you can define the type and PHYS_CPUID_INVALID in the arch
-> code and then do this in a common header:
-> 
-> #ifndef PHYS_CPUID_INVALID
-> typedef u32 phys_cpuid_t;
-> #define PHYS_CPUID_INVALID (phys_cpuid_t)(-1)
-> #endif
-> 
-> That would allow you to avoid the need to duplicate the
-> definitions where it is not necessary.
+BERT driver was developed by Ying [1]. Tomasz then tested and attempted 
+to upstream it [2].
+[1]: http://www.spinics.net/lists/linux-acpi/msg33106.html
+[2]: https://lists.linaro.org/pipermail/linaro-acpi/2013-August/000510.html
 
-It's fine by me.
-
+Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
 -- 
-Catalin
+Jonathan (Zhixiong) Zhang
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
