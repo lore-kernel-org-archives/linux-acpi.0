@@ -1,43 +1,82 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v9 01/21] ACPI / table: Use pr_debug() instead of
- pr_info() for MADT table scanning
-Date: Thu, 5 Mar 2015 09:55:15 -0800
-Message-ID: <20150305175515.GA4932@quad.lixom.net>
+Subject: Re: [PATCH v9 05/21] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Thu, 5 Mar 2015 10:10:16 -0800
+Message-ID: <20150305181016.GB4932@quad.lixom.net>
 References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
- <1424853601-6675-2-git-send-email-hanjun.guo@linaro.org>
+ <1424853601-6675-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:44353 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030AbbCERzJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 12:55:09 -0500
-Received: by pdjz10 with SMTP id z10so17097706pdj.11
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Mar 2015 09:55:08 -0800 (PST)
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:39439 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756543AbbCESKJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 13:10:09 -0500
+Received: by pabrd3 with SMTP id rd3so10899519pab.6
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Mar 2015 10:10:09 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1424853601-6675-2-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <1424853601-6675-6-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Wed, Feb 25, 2015 at 04:39:41PM +0800, Hanjun Guo wrote:
-> For a normal 8 cpu sockets system, it will up to 240 cpu threads (Xeon E7
-> v2 family for now), and we need 240 entries for local apic or local x2apic
-> in MADT table, so it will be much verbose information printed with a slow
-> uart console when system booted, this will be even worse with large system
-> with 16/32 cpu sockets.
+On Wed, Feb 25, 2015 at 04:39:45PM +0800, Hanjun Guo wrote:
+> From: Al Stone <al.stone@linaro.org>
 > 
-> This patch just use pr_debug() instead of pr_info() for ioapic/iosapic,
-> local apic/x2apic/sapic structures when scanning the MADT table to remove
-> those verbose information, but leave other structures unchanged.
+> As we want to get ACPI tables to parse and then use the information
+> for system initialization, we should get the RSDP (Root System
+> Description Pointer) first, it then locates Extended Root Description
+> Table (XSDT) which contains all the 64-bit physical address that
+> pointer to other boot-time tables.
 > 
-> CC: Rafael J Wysocki <rjw@rjwysocki.net>
+> Introduce acpi.c and its related head file in this patch to provide
+> fundamental needs of extern variables and functions for ACPI core,
+> and then get boot-time tables as needed.
+>   - asm/acenv.h for arch specific ACPICA environments and
+>     implementation, It is needed unconditionally by ACPI core;
+>   - asm/acpi.h for arch specific variables and functions needed by
+>     ACPI driver core;
+>   - acpi.c for ARM64 related ACPI implementation for ACPI driver
+>     core;
+> 
+> acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
+> it will be called in setup_arch() before paging_init(), so we should
+> use eary_memremap() mechanism here to get the RSDP and all the table
+> pointers.
+> 
+> FADT Major.Minor version was introduced in ACPI 5.1, it is the same
+> as ACPI version.
+> 
+> In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
+> MADT table for GIC and SMP init, without those updates, we can not
+> get the MPIDR for SMP init, and GICv2/3 related init information, so
+> we can't boot arm64 ACPI properly with table versions predating 5.1.
+> 
+> If firmware provides ACPI tables with ACPI version less than 5.1,
+> OS has no way to retrieve the configuration data that is necessary
+> to init SMP boot protocol and the GIC properly, so disable ACPI if
+> we get an FADT table with version less that 5.1 when acpi_boot_table_init()
+> called.
+> 
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> Tested-by: Jon Masters <jcm@redhat.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Acked-by: Olof Johansson <olof@lixom.net>
+As long as it goes in together with later patches that adjust what's
+enabled by default:
 
-(This can surely go in now and not be pending on the rest of the patch set)
+Acked-by: Olof Johansson <olof@lixom.net>
 
 
 -Olof
