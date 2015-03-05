@@ -1,57 +1,65 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v9 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Thu, 5 Mar 2015 10:57:01 -0800
-Message-ID: <20150305185701.GH4932@quad.lixom.net>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: [PATCH] x86/PCI: Fully disable devices before releasing IRQ resource
+Date: Thu, 05 Mar 2015 14:06:58 -0700
+Message-ID: <20150305210529.6393.29546.stgit@gimli.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:38600 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751878AbbCES4z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 13:56:55 -0500
-Received: by pdbfl12 with SMTP id fl12so37291895pdb.5
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Mar 2015 10:56:55 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:51608 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751846AbbCEVHX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Mar 2015 16:07:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: x86@kernel.org, rjw@rjwysocki.net, mingo@redhat.com, bp@alien8.de, lv.zheng@intel.com, hpa@zytor.com, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, lenb@kernel.org
+Cc: linux-pci@vger.kernel.org, tony.luck@intel.com, linux-acpi@vger.kernel.org, jiang.liu@linux.intel.com, linux-kernel@vger.kernel.org
 
-Hi,
+The IRQ resource for a device is established when pci_enabled_device()
+is called on a fully disabled device (ie. enable_cnt == 0).  With
+commit b4b55cda5874 ("x86/PCI: Refine the way to release PCI IRQ
+resources") this same IRQ resource is released when the driver is
+unbound from the device, regardless of the enable_cnt.  This presents
+the situation that an ill-behaved driver can now make a device
+unusable to subsequent drivers by an imbalance in their use of
+pci_enable/disable_device().  It's one thing to break your own device
+if you're one of these ill-behaved drivers, but it's a serious
+regression for secondary drivers like vfio-pci, which are innocent
+of the transgressions of the previous driver.
 
-On Wed, Feb 25, 2015 at 04:39:40PM +0800, Hanjun Guo wrote:
-> Changes since v8:
->   - remove MPIDR packing things by introducing phys_cpuid_t;
-> 
->   - update patch acpi: fix acpi_os_ioremap for arm64 to follow
->     Rafael's suggestion;
-> 
->   - Squash patch (disable ACPI if ACPI less than 5.1) to patch
->     (Get RSDP and ACPI boot-time table);
-> 
->   - Move sleep_arm.c to arch/arm64/ and rename it as acpi_sleep.c 
-> 
->   - Rework the uefi generated empty dtb to enable acpi when no dtb
->     is available, thanks Ard for the updated patch.
-> 
->   - rework the function of register cpu for kexec case
-> 
->   - use pr_debug() instead of pr_info() when scanning MADT.
-> 
->   - rebase on top of 4.0-rc1
-> 
+Resolve by pushing the device to a fully disabled state before
+releasing the IRQ resource.
 
-I've looked at most of the arch code besides GIC and some of the timer stuff,
-which I might revisit later, but the pieces I've seen seem reasonable. I've
-acked individual patches.
+Fixes: b4b55cda5874 ("x86/PCI: Refine the way to release PCI IRQ resources")
+Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/pci/common.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-There are some cleanups to be made, but that can be done incrementally on top,
-it's all internal implementation details.
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 3d2612b..4810194 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -527,8 +527,19 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
+ 	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
+ 		return NOTIFY_DONE;
+ 
+-	if (pcibios_disable_irq)
++	if (pcibios_disable_irq) {
++		/*
++		 * Broken drivers may allow a device to be .remove()'d while
++		 * still enabled.  pci_enable_device() will only re-establish
++		 * dev->irq if the devices is fully disabled.  So if we want
++		 * to release the IRQ, we need to make sure the next driver
++		 * can re-establish it using pci_enable_device().
++		 */
++		while (pci_is_enabled(dev))
++			pci_disable_device(dev);
++
+ 		pcibios_disable_irq(dev);
++	}
+ 
+ 	return NOTIFY_OK;
+ }
 
-I also haven't looked closely at the documentation patches yet, so I might have
-some comments on those showing up.
-
-
--Olof
