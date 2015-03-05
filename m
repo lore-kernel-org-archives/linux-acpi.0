@@ -1,82 +1,49 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v9 05/21] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Thu, 5 Mar 2015 10:10:16 -0800
-Message-ID: <20150305181016.GB4932@quad.lixom.net>
+Subject: Re: [PATCH v9 09/21] ARM64 / ACPI: Introduce early_param "acpi=" to
+ enable/disable ACPI
+Date: Thu, 5 Mar 2015 10:11:31 -0800
+Message-ID: <20150305181131.GC4932@quad.lixom.net>
 References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
- <1424853601-6675-6-git-send-email-hanjun.guo@linaro.org>
+ <1424853601-6675-10-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:39439 "EHLO
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:41505 "EHLO
 	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756543AbbCESKJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 13:10:09 -0500
-Received: by pabrd3 with SMTP id rd3so10899519pab.6
-        for <linux-acpi@vger.kernel.org>; Thu, 05 Mar 2015 10:10:09 -0800 (PST)
+	with ESMTP id S1753899AbbCESLZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 13:11:25 -0500
+Received: by pablj1 with SMTP id lj1so38282785pab.8
+        for <linux-acpi@vger.kernel.org>; Thu, 05 Mar 2015 10:11:24 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1424853601-6675-6-git-send-email-hanjun.guo@linaro.org>
+In-Reply-To: <1424853601-6675-10-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-On Wed, Feb 25, 2015 at 04:39:45PM +0800, Hanjun Guo wrote:
+On Wed, Feb 25, 2015 at 04:39:49PM +0800, Hanjun Guo wrote:
 > From: Al Stone <al.stone@linaro.org>
 > 
-> As we want to get ACPI tables to parse and then use the information
-> for system initialization, we should get the RSDP (Root System
-> Description Pointer) first, it then locates Extended Root Description
-> Table (XSDT) which contains all the 64-bit physical address that
-> pointer to other boot-time tables.
-> 
-> Introduce acpi.c and its related head file in this patch to provide
-> fundamental needs of extern variables and functions for ACPI core,
-> and then get boot-time tables as needed.
->   - asm/acenv.h for arch specific ACPICA environments and
->     implementation, It is needed unconditionally by ACPI core;
->   - asm/acpi.h for arch specific variables and functions needed by
->     ACPI driver core;
->   - acpi.c for ARM64 related ACPI implementation for ACPI driver
->     core;
-> 
-> acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
-> it will be called in setup_arch() before paging_init(), so we should
-> use eary_memremap() mechanism here to get the RSDP and all the table
-> pointers.
-> 
-> FADT Major.Minor version was introduced in ACPI 5.1, it is the same
-> as ACPI version.
-> 
-> In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
-> MADT table for GIC and SMP init, without those updates, we can not
-> get the MPIDR for SMP init, and GICv2/3 related init information, so
-> we can't boot arm64 ACPI properly with table versions predating 5.1.
-> 
-> If firmware provides ACPI tables with ACPI version less than 5.1,
-> OS has no way to retrieve the configuration data that is necessary
-> to init SMP boot protocol and the GIC properly, so disable ACPI if
-> we get an FADT table with version less that 5.1 when acpi_boot_table_init()
-> called.
+> This implements the following policy to decide whether ACPI should
+> be used to boot the system:
+> - acpi=off: ACPI will not be used to boot the system, even if there is
+>   no alternative available (e.g., device tree is empty)
+> - acpi=force: only ACPI will be used to boot the system; if that fails,
+>   there will be no fallback to alternative methods (such as device tree)
+> - otherwise, ACPI will be used as a fallback if the device tree turns out
+>   to lack a platform description; the heuristic to decide this is whether
+>   /chosen is the only node present at depth 1
 > 
 > CC: Catalin Marinas <catalin.marinas@arm.com>
 > CC: Will Deacon <will.deacon@arm.com>
-> CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Yijing Wang <wangyijing@huawei.com>
-> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-> Tested-by: Jon Masters <jcm@redhat.com>
-> Tested-by: Timur Tabi <timur@codeaurora.org>
-> Tested-by: Robert Richter <rrichter@cavium.com>
-> Acked-by: Robert Richter <rrichter@cavium.com>
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
 > Signed-off-by: Al Stone <al.stone@linaro.org>
 > Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-As long as it goes in together with later patches that adjust what's
-enabled by default:
+> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
 Acked-by: Olof Johansson <olof@lixom.net>
+
 
 
 -Olof
