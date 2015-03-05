@@ -1,36 +1,142 @@
-From: "Li, Aubrey" <aubrey.li@linux.intel.com>
-Subject: Re: [PATCH 5/6] intel_idle: Add ->enter_freeze callbacks
-Date: Thu, 05 Mar 2015 07:50:26 +0800
-Message-ID: <54F79A42.9070801@linux.intel.com>
-References: <8292243.ibkmfVtXac@vostro.rjw.lan> <2407992.WHaFxrNaoa@vostro.rjw.lan> <20150212132643.GY23123@twins.programming.kicks-ass.net> <25445086.IBiaGBbm1j@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v9 07/21] ACPI / sleep: Introduce arm64 specific acpi_sleep.c
+Date: Thu, 05 Mar 2015 01:16:29 +0100
+Message-ID: <2304442.4NvTH1BPme@vostro.rjw.lan>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <CAGCh1+=RWVfcFoG549_03AZx3Y548GrJUMAXMgmdFFMmiE40KQ@mail.gmail.com> <2489018.mr9Fb0WeOy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <25445086.IBiaGBbm1j@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, John Stultz <john.stultz@linaro.org>, Len Brown <len.brown@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53168 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751771AbbCDXwz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Mar 2015 18:52:55 -0500
+In-Reply-To: <2489018.mr9Fb0WeOy@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: G Gregory <graeme.gregory@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Tomasz
 
-On 2015/2/13 0:24, Rafael J. Wysocki wrote:
-> On Thursday, February 12, 2015 02:26:43 PM Peter Zijlstra wrote:
->>
->> Why bother with enter_freeze() for any but the deepest state (C6 in this
->> case)?
+On Thursday, March 05, 2015 12:25:54 AM Rafael J. Wysocki wrote:
+> On Wednesday, March 04, 2015 10:49:25 PM G Gregory wrote:
+> > On 4 March 2015 at 22:38, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > > On Wednesday, February 25, 2015 04:39:47 PM Hanjun Guo wrote:
+> > >> From: Graeme Gregory <graeme.gregory@linaro.org>
+> > >>
+> > >> ACPI 5.1 does not currently support S states for ARM64 hardware but
+> > >> ACPI code will call acpi_target_system_state() for device power
+> > >> management, so introduce acpi_sleep.c to allow other drivers to function
+> > >> until S states are defined.
+> > >>
+> > >> Since it is arm64 specific stub holder, so let acpi_sleep.c to ARM64
+> > >> specific.
+> > >>
+> > >> TODO: merge this with drivers/acpi/sleep.c once we fix the specification.
+> > >>
+> > >> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> > >> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> > >> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> > >> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> > >> Tested-by: Jon Masters <jcm@redhat.com>
+> > >> Tested-by: Timur Tabi <timur@codeaurora.org>
+> > >> Tested-by: Robert Richter <rrichter@cavium.com>
+> > >> Acked-by: Robert Richter <rrichter@cavium.com>
+> > >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> > >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> > >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > >> ---
+> > >>  arch/arm64/kernel/Makefile     |  2 +-
+> > >>  arch/arm64/kernel/acpi_sleep.c | 28 ++++++++++++++++++++++++++++
+> > >>  drivers/acpi/Makefile          |  2 ++
+> > >>  3 files changed, 31 insertions(+), 1 deletion(-)
+> > >>  create mode 100644 arch/arm64/kernel/acpi_sleep.c
+> > >>
+> > >> diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+> > >> index 218eb7e..4435943 100644
+> > >> --- a/arch/arm64/kernel/Makefile
+> > >> +++ b/arch/arm64/kernel/Makefile
+> > >> @@ -34,7 +34,7 @@ arm64-obj-$(CONFIG_KGDB)            += kgdb.o
+> > >>  arm64-obj-$(CONFIG_EFI)                      += efi.o efi-stub.o efi-entry.o
+> > >>  arm64-obj-$(CONFIG_PCI)                      += pci.o
+> > >>  arm64-obj-$(CONFIG_ARMV8_DEPRECATED) += armv8_deprecated.o
+> > >> -arm64-obj-$(CONFIG_ACPI)             += acpi.o
+> > >> +arm64-obj-$(CONFIG_ACPI)             += acpi.o acpi_sleep.o
+> > >>
+> > >>  obj-y                                        += $(arm64-obj-y) vdso/
+> > >>  obj-m                                        += $(arm64-obj-m)
+> > >> diff --git a/arch/arm64/kernel/acpi_sleep.c b/arch/arm64/kernel/acpi_sleep.c
+> > >> new file mode 100644
+> > >> index 0000000..54578ef
+> > >> --- /dev/null
+> > >> +++ b/arch/arm64/kernel/acpi_sleep.c
+> > >> @@ -0,0 +1,28 @@
+> > >> +/*
+> > >> + *  ARM64 Specific Sleep Functionality
+> > >> + *
+> > >> + *  Copyright (C) 2013-2014, Linaro Ltd.
+> > >> + *      Author: Graeme Gregory <graeme.gregory@linaro.org>
+> > >> + *
+> > >> + *  This program is free software; you can redistribute it and/or modify
+> > >> + *  it under the terms of the GNU General Public License version 2 as
+> > >> + *  published by the Free Software Foundation.
+> > >> + */
+> > >> +
+> > >> +#include <linux/acpi.h>
+> > >> +
+> > >> +/*
+> > >> + * Currently the ACPI 5.1 standard does not define S states in a
+> > >> + * manner which is usable for ARM64. These two stubs are sufficient
+> > >> + * that system initialises and device PM works.
+> > >> + */
+> > >> +u32 acpi_target_system_state(void)
+> > >> +{
+> > >> +     return ACPI_STATE_S0;
+> > >> +}
+> > >> +EXPORT_SYMBOL_GPL(acpi_target_system_state);
+> > >> +
+> > >> +int __init acpi_sleep_init(void)
+> > >> +{
+> > >> +     return -ENOSYS;
+> > >> +}
+> > >> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> > >> index 623b117..c32edf5 100644
+> > >> --- a/drivers/acpi/Makefile
+> > >> +++ b/drivers/acpi/Makefile
+> > >> @@ -23,7 +23,9 @@ acpi-y                              += nvs.o
+> > >>
+> > >>  # Power management related files
+> > >>  acpi-y                               += wakeup.o
+> > >> +ifneq (,$(findstring $(ARCH),x86 ia64))
+> > >
+> > > This is super-ugly.  Isn't there a better way to do that?
+> > >
+> > Its the standard example in the GNU Make manual,
 > 
-> User space may disable the deepest one (and any of them in general) via sysfs
-> and there's no good reason to ignore its choice in this particular case while
-> we're honoring it otherwise.
+> It is never used in the kernel this way, though, and I'm not going to let
+> that slip through.
 > 
-> So the logic is basically "find the deepest one which isn't disabled" and
-> setting the pointers costs us nothing really.
+> > I would certainly love if someone had a batter suggestion.
 > 
+> Define ACPI_GENERIC_SLEEP in drivers/acpi/Kconfig as
+> 
+> 	config ACPI_GENERIC_SLEEP
+> 		bool
+> 		depends on IA64 || X86
+> 
+> and build the file conditional on that.
 
-If the user has chance to disable C6 via /sys, that means c6 works?
-Shouldn't we ignore user space setting during freeze? Otherwise, we will
-lost S0ix?
+Or define
 
-Thanks,
--Aubrey
+	config ACPI_GENERIC_SLEEP
+		bool
 
+and then make both x86 and ia64 do
+
+	select ACPI_GENERIC_SLEEP if ACPI
+
+which kind of will make it clear where the choice takes place.
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
