@@ -1,84 +1,113 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v9 16/21] irqchip: Add GICv2 specific ACPI boot support
-Date: Thu, 5 Mar 2015 17:06:34 +0800
-Message-ID: <54F81C9A.6040502@huawei.com>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <1424853601-6675-17-git-send-email-hanjun.guo@linaro.org> <5921774.hkUTDjxi3A@vostro.rjw.lan>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v3 8/9] ACPI: arm64: use an arch-specific ACPI _OSI
+ method and ACPI blacklist
+Date: Thu, 5 Mar 2015 10:17:05 +0000
+Message-ID: <20150305101705.GB5287@arm.com>
+References: <1424824585-6405-1-git-send-email-al.stone@linaro.org>
+ <20150302172939.GC7919@arm.com>
+ <54F4B345.6020001@linaro.org>
+ <2149383.4T7uuqhSe1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:38487 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754663AbbCEJHE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 04:07:04 -0500
-In-Reply-To: <5921774.hkUTDjxi3A@vostro.rjw.lan>
+Received: from foss.arm.com ([217.140.101.70]:56411 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932134AbbCEKRE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Mar 2015 05:17:04 -0500
+Content-Disposition: inline
+In-Reply-To: <2149383.4T7uuqhSe1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Al Stone <al.stone@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
 
-On 2015/3/5 6:50, Rafael J. Wysocki wrote:
-> On Wednesday, February 25, 2015 04:39:56 PM Hanjun Guo wrote:
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> ACPI kernel uses MADT table for proper GIC initialization. It needs to
->> parse GIC related subtables, collect CPU interface and distributor
->> addresses and call driver initialization function (which is hardware
->> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
->>
->> NOTE: This commit allow to initialize GICv1/2 basic functionality.
->> While now simple GICv2 init call is used, any further GIC features
->> require generic infrastructure for proper ACPI irqchip initialization.
->> That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
->> extension, GICv3/4 and its ITS are considered as next steps.
-[...]
->> diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
->> index 0fe2f71..5855240 100644
->> --- a/drivers/irqchip/irqchip.c
->> +++ b/drivers/irqchip/irqchip.c
->> @@ -8,6 +8,7 @@
->>   * warranty of any kind, whether express or implied.
->>   */
->>  
->> +#include <linux/acpi.h>
->>  #include <linux/init.h>
->>  #include <linux/of_irq.h>
->>  #include <linux/irqchip.h>
->> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
->>  void __init irqchip_init(void)
->>  {
->>  	of_irq_init(__irqchip_of_table);
->> +
->> +	acpi_irq_init();
->>  }
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index c03d8d1..e27117a 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -557,6 +557,20 @@ static inline int acpi_device_modalias(struct device *dev,
->>  
->>  #endif	/* !CONFIG_ACPI */
->>  
->> +#if defined(CONFIG_ACPI) && defined(CONFIG_ARM64)
->> +static inline void acpi_irq_init(void)
->> +{
->> +	/*
->> +	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
->> +	 * Proper irqchip infrastructure will be implemented along with
->> +	 * incoming  GICv2m|GICv3|ITS bits.
->> +	 */
->> +	acpi_gic_init();
->> +}
->> +#else
->> +static inline void acpi_irq_init(void) { }
->> +#endif
-> I don't want this in a common header.
+On Wed, Mar 04, 2015 at 11:14:50PM +0000, Rafael J. Wysocki wrote:
+> On Monday, March 02, 2015 12:00:21 PM Al Stone wrote:
+> > On 03/02/2015 10:29 AM, Will Deacon wrote:
+> > > On Wed, Feb 25, 2015 at 12:36:24AM +0000, al.stone@linaro.org wrote:
+> > >> diff --git a/arch/arm64/kernel/acpi-blacklist.c b/arch/arm64/kernel/acpi-blacklist.c
+> > >> new file mode 100644
+> > >> index 0000000..1be6a56
+> > >> --- /dev/null
+> > >> +++ b/arch/arm64/kernel/acpi-blacklist.c
+> > >> @@ -0,0 +1,20 @@
+> > >> +/*
+> > >> + *  ARM64 Specific ACPI Blacklist Support
+> > >> + *
+> > >> + *  Copyright (C) 2015, Linaro Ltd.
+> > >> + *	Author: Al Stone <al.stone@linaro.org>
+> > >> + *
+> > >> + *  This program is free software; you can redistribute it and/or modify
+> > >> + *  it under the terms of the GNU General Public License version 2 as
+> > >> + *  published by the Free Software Foundation.
+> > >> + */
+> > >> +
+> > >> +#define pr_fmt(fmt) "ACPI: " fmt
+> > >> +
+> > >> +#include <linux/acpi.h>
+> > >> +
+> > >> +/* The arm64 ACPI blacklist is currently empty.  */
+> > >> +int __init acpi_blacklisted(void)
+> > >> +{
+> > >> +	return 0;
+> > >> +}
+> > >> diff --git a/arch/arm64/kernel/acpi-osi.c b/arch/arm64/kernel/acpi-osi.c
+> > >> new file mode 100644
+> > >> index 0000000..bb351f4
+> > >> --- /dev/null
+> > >> +++ b/arch/arm64/kernel/acpi-osi.c
+> > >> @@ -0,0 +1,25 @@
+> > >> +/*
+> > >> + *  ARM64 Specific ACPI _OSI Support
+> > >> + *
+> > >> + *  Copyright (C) 2015, Linaro Ltd.
+> > >> + *	Author: Al Stone <al.stone@linaro.org>
+> > >> + *
+> > >> + *  This program is free software; you can redistribute it and/or modify
+> > >> + *  it under the terms of the GNU General Public License version 2 as
+> > >> + *  published by the Free Software Foundation.
+> > >> + */
+> > >> +
+> > >> +#define pr_fmt(fmt) "ACPI: " fmt
+> > >> +
+> > >> +#include <linux/acpi.h>
+> > >> +
+> > >> +/*
+> > >> + * Consensus is to deprecate _OSI for all new ACPI-supported architectures.
+> > >> + * So, for arm64, reduce _OSI to a warning message, and tell the firmware
+> > >> + * nothing of value.
+> > >> + */
+> > >> +u32 acpi_osi_handler(acpi_string interface, u32 supported)
+> > >> +{
+> > >> +	pr_warn("_OSI was called, but is deprecated for this architecture.\n");
+> > >> +	return false;
+> > >> +}
+> > > 
+> > > This kinda feels backwards to me. If _OSI is going away, then the default
+> > > should be "the architecture doesn't need to do anything", rather than have
+> > > new architectures defining a bunch of empty, useless stub code.
+> > > 
+> > > Anyway we could make this the default in core code and have architectures
+> > > that *do* want _OSI override that behaviour, instead of the other way around?
+> > > 
+> > We could do that; I personally don't have a strong preference either way,
+> > so I'm inclined to make it whatever structure Rafael thinks is proper since
+> > it affects ACPI code most.  That being said, the current patch structure
+> > made sense to me since it wasn't distorting existing code much -- and given
+> > the pure number of x86/ia64 machines vs ARM machines using ACPI, that seemed
+> > the more cautious approach.
+> > 
+> > @Rafael: do you have an opinion/preference?
+> 
+> My preference is to avoid changes in the existing code at least for the time
+> being.  Especially if the changes in question are going to affect ia64, unless
+> you have an Itanium machine where you can readily test those, that is. :-)
 
-This is because of irqchip_init(void) in drivers/irqchip/irqchip.c
-will be called by PowerPC too, so we need to put it in a common
-head file, I will discuss with Tomasz to see if we have any further
-solution.
+Well, this code doesn't even need to compiled for ia64 if we have those
+architectures that want to use _OSI select a Kconfig symbol for it, so I
+don't think the testing argument is really that valid. I appreciate that you
+want to avoid changing the existing code, but I also don't want to add this
+sort of stuff to the architecture code, when it really has nothing to do
+with the architecture.
 
-Thanks
-Hanjun
-
+Will
