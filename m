@@ -1,93 +1,78 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [V4 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
- matching
-Date: Fri, 6 Mar 2015 10:31:59 -0600
-Message-ID: <54F9D67F.9040306@amd.com>
-References: <1425284840-9233-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1425284840-9233-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 18/21] ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY
+ if ACPI is enabled on ARM64
+Date: Fri, 6 Mar 2015 17:47:15 +0000
+Message-ID: <20150306174715.GA26888@e102568-lin.cambridge.arm.com>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+ <1424853601-6675-19-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1425284840-9233-2-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lv.zheng@intel.com, hpa@linux.intel.com
-Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60662 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751328AbbCFRr0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Mar 2015 12:47:26 -0500
+Content-Disposition: inline
+In-Reply-To: <1424853601-6675-19-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 
-On 3/2/2015 2:27 AM, Suravee Suthikulpanit wrote:
-> Device drivers typically use ACPI _HIDs/_CIDs listed in struct device_driver
-> acpi_match_table to match devices. However, for generic drivers, we do not
-> want to list _HID for all supported devices. Also, certain classes of devices
-> do not have _CID (e.g. SATA, USB). Instead, we can leverage ACPI _CLS,
-> which specifies PCI-defined class code (i.e. base-class, subclass and
-> programming interface). This patch adds support for matching ACPI devices using
-> the _CLS method.
->
-> To support loadable module, current design uses _HID or _CID to match device's
-> modalias. With the new way of matching with _CLS this would requires modification
-> to the current ACPI modalias key to include _CLS. This patch appends PCI-defined
-> class-code to the existing ACPI modalias as following.
->
->      acpi:<HID>:<CID1>:<CID2>:..:<CIDn>:<bbsspp>:
-> E.g:
->      # cat /sys/devices/platform/AMDI0600:00/modalias
->      acpi:AMDI0600:010601:
->
-> where bb is th base-class code, ss is te sub-class code, and pp is the
-> programming interface code
->
-> Since there would not be _HID/_CID in the ACPI matching table of the driver,
-> this patch adds a field to acpi_device_id to specify the matching _CLS.
->
->      static const struct acpi_device_id ahci_acpi_match[] = {
->          { "", 0, PCI_CLASS_STORAGE_SATA_AHCI },
->          {},
->      };
->
-> In this case, the corresponded entry in modules.alias file would be:
->
->      alias acpi*:010601:* ahci_platform
->
-> Signed-off-by: Suravee Suthikulpanit<Suravee.Suthikulpanit@amd.com>
+On Wed, Feb 25, 2015 at 08:39:58AM +0000, Hanjun Guo wrote:
+> From: Al Stone <al.stone@linaro.org>
+> 
+> ACPI reduced hardware mode is disabled by default, but ARM64
+> can only run properly in ACPI hardware reduced mode, so select
+> ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64.
+
+Agreed. This will remove unneeded acpica code. I think though,
+you should also check the FADT flag HW_REDUCED_ACPI at boot to
+make sure that the tables are HW reduced compliant. I am flagging
+this up because I noticed code in core code (not guarded by
+ifdef) that checks:
+
+acpi_gbl_reduced_hardware
+
+and if it is not set it goes on instantiating fixed HW devices.
+
+drivers/acpi/scan.c:2567
+
+It is just a heads up, I think it is harmless, but one thing is
+removing acpica code on ACPI HW reduced only, the other is to make
+sure the kernel does not try to use ACPI HW features that acpica
+can't support.
+
+Lorenzo
+
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> Tested-by: Jon Masters <jcm@redhat.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
->   drivers/acpi/acpica/acutils.h     |  3 ++
->   drivers/acpi/acpica/nsxfname.c    | 20 +++++++++--
->   drivers/acpi/acpica/utids.c       | 71 +++++++++++++++++++++++++++++++++++++++
->   drivers/acpi/scan.c               | 17 ++++++++--
->   include/acpi/acnames.h            |  1 +
->   include/acpi/actypes.h            |  4 ++-
->   include/linux/mod_devicetable.h   |  1 +
->   scripts/mod/devicetable-offsets.c |  1 +
->   scripts/mod/file2alias.c          | 13 +++++--
->   9 files changed, 123 insertions(+), 8 deletions(-)
->
-> [....]
- >
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index b034f10..50d8019 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -1148,7 +1148,7 @@ struct acpi_device_info {
->   	u32 name;		/* ACPI object Name */
->   	acpi_object_type type;	/* ACPI object Type */
->   	u8 param_count;		/* If a method, required parameter count */
-> -	u8 valid;		/* Indicates which optional fields are valid */
-> +	u16 valid;		/* Indicates which optional fields are valid */
->   	u8 flags;		/* Miscellaneous info */
->   	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not valid */
->   	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
-> @@ -1158,6 +1158,7 @@ struct acpi_device_info {
->   	struct acpi_pnp_device_id unique_id;	/* _UID value */
->   	struct acpi_pnp_device_id subsystem_id;	/* _SUB value */
->   	struct acpi_pnp_device_id_list compatible_id_list;	/* _CID list <must be last> */
-> +	struct acpi_pnp_device_id cls;	/* _CLS value */
->   };
-
-Please disregard this patch. I found out a mistake on my part here.  I 
-have sent out V5 here (https://lkml.org/lkml/2015/3/6/24)
-
-Thank you,
-
-Suravee
-
+>  arch/arm64/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 1b8e973..d00ab9a 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -1,5 +1,6 @@
+>  config ARM64
+>  	def_bool y
+> +	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>  	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>  	select ARCH_HAS_GCOV_PROFILE_ALL
+> -- 
+> 1.9.1
+> 
+> 
