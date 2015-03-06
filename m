@@ -1,134 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for 4.0-rc3
-Date: Fri, 6 Mar 2015 16:16:57 +0100
-Message-ID: <CAJZ5v0htZRux=ZADN8+k3VcNsyadhQiv2iOpBz6zhNO3VDp7VQ@mail.gmail.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V4 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
+ matching
+Date: Fri, 6 Mar 2015 10:31:59 -0600
+Message-ID: <54F9D67F.9040306@amd.com>
+References: <1425284840-9233-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1425284840-9233-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1425284840-9233-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lv.zheng@intel.com, hpa@linux.intel.com
+Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On 3/2/2015 2:27 AM, Suravee Suthikulpanit wrote:
+> Device drivers typically use ACPI _HIDs/_CIDs listed in struct device_driver
+> acpi_match_table to match devices. However, for generic drivers, we do not
+> want to list _HID for all supported devices. Also, certain classes of devices
+> do not have _CID (e.g. SATA, USB). Instead, we can leverage ACPI _CLS,
+> which specifies PCI-defined class code (i.e. base-class, subclass and
+> programming interface). This patch adds support for matching ACPI devices using
+> the _CLS method.
+>
+> To support loadable module, current design uses _HID or _CID to match device's
+> modalias. With the new way of matching with _CLS this would requires modification
+> to the current ACPI modalias key to include _CLS. This patch appends PCI-defined
+> class-code to the existing ACPI modalias as following.
+>
+>      acpi:<HID>:<CID1>:<CID2>:..:<CIDn>:<bbsspp>:
+> E.g:
+>      # cat /sys/devices/platform/AMDI0600:00/modalias
+>      acpi:AMDI0600:010601:
+>
+> where bb is th base-class code, ss is te sub-class code, and pp is the
+> programming interface code
+>
+> Since there would not be _HID/_CID in the ACPI matching table of the driver,
+> this patch adds a field to acpi_device_id to specify the matching _CLS.
+>
+>      static const struct acpi_device_id ahci_acpi_match[] = {
+>          { "", 0, PCI_CLASS_STORAGE_SATA_AHCI },
+>          {},
+>      };
+>
+> In this case, the corresponded entry in modules.alias file would be:
+>
+>      alias acpi*:010601:* ahci_platform
+>
+> Signed-off-by: Suravee Suthikulpanit<Suravee.Suthikulpanit@amd.com>
+> ---
+>   drivers/acpi/acpica/acutils.h     |  3 ++
+>   drivers/acpi/acpica/nsxfname.c    | 20 +++++++++--
+>   drivers/acpi/acpica/utids.c       | 71 +++++++++++++++++++++++++++++++++++++++
+>   drivers/acpi/scan.c               | 17 ++++++++--
+>   include/acpi/acnames.h            |  1 +
+>   include/acpi/actypes.h            |  4 ++-
+>   include/linux/mod_devicetable.h   |  1 +
+>   scripts/mod/devicetable-offsets.c |  1 +
+>   scripts/mod/file2alias.c          | 13 +++++--
+>   9 files changed, 123 insertions(+), 8 deletions(-)
+>
+> [....]
+ >
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index b034f10..50d8019 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -1148,7 +1148,7 @@ struct acpi_device_info {
+>   	u32 name;		/* ACPI object Name */
+>   	acpi_object_type type;	/* ACPI object Type */
+>   	u8 param_count;		/* If a method, required parameter count */
+> -	u8 valid;		/* Indicates which optional fields are valid */
+> +	u16 valid;		/* Indicates which optional fields are valid */
+>   	u8 flags;		/* Miscellaneous info */
+>   	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not valid */
+>   	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
+> @@ -1158,6 +1158,7 @@ struct acpi_device_info {
+>   	struct acpi_pnp_device_id unique_id;	/* _UID value */
+>   	struct acpi_pnp_device_id subsystem_id;	/* _SUB value */
+>   	struct acpi_pnp_device_id_list compatible_id_list;	/* _CID list <must be last> */
+> +	struct acpi_pnp_device_id cls;	/* _CLS value */
+>   };
 
-Please pull from
+Please disregard this patch. I found out a mistake on my part here.  I 
+have sent out V5 here (https://lkml.org/lkml/2015/3/6/24)
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.0-rc3
+Thank you,
 
-to receive power management and ACPI fixes for v4.0-rc1 with top-most
-commit e178e7d6df38dab67f51df4282927c4c7392879f
+Suravee
 
- Merge branches 'pm-domains' and 'pm-cpufreq'
-
-on top of commit 13a7a6ac0a11197edcd0f756a035f472b42cdf8b
-
- Linux 4.0-rc2
-
-These are fixes for recent regressions (ACPI resources management,
-suspend-to-idle), stable-candidate fixes (ACPI backlight), fixes
-related to the wakeup IRQ management changes made in v3.18, other
-fixes (suspend-to-idle, cpufreq ppc driver) and a couple of cleanups
-(suspend-to-idle, generic power domains, ACPI backlight).
-
-Specifics:
-
- - Fix ACPI resources management problems introduced by the recent
-   rework of the code in question (Jiang Liu) and a build issue
-   introduced by those changes (Joachim Nilsson).
-
- - Fix a recent suspend-to-idle regression on systems where entering
-   idle states causes local timers to stop, prevent suspend-to-idle
-   from crashing in restricted configurations (no cpuidle driver,
-   cpuidle disabled etc.) and clean up the idle loop somewhat while
-   at it (Rafael J Wysocki).
-
- - Fix build problem in the cpufreq ppc driver (Geert Uytterhoeven).
-
- - Allow the ACPI backlight driver module to be loaded if ACPI is
-   disabled which helps the i915 driver in those configurations
-   (stable-candidate) and change the code to help debug unusual use
-   cases (Chris Wilson).
-
- - Wakeup IRQ management changes in v3.18 caused some drivers on the
-   at91 platform to trigger a warning from the IRQ core related to
-   an unexpected combination of interrupt action handler flags.
-   However, on at91 a timer IRQ is shared with some other devices
-   (including system wakeup ones) and that leads to the unusual
-   combination of flags in question.  To make it possible to avoid
-   the warning introduce a new interrupt action handler flag (which
-   can be used by drivers to indicate the special case to the core)
-   and rework the problematic at91 drivers to use it and work as
-   expected during system suspend/resume.  From Boris Brezillon,
-   Rafael J Wysocki and Mark Rutland.
-
- - Clean up the generic power domains subsystem's debugfs interface
-   (Kevin Hilman).
-
-Thanks!
-
-
----------------
-
-Boris BREZILLON (6):
-      PM / wakeup: export pm_system_wakeup symbol
-      rtc: at91sam9: rework wakeup and interrupt handling
-      rtc: at91rm9200: rework wakeup and interrupt handling
-      clk: at91: implement suspend/resume for the PMC irqchip
-      watchdog: at91sam9: request the irq with IRQF_NO_SUSPEND
-      tty: serial: atmel: rework interrupt and wakeup handling
-
-Chris Wilson (2):
-      ACPI / video: Load the module even if ACPI is disabled
-      ACPI / video: Propagate the error code for acpi_video_register
-
-Geert Uytterhoeven (1):
-      cpufreq: ppc: Add missing #include <asm/smp.h>
-
-Jiang Liu (2):
-      x86/PCI/ACPI: Ignore resources consumed by host bridge itself
-      x86/PCI/ACPI: Relax ACPI resource descriptor checks to work
-around BIOS bugs
-
-Joachim Nilsson (1):
-      PCI: versatile: Update for list_for_each_entry() API change
-
-Kevin Hilman (1):
-      PM / Domains: cleanup: rename gpd -> genpd in debugfs interface
-
-Mark Rutland (2):
-      genirq / PM: better describe IRQF_NO_SUSPEND semantics
-      genirq / PM: describe IRQF_COND_SUSPEND
-
-Rafael J. Wysocki (5):
-      idle / sleep: Avoid excessive disabling and enabling interrupts
-      cpuidle / sleep: Do sanity checks in cpuidle_enter_freeze() too
-      cpuidle: Clean up fallback handling in cpuidle_idle_call()
-      genirq / PM: Add flag for shared NO_SUSPEND interrupt lines
-      cpuidle / sleep: Use broadcast timer for states that stop local timer
-
----------------
-
- Documentation/power/suspend-and-interrupts.txt | 22 ++++++--
- arch/x86/pci/acpi.c                            | 11 ++--
- drivers/acpi/resource.c                        |  4 +-
- drivers/acpi/video.c                           | 20 +++++--
- drivers/base/power/domain.c                    | 24 ++++-----
- drivers/base/power/wakeup.c                    |  1 +
- drivers/clk/at91/pmc.c                         | 20 ++++++-
- drivers/clk/at91/pmc.h                         |  1 +
- drivers/cpufreq/ppc-corenet-cpufreq.c          |  2 +
- drivers/cpuidle/cpuidle.c                      | 61 +++++++++------------
- drivers/pci/host/pci-versatile.c               |  2 +-
- drivers/rtc/rtc-at91rm9200.c                   | 62 +++++++++++++++++-----
- drivers/rtc/rtc-at91sam9.c                     | 73 +++++++++++++++++++++-----
- drivers/tty/serial/atmel_serial.c              | 49 +++++++++++++++--
- drivers/watchdog/at91sam9_wdt.c                |  3 +-
- include/linux/cpuidle.h                        | 17 +++++-
- include/linux/interrupt.h                      |  9 +++-
- include/linux/irqdesc.h                        |  1 +
- kernel/irq/manage.c                            |  7 ++-
- kernel/irq/pm.c                                |  7 ++-
- kernel/sched/idle.c                            | 54 +++++++++++--------
- 21 files changed, 331 insertions(+), 119 deletions(-)
