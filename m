@@ -1,91 +1,130 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal management updates for v4.0-rc3
-Date: Thu, 5 Mar 2015 08:53:48 -0400
-Message-ID: <20150305125346.GA26869@developer.amazonguestwifi.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v9 01/21] ACPI / table: Use pr_debug() instead of
+ pr_info() for MADT table scanning
+Date: Fri, 06 Mar 2015 20:17:18 +0000
+Message-ID: <20150306201718.9363CC40AA9@trevor.secretlab.ca>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+	<1424853601-6675-2-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:41776 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233AbbCFUCk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Mar 2015 15:02:40 -0500
-Content-Disposition: inline
+Received: from mail-we0-f169.google.com ([74.125.82.169]:34796 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756173AbbCFURY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Mar 2015 15:17:24 -0500
+Received: by wesx3 with SMTP id x3so8308666wes.1
+        for <linux-acpi@vger.kernel.org>; Fri, 06 Mar 2015 12:17:23 -0800 (PST)
+In-Reply-To: <1424853601-6675-2-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
+On Wed, 25 Feb 2015 16:39:41 +0800
+, Hanjun Guo <hanjun.guo@linaro.org>
+ wrote:
+> For a normal 8 cpu sockets system, it will up to 240 cpu threads (Xeon E7
+> v2 family for now), and we need 240 entries for local apic or local x2apic
+> in MADT table, so it will be much verbose information printed with a slow
+> uart console when system booted, this will be even worse with large system
+> with 16/32 cpu sockets.
+> 
+> This patch just use pr_debug() instead of pr_info() for ioapic/iosapic,
+> local apic/x2apic/sapic structures when scanning the MADT table to remove
+> those verbose information, but leave other structures unchanged.
+> 
+> CC: Rafael J Wysocki <rjw@rjwysocki.net>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
---PEIAKu/WMn1b1Hv9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+One nitpick below, but don't respin over this, and don't do a fixup.
 
-Hello Linus,
+Acked-by: Grant Likely <grant.likely@linaro.org>
 
-Please pull from
+> ---
+>  drivers/acpi/tables.c | 30 ++++++++++++++++--------------
+>  1 file changed, 16 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 93b8152..f4e5b88 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -23,6 +23,8 @@
+>   *
+>   */
+>  
+> +/* Uncomment next line to get verbose printout */
+> +/* #define DEBUG */
+>  #define pr_fmt(fmt) "ACPI: " fmt
+>  
+>  #include <linux/init.h>
+> @@ -61,9 +63,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  		{
+>  			struct acpi_madt_local_apic *p =
+>  			    (struct acpi_madt_local_apic *)header;
+> -			pr_info("LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+> -				p->processor_id, p->id,
+> -				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+> +			pr_debug("LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+> +				 p->processor_id, p->id,
+> +				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+The whitespace changes makes each 1 line change into 3 line changes. In
+these situations, I would chose to leave the whitespace alone to keep
+the diffstat as small as possible. It makes it less likely to conflict
+with other patches and easier to find context.
 
-to receive Thermal Management updates for v4.0-rc3 with top-most
+>  		}
+>  		break;
+>  
+> @@ -71,9 +73,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  		{
+>  			struct acpi_madt_local_x2apic *p =
+>  			    (struct acpi_madt_local_x2apic *)header;
+> -			pr_info("X2APIC (apic_id[0x%02x] uid[0x%02x] %s)\n",
+> -				p->local_apic_id, p->uid,
+> -				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+> +			pr_debug("X2APIC (apic_id[0x%02x] uid[0x%02x] %s)\n",
+> +				 p->local_apic_id, p->uid,
+> +				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+>  		}
+>  		break;
+>  
+> @@ -81,8 +83,8 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  		{
+>  			struct acpi_madt_io_apic *p =
+>  			    (struct acpi_madt_io_apic *)header;
+> -			pr_info("IOAPIC (id[0x%02x] address[0x%08x] gsi_base[%d])\n",
+> -				p->id, p->address, p->global_irq_base);
+> +			pr_debug("IOAPIC (id[0x%02x] address[0x%08x] gsi_base[%d])\n",
+> +				 p->id, p->address, p->global_irq_base);
+>  		}
+>  		break;
+>  
+> @@ -155,9 +157,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  		{
+>  			struct acpi_madt_io_sapic *p =
+>  			    (struct acpi_madt_io_sapic *)header;
+> -			pr_info("IOSAPIC (id[0x%x] address[%p] gsi_base[%d])\n",
+> -				p->id, (void *)(unsigned long)p->address,
+> -				p->global_irq_base);
+> +			pr_debug("IOSAPIC (id[0x%x] address[%p] gsi_base[%d])\n",
+> +				 p->id, (void *)(unsigned long)p->address,
+> +				 p->global_irq_base);
+>  		}
+>  		break;
+>  
+> @@ -165,9 +167,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>  		{
+>  			struct acpi_madt_local_sapic *p =
+>  			    (struct acpi_madt_local_sapic *)header;
+> -			pr_info("LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+> -				p->processor_id, p->id, p->eid,
+> -				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+> +			pr_debug("LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+> +				 p->processor_id, p->id, p->eid,
+> +				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+>  		}
+>  		break;
+>  
+> -- 
+> 1.9.1
+> 
 
-2dc10f8963e6a03a1a75deafe1d1984bafab08dd:
-
-  thermal: Make sysfs attributes of cooling devices default attributes (2015-03-05 01:47:57 -0400)
-
-on top of commit 023a6007a08d342b64895a7342e426d12d9627dd:
-
-  Merge tag 'gpio-v4.0-2' of git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio (2015-03-02 14:13:39 -0800)
-
-Specifics:
-- adding Lukasz as maintainer of samsung thermal driver.
-- driver fixes: exynos and int430x.
-- one fix in the exynos cpufreq driver related to cpu cooling (acked by cpufreq maintainer).
-- fix default sysfs attributes of cooling devices
-
-Note: I am sending this pull on Rui's behalf while he fixes issues in his Linux box.
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Chanwoo Choi (1):
-      thermal: exynos: Fix wrong control of power down detection mode for Exynos7
-
-Eduardo Valentin (1):
-      Merge branch 'fixes' of github.com:lmajewski/linux-samsung-thermal into work-fixes
-
-Lukasz Majewski (2):
-      cpufreq: exynos: Use simple approach to asses if cpu cooling can be used
-      MAINTAINERS: Add entry for SAMSUNG THERMAL DRIVER
-
-Matthias Kaehlcke (1):
-      thermal: Make sysfs attributes of cooling devices default attributes
-
-Srinivas Pandruvada (1):
-      Thermal/int340x: Fix memleak for aux trip
-
- MAINTAINERS                                        |  8 +++++
- drivers/cpufreq/exynos-cpufreq.c                   | 21 ++++--------
- .../thermal/int340x_thermal/int340x_thermal_zone.c | 10 +++---
- drivers/thermal/samsung/exynos_tmu.c               |  3 +-
- drivers/thermal/thermal_core.c                     | 37 ++++++++++------------
- 5 files changed, 39 insertions(+), 40 deletions(-)
-
---PEIAKu/WMn1b1Hv9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJU+FHHAAoJEMLUO4d9pOJWRw8H/j4l04F4+22bI+Gt4DgHmWGu
-YiXqJE0Ze2QH8TpGx5f4eKPhKLgniNW4dsarj6ze7OGyZGDxACW1Zk1BgN/jmn1O
-uisQ4Kd73vW+e0/ZHc2wMXXXXSk8YrPVFmoziwm7RLYlplzt6gbsi8bd2OR36ML4
-BgkyOsXpXjxVEsrHOy08heGxURWR2sVB1QIW1zs7cLezf5mYehcfan98XuBdtEsj
-9xfE5uAPKdRqLpV+g6AzBcahAQUY3gJn2K6Ggsj307uffRpe8MWttJ8REviH2Z42
-Iygq7sAD9aNV9bGA6KC+q3+zR9JFYk0ZAhFthge6UAXjQW7ASxzjma0gc6GdaZk=
-=UcKR
------END PGP SIGNATURE-----
-
---PEIAKu/WMn1b1Hv9--
