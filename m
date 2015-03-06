@@ -1,68 +1,93 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 1/3] drivers:pnp Add support for descendants claiming
- memory address space
-Date: Fri, 06 Mar 2015 00:03:31 +0100
-Message-ID: <54F8E0C3.6080103@intel.com>
-References: <1424202111-14461-1-git-send-email-jakeo@microsoft.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v9 16/21] irqchip: Add GICv2 specific ACPI boot support
+Date: Fri, 06 Mar 2015 01:42:33 +0100
+Message-ID: <2059307.pqvrarRxyo@vostro.rjw.lan>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <5921774.hkUTDjxi3A@vostro.rjw.lan> <20150305115322.GC7712@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1424202111-14461-1-git-send-email-jakeo@microsoft.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Jake Oshins <jakeo@microsoft.com>
-Cc: olaf@aepfle.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, apw@canonical.com, devel@linuxdriverproject.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59931 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752391AbbCFAS5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Mar 2015 19:18:57 -0500
+In-Reply-To: <20150305115322.GC7712@e104818-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi@lists.linaro.org, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, linux-acpi@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Robert Richter <rric@kernel.org>, Jason Cooper <jason@lakedaemon.net>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, linux-kernel@vger.kernel.org, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>
 
-On 2/17/2015 8:41 PM, Jake Oshins wrote:
-> This patch adds some wrapper functions in the pnp layer.  The intent is
-> to allow memory address space claims by devices which are descendants
-> (a child or grandchild of) a device which is already part of the pnp
-> layer.  This allows a device to make a resource claim that doesn't
-> conflict with its "aunts" and "uncles."
+On Thursday, March 05, 2015 11:53:22 AM Catalin Marinas wrote:
+> On Wed, Mar 04, 2015 at 11:50:36PM +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, February 25, 2015 04:39:56 PM Hanjun Guo wrote:
 
-How is this going to happen?
+[cut]
 
-> This is useful in a Hyper-V VM because some paravirtual "devices" need
-> memory-mapped I/O space, and their aunts and uncles can be PCI devices.
-> Furthermore, the hypervisor expresses the possible memory address
-> combinations for the devices in the VM through the ACPI namespace.
-> The paravirtual devices need to suballocate from the ACPI nodes, and
-> they need to avoid conflicting with choices that the Linux PCI code
-> makes about the PCI devices in the VM.
->
-> It might seem like this should be done in the platform layer rather
-> than the pnp layer, but the platform layer assumes that the
-> configuration of the devices in the machine are static, or at least
-> expressed by firmware in a static fashion.
+> > > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> > > index c03d8d1..e27117a 100644
+> > > --- a/include/linux/acpi.h
+> > > +++ b/include/linux/acpi.h
+> > > @@ -557,6 +557,20 @@ static inline int acpi_device_modalias(struct device *dev,
+> > >  
+> > >  #endif	/* !CONFIG_ACPI */
+> > >  
+> > > +#if defined(CONFIG_ACPI) && defined(CONFIG_ARM64)
+> > > +static inline void acpi_irq_init(void)
+> > > +{
+> > > +	/*
+> > > +	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
+> > > +	 * Proper irqchip infrastructure will be implemented along with
+> > > +	 * incoming  GICv2m|GICv3|ITS bits.
+> > > +	 */
+> > > +	acpi_gic_init();
+> > > +}
+> > > +#else
+> > > +static inline void acpi_irq_init(void) { }
+> > > +#endif
+> > 
+> > I don't want this in a common header.
+> 
+> I don't like it either. What about adding it to a new header,
+> linux/acpi_irq.h just for the dummy acpi_irq_init()? This would be
+> similar to the DT equivalent, of_irq_init() in linux/of_irq.h and at
+> some point it will gain more macros for declaring interrupt controllers
+> in the ACPI context.
+> 
+> What we objected to previously was calling acpi_gic_init() directly from
+> the core irqchip_init() and asked for something similar to the more
+> generic of_irq_init(). The arm64-specific patch above is clearly a
+> temporary hack until full support for multiple interrupt controllers is
+> added (we asked for this several times in the past, but the ARM ACPI
+> guys thought it's too much hassle ;). I don't fully get it since one of
+> the platforms they target needs GICv2m support anyway).
+> 
+> Anyway, if we are to keep the temporary hack, I think we could define
+> something like below (possibly in a new linux/acpi_irq.h which includes
+> asm/irq.h):
+> 
+> #ifndef acpi_irq_init
+> static inline void acpi_irq_init(void)
+> {
+> }
+> #endif
+> 
+> And in the arm64 asm/irq.h:
+> 
+> static inline void acpi_irq_init(void)
+> {
+> 	/*
+> 	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
+> 	 * Proper irqchip infrastructure will be implemented along with
+> 	 * incoming  GICv2m|GICv3|ITS bits.
+> 	 */
+> 	acpi_gic_init();
+> }
+> #define acpi_irq_init acpi_irq_init
+> 
+> When the new infrastructure is in place, we can get rid of the #ifndef
+> and arm64-specific acpi_irq_init().
 
-I'm not sure if I'm following you here.
+Well, that sounds much better than the original patch.
 
-Where exactly do we make that assumption?
-
-Yes, some code to support platform device hotplug may be missing, but I'd
-very much prefer to add it instead of reviving the dead man walking which is
-the PNP subsystem today.
-
-> The nature of a Hyper-V
-> VM is that new devices can be added while the machine is running,
-> and the potential configurations for them are expressed as part of
-> the paravirtual communications channel.  This much more naturally
-> aligns with the pnp layer.
-
-That's debatable.
-
-That aside, it would help a lot if you described your design in plain 
-English
-and added some useful kerneldoc comments to the new functions.
-
-Kind regards,
 Rafael
+
