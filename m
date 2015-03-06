@@ -1,81 +1,51 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [V5 PATCH 0/2] Introduce ACPI support for ahci_platform driver
-Date: Fri, 6 Mar 2015 00:11:40 -0600
-Message-ID: <1425622302-15193-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v9 02/21] ACPI / processor: Introduce phys_cpuid_t for
+ CPU hardware ID
+Date: Fri, 6 Mar 2015 14:48:16 +0800
+Message-ID: <54F94DB0.1000305@huawei.com>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>	<1424853601-6675-3-git-send-email-hanjun.guo@linaro.org>	<1484357.vjmmcyQq4z@vostro.rjw.lan>	<54F8095C.4030308@huawei.com> <CAJZ5v0hu=TB4S00krNk1RpsXeHJVud2ehhcM0dZDhHAk6DamKg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lv.zheng@intel.com, hpa@linux.intel.com
-Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:46618 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752924AbbCFGt0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Mar 2015 01:49:26 -0500
+In-Reply-To: <CAJZ5v0hu=TB4S00krNk1RpsXeHJVud2ehhcM0dZDhHAk6DamKg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-a
 
-This patch series introduce ACPI support for AHCI platform driver.
-Existing ACPI support for AHCI assumes the device controller is a PCI device.
-Since there is no ACPI _CID for generic AHCI controller, the driver
-could not use it for matching devices. Therefore, this patch introduces
-a mechanism for drivers to match devices using ACPI _CLS method.
-_CLS contains PCI-defined class-code.
+On 2015/3/5 21:23, Rafael J. Wysocki wrote:
+> On Thu, Mar 5, 2015 at 8:44 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+>> On 2015/3/5 6:29, Rafael J. Wysocki wrote:
+>>> On Wednesday, February 25, 2015 04:39:42 PM Hanjun Guo wrote:
+> [cut]
+>
+>>>> @@ -190,7 +190,7 @@ int acpi_map_cpuid(int phys_id, u32 acpi_id)
+>>>>              if (nr_cpu_ids <= 1 && acpi_id == 0)
+>>>>                      return acpi_id;
+>>>>              else
+>>>> -                    return phys_id;
+>>>> +                    return -1;
+>>> Can we use a proper error code here?
+>> I'm afraid not. In ACPI processor drivers, -1 will be deemed to
+>> invalid cpu logical number, if we return error code here, we need
+>> to modify multi places of "if (cpu_logical_num == -1)" to
+> Oh, silly stuff.
+>
+>> "if (! (cpu_logical_num < 0))" too, so for me, I prefer to keep it as
+>> -1, but I'm open for suggestions.
+> OK
+>
+> I think we need something like invalid_logical_cpuid() and use it
+> in all of those checks instead of the direct comparisons, but we
+> can make those changes later.
 
-This patch series also modifies ACPI modalias to add class-code to the
-exisiting format, which currently only uses _HID and _CIDs. This is required
-to support loadable modules w/ _CLS.
+OK, I recorded this as one of my TODO list, thanks for the suggestions.
 
-This patch series is rebased from and tested with:
+Thanks
+Hanjun
 
-    http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v9
-
-This topic was discussed earlier here (as part of introducing support for
-AMD Seattle SATA controller):
-
-    http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
-
-Changes from V4 (https://lkml.org/lkml/2015/3/2/56)
-	* [1/2] Bug fixed: Reorder the declaration of
-	  struct acpi_pnp_device_id cls in the struct acpi_device_info
-	  (include/acpi/actypes.h) since compatible_id_list must be last one.
-	* [2/2] Added Acked-by: Tejun Heo <tj@kernel.org>
-
-Changes from V3 (https://lkml.org/lkml/2015/2/8/106)
-	* Instead of introducing new structure acpi_device_cls, add cls into
-	  the acpi_device_id, and modify the __acpi_match_device
-	  to also match for cls. (per Mika suggestion.)
-	* Add loadable module support, which requires changes in ACPI
-	  modalias. (per Mika suggestion.)
-	* Rebased and tested with acpi-5.1-v9
-
-Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
-	* Update with review comment from Rafael in patch 1/2
-	* Rebased and tested with acpi-5.1-v8
-
-Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
-	* Rebased to 3.19.0-rc2
-	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
-	* Change the matching logic in acpi_driver_match_device() due to the new
-	  special PRP0001 _HID.
-	* Simplify the return type of acpi_match_device_cls() to boolean.
-
-Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
-	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
-	  as inline. (per Arnd)
-	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
-
-Suravee Suthikulpanit (2):
-  ACPI / scan: Add support for ACPI _CLS device matching
-  ata: ahci_platform: Add ACPI _CLS matching
-
- drivers/acpi/acpica/acutils.h     |  3 ++
- drivers/acpi/acpica/nsxfname.c    | 21 ++++++++++--
- drivers/acpi/acpica/utids.c       | 71 +++++++++++++++++++++++++++++++++++++++
- drivers/acpi/scan.c               | 17 ++++++++--
- drivers/ata/Kconfig               |  2 +-
- drivers/ata/ahci_platform.c       |  9 +++++
- include/acpi/acnames.h            |  1 +
- include/acpi/actypes.h            |  4 ++-
- include/linux/mod_devicetable.h   |  1 +
- scripts/mod/devicetable-offsets.c |  1 +
- scripts/mod/file2alias.c          | 13 +++++--
- 11 files changed, 134 insertions(+), 9 deletions(-)
-
--- 
-2.1.0
