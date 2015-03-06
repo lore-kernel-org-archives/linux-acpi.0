@@ -1,59 +1,148 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v9 14/21] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Fri, 6 Mar 2015 14:51:52 +0800
-Message-ID: <54F94E88.9040706@huawei.com>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <1424853601-6675-15-git-send-email-hanjun.guo@linaro.org> <2411054.s4TkmAUKjT@vostro.rjw.lan> <54F80DC9.3090808@huawei.com> <20150305112707.GB7712@e104818-lin.cambridge.arm.com> <CAJZ5v0iHstGiXLT0DPHu2=xH3bD-kD=WCqfuB1XaTgNSnthcLQ@mail.gmail.com> <20150305151915.GB11447@e104818-lin.cambridge.arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v9 07/21] ACPI / sleep: Introduce arm64 specific
+ acpi_sleep.c
+Date: Fri, 6 Mar 2015 12:36:12 +0000
+Message-ID: <20150306123611.GA24254@e102568-lin.cambridge.arm.com>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+ <CAGCh1+=RWVfcFoG549_03AZx3Y548GrJUMAXMgmdFFMmiE40KQ@mail.gmail.com>
+ <2489018.mr9Fb0WeOy@vostro.rjw.lan>
+ <2304442.4NvTH1BPme@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:2749 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815AbbCFG5s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Mar 2015 01:57:48 -0500
-In-Reply-To: <20150305151915.GB11447@e104818-lin.cambridge.arm.com>
+Received: from foss.arm.com ([217.140.101.70]:59759 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755481AbbCFMgY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Mar 2015 07:36:24 -0500
+Content-Disposition: inline
+In-Reply-To: <2304442.4NvTH1BPme@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Mark Brown <broonie@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Graeme Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linaro
 
-On 2015/3/5 23:19, Catalin Marinas wrote:
-> On Thu, Mar 05, 2015 at 02:13:58PM +0100, Rafael J. Wysocki wrote:
->> On Thu, Mar 5, 2015 at 12:27 PM, Catalin Marinas
->> <catalin.marinas@arm.com> wrote:
->>> On Thu, Mar 05, 2015 at 04:03:21PM +0800, Hanjun Guo wrote:
->>>> On 2015/3/5 6:46, Rafael J. Wysocki wrote:
->>>>> IMO, you really need to define phys_cpuid_t in a common place or people will
->>>>> forget that it may be 64-bit, because they'll only be looking at their arch.
->>>> Since x86 and ARM64 are using different types for phys_cpuid_t, we need to
->>>> introduce something like following if define it in common place:
->>>>
->>>> in linux/acpi.h,
->>>>
->>>> #if defined(CONFIG_X86) || defined(CONFIG_IA64)
->>>> typedef u32 phys_cpuid_t;
->>>> #define PHYS_CPUID_INVALID (phys_cpuid_t)(-1)
->>>> #else if defined(CONFIG_ARM64)
->>>> typedef u64 phys_cpuid_t;
->>>> #define PHYS_CPUID_INVALID INVALID_HWID
->>>> #endif
->>>>
->>>> I think it's awful, did I miss something?
->> Well, you can define the type and PHYS_CPUID_INVALID in the arch
->> code and then do this in a common header:
->>
->> #ifndef PHYS_CPUID_INVALID
->> typedef u32 phys_cpuid_t;
->> #define PHYS_CPUID_INVALID (phys_cpuid_t)(-1)
->> #endif
->>
->> That would allow you to avoid the need to duplicate the
->> definitions where it is not necessary.
-> It's fine by me.
+On Thu, Mar 05, 2015 at 12:16:29AM +0000, Rafael J. Wysocki wrote:
+> On Thursday, March 05, 2015 12:25:54 AM Rafael J. Wysocki wrote:
+> > On Wednesday, March 04, 2015 10:49:25 PM G Gregory wrote:
+> > > On 4 March 2015 at 22:38, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > > > On Wednesday, February 25, 2015 04:39:47 PM Hanjun Guo wrote:
+> > > >> From: Graeme Gregory <graeme.gregory@linaro.org>
+> > > >>
+> > > >> ACPI 5.1 does not currently support S states for ARM64 hardware but
+> > > >> ACPI code will call acpi_target_system_state() for device power
+> > > >> management, so introduce acpi_sleep.c to allow other drivers to function
+> > > >> until S states are defined.
+> > > >>
+> > > >> Since it is arm64 specific stub holder, so let acpi_sleep.c to ARM64
+> > > >> specific.
+> > > >>
+> > > >> TODO: merge this with drivers/acpi/sleep.c once we fix the specification.
+> > > >>
+> > > >> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> > > >> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> > > >> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> > > >> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> > > >> Tested-by: Jon Masters <jcm@redhat.com>
+> > > >> Tested-by: Timur Tabi <timur@codeaurora.org>
+> > > >> Tested-by: Robert Richter <rrichter@cavium.com>
+> > > >> Acked-by: Robert Richter <rrichter@cavium.com>
+> > > >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> > > >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> > > >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > > >> ---
+> > > >>  arch/arm64/kernel/Makefile     |  2 +-
+> > > >>  arch/arm64/kernel/acpi_sleep.c | 28 ++++++++++++++++++++++++++++
+> > > >>  drivers/acpi/Makefile          |  2 ++
+> > > >>  3 files changed, 31 insertions(+), 1 deletion(-)
+> > > >>  create mode 100644 arch/arm64/kernel/acpi_sleep.c
+> > > >>
+> > > >> diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+> > > >> index 218eb7e..4435943 100644
+> > > >> --- a/arch/arm64/kernel/Makefile
+> > > >> +++ b/arch/arm64/kernel/Makefile
+> > > >> @@ -34,7 +34,7 @@ arm64-obj-$(CONFIG_KGDB)            += kgdb.o
+> > > >>  arm64-obj-$(CONFIG_EFI)                      += efi.o efi-stub.o efi-entry.o
+> > > >>  arm64-obj-$(CONFIG_PCI)                      += pci.o
+> > > >>  arm64-obj-$(CONFIG_ARMV8_DEPRECATED) += armv8_deprecated.o
+> > > >> -arm64-obj-$(CONFIG_ACPI)             += acpi.o
+> > > >> +arm64-obj-$(CONFIG_ACPI)             += acpi.o acpi_sleep.o
+> > > >>
+> > > >>  obj-y                                        += $(arm64-obj-y) vdso/
+> > > >>  obj-m                                        += $(arm64-obj-m)
+> > > >> diff --git a/arch/arm64/kernel/acpi_sleep.c b/arch/arm64/kernel/acpi_sleep.c
+> > > >> new file mode 100644
+> > > >> index 0000000..54578ef
+> > > >> --- /dev/null
+> > > >> +++ b/arch/arm64/kernel/acpi_sleep.c
+> > > >> @@ -0,0 +1,28 @@
+> > > >> +/*
+> > > >> + *  ARM64 Specific Sleep Functionality
+> > > >> + *
+> > > >> + *  Copyright (C) 2013-2014, Linaro Ltd.
+> > > >> + *      Author: Graeme Gregory <graeme.gregory@linaro.org>
+> > > >> + *
+> > > >> + *  This program is free software; you can redistribute it and/or modify
+> > > >> + *  it under the terms of the GNU General Public License version 2 as
+> > > >> + *  published by the Free Software Foundation.
+> > > >> + */
+> > > >> +
+> > > >> +#include <linux/acpi.h>
+> > > >> +
+> > > >> +/*
+> > > >> + * Currently the ACPI 5.1 standard does not define S states in a
+> > > >> + * manner which is usable for ARM64. These two stubs are sufficient
+> > > >> + * that system initialises and device PM works.
+> > > >> + */
+> > > >> +u32 acpi_target_system_state(void)
+> > > >> +{
+> > > >> +     return ACPI_STATE_S0;
+> > > >> +}
+> > > >> +EXPORT_SYMBOL_GPL(acpi_target_system_state);
+> > > >> +
+> > > >> +int __init acpi_sleep_init(void)
+> > > >> +{
+> > > >> +     return -ENOSYS;
+> > > >> +}
+> > > >> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> > > >> index 623b117..c32edf5 100644
+> > > >> --- a/drivers/acpi/Makefile
+> > > >> +++ b/drivers/acpi/Makefile
+> > > >> @@ -23,7 +23,9 @@ acpi-y                              += nvs.o
+> > > >>
+> > > >>  # Power management related files
+> > > >>  acpi-y                               += wakeup.o
+> > > >> +ifneq (,$(findstring $(ARCH),x86 ia64))
+> > > >
+> > > > This is super-ugly.  Isn't there a better way to do that?
+> > > >
+> > > Its the standard example in the GNU Make manual,
+> > 
+> > It is never used in the kernel this way, though, and I'm not going to let
+> > that slip through.
+> > 
+> > > I would certainly love if someone had a batter suggestion.
+> > 
+> > Define ACPI_GENERIC_SLEEP in drivers/acpi/Kconfig as
+> > 
+> > 	config ACPI_GENERIC_SLEEP
+> > 		bool
+> > 		depends on IA64 || X86
+> > 
+> > and build the file conditional on that.
+> 
+> Or define
+> 
+> 	config ACPI_GENERIC_SLEEP
+> 		bool
+> 
+> and then make both x86 and ia64 do
+> 
+> 	select ACPI_GENERIC_SLEEP if ACPI
+> 
+> which kind of will make it clear where the choice takes place.
 
-I will update the patch.
+While at it, use the newly defined config entry to add the required static
+inline in the respective headers and get rid of acpi_sleep.c from arm64.
 
-Thanks
-Hanjun
-
+Thanks,
+Lorenzo
