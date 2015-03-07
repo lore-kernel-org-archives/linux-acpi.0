@@ -1,58 +1,334 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC PATCH] gpio: support for GPIO forwarding
-Date: Sat, 7 Mar 2015 23:13:05 +0100
-Message-ID: <CACRpkdbG7Zc=gUG=L6RtJ543bwxL-hO-0e=CRYtsBkxzPUU3MQ@mail.gmail.com>
-References: <1418890998-23811-1-git-send-email-heikki.krogerus@linux.intel.com>
-	<CAAVeFuJUxad0dJ9vK1DaDJPDLM+rc5b77=PgcJT5+Bv1=iWGxg@mail.gmail.com>
-	<CACRpkdZzCX0O1wX=W5RbjLcqOF_R3HMTT1w59oFu=JfPauLNuw@mail.gmail.com>
-	<4078818.ecVtLF3hjd@vostro.rjw.lan>
-	<CAAVeFuJjMDfz7TZexkYnYrCGkAmRwubs32UhSPO-4qZWbMJjuQ@mail.gmail.com>
-	<20150224203459.GC13094@psi-dev26.jf.intel.com>
-	<CAAVeFuKhD2VBf3EOCjHqJK5CLx4qC8Quire2My9nMqboZzSNZQ@mail.gmail.com>
-	<20150225182502.GA7586@psi-dev26.jf.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:37284 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517AbbCGWNG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Mar 2015 17:13:06 -0500
-Received: by obcwp4 with SMTP id wp4so20203443obc.4
-        for <linux-acpi@vger.kernel.org>; Sat, 07 Mar 2015 14:13:05 -0800 (PST)
-In-Reply-To: <20150225182502.GA7586@psi-dev26.jf.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v9 13/21] ARM64 / ACPI: Parse MADT for SMP
+ initialization
+Date: Sat, 07 Mar 2015 22:49:05 +0000
+Message-ID: <20150307224905.51E16C40C6A@trevor.secretlab.ca>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>
+	<1424853601-6675-14-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424853601-6675-14-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: David Cohen <david.a.cohen@linux.intel.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Darren Hart <dvhart@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Feb 25, 2015 at 7:25 PM, David Cohen
-<david.a.cohen@linux.intel.com> wrote:
+On Wed, 25 Feb 2015 16:39:53 +0800
+, Hanjun Guo <hanjun.guo@linaro.org>
+ wrote:
+> MADT contains the information for MPIDR which is essential for
+> SMP initialization, parse the GIC cpu interface structures to
+> get the MPIDR value and map it to cpu_logical_map(), and add
+> enabled cpu with valid MPIDR into cpu_possible_map.
+> 
+> ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
+> Parking protocol, but the Parking protocol is only specified for
+> ARMv7 now, so make PSCI as the only way for the SMP boot protocol
+> before some updates for the ACPI spec or the Parking protocol spec.
+> 
+> Parking protocol patches for SMP boot will be sent to upstream when
+> the new version of Parking protocol is ready.
+> 
+> CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> CC: Mark Rutland <mark.rutland@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> Tested-by: Jon Masters <jcm@redhat.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-> In my case [1] I need 2 "virtual devices" (and more in future) to be
-> part of an USB OTG port control. I call it virtual because they are too
-> simple components connected to no bus and controlled by GPIOs:
-> - a fixed regulator controlled by GPIO
-> - a generic mux controlled by GPIO
->
-> I'd need to request official ACPI HID for them in order to make them
-> self-sufficient.
->
-> I can go ahead with this approach, but we have many examples of drivers
-> on upstream that are platform driver expecting to receive gpio via
-> platform data (e.g. extcon-gpio). The ACPI table of some products on
-> market were defined following this concept and won't change anymore.
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
 
-So it's not just going to be GPIOs I take it?
-
-There is going to be regulator forwarding, clock forwarding, pin control
-forwarding, IRQ forwarding and DMA channel forwarding etc at the end
-of the day?
-
-I think it's strange that we see this so much, is the real problem that
-ACPI and the kernel have different ideas of what constitutes a device?
-And how come the DT seems to be a much better fit and not experience
-this? Because we haven't had to deal with deployed device trees with
-resources (GPIOs, regulators, etc) bound to some complex MFD device?
-
-Yours,
-Linus Walleij
+> ---
+>  arch/arm64/include/asm/acpi.h    |   2 +
+>  arch/arm64/include/asm/cpu_ops.h |   1 +
+>  arch/arm64/include/asm/smp.h     |   5 +-
+>  arch/arm64/kernel/acpi.c         | 149 ++++++++++++++++++++++++++++++++++++++-
+>  arch/arm64/kernel/cpu_ops.c      |   2 +-
+>  arch/arm64/kernel/setup.c        |   7 +-
+>  arch/arm64/kernel/smp.c          |   2 +-
+>  7 files changed, 160 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 9ea650c..9719921 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -71,10 +71,12 @@ static inline bool acpi_has_cpu_in_madt(void)
+>  }
+>  
+>  static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+> +void __init acpi_init_cpus(void);
+>  
+>  #else
+>  static inline bool acpi_psci_present(void) { return false; }
+>  static inline bool acpi_psci_use_hvc(void) { return false; }
+> +static inline void acpi_init_cpus(void) { }
+>  #endif /* CONFIG_ACPI */
+>  
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/include/asm/cpu_ops.h b/arch/arm64/include/asm/cpu_ops.h
+> index da301ee..5a31d67 100644
+> --- a/arch/arm64/include/asm/cpu_ops.h
+> +++ b/arch/arm64/include/asm/cpu_ops.h
+> @@ -66,5 +66,6 @@ struct cpu_operations {
+>  extern const struct cpu_operations *cpu_ops[NR_CPUS];
+>  int __init cpu_read_ops(struct device_node *dn, int cpu);
+>  void __init cpu_read_bootcpu_ops(void);
+> +const struct cpu_operations *cpu_get_ops(const char *name);
+>  
+>  #endif /* ifndef __ASM_CPU_OPS_H */
+> diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
+> index 780f82c..bf22650 100644
+> --- a/arch/arm64/include/asm/smp.h
+> +++ b/arch/arm64/include/asm/smp.h
+> @@ -39,9 +39,10 @@ extern void show_ipi_list(struct seq_file *p, int prec);
+>  extern void handle_IPI(int ipinr, struct pt_regs *regs);
+>  
+>  /*
+> - * Setup the set of possible CPUs (via set_cpu_possible)
+> + * Discover the set of possible CPUs and determine their
+> + * SMP operations.
+>   */
+> -extern void smp_init_cpus(void);
+> +extern void of_smp_init_cpus(void);
+>  
+>  /*
+>   * Provide a function to raise an IPI cross call on CPUs in callmap.
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index bdcc9fc..0f35d87 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -25,6 +25,10 @@
+>  #include <linux/of_fdt.h>
+>  #include <linux/smp.h>
+>  
+> +#include <asm/cputype.h>
+> +#include <asm/cpu_ops.h>
+> +#include <asm/smp_plat.h>
+> +
+>  int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
+>  int acpi_disabled = 1;
+>  EXPORT_SYMBOL(acpi_disabled);
+> @@ -32,6 +36,12 @@ EXPORT_SYMBOL(acpi_disabled);
+>  int acpi_pci_disabled = 1;	/* skip ACPI PCI scan and IRQ initialization */
+>  EXPORT_SYMBOL(acpi_pci_disabled);
+>  
+> +/* Processors with enabled flag and sane MPIDR */
+> +static int enabled_cpus;
+> +
+> +/* Boot CPU is valid or not in MADT */
+> +static bool __initdata bootcpu_valid;
+> +
+>  static bool __initdata param_acpi_off;
+>  static bool __initdata param_acpi_force;
+>  
+> @@ -85,6 +95,129 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
+>  	early_memunmap(map, size);
+>  }
+>  
+> +/**
+> + * acpi_map_gic_cpu_interface - generates a logical cpu number
+> + * and map to MPIDR represented by GICC structure
+> + * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
+> + * @enabled: this cpu is enabled or not
+> + *
+> + * Returns the logical cpu number which maps to MPIDR
+> + */
+> +static int __init acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
+> +{
+> +	int i;
+> +
+> +	if (mpidr == INVALID_HWID) {
+> +		pr_info("Skip MADT cpu entry with invalid MPIDR\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	total_cpus++;
+> +	if (!enabled)
+> +		return -EINVAL;
+> +
+> +	if (enabled_cpus >=  NR_CPUS) {
+> +		pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
+> +			NR_CPUS, total_cpus, mpidr);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Check if GICC structure of boot CPU is available in the MADT */
+> +	if (cpu_logical_map(0) == mpidr) {
+> +		if (bootcpu_valid) {
+> +			pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+> +			       mpidr);
+> +			return -EINVAL;
+> +		}
+> +
+> +		bootcpu_valid = true;
+> +	}
+> +
+> +	/*
+> +	 * Duplicate MPIDRs are a recipe for disaster. Scan
+> +	 * all initialized entries and check for
+> +	 * duplicates. If any is found just ignore the CPU.
+> +	 */
+> +	for (i = 1; i < enabled_cpus; i++) {
+> +		if (cpu_logical_map(i) == mpidr) {
+> +			pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
+> +			       mpidr);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	if (!acpi_psci_present())
+> +		return -EOPNOTSUPP;
+> +
+> +	cpu_ops[enabled_cpus] = cpu_get_ops("psci");
+> +	/* CPU 0 was already initialized */
+> +	if (enabled_cpus) {
+> +		if (!cpu_ops[enabled_cpus])
+> +			return -EINVAL;
+> +
+> +		if (cpu_ops[enabled_cpus]->cpu_init(NULL, enabled_cpus))
+> +			return -EOPNOTSUPP;
+> +
+> +		/* map the logical cpu id to cpu MPIDR */
+> +		cpu_logical_map(enabled_cpus) = mpidr;
+> +	}
+> +
+> +	enabled_cpus++;
+> +	return enabled_cpus;
+> +}
+> +
+> +static int __init
+> +acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+> +				const unsigned long end)
+> +{
+> +	struct acpi_madt_generic_interrupt *processor;
+> +
+> +	processor = (struct acpi_madt_generic_interrupt *)header;
+> +
+> +	if (BAD_MADT_ENTRY(processor, end))
+> +		return -EINVAL;
+> +
+> +	acpi_table_print_madt_entry(header);
+> +
+> +	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITMASK,
+> +		processor->flags & ACPI_MADT_ENABLED);
+> +
+> +	return 0;
+> +}
+> +
+> +/* Parse GIC cpu interface entries in MADT for SMP init */
+> +void __init acpi_init_cpus(void)
+> +{
+> +	int count, i;
+> +
+> +	/*
+> +	 * do a partial walk of MADT to determine how many CPUs
+> +	 * we have including disabled CPUs, and get information
+> +	 * we need for SMP init
+> +	 */
+> +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+> +			acpi_parse_gic_cpu_interface, 0);
+> +
+> +	if (!count) {
+> +		pr_err("No GIC CPU interface entries present\n");
+> +		return;
+> +	} else if (count < 0) {
+> +		pr_err("Error parsing GIC CPU interface entry\n");
+> +		return;
+> +	}
+> +
+> +	if (!bootcpu_valid) {
+> +		pr_err("MADT missing boot CPU MPIDR, not enabling secondaries\n");
+> +		return;
+> +	}
+> +
+> +	for (i = 0; i < enabled_cpus; i++)
+> +		set_cpu_possible(i, true);
+> +
+> +	/* Make boot-up look pretty */
+> +	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+> +}
+> +
+>  static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>  {
+>  	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> @@ -96,8 +229,20 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>  	 * boot protocol configuration data, or we will disable ACPI.
+>  	 */
+>  	if (table->revision > 5 ||
+> -	    (table->revision == 5 && fadt->minor_revision >= 1))
+> -		return 0;
+> +	    (table->revision == 5 && fadt->minor_revision >= 1)) {
+> +		/*
+> +		 * ACPI 5.1 only has two explicit methods to boot up SMP,
+> +		 * PSCI and Parking protocol, but the Parking protocol is
+> +		 * only specified for ARMv7 now, so make PSCI as the only
+> +		 * way for the SMP boot protocol before some updates for
+> +		 * the Parking protocol spec.
+> +		 */
+> +		if (acpi_psci_present())
+> +			return 0;
+> +
+> +		pr_warn("No PSCI support, will not bring up secondary CPUs\n");
+> +		return -EOPNOTSUPP;
+> +	}
+>  
+>  	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
+>  		table->revision, fadt->minor_revision);
+> diff --git a/arch/arm64/kernel/cpu_ops.c b/arch/arm64/kernel/cpu_ops.c
+> index cce9524..fb8ff9b 100644
+> --- a/arch/arm64/kernel/cpu_ops.c
+> +++ b/arch/arm64/kernel/cpu_ops.c
+> @@ -35,7 +35,7 @@ static const struct cpu_operations *supported_cpu_ops[] __initconst = {
+>  	NULL,
+>  };
+>  
+> -static const struct cpu_operations * __init cpu_get_ops(const char *name)
+> +const struct cpu_operations * __init cpu_get_ops(const char *name)
+>  {
+>  	const struct cpu_operations **ops = supported_cpu_ops;
+>  
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index 97fa7f3..b278311 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -393,13 +393,16 @@ void __init setup_arch(char **cmdline_p)
+>  	if (acpi_disabled) {
+>  		unflatten_device_tree();
+>  		psci_dt_init();
+> +		cpu_read_bootcpu_ops();
+> +#ifdef CONFIG_SMP
+> +		of_smp_init_cpus();
+> +#endif
+>  	} else {
+>  		psci_acpi_init();
+> +		acpi_init_cpus();
+>  	}
+>  
+> -	cpu_read_bootcpu_ops();
+>  #ifdef CONFIG_SMP
+> -	smp_init_cpus();
+>  	smp_build_mpidr_hash();
+>  #endif
+>  
+> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+> index 328b8ce..52998b7 100644
+> --- a/arch/arm64/kernel/smp.c
+> +++ b/arch/arm64/kernel/smp.c
+> @@ -322,7 +322,7 @@ void __init smp_prepare_boot_cpu(void)
+>   * cpu logical map array containing MPIDR values related to logical
+>   * cpus. Assumes that cpu_logical_map(0) has already been initialized.
+>   */
+> -void __init smp_init_cpus(void)
+> +void __init of_smp_init_cpus(void)
+>  {
+>  	struct device_node *dn = NULL;
+>  	unsigned int i, cpu = 1;
+> -- 
+> 1.9.1
+> 
