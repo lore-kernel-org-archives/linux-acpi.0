@@ -1,57 +1,83 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: [PATCH v3 1/9] x86,
- pci: Clean up comment about buggy MMIO config space access for AMD
- Fam10h CPUs.
-Date: Tue, 10 Mar 2015 12:35:12 +0100
-Message-ID: <1425987320-15020-2-git-send-email-tomasz.nowicki@linaro.org>
-References: <1425987320-15020-1-git-send-email-tomasz.nowicki@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v9 05/21] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+Date: Tue, 10 Mar 2015 19:36:00 +0800
+Message-ID: <54FED720.8080401@linaro.org>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <1424853601-6675-6-git-send-email-hanjun.guo@linaro.org> <20150305185117.GA17415@e102568-lin.cambridge.arm.com> <54FEA4CC.8090000@linaro.org> <20150310111931.GU4278@bivouac.eciton.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1425987320-15020-1-git-send-email-tomasz.nowicki@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, al.stone@linaro.org
-Cc: linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150310111931.GU4278@bivouac.eciton.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leif Lindholm <leif.lindholm@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kern>
 List-Id: linux-acpi@vger.kernel.org
 
-- fix typo
-- improve explanation
-- add reference to the related document
+On 2015=E5=B9=B403=E6=9C=8810=E6=97=A5 19:19, Leif Lindholm wrote:
+> On Tue, Mar 10, 2015 at 04:01:16PM +0800, Hanjun Guo wrote:
+>>>> index 0000000..f052e7a
+>>>> --- /dev/null
+>>>> +++ b/arch/arm64/kernel/acpi.c
+>>>> @@ -0,0 +1,101 @@
+>>>> +/*
+>>>> + *  ARM64 Specific Low-Level ACPI Boot Support
+>>>> + *
+>>>> + *  Copyright (C) 2013-2014, Linaro Ltd.
+>>>> + *	Author: Al Stone <al.stone@linaro.org>
+>>>> + *	Author: Graeme Gregory <graeme.gregory@linaro.org>
+>>>> + *	Author: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> + *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>> + *	Author: Naresh Bhat <naresh.bhat@linaro.org>
+>>>> + *
+>>>> + *  This program is free software; you can redistribute it and/or=
+ modify
+>>>> + *  it under the terms of the GNU General Public License version =
+2 as
+>>>> + *  published by the Free Software Foundation.
+>>>> + */
+>>>> +
+>>>> +#define pr_fmt(fmt) "ACPI: " fmt
+>>>> +
+>>>> +#include <linux/acpi.h>
+>>>> +#include <linux/bootmem.h>
+>>>> +#include <linux/cpumask.h>
+>>>> +#include <linux/init.h>
+>>>> +#include <linux/irq.h>
+>>>> +#include <linux/irqdomain.h>
+>>>> +#include <linux/memblock.h>
+>>>> +#include <linux/smp.h>
+>>>> +
+>>>> +int acpi_noirq;			/* skip ACPI IRQ initialization */
+>>>> +int acpi_disabled;
+>>>> +EXPORT_SYMBOL(acpi_disabled);
+>>>> +
+>>>> +int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initializat=
+ion */
+>>>> +EXPORT_SYMBOL(acpi_pci_disabled);
+>>>> +
+>>>> +/*
+>>>> + * __acpi_map_table() will be called before page_init(), so early=
+_ioremap()
+>>>> + * or early_memremap() should be called here to for ACPI table ma=
+pping.
+>>>> + */
+>>>> +char *__init __acpi_map_table(unsigned long phys, unsigned long s=
+ize)
+>>>> +{
+>>>> +	if (!phys || !size)
+>>>
+>>> Is there a reason to rule out physical address 0x0 ?
+>>
+>> No particular reasons, unless some arch/firmware limits, I'm
+>> not sure if we need this check (x86 needs it), I'm CC Leif
+>> to confirm.
+>
+> Nothing in UEFI explicitly bans using physical address 0 for anything=
+,
+> and nothing in the architecture reserves it. So I don't think this
+> check is necessary.
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
----
- arch/x86/include/asm/pci_x86.h | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Thanks for the confirmation, will remove the !phys check.
 
-diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
-index fa1195d..d024f4d 100644
---- a/arch/x86/include/asm/pci_x86.h
-+++ b/arch/x86/include/asm/pci_x86.h
-@@ -152,10 +152,13 @@ extern struct list_head pci_mmcfg_list;
- 
- /*
-  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
-- * on their northbrige except through the * %eax register. As such, you MUST
-- * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
-+ * on their northbridge except through the * %eax register. As such, you MUST
-+ * NOT use normal IOMEM accesses, you need to only use the magic mmio_config_*
-  * accessor functions.
-- * In fact just use pci_config_*, nothing else please.
-+ *
-+ * Please refer to the following doc:
-+ * "BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors",
-+ * rev. 3.48, sec 2.11.1, "MMIO Configuration Coding Requirements".
-  */
- static inline unsigned char mmio_config_readb(void __iomem *pos)
- {
--- 
-1.9.1
+Hanjun
