@@ -1,123 +1,68 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH v6 14/22] power_supply: Add power_supply_put for decrementing
- device reference counter
-Date: Tue, 10 Mar 2015 09:27:18 +0100
-Message-ID: <1425976046-20973-15-git-send-email-k.kozlowski@samsung.com>
-References: <1425976046-20973-1-git-send-email-k.kozlowski@samsung.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v9 08/21] ARM64 / ACPI: Introduce PCI stub functions for
+ ACPI
+Date: Tue, 10 Mar 2015 17:21:15 +0800
+Message-ID: <54FEB78B.5040005@linaro.org>
+References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org> <1424853601-6675-9-git-send-email-hanjun.guo@linaro.org> <20150306183157.GC26888@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-reply-to: <1425976046-20973-1-git-send-email-k.kozlowski@samsung.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-input
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Thomas Gleixner <tglx@linutronix.de>, Kyungmin Park <kyungmin.park@samsung.com>, Pavel Machek <pavel@ucw.cz>, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150306183157.GC26888@e102568-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 List-Id: linux-acpi@vger.kernel.org
 
-The power_supply_get_by_phandle() and power_supply_get_by_name() use
-function class_find_device() for obtaining the reference to power
-supply. Each use of class_find_device() increases the power supply's
-device reference counter.
+On 2015=E5=B9=B403=E6=9C=8807=E6=97=A5 02:31, Lorenzo Pieralisi wrote:
+> On Wed, Feb 25, 2015 at 08:39:48AM +0000, Hanjun Guo wrote:
+>
+> [...]
+>
+>> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+>> index 6f93c24..4095379 100644
+>> --- a/arch/arm64/kernel/pci.c
+>> +++ b/arch/arm64/kernel/pci.c
+>> @@ -10,6 +10,7 @@
+>>    *
+>>    */
+>>
+>> +#include <linux/acpi.h>
+>>   #include <linux/init.h>
+>>   #include <linux/io.h>
+>>   #include <linux/kernel.h>
+>> @@ -46,3 +47,27 @@ int pcibios_add_device(struct pci_dev *dev)
+>>
+>>   	return 0;
+>>   }
+>> +
+>> +/*
+>> + * raw_pci_read/write - Platform-specific PCI config space access.
+>> + */
+>> +int raw_pci_read(unsigned int domain, unsigned int bus,
+>> +		  unsigned int devfn, int reg, int len, u32 *val)
+>> +{
+>> +	return -ENXIO;
+>> +}
+>> +
+>> +int raw_pci_write(unsigned int domain, unsigned int bus,
+>> +		unsigned int devfn, int reg, int len, u32 val)
+>> +{
+>> +	return -ENXIO;
+>> +}
+>> +
+>
+> It would be nice to see:
+>
+> https://lkml.org/lkml/2015/2/27/264
+>
+> merged at the same time, so that the two functions above disappear :)
 
-However the reference counter was not decreased by users of this API.
-Thus final device_unregister() call from power_supply_unregister() could
-not release the device and clean up its resources. This lead to memory
-leak if at least once power_supply_get_by_*() was called between
-registering and unregistering the power supply.
+I hope so, but MMCONFIG patches are being taken care of by Bjorn, it
+would be nice to merge them through different tree (and it no harms),
+and remove those two function when introducing the implementation
+of pci_acpi_scan_root() in later patches.
 
-Add and document new API power_supply_put() for decrementing the
-reference counter.
-
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Reviewed-by: Sebastian Reichel <sre@kernel.org>
----
- drivers/power/power_supply_core.c | 38 ++++++++++++++++++++++++++++++++++++++
- include/linux/power_supply.h      |  1 +
- 2 files changed, 39 insertions(+)
-
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index e51405b176c8..b4ec14683b7f 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -336,6 +336,17 @@ static int power_supply_match_device_by_name(struct device *dev, const void *dat
- 	return strcmp(psy->desc->name, name) == 0;
- }
- 
-+/**
-+ * power_supply_get_by_name() - Search for a power supply and returns its ref
-+ * @name: Power supply name to fetch
-+ *
-+ * If power supply was found, it increases reference count for the
-+ * internal power supply's device. The user should power_supply_put()
-+ * after usage.
-+ *
-+ * Return: On success returns a reference to a power supply with
-+ * matching name equals to @name, a NULL otherwise.
-+ */
- struct power_supply *power_supply_get_by_name(const char *name)
- {
- 	struct device *dev = class_find_device(power_supply_class, NULL, name,
-@@ -345,12 +356,39 @@ struct power_supply *power_supply_get_by_name(const char *name)
- }
- EXPORT_SYMBOL_GPL(power_supply_get_by_name);
- 
-+/**
-+ * power_supply_put() - Drop reference obtained with power_supply_get_by_name
-+ * @psy: Reference to put
-+ *
-+ * The reference to power supply should be put before unregistering
-+ * the power supply.
-+ */
-+void power_supply_put(struct power_supply *psy)
-+{
-+	might_sleep();
-+
-+	put_device(&psy->dev);
-+}
-+EXPORT_SYMBOL_GPL(power_supply_put);
-+
- #ifdef CONFIG_OF
- static int power_supply_match_device_node(struct device *dev, const void *data)
- {
- 	return dev->parent && dev->parent->of_node == data;
- }
- 
-+/**
-+ * power_supply_get_by_phandle() - Search for a power supply and returns its ref
-+ * @np: Pointer to device node holding phandle property
-+ * @phandle_name: Name of property holding a power supply name
-+ *
-+ * If power supply was found, it increases reference count for the
-+ * internal power supply's device. The user should power_supply_put()
-+ * after usage.
-+ *
-+ * Return: On success returns a reference to a power supply with
-+ * matching name equals to value under @property, NULL or ERR_PTR otherwise.
-+ */
- struct power_supply *power_supply_get_by_phandle(struct device_node *np,
- 							const char *property)
- {
-diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-index ea15eb68f609..75a1dd8dc56e 100644
---- a/include/linux/power_supply.h
-+++ b/include/linux/power_supply.h
-@@ -282,6 +282,7 @@ extern struct atomic_notifier_head power_supply_notifier;
- extern int power_supply_reg_notifier(struct notifier_block *nb);
- extern void power_supply_unreg_notifier(struct notifier_block *nb);
- extern struct power_supply *power_supply_get_by_name(const char *name);
-+extern void power_supply_put(struct power_supply *psy);
- #ifdef CONFIG_OF
- extern struct power_supply *power_supply_get_by_phandle(struct device_node *np,
- 							const char *property);
--- 
-1.9.1
+Thanks
+Hanjun
