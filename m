@@ -1,74 +1,160 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v9 01/21] ACPI / table: Use pr_debug() instead of pr_info()
- for MADT table scanning
-Date: Tue, 10 Mar 2015 10:35:58 +0800
-Message-ID: <54FE588E.4030406@linaro.org>
-References: <1424853601-6675-1-git-send-email-hanjun.guo@linaro.org>	 <1424853601-6675-2-git-send-email-hanjun.guo@linaro.org>	 <20150306201718.9363CC40AA9@trevor.secretlab.ca> <1425673876.12017.50.camel@perches.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] PCI / ACPI: PCI delay optimization from ACPI
+Date: Tue, 10 Mar 2015 14:47:17 +0800
+Message-ID: <54FE9375.5050307@intel.com>
+References: <54FD4FB9.2060802@intel.com> <5222588.FaRe37n2T1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:38136 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501AbbCJCgH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Mar 2015 22:36:07 -0400
-Received: by pdbfl12 with SMTP id fl12so68255061pdb.5
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Mar 2015 19:36:06 -0700 (PDT)
-In-Reply-To: <1425673876.12017.50.camel@perches.com>
+Received: from mga03.intel.com ([134.134.136.65]:6370 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751016AbbCJGs3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2015 02:48:29 -0400
+In-Reply-To: <5222588.FaRe37n2T1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>, Grant Likely <grant.likely@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On 2015=E5=B9=B403=E6=9C=8807=E6=97=A5 04:31, Joe Perches wrote:
-> On Fri, 2015-03-06 at 20:17 +0000, Grant Likely wrote:
->> On Wed, 25 Feb 2015 16:39:41 +0800 Hanjun Guo <hanjun.guo@linaro.org=
-> wrote:
->>> This patch just use pr_debug() instead of pr_info() for ioapic/iosa=
-pic,
->>> local apic/x2apic/sapic structures when scanning the MADT table to =
-remove
->>> those verbose information, but leave other structures unchanged.
-> []
->> One nitpick below, but don't respin over this, and don't do a fixup.
-> []
->>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> []
->>> @@ -61,9 +63,9 @@ void acpi_table_print_madt_entry(struct acpi_subt=
-able_header *header)
->>>   		{
->>>   			struct acpi_madt_local_apic *p =3D
->>>   			    (struct acpi_madt_local_apic *)header;
->>> -			pr_info("LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
->>> -				p->processor_id, p->id,
->>> -				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled")=
-;
->>> +			pr_debug("LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
->>> +				 p->processor_id, p->id,
->>> +				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled"=
-);
+On 03/09/2015 10:33 PM, Rafael J. Wysocki wrote:
+> On Monday, March 09, 2015 03:46:01 PM Aaron Lu wrote:
+>> An ECN meant to specify possible delay optimizations is available on
+>> the PCI website:
+>> https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
+>> where it has defined two functions for an UUID specified _DSM:
+>> Function 8: If system firmware assumes the responsibility of post
+>> Conventional Reset delay (and informs the Operating System via this DSM
+>> function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
+>> S4 or S3 states), the Operating System may assume sufficient time has
+>> elapsed since the end of reset, and devices within the PCI subsystem are
+>> ready for Configuration Access.
+>> If the system firmware supports runtime power gating on any of the
+>> device within PCI subsystem covered by this DSM function, the system
+>> firmware is responsible for covering the necessary post power-on reset
+>> delay.
 >>
->> The whitespace changes makes each 1 line change into 3 line changes.=
- In
->> these situations, I would chose to leave the whitespace alone to kee=
-p
->> the diffstat as small as possible. It makes it less likely to confli=
-ct
->> with other patches and easier to find context.
->
-> I think it's mostly better to use a consistent indentation style
-> regardless of the number in whitespace changes surrounding the change=
-=2E
+>> Function 9: Specify various smaller delay values than required by the
+>> SPEC for individual PCI devices like shorter delay values after
+>> conventional reset, D3hot to D0 transition, functional level reset, etc.
+>>
+>> This patch adds support for function 8 and part of function 9. For
+>> function 8, the patch will check if the required _DSM function satisfies
+>> the requirement and then set the per PCI device's d3cold_delay variable
+>> to zero. For function 9, the values affecting delays after conventional
+>> reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
+>> and d3_delay are updated if the _DSM's return value is smaller than what
+>> the SPEC requires.
+>>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> ---
+>>  drivers/pci/pci-acpi.c | 61 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 61 insertions(+)
+>>
+>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+>> index 489063987325..c833b054c00c 100644
+>> --- a/drivers/pci/pci-acpi.c
+>> +++ b/drivers/pci/pci-acpi.c
+>> @@ -558,6 +558,64 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
+>>  				      check_children);
+>>  }
+>>  
+>> +/**
+>> + * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
+>> + * @pdev: the PCI device whose delay is to be updated
+>> + * @adev: the companion ACPI device of this PCI device
+>> + *
+>> + * Description:
+> 
+> The word "Description" above is not necessary.
+> 
+>> + *   This function is used to update the d3_delay and d3cold_delay of a PCI
+> 
+> I'd simply say
+> 
+> "Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM control
+> method of either its own or its parent bridge."
+> 
+> I'd add an empty line here and then the rest of the below starting with "The UUID ...".
 
-I think both would be fine. Since this patch only touches acpi core
-code and ACPI maintainer Rafael already acked it, I will keep it as
-it is.
+OK.
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>> + *   device from ACPI _DSM control method of either its own or its parent
+>> + *   bridge device. The UUID of the _DSM control method, together with other
+>> + *   information like which delay values can be optimized, etc. is defined in
+>> + *   the fw_latency_optimization ECN availabe on PCIsig.com.
+> 
+> The ECN has a number or title I suppose?
+
+Yes.
+
+Thanks for the review and suggestion, I'll send an updated one.
+
+Regards,
+Aaron
+
+> 
+>> + *   Function 9 of the ACPI _DSM control method, if availabe for a specific PCI
+>> + *   device, provides various possible delay values that are less than what the
+>> + *   SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
+>> + *   can be added later.
+>> + *   Function 8 of the ACPI _DSM control method, if availabe for a specific PCI
+>> + *   bridge, means all its children devices do not need the reset delay when
+>> + *   leaving from D3cold state.
+>> + */
+>> +static void pci_acpi_delay_optimize(struct pci_dev *pdev, struct acpi_device *adev)
+>> +{
+>> +	const u8 uuid[] = {
+>> +		0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
+>> +		0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
+>> +	};
+>> +	int revision = 3, function = 9, value;
+>> +	acpi_handle handle = adev->handle;
+>> +	union acpi_object *obj, *elements;
+>> +
+>> +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
+>> +	if (obj) {
+>> +		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
+>> +			elements = obj->package.elements;
+>> +			if (elements[3].type == ACPI_TYPE_INTEGER) {
+>> +				value = (int)elements[3].integer.value / 1000;
+>> +				if (value < PCI_PM_D3_WAIT)
+>> +					pdev->d3_delay = value;
+>> +			}
+>> +			if (elements[0].type == ACPI_TYPE_INTEGER) {
+>> +				value = (int)elements[0].integer.value / 1000;
+>> +				if (value < PCI_PM_D3COLD_WAIT)
+>> +					pdev->d3cold_delay = value;
+>> +			}
+>> +		}
+>> +		kfree(obj);
+>> +	}
+>> +
+>> +	function = 8;
+>> +	handle = ACPI_HANDLE(pdev->bus->bridge);
+>> +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
+>> +	if (!obj)
+>> +		return;
+>> +
+>> +	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
+>> +		pdev->d3cold_delay = 0;
+>> +	kfree(obj);
+>> +}
+>> +
+>>  static void pci_acpi_setup(struct device *dev)
+>>  {
+>>  	struct pci_dev *pci_dev = to_pci_dev(dev);
+>> @@ -566,6 +624,9 @@ static void pci_acpi_setup(struct device *dev)
+>>  	if (!adev)
+>>  		return;
+>>  
+>> +	if (pci_dev->pm_cap)
+>> +		pci_acpi_delay_optimize(pci_dev, adev);
+>> +
+>>  	pci_acpi_add_pm_notifier(adev, pci_dev);
+>>  	if (!adev->wakeup.flags.valid)
+>>  		return;
+>>
+> 
+
