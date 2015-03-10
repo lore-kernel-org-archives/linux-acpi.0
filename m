@@ -1,128 +1,43 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH update] PCI / ACPI: PCI delay optimization from ACPI
-Date: Tue, 10 Mar 2015 14:48:04 +0800
-Message-ID: <54FE93A4.9040908@intel.com>
-References: <54FD4FB9.2060802@intel.com> <5222588.FaRe37n2T1@vostro.rjw.lan>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: provide con_id for the clkdev
+Date: Tue, 10 Mar 2015 09:28:48 +0200
+Message-ID: <20150310072848.GB25137@kuha.fi.intel.com>
+References: <1425649718-138462-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <3532353.A5zUUUFAVv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5222588.FaRe37n2T1@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:6694 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750848AbbCJHa7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Mar 2015 03:30:59 -0400
+Content-Disposition: inline
+In-Reply-To: <3532353.A5zUUUFAVv@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-An ECN meant to specify possible delay optimizations is available on
-the PCI website:
-https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
-where it has defined two functions for an UUID specified _DSM:
-Function 8: If system firmware assumes the responsibility of post
-Conventional Reset delay (and informs the Operating System via this DSM
-function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
-S4 or S3 states), the Operating System may assume sufficient time has
-elapsed since the end of reset, and devices within the PCI subsystem are
-ready for Configuration Access.
-If the system firmware supports runtime power gating on any of the
-device within PCI subsystem covered by this DSM function, the system
-firmware is responsible for covering the necessary post power-on reset
-delay.
+On Mon, Mar 09, 2015 at 04:22:30PM +0100, Rafael J. Wysocki wrote:
+> On Friday, March 06, 2015 03:48:38 PM Heikki Krogerus wrote:
+> > Commit 7d78cbefaa (serial: 8250_dw: add ability to handle
+> > the peripheral clock) introduces handling for a second clk
+> > to 8250_dw.c which is the driver also for LPSS UART. The
+> > second clk forces us to provide identifier (con_id) for the
+> > clkdev we create.
+> > 
+> > This fixes an issue where 8250_dw.c is getting the same
+> > handler for both clocks.
+> > 
+> > Fixes: 7d78cbefaa (serial: 8250_dw: add ability to handle the peripheral clock)
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> 
+> "Stable" material I suppose?  3.17 and later or some other set?
 
-Function 9: Specify various smaller delay values than required by the
-SPEC for individual PCI devices like shorter delay values after
-conventional reset, D3hot to D0 transition, functional level reset, etc.
+Yes, I should have put the tag there. And yes, 3.17 and later.
 
-This patche adds support for function 8 and part of function 9. For
-function 8, the patch will check if the required _DSM function satisfies
-the requirement and then set the per PCI device's d3cold_delay variable
-to zero. For function 9, the values affecting delays after conventional
-reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
-and d3_delay are updated if the _DSM's return value is smaller than what
-the SPEC requires.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/pci/pci-acpi.c | 61 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+Thanks,
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 489063987325..468c0733838e 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -558,6 +558,64 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
- 				      check_children);
- }
- 
-+/**
-+ * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
-+ * @pdev: the PCI device whose delay is to be updated
-+ * @adev: the companion ACPI device of this PCI device
-+ *
-+ * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
-+ * control method of either its own or its parent bridge.
-+ *
-+ * The UUID of the _DSM control method, together with other information like
-+ * which delay values can be optimized, etc. is defined in a ECN available on
-+ * PCIsig.com titled as: ACPI additions for FW latency optimizations.
-+ * Function 9 of the ACPI _DSM control method, if available for a specific PCI
-+ * device, provides various possible delay values that are less than what the
-+ * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
-+ * can be added later.
-+ * Function 8 of the ACPI _DSM control method, if available for a specific PCI
-+ * bridge, means all its children devices do not need the reset delay when
-+ * leaving from D3cold state.
-+ */
-+static void pci_acpi_delay_optimize(struct pci_dev *pdev, struct acpi_device *adev)
-+{
-+	const u8 uuid[] = {
-+		0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
-+		0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
-+	};
-+	int revision = 3, function = 9, value;
-+	acpi_handle handle = adev->handle;
-+	union acpi_object *obj, *elements;
-+
-+	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
-+	if (obj) {
-+		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
-+			elements = obj->package.elements;
-+			if (elements[3].type == ACPI_TYPE_INTEGER) {
-+				value = (int)elements[3].integer.value / 1000;
-+				if (value < PCI_PM_D3_WAIT)
-+					pdev->d3_delay = value;
-+			}
-+			if (elements[0].type == ACPI_TYPE_INTEGER) {
-+				value = (int)elements[0].integer.value / 1000;
-+				if (value < PCI_PM_D3COLD_WAIT)
-+					pdev->d3cold_delay = value;
-+			}
-+		}
-+		kfree(obj);
-+	}
-+
-+	function = 8;
-+	handle = ACPI_HANDLE(pdev->bus->bridge);
-+	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
-+	if (!obj)
-+		return;
-+
-+	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
-+		pdev->d3cold_delay = 0;
-+	kfree(obj);
-+}
-+
- static void pci_acpi_setup(struct device *dev)
- {
- 	struct pci_dev *pci_dev = to_pci_dev(dev);
-@@ -566,6 +624,9 @@ static void pci_acpi_setup(struct device *dev)
- 	if (!adev)
- 		return;
- 
-+	if (pci_dev->pm_cap)
-+		pci_acpi_delay_optimize(pci_dev, adev);
-+
- 	pci_acpi_add_pm_notifier(adev, pci_dev);
- 	if (!adev->wakeup.flags.valid)
- 		return;
 -- 
-2.1.0
+heikki
