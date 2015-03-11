@@ -1,66 +1,21 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v10 04/21] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Wed, 11 Mar 2015 20:39:30 +0800
-Message-ID: <1426077587-1561-5-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v10 17/21] clocksource / arch_timer: Parse GTDT to initialize arch timer
+Date: Wed, 11 Mar 2015 20:39:43 +0800
+Message-ID: <1426077587-1561-18-git-send-email-hanjun.guo@linaro.org>
 References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, suravee.suthikulpanit@amd.com, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+Using the information presented by GTDT (Generic Timer Description Table)
+to initialize the arch timer (not memory-mapped).
 
-As we want to get ACPI tables to parse and then use the information
-for system initialization, we should get the RSDP (Root System
-Description Pointer) first, it then locates Extended Root Description
-Table (XSDT) which contains all the 64-bit physical address that
-pointer to other boot-time tables.
-
-Introduce acpi.c and its related head file in this patch to provide
-fundamental needs of extern variables and functions for ACPI core,
-and then get boot-time tables as needed.
-  - asm/acenv.h for arch specific ACPICA environments and
-    implementation, It is needed unconditionally by ACPI core;
-  - asm/acpi.h for arch specific variables and functions needed by
-    ACPI driver core;
-  - acpi.c for ARM64 related ACPI implementation for ACPI driver
-    core;
-
-acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
-it will be called in setup_arch() before paging_init(), so we should
-use eary_memremap() mechanism here to get the RSDP and all the table
-pointers.
-
-FADT Major.Minor version was introduced in ACPI 5.1, it is the same
-as ACPI version.
-
-In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
-MADT table for GIC and SMP init, without those updates, we can not
-get the MPIDR for SMP init, and GICv2/3 related init information, so
-we can't boot arm64 ACPI properly with table versions predating 5.1.
-
-If firmware provides ACPI tables with ACPI version less than 5.1,
-OS has no way to retrieve the configuration data that is necessary
-to init SMP boot protocol and the GIC properly, so disable ACPI if
-we get an FADT table with version less that 5.1 when acpi_boot_table_init()
-called.
-
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC: Daniel Lezcano <daniel.lezcano@linaro.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Yijing Wang <wangyijing@huawei.com>
 Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
@@ -68,246 +23,225 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Olof Johansson <olof@lixom.net>
-Acked-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acenv.h |  18 ++++++++
- arch/arm64/include/asm/acpi.h  |  45 ++++++++++++++++++
- arch/arm64/kernel/Makefile     |   1 +
- arch/arm64/kernel/acpi.c       | 101 +++++++++++++++++++++++++++++++++++++++++
- arch/arm64/kernel/setup.c      |   5 ++
- 5 files changed, 170 insertions(+)
- create mode 100644 arch/arm64/include/asm/acenv.h
- create mode 100644 arch/arm64/include/asm/acpi.h
- create mode 100644 arch/arm64/kernel/acpi.c
+ arch/arm64/kernel/time.c             |   7 ++
+ drivers/clocksource/arm_arch_timer.c | 132 ++++++++++++++++++++++++++++-------
+ include/linux/clocksource.h          |   6 ++
+ 3 files changed, 118 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-new file mode 100644
-index 0000000..b49166f
---- /dev/null
-+++ b/arch/arm64/include/asm/acenv.h
-@@ -0,0 +1,18 @@
-+/*
-+ * ARM64 specific ACPICA environments and implementation
-+ *
-+ * Copyright (C) 2014, Linaro Ltd.
-+ *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _ASM_ACENV_H
-+#define _ASM_ACENV_H
-+
-+/* It is required unconditionally by ACPI core, update it when needed. */
-+
-+#endif /* _ASM_ACENV_H */
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-new file mode 100644
-index 0000000..8b837ab
---- /dev/null
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -0,0 +1,45 @@
-+/*
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation;
-+ */
-+
-+#ifndef _ASM_ACPI_H
-+#define _ASM_ACPI_H
-+
-+/* Basic configuration for ACPI */
-+#ifdef	CONFIG_ACPI
-+#define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-+extern int acpi_disabled;
-+extern int acpi_noirq;
-+extern int acpi_pci_disabled;
-+
-+static inline void disable_acpi(void)
-+{
-+	acpi_disabled = 1;
-+	acpi_pci_disabled = 1;
-+	acpi_noirq = 1;
-+}
-+
-+/*
-+ * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-+ * with this check the ACPI core will not override the CPU index
-+ * obtained from GICC with 0 and not print some error message as well.
-+ * Since MADT must provide at least one GICC structure for GIC
-+ * initialization, CPU will be always available in MADT on ARM64.
-+ */
-+static inline bool acpi_has_cpu_in_madt(void)
-+{
-+	return true;
-+}
-+
-+static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-+
-+#endif /* CONFIG_ACPI */
-+
-+#endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index 5ee07ee..fdc7877 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -35,6 +35,7 @@ arm64-obj-$(CONFIG_KGDB)		+= kgdb.o
- arm64-obj-$(CONFIG_EFI)			+= efi.o efi-stub.o efi-entry.o
- arm64-obj-$(CONFIG_PCI)			+= pci.o
- arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
-+arm64-obj-$(CONFIG_ACPI)		+= acpi.o
- 
- obj-y					+= $(arm64-obj-y) vdso/
- obj-m					+= $(arm64-obj-m)
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-new file mode 100644
-index 0000000..7abac24
---- /dev/null
-+++ b/arch/arm64/kernel/acpi.c
-@@ -0,0 +1,101 @@
-+/*
-+ *  ARM64 Specific Low-Level ACPI Boot Support
-+ *
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *	Author: Naresh Bhat <naresh.bhat@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ */
-+
-+#define pr_fmt(fmt) "ACPI: " fmt
-+
+diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
+index 1a7125c..42f9195 100644
+--- a/arch/arm64/kernel/time.c
++++ b/arch/arm64/kernel/time.c
+@@ -35,6 +35,7 @@
+ #include <linux/delay.h>
+ #include <linux/clocksource.h>
+ #include <linux/clk-provider.h>
 +#include <linux/acpi.h>
-+#include <linux/bootmem.h>
-+#include <linux/cpumask.h>
-+#include <linux/init.h>
-+#include <linux/irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/memblock.h>
-+#include <linux/smp.h>
+ 
+ #include <clocksource/arm_arch_timer.h>
+ 
+@@ -72,6 +73,12 @@ void __init time_init(void)
+ 
+ 	tick_setup_hrtimer_broadcast();
+ 
++	/*
++	 * Since ACPI or FDT will only one be available in the system,
++	 * we can use acpi_generic_timer_init() here safely
++	 */
++	acpi_generic_timer_init();
 +
-+int acpi_noirq;			/* skip ACPI IRQ initialization */
-+int acpi_disabled;
-+EXPORT_SYMBOL(acpi_disabled);
+ 	arch_timer_rate = arch_timer_get_rate();
+ 	if (!arch_timer_rate)
+ 		panic("Unable to initialise architected timer.\n");
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index a3025e7..ea62fc7 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -22,6 +22,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/sched_clock.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/arch_timer.h>
+ #include <asm/virt.h>
+@@ -371,8 +372,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
+ 	if (arch_timer_rate)
+ 		return;
+ 
+-	/* Try to determine the frequency from the device tree or CNTFRQ */
+-	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
++	/*
++	 * Try to determine the frequency from the device tree or CNTFRQ,
++	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
++	 */
++	if (!acpi_disabled ||
++	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
+ 		if (cntbase)
+ 			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
+ 		else
+@@ -691,28 +696,8 @@ static void __init arch_timer_common_init(void)
+ 	arch_timer_arch_init();
+ }
+ 
+-static void __init arch_timer_init(struct device_node *np)
++static void __init arch_timer_init(void)
+ {
+-	int i;
+-
+-	if (arch_timers_present & ARCH_CP15_TIMER) {
+-		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
+-		return;
+-	}
+-
+-	arch_timers_present |= ARCH_CP15_TIMER;
+-	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
+-		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
+-	arch_timer_detect_rate(NULL, np);
+-
+-	/*
+-	 * If we cannot rely on firmware initializing the timer registers then
+-	 * we should use the physical timers instead.
+-	 */
+-	if (IS_ENABLED(CONFIG_ARM) &&
+-	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
+-			arch_timer_use_virtual = false;
+-
+ 	/*
+ 	 * If HYP mode is available, we know that the physical timer
+ 	 * has been configured to be accessible from PL1. Use it, so
+@@ -731,13 +716,39 @@ static void __init arch_timer_init(struct device_node *np)
+ 		}
+ 	}
+ 
+-	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
+-
+ 	arch_timer_register();
+ 	arch_timer_common_init();
+ }
+-CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
+-CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
 +
-+int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
-+EXPORT_SYMBOL(acpi_pci_disabled);
-+
-+/*
-+ * __acpi_map_table() will be called before page_init(), so early_ioremap()
-+ * or early_memremap() should be called here to for ACPI table mapping.
-+ */
-+char *__init __acpi_map_table(unsigned long phys, unsigned long size)
++static void __init arch_timer_of_init(struct device_node *np)
 +{
-+	if (!size)
-+		return NULL;
++	int i;
 +
-+	return early_memremap(phys, size);
-+}
-+
-+void __init __acpi_unmap_table(char *map, unsigned long size)
-+{
-+	if (!map || !size)
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
 +		return;
++	}
 +
-+	early_memunmap(map, size);
-+}
++	arch_timers_present |= ARCH_CP15_TIMER;
++	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
++		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
 +
-+static int __init acpi_parse_fadt(struct acpi_table_header *table)
-+{
-+	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
++	arch_timer_detect_rate(NULL, np);
++
++	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
 +
 +	/*
-+	 * Revision in table header is the FADT Major revision, and there
-+	 * is a minor revision of FADT which was introduced by ACPI 5.1,
-+	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
-+	 * boot protocol configuration data, or we will disable ACPI.
++	 * If we cannot rely on firmware initializing the timer registers then
++	 * we should use the physical timers instead.
 +	 */
-+	if (table->revision > 5 ||
-+	    (table->revision == 5 && fadt->minor_revision >= 1))
++	if (IS_ENABLED(CONFIG_ARM) &&
++	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
++			arch_timer_use_virtual = false;
++
++	arch_timer_init();
++}
++CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
++CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+ 
+ static void __init arch_timer_mem_init(struct device_node *np)
+ {
+@@ -804,3 +815,70 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ }
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
++
++#ifdef CONFIG_ACPI
++static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
++{
++	int trigger, polarity;
++
++	if (!interrupt)
 +		return 0;
 +
-+	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
-+		table->revision, fadt->minor_revision);
-+	disable_acpi();
++	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
++			: ACPI_LEVEL_SENSITIVE;
 +
-+	return -EINVAL;
++	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
++			: ACPI_ACTIVE_HIGH;
++
++	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
 +}
 +
-+/*
-+ * acpi_boot_table_init() called from setup_arch(), always.
-+ *	1. find RSDP and get its address, and then find XSDT
-+ *	2. extract all tables and checksums them all
-+ *	3. check ACPI FADT revision
-+ *
-+ * We can parse ACPI boot-time tables such as MADT after
-+ * this function is called.
-+ */
-+void __init acpi_boot_table_init(void)
++/* Initialize per-processor generic timer */
++static int __init arch_timer_acpi_init(struct acpi_table_header *table)
 +{
-+	/* If acpi_disabled, bail out */
++	struct acpi_table_gtdt *gtdt;
++
++	if (arch_timers_present & ARCH_CP15_TIMER) {
++		pr_warn("arch_timer: already initialized, skipping\n");
++		return -EINVAL;
++	}
++
++	gtdt = container_of(table, struct acpi_table_gtdt, header);
++
++	arch_timers_present |= ARCH_CP15_TIMER;
++
++	arch_timer_ppi[PHYS_SECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
++		gtdt->secure_el1_flags);
++
++	arch_timer_ppi[PHYS_NONSECURE_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
++		gtdt->non_secure_el1_flags);
++
++	arch_timer_ppi[VIRT_PPI] =
++		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
++		gtdt->virtual_timer_flags);
++
++	arch_timer_ppi[HYP_PPI] =
++		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
++		gtdt->non_secure_el2_flags);
++
++	/* Get the frequency from CNTFRQ */
++	arch_timer_detect_rate(NULL, NULL);
++
++	/* Always-on capability */
++	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
++
++	arch_timer_init();
++	return 0;
++}
++
++/* Initialize all the generic timers presented in GTDT */
++void __init acpi_generic_timer_init(void)
++{
 +	if (acpi_disabled)
 +		return;
 +
-+	/* Initialize the ACPI boot-time table parser. */
-+	if (acpi_table_init()) {
-+		disable_acpi();
-+		return;
-+	}
-+
-+	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
-+		/* disable ACPI if no FADT is found */
-+		disable_acpi();
-+		pr_err("Can't find FADT\n");
-+	}
++	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
 +}
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index e8420f6..4f1a014 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -17,6 +17,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
++#endif
+diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+index 9c78d15..2b2e1f8 100644
+--- a/include/linux/clocksource.h
++++ b/include/linux/clocksource.h
+@@ -244,4 +244,10 @@ extern void clocksource_of_init(void);
+ static inline void clocksource_of_init(void) {}
+ #endif
  
-+#include <linux/acpi.h>
- #include <linux/export.h>
- #include <linux/kernel.h>
- #include <linux/stddef.h>
-@@ -46,6 +47,7 @@
- #include <linux/efi.h>
- #include <linux/personality.h>
- 
-+#include <asm/acpi.h>
- #include <asm/fixmap.h>
- #include <asm/cpu.h>
- #include <asm/cputype.h>
-@@ -380,6 +382,9 @@ void __init setup_arch(char **cmdline_p)
- 	efi_init();
- 	arm64_memblock_init();
- 
-+	/* Parse the ACPI tables for possible boot-time configuration */
-+	acpi_boot_table_init();
++#ifdef CONFIG_ACPI
++void acpi_generic_timer_init(void);
++#else
++static inline void acpi_generic_timer_init(void) { }
++#endif
 +
- 	paging_init();
- 	request_standard_resources();
- 
+ #endif /* _LINUX_CLOCKSOURCE_H */
 -- 
 1.9.1
