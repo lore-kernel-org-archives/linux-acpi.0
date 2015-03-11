@@ -1,48 +1,96 @@
-From: Brian Gerst <brgerst@gmail.com>
-Subject: Re: [PATCH v4 7/9] x86, pci, ecam: mmconfig_64.c becomes default
- implementation for ECAM driver.
-Date: Wed, 11 Mar 2015 12:30:28 -0400
-Message-ID: <CAMzpN2gLjuddMYKJY9z=e=oG0P-NjV-mfjtvYRAY6HXCWn5-UQ@mail.gmail.com>
-References: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org>
-	<1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH] x86/PCI: Fully disable devices before releasing IRQ
+ resource
+Date: Wed, 11 Mar 2015 10:47:30 -0600
+Message-ID: <1426092450.3643.7.camel@redhat.com>
+References: <20150305210529.6393.29546.stgit@gimli.home>
+	 <54F90790.7060204@linux.intel.com> <1425613912.5200.344.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:43611 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886AbbCKQaa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 12:30:30 -0400
-In-Reply-To: <1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1425613912.5200.344.camel@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, x86@kernel.org, rjw@rjwysocki.net, mingo@redhat.com, bp@alien8.de, lv.zheng@intel.com, hpa@zytor.com, tglx@linutronix.de, yinghai@kernel.org, lenb@kernel.org, linux-pci@vger.kernel.org, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, rjw@rjwysocki.net, al.stone@linaro.org, linux-arm-kernel@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wed, Mar 11, 2015 at 10:12 AM, Tomasz Nowicki
-<tomasz.nowicki@linaro.org> wrote:
+On Thu, 2015-03-05 at 20:51 -0700, Alex Williamson wrote:
+> On Fri, 2015-03-06 at 09:49 +0800, Jiang Liu wrote:
+> > On 2015/3/6 5:06, Alex Williamson wrote:
+> > > The IRQ resource for a device is established when pci_enabled_device()
+> > > is called on a fully disabled device (ie. enable_cnt == 0).  With
+> > > commit b4b55cda5874 ("x86/PCI: Refine the way to release PCI IRQ
+> > > resources") this same IRQ resource is released when the driver is
+> > > unbound from the device, regardless of the enable_cnt.  This presents
+> > > the situation that an ill-behaved driver can now make a device
+> > > unusable to subsequent drivers by an imbalance in their use of
+> > > pci_enable/disable_device().  It's one thing to break your own device
+> > > if you're one of these ill-behaved drivers, but it's a serious
+> > > regression for secondary drivers like vfio-pci, which are innocent
+> > > of the transgressions of the previous driver.
+> > > 
+> > > Resolve by pushing the device to a fully disabled state before
+> > > releasing the IRQ resource.
+> > > 
+> > > Fixes: b4b55cda5874 ("x86/PCI: Refine the way to release PCI IRQ resources")
+> > > Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
+> > > Cc: Jiang Liu <jiang.liu@linux.intel.com>
+> > > ---
+> > >  arch/x86/pci/common.c |   13 ++++++++++++-
+> > >  1 file changed, 12 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+> > > index 3d2612b..4810194 100644
+> > > --- a/arch/x86/pci/common.c
+> > > +++ b/arch/x86/pci/common.c
+> > > @@ -527,8 +527,19 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
+> > >  	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
+> > >  		return NOTIFY_DONE;
+> > >  
+> > > -	if (pcibios_disable_irq)
+> > > +	if (pcibios_disable_irq) {
+> > > +		/*
+> > > +		 * Broken drivers may allow a device to be .remove()'d while
+> > > +		 * still enabled.  pci_enable_device() will only re-establish
+> > > +		 * dev->irq if the devices is fully disabled.  So if we want
+> > > +		 * to release the IRQ, we need to make sure the next driver
+> > > +		 * can re-establish it using pci_enable_device().
+> > > +		 */
+> > > +		while (pci_is_enabled(dev))
+> > > +			pci_disable_device(dev);
+> > > +
+> > >  		pcibios_disable_irq(dev);
+> > > +	}
+> > Hi Alex,
+> > 	Thanks for debugging and fixing it.
+> > 	Will it be feasible to give a debug message to remind those
+> > driver authors to correctly disable PCI when unbinding?
+> 
+> I can certainly add a warning to the loop, it loses a bit of its teeth
+> here though since we can't specify which driver to blame at this point.
+> Maybe that warning and perhaps this enabling roll-back should happen in
+> drivers/pci/pci-driver.c:pci_device_remove().  Bjorn, would you prefer
+> it be done generically there?  Thanks,
 
-> diff --git a/arch/x86/pci/Makefile b/arch/x86/pci/Makefile
-> index 5c6fc35..35c765b 100644
-> --- a/arch/x86/pci/Makefile
-> +++ b/arch/x86/pci/Makefile
-> @@ -1,7 +1,10 @@
->  obj-y                          := i386.o init.o
->
->  obj-$(CONFIG_PCI_BIOS)         += pcbios.o
-> -obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig_$(BITS).o direct.o mmconfig-shared.o
-> +obj-$(CONFIG_PCI_MMCONFIG)     += direct.o mmconfig-shared.o
-> +ifeq ($(BITS),32)
-> +obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig_32.o
-> +endif
->  obj-$(CONFIG_PCI_DIRECT)       += direct.o
->  obj-$(CONFIG_PCI_OLPC)         += olpc.o
->  obj-$(CONFIG_PCI_XEN)          += xen.o
+Unfortunately there's a long standing comment in pci_device_remove():
 
-This would be better written as:
+        /*
+         * We would love to complain here if pci_dev->is_enabled is set, that
+         * the driver should have called pci_disable_device(), but the
+         * unfortunate fact is there are too many odd BIOS and bridge setups
+         * that don't like drivers doing that all of the time.
+         * Oh well, we can dream of sane hardware when we sleep, no matter how
+         * horrible the crap we have to deal with is when we are awake...
+         */
 
-mmconfig-y := direct.o mmconfig-shared.o
-mmconfig-$(CONFIG_X86_32) += mmconfig_32.o
-obj-$(CONFIG_PCI_MMCONFIG) += $(mmconfig-y)
+So, unless we can somehow ignore that comment, I suspect forcing the
+device to be disabled on driver remove, whether done from pci-core or
+from x86/pci, is going to cause all sorts of breakage.  Are the
+expectations set by b4b55cda5874 really valid?  It seems like something
+needs to be done to allow the IRQ to be automatically re-established on
+x86 regardless of the driver doing the right thing when releasing the
+device.  We're still looking at a regression for v4.0 as a result of
+b4b55cda5874.  Thanks,
 
---
-Brian Gerst
+Alex
