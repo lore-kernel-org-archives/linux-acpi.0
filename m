@@ -1,50 +1,85 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] x86/PCI: Fully disable devices before releasing IRQ
- resource
-Date: Wed, 11 Mar 2015 22:04:42 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F32A0E2E2@ORSMSX113.amr.corp.intel.com>
-References: <20150305210529.6393.29546.stgit@gimli.home>
- <1425613912.5200.344.camel@redhat.com> <1426092450.3643.7.camel@redhat.com>
- <2139068.CEUJTvBkYG@vostro.rjw.lan>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
+Date: Wed, 11 Mar 2015 23:11:41 +0000
+Message-ID: <20150311231141.GG21998@io.lakedaemon.net>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
+ <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:22976 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751478AbbCKWEo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Mar 2015 18:04:44 -0400
-In-Reply-To: <2139068.CEUJTvBkYG@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Robert Richter <rric@kernel.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradea
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alex Williamson <alex.williamson@redhat.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "x86@kernel.org" <x86@kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, "bp@alien8.de" <bp@alien8.de>, "Zheng, Lv" <lv.zheng@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Pj4gVW5mb3J0dW5hdGVseSB0aGVyZSdzIGEgbG9uZyBzdGFuZGluZyBjb21tZW50IGluIHBjaV9k
-ZXZpY2VfcmVtb3ZlKCk6DQo+PiANCj4+ICAgICAgICAgLyoNCj4+ICAgICAgICAgICogV2Ugd291
-bGQgbG92ZSB0byBjb21wbGFpbiBoZXJlIGlmIHBjaV9kZXYtPmlzX2VuYWJsZWQgaXMgc2V0LCB0
-aGF0DQo+PiAgICAgICAgICAqIHRoZSBkcml2ZXIgc2hvdWxkIGhhdmUgY2FsbGVkIHBjaV9kaXNh
-YmxlX2RldmljZSgpLCBidXQgdGhlDQo+PiAgICAgICAgICAqIHVuZm9ydHVuYXRlIGZhY3QgaXMg
-dGhlcmUgYXJlIHRvbyBtYW55IG9kZCBCSU9TIGFuZCBicmlkZ2Ugc2V0dXBzDQo+PiAgICAgICAg
-ICAqIHRoYXQgZG9uJ3QgbGlrZSBkcml2ZXJzIGRvaW5nIHRoYXQgYWxsIG9mIHRoZSB0aW1lLg0K
-Pj4gICAgICAgICAgKiBPaCB3ZWxsLCB3ZSBjYW4gZHJlYW0gb2Ygc2FuZSBoYXJkd2FyZSB3aGVu
-IHdlIHNsZWVwLCBubyBtYXR0ZXIgaG93DQo+PiAgICAgICAgICAqIGhvcnJpYmxlIHRoZSBjcmFw
-IHdlIGhhdmUgdG8gZGVhbCB3aXRoIGlzIHdoZW4gd2UgYXJlIGF3YWtlLi4uDQo+PiAgICAgICAg
-ICAqLw0KPj4gDQo+PiBTbywgdW5sZXNzIHdlIGNhbiBzb21laG93IGlnbm9yZSB0aGF0IGNvbW1l
-bnQsIEkgc3VzcGVjdCBmb3JjaW5nIHRoZQ0KPj4gZGV2aWNlIHRvIGJlIGRpc2FibGVkIG9uIGRy
-aXZlciByZW1vdmUsIHdoZXRoZXIgZG9uZSBmcm9tIHBjaS1jb3JlIG9yDQo+PiBmcm9tIHg4Ni9w
-Y2ksIGlzIGdvaW5nIHRvIGNhdXNlIGFsbCBzb3J0cyBvZiBicmVha2FnZS4gIEFyZSB0aGUNCj4+
-IGV4cGVjdGF0aW9ucyBzZXQgYnkgYjRiNTVjZGE1ODc0IHJlYWxseSB2YWxpZD8gIEl0IHNlZW1z
-IGxpa2Ugc29tZXRoaW5nDQo+PiBuZWVkcyB0byBiZSBkb25lIHRvIGFsbG93IHRoZSBJUlEgdG8g
-YmUgYXV0b21hdGljYWxseSByZS1lc3RhYmxpc2hlZCBvbg0KPj4geDg2IHJlZ2FyZGxlc3Mgb2Yg
-dGhlIGRyaXZlciBkb2luZyB0aGUgcmlnaHQgdGhpbmcgd2hlbiByZWxlYXNpbmcgdGhlDQo+PiBk
-ZXZpY2UuICBXZSdyZSBzdGlsbCBsb29raW5nIGF0IGEgcmVncmVzc2lvbiBmb3IgdjQuMCBhcyBh
-IHJlc3VsdCBvZg0KPj4gYjRiNTVjZGE1ODc0Lg0KPg0KPiBJbiB3aGljaCBjYXNlIHdlIHByb2Jh
-Ymx5IHNob3VsZCByZXZlcnQgY29tbWl0IGI0YjU1Y2RhNTg3NCBmb3IgdGhlIHRpbWUgYmVpbmcu
-DQo+DQo+IEF0IGxlYXN0IEknZCBiZSB2ZXJ5IG5lcnZvdXMgYWJvdXQgYW55IGFkLWhvYyBmaXhl
-cyBhdCB0aGlzIHN0YWdlIG9mIHRoZSBjeWNsZS4NCg0KVGhlIGNvbW1lbnQgZ29lcyBiYWNrIHRv
-IHRoZSBkYXduIG9mICJnaXQiIHRpbWUgLi4uIG5vdCBzdXJlIGhvdyBtdWNoIGZ1cnRoZXINCmJh
-Y2suDQoNCklzIHRoaXMgYWN0dWFsbHkgc3RpbGwgYW4gaXNzdWUgb24gbW9kZXJuIHN5c3RlbXM/
-ICBNYXliZSB3ZSBuZWVkIGEgYmxhY2sgbGlzdA0Kb3Igd2hpdGUgbGlzdCB0byBzZXBhcmF0ZSB0
-aGUgZ29vZCBmcm9tIGJhZCBzeXN0ZW1zPw0KDQotVG9ueQ0K
+Hey Grant,
+
+On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
+> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
+> >
+> > From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> >
+> > ACPI kernel uses MADT table for proper GIC initialization. It needs to
+> > parse GIC related subtables, collect CPU interface and distributor
+> > addresses and call driver initialization function (which is hardware
+> > abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+> >
+> > NOTE: This commit allow to initialize GICv1/2 basic functionality.
+> > While now simple GICv2 init call is used, any further GIC features
+> > require generic infrastructure for proper ACPI irqchip initialization.
+> > That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
+> > extension, GICv3/4 and its ITS are considered as next steps.
+> >
+> > CC: Jason Cooper <jason@lakedaemon.net>
+> > CC: Marc Zyngier <marc.zyngier@arm.com>
+> > CC: Thomas Gleixner <tglx@linutronix.de>
+> 
+> BTW, Thomas is taking a bit of a break, do he is unlikely to give an ack
+> here in a timely manner. I've not heard from Jason. Personally, I think we
+> can proceed without their ack if everything else is in order (heck, I used
+> to help with the irq subsystem, use me as an ack of you want). The patch is
+> low impact and only had effect for ARM ACPI builds.
+
+I'm not talking much, but I am tracking and collecting everything for irqchip.
+We do have some other changes in this driver this time around.  So it'd be nice
+if I could take this.
+
+I had reached out to Olof for his thoughts on this and he hasn't had enough
+cycles to look at it.  iirc, Marc reviewed a previous version and was happy with
+the changes.  My only question I had for Olof I'll put below:
+
+> > diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
+> > index 0fe2f71..afd1af3 100644
+> > --- a/drivers/irqchip/irqchip.c
+> > +++ b/drivers/irqchip/irqchip.c
+> > @@ -8,6 +8,7 @@
+> >   * warranty of any kind, whether express or implied.
+> >   */
+> >
+> > +#include <linux/acpi_irq.h>
+> >  #include <linux/init.h>
+> >  #include <linux/of_irq.h>
+> >  #include <linux/irqchip.h>
+> > @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
+> >  void __init irqchip_init(void)
+> >  {
+> >         of_irq_init(__irqchip_of_table);
+> > +
+> > +       acpi_irq_init();
+> >  }
+
+Is this in line with Olof's idea that providing a dtb would override ACPI?
+
+I have no strong opinion on the matter personally.  I haven't been able to
+follow the ACPI discussion as closely as I would have liked, what with the new
+job and all.
+
+Just let me know and I can pull it in with other GIC changes for this cycle.
+I'll do a topic branch in case other branches need to depend on this.
+
+thx,
+
+Jason.
