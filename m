@@ -1,241 +1,129 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v10 10/21] ARM64 / ACPI: Get PSCI flags in FADT for PSCI init
-Date: Wed, 11 Mar 2015 20:39:36 +0800
-Message-ID: <1426077587-1561-11-git-send-email-hanjun.guo@linaro.org>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH update] acpi: video: Allow forcing native backlight on
+ non win8, machines
+Date: Wed, 11 Mar 2015 21:05:03 +0800
+Message-ID: <20150311130503.GA13124@aaronlu.sh.intel.com>
+References: <1425368350-4028-1-git-send-email-hdegoede@redhat.com>
+ <3175131.PO6aPjpaNK@vostro.rjw.lan>
+ <54FF734D.5070107@redhat.com>
+ <1592515.vScOiuKqBv@vostro.rjw.lan>
+ <54FFDD60.80408@intel.com>
+ <550023A1.3060606@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:23849 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751901AbbCKNGS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Mar 2015 09:06:18 -0400
+Content-Disposition: inline
+In-Reply-To: <550023A1.3060606@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+On Wed, Mar 11, 2015 at 12:14:41PM +0100, Hans de Goede wrote:
+> Hi,
+> 
+> On 11-03-15 07:14, Aaron Lu wrote:
+> >On 03/11/2015 07:10 AM, Rafael J. Wysocki wrote:
+> >>On Tuesday, March 10, 2015 11:42:21 PM Hans de Goede wrote:
+> >>>So you want to have a native_backlight enum or some such ? with -1 being not_set ?
+> >>
+> >>Yes, something like that.
+> >
+> >OK, here is an updated one:
+> 
+> Looks good to me, my ack still stands. I need to send a bunch of
+> mails back / forth to tackle the issue the ideapad which caused me to
+> work on this in the first case. So lets merge this one first, and
+> then I'll get back with a patch on top of this when I know how to
+> actually best deal with the problem on that machine.
 
-There are two flags: PSCI_COMPLIANT and PSCI_USE_HVC. When set,
-the former signals to the OS that the firmware is PSCI compliant.
-The latter selects the appropriate conduit for PSCI calls by
-toggling between Hypervisor Calls (HVC) and Secure Monitor Calls
-(SMC).
+Thanks for the ack and taking care of the problem.
 
-FADT table contains such information in ACPI 5.1, FADT table was
-parsed in ACPI table init and copy to struct acpi_gbl_FADT, so
-use the flags in struct acpi_gbl_FADT for PSCI init.
+Regards,
+Aaron
 
-Since ACPI 5.1 doesn't support self defined PSCI function IDs,
-which means that only PSCI 0.2+ is supported in ACPI.
-
-CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Yijing Wang <wangyijing@huawei.com>
-Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-Tested-by: Jon Masters <jcm@redhat.com>
-Tested-by: Timur Tabi <timur@codeaurora.org>
-Tested-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Olof Johansson <olof@lixom.net>
-Acked-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- arch/arm64/include/asm/acpi.h | 15 +++++++++
- arch/arm64/include/asm/psci.h |  3 +-
- arch/arm64/kernel/psci.c      | 78 ++++++++++++++++++++++++++++++-------------
- arch/arm64/kernel/setup.c     |  8 +++--
- 4 files changed, 76 insertions(+), 28 deletions(-)
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index c5a9b97..9ea650c 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -32,6 +32,18 @@ extern int acpi_disabled;
- extern int acpi_noirq;
- extern int acpi_pci_disabled;
- 
-+/* 1 to indicate PSCI 0.2+ is implemented */
-+static inline bool acpi_psci_present(void)
-+{
-+	return acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_COMPLIANT;
-+}
-+
-+/* 1 to indicate HVC must be used instead of SMC as the PSCI conduit */
-+static inline bool acpi_psci_use_hvc(void)
-+{
-+	return acpi_gbl_FADT.arm_boot_flags & ACPI_FADT_PSCI_USE_HVC;
-+}
-+
- static inline void disable_acpi(void)
- {
- 	acpi_disabled = 1;
-@@ -60,6 +72,9 @@ static inline bool acpi_has_cpu_in_madt(void)
- 
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
- 
-+#else
-+static inline bool acpi_psci_present(void) { return false; }
-+static inline bool acpi_psci_use_hvc(void) { return false; }
- #endif /* CONFIG_ACPI */
- 
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/include/asm/psci.h b/arch/arm64/include/asm/psci.h
-index e5312ea..2454bc5 100644
---- a/arch/arm64/include/asm/psci.h
-+++ b/arch/arm64/include/asm/psci.h
-@@ -14,6 +14,7 @@
- #ifndef __ASM_PSCI_H
- #define __ASM_PSCI_H
- 
--int psci_init(void);
-+int psci_dt_init(void);
-+int psci_acpi_init(void);
- 
- #endif /* __ASM_PSCI_H */
-diff --git a/arch/arm64/kernel/psci.c b/arch/arm64/kernel/psci.c
-index 9b8a70a..d3c52ce 100644
---- a/arch/arm64/kernel/psci.c
-+++ b/arch/arm64/kernel/psci.c
-@@ -15,6 +15,7 @@
- 
- #define pr_fmt(fmt) "psci: " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/of.h>
- #include <linux/smp.h>
-@@ -24,6 +25,7 @@
- #include <linux/slab.h>
- #include <uapi/linux/psci.h>
- 
-+#include <asm/acpi.h>
- #include <asm/compiler.h>
- #include <asm/cpu_ops.h>
- #include <asm/errno.h>
-@@ -273,6 +275,33 @@ static void psci_sys_poweroff(void)
- 	invoke_psci_fn(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
- }
- 
-+static void __init psci_0_2_set_functions(void)
-+{
-+	pr_info("Using standard PSCI v0.2 function IDs\n");
-+	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
-+	psci_ops.cpu_suspend = psci_cpu_suspend;
-+
-+	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
-+	psci_ops.cpu_off = psci_cpu_off;
-+
-+	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
-+	psci_ops.cpu_on = psci_cpu_on;
-+
-+	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
-+	psci_ops.migrate = psci_migrate;
-+
-+	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
-+	psci_ops.affinity_info = psci_affinity_info;
-+
-+	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
-+		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
-+	psci_ops.migrate_info_type = psci_migrate_info_type;
-+
-+	arm_pm_restart = psci_sys_reset;
-+
-+	pm_power_off = psci_sys_poweroff;
-+}
-+
- /*
-  * PSCI Function IDs for v0.2+ are well defined so use
-  * standard values.
-@@ -306,29 +335,7 @@ static int __init psci_0_2_init(struct device_node *np)
- 		}
- 	}
- 
--	pr_info("Using standard PSCI v0.2 function IDs\n");
--	psci_function_id[PSCI_FN_CPU_SUSPEND] = PSCI_0_2_FN64_CPU_SUSPEND;
--	psci_ops.cpu_suspend = psci_cpu_suspend;
--
--	psci_function_id[PSCI_FN_CPU_OFF] = PSCI_0_2_FN_CPU_OFF;
--	psci_ops.cpu_off = psci_cpu_off;
--
--	psci_function_id[PSCI_FN_CPU_ON] = PSCI_0_2_FN64_CPU_ON;
--	psci_ops.cpu_on = psci_cpu_on;
--
--	psci_function_id[PSCI_FN_MIGRATE] = PSCI_0_2_FN64_MIGRATE;
--	psci_ops.migrate = psci_migrate;
--
--	psci_function_id[PSCI_FN_AFFINITY_INFO] = PSCI_0_2_FN64_AFFINITY_INFO;
--	psci_ops.affinity_info = psci_affinity_info;
--
--	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =
--		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
--	psci_ops.migrate_info_type = psci_migrate_info_type;
--
--	arm_pm_restart = psci_sys_reset;
--
--	pm_power_off = psci_sys_poweroff;
-+	psci_0_2_set_functions();
- 
- out_put_node:
- 	of_node_put(np);
-@@ -381,7 +388,7 @@ static const struct of_device_id psci_of_match[] __initconst = {
- 	{},
- };
- 
--int __init psci_init(void)
-+int __init psci_dt_init(void)
- {
- 	struct device_node *np;
- 	const struct of_device_id *matched_np;
-@@ -396,6 +403,29 @@ int __init psci_init(void)
- 	return init_fn(np);
- }
- 
-+/*
-+ * We use PSCI 0.2+ when ACPI is deployed on ARM64 and it's
-+ * explicitly clarified in SBBR
-+ */
-+int __init psci_acpi_init(void)
-+{
-+	if (!acpi_psci_present()) {
-+		pr_info("is not implemented in ACPI.\n");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	pr_info("probing for conduit method from ACPI.\n");
-+
-+	if (acpi_psci_use_hvc())
-+		invoke_psci_fn = __invoke_psci_fn_hvc;
-+	else
-+		invoke_psci_fn = __invoke_psci_fn_smc;
-+
-+	psci_0_2_set_functions();
-+
-+	return 0;
-+}
-+
- #ifdef CONFIG_SMP
- 
- static int __init cpu_psci_cpu_init(struct device_node *dn, unsigned int cpu)
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index e8c7000..97fa7f3 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -390,10 +390,12 @@ void __init setup_arch(char **cmdline_p)
- 
- 	early_ioremap_reset();
- 
--	if (acpi_disabled)
-+	if (acpi_disabled) {
- 		unflatten_device_tree();
--
--	psci_init();
-+		psci_dt_init();
-+	} else {
-+		psci_acpi_init();
-+	}
- 
- 	cpu_read_bootcpu_ops();
- #ifdef CONFIG_SMP
--- 
-1.9.1
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> >
+> > From db4eb1928219e47fcfbffb913f08b1e1b432c28a Mon Sep 17 00:00:00 2001
+> >From: Aaron Lu <aaron.lu@intel.com>
+> >Date: Wed, 4 Mar 2015 10:24:58 +0800
+> >Subject: [PATCH] acpi: video: Allow forcing native backlight on non win8
+> >  machines
+> >
+> >The native backlight behavior (so not registering both the acpi-video
+> >and the vendor backlight driver) can be useful on some non win8 machines
+> >too, so change the behavior of the video.use_native_backlight=1 or 0
+> >kernel cmdline option to be: if user has set video.use_native_backlight=1
+> >or 0, use that no matter if it is a win8 system or not. Also, we will
+> >put some known systems into the DMI table to make them either use native
+> >backlight interface or not, and the use_native_backlight_dmi is used to
+> >reflect that.
+> >
+> >Original-by: Hans de Goede <hdegoede@redhat.com>
+> >Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> >Acked-by: Hans de Goede <hdegoede@redhat.com>
+> >---
+> >  drivers/acpi/video.c | 19 +++++++++++++------
+> >  1 file changed, 13 insertions(+), 6 deletions(-)
+> >
+> >diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> >index 26eb70c8f518..2f45dca31724 100644
+> >--- a/drivers/acpi/video.c
+> >+++ b/drivers/acpi/video.c
+> >@@ -82,9 +82,15 @@ module_param(allow_duplicates, bool, 0644);
+> >   * For Windows 8 systems: used to decide if video module
+> >   * should skip registering backlight interface of its own.
+> >   */
+> >-static int use_native_backlight_param = -1;
+> >+enum {
+> >+	NATIVE_BACKLIGHT_NOT_SET = -1,
+> >+	NATIVE_BACKLIGHT_OFF,
+> >+	NATIVE_BACKLIGHT_ON,
+> >+};
+> >+
+> >+static int use_native_backlight_param = NATIVE_BACKLIGHT_NOT_SET;
+> >  module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
+> >-static bool use_native_backlight_dmi = true;
+> >+static int use_native_backlight_dmi = NATIVE_BACKLIGHT_NOT_SET;
+> >
+> >  static int register_count;
+> >  static struct mutex video_list_lock;
+> >@@ -237,15 +243,16 @@ static void acpi_video_switch_brightness(struct work_struct *work);
+> >
+> >  static bool acpi_video_use_native_backlight(void)
+> >  {
+> >-	if (use_native_backlight_param != -1)
+> >+	if (use_native_backlight_param != NATIVE_BACKLIGHT_NOT_SET)
+> >  		return use_native_backlight_param;
+> >-	else
+> >+	else if (use_native_backlight_dmi != NATIVE_BACKLIGHT_NOT_SET)
+> >  		return use_native_backlight_dmi;
+> >+	return acpi_osi_is_win8();
+> >  }
+> >
+> >  bool acpi_video_verify_backlight_support(void)
+> >  {
+> >-	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
+> >+	if (acpi_video_use_native_backlight() &&
+> >  	    backlight_device_registered(BACKLIGHT_RAW))
+> >  		return false;
+> >  	return acpi_video_backlight_support();
+> >@@ -414,7 +421,7 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
+> >
+> >  static int __init video_disable_native_backlight(const struct dmi_system_id *d)
+> >  {
+> >-	use_native_backlight_dmi = false;
+> >+	use_native_backlight_dmi = NATIVE_BACKLIGHT_OFF;
+> >  	return 0;
+> >  }
+> >
+> >
