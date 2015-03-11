@@ -1,32 +1,21 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v10 07/21] ARM64 / ACPI: Introduce PCI stub functions for ACPI
-Date: Wed, 11 Mar 2015 20:39:33 +0800
-Message-ID: <1426077587-1561-8-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v10 09/21] ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+Date: Wed, 11 Mar 2015 20:39:35 +0800
+Message-ID: <1426077587-1561-10-git-send-email-hanjun.guo@linaro.org>
 References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:44502 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001AbbCKMl1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 08:41:27 -0400
-Received: by padet14 with SMTP id et14so11117082pad.11
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2015 05:41:27 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-CONFIG_ACPI depends CONFIG_PCI on x86 and ia64, in ARM64 server
-world we will have PCIe in most cases, but some of them may not,
-make CONFIG_ACPI depend CONFIG_PCI on ARM64 will satisfy both.
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-With that case, we need some arch dependent PCI functions to
-access the config space before the PCI root bridge is created, and
-pci_acpi_scan_root() to create the PCI root bus. So introduce
-some stub function here to make ACPI core compile and revisit
-them later when implemented on ARM64.
+If the early boot methods of acpi are happy that we have valid ACPI
+tables and acpi=force has been passed, then do not unflat devicetree
+effectively disabling further hardware probing from DT.
 
-CC: Liviu Dudau <Liviu.Dudau@arm.com>
 CC: Catalin Marinas <catalin.marinas@arm.com>
 CC: Will Deacon <will.deacon@arm.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
@@ -36,70 +25,27 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
+Acked-by: Olof Johansson <olof@lixom.net>
+Acked-by: Grant Likely <grant.likely@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/pci.h |  6 ++++++
- arch/arm64/kernel/pci.c      | 25 +++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ arch/arm64/kernel/setup.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
-index 872ba93..b008a72 100644
---- a/arch/arm64/include/asm/pci.h
-+++ b/arch/arm64/include/asm/pci.h
-@@ -27,6 +27,12 @@
- extern int isa_dma_bridge_buggy;
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 4f1a014..e8c7000 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -390,7 +390,8 @@ void __init setup_arch(char **cmdline_p)
  
- #ifdef CONFIG_PCI
-+static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
-+{
-+	/* no legacy IRQ on arm64 */
-+	return -ENODEV;
-+}
-+
- static inline int pci_proc_domain(struct pci_bus *bus)
- {
- 	return 1;
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index 6f93c24..4095379 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -10,6 +10,7 @@
-  *
-  */
+ 	early_ioremap_reset();
  
-+#include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/io.h>
- #include <linux/kernel.h>
-@@ -46,3 +47,27 @@ int pcibios_add_device(struct pci_dev *dev)
+-	unflatten_device_tree();
++	if (acpi_disabled)
++		unflatten_device_tree();
  
- 	return 0;
- }
-+
-+/*
-+ * raw_pci_read/write - Platform-specific PCI config space access.
-+ */
-+int raw_pci_read(unsigned int domain, unsigned int bus,
-+		  unsigned int devfn, int reg, int len, u32 *val)
-+{
-+	return -ENXIO;
-+}
-+
-+int raw_pci_write(unsigned int domain, unsigned int bus,
-+		unsigned int devfn, int reg, int len, u32 val)
-+{
-+	return -ENXIO;
-+}
-+
-+#ifdef CONFIG_ACPI
-+/* Root bridge scanning */
-+struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-+{
-+	/* TODO: Should be revisited when implementing PCI on ACPI */
-+	return NULL;
-+}
-+#endif
+ 	psci_init();
+ 
 -- 
 1.9.1
-
