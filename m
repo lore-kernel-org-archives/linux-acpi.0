@@ -1,125 +1,49 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v4 7/9] x86, pci, ecam: mmconfig_64.c becomes default
- implementation for ECAM driver.
-Date: Wed, 11 Mar 2015 10:37:29 -0500
-Message-ID: <CAL_JsqJfvOcQ9sSuKfq3YCWubL9QctEDU0CR2mjBze2ZyB+nVg@mail.gmail.com>
-References: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org> <1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH v6 04/22] power_supply: Move run-time configuration to
+ separate structure
+Date: Wed, 11 Mar 2015 17:06:47 +0100 (CET)
+Message-ID: <alpine.LRH.2.00.1503111706310.13021@twin.jikos.cz>
+References: <1425976046-20973-1-git-send-email-k.kozlowski@samsung.com> <1425976046-20973-5-git-send-email-k.kozlowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:37665 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136AbbCKPhv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 11:37:51 -0400
-In-Reply-To: <1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1425976046-20973-5-git-send-email-k.kozlowski@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.orglinux-
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Yijing Wang <wangyijing@huawei.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Mar 11, 2015 at 9:12 AM, Tomasz Nowicki
-<tomasz.nowicki@linaro.org> wrote:
-> Architectures which want to take advantage of ECAM generic goodness
+On Tue, 10 Mar 2015, Krzysztof Kozlowski wrote:
 
-This is not necessarily an architecture decision. It is likely per host.
+> Add new structure 'power_supply_config' for holding run-time
+> initialization data like of_node, supplies and private driver data.
+> 
+> The power_supply_register() function is changed so all power supply
+> drivers need updating.
+> 
+> When registering the power supply this new 'power_supply_config' should be
+> used instead of directly initializing 'struct power_supply'. This allows
+> changing the ownership of power_supply structure from driver to the
+> power supply core in next patches.
+> 
+> When a driver does not use of_node or supplies then it should use NULL
+> as config. If driver uses of_node or supplies then it should allocate
+> config on stack and initialize it with proper values.
+> 
+> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> 
+> [for the nvec part]
+> Reviewed-by: Marc Dietrich <marvin24@gmx.de>
+> 
+> [for drivers/platform/x86/compal-laptop.c]
+> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
 
-> should select CONFIG_PCI_ECAM_GENERIC. Otherwise, like x86 32bits machines,
-> are obligated to provide own low-level ECAM calls.
->
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> ---
+Reviewed-by: Jiri Kosina <jkosina@suse.cz>
 
-[...]
+for changes in drivers/hid/*
 
-> diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-> index c588234..796b6e7 100644
-> --- a/drivers/pci/ecam.c
-> +++ b/drivers/pci/ecam.c
-> @@ -23,6 +23,119 @@ static DEFINE_MUTEX(pci_mmcfg_lock);
->
->  LIST_HEAD(pci_mmcfg_list);
->
-> +#ifdef CONFIG_GENERIC_PCI_ECAM
-> +static char __iomem *pci_dev_base(unsigned int seg, unsigned int bus,
-> +                                 unsigned int devfn)
-> +{
-> +       struct pci_mmcfg_region *cfg = pci_mmconfig_lookup(seg, bus);
-> +
-> +       if (cfg && cfg->virt)
-> +               return cfg->virt + (PCI_MMCFG_BUS_OFFSET(bus) | (devfn << 12));
-> +       return NULL;
-> +}
-> +
-> +int pci_mmcfg_read(unsigned int seg, unsigned int bus,
-> +                         unsigned int devfn, int reg, int len, u32 *value)
-> +{
-> +       char __iomem *addr;
-> +
-> +       /* Why do we have this when nobody checks it. How about a BUG()!? -AK */
-> +       if (unlikely((bus > 255) || (devfn > 255) || (reg > 4095))) {
-> +err:           *value = -1;
-> +               return -EINVAL;
-> +       }
-> +
-> +       rcu_read_lock();
-
-What is the purpose of the rcu lock other than the old implementation had it?
-
-> +       addr = pci_dev_base(seg, bus, devfn);
-
-The .map_bus op provides the same function if you restructure to use
-the generic accessors.
-
-> +       if (!addr) {
-> +               rcu_read_unlock();
-> +               goto err;
-> +       }
-> +
-> +       *value = pci_mmio_read(len, addr + reg);
-> +       rcu_read_unlock();
-> +
-> +       return 0;
-> +}
-> +
-> +int pci_mmcfg_write(unsigned int seg, unsigned int bus,
-> +                          unsigned int devfn, int reg, int len, u32 value)
-> +{
-> +       char __iomem *addr;
-> +
-> +       /* Why do we have this when nobody checks it. How about a BUG()!? -AK */
-> +       if (unlikely((bus > 255) || (devfn > 255) || (reg > 4095)))
-> +               return -EINVAL;
-> +
-> +       rcu_read_lock();
-> +       addr = pci_dev_base(seg, bus, devfn);
-> +       if (!addr) {
-> +               rcu_read_unlock();
-> +               return -EINVAL;
-> +       }
-> +
-> +       pci_mmio_write(len, addr + reg, value);
-> +       rcu_read_unlock();
-> +
-> +       return 0;
-> +}
-> +
-> +static void __iomem *mcfg_ioremap(struct pci_mmcfg_region *cfg)
-> +{
-> +       void __iomem *addr;
-> +       u64 start, size;
-> +       int num_buses;
-> +
-> +       start = cfg->address + PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
-> +       num_buses = cfg->end_bus - cfg->start_bus + 1;
-> +       size = PCI_MMCFG_BUS_OFFSET(num_buses);
-> +       addr = ioremap_nocache(start, size);
-> +       if (addr)
-> +               addr -= PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
-> +       return addr;
-> +}
-> +
-> +int __init pci_mmcfg_arch_init(void)
-
-Where would this be called for the case of the generic host and using DT?
-
-Rob
+-- 
+Jiri Kosina
+SUSE Labs
