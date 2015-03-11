@@ -1,33 +1,32 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v10 14/21] ACPI / processor: Make it possible to get CPU hardware ID via GICC
-Date: Wed, 11 Mar 2015 20:39:40 +0800
-Message-ID: <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v10 11/21] ACPI / table: Print GIC information when MADT is parsed
+Date: Wed, 11 Mar 2015 20:39:37 +0800
+Message-ID: <1426077587-1561-12-git-send-email-hanjun.guo@linaro.org>
 References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:45791 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753181AbbCKMmD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 08:42:03 -0400
-Received: by padbj1 with SMTP id bj1so11120783pad.12
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2015 05:42:02 -0700 (PDT)
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:35011 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753153AbbCKMlr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 08:41:47 -0400
+Received: by pdbfp1 with SMTP id fp1so11020986pdb.2
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2015 05:41:47 -0700 (PDT)
 In-Reply-To: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-from the GICC Structure introduced by ACPI 5.1, since MPIDR for ARM64 is
-64-bit, so typedef u64 for phys_cpuid_t.
+When MADT is parsed, print GIC information as debug message:
 
-The ARM architecture defines the MPIDR register as the CPU hardware
-identifier. This patch adds the code infrastructure to retrieve the MPIDR
-values from the ARM ACPI GICC structure in order to look-up the kernel CPU
-hardware ids required by the ACPI core code to identify CPUs.
+ACPI: GICC (acpi_id[0x0000] address[00000000e112f000] MPIDR[0x0] enabled)
+ACPI: GICC (acpi_id[0x0001] address[00000000e112f000] MPIDR[0x1] enabled)
+...
+ACPI: GICC (acpi_id[0x0201] address[00000000e112f000] MPIDR[0x201] enabled)
+
+This debug information will be very helpful to bring up early systems to
+see if acpi_id and MPIDR are matched or not as spec defined.
 
 CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Yijing Wang <wangyijing@huawei.com>
 Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
@@ -35,105 +34,49 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Acked-by: Grant Likely <grant.likely@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h | 12 ++++++++++++
- drivers/acpi/processor_core.c | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 42 insertions(+)
+ drivers/acpi/tables.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 9719921..eea0bc3 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -13,6 +13,8 @@
- #define _ASM_ACPI_H
- 
- #include <linux/mm.h>
-+#include <asm/cputype.h>
-+#include <asm/smp_plat.h>
- 
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
-@@ -27,6 +29,9 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
- }
- #define acpi_os_ioremap acpi_os_ioremap
- 
-+typedef u64 phys_cpuid_t;
-+#define PHYS_CPUID_INVALID INVALID_HWID
-+
- #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
- extern int acpi_disabled;
- extern int acpi_noirq;
-@@ -59,6 +64,13 @@ static inline void enable_acpi(void)
- }
- 
- /*
-+ * The ACPI processor driver for ACPI core code needs this macro
-+ * to find out this cpu was already mapped (mapping from CPU hardware
-+ * ID to CPU logical ID) or not.
-+ */
-+#define cpu_physical_id(cpu) cpu_logical_map(cpu)
-+
-+/*
-  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-  * with this check the ACPI core will not override the CPU index
-  * obtained from GICC with 0 and not print some error message as well.
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 51cc299..b1ec78b 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -83,6 +83,31 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
- 	return 0;
- }
- 
-+/*
-+ * Retrieve the ARM CPU physical identifier (MPIDR)
-+ */
-+static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-+		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr)
-+{
-+	struct acpi_madt_generic_interrupt *gicc =
-+	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-+
-+	if (!(gicc->flags & ACPI_MADT_ENABLED))
-+		return -ENODEV;
-+
-+	/* device_declaration means Device object in DSDT, in the
-+	 * GIC interrupt model, logical processors are required to
-+	 * have a Processor Device object in the DSDT, so we should
-+	 * check device_declaration here
-+	 */
-+	if (device_declaration && (gicc->uid == acpi_id)) {
-+		*mpidr = gicc->arm_mpidr;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -111,6 +136,9 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
- 			if (!map_lsapic_id(header, type, acpi_id, &phys_id))
- 				break;
-+		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-+			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id))
-+				break;
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index f4e5b88..2e19189 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -185,6 +185,28 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
  		}
- 		entry += header->length;
- 	}
-@@ -143,6 +171,8 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 		map_lsapic_id(header, type, acpi_id, &phys_id);
- 	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
- 		map_x2apic_id(header, type, acpi_id, &phys_id);
-+	else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT)
-+		map_gicc_mpidr(header, type, acpi_id, &phys_id);
+ 		break;
  
- exit:
- 	kfree(buffer.pointer);
++	case ACPI_MADT_TYPE_GENERIC_INTERRUPT:
++		{
++			struct acpi_madt_generic_interrupt *p =
++				(struct acpi_madt_generic_interrupt *)header;
++			pr_debug("GICC (acpi_id[0x%04x] address[%llx] MPIDR[0x%llx] %s)\n",
++				 p->uid, p->base_address,
++				 p->arm_mpidr,
++				 (p->flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
++
++		}
++		break;
++
++	case ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR:
++		{
++			struct acpi_madt_generic_distributor *p =
++				(struct acpi_madt_generic_distributor *)header;
++			pr_debug("GIC Distributor (gic_id[0x%04x] address[%llx] gsi_base[%d])\n",
++				 p->gic_id, p->base_address,
++				 p->global_irq_base);
++		}
++		break;
++
+ 	default:
+ 		pr_warn("Found unsupported MADT entry (type = 0x%x)\n",
+ 			header->type);
 -- 
 1.9.1
 
