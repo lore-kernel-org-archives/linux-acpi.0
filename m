@@ -1,117 +1,123 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH update] acpi: video: Allow forcing native backlight on
- non win8, machines
-Date: Wed, 11 Mar 2015 12:14:41 +0100
-Message-ID: <550023A1.3060606@redhat.com>
-References: <1425368350-4028-1-git-send-email-hdegoede@redhat.com> <3175131.PO6aPjpaNK@vostro.rjw.lan> <54FF734D.5070107@redhat.com> <1592515.vScOiuKqBv@vostro.rjw.lan> <54FFDD60.80408@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Wed, 11 Mar 2015 20:39:26 +0800
+Message-ID: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60819 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751186AbbCKLOr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Mar 2015 07:14:47 -0400
-In-Reply-To: <54FFDD60.80408@intel.com>
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:37723 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395AbbCKMkm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 08:40:42 -0400
+Received: by pdbnh10 with SMTP id nh10so10989789pdb.4
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Mar 2015 05:40:41 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi,
+This patch set already tested on multi platforms:
+ - AMD Seattle board;
+ - Cavium Thunder board;
+ - Huawei D02 board;
+ - Qualcomm ARM64 platform
 
-On 11-03-15 07:14, Aaron Lu wrote:
-> On 03/11/2015 07:10 AM, Rafael J. Wysocki wrote:
->> On Tuesday, March 10, 2015 11:42:21 PM Hans de Goede wrote:
->>> So you want to have a native_backlight enum or some such ? with -1 being not_set ?
->>
->> Yes, something like that.
->
-> OK, here is an updated one:
+This version 10 patch set address some minor comments and collect ACKs and
+Reviewed-bys for v9:
 
-Looks good to me, my ack still stands. I need to send a bunch of
-mails back / forth to tackle the issue the ideapad which caused me to
-work on this in the first case. So lets merge this one first, and
-then I'll get back with a patch on top of this when I know how to
-actually best deal with the problem on that machine.
+ - new Acks from Rafael, Olof, Grant, Lorenzo
+ - new way to handle typdef phys_cpuid_t which suggested by Rafael,
+   but no functional change
+ - Remove if(!phys) for early ioremappings
+ - Rework sleep function for ARM64
+ - Introduce linux/acpi_irq.h to hold acpi_irq_init()
+ - Disable ACPI if not HW_REDUCED_ACPI compliant
+ - Remove the doc of why ACPI on ARM
 
-Regards,
+Thanks
+Hanjun
 
-Hans
+Al Stone (4):
+  ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+  ARM64 / ACPI: Introduce early_param "acpi=" to enable/disable ACPI
+  ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
+    ARM64
+  ARM64 / ACPI: additions of ACPI documentation for arm64
 
+Graeme Gregory (6):
+  ACPI: add arm64 to the platforms that use ioremap
+  ACPI / sleep: Introduce CONFIG_ACPI_GENERIC_SLEEP
+  ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+  ARM64 / ACPI: Get PSCI flags in FADT for PSCI init
+  ARM64 / ACPI: Enable ARM64 in Kconfig
+  Documentation: ACPI for ARM64
 
->
->  From db4eb1928219e47fcfbffb913f08b1e1b432c28a Mon Sep 17 00:00:00 2001
-> From: Aaron Lu <aaron.lu@intel.com>
-> Date: Wed, 4 Mar 2015 10:24:58 +0800
-> Subject: [PATCH] acpi: video: Allow forcing native backlight on non win8
->   machines
->
-> The native backlight behavior (so not registering both the acpi-video
-> and the vendor backlight driver) can be useful on some non win8 machines
-> too, so change the behavior of the video.use_native_backlight=1 or 0
-> kernel cmdline option to be: if user has set video.use_native_backlight=1
-> or 0, use that no matter if it is a win8 system or not. Also, we will
-> put some known systems into the DMI table to make them either use native
-> backlight interface or not, and the use_native_backlight_dmi is used to
-> reflect that.
->
-> Original-by: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->   drivers/acpi/video.c | 19 +++++++++++++------
->   1 file changed, 13 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 26eb70c8f518..2f45dca31724 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -82,9 +82,15 @@ module_param(allow_duplicates, bool, 0644);
->    * For Windows 8 systems: used to decide if video module
->    * should skip registering backlight interface of its own.
->    */
-> -static int use_native_backlight_param = -1;
-> +enum {
-> +	NATIVE_BACKLIGHT_NOT_SET = -1,
-> +	NATIVE_BACKLIGHT_OFF,
-> +	NATIVE_BACKLIGHT_ON,
-> +};
-> +
-> +static int use_native_backlight_param = NATIVE_BACKLIGHT_NOT_SET;
->   module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
-> -static bool use_native_backlight_dmi = true;
-> +static int use_native_backlight_dmi = NATIVE_BACKLIGHT_NOT_SET;
->
->   static int register_count;
->   static struct mutex video_list_lock;
-> @@ -237,15 +243,16 @@ static void acpi_video_switch_brightness(struct work_struct *work);
->
->   static bool acpi_video_use_native_backlight(void)
->   {
-> -	if (use_native_backlight_param != -1)
-> +	if (use_native_backlight_param != NATIVE_BACKLIGHT_NOT_SET)
->   		return use_native_backlight_param;
-> -	else
-> +	else if (use_native_backlight_dmi != NATIVE_BACKLIGHT_NOT_SET)
->   		return use_native_backlight_dmi;
-> +	return acpi_osi_is_win8();
->   }
->
->   bool acpi_video_verify_backlight_support(void)
->   {
-> -	if (acpi_osi_is_win8() && acpi_video_use_native_backlight() &&
-> +	if (acpi_video_use_native_backlight() &&
->   	    backlight_device_registered(BACKLIGHT_RAW))
->   		return false;
->   	return acpi_video_backlight_support();
-> @@ -414,7 +421,7 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
->
->   static int __init video_disable_native_backlight(const struct dmi_system_id *d)
->   {
-> -	use_native_backlight_dmi = false;
-> +	use_native_backlight_dmi = NATIVE_BACKLIGHT_OFF;
->   	return 0;
->   }
->
->
+Hanjun Guo (8):
+  ACPI / table: Use pr_debug() instead of pr_info() for MADT table
+    scanning
+  ARM64 / ACPI: Introduce PCI stub functions for ACPI
+  ACPI / table: Print GIC information when MADT is parsed
+  ARM64 / ACPI: Parse MADT for SMP initialization
+  ACPI / processor: Introduce phys_cpuid_t for CPU hardware ID
+  ACPI / processor: Make it possible to get CPU hardware ID via GICC
+  ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+  clocksource / arch_timer: Parse GTDT to initialize arch timer
+
+Mark Salter (2):
+  ARM64: allow late use of early_ioremap
+  ACPI: fix acpi_os_ioremap for arm64
+
+Tomasz Nowicki (1):
+  irqchip: Add GICv2 specific ACPI boot support
+
+ Documentation/arm64/acpi_object_usage.txt | 593 ++++++++++++++++++++++++++++++
+ Documentation/arm64/arm-acpi.txt          | 505 +++++++++++++++++++++++++
+ Documentation/kernel-parameters.txt       |   3 +-
+ arch/arm64/Kconfig                        |   3 +
+ arch/arm64/include/asm/acenv.h            |  18 +
+ arch/arm64/include/asm/acpi.h             |  96 +++++
+ arch/arm64/include/asm/cpu_ops.h          |   1 +
+ arch/arm64/include/asm/fixmap.h           |   3 +
+ arch/arm64/include/asm/irq.h              |  13 +
+ arch/arm64/include/asm/pci.h              |   6 +
+ arch/arm64/include/asm/psci.h             |   3 +-
+ arch/arm64/include/asm/smp.h              |   5 +-
+ arch/arm64/kernel/Makefile                |   1 +
+ arch/arm64/kernel/acpi.c                  | 392 ++++++++++++++++++++
+ arch/arm64/kernel/cpu_ops.c               |   2 +-
+ arch/arm64/kernel/pci.c                   |  25 ++
+ arch/arm64/kernel/psci.c                  |  78 ++--
+ arch/arm64/kernel/setup.c                 |  21 +-
+ arch/arm64/kernel/smp.c                   |   2 +-
+ arch/arm64/kernel/time.c                  |   7 +
+ arch/ia64/Kconfig                         |   1 +
+ arch/ia64/kernel/acpi.c                   |   2 +-
+ arch/x86/Kconfig                          |   1 +
+ arch/x86/kernel/acpi/boot.c               |   2 +-
+ drivers/acpi/Kconfig                      |   7 +-
+ drivers/acpi/Makefile                     |   2 +-
+ drivers/acpi/acpi_processor.c             |   7 +-
+ drivers/acpi/bus.c                        |   3 +
+ drivers/acpi/internal.h                   |   4 +
+ drivers/acpi/osl.c                        |   6 +-
+ drivers/acpi/processor_core.c             |  60 ++-
+ drivers/acpi/tables.c                     |  52 ++-
+ drivers/clocksource/arm_arch_timer.c      | 132 +++++--
+ drivers/irqchip/irq-gic.c                 | 102 +++++
+ drivers/irqchip/irqchip.c                 |   3 +
+ include/acpi/acpi_io.h                    |   4 +
+ include/acpi/processor.h                  |   6 +-
+ include/linux/acpi.h                      |   8 +-
+ include/linux/acpi_irq.h                  |  10 +
+ include/linux/clocksource.h               |   6 +
+ include/linux/irqchip/arm-gic-acpi.h      |  31 ++
+ 41 files changed, 2121 insertions(+), 105 deletions(-)
+ create mode 100644 Documentation/arm64/acpi_object_usage.txt
+ create mode 100644 Documentation/arm64/arm-acpi.txt
+ create mode 100644 arch/arm64/include/asm/acenv.h
+ create mode 100644 arch/arm64/include/asm/acpi.h
+ create mode 100644 arch/arm64/kernel/acpi.c
+ create mode 100644 include/linux/acpi_irq.h
+ create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+
+-- 
+1.9.1
+
