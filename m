@@ -1,49 +1,48 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH v6 04/22] power_supply: Move run-time configuration to
- separate structure
-Date: Wed, 11 Mar 2015 17:06:47 +0100 (CET)
-Message-ID: <alpine.LRH.2.00.1503111706310.13021@twin.jikos.cz>
-References: <1425976046-20973-1-git-send-email-k.kozlowski@samsung.com> <1425976046-20973-5-git-send-email-k.kozlowski@samsung.com>
+From: Brian Gerst <brgerst@gmail.com>
+Subject: Re: [PATCH v4 7/9] x86, pci, ecam: mmconfig_64.c becomes default
+ implementation for ECAM driver.
+Date: Wed, 11 Mar 2015 12:30:28 -0400
+Message-ID: <CAMzpN2gLjuddMYKJY9z=e=oG0P-NjV-mfjtvYRAY6HXCWn5-UQ@mail.gmail.com>
+References: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org>
+	<1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1425976046-20973-5-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Kosina <jkosina@suse.cz>, David Herrmann <dh.herrmann@googlemail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Support Opensource <support.opensource@diasemi.com>, Milo Kim <milo.kim@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.orglinux-
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:43611 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886AbbCKQaa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 12:30:30 -0400
+In-Reply-To: <1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, rjw@rjwysocki.net, al.stone@linaro.org, linux-arm-kernel@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Tue, 10 Mar 2015, Krzysztof Kozlowski wrote:
+On Wed, Mar 11, 2015 at 10:12 AM, Tomasz Nowicki
+<tomasz.nowicki@linaro.org> wrote:
 
-> Add new structure 'power_supply_config' for holding run-time
-> initialization data like of_node, supplies and private driver data.
-> 
-> The power_supply_register() function is changed so all power supply
-> drivers need updating.
-> 
-> When registering the power supply this new 'power_supply_config' should be
-> used instead of directly initializing 'struct power_supply'. This allows
-> changing the ownership of power_supply structure from driver to the
-> power supply core in next patches.
-> 
-> When a driver does not use of_node or supplies then it should use NULL
-> as config. If driver uses of_node or supplies then it should allocate
-> config on stack and initialize it with proper values.
-> 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> Reviewed-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> 
-> [for the nvec part]
-> Reviewed-by: Marc Dietrich <marvin24@gmx.de>
-> 
-> [for drivers/platform/x86/compal-laptop.c]
-> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+> diff --git a/arch/x86/pci/Makefile b/arch/x86/pci/Makefile
+> index 5c6fc35..35c765b 100644
+> --- a/arch/x86/pci/Makefile
+> +++ b/arch/x86/pci/Makefile
+> @@ -1,7 +1,10 @@
+>  obj-y                          := i386.o init.o
+>
+>  obj-$(CONFIG_PCI_BIOS)         += pcbios.o
+> -obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig_$(BITS).o direct.o mmconfig-shared.o
+> +obj-$(CONFIG_PCI_MMCONFIG)     += direct.o mmconfig-shared.o
+> +ifeq ($(BITS),32)
+> +obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig_32.o
+> +endif
+>  obj-$(CONFIG_PCI_DIRECT)       += direct.o
+>  obj-$(CONFIG_PCI_OLPC)         += olpc.o
+>  obj-$(CONFIG_PCI_XEN)          += xen.o
 
-Reviewed-by: Jiri Kosina <jkosina@suse.cz>
+This would be better written as:
 
-for changes in drivers/hid/*
+mmconfig-y := direct.o mmconfig-shared.o
+mmconfig-$(CONFIG_X86_32) += mmconfig_32.o
+obj-$(CONFIG_PCI_MMCONFIG) += $(mmconfig-y)
 
--- 
-Jiri Kosina
-SUSE Labs
+--
+Brian Gerst
