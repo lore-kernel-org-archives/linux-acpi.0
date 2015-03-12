@@ -1,156 +1,71 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 14/21] ACPI / processor: Make it possible to get CPU
- hardware ID via GICC
-Date: Thu, 12 Mar 2015 15:41:17 +0000
-Message-ID: <20150312154117.GD18414@red-moon>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] x86/PCI: Fully disable devices before releasing IRQ resource
+Date: Thu, 12 Mar 2015 17:08:08 +0100
+Message-ID: <20677458.zLzU1h62B0@vostro.rjw.lan>
+References: <20150305210529.6393.29546.stgit@gimli.home> <6862626.yP8c2o2fAj@vostro.rjw.lan> <5500EEC1.9000902@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49361 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754170AbbCLPlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Mar 2015 11:41:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59026 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751563AbbCLPoZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 11:44:25 -0400
+In-Reply-To: <5500EEC1.9000902@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, "x86@kernel.org" <x86@kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, "bp@alien8.de" <bp@alien8.de>, "Zheng, Lv" <lv.zheng@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Mar 11, 2015 at 12:39:40PM +0000, Hanjun Guo wrote:
-> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-> from the GICC Structure introduced by ACPI 5.1, since MPIDR for ARM64 is
-> 64-bit, so typedef u64 for phys_cpuid_t.
-> 
-> The ARM architecture defines the MPIDR register as the CPU hardware
-> identifier. This patch adds the code infrastructure to retrieve the MPIDR
-> values from the ARM ACPI GICC structure in order to look-up the kernel CPU
-> hardware ids required by the ACPI core code to identify CPUs.
+On Thursday, March 12, 2015 09:41:21 AM Jiang Liu wrote:
+> On 2015/3/12 9:17, Rafael J. Wysocki wrote:
+> > On Wednesday, March 11, 2015 10:04:42 PM Luck, Tony wrote:
+> >>>> Unfortunately there's a long standing comment in pci_device_remove():
+> >>>>
+> >>>>         /*
+> >>>>          * We would love to complain here if pci_dev->is_enabled is set, that
+> >>>>          * the driver should have called pci_disable_device(), but the
+> >>>>          * unfortunate fact is there are too many odd BIOS and bridge setups
+> >>>>          * that don't like drivers doing that all of the time.
+> >>>>          * Oh well, we can dream of sane hardware when we sleep, no matter how
+> >>>>          * horrible the crap we have to deal with is when we are awake...
+> >>>>          */
+> >>>>
+> >>>> So, unless we can somehow ignore that comment, I suspect forcing the
+> >>>> device to be disabled on driver remove, whether done from pci-core or
+> >>>> from x86/pci, is going to cause all sorts of breakage.  Are the
+> >>>> expectations set by b4b55cda5874 really valid?  It seems like something
+> >>>> needs to be done to allow the IRQ to be automatically re-established on
+> >>>> x86 regardless of the driver doing the right thing when releasing the
+> >>>> device.  We're still looking at a regression for v4.0 as a result of
+> >>>> b4b55cda5874.
+> >>>
+> >>> In which case we probably should revert commit b4b55cda5874 for the time being.
+> >>>
+> >>> At least I'd be very nervous about any ad-hoc fixes at this stage of the cycle.
+> >>
+> >> The comment goes back to the dawn of "git" time ... not sure how much further
+> >> back.
+> >>
+> >> Is this actually still an issue on modern systems?  Maybe we need a black list
+> >> or white list to separate the good from bad systems?
+> > 
+> > The answer to that is "We don't know" and in my not so humble opinion it is too
+> > risky to try to find out at the end of the cycle.
+> Hi Rafael and Alex,
+> How about a patch which:
+> 1) gives a warning if PCI device is still enabled when unloading driver
 
-Nit: To me the two paragraphs above should be swapped, current log
-sounds odd; first you define what an MPIDR is, then define what the patch
-does with it, no need to respin.
+That may become sort of noisy.  I really would prefer to introduce things like
+that by the beginning of the cycle, not by the end of it.
 
-I still have some reservations related to ACPI core code mapping
-of physical to logical CPUs, in particular I loathe the multiple parsing
-of MADT to get the same values twice - create cpu_logical_map and map
-processor objects to logical cpu ids - but given the current state of
-affairs, this patch looks fine:
+> 2) release PCI interrupt only if PCI device is disabled.
+> By this way, we could support IOAPIC hot-removal on latest platforms and
+> avoid regressions on old platforms.
 
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Well, please submit a patch for discussion.
 
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Will Deacon <will.deacon@arm.com>
-> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Yijing Wang <wangyijing@huawei.com>
-> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-> Tested-by: Jon Masters <jcm@redhat.com>
-> Tested-by: Timur Tabi <timur@codeaurora.org>
-> Tested-by: Robert Richter <rrichter@cavium.com>
-> Acked-by: Robert Richter <rrichter@cavium.com>
-> Reviewed-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/include/asm/acpi.h | 12 ++++++++++++
->  drivers/acpi/processor_core.c | 30 ++++++++++++++++++++++++++++++
->  2 files changed, 42 insertions(+)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 9719921..eea0bc3 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -13,6 +13,8 @@
->  #define _ASM_ACPI_H
->  
->  #include <linux/mm.h>
-> +#include <asm/cputype.h>
-> +#include <asm/smp_plat.h>
->  
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
-> @@ -27,6 +29,9 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
->  }
->  #define acpi_os_ioremap acpi_os_ioremap
->  
-> +typedef u64 phys_cpuid_t;
-> +#define PHYS_CPUID_INVALID INVALID_HWID
-> +
->  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
->  extern int acpi_disabled;
->  extern int acpi_noirq;
-> @@ -59,6 +64,13 @@ static inline void enable_acpi(void)
->  }
->  
->  /*
-> + * The ACPI processor driver for ACPI core code needs this macro
-> + * to find out this cpu was already mapped (mapping from CPU hardware
-> + * ID to CPU logical ID) or not.
-> + */
-> +#define cpu_physical_id(cpu) cpu_logical_map(cpu)
-> +
-> +/*
->   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
->   * with this check the ACPI core will not override the CPU index
->   * obtained from GICC with 0 and not print some error message as well.
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 51cc299..b1ec78b 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -83,6 +83,31 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  	return 0;
->  }
->  
-> +/*
-> + * Retrieve the ARM CPU physical identifier (MPIDR)
-> + */
-> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-> +		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr)
-> +{
-> +	struct acpi_madt_generic_interrupt *gicc =
-> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-> +
-> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
-> +		return -ENODEV;
-> +
-> +	/* device_declaration means Device object in DSDT, in the
-> +	 * GIC interrupt model, logical processors are required to
-> +	 * have a Processor Device object in the DSDT, so we should
-> +	 * check device_declaration here
-> +	 */
-> +	if (device_declaration && (gicc->uid == acpi_id)) {
-> +		*mpidr = gicc->arm_mpidr;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
->  static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
->  {
->  	unsigned long madt_end, entry;
-> @@ -111,6 +136,9 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
->  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
->  			if (!map_lsapic_id(header, type, acpi_id, &phys_id))
->  				break;
-> +		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-> +			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id))
-> +				break;
->  		}
->  		entry += header->length;
->  	}
-> @@ -143,6 +171,8 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
->  		map_lsapic_id(header, type, acpi_id, &phys_id);
->  	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
->  		map_x2apic_id(header, type, acpi_id, &phys_id);
-> +	else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT)
-> +		map_gicc_mpidr(header, type, acpi_id, &phys_id);
->  
->  exit:
->  	kfree(buffer.pointer);
-> -- 
-> 1.9.1
-> 
-> 
+I would like to know Bjorn's opinion about that too at least.
+
+Rafael
+
