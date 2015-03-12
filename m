@@ -1,44 +1,32 @@
-From: Sandra toyin rain elizabeth <toyinelizabeth803@gmail.com>
-Subject: Please kindly read my message
-Date: Thu, 12 Mar 2015 19:40:32 +0000
-Message-ID: <CACOh5BvGQvFDFco_cMGTsbCYk4D+VO6Yyhq=4NufnK2L+OGdVA__4663.42994845963$1426189256$gmane$org@mail.gmail.com>
-Reply-To: noura_jolly@live.fr
+From: adv_scaffold@btconnect.com
+Subject: lening.
+Date: Fri, 13 Mar 2015 01:38:15 +0530
+Message-ID: <201503122008.VZK86672__38186.5942654715$1426191450$gmane$org@c2beaomr06.btconnect.com>
+Reply-To: jr9304396@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f195.google.com ([209.85.217.195]:34086 "EHLO
-	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756487AbbCLTkd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 15:40:33 -0400
-Received: by lbiw7 with SMTP id w7so3624460lbi.1
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Mar 2015 12:40:32 -0700 (PDT)
+Received: from C2BEAOMR16.btconnect.com ([213.123.26.159]:6896 "EHLO
+	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754078AbbCLURJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 16:17:09 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <adv_scaffold@btconnect.com>
 
-Please kindly read my message
-
-Hello
-
-
- it is with tears that i am writing to you i need your help and
-assistance am an aging widow suffering from long time cancer of the
-throat and  I inherited from my late husband, the sum of 9. 5 Millions
- Nine  Million  Five Hundred  Thousand Dollars and I need someone like
-you a foreign partner that will   withdraw this money then use for
-better investments and charity in your country , i contacted you to do
-this because i am seriously sick and i will not have time to do all i
-have stated because of my health and the doctors have already told me
-that i have few time to live so please  if you are intrested  kindly
-let me knowimmediately so that we can proceed because i am really
-suffering from this illness cancer so please have mercy and pity on me
-and help me get my funds transferred.
-
-
-Warmest Regards,
-
-Mme.sandra
-
-
-
-
-Reply to noura_jolly@live.fr or honoresandranini@gmail.com
+Heeft u een lening nodig voor het opstarten van een bedrijf of om te betalen uw facturen op 3%? Wij bieden lening aan particulieren en rechtspersonen, Neem contact met ons op met uw kredietnemer informatie. E-mail: via jr9304396@gmail.com
+Volledige Namen ............
+Land .............
+Staat ..............
+Sex .............
+Leeftijd .............
+Thuisadres ..............
+Persoonlijke Telefoonnummer .............
+Telefoonnummer thuis ..............
+Maandelijks Inkomen .............
+Lening Bedrag dat nodig .............
+Lening Duur ......................
+ 
+Een mooie dag verder.
