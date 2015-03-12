@@ -1,65 +1,29 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: The count field of counter_show() function should be an unsigned value
-Date: Thu, 12 Mar 2015 23:41:35 +0100
-Message-ID: <1699654.r9C5QRPvQq@vostro.rjw.lan>
-References: <1425466115-26306-1-git-send-email-jlee@suse.com>
+Subject: Re: [PATCH 0/2] ACPI / EC: Enhance logging/debugging.
+Date: Thu, 12 Mar 2015 23:42:32 +0100
+Message-ID: <30354528.S7QEWNWyT3@vostro.rjw.lan>
+References: <alpine.LNX.2.11.1502151932250.630@localhost> <cover.1425019470.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64599 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751053AbbCLWRt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 18:17:49 -0400
-In-Reply-To: <1425466115-26306-1-git-send-email-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1425019470.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>, Nan Li <nli@suse.com>
 
-On Wednesday, March 04, 2015 06:48:35 PM Lee, Chun-Yi wrote:
-> From: Nan Li <nli@suse.com>
+On Friday, February 27, 2015 02:48:07 PM Lv Zheng wrote:
+> This patchset enhances logging/debugging support in EC driver.
 > 
-> The count field is an unsigned 32bit value, and the
-> counter_show() function should also treat it as a unsigned
-> value.
+> Lv Zheng (2):
+>   ACPI / EC: Cleanup logging/debugging splitter support.
+>   ACPI / EC: Add GPE reference counting debugging messages.
 > 
-> Otherwise the counter may show negative number as we found on a
-> machine:
-> ...
-> gpe23:        0   invalid
-> gpe24: -2071733   enabled
-> gpe25:        0   invalid
-> ...
-> gpe_all: -2070980
-> sci: -2070949
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Thomas Renninger <trenn@suse.de>
-> Signed-off-by: Nan Li <nli@suse.com>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+>  drivers/acpi/ec.c |  120 +++++++++++++++++++++++++++++++++++++----------------
+>  1 file changed, 84 insertions(+), 36 deletions(-)
 
 Queued up for 4.1, thanks!
-
-> ---
->  drivers/acpi/sysfs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index 13e577c..0876d77 100644
-> --- a/drivers/acpi/sysfs.c
-> +++ b/drivers/acpi/sysfs.c
-> @@ -527,7 +527,7 @@ static ssize_t counter_show(struct kobject *kobj,
->  	    acpi_irq_not_handled;
->  	all_counters[num_gpes + ACPI_NUM_FIXED_EVENTS + COUNT_GPE].count =
->  	    acpi_gpe_count;
-> -	size = sprintf(buf, "%8d", all_counters[index].count);
-> +	size = sprintf(buf, "%8u", all_counters[index].count);
->  
->  	/* "gpe_all" or "sci" */
->  	if (index >= num_gpes + ACPI_NUM_FIXED_EVENTS)
-> 
 
 -- 
 I speak only for myself.
