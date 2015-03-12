@@ -1,146 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v10 14/21] ACPI / processor: Make it possible to get CPU hardware ID via GICC
-Date: Fri, 13 Mar 2015 00:02:43 +0100
-Message-ID: <1560062.pl024AE6s4@vostro.rjw.lan>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [LKP] [mm/hotplug] 27356f54c8c:
+Date: Thu, 12 Mar 2015 16:44:19 -0600
+Message-ID: <1426200259.17007.448.camel@misato.fc.hp.com>
+References: <1426142552.6711.218.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56350 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751000AbbCLWi6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 18:38:58 -0400
-In-Reply-To: <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1426142552.6711.218.camel@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, LKP ML <lkp@01.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wednesday, March 11, 2015 08:39:40 PM Hanjun Guo wrote:
-> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
-> from the GICC Structure introduced by ACPI 5.1, since MPIDR for ARM64 is
-> 64-bit, so typedef u64 for phys_cpuid_t.
+On Thu, 2015-03-12 at 14:42 +0800, Huang Ying wrote:
+> FYI, we noticed the below changes on
 > 
-> The ARM architecture defines the MPIDR register as the CPU hardware
-> identifier. This patch adds the code infrastructure to retrieve the MPIDR
-> values from the ARM ACPI GICC structure in order to look-up the kernel CPU
-> hardware ids required by the ACPI core code to identify CPUs.
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> commit 27356f54c8c32609ff45b4ed333bb64fb2eef374 ("mm/hotplug: verify hotplug memory range")
 > 
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Will Deacon <will.deacon@arm.com>
-> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Yijing Wang <wangyijing@huawei.com>
-> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-> Tested-by: Jon Masters <jcm@redhat.com>
-> Tested-by: Timur Tabi <timur@codeaurora.org>
-> Tested-by: Robert Richter <rrichter@cavium.com>
-> Acked-by: Robert Richter <rrichter@cavium.com>
-> Reviewed-by: Grant Likely <grant.likely@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> This may be the expected behavior, we found the following new line in dmesg during boot test for this commit.
+> 
+> [    6.774235] Section-unaligned hotplug range: start 0x1000000, size 0x7b000000
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+There is no harmful effect on this error, but we should avoid this error
+at boot-time.  More details are as follows...
 
-> ---
->  arch/arm64/include/asm/acpi.h | 12 ++++++++++++
->  drivers/acpi/processor_core.c | 30 ++++++++++++++++++++++++++++++
->  2 files changed, 42 insertions(+)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 9719921..eea0bc3 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -13,6 +13,8 @@
->  #define _ASM_ACPI_H
->  
->  #include <linux/mm.h>
-> +#include <asm/cputype.h>
-> +#include <asm/smp_plat.h>
->  
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
-> @@ -27,6 +29,9 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
->  }
->  #define acpi_os_ioremap acpi_os_ioremap
->  
-> +typedef u64 phys_cpuid_t;
-> +#define PHYS_CPUID_INVALID INVALID_HWID
-> +
->  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
->  extern int acpi_disabled;
->  extern int acpi_noirq;
-> @@ -59,6 +64,13 @@ static inline void enable_acpi(void)
->  }
->  
->  /*
-> + * The ACPI processor driver for ACPI core code needs this macro
-> + * to find out this cpu was already mapped (mapping from CPU hardware
-> + * ID to CPU logical ID) or not.
-> + */
-> +#define cpu_physical_id(cpu) cpu_logical_map(cpu)
-> +
-> +/*
->   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
->   * with this check the ACPI core will not override the CPU index
->   * obtained from GICC with 0 and not print some error message as well.
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 51cc299..b1ec78b 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -83,6 +83,31 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  	return 0;
->  }
->  
-> +/*
-> + * Retrieve the ARM CPU physical identifier (MPIDR)
-> + */
-> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
-> +		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr)
-> +{
-> +	struct acpi_madt_generic_interrupt *gicc =
-> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
-> +
-> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
-> +		return -ENODEV;
-> +
-> +	/* device_declaration means Device object in DSDT, in the
-> +	 * GIC interrupt model, logical processors are required to
-> +	 * have a Processor Device object in the DSDT, so we should
-> +	 * check device_declaration here
-> +	 */
-> +	if (device_declaration && (gicc->uid == acpi_id)) {
-> +		*mpidr = gicc->arm_mpidr;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
->  static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
->  {
->  	unsigned long madt_end, entry;
-> @@ -111,6 +136,9 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
->  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
->  			if (!map_lsapic_id(header, type, acpi_id, &phys_id))
->  				break;
-> +		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-> +			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id))
-> +				break;
->  		}
->  		entry += header->length;
->  	}
-> @@ -143,6 +171,8 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
->  		map_lsapic_id(header, type, acpi_id, &phys_id);
->  	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
->  		map_x2apic_id(header, type, acpi_id, &phys_id);
-> +	else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT)
-> +		map_gicc_mpidr(header, type, acpi_id, &phys_id);
->  
->  exit:
->  	kfree(buffer.pointer);
-> 
+Memory hot-plug code has a restriction that a hotplug memory range needs
+to be aligned by the section size, 128MB on x86.  Therefore, a
+hotplug-able memory represented by an ACPI memory device object needs to
+be aligned by the section size.  Such hotplug-able memory is most likely
+aligned by a much bigger size, and this restriction has not been an
+issue.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+The ACPI memory handler also enumerates all ACPI memory device objects
+at boot-time for enabling hot-delete of boot-time memory.  The ACPI
+memory device objects enabled at boot-time include both ejectable and
+non-ejectable objects.  This test shows that a non-ejectable object is
+not necessarily aligned by the section size.  The memory handler cannot
+handle an eject request to the object caused this error, but this object
+(or this memory range) is not ejectable anyway.  Hence, this error is
+harmless at boot-time.
+
+The memory handler attempts to add memory objects at boot-time even
+though their memory ranges have already been added through the e820/EFI
+table.  While this allows the same code to work at both boot-time and
+hot-add time (which is nice), we may need to some additional check to
+avoid this error case with non-ejectable objects at boot-time.
+
+Thanks,
+-Toshi 
+
+ 
