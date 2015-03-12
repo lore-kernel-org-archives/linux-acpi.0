@@ -1,61 +1,75 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
-Date: Thu, 12 Mar 2015 10:14:29 +0000
-Message-ID: <55016705.5010406@arm.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org> <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com> <20150311231141.GG21998@io.lakedaemon.net>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v10 13/21] ACPI / processor: Introduce phys_cpuid_t for
+ CPU hardware ID
+Date: Thu, 12 Mar 2015 18:16:45 +0800
+Message-ID: <5501678D.5090608@linaro.org>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-14-git-send-email-hanjun.guo@linaro.org> <20150312095151.GB18414@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150311231141.GG21998@io.lakedaemon.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Cooper <jason@lakedaemon.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Robert Richter <rric@kernel.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.inf
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:40957 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751762AbbCLKQ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 06:16:56 -0400
+Received: by padfb1 with SMTP id fb1so19395167pad.7
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Mar 2015 03:16:55 -0700 (PDT)
+In-Reply-To: <20150312095151.GB18414@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 
-On 11/03/15 23:11, Jason Cooper wrote:
-> Hey Grant,
-> 
-> On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
->> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
->>>
->>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>>
->>> ACPI kernel uses MADT table for proper GIC initialization. It needs to
->>> parse GIC related subtables, collect CPU interface and distributor
->>> addresses and call driver initialization function (which is hardware
->>> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
->>>
->>> NOTE: This commit allow to initialize GICv1/2 basic functionality.
->>> While now simple GICv2 init call is used, any further GIC features
->>> require generic infrastructure for proper ACPI irqchip initialization.
->>> That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
->>> extension, GICv3/4 and its ITS are considered as next steps.
->>>
->>> CC: Jason Cooper <jason@lakedaemon.net>
->>> CC: Marc Zyngier <marc.zyngier@arm.com>
->>> CC: Thomas Gleixner <tglx@linutronix.de>
+On 2015=E5=B9=B403=E6=9C=8812=E6=97=A5 17:51, Lorenzo Pieralisi wrote:
+> On Wed, Mar 11, 2015 at 12:39:39PM +0000, Hanjun Guo wrote:
+>> CPU hardware ID (phys_id) is defined as u32 in structure acpi_proces=
+sor,
+>> but phys_id is used as int in acpi processor driver, so it will lead=
+ to
+>> some inconsistence for the drivers.
 >>
->> BTW, Thomas is taking a bit of a break, do he is unlikely to give an ack
->> here in a timely manner. I've not heard from Jason. Personally, I think we
->> can proceed without their ack if everything else is in order (heck, I used
->> to help with the irq subsystem, use me as an ack of you want). The patch is
->> low impact and only had effect for ARM ACPI builds.
-> 
-> I'm not talking much, but I am tracking and collecting everything for irqchip.
-> We do have some other changes in this driver this time around.  So it'd be nice
-> if I could take this.
-> 
-> I had reached out to Olof for his thoughts on this and he hasn't had enough
-> cycles to look at it.  iirc, Marc reviewed a previous version and was happy with
-> the changes.
+>> Furthermore, to cater for ACPI arch ports that implement 64 bits CPU
+>> ids a generic CPU physical id type is required.
+>>
+>> So introduce typedef u32 phys_cpuid_t for x86 and ia64, and introduc=
+e
+>> a macro CPU_PHYS_ID_INVALID as (u32)(-1), use phys_cpuid_t when phys=
+_id
+>> defined in acpi processor driver, and replace CPU_PHYS_ID_INVALID as=
+ -1
+>> for phys_id, this will solve the inconsistence in acpi processor dri=
+ver,
+>> and will prepare for the ACPI on ARM64 for the 64 bit CPU hardware I=
+D
+>> in the following patch.
+>
+> Nit: Commit log above is stale (since you moved the phys_cpuid_t to
+> common declaration for all archs that do not define PHYS_CPUID_INVALI=
+D
+> and the macro name itself changed) so you should rewrite it before
 
-FWIW, and given the prominent "NOTE" in the commit message, please have my:
+Oops, I will send a updated patch only for this one, good catch.
 
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+> asking to merge it. Furthermore you should not describe how you imple=
+mented
+> the change, you should describe why.
 
-Thanks,
+I'm prefer writing the commit log as following way (not always) :)
+  - why the patch is needed
+  - what the patch implements
+  - How the patch is implemented
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+>
+> Other than that:
+>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+Thanks!
+
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
