@@ -1,279 +1,61 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 13/21] ACPI / processor: Introduce phys_cpuid_t for
- CPU hardware ID
-Date: Thu, 12 Mar 2015 09:51:51 +0000
-Message-ID: <20150312095151.GB18414@red-moon>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-14-git-send-email-hanjun.guo@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
+Date: Thu, 12 Mar 2015 10:14:29 +0000
+Message-ID: <55016705.5010406@arm.com>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org> <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com> <20150311231141.GG21998@io.lakedaemon.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48238 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752034AbbCLJv4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Mar 2015 05:51:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1426077587-1561-14-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150311231141.GG21998@io.lakedaemon.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Cooper <jason@lakedaemon.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Sudeep Holla <Sudeep.Holla@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Robert Richter <rric@kernel.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.inf
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 
-On Wed, Mar 11, 2015 at 12:39:39PM +0000, Hanjun Guo wrote:
-> CPU hardware ID (phys_id) is defined as u32 in structure acpi_processor,
-> but phys_id is used as int in acpi processor driver, so it will lead to
-> some inconsistence for the drivers.
+On 11/03/15 23:11, Jason Cooper wrote:
+> Hey Grant,
 > 
-> Furthermore, to cater for ACPI arch ports that implement 64 bits CPU
-> ids a generic CPU physical id type is required.
+> On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
+>> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
+>>>
+>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>
+>>> ACPI kernel uses MADT table for proper GIC initialization. It needs to
+>>> parse GIC related subtables, collect CPU interface and distributor
+>>> addresses and call driver initialization function (which is hardware
+>>> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+>>>
+>>> NOTE: This commit allow to initialize GICv1/2 basic functionality.
+>>> While now simple GICv2 init call is used, any further GIC features
+>>> require generic infrastructure for proper ACPI irqchip initialization.
+>>> That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
+>>> extension, GICv3/4 and its ITS are considered as next steps.
+>>>
+>>> CC: Jason Cooper <jason@lakedaemon.net>
+>>> CC: Marc Zyngier <marc.zyngier@arm.com>
+>>> CC: Thomas Gleixner <tglx@linutronix.de>
+>>
+>> BTW, Thomas is taking a bit of a break, do he is unlikely to give an ack
+>> here in a timely manner. I've not heard from Jason. Personally, I think we
+>> can proceed without their ack if everything else is in order (heck, I used
+>> to help with the irq subsystem, use me as an ack of you want). The patch is
+>> low impact and only had effect for ARM ACPI builds.
 > 
-> So introduce typedef u32 phys_cpuid_t for x86 and ia64, and introduce
-> a macro CPU_PHYS_ID_INVALID as (u32)(-1), use phys_cpuid_t when phys_id
-> defined in acpi processor driver, and replace CPU_PHYS_ID_INVALID as -1
-> for phys_id, this will solve the inconsistence in acpi processor driver,
-> and will prepare for the ACPI on ARM64 for the 64 bit CPU hardware ID
-> in the following patch.
+> I'm not talking much, but I am tracking and collecting everything for irqchip.
+> We do have some other changes in this driver this time around.  So it'd be nice
+> if I could take this.
+> 
+> I had reached out to Olof for his thoughts on this and he hasn't had enough
+> cycles to look at it.  iirc, Marc reviewed a previous version and was happy with
+> the changes.
 
-Nit: Commit log above is stale (since you moved the phys_cpuid_t to
-common declaration for all archs that do not define PHYS_CPUID_INVALID
-and the macro name itself changed) so you should rewrite it before
-asking to merge it. Furthermore you should not describe how you implemented
-the change, you should describe why.
+FWIW, and given the prominent "NOTE" in the commit message, please have my:
 
-Other than that:
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Thanks,
 
-> CC: Rafael J Wysocki <rjw@rjwysocki.net>
-> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Reviewed-by: Grant Likely <grant.likely@linaro.org>
-> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
-> Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-> [hj: reworked cpu physid map return codes]
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/ia64/kernel/acpi.c       |  2 +-
->  arch/x86/kernel/acpi/boot.c   |  2 +-
->  drivers/acpi/acpi_processor.c |  7 ++++---
->  drivers/acpi/processor_core.c | 30 +++++++++++++++---------------
->  include/acpi/processor.h      |  6 +++---
->  include/linux/acpi.h          |  7 ++++++-
->  6 files changed, 30 insertions(+), 24 deletions(-)
-> 
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index 2c44989..067ef44 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -887,7 +887,7 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
->  }
->  
->  /* wrapper to silence section mismatch warning */
-> -int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
-> +int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
->  {
->  	return _acpi_map_lsapic(handle, physid, pcpu);
->  }
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index 3d525c6..e4f8582 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -757,7 +757,7 @@ static int _acpi_map_lsapic(acpi_handle handle, int physid, int *pcpu)
->  }
->  
->  /* wrapper to silence section mismatch warning */
-> -int __ref acpi_map_cpu(acpi_handle handle, int physid, int *pcpu)
-> +int __ref acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
->  {
->  	return _acpi_map_lsapic(handle, physid, pcpu);
->  }
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> index 1020b1b..58f335c 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -170,7 +170,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
->  	acpi_status status;
->  	int ret;
->  
-> -	if (pr->phys_id == -1)
-> +	if (pr->phys_id == PHYS_CPUID_INVALID)
->  		return -ENODEV;
->  
->  	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
-> @@ -215,7 +215,8 @@ static int acpi_processor_get_info(struct acpi_device *device)
->  	union acpi_object object = { 0 };
->  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
->  	struct acpi_processor *pr = acpi_driver_data(device);
-> -	int phys_id, cpu_index, device_declaration = 0;
-> +	phys_cpuid_t phys_id;
-> +	int cpu_index, device_declaration = 0;
->  	acpi_status status = AE_OK;
->  	static int cpu0_initialized;
->  	unsigned long long value;
-> @@ -263,7 +264,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
->  	}
->  
->  	phys_id = acpi_get_phys_id(pr->handle, device_declaration, pr->acpi_id);
-> -	if (phys_id < 0)
-> +	if (phys_id == PHYS_CPUID_INVALID)
->  		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
->  	pr->phys_id = phys_id;
->  
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 7962651..51cc299 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -32,7 +32,7 @@ static struct acpi_table_madt *get_madt_table(void)
->  }
->  
->  static int map_lapic_id(struct acpi_subtable_header *entry,
-> -		 u32 acpi_id, int *apic_id)
-> +		 u32 acpi_id, phys_cpuid_t *apic_id)
->  {
->  	struct acpi_madt_local_apic *lapic =
->  		container_of(entry, struct acpi_madt_local_apic, header);
-> @@ -48,7 +48,7 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
->  }
->  
->  static int map_x2apic_id(struct acpi_subtable_header *entry,
-> -			 int device_declaration, u32 acpi_id, int *apic_id)
-> +		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id)
->  {
->  	struct acpi_madt_local_x2apic *apic =
->  		container_of(entry, struct acpi_madt_local_x2apic, header);
-> @@ -65,7 +65,7 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
->  }
->  
->  static int map_lsapic_id(struct acpi_subtable_header *entry,
-> -		int device_declaration, u32 acpi_id, int *apic_id)
-> +		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id)
->  {
->  	struct acpi_madt_local_sapic *lsapic =
->  		container_of(entry, struct acpi_madt_local_sapic, header);
-> @@ -83,10 +83,10 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
->  	return 0;
->  }
->  
-> -static int map_madt_entry(int type, u32 acpi_id)
-> +static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
->  {
->  	unsigned long madt_end, entry;
-> -	int phys_id = -1;	/* CPU hardware ID */
-> +	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;	/* CPU hardware ID */
->  	struct acpi_table_madt *madt;
->  
->  	madt = get_madt_table();
-> @@ -117,12 +117,12 @@ static int map_madt_entry(int type, u32 acpi_id)
->  	return phys_id;
->  }
->  
-> -static int map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
-> +static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
->  {
->  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->  	union acpi_object *obj;
->  	struct acpi_subtable_header *header;
-> -	int phys_id = -1;
-> +	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;
->  
->  	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
->  		goto exit;
-> @@ -149,27 +149,27 @@ exit:
->  	return phys_id;
->  }
->  
-> -int acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
-> +phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
->  {
-> -	int phys_id;
-> +	phys_cpuid_t phys_id;
->  
->  	phys_id = map_mat_entry(handle, type, acpi_id);
-> -	if (phys_id == -1)
-> +	if (phys_id == PHYS_CPUID_INVALID)
->  		phys_id = map_madt_entry(type, acpi_id);
->  
->  	return phys_id;
->  }
->  
-> -int acpi_map_cpuid(int phys_id, u32 acpi_id)
-> +int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
->  {
->  #ifdef CONFIG_SMP
->  	int i;
->  #endif
->  
-> -	if (phys_id == -1) {
-> +	if (phys_id == PHYS_CPUID_INVALID) {
->  		/*
->  		 * On UP processor, there is no _MAT or MADT table.
-> -		 * So above phys_id is always set to -1.
-> +		 * So above phys_id is always set to PHYS_CPUID_INVALID.
->  		 *
->  		 * BIOS may define multiple CPU handles even for UP processor.
->  		 * For example,
-> @@ -190,7 +190,7 @@ int acpi_map_cpuid(int phys_id, u32 acpi_id)
->  		if (nr_cpu_ids <= 1 && acpi_id == 0)
->  			return acpi_id;
->  		else
-> -			return phys_id;
-> +			return -1;
->  	}
->  
->  #ifdef CONFIG_SMP
-> @@ -208,7 +208,7 @@ int acpi_map_cpuid(int phys_id, u32 acpi_id)
->  
->  int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
->  {
-> -	int phys_id;
-> +	phys_cpuid_t phys_id;
->  
->  	phys_id = acpi_get_phys_id(handle, type, acpi_id);
->  
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index b95dc32..4188a4d 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -196,7 +196,7 @@ struct acpi_processor_flags {
->  struct acpi_processor {
->  	acpi_handle handle;
->  	u32 acpi_id;
-> -	u32 phys_id;	/* CPU hardware ID such as APIC ID for x86 */
-> +	phys_cpuid_t phys_id;	/* CPU hardware ID such as APIC ID for x86 */
->  	u32 id;		/* CPU logical ID allocated by OS */
->  	u32 pblk;
->  	int performance_platform_limit;
-> @@ -310,8 +310,8 @@ static inline int acpi_processor_get_bios_limit(int cpu, unsigned int *limit)
->  #endif				/* CONFIG_CPU_FREQ */
->  
->  /* in processor_core.c */
-> -int acpi_get_phys_id(acpi_handle, int type, u32 acpi_id);
-> -int acpi_map_cpuid(int phys_id, u32 acpi_id);
-> +phys_cpuid_t acpi_get_phys_id(acpi_handle, int type, u32 acpi_id);
-> +int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id);
->  int acpi_get_cpuid(acpi_handle, int type, u32 acpi_id);
->  
->  /* in processor_pdc.c */
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 24c7aa8..6ec33c5 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -146,9 +146,14 @@ void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
->  int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
->  void acpi_numa_arch_fixup(void);
->  
-> +#ifndef PHYS_CPUID_INVALID
-> +typedef u32 phys_cpuid_t;
-> +#define PHYS_CPUID_INVALID (phys_cpuid_t)(-1)
-> +#endif
-> +
->  #ifdef CONFIG_ACPI_HOTPLUG_CPU
->  /* Arch dependent functions for cpu hotplug support */
-> -int acpi_map_cpu(acpi_handle handle, int physid, int *pcpu);
-> +int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
->  int acpi_unmap_cpu(int cpu);
->  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
->  
-> -- 
-> 1.9.1
-> 
-> 
+	M.
+-- 
+Jazz is not dead. It just smells funny...
