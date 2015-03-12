@@ -1,70 +1,79 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
-Date: Thu, 12 Mar 2015 15:31:57 +0800
-Message-ID: <550140ED.3080808@huawei.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
- <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
- <20150311231141.GG21998@io.lakedaemon.net> <5500EFFF.2070807@huawei.com>
- <20150312051245.GI21998@io.lakedaemon.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20150312051245.GI21998@io.lakedaemon.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jason Cooper <jason@lakedaemon.net>
-Cc: Mark Rutland <mark.rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulanit <suravee.suthikulp>
+From: Matthew Garrett <matthew.garrett@nebula.com>
+Subject: [PATCH] ACPI: Adjust the return value of _REV on x86
+Date: Wed, 11 Mar 2015 22:50:47 -1000
+Message-ID: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:34961 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751833AbbCLIvR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 04:51:17 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 2015/3/12 13:12, Jason Cooper wrote:
-> On Thu, Mar 12, 2015 at 09:46:39AM +0800, Hanjun Guo wrote:
->> On 2015/3/12 7:11, Jason Cooper wrote:
->>> Hey Grant,
->>>
->>> On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
->>>> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
-[...]
->>>>> diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
->>>>> index 0fe2f71..afd1af3 100644
->>>>> --- a/drivers/irqchip/irqchip.c
->>>>> +++ b/drivers/irqchip/irqchip.c
->>>>> @@ -8,6 +8,7 @@
->>>>>   * warranty of any kind, whether express or implied.
->>>>>   */
->>>>>
->>>>> +#include <linux/acpi_irq.h>
->>>>>  #include <linux/init.h>
->>>>>  #include <linux/of_irq.h>
->>>>>  #include <linux/irqchip.h>
->>>>> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
->>>>>  void __init irqchip_init(void)
->>>>>  {
->>>>>         of_irq_init(__irqchip_of_table);
->>>>> +
->>>>> +       acpi_irq_init();
->>>>>  }
->>> Is this in line with Olof's idea that providing a dtb would override ACPI?
->> Yes, it will. Since ACPI is default OFF (disabled), if a dtb provided, and no acpi=force
->> passed in the early command line, dtb will be used as system configuration for
->> boot (dtb is always the prior one for now) [1]. In acpi_gic_init() which called by
->> acpi_irq_init(), it will return immediately if acpi disabled, so it will not parse
->> any ACPI table for device configuration.
-> Ok, that matches my recollection.  Thanks for refreshing my memory.  I'll apply
-> this on a topic branch for irqchip/gic when I return from travel.  Most likely
-> Friday or over the weekend.
+The ACPI spec describes _REV as:
 
-Thank you very much! But this patch can't be applied without previous ones in this
-patch set, how about you ack this patch and Catalin takes it via ARM64 tree? I'm
-not sure for this, it depends on your decision.
+"This predefined object evaluates to the revision of the ACPI Specification
+ that the specified \_OS implements"
 
-Thanks
-Hanjun
+We've been assuming that this should increment as ACPICA gains support for
+new versions of the spec. Unfortunately, Windows always reports "2" for this
+value and vendors are now using this as a means to tell whether a system is
+running Windows or Linux. From an HP Envy 15:
+
+If (LOr (LEqual (_REV, 0x03), LEqual (_REV, 0x05)))
+
+>From a Dell XPS 13:
+
+If ((_REV == 0x05))
+
+In both cases, the systems then alter hardware initialisation paths and
+device capability reporting. As written, this makes no sense - ACPI
+maintains backwards compatibility, so the appropriate test would be >=
+rather than ==. On closer examination, the HP code uses the same
+initialisation paths as would be used if the system responded to
+_OSI("Linux"), and as such the evidence is overwhelmingly that vendors are
+using this to alter system behaviour when Linux is detected.
+
+Since we aim to be compatible with Windows, this tends to break things. The
+ideal solution would be to wait for an _OSI() query matching Windows and
+then change behaviour, but Windows responds to _REV with 2 even before that
+and so vendors might simply change the order of queries in order to continue
+IDing Linux. The easiest thing for us to do is just to change the value on
+X86 and leave a comment describing why everything is so awful.
+
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+---
+ include/acpi/acconfig.h | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 03aacfb..cebb8a7 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -112,9 +112,19 @@
+  *
+  *****************************************************************************/
+ 
+-/* Version of ACPI supported */
+-
++/*
++ * Version of ACPI supported. This is a sad story. Windows reports a _REV of
++ * 2 regardless of the spec version implemented. Some vendors are using _REV
++ * as a way to distinguish between Windows and Linux, and are breaking systems
++ * in the process. We can't guarantee that they'll call _OSI before checking
++ * _REV, so hardcode this to 2 on x86 systems right now and leave it at the
++ * appropriate spec value for everybody else.
++ */
++#ifdef CONFIG_X86
++#define ACPI_CA_SUPPORT_LEVEL           2
++#else
+ #define ACPI_CA_SUPPORT_LEVEL           5
++#endif
+ 
+ /* Maximum count for a semaphore object */
+ 
+-- 
+2.1.0
+
