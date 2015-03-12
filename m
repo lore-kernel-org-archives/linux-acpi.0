@@ -1,85 +1,57 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
-Date: Wed, 11 Mar 2015 23:11:41 +0000
-Message-ID: <20150311231141.GG21998@io.lakedaemon.net>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
- <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] x86/PCI: Fully disable devices before releasing IRQ resource
+Date: Thu, 12 Mar 2015 02:17:15 +0100
+Message-ID: <6862626.yP8c2o2fAj@vostro.rjw.lan>
+References: <20150305210529.6393.29546.stgit@gimli.home> <2139068.CEUJTvBkYG@vostro.rjw.lan> <3908561D78D1C84285E8C5FCA982C28F32A0E2E2@ORSMSX113.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Sudeep Holla <Sudeep.Holla@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Robert Richter <rric@kernel.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradea
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:50671 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751606AbbCLAxd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 20:53:33 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32A0E2E2@ORSMSX113.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "x86@kernel.org" <x86@kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, "bp@alien8.de" <bp@alien8.de>, "Zheng, Lv" <lv.zheng@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "yinghai@kernel.org" <yinghai@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hey Grant,
-
-On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
-> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
+On Wednesday, March 11, 2015 10:04:42 PM Luck, Tony wrote:
+> >> Unfortunately there's a long standing comment in pci_device_remove():
+> >> 
+> >>         /*
+> >>          * We would love to complain here if pci_dev->is_enabled is set, that
+> >>          * the driver should have called pci_disable_device(), but the
+> >>          * unfortunate fact is there are too many odd BIOS and bridge setups
+> >>          * that don't like drivers doing that all of the time.
+> >>          * Oh well, we can dream of sane hardware when we sleep, no matter how
+> >>          * horrible the crap we have to deal with is when we are awake...
+> >>          */
+> >> 
+> >> So, unless we can somehow ignore that comment, I suspect forcing the
+> >> device to be disabled on driver remove, whether done from pci-core or
+> >> from x86/pci, is going to cause all sorts of breakage.  Are the
+> >> expectations set by b4b55cda5874 really valid?  It seems like something
+> >> needs to be done to allow the IRQ to be automatically re-established on
+> >> x86 regardless of the driver doing the right thing when releasing the
+> >> device.  We're still looking at a regression for v4.0 as a result of
+> >> b4b55cda5874.
 > >
-> > From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> > In which case we probably should revert commit b4b55cda5874 for the time being.
 > >
-> > ACPI kernel uses MADT table for proper GIC initialization. It needs to
-> > parse GIC related subtables, collect CPU interface and distributor
-> > addresses and call driver initialization function (which is hardware
-> > abstraction agnostic). In a similar way, FDT initialize GICv1/2.
-> >
-> > NOTE: This commit allow to initialize GICv1/2 basic functionality.
-> > While now simple GICv2 init call is used, any further GIC features
-> > require generic infrastructure for proper ACPI irqchip initialization.
-> > That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
-> > extension, GICv3/4 and its ITS are considered as next steps.
-> >
-> > CC: Jason Cooper <jason@lakedaemon.net>
-> > CC: Marc Zyngier <marc.zyngier@arm.com>
-> > CC: Thomas Gleixner <tglx@linutronix.de>
+> > At least I'd be very nervous about any ad-hoc fixes at this stage of the cycle.
 > 
-> BTW, Thomas is taking a bit of a break, do he is unlikely to give an ack
-> here in a timely manner. I've not heard from Jason. Personally, I think we
-> can proceed without their ack if everything else is in order (heck, I used
-> to help with the irq subsystem, use me as an ack of you want). The patch is
-> low impact and only had effect for ARM ACPI builds.
+> The comment goes back to the dawn of "git" time ... not sure how much further
+> back.
+> 
+> Is this actually still an issue on modern systems?  Maybe we need a black list
+> or white list to separate the good from bad systems?
 
-I'm not talking much, but I am tracking and collecting everything for irqchip.
-We do have some other changes in this driver this time around.  So it'd be nice
-if I could take this.
+The answer to that is "We don't know" and in my not so humble opinion it is too
+risky to try to find out at the end of the cycle.
 
-I had reached out to Olof for his thoughts on this and he hasn't had enough
-cycles to look at it.  iirc, Marc reviewed a previous version and was happy with
-the changes.  My only question I had for Olof I'll put below:
 
-> > diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
-> > index 0fe2f71..afd1af3 100644
-> > --- a/drivers/irqchip/irqchip.c
-> > +++ b/drivers/irqchip/irqchip.c
-> > @@ -8,6 +8,7 @@
-> >   * warranty of any kind, whether express or implied.
-> >   */
-> >
-> > +#include <linux/acpi_irq.h>
-> >  #include <linux/init.h>
-> >  #include <linux/of_irq.h>
-> >  #include <linux/irqchip.h>
-> > @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
-> >  void __init irqchip_init(void)
-> >  {
-> >         of_irq_init(__irqchip_of_table);
-> > +
-> > +       acpi_irq_init();
-> >  }
-
-Is this in line with Olof's idea that providing a dtb would override ACPI?
-
-I have no strong opinion on the matter personally.  I haven't been able to
-follow the ACPI discussion as closely as I would have liked, what with the new
-job and all.
-
-Just let me know and I can pull it in with other GIC changes for this cycle.
-I'll do a topic branch in case other branches need to depend on this.
-
-thx,
-
-Jason.
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
