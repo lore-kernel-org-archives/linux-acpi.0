@@ -1,79 +1,127 @@
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: [PATCH] ACPI: Adjust the return value of _REV on x86
-Date: Wed, 11 Mar 2015 22:50:47 -1000
-Message-ID: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v10 06/21] ACPI / sleep: Introduce
+ CONFIG_ACPI_GENERIC_SLEEP
+Date: Thu, 12 Mar 2015 09:32:14 +0000
+Message-ID: <20150312093214.GA18414@red-moon>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <1426077587-1561-7-git-send-email-hanjun.guo@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:34961 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbbCLIvR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Mar 2015 04:51:17 -0400
+Received: from foss.arm.com ([217.140.101.70]:48181 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753034AbbCLJcW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Mar 2015 05:32:22 -0400
+Content-Disposition: inline
+In-Reply-To: <1426077587-1561-7-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <matthew.garrett@nebula.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 
-The ACPI spec describes _REV as:
+On Wed, Mar 11, 2015 at 12:39:32PM +0000, Hanjun Guo wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+> 
+> ACPI 5.1 does not currently support S states for ARM64 hardware but
+> ACPI code will call acpi_target_system_state() and acpi_sleep_init()
+> for device power management, so introduce CONFIG_ACPI_GENERIC_SLEEP
+> and select it for x86 and ia64 only to make sleep functions available,
+> and also introduce stub function to allow other drivers to function
+> until S states are defined for ARM64.
+> 
+> It will be no functional change for x86 and IA64.
+> 
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-"This predefined object evaluates to the revision of the ACPI Specification
- that the specified \_OS implements"
+It looks ok to me:
 
-We've been assuming that this should increment as ACPICA gains support for
-new versions of the spec. Unfortunately, Windows always reports "2" for this
-value and vendors are now using this as a means to tell whether a system is
-running Windows or Linux. From an HP Envy 15:
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-If (LOr (LEqual (_REV, 0x03), LEqual (_REV, 0x05)))
-
->From a Dell XPS 13:
-
-If ((_REV == 0x05))
-
-In both cases, the systems then alter hardware initialisation paths and
-device capability reporting. As written, this makes no sense - ACPI
-maintains backwards compatibility, so the appropriate test would be >=
-rather than ==. On closer examination, the HP code uses the same
-initialisation paths as would be used if the system responded to
-_OSI("Linux"), and as such the evidence is overwhelmingly that vendors are
-using this to alter system behaviour when Linux is detected.
-
-Since we aim to be compatible with Windows, this tends to break things. The
-ideal solution would be to wait for an _OSI() query matching Windows and
-then change behaviour, but Windows responds to _REV with 2 even before that
-and so vendors might simply change the order of queries in order to continue
-IDing Linux. The easiest thing for us to do is just to change the value on
-X86 and leave a comment describing why everything is so awful.
-
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
----
- include/acpi/acconfig.h | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 03aacfb..cebb8a7 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -112,9 +112,19 @@
-  *
-  *****************************************************************************/
- 
--/* Version of ACPI supported */
--
-+/*
-+ * Version of ACPI supported. This is a sad story. Windows reports a _REV of
-+ * 2 regardless of the spec version implemented. Some vendors are using _REV
-+ * as a way to distinguish between Windows and Linux, and are breaking systems
-+ * in the process. We can't guarantee that they'll call _OSI before checking
-+ * _REV, so hardcode this to 2 on x86 systems right now and leave it at the
-+ * appropriate spec value for everybody else.
-+ */
-+#ifdef CONFIG_X86
-+#define ACPI_CA_SUPPORT_LEVEL           2
-+#else
- #define ACPI_CA_SUPPORT_LEVEL           5
-+#endif
- 
- /* Maximum count for a semaphore object */
- 
--- 
-2.1.0
-
+> ---
+>  arch/ia64/Kconfig       | 1 +
+>  arch/x86/Kconfig        | 1 +
+>  drivers/acpi/Kconfig    | 4 ++++
+>  drivers/acpi/Makefile   | 2 +-
+>  drivers/acpi/internal.h | 4 ++++
+>  5 files changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+> index 074e52b..e8728d7 100644
+> --- a/arch/ia64/Kconfig
+> +++ b/arch/ia64/Kconfig
+> @@ -10,6 +10,7 @@ config IA64
+>  	select ARCH_MIGHT_HAVE_PC_SERIO
+>  	select PCI if (!IA64_HP_SIM)
+>  	select ACPI if (!IA64_HP_SIM)
+> +	select ACPI_GENERIC_SLEEP if ACPI
+>  	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+>  	select HAVE_UNSTABLE_SCHED_CLOCK
+>  	select HAVE_IDE
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index b7d31ca..9804431 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -22,6 +22,7 @@ config X86_64
+>  ### Arch settings
+>  config X86
+>  	def_bool y
+> +	select ACPI_GENERIC_SLEEP if ACPI
+>  	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+>  	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
+>  	select ARCH_HAS_FAST_MULTIPLIER
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index e6c3ddd..a7b9120 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -48,9 +48,13 @@ config ACPI_LEGACY_TABLES_LOOKUP
+>  config ARCH_MIGHT_HAVE_ACPI_PDC
+>  	bool
+>  
+> +config ACPI_GENERIC_SLEEP
+> +	bool
+> +
+>  config ACPI_SLEEP
+>  	bool
+>  	depends on SUSPEND || HIBERNATION
+> +	depends on ACPI_GENERIC_SLEEP
+>  	default y
+>  
+>  config ACPI_PROCFS_POWER
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 623b117..2397822 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -23,7 +23,7 @@ acpi-y				+= nvs.o
+>  
+>  # Power management related files
+>  acpi-y				+= wakeup.o
+> -acpi-y				+= sleep.o
+> +acpi-$(CONFIG_ACPI_GENERIC_SLEEP) += sleep.o
+>  acpi-y				+= device_pm.o
+>  acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+>  
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 56b321a..b5eef4c 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -161,7 +161,11 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
+>  /*--------------------------------------------------------------------------
+>                                    Suspend/Resume
+>    -------------------------------------------------------------------------- */
+> +#ifdef CONFIG_ACPI_GENERIC_SLEEP
+>  extern int acpi_sleep_init(void);
+> +#else
+> +static inline int acpi_sleep_init(void) { return -ENOSYS; }
+> +#endif
+>  
+>  #ifdef CONFIG_ACPI_SLEEP
+>  int acpi_sleep_proc_init(void);
+> -- 
+> 1.9.1
+> 
+> 
