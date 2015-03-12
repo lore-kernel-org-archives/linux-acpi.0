@@ -1,211 +1,301 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [RFC][PATCH 1/2] PNP: Convert pnp_lock into a mutex
-Date: Thu, 12 Mar 2015 02:21:04 +0100
-Message-ID: <1575158.va5ogmMc59@vostro.rjw.lan>
-References: <2163789.xYALhKGkH0@vostro.rjw.lan>
+Subject: Re: [resend PATCH] driver core: property: support for generic property
+Date: Thu, 12 Mar 2015 02:41:32 +0100
+Message-ID: <2095371.SrUNK6JsDO@vostro.rjw.lan>
+References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65438 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50035 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751158AbbCLA7Q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 20:59:16 -0400
-In-Reply-To: <2163789.xYALhKGkH0@vostro.rjw.lan>
+	with SMTP id S1752215AbbCLBRs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Mar 2015 21:17:48 -0400
+In-Reply-To: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, January 26, 2015 03:17:40 PM Heikki Krogerus wrote:
+> This extends the unified device property interface by adding
+> "Generic Property" to it for cases where device tree or ACPI
+> are not being used.
+> 
+> That makes the unified device property interface cover also
+> most of the cases where information is extracted from custom
+> platform_data in the drivers. So if before we had to check
+> separately is there custom platform_data for a driver:
+> 
+> 	if (pdata)
+> 		bar = pdata->bar;
+> 	else
+> 		device_property_read_u32(dev, "foo", &bar);
+> 
+> we can now drop that check and simply always use the unified
+> device property interface.
+> 
+> That makes it possible to drop a lot of boiler plate from
+> the drivers, plus quite a few header files under
+> include/linux/ describing those driver specific platform
+> data structures can be removed.
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/base/property.c  | 135 ++++++++++++++++++++++++++++++++++++++++++-----
+>  include/linux/device.h   |   3 ++
+>  include/linux/property.h |  17 ++++++
+>  3 files changed, 143 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index c458458..4ea6d27 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -15,6 +15,108 @@
+>  #include <linux/acpi.h>
+>  #include <linux/of.h>
+>  
+> +static struct dev_gen_prop *dev_prop_get(struct device *dev, const char *name)
+> +{
+> +	struct dev_gen_prop *prop;
+> +
+> +	if (!dev->gen_prop)
+> +		return NULL;
+> +
+> +	for (prop = dev->gen_prop; prop->name; prop++)
+> +		if (!strcmp(name, prop->name))
+> +			return prop;
+> +	return NULL;
+> +}
+> +
+> +static int dev_prop_copy_array_u8(u8 *src, u8 *val, size_t nval)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < nval; i++)
+> +		val[i] = src[i];
 
-pnp_lock is a spinlock, but it is only acquired from process context,
-so it may be a mutex just fine and that will allow a couple of problems
-to be avoided going forward.
+Use memcpy() perhaps?  And below too?  And then you may not need these
+helpers any more.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pnp/base.h |    2 +-
- drivers/pnp/card.c |   25 +++++++++++++------------
- drivers/pnp/core.c |   19 ++++++++++---------
- 3 files changed, 24 insertions(+), 22 deletions(-)
+> +	return 0;
+> +}
+> +
+> +static int dev_prop_copy_array_u16(u16 *src, u16 *val, size_t nval)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < nval; i++)
+> +		val[i] = src[i];
+> +	return 0;
+> +}
+> +
+> +static int dev_prop_copy_array_u32(u32 *src, u32 *val, size_t nval)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < nval; i++)
+> +		val[i] = src[i];
+> +	return 0;
+> +}
+> +
+> +static int dev_prop_copy_array_u64(u64 *src, u64 *val, size_t nval)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < nval; i++)
+> +		val[i] = src[i];
+> +	return 0;
+> +}
+> +
+> +static int dev_prop_copy_array_string(const char **src, const char **val,
+> +				      size_t nval)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < nval; i++)
+> +		val[i] = src[i];
+> +	return 0;
+> +}
+> +
+> +static int dev_prop_read_array(struct device *dev, const char *name,
+> +			       enum dev_prop_type type, void *val, size_t nval)
+> +{
+> +	struct dev_gen_prop *prop;
+> +	int ret = 0;
+> +
+> +	prop = dev_prop_get(dev, name);
+> +	if (!prop)
+> +		return -ENODATA;
+> +
+> +	if (prop->type != type)
+> +		return -EPROTO;
+> +
+> +	if (prop->nval < nval)
+> +		return -EOVERFLOW;
+> +
+> +	switch (prop->type) {
+> +	case DEV_PROP_U8:
+> +		ret = dev_prop_copy_array_u8((u8 *)prop->num, (u8 *)val,
+> +					     nval);
+> +		break;
+> +	case DEV_PROP_U16:
+> +		ret = dev_prop_copy_array_u16((u16 *)prop->num, (u16 *)val,
+> +					      nval);
+> +		break;
+> +	case DEV_PROP_U32:
+> +		ret = dev_prop_copy_array_u32((u32 *)prop->num, (u32 *)val,
+> +					      nval);
+> +		break;
+> +	case DEV_PROP_U64:
+> +		ret = dev_prop_copy_array_u64(prop->num, (u64 *)val, nval);
+> +		break;
+> +	case DEV_PROP_STRING:
+> +		ret = dev_prop_copy_array_string(prop->str,
+> +						 (const char **)val, nval);
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +		break;
+> +	}
+> +	return ret;
+> +}
+> +
+>  /**
+>   * device_property_present - check if a property of a device is present
+>   * @dev: Device whose property is being checked
+> @@ -26,8 +128,9 @@ bool device_property_present(struct device *dev, const char *propname)
+>  {
+>  	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+>  		return of_property_read_bool(dev->of_node, propname);
+> -
+> -	return !acpi_dev_prop_get(ACPI_COMPANION(dev), propname, NULL);
+> +	if (ACPI_HANDLE(dev))
+> +		return !acpi_dev_prop_get(ACPI_COMPANION(dev), propname, NULL);
+> +	return !!dev_prop_get(dev, propname);
+>  }
+>  EXPORT_SYMBOL_GPL(device_property_present);
+>  
+> @@ -55,8 +158,11 @@ EXPORT_SYMBOL_GPL(fwnode_property_present);
+>  	IS_ENABLED(CONFIG_OF) && _dev_->of_node ? \
+>  		(OF_DEV_PROP_READ_ARRAY(_dev_->of_node, _propname_, _type_, \
+>  					_val_, _nval_)) : \
+> -		acpi_dev_prop_read(ACPI_COMPANION(_dev_), _propname_, \
+> -				   _proptype_, _val_, _nval_)
+> +		ACPI_HANDLE(_dev_) ? \
+> +			acpi_dev_prop_read(ACPI_COMPANION(_dev_), _propname_, \
+> +					   _proptype_, _val_, _nval_) : \
+> +			dev_prop_read_array(_dev_, _propname_, _proptype_, \
+> +					   _val_, _nval_)
+>  
+>  /**
+>   * device_property_read_u8_array - return a u8 array property of a device
+> @@ -169,10 +275,13 @@ EXPORT_SYMBOL_GPL(device_property_read_u64_array);
+>  int device_property_read_string_array(struct device *dev, const char *propname,
+>  				      const char **val, size_t nval)
+>  {
+> -	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
+> -		of_property_read_string_array(dev->of_node, propname, val, nval) :
+> -		acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
+> -				   DEV_PROP_STRING, val, nval);
+> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+> +		return of_property_read_string_array(dev->of_node, propname,
+> +						     val, nval);
+> +	if (ACPI_HANDLE(dev))
+> +		return acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
+> +					  DEV_PROP_STRING, val, nval);
+> +	return dev_prop_read_array(dev, propname, DEV_PROP_STRING, val, nval);
+>  }
+>  EXPORT_SYMBOL_GPL(device_property_read_string_array);
+>  
+> @@ -193,10 +302,12 @@ EXPORT_SYMBOL_GPL(device_property_read_string_array);
+>  int device_property_read_string(struct device *dev, const char *propname,
+>  				const char **val)
+>  {
+> -	return IS_ENABLED(CONFIG_OF) && dev->of_node ?
+> -		of_property_read_string(dev->of_node, propname, val) :
+> -		acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
+> -				   DEV_PROP_STRING, val, 1);
+> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+> +		return of_property_read_string(dev->of_node, propname, val);
+> +	if (ACPI_HANDLE(dev))
+> +		return acpi_dev_prop_read(ACPI_COMPANION(dev), propname,
+> +					  DEV_PROP_STRING, val, 1);
+> +	return dev_prop_read_array(dev, propname, DEV_PROP_STRING, val, 1);
+>  }
+>  EXPORT_SYMBOL_GPL(device_property_read_string);
+>  
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index fb50673..738dc25 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -27,6 +27,7 @@
+>  #include <linux/ratelimit.h>
+>  #include <linux/uidgid.h>
+>  #include <linux/gfp.h>
+> +#include <linux/property.h>
+>  #include <asm/device.h>
+>  
+>  struct device;
+> @@ -704,6 +705,7 @@ struct acpi_dev_node {
+>   * @archdata:	For arch-specific additions.
+>   * @of_node:	Associated device tree node.
+>   * @acpi_node:	Associated ACPI device node.
+> + * @gen_prop:	Generic device property
+>   * @devt:	For creating the sysfs "dev".
+>   * @id:		device instance
+>   * @devres_lock: Spinlock to protect the resource of the device.
+> @@ -780,6 +782,7 @@ struct device {
+>  
+>  	struct device_node	*of_node; /* associated device tree node */
+>  	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
+> +	struct dev_gen_prop	*gen_prop; /* generic device property */
 
-Index: linux-pm/drivers/pnp/core.c
-===================================================================
---- linux-pm.orig/drivers/pnp/core.c
-+++ linux-pm/drivers/pnp/core.c
-@@ -9,6 +9,7 @@
- #include <linux/list.h>
- #include <linux/device.h>
- #include <linux/module.h>
-+#include <linux/mutex.h>
- #include <linux/init.h>
- #include <linux/string.h>
- #include <linux/slab.h>
-@@ -19,7 +20,7 @@
- 
- static LIST_HEAD(pnp_protocols);
- LIST_HEAD(pnp_global);
--DEFINE_SPINLOCK(pnp_lock);
-+DEFINE_MUTEX(pnp_lock);
- 
- /*
-  * ACPI or PNPBIOS should tell us about all platform devices, so we can
-@@ -55,7 +56,7 @@ int pnp_register_protocol(struct pnp_pro
- 	INIT_LIST_HEAD(&protocol->devices);
- 	INIT_LIST_HEAD(&protocol->cards);
- 	nodenum = 0;
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 
- 	/* assign the lowest unused number */
- 	list_for_each(pos, &pnp_protocols) {
-@@ -67,7 +68,7 @@ int pnp_register_protocol(struct pnp_pro
- 	}
- 
- 	list_add_tail(&protocol->protocol_list, &pnp_protocols);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 
- 	protocol->number = nodenum;
- 	dev_set_name(&protocol->dev, "pnp%d", nodenum);
-@@ -80,9 +81,9 @@ int pnp_register_protocol(struct pnp_pro
-  */
- void pnp_unregister_protocol(struct pnp_protocol *protocol)
- {
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_del(&protocol->protocol_list);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	device_unregister(&protocol->dev);
- }
- 
-@@ -161,10 +162,10 @@ int __pnp_add_device(struct pnp_dev *dev
- {
- 	pnp_fixup_device(dev);
- 	dev->status = PNP_READY;
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_add_tail(&dev->global_list, &pnp_global);
- 	list_add_tail(&dev->protocol_list, &dev->protocol->devices);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	if (dev->protocol->can_wakeup)
- 		device_set_wakeup_capable(&dev->dev,
- 				dev->protocol->can_wakeup(dev));
-@@ -203,10 +204,10 @@ int pnp_add_device(struct pnp_dev *dev)
- 
- void __pnp_remove_device(struct pnp_dev *dev)
- {
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_del(&dev->global_list);
- 	list_del(&dev->protocol_list);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	device_unregister(&dev->dev);
- }
- 
-Index: linux-pm/drivers/pnp/base.h
-===================================================================
---- linux-pm.orig/drivers/pnp/base.h
-+++ linux-pm/drivers/pnp/base.h
-@@ -3,7 +3,7 @@
-  *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-  */
- 
--extern spinlock_t pnp_lock;
-+extern struct mutex pnp_lock;
- extern const struct attribute_group *pnp_dev_groups[];
- void *pnp_alloc(long size);
- 
-Index: linux-pm/drivers/pnp/card.c
-===================================================================
---- linux-pm.orig/drivers/pnp/card.c
-+++ linux-pm/drivers/pnp/card.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/mutex.h>
- #include <linux/ctype.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
-@@ -244,10 +245,10 @@ int pnp_add_card(struct pnp_card *card)
- 	}
- 
- 	pnp_interface_attach_card(card);
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_add_tail(&card->global_list, &pnp_cards);
- 	list_add_tail(&card->protocol_list, &card->protocol->cards);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 
- 	/* we wait until now to add devices in order to ensure the drivers
- 	 * will be able to use all of the related devices on the card
-@@ -276,10 +277,10 @@ void pnp_remove_card(struct pnp_card *ca
- 	struct list_head *pos, *temp;
- 
- 	device_unregister(&card->dev);
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_del(&card->global_list);
- 	list_del(&card->protocol_list);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	list_for_each_safe(pos, temp, &card->devices) {
- 		struct pnp_dev *dev = card_to_pnp_dev(pos);
- 		pnp_remove_card_device(dev);
-@@ -297,10 +298,10 @@ int pnp_add_card_device(struct pnp_card
- 	dev->card_link = NULL;
- 	dev_set_name(&dev->dev, "%02x:%02x.%02x",
- 		     dev->protocol->number, card->number, dev->number);
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	dev->card = card;
- 	list_add_tail(&dev->card_list, &card->devices);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	return 0;
- }
- 
-@@ -310,10 +311,10 @@ int pnp_add_card_device(struct pnp_card
-  */
- void pnp_remove_card_device(struct pnp_dev *dev)
- {
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	dev->card = NULL;
- 	list_del(&dev->card_list);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	__pnp_remove_device(dev);
- }
- 
-@@ -426,9 +427,9 @@ int pnp_register_card_driver(struct pnp_
- 	if (error < 0)
- 		return error;
- 
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_add_tail(&drv->global_list, &pnp_card_drivers);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 
- 	list_for_each_safe(pos, temp, &pnp_cards) {
- 		struct pnp_card *card =
-@@ -444,9 +445,9 @@ int pnp_register_card_driver(struct pnp_
-  */
- void pnp_unregister_card_driver(struct pnp_card_driver *drv)
- {
--	spin_lock(&pnp_lock);
-+	mutex_lock(&pnp_lock);
- 	list_del(&drv->global_list);
--	spin_unlock(&pnp_lock);
-+	mutex_unlock(&pnp_lock);
- 	pnp_unregister_driver(&drv->link);
- }
- 
+That doesn't seem to go in the right direction to be honest.
 
+Actually, having introduced struct fwnode_handle, we should perhaps try to
+replace both of_node and acpi_node with a single struct fwnode_handle pointer
+and then add a new fwnode_type for the "pdata" stuff.
+
+If you don't want to deal with of_node, which I can understand easily, it
+may be worth trying with acpi_node alone at this point and once you have
+the fwnode_handle pointer, you might use it for both ACPI and "pdata"?
+
+Grant, Arnd, I wonder what you think?
+
+>  
+>  	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+>  	u32			id;	/* device instance */
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index a6a3d98..44e875f 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -26,6 +26,23 @@ enum dev_prop_type {
+>  	DEV_PROP_MAX,
+>  };
+>  
+> +/**
+> + * struct dev_gen_prop - Generic Device Property
+> + * @name: property name
+> + * @nval: number of elements in the array
+> + * @str: value array of strings
+> + * @num: value array of numbers
+> + *
+> + * Used when of_node and acpi_node are missing.
+> + */
+> +struct dev_gen_prop {
+> +	enum dev_prop_type type;
+> +	const char *name;
+> +	size_t nval;
+> +	const char **str;
+> +	u64 *num;
+> +};
+> +
+>  bool device_property_present(struct device *dev, const char *propname);
+>  int device_property_read_u8_array(struct device *dev, const char *propname,
+>  				  u8 *val, size_t nval);
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
