@@ -1,46 +1,156 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v4 7/9] x86, pci, ecam: mmconfig_64.c becomes default
- implementation for ECAM driver.
-Date: Thu, 12 Mar 2015 14:42:51 +0100
-Message-ID: <550197DB.7030900@linaro.org>
-References: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org>	<1426083169-8698-8-git-send-email-tomasz.nowicki@linaro.org> <CAMzpN2gLjuddMYKJY9z=e=oG0P-NjV-mfjtvYRAY6HXCWn5-UQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v10 14/21] ACPI / processor: Make it possible to get CPU
+ hardware ID via GICC
+Date: Thu, 12 Mar 2015 15:41:17 +0000
+Message-ID: <20150312154117.GD18414@red-moon>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMzpN2gLjuddMYKJY9z=e=oG0P-NjV-mfjtvYRAY6HXCWn5-UQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Gerst <brgerst@gmail.com>
-Cc: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, rjw@rjwysocki.net, al.stone@linaro.org, linux-arm-kernel@lists.infradead.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:49361 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754170AbbCLPlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Mar 2015 11:41:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1426077587-1561-15-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 
-On 11.03.2015 17:30, Brian Gerst wrote:
-> On Wed, Mar 11, 2015 at 10:12 AM, Tomasz Nowicki
-> <tomasz.nowicki@linaro.org> wrote:
->
->> diff --git a/arch/x86/pci/Makefile b/arch/x86/pci/Makefile
->> index 5c6fc35..35c765b 100644
->> --- a/arch/x86/pci/Makefile
->> +++ b/arch/x86/pci/Makefile
->> @@ -1,7 +1,10 @@
->>   obj-y                          := i386.o init.o
->>
->>   obj-$(CONFIG_PCI_BIOS)         += pcbios.o
->> -obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig_$(BITS).o direct.o mmconfig-shared.o
->> +obj-$(CONFIG_PCI_MMCONFIG)     += direct.o mmconfig-shared.o
->> +ifeq ($(BITS),32)
->> +obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig_32.o
->> +endif
->>   obj-$(CONFIG_PCI_DIRECT)       += direct.o
->>   obj-$(CONFIG_PCI_OLPC)         += olpc.o
->>   obj-$(CONFIG_PCI_XEN)          += xen.o
->
-> This would be better written as:
->
-> mmconfig-y := direct.o mmconfig-shared.o
-> mmconfig-$(CONFIG_X86_32) += mmconfig_32.o
-> obj-$(CONFIG_PCI_MMCONFIG) += $(mmconfig-y)
+On Wed, Mar 11, 2015 at 12:39:40PM +0000, Hanjun Guo wrote:
+> Introduce a new function map_gicc_mpidr() to allow MPIDRs to be obtained
+> from the GICC Structure introduced by ACPI 5.1, since MPIDR for ARM64 is
+> 64-bit, so typedef u64 for phys_cpuid_t.
+> 
+> The ARM architecture defines the MPIDR register as the CPU hardware
+> identifier. This patch adds the code infrastructure to retrieve the MPIDR
+> values from the ARM ACPI GICC structure in order to look-up the kernel CPU
+> hardware ids required by the ACPI core code to identify CPUs.
 
-Nice! Will update my patch.
+Nit: To me the two paragraphs above should be swapped, current log
+sounds odd; first you define what an MPIDR is, then define what the patch
+does with it, no need to respin.
 
-Tomasz
+I still have some reservations related to ACPI core code mapping
+of physical to logical CPUs, in particular I loathe the multiple parsing
+of MADT to get the same values twice - create cpu_logical_map and map
+processor objects to logical cpu ids - but given the current state of
+affairs, this patch looks fine:
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> Tested-by: Jon Masters <jcm@redhat.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h | 12 ++++++++++++
+>  drivers/acpi/processor_core.c | 30 ++++++++++++++++++++++++++++++
+>  2 files changed, 42 insertions(+)
+> 
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 9719921..eea0bc3 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -13,6 +13,8 @@
+>  #define _ASM_ACPI_H
+>  
+>  #include <linux/mm.h>
+> +#include <asm/cputype.h>
+> +#include <asm/smp_plat.h>
+>  
+>  /* Basic configuration for ACPI */
+>  #ifdef	CONFIG_ACPI
+> @@ -27,6 +29,9 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+>  }
+>  #define acpi_os_ioremap acpi_os_ioremap
+>  
+> +typedef u64 phys_cpuid_t;
+> +#define PHYS_CPUID_INVALID INVALID_HWID
+> +
+>  #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
+>  extern int acpi_disabled;
+>  extern int acpi_noirq;
+> @@ -59,6 +64,13 @@ static inline void enable_acpi(void)
+>  }
+>  
+>  /*
+> + * The ACPI processor driver for ACPI core code needs this macro
+> + * to find out this cpu was already mapped (mapping from CPU hardware
+> + * ID to CPU logical ID) or not.
+> + */
+> +#define cpu_physical_id(cpu) cpu_logical_map(cpu)
+> +
+> +/*
+>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+>   * with this check the ACPI core will not override the CPU index
+>   * obtained from GICC with 0 and not print some error message as well.
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index 51cc299..b1ec78b 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -83,6 +83,31 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+>  	return 0;
+>  }
+>  
+> +/*
+> + * Retrieve the ARM CPU physical identifier (MPIDR)
+> + */
+> +static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+> +		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr)
+> +{
+> +	struct acpi_madt_generic_interrupt *gicc =
+> +	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+> +
+> +	if (!(gicc->flags & ACPI_MADT_ENABLED))
+> +		return -ENODEV;
+> +
+> +	/* device_declaration means Device object in DSDT, in the
+> +	 * GIC interrupt model, logical processors are required to
+> +	 * have a Processor Device object in the DSDT, so we should
+> +	 * check device_declaration here
+> +	 */
+> +	if (device_declaration && (gicc->uid == acpi_id)) {
+> +		*mpidr = gicc->arm_mpidr;
+> +		return 0;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+>  static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
+>  {
+>  	unsigned long madt_end, entry;
+> @@ -111,6 +136,9 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
+>  		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+>  			if (!map_lsapic_id(header, type, acpi_id, &phys_id))
+>  				break;
+> +		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+> +			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id))
+> +				break;
+>  		}
+>  		entry += header->length;
+>  	}
+> @@ -143,6 +171,8 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+>  		map_lsapic_id(header, type, acpi_id, &phys_id);
+>  	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
+>  		map_x2apic_id(header, type, acpi_id, &phys_id);
+> +	else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT)
+> +		map_gicc_mpidr(header, type, acpi_id, &phys_id);
+>  
+>  exit:
+>  	kfree(buffer.pointer);
+> -- 
+> 1.9.1
+> 
+> 
