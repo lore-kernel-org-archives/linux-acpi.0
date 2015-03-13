@@ -1,59 +1,66 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for 4.0-rc
-Date: Fri, 13 Mar 2015 22:18:47 +0100
-Message-ID: <CAJZ5v0gTC9yu_b=DVr8vaDwnhEfjy-p4MY8w9KrQGG41sNVqHA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
+Date: Fri, 13 Mar 2015 22:45:18 +0100
+Message-ID: <1959219.oI9I2JEVpa@vostro.rjw.lan>
+References: <1426092450.3643.7.camel@redhat.com> <1426212403-16234-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54547 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751306AbbCMVVb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Mar 2015 17:21:31 -0400
+In-Reply-To: <1426212403-16234-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Friday, March 13, 2015 10:06:43 AM Jiang Liu wrote:
+> To support IOAPIC hot-removal, we need to release PCI interrupt resource
+> when unbinding PCI device driver. But due to historical reason,
+> /*
+>  * We would love to complain here if pci_dev->is_enabled is set, that
+>  * the driver should have called pci_disable_device(), but the
+>  * unfortunate fact is there are too many odd BIOS and bridge setups
+>  * that don't like drivers doing that all of the time.
+>  * Oh well, we can dream of sane hardware when we sleep, no matter how
+>  * horrible the crap we have to deal with is when we are awake...
+>  */
+> some drivers don't call pci_disable_device() when unloading, which
+> prevents us from reallocating PCI interrupt resource on reloading
+> PCI driver and causes regressions.
+> 
+> So release PCI interrupt resource only if PCI device is disabled when
+> unbinding. By this way, we could support IOAPIC hot-removal on latest
+> platforms and avoid regressions on old platforms.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 
-Please pull from
+OK, I can agree with that.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.0-rc4
+Bjorn, what do you think?
 
-to receive power management and ACPI fixes for v4.0-rc4 with top-most
-commit b176023392360f28c0c8964a10effbc9a1f36c04
+> ---
+>  arch/x86/pci/common.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+> index 3d2612b68694..8d792142cb2a 100644
+> --- a/arch/x86/pci/common.c
+> +++ b/arch/x86/pci/common.c
+> @@ -527,7 +527,7 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
+>  	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
+>  		return NOTIFY_DONE;
+>  
+> -	if (pcibios_disable_irq)
+> +	if (!pci_is_enabled(dev) && pcibios_disable_irq)
+>  		pcibios_disable_irq(dev);
+>  
+>  	return NOTIFY_OK;
+> 
 
- Merge branch 'pm-tools'
-
-on top of commit 9eccca0843205f87c00404b663188b88eb248051
-
- Linux 4.0-rc3
-
-Just two fixes, one for an ACPI LPSS driver issue introduced during
-the 3.17 cycle and one revert of a recent commit that sort of broke
-the cpupower tool.
-
-Specifics:
-
- - Fix an ACPI LPSS (Low-Power Subsystem) driver issue causing the
-   8250_dw driver to confuse an LPSS clock with another one it is
-   supposed to handle due to the lack of identification allowing it
-   to tell those clocks apart (Heikki Krogerus).
-
- - Revert a recent commit that was supposed to improve the usability
-   of the cpupower tool, but clearly did the opposite (Josh Boyer).
-
-Thanks!
-
-
----------------
-
-Heikki Krogerus (1):
-      ACPI / LPSS: provide con_id for the clkdev
-
-Josh Boyer (1):
-      Revert "cpupower Makefile change to help run the tool without
-'make install'"
-
----------------
-
- drivers/acpi/acpi_lpss.c      | 5 ++++-
- tools/power/cpupower/Makefile | 2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
