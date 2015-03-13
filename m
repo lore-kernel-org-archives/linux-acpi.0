@@ -1,55 +1,156 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
-Date: Fri, 13 Mar 2015 10:06:43 +0800
-Message-ID: <1426212403-16234-1-git-send-email-jiang.liu@linux.intel.com>
-References: <1426092450.3643.7.camel@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:20209 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753603AbbCMCEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Mar 2015 22:04:32 -0400
-In-Reply-To: <1426092450.3643.7.camel@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v10 18/21] ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY
+ if ACPI is enabled on ARM64
+Date: Fri, 13 Mar 2015 11:28:45 +0800
+Message-ID: <5502596D.6020901@huawei.com>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-19-git-send-email-hanjun.guo@linaro.org> <20150312182151.GA3867@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150312182151.GA3867@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linar
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-To support IOAPIC hot-removal, we need to release PCI interrupt resource
-when unbinding PCI device driver. But due to historical reason,
-/*
- * We would love to complain here if pci_dev->is_enabled is set, that
- * the driver should have called pci_disable_device(), but the
- * unfortunate fact is there are too many odd BIOS and bridge setups
- * that don't like drivers doing that all of the time.
- * Oh well, we can dream of sane hardware when we sleep, no matter how
- * horrible the crap we have to deal with is when we are awake...
- */
-some drivers don't call pci_disable_device() when unloading, which
-prevents us from reallocating PCI interrupt resource on reloading
-PCI driver and causes regressions.
+On 2015/3/13 2:21, Lorenzo Pieralisi wrote:
+> On Wed, Mar 11, 2015 at 12:39:44PM +0000, Hanjun Guo wrote:
+>> From: Al Stone <al.stone@linaro.org>
+>>
+>> ACPI reduced hardware mode is disabled by default, but ARM64
+>> can only run properly in ACPI hardware reduced mode, so select
+>> ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64.
+>>
+>> If the firmware is not using hardware reduced ACPI mode, we
+>> will disable ACPI to avoid nightmare such as accessing some
+>> registers which are not available on ARM64.
+>>
+[...]
+>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>> index 6468f88..5819ef7 100644
+>> --- a/arch/arm64/kernel/acpi.c
+>> +++ b/arch/arm64/kernel/acpi.c
+>> @@ -303,6 +303,11 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>>  	 */
+>>  	if (table->revision > 5 ||
+>>  	    (table->revision == 5 && fadt->minor_revision >= 1)) {
+>> +		if (!acpi_gbl_reduced_hardware) {
+>> +			pr_err("Not hardware reduced ACPI mode, will not be supported\n");
+>> +			goto disable_acpi;
+>> +		}
+>> +
+> I reviewed the code and found that acpi_parse_fadt has become very
+> complex to read and understand. On top of that, I still do not understand
+> why you check PSCI presence in there (to print a warning ?) and as it
 
-So release PCI interrupt resource only if PCI device is disabled when
-unbinding. By this way, we could support IOAPIC hot-removal on latest
-platforms and avoid regressions on old platforms.
+Since Parking protocol for bringing up secondary CPUs will be upstreamed,
+it is ok to me to print no message for not supporting PSCI.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/pci/common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> was raised before disable_acpi() is scattered all over the place.
+> I do not understand why we enable ACPI to disable it again if
+> one of the checks fails, IMHO it is better to leave it disabled,
+> carry out the checks and enable ACPI if all of them pass.
+>
+> I came up with the patch attached on top of your series, which should be
+> split, tested on Juno, please test, let me know your opinion and shout if
+> you spot something wrong, it should simplify things a lot.
 
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 3d2612b68694..8d792142cb2a 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -527,7 +527,7 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
- 	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
- 		return NOTIFY_DONE;
- 
--	if (pcibios_disable_irq)
-+	if (!pci_is_enabled(dev) && pcibios_disable_irq)
- 		pcibios_disable_irq(dev);
- 
- 	return NOTIFY_OK;
--- 
-1.7.10.4
+Thanks, I have some minor comments below.
 
+>
+> I wonder if acpi_get_table_with_size() usage is frowned upon, but you
+> use it anyway and it helps us remove the FADT parsing function that
+> in my opinion is useless, since its return value is dumped by ACPI
+> core.
+>
+> Thanks,
+> Lorenzo
+>
+> ---
+>  arch/arm64/kernel/acpi.c | 92 ++++++++++++++++++++++++------------------------
+>  1 file changed, 46 insertions(+), 46 deletions(-)
+>
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 5819ef7..b7497fa 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -291,56 +291,23 @@ void acpi_unregister_gsi(u32 gsi)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+>  
+> -static int __init acpi_parse_fadt(struct acpi_table_header *table)
+> -{
+> -	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> -
+> -	/*
+> -	 * Revision in table header is the FADT Major revision, and there
+> -	 * is a minor revision of FADT which was introduced by ACPI 5.1,
+> -	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
+> -	 * boot protocol configuration data, or we will disable ACPI.
+> -	 */
+> -	if (table->revision > 5 ||
+> -	    (table->revision == 5 && fadt->minor_revision >= 1)) {
+> -		if (!acpi_gbl_reduced_hardware) {
+> -			pr_err("Not hardware reduced ACPI mode, will not be supported\n");
+> -			goto disable_acpi;
+> -		}
+> -
+> -		/*
+> -		 * ACPI 5.1 only has two explicit methods to boot up SMP,
+> -		 * PSCI and Parking protocol, but the Parking protocol is
+> -		 * only specified for ARMv7 now, so make PSCI as the only
+> -		 * way for the SMP boot protocol before some updates for
+> -		 * the Parking protocol spec.
+> -		 */
+> -		if (acpi_psci_present())
+> -			return 0;
+> -
+> -		pr_warn("No PSCI support, will not bring up secondary CPUs\n");
+> -		return -EOPNOTSUPP;
+> -	}
+> -
+> -	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
+> -		table->revision, fadt->minor_revision);
+> -
+> -disable_acpi:
+> -	disable_acpi();
+> -	return -EINVAL;
+> -}
+> -
+>  /*
+>   * acpi_boot_table_init() called from setup_arch(), always.
+>   *	1. find RSDP and get its address, and then find XSDT
+>   *	2. extract all tables and checksums them all
+>   *	3. check ACPI FADT revision
+> + *	4. check ACPI FADT HW reduced flag
+>   *
+>   * We can parse ACPI boot-time tables such as MADT after
+>   * this function is called.
+>   */
+>  void __init acpi_boot_table_init(void)
+>  {
+> +	struct acpi_table_header *table;
+> +	struct acpi_table_fadt *fadt;
+> +	acpi_status status;
+> +	acpi_size tbl_size;
+> +
+>  	/*
+>  	 * Enable ACPI instead of device tree unless
+>  	 * - ACPI has been disabled explicitly (acpi=off), or
+> @@ -351,19 +318,52 @@ void __init acpi_boot_table_init(void)
+>  	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+>  		return;
+>  
+> -	enable_acpi();
+> -
+>  	/* Initialize the ACPI boot-time table parser. */
+>  	if (acpi_table_init()) {
+
+Since we disable ACPI in default, it is a bit strange for me to init all
+the ACPI tables and parse FADT when ACPI is disabled, could you
+put some comments here to clarify the purpose? other than that, it is looks
+good to me.
+
+Thanks
+Hanjun
