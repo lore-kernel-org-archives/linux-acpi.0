@@ -1,80 +1,64 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for HP Pavilion dv6
-Date: Sat, 14 Mar 2015 20:46:25 +0800
-Message-ID: <CAJ=jquZxC7rxj8rsy254Oy0ZYRYoKDNvXyEZ1ANP6FmbPaWikA@mail.gmail.com>
-References: <1425364754-31900-1-git-send-email-alex.hung@canonical.com>
-	<1941299.sLe76u91Cr@vostro.rjw.lan>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
+Date: Sat, 14 Mar 2015 18:44:20 +0000
+Message-ID: <20150314184420.GT21998@io.lakedaemon.net>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:34521 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753092AbbCNMqZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2015 08:46:25 -0400
-Received: by qcaz10 with SMTP id z10so9696669qca.1
-        for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2015 05:46:25 -0700 (PDT)
-In-Reply-To: <1941299.sLe76u91Cr@vostro.rjw.lan>
+Received: from aso-006-i438.relay.mailchannels.net ([23.91.64.119]:12934 "EHLO
+	relay.mailchannels.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751491AbbCNSol (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2015 14:44:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
 
-Rafael,
+On Wed, Mar 11, 2015 at 08:39:42PM +0800, Hanjun Guo wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> 
+> ACPI kernel uses MADT table for proper GIC initialization. It needs to
+> parse GIC related subtables, collect CPU interface and distributor
+> addresses and call driver initialization function (which is hardware
+> abstraction agnostic). In a similar way, FDT initialize GICv1/2.
+> 
+> NOTE: This commit allow to initialize GICv1/2 basic functionality.
+> While now simple GICv2 init call is used, any further GIC features
+> require generic infrastructure for proper ACPI irqchip initialization.
+> That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
+> extension, GICv3/4 and its ITS are considered as next steps.
+> 
+> CC: Jason Cooper <jason@lakedaemon.net>
+> CC: Marc Zyngier <marc.zyngier@arm.com>
+> CC: Thomas Gleixner <tglx@linutronix.de>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Yijing Wang <wangyijing@huawei.com>
+> Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+> Tested-by: Jon Masters <jcm@redhat.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  arch/arm64/include/asm/acpi.h        |   2 +
+>  arch/arm64/include/asm/irq.h         |  13 +++++
+>  arch/arm64/kernel/acpi.c             |  25 +++++++++
+>  drivers/irqchip/irq-gic.c            | 102 +++++++++++++++++++++++++++++++++++
+>  drivers/irqchip/irqchip.c            |   3 ++
+>  include/linux/acpi_irq.h             |  10 ++++
+>  include/linux/irqchip/arm-gic-acpi.h |  31 +++++++++++
+>  7 files changed, 186 insertions(+)
+>  create mode 100644 include/linux/acpi_irq.h
+>  create mode 100644 include/linux/irqchip/arm-gic-acpi.h
 
-Do you mean /sys/class/backlight/intel_backlight? It works but acpi_video fails.
+Acked-by: Jason Cooper <jason@lakedaemon.net>
 
-We have some cases that needs working acpi_video interfaces. I'd also
-like to backport to previous kernels that has not use native backlight
-by default
+thx,
 
-Cheers,
-Alex Hung
-
-On Wed, Mar 11, 2015 at 6:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, March 03, 2015 02:39:14 PM Alex Hung wrote:
->> The brightness hotkeys of HP Pavilion dv6 does not work with Win8 OSI. Due
->> to insufficient documentation for the driver implementation, blacklist
->> it as a workaround.
->
-> I gather that the native backlight interface doesn't work on those systems too,
-> is that correct?
->
->> Signed-off-by: Alex Hung <alex.hung@canonical.com>
->> ---
->>  drivers/acpi/blacklist.c |   12 ++++++++++++
->>  1 file changed, 12 insertions(+)
->>
->> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
->> index 9b693d5..98aa360 100644
->> --- a/drivers/acpi/blacklist.c
->> +++ b/drivers/acpi/blacklist.c
->> @@ -300,6 +300,18 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
->>       },
->>
->>       /*
->> +      * The brightness hotkeys do not work on those machines when
->> +      * returning true for _OSI("Windows 2012")
->> +      */
->> +     {
->> +     .callback = dmi_disable_osi_win8,
->> +     .ident = "HP Pavilion dv6",
->> +     .matches = {
->> +                 DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
->> +                 DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv6 Notebook PC"),
->> +             },
->> +     },
->> +     /*
->>        * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
->>        * Linux ignores it, except for the machines enumerated below.
->>        */
->>
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
-
-
-
--- 
-Cheers,
-Alex Hung
+Jason.
