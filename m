@@ -1,87 +1,93 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [resend PATCH] driver core: property: support for generic
- property
-Date: Sat, 14 Mar 2015 10:42:31 +0100
-Message-ID: <20150314094231.GA24718@kroah.com>
-References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
- <CACxGe6tCJAPJc=Pj7vYiJ-cakvL9EsexGMpOD_G0DEPF3iTguQ@mail.gmail.com>
- <2794681.zGttLrs2tn@wuerfel>
- <1615473.geXTLLKD0n@vostro.rjw.lan>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
+Date: Sat, 14 Mar 2015 11:43:15 +0000
+Message-ID: <20150314114315.GC9696@e104818-lin.cambridge.arm.com>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
+ <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
+ <20150311231141.GG21998@io.lakedaemon.net>
+ <5500EFFF.2070807@huawei.com>
+ <20150312051245.GI21998@io.lakedaemon.net>
+ <550140ED.3080808@huawei.com>
+ <20150313171526.GL21998@io.lakedaemon.net>
+ <CACxGe6uN_1_y+tSwkUdYZdbsURibR+es-oGab0JefsnFehJw_g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35212 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbbCNJmf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2015 05:42:35 -0400
+Received: from foss.arm.com ([217.140.101.70]:53574 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751038AbbCNLnW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 14 Mar 2015 07:43:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1615473.geXTLLKD0n@vostro.rjw.lan>
+In-Reply-To: <CACxGe6uN_1_y+tSwkUdYZdbsURibR+es-oGab0JefsnFehJw_g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Arnd Bergmann <arnd@linaro.org>, Grant Likely <grant.likely@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Jason Cooper <jason@lakedaemon.net>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Su
 
-On Sat, Mar 14, 2015 at 02:09:06AM +0100, Rafael J. Wysocki wrote:
-> On Friday, March 13, 2015 04:24:11 PM Arnd Bergmann wrote:
-> > On Friday 13 March 2015 15:10:38 Grant Likely wrote:
-> > > On Thu, Mar 12, 2015 at 1:41 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > > > On Monday, January 26, 2015 03:17:40 PM Heikki Krogerus wrote:
-> > > > That doesn't seem to go in the right direction to be honest.
-> > > >
-> > > > Actually, having introduced struct fwnode_handle, we should perhaps try to
-> > > > replace both of_node and acpi_node with a single struct fwnode_handle pointer
-> > > > and then add a new fwnode_type for the "pdata" stuff.
-> > > 
-> > > I agree on this, but it will be a lot of work to convert...
-> > > 
-> > > > If you don't want to deal with of_node, which I can understand easily, it
-> > > > may be worth trying with acpi_node alone at this point and once you have
-> > > > the fwnode_handle pointer, you might use it for both ACPI and "pdata"?
-> > > >
-> > > > Grant, Arnd, I wonder what you think?
-> > > 
-> > > That makes sense, and we can populate the fwnode_handle even when
-> > > using DT. That will allow a transition period to move everyone over to
-> > > the fwnode_handle.
-> > 
-> > Agreed on both as well.
+On Sat, Mar 14, 2015 at 08:47:49AM +0000, Grant Likely wrote:
+> On Fri, Mar 13, 2015 at 5:15 PM, Jason Cooper <jason@lakedaemon.net> wrote:
+> > Hanjun, Catalin,
+> >
+> > On Thu, Mar 12, 2015 at 03:31:57PM +0800, Hanjun Guo wrote:
+> >> On 2015/3/12 13:12, Jason Cooper wrote:
+> >> > On Thu, Mar 12, 2015 at 09:46:39AM +0800, Hanjun Guo wrote:
+> >> >> On 2015/3/12 7:11, Jason Cooper wrote:
+> >> >>> Hey Grant,
+> >> >>>
+> >> >>> On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
+> >> >>>> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
+> >> [...]
+> >> >>>>> diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
+> >> >>>>> index 0fe2f71..afd1af3 100644
+> >> >>>>> --- a/drivers/irqchip/irqchip.c
+> >> >>>>> +++ b/drivers/irqchip/irqchip.c
+> >> >>>>> @@ -8,6 +8,7 @@
+> >> >>>>>   * warranty of any kind, whether express or implied.
+> >> >>>>>   */
+> >> >>>>>
+> >> >>>>> +#include <linux/acpi_irq.h>
+> >> >>>>>  #include <linux/init.h>
+> >> >>>>>  #include <linux/of_irq.h>
+> >> >>>>>  #include <linux/irqchip.h>
+> >> >>>>> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
+> >> >>>>>  void __init irqchip_init(void)
+> >> >>>>>  {
+> >> >>>>>         of_irq_init(__irqchip_of_table);
+> >> >>>>> +
+> >> >>>>> +       acpi_irq_init();
+> >> >>>>>  }
+> >> >>> Is this in line with Olof's idea that providing a dtb would override ACPI?
+> >> >> Yes, it will. Since ACPI is default OFF (disabled), if a dtb provided, and no acpi=force
+> >> >> passed in the early command line, dtb will be used as system configuration for
+> >> >> boot (dtb is always the prior one for now) [1]. In acpi_gic_init() which called by
+> >> >> acpi_irq_init(), it will return immediately if acpi disabled, so it will not parse
+> >> >> any ACPI table for device configuration.
+> >> > Ok, that matches my recollection.  Thanks for refreshing my memory.  I'll apply
+> >> > this on a topic branch for irqchip/gic when I return from travel.  Most likely
+> >> > Friday or over the weekend.
+> >>
+> >> Thank you very much! But this patch can't be applied without previous ones in this
+> >> patch set, how about you ack this patch and Catalin takes it via ARM64 tree? I'm
+> >> not sure for this, it depends on your decision.
+> >
+> > Is this a build dependency or a boot dependency?  I only received this patch in
+> > the series and I apologize, I'm a bit swamped atm.  Catalin, would an immutable
+> > irqchip/gic topic branch with this in it work for you?
 > 
-> OK
+> Jason,
 > 
-> So below is what it takes to use struct fwnode_handle to represent ACPI
-> companions.
-> 
-> Rafael
-> 
-> 
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: driver core / ACPI: Represent ACPI companions using fwnode_handle
-> 
-> Now that we have struct fwnode_handle, we can use that to point to
-> ACPI companions from struct device objects instead of pointing to
-> struct acpi_device directly.
-> 
-> There are two benefits from that.  First, the somewhat ugly and
-> hackish struct acpi_dev_node can be dropped and, second, the same
-> struct fwnode_handle pointer can be used in the future to point
-> to other (non-ACPI) firmware device node types.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/acpi_platform.c    |    2 +-
->  drivers/acpi/dock.c             |    2 +-
->  drivers/base/platform.c         |    2 +-
->  drivers/i2c/i2c-core.c          |    4 ++--
->  include/acpi/acpi_bus.h         |    3 ++-
->  include/linux/acpi.h            |    7 ++++---
->  include/linux/device.h          |   13 +++----------
->  include/linux/fwnode.h          |   25 +++++++++++++++++++++++++
->  include/linux/i2c.h             |    4 ++--
->  include/linux/platform_device.h |    2 +-
->  include/linux/property.h        |   11 +----------
->  11 files changed, 43 insertions(+), 32 deletions(-)
+> For a series like this I strongly recommend you provide an ack and let
+> the whole series go in via a single branch. Trying to split it up only
+> to reassemble it again creates more work for everyone. There is also
+> very little likelyhood that this will create a complex conflict with
+> your tree.
 
-Nice, I like the driver core changes:
+I would prefer this approach as well since we only enable ACPI on arm64
+on patch 19. If we are to rework this, we probably end up with 3
+branches: one for the base ACPI, another for irqchip and yet another to
+enable ACPI on arm64 (that's unless we enable APCI on arm64 but without
+any irqchip support which makes it pretty useless for testing).
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+-- 
+Catalin
