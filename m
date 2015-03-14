@@ -1,93 +1,80 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v10 16/21] irqchip: Add GICv2 specific ACPI boot support
-Date: Sat, 14 Mar 2015 11:43:15 +0000
-Message-ID: <20150314114315.GC9696@e104818-lin.cambridge.arm.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-17-git-send-email-hanjun.guo@linaro.org>
- <CACxGe6uWwts6X=Yc2ioBdQizXkF1_YgoNNOsREWirk2MFBVDHg@mail.gmail.com>
- <20150311231141.GG21998@io.lakedaemon.net>
- <5500EFFF.2070807@huawei.com>
- <20150312051245.GI21998@io.lakedaemon.net>
- <550140ED.3080808@huawei.com>
- <20150313171526.GL21998@io.lakedaemon.net>
- <CACxGe6uN_1_y+tSwkUdYZdbsURibR+es-oGab0JefsnFehJw_g@mail.gmail.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for HP Pavilion dv6
+Date: Sat, 14 Mar 2015 20:46:25 +0800
+Message-ID: <CAJ=jquZxC7rxj8rsy254Oy0ZYRYoKDNvXyEZ1ANP6FmbPaWikA@mail.gmail.com>
+References: <1425364754-31900-1-git-send-email-alex.hung@canonical.com>
+	<1941299.sLe76u91Cr@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53574 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751038AbbCNLnW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Mar 2015 07:43:22 -0400
-Content-Disposition: inline
-In-Reply-To: <CACxGe6uN_1_y+tSwkUdYZdbsURibR+es-oGab0JefsnFehJw_g@mail.gmail.com>
+Received: from mail-qc0-f172.google.com ([209.85.216.172]:34521 "EHLO
+	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753092AbbCNMqZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Mar 2015 08:46:25 -0400
+Received: by qcaz10 with SMTP id z10so9696669qca.1
+        for <linux-acpi@vger.kernel.org>; Sat, 14 Mar 2015 05:46:25 -0700 (PDT)
+In-Reply-To: <1941299.sLe76u91Cr@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Jason Cooper <jason@lakedaemon.net>, Mark Rutland <mark.rutland@arm.com>, linaro-acpi <linaro-acpi@lists.linaro.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Mark Brown <broonie@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Su
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-On Sat, Mar 14, 2015 at 08:47:49AM +0000, Grant Likely wrote:
-> On Fri, Mar 13, 2015 at 5:15 PM, Jason Cooper <jason@lakedaemon.net> wrote:
-> > Hanjun, Catalin,
-> >
-> > On Thu, Mar 12, 2015 at 03:31:57PM +0800, Hanjun Guo wrote:
-> >> On 2015/3/12 13:12, Jason Cooper wrote:
-> >> > On Thu, Mar 12, 2015 at 09:46:39AM +0800, Hanjun Guo wrote:
-> >> >> On 2015/3/12 7:11, Jason Cooper wrote:
-> >> >>> Hey Grant,
-> >> >>>
-> >> >>> On Wed, Mar 11, 2015 at 06:04:50PM +0000, Grant Likely wrote:
-> >> >>>> On 11 Mar 2015 12:42, "Hanjun Guo" <hanjun.guo@linaro.org> wrote:
-> >> [...]
-> >> >>>>> diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
-> >> >>>>> index 0fe2f71..afd1af3 100644
-> >> >>>>> --- a/drivers/irqchip/irqchip.c
-> >> >>>>> +++ b/drivers/irqchip/irqchip.c
-> >> >>>>> @@ -8,6 +8,7 @@
-> >> >>>>>   * warranty of any kind, whether express or implied.
-> >> >>>>>   */
-> >> >>>>>
-> >> >>>>> +#include <linux/acpi_irq.h>
-> >> >>>>>  #include <linux/init.h>
-> >> >>>>>  #include <linux/of_irq.h>
-> >> >>>>>  #include <linux/irqchip.h>
-> >> >>>>> @@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
-> >> >>>>>  void __init irqchip_init(void)
-> >> >>>>>  {
-> >> >>>>>         of_irq_init(__irqchip_of_table);
-> >> >>>>> +
-> >> >>>>> +       acpi_irq_init();
-> >> >>>>>  }
-> >> >>> Is this in line with Olof's idea that providing a dtb would override ACPI?
-> >> >> Yes, it will. Since ACPI is default OFF (disabled), if a dtb provided, and no acpi=force
-> >> >> passed in the early command line, dtb will be used as system configuration for
-> >> >> boot (dtb is always the prior one for now) [1]. In acpi_gic_init() which called by
-> >> >> acpi_irq_init(), it will return immediately if acpi disabled, so it will not parse
-> >> >> any ACPI table for device configuration.
-> >> > Ok, that matches my recollection.  Thanks for refreshing my memory.  I'll apply
-> >> > this on a topic branch for irqchip/gic when I return from travel.  Most likely
-> >> > Friday or over the weekend.
-> >>
-> >> Thank you very much! But this patch can't be applied without previous ones in this
-> >> patch set, how about you ack this patch and Catalin takes it via ARM64 tree? I'm
-> >> not sure for this, it depends on your decision.
-> >
-> > Is this a build dependency or a boot dependency?  I only received this patch in
-> > the series and I apologize, I'm a bit swamped atm.  Catalin, would an immutable
-> > irqchip/gic topic branch with this in it work for you?
-> 
-> Jason,
-> 
-> For a series like this I strongly recommend you provide an ack and let
-> the whole series go in via a single branch. Trying to split it up only
-> to reassemble it again creates more work for everyone. There is also
-> very little likelyhood that this will create a complex conflict with
-> your tree.
+Rafael,
 
-I would prefer this approach as well since we only enable ACPI on arm64
-on patch 19. If we are to rework this, we probably end up with 3
-branches: one for the base ACPI, another for irqchip and yet another to
-enable ACPI on arm64 (that's unless we enable APCI on arm64 but without
-any irqchip support which makes it pretty useless for testing).
+Do you mean /sys/class/backlight/intel_backlight? It works but acpi_video fails.
+
+We have some cases that needs working acpi_video interfaces. I'd also
+like to backport to previous kernels that has not use native backlight
+by default
+
+Cheers,
+Alex Hung
+
+On Wed, Mar 11, 2015 at 6:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, March 03, 2015 02:39:14 PM Alex Hung wrote:
+>> The brightness hotkeys of HP Pavilion dv6 does not work with Win8 OSI. Due
+>> to insufficient documentation for the driver implementation, blacklist
+>> it as a workaround.
+>
+> I gather that the native backlight interface doesn't work on those systems too,
+> is that correct?
+>
+>> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+>> ---
+>>  drivers/acpi/blacklist.c |   12 ++++++++++++
+>>  1 file changed, 12 insertions(+)
+>>
+>> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+>> index 9b693d5..98aa360 100644
+>> --- a/drivers/acpi/blacklist.c
+>> +++ b/drivers/acpi/blacklist.c
+>> @@ -300,6 +300,18 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+>>       },
+>>
+>>       /*
+>> +      * The brightness hotkeys do not work on those machines when
+>> +      * returning true for _OSI("Windows 2012")
+>> +      */
+>> +     {
+>> +     .callback = dmi_disable_osi_win8,
+>> +     .ident = "HP Pavilion dv6",
+>> +     .matches = {
+>> +                 DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>> +                 DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv6 Notebook PC"),
+>> +             },
+>> +     },
+>> +     /*
+>>        * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
+>>        * Linux ignores it, except for the machines enumerated below.
+>>        */
+>>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
+
+
 
 -- 
-Catalin
+Cheers,
+Alex Hung
