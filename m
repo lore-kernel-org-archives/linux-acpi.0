@@ -1,79 +1,48 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [resend PATCH] driver core: property: support for generic
- property
-Date: Mon, 16 Mar 2015 09:25:20 +0200
-Message-ID: <20150316072520.GA31564@kuha.fi.intel.com>
-References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
- <2095371.SrUNK6JsDO@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: [PATCH] ACPI: Disable Vista compatibility for Sony VGN-SR19XN.
+Date: Mon, 16 Mar 2015 17:35:18 +0800
+Message-ID: <1426498518-9853-1-git-send-email-yu.c.chen@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:34745 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:10929 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751964AbbCPHZX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Mar 2015 03:25:23 -0400
-Content-Disposition: inline
-In-Reply-To: <2095371.SrUNK6JsDO@vostro.rjw.lan>
+	id S1753343AbbCPJbF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Mar 2015 05:31:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
+To: rafael.j.wysocki@intel.com
+Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, Chen Yu <yu.c.chen@intel.com>
 
-> > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > index c458458..4ea6d27 100644
-> > --- a/drivers/base/property.c
-> > +++ b/drivers/base/property.c
-> > @@ -15,6 +15,108 @@
-> >  #include <linux/acpi.h>
-> >  #include <linux/of.h>
-> >  
-> > +static struct dev_gen_prop *dev_prop_get(struct device *dev, const char *name)
-> > +{
-> > +	struct dev_gen_prop *prop;
-> > +
-> > +	if (!dev->gen_prop)
-> > +		return NULL;
-> > +
-> > +	for (prop = dev->gen_prop; prop->name; prop++)
-> > +		if (!strcmp(name, prop->name))
-> > +			return prop;
-> > +	return NULL;
-> > +}
-> > +
-> > +static int dev_prop_copy_array_u8(u8 *src, u8 *val, size_t nval)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < nval; i++)
-> > +		val[i] = src[i];
-> 
-> Use memcpy() perhaps?  And below too?  And then you may not need these
-> helpers any more.
+Sony VGN-SR19XN laptop needs to disable windows vista compatibility,
+or else it freezes when plugging/unplugging the VGA connector.
 
-OK.
+https://bugzilla.kernel.org/show_bug.cgi?id=66771
 
-<snip>
+Tested-by: Lionel Duriez <lionelduriez@hotmail.com>
+Reviewed-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+---
+ drivers/acpi/blacklist.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-> > @@ -780,6 +782,7 @@ struct device {
-> >  
-> >  	struct device_node	*of_node; /* associated device tree node */
-> >  	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
-> > +	struct dev_gen_prop	*gen_prop; /* generic device property */
-> 
-> That doesn't seem to go in the right direction to be honest.
-> 
-> Actually, having introduced struct fwnode_handle, we should perhaps try to
-> replace both of_node and acpi_node with a single struct fwnode_handle pointer
-> and then add a new fwnode_type for the "pdata" stuff.
-> 
-> If you don't want to deal with of_node, which I can understand easily, it
-> may be worth trying with acpi_node alone at this point and once you have
-> the fwnode_handle pointer, you might use it for both ACPI and "pdata"?
-
-It sounds like a better Idea to me too.
-
-
-Thanks,
-
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 9b693d5..1d17919 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -215,6 +215,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	},
+ 	{
+ 	.callback = dmi_disable_osi_vista,
++	.ident = "VGN-SR19XN",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR19XN"),
++		},
++	},
++	{
++	.callback = dmi_disable_osi_vista,
+ 	.ident = "Toshiba Satellite L355",
+ 	.matches = {
+ 		     DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
 -- 
-heikki
+1.8.4.2
+
