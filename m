@@ -1,93 +1,63 @@
-From: Nikolaus Rath <Nikolaus@rath.org>
-Subject: Help with debugging intermittent crash on resume from hibernation
-Date: Fri, 13 Mar 2015 20:02:45 -0700
-Message-ID: <8761a3s1vq.fsf@vostro.rath.org>
+From: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Mon, 16 Mar 2015 05:07:49 +0000
+Message-ID: <D12BCE95.15953%suravee.suthikulpanit@amd.com>
+References: <55019423.3080506@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bbn0104.outbound.protection.outlook.com ([157.56.111.104]:54755
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750785AbbCPFH5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 01:07:57 -0400
+In-Reply-To: <55019423.3080506@codeaurora.org>
+Content-Language: en-US
+Content-ID: <EA805B8FC4B43B429DC057D508B9D22B@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Hello,
-
-In about one out of 10 resumes from hibernation, my system resets after
-the hibernation image has been loaded. I am hibernating using
-
-# echo platform > /sys/power/disk
-# echo disk > /sys/power/state
-
-When testing hibernation using
-
-# echo core > /sys/power/pm_test
-# echo platform > /sys/power/disk
-# echo disk > /sys/power/state
-
-I was not able to produce the same failure.
-
-I then tried attaching a serial console and booted with
-console=3DttyS0,115200n8 no_console_suspend. For the failed attempt, th=
-e
-last messages before the reset are:
-
-[   25.192978] Disabling non-boot CPUs ...
-[   25.234496] intel_pstate CPU 1 exiting
-[   25.270548] NOHZ: local_softirq_pending 10
-[   25.274657] NOHZ: local_softirq_pending 10
-[   25.279892] smpboot: CPU 1 is now offline
-[   25.318618] intel_pstate CPU 2 exiting
-[   25.454816] smpboot: CPU 2 is now offline
-[   25.494879] intel_pstate CPU 3 exiting
-[   25.647097] smpboot: CPU 3 is now offline
-[   25.687158] intel_pstate CPU 4 exiting
-[   25.819349] smpboot: CPU 4 is now offline
-[   25.859411] intel_pstate CPU 5 exiting
-[   25.995610] smpboot: CPU 5 is now offline
-[   26.015640] intel_pstate CPU 6 exiting
-[   26.155843] smpboot: CPU 6 is now offline
-[   26.175874] intel_pstate CPU 7 exiting
-[   26.201040] smpboot: CPU 7 is now offline
-
-=46or the successful attempt, the last messages before the jump in the
-time (which I assume indicate that resume was complete) are:
-
-[   25.428213] Disabling non-boot CPUs ...^M
-[   25.549875] intel_pstate CPU 1 exiting^M
-[   25.694081] smpboot: CPU 1 is now offline^M
-[   27.092141] intel_pstate CPU 2 exiting^M
-[   27.232341] smpboot: CPU 2 is now offline^M
-[   27.364542] intel_pstate CPU 3 exiting^M
-[   27.404597] NOHZ: local_softirq_pending 10^M
-[   27.408704] NOHZ: local_softirq_pending 10^M
-[   27.413942] smpboot: CPU 3 is now offline^M
-[   27.556820] intel_pstate CPU 4 exiting^M
-[   27.582000] smpboot: CPU 4 is now offline^M
-[   27.600891] intel_pstate CPU 5 exiting^M
-[   27.745093] smpboot: CPU 5 is now offline^M
-[   27.849247] intel_pstate CPU 6 exiting^M
-[   28.538259] smpboot: CPU 6 is now offline^M
-[   28.558292] intel_pstate CPU 7 exiting^M
-[   28.583457] smpboot: CPU 7 is now offline^M
-[23880.929604] Enabling non-boot CPUs ...^M
-[23880.933432] x86: Booting SMP configuration:^M
-
-(I uploaded the complete logs to https://dl.dropboxusercontent.com/u/11=
-545826/logfiles.tar.xz).
-
-At least to me, this unfortunately gives absolutely no indication of
-what might be going wrong.
-
-Other than trying again with the -rc3 (which I'll do next), is there
-anything else I can do to debug this further?
+To: Timur Tabi <timur@codeaurora.org>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
 
-Thanks,
--Nikolaus
 
---=20
-GPG encrypted emails preferred. Key id: 0xD113FCAC3C4E599F
-=46ingerprint: ED31 791B 2C5C 1613 AF38 8B8A D113 FCAC 3C4E 599F
+On 3/12/15, 08:26, "Timur Tabi" <timur@codeaurora.org> wrote:
 
-             =C2=BBTime flies like an arrow, fruit flies like a Banana.=
-=C2=AB
+>Hanjun Guo wrote:
+>> This patch set already tested on multi platforms:
+>>   - AMD Seattle board;
+>>   - Cavium Thunder board;
+>>   - Huawei D02 board;
+>>   - Qualcomm ARM64 platform
+>>
+>> This version 10 patch set address some minor comments and collect ACKs
+>>and
+>> Reviewed-bys for v9:
+>>
+>>   - new Acks from Rafael, Olof, Grant, Lorenzo
+>>   - new way to handle typdef phys_cpuid_t which suggested by Rafael,
+>>     but no functional change
+>>   - Remove if(!phys) for early ioremappings
+>>   - Rework sleep function for ARM64
+>>   - Introduce linux/acpi_irq.h to hold acpi_irq_init()
+>>   - Disable ACPI if not HW_REDUCED_ACPI compliant
+>>   - Remove the doc of why ACPI on ARM
+>
+>v10 retested and working as before, so ...
+>
+>	Tested-by: Timur Tabi <timur@codeaurora.org>
+>
+>for the whole patchset.
+
+
+Also retested on AMD Seattle.
+
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+
+>
+>-- 
+>Sent by an employee of the Qualcomm Innovation Center, Inc.
+>The Qualcomm Innovation Center, Inc. is a member of the
+>Code Aurora Forum, hosted by The Linux Foundation.
+
