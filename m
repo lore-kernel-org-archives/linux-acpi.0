@@ -1,111 +1,352 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [update][PATCH v10 06/21] ACPI / sleep: Introduce CONFIG_ACPI_GENERIC_SLEEP
-Date: Mon, 16 Mar 2015 20:14:52 +0800
-Message-ID: <5506C93C.704@linaro.org>
-References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org> <2027737.r7gkxqZ3Xv@vostro.rjw.lan>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v3 4/9] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Mon, 16 Mar 2015 15:38:17 +0100
+Message-ID: <5506EAD9.1070900@linaro.org>
+References: <1425987320-15020-1-git-send-email-tomasz.nowicki@linaro.org>	 <1425987320-15020-5-git-send-email-tomasz.nowicki@linaro.org> <1426264500.20110.22.camel@deneb.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:35590 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752845AbbCPMPB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 08:15:01 -0400
-Received: by pabyw6 with SMTP id yw6so63452977pab.2
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2015 05:15:01 -0700 (PDT)
-In-Reply-To: <2027737.r7gkxqZ3Xv@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1426264500.20110.22.camel@deneb.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Salter <msalter@redhat.com>
+Cc: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, al.stone@linaro.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On 2015=E5=B9=B403=E6=9C=8814=E6=97=A5 05:49, Rafael J. Wysocki wrote:
-> On Friday, March 13, 2015 04:14:29 PM Hanjun Guo wrote:
->> From: Graeme Gregory <graeme.gregory@linaro.org>
+On 13.03.2015 17:35, Mark Salter wrote:
+> On Tue, 2015-03-10 at 12:35 +0100, Tomasz Nowicki wrote:
+>> ECAM standard and MCFG table are architecture independent and it makes
+>> sense to share common code across all architectures. Both are going to
+>> corresponding files - ecam.c and mcfg.c
 >>
->> ACPI 5.1 does not currently support S states for ARM64 hardware but
->> ACPI code will call acpi_target_system_state() and acpi_sleep_init()
->> for device power management, so introduce CONFIG_ACPI_GENERIC_SLEEP
->> and select it for x86 and ia64 only to make sleep functions availabl=
-e,
->> and also introduce stub function to allow other drivers to function
->> until S states are defined for ARM64.
+>> While we are here, rename pci_parse_mcfg to acpi_parse_mcfg.
+>> We already have acpi_parse_mcfg prototype which is used nowhere.
+>> At the same time, we need pci_parse_mcfg been global so acpi_parse_mcfg
+>> can be used perfectly here.
 >>
->> It will be no functional change for x86 and IA64.
->>
->> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
->> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Acked-by: Robert Richter <rrichter@cavium.com>
->> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >> ---
->>   arch/ia64/Kconfig       | 1 +
->>   arch/x86/Kconfig        | 1 +
->>   drivers/acpi/Kconfig    | 4 ++++
->>   drivers/acpi/Makefile   | 2 +-
->>   drivers/acpi/internal.h | 4 ++++
->>   5 files changed, 11 insertions(+), 1 deletion(-)
+>>   arch/x86/Kconfig               |   2 +
+>>   arch/x86/include/asm/pci_x86.h |  33 -----
+>>   arch/x86/pci/acpi.c            |   1 +
+>>   arch/x86/pci/mmconfig-shared.c | 296 +----------------------------------------
+>>   arch/x86/pci/mmconfig_32.c     |   1 +
+>>   arch/x86/pci/mmconfig_64.c     |   1 +
+>>   arch/x86/pci/numachip.c        |   1 +
+>>   drivers/acpi/Makefile          |   1 +
+>>   drivers/acpi/mcfg.c            |  81 +++++++++++
+>>   drivers/pci/Kconfig            |   4 +
+>>   drivers/pci/Makefile           |   5 +
+>>   drivers/pci/ecam.c             | 243 +++++++++++++++++++++++++++++++++
+>>   include/linux/ecam.h           |  51 +++++++
+>>   13 files changed, 394 insertions(+), 326 deletions(-)
+>>   create mode 100644 drivers/acpi/mcfg.c
+>>   create mode 100644 drivers/pci/ecam.c
+>>   create mode 100644 include/linux/ecam.h
 >>
->> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
->> index 074e52b..e8728d7 100644
->> --- a/arch/ia64/Kconfig
->> +++ b/arch/ia64/Kconfig
->> @@ -10,6 +10,7 @@ config IA64
->>   	select ARCH_MIGHT_HAVE_PC_SERIO
->>   	select PCI if (!IA64_HP_SIM)
->>   	select ACPI if (!IA64_HP_SIM)
->> +	select ACPI_GENERIC_SLEEP if ACPI
->>   	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
->>   	select HAVE_UNSTABLE_SCHED_CLOCK
->>   	select HAVE_IDE
 >> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
->> index b7d31ca..9804431 100644
+>> index c2fb8a8..dd926f4 100644
 >> --- a/arch/x86/Kconfig
 >> +++ b/arch/x86/Kconfig
->> @@ -22,6 +22,7 @@ config X86_64
->>   ### Arch settings
->>   config X86
+>> @@ -2276,6 +2276,7 @@ config PCI_DIRECT
+>>
+>>   config PCI_MMCONFIG
 >>   	def_bool y
->> +	select ACPI_GENERIC_SLEEP if ACPI
+>> +	select PCI_ECAM
+>>   	depends on X86_32 && PCI && (ACPI || SFI) && (PCI_GOMMCONFIG || PCI_GOANY)
+>>
+>>   config PCI_OLPC
+>> @@ -2293,6 +2294,7 @@ config PCI_DOMAINS
+>>
+>>   config PCI_MMCONFIG
+>>   	bool "Support mmconfig PCI config space access"
+>> +	select PCI_ECAM
+>>   	depends on X86_64 && PCI && ACPI
+>>
+>>   config PCI_CNB20LE_QUIRK
+>> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+>> index c57c225..e8a237f 100644
+>> --- a/arch/x86/include/asm/pci_x86.h
+>> +++ b/arch/x86/include/asm/pci_x86.h
+>> @@ -122,41 +122,8 @@ extern int pci_legacy_init(void);
+>>   extern void pcibios_fixup_irqs(void);
+>>
+>>   /* pci-mmconfig.c */
+>> -
+>> -/* "PCI MMCONFIG %04x [bus %02x-%02x]" */
+>> -#define PCI_MMCFG_RESOURCE_NAME_LEN (22 + 4 + 2 + 2)
+>> -
+>> -struct pci_mmcfg_region {
+>> -	struct list_head list;
+>> -	struct resource res;
+>> -	u64 address;
+>> -	char __iomem *virt;
+>> -	u16 segment;
+>> -	u8 start_bus;
+>> -	u8 end_bus;
+>> -	char name[PCI_MMCFG_RESOURCE_NAME_LEN];
+>> -};
+>> -
+>> -struct pci_mmcfg_mmio_ops {
+>> -	u32 (*read)(int len, void __iomem *addr);
+>> -	void (*write)(int len, void __iomem *addr, u32 value);
+>> -};
+>> -
+>> -extern int __init pci_mmcfg_arch_init(void);
+>> -extern void __init pci_mmcfg_arch_free(void);
+>> -extern int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
+>> -extern void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
+>>   extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+>>   			       phys_addr_t addr);
+>> -extern int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
+>> -extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
+>> -extern u32 pci_mmio_read(int len, void __iomem *addr);
+>> -extern void pci_mmio_write(int len, void __iomem *addr, u32 value);
+>> -extern void pci_mmconfig_register_mmio(struct pci_mmcfg_mmio_ops *ops);
+>> -
+>> -extern struct list_head pci_mmcfg_list;
+>> -
+>> -#define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
+>>
+>>   /*
+>>    * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+>> index 6ac2738..5dfccef 100644
+>> --- a/arch/x86/pci/acpi.c
+>> +++ b/arch/x86/pci/acpi.c
+>> @@ -4,6 +4,7 @@
+>>   #include <linux/irq.h>
+>>   #include <linux/dmi.h>
+>>   #include <linux/slab.h>
+>> +#include <linux/ecam.h>
+>>   #include <asm/numa.h>
+>>   #include <asm/pci_x86.h>
+>>
+>> diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+>> index 685cd4c..5064302 100644
+>> --- a/arch/x86/pci/mmconfig-shared.c
+>> +++ b/arch/x86/pci/mmconfig-shared.c
+>> @@ -18,6 +18,7 @@
+>>   #include <linux/slab.h>
+>>   #include <linux/mutex.h>
+>>   #include <linux/rculist.h>
+>> +#include <linux/ecam.h>
+>>   #include <asm/e820.h>
+>>   #include <asm/pci_x86.h>
+>>   #include <asm/acpi.h>
+>> @@ -27,52 +28,6 @@
+>>   /* Indicate if the mmcfg resources have been placed into the resource table. */
+>>   static bool pci_mmcfg_running_state;
+>>   static bool pci_mmcfg_arch_init_failed;
+>> -static DEFINE_MUTEX(pci_mmcfg_lock);
+>> -
+>> -LIST_HEAD(pci_mmcfg_list);
+>> -
+>> -static u32
+>> -pci_mmconfig_generic_read(int len, void __iomem *addr)
+>> -{
+>> -	u32 data = 0;
+>> -
+>> -	switch (len) {
+>> -	case 1:
+>> -		data = readb(addr);
+>> -		break;
+>> -	case 2:
+>> -		data = readw(addr);
+>> -		break;
+>> -	case 4:
+>> -		data = readl(addr);
+>> -		break;
+>> -	}
+>> -
+>> -	return data;
+>> -}
+>> -
+>> -static void
+>> -pci_mmconfig_generic_write(int len, void __iomem *addr, u32 value)
+>> -{
+>> -	switch (len) {
+>> -	case 1:
+>> -		writeb(value, addr);
+>> -		break;
+>> -	case 2:
+>> -		writew(value, addr);
+>> -		break;
+>> -	case 4:
+>> -		writel(value, addr);
+>> -		break;
+>> -	}
+>> -}
+>> -
+>> -static struct pci_mmcfg_mmio_ops pci_mmcfg_mmio_default = {
+>> -	.read = pci_mmconfig_generic_read,
+>> -	.write = pci_mmconfig_generic_write,
+>> -};
+>> -
+>> -static struct pci_mmcfg_mmio_ops *pci_mmcfg_mmio = &pci_mmcfg_mmio_default;
+>>
+>>   static u32
+>>   pci_mmconfig_amd_read(int len, void __iomem *addr)
+>> @@ -115,128 +70,6 @@ static struct pci_mmcfg_mmio_ops pci_mmcfg_mmio_amd_fam10h = {
+>>   	.write = pci_mmconfig_amd_write,
+>>   };
+>>
+>> -void
+>> -pci_mmconfig_register_mmio(struct pci_mmcfg_mmio_ops *ops)
+>> -{
+>> -	pci_mmcfg_mmio = ops;
+>> -}
+>> -
+>> -u32
+>> -pci_mmio_read(int len, void __iomem *addr)
+>> -{
+>> -	if (!pci_mmcfg_mmio) {
+>> -		pr_err("PCI config space has no accessors !");
+>> -		return 0;
+>> -	}
+>> -
+>> -	return pci_mmcfg_mmio->read(len, addr);
+>> -}
+>> -
+>> -void
+>> -pci_mmio_write(int len, void __iomem *addr, u32 value)
+>> -{
+>> -	if (!pci_mmcfg_mmio) {
+>> -		pr_err("PCI config space has no accessors !");
+>> -		return;
+>> -	}
+>> -
+>> -	pci_mmcfg_mmio->write(len, addr, value);
+>> -}
+>> -
+>> -static void __init pci_mmconfig_remove(struct pci_mmcfg_region *cfg)
+>> -{
+>> -	if (cfg->res.parent)
+>> -		release_resource(&cfg->res);
+>> -	list_del(&cfg->list);
+>> -	kfree(cfg);
+>> -}
+>> -
+>> -static void __init free_all_mmcfg(void)
+>> -{
+>> -	struct pci_mmcfg_region *cfg, *tmp;
+>> -
+>> -	pci_mmcfg_arch_free();
+>> -	list_for_each_entry_safe(cfg, tmp, &pci_mmcfg_list, list)
+>> -		pci_mmconfig_remove(cfg);
+>> -}
+>> -
+>> -static void list_add_sorted(struct pci_mmcfg_region *new)
+>> -{
+>> -	struct pci_mmcfg_region *cfg;
+>> -
+>> -	/* keep list sorted by segment and starting bus number */
+>> -	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list) {
+>> -		if (cfg->segment > new->segment ||
+>> -		    (cfg->segment == new->segment &&
+>> -		     cfg->start_bus >= new->start_bus)) {
+>> -			list_add_tail_rcu(&new->list, &cfg->list);
+>> -			return;
+>> -		}
+>> -	}
+>> -	list_add_tail_rcu(&new->list, &pci_mmcfg_list);
+>> -}
+>> -
+>> -static struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
+>> -						   int end, u64 addr)
+>> -{
+>> -	struct pci_mmcfg_region *new;
+>> -	struct resource *res;
+>> -
+>> -	if (addr == 0)
+>> -		return NULL;
+>> -
+>> -	new = kzalloc(sizeof(*new), GFP_KERNEL);
+>> -	if (!new)
+>> -		return NULL;
+>> -
+>> -	new->address = addr;
+>> -	new->segment = segment;
+>> -	new->start_bus = start;
+>> -	new->end_bus = end;
+>> -
+>> -	res = &new->res;
+>> -	res->start = addr + PCI_MMCFG_BUS_OFFSET(start);
+>> -	res->end = addr + PCI_MMCFG_BUS_OFFSET(end + 1) - 1;
+>> -	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+>> -	snprintf(new->name, PCI_MMCFG_RESOURCE_NAME_LEN,
+>> -		 "PCI MMCONFIG %04x [bus %02x-%02x]", segment, start, end);
+>> -	res->name = new->name;
+>> -
+>> -	return new;
+>> -}
+>> -
+>> -static struct pci_mmcfg_region *__init pci_mmconfig_add(int segment, int start,
+>> -							int end, u64 addr)
+>> -{
+>> -	struct pci_mmcfg_region *new;
+>> -
+>> -	new = pci_mmconfig_alloc(segment, start, end, addr);
+>> -	if (new) {
+>> -		mutex_lock(&pci_mmcfg_lock);
+>> -		list_add_sorted(new);
+>> -		mutex_unlock(&pci_mmcfg_lock);
+>> -
+>> -		pr_info(PREFIX
+>> -		       "MMCONFIG for domain %04x [bus %02x-%02x] at %pR "
+>> -		       "(base %#lx)\n",
+>> -		       segment, start, end, &new->res, (unsigned long)addr);
+>> -	}
+>> -
+>> -	return new;
+>> -}
+>> -
+>> -struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus)
+>> -{
+>> -	struct pci_mmcfg_region *cfg;
+>> -
+>> -	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
+>> -		if (cfg->segment == segment &&
+>> -		    cfg->start_bus <= bus && bus <= cfg->end_bus)
+>> -			return cfg;
+>> -
+>> -	return NULL;
+>> -}
+>> -
+>>   static const char *__init pci_mmcfg_e7520(void)
+>>   {
+>>   	u32 win;
+>> @@ -657,73 +490,6 @@ static void __init pci_mmcfg_reject_broken(int early)
+>>   	}
+>>   }
+>>
+>> -static int __init acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
+>> -					struct acpi_mcfg_allocation *cfg)
+>> -{
+>> -	int year;
+>> -
+>> -	if (cfg->address < 0xFFFFFFFF)
+>> -		return 0;
+>> -
+>> -	if (!strncmp(mcfg->header.oem_id, "SGI", 3))
+>> -		return 0;
+>> -
+>> -	if (mcfg->header.revision >= 1) {
+>> -		if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) &&
+>> -		    year >= 2010)
+>> -			return 0;
+>> -	}
+>> -
+>> -	pr_err(PREFIX "MCFG region for %04x [bus %02x-%02x] at %#llx "
+>> -	       "is above 4GB, ignored\n", cfg->pci_segment,
+>> -	       cfg->start_bus_number, cfg->end_bus_number, cfg->address);
+>> -	return -EINVAL;
+>> -}
 >
-> One more nit.  If you did
->
-> +	select ACPI_GENERIC_SLEEP if ACPI_SLEEP
->
-> here (and above for ia64), you'd avoid having to make ACPI_SLEEP
-> depend on ACPI_GENERIC_SLEEP which goes somewhat backwards.
+> This looks very arch-specific. Shouldn't this be only generic checks
+> with some hook for architectures to add arch-specific checks?
 
-In sleep.c,
+Yes, you are right it should go to arch specific call. Thanks.
 
-#ifdef CONFIG_ACPI_SLEEP
-acpi_target_system_state()
-{
-}
-#endif
-
-and CONFIG_ACPI_SLEEP depends on SUSPEND || HIBERNATION,
-which one of them will be enabled on ARM64 so ACPI_SLEEP
-will also enabled too.
-
-So if we
-
-+select ACPI_GENERIC_SLEEP if ACPI_SLEEP
-
-and
-
-+acpi-$(CONFIG_ACPI_GENERIC_SLEEP) +=3D sleep.o
-
-it will lead to errors for acpi_target_system_state() that
-is declared but not defined, so I will keep the code as
-it is, what do you think?
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tomasz
