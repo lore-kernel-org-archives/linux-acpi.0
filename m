@@ -1,114 +1,123 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [resend PATCH] driver core: property: support for generic property
-Date: Mon, 16 Mar 2015 23:59:53 +0100
-Message-ID: <10066684.kPKm7OTnxF@vostro.rjw.lan>
-References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <20150314094231.GA24718@kroah.com> <CACxGe6tiDszPDpP_u1yxNgMA8HjagDKtGuu35hfkyJtZdGE0Aw@mail.gmail.com>
+Subject: Re: [update][PATCH v10 06/21] ACPI / sleep: Introduce CONFIG_ACPI_GENERIC_SLEEP
+Date: Tue, 17 Mar 2015 00:15:48 +0100
+Message-ID: <5704037.pUGdJ0Q9hF@vostro.rjw.lan>
+References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org> <2027737.r7gkxqZ3Xv@vostro.rjw.lan> <5506C93C.704@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64266 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49351 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755368AbbCPWgB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 18:36:01 -0400
-In-Reply-To: <CACxGe6tiDszPDpP_u1yxNgMA8HjagDKtGuu35hfkyJtZdGE0Aw@mail.gmail.com>
+	with SMTP id S933288AbbCPWv4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 18:51:56 -0400
+In-Reply-To: <5506C93C.704@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Monday, March 16, 2015 09:47:22 AM Grant Likely wrote:
-> On Sat, Mar 14, 2015 at 9:42 AM, Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> > On Sat, Mar 14, 2015 at 02:09:06AM +0100, Rafael J. Wysocki wrote:
-> >> On Friday, March 13, 2015 04:24:11 PM Arnd Bergmann wrote:
-> >> > On Friday 13 March 2015 15:10:38 Grant Likely wrote:
-> >> > > On Thu, Mar 12, 2015 at 1:41 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > > > On Monday, January 26, 2015 03:17:40 PM Heikki Krogerus wrote:
-> >> > > > That doesn't seem to go in the right direction to be honest.
-> >> > > >
-> >> > > > Actually, having introduced struct fwnode_handle, we should perhaps try to
-> >> > > > replace both of_node and acpi_node with a single struct fwnode_handle pointer
-> >> > > > and then add a new fwnode_type for the "pdata" stuff.
-> >> > >
-> >> > > I agree on this, but it will be a lot of work to convert...
-> >> > >
-> >> > > > If you don't want to deal with of_node, which I can understand easily, it
-> >> > > > may be worth trying with acpi_node alone at this point and once you have
-> >> > > > the fwnode_handle pointer, you might use it for both ACPI and "pdata"?
-> >> > > >
-> >> > > > Grant, Arnd, I wonder what you think?
-> >> > >
-> >> > > That makes sense, and we can populate the fwnode_handle even when
-> >> > > using DT. That will allow a transition period to move everyone over to
-> >> > > the fwnode_handle.
-> >> >
-> >> > Agreed on both as well.
+On Monday, March 16, 2015 08:14:52 PM Hanjun Guo wrote:
+> On 2015=E5=B9=B403=E6=9C=8814=E6=97=A5 05:49, Rafael J. Wysocki wrote=
+:
+> > On Friday, March 13, 2015 04:14:29 PM Hanjun Guo wrote:
+> >> From: Graeme Gregory <graeme.gregory@linaro.org>
 > >>
-> >> OK
+> >> ACPI 5.1 does not currently support S states for ARM64 hardware bu=
+t
+> >> ACPI code will call acpi_target_system_state() and acpi_sleep_init=
+()
+> >> for device power management, so introduce CONFIG_ACPI_GENERIC_SLEE=
+P
+> >> and select it for x86 and ia64 only to make sleep functions availa=
+ble,
+> >> and also introduce stub function to allow other drivers to functio=
+n
+> >> until S states are defined for ARM64.
 > >>
-> >> So below is what it takes to use struct fwnode_handle to represent ACPI
-> >> companions.
+> >> It will be no functional change for x86 and IA64.
 > >>
-> >> Rafael
-> >>
-> >>
+> >> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> >> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> Acked-by: Robert Richter <rrichter@cavium.com>
+> >> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> >> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > >> ---
-> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> Subject: driver core / ACPI: Represent ACPI companions using fwnode_handle
+> >>   arch/ia64/Kconfig       | 1 +
+> >>   arch/x86/Kconfig        | 1 +
+> >>   drivers/acpi/Kconfig    | 4 ++++
+> >>   drivers/acpi/Makefile   | 2 +-
+> >>   drivers/acpi/internal.h | 4 ++++
+> >>   5 files changed, 11 insertions(+), 1 deletion(-)
 > >>
-> >> Now that we have struct fwnode_handle, we can use that to point to
-> >> ACPI companions from struct device objects instead of pointing to
-> >> struct acpi_device directly.
-> >>
-> >> There are two benefits from that.  First, the somewhat ugly and
-> >> hackish struct acpi_dev_node can be dropped and, second, the same
-> >> struct fwnode_handle pointer can be used in the future to point
-> >> to other (non-ACPI) firmware device node types.
-> >>
-> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> ---
-> >>  drivers/acpi/acpi_platform.c    |    2 +-
-> >>  drivers/acpi/dock.c             |    2 +-
-> >>  drivers/base/platform.c         |    2 +-
-> >>  drivers/i2c/i2c-core.c          |    4 ++--
-> >>  include/acpi/acpi_bus.h         |    3 ++-
-> >>  include/linux/acpi.h            |    7 ++++---
-> >>  include/linux/device.h          |   13 +++----------
-> >>  include/linux/fwnode.h          |   25 +++++++++++++++++++++++++
-> >>  include/linux/i2c.h             |    4 ++--
-> >>  include/linux/platform_device.h |    2 +-
-> >>  include/linux/property.h        |   11 +----------
-> >>  11 files changed, 43 insertions(+), 32 deletions(-)
+> >> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+> >> index 074e52b..e8728d7 100644
+> >> --- a/arch/ia64/Kconfig
+> >> +++ b/arch/ia64/Kconfig
+> >> @@ -10,6 +10,7 @@ config IA64
+> >>   	select ARCH_MIGHT_HAVE_PC_SERIO
+> >>   	select PCI if (!IA64_HP_SIM)
+> >>   	select ACPI if (!IA64_HP_SIM)
+> >> +	select ACPI_GENERIC_SLEEP if ACPI
+> >>   	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+> >>   	select HAVE_UNSTABLE_SCHED_CLOCK
+> >>   	select HAVE_IDE
+> >> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> >> index b7d31ca..9804431 100644
+> >> --- a/arch/x86/Kconfig
+> >> +++ b/arch/x86/Kconfig
+> >> @@ -22,6 +22,7 @@ config X86_64
+> >>   ### Arch settings
+> >>   config X86
+> >>   	def_bool y
+> >> +	select ACPI_GENERIC_SLEEP if ACPI
 > >
-> > Nice, I like the driver core changes:
+> > One more nit.  If you did
 > >
-> > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> 
-> I like it too. The only comment I have is I would use a static inline
-> helper for getting/setting the fwnode_handle pointer.
+> > +	select ACPI_GENERIC_SLEEP if ACPI_SLEEP
+> >
+> > here (and above for ia64), you'd avoid having to make ACPI_SLEEP
+> > depend on ACPI_GENERIC_SLEEP which goes somewhat backwards.
+>=20
+> In sleep.c,
+>=20
+> #ifdef CONFIG_ACPI_SLEEP
+> acpi_target_system_state()
+> {
+> }
+> #endif
+>=20
+> and CONFIG_ACPI_SLEEP depends on SUSPEND || HIBERNATION,
+> which one of them will be enabled on ARM64 so ACPI_SLEEP
+> will also enabled too.
+>=20
+> So if we
+>=20
+> +select ACPI_GENERIC_SLEEP if ACPI_SLEEP
+>=20
+> and
+>=20
+> +acpi-$(CONFIG_ACPI_GENERIC_SLEEP) +=3D sleep.o
+>=20
+> it will lead to errors for acpi_target_system_state() that
+> is declared but not defined, so I will keep the code as
+> it is, what do you think?
 
-Yes, that's the next step. :-)
+No, we need to hash this out.  Having two different Kconfig options mea=
+ning
+almost the same thing (ACPI_SLEEP and ACPI_GENERIC_SLEEP) is beyond ugl=
+y.
 
-> The reason being
-> that there are situations where we're going to want to attach both a
-> DT node and static data to the same node. Using a helper isolates the
-> rest of the kernel from any future changes here.
-
-Right.
-
-I'm going to send a couple more patches on top of this one going in that
-direction.
-
-> However, despite that comment:
-> 
-> Acked-by: Grant Likely <grant.likely@linaro.org>
-> 
-> My comment isn't significant enough to hold up this change.
-
-OK then, I'm queuing this up for 4.1.  Thanks!
+Do you need ACPI_SLEEP on ARM64 at all?
 
 
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
