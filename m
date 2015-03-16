@@ -1,103 +1,34 @@
-From: Al Stone <ahs3@redhat.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
-Date: Mon, 16 Mar 2015 14:34:24 -0600
-Message-ID: <55073E50.3010309@redhat.com>
+Date: Mon, 16 Mar 2015 21:01:40 +0000
+Message-ID: <20150316210140.GA4678@srcf.ucam.org>
 References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
+ <55073E50.3010309@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50009 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932141AbbCPUeh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Mar 2015 16:34:37 -0400
-In-Reply-To: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:56166 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247AbbCPVBn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 17:01:43 -0400
+Content-Disposition: inline
+In-Reply-To: <55073E50.3010309@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Al Stone <ahs3@redhat.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org
 
-On 03/12/2015 02:50 AM, Matthew Garrett wrote:
-> The ACPI spec describes _REV as:
-> 
-> "This predefined object evaluates to the revision of the ACPI Specification
->  that the specified \_OS implements"
-> 
-> We've been assuming that this should increment as ACPICA gains support for
-> new versions of the spec. Unfortunately, Windows always reports "2" for this
-> value and vendors are now using this as a means to tell whether a system is
-> running Windows or Linux. From an HP Envy 15:
-> 
-> If (LOr (LEqual (_REV, 0x03), LEqual (_REV, 0x05)))
-> 
-> From a Dell XPS 13:
-> 
-> If ((_REV == 0x05))
-> 
-> In both cases, the systems then alter hardware initialisation paths and
-> device capability reporting. As written, this makes no sense - ACPI
-> maintains backwards compatibility, so the appropriate test would be >=
-> rather than ==. On closer examination, the HP code uses the same
-> initialisation paths as would be used if the system responded to
-> _OSI("Linux"), and as such the evidence is overwhelmingly that vendors are
-> using this to alter system behaviour when Linux is detected.
-> 
-> Since we aim to be compatible with Windows, this tends to break things. The
-> ideal solution would be to wait for an _OSI() query matching Windows and
-> then change behaviour, but Windows responds to _REV with 2 even before that
-> and so vendors might simply change the order of queries in order to continue
-> IDing Linux. The easiest thing for us to do is just to change the value on
-> X86 and leave a comment describing why everything is so awful.
-> 
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-> ---
->  include/acpi/acconfig.h | 14 ++++++++++++--
->  1 file changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-> index 03aacfb..cebb8a7 100644
-> --- a/include/acpi/acconfig.h
-> +++ b/include/acpi/acconfig.h
-> @@ -112,9 +112,19 @@
->   *
->   *****************************************************************************/
->  
-> -/* Version of ACPI supported */
-> -
-> +/*
-> + * Version of ACPI supported. This is a sad story. Windows reports a _REV of
-> + * 2 regardless of the spec version implemented. Some vendors are using _REV
-> + * as a way to distinguish between Windows and Linux, and are breaking systems
-> + * in the process. We can't guarantee that they'll call _OSI before checking
-> + * _REV, so hardcode this to 2 on x86 systems right now and leave it at the
-> + * appropriate spec value for everybody else.
-> + */
-> +#ifdef CONFIG_X86
-> +#define ACPI_CA_SUPPORT_LEVEL           2
-> +#else
->  #define ACPI_CA_SUPPORT_LEVEL           5
-> +#endif
->  
->  /* Maximum count for a semaphore object */
->  
-> 
+On Mon, Mar 16, 2015 at 02:34:24PM -0600, Al Stone wrote:
 
-More a philosophical question -- the patch seems fine to me, personally, and
-for arm64, we have to have >= 5 anyway -- but would it make sense to just not
-acknowledge _REV and deprecate it from the kernel and the spec?  I'm already
-trying to get rid of _OSI because of such silliness and force requests to _OSC
-where they should be (granted, it will take some time...).
+> More a philosophical question -- the patch seems fine to me, personally, and
+> for arm64, we have to have >= 5 anyway -- but would it make sense to just not
+> acknowledge _REV and deprecate it from the kernel and the spec?  I'm already
+> trying to get rid of _OSI because of such silliness and force requests to _OSC
+> where they should be (granted, it will take some time...).
 
-It just seems to be that there should be some consequences to the vendors when
-they do things like this, and while I'm not that keen to break existing things,
-maybe that's what needs to happen to make the point.
+A bunch of systems verify that _REV returns >= 2 and change EC behaviour 
+based on that, so killing it in the near term is unfortunately probably 
+not an option.
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Matthew Garrett | mjg59@srcf.ucam.org
