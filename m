@@ -1,173 +1,103 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 10/21] ARM64 / ACPI: Get PSCI flags in FADT for PSCI
- init
-Date: Mon, 16 Mar 2015 18:41:30 +0000
-Message-ID: <20150316184130.GB13335@red-moon>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-11-git-send-email-hanjun.guo@linaro.org>
- <20150313145111.GB5229@red-moon>
- <5506C255.3020307@linaro.org>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
+Date: Mon, 16 Mar 2015 14:34:24 -0600
+Message-ID: <55073E50.3010309@redhat.com>
+References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5506C255.3020307@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50009 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932141AbbCPUeh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Mar 2015 16:34:37 -0400
+In-Reply-To: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <matthew.garrett@nebula.com>, linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-kernel@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Mon, Mar 16, 2015 at 11:45:25AM +0000, Hanjun Guo wrote:
-> On 2015=E5=B9=B403=E6=9C=8813=E6=97=A5 22:51, Lorenzo Pieralisi wrote=
-:
-> > On Wed, Mar 11, 2015 at 12:39:36PM +0000, Hanjun Guo wrote:
-> >
-> > [...]
-> >
-> >> +static void __init psci_0_2_set_functions(void)
-> >> +{
-> >> +	pr_info("Using standard PSCI v0.2 function IDs\n");
-> >> +	psci_function_id[PSCI_FN_CPU_SUSPEND] =3D PSCI_0_2_FN64_CPU_SUSP=
-END;
-> >> +	psci_ops.cpu_suspend =3D psci_cpu_suspend;
-> >> +
-> >> +	psci_function_id[PSCI_FN_CPU_OFF] =3D PSCI_0_2_FN_CPU_OFF;
-> >> +	psci_ops.cpu_off =3D psci_cpu_off;
-> >> +
-> >> +	psci_function_id[PSCI_FN_CPU_ON] =3D PSCI_0_2_FN64_CPU_ON;
-> >> +	psci_ops.cpu_on =3D psci_cpu_on;
-> >> +
-> >> +	psci_function_id[PSCI_FN_MIGRATE] =3D PSCI_0_2_FN64_MIGRATE;
-> >> +	psci_ops.migrate =3D psci_migrate;
-> >> +
-> >> +	psci_function_id[PSCI_FN_AFFINITY_INFO] =3D PSCI_0_2_FN64_AFFINI=
-TY_INFO;
-> >> +	psci_ops.affinity_info =3D psci_affinity_info;
-> >> +
-> >> +	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =3D
-> >> +		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
-> >> +	psci_ops.migrate_info_type =3D psci_migrate_info_type;
-> >> +
-> >> +	arm_pm_restart =3D psci_sys_reset;
-> >> +
-> >> +	pm_power_off =3D psci_sys_poweroff;
-> >> +}
-> >> +
-> >>   /*
-> >>    * PSCI Function IDs for v0.2+ are well defined so use
-> >>    * standard values.
-> >> @@ -306,29 +335,7 @@ static int __init psci_0_2_init(struct device=
-_node *np)
-> >>   		}
-> >>   	}
-> >>
-> >> -	pr_info("Using standard PSCI v0.2 function IDs\n");
-> >> -	psci_function_id[PSCI_FN_CPU_SUSPEND] =3D PSCI_0_2_FN64_CPU_SUSP=
-END;
-> >> -	psci_ops.cpu_suspend =3D psci_cpu_suspend;
-> >> -
-> >> -	psci_function_id[PSCI_FN_CPU_OFF] =3D PSCI_0_2_FN_CPU_OFF;
-> >> -	psci_ops.cpu_off =3D psci_cpu_off;
-> >> -
-> >> -	psci_function_id[PSCI_FN_CPU_ON] =3D PSCI_0_2_FN64_CPU_ON;
-> >> -	psci_ops.cpu_on =3D psci_cpu_on;
-> >> -
-> >> -	psci_function_id[PSCI_FN_MIGRATE] =3D PSCI_0_2_FN64_MIGRATE;
-> >> -	psci_ops.migrate =3D psci_migrate;
-> >> -
-> >> -	psci_function_id[PSCI_FN_AFFINITY_INFO] =3D PSCI_0_2_FN64_AFFINI=
-TY_INFO;
-> >> -	psci_ops.affinity_info =3D psci_affinity_info;
-> >> -
-> >> -	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =3D
-> >> -		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
-> >> -	psci_ops.migrate_info_type =3D psci_migrate_info_type;
-> >> -
-> >> -	arm_pm_restart =3D psci_sys_reset;
-> >> -
-> >> -	pm_power_off =3D psci_sys_poweroff;
-> >> +	psci_0_2_set_functions();
-> >
-> > You should have factored out the firmware version probing too, that=
-'s
-> > the only way we can detect the PSCI firmware version when booting t=
-hrough
-> > ACPI. You can end up initializing pointers for v0.2+ with a mismatc=
-hing
-> > version implemented in PSCI firmware, eg 0.1.
-> >
-> > We should do that incrementally, I will put together a patch to
-> > factor out the FW version probing first, you can rebase on top of i=
-t.
->=20
-> Incrementally patches on top of this patch set? I think v10 of this
-> patch set is ready for merge, but I'm open for suggestions if we will
-> not miss the merge window for Catalin.
+On 03/12/2015 02:50 AM, Matthew Garrett wrote:
+> The ACPI spec describes _REV as:
+> 
+> "This predefined object evaluates to the revision of the ACPI Specification
+>  that the specified \_OS implements"
+> 
+> We've been assuming that this should increment as ACPICA gains support for
+> new versions of the spec. Unfortunately, Windows always reports "2" for this
+> value and vendors are now using this as a means to tell whether a system is
+> running Windows or Linux. From an HP Envy 15:
+> 
+> If (LOr (LEqual (_REV, 0x03), LEqual (_REV, 0x05)))
+> 
+> From a Dell XPS 13:
+> 
+> If ((_REV == 0x05))
+> 
+> In both cases, the systems then alter hardware initialisation paths and
+> device capability reporting. As written, this makes no sense - ACPI
+> maintains backwards compatibility, so the appropriate test would be >=
+> rather than ==. On closer examination, the HP code uses the same
+> initialisation paths as would be used if the system responded to
+> _OSI("Linux"), and as such the evidence is overwhelmingly that vendors are
+> using this to alter system behaviour when Linux is detected.
+> 
+> Since we aim to be compatible with Windows, this tends to break things. The
+> ideal solution would be to wait for an _OSI() query matching Windows and
+> then change behaviour, but Windows responds to _REV with 2 even before that
+> and so vendors might simply change the order of queries in order to continue
+> IDing Linux. The easiest thing for us to do is just to change the value on
+> X86 and leave a comment describing why everything is so awful.
+> 
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+> ---
+>  include/acpi/acconfig.h | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+> index 03aacfb..cebb8a7 100644
+> --- a/include/acpi/acconfig.h
+> +++ b/include/acpi/acconfig.h
+> @@ -112,9 +112,19 @@
+>   *
+>   *****************************************************************************/
+>  
+> -/* Version of ACPI supported */
+> -
+> +/*
+> + * Version of ACPI supported. This is a sad story. Windows reports a _REV of
+> + * 2 regardless of the spec version implemented. Some vendors are using _REV
+> + * as a way to distinguish between Windows and Linux, and are breaking systems
+> + * in the process. We can't guarantee that they'll call _OSI before checking
+> + * _REV, so hardcode this to 2 on x86 systems right now and leave it at the
+> + * appropriate spec value for everybody else.
+> + */
+> +#ifdef CONFIG_X86
+> +#define ACPI_CA_SUPPORT_LEVEL           2
+> +#else
+>  #define ACPI_CA_SUPPORT_LEVEL           5
+> +#endif
+>  
+>  /* Maximum count for a semaphore object */
+>  
+> 
 
-I gave you my suggestion, I will try to get the prerequisite patch
-queued asap, it is not a big deal but that's something that should be
-fixed otherwise I would not have flagged this up.
+More a philosophical question -- the patch seems fine to me, personally, and
+for arm64, we have to have >= 5 anyway -- but would it make sense to just not
+acknowledge _REV and deprecate it from the kernel and the spec?  I'm already
+trying to get rid of _OSI because of such silliness and force requests to _OSC
+where they should be (granted, it will take some time...).
 
-I will post the patch asap, if we fail to get that in we will see what
-to do, I do not expect this to be a blocking point.
+It just seems to be that there should be some consequences to the vendors when
+they do things like this, and while I'm not that keen to break existing things,
+maybe that's what needs to happen to make the point.
 
-> >
-> >>   out_put_node:
-> >>   	of_node_put(np);
-> >> @@ -381,7 +388,7 @@ static const struct of_device_id psci_of_match=
-[] __initconst =3D {
-> >>   	{},
-> >>   };
-> >>
-> >> -int __init psci_init(void)
-> >> +int __init psci_dt_init(void)
-> >>   {
-> >>   	struct device_node *np;
-> >>   	const struct of_device_id *matched_np;
-> >> @@ -396,6 +403,29 @@ int __init psci_init(void)
-> >>   	return init_fn(np);
-> >>   }
-> >>
-> >> +/*
-> >> + * We use PSCI 0.2+ when ACPI is deployed on ARM64 and it's
-> >> + * explicitly clarified in SBBR
-> >> + */
-> >> +int __init psci_acpi_init(void)
-> >> +{
-> >> +	if (!acpi_psci_present()) {
-> >> +		pr_info("is not implemented in ACPI.\n");
-> >> +		return -EOPNOTSUPP;
-> >> +	}
-> >
-> > If PSCI is not present, that's a problem related to SMP init, right=
- ?
-> > That's where a warning should be printed if any, not here, the SBBR
-> > mandates PSCI as secondaries bring up method, warn otherwise.
->=20
-> The SBBR is also said that if PSCI is not available, Parking protocol
-> will be used as secondaries bring up method, so I said that it is ok
-> to me that we don't print warn message for no PSCI support when parsi=
-ng
-> FADT.
->=20
-> So maybe we can go back to the previous solution, print some warning
-> message if no PSCI when parsing FADT?
-
-You answered your own question. It is not what it is mandated, but if
-a platform boots with parking protocol, do you think the information
-you are printing in:
-
-if (!acpi_psci_present()) {
-	pr_info("is not implemented in ACPI.\n");
-        ^^^
-
-is useful to them ?
-
-What should be flagged up is a missing boot method for secondaries,
-a missing PSCI is not per-se an error, that's why I said it should
-be done when preparing CPUs for SMP init.
-
-No big deal at all, but I would remove the pr_info above.
-
-Lorenzo
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
