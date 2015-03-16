@@ -1,142 +1,111 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v10 10/21] ARM64 / ACPI: Get PSCI flags in FADT for PSCI
- init
-Date: Mon, 16 Mar 2015 19:45:25 +0800
-Message-ID: <5506C255.3020307@linaro.org>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-11-git-send-email-hanjun.guo@linaro.org> <20150313145111.GB5229@red-moon>
+Subject: Re: [update][PATCH v10 06/21] ACPI / sleep: Introduce CONFIG_ACPI_GENERIC_SLEEP
+Date: Mon, 16 Mar 2015 20:14:52 +0800
+Message-ID: <5506C93C.704@linaro.org>
+References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org> <2027737.r7gkxqZ3Xv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
+Content-Type: text/plain; charset=utf-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150313145111.GB5229@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:35590 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752845AbbCPMPB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 08:15:01 -0400
+Received: by pabyw6 with SMTP id yw6so63452977pab.2
+        for <linux-acpi@vger.kernel.org>; Mon, 16 Mar 2015 05:15:01 -0700 (PDT)
+In-Reply-To: <2027737.r7gkxqZ3Xv@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On 2015=E5=B9=B403=E6=9C=8813=E6=97=A5 22:51, Lorenzo Pieralisi wrote:
-> On Wed, Mar 11, 2015 at 12:39:36PM +0000, Hanjun Guo wrote:
->
-> [...]
->
->> +static void __init psci_0_2_set_functions(void)
->> +{
->> +	pr_info("Using standard PSCI v0.2 function IDs\n");
->> +	psci_function_id[PSCI_FN_CPU_SUSPEND] =3D PSCI_0_2_FN64_CPU_SUSPEN=
-D;
->> +	psci_ops.cpu_suspend =3D psci_cpu_suspend;
->> +
->> +	psci_function_id[PSCI_FN_CPU_OFF] =3D PSCI_0_2_FN_CPU_OFF;
->> +	psci_ops.cpu_off =3D psci_cpu_off;
->> +
->> +	psci_function_id[PSCI_FN_CPU_ON] =3D PSCI_0_2_FN64_CPU_ON;
->> +	psci_ops.cpu_on =3D psci_cpu_on;
->> +
->> +	psci_function_id[PSCI_FN_MIGRATE] =3D PSCI_0_2_FN64_MIGRATE;
->> +	psci_ops.migrate =3D psci_migrate;
->> +
->> +	psci_function_id[PSCI_FN_AFFINITY_INFO] =3D PSCI_0_2_FN64_AFFINITY=
-_INFO;
->> +	psci_ops.affinity_info =3D psci_affinity_info;
->> +
->> +	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =3D
->> +		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
->> +	psci_ops.migrate_info_type =3D psci_migrate_info_type;
->> +
->> +	arm_pm_restart =3D psci_sys_reset;
->> +
->> +	pm_power_off =3D psci_sys_poweroff;
->> +}
->> +
->>   /*
->>    * PSCI Function IDs for v0.2+ are well defined so use
->>    * standard values.
->> @@ -306,29 +335,7 @@ static int __init psci_0_2_init(struct device_n=
-ode *np)
->>   		}
->>   	}
+On 2015=E5=B9=B403=E6=9C=8814=E6=97=A5 05:49, Rafael J. Wysocki wrote:
+> On Friday, March 13, 2015 04:14:29 PM Hanjun Guo wrote:
+>> From: Graeme Gregory <graeme.gregory@linaro.org>
 >>
->> -	pr_info("Using standard PSCI v0.2 function IDs\n");
->> -	psci_function_id[PSCI_FN_CPU_SUSPEND] =3D PSCI_0_2_FN64_CPU_SUSPEN=
-D;
->> -	psci_ops.cpu_suspend =3D psci_cpu_suspend;
->> -
->> -	psci_function_id[PSCI_FN_CPU_OFF] =3D PSCI_0_2_FN_CPU_OFF;
->> -	psci_ops.cpu_off =3D psci_cpu_off;
->> -
->> -	psci_function_id[PSCI_FN_CPU_ON] =3D PSCI_0_2_FN64_CPU_ON;
->> -	psci_ops.cpu_on =3D psci_cpu_on;
->> -
->> -	psci_function_id[PSCI_FN_MIGRATE] =3D PSCI_0_2_FN64_MIGRATE;
->> -	psci_ops.migrate =3D psci_migrate;
->> -
->> -	psci_function_id[PSCI_FN_AFFINITY_INFO] =3D PSCI_0_2_FN64_AFFINITY=
-_INFO;
->> -	psci_ops.affinity_info =3D psci_affinity_info;
->> -
->> -	psci_function_id[PSCI_FN_MIGRATE_INFO_TYPE] =3D
->> -		PSCI_0_2_FN_MIGRATE_INFO_TYPE;
->> -	psci_ops.migrate_info_type =3D psci_migrate_info_type;
->> -
->> -	arm_pm_restart =3D psci_sys_reset;
->> -
->> -	pm_power_off =3D psci_sys_poweroff;
->> +	psci_0_2_set_functions();
->
-> You should have factored out the firmware version probing too, that's
-> the only way we can detect the PSCI firmware version when booting thr=
-ough
-> ACPI. You can end up initializing pointers for v0.2+ with a mismatchi=
-ng
-> version implemented in PSCI firmware, eg 0.1.
->
-> We should do that incrementally, I will put together a patch to
-> factor out the FW version probing first, you can rebase on top of it.
-
-Incrementally patches on top of this patch set? I think v10 of this
-patch set is ready for merge, but I'm open for suggestions if we will
-not miss the merge window for Catalin.
-
->
->>   out_put_node:
->>   	of_node_put(np);
->> @@ -381,7 +388,7 @@ static const struct of_device_id psci_of_match[]=
- __initconst =3D {
->>   	{},
->>   };
+>> ACPI 5.1 does not currently support S states for ARM64 hardware but
+>> ACPI code will call acpi_target_system_state() and acpi_sleep_init()
+>> for device power management, so introduce CONFIG_ACPI_GENERIC_SLEEP
+>> and select it for x86 and ia64 only to make sleep functions availabl=
+e,
+>> and also introduce stub function to allow other drivers to function
+>> until S states are defined for ARM64.
 >>
->> -int __init psci_init(void)
->> +int __init psci_dt_init(void)
->>   {
->>   	struct device_node *np;
->>   	const struct of_device_id *matched_np;
->> @@ -396,6 +403,29 @@ int __init psci_init(void)
->>   	return init_fn(np);
->>   }
+>> It will be no functional change for x86 and IA64.
 >>
->> +/*
->> + * We use PSCI 0.2+ when ACPI is deployed on ARM64 and it's
->> + * explicitly clarified in SBBR
->> + */
->> +int __init psci_acpi_init(void)
->> +{
->> +	if (!acpi_psci_present()) {
->> +		pr_info("is not implemented in ACPI.\n");
->> +		return -EOPNOTSUPP;
->> +	}
+>> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> Acked-by: Robert Richter <rrichter@cavium.com>
+>> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   arch/ia64/Kconfig       | 1 +
+>>   arch/x86/Kconfig        | 1 +
+>>   drivers/acpi/Kconfig    | 4 ++++
+>>   drivers/acpi/Makefile   | 2 +-
+>>   drivers/acpi/internal.h | 4 ++++
+>>   5 files changed, 11 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+>> index 074e52b..e8728d7 100644
+>> --- a/arch/ia64/Kconfig
+>> +++ b/arch/ia64/Kconfig
+>> @@ -10,6 +10,7 @@ config IA64
+>>   	select ARCH_MIGHT_HAVE_PC_SERIO
+>>   	select PCI if (!IA64_HP_SIM)
+>>   	select ACPI if (!IA64_HP_SIM)
+>> +	select ACPI_GENERIC_SLEEP if ACPI
+>>   	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+>>   	select HAVE_UNSTABLE_SCHED_CLOCK
+>>   	select HAVE_IDE
+>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+>> index b7d31ca..9804431 100644
+>> --- a/arch/x86/Kconfig
+>> +++ b/arch/x86/Kconfig
+>> @@ -22,6 +22,7 @@ config X86_64
+>>   ### Arch settings
+>>   config X86
+>>   	def_bool y
+>> +	select ACPI_GENERIC_SLEEP if ACPI
 >
-> If PSCI is not present, that's a problem related to SMP init, right ?
-> That's where a warning should be printed if any, not here, the SBBR
-> mandates PSCI as secondaries bring up method, warn otherwise.
+> One more nit.  If you did
+>
+> +	select ACPI_GENERIC_SLEEP if ACPI_SLEEP
+>
+> here (and above for ia64), you'd avoid having to make ACPI_SLEEP
+> depend on ACPI_GENERIC_SLEEP which goes somewhat backwards.
 
-The SBBR is also said that if PSCI is not available, Parking protocol
-will be used as secondaries bring up method, so I said that it is ok
-to me that we don't print warn message for no PSCI support when parsing
-=46ADT.
+In sleep.c,
 
-So maybe we can go back to the previous solution, print some warning
-message if no PSCI when parsing FADT?
+#ifdef CONFIG_ACPI_SLEEP
+acpi_target_system_state()
+{
+}
+#endif
+
+and CONFIG_ACPI_SLEEP depends on SUSPEND || HIBERNATION,
+which one of them will be enabled on ARM64 so ACPI_SLEEP
+will also enabled too.
+
+So if we
+
++select ACPI_GENERIC_SLEEP if ACPI_SLEEP
+
+and
+
++acpi-$(CONFIG_ACPI_GENERIC_SLEEP) +=3D sleep.o
+
+it will lead to errors for acpi_target_system_state() that
+is declared but not defined, so I will keep the code as
+it is, what do you think?
 
 Thanks
 Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
