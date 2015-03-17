@@ -1,60 +1,64 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [update][PATCH v10 06/21] ACPI / sleep: Introduce CONFIG_ACPI_GENERIC_SLEEP
-Date: Tue, 17 Mar 2015 14:31:10 +0800
-Message-ID: <5507CA2E.3040600@huawei.com>
-References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org> <3737028.Ib0fKlgSkd@vostro.rjw.lan> <5507933F.2020203@huawei.com> <10995588.scpoK3KRg2@vostro.rjw.lan> <5507A91A.1090206@huawei.com> <5507C2C2.1090509@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
+Date: Tue, 17 Mar 2015 15:37:12 +0800
+Message-ID: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:37643 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144AbbCQGbv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Mar 2015 02:31:51 -0400
-In-Reply-To: <5507C2C2.1090509@redhat.com>
+Received: from mga03.intel.com ([134.134.136.65]:63819 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387AbbCQHel (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Mar 2015 03:34:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Zhangdianfang <zhangdianfang@huawei.com>
+To: Alex Williamson <alex.williamson@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2015/3/17 13:59, Jon Masters wrote:
-> On 03/17/2015 12:10 AM, Hanjun Guo wrote:
->> On 2015/3/17 11:23, Rafael J. Wysocki wrote:
->>> On Tuesday, March 17, 2015 10:36:47 AM Hanjun Guo wrote:
->>> Well, almost.  There is one problem with that, becuase sleep.c contains code
->>> outside of the ACPI_SLEEP-dependent blocks.  That code is used for powering
->>> off ACPI platforms.
->>>
->>> I guess you don't want that code on ARM too, right?
->> Yes, you are right.
->>> Perhaps we can use ACPI_REDUCED_HARDWARE_ONLY for that?  ARM64 will be the
->> Sorry, I can't fully understand your intention here, could you please
->> explain it more?
->>
->> Let me guess a little bit. Do you mean use ACPI_REDUCED_HARDWARE_ONLY for
->> powering off ACPI platforms? if so, I guess it's not a good idea, ACPI spec
->> only says that S4BIOS is not supported on HW-reduced ACPI platforms, S5
->> has no such limitation, if I miss something here, please let me know.
-> If helpful to the discussion, current SBBR (Server Base Boot
-> Requirements[0]) design guidance is that for power off itself, we will
-> prefer calling an EFI Runtime Service (that will preferentially call an
-> PSCI - ARM Power State Coordination Interface - Secure Monitor Call (SMC
-> - think SMI-like) internally to perform the shutdown/reboot) for the
-> action of powering off or resetting 64-bit ARM SBBR platforms.
+To support IOAPIC hot-removal, we need to release PCI interrupt resource
+when unbinding PCI device driver. But due to historical reason,
+/*
+ * We would love to complain here if pci_dev->is_enabled is set, that
+ * the driver should have called pci_disable_device(), but the
+ * unfortunate fact is there are too many odd BIOS and bridge setups
+ * that don't like drivers doing that all of the time.
+ * Oh well, we can dream of sane hardware when we sleep, no matter how
+ * horrible the crap we have to deal with is when we are awake...
+ */
+some drivers don't call pci_disable_device() when unloading, which
+prevents us from reallocating PCI interrupt resource on reloading
+PCI driver and causes regressions.
 
-Agreed, PSCI is the prefer method for power off on ARM64 I think.
+So release PCI interrupt resource only if PCI device is disabled when
+unbinding. By this way, we could support IOAPIC hot-removal on latest
+platforms and avoid regressions on old platforms.
 
->
-> Therefore if the alternative of an ACPI-based power off solution were
-> not initially supported, I don't think it would have much practical
-> impact, and it could be addressed after the initial support merged.
+Please aslo refer to:
+https://bugzilla.kernel.org/show_bug.cgi?id=94721
 
-I agree. Actually we already removed ACPI power off code for ARM64
-in v9 and v10 regardless the ACPI sepc statement about S5, I just want to
-confirm with Rafael that how to use ACPI_REDUCED_HARDWARE_ONLY properly
-to do the same thing as we do in v10 (patch - ACPI / sleep: Introduce
-CONFIG_ACPI_GENERIC_SLEEP), or if we have some other way to do that :)
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Reported-by: Alex Williamson <alex.williamson@redhat.com>
+Reported-by: Thomas Hellstrom <thellstrom@vmware.com>
+Reviewed-by: Rafael J. Wysocki <rjw@rjwysocki.net>
+---
+Hi Rafael,
+	I have assumed an Reviewed-by from you, is that OK?
+Thanks!
+Gerry
+---
+ arch/x86/pci/common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks
-Hanjun
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 3d2612b68694..8d792142cb2a 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -527,7 +527,7 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
+ 	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
+ 		return NOTIFY_DONE;
+ 
+-	if (pcibios_disable_irq)
++	if (!pci_is_enabled(dev) && pcibios_disable_irq)
+ 		pcibios_disable_irq(dev);
+ 
+ 	return NOTIFY_OK;
+-- 
+1.7.10.4
 
