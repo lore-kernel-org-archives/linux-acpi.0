@@ -1,88 +1,53 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI: Update GPIO documentation to mention _DSD
-Date: Tue, 17 Mar 2015 12:40:12 +0200
-Message-ID: <1426588812-229641-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [update][PATCH v10 06/21] ACPI / sleep: Introduce
+ CONFIG_ACPI_GENERIC_SLEEP
+Date: Tue, 17 Mar 2015 12:35:36 +0000
+Message-ID: <20150317123536.GB14984@red-moon>
+References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org>
+ <3737028.Ib0fKlgSkd@vostro.rjw.lan>
+ <5507933F.2020203@huawei.com>
+ <10995588.scpoK3KRg2@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:22852 "EHLO mga14.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:58871 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932217AbbCQKkR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Mar 2015 06:40:17 -0400
+	id S1752096AbbCQMff (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Mar 2015 08:35:35 -0400
+Content-Disposition: inline
+In-Reply-To: <10995588.scpoK3KRg2@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-kernel@vger.kernel.org" <li>
 
-Make sure that the ACPI enumeration.txt provides latest information on how
-to describe and retrieve GPIOs now that we can take advantage of _DSD
-device properties.
+On Tue, Mar 17, 2015 at 03:23:11AM +0000, Rafael J. Wysocki wrote:
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- Documentation/acpi/enumeration.txt | 26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+[...]
 
-diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-index 9b121a569ab4..750401f91341 100644
---- a/Documentation/acpi/enumeration.txt
-+++ b/Documentation/acpi/enumeration.txt
-@@ -254,8 +254,13 @@ GPIO support
- ~~~~~~~~~~~~
- ACPI 5 introduced two new resources to describe GPIO connections: GpioIo
- and GpioInt. These resources are used be used to pass GPIO numbers used by
--the device to the driver. For example:
-+the device to the driver. ACPI 5.1 extended this with _DSD (Device
-+Specific Data) which made it possible to name the GPIOs among other things.
- 
-+For example:
-+
-+Device (DEV)
-+{
- 	Method (_CRS, 0, NotSerialized)
- 	{
- 		Name (SBUF, ResourceTemplate()
-@@ -285,6 +290,18 @@ the device to the driver. For example:
- 		Return (SBUF)
- 	}
- 
-+	// ACPI 5.1 _DSD used for naming the GPIOs
-+	Name (_DSD, Package ()
-+	{
-+		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+		Package ()
-+		{
-+			Package () {"power-gpios", Package() {^DEV, 0, 0, 0 }},
-+			Package () {"irq-gpios", Package() {^DEV, 1, 0, 0 }},
-+		}
-+	})
-+	...
-+
- These GPIO numbers are controller relative and path "\\_SB.PCI0.GPI0"
- specifies the path to the controller. In order to use these GPIOs in Linux
- we need to translate them to the corresponding Linux GPIO descriptors.
-@@ -300,11 +317,11 @@ a code like this:
- 
- 	struct gpio_desc *irq_desc, *power_desc;
- 
--	irq_desc = gpiod_get_index(dev, NULL, 1);
-+	irq_desc = gpiod_get(dev, "irq");
- 	if (IS_ERR(irq_desc))
- 		/* handle error */
- 
--	power_desc = gpiod_get_index(dev, NULL, 0);
-+	power_desc = gpiod_get(dev, "power");
- 	if (IS_ERR(power_desc))
- 		/* handle error */
- 
-@@ -313,6 +330,9 @@ a code like this:
- There are also devm_* versions of these functions which release the
- descriptors once the device is released.
- 
-+See Documentation/acpi/gpio-properties.txt for more information about the
-+_DSD binding related to GPIOs.
-+
- MFD devices
- ~~~~~~~~~~~
- The MFD devices register their children as platform devices. For the child
--- 
-2.1.4
+> > Do you mean remove CONFIG_ACPI_GENERIC_SLEEP and
+> > 
+> > +acpi-$(CONFIG_ACPI_SLEEP) += sleep.o
+> > 
+> > as well (also need to remove duplicate #ifdef CONFIG_ACPI_SLEEP in sleep.c if
+> > we doing so)?
+> 
+> Well, almost.  There is one problem with that, becuase sleep.c contains code
+> outside of the ACPI_SLEEP-dependent blocks.  That code is used for powering
+> off ACPI platforms.
+> 
+> I guess you don't want that code on ARM too, right?
+> 
+> Perhaps we can use ACPI_REDUCED_HARDWARE_ONLY for that?  ARM64 will be the
+> only arch setting it at least for the time being, is that correct?
 
+HW reduced only platforms are still required to support sleep
+states that on arm64 are totally meaningless at present, so I do
+not think ACPI_REDUCED_HARDWARE_ONLY will cut it.
+
+Factoring out power_off methods from sleep.c ? I know, it is not nicer
+since you split the S-states management in multiple files.
+
+Side note: is the acpi_suspend() function in sleep.c used in the kernel ?
+
+Lorenzo
