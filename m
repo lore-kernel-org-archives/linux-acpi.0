@@ -1,127 +1,67 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI: Introduce has_acpi_companion()
-Date: Tue, 17 Mar 2015 15:17:51 +0100
-Message-ID: <5919377.PEzjxVSVEh@vostro.rjw.lan>
-References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <CACxGe6tiDszPDpP_u1yxNgMA8HjagDKtGuu35hfkyJtZdGE0Aw@mail.gmail.com> <10066684.kPKm7OTnxF@vostro.rjw.lan>
+Subject: [PATCH] ACPI / sleep: Drop acpi_suspend() which is not used
+Date: Tue, 17 Mar 2015 15:29:23 +0100
+Message-ID: <1460987.2Zo06X0UeC@vostro.rjw.lan>
+References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org> <20150317123536.GB14984@red-moon> <CAGHbJ3DhUB688K7ooT7ai=2QjRp7S+_E_Y+a+GupeTvjR5omMg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56451 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:64339 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753108AbbCQNx6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Mar 2015 09:53:58 -0400
-In-Reply-To: <10066684.kPKm7OTnxF@vostro.rjw.lan>
+	with SMTP id S1753091AbbCQOFb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Mar 2015 10:05:31 -0400
+In-Reply-To: <CAGHbJ3DhUB688K7ooT7ai=2QjRp7S+_E_Y+a+GupeTvjR5omMg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
-Cc: Grant Likely <grant.likely@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Now that the ACPI companions of devices are represented by pointers
-to struct fwnode_handle, it is not quite efficient to check whether
-or not an ACPI companion of a device is present by evaluating the
-ACPI_COMPANION() macro.
-
-For this reason, introduce a special static inline routine for that,
-has_acpi_companion(), and update the code to use it where applicable.
+The acpi_suspend() function has no callers, so drop it.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+ drivers/acpi/sleep.c |   15 ---------------
+ drivers/acpi/sleep.h |    2 --
+ 2 files changed, 17 deletions(-)
 
-On top of https://patchwork.kernel.org/patch/6010351/
-
----
- drivers/acpi/glue.c                         |    4 ++--
- drivers/i2c/busses/i2c-designware-platdrv.c |    4 ++--
- drivers/iommu/intel-iommu.c                 |    2 +-
- include/linux/acpi.h                        |   10 ++++++++++
- 4 files changed, 15 insertions(+), 5 deletions(-)
-
-Index: linux-pm/include/linux/acpi.h
+Index: linux-pm/drivers/acpi/sleep.c
 ===================================================================
---- linux-pm.orig/include/linux/acpi.h
-+++ linux-pm/include/linux/acpi.h
-@@ -58,6 +58,11 @@ static inline acpi_handle acpi_device_ha
- 	acpi_fwnode_handle(adev) : NULL
- #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -806,21 +806,6 @@ static void acpi_sleep_hibernate_setup(v
+ static inline void acpi_sleep_hibernate_setup(void) {}
+ #endif /* !CONFIG_HIBERNATION */
  
-+static inline bool has_acpi_companion(struct device *dev)
-+{
-+	return is_acpi_node(dev->fwnode);
-+}
-+
- static inline void acpi_preset_companion(struct device *dev,
- 					 struct acpi_device *parent, u64 addr)
+-int acpi_suspend(u32 acpi_state)
+-{
+-	suspend_state_t states[] = {
+-		[1] = PM_SUSPEND_STANDBY,
+-		[3] = PM_SUSPEND_MEM,
+-		[5] = PM_SUSPEND_MAX
+-	};
+-
+-	if (acpi_state < 6 && states[acpi_state])
+-		return pm_suspend(states[acpi_state]);
+-	if (acpi_state == 4)
+-		return hibernate();
+-	return -EINVAL;
+-}
+-
+ static void acpi_power_off_prepare(void)
  {
-@@ -472,6 +477,11 @@ static inline struct fwnode_handle *acpi
- 	return NULL;
- }
- 
-+static inline bool has_acpi_companion(struct device *dev)
-+{
-+	return false;
-+}
-+
- static inline const char *acpi_dev_name(struct acpi_device *adev)
- {
- 	return NULL;
-Index: linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
+ 	/* Prepare to power off the system */
+Index: linux-pm/drivers/acpi/sleep.h
 ===================================================================
---- linux-pm.orig/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ linux-pm/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -166,7 +166,7 @@ static int dw_i2c_probe(struct platform_
- 	/* fast mode by default because of legacy reasons */
- 	clk_freq = 400000;
+--- linux-pm.orig/drivers/acpi/sleep.h
++++ linux-pm/drivers/acpi/sleep.h
+@@ -1,6 +1,4 @@
  
--	if (ACPI_COMPANION(&pdev->dev)) {
-+	if (has_acpi_companion(&pdev->dev)) {
- 		dw_i2c_acpi_configure(pdev);
- 	} else if (pdev->dev.of_node) {
- 		of_property_read_u32(pdev->dev.of_node,
-@@ -286,7 +286,7 @@ static int dw_i2c_remove(struct platform
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
+-extern int acpi_suspend(u32 state);
+-
+ extern void acpi_enable_wakeup_devices(u8 sleep_state);
+ extern void acpi_disable_wakeup_devices(u8 sleep_state);
  
--	if (ACPI_COMPANION(&pdev->dev))
-+	if (has_acpi_companion(&pdev->dev))
- 		dw_i2c_acpi_unconfigure(pdev);
- 
- 	return 0;
-Index: linux-pm/drivers/iommu/intel-iommu.c
-===================================================================
---- linux-pm.orig/drivers/iommu/intel-iommu.c
-+++ linux-pm/drivers/iommu/intel-iommu.c
-@@ -684,7 +684,7 @@ static struct intel_iommu *device_to_iom
- 	if (dev_is_pci(dev)) {
- 		pdev = to_pci_dev(dev);
- 		segment = pci_domain_nr(pdev->bus);
--	} else if (ACPI_COMPANION(dev))
-+	} else if (has_acpi_companion(dev))
- 		dev = &ACPI_COMPANION(dev)->dev;
- 
- 	rcu_read_lock();
-Index: linux-pm/drivers/acpi/glue.c
-===================================================================
---- linux-pm.orig/drivers/acpi/glue.c
-+++ linux-pm/drivers/acpi/glue.c
-@@ -168,7 +168,7 @@ int acpi_bind_one(struct device *dev, st
- 	unsigned int node_id;
- 	int retval = -EINVAL;
- 
--	if (ACPI_COMPANION(dev)) {
-+	if (has_acpi_companion(dev)) {
- 		if (acpi_dev) {
- 			dev_warn(dev, "ACPI companion already set\n");
- 			return -EINVAL;
-@@ -220,7 +220,7 @@ int acpi_bind_one(struct device *dev, st
- 	list_add(&physical_node->node, physnode_list);
- 	acpi_dev->physical_node_count++;
- 
--	if (!ACPI_COMPANION(dev))
-+	if (!has_acpi_companion(dev))
- 		ACPI_COMPANION_SET(dev, acpi_dev);
- 
- 	acpi_physnode_link_name(physical_node_name, node_id);
 
