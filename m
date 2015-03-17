@@ -1,64 +1,31 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
-Date: Tue, 17 Mar 2015 15:37:12 +0800
-Message-ID: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:63819 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387AbbCQHel (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Mar 2015 03:34:41 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: [PATCH] ACPI: Add acpi_device_uid() for convenience
+Date: Tue, 17 Mar 2015 11:48:30 +0200
+Message-ID: <1426585710-31947-1-git-send-email-adrian.hunter@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-To support IOAPIC hot-removal, we need to release PCI interrupt resource
-when unbinding PCI device driver. But due to historical reason,
-/*
- * We would love to complain here if pci_dev->is_enabled is set, that
- * the driver should have called pci_disable_device(), but the
- * unfortunate fact is there are too many odd BIOS and bridge setups
- * that don't like drivers doing that all of the time.
- * Oh well, we can dream of sane hardware when we sleep, no matter how
- * horrible the crap we have to deal with is when we are awake...
- */
-some drivers don't call pci_disable_device() when unloading, which
-prevents us from reallocating PCI interrupt resource on reloading
-PCI driver and causes regressions.
+Add a nicer way to get the ACPI _UID.
 
-So release PCI interrupt resource only if PCI device is disabled when
-unbinding. By this way, we could support IOAPIC hot-removal on latest
-platforms and avoid regressions on old platforms.
-
-Please aslo refer to:
-https://bugzilla.kernel.org/show_bug.cgi?id=94721
-
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Reported-by: Alex Williamson <alex.williamson@redhat.com>
-Reported-by: Thomas Hellstrom <thellstrom@vmware.com>
-Reviewed-by: Rafael J. Wysocki <rjw@rjwysocki.net>
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
 ---
-Hi Rafael,
-	I have assumed an Reviewed-by from you, is that OK?
-Thanks!
-Gerry
----
- arch/x86/pci/common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/acpi/acpi_bus.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 3d2612b68694..8d792142cb2a 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -527,7 +527,7 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
- 	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
- 		return NOTIFY_DONE;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 61e32ec..f8009d9 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -252,6 +252,7 @@ struct acpi_device_pnp {
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+ #define acpi_device_adr(d)	((d)->pnp.bus_address)
+ const char *acpi_device_hid(struct acpi_device *device);
++#define acpi_device_uid(d)	((d)->pnp.unique_id)
+ #define acpi_device_name(d)	((d)->pnp.device_name)
+ #define acpi_device_class(d)	((d)->pnp.device_class)
  
--	if (pcibios_disable_irq)
-+	if (!pci_is_enabled(dev) && pcibios_disable_irq)
- 		pcibios_disable_irq(dev);
- 
- 	return NOTIFY_OK;
 -- 
-1.7.10.4
-
+1.9.1
