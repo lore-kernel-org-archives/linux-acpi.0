@@ -1,74 +1,107 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for HP Pavilion dv6
-Date: Tue, 17 Mar 2015 03:31:38 +0100
-Message-ID: <5045126.GmAGs977fU@vostro.rjw.lan>
-References: <1425364754-31900-1-git-send-email-alex.hung@canonical.com> <1941299.sLe76u91Cr@vostro.rjw.lan> <CAJ=jquZxC7rxj8rsy254Oy0ZYRYoKDNvXyEZ1ANP6FmbPaWikA@mail.gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [update][PATCH v10 06/21] ACPI / sleep: Introduce CONFIG_ACPI_GENERIC_SLEEP
+Date: Tue, 17 Mar 2015 10:36:47 +0800
+Message-ID: <5507933F.2020203@huawei.com>
+References: <1426234469-6434-1-git-send-email-hanjun.guo@linaro.org> <5704037.pUGdJ0Q9hF@vostro.rjw.lan> <55077E9D.50103@huawei.com> <3737028.Ib0fKlgSkd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54832 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752002AbbCQCHq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 22:07:46 -0400
-In-Reply-To: <CAJ=jquZxC7rxj8rsy254Oy0ZYRYoKDNvXyEZ1ANP6FmbPaWikA@mail.gmail.com>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:41825 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbbCQCiC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Mar 2015 22:38:02 -0400
+In-Reply-To: <3737028.Ib0fKlgSkd@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>
-Cc: Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Aaron Lu <aaron.lu@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, suravee.suthikulpanit@amd.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Zhangdianfang <zhangdianfang@huawei.com>
 
-On Saturday, March 14, 2015 08:46:25 PM Alex Hung wrote:
-> Rafael,
-> 
-> Do you mean /sys/class/backlight/intel_backlight? It works but acpi_video fails.
-> 
-> We have some cases that needs working acpi_video interfaces. I'd also
-> like to backport to previous kernels that has not use native backlight
+On 2015/3/17 10:28, Rafael J. Wysocki wrote:
+> On Tuesday, March 17, 2015 09:08:45 AM Hanjun Guo wrote:
+>> On 2015/3/17 7:15, Rafael J. Wysocki wrote:
+>>> On Monday, March 16, 2015 08:14:52 PM Hanjun Guo wrote:
+>>>> On 2015=E5=B9=B403=E6=9C=8814=E6=97=A5 05:49, Rafael J. Wysocki wr=
+ote:
+>>>>> On Friday, March 13, 2015 04:14:29 PM Hanjun Guo wrote:
+>> [...]
+>>>>>> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+>>>>>> index 074e52b..e8728d7 100644
+>>>>>> --- a/arch/ia64/Kconfig
+>>>>>> +++ b/arch/ia64/Kconfig
+>>>>>> @@ -10,6 +10,7 @@ config IA64
+>>>>>>   	select ARCH_MIGHT_HAVE_PC_SERIO
+>>>>>>   	select PCI if (!IA64_HP_SIM)
+>>>>>>   	select ACPI if (!IA64_HP_SIM)
+>>>>>> +	select ACPI_GENERIC_SLEEP if ACPI
+>>>>>>   	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+>>>>>>   	select HAVE_UNSTABLE_SCHED_CLOCK
+>>>>>>   	select HAVE_IDE
+>>>>>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+>>>>>> index b7d31ca..9804431 100644
+>>>>>> --- a/arch/x86/Kconfig
+>>>>>> +++ b/arch/x86/Kconfig
+>>>>>> @@ -22,6 +22,7 @@ config X86_64
+>>>>>>   ### Arch settings
+>>>>>>   config X86
+>>>>>>   	def_bool y
+>>>>>> +	select ACPI_GENERIC_SLEEP if ACPI
+>>>>> One more nit.  If you did
+>>>>>
+>>>>> +	select ACPI_GENERIC_SLEEP if ACPI_SLEEP
+>>>>>
+>>>>> here (and above for ia64), you'd avoid having to make ACPI_SLEEP
+>>>>> depend on ACPI_GENERIC_SLEEP which goes somewhat backwards.
+>>>> In sleep.c,
+>>>>
+>>>> #ifdef CONFIG_ACPI_SLEEP
+>>>> acpi_target_system_state()
+>>>> {
+>>>> }
+>>>> #endif
+>>>>
+>>>> and CONFIG_ACPI_SLEEP depends on SUSPEND || HIBERNATION,
+>>>> which one of them will be enabled on ARM64 so ACPI_SLEEP
+>>>> will also enabled too.
+>>>>
+>>>> So if we
+>>>>
+>>>> +select ACPI_GENERIC_SLEEP if ACPI_SLEEP
+>>>>
+>>>> and
+>>>>
+>>>> +acpi-$(CONFIG_ACPI_GENERIC_SLEEP) +=3D sleep.o
+>>>>
+>>>> it will lead to errors for acpi_target_system_state() that
+>>>> is declared but not defined, so I will keep the code as
+>>>> it is, what do you think?
+>>> No, we need to hash this out.  Having two different Kconfig options=
+ meaning
+>>> almost the same thing (ACPI_SLEEP and ACPI_GENERIC_SLEEP) is beyond=
+ ugly.
+>>>
+>>> Do you need ACPI_SLEEP on ARM64 at all?
+>> No, at least for now we don't need it, the spec for sleep is not rea=
+dy for
+>> ARM64 arch, so ACPI_SLEEP will not work at all on ARM64.
+> Well, so what about selecting ACPI_SLEEP from the architectures that =
+use it?
 
-If backlight is the only reason, we don't add machines to blacklist.c any
-more.
+Do you mean remove CONFIG_ACPI_GENERIC_SLEEP and
+
++acpi-$(CONFIG_ACPI_SLEEP) +=3D sleep.o
+
+as well (also need to remove duplicate #ifdef CONFIG_ACPI_SLEEP in slee=
+p.c if
+we doing so)?
+
+Thanks
+Hanjun
 
 
-> On Wed, Mar 11, 2015 at 6:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, March 03, 2015 02:39:14 PM Alex Hung wrote:
-> >> The brightness hotkeys of HP Pavilion dv6 does not work with Win8 OSI. Due
-> >> to insufficient documentation for the driver implementation, blacklist
-> >> it as a workaround.
-> >
-> > I gather that the native backlight interface doesn't work on those systems too,
-> > is that correct?
-> >
-> >> Signed-off-by: Alex Hung <alex.hung@canonical.com>
-> >> ---
-> >>  drivers/acpi/blacklist.c |   12 ++++++++++++
-> >>  1 file changed, 12 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-> >> index 9b693d5..98aa360 100644
-> >> --- a/drivers/acpi/blacklist.c
-> >> +++ b/drivers/acpi/blacklist.c
-> >> @@ -300,6 +300,18 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
-> >>       },
-> >>
-> >>       /*
-> >> +      * The brightness hotkeys do not work on those machines when
-> >> +      * returning true for _OSI("Windows 2012")
-> >> +      */
-> >> +     {
-> >> +     .callback = dmi_disable_osi_win8,
-> >> +     .ident = "HP Pavilion dv6",
-> >> +     .matches = {
-> >> +                 DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-> >> +                 DMI_MATCH(DMI_PRODUCT_NAME, "HP Pavilion dv6 Notebook PC"),
-> >> +             },
-> >> +     },
-> >> +     /*
-> >>        * BIOS invocation of _OSI(Linux) is almost always a BIOS bug.
-> >>        * Linux ignores it, except for the machines enumerated below.
-> >>        */
-> >>
-> >
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
