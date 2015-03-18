@@ -1,89 +1,113 @@
-From: Be <be.0@gmx.com>
-Subject: Re: Backlight control broken on Lenovo Ideapad Z570
-Date: Wed, 18 Mar 2015 16:40:37 -0500
-Message-ID: <5509F0D5.4090308@gmx.com>
-References: <550979A6.20306@redhat.com> <1426714264.2313054.242229237.35BDA633@webmail.messagingengine.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is
+ disabled when unbinding
+Date: Wed, 18 Mar 2015 17:11:52 -0500
+Message-ID: <20150318221152.GA2495@google.com>
+References: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.gmx.com ([74.208.4.200]:55147 "EHLO mout.gmx.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933273AbbCRVkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Mar 2015 17:40:41 -0400
-In-Reply-To: <1426714264.2313054.242229237.35BDA633@webmail.messagingengine.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stepan Bujnak <stepanbujnak@fastmail.com>, Hans de Goede <hdegoede@redhat.com>, Stepan Bujnak <stepanbujnak@fastmail.fm>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-intel_backlight works as expected for me running
-kernel-3.18.8-201.fc21.x86_64 with ideapad_backlight blacklisted.
+On Tue, Mar 17, 2015 at 03:37:12PM +0800, Jiang Liu wrote:
+> To support IOAPIC hot-removal, we need to release PCI interrupt resource
+> when unbinding PCI device driver. But due to historical reason,
+> /*
+>  * We would love to complain here if pci_dev->is_enabled is set, that
+>  * the driver should have called pci_disable_device(), but the
+>  * unfortunate fact is there are too many odd BIOS and bridge setups
+>  * that don't like drivers doing that all of the time.
+>  * Oh well, we can dream of sane hardware when we sleep, no matter how
+>  * horrible the crap we have to deal with is when we are awake...
+>  */
 
-On 03/18/2015 04:31 PM, Stepan Bujnak wrote:
-> Hi, unfortunately I moved to San Francisco and left my old laptop at
-> home, so I cannot debug the issue anymore. As far as I remember
-> correctly, the problem was that I only had the intel_backlight interface
-> which did not work as expected (value always on top, the buttons did not
-> work, neither did writing the value manually). Once I blacklisted the
-> intel_backlight using the patch I submitted I was able to get the
-> backlight working.
->
-> However, I'm reading that you've got fix for the problem and my patch
-> conflicts with it? If this is the case, please replace my code with your
-> fix, and once I get back home (April 28th) we can continue debugging the
-> issue using my laptop.
->
-> Best wishes,
-> Stepan
->
-> On Wed, Mar 18, 2015, at 06:12 AM, Hans de Goede wrote:
->> Hi Stepan,
->>
->> I'm mailing you because you are the author of:
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=a11d342f
->>
->> I've been debugging the same problem together with a Fedora user:
->> https://bugzilla.redhat.com/show_bug.cgi?id=1187004
->>
->> And for him your fix does not work, before your fix landed we already
->> came to the conclusion that to fix this we need to disable both the
->> acpi_video backlight interface as well as the ideapad-laptop interface.
->>
->> Your patch only disables the acpi_video backlight interface (and as
->> a side effect actually enables the ideapad-laptop interface).
->>
->> I assume that you've a working backlight setup on your Lenovo Ideapad
->> Z570,
->> can you please do:
->>
->> ls /sys/class/backlight
->>
->> And let us know which interfaces show up there. Either you do have a
->> working
->> ideapad_laptop interface, or you only get intel_backlight and for some
->> reason
->> ideapad_laptop is not loading on your system (not enabled in your kernel
->> config,
->> or blacklisted?).
->>
->> If you only have intel_backlight then that explains why things are not
->> working
->> for Be (the author of the Fedora bugreport), if you do have an
->> ideapad_laptop
->> interface and that does work for you, then it seems that not all
->> Lenovo Ideapad Z570-s are created equal. In that case can you please
->> blacklist
->> the ideapad-laptop module, reboot and see if things still work for you
->> when
->> using intel_backlight to control the backlight? Once we've a confirmation
->> that either you are already using intel_backlight, or that
->> intel_backlight also
->> works on your Ideapad, then I'll write a patch to replace yours which
->> leaves
->> only intel_backlight even if the ideapad-laptop driver gets loaded.
->>
->> Thanks & Regards,
->>
->> Hans
+Quoting the comment here (especially the last two lines) is overkill and
+obscures the real point.  The important thing is that some drivers have
+legitimate reasons for not calling pci_disable_device().
 
+> some drivers don't call pci_disable_device() when unloading, which
+> prevents us from reallocating PCI interrupt resource on reloading
+> PCI driver and causes regressions.
+
+This isn't very clear.  I can believe that "drivers not calling
+pci_disable_device()" means we don't release IRQ resources, which might
+prevent you from hot-removing an IOAPIC.
+
+But "drivers not calling pci_disable_device()" doesn't cause regressions.
+
+> So release PCI interrupt resource only if PCI device is disabled when
+> unbinding. By this way, we could support IOAPIC hot-removal on latest
+> platforms and avoid regressions on old platforms.
+
+Does this mean you can only hot-remove IOAPICs if all drivers for devices
+using the IOAPIC call pci_disable_device()?  If so, it seems sort of
+dubious that we have to rely on drivers for that.
+
+What happens if we try to hot-remove an IOAPIC where we haven't released
+all the IRQ resources?  Is there a nice error message that will help us
+debug problem reports?
+
+This has nothing to do with "latest platforms" and "old platforms."  That
+text pretends to convey information, but it doesn't.  To be useful, it
+would have to say something specific about how "latest" and "old" platforms
+are different.
+
+I haven't even figured out what causes the regressions yet.  I guess maybe
+it's the fact that after b4b55cda5874, we always call pcibios_disable_irq(),
+while before we only called it if the driver used pci_disable_device()?
+The changelog should be clear about this.
+
+> Please aslo refer to:
+
+"also"
+
+> https://bugzilla.kernel.org/show_bug.cgi?id=94721
+> 
+
+This apparently fixes something and needs a Fixes: tag to help people who
+might backport the broken commit.
+
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Reported-by: Alex Williamson <alex.williamson@redhat.com>
+> Reported-by: Thomas Hellstrom <thellstrom@vmware.com>
+> Reviewed-by: Rafael J. Wysocki <rjw@rjwysocki.net>
+> ---
+> Hi Rafael,
+> 	I have assumed an Reviewed-by from you, is that OK?
+> Thanks!
+> Gerry
+> ---
+>  arch/x86/pci/common.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+> index 3d2612b68694..8d792142cb2a 100644
+> --- a/arch/x86/pci/common.c
+> +++ b/arch/x86/pci/common.c
+> @@ -527,7 +527,7 @@ static int pci_irq_notifier(struct notifier_block *nb, unsigned long action,
+
+I know the notifier was added by b4b55cda5874, not this patch, but I don't
+think it's the best mechanism.  I would rather do something like calling
+pcibios_disable_irq() directly from pci_device_remove().  That way the call
+is more explicit, it's in arch-independent code, and it's more parallel
+with how we call pcibios_enable_irq() in the pci_enable_device() path.
+
+This code is all x86-specific.  But other arches use IOAPIC, and there's
+nothing obviously x86-specific here.  Won't they still have issues here?
+
+>  	if (action != BUS_NOTIFY_UNBOUND_DRIVER)
+>  		return NOTIFY_DONE;
+>  
+> -	if (pcibios_disable_irq)
+> +	if (!pci_is_enabled(dev) && pcibios_disable_irq)
+>  		pcibios_disable_irq(dev);
+>  
+>  	return NOTIFY_OK;
+> -- 
+> 1.7.10.4
+> 
