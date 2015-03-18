@@ -1,104 +1,181 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 18/21] ARM64 / ACPI: Select
- ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64
-Date: Wed, 18 Mar 2015 09:18:20 +0000
-Message-ID: <20150318091820.GB2846@red-moon>
+Subject: Re: [PATCH v10 08/21] ARM64 / ACPI: Introduce early_param "acpi=" to
+ enable/disable ACPI
+Date: Wed, 18 Mar 2015 11:35:49 +0000
+Message-ID: <20150318113549.GC2846@red-moon>
 References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-19-git-send-email-hanjun.guo@linaro.org>
- <20150312182151.GA3867@red-moon>
- <5502596D.6020901@huawei.com>
- <20150313110421.GA5229@red-moon>
- <5506BF89.9040703@linaro.org>
+ <1426077587-1561-9-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:32915 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:33450 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753351AbbCRJST (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Mar 2015 05:18:19 -0400
+	id S1754448AbbCRLfs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Mar 2015 07:35:48 -0400
 Content-Disposition: inline
-In-Reply-To: <5506BF89.9040703@linaro.org>
+In-Reply-To: <1426077587-1561-9-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "guohanjun@huawei.com" <guohanjun@huawei.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kern>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.
 
-On Mon, Mar 16, 2015 at 11:33:29AM +0000, Hanjun Guo wrote:
-> On 2015=E5=B9=B403=E6=9C=8813=E6=97=A5 19:04, Lorenzo Pieralisi wrote=
-:
-> > On Fri, Mar 13, 2015 at 03:28:45AM +0000, Hanjun Guo wrote:
-> >
-> > [...]
-> >
-> >>>   /*
-> >>>    * acpi_boot_table_init() called from setup_arch(), always.
-> >>>    *	1. find RSDP and get its address, and then find XSDT
-> >>>    *	2. extract all tables and checksums them all
-> >>>    *	3. check ACPI FADT revision
-> >>> + *	4. check ACPI FADT HW reduced flag
-> >>>    *
-> >>>    * We can parse ACPI boot-time tables such as MADT after
-> >>>    * this function is called.
-> >>>    */
-> >>>   void __init acpi_boot_table_init(void)
-> >>>   {
-> >>> +	struct acpi_table_header *table;
-> >>> +	struct acpi_table_fadt *fadt;
-> >>> +	acpi_status status;
-> >>> +	acpi_size tbl_size;
-> >>> +
-> >>>   	/*
-> >>>   	 * Enable ACPI instead of device tree unless
-> >>>   	 * - ACPI has been disabled explicitly (acpi=3Doff), or
-> >>> @@ -351,19 +318,52 @@ void __init acpi_boot_table_init(void)
-> >>>   	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes=
-, NULL)))
-> >>>   		return;
-> >>>
-> >>> -	enable_acpi();
-> >>> -
-> >>>   	/* Initialize the ACPI boot-time table parser. */
-> >>>   	if (acpi_table_init()) {
-> >>
-> >> Since we disable ACPI in default, it is a bit strange for me to in=
-it all
-> >> the ACPI tables and parse FADT when ACPI is disabled, could you
-> >> put some comments here to clarify the purpose? other than that, it=
- is looks
-> >> good to me.
-> >
-> > Ok, the purpose was to make things simpler, but I think that given
-> > current code it is not 100% safe to init ACPI tables with
-> > acpi_disabled =3D=3D 1.
-> >
-> > To me having to enable ACPI to parse the tables and check *if* ACPI=
- tables
-> > are there is a bit crazy, but I agree with you that given current c=
-ode
-> > it is safer.
-> >
-> > Patch rewritten, here below, please have a look, test it and rework
-> > bits as needed, I added comments where I thought they were needed b=
-ut
-> > please add to that if you feel it is worth it.
-> >
-> > It should be easy to split, let me know if you want an incremental
-> > version.
->=20
-> This one is much better, pretty fine to me, thanks!
->=20
-> I assume that this patch is cleanup patch on top of ARM64 ACPI
-> core patches, right?
+On Wed, Mar 11, 2015 at 12:39:34PM +0000, Hanjun Guo wrote:
+> From: Al Stone <al.stone@linaro.org>
+> 
+> This implements the following policy to decide whether ACPI should
+> be used to boot the system:
+> - acpi=off: ACPI will not be used to boot the system, even if there is
+>   no alternative available (e.g., device tree is empty)
+> - acpi=force: only ACPI will be used to boot the system; if that fails,
+>   there will be no fallback to alternative methods (such as device tree)
 
-=46or the records, I created a branch with my patch split over some
-of your patches, even though I think to make things simpler it is best
-to apply it as a single patch on top of your series, I will prepare the
-commit log for the single patch version too.
+I think this comment is stale. acpi=force enables ACPI and tries to
+init the ACPI tables without even checking DT, but it does fall back to
+DT if ACPI table init fails (by disabling ACPI and unflattening the
+FDT).
+
+Am I wrong ?
 
 Lorenzo
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> - otherwise, ACPI will be used as a fallback if the device tree turns out
+>   to lack a platform description; the heuristic to decide this is whether
+>   /chosen is the only node present at depth 1
+> 
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Acked-by: Olof Johansson <olof@lixom.net>
+> Acked-by: Grant Likely <grant.likely@linaro.org>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> ---
+>  Documentation/kernel-parameters.txt |  3 ++-
+>  arch/arm64/include/asm/acpi.h       |  7 +++++
+>  arch/arm64/kernel/acpi.c            | 52 +++++++++++++++++++++++++++++++++----
+>  3 files changed, 56 insertions(+), 6 deletions(-)
+> 
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index bfcb1a6..d6c35a7 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
+>  bytes respectively. Such letter suffixes can also be entirely omitted.
+>  
+>  
+> -	acpi=		[HW,ACPI,X86]
+> +	acpi=		[HW,ACPI,X86,ARM64]
+>  			Advanced Configuration and Power Interface
+>  			Format: { force | off | strict | noirq | rsdt }
+>  			force -- enable ACPI if default was off
+> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>  				strictly ACPI specification compliant.
+>  			rsdt -- prefer RSDT over (default) XSDT
+>  			copy_dsdt -- copy DSDT to memory
+> +			For ARM64, ONLY "acpi=off" or "acpi=force" are available
+>  
+>  			See also Documentation/power/runtime_pm.txt, pci=noacpi
+>  
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 40e0924..c5a9b97 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -39,6 +39,13 @@ static inline void disable_acpi(void)
+>  	acpi_noirq = 1;
+>  }
+>  
+> +static inline void enable_acpi(void)
+> +{
+> +	acpi_disabled = 0;
+> +	acpi_pci_disabled = 0;
+> +	acpi_noirq = 0;
+> +}
+> +
+>  /*
+>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
+>   * with this check the ACPI core will not override the CPU index
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 7abac24..2269e30 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -22,15 +22,49 @@
+>  #include <linux/irq.h>
+>  #include <linux/irqdomain.h>
+>  #include <linux/memblock.h>
+> +#include <linux/of_fdt.h>
+>  #include <linux/smp.h>
+>  
+> -int acpi_noirq;			/* skip ACPI IRQ initialization */
+> -int acpi_disabled;
+> +int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
+> +int acpi_disabled = 1;
+>  EXPORT_SYMBOL(acpi_disabled);
+>  
+> -int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
+> +int acpi_pci_disabled = 1;	/* skip ACPI PCI scan and IRQ initialization */
+>  EXPORT_SYMBOL(acpi_pci_disabled);
+>  
+> +static bool param_acpi_off __initdata;
+> +static bool param_acpi_force __initdata;
+> +
+> +static int __init parse_acpi(char *arg)
+> +{
+> +	if (!arg)
+> +		return -EINVAL;
+> +
+> +	/* "acpi=off" disables both ACPI table parsing and interpreter */
+> +	if (strcmp(arg, "off") == 0)
+> +		param_acpi_off = true;
+> +	else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
+> +		param_acpi_force = true;
+> +	else
+> +		return -EINVAL;	/* Core will print when we return error */
+> +
+> +	return 0;
+> +}
+> +early_param("acpi", parse_acpi);
+> +
+> +static int __init dt_scan_depth1_nodes(unsigned long node,
+> +				       const char *uname, int depth,
+> +				       void *data)
+> +{
+> +	/*
+> +	 * Return 1 as soon as we encounter a node at depth 1 that is
+> +	 * not the /chosen node.
+> +	 */
+> +	if (depth == 1 && (strcmp(uname, "chosen") != 0))
+> +		return 1;
+> +	return 0;
+> +}
+> +
+>  /*
+>   * __acpi_map_table() will be called before page_init(), so early_ioremap()
+>   * or early_memremap() should be called here to for ACPI table mapping.
+> @@ -83,10 +117,18 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>   */
+>  void __init acpi_boot_table_init(void)
+>  {
+> -	/* If acpi_disabled, bail out */
+> -	if (acpi_disabled)
+> +	/*
+> +	 * Enable ACPI instead of device tree unless
+> +	 * - ACPI has been disabled explicitly (acpi=off), or
+> +	 * - the device tree is not empty (it has more than just a /chosen node)
+> +	 *   and ACPI has not been force enabled (acpi=force)
+> +	 */
+> +	if (param_acpi_off ||
+> +	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+>  		return;
+>  
+> +	enable_acpi();
+> +
+>  	/* Initialize the ACPI boot-time table parser. */
+>  	if (acpi_table_init()) {
+>  		disable_acpi();
+> -- 
+> 1.9.1
+> 
+> 
