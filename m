@@ -1,183 +1,89 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH v10 08/21] ARM64 / ACPI: Introduce early_param "acpi=" to
- enable/disable ACPI
-Date: Wed, 18 Mar 2015 21:07:09 +0100
-Message-ID: <CAKv+Gu9wkh+J18cm1Mt4-Up5b3VA4-qeLtHcc+UD44DHbqABtQ@mail.gmail.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-	<1426077587-1561-9-git-send-email-hanjun.guo@linaro.org>
-	<20150318113549.GC2846@red-moon>
+From: Be <be.0@gmx.com>
+Subject: Re: Backlight control broken on Lenovo Ideapad Z570
+Date: Wed, 18 Mar 2015 16:40:37 -0500
+Message-ID: <5509F0D5.4090308@gmx.com>
+References: <550979A6.20306@redhat.com> <1426714264.2313054.242229237.35BDA633@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150318113549.GC2846@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.ker>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.gmx.com ([74.208.4.200]:55147 "EHLO mout.gmx.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933273AbbCRVkl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Mar 2015 17:40:41 -0400
+In-Reply-To: <1426714264.2313054.242229237.35BDA633@webmail.messagingengine.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Stepan Bujnak <stepanbujnak@fastmail.com>, Hans de Goede <hdegoede@redhat.com>, Stepan Bujnak <stepanbujnak@fastmail.fm>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On 18 March 2015 at 12:35, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
-> On Wed, Mar 11, 2015 at 12:39:34PM +0000, Hanjun Guo wrote:
->> From: Al Stone <al.stone@linaro.org>
->>
->> This implements the following policy to decide whether ACPI should
->> be used to boot the system:
->> - acpi=off: ACPI will not be used to boot the system, even if there is
->>   no alternative available (e.g., device tree is empty)
->> - acpi=force: only ACPI will be used to boot the system; if that fails,
->>   there will be no fallback to alternative methods (such as device tree)
+intel_backlight works as expected for me running
+kernel-3.18.8-201.fc21.x86_64 with ideapad_backlight blacklisted.
+
+On 03/18/2015 04:31 PM, Stepan Bujnak wrote:
+> Hi, unfortunately I moved to San Francisco and left my old laptop at
+> home, so I cannot debug the issue anymore. As far as I remember
+> correctly, the problem was that I only had the intel_backlight interface
+> which did not work as expected (value always on top, the buttons did not
+> work, neither did writing the value manually). Once I blacklisted the
+> intel_backlight using the patch I submitted I was able to get the
+> backlight working.
 >
-> I think this comment is stale. acpi=force enables ACPI and tries to
-> init the ACPI tables without even checking DT, but it does fall back to
-> DT if ACPI table init fails (by disabling ACPI and unflattening the
-> FDT).
+> However, I'm reading that you've got fix for the problem and my patch
+> conflicts with it? If this is the case, please replace my code with your
+> fix, and once I get back home (April 28th) we can continue debugging the
+> issue using my laptop.
 >
-> Am I wrong ?
+> Best wishes,
+> Stepan
 >
+> On Wed, Mar 18, 2015, at 06:12 AM, Hans de Goede wrote:
+>> Hi Stepan,
+>>
+>> I'm mailing you because you are the author of:
+>> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=a11d342f
+>>
+>> I've been debugging the same problem together with a Fedora user:
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1187004
+>>
+>> And for him your fix does not work, before your fix landed we already
+>> came to the conclusion that to fix this we need to disable both the
+>> acpi_video backlight interface as well as the ideapad-laptop interface.
+>>
+>> Your patch only disables the acpi_video backlight interface (and as
+>> a side effect actually enables the ideapad-laptop interface).
+>>
+>> I assume that you've a working backlight setup on your Lenovo Ideapad
+>> Z570,
+>> can you please do:
+>>
+>> ls /sys/class/backlight
+>>
+>> And let us know which interfaces show up there. Either you do have a
+>> working
+>> ideapad_laptop interface, or you only get intel_backlight and for some
+>> reason
+>> ideapad_laptop is not loading on your system (not enabled in your kernel
+>> config,
+>> or blacklisted?).
+>>
+>> If you only have intel_backlight then that explains why things are not
+>> working
+>> for Be (the author of the Fedora bugreport), if you do have an
+>> ideapad_laptop
+>> interface and that does work for you, then it seems that not all
+>> Lenovo Ideapad Z570-s are created equal. In that case can you please
+>> blacklist
+>> the ideapad-laptop module, reboot and see if things still work for you
+>> when
+>> using intel_backlight to control the backlight? Once we've a confirmation
+>> that either you are already using intel_backlight, or that
+>> intel_backlight also
+>> works on your Ideapad, then I'll write a patch to replace yours which
+>> leaves
+>> only intel_backlight even if the ideapad-laptop driver gets loaded.
+>>
+>> Thanks & Regards,
+>>
+>> Hans
 
-No, you're right. But I would suggest that we fix the code, not the comment.
-
-I think we are all in agreement on the policy, we only need to make
-disable_acpi() conditional on whether acpi_param_force is set
-
-
->> - otherwise, ACPI will be used as a fallback if the device tree turns out
->>   to lack a platform description; the heuristic to decide this is whether
->>   /chosen is the only node present at depth 1
->>
->> CC: Catalin Marinas <catalin.marinas@arm.com>
->> CC: Will Deacon <will.deacon@arm.com>
->> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
->> Acked-by: Olof Johansson <olof@lixom.net>
->> Acked-by: Grant Likely <grant.likely@linaro.org>
->> Tested-by: Timur Tabi <timur@codeaurora.org>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
->> ---
->>  Documentation/kernel-parameters.txt |  3 ++-
->>  arch/arm64/include/asm/acpi.h       |  7 +++++
->>  arch/arm64/kernel/acpi.c            | 52 +++++++++++++++++++++++++++++++++----
->>  3 files changed, 56 insertions(+), 6 deletions(-)
->>
->> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
->> index bfcb1a6..d6c35a7 100644
->> --- a/Documentation/kernel-parameters.txt
->> +++ b/Documentation/kernel-parameters.txt
->> @@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
->>  bytes respectively. Such letter suffixes can also be entirely omitted.
->>
->>
->> -     acpi=           [HW,ACPI,X86]
->> +     acpi=           [HW,ACPI,X86,ARM64]
->>                       Advanced Configuration and Power Interface
->>                       Format: { force | off | strict | noirq | rsdt }
->>                       force -- enable ACPI if default was off
->> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->>                               strictly ACPI specification compliant.
->>                       rsdt -- prefer RSDT over (default) XSDT
->>                       copy_dsdt -- copy DSDT to memory
->> +                     For ARM64, ONLY "acpi=off" or "acpi=force" are available
->>
->>                       See also Documentation/power/runtime_pm.txt, pci=noacpi
->>
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index 40e0924..c5a9b97 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -39,6 +39,13 @@ static inline void disable_acpi(void)
->>       acpi_noirq = 1;
->>  }
->>
->> +static inline void enable_acpi(void)
->> +{
->> +     acpi_disabled = 0;
->> +     acpi_pci_disabled = 0;
->> +     acpi_noirq = 0;
->> +}
->> +
->>  /*
->>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
->>   * with this check the ACPI core will not override the CPU index
->> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->> index 7abac24..2269e30 100644
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
->> @@ -22,15 +22,49 @@
->>  #include <linux/irq.h>
->>  #include <linux/irqdomain.h>
->>  #include <linux/memblock.h>
->> +#include <linux/of_fdt.h>
->>  #include <linux/smp.h>
->>
->> -int acpi_noirq;                      /* skip ACPI IRQ initialization */
->> -int acpi_disabled;
->> +int acpi_noirq = 1;          /* skip ACPI IRQ initialization */
->> +int acpi_disabled = 1;
->>  EXPORT_SYMBOL(acpi_disabled);
->>
->> -int acpi_pci_disabled;               /* skip ACPI PCI scan and IRQ initialization */
->> +int acpi_pci_disabled = 1;   /* skip ACPI PCI scan and IRQ initialization */
->>  EXPORT_SYMBOL(acpi_pci_disabled);
->>
->> +static bool param_acpi_off __initdata;
->> +static bool param_acpi_force __initdata;
->> +
->> +static int __init parse_acpi(char *arg)
->> +{
->> +     if (!arg)
->> +             return -EINVAL;
->> +
->> +     /* "acpi=off" disables both ACPI table parsing and interpreter */
->> +     if (strcmp(arg, "off") == 0)
->> +             param_acpi_off = true;
->> +     else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
->> +             param_acpi_force = true;
->> +     else
->> +             return -EINVAL; /* Core will print when we return error */
->> +
->> +     return 0;
->> +}
->> +early_param("acpi", parse_acpi);
->> +
->> +static int __init dt_scan_depth1_nodes(unsigned long node,
->> +                                    const char *uname, int depth,
->> +                                    void *data)
->> +{
->> +     /*
->> +      * Return 1 as soon as we encounter a node at depth 1 that is
->> +      * not the /chosen node.
->> +      */
->> +     if (depth == 1 && (strcmp(uname, "chosen") != 0))
->> +             return 1;
->> +     return 0;
->> +}
->> +
->>  /*
->>   * __acpi_map_table() will be called before page_init(), so early_ioremap()
->>   * or early_memremap() should be called here to for ACPI table mapping.
->> @@ -83,10 +117,18 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
->>   */
->>  void __init acpi_boot_table_init(void)
->>  {
->> -     /* If acpi_disabled, bail out */
->> -     if (acpi_disabled)
->> +     /*
->> +      * Enable ACPI instead of device tree unless
->> +      * - ACPI has been disabled explicitly (acpi=off), or
->> +      * - the device tree is not empty (it has more than just a /chosen node)
->> +      *   and ACPI has not been force enabled (acpi=force)
->> +      */
->> +     if (param_acpi_off ||
->> +         (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
->>               return;
->>
->> +     enable_acpi();
->> +
->>       /* Initialize the ACPI boot-time table parser. */
->>       if (acpi_table_init()) {
->>               disable_acpi();
->> --
->> 1.9.1
->>
->>
