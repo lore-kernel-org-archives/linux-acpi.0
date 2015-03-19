@@ -1,101 +1,66 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and
- register device's gsi
-Date: Thu, 19 Mar 2015 10:12:05 +0000
-Message-ID: <20150319101205.GB24556@red-moon>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 19 Mar 2015 10:17:27 +0000
+Message-ID: <20150319101727.GC24556@red-moon>
 References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-16-git-send-email-hanjun.guo@linaro.org>
- <20150318184114.GL10863@arm.com>
- <550A465F.50701@huawei.com>
+ <20150318190509.GM10863@arm.com>
+ <550A4BFD.4070804@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:36548 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:36586 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753913AbbCSKMD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Mar 2015 06:12:03 -0400
+	id S1752788AbbCSKRZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Mar 2015 06:17:25 -0400
 Content-Disposition: inline
-In-Reply-To: <550A465F.50701@huawei.com>
+In-Reply-To: <550A4BFD.4070804@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <guohanjun@huawei.com>
 Cc: Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-ke>
 
-On Thu, Mar 19, 2015 at 03:45:35AM +0000, Hanjun Guo wrote:
-
-[...]
-
-> >> +/*
-> >> + * success: return IRQ number (>0)
-> >> + * failure: return =< 0
-> >> + */
-> >> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
-> >> +{
-> >> +	unsigned int irq;
-> >> +	unsigned int irq_type;
-> >> +
-> >> +	/*
-> >> +	 * ACPI have no bindings to indicate SPI or PPI, so we
-> >> +	 * use different mappings from DT in ACPI.
-> >> +	 *
-> >> +	 * For FDT
-> >> +	 * PPI interrupt: in the range [0, 15];
-> >> +	 * SPI interrupt: in the range [0, 987];
-> >> +	 *
-> >> +	 * For ACPI, GSI should be unique so using
-> >> +	 * the hwirq directly for the mapping:
-> >> +	 * PPI interrupt: in the range [16, 31];
-> >> +	 * SPI interrupt: in the range [32, 1019];
-> >> +	 */
-> >> +
-> >> +	if (trigger == ACPI_EDGE_SENSITIVE &&
-> >> +				polarity == ACPI_ACTIVE_LOW)
-> >> +		irq_type = IRQ_TYPE_EDGE_FALLING;
-> >> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
-> >> +				polarity == ACPI_ACTIVE_HIGH)
-> >> +		irq_type = IRQ_TYPE_EDGE_RISING;
-> >> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-> >> +				polarity == ACPI_ACTIVE_LOW)
-> >> +		irq_type = IRQ_TYPE_LEVEL_LOW;
-> >> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-> >> +				polarity == ACPI_ACTIVE_HIGH)
-> >> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
-> >> +	else
-> >> +		irq_type = IRQ_TYPE_NONE;
-> >> +
-> >> +	/*
-> >> +	 * Since only one GIC is supported in ACPI 5.0, we can
-> >> +	 * create mapping refer to the default domain
-> >> +	 */
-> >> +	irq = irq_create_mapping(NULL, gsi);
-> >> +	if (!irq)
-> >> +		return irq;
-> >> +
-> >> +	/* Set irq type if specified and different than the current one */
-> >> +	if (irq_type != IRQ_TYPE_NONE &&
-> >> +		irq_type != irq_get_trigger_type(irq))
-> >> +		irq_set_irq_type(irq, irq_type);
-> >> +	return irq;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
-> > I see you've still got this buried in the arch code. Is there any plan to
-> > move it out, as I moaned about this in the last version of the series and
-> > nothing seems to have changed?
+On Thu, Mar 19, 2015 at 04:09:33AM +0000, Hanjun Guo wrote:
+> On 2015/3/19 3:05, Will Deacon wrote:
+> > Hanjun,
 > 
-> Ah, sorry. Last time when I was in Hongkong for LCA this Feb, I discussed with Lorenzo
-> and he had a look into that too, he also met some obstacles to do that, so Lorenzo
-> said that he will talk to you about this (Lorenzo, correct me if I'm wrong due to hearing
-> problems of much noise in that room where we were talking).
+> Hi Will,
 > 
-> Anyway, if we move those functions to core code, such as irqdomain code, which will be
-> compiled for x86 too, we can only set those functions as _weak, or we guard with them
-> as #ifdef CONFIG_ARM64 ... #endif, so for me, it's really not a big deal to move those code
-> out of arch/arm64, but I'm still open for suggestions if you can do that in a proper way.
+> >
+> > On Wed, Mar 11, 2015 at 12:39:26PM +0000, Hanjun Guo wrote:
+> >> This patch set already tested on multi platforms:
+> >>  - AMD Seattle board;
+> >>  - Cavium Thunder board;
+> >>  - Huawei D02 board;
+> >>  - Qualcomm ARM64 platform
+> >>
+> >> This version 10 patch set address some minor comments and collect ACKs and
+> >> Reviewed-bys for v9:
+> >>
+> >>  - new Acks from Rafael, Olof, Grant, Lorenzo
+> >>  - new way to handle typdef phys_cpuid_t which suggested by Rafael,
+> >>    but no functional change
+> >>  - Remove if(!phys) for early ioremappings
+> >>  - Rework sleep function for ARM64
+> >>  - Introduce linux/acpi_irq.h to hold acpi_irq_init()
+> >>  - Disable ACPI if not HW_REDUCED_ACPI compliant
+> >>  - Remove the doc of why ACPI on ARM
+> > So I've had a look at the current state of this series and I think there
+> > are a few immediate things left to do:
+> >
+> >   (1) Resolve the acpi=force cmdline issue highlighted by Lorenzo and
+> >       Catalin
+> 
+> Sure, it will be done after the confirmation with Ard.
+> 
+> >
+> >   (2) I believe Sudeep and Lorenzo have concerns about patch 13 (SMP init),
+> >       so I'm assuming there will be additional patches from them that are
+> >       required.
+> 
+> Sorry, I assume that it is about the print information for PSCI absent for SMP init, right?
 
-You heard me clear and sound in HK, Will has a point and I looked into
-this. Code is generic but not enough to be useful on other arches at
-the moment, I need more time to look into this and see if we can move
-this code to acpi core in a way that makes sense, to have, as you say,
-a "default" implementation.
+Not only that, Sudeep has a patch to consolidate DT and ACPI SMP code,
+I am working on it, I do not think it should be a blocking point, patch
+coming asap on top of your series.
 
 Lorenzo
