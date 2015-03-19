@@ -1,44 +1,78 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v1 0/4] Unassigned resource fixes
-Date: Thu, 19 Mar 2015 10:06:06 -0500
-Message-ID: <20150319150606.GD26935@google.com>
-References: <20150312173201.1052.28341.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
+Date: Thu, 19 Mar 2015 16:57:22 +0100
+Message-ID: <2124988.RayodtbIxy@vostro.rjw.lan>
+References: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com> <2835680.pSPaYk3eSL@vostro.rjw.lan> <CAErSpo4r+Brx0fgpwQ=Wr_1wxBNvuAy0cJxYBSR6hBLt=d=e8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36814 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261AbbCSPGJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2015 11:06:09 -0400
-Received: by obdfc2 with SMTP id fc2so56612318obd.3
-        for <linux-acpi@vger.kernel.org>; Thu, 19 Mar 2015 08:06:08 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150312173201.1052.28341.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo4r+Brx0fgpwQ=Wr_1wxBNvuAy0cJxYBSR6hBLt=d=e8Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
 
-On Thu, Mar 12, 2015 at 12:35:19PM -0500, Bjorn Helgaas wrote:
-> These are some minor resource fixes related to unassigned PCI BARs.  We
-> should:
+On Thursday, March 19, 2015 09:08:38 AM Bjorn Helgaas wrote:
+> On Thu, Mar 19, 2015 at 6:29 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Thursday, March 19, 2015 03:49:33 PM Jiang Liu wrote:
+> >> On 2015/3/19 6:11, Bjorn Helgaas wrote:
+> >> > On Tue, Mar 17, 2015 at 03:37:12PM +0800, Jiang Liu wrote:
+> >> >> To support IOAPIC hot-removal, we need to release PCI interrupt resource
+> >> >> when unbinding PCI device driver. But due to historical reason,
+> >> >> /*
+> >> >>  * We would love to complain here if pci_dev->is_enabled is set, that
+> >> >>  * the driver should have called pci_disable_device(), but the
+> >> >>  * unfortunate fact is there are too many odd BIOS and bridge setups
+> >> >>  * that don't like drivers doing that all of the time.
+> >> >>  * Oh well, we can dream of sane hardware when we sleep, no matter how
+> >> >>  * horrible the crap we have to deal with is when we are awake...
+> >> >>  */
+> >> >
+> >> > Quoting the comment here (especially the last two lines) is overkill and
+> >> > obscures the real point.  The important thing is that some drivers have
+> >> > legitimate reasons for not calling pci_disable_device().
+> >> Hi Bjorn,
+> >>       Thanks for review. I will rewrite the commit message.
+> >> >> some drivers don't call pci_disable_device() when unloading, which
+> >> >> prevents us from reallocating PCI interrupt resource on reloading
+> >> >> PCI driver and causes regressions.
+> >> >
+> >> > This isn't very clear.  I can believe that "drivers not calling
+> >> > pci_disable_device()" means we don't release IRQ resources, which might
+> >> > prevent you from hot-removing an IOAPIC.
+> >> >
+> >> > But "drivers not calling pci_disable_device()" doesn't cause regressions.
+> >> >
+> >> >> So release PCI interrupt resource only if PCI device is disabled when
+> >> >> unbinding. By this way, we could support IOAPIC hot-removal on latest
+> >> >> platforms and avoid regressions on old platforms.
+> >> >
+> >> > Does this mean you can only hot-remove IOAPICs if all drivers for devices
+> >> > using the IOAPIC call pci_disable_device()?  If so, it seems sort of
+> >> > dubious that we have to rely on drivers for that.
+> >> This is a quickfix for v4.0 merging window. We will try to solve this
+> >> issue for next merging window.
+> >
+> > If that is the plan, then I'd rather revert the offending commit and try
+> > again in the next cycle.
+> >
+> > Bjorn, what do you think?
 > 
->   - Mark BARS as unassigned when we can figure that out
->   - Not complain about "overlaps" with unassigned BARs
->   - Prevent pci_ioremap_bar() on unassigned BARs
->   - Give better error messages when pci_ioremap_bar() fails
-> 
-> I don't think these will actually fix any bugs, other than getting rid of
-> some annoying messages and improving some others.
-> 
-> Comments welcome.
-> 
-> ---
-> 
-> Bjorn Helgaas (4):
->       PNP: Don't check for overlaps with unassigned PCI BARs
->       PCI: Mark invalid BARs as unassigned
->       PCI: Show driver, BAR#, and resource on pci_ioremap_bar() failure
->       PCI: Fail pci_ioremap_bar() on unassigned resources
+> I don't know how hard it is to just revert that one commit at this
+> point, but I would be in favor of doing that if it's feasible.
 
-Applied with Rafael's ack to pci/resource for v4.1.
+The commit reverts cleanly and reverting it won't break anything that used to
+work in 3.19 and earlier (Gerry, please let me know if that is not correct).
+
+The only adverse consequence of reverting it I can see would be that the
+IOAPIC hotplug won't work in 4.0, but it didn't work before either and
+it's supposed to be a new feature in 4.0.
+
+> We're headed toward a real morass of changelogs for a design that
+> seems destined for overhaul.  That makes it really hard to backport
+> and rework things later.
+
+Precisely.
+
+Rafael
