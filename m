@@ -1,66 +1,86 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
-Date: Thu, 19 Mar 2015 12:29:06 +0100
-Message-ID: <2835680.pSPaYk3eSL@vostro.rjw.lan>
-References: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com> <20150318221152.GA2495@google.com> <550A7F8D.90404@linux.intel.com>
+Subject: Re: [PATCH RESEND] sata: xgene: add ACPI support for APM X-Gene SATA ports
+Date: Thu, 19 Mar 2015 12:32:33 +0100
+Message-ID: <5003912.K8jaqGYKiW@vostro.rjw.lan>
+References: <1426723435-22378-1-git-send-email-fkan@apm.com> <20150319095850.GO2165@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59172 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751994AbbCSLFL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2015 07:05:11 -0400
-In-Reply-To: <550A7F8D.90404@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20150319095850.GO2165@lahna.fi.intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Feng Kan <fkan@apm.com>, tj@kernel.org
+Cc: patches@apm.com, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, March 19, 2015 03:49:33 PM Jiang Liu wrote:
-> On 2015/3/19 6:11, Bjorn Helgaas wrote:
-> > On Tue, Mar 17, 2015 at 03:37:12PM +0800, Jiang Liu wrote:
-> >> To support IOAPIC hot-removal, we need to release PCI interrupt resource
-> >> when unbinding PCI device driver. But due to historical reason,
-> >> /*
-> >>  * We would love to complain here if pci_dev->is_enabled is set, that
-> >>  * the driver should have called pci_disable_device(), but the
-> >>  * unfortunate fact is there are too many odd BIOS and bridge setups
-> >>  * that don't like drivers doing that all of the time.
-> >>  * Oh well, we can dream of sane hardware when we sleep, no matter how
-> >>  * horrible the crap we have to deal with is when we are awake...
-> >>  */
+On Thursday, March 19, 2015 11:58:50 AM Mika Westerberg wrote:
+> On Wed, Mar 18, 2015 at 05:03:55PM -0700, Feng Kan wrote:
+> > This adds ACPI support for the APM X-Gene SATA ports. When the system
+> > boots using ACPI table, the SATA ports are able to configure using the
+> > values supplied by the ACPI table rather than the DTS.
 > > 
-> > Quoting the comment here (especially the last two lines) is overkill and
-> > obscures the real point.  The important thing is that some drivers have
-> > legitimate reasons for not calling pci_disable_device().
-> Hi Bjorn,
-> 	Thanks for review. I will rewrite the commit message.
-> >> some drivers don't call pci_disable_device() when unloading, which
-> >> prevents us from reallocating PCI interrupt resource on reloading
-> >> PCI driver and causes regressions.
-> > 
-> > This isn't very clear.  I can believe that "drivers not calling
-> > pci_disable_device()" means we don't release IRQ resources, which might
-> > prevent you from hot-removing an IOAPIC.
-> > 
-> > But "drivers not calling pci_disable_device()" doesn't cause regressions.
-> > 
-> >> So release PCI interrupt resource only if PCI device is disabled when
-> >> unbinding. By this way, we could support IOAPIC hot-removal on latest
-> >> platforms and avoid regressions on old platforms.
-> > 
-> > Does this mean you can only hot-remove IOAPICs if all drivers for devices
-> > using the IOAPIC call pci_disable_device()?  If so, it seems sort of
-> > dubious that we have to rely on drivers for that.
-> This is a quickfix for v4.0 merging window. We will try to solve this
-> issue for next merging window.
+> > Signed-off-by: Feng Kan <fkan@apm.com>
+> > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> 
+> One minor comment, see below. Other than that this looks good to me:
+> 
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-If that is the plan, then I'd rather revert the offending commit and try
-again in the next cycle.
+Thanks Mika!
 
-Bjorn, what do you think?
+So for the patch
 
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> > ---
+> >  drivers/ata/ahci_xgene.c | 10 ++++++++++
+> >  1 file changed, 10 insertions(+)
+> > 
+> > diff --git a/drivers/ata/ahci_xgene.c b/drivers/ata/ahci_xgene.c
+> > index 2e8bb60..2b78510 100644
+> > --- a/drivers/ata/ahci_xgene.c
+> > +++ b/drivers/ata/ahci_xgene.c
+> > @@ -22,6 +22,7 @@
+> >   * NOTE: PM support is not currently available.
+> >   *
+> >   */
+> > +#include <linux/acpi.h>
+> >  #include <linux/module.h>
+> >  #include <linux/platform_device.h>
+> >  #include <linux/ahci_platform.h>
+> > @@ -718,6 +719,14 @@ disable_resources:
+> >  	return rc;
+> >  }
+> >  
+> > +#ifdef CONFIG_ACPI
+> > +static const struct acpi_device_id xgene_ahci_acpi_match[] = {
+> > +	{ "APMC0D0D", },
+> 
+> I think writing the above without comma would look better:
+> 
+> 	{ "APMC0D0D" },
+> 
+> 
+> > +	{ }
+> > +};
+> > +MODULE_DEVICE_TABLE(acpi, xgene_ahci_acpi_match);
+> > +#endif
+> > +
+> >  static const struct of_device_id xgene_ahci_of_match[] = {
+> >  	{.compatible = "apm,xgene-ahci"},
+> >  	{},
+> > @@ -730,6 +739,7 @@ static struct platform_driver xgene_ahci_driver = {
+> >  	.driver = {
+> >  		.name = DRV_NAME,
+> >  		.of_match_table = xgene_ahci_of_match,
+> > +		.acpi_match_table = ACPI_PTR(xgene_ahci_acpi_match),
+> >  	},
+> >  };
+> >  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
