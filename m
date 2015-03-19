@@ -1,87 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH RESEND] sata: xgene: add ACPI support for APM X-Gene SATA ports
-Date: Thu, 19 Mar 2015 12:32:33 +0100
-Message-ID: <5003912.K8jaqGYKiW@vostro.rjw.lan>
-References: <1426723435-22378-1-git-send-email-fkan@apm.com> <20150319095850.GO2165@lahna.fi.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Backlight control broken on Lenovo Ideapad Z570
+Date: Thu, 19 Mar 2015 13:50:36 +0100
+Message-ID: <550AC61C.4000504@redhat.com>
+References: <550979A6.20306@redhat.com> <1426714264.2313054.242229237.35BDA633@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20150319095850.GO2165@lahna.fi.intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Feng Kan <fkan@apm.com>, tj@kernel.org
-Cc: patches@apm.com, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:47168 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751351AbbCSMun (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Mar 2015 08:50:43 -0400
+In-Reply-To: <1426714264.2313054.242229237.35BDA633@webmail.messagingengine.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Stepan Bujnak <stepanbujnak@fastmail.com>, Stepan Bujnak <stepanbujnak@fastmail.fm>
+Cc: be.0@gmx.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thursday, March 19, 2015 11:58:50 AM Mika Westerberg wrote:
-> On Wed, Mar 18, 2015 at 05:03:55PM -0700, Feng Kan wrote:
-> > This adds ACPI support for the APM X-Gene SATA ports. When the system
-> > boots using ACPI table, the SATA ports are able to configure using the
-> > values supplied by the ACPI table rather than the DTS.
-> > 
-> > Signed-off-by: Feng Kan <fkan@apm.com>
-> > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> One minor comment, see below. Other than that this looks good to me:
-> 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hi,
 
-Thanks Mika!
+On 18-03-15 22:31, Stepan Bujnak wrote:
+> Hi, unfortunately I moved to San Francisco and left my old laptop at
+> home, so I cannot debug the issue anymore. As far as I remember
+> correctly, the problem was that I only had the intel_backlight interface
+> which did not work as expected (value always on top, the buttons did not
+> work, neither did writing the value manually). Once I blacklisted the
+> intel_backlight using the patch I submitted I was able to get the
+> backlight working.
+>
+> However, I'm reading that you've got fix for the problem and my patch
+> conflicts with it? If this is the case, please replace my code with your
+> fix, and once I get back home (April 28th) we can continue debugging the
+> issue using my laptop.
 
-So for the patch
+Ok, I'll do a patch with what I believe is a more complete fix, and then
+I'll ask Be to test it, and if that goes well send it upstream.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Regards,
 
-> > ---
-> >  drivers/ata/ahci_xgene.c | 10 ++++++++++
-> >  1 file changed, 10 insertions(+)
-> > 
-> > diff --git a/drivers/ata/ahci_xgene.c b/drivers/ata/ahci_xgene.c
-> > index 2e8bb60..2b78510 100644
-> > --- a/drivers/ata/ahci_xgene.c
-> > +++ b/drivers/ata/ahci_xgene.c
-> > @@ -22,6 +22,7 @@
-> >   * NOTE: PM support is not currently available.
-> >   *
-> >   */
-> > +#include <linux/acpi.h>
-> >  #include <linux/module.h>
-> >  #include <linux/platform_device.h>
-> >  #include <linux/ahci_platform.h>
-> > @@ -718,6 +719,14 @@ disable_resources:
-> >  	return rc;
-> >  }
-> >  
-> > +#ifdef CONFIG_ACPI
-> > +static const struct acpi_device_id xgene_ahci_acpi_match[] = {
-> > +	{ "APMC0D0D", },
-> 
-> I think writing the above without comma would look better:
-> 
-> 	{ "APMC0D0D" },
-> 
-> 
-> > +	{ }
-> > +};
-> > +MODULE_DEVICE_TABLE(acpi, xgene_ahci_acpi_match);
-> > +#endif
-> > +
-> >  static const struct of_device_id xgene_ahci_of_match[] = {
-> >  	{.compatible = "apm,xgene-ahci"},
-> >  	{},
-> > @@ -730,6 +739,7 @@ static struct platform_driver xgene_ahci_driver = {
-> >  	.driver = {
-> >  		.name = DRV_NAME,
-> >  		.of_match_table = xgene_ahci_of_match,
-> > +		.acpi_match_table = ACPI_PTR(xgene_ahci_acpi_match),
-> >  	},
-> >  };
-> >  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hams
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>
+> Best wishes,
+> Stepan
+>
+> On Wed, Mar 18, 2015, at 06:12 AM, Hans de Goede wrote:
+>> Hi Stepan,
+>>
+>> I'm mailing you because you are the author of:
+>> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=a11d342f
+>>
+>> I've been debugging the same problem together with a Fedora user:
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1187004
+>>
+>> And for him your fix does not work, before your fix landed we already
+>> came to the conclusion that to fix this we need to disable both the
+>> acpi_video backlight interface as well as the ideapad-laptop interface.
+>>
+>> Your patch only disables the acpi_video backlight interface (and as
+>> a side effect actually enables the ideapad-laptop interface).
+>>
+>> I assume that you've a working backlight setup on your Lenovo Ideapad
+>> Z570,
+>> can you please do:
+>>
+>> ls /sys/class/backlight
+>>
+>> And let us know which interfaces show up there. Either you do have a
+>> working
+>> ideapad_laptop interface, or you only get intel_backlight and for some
+>> reason
+>> ideapad_laptop is not loading on your system (not enabled in your kernel
+>> config,
+>> or blacklisted?).
+>>
+>> If you only have intel_backlight then that explains why things are not
+>> working
+>> for Be (the author of the Fedora bugreport), if you do have an
+>> ideapad_laptop
+>> interface and that does work for you, then it seems that not all
+>> Lenovo Ideapad Z570-s are created equal. In that case can you please
+>> blacklist
+>> the ideapad-laptop module, reboot and see if things still work for you
+>> when
+>> using intel_backlight to control the backlight? Once we've a confirmation
+>> that either you are already using intel_backlight, or that
+>> intel_backlight also
+>> works on your Ideapad, then I'll write a patch to replace yours which
+>> leaves
+>> only intel_backlight even if the ideapad-laptop driver gets loaded.
+>>
+>> Thanks & Regards,
+>>
+>> Hans
