@@ -1,206 +1,101 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 08/21] ARM64 / ACPI: Introduce early_param "acpi=" to
- enable/disable ACPI
-Date: Thu, 19 Mar 2015 10:04:55 +0000
-Message-ID: <20150319100455.GA24556@red-moon>
+Subject: Re: [PATCH v10 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and
+ register device's gsi
+Date: Thu, 19 Mar 2015 10:12:05 +0000
+Message-ID: <20150319101205.GB24556@red-moon>
 References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-9-git-send-email-hanjun.guo@linaro.org>
- <20150318113549.GC2846@red-moon>
- <CAKv+Gu9wkh+J18cm1Mt4-Up5b3VA4-qeLtHcc+UD44DHbqABtQ@mail.gmail.com>
+ <1426077587-1561-16-git-send-email-hanjun.guo@linaro.org>
+ <20150318184114.GL10863@arm.com>
+ <550A465F.50701@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:36548 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753913AbbCSKMD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Mar 2015 06:12:03 -0400
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu9wkh+J18cm1Mt4-Up5b3VA4-qeLtHcc+UD44DHbqABtQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-ke>
+In-Reply-To: <550A465F.50701@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-ke>
 
-On Wed, Mar 18, 2015 at 08:07:09PM +0000, Ard Biesheuvel wrote:
-> On 18 March 2015 at 12:35, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
-> > On Wed, Mar 11, 2015 at 12:39:34PM +0000, Hanjun Guo wrote:
-> >> From: Al Stone <al.stone@linaro.org>
-> >>
-> >> This implements the following policy to decide whether ACPI should
-> >> be used to boot the system:
-> >> - acpi=off: ACPI will not be used to boot the system, even if there is
-> >>   no alternative available (e.g., device tree is empty)
-> >> - acpi=force: only ACPI will be used to boot the system; if that fails,
-> >>   there will be no fallback to alternative methods (such as device tree)
-> >
-> > I think this comment is stale. acpi=force enables ACPI and tries to
-> > init the ACPI tables without even checking DT, but it does fall back to
-> > DT if ACPI table init fails (by disabling ACPI and unflattening the
-> > FDT).
-> >
-> > Am I wrong ?
-> >
+On Thu, Mar 19, 2015 at 03:45:35AM +0000, Hanjun Guo wrote:
+
+[...]
+
+> >> +/*
+> >> + * success: return IRQ number (>0)
+> >> + * failure: return =< 0
+> >> + */
+> >> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+> >> +{
+> >> +	unsigned int irq;
+> >> +	unsigned int irq_type;
+> >> +
+> >> +	/*
+> >> +	 * ACPI have no bindings to indicate SPI or PPI, so we
+> >> +	 * use different mappings from DT in ACPI.
+> >> +	 *
+> >> +	 * For FDT
+> >> +	 * PPI interrupt: in the range [0, 15];
+> >> +	 * SPI interrupt: in the range [0, 987];
+> >> +	 *
+> >> +	 * For ACPI, GSI should be unique so using
+> >> +	 * the hwirq directly for the mapping:
+> >> +	 * PPI interrupt: in the range [16, 31];
+> >> +	 * SPI interrupt: in the range [32, 1019];
+> >> +	 */
+> >> +
+> >> +	if (trigger == ACPI_EDGE_SENSITIVE &&
+> >> +				polarity == ACPI_ACTIVE_LOW)
+> >> +		irq_type = IRQ_TYPE_EDGE_FALLING;
+> >> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
+> >> +				polarity == ACPI_ACTIVE_HIGH)
+> >> +		irq_type = IRQ_TYPE_EDGE_RISING;
+> >> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+> >> +				polarity == ACPI_ACTIVE_LOW)
+> >> +		irq_type = IRQ_TYPE_LEVEL_LOW;
+> >> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+> >> +				polarity == ACPI_ACTIVE_HIGH)
+> >> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
+> >> +	else
+> >> +		irq_type = IRQ_TYPE_NONE;
+> >> +
+> >> +	/*
+> >> +	 * Since only one GIC is supported in ACPI 5.0, we can
+> >> +	 * create mapping refer to the default domain
+> >> +	 */
+> >> +	irq = irq_create_mapping(NULL, gsi);
+> >> +	if (!irq)
+> >> +		return irq;
+> >> +
+> >> +	/* Set irq type if specified and different than the current one */
+> >> +	if (irq_type != IRQ_TYPE_NONE &&
+> >> +		irq_type != irq_get_trigger_type(irq))
+> >> +		irq_set_irq_type(irq, irq_type);
+> >> +	return irq;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
+> > I see you've still got this buried in the arch code. Is there any plan to
+> > move it out, as I moaned about this in the last version of the series and
+> > nothing seems to have changed?
 > 
-> No, you're right. But I would suggest that we fix the code, not the comment.
+> Ah, sorry. Last time when I was in Hongkong for LCA this Feb, I discussed with Lorenzo
+> and he had a look into that too, he also met some obstacles to do that, so Lorenzo
+> said that he will talk to you about this (Lorenzo, correct me if I'm wrong due to hearing
+> problems of much noise in that room where we were talking).
+> 
+> Anyway, if we move those functions to core code, such as irqdomain code, which will be
+> compiled for x86 too, we can only set those functions as _weak, or we guard with them
+> as #ifdef CONFIG_ARM64 ... #endif, so for me, it's really not a big deal to move those code
+> out of arch/arm64, but I'm still open for suggestions if you can do that in a proper way.
 
-So would I. I flagged this up on the comment since I was not able to follow
-the thread on arm64 acpi=force and thought I was missing something.
-
-> I think we are all in agreement on the policy, we only need to make
-> disable_acpi() conditional on whether acpi_param_force is set
-
-Either this or Catalin's fix, in actual terms the end result should be
-the same on arm64, leaving acpi_disabled will save us some pointless
-parsing IMO.
-
-Nit: "acpi" kernel parameter description defines
-
-"force -- enable ACPI if default was off"
-
-which is not what we do on arm64 if we leave ACPI disabled when
-acpi=force and ACPI fails to init.
-
-I do not think we should care, if anyone disagrees manifest yourselves.
+You heard me clear and sound in HK, Will has a point and I looked into
+this. Code is generic but not enough to be useful on other arches at
+the moment, I need more time to look into this and see if we can move
+this code to acpi core in a way that makes sense, to have, as you say,
+a "default" implementation.
 
 Lorenzo
-
-> 
-> 
-> >> - otherwise, ACPI will be used as a fallback if the device tree turns out
-> >>   to lack a platform description; the heuristic to decide this is whether
-> >>   /chosen is the only node present at depth 1
-> >>
-> >> CC: Catalin Marinas <catalin.marinas@arm.com>
-> >> CC: Will Deacon <will.deacon@arm.com>
-> >> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> >> Acked-by: Olof Johansson <olof@lixom.net>
-> >> Acked-by: Grant Likely <grant.likely@linaro.org>
-> >> Tested-by: Timur Tabi <timur@codeaurora.org>
-> >> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> >> ---
-> >>  Documentation/kernel-parameters.txt |  3 ++-
-> >>  arch/arm64/include/asm/acpi.h       |  7 +++++
-> >>  arch/arm64/kernel/acpi.c            | 52 +++++++++++++++++++++++++++++++++----
-> >>  3 files changed, 56 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> >> index bfcb1a6..d6c35a7 100644
-> >> --- a/Documentation/kernel-parameters.txt
-> >> +++ b/Documentation/kernel-parameters.txt
-> >> @@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
-> >>  bytes respectively. Such letter suffixes can also be entirely omitted.
-> >>
-> >>
-> >> -     acpi=           [HW,ACPI,X86]
-> >> +     acpi=           [HW,ACPI,X86,ARM64]
-> >>                       Advanced Configuration and Power Interface
-> >>                       Format: { force | off | strict | noirq | rsdt }
-> >>                       force -- enable ACPI if default was off
-> >> @@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
-> >>                               strictly ACPI specification compliant.
-> >>                       rsdt -- prefer RSDT over (default) XSDT
-> >>                       copy_dsdt -- copy DSDT to memory
-> >> +                     For ARM64, ONLY "acpi=off" or "acpi=force" are available
-> >>
-> >>                       See also Documentation/power/runtime_pm.txt, pci=noacpi
-> >>
-> >> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> >> index 40e0924..c5a9b97 100644
-> >> --- a/arch/arm64/include/asm/acpi.h
-> >> +++ b/arch/arm64/include/asm/acpi.h
-> >> @@ -39,6 +39,13 @@ static inline void disable_acpi(void)
-> >>       acpi_noirq = 1;
-> >>  }
-> >>
-> >> +static inline void enable_acpi(void)
-> >> +{
-> >> +     acpi_disabled = 0;
-> >> +     acpi_pci_disabled = 0;
-> >> +     acpi_noirq = 0;
-> >> +}
-> >> +
-> >>  /*
-> >>   * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-> >>   * with this check the ACPI core will not override the CPU index
-> >> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> >> index 7abac24..2269e30 100644
-> >> --- a/arch/arm64/kernel/acpi.c
-> >> +++ b/arch/arm64/kernel/acpi.c
-> >> @@ -22,15 +22,49 @@
-> >>  #include <linux/irq.h>
-> >>  #include <linux/irqdomain.h>
-> >>  #include <linux/memblock.h>
-> >> +#include <linux/of_fdt.h>
-> >>  #include <linux/smp.h>
-> >>
-> >> -int acpi_noirq;                      /* skip ACPI IRQ initialization */
-> >> -int acpi_disabled;
-> >> +int acpi_noirq = 1;          /* skip ACPI IRQ initialization */
-> >> +int acpi_disabled = 1;
-> >>  EXPORT_SYMBOL(acpi_disabled);
-> >>
-> >> -int acpi_pci_disabled;               /* skip ACPI PCI scan and IRQ initialization */
-> >> +int acpi_pci_disabled = 1;   /* skip ACPI PCI scan and IRQ initialization */
-> >>  EXPORT_SYMBOL(acpi_pci_disabled);
-> >>
-> >> +static bool param_acpi_off __initdata;
-> >> +static bool param_acpi_force __initdata;
-> >> +
-> >> +static int __init parse_acpi(char *arg)
-> >> +{
-> >> +     if (!arg)
-> >> +             return -EINVAL;
-> >> +
-> >> +     /* "acpi=off" disables both ACPI table parsing and interpreter */
-> >> +     if (strcmp(arg, "off") == 0)
-> >> +             param_acpi_off = true;
-> >> +     else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
-> >> +             param_acpi_force = true;
-> >> +     else
-> >> +             return -EINVAL; /* Core will print when we return error */
-> >> +
-> >> +     return 0;
-> >> +}
-> >> +early_param("acpi", parse_acpi);
-> >> +
-> >> +static int __init dt_scan_depth1_nodes(unsigned long node,
-> >> +                                    const char *uname, int depth,
-> >> +                                    void *data)
-> >> +{
-> >> +     /*
-> >> +      * Return 1 as soon as we encounter a node at depth 1 that is
-> >> +      * not the /chosen node.
-> >> +      */
-> >> +     if (depth == 1 && (strcmp(uname, "chosen") != 0))
-> >> +             return 1;
-> >> +     return 0;
-> >> +}
-> >> +
-> >>  /*
-> >>   * __acpi_map_table() will be called before page_init(), so early_ioremap()
-> >>   * or early_memremap() should be called here to for ACPI table mapping.
-> >> @@ -83,10 +117,18 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
-> >>   */
-> >>  void __init acpi_boot_table_init(void)
-> >>  {
-> >> -     /* If acpi_disabled, bail out */
-> >> -     if (acpi_disabled)
-> >> +     /*
-> >> +      * Enable ACPI instead of device tree unless
-> >> +      * - ACPI has been disabled explicitly (acpi=off), or
-> >> +      * - the device tree is not empty (it has more than just a /chosen node)
-> >> +      *   and ACPI has not been force enabled (acpi=force)
-> >> +      */
-> >> +     if (param_acpi_off ||
-> >> +         (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
-> >>               return;
-> >>
-> >> +     enable_acpi();
-> >> +
-> >>       /* Initialize the ACPI boot-time table parser. */
-> >>       if (acpi_table_init()) {
-> >>               disable_acpi();
-> >> --
-> >> 1.9.1
-> >>
-> >>
-> 
