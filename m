@@ -1,34 +1,63 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH RESEND] sata: xgene: add ACPI support for APM X-Gene SATA
- ports
-Date: Thu, 19 Mar 2015 14:22:50 -0400
-Message-ID: <20150319182250.GC19657@htj.duckdns.org>
-References: <1426723435-22378-1-git-send-email-fkan@apm.com>
+From: Jake Oshins <jakeo@microsoft.com>
+Subject: RE: [PATCH 1/3] drivers:pnp Add support for descendants claiming
+ memory address space
+Date: Thu, 19 Mar 2015 19:21:53 +0000
+Message-ID: <BN3PR0301MB121958CF49F85A624B3AD2F6AB010@BN3PR0301MB1219.namprd03.prod.outlook.com>
+References: <1424202111-14461-1-git-send-email-jakeo@microsoft.com>
+ <54F8E0C3.6080103@intel.com>
+ <DM2PR0301MB12329507E2600FD4AEF9A7E7AB180@DM2PR0301MB1232.namprd03.prod.outlook.com>
+ <1785536.Y0PP4kToXf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f180.google.com ([209.85.220.180]:62058 "EHLO
-	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbbCSSWy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2015 14:22:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1426723435-22378-1-git-send-email-fkan@apm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1785536.Y0PP4kToXf@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "olaf@aepfle.de" <olaf@aepfle.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, KY Srinivasan <kys@microsoft.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "apw@canonical.com" <apw@canonical.com>, "vkuznets@redhat.com" <vkuznets@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Kan <fkan@apm.com>
-Cc: patches@apm.com, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Mar 18, 2015 at 05:03:55PM -0700, Feng Kan wrote:
-> This adds ACPI support for the APM X-Gene SATA ports. When the system
-> boots using ACPI table, the SATA ports are able to configure using the
-> values supplied by the ACPI table rather than the DTS.
-> 
-> Signed-off-by: Feng Kan <fkan@apm.com>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Applied to libata/for-4.1.
-
-Thanks.
-
--- 
-tejun
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBb
+bWFpbHRvOnJqd0Byand5c29ja2kubmV0XQ0KPiBTZW50OiBUdWVzZGF5LCBNYXJjaCAxMCwgMjAx
+NSA1OjM0IFBNDQo+IFRvOiBKYWtlIE9zaGluczsgb2xhZkBhZXBmbGUuZGUNCj4gQ2M6IFJhZmFl
+bCBKLiBXeXNvY2tpOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsgS1kgU3Jpbml2YXNhbjsg
+bGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGFwd0BjYW5vbmljYWwuY29tOyB2a3V6
+bmV0c0ByZWRoYXQuY29tOyBMaW51eA0KPiBBQ1BJOyBMaW51eCBQQ0k7IEJqb3JuIEhlbGdhYXMN
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSCAxLzNdIGRyaXZlcnM6cG5wIEFkZCBzdXBwb3J0IGZvciBk
+ZXNjZW5kYW50cyBjbGFpbWluZw0KPiBtZW1vcnkgYWRkcmVzcyBzcGFjZQ0KPiANCg0KPHNuaXA+
+DQoNCj4gSXQgc2VlbXMgdG8gbWUgdGhlbiB0aGF0IHdoYXQgeW91IHJlYWxseSB3YW50IGlzIGEg
+bnVsbCBwcm90b2NvbCBmb3IgUE5QDQo+IHdoaWNoIHNpbXBseSBkb2Vzbid0IGRvIGFueXRoaW5n
+LiAgSSBkb24ndCBzZWUgYW55IGp1c3RpZmljYXRpb24gZm9yIHRoZQ0KPiAiZGVzY2VuZGFudF9w
+cm90b2NvbCIgbmFtZS4gIEl0J3MganVzdCBhIG51bGwgb25lLg0KPiANCj4gSW4gdGhhdCBjYXNl
+IHlvdSBzaG91bGQgc2xpZ2h0bHkgbW9kaWZ5IHRoZSBQTlAgYnVzIHR5cGUgdG8gYmUgYWJsZSB0
+bw0KPiB1c2UgYSBudWxsIHByb3RvY29sIHdpdGhvdXQgZGVmaW5pbmcgdGhlIHN0dWIgLT5nZXQs
+IC0+cHV0IGFuZCAtPmRpc2FibGUNCj4gbWV0aG9kcyB0aGF0IGp1c3QgZG8gbm90aGluZyBhbmQg
+cmV0dXJuIDAuDQo+IA0KPiBUaGVuLCB5b3UgY2FuIGRlZmluZSB0aGUgbnVsbCBwcm90b2NvbCB3
+aXRob3V0IGFueSBtZXRob2RzIGluDQo+IGRyaXZlcnMvcG5wL2NvcmUuYyBhbmQgdXNlIGl0IGlu
+IHlvdXIgY29kZSB3aXRob3V0IGFkZGluZyB0aGUgImRlc2NlbmRhbnQiDQo+IGNvbmNlcHQuDQo+
+IA0KPiBPZiBjb3Vyc2UsIHRoYXQgY29tZXMgd2l0aCBhIHByaWNlIHdoaWNoIGlzIHRoYXQgZXZl
+cnkgZGV2aWNlIHVzaW5nIHRoZQ0KPiBudWxsIHByb3RvY29sIHdpbGwgaGF2ZSB0aGF0IHByb3Rv
+Y29sJ3MgYWJzdHJhY3QgZGV2aWNlIGFzIGl0cyBwYXJlbnQuDQo+IEkgc3VwcG9zZSB0aGF0IHRo
+aXMgaXMgbm90IGEgcHJvYmxlbT8NCj4gDQoNCjxzbmlwPg0KDQo+IA0KPiA+IFRoZSBwcm9ibGVt
+IGNvbWVzIGluIGlmIHRoZXJlIGFyZSBQQ0kgZGV2aWNlcyBpbiB0aGUgc2FtZSByZWdpb24uICBU
+aGVyZSdzDQo+IG5vDQo+ID4gZWFzeSB3YXkgdG8gZmlndXJlIG91dCB3aGV0aGVyIHRoZSBjbGFp
+bSBjb25mbGljdHMgd2l0aCB0aGUgUENJIGRldmljZXMsDQo+IHNpbmNlDQo+ID4gdGhlIFBDSSBk
+ZXZpY2UncyBjbGFpbXMgYXJlIG1hZGUgdGhyb3VnaCB0aGUgcG5wIGxheWVyLg0KPiANCj4gV2Vs
+bCwgcGxlYXNlIGxvb2sgYXQgX19wY2lfcmVxdWVzdF9yZWdpb24oKSB0aGVuIGFuZCB0ZWxsIG1l
+IHdoZXJlIGl0IHVzZXMNCj4gdGhlDQo+IFBOUCBsYXllci4NCj4gDQoNCkkndmUgYmVlbiB0aGlu
+a2luZyBhIGxvdCAoYW5kIHBva2luZyBhcm91bmQgaW4gdGhlIGNvZGUsIHRyeWluZyB0aGluZ3Mp
+IGluIHJlc3BvbnNlIHRvIHdoYXQgeW91IHdyb3RlLCBhbmQgaW4gcGFydGljdWxhciBpbiByZXNw
+b25zZSB0byB0aGUgdHdvIHBhcnRzIHF1b3RlZCBhYm92ZS4gIEhhdmluZyBhIG51bGwgcHJvdG9j
+b2wgd2hlcmUgZWFjaCBvZiB0aGUgZGV2aWNlcyBoYXMgdGhlIHNhbWUgYWJzdHJhY3QgcGFyZW50
+IGRvZXNuJ3Qgc2VydmUgbXkgbmVlZHMsIGJlY2F1c2UgaXQgd29uJ3QgZ3VhcmFudGVlIHRoYXQg
+dGhlIHJhbmdlcyBjbGFpbWVkIGZhbGwgd2l0aGluIHRoZSBfQ1JTIG9mIHRoZSBncmFuZHBhcmVu
+dCBvciBncmVhdC1ncmFuZHBhcmVudCBub2RlLiAgQW5kLCBpbiBmYWN0LCBJIGRvbid0IHRoaW5r
+IHRoYXQgbXkgcHJvcG9zZWQgcGF0Y2ggaXMgYWN0dWFsbHkgYWNjb21wbGlzaGluZyB0aGF0IGRl
+dGVybWluaXN0aWNhbGx5IGVpdGhlciwgYXQgdGhlIG1vbWVudC4NCg0KWW91ciByZXNwb25zZSwg
+YXQgbGVuZ3RoLCBjb252aW5jZWQgbWUgdG8gbG9vayBhdCB0aGluZ3MgZGlmZmVyZW50bHkgYW5k
+IEkgcmVhbGl6ZWQgdGhhdCBJIHdhc24ndCBnZXR0aW5nIGFzIG11Y2ggZnJvbSB0aGlzIGFwcHJv
+YWNoIGFzIEkgdGhvdWdodCBJIHdhcy4gIEknZCBsaWtlIHRvIHdpdGhkcmF3IHRoaXMgcGF0Y2gg
+c2VyaWVzLiAgSSBjYW4gY29tZSB1cCB3aXRoIGFuIGFsdGVybmF0aXZlIHNvbHV0aW9uIHRoYXQg
+ZXhpc3RzIG9ubHkgd2l0aGluIHRoZSBIeXBlci1WLXJlbGF0ZWQgZHJpdmVycy4NCg0KVGhhbmtz
+IGFnYWluIGZvciB5b3VyIHRpbWUgYW5kIHBhdGllbmNlLA0KSmFrZSBPc2hpbnMNCg0KDQo=
