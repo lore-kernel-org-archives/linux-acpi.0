@@ -1,253 +1,68 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v10 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC
- and register device's gsi
-Date: Fri, 20 Mar 2015 21:07:12 +0800
-Message-ID: <550C1B80.1080204@huawei.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-16-git-send-email-hanjun.guo@linaro.org> <20150318184114.GL10863@arm.com> <550A465F.50701@huawei.com> <20150319101205.GB24556@red-moon> <20150319193724.GF4751@arm.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is
+ disabled when unbinding
+Date: Fri, 20 Mar 2015 08:11:26 -0500
+Message-ID: <CAErSpo7a9Pnxq77DSL3insZ_k1-Re5FixZ16sqbwd+mNbDxXig@mail.gmail.com>
+References: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com>
+ <20150318221152.GA2495@google.com> <550A7F8D.90404@linux.intel.com>
+ <2835680.pSPaYk3eSL@vostro.rjw.lan> <CAErSpo4r+Brx0fgpwQ=Wr_1wxBNvuAy0cJxYBSR6hBLt=d=e8Q@mail.gmail.com>
+ <550B8F50.3070402@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:37748 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827AbbCTNIb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Mar 2015 09:08:31 -0400
-In-Reply-To: <20150319193724.GF4751@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <550B8F50.3070402@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alex Williamson <alex.williamson@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-
 
-On 2015/3/20 3:37, Will Deacon wrote:
-> On Thu, Mar 19, 2015 at 10:12:05AM +0000, Lorenzo Pieralisi wrote:
->> On Thu, Mar 19, 2015 at 03:45:35AM +0000, Hanjun Guo wrote:
->>>>> +	if (trigger == ACPI_EDGE_SENSITIVE &&
->>>>> +				polarity == ACPI_ACTIVE_LOW)
->>>>> +		irq_type = IRQ_TYPE_EDGE_FALLING;
->>>>> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
->>>>> +				polarity == ACPI_ACTIVE_HIGH)
->>>>> +		irq_type = IRQ_TYPE_EDGE_RISING;
->>>>> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
->>>>> +				polarity == ACPI_ACTIVE_LOW)
->>>>> +		irq_type = IRQ_TYPE_LEVEL_LOW;
->>>>> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
->>>>> +				polarity == ACPI_ACTIVE_HIGH)
->>>>> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
->>>>> +	else
->>>>> +		irq_type = IRQ_TYPE_NONE;
->>>>> +
->>>>> +	/*
->>>>> +	 * Since only one GIC is supported in ACPI 5.0, we can
->>>>> +	 * create mapping refer to the default domain
->>>>> +	 */
->>>>> +	irq = irq_create_mapping(NULL, gsi);
->>>>> +	if (!irq)
->>>>> +		return irq;
->>>>> +
->>>>> +	/* Set irq type if specified and different than the current one */
->>>>> +	if (irq_type != IRQ_TYPE_NONE &&
->>>>> +		irq_type != irq_get_trigger_type(irq))
->>>>> +		irq_set_irq_type(irq, irq_type);
->>>>> +	return irq;
->>>>> +}
->>>>> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
->>>> I see you've still got this buried in the arch code. Is there any plan to
->>>> move it out, as I moaned about this in the last version of the series and
->>>> nothing seems to have changed?
->>> Ah, sorry. Last time when I was in Hongkong for LCA this Feb, I
->>> discussed with Lorenzo and he had a look into that too, he also met some
->>> obstacles to do that, so Lorenzo said that he will talk to you about
->>> this (Lorenzo, correct me if I'm wrong due to hearing problems of much
->>> noise in that room where we were talking).
->>>
->>> Anyway, if we move those functions to core code, such as irqdomain code,
->>> which will be compiled for x86 too, we can only set those functions as
->>> _weak, or we guard with them as #ifdef CONFIG_ARM64 ... #endif, so for
->>> me, it's really not a big deal to move those code out of arch/arm64, but
->>> I'm still open for suggestions if you can do that in a proper way.
->> You heard me clear and sound in HK, Will has a point and I looked into
->> this. Code is generic but not enough to be useful on other arches at
->> the moment, I need more time to look into this and see if we can move
->> this code to acpi core in a way that makes sense, to have, as you say,
->> a "default" implementation.
-> Yeah, just something guarded by a CONFIG option (probably not ARM64
-> though) would be enough, I think. Nothing too fancy.
-Hi Will,
+On Thu, Mar 19, 2015 at 10:09 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> On 2015/3/19 22:08, Bjorn Helgaas wrote:
 
-It is ARM64 related code and ACPI specific, I can come up with following code:
+>> There are two other possibilities I can see:
+>>
+>> 1) Decide that a driver that captures the IRQ and then calls
+>> pci_enable_device() is just broken, and fix those drivers to
+>> re-capture the IRQ every time they call pci_enable_device().  I assume
+>> you've looked at this already and concluded it's not practical?
 
- arch/arm64/kernel/acpi.c | 67 ---------------------------------------------
- kernel/irq/irqdomain.c   | 70 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 67 deletions(-)
+Did you look at this or not?  I don't have any idea of the scope of the problem.
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 5819ef7..d207544 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -224,73 +224,6 @@ void __init acpi_init_cpus(void)
-     pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
- }
- 
--int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
--{
--    *irq = irq_find_mapping(NULL, gsi);
--
--    return 0;
--}
--EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
--
--/*
-- * success: return IRQ number (>0)
-- * failure: return =< 0
-- */
--int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
--{
--    unsigned int irq;
--    unsigned int irq_type;
--
--    /*
--     * ACPI have no bindings to indicate SPI or PPI, so we
--     * use different mappings from DT in ACPI.
--     *
--     * For FDT
--     * PPI interrupt: in the range [0, 15];
--     * SPI interrupt: in the range [0, 987];
--     *
--     * For ACPI, GSI should be unique so using
--     * the hwirq directly for the mapping:
--     * PPI interrupt: in the range [16, 31];
--     * SPI interrupt: in the range [32, 1019];
--     */
--
--    if (trigger == ACPI_EDGE_SENSITIVE &&
--                polarity == ACPI_ACTIVE_LOW)
--        irq_type = IRQ_TYPE_EDGE_FALLING;
--    else if (trigger == ACPI_EDGE_SENSITIVE &&
--                polarity == ACPI_ACTIVE_HIGH)
--        irq_type = IRQ_TYPE_EDGE_RISING;
--    else if (trigger == ACPI_LEVEL_SENSITIVE &&
--                polarity == ACPI_ACTIVE_LOW)
--        irq_type = IRQ_TYPE_LEVEL_LOW;
--    else if (trigger == ACPI_LEVEL_SENSITIVE &&
--                polarity == ACPI_ACTIVE_HIGH)
--        irq_type = IRQ_TYPE_LEVEL_HIGH;
--    else
--        irq_type = IRQ_TYPE_NONE;
--
--    /*
--     * Since only one GIC is supported in ACPI 5.0, we can
--     * create mapping refer to the default domain
--     */
--    irq = irq_create_mapping(NULL, gsi);
--    if (!irq)
--        return irq;
--
--    /* Set irq type if specified and different than the current one */
--    if (irq_type != IRQ_TYPE_NONE &&
--        irq_type != irq_get_trigger_type(irq))
--        irq_set_irq_type(irq, irq_type);
--    return irq;
--}
--EXPORT_SYMBOL_GPL(acpi_register_gsi);
--
--void acpi_unregister_gsi(u32 gsi)
--{
--}
--EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
--
- static int __init acpi_parse_fadt(struct acpi_table_header *table)
- {
-     struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 7fac311..5a614bc 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -1,5 +1,6 @@
- #define pr_fmt(fmt)  "irq: " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/debugfs.h>
- #include <linux/hardirq.h>
- #include <linux/interrupt.h>
-@@ -568,6 +569,75 @@ unsigned int irq_find_mapping(struct irq_domain *domain,
- }
- EXPORT_SYMBOL_GPL(irq_find_mapping);
- 
-+#if defined(CONFIG_ARM64) && defined(CONFIG_ACPI)
-+int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-+{
-+    *irq = irq_find_mapping(NULL, gsi);
-+
-+    return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
-+
-+/*
-+ * success: return IRQ number (>0)
-+ * failure: return =< 0
-+ */
-+int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
-+{
-+    unsigned int irq;
-+    unsigned int irq_type;
-+
-+    /*
-+     * ACPI have no bindings to indicate SPI or PPI, so we
-+     * use different mappings from DT in ACPI.
-+     *
-+     * For FDT
-+     * PPI interrupt: in the range [0, 15];
-+     * SPI interrupt: in the range [0, 987];
-+     *
-+     * For ACPI, GSI should be unique so using
-+     * the hwirq directly for the mapping:
-+     * PPI interrupt: in the range [16, 31];
-+     * SPI interrupt: in the range [32, 1019];
-+     */
-+
-+    if (trigger == ACPI_EDGE_SENSITIVE &&
-+                polarity == ACPI_ACTIVE_LOW)
-+        irq_type = IRQ_TYPE_EDGE_FALLING;
-+    else if (trigger == ACPI_EDGE_SENSITIVE &&
-+                polarity == ACPI_ACTIVE_HIGH)
-+        irq_type = IRQ_TYPE_EDGE_RISING;
-+    else if (trigger == ACPI_LEVEL_SENSITIVE &&
-+                polarity == ACPI_ACTIVE_LOW)
-+        irq_type = IRQ_TYPE_LEVEL_LOW;
-+    else if (trigger == ACPI_LEVEL_SENSITIVE &&
-+                polarity == ACPI_ACTIVE_HIGH)
-+        irq_type = IRQ_TYPE_LEVEL_HIGH;
-+    else
-+        irq_type = IRQ_TYPE_NONE;
-+
-+    /*
-+     * Since only one GIC is supported in ACPI 5.1, we can
-+     * create mapping refer to the default domain
-+     */
-+    irq = irq_create_mapping(NULL, gsi);
-+    if (!irq)
-+        return irq;
-+
-+    /* Set irq type if specified and different than the current one */
-+    if (irq_type != IRQ_TYPE_NONE &&
-+        irq_type != irq_get_trigger_type(irq))
-+        irq_set_irq_type(irq, irq_type);
-+    return irq;
-+}
-+EXPORT_SYMBOL_GPL(acpi_register_gsi);
-+
-+void acpi_unregister_gsi(u32 gsi)
-+{
-+}
-+EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-+#endif    /* CONFIG_ARM64 && CONFIG_ACPI */
-+
- #ifdef CONFIG_IRQ_DOMAIN_DEBUG
- static int virq_debug_show(struct seq_file *m, void *private)
- {
+I think in general we want drivers to start from scratch whenever they
+call pci_enable_device().  They should not assume that BARs are the
+same, IRQs are the same, etc.  If we ever want to dynamically reassign
+resources, e.g., move BARs around to accommodate new hotplugged
+devices, a path involving pci_enable_device() seems a likely route of
+having the drivers learn about resource changes.
 
-is this the way you prefered?
+>> 2) Configure the IRQ in pci_device_probe().  Then it would be
+>> configured before the driver sees the device, and you could dispose of
+>> it in pci_device_remove() when the driver is unbound.
+> Actually I prefer solution 2 above. The key idea is to decouple
+> IRQ resource allocation from pci_enabe/disable_device(), so irq
+> resource will be allocated just before driver binding and will
+> be released after driver unbinding.
 
-Thanks
-Hanjun
+Solution 2 does have the advantage of making it simpler for driver writers.
 
+One disadvantage is that it *forces* us to do IRQ allocation, even
+though it may not be required.  There are drivers that don't need IRQs
+because they use MSI or don't need interrupts at all.  If we do IRQ
+allocation before binding the driver, and the allocation fails, these
+driver will no longer work even though they don't need the IRQs.
+
+> One issue left is the way to hook driver binding/unbinding events.
+> Currently pcibios_enable/disable_irq() are x86 specific, so I use
+> PCI notification to hook driver binding/unbinding evetns.
+> If you are OK with introducing two new weak functions
+> pcibios_enable/disable_irq() into PCI core, that's obviously
+> a clear solution, easier to maintain and may benefit other platforms
+> too in future.
+>
+> So should I introduce pcibios_enable/disable_irq() into PCI core?
+
+I think it would be better to add new weak interfaces than to use
+bus_register_notifier().  New interfaces are much more explicit when
+reading the code, and their ordering is very clearly defined.
+
+Bjorn
