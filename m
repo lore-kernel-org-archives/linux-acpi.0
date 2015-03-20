@@ -1,83 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device is disabled when unbinding
-Date: Fri, 20 Mar 2015 15:39:44 +0100
-Message-ID: <43248547.RZiTzvDUtf@vostro.rjw.lan>
-References: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com> <2124988.RayodtbIxy@vostro.rjw.lan> <550BB2DE.9020804@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v10 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and
+ register device's gsi
+Date: Fri, 20 Mar 2015 14:25:09 +0000
+Message-ID: <20150320142508.GA15630@red-moon>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <1426077587-1561-16-git-send-email-hanjun.guo@linaro.org>
+ <20150318184114.GL10863@arm.com>
+ <550A465F.50701@huawei.com>
+ <20150319101205.GB24556@red-moon>
+ <20150319193724.GF4751@arm.com>
+ <550C1B80.1080204@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <550BB2DE.9020804@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Alex Williamson <alex.williamson@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <550C1B80.1080204@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-ke>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, March 20, 2015 01:40:46 PM Jiang Liu wrote:
-> On 2015/3/19 23:57, Rafael J. Wysocki wrote:
-> > On Thursday, March 19, 2015 09:08:38 AM Bjorn Helgaas wrote:
-> >> On Thu, Mar 19, 2015 at 6:29 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >>> On Thursday, March 19, 2015 03:49:33 PM Jiang Liu wrote:
-> >>>> On 2015/3/19 6:11, Bjorn Helgaas wrote:
-> >>>>> On Tue, Mar 17, 2015 at 03:37:12PM +0800, Jiang Liu wrote:
-> >>>>>> To support IOAPIC hot-removal, we need to release PCI interrupt resource
-> >>>>>> when unbinding PCI device driver. But due to historical reason,
-> >>>>>> /*
-> >>>>>>  * We would love to complain here if pci_dev->is_enabled is set, that
-> >>>>>>  * the driver should have called pci_disable_device(), but the
-> >>>>>>  * unfortunate fact is there are too many odd BIOS and bridge setups
-> >>>>>>  * that don't like drivers doing that all of the time.
-> >>>>>>  * Oh well, we can dream of sane hardware when we sleep, no matter how
-> >>>>>>  * horrible the crap we have to deal with is when we are awake...
-> >>>>>>  */
-> >>>>>
-> >>>>> Quoting the comment here (especially the last two lines) is overkill and
-> >>>>> obscures the real point.  The important thing is that some drivers have
-> >>>>> legitimate reasons for not calling pci_disable_device().
-> >>>> Hi Bjorn,
-> >>>>       Thanks for review. I will rewrite the commit message.
-> >>>>>> some drivers don't call pci_disable_device() when unloading, which
-> >>>>>> prevents us from reallocating PCI interrupt resource on reloading
-> >>>>>> PCI driver and causes regressions.
-> >>>>>
-> >>>>> This isn't very clear.  I can believe that "drivers not calling
-> >>>>> pci_disable_device()" means we don't release IRQ resources, which might
-> >>>>> prevent you from hot-removing an IOAPIC.
-> >>>>>
-> >>>>> But "drivers not calling pci_disable_device()" doesn't cause regressions.
-> >>>>>
-> >>>>>> So release PCI interrupt resource only if PCI device is disabled when
-> >>>>>> unbinding. By this way, we could support IOAPIC hot-removal on latest
-> >>>>>> platforms and avoid regressions on old platforms.
-> >>>>>
-> >>>>> Does this mean you can only hot-remove IOAPICs if all drivers for devices
-> >>>>> using the IOAPIC call pci_disable_device()?  If so, it seems sort of
-> >>>>> dubious that we have to rely on drivers for that.
-> >>>> This is a quickfix for v4.0 merging window. We will try to solve this
-> >>>> issue for next merging window.
+On Fri, Mar 20, 2015 at 01:07:12PM +0000, Hanjun Guo wrote:
+> On 2015/3/20 3:37, Will Deacon wrote:
+> > On Thu, Mar 19, 2015 at 10:12:05AM +0000, Lorenzo Pieralisi wrote:
+> >> On Thu, Mar 19, 2015 at 03:45:35AM +0000, Hanjun Guo wrote:
+> >>>>> +	if (trigger == ACPI_EDGE_SENSITIVE &&
+> >>>>> +				polarity == ACPI_ACTIVE_LOW)
+> >>>>> +		irq_type = IRQ_TYPE_EDGE_FALLING;
+> >>>>> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
+> >>>>> +				polarity == ACPI_ACTIVE_HIGH)
+> >>>>> +		irq_type = IRQ_TYPE_EDGE_RISING;
+> >>>>> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+> >>>>> +				polarity == ACPI_ACTIVE_LOW)
+> >>>>> +		irq_type = IRQ_TYPE_LEVEL_LOW;
+> >>>>> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+> >>>>> +				polarity == ACPI_ACTIVE_HIGH)
+> >>>>> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
+> >>>>> +	else
+> >>>>> +		irq_type = IRQ_TYPE_NONE;
+> >>>>> +
+> >>>>> +	/*
+> >>>>> +	 * Since only one GIC is supported in ACPI 5.0, we can
+> >>>>> +	 * create mapping refer to the default domain
+> >>>>> +	 */
+> >>>>> +	irq = irq_create_mapping(NULL, gsi);
+> >>>>> +	if (!irq)
+> >>>>> +		return irq;
+> >>>>> +
+> >>>>> +	/* Set irq type if specified and different than the current one */
+> >>>>> +	if (irq_type != IRQ_TYPE_NONE &&
+> >>>>> +		irq_type != irq_get_trigger_type(irq))
+> >>>>> +		irq_set_irq_type(irq, irq_type);
+> >>>>> +	return irq;
+> >>>>> +}
+> >>>>> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
+> >>>> I see you've still got this buried in the arch code. Is there any plan to
+> >>>> move it out, as I moaned about this in the last version of the series and
+> >>>> nothing seems to have changed?
+> >>> Ah, sorry. Last time when I was in Hongkong for LCA this Feb, I
+> >>> discussed with Lorenzo and he had a look into that too, he also met some
+> >>> obstacles to do that, so Lorenzo said that he will talk to you about
+> >>> this (Lorenzo, correct me if I'm wrong due to hearing problems of much
+> >>> noise in that room where we were talking).
 > >>>
-> >>> If that is the plan, then I'd rather revert the offending commit and try
-> >>> again in the next cycle.
-> >>>
-> >>> Bjorn, what do you think?
-> >>
-> >> I don't know how hard it is to just revert that one commit at this
-> >> point, but I would be in favor of doing that if it's feasible.
-> > 
-> > The commit reverts cleanly and reverting it won't break anything that used to
-> > work in 3.19 and earlier (Gerry, please let me know if that is not correct).
-> Yes, revert should not cause new issues.
-> Commit b4b55cda5874("Refine the way to release PCI IRQ resources")
-> is a bugfix for xen-pciback. But the bugfix causes regressions on
-> other platform. So it would be better to revert it and fix the issue
-> in another better way in next merging window.
+> >>> Anyway, if we move those functions to core code, such as irqdomain code,
+> >>> which will be compiled for x86 too, we can only set those functions as
+> >>> _weak, or we guard with them as #ifdef CONFIG_ARM64 ... #endif, so for
+> >>> me, it's really not a big deal to move those code out of arch/arm64, but
+> >>> I'm still open for suggestions if you can do that in a proper way.
+> >> You heard me clear and sound in HK, Will has a point and I looked into
+> >> this. Code is generic but not enough to be useful on other arches at
+> >> the moment, I need more time to look into this and see if we can move
+> >> this code to acpi core in a way that makes sense, to have, as you say,
+> >> a "default" implementation.
+> > Yeah, just something guarded by a CONFIG option (probably not ARM64
+> > though) would be enough, I think. Nothing too fancy.
+> Hi Will,
+> 
+> It is ARM64 related code and ACPI specific, I can come up with following code:
+No. It is ACPI code that can be made generic (if it is not already,
+apart from GIC specific comments), so IMO it should live in drivers/acpi
+and we can introduce a config option for that as we did for S-states and
+select it on arm64.
 
-OK, I've queued up a revert of b4b55cda5874 and I'm going to push it to Linus
-for 4.0-rc5 later today.
-
-Thanks!
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Lorenzo
