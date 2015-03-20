@@ -1,143 +1,253 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH update] PCI / ACPI: PCI delay optimization from ACPI
-Date: Fri, 20 Mar 2015 13:39:35 +0100
-Message-ID: <3051232.8IQcvOHm4Q@vostro.rjw.lan>
-References: <54FD4FB9.2060802@intel.com> <54FE93A4.9040908@intel.com> <550BBACE.4050503@intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v10 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC
+ and register device's gsi
+Date: Fri, 20 Mar 2015 21:07:12 +0800
+Message-ID: <550C1B80.1080204@huawei.com>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <1426077587-1561-16-git-send-email-hanjun.guo@linaro.org> <20150318184114.GL10863@arm.com> <550A465F.50701@huawei.com> <20150319101205.GB24556@red-moon> <20150319193724.GF4751@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59251 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750852AbbCTMPi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Mar 2015 08:15:38 -0400
-In-Reply-To: <550BBACE.4050503@intel.com>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:37748 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750827AbbCTNIb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Mar 2015 09:08:31 -0400
+In-Reply-To: <20150319193724.GF4751@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-
 
-On Friday, March 20, 2015 02:14:38 PM Aaron Lu wrote:
-> I wonder if there is any more comments about this patch?
+On 2015/3/20 3:37, Will Deacon wrote:
+> On Thu, Mar 19, 2015 at 10:12:05AM +0000, Lorenzo Pieralisi wrote:
+>> On Thu, Mar 19, 2015 at 03:45:35AM +0000, Hanjun Guo wrote:
+>>>>> +	if (trigger == ACPI_EDGE_SENSITIVE &&
+>>>>> +				polarity == ACPI_ACTIVE_LOW)
+>>>>> +		irq_type = IRQ_TYPE_EDGE_FALLING;
+>>>>> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
+>>>>> +				polarity == ACPI_ACTIVE_HIGH)
+>>>>> +		irq_type = IRQ_TYPE_EDGE_RISING;
+>>>>> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+>>>>> +				polarity == ACPI_ACTIVE_LOW)
+>>>>> +		irq_type = IRQ_TYPE_LEVEL_LOW;
+>>>>> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+>>>>> +				polarity == ACPI_ACTIVE_HIGH)
+>>>>> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
+>>>>> +	else
+>>>>> +		irq_type = IRQ_TYPE_NONE;
+>>>>> +
+>>>>> +	/*
+>>>>> +	 * Since only one GIC is supported in ACPI 5.0, we can
+>>>>> +	 * create mapping refer to the default domain
+>>>>> +	 */
+>>>>> +	irq = irq_create_mapping(NULL, gsi);
+>>>>> +	if (!irq)
+>>>>> +		return irq;
+>>>>> +
+>>>>> +	/* Set irq type if specified and different than the current one */
+>>>>> +	if (irq_type != IRQ_TYPE_NONE &&
+>>>>> +		irq_type != irq_get_trigger_type(irq))
+>>>>> +		irq_set_irq_type(irq, irq_type);
+>>>>> +	return irq;
+>>>>> +}
+>>>>> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>>>> I see you've still got this buried in the arch code. Is there any plan to
+>>>> move it out, as I moaned about this in the last version of the series and
+>>>> nothing seems to have changed?
+>>> Ah, sorry. Last time when I was in Hongkong for LCA this Feb, I
+>>> discussed with Lorenzo and he had a look into that too, he also met some
+>>> obstacles to do that, so Lorenzo said that he will talk to you about
+>>> this (Lorenzo, correct me if I'm wrong due to hearing problems of much
+>>> noise in that room where we were talking).
+>>>
+>>> Anyway, if we move those functions to core code, such as irqdomain code,
+>>> which will be compiled for x86 too, we can only set those functions as
+>>> _weak, or we guard with them as #ifdef CONFIG_ARM64 ... #endif, so for
+>>> me, it's really not a big deal to move those code out of arch/arm64, but
+>>> I'm still open for suggestions if you can do that in a proper way.
+>> You heard me clear and sound in HK, Will has a point and I looked into
+>> this. Code is generic but not enough to be useful on other arches at
+>> the moment, I need more time to look into this and see if we can move
+>> this code to acpi core in a way that makes sense, to have, as you say,
+>> a "default" implementation.
+> Yeah, just something guarded by a CONFIG option (probably not ARM64
+> though) would be enough, I think. Nothing too fancy.
+Hi Will,
 
-I don't have any, but I'd like to know the Bjorn's opinion too.
+It is ARM64 related code and ACPI specific, I can come up with following code:
 
+ arch/arm64/kernel/acpi.c | 67 ---------------------------------------------
+ kernel/irq/irqdomain.c   | 70 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+), 67 deletions(-)
 
-> On 03/10/2015 02:48 PM, Aaron Lu wrote:
-> > An ECN meant to specify possible delay optimizations is available on
-> > the PCI website:
-> > https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
-> > where it has defined two functions for an UUID specified _DSM:
-> > Function 8: If system firmware assumes the responsibility of post
-> > Conventional Reset delay (and informs the Operating System via this DSM
-> > function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
-> > S4 or S3 states), the Operating System may assume sufficient time has
-> > elapsed since the end of reset, and devices within the PCI subsystem are
-> > ready for Configuration Access.
-> > If the system firmware supports runtime power gating on any of the
-> > device within PCI subsystem covered by this DSM function, the system
-> > firmware is responsible for covering the necessary post power-on reset
-> > delay.
-> > 
-> > Function 9: Specify various smaller delay values than required by the
-> > SPEC for individual PCI devices like shorter delay values after
-> > conventional reset, D3hot to D0 transition, functional level reset, etc.
-> > 
-> > This patche adds support for function 8 and part of function 9. For
-> > function 8, the patch will check if the required _DSM function satisfies
-> > the requirement and then set the per PCI device's d3cold_delay variable
-> > to zero. For function 9, the values affecting delays after conventional
-> > reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
-> > and d3_delay are updated if the _DSM's return value is smaller than what
-> > the SPEC requires.
-> > 
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > ---
-> >  drivers/pci/pci-acpi.c | 61 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 61 insertions(+)
-> > 
-> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> > index 489063987325..468c0733838e 100644
-> > --- a/drivers/pci/pci-acpi.c
-> > +++ b/drivers/pci/pci-acpi.c
-> > @@ -558,6 +558,64 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
-> >  				      check_children);
-> >  }
-> >  
-> > +/**
-> > + * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
-> > + * @pdev: the PCI device whose delay is to be updated
-> > + * @adev: the companion ACPI device of this PCI device
-> > + *
-> > + * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
-> > + * control method of either its own or its parent bridge.
-> > + *
-> > + * The UUID of the _DSM control method, together with other information like
-> > + * which delay values can be optimized, etc. is defined in a ECN available on
-> > + * PCIsig.com titled as: ACPI additions for FW latency optimizations.
-> > + * Function 9 of the ACPI _DSM control method, if available for a specific PCI
-> > + * device, provides various possible delay values that are less than what the
-> > + * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
-> > + * can be added later.
-> > + * Function 8 of the ACPI _DSM control method, if available for a specific PCI
-> > + * bridge, means all its children devices do not need the reset delay when
-> > + * leaving from D3cold state.
-> > + */
-> > +static void pci_acpi_delay_optimize(struct pci_dev *pdev, struct acpi_device *adev)
-> > +{
-> > +	const u8 uuid[] = {
-> > +		0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
-> > +		0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
-> > +	};
-> > +	int revision = 3, function = 9, value;
-> > +	acpi_handle handle = adev->handle;
-> > +	union acpi_object *obj, *elements;
-> > +
-> > +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
-> > +	if (obj) {
-> > +		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
-> > +			elements = obj->package.elements;
-> > +			if (elements[3].type == ACPI_TYPE_INTEGER) {
-> > +				value = (int)elements[3].integer.value / 1000;
-> > +				if (value < PCI_PM_D3_WAIT)
-> > +					pdev->d3_delay = value;
-> > +			}
-> > +			if (elements[0].type == ACPI_TYPE_INTEGER) {
-> > +				value = (int)elements[0].integer.value / 1000;
-> > +				if (value < PCI_PM_D3COLD_WAIT)
-> > +					pdev->d3cold_delay = value;
-> > +			}
-> > +		}
-> > +		kfree(obj);
-> > +	}
-> > +
-> > +	function = 8;
-> > +	handle = ACPI_HANDLE(pdev->bus->bridge);
-> > +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
-> > +	if (!obj)
-> > +		return;
-> > +
-> > +	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
-> > +		pdev->d3cold_delay = 0;
-> > +	kfree(obj);
-> > +}
-> > +
-> >  static void pci_acpi_setup(struct device *dev)
-> >  {
-> >  	struct pci_dev *pci_dev = to_pci_dev(dev);
-> > @@ -566,6 +624,9 @@ static void pci_acpi_setup(struct device *dev)
-> >  	if (!adev)
-> >  		return;
-> >  
-> > +	if (pci_dev->pm_cap)
-> > +		pci_acpi_delay_optimize(pci_dev, adev);
-> > +
-> >  	pci_acpi_add_pm_notifier(adev, pci_dev);
-> >  	if (!adev->wakeup.flags.valid)
-> >  		return;
-> > 
-> 
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 5819ef7..d207544 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -224,73 +224,6 @@ void __init acpi_init_cpus(void)
+     pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+ }
+ 
+-int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+-{
+-    *irq = irq_find_mapping(NULL, gsi);
+-
+-    return 0;
+-}
+-EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+-
+-/*
+- * success: return IRQ number (>0)
+- * failure: return =< 0
+- */
+-int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+-{
+-    unsigned int irq;
+-    unsigned int irq_type;
+-
+-    /*
+-     * ACPI have no bindings to indicate SPI or PPI, so we
+-     * use different mappings from DT in ACPI.
+-     *
+-     * For FDT
+-     * PPI interrupt: in the range [0, 15];
+-     * SPI interrupt: in the range [0, 987];
+-     *
+-     * For ACPI, GSI should be unique so using
+-     * the hwirq directly for the mapping:
+-     * PPI interrupt: in the range [16, 31];
+-     * SPI interrupt: in the range [32, 1019];
+-     */
+-
+-    if (trigger == ACPI_EDGE_SENSITIVE &&
+-                polarity == ACPI_ACTIVE_LOW)
+-        irq_type = IRQ_TYPE_EDGE_FALLING;
+-    else if (trigger == ACPI_EDGE_SENSITIVE &&
+-                polarity == ACPI_ACTIVE_HIGH)
+-        irq_type = IRQ_TYPE_EDGE_RISING;
+-    else if (trigger == ACPI_LEVEL_SENSITIVE &&
+-                polarity == ACPI_ACTIVE_LOW)
+-        irq_type = IRQ_TYPE_LEVEL_LOW;
+-    else if (trigger == ACPI_LEVEL_SENSITIVE &&
+-                polarity == ACPI_ACTIVE_HIGH)
+-        irq_type = IRQ_TYPE_LEVEL_HIGH;
+-    else
+-        irq_type = IRQ_TYPE_NONE;
+-
+-    /*
+-     * Since only one GIC is supported in ACPI 5.0, we can
+-     * create mapping refer to the default domain
+-     */
+-    irq = irq_create_mapping(NULL, gsi);
+-    if (!irq)
+-        return irq;
+-
+-    /* Set irq type if specified and different than the current one */
+-    if (irq_type != IRQ_TYPE_NONE &&
+-        irq_type != irq_get_trigger_type(irq))
+-        irq_set_irq_type(irq, irq_type);
+-    return irq;
+-}
+-EXPORT_SYMBOL_GPL(acpi_register_gsi);
+-
+-void acpi_unregister_gsi(u32 gsi)
+-{
+-}
+-EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+-
+ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+ {
+     struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 7fac311..5a614bc 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -1,5 +1,6 @@
+ #define pr_fmt(fmt)  "irq: " fmt
+ 
++#include <linux/acpi.h>
+ #include <linux/debugfs.h>
+ #include <linux/hardirq.h>
+ #include <linux/interrupt.h>
+@@ -568,6 +569,75 @@ unsigned int irq_find_mapping(struct irq_domain *domain,
+ }
+ EXPORT_SYMBOL_GPL(irq_find_mapping);
+ 
++#if defined(CONFIG_ARM64) && defined(CONFIG_ACPI)
++int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
++{
++    *irq = irq_find_mapping(NULL, gsi);
++
++    return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
++
++/*
++ * success: return IRQ number (>0)
++ * failure: return =< 0
++ */
++int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
++{
++    unsigned int irq;
++    unsigned int irq_type;
++
++    /*
++     * ACPI have no bindings to indicate SPI or PPI, so we
++     * use different mappings from DT in ACPI.
++     *
++     * For FDT
++     * PPI interrupt: in the range [0, 15];
++     * SPI interrupt: in the range [0, 987];
++     *
++     * For ACPI, GSI should be unique so using
++     * the hwirq directly for the mapping:
++     * PPI interrupt: in the range [16, 31];
++     * SPI interrupt: in the range [32, 1019];
++     */
++
++    if (trigger == ACPI_EDGE_SENSITIVE &&
++                polarity == ACPI_ACTIVE_LOW)
++        irq_type = IRQ_TYPE_EDGE_FALLING;
++    else if (trigger == ACPI_EDGE_SENSITIVE &&
++                polarity == ACPI_ACTIVE_HIGH)
++        irq_type = IRQ_TYPE_EDGE_RISING;
++    else if (trigger == ACPI_LEVEL_SENSITIVE &&
++                polarity == ACPI_ACTIVE_LOW)
++        irq_type = IRQ_TYPE_LEVEL_LOW;
++    else if (trigger == ACPI_LEVEL_SENSITIVE &&
++                polarity == ACPI_ACTIVE_HIGH)
++        irq_type = IRQ_TYPE_LEVEL_HIGH;
++    else
++        irq_type = IRQ_TYPE_NONE;
++
++    /*
++     * Since only one GIC is supported in ACPI 5.1, we can
++     * create mapping refer to the default domain
++     */
++    irq = irq_create_mapping(NULL, gsi);
++    if (!irq)
++        return irq;
++
++    /* Set irq type if specified and different than the current one */
++    if (irq_type != IRQ_TYPE_NONE &&
++        irq_type != irq_get_trigger_type(irq))
++        irq_set_irq_type(irq, irq_type);
++    return irq;
++}
++EXPORT_SYMBOL_GPL(acpi_register_gsi);
++
++void acpi_unregister_gsi(u32 gsi)
++{
++}
++EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
++#endif    /* CONFIG_ARM64 && CONFIG_ACPI */
++
+ #ifdef CONFIG_IRQ_DOMAIN_DEBUG
+ static int virq_debug_show(struct seq_file *m, void *private)
+ {
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+is this the way you prefered?
+
+Thanks
+Hanjun
+
