@@ -1,107 +1,138 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Bugfix] x86/PCI: Release PCI IRQ resource only if PCI device
- is disabled when unbinding
-Date: Fri, 20 Mar 2015 13:40:46 +0800
-Message-ID: <550BB2DE.9020804@linux.intel.com>
-References: <1426577832-23164-1-git-send-email-jiang.liu@linux.intel.com> <2835680.pSPaYk3eSL@vostro.rjw.lan> <CAErSpo4r+Brx0fgpwQ=Wr_1wxBNvuAy0cJxYBSR6hBLt=d=e8Q@mail.gmail.com> <2124988.RayodtbIxy@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH update] PCI / ACPI: PCI delay optimization from ACPI
+Date: Fri, 20 Mar 2015 14:14:38 +0800
+Message-ID: <550BBACE.4050503@intel.com>
+References: <54FD4FB9.2060802@intel.com> <5222588.FaRe37n2T1@vostro.rjw.lan> <54FE93A4.9040908@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:26495 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:27905 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750889AbbCTFkv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Mar 2015 01:40:51 -0400
-In-Reply-To: <2124988.RayodtbIxy@vostro.rjw.lan>
+	id S1751190AbbCTGQK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Mar 2015 02:16:10 -0400
+In-Reply-To: <54FE93A4.9040908@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Thomas Hellstrom <thellstrom@vmware.com>, "bp @ alien8 . de" <bp@alien8.de>, Lv Zheng <lv.zheng@intel.com>, "yinghai @ kernel . org" <yinghai@kernel.org>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On 2015/3/19 23:57, Rafael J. Wysocki wrote:
-> On Thursday, March 19, 2015 09:08:38 AM Bjorn Helgaas wrote:
->> On Thu, Mar 19, 2015 at 6:29 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->>> On Thursday, March 19, 2015 03:49:33 PM Jiang Liu wrote:
->>>> On 2015/3/19 6:11, Bjorn Helgaas wrote:
->>>>> On Tue, Mar 17, 2015 at 03:37:12PM +0800, Jiang Liu wrote:
->>>>>> To support IOAPIC hot-removal, we need to release PCI interrupt resource
->>>>>> when unbinding PCI device driver. But due to historical reason,
->>>>>> /*
->>>>>>  * We would love to complain here if pci_dev->is_enabled is set, that
->>>>>>  * the driver should have called pci_disable_device(), but the
->>>>>>  * unfortunate fact is there are too many odd BIOS and bridge setups
->>>>>>  * that don't like drivers doing that all of the time.
->>>>>>  * Oh well, we can dream of sane hardware when we sleep, no matter how
->>>>>>  * horrible the crap we have to deal with is when we are awake...
->>>>>>  */
->>>>>
->>>>> Quoting the comment here (especially the last two lines) is overkill and
->>>>> obscures the real point.  The important thing is that some drivers have
->>>>> legitimate reasons for not calling pci_disable_device().
->>>> Hi Bjorn,
->>>>       Thanks for review. I will rewrite the commit message.
->>>>>> some drivers don't call pci_disable_device() when unloading, which
->>>>>> prevents us from reallocating PCI interrupt resource on reloading
->>>>>> PCI driver and causes regressions.
->>>>>
->>>>> This isn't very clear.  I can believe that "drivers not calling
->>>>> pci_disable_device()" means we don't release IRQ resources, which might
->>>>> prevent you from hot-removing an IOAPIC.
->>>>>
->>>>> But "drivers not calling pci_disable_device()" doesn't cause regressions.
->>>>>
->>>>>> So release PCI interrupt resource only if PCI device is disabled when
->>>>>> unbinding. By this way, we could support IOAPIC hot-removal on latest
->>>>>> platforms and avoid regressions on old platforms.
->>>>>
->>>>> Does this mean you can only hot-remove IOAPICs if all drivers for devices
->>>>> using the IOAPIC call pci_disable_device()?  If so, it seems sort of
->>>>> dubious that we have to rely on drivers for that.
->>>> This is a quickfix for v4.0 merging window. We will try to solve this
->>>> issue for next merging window.
->>>
->>> If that is the plan, then I'd rather revert the offending commit and try
->>> again in the next cycle.
->>>
->>> Bjorn, what do you think?
->>
->> I don't know how hard it is to just revert that one commit at this
->> point, but I would be in favor of doing that if it's feasible.
-> 
-> The commit reverts cleanly and reverting it won't break anything that used to
-> work in 3.19 and earlier (Gerry, please let me know if that is not correct).
-Yes, revert should not cause new issues.
-Commit b4b55cda5874("Refine the way to release PCI IRQ resources")
-is a bugfix for xen-pciback. But the bugfix causes regressions on
-other platform. So it would be better to revert it and fix the issue
-in another better way in next merging window.
+I wonder if there is any more comments about this patch?
 
-> 
-> The only adverse consequence of reverting it I can see would be that the
-> IOAPIC hotplug won't work in 4.0, but it didn't work before either and
-> it's supposed to be a new feature in 4.0.
-IOAPIC hotplug may still work, it only causes regressions to some PCI
-drivers.
+Thanks,
+Aaron
 
+On 03/10/2015 02:48 PM, Aaron Lu wrote:
+> An ECN meant to specify possible delay optimizations is available on
+> the PCI website:
+> https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
+> where it has defined two functions for an UUID specified _DSM:
+> Function 8: If system firmware assumes the responsibility of post
+> Conventional Reset delay (and informs the Operating System via this DSM
+> function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
+> S4 or S3 states), the Operating System may assume sufficient time has
+> elapsed since the end of reset, and devices within the PCI subsystem are
+> ready for Configuration Access.
+> If the system firmware supports runtime power gating on any of the
+> device within PCI subsystem covered by this DSM function, the system
+> firmware is responsible for covering the necessary post power-on reset
+> delay.
 > 
->> We're headed toward a real morass of changelogs for a design that
->> seems destined for overhaul.  That makes it really hard to backport
->> and rework things later.
+> Function 9: Specify various smaller delay values than required by the
+> SPEC for individual PCI devices like shorter delay values after
+> conventional reset, D3hot to D0 transition, functional level reset, etc.
 > 
-> Precisely.
-Sorry for the troubles.
-When designing IOAPIC hotplug, I found architect has provided suitable
-hook points for IOAPIC pin usage track, so I adopted hook points in
-pci_enable/disable_device(). But recent regression reports remind
-me that's wrong decision, so will rework it in new way.
-Thanks!
-Gerry
+> This patche adds support for function 8 and part of function 9. For
+> function 8, the patch will check if the required _DSM function satisfies
+> the requirement and then set the per PCI device's d3cold_delay variable
+> to zero. For function 9, the values affecting delays after conventional
+> reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
+> and d3_delay are updated if the _DSM's return value is smaller than what
+> the SPEC requires.
 > 
-> Rafael
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/pci/pci-acpi.c | 61 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 61 insertions(+)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index 489063987325..468c0733838e 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -558,6 +558,64 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
+>  				      check_children);
+>  }
+>  
+> +/**
+> + * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
+> + * @pdev: the PCI device whose delay is to be updated
+> + * @adev: the companion ACPI device of this PCI device
+> + *
+> + * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
+> + * control method of either its own or its parent bridge.
+> + *
+> + * The UUID of the _DSM control method, together with other information like
+> + * which delay values can be optimized, etc. is defined in a ECN available on
+> + * PCIsig.com titled as: ACPI additions for FW latency optimizations.
+> + * Function 9 of the ACPI _DSM control method, if available for a specific PCI
+> + * device, provides various possible delay values that are less than what the
+> + * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
+> + * can be added later.
+> + * Function 8 of the ACPI _DSM control method, if available for a specific PCI
+> + * bridge, means all its children devices do not need the reset delay when
+> + * leaving from D3cold state.
+> + */
+> +static void pci_acpi_delay_optimize(struct pci_dev *pdev, struct acpi_device *adev)
+> +{
+> +	const u8 uuid[] = {
+> +		0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
+> +		0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
+> +	};
+> +	int revision = 3, function = 9, value;
+> +	acpi_handle handle = adev->handle;
+> +	union acpi_object *obj, *elements;
+> +
+> +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
+> +	if (obj) {
+> +		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
+> +			elements = obj->package.elements;
+> +			if (elements[3].type == ACPI_TYPE_INTEGER) {
+> +				value = (int)elements[3].integer.value / 1000;
+> +				if (value < PCI_PM_D3_WAIT)
+> +					pdev->d3_delay = value;
+> +			}
+> +			if (elements[0].type == ACPI_TYPE_INTEGER) {
+> +				value = (int)elements[0].integer.value / 1000;
+> +				if (value < PCI_PM_D3COLD_WAIT)
+> +					pdev->d3cold_delay = value;
+> +			}
+> +		}
+> +		kfree(obj);
+> +	}
+> +
+> +	function = 8;
+> +	handle = ACPI_HANDLE(pdev->bus->bridge);
+> +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
+> +	if (!obj)
+> +		return;
+> +
+> +	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
+> +		pdev->d3cold_delay = 0;
+> +	kfree(obj);
+> +}
+> +
+>  static void pci_acpi_setup(struct device *dev)
+>  {
+>  	struct pci_dev *pci_dev = to_pci_dev(dev);
+> @@ -566,6 +624,9 @@ static void pci_acpi_setup(struct device *dev)
+>  	if (!adev)
+>  		return;
+>  
+> +	if (pci_dev->pm_cap)
+> +		pci_acpi_delay_optimize(pci_dev, adev);
+> +
+>  	pci_acpi_add_pm_notifier(adev, pci_dev);
+>  	if (!adev->wakeup.flags.valid)
+>  		return;
 > 
+
