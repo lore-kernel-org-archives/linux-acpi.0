@@ -1,62 +1,54 @@
-From: Nikolaus Rath <Nikolaus@rath.org>
-Subject: Re: Help with debugging intermittent crash on resume from hibernation
-Date: Thu, 19 Mar 2015 20:21:04 -0700
-Message-ID: <87vbhwwdzz.fsf@vostro.rath.org>
+From: Mike Galbraith <umgwanakikbuti@gmail.com>
+Subject: Re: Help with debugging intermittent crash on resume from
+ hibernation
+Date: Fri, 20 Mar 2015 04:57:01 +0100
+Message-ID: <1426823821.3150.4.camel@gmail.com>
 References: <8761a3s1vq.fsf@vostro.rath.org>
+	 <87vbhwwdzz.fsf@vostro.rath.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebox.rath.org ([23.92.25.96]:43375 "EHLO ebox.rath.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676AbbCTDVG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2015 23:21:06 -0400
-In-Reply-To: <8761a3s1vq.fsf@vostro.rath.org> (Nikolaus Rath's message of
-	"Fri, 13 Mar 2015 20:02:45 -0700")
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:34200 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751064AbbCTD5E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Mar 2015 23:57:04 -0400
+In-Reply-To: <87vbhwwdzz.fsf@vostro.rath.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Nikolaus Rath <Nikolaus@rath.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>
 
-On Mar 13 2015, Nikolaus Rath <Nikolaus@rath.org> wrote:
-> Hello,
->
-> In about one out of 10 resumes from hibernation, my system resets aft=
-er
-> the hibernation image has been loaded. I am hibernating using
->
-> # echo platform > /sys/power/disk
-> # echo disk > /sys/power/state
->
-> When testing hibernation using
->
-> # echo core > /sys/power/pm_test
-> # echo platform > /sys/power/disk
-> # echo disk > /sys/power/state
->
-> I was not able to produce the same failure.
->
-> I then tried attaching a serial console and booted with
-> console=3DttyS0,115200n8 no_console_suspend. For the failed attempt, =
-the
-> last messages before the reset are:
-[...]
+(+CC)
 
-I reproduced the same problem with 4.0.0-rc3. Is there anything I can d=
-o
-to get more debugging information?
+On Thu, 2015-03-19 at 20:21 -0700, Nikolaus Rath wrote:
+> On Mar 13 2015, Nikolaus Rath <Nikolaus@rath.org> wrote:
+> > Hello,
+> >
+> > In about one out of 10 resumes from hibernation, my system resets after
+> > the hibernation image has been loaded. I am hibernating using
+> >
+> > # echo platform > /sys/power/disk
+> > # echo disk > /sys/power/state
+> >
+> > When testing hibernation using
+> >
+> > # echo core > /sys/power/pm_test
+> > # echo platform > /sys/power/disk
+> > # echo disk > /sys/power/state
+> >
+> > I was not able to produce the same failure.
+> >
+> > I then tried attaching a serial console and booted with
+> > console=ttyS0,115200n8 no_console_suspend. For the failed attempt, the
+> > last messages before the reset are:
+> [...]
+> 
+> I reproduced the same problem with 4.0.0-rc3. Is there anything I can do
+> to get more debugging information?
+> 
+> Thanks,
+> -Nikolaus
+> 
 
-Thanks,
--Nikolaus
 
---=20
-GPG encrypted emails preferred. Key id: 0xD113FCAC3C4E599F
-=46ingerprint: ED31 791B 2C5C 1613 AF38 8B8A D113 FCAC 3C4E 599F
-
-             =C2=BBTime flies like an arrow, fruit flies like a Banana.=
-=C2=AB
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
