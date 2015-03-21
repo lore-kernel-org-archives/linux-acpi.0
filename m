@@ -1,131 +1,147 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Sat, 21 Mar 2015 15:03:26 +0800
-Message-ID: <550D17BE.70009@huawei.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <20150318190509.GM10863@arm.com> <550A4BFD.4070804@huawei.com> <20150320185400.GK1474@arm.com> <550CE2CE.4080508@linaro.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Debug 0/2] Fix regressions caused by commit 593669c2ac0f
+Date: Sat, 21 Mar 2015 23:06:52 +0800
+Message-ID: <550D890C.5090900@linux.intel.com>
+References: <550A7674.6070306@wvnet.at> <4317184.19IeWuljky@vostro.rjw.lan> <550C5A08.3020302@wvnet.at> <2663880.nZ5V9XMenj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <550CE2CE.4080508@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Parth Dixit <parth.dixit@linaro.org>, 'Stefano Stabellini' <stefano.stabellini@eu.citrix.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <2663880.nZ5V9XMenj@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bernhard Thaler <bernhard.thaler@wvnet.at>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/3/21 11:17, Hanjun Guo wrote:
-> +CC Parth Dixit, Stefano Stabellini.
->
-> On 2015=E5=B9=B403=E6=9C=8821=E6=97=A5 02:54, Will Deacon wrote:
->> On Thu, Mar 19, 2015 at 04:09:33AM +0000, Hanjun Guo wrote:
->>> On 2015/3/19 3:05, Will Deacon wrote:
->>>> If you can get that in place, I'm not opposed to putting this into
->>>> linux-next ahead of the firmware summit in San Jose next week. Not=
-e that
->>>> this is not a commitment for 4.1, since I'm keen to see the outcom=
-es of
->>>> next week before setting anything in stone.
+On 2015/3/21 8:47, Rafael J. Wysocki wrote:
+> On Friday, March 20, 2015 06:34:00 PM Bernhard Thaler wrote:
+>> This is a multi-part message in MIME format.
+>> --------------000805070501000906050700
+>> Content-Type: text/plain; charset=windows-1252
+>> Content-Transfer-Encoding: 7bit
+>>
+>>
+>> On 19.03.2015 12:27, Rafael J. Wysocki wrote:
+>>> On Thursday, March 19, 2015 08:10:44 AM Bernhard Thaler wrote:
+>>>> This is a multi-part message in MIME format.
+>>>> --------------000809080900050004000900
+>>>> Content-Type: text/plain; charset=windows-1252
+>>>> Content-Transfer-Encoding: 7bit
+>>>>
+>>>> Hi,
+>>>>
+>>>> I think this regression is not yet solved.
 >>>
->>> OK, I will stick to this mailing list and respond as soon as I can.
+>>> First off, it is good to CC the commit author too (CCed now).
+>>>
+>>>> I encounter this or a similar problem with an PC Engines APU.1C device
+>>>> (see: http://pcengines.ch/apu.htm). It has 3 network interfaces each
+>>>> requiring the r8169 kernel module.
+>>>>
+>>>> With 4.0.0-rc4 I get this error message at boot (for each of the 3 devices):
+>>>>
+>>>> [    3.562301] r8169 0000:01:00.0 (unnamed net_device) (uninitialized):
+>>>> rtl_chipcmd_cond == 1 (loop: 100, delay: 100).
+>>>>
+>>>> "ifconfig -a" shows ff:ff:ff:ff:ff:ff as MAC address for each of the
+>>>> interfaces (see eth0 as example):
+>>>>
+>>>> eth0      Link encap:Ethernet  HWaddr ff:ff:ff:ff:ff:ff
+>>>>           BROADCAST PROMISC MULTICAST  MTU:1500  Metric:1
+>>>>           RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+>>>>           TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+>>>>           collisions:0 txqueuelen:1000
+>>>>           RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+>>>>
+>>>> The network interfaces cannot be brought up/used.
+>>>>
+>>>> The same device and setup did work with a previously used 3.18.0-rc5
+>>>> kernel. When I boot it with this 3.18.0-rc5 kernel everything i OK,
+>>>> interfaces come up and work.
+>>>
+>>> Second, it is not entirely clear to me that what you're seeing is actually
+>>> the same regression.  Have you tested 4.0.0-rc4 with commit 593669c2ac0f
+>>> reverted?
+>>>
+>> You are right, I was a bit quick about this conclusion. I based it on
+>> Thomas Voegtle
+>> bisect in http://www.spinics.net/lists/linux-pci/msg39014.html and my own
+>> observation of the same problem situation with 4.0.0-rc4.
 >>
->> This doesn't even build for me:
+>> Test Results:
 >>
+>> * Everything works fine before 593669c2ac0f, network interfaces are
+>> available
+>>    and usable e.g. with 812dbd9.
 >>
->> $ make ARCH=3Darm64 CROSS_COMPILE=3Daarch64-none-linux-gnu- allmodco=
-nfig
->> $ make ARCH=3Darm64 CROSS_COMPILE=3Daarch64-none-linux-gnu- Image
->>
->> [...]
->>
->> In file included from drivers/xen/acpi.c:33:0:
->
-> Sorry, I didn't build ACPI with XEN enabled on ARM64.
->
->> include/xen/acpi.h: In function =E2=80=98xen_acpi_sleep_register=E2=80=
-=99:
->> include/xen/acpi.h:102:3: error: =E2=80=98acpi_suspend_lowlevel=E2=80=
-=99 undeclared (first use in this function)
->>     acpi_suspend_lowlevel =3D xen_acpi_suspend_lowlevel;
->
-> acpi_suspend_lowlevel is defined only for X86 and IA64 for now.
->
->>     ^
->> include/xen/acpi.h:102:3: note: each undeclared identifier is report=
-ed only once for each function it appears in
->> drivers/xen/acpi.c: In function =E2=80=98xen_acpi_notify_hypervisor_=
-state=E2=80=99:
->> drivers/xen/acpi.c:61:2: error: implicit declaration of function =E2=
-=80=98HYPERVISOR_dom0_op=E2=80=99 [-Werror=3Dimplicit-function-declarat=
-ion]
->>    HYPERVISOR_dom0_op(&op);
->
-> And this is only for x86:
-> ./arch/x86/include/asm/xen/hypercall.h:HYPERVISOR_dom0_op(struct xen_=
-platform_op *platform_op)
->
->>    ^
->> cc1: some warnings being treated as errors
->> make[2]: *** [drivers/xen/acpi.o] Error 1
->> make[2]: *** Waiting for unfinished jobs....
->> make[1]: *** [drivers/xen] Error 2
->> make[1]: *** Waiting for unfinished jobs....
->> make: *** [drivers] Error 2
->>
->>
->> Am I missing some other patches?
->
-> No, you miss nothing. Parth Dixit is still working on XEN ACPI for
-> ARM64, before it's in full function, how about introduce a Kconfig
-> CONFIG_XEN_ACPI and let it depends on x86? when XEN ACPI for ARM64
-> comes, we can enable ARM64 for CONFIG_XEN_ACPI and fix the problems
-> above.
->
-> Stefano, Parth, what do you think?
+>> * The problem starts for me with 593669c2ac0f as, errors at boot, network
+>>    interfaces unusable as stated above.
+> 
+> And it doesn't go away in 4.0-rc4 which indicates that the fixes applied
+> so far do not work for you.
+> 
+> Gerry, can you please help here?
+Hi Bernhard,
+	Thanks for providing acpi data. I have figured out the cause of
+the regression. Your platform defines PCI host bridge MMIO resources as:
+            Name (CRES, ResourceTemplate ()
+            {
+                IO (Decode16,
+                    0x0CF8,             // Range Minimum
+                    0x0CF8,             // Range Maximum
+                    0x01,               // Alignment
+                    0x08,               // Length
+                    )
+                WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+EntireRange,
+                    0x0000,             // Granularity
+                    0x0000,             // Range Minimum
+                    0x0CF7,             // Range Maximum
+                    0x0000,             // Translation Offset
+                    0x0CF8,             // Length
+                    ,, , TypeStatic)
+                WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+EntireRange,
+                    0x0000,             // Granularity
+                    0x0D00,             // Range Minimum
+                    0xFFFF,             // Range Maximum
+                    0x0000,             // Translation Offset
+                    0xF300,             // Length
+                    ,, , TypeStatic)
+                Memory32Fixed (ReadOnly,
+                    0x000A0000,         // Address Base
+                    0x00020000,         // Address Length
+                    )
+                Memory32Fixed (ReadOnly,
+                    0x00000000,         // Address Base
+                    0x00000000,         // Address Length
+                    _Y00)
+            })
 
-I prepared a patch for further reference:
+With commit (x86/PCI/ACPI: Ignore resources consumed by host bridge
+itself), all resources without PRODUCER flag will be ignored, so
+MMIO defined by Memory32Fixed operator gets ignored. The fix is only
+to ignore IO resources without PRODUCER flag and keeps all MMIO
+resources no matter PRODUCER is set or not.
+Could you please help to try following patch?
+Regards!
+Gerry
 
-=46rom 268dcdafa34a690e2f99c0784ca33a6d2352ecf5 Mon Sep 17 00:00:00 200=
-1
-=46rom: Hanjun Guo <hanjun.guo@linaro.org>
-Date: Sat, 21 Mar 2015 14:43:54 +0800
-Subject: [PATCH] XEN / ACPI: Make XEN ACPI depend on X86
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index e4695985f9de..66d7dbe56926 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -346,7 +346,7 @@ static void probe_pci_root_info(struct pci_root_info
+*info,
+                        "no IO and memory resources present in _CRS\n");
+        else
+                resource_list_for_each_entry_safe(entry, tmp, list) {
+-                       if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
++                       if ((entry->res->flags & (IORESOURCE_WINDOW |
+IORESOURCE_IO)) == IORESOURCE_IO ||
+                            (entry->res->flags & IORESOURCE_DISABLED))
+                                resource_list_destroy_entry(entry);
+                        else
 
-When ACPI is enabled on ARM64, XEN ACPI will also compiled
-into the kernel, but XEN ACPI is x86 dependent, so introduce
-CONFIG_XEN_ACPI to make it depend on x86 before XEN ACPI is
-functional on ARM64.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/xen/Kconfig  | 4 ++++
- drivers/xen/Makefile | 2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-index b812462..a31cd29 100644
---- a/drivers/xen/Kconfig
-+++ b/drivers/xen/Kconfig
-@@ -253,4 +253,8 @@ config XEN_EFI
-     def_bool y
-     depends on X86_64 && EFI
-=20
-+config XEN_ACPI
-+    def_bool y
-+    depends on X86 && ACPI
-+
- endmenu
-diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-index 2ccd359..f4622ab 100644
---- a/drivers/xen/Makefile
-+++ b/drivers/xen/Makefile
-@@ -13,7 +13,7 @@ CFLAGS_efi.o                +=3D -fshort-wchar
-=20
- dom0-$(CONFIG_PCI) +=3D pci.o
- dom0-$(CONFIG_USB_SUPPORT) +=3D dbgp.o
--dom0-$(CONFIG_ACPI) +=3D acpi.o $(xen-pad-y)
-+dom0-$(CONFIG_XEN_ACPI) +=3D acpi.o $(xen-pad-y)
- xen-pad-$(CONFIG_X86) +=3D xen-acpi-pad.o
- dom0-$(CONFIG_X86) +=3D pcpu.o
- obj-$(CONFIG_XEN_DOM0)            +=3D $(dom0-y)
---=20
-1.7.12.4
+> 
+> 
