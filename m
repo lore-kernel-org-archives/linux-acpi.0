@@ -1,25 +1,17 @@
 From: Bernhard Thaler <bernhard.thaler@wvnet.at>
 Subject: Re: [Debug 0/2] Fix regressions caused by commit 593669c2ac0f
-Date: Sat, 21 Mar 2015 21:50:40 +0100
-Message-ID: <550DD9A0.9030809@wvnet.at>
+Date: Sat, 21 Mar 2015 22:12:34 +0100
+Message-ID: <550DDEC2.2050500@wvnet.at>
 References: <550A7674.6070306@wvnet.at> <4317184.19IeWuljky@vostro.rjw.lan> <550C5A08.3020302@wvnet.at> <2663880.nZ5V9XMenj@vostro.rjw.lan> <550D890C.5090900@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smarthost1.wvnet.at ([62.212.174.130]:57310 "EHLO
-	smarthost2.wvnet.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751343AbbCUUuo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Mar 2015 16:50:44 -0400
-Received: from smtp.wvnet.at (localhost [127.0.0.1])
-	by smarthost1.wvnet.at (Postfix) with ESMTP id 57F43FD3674
-	for <linux-acpi@vger.kernel.org>; Sat, 21 Mar 2015 21:50:41 +0100 (CET)
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <550D890C.5090900@linux.intel.com>
-In-Reply-To: : <550D890C.5090900@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 
 
