@@ -1,91 +1,89 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v10 15/21] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and
- register device's gsi
-Date: Sat, 21 Mar 2015 21:38:59 +0000
-Message-ID: <20150321213859.GH22354@red-moon>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <1426077587-1561-16-git-send-email-hanjun.guo@linaro.org>
- <20150318184114.GL10863@arm.com>
- <550A465F.50701@huawei.com>
- <20150319101205.GB24556@red-moon>
- <20150319193724.GF4751@arm.com>
+From: Julien Grall <julien.grall@linaro.org>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Sun, 22 Mar 2015 21:05:21 +0000
+Message-ID: <550F2E91.7010109@linaro.org>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>	<20150318190509.GM10863@arm.com>	<550A4BFD.4070804@huawei.com>	<20150320185400.GK1474@arm.com>	<550CE2CE.4080508@linaro.org>	<550D17BE.70009@huawei.com> <CAFoFrHatzS3MwGVeOPPjY1R1sfBRYnJjgbQjvfzi6xS+XYD14g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150319193724.GF4751@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.or
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:35011 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843AbbCVVF0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Mar 2015 17:05:26 -0400
+Received: by wibdy8 with SMTP id dy8so31722533wib.0
+        for <linux-acpi@vger.kernel.org>; Sun, 22 Mar 2015 14:05:25 -0700 (PDT)
+In-Reply-To: <CAFoFrHatzS3MwGVeOPPjY1R1sfBRYnJjgbQjvfzi6xS+XYD14g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Naresh Bhat <naresh.bhat@linaro.org>, Hanjun Guo <guohanjun@huawei.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Jon Fraser <jfraser@broadcom.com>, Parth Dixit <parth.dixit@linaro.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel>
 
-On Thu, Mar 19, 2015 at 07:37:24PM +0000, Will Deacon wrote:
-> On Thu, Mar 19, 2015 at 10:12:05AM +0000, Lorenzo Pieralisi wrote:
-> > On Thu, Mar 19, 2015 at 03:45:35AM +0000, Hanjun Guo wrote:
-> > > >> +	if (trigger == ACPI_EDGE_SENSITIVE &&
-> > > >> +				polarity == ACPI_ACTIVE_LOW)
-> > > >> +		irq_type = IRQ_TYPE_EDGE_FALLING;
-> > > >> +	else if (trigger == ACPI_EDGE_SENSITIVE &&
-> > > >> +				polarity == ACPI_ACTIVE_HIGH)
-> > > >> +		irq_type = IRQ_TYPE_EDGE_RISING;
-> > > >> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-> > > >> +				polarity == ACPI_ACTIVE_LOW)
-> > > >> +		irq_type = IRQ_TYPE_LEVEL_LOW;
-> > > >> +	else if (trigger == ACPI_LEVEL_SENSITIVE &&
-> > > >> +				polarity == ACPI_ACTIVE_HIGH)
-> > > >> +		irq_type = IRQ_TYPE_LEVEL_HIGH;
-> > > >> +	else
-> > > >> +		irq_type = IRQ_TYPE_NONE;
-> > > >> +
-> > > >> +	/*
-> > > >> +	 * Since only one GIC is supported in ACPI 5.0, we can
-> > > >> +	 * create mapping refer to the default domain
-> > > >> +	 */
-> > > >> +	irq = irq_create_mapping(NULL, gsi);
-> > > >> +	if (!irq)
-> > > >> +		return irq;
-> > > >> +
-> > > >> +	/* Set irq type if specified and different than the current one */
-> > > >> +	if (irq_type != IRQ_TYPE_NONE &&
-> > > >> +		irq_type != irq_get_trigger_type(irq))
-> > > >> +		irq_set_irq_type(irq, irq_type);
-> > > >> +	return irq;
-> > > >> +}
-> > > >> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
-> > > > I see you've still got this buried in the arch code. Is there any plan to
-> > > > move it out, as I moaned about this in the last version of the series and
-> > > > nothing seems to have changed?
-> > > 
-> > > Ah, sorry. Last time when I was in Hongkong for LCA this Feb, I
-> > > discussed with Lorenzo and he had a look into that too, he also met some
-> > > obstacles to do that, so Lorenzo said that he will talk to you about
-> > > this (Lorenzo, correct me if I'm wrong due to hearing problems of much
-> > > noise in that room where we were talking).
-> > > 
-> > > Anyway, if we move those functions to core code, such as irqdomain code,
-> > > which will be compiled for x86 too, we can only set those functions as
-> > > _weak, or we guard with them as #ifdef CONFIG_ARM64 ... #endif, so for
-> > > me, it's really not a big deal to move those code out of arch/arm64, but
-> > > I'm still open for suggestions if you can do that in a proper way.
-> > 
-> > You heard me clear and sound in HK, Will has a point and I looked into
-> > this. Code is generic but not enough to be useful on other arches at
-> > the moment, I need more time to look into this and see if we can move
-> > this code to acpi core in a way that makes sense, to have, as you say,
-> > a "default" implementation.
-> 
-> Yeah, just something guarded by a CONFIG option (probably not ARM64
-> though) would be enough, I think. Nothing too fancy.
+Hello,
 
-I had a decent look and on x86/ia64 ACPI gsi mappings
-(PIC/IOAPIC/IOSAPIC) are buried in arch code (not saying it is nice,
-it is what it is at present).
+On 21/03/2015 12:09, Naresh Bhat wrote:
+>      From 268dcdafa34a690e2f99c0784ca33a6d2352ecf5 Mon Sep 17 00:00:00 2001
+>     From: Hanjun Guo <hanjun.guo@linaro.org <mailto:hanjun.guo@linaro.org>>
+>     Date: Sat, 21 Mar 2015 14:43:54 +0800
+>     Subject: [PATCH] XEN / ACPI: Make XEN ACPI depend on X86
+>
+>     When ACPI is enabled on ARM64, XEN ACPI will also compiled
+>     into the kernel, but XEN ACPI is x86 dependent, so introduce
+>     CONFIG_XEN_ACPI to make it depend on x86 before XEN ACPI is
+>     functional on ARM64.
+>
+>     Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org
+>     <mailto:hanjun.guo@linaro.org>>
+>     ---
+>       drivers/xen/Kconfig  | 4 ++++
+>       drivers/xen/Makefile | 2 +-
+>       2 files changed, 5 insertions(+), 1 deletion(-)
+>
+>     diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+>     index b812462..a31cd29 100644
+>     --- a/drivers/xen/Kconfig
+>     +++ b/drivers/xen/Kconfig
+>     @@ -253,4 +253,8 @@ config XEN_EFI
+>           def_bool y
+>           depends on X86_64 && EFI
+>
+>     +config XEN_ACPI
+>     +    def_bool y
+>     +    depends on X86 && ACPI
+>     +
+>       endmenu
+>     diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+>     index 2ccd359..f4622ab 100644
+>     --- a/drivers/xen/Makefile
+>     +++ b/drivers/xen/Makefile
+>     @@ -13,7 +13,7 @@ CFLAGS_efi.o                += -fshort-wchar
+>
+>       dom0-$(CONFIG_PCI) += pci.o
+>       dom0-$(CONFIG_USB_SUPPORT) += dbgp.o
+>     -dom0-$(CONFIG_ACPI) += acpi.o $(xen-pad-y)
+>     +dom0-$(CONFIG_XEN_ACPI) += acpi.o $(xen-pad-y)
+>       xen-pad-$(CONFIG_X86) += xen-acpi-pad.o
+>       dom0-$(CONFIG_X86) += pcpu.o
+>       obj-$(CONFIG_XEN_DOM0)            += $(dom0-y)
 
-We can try either to move this code to ACPI layer and make it
-depend on CONFIG_ARM_GIC somehow, or move it to the GIC driver altogether.
+[..]
 
-I have to think about this, certainly it is not generic code at
-present (or better it looks generic but can only work on ARM64 with
-GIC IRQ model).
+>
+> AFAIK,  There is already a kernel patch exists to fix this issue.  I
+> think  Julien or Parth is a right person to ask.  Hence I am CCed Julien
+> Grall too.
 
-Lorenzo
+The ACPI support for Xen is not ready. So I think avoiding to compile 
+drivers/xen/acpi.c on ARM64/ARM seems the better solution for now.
+
+Although, rather than introducing a new CONFIG option, I would use the 
+same trick we use within the Makefile to avoid hotplug.c on ARM/ARM64.
+
+ifeq ($(filter y, $(CONFIG_ARM) $(CONFIG_ARM64)), )
+dom0-$(CONFIG_ACPI) += acpi.o $(xen-pad-y)
+endif
+
+Regards,
+
+-- 
+Julien Grall
