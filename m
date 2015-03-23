@@ -1,110 +1,43 @@
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Mon, 23 Mar 2015 18:39:47 +0000
-Message-ID: <alpine.DEB.2.02.1503231838440.7982@kaball.uk.xensource.com>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
- <2189259.UNlTC1BNmt@vostro.rjw.lan> <550F3500.1040608@linaro.org>
- <5749112.zNnbMCHVxZ@vostro.rjw.lan> <550F6E48.4080406@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] driver core: Implement device property accessors through
+ fwnode ones
+Date: Mon, 23 Mar 2015 21:13:21 +0100
+Message-ID: <20150323201321.GA2071@kroah.com>
+References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <CACxGe6tiDszPDpP_u1yxNgMA8HjagDKtGuu35hfkyJtZdGE0Aw@mail.gmail.com>
+ <10066684.kPKm7OTnxF@vostro.rjw.lan>
+ <9998673.jvqRF9ZONz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:52266 "EHLO SMTP.CITRIX.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752551AbbCWSlC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Mar 2015 14:41:02 -0400
-In-Reply-To: <550F6E48.4080406@huawei.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46167 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752120AbbCWUQ7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2015 16:16:59 -0400
+Content-Disposition: inline
+In-Reply-To: <9998673.jvqRF9ZONz@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Julien Grall <julien.grall@linaro.org>, Naresh Bhat <naresh.bhat@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Fraser <jfraser@broadcom.com>, Parth Dixit <parth.dixit@linaro.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <sur>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org
 
-On Mon, 23 Mar 2015, Hanjun Guo wrote:
-> On 2015/3/23 6:11, Rafael J. Wysocki wrote:
-> > On Sunday, March 22, 2015 09:32:48 PM Julien Grall wrote:
-> >> On 22/03/2015 21:49, Rafael J. Wysocki wrote:
-> >>> On Sunday, March 22, 2015 09:05:21 PM Julien Grall wrote:
-> >>>> Hello,
-> >>>>
-> >>>> On 21/03/2015 12:09, Naresh Bhat wrote:
-> >>>>>       From 268dcdafa34a690e2f99c0784ca33a6d2352ecf5 Mon Sep 17 00:00:00 2001
-> >>>>>      From: Hanjun Guo <hanjun.guo@linaro.org <mailto:hanjun.guo@linaro.org>>
-> >>>>>      Date: Sat, 21 Mar 2015 14:43:54 +0800
-> >>>>>      Subject: [PATCH] XEN / ACPI: Make XEN ACPI depend on X86
-> >>>>>
-> >>>>>      When ACPI is enabled on ARM64, XEN ACPI will also compiled
-> >>>>>      into the kernel, but XEN ACPI is x86 dependent, so introduce
-> >>>>>      CONFIG_XEN_ACPI to make it depend on x86 before XEN ACPI is
-> >>>>>      functional on ARM64.
-> >>>>>
-> >>>>>      Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org
-> >>>>>      <mailto:hanjun.guo@linaro.org>>
-> >>>>>      ---
-> >>>>>        drivers/xen/Kconfig  | 4 ++++
-> >>>>>        drivers/xen/Makefile | 2 +-
-> >>>>>        2 files changed, 5 insertions(+), 1 deletion(-)
-> >>>>>
-> >>>>>      diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-> >>>>>      index b812462..a31cd29 100644
-> >>>>>      --- a/drivers/xen/Kconfig
-> >>>>>      +++ b/drivers/xen/Kconfig
-> >>>>>      @@ -253,4 +253,8 @@ config XEN_EFI
-> >>>>>            def_bool y
-> >>>>>            depends on X86_64 && EFI
-> >>>>>
-> >>>>>      +config XEN_ACPI
-> >>>>>      +    def_bool y
-> >>>>>      +    depends on X86 && ACPI
-> >>>>>      +
-> >>>>>        endmenu
-> >>>>>      diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
-> >>>>>      index 2ccd359..f4622ab 100644
-> >>>>>      --- a/drivers/xen/Makefile
-> >>>>>      +++ b/drivers/xen/Makefile
-> >>>>>      @@ -13,7 +13,7 @@ CFLAGS_efi.o                += -fshort-wchar
-> >>>>>
-> >>>>>        dom0-$(CONFIG_PCI) += pci.o
-> >>>>>        dom0-$(CONFIG_USB_SUPPORT) += dbgp.o
-> >>>>>      -dom0-$(CONFIG_ACPI) += acpi.o $(xen-pad-y)
-> >>>>>      +dom0-$(CONFIG_XEN_ACPI) += acpi.o $(xen-pad-y)
-> >>>>>        xen-pad-$(CONFIG_X86) += xen-acpi-pad.o
-> >>>>>        dom0-$(CONFIG_X86) += pcpu.o
-> >>>>>        obj-$(CONFIG_XEN_DOM0)            += $(dom0-y)
-> >>>> [..]
-> >>>>
-> >>>>> AFAIK,  There is already a kernel patch exists to fix this issue.  I
-> >>>>> think  Julien or Parth is a right person to ask.  Hence I am CCed Julien
-> >>>>> Grall too.
-> >>>> The ACPI support for Xen is not ready. So I think avoiding to compile
-> >>>> drivers/xen/acpi.c on ARM64/ARM seems the better solution for now.
-> >>>>
-> >>>> Although, rather than introducing a new CONFIG option, I would use the
-> >>>> same trick we use within the Makefile to avoid hotplug.c on ARM/ARM64.
-> >>>>
-> >>>> ifeq ($(filter y, $(CONFIG_ARM) $(CONFIG_ARM64)), )
-> >>>> dom0-$(CONFIG_ACPI) += acpi.o $(xen-pad-y)
-> >>>> endif
-> >>> Well, is avoiding an extra CONFIG_ option worth the ugliness of this?
-> >> When the support of ACPI for Xen will come, the CONFIG_ option will be 
-> >> an alias to CONFIG_XEN.
-> >>
-> >> In this case the CONFIG_ option won't bring much improvement to the code 
-> >> and add an extra indirection.
-> >>
-> >> The "ugliness" option has, at least, the advantage to be tiny and 
-> >> self-contained.
-> > Oh well, not really.  You're moving a config-time check to compile time
-> > which means that it will be done every time this Makefile is executed
-> > and for all architectures that execute it.  Not nice.
-> >
-> > Also I think that ia64 is missing from the list, but I may be wrong.
+On Mon, Mar 23, 2015 at 12:10:30AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> In commit d52eefb47d (ia64/xen: Remove Xen support for ia64), XEN is
-> not supported anymore on ia64 now.
+> Now that the ACPI companions of devices are pointed to by the fwnode
+> field in struct device, the device_property_*() accessor functions
+> can be modified to use their fwnode_property_*() counterparts
+> internally with minimum extra overhead in the IS_ENABLED(CONFIG_OF)
+> case, so make those changes.
 > 
-> >
-> > Not to mention the fact that the dependency will be rather difficult to find
-> > for tools like xconfig ...
+> This allows us to get rid of the rather ugly DEV_PROP_READ_ARRAY()
+> macro among other things.
 > 
-> I also think introducing a CONFIG_ option is a better idea.
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> On top of
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=ce793486e23e0162a732c605189c8028e0910e86
 
-Me too
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
