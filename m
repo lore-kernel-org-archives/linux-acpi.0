@@ -1,179 +1,158 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 2/2] PCI / ACPI: PCI delay optimization from ACPI
-Date: Mon, 23 Mar 2015 10:09:55 -0500
-Message-ID: <20150323150955.GR26935@google.com>
-References: <54FD4FB9.2060802@intel.com>
- <5222588.FaRe37n2T1@vostro.rjw.lan>
- <54FE93A4.9040908@intel.com>
- <20150320210354.GK26935@google.com>
- <550FDA38.2090505@intel.com>
+Subject: Re: [Bugfix] x86/PCI/ACPI: Fix regression caused by commit
+ 63f1789ec716
+Date: Mon, 23 Mar 2015 11:48:09 -0500
+Message-ID: <20150323164809.GS26935@google.com>
+References: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:36271 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752593AbbCWPJ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2015 11:09:59 -0400
-Received: by iedm5 with SMTP id m5so37882706ied.3
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2015 08:09:58 -0700 (PDT)
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:36314 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752145AbbCWQsN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2015 12:48:13 -0400
+Received: by iedm5 with SMTP id m5so40426713ied.3
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2015 09:48:12 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <550FDA38.2090505@intel.com>
+In-Reply-To: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Mar 23, 2015 at 05:17:44PM +0800, Aaron Lu wrote:
-> An ECN meant to specify possible delay optimizations is available on
-> the PCI website:
-> https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
-> where it has defined two functions for an UUID specified _DSM:
-> Function 8: If system firmware assumes the responsibility of post
-> Conventional Reset delay (and informs the Operating System via this DSM
-> function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
-> S4 or S3 states), the Operating System may assume sufficient time has
-> elapsed since the end of reset, and devices within the PCI subsystem are
-> ready for Configuration Access.
-> If the system firmware supports runtime power gating on any of the
-> device within PCI subsystem covered by this DSM function, the system
-> firmware is responsible for covering the necessary post power-on reset
-> delay.
+On Mon, Mar 23, 2015 at 03:22:14PM +0800, Jiang Liu wrote:
+> Commit 63f1789ec716("Ignore resources consumed by host bridge itself")
+> tries to ignore resources consumed by PCI host bridge itself by
+> checking IORESOURCE_WINDOW flag, which causes regression on some
+> platforms.
+
+"Do.  Or do not.  There is no try."
+[http://www.starwars.com/video/do-or-do-not]
+
+That commit doesn't *try* to do something.  It *does* something.  Just
+explain what it does and what's wrong with what it does.
+
+> For example, PC Engines APU.1C platform defines PCI MMIO resources with
+> ACPI Memory32Fixed operator as below:
+> Name (CRES, ResourceTemplate ()
+> {
+>     ...
+>     WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+>         0x0000,             // Granularity
+>         0x0D00,             // Range Minimum
+>         0xFFFF,             // Range Maximum
+>         0x0000,             // Translation Offset
+>         0xF300,             // Length
+>         ,, , TypeStatic)
+>     Memory32Fixed (ReadOnly,
+>         0x000A0000,         // Address Base
+>         0x00020000,         // Address Length
+>         )
+>     Memory32Fixed (ReadOnly,
+>         0x00000000,         // Address Base
+>         0x00000000,         // Address Length
+>         _Y00)
+> })
 > 
-> Function 9: Specify various smaller delay values than required by the
-> SPEC for individual PCI devices like shorter delay values after
-> conventional reset, D3hot to D0 transition, functional level reset, etc.
-> 
-> This patche adds support for function 8 and part of function 9. For
-> function 8, the patch will check if the required _DSM function satisfies
-> the requirement and then set the per PCI device's d3cold_delay variable
-> to zero. For function 9, the values affecting delays after conventional
-> reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
-> and d3_delay are updated if the _DSM's return value is smaller than what
-> the SPEC requires.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Memory32Fixed operator doesn't support concept of "producer/consumer"
+> and it will be treated as "consumer" by the ACPI resource parsing
+> interface, thus cause regression. So the fix is only to check
+> "producer/consumer" flag for resources having "producer/consumer" flag.
+
+Apparently the problem is with the Memory32Fixed resources above; it sounds
+like we ignore them after 63f1789ec716?  I don't quite understand how this
+fix works.  acpi_dev_filter_resource_type() has cases for both
+ACPI_RESOURCE_TYPE_FIXED_MEMORY32 and ACPI_RESOURCE_TYPE_ADDRESSxx, but 
+this patch only touches the latter, not the
+ACPI_RESOURCE_TYPE_FIXED_MEMORY32 case.
+
+Is it even legal to use Memory32Fixed for a bridge window?  Is this just a
+BIOS bug?  If so, how do we know this workaround won't break something
+else for BIOSes that use Memory32Fixed correctly?
+
+Should this be a BIOS-specific quirk?
+
+Incidentally, I also noticed this change:
+
+  --- dmesg_3.18.0-rc5.txt        2015-03-23 10:49:25.064682404 -0500
+  +++ dmesg_4.0.0-rc4.txt 2015-03-23 10:49:29.276630002 -0500
+  -ACPI: PCI Interrupt Link [INTA] (IRQs 3 4 5 7 10 11 12 15) *0, disabled.
+  +ACPI: PCI Interrupt Link [INTA] (IRQs 3 4 5 7 10 11 12 15) *0
+
+Is it intentional that INTA was previously reported as disabled but isn't
+any more?
+
+And there's also this:
+
+  acpi PNP0A03:00: [Firmware Bug]: no secondary bus range in _CRS
+
+That isn't a change (it was there in 3.18, too), but that really is a
+pretty basic BIOS bug and indicates that we shouldn't be too surprised if
+it has other bugs.
+
+> Another possible fix is to only ignore IO resource consumed by host
+> bridge and keep IOMEM resource consumed by host bridge, please refer to:
+> http://www.spinics.net/lists/linux-pci/msg39706.html
+
+It'd be nice to have Bernhard's logs archived somewhere and referenced
+here.  This seems like a dusty corner of the code that might have to be
+revisited someday.
+
+> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->  drivers/pci/pci-acpi.c | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/pci.h      |  2 ++
->  2 files changed, 65 insertions(+)
+> Hi Bernhard,
+> 	Could you please also help to test whether this patch works for
+> you too?
+> Thanks!
+> Gerry
+> ---
+>  arch/x86/pci/acpi.c     |    5 ++---
+>  drivers/acpi/resource.c |    3 +++
+>  2 files changed, 5 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 6ef2019073e2..2ebd02d814d7 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -563,6 +563,66 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
->  				      check_children);
->  }
->  
-> +/**
-> + * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
-> + * @pdev: the PCI device whose delay is to be updated
-> + * @adev: the companion ACPI device of this PCI device
-> + *
-> + * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
-> + * control method of either its own or its parent bridge.
-> + *
-> + * The UUID of the _DSM control method, together with other information like
-> + * which delay values can be optimized, etc. is defined in a ECN available on
-> + * PCIsig.com titled as: ACPI additions for FW latency optimizations.
-> + * Function 9 of the ACPI _DSM control method, if available for a specific PCI
-> + * device, provides various possible delay values that are less than what the
-> + * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
-> + * can be added later.
-> + * Function 8 of the ACPI _DSM control method, if available for the PCI host
-> + * bridge, means all its children devices do not need the reset delay when
-> + * leaving from D3cold state.
-> + */
-> +static void pci_acpi_delay_optimize(struct pci_dev *pdev,
-> +				    struct acpi_device *adev)
-> +{
-> +	acpi_handle handle = adev->handle;
-> +	int value;
-> +	union acpi_object *obj, *elements;
-> +
-> +	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
-> +				FUNCTION_DELAY_DSM, NULL);
-> +	if (obj) {
-> +		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
-> +			elements = obj->package.elements;
-> +			if (elements[0].type == ACPI_TYPE_INTEGER) {
-> +				value = (int)elements[0].integer.value / 1000;
-> +				if (value < PCI_PM_D3COLD_WAIT)
-> +					pdev->d3cold_delay = value;
-> +			}
-> +			if (elements[3].type == ACPI_TYPE_INTEGER) {
-> +				value = (int)elements[3].integer.value / 1000;
-> +				if (value < PCI_PM_D3_WAIT)
-> +					pdev->d3_delay = value;
-> +			}
-> +		}
-> +		kfree(obj);
-> +	}
-> +
-> +	/* Function 8 is only applicable to host bridge */
-> +	if (pdev->bus->bridge->parent)
-> +		return;
-> +
-> +	handle = ACPI_HANDLE(pdev->bus->bridge);
-> +	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
-> +				RESET_DELAY_DSM, NULL);
+> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> index e4695985f9de..8c4b1201f340 100644
+> --- a/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>  	info->bridge = device;
+>  	ret = acpi_dev_get_resources(device, list,
+>  				     acpi_dev_filter_resource_type_cb,
+> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
+> +				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
 
-The ECN says this function is in a host bridge scope and applies to the
-PCI subsystem beneath the bridge.  This code does not map well to that
-because:
+Tangent: I'm disappointed that ia64 didn't get reworked to track the x86
+code here.  Is that coming soon?
 
-  1) It evaluates _DSM more times than necessary (we only need to do it
-  once per host bridge, and this does it once for every PCI device
-  immediately below a host brige).
-
-  2) The settings are only applied to immediate children of the host
-  bridge, not to devices deeper in the hierarchy.
-
-  3) A reader of the ECN will expect the corresponding code to be in the
-  host bridge driver (pci_root.c) where we deal with other host bridge
-  properties, not in per-PCI device code like this.
-
-  4) The ECN is not explicit about this, but if both function 8 (which
-  applies to a whole hierarchy) and function 9 (which applies to a single
-  PCI device) are implemented for the same PCI device, I would expect
-  function 9 to take precedence over function 8.  This patch does the
-  reverse, since function 8 will overwrite any d3cold_delay that was set
-  above by function 9.
-
-> +	if (!obj)
-> +		return;
-> +
-> +	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
-> +		pdev->d3cold_delay = 0;
-> +	kfree(obj);
-> +}
-> +
->  static void pci_acpi_setup(struct device *dev)
->  {
->  	struct pci_dev *pci_dev = to_pci_dev(dev);
-> @@ -571,6 +631,9 @@ static void pci_acpi_setup(struct device *dev)
->  	if (!adev)
->  		return;
->  
-> +	if (pci_dev->pm_cap)
-> +		pci_acpi_delay_optimize(pci_dev, adev);
-> +
->  	pci_acpi_add_pm_notifier(adev, pci_dev);
->  	if (!adev->wakeup.flags.valid)
->  		return;
-> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-> index c901ab84cf3b..3eaefac5acc5 100644
-> --- a/drivers/pci/pci.h
-> +++ b/drivers/pci/pci.h
-> @@ -325,6 +325,8 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
->  extern const u8 pci_acpi_dsm_uuid[];
->  
->  #define DEVICE_LABEL_DSM	0x07
-> +#define RESET_DELAY_DSM		0x08
-> +#define FUNCTION_DELAY_DSM	0x09
->  #endif
->  
->  #endif /* DRIVERS_PCI_H */
+>  	if (ret < 0)
+>  		dev_warn(&device->dev,
+>  			 "failed to parse _CRS method, error code %d\n", ret);
+> @@ -346,8 +346,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>  			"no IO and memory resources present in _CRS\n");
+>  	else
+>  		resource_list_for_each_entry_safe(entry, tmp, list) {
+> -			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
+> -			    (entry->res->flags & IORESOURCE_DISABLED))
+> +			if (entry->res->flags & IORESOURCE_DISABLED)
+>  				resource_list_destroy_entry(entry);
+>  			else
+>  				entry->res->name = info->name;
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 5589a6e2a023..b0d3f2ceef06 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -606,6 +606,9 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>  	case ACPI_RESOURCE_TYPE_ADDRESS32:
+>  	case ACPI_RESOURCE_TYPE_ADDRESS64:
+>  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+> +		if (((types & IORESOURCE_WINDOW) == 0) ^
+> +		    (ares->data.address.producer_consumer == ACPI_CONSUMER))
+> +			break;
+>  		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
+>  			type = IORESOURCE_MEM;
+>  		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
 > -- 
-> 2.1.0
+> 1.7.10.4
 > 
