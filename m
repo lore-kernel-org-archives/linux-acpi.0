@@ -1,106 +1,149 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH 1/2] PCI: rename dsm uuid for PCI
-Date: Mon, 23 Mar 2015 17:16:15 +0800
-Message-ID: <550FD9DF.7050306@intel.com>
+Subject: [PATCH 2/2] PCI / ACPI: PCI delay optimization from ACPI
+Date: Mon, 23 Mar 2015 17:17:44 +0800
+Message-ID: <550FDA38.2090505@intel.com>
 References: <54FD4FB9.2060802@intel.com> <5222588.FaRe37n2T1@vostro.rjw.lan> <54FE93A4.9040908@intel.com> <20150320210354.GK26935@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:2783 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751935AbbCWJTQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Mar 2015 05:19:16 -0400
 In-Reply-To: <20150320210354.GK26935@google.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-According to the PCI firmware spec, there is only one assigned UUID used
-for PCI system so rename the device_label_dsm_uuid to something more
-common as: pci_acpi_dsm_uuid and put it in drivers/pci/pci-acpi.c. Make
-that uuid array extern in the pci.h so that other code can also make use
-of it.
+An ECN meant to specify possible delay optimizations is available on
+the PCI website:
+https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
+where it has defined two functions for an UUID specified _DSM:
+Function 8: If system firmware assumes the responsibility of post
+Conventional Reset delay (and informs the Operating System via this DSM
+function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
+S4 or S3 states), the Operating System may assume sufficient time has
+elapsed since the end of reset, and devices within the PCI subsystem are
+ready for Configuration Access.
+If the system firmware supports runtime power gating on any of the
+device within PCI subsystem covered by this DSM function, the system
+firmware is responsible for covering the necessary post power-on reset
+delay.
 
-This patch shouldn't bring any functional change.
+Function 9: Specify various smaller delay values than required by the
+SPEC for individual PCI devices like shorter delay values after
+conventional reset, D3hot to D0 transition, functional level reset, etc.
+
+This patche adds support for function 8 and part of function 9. For
+function 8, the patch will check if the required _DSM function satisfies
+the requirement and then set the per PCI device's d3cold_delay variable
+to zero. For function 9, the values affecting delays after conventional
+reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
+and d3_delay are updated if the _DSM's return value is smaller than what
+the SPEC requires.
 
 Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 ---
- drivers/pci/pci-acpi.c  |  5 +++++
- drivers/pci/pci-label.c | 11 ++---------
- drivers/pci/pci.h       |  6 ++++++
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/pci/pci-acpi.c | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.h      |  2 ++
+ 2 files changed, 65 insertions(+)
 
 diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 489063987325..6ef2019073e2 100644
+index 6ef2019073e2..2ebd02d814d7 100644
 --- a/drivers/pci/pci-acpi.c
 +++ b/drivers/pci/pci-acpi.c
-@@ -18,6 +18,11 @@
- #include <linux/pm_qos.h>
- #include "pci.h"
- 
-+const u8 pci_acpi_dsm_uuid[] = {
-+	0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
-+	0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
-+};
-+
- phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
- {
- 	acpi_status status = AE_NOT_EXIST;
-diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-index 2ab1b47c7651..024b5c179348 100644
---- a/drivers/pci/pci-label.c
-+++ b/drivers/pci/pci-label.c
-@@ -31,8 +31,6 @@
- #include <linux/pci-acpi.h>
- #include "pci.h"
- 
--#define	DEVICE_LABEL_DSM	0x07
--
- #ifdef CONFIG_DMI
- enum smbios_attr_enum {
- 	SMBIOS_ATTR_NONE = 0,
-@@ -148,11 +146,6 @@ static inline void pci_remove_smbiosname_file(struct pci_dev *pdev)
- #endif
- 
- #ifdef CONFIG_ACPI
--static const char device_label_dsm_uuid[] = {
--	0xD0, 0x37, 0xC9, 0xE5, 0x53, 0x35, 0x7A, 0x4D,
--	0x91, 0x17, 0xEA, 0x4D, 0x19, 0xC3, 0x43, 0x4D
--};
--
- enum acpi_attr_enum {
- 	ACPI_ATTR_LABEL_SHOW,
- 	ACPI_ATTR_INDEX_SHOW,
-@@ -179,7 +172,7 @@ static int dsm_get_label(struct device *dev, char *buf,
- 	if (!handle)
- 		return -1;
- 
--	obj = acpi_evaluate_dsm(handle, device_label_dsm_uuid, 0x2,
-+	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 0x2,
- 				DEVICE_LABEL_DSM, NULL);
- 	if (!obj)
- 		return -1;
-@@ -219,7 +212,7 @@ static bool device_has_dsm(struct device *dev)
- 	if (!handle)
- 		return false;
- 
--	return !!acpi_check_dsm(handle, device_label_dsm_uuid, 0x2,
-+	return !!acpi_check_dsm(handle, pci_acpi_dsm_uuid, 0x2,
- 				1 << DEVICE_LABEL_DSM);
+@@ -563,6 +563,66 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
+ 				      check_children);
  }
  
++/**
++ * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
++ * @pdev: the PCI device whose delay is to be updated
++ * @adev: the companion ACPI device of this PCI device
++ *
++ * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
++ * control method of either its own or its parent bridge.
++ *
++ * The UUID of the _DSM control method, together with other information like
++ * which delay values can be optimized, etc. is defined in a ECN available on
++ * PCIsig.com titled as: ACPI additions for FW latency optimizations.
++ * Function 9 of the ACPI _DSM control method, if available for a specific PCI
++ * device, provides various possible delay values that are less than what the
++ * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
++ * can be added later.
++ * Function 8 of the ACPI _DSM control method, if available for the PCI host
++ * bridge, means all its children devices do not need the reset delay when
++ * leaving from D3cold state.
++ */
++static void pci_acpi_delay_optimize(struct pci_dev *pdev,
++				    struct acpi_device *adev)
++{
++	acpi_handle handle = adev->handle;
++	int value;
++	union acpi_object *obj, *elements;
++
++	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
++				FUNCTION_DELAY_DSM, NULL);
++	if (obj) {
++		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
++			elements = obj->package.elements;
++			if (elements[0].type == ACPI_TYPE_INTEGER) {
++				value = (int)elements[0].integer.value / 1000;
++				if (value < PCI_PM_D3COLD_WAIT)
++					pdev->d3cold_delay = value;
++			}
++			if (elements[3].type == ACPI_TYPE_INTEGER) {
++				value = (int)elements[3].integer.value / 1000;
++				if (value < PCI_PM_D3_WAIT)
++					pdev->d3_delay = value;
++			}
++		}
++		kfree(obj);
++	}
++
++	/* Function 8 is only applicable to host bridge */
++	if (pdev->bus->bridge->parent)
++		return;
++
++	handle = ACPI_HANDLE(pdev->bus->bridge);
++	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
++				RESET_DELAY_DSM, NULL);
++	if (!obj)
++		return;
++
++	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
++		pdev->d3cold_delay = 0;
++	kfree(obj);
++}
++
+ static void pci_acpi_setup(struct device *dev)
+ {
+ 	struct pci_dev *pci_dev = to_pci_dev(dev);
+@@ -571,6 +631,9 @@ static void pci_acpi_setup(struct device *dev)
+ 	if (!adev)
+ 		return;
+ 
++	if (pci_dev->pm_cap)
++		pci_acpi_delay_optimize(pci_dev, adev);
++
+ 	pci_acpi_add_pm_notifier(adev, pci_dev);
+ 	if (!adev->wakeup.flags.valid)
+ 		return;
 diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 4091f82239cd..c901ab84cf3b 100644
+index c901ab84cf3b..3eaefac5acc5 100644
 --- a/drivers/pci/pci.h
 +++ b/drivers/pci/pci.h
-@@ -321,4 +321,10 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
- }
+@@ -325,6 +325,8 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
+ extern const u8 pci_acpi_dsm_uuid[];
+ 
+ #define DEVICE_LABEL_DSM	0x07
++#define RESET_DELAY_DSM		0x08
++#define FUNCTION_DELAY_DSM	0x09
  #endif
  
-+#ifdef CONFIG_ACPI
-+extern const u8 pci_acpi_dsm_uuid[];
-+
-+#define DEVICE_LABEL_DSM	0x07
-+#endif
-+
  #endif /* DRIVERS_PCI_H */
 -- 
 2.1.0
+
