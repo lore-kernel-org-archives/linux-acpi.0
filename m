@@ -1,192 +1,99 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH update] PCI / ACPI: PCI delay optimization from ACPI
-Date: Mon, 23 Mar 2015 13:35:03 +0800
-Message-ID: <550FA607.8080805@intel.com>
-References: <54FD4FB9.2060802@intel.com> <5222588.FaRe37n2T1@vostro.rjw.lan> <54FE93A4.9040908@intel.com> <20150320210354.GK26935@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150320210354.GK26935@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Mon, 23 Mar 2015 15:22:14 +0800
+Message-ID: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/21/2015 05:03 AM, Bjorn Helgaas wrote:
-> On Tue, Mar 10, 2015 at 02:48:04PM +0800, Aaron Lu wrote:
->> An ECN meant to specify possible delay optimizations is available on
->> the PCI website:
->> https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
->> where it has defined two functions for an UUID specified _DSM:
->> Function 8: If system firmware assumes the responsibility of post
->> Conventional Reset delay (and informs the Operating System via this DSM
->> function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
->> S4 or S3 states), the Operating System may assume sufficient time has
->> elapsed since the end of reset, and devices within the PCI subsystem are
->> ready for Configuration Access.
->> If the system firmware supports runtime power gating on any of the
->> device within PCI subsystem covered by this DSM function, the system
->> firmware is responsible for covering the necessary post power-on reset
->> delay.
->>
->> Function 9: Specify various smaller delay values than required by the
->> SPEC for individual PCI devices like shorter delay values after
->> conventional reset, D3hot to D0 transition, functional level reset, etc.
->>
->> This patche adds support for function 8 and part of function 9. For
->> function 8, the patch will check if the required _DSM function satisfies
->> the requirement and then set the per PCI device's d3cold_delay variable
->> to zero. For function 9, the values affecting delays after conventional
->> reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
->> and d3_delay are updated if the _DSM's return value is smaller than what
->> the SPEC requires.
->>
->> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
->> ---
->>  drivers/pci/pci-acpi.c | 61 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 61 insertions(+)
->>
->> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->> index 489063987325..468c0733838e 100644
->> --- a/drivers/pci/pci-acpi.c
->> +++ b/drivers/pci/pci-acpi.c
->> @@ -558,6 +558,64 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
->>  				      check_children);
->>  }
->>  
->> +/**
->> + * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
->> + * @pdev: the PCI device whose delay is to be updated
->> + * @adev: the companion ACPI device of this PCI device
->> + *
->> + * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
->> + * control method of either its own or its parent bridge.
->> + *
->> + * The UUID of the _DSM control method, together with other information like
->> + * which delay values can be optimized, etc. is defined in a ECN available on
->> + * PCIsig.com titled as: ACPI additions for FW latency optimizations.
->> + * Function 9 of the ACPI _DSM control method, if available for a specific PCI
->> + * device, provides various possible delay values that are less than what the
->> + * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
->> + * can be added later.
->> + * Function 8 of the ACPI _DSM control method, if available for a specific PCI
->> + * bridge, means all its children devices do not need the reset delay when
->> + * leaving from D3cold state.
->> + */
->> +static void pci_acpi_delay_optimize(struct pci_dev *pdev, struct acpi_device *adev)
->> +{
->> +	const u8 uuid[] = {
->> +		0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
->> +		0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
->> +	};
-> 
-> This is a duplicate of device_label_dsm_uuid[] from
-> drivers/pci/pci-label.c.  I don't really want two copies.
-> 
-> That UUID is not specific to device labels, so device_label_dsm_uuid[] is
-> mis-named anyway.  It's just the UUID for the single _DSM for PCI (see PCI
-> Firmware Specification, r3.0, sec 4.6), and all these different things
-> (device label, reset delay, slot info, etc.) use the same UUID with
-> different function indices.
-> 
-> We should also make #defines for the function indices instead of using
-> hard-coded numbers here.
+Commit 63f1789ec716("Ignore resources consumed by host bridge itself")
+tries to ignore resources consumed by PCI host bridge itself by
+checking IORESOURCE_WINDOW flag, which causes regression on some
+platforms.
 
-OK.
+For example, PC Engines APU.1C platform defines PCI MMIO resources with
+ACPI Memory32Fixed operator as below:
+Name (CRES, ResourceTemplate ()
+{
+    ...
+    WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+        0x0000,             // Granularity
+        0x0D00,             // Range Minimum
+        0xFFFF,             // Range Maximum
+        0x0000,             // Translation Offset
+        0xF300,             // Length
+        ,, , TypeStatic)
+    Memory32Fixed (ReadOnly,
+        0x000A0000,         // Address Base
+        0x00020000,         // Address Length
+        )
+    Memory32Fixed (ReadOnly,
+        0x00000000,         // Address Base
+        0x00000000,         // Address Length
+        _Y00)
+})
 
-> 
->> +	int revision = 3, function = 9, value;
->> +	acpi_handle handle = adev->handle;
->> +	union acpi_object *obj, *elements;
->> +
->> +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
->> +	if (obj) {
->> +		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
->> +			elements = obj->package.elements;
->> +			if (elements[3].type == ACPI_TYPE_INTEGER) {
->> +				value = (int)elements[3].integer.value / 1000;
->> +				if (value < PCI_PM_D3_WAIT)
->> +					pdev->d3_delay = value;
->> +			}
->> +			if (elements[0].type == ACPI_TYPE_INTEGER) {
->> +				value = (int)elements[0].integer.value / 1000;
->> +				if (value < PCI_PM_D3COLD_WAIT)
->> +					pdev->d3cold_delay = value;
->> +			}
-> 
-> Unless there's a reason to do this in "element[3], element[0]" order,
-> please do it in the natural "0, 3" order.
+Memory32Fixed operator doesn't support concept of "producer/consumer"
+and it will be treated as "consumer" by the ACPI resource parsing
+interface, thus cause regression. So the fix is only to check
+"producer/consumer" flag for resources having "producer/consumer" flag.
 
-OK.
+Another possible fix is to only ignore IO resource consumed by host
+bridge and keep IOMEM resource consumed by host bridge, please refer to:
+http://www.spinics.net/lists/linux-pci/msg39706.html
 
-> 
->> +		}
->> +		kfree(obj);
->> +	}
->> +
->> +	function = 8;
->> +	handle = ACPI_HANDLE(pdev->bus->bridge);
->> +	obj = acpi_evaluate_dsm(handle, uuid, revision, function, NULL);
-> 
-> Hmm.  I think the ECN is poorly worded here.  Sec 4.6.8 says "This object
-> [_DSM] can only be placed within the scope of a PCI host bus." I think it
-> means "this _DSM *function* can only be implemented ..." (since any device
-> can have a _DSM), and I think it means "host *bridge*" (not bus, since I
-> don't think there's an ACPI object for a PCI bus).
+Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+Hi Bernhard,
+	Could you please also help to test whether this patch works for
+you too?
+Thanks!
+Gerry
+---
+ arch/x86/pci/acpi.c     |    5 ++---
+ drivers/acpi/resource.c |    3 +++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-I'm confused by this too and then I found the firmware I worked with has
-this _DSM function 8 implemented for not only the PCI0 firmware node, but
-also the RP01, RP02, etc. firmware nodes which corresponds to the 1c.0,
-1c.1, etc. PCI bridges, so I wrote the patch this way. Looks like I
-should ignore them instead :-)
-
-> 
-> It probably should say "This function can be implemented only by a _DSM
-> method within the scope of a PCI host bridge."
-
-Agreed.
-
-> 
-> Anyway, I think this patch looks for a _DSM in PCI-PCI bridge devices as
-> well as PCI host bridge devices, and the ECN says any values returned by
-> function 8 of a non-host bridge _DSM method should be ignored.  At least,
-> that's how I read it.
-
-OK, I'll rework the patch to only check the host bridge for function 8.
-
-> 
-> I think you need something in pci_root.c that evaluates _DSM function 8 for
-> the host bridge, and then some mechanism for all the devices under that
-> bridge to inherit the result.
-
-Thanks for the suggestion, will try to do this in the next revision.
-
-Regards,
-Aaron
-
-> 
->> +	if (!obj)
->> +		return;
->> +
->> +	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
->> +		pdev->d3cold_delay = 0;
->> +	kfree(obj);
->> +}
->> +
->>  static void pci_acpi_setup(struct device *dev)
->>  {
->>  	struct pci_dev *pci_dev = to_pci_dev(dev);
->> @@ -566,6 +624,9 @@ static void pci_acpi_setup(struct device *dev)
->>  	if (!adev)
->>  		return;
->>  
->> +	if (pci_dev->pm_cap)
->> +		pci_acpi_delay_optimize(pci_dev, adev);
->> +
->>  	pci_acpi_add_pm_notifier(adev, pci_dev);
->>  	if (!adev->wakeup.flags.valid)
->>  		return;
->> -- 
->> 2.1.0
->>
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index e4695985f9de..8c4b1201f340 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+ 	info->bridge = device;
+ 	ret = acpi_dev_get_resources(device, list,
+ 				     acpi_dev_filter_resource_type_cb,
+-				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
++				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
+ 	if (ret < 0)
+ 		dev_warn(&device->dev,
+ 			 "failed to parse _CRS method, error code %d\n", ret);
+@@ -346,8 +346,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+ 			"no IO and memory resources present in _CRS\n");
+ 	else
+ 		resource_list_for_each_entry_safe(entry, tmp, list) {
+-			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
+-			    (entry->res->flags & IORESOURCE_DISABLED))
++			if (entry->res->flags & IORESOURCE_DISABLED)
+ 				resource_list_destroy_entry(entry);
+ 			else
+ 				entry->res->name = info->name;
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 5589a6e2a023..b0d3f2ceef06 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -606,6 +606,9 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
++		if (((types & IORESOURCE_WINDOW) == 0) ^
++		    (ares->data.address.producer_consumer == ACPI_CONSUMER))
++			break;
+ 		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
+ 			type = IORESOURCE_MEM;
+ 		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
+-- 
+1.7.10.4
