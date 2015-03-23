@@ -1,149 +1,64 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH 2/2] PCI / ACPI: PCI delay optimization from ACPI
-Date: Mon, 23 Mar 2015 17:17:44 +0800
-Message-ID: <550FDA38.2090505@intel.com>
-References: <54FD4FB9.2060802@intel.com> <5222588.FaRe37n2T1@vostro.rjw.lan> <54FE93A4.9040908@intel.com> <20150320210354.GK26935@google.com>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
+Date: Mon, 23 Mar 2015 12:04:47 +0000
+Message-ID: <20150323120331.GA3007@codeblueprint.co.uk>
+References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
+ <1426363131-14530-1-git-send-email-jason.ekstrand@intel.com>
+ <CAOFGe95CiLcHtzD3Vv-KJoCXfeHCyGa55OBkzHSZMWwdOyLnfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:2783 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751935AbbCWJTQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Mar 2015 05:19:16 -0400
-In-Reply-To: <20150320210354.GK26935@google.com>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:33969 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752152AbbCWMEu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2015 08:04:50 -0400
+Received: by wgs2 with SMTP id 2so37139761wgs.1
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2015 05:04:49 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAOFGe95CiLcHtzD3Vv-KJoCXfeHCyGa55OBkzHSZMWwdOyLnfg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Jason Ekstrand <jason@jlekstrand.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-An ECN meant to specify possible delay optimizations is available on
-the PCI website:
-https://www.pcisig.com/specifications/conventional/pci_firmware/ECN_fw_latency_optimization_final.pdf
-where it has defined two functions for an UUID specified _DSM:
-Function 8: If system firmware assumes the responsibility of post
-Conventional Reset delay (and informs the Operating System via this DSM
-function) on Sx Resume (such as boot from ACPI S5, or resume from ACPI
-S4 or S3 states), the Operating System may assume sufficient time has
-elapsed since the end of reset, and devices within the PCI subsystem are
-ready for Configuration Access.
-If the system firmware supports runtime power gating on any of the
-device within PCI subsystem covered by this DSM function, the system
-firmware is responsible for covering the necessary post power-on reset
-delay.
+On Mon, 16 Mar, at 04:21:51PM, Jason Ekstrand wrote:
+> 
+> A quick update on the Dell XPS 13 for those of you who are following
+> this discussion but aren't aware of the XPS 13-specific discussions.
+> The "problem" triggered by _REV=5 is not a *real* problem.  The reason
+> they special-cased it for the XPS 13 is that the sound card is
+> dual-mode and can run over either HDA and I2S.  Since the I2S support
+> on Linux isn't great at the moment, they special-cased linux to run it
+> in HDA mode which has good support.  The problem is that, in the A01
+> bios update where they changed this, they made a mistake that left the
+> sound card in an invalid state.  A one-line change to the DSDT table
+> in the bios puts it into HDA mode properly and fixes both the audio
+> and suspend/resume issues.  They should be coming out with a bios
+> update shortly to fix this.
+> 
+> I'm not knowledgeable enough to weigh in on the philosophical issues
+> here, but I thought it was worth explaining the reason for the linux
+> special-casing.  In the case of the new XPS 13, Dell was doing
+> something useful with their special-casing, they just made a mistake.
+> If we did start advertising _REV=2 this would cause the laptop (with
+> the fixed bios) to load the sound card in I2S mode and it would be
+> less reliable.
 
-Function 9: Specify various smaller delay values than required by the
-SPEC for individual PCI devices like shorter delay values after
-conventional reset, D3hot to D0 transition, functional level reset, etc.
+Sadly no, Dell are not doing something useful. Their use of _REV is
+entirely misguided for the same reasons using _OSI(Linux) is discouraged
+in drivers/acpi/osl.c; namely that working around kernel bugs in the
+BIOS is a terrible solution.
 
-This patche adds support for function 8 and part of function 9. For
-function 8, the patch will check if the required _DSM function satisfies
-the requirement and then set the per PCI device's d3cold_delay variable
-to zero. For function 9, the values affecting delays after conventional
-reset and D3hot->D0 are examined and the per PCI device's d3cold_delay
-and d3_delay are updated if the _DSM's return value is smaller than what
-the SPEC requires.
+Non-Windows BIOS code paths are not validated to the same degree as
+those traversed by running Windows, which is exactly why we try so hard
+to emulate Windows whenever we interact with the BIOS.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/pci/pci-acpi.c | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/pci.h      |  2 ++
- 2 files changed, 65 insertions(+)
+The real way to fix this is to add the necessary support and bug fixes
+to the kernel, exactly as Bard (Cc'd) has been doing.
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 6ef2019073e2..2ebd02d814d7 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -563,6 +563,66 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
- 				      check_children);
- }
- 
-+/**
-+ * pci_acpi_delay_optimize - optimize PCI D3 and D3cold delay from ACPI
-+ * @pdev: the PCI device whose delay is to be updated
-+ * @adev: the companion ACPI device of this PCI device
-+ *
-+ * Update the d3_delay and d3cold_delay of a PCI device from the ACPI _DSM
-+ * control method of either its own or its parent bridge.
-+ *
-+ * The UUID of the _DSM control method, together with other information like
-+ * which delay values can be optimized, etc. is defined in a ECN available on
-+ * PCIsig.com titled as: ACPI additions for FW latency optimizations.
-+ * Function 9 of the ACPI _DSM control method, if available for a specific PCI
-+ * device, provides various possible delay values that are less than what the
-+ * SPEC requires. Here, we only deal with d3_delay and d3cold_delay. Others
-+ * can be added later.
-+ * Function 8 of the ACPI _DSM control method, if available for the PCI host
-+ * bridge, means all its children devices do not need the reset delay when
-+ * leaving from D3cold state.
-+ */
-+static void pci_acpi_delay_optimize(struct pci_dev *pdev,
-+				    struct acpi_device *adev)
-+{
-+	acpi_handle handle = adev->handle;
-+	int value;
-+	union acpi_object *obj, *elements;
-+
-+	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
-+				FUNCTION_DELAY_DSM, NULL);
-+	if (obj) {
-+		if (obj->type == ACPI_TYPE_PACKAGE && obj->package.count == 5) {
-+			elements = obj->package.elements;
-+			if (elements[0].type == ACPI_TYPE_INTEGER) {
-+				value = (int)elements[0].integer.value / 1000;
-+				if (value < PCI_PM_D3COLD_WAIT)
-+					pdev->d3cold_delay = value;
-+			}
-+			if (elements[3].type == ACPI_TYPE_INTEGER) {
-+				value = (int)elements[3].integer.value / 1000;
-+				if (value < PCI_PM_D3_WAIT)
-+					pdev->d3_delay = value;
-+			}
-+		}
-+		kfree(obj);
-+	}
-+
-+	/* Function 8 is only applicable to host bridge */
-+	if (pdev->bus->bridge->parent)
-+		return;
-+
-+	handle = ACPI_HANDLE(pdev->bus->bridge);
-+	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 3,
-+				RESET_DELAY_DSM, NULL);
-+	if (!obj)
-+		return;
-+
-+	if (obj->type == ACPI_TYPE_INTEGER && obj->integer.value == 1)
-+		pdev->d3cold_delay = 0;
-+	kfree(obj);
-+}
-+
- static void pci_acpi_setup(struct device *dev)
- {
- 	struct pci_dev *pci_dev = to_pci_dev(dev);
-@@ -571,6 +631,9 @@ static void pci_acpi_setup(struct device *dev)
- 	if (!adev)
- 		return;
- 
-+	if (pci_dev->pm_cap)
-+		pci_acpi_delay_optimize(pci_dev, adev);
-+
- 	pci_acpi_add_pm_notifier(adev, pci_dev);
- 	if (!adev->wakeup.flags.valid)
- 		return;
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index c901ab84cf3b..3eaefac5acc5 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -325,6 +325,8 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
- extern const u8 pci_acpi_dsm_uuid[];
- 
- #define DEVICE_LABEL_DSM	0x07
-+#define RESET_DELAY_DSM		0x08
-+#define FUNCTION_DELAY_DSM	0x09
- #endif
- 
- #endif /* DRIVERS_PCI_H */
+P.S If Dell XPS13 owners try this patch and audio isn't magically
+detected, make sure you perform *two* cold boots. There appears to be some
+level of caching going where the last read _REV value is used.
+
 -- 
-2.1.0
-
+Matt Fleming, Intel Open Source Technology Center
