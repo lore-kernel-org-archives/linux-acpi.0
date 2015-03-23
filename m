@@ -1,158 +1,105 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Bugfix] x86/PCI/ACPI: Fix regression caused by commit
- 63f1789ec716
-Date: Mon, 23 Mar 2015 11:48:09 -0500
-Message-ID: <20150323164809.GS26935@google.com>
-References: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com>
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Mon, 23 Mar 2015 18:32:35 +0000
+Message-ID: <alpine.DEB.2.02.1503231822520.7982@kaball.uk.xensource.com>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <20150318190509.GM10863@arm.com> <550A4BFD.4070804@huawei.com>
+ <20150320185400.GK1474@arm.com> <550CE2CE.4080508@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="1342847746-577813448-1427135555=:7982"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:36314 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752145AbbCWQsN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2015 12:48:13 -0400
-Received: by iedm5 with SMTP id m5so40426713ied.3
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Mar 2015 09:48:12 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from smtp02.citrix.com ([66.165.176.63]:33170 "EHLO
+	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752221AbbCWSdv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Mar 2015 14:33:51 -0400
+In-Reply-To: <550CE2CE.4080508@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>, Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>lin
 
-On Mon, Mar 23, 2015 at 03:22:14PM +0800, Jiang Liu wrote:
-> Commit 63f1789ec716("Ignore resources consumed by host bridge itself")
-> tries to ignore resources consumed by PCI host bridge itself by
-> checking IORESOURCE_WINDOW flag, which causes regression on some
-> platforms.
+--1342847746-577813448-1427135555=:7982
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-"Do.  Or do not.  There is no try."
-[http://www.starwars.com/video/do-or-do-not]
+On Sat, 21 Mar 2015, Hanjun Guo wrote:
+> +CC Parth Dixit, Stefano Stabellini.
+>=20
+> On 2015=E5=B9=B403=E6=9C=8821=E6=97=A5 02:54, Will Deacon wrote:
+> > On Thu, Mar 19, 2015 at 04:09:33AM +0000, Hanjun Guo wrote:
+> > > On 2015/3/19 3:05, Will Deacon wrote:
+> > > > If you can get that in place, I'm not opposed to putting this into
+> > > > linux-next ahead of the firmware summit in San Jose next week. Note=
+ that
+> > > > this is not a commitment for 4.1, since I'm keen to see the outcome=
+s of
+> > > > next week before setting anything in stone.
+> > >=20
+> > > OK, I will stick to this mailing list and respond as soon as I can.
+> >=20
+> > This doesn't even build for me:
+> >=20
+> >=20
+> > $ make ARCH=3Darm64 CROSS_COMPILE=3Daarch64-none-linux-gnu- allmodconfi=
+g
+> > $ make ARCH=3Darm64 CROSS_COMPILE=3Daarch64-none-linux-gnu- Image
+> >=20
+> > [...]
+> >=20
+> > In file included from drivers/xen/acpi.c:33:0:
+>=20
+> Sorry, I didn't build ACPI with XEN enabled on ARM64.
+>=20
+> > include/xen/acpi.h: In function =E2=80=98xen_acpi_sleep_register=E2=80=
+=99:
+> > include/xen/acpi.h:102:3: error: =E2=80=98acpi_suspend_lowlevel=E2=80=
+=99 undeclared (first
+> > use in this function)
+> >     acpi_suspend_lowlevel =3D xen_acpi_suspend_lowlevel;
+>=20
+> acpi_suspend_lowlevel is defined only for X86 and IA64 for now.
+>=20
+> >     ^
+> > include/xen/acpi.h:102:3: note: each undeclared identifier is reported =
+only
+> > once for each function it appears in
+> > drivers/xen/acpi.c: In function =E2=80=98xen_acpi_notify_hypervisor_sta=
+te=E2=80=99:
+> > drivers/xen/acpi.c:61:2: error: implicit declaration of function
+> > =E2=80=98HYPERVISOR_dom0_op=E2=80=99 [-Werror=3Dimplicit-function-decla=
+ration]
+> >    HYPERVISOR_dom0_op(&op);
+>=20
+> And this is only for x86:
+> ./arch/x86/include/asm/xen/hypercall.h:HYPERVISOR_dom0_op(struct
+> xen_platform_op *platform_op)
+>=20
+> >    ^
+> > cc1: some warnings being treated as errors
+> > make[2]: *** [drivers/xen/acpi.o] Error 1
+> > make[2]: *** Waiting for unfinished jobs....
+> > make[1]: *** [drivers/xen] Error 2
+> > make[1]: *** Waiting for unfinished jobs....
+> > make: *** [drivers] Error 2
+> >=20
+> >=20
+> > Am I missing some other patches?
+>=20
+> No, you miss nothing. Parth Dixit is still working on XEN ACPI for
+> ARM64, before it's in full function, how about introduce a Kconfig
+> CONFIG_XEN_ACPI and let it depends on x86? when XEN ACPI for ARM64
+> comes, we can enable ARM64 for CONFIG_XEN_ACPI and fix the problems
+> above.
+>=20
+> Stefano, Parth, what do you think?
+=20
+To be precise, Parth is working on ACPI enablement for the Xen
+hypervisor at the moment (on the Xen tree), I don't think he has any
+patches for Linux (Dom0 is the key use case). The two works could be
+carried on in parallel, even though you would obviously need Parth's Xen
+patches to test the Linux side.
 
-That commit doesn't *try* to do something.  It *does* something.  Just
-explain what it does and what's wrong with what it does.
-
-> For example, PC Engines APU.1C platform defines PCI MMIO resources with
-> ACPI Memory32Fixed operator as below:
-> Name (CRES, ResourceTemplate ()
-> {
->     ...
->     WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
->         0x0000,             // Granularity
->         0x0D00,             // Range Minimum
->         0xFFFF,             // Range Maximum
->         0x0000,             // Translation Offset
->         0xF300,             // Length
->         ,, , TypeStatic)
->     Memory32Fixed (ReadOnly,
->         0x000A0000,         // Address Base
->         0x00020000,         // Address Length
->         )
->     Memory32Fixed (ReadOnly,
->         0x00000000,         // Address Base
->         0x00000000,         // Address Length
->         _Y00)
-> })
-> 
-> Memory32Fixed operator doesn't support concept of "producer/consumer"
-> and it will be treated as "consumer" by the ACPI resource parsing
-> interface, thus cause regression. So the fix is only to check
-> "producer/consumer" flag for resources having "producer/consumer" flag.
-
-Apparently the problem is with the Memory32Fixed resources above; it sounds
-like we ignore them after 63f1789ec716?  I don't quite understand how this
-fix works.  acpi_dev_filter_resource_type() has cases for both
-ACPI_RESOURCE_TYPE_FIXED_MEMORY32 and ACPI_RESOURCE_TYPE_ADDRESSxx, but 
-this patch only touches the latter, not the
-ACPI_RESOURCE_TYPE_FIXED_MEMORY32 case.
-
-Is it even legal to use Memory32Fixed for a bridge window?  Is this just a
-BIOS bug?  If so, how do we know this workaround won't break something
-else for BIOSes that use Memory32Fixed correctly?
-
-Should this be a BIOS-specific quirk?
-
-Incidentally, I also noticed this change:
-
-  --- dmesg_3.18.0-rc5.txt        2015-03-23 10:49:25.064682404 -0500
-  +++ dmesg_4.0.0-rc4.txt 2015-03-23 10:49:29.276630002 -0500
-  -ACPI: PCI Interrupt Link [INTA] (IRQs 3 4 5 7 10 11 12 15) *0, disabled.
-  +ACPI: PCI Interrupt Link [INTA] (IRQs 3 4 5 7 10 11 12 15) *0
-
-Is it intentional that INTA was previously reported as disabled but isn't
-any more?
-
-And there's also this:
-
-  acpi PNP0A03:00: [Firmware Bug]: no secondary bus range in _CRS
-
-That isn't a change (it was there in 3.18, too), but that really is a
-pretty basic BIOS bug and indicates that we shouldn't be too surprised if
-it has other bugs.
-
-> Another possible fix is to only ignore IO resource consumed by host
-> bridge and keep IOMEM resource consumed by host bridge, please refer to:
-> http://www.spinics.net/lists/linux-pci/msg39706.html
-
-It'd be nice to have Bernhard's logs archived somewhere and referenced
-here.  This seems like a dusty corner of the code that might have to be
-revisited someday.
-
-> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
-> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
-> Hi Bernhard,
-> 	Could you please also help to test whether this patch works for
-> you too?
-> Thanks!
-> Gerry
-> ---
->  arch/x86/pci/acpi.c     |    5 ++---
->  drivers/acpi/resource.c |    3 +++
->  2 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index e4695985f9de..8c4b1201f340 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->  	info->bridge = device;
->  	ret = acpi_dev_get_resources(device, list,
->  				     acpi_dev_filter_resource_type_cb,
-> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
-> +				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
-
-Tangent: I'm disappointed that ia64 didn't get reworked to track the x86
-code here.  Is that coming soon?
-
->  	if (ret < 0)
->  		dev_warn(&device->dev,
->  			 "failed to parse _CRS method, error code %d\n", ret);
-> @@ -346,8 +346,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->  			"no IO and memory resources present in _CRS\n");
->  	else
->  		resource_list_for_each_entry_safe(entry, tmp, list) {
-> -			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
-> -			    (entry->res->flags & IORESOURCE_DISABLED))
-> +			if (entry->res->flags & IORESOURCE_DISABLED)
->  				resource_list_destroy_entry(entry);
->  			else
->  				entry->res->name = info->name;
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 5589a6e2a023..b0d3f2ceef06 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -606,6 +606,9 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
->  	case ACPI_RESOURCE_TYPE_ADDRESS32:
->  	case ACPI_RESOURCE_TYPE_ADDRESS64:
->  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
-> +		if (((types & IORESOURCE_WINDOW) == 0) ^
-> +		    (ares->data.address.producer_consumer == ACPI_CONSUMER))
-> +			break;
->  		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
->  			type = IORESOURCE_MEM;
->  		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
-> -- 
-> 1.7.10.4
-> 
+That said, I am OK with disabling ACPI for Xen on ARM and ARM64 for now
+-- I wouldn't want to cause any significant delays to your patch series.
+--1342847746-577813448-1427135555=:7982--
