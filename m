@@ -1,93 +1,51 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 05/23] ACPI: fix acpi_os_ioremap for arm64
-Date: Tue, 24 Mar 2015 22:02:38 +0800
-Message-ID: <1427205776-5060-6-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 09/23] ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+Date: Tue, 24 Mar 2015 22:02:42 +0800
+Message-ID: <1427205776-5060-10-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Mark Salter <msalter@redhat.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Mark Salter <msalter@redhat.com>
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-The acpi_os_ioremap() function may be used to map normal RAM or IO
-regions. The current implementation simply uses ioremap_cache(). This
-will work for some architectures, but arm64 ioremap_cache() cannot be
-used to map IO regions which don't support caching. So for arm64, use
-ioremap() for non-RAM regions.
+If the early boot methods of acpi are happy that we have valid ACPI
+tables and acpi=force has been passed, then do not unflat devicetree
+effectively disabling further hardware probing from DT.
 
-CC: Rafael J Wysocki <rjw@rjwysocki.net>
 CC: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Robert Richter <rrichter@cavium.com>
+CC: Will Deacon <will.deacon@arm.com>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Tested-by: Yijing Wang <wangyijing@huawei.com>
+Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
+Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Mark Salter <msalter@redhat.com>
+Acked-by: Olof Johansson <olof@lixom.net>
+Acked-by: Grant Likely <grant.likely@linaro.org>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h | 13 +++++++++++++
- include/acpi/acpi_io.h        |  4 ++++
- 2 files changed, 17 insertions(+)
+ arch/arm64/kernel/setup.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 8b837ab..40e0924 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -12,8 +12,21 @@
- #ifndef _ASM_ACPI_H
- #define _ASM_ACPI_H
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 4f1a014..e8c7000 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -390,7 +390,8 @@ void __init setup_arch(char **cmdline_p)
  
-+#include <linux/mm.h>
-+
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
-+/* ACPI table mapping after acpi_gbl_permanent_mmap is set */
-+static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
-+					    acpi_size size)
-+{
-+	if (!page_is_ram(phys >> PAGE_SHIFT))
-+		return ioremap(phys, size);
-+
-+	return ioremap_cache(phys, size);
-+}
-+#define acpi_os_ioremap acpi_os_ioremap
-+
- #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
- extern int acpi_disabled;
- extern int acpi_noirq;
-diff --git a/include/acpi/acpi_io.h b/include/acpi/acpi_io.h
-index 444671e..dd86c5f 100644
---- a/include/acpi/acpi_io.h
-+++ b/include/acpi/acpi_io.h
-@@ -3,11 +3,15 @@
+ 	early_ioremap_reset();
  
- #include <linux/io.h>
+-	unflatten_device_tree();
++	if (acpi_disabled)
++		unflatten_device_tree();
  
-+#include <asm/acpi.h>
-+
-+#ifndef acpi_os_ioremap
- static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
- 					    acpi_size size)
- {
-        return ioremap_cache(phys, size);
- }
-+#endif
+ 	psci_init();
  
- void __iomem *__init_refok
- acpi_os_map_iomem(acpi_physical_address phys, acpi_size size);
 -- 
 1.9.1
