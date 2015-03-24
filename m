@@ -1,119 +1,83 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Tue, 24 Mar 2015 20:55:47 +0100
-Message-ID: <4432037.c8LZLCjoUX@vostro.rjw.lan>
-References: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com> <5510D327.5060400@linux.intel.com> <CAErSpo6uBK2FWK838BUob+54T1NHoak9HiO34TstPwGPazp72A@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
+Date: Tue, 24 Mar 2015 21:02:33 +0100
+Message-ID: <3241492.O6brgYIrX9@vostro.rjw.lan>
+References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com> <5510FB37.6030808@dell.com> <20150324152412.GA4706@codeblueprint.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59970 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752362AbbCXTbo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Mar 2015 15:31:44 -0400
-In-Reply-To: <CAErSpo6uBK2FWK838BUob+54T1NHoak9HiO34TstPwGPazp72A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150324152412.GA4706@codeblueprint.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Mario Limonciello <mario_limonciello@dell.com>, Jason Ekstrand <jason@jlekstrand.net>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, March 24, 2015 08:18:35 AM Bjorn Helgaas wrote:
-> On Mon, Mar 23, 2015 at 9:59 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> > On 2015/3/24 10:42, Bjorn Helgaas wrote:
-> >> On Mon, Mar 23, 2015 at 9:22 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> >>> On 2015/3/24 0:48, Bjorn Helgaas wrote:
-> >>>> On Mon, Mar 23, 2015 at 03:22:14PM +0800, Jiang Liu wrote:
-> >>>>> Commit 63f1789ec716("Ignore resources consumed by host bridge itself")
-> >>>>> tries to ignore resources consumed by PCI host bridge itself by
-> >>>>> checking IORESOURCE_WINDOW flag, which causes regression on some
-> >>>>> platforms.
-> >>>>
-> >>>> "Do.  Or do not.  There is no try."
-> >>>> [http://www.starwars.com/video/do-or-do-not]
-> >>>>
-> >>>> That commit doesn't *try* to do something.  It *does* something.  Just
-> >>>> explain what it does and what's wrong with what it does.
-> >>>>
-> >>>>> For example, PC Engines APU.1C platform defines PCI MMIO resources with
-> >>>>> ACPI Memory32Fixed operator as below:
-> >>>>> Name (CRES, ResourceTemplate ()
-> >>>>> {
-> >>>>>     ...
-> >>>>>     WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
-> >>>>>         0x0000,             // Granularity
-> >>>>>         0x0D00,             // Range Minimum
-> >>>>>         0xFFFF,             // Range Maximum
-> >>>>>         0x0000,             // Translation Offset
-> >>>>>         0xF300,             // Length
-> >>>>>         ,, , TypeStatic)
-> >>>>>     Memory32Fixed (ReadOnly,
-> >>>>>         0x000A0000,         // Address Base
-> >>>>>         0x00020000,         // Address Length
-> >>>>>         )
-> >>>>>     Memory32Fixed (ReadOnly,
-> >>>>>         0x00000000,         // Address Base
-> >>>>>         0x00000000,         // Address Length
-> >>>>>         _Y00)
-> >>>>> })
-> >>>>>
-> >>>>> Memory32Fixed operator doesn't support concept of "producer/consumer"
-> >>>>> and it will be treated as "consumer" by the ACPI resource parsing
-> >>>>> interface, thus cause regression. So the fix is only to check
-> >>>>> "producer/consumer" flag for resources having "producer/consumer" flag.
-> >>>>
-> >>>> Apparently the problem is with the Memory32Fixed resources above; it sounds
-> >>>> like we ignore them after 63f1789ec716?  I don't quite understand how this
-> >>>> fix works.  acpi_dev_filter_resource_type() has cases for both
-> >>>> ACPI_RESOURCE_TYPE_FIXED_MEMORY32 and ACPI_RESOURCE_TYPE_ADDRESSxx, but
-> >>>> this patch only touches the latter, not the
-> >>>> ACPI_RESOURCE_TYPE_FIXED_MEMORY32 case.
-> >>> The idea is:
-> >>> 1) caller specifies IORESOURCE_WINDOW to query resources provided
-> >>>    by the device, otherwise it's querying resources consumed by
-> >>>    the device.
-> >>> 2) For resource descriptors having producer/consumer flag, such as
-> >>>     ACPI_RESOURCE_TYPE_ADDRESSxx, we check the producer/consumer flag.
-> >>> 3) For resource descriptors not having producer/consumer flag, such
-> >>>    as ACPI_RESOURCE_TYPE_FIXED_MEMORY32, we skip checking the
-> >>>    producer/consumer flag.
-> >>
-> >> I figured out that much by reading the code.  But I think the code is
-> >> very hard to read, and I still don't really understand how it works.
-> >>
-> >> Before this fix, we ignore Memory32Fixed resources.  After this fix,
-> >> we use Memory32Fixed as a window.  I think that's an incorrect
-> >> interpretation of Memory32Fixed.
-> > Hi Bjorn,
-> >         I think it's illegal to use Memory32Fixed for PCI host
-> > bridge resource window too. The fix is to solve the regression
-> > by relaxing constraints, but that may not be the right solution.
+On Tuesday, March 24, 2015 03:24:12 PM Matt Fleming wrote:
+> On Tue, 24 Mar, at 12:50:47AM, Mario Limonciello wrote:
+> >
+> > Aside from the mistake that was made in A01 ( which has been corrected
+> > for the recently released A02 ), the goal of this workaround is to be
+> > able to provide a more functional audio solution across a wider
+> > user-base.  Supporting HDA audio for Linux means that users from older
+> > kernels will still have a mostly working solution and not need to wait
+> > for the entire set of I2S kernel and userspace patches to land in
+> > their distro of choice.  We can't expect everyone to run the latest
+> > kernel just to have working audio.
 > 
-> Relaxing the constraint for all platforms is only a solution if we're
-> confident that it works for all platforms.  I'm not confident because
-> I don't know what effect this patch has on systems that use
-> Memory32Fixed correctly.
+> Running a recent kernel is the tradeoff to be paid for using brand new
+> hardware. I certainly don't expect to be able to install a 4-year old
+> version of Fedora on a laptop released this year and have it work
+> flawlessly.
 > 
-> It's possible that you can analyze the behavior and explain that if
-> you relax the constraint, the Memory32Fixed handling (both for bridge
-> and non-bridge devices) will be the same as it was before
-> 63f1789ec716.  If you can do that, I think it would be reasonable
-> because you'd be preserving the previous, known-working behavior.
+> Besides, distributions aggressively backport patches for new hardware
+> support anyway and you should work with the distribution developers to
+> ensure that happens for your hardware. Preferably before it gets
+> released.
 > 
-> If you go that route, I'd like to see a patch that explicitly touches
-> the Memory32Fixed handling.  The current patch claims to change the
-> way we handle Memory32Fixed, but nothing in the code change is
-> directly related to Memory32Fixed, so it's very confusing.
+> Because, fundamentally, when you make these decisions about Linux in the
+> BIOS you're pitting the BIOS and kernel development models against each
+> other. What is going to happen when i2s/i2c finally works correctly in
+> the kernel and distros? It would seem unlikely that a BIOS update would
+> be available to switch everyone to that mode.
 > 
-> >         How about waiting for a while to see whether there are more
-> > bug reports related to this. If only limited platform affected,
-> > we could treat it as BIOS bugs and use quirk to handle it.
-> > Otherwise we may need to relax the constraint.
+> > The entire I2S experience is maturing (thanks Bard), but even in
+> > 4.0-rc5 there are still gaps.
 > 
-> I don't think waiting is a good strategy.  We know we have a
-> regression, and I think we need to fix that ASAP without waiting for
-> more failure reports.
+> I'm sure the audio folks would love to hear about them.
+> 
+> > >Non-Windows BIOS code paths are not validated to the same degree as
+> > >those traversed by running Windows, which is exactly why we try so hard
+> > >to emulate Windows whenever we interact with the BIOS.
+> >
+> > To be clear - this codepath is activating the Windows 7 audio
+> > experience even when Windows 8.1 is detected (Windows 2013 _OSI
+> > responds True).  It's still a Windows BIOS codepath and it's still
+> > heavily validated.  There are 3 values you'll find in a decompiled
+> > DSDT to achieve this in the _REV test block.  2 of them are used to
+> > provide inputs into the EC to toggle HDA or I2S mode.  The other
+> > modifies what ACPI audio device is presented to the system.  There
+> > isn't a special OS type to represent Linux here.  The selected OSTP
+> > corresponds to the Windows 7 OS type.
+>  
+> Thanks, that is clearer and it does address my concerns about Linux-only
+> code paths in the BIOS. But the use of _REV is still only exists to
+> detect Linux (or more accurately an ACPICA OS), and that's a big issue.
+> 
+> > In any case, if the _REV patch does land in the kernel, I think (we)
+> > Dell will still be mostly happy with the results.  Anything older than
+> > 4.x won't contain the the _REV patch and will run in HDA mode.
+> 
+> Unless the patch gets backported to stable kernel versions older than
+> 4.x. Which is likely.
 
-Agreed on all points.
+While I agree in general, one comment.
+
+We haven't decided about the patch yet.  We may decide to bump up the _REV
+to 6 when ACPI 6 is out instead.
+
+That said the whole using of _REV to special case Linux is broken by design
+and should be stopped immediately.  Especially when it is done by comparing
+the return value of _REV to a specific number (like 5 or 3).
 
 Rafael
-
