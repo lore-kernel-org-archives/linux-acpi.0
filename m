@@ -1,55 +1,27 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 04/23] ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-Date: Tue, 24 Mar 2015 22:02:37 +0800
-Message-ID: <1427205776-5060-5-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 15/23] ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+Date: Tue, 24 Mar 2015 22:02:48 +0800
+Message-ID: <1427205776-5060-16-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <al.stone@linaro.org>
+Introduce ACPI_IRQ_MODEL_GIC which is needed for ARM64 as GIC is
+used, and then register device's gsi with the core IRQ subsystem.
 
-As we want to get ACPI tables to parse and then use the information
-for system initialization, we should get the RSDP (Root System
-Description Pointer) first, it then locates Extended Root Description
-Table (XSDT) which contains all the 64-bit physical address that
-pointer to other boot-time tables.
+acpi_register_gsi() is similar to DT based irq_of_parse_and_map(),
+since gsi is unique in the system, so use hwirq number directly
+for the mapping.
 
-Introduce acpi.c and its related head file in this patch to provide
-fundamental needs of extern variables and functions for ACPI core,
-and then get boot-time tables as needed.
-  - asm/acenv.h for arch specific ACPICA environments and
-    implementation, It is needed unconditionally by ACPI core;
-  - asm/acpi.h for arch specific variables and functions needed by
-    ACPI driver core;
-  - acpi.c for ARM64 related ACPI implementation for ACPI driver
-    core;
+We are going to implement stacked domains when GICv2m, GICv3, ITS
+support are added.
 
-acpi_boot_table_init() is introduced to get RSDP and boot-time tables,
-it will be called in setup_arch() before paging_init(), so we should
-use eary_memremap() mechanism here to get the RSDP and all the table
-pointers.
-
-FADT Major.Minor version was introduced in ACPI 5.1, it is the same
-as ACPI version.
-
-In ACPI 5.1, some major gaps are fixed for ARM, such as updates in
-MADT table for GIC and SMP init, without those updates, we can not
-get the MPIDR for SMP init, and GICv2/3 related init information, so
-we can't boot arm64 ACPI properly with table versions predating 5.1.
-
-If firmware provides ACPI tables with ACPI version less than 5.1,
-OS has no way to retrieve the configuration data that is necessary
-to init SMP boot protocol and the GIC properly, so disable ACPI if
-we get an FADT table with version less that 5.1 when acpi_boot_table_init()
-called.
-
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC: Marc Zyngier <marc.zyngier@arm.com>
+Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Yijing Wang <wangyijing@huawei.com>
 Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
@@ -57,246 +29,131 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Olof Johansson <olof@lixom.net>
-Acked-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acenv.h |  18 ++++++++
- arch/arm64/include/asm/acpi.h  |  45 ++++++++++++++++++
- arch/arm64/kernel/Makefile     |   1 +
- arch/arm64/kernel/acpi.c       | 101 +++++++++++++++++++++++++++++++++++++++++
- arch/arm64/kernel/setup.c      |   5 ++
- 5 files changed, 170 insertions(+)
- create mode 100644 arch/arm64/include/asm/acenv.h
- create mode 100644 arch/arm64/include/asm/acpi.h
- create mode 100644 arch/arm64/kernel/acpi.c
+ arch/arm64/kernel/acpi.c | 73 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/bus.c       |  3 ++
+ include/linux/acpi.h     |  1 +
+ 3 files changed, 77 insertions(+)
 
-diff --git a/arch/arm64/include/asm/acenv.h b/arch/arm64/include/asm/acenv.h
-new file mode 100644
-index 0000000..b49166f
---- /dev/null
-+++ b/arch/arm64/include/asm/acenv.h
-@@ -0,0 +1,18 @@
-+/*
-+ * ARM64 specific ACPICA environments and implementation
-+ *
-+ * Copyright (C) 2014, Linaro Ltd.
-+ *   Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *   Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _ASM_ACENV_H
-+#define _ASM_ACENV_H
-+
-+/* It is required unconditionally by ACPI core, update it when needed. */
-+
-+#endif /* _ASM_ACENV_H */
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-new file mode 100644
-index 0000000..8b837ab
---- /dev/null
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -0,0 +1,45 @@
-+/*
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation;
-+ */
-+
-+#ifndef _ASM_ACPI_H
-+#define _ASM_ACPI_H
-+
-+/* Basic configuration for ACPI */
-+#ifdef	CONFIG_ACPI
-+#define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
-+extern int acpi_disabled;
-+extern int acpi_noirq;
-+extern int acpi_pci_disabled;
-+
-+static inline void disable_acpi(void)
-+{
-+	acpi_disabled = 1;
-+	acpi_pci_disabled = 1;
-+	acpi_noirq = 1;
-+}
-+
-+/*
-+ * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-+ * with this check the ACPI core will not override the CPU index
-+ * obtained from GICC with 0 and not print some error message as well.
-+ * Since MADT must provide at least one GICC structure for GIC
-+ * initialization, CPU will be always available in MADT on ARM64.
-+ */
-+static inline bool acpi_has_cpu_in_madt(void)
-+{
-+	return true;
-+}
-+
-+static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-+
-+#endif /* CONFIG_ACPI */
-+
-+#endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index 5ee07ee..fdc7877 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -35,6 +35,7 @@ arm64-obj-$(CONFIG_KGDB)		+= kgdb.o
- arm64-obj-$(CONFIG_EFI)			+= efi.o efi-stub.o efi-entry.o
- arm64-obj-$(CONFIG_PCI)			+= pci.o
- arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
-+arm64-obj-$(CONFIG_ACPI)		+= acpi.o
- 
- obj-y					+= $(arm64-obj-y) vdso/
- obj-m					+= $(arm64-obj-m)
 diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-new file mode 100644
-index 0000000..7abac24
---- /dev/null
+index c9203c0..dec6f8a 100644
+--- a/arch/arm64/kernel/acpi.c
 +++ b/arch/arm64/kernel/acpi.c
-@@ -0,0 +1,101 @@
-+/*
-+ *  ARM64 Specific Low-Level ACPI Boot Support
-+ *
-+ *  Copyright (C) 2013-2014, Linaro Ltd.
-+ *	Author: Al Stone <al.stone@linaro.org>
-+ *	Author: Graeme Gregory <graeme.gregory@linaro.org>
-+ *	Author: Hanjun Guo <hanjun.guo@linaro.org>
-+ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-+ *	Author: Naresh Bhat <naresh.bhat@linaro.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
+@@ -76,6 +76,12 @@ static int __init dt_scan_depth1_nodes(unsigned long node,
+ }
+ 
+ /*
++ * Since we're on ARM, the default interrupt routing model
++ * clearly has to be GIC.
 + */
-+
-+#define pr_fmt(fmt) "ACPI: " fmt
-+
-+#include <linux/acpi.h>
-+#include <linux/bootmem.h>
-+#include <linux/cpumask.h>
-+#include <linux/init.h>
-+#include <linux/irq.h>
-+#include <linux/irqdomain.h>
-+#include <linux/memblock.h>
-+#include <linux/smp.h>
-+
-+int acpi_noirq;			/* skip ACPI IRQ initialization */
-+int acpi_disabled;
-+EXPORT_SYMBOL(acpi_disabled);
-+
-+int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
-+EXPORT_SYMBOL(acpi_pci_disabled);
++enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
 +
 +/*
-+ * __acpi_map_table() will be called before page_init(), so early_ioremap()
-+ * or early_memremap() should be called here to for ACPI table mapping.
+  * __acpi_map_table() will be called before page_init(), so early_ioremap()
+  * or early_memremap() should be called here to for ACPI table mapping.
+  */
+@@ -218,6 +224,73 @@ void __init acpi_init_cpus(void)
+ 	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+ }
+ 
++int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
++{
++	*irq = irq_find_mapping(NULL, gsi);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
++
++/*
++ * success: return IRQ number (>0)
++ * failure: return =< 0
 + */
-+char *__init __acpi_map_table(unsigned long phys, unsigned long size)
++int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
 +{
-+	if (!size)
-+		return NULL;
-+
-+	return early_memremap(phys, size);
-+}
-+
-+void __init __acpi_unmap_table(char *map, unsigned long size)
-+{
-+	if (!map || !size)
-+		return;
-+
-+	early_memunmap(map, size);
-+}
-+
-+static int __init acpi_parse_fadt(struct acpi_table_header *table)
-+{
-+	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
++	unsigned int irq;
++	unsigned int irq_type;
 +
 +	/*
-+	 * Revision in table header is the FADT Major revision, and there
-+	 * is a minor revision of FADT which was introduced by ACPI 5.1,
-+	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
-+	 * boot protocol configuration data, or we will disable ACPI.
++	 * ACPI have no bindings to indicate SPI or PPI, so we
++	 * use different mappings from DT in ACPI.
++	 *
++	 * For FDT
++	 * PPI interrupt: in the range [0, 15];
++	 * SPI interrupt: in the range [0, 987];
++	 *
++	 * For ACPI, GSI should be unique so using
++	 * the hwirq directly for the mapping:
++	 * PPI interrupt: in the range [16, 31];
++	 * SPI interrupt: in the range [32, 1019];
 +	 */
-+	if (table->revision > 5 ||
-+	    (table->revision == 5 && fadt->minor_revision >= 1))
-+		return 0;
 +
-+	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
-+		table->revision, fadt->minor_revision);
-+	disable_acpi();
++	if (trigger == ACPI_EDGE_SENSITIVE &&
++				polarity == ACPI_ACTIVE_LOW)
++		irq_type = IRQ_TYPE_EDGE_FALLING;
++	else if (trigger == ACPI_EDGE_SENSITIVE &&
++				polarity == ACPI_ACTIVE_HIGH)
++		irq_type = IRQ_TYPE_EDGE_RISING;
++	else if (trigger == ACPI_LEVEL_SENSITIVE &&
++				polarity == ACPI_ACTIVE_LOW)
++		irq_type = IRQ_TYPE_LEVEL_LOW;
++	else if (trigger == ACPI_LEVEL_SENSITIVE &&
++				polarity == ACPI_ACTIVE_HIGH)
++		irq_type = IRQ_TYPE_LEVEL_HIGH;
++	else
++		irq_type = IRQ_TYPE_NONE;
 +
-+	return -EINVAL;
++	/*
++	 * Since only one GIC is supported in ACPI 5.0, we can
++	 * create mapping refer to the default domain
++	 */
++	irq = irq_create_mapping(NULL, gsi);
++	if (!irq)
++		return irq;
++
++	/* Set irq type if specified and different than the current one */
++	if (irq_type != IRQ_TYPE_NONE &&
++		irq_type != irq_get_trigger_type(irq))
++		irq_set_irq_type(irq, irq_type);
++	return irq;
 +}
++EXPORT_SYMBOL_GPL(acpi_register_gsi);
 +
-+/*
-+ * acpi_boot_table_init() called from setup_arch(), always.
-+ *	1. find RSDP and get its address, and then find XSDT
-+ *	2. extract all tables and checksums them all
-+ *	3. check ACPI FADT revision
-+ *
-+ * We can parse ACPI boot-time tables such as MADT after
-+ * this function is called.
-+ */
-+void __init acpi_boot_table_init(void)
++void acpi_unregister_gsi(u32 gsi)
 +{
-+	/* If acpi_disabled, bail out */
-+	if (acpi_disabled)
-+		return;
-+
-+	/* Initialize the ACPI boot-time table parser. */
-+	if (acpi_table_init()) {
-+		disable_acpi();
-+		return;
-+	}
-+
-+	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
-+		/* disable ACPI if no FADT is found */
-+		disable_acpi();
-+		pr_err("Can't find FADT\n");
-+	}
 +}
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index e8420f6..4f1a014 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -17,6 +17,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/export.h>
- #include <linux/kernel.h>
- #include <linux/stddef.h>
-@@ -46,6 +47,7 @@
- #include <linux/efi.h>
- #include <linux/personality.h>
- 
-+#include <asm/acpi.h>
- #include <asm/fixmap.h>
- #include <asm/cpu.h>
- #include <asm/cputype.h>
-@@ -380,6 +382,9 @@ void __init setup_arch(char **cmdline_p)
- 	efi_init();
- 	arm64_memblock_init();
- 
-+	/* Parse the ACPI tables for possible boot-time configuration */
-+	acpi_boot_table_init();
++EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
 +
- 	paging_init();
- 	request_standard_resources();
+ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 8b67bd0..c412fdb 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -448,6 +448,9 @@ static int __init acpi_bus_init_irq(void)
+ 	case ACPI_IRQ_MODEL_IOSAPIC:
+ 		message = "IOSAPIC";
+ 		break;
++	case ACPI_IRQ_MODEL_GIC:
++		message = "GIC";
++		break;
+ 	case ACPI_IRQ_MODEL_PLATFORM:
+ 		message = "platform specific model";
+ 		break;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 6ec33c5..de4e86f 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -73,6 +73,7 @@ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_IOAPIC,
+ 	ACPI_IRQ_MODEL_IOSAPIC,
+ 	ACPI_IRQ_MODEL_PLATFORM,
++	ACPI_IRQ_MODEL_GIC,
+ 	ACPI_IRQ_MODEL_COUNT
+ };
  
 -- 
 1.9.1
