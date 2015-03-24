@@ -1,30 +1,120 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
-Date: Tue, 24 Mar 2015 15:21:17 -0500
-Message-ID: <5511C73D.5020006@dell.com>
-References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com> <5510FB37.6030808@dell.com> <20150324152412.GA4706@codeblueprint.co.uk> <3241492.O6brgYIrX9@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/2] PCI: rename _DSM UUID array
+Date: Tue, 24 Mar 2015 22:57:35 +0100
+Message-ID: <2882393.gnxeIGK6OM@vostro.rjw.lan>
+References: <54FD4FB9.2060802@intel.com> <13489176.3njQWsGiXL@vostro.rjw.lan> <55112899.3000904@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3241492.O6brgYIrX9@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Jason Ekstrand <jason@jlekstrand.net>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:63712 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751990AbbCXVdd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Mar 2015 17:33:33 -0400
+In-Reply-To: <55112899.3000904@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
+On Tuesday, March 24, 2015 05:04:25 PM Aaron Lu wrote:
+> According to the PCI firmware spec, there is only one assigned UUID used
+> for PCI system so rename the device_label_dsm_uuid to something more
+> common as: pci_acpi_dsm_uuid and put it in drivers/pci/pci-acpi.c. Make
+> that UUID array extern in the pci-acpi.h so that other code can also
+> make use of it.
+> 
+> This patch shouldn't bring any functional change.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-On 03/24/2015 03:02 PM, Rafael J. Wysocki wrote:
-> On Tuesday, March 24, 2015 03:24:12 PM Matt Fleming wrote:
-> While I agree in general, one comment.
->
-> We haven't decided about the patch yet.  We may decide to bump up the _REV
-> to 6 when ACPI 6 is out instead.
-I'd be happy with this too.
-> That said the whole using of _REV to special case Linux is broken by design
-> and should be stopped immediately.  Especially when it is done by comparing
-> the return value of _REV to a specific number (like 5 or 3).
->
-> Rafael
->
-Yes, it's been made clear to me that this shouldn't be used in the future.  I've shared that feedback to my BIOS architecture team.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+>  drivers/pci/pci-acpi.c   |  9 +++++++++
+>  drivers/pci/pci-label.c  | 11 ++---------
+>  include/linux/pci-acpi.h |  3 +++
+>  3 files changed, 14 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index 489063987325..e0afc94aca01 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -18,6 +18,15 @@
+>  #include <linux/pm_qos.h>
+>  #include "pci.h"
+>  
+> +/*
+> + * The UUID is defined in the PCI firmware specification available here:
+> + * https://www.pcisig.com/members/downloads/pcifw_r3_1_13Dec10.pdf
+> + */
+> +const u8 pci_acpi_dsm_uuid[] = {
+> +	0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
+> +	0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
+> +};
+> +
+>  phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
+>  {
+>  	acpi_status status = AE_NOT_EXIST;
+> diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
+> index 2ab1b47c7651..024b5c179348 100644
+> --- a/drivers/pci/pci-label.c
+> +++ b/drivers/pci/pci-label.c
+> @@ -31,8 +31,6 @@
+>  #include <linux/pci-acpi.h>
+>  #include "pci.h"
+>  
+> -#define	DEVICE_LABEL_DSM	0x07
+> -
+>  #ifdef CONFIG_DMI
+>  enum smbios_attr_enum {
+>  	SMBIOS_ATTR_NONE = 0,
+> @@ -148,11 +146,6 @@ static inline void pci_remove_smbiosname_file(struct pci_dev *pdev)
+>  #endif
+>  
+>  #ifdef CONFIG_ACPI
+> -static const char device_label_dsm_uuid[] = {
+> -	0xD0, 0x37, 0xC9, 0xE5, 0x53, 0x35, 0x7A, 0x4D,
+> -	0x91, 0x17, 0xEA, 0x4D, 0x19, 0xC3, 0x43, 0x4D
+> -};
+> -
+>  enum acpi_attr_enum {
+>  	ACPI_ATTR_LABEL_SHOW,
+>  	ACPI_ATTR_INDEX_SHOW,
+> @@ -179,7 +172,7 @@ static int dsm_get_label(struct device *dev, char *buf,
+>  	if (!handle)
+>  		return -1;
+>  
+> -	obj = acpi_evaluate_dsm(handle, device_label_dsm_uuid, 0x2,
+> +	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 0x2,
+>  				DEVICE_LABEL_DSM, NULL);
+>  	if (!obj)
+>  		return -1;
+> @@ -219,7 +212,7 @@ static bool device_has_dsm(struct device *dev)
+>  	if (!handle)
+>  		return false;
+>  
+> -	return !!acpi_check_dsm(handle, device_label_dsm_uuid, 0x2,
+> +	return !!acpi_check_dsm(handle, pci_acpi_dsm_uuid, 0x2,
+>  				1 << DEVICE_LABEL_DSM);
+>  }
+>  
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index 24c7728ca681..3801c704a945 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -77,6 +77,9 @@ static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
+>  static inline void acpiphp_check_host_bridge(struct acpi_device *adev) { }
+>  #endif
+>  
+> +extern const u8 pci_acpi_dsm_uuid[];
+> +#define DEVICE_LABEL_DSM	0x07
+> +
+>  #else	/* CONFIG_ACPI */
+>  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+>  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
