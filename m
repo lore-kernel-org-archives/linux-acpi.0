@@ -1,159 +1,162 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 08/23] ARM64 / ACPI: Introduce early_param "acpi=" to enable/disable ACPI
-Date: Tue, 24 Mar 2015 22:02:41 +0800
-Message-ID: <1427205776-5060-9-git-send-email-hanjun.guo@linaro.org>
-References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [V5 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
+ matching
+Date: Tue, 24 Mar 2015 09:23:47 -0500
+Message-ID: <55117373.3020808@amd.com>
+References: <1425622302-15193-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1425622302-15193-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20150309152011.GA1563@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bn0102.outbound.protection.outlook.com ([157.56.110.102]:24309
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752261AbbCXOXz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Mar 2015 10:23:55 -0400
+In-Reply-To: <20150309152011.GA1563@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: rjw@rjwysocki.net, lv.zheng@intel.com, hpa@linux.intel.com, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-From: Al Stone <al.stone@linaro.org>
+Not sure if this email went out originally. So, I am resending this.
 
-This implements the following policy to decide whether ACPI should
-be used to boot the system:
-- acpi=off: ACPI will not be used to boot the system, even if there is
-  no alternative available (e.g., device tree is empty)
-- acpi=force: only ACPI will be used to boot the system; if that fails,
-  there will be no fallback to alternative methods (such as device tree)
-- otherwise, ACPI will be used as a fallback if the device tree turns out
-  to lack a platform description; the heuristic to decide this is whether
-  /chosen is the only node present at depth 1
+On 3/9/15 10:20, Mika Westerberg wrote:
+> On Fri, Mar 06, 2015 at 12:11:41AM -0600, Suravee Suthikulpanit wrote:
+>> Device drivers typically use ACPI _HIDs/_CIDs listed in struct device_driver
+>> acpi_match_table to match devices. However, for generic drivers, we do not
+>> want to list _HID for all supported devices. Also, certain classes of devices
+>> do not have _CID (e.g. SATA, USB). Instead, we can leverage ACPI _CLS,
+>> which specifies PCI-defined class code (i.e. base-class, subclass and
+>> programming interface). This patch adds support for matching ACPI devices using
+>> the _CLS method.
+>>
+>> To support loadable module, current design uses _HID or _CID to match device's
+>> modalias. With the new way of matching with _CLS this would requires modification
+>> to the current ACPI modalias key to include _CLS. This patch appends PCI-defined
+>> class-code to the existing ACPI modalias as following.
+>>
+>>      acpi:<HID>:<CID1>:<CID2>:..:<CIDn>:<bbsspp>:
+>> E.g:
+>>      # cat /sys/devices/platform/AMDI0600:00/modalias
+>>      acpi:AMDI0600:010601:
+>>
+>> where bb is th base-class code, ss is te sub-class code, and pp is the
+>> programming interface code
+>>
+>> Since there would not be _HID/_CID in the ACPI matching table of the driver,
+>> this patch adds a field to acpi_device_id to specify the matching _CLS.
+>>
+>>      static const struct acpi_device_id ahci_acpi_match[] = {
+>>          { "", 0, PCI_CLASS_STORAGE_SATA_AHCI },
+>
+> How about introducing macro like PCI already has and then do it like:
+>
+> 	{ ACPI_DEVICE_CLASS(PCI_CLASS_STORAGE_SATA_AHCI) },
 
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-Acked-by: Olof Johansson <olof@lixom.net>
-Acked-by: Grant Likely <grant.likely@linaro.org>
-Tested-by: Timur Tabi <timur@codeaurora.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- Documentation/kernel-parameters.txt |  3 ++-
- arch/arm64/include/asm/acpi.h       |  7 +++++
- arch/arm64/kernel/acpi.c            | 52 +++++++++++++++++++++++++++++++++----
- 3 files changed, 56 insertions(+), 6 deletions(-)
+This is good.  I'll update this.
+>
+> Also should we allow mask here as well? This would allow partial match
+> if, for example we are only interested in class and subclass.
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index bfcb1a6..d6c35a7 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -165,7 +165,7 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
- bytes respectively. Such letter suffixes can also be entirely omitted.
- 
- 
--	acpi=		[HW,ACPI,X86]
-+	acpi=		[HW,ACPI,X86,ARM64]
- 			Advanced Configuration and Power Interface
- 			Format: { force | off | strict | noirq | rsdt }
- 			force -- enable ACPI if default was off
-@@ -175,6 +175,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 				strictly ACPI specification compliant.
- 			rsdt -- prefer RSDT over (default) XSDT
- 			copy_dsdt -- copy DSDT to memory
-+			For ARM64, ONLY "acpi=off" or "acpi=force" are available
- 
- 			See also Documentation/power/runtime_pm.txt, pci=noacpi
- 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 40e0924..c5a9b97 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -39,6 +39,13 @@ static inline void disable_acpi(void)
- 	acpi_noirq = 1;
- }
- 
-+static inline void enable_acpi(void)
-+{
-+	acpi_disabled = 0;
-+	acpi_pci_disabled = 0;
-+	acpi_noirq = 0;
-+}
-+
- /*
-  * It's used from ACPI core in kdump to boot UP system with SMP kernel,
-  * with this check the ACPI core will not override the CPU index
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 7abac24..2269e30 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -22,15 +22,49 @@
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
- #include <linux/memblock.h>
-+#include <linux/of_fdt.h>
- #include <linux/smp.h>
- 
--int acpi_noirq;			/* skip ACPI IRQ initialization */
--int acpi_disabled;
-+int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
-+int acpi_disabled = 1;
- EXPORT_SYMBOL(acpi_disabled);
- 
--int acpi_pci_disabled;		/* skip ACPI PCI scan and IRQ initialization */
-+int acpi_pci_disabled = 1;	/* skip ACPI PCI scan and IRQ initialization */
- EXPORT_SYMBOL(acpi_pci_disabled);
- 
-+static bool param_acpi_off __initdata;
-+static bool param_acpi_force __initdata;
-+
-+static int __init parse_acpi(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	/* "acpi=off" disables both ACPI table parsing and interpreter */
-+	if (strcmp(arg, "off") == 0)
-+		param_acpi_off = true;
-+	else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
-+		param_acpi_force = true;
-+	else
-+		return -EINVAL;	/* Core will print when we return error */
-+
-+	return 0;
-+}
-+early_param("acpi", parse_acpi);
-+
-+static int __init dt_scan_depth1_nodes(unsigned long node,
-+				       const char *uname, int depth,
-+				       void *data)
-+{
-+	/*
-+	 * Return 1 as soon as we encounter a node at depth 1 that is
-+	 * not the /chosen node.
-+	 */
-+	if (depth == 1 && (strcmp(uname, "chosen") != 0))
-+		return 1;
-+	return 0;
-+}
-+
- /*
-  * __acpi_map_table() will be called before page_init(), so early_ioremap()
-  * or early_memremap() should be called here to for ACPI table mapping.
-@@ -83,10 +117,18 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
-  */
- void __init acpi_boot_table_init(void)
- {
--	/* If acpi_disabled, bail out */
--	if (acpi_disabled)
-+	/*
-+	 * Enable ACPI instead of device tree unless
-+	 * - ACPI has been disabled explicitly (acpi=off), or
-+	 * - the device tree is not empty (it has more than just a /chosen node)
-+	 *   and ACPI has not been force enabled (acpi=force)
-+	 */
-+	if (param_acpi_off ||
-+	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
- 		return;
- 
-+	enable_acpi();
-+
- 	/* Initialize the ACPI boot-time table parser. */
- 	if (acpi_table_init()) {
- 		disable_acpi();
--- 
-1.9.1
+Hm, I'm not familiar with how other drivers might be benefit from this. 
+Could you please give an example of a drivers that only deals with just 
+the class and/or subclass of devices?
+
+If so, could we use 0xFF to specify the don't care field?
+
+>
+>>          {},
+>>      };
+>>
+>> In this case, the corresponded entry in modules.alias file would be:
+>>
+>>      alias acpi*:010601:* ahci_platform
+>>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> ---
+>>   drivers/acpi/acpica/acutils.h     |  3 ++
+>>   drivers/acpi/acpica/nsxfname.c    | 21 ++++++++++--
+>>   drivers/acpi/acpica/utids.c       | 71 +++++++++++++++++++++++++++++++++++++++
+>
+> I think you need to split the ACPICA part to be a separate patch. Those
+> are merged through ACPICA.
+
+I will update this in the next patch set.
+
+>> [....]
+>> diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+>> index e530533..9a42522 100644
+>> --- a/include/linux/mod_devicetable.h
+>> +++ b/include/linux/mod_devicetable.h
+>> @@ -189,6 +189,7 @@ struct css_device_id {
+>>   struct acpi_device_id {
+>>   	__u8 id[ACPI_ID_LEN];
+>>   	kernel_ulong_t driver_data;
+>> +	__u32 cls;
+>
+> It would be nice if we could change ordering here but I understand that
+> it breaks quite many drivers. Perhaps we should consider creating
+> ACPI_DEVICE() macro and convert existing drivers to that at some point.
+
+Yes, a roughly grep in the drivers directory showing about 112 files at 
+the moment. If you think this is the right approach going forward, we 
+can work on cleaning this up on a separate patch series. Please let me 
+know what you think.
+
+Thanks,
+
+Suravee
+
+>>   };
+>>
+>>   #define PNP_ID_LEN	8
+>> diff --git a/scripts/mod/devicetable-offsets.c b/scripts/mod/devicetable-offsets.c
+>> index f282516..7f68268 100644
+>> --- a/scripts/mod/devicetable-offsets.c
+>> +++ b/scripts/mod/devicetable-offsets.c
+>> @@ -63,6 +63,7 @@ int main(void)
+>>
+>>   	DEVID(acpi_device_id);
+>>   	DEVID_FIELD(acpi_device_id, id);
+>> +	DEVID_FIELD(acpi_device_id, cls);
+>>
+>>   	DEVID(pnp_device_id);
+>>   	DEVID_FIELD(pnp_device_id, id);
+>> diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+>> index e614ef6..ba5998c 100644
+>> --- a/scripts/mod/file2alias.c
+>> +++ b/scripts/mod/file2alias.c
+>> @@ -511,12 +511,21 @@ static int do_serio_entry(const char *filename,
+>>   }
+>>   ADD_TO_DEVTABLE("serio", serio_device_id, do_serio_entry);
+>>
+>> -/* looks like: "acpi:ACPI0003 or acpi:PNP0C0B" or "acpi:LNXVIDEO" */
+>> +/* looks like: "acpi:ACPI0003" or "acpi:PNP0C0B"  or "acpi:LNXVIDEO" or
+>> + *             "acpi:bbsspp" (bb=base-class, ss=sub-class, pp=prog-if)
+>> + *
+>> + * NOTE: * Each driver should use one of the following : _HID, _CIDs or _CLS.
+>> + */
+>>   static int do_acpi_entry(const char *filename,
+>>   			void *symval, char *alias)
+>>   {
+>>   	DEF_FIELD_ADDR(symval, acpi_device_id, id);
+>> -	sprintf(alias, "acpi*:%s:*", *id);
+>> +	DEF_FIELD_ADDR(symval, acpi_device_id, cls);
+>> +
+>> +	if (id && strlen((const char *)*id))
+>> +		sprintf(alias, "acpi*:%s:*", *id);
+>> +	else if (cls)
+>> +		sprintf(alias, "acpi*:%06x:*", *cls);
+>>   	return 1;
+>>   }
+>>   ADD_TO_DEVTABLE("acpi", acpi_device_id, do_acpi_entry);
+>> --
+>> 2.1.0
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
