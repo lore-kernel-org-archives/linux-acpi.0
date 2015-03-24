@@ -1,32 +1,31 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 12/23] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Tue, 24 Mar 2015 22:02:45 +0800
-Message-ID: <1427205776-5060-13-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 16/23] irqchip: Add GICv2 specific ACPI boot support
+Date: Tue, 24 Mar 2015 22:02:49 +0800
+Message-ID: <1427205776-5060-17-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-MADT contains the information for MPIDR which is essential for
-SMP initialization, parse the GIC cpu interface structures to
-get the MPIDR value and map it to cpu_logical_map(), and add
-enabled cpu with valid MPIDR into cpu_possible_map.
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-ACPI 5.1 only has two explicit methods to boot up SMP, PSCI and
-Parking protocol, but the Parking protocol is only specified for
-ARMv7 now, so make PSCI as the only way for the SMP boot protocol
-before some updates for the ACPI spec or the Parking protocol spec.
+ACPI kernel uses MADT table for proper GIC initialization. It needs to
+parse GIC related subtables, collect CPU interface and distributor
+addresses and call driver initialization function (which is hardware
+abstraction agnostic). In a similar way, FDT initialize GICv1/2.
 
-Parking protocol patches for SMP boot will be sent to upstream when
-the new version of Parking protocol is ready.
+NOTE: This commit allow to initialize GICv1/2 basic functionality.
+While now simple GICv2 init call is used, any further GIC features
+require generic infrastructure for proper ACPI irqchip initialization.
+That mechanism and stacked irqdomains to support GICv2 MSI/virtualization
+extension, GICv3/4 and its ITS are considered as next steps.
 
-CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Mark Rutland <mark.rutland@arm.com>
+CC: Jason Cooper <jason@lakedaemon.net>
+CC: Marc Zyngier <marc.zyngier@arm.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Yijing Wang <wangyijing@huawei.com>
 Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
@@ -34,294 +33,292 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Olof Johansson <olof@lixom.net>
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+Acked-by: Jason Cooper <jason@lakedaemon.net>
 Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h    |   2 +
- arch/arm64/include/asm/cpu_ops.h |   1 +
- arch/arm64/include/asm/smp.h     |   5 +-
- arch/arm64/kernel/acpi.c         | 149 ++++++++++++++++++++++++++++++++++++++-
- arch/arm64/kernel/cpu_ops.c      |   2 +-
- arch/arm64/kernel/setup.c        |   7 +-
- arch/arm64/kernel/smp.c          |   2 +-
- 7 files changed, 160 insertions(+), 8 deletions(-)
+ arch/arm64/include/asm/acpi.h        |   2 +
+ arch/arm64/include/asm/irq.h         |  13 +++++
+ arch/arm64/kernel/acpi.c             |  25 +++++++++
+ drivers/irqchip/irq-gic.c            | 102 +++++++++++++++++++++++++++++++++++
+ drivers/irqchip/irqchip.c            |   3 ++
+ include/linux/acpi_irq.h             |  10 ++++
+ include/linux/irqchip/arm-gic-acpi.h |  31 +++++++++++
+ 7 files changed, 186 insertions(+)
+ create mode 100644 include/linux/acpi_irq.h
+ create mode 100644 include/linux/irqchip/arm-gic-acpi.h
 
 diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 9ea650c..9719921 100644
+index eea0bc3..59c05d8 100644
 --- a/arch/arm64/include/asm/acpi.h
 +++ b/arch/arm64/include/asm/acpi.h
-@@ -71,10 +71,12 @@ static inline bool acpi_has_cpu_in_madt(void)
- }
+@@ -13,6 +13,8 @@
+ #define _ASM_ACPI_H
  
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
-+void __init acpi_init_cpus(void);
+ #include <linux/mm.h>
++#include <linux/irqchip/arm-gic-acpi.h>
++
+ #include <asm/cputype.h>
+ #include <asm/smp_plat.h>
  
- #else
- static inline bool acpi_psci_present(void) { return false; }
- static inline bool acpi_psci_use_hvc(void) { return false; }
-+static inline void acpi_init_cpus(void) { }
- #endif /* CONFIG_ACPI */
+diff --git a/arch/arm64/include/asm/irq.h b/arch/arm64/include/asm/irq.h
+index 94c5367..bbb251b 100644
+--- a/arch/arm64/include/asm/irq.h
++++ b/arch/arm64/include/asm/irq.h
+@@ -1,6 +1,8 @@
+ #ifndef __ASM_IRQ_H
+ #define __ASM_IRQ_H
  
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/include/asm/cpu_ops.h b/arch/arm64/include/asm/cpu_ops.h
-index da301ee..5a31d67 100644
---- a/arch/arm64/include/asm/cpu_ops.h
-+++ b/arch/arm64/include/asm/cpu_ops.h
-@@ -66,5 +66,6 @@ struct cpu_operations {
- extern const struct cpu_operations *cpu_ops[NR_CPUS];
- int __init cpu_read_ops(struct device_node *dn, int cpu);
- void __init cpu_read_bootcpu_ops(void);
-+const struct cpu_operations *cpu_get_ops(const char *name);
++#include <linux/irqchip/arm-gic-acpi.h>
++
+ #include <asm-generic/irq.h>
  
- #endif /* ifndef __ASM_CPU_OPS_H */
-diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
-index 780f82c..bf22650 100644
---- a/arch/arm64/include/asm/smp.h
-+++ b/arch/arm64/include/asm/smp.h
-@@ -39,9 +39,10 @@ extern void show_ipi_list(struct seq_file *p, int prec);
- extern void handle_IPI(int ipinr, struct pt_regs *regs);
+ struct pt_regs;
+@@ -8,4 +10,15 @@ struct pt_regs;
+ extern void migrate_irqs(void);
+ extern void set_handle_irq(void (*handle_irq)(struct pt_regs *));
  
- /*
-- * Setup the set of possible CPUs (via set_cpu_possible)
-+ * Discover the set of possible CPUs and determine their
-+ * SMP operations.
-  */
--extern void smp_init_cpus(void);
-+extern void of_smp_init_cpus(void);
- 
- /*
-  * Provide a function to raise an IPI cross call on CPUs in callmap.
++static inline void acpi_irq_init(void)
++{
++	/*
++	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
++	 * Proper irqchip infrastructure will be implemented along with
++	 * incoming  GICv2m|GICv3|ITS bits.
++	 */
++	acpi_gic_init();
++}
++#define acpi_irq_init acpi_irq_init
++
+ #endif
 diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 2269e30..c9203c0 100644
+index dec6f8a..6468f88 100644
 --- a/arch/arm64/kernel/acpi.c
 +++ b/arch/arm64/kernel/acpi.c
-@@ -25,6 +25,10 @@
- #include <linux/of_fdt.h>
- #include <linux/smp.h>
- 
-+#include <asm/cputype.h>
-+#include <asm/cpu_ops.h>
-+#include <asm/smp_plat.h>
-+
- int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
- int acpi_disabled = 1;
- EXPORT_SYMBOL(acpi_disabled);
-@@ -32,6 +36,12 @@ EXPORT_SYMBOL(acpi_disabled);
- int acpi_pci_disabled = 1;	/* skip ACPI PCI scan and IRQ initialization */
- EXPORT_SYMBOL(acpi_pci_disabled);
- 
-+/* Processors with enabled flag and sane MPIDR */
-+static int enabled_cpus;
-+
-+/* Boot CPU is valid or not in MADT */
-+static bool bootcpu_valid  __initdata;
-+
- static bool param_acpi_off __initdata;
- static bool param_acpi_force __initdata;
- 
-@@ -85,6 +95,129 @@ void __init __acpi_unmap_table(char *map, unsigned long size)
- 	early_memunmap(map, size);
+@@ -359,3 +359,28 @@ void __init acpi_boot_table_init(void)
+ 		pr_err("Can't find FADT\n");
+ 	}
  }
- 
-+/**
-+ * acpi_map_gic_cpu_interface - generates a logical cpu number
-+ * and map to MPIDR represented by GICC structure
-+ * @mpidr: CPU's hardware id to register, MPIDR represented in MADT
-+ * @enabled: this cpu is enabled or not
-+ *
-+ * Returns the logical cpu number which maps to MPIDR
-+ */
-+static int __init acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
++
++void __init acpi_gic_init(void)
 +{
-+	int i;
++	struct acpi_table_header *table;
++	acpi_status status;
++	acpi_size tbl_size;
++	int err;
 +
-+	if (mpidr == INVALID_HWID) {
-+		pr_info("Skip MADT cpu entry with invalid MPIDR\n");
-+		return -EINVAL;
++	if (acpi_disabled)
++		return;
++
++	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
++	if (ACPI_FAILURE(status)) {
++		const char *msg = acpi_format_exception(status);
++
++		pr_err("Failed to get MADT table, %s\n", msg);
++		return;
 +	}
 +
-+	total_cpus++;
-+	if (!enabled)
-+		return -EINVAL;
++	err = gic_v2_acpi_init(table);
++	if (err)
++		pr_err("Failed to initialize GIC IRQ controller");
 +
-+	if (enabled_cpus >=  NR_CPUS) {
-+		pr_warn("NR_CPUS limit of %d reached, Processor %d/0x%llx ignored.\n",
-+			NR_CPUS, total_cpus, mpidr);
-+		return -EINVAL;
-+	}
-+
-+	/* Check if GICC structure of boot CPU is available in the MADT */
-+	if (cpu_logical_map(0) == mpidr) {
-+		if (bootcpu_valid) {
-+			pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
-+			       mpidr);
-+			return -EINVAL;
-+		}
-+
-+		bootcpu_valid = true;
-+	}
-+
-+	/*
-+	 * Duplicate MPIDRs are a recipe for disaster. Scan
-+	 * all initialized entries and check for
-+	 * duplicates. If any is found just ignore the CPU.
-+	 */
-+	for (i = 1; i < enabled_cpus; i++) {
-+		if (cpu_logical_map(i) == mpidr) {
-+			pr_err("Firmware bug, duplicate CPU MPIDR: 0x%llx in MADT\n",
-+			       mpidr);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	if (!acpi_psci_present())
-+		return -EOPNOTSUPP;
-+
-+	cpu_ops[enabled_cpus] = cpu_get_ops("psci");
-+	/* CPU 0 was already initialized */
-+	if (enabled_cpus) {
-+		if (!cpu_ops[enabled_cpus])
-+			return -EINVAL;
-+
-+		if (cpu_ops[enabled_cpus]->cpu_init(NULL, enabled_cpus))
-+			return -EOPNOTSUPP;
-+
-+		/* map the logical cpu id to cpu MPIDR */
-+		cpu_logical_map(enabled_cpus) = mpidr;
-+	}
-+
-+	enabled_cpus++;
-+	return enabled_cpus;
++	early_acpi_os_unmap_memory((char *)table, tbl_size);
 +}
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 471e1cd..d15a36a 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -33,12 +33,14 @@
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
++#include <linux/acpi.h>
+ #include <linux/irqdomain.h>
+ #include <linux/interrupt.h>
+ #include <linux/percpu.h>
+ #include <linux/slab.h>
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/irqchip/arm-gic.h>
++#include <linux/irqchip/arm-gic-acpi.h>
+ 
+ #include <asm/cputype.h>
+ #include <asm/irq.h>
+@@ -1090,3 +1092,103 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
+ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
+ 
+ #endif
++
++#ifdef CONFIG_ACPI
++static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
 +
 +static int __init
-+acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
-+				const unsigned long end)
++gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
++			const unsigned long end)
 +{
 +	struct acpi_madt_generic_interrupt *processor;
++	phys_addr_t gic_cpu_base;
++	static int cpu_base_assigned;
 +
 +	processor = (struct acpi_madt_generic_interrupt *)header;
 +
 +	if (BAD_MADT_ENTRY(processor, end))
 +		return -EINVAL;
 +
-+	acpi_table_print_madt_entry(header);
++	/*
++	 * There is no support for non-banked GICv1/2 register in ACPI spec.
++	 * All CPU interface addresses have to be the same.
++	 */
++	gic_cpu_base = processor->base_address;
++	if (cpu_base_assigned && gic_cpu_base != cpu_phy_base)
++		return -EINVAL;
 +
-+	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITMASK,
-+		processor->flags & ACPI_MADT_ENABLED);
-+
++	cpu_phy_base = gic_cpu_base;
++	cpu_base_assigned = 1;
 +	return 0;
 +}
 +
-+/* Parse GIC cpu interface entries in MADT for SMP init */
-+void __init acpi_init_cpus(void)
++static int __init
++gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
++				const unsigned long end)
 +{
-+	int count, i;
++	struct acpi_madt_generic_distributor *dist;
 +
-+	/*
-+	 * do a partial walk of MADT to determine how many CPUs
-+	 * we have including disabled CPUs, and get information
-+	 * we need for SMP init
-+	 */
-+	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-+			acpi_parse_gic_cpu_interface, 0);
++	dist = (struct acpi_madt_generic_distributor *)header;
 +
-+	if (!count) {
-+		pr_err("No GIC CPU interface entries present\n");
-+		return;
-+	} else if (count < 0) {
-+		pr_err("Error parsing GIC CPU interface entry\n");
-+		return;
-+	}
++	if (BAD_MADT_ENTRY(dist, end))
++		return -EINVAL;
 +
-+	if (!bootcpu_valid) {
-+		pr_err("MADT missing boot CPU MPIDR, not enabling secondaries\n");
-+		return;
-+	}
-+
-+	for (i = 0; i < enabled_cpus; i++)
-+		set_cpu_possible(i, true);
-+
-+	/* Make boot-up look pretty */
-+	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
++	dist_phy_base = dist->base_address;
++	return 0;
 +}
 +
- static int __init acpi_parse_fadt(struct acpi_table_header *table)
- {
- 	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-@@ -96,8 +229,20 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
- 	 * boot protocol configuration data, or we will disable ACPI.
- 	 */
- 	if (table->revision > 5 ||
--	    (table->revision == 5 && fadt->minor_revision >= 1))
--		return 0;
-+	    (table->revision == 5 && fadt->minor_revision >= 1)) {
-+		/*
-+		 * ACPI 5.1 only has two explicit methods to boot up SMP,
-+		 * PSCI and Parking protocol, but the Parking protocol is
-+		 * only specified for ARMv7 now, so make PSCI as the only
-+		 * way for the SMP boot protocol before some updates for
-+		 * the Parking protocol spec.
-+		 */
-+		if (acpi_psci_present())
-+			return 0;
++int __init
++gic_v2_acpi_init(struct acpi_table_header *table)
++{
++	void __iomem *cpu_base, *dist_base;
++	int count;
 +
-+		pr_warn("No PSCI support, will not bring up secondary CPUs\n");
-+		return -EOPNOTSUPP;
++	/* Collect CPU base addresses */
++	count = acpi_parse_entries(ACPI_SIG_MADT,
++				   sizeof(struct acpi_table_madt),
++				   gic_acpi_parse_madt_cpu, table,
++				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
++	if (count <= 0) {
++		pr_err("No valid GICC entries exist\n");
++		return -EINVAL;
 +	}
- 
- 	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
- 		table->revision, fadt->minor_revision);
-diff --git a/arch/arm64/kernel/cpu_ops.c b/arch/arm64/kernel/cpu_ops.c
-index cce9524..fb8ff9b 100644
---- a/arch/arm64/kernel/cpu_ops.c
-+++ b/arch/arm64/kernel/cpu_ops.c
-@@ -35,7 +35,7 @@ static const struct cpu_operations *supported_cpu_ops[] __initconst = {
- 	NULL,
- };
- 
--static const struct cpu_operations * __init cpu_get_ops(const char *name)
-+const struct cpu_operations * __init cpu_get_ops(const char *name)
- {
- 	const struct cpu_operations **ops = supported_cpu_ops;
- 
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index 97fa7f3..b278311 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -393,13 +393,16 @@ void __init setup_arch(char **cmdline_p)
- 	if (acpi_disabled) {
- 		unflatten_device_tree();
- 		psci_dt_init();
-+		cpu_read_bootcpu_ops();
-+#ifdef CONFIG_SMP
-+		of_smp_init_cpus();
++
++	/*
++	 * Find distributor base address. We expect one distributor entry since
++	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
++	 */
++	count = acpi_parse_entries(ACPI_SIG_MADT,
++				   sizeof(struct acpi_table_madt),
++				   gic_acpi_parse_madt_distributor, table,
++				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
++	if (count <= 0) {
++		pr_err("No valid GICD entries exist\n");
++		return -EINVAL;
++	} else if (count > 1) {
++		pr_err("More than one GICD entry detected\n");
++		return -EINVAL;
++	}
++
++	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
++	if (!cpu_base) {
++		pr_err("Unable to map GICC registers\n");
++		return -ENOMEM;
++	}
++
++	dist_base = ioremap(dist_phy_base, ACPI_GICV2_DIST_MEM_SIZE);
++	if (!dist_base) {
++		pr_err("Unable to map GICD registers\n");
++		iounmap(cpu_base);
++		return -ENOMEM;
++	}
++
++	/*
++	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
++	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
++	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
++	 */
++	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
++	irq_set_default_host(gic_data[0].domain);
++	return 0;
++}
 +#endif
- 	} else {
- 		psci_acpi_init();
-+		acpi_init_cpus();
- 	}
- 
--	cpu_read_bootcpu_ops();
- #ifdef CONFIG_SMP
--	smp_init_cpus();
- 	smp_build_mpidr_hash();
- #endif
- 
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 328b8ce..52998b7 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -322,7 +322,7 @@ void __init smp_prepare_boot_cpu(void)
-  * cpu logical map array containing MPIDR values related to logical
-  * cpus. Assumes that cpu_logical_map(0) has already been initialized.
+diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
+index 0fe2f71..afd1af3 100644
+--- a/drivers/irqchip/irqchip.c
++++ b/drivers/irqchip/irqchip.c
+@@ -8,6 +8,7 @@
+  * warranty of any kind, whether express or implied.
   */
--void __init smp_init_cpus(void)
-+void __init of_smp_init_cpus(void)
+ 
++#include <linux/acpi_irq.h>
+ #include <linux/init.h>
+ #include <linux/of_irq.h>
+ #include <linux/irqchip.h>
+@@ -26,4 +27,6 @@ extern struct of_device_id __irqchip_of_table[];
+ void __init irqchip_init(void)
  {
- 	struct device_node *dn = NULL;
- 	unsigned int i, cpu = 1;
+ 	of_irq_init(__irqchip_of_table);
++
++	acpi_irq_init();
+ }
+diff --git a/include/linux/acpi_irq.h b/include/linux/acpi_irq.h
+new file mode 100644
+index 0000000..f10c872
+--- /dev/null
++++ b/include/linux/acpi_irq.h
+@@ -0,0 +1,10 @@
++#ifndef _LINUX_ACPI_IRQ_H
++#define _LINUX_ACPI_IRQ_H
++
++#include <linux/irq.h>
++
++#ifndef acpi_irq_init
++static inline void acpi_irq_init(void) { }
++#endif
++
++#endif /* _LINUX_ACPI_IRQ_H */
+diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
+new file mode 100644
+index 0000000..de3419e
+--- /dev/null
++++ b/include/linux/irqchip/arm-gic-acpi.h
+@@ -0,0 +1,31 @@
++/*
++ * Copyright (C) 2014, Linaro Ltd.
++ *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef ARM_GIC_ACPI_H_
++#define ARM_GIC_ACPI_H_
++
++#ifdef CONFIG_ACPI
++
++/*
++ * Hard code here, we can not get memory size from MADT (but FDT does),
++ * Actually no need to do that, because this size can be inferred
++ * from GIC spec.
++ */
++#define ACPI_GICV2_DIST_MEM_SIZE	(SZ_4K)
++#define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
++
++struct acpi_table_header;
++
++int gic_v2_acpi_init(struct acpi_table_header *table);
++void acpi_gic_init(void);
++#else
++static inline void acpi_gic_init(void) { }
++#endif
++
++#endif /* ARM_GIC_ACPI_H_ */
 -- 
 1.9.1
