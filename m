@@ -1,75 +1,75 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 23/23] ARM64 / ACPI: Don't unflatten device tree if acpi=force is passed
-Date: Tue, 24 Mar 2015 22:02:56 +0800
-Message-ID: <1427205776-5060-24-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 20/23] ARM64 / ACPI: Enable ARM64 in Kconfig
+Date: Tue, 24 Mar 2015 22:02:53 +0800
+Message-ID: <1427205776-5060-21-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Since the policy is that once we pass acpi=force in the early
-param, we will not unflatten device tree even if ACPI is disabled
-in ACPI table init fails, so fix the code by comparinging both
-acpi_disabled and param_acpi_force before the device tree is
-unflattened.
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-CC: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Add Kconfigs to build ACPI on ARM64, and make ACPI available on ARM64.
+
+acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
+depend on X86 || IA64, and implement it on ARM64 in the future.
+
+CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+CC: Catalin Marinas <catalin.marinas@arm.com>
+CC: Will Deacon <will.deacon@arm.com>
+Reviewed-by: Grant Likely <grant.likely@linaro.org>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Tested-by: Yijing Wang <wangyijing@huawei.com>
+Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
+Tested-by: Jon Masters <jcm@redhat.com>
+Tested-by: Timur Tabi <timur@codeaurora.org>
+Tested-by: Robert Richter <rrichter@cavium.com>
+Acked-by: Robert Richter <rrichter@cavium.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Al Stone <al.stone@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/acpi.h | 3 +++
- arch/arm64/kernel/acpi.c      | 2 +-
- arch/arm64/kernel/setup.c     | 2 +-
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ arch/arm64/Kconfig   | 2 ++
+ drivers/acpi/Kconfig | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 59c05d8..e1a8965 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -38,6 +38,7 @@ typedef u64 phys_cpuid_t;
- extern int acpi_disabled;
- extern int acpi_noirq;
- extern int acpi_pci_disabled;
-+extern bool param_acpi_force;
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index d00ab9a..e5aa081 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -713,6 +713,8 @@ source "drivers/Kconfig"
  
- /* 1 to indicate PSCI 0.2+ is implemented */
- static inline bool acpi_psci_present(void)
-@@ -91,6 +92,8 @@ void __init acpi_init_cpus(void);
- static inline bool acpi_psci_present(void) { return false; }
- static inline bool acpi_psci_use_hvc(void) { return false; }
- static inline void acpi_init_cpus(void) { }
+ source "drivers/firmware/Kconfig"
+ 
++source "drivers/acpi/Kconfig"
 +
-+#define param_acpi_force false
- #endif /* CONFIG_ACPI */
+ source "fs/Kconfig"
  
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 5819ef7..fe9d8f0 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -43,7 +43,7 @@ static int enabled_cpus;
- static bool bootcpu_valid  __initdata;
- 
- static bool param_acpi_off __initdata;
--static bool param_acpi_force __initdata;
-+bool param_acpi_force __initdata;
- 
- static int __init parse_acpi(char *arg)
- {
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index b278311..d60b1ad 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -390,7 +390,7 @@ void __init setup_arch(char **cmdline_p)
- 
- 	early_ioremap_reset();
- 
--	if (acpi_disabled) {
-+	if (acpi_disabled  && !param_acpi_force) {
- 		unflatten_device_tree();
- 		psci_dt_init();
- 		cpu_read_bootcpu_ops();
+ source "arch/arm64/kvm/Kconfig"
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index a726381..a8f531e2 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -5,7 +5,7 @@
+ menuconfig ACPI
+ 	bool "ACPI (Advanced Configuration and Power Interface) Support"
+ 	depends on !IA64_HP_SIM
+-	depends on IA64 || X86
++	depends on IA64 || X86 || (ARM64 && EXPERT)
+ 	depends on PCI
+ 	select PNP
+ 	default y
+@@ -167,6 +167,7 @@ config ACPI_PROCESSOR
+ 	tristate "Processor"
+ 	select THERMAL
+ 	select CPU_IDLE
++	depends on X86 || IA64
+ 	default y
+ 	help
+ 	  This driver installs ACPI as the idle handler for Linux and uses
 -- 
 1.9.1
