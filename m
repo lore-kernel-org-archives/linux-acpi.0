@@ -1,45 +1,54 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
-Date: Tue, 24 Mar 2015 12:22:18 -0500
-Message-ID: <55119D4A.5050809@dell.com>
-References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com> <1426363131-14530-1-git-send-email-jason.ekstrand@intel.com> <CAOFGe95CiLcHtzD3Vv-KJoCXfeHCyGa55OBkzHSZMWwdOyLnfg@mail.gmail.com> <20150323120331.GA3007@codeblueprint.co.uk> <5510FB37.6030808@dell.com> <20150324152412.GA4706@codeblueprint.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150324152412.GA4706@codeblueprint.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Jason Ekstrand <jason@jlekstrand.net>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH 0/5] ARM64: ACPI core updates
+Date: Tue, 24 Mar 2015 17:58:50 +0000
+Message-ID: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:49103 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752802AbbCXR7V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Mar 2015 13:59:21 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Grant Likely <grant.likely@linaro.org>
 
+This patch series implements some refactoring/clean-ups of arm64 ACPI
+core code implemented in Hanjun Guo's series:
 
-On 03/24/2015 10:24 AM, Matt Fleming wrote:
-> On Tue, 24 Mar, at 12:50:47AM, Mario Limonciello wrote:
-> Running a recent kernel is the tradeoff to be paid for using brand new
-> hardware. I certainly don't expect to be able to install a 4-year old
-> version of Fedora on a laptop released this year and have it work
-> flawlessly.
-Yes, of course older kernels won't include everything, but there are plenty of people out there that don't use (or know how to use) a newer kernel in their distro.  There's enough customers that our support staff will deal with mandate particular (older) kernel versions or particular distros.  Some stuff can certainly be backported into stable and come in the form of updates to those older kernels, but it is indeed a tradeoff.
-> Besides, distributions aggressively backport patches for new hardware
-> support anyway and you should work with the distribution developers to
-> ensure that happens for your hardware. Preferably before it gets
-> released.
-With the XPS 13 (2015) in particular, we've been working with Canonical for a very long time in planning and development.  Long enough that when the plans w/ our IHV's for the audio to be HDA in Linux were made before this commit even landed:
-https://github.com/torvalds/linux/commit/faae404ebdc6bba744919d82e64c16448eb24a36#diff-aa93b5317c200560767b97a9d9301bd8
+http://www.spinics.net/lists/kernel/msg1953211.html
 
-At that time rt286 I2S wasn't even in the kernel.  Bard didn't start to land it until later that year (https://github.com/torvalds/linux/commit/07cf7cbadb4d97a78be61119a406de8fe446467e). Was it really that crazy to plan Linux to take HDA mode?
-> Because, fundamentally, when you make these decisions about Linux in the
-> BIOS you're pitting the BIOS and kernel development models against each
-> other. What is going to happen when i2s/i2c finally works correctly in
-> the kernel and distros? It would seem unlikely that a BIOS update would
-> be available to switch everyone to that mode.
->
-Once all this I2S development spun up specific to the XPS 13, that's exactly the plan that we had discussed.  Try to get the major distros on board with all the patches that were needed and issue a BIOS update to adjust the behavior.
-> I'm sure the audio folks would love to hear about them.
-Liam is aware of the details here.  Other than one issue, it optimistically sounds like a majority of the issues will be sorted in the next few weeks on both the kernel and user-space side.
->
-> Unless the patch gets backported to stable kernel versions older than
-> 4.x. Which is likely.
->
-I would like to respectfully ask that this patch not be added to older stable kernel versions.  It will knowingly cause a regression with hardware in the field.  If this isn't an appropriate criteria for avoiding to backport a patch to stable, what is?
+available at:
+
+git://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
+
+Patch [1] is a proposal to move the arm64 GSI IRQ mapping layer to generic
+ACPI code, in that the arm64 GSI layer is based on IRQ domains that are
+generic data structures in the kernel that are not tied to an arch specific
+implementation.
+
+Patches [2-5] implement some fixes/clean-up of arm64 ACPI core code.
+
+Tested on Juno v8 chip.
+
+Lorenzo Pieralisi (5):
+  ACPI: move arm64 GSI IRQ model to generic GSI IRQ layer
+  ARM64: kernel: psci: factor out probe function
+  ARM64: kernel: psci: let ACPI probe PSCI version
+  ARM64: kernel: acpi: refactor ACPI tables init and checks
+  ARM64: kernel: acpi: honour acpi=force command line parameter
+
+ arch/arm64/Kconfig            |   1 +
+ arch/arm64/include/asm/acpi.h |   3 -
+ arch/arm64/kernel/acpi.c      | 167 +++++++++++++++++-------------------------
+ arch/arm64/kernel/psci.c      |  54 +++++++++-----
+ arch/arm64/kernel/setup.c     |   2 +-
+ drivers/acpi/Kconfig          |   3 +
+ drivers/acpi/Makefile         |   1 +
+ drivers/acpi/gsi.c            | 105 ++++++++++++++++++++++++++
+ drivers/irqchip/irq-gic.c     |   2 +
+ 9 files changed, 214 insertions(+), 124 deletions(-)
+ create mode 100644 drivers/acpi/gsi.c
+
+-- 
+2.2.1
+
