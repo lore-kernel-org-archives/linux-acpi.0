@@ -1,52 +1,111 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 02/23] ACPI: add arm64 to the platforms that use ioremap
-Date: Tue, 24 Mar 2015 22:02:35 +0800
-Message-ID: <1427205776-5060-3-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 06/23] ACPI / sleep: Introduce CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+Date: Tue, 24 Mar 2015 22:02:39 +0800
+Message-ID: <1427205776-5060-7-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Graeme Gregory <graeme.gregory@linaro.org>
 
-Now with the base changes to the arm memory mapping it is safe
-to convert to using ioremap to map in the tables after
-acpi_gbl_permanent_mmap is set.
+ACPI 5.1 does not currently support S states for ARM64 hardware but
+ACPI code will call acpi_target_system_state() and acpi_sleep_init()
+for device power management, so introduce
+CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT and select it for x86 and
+ia64 only to make sleep functions available, and also introduce stub
+function to allow other drivers to function until S states are defined
+for ARM64.
 
-CC: Rafael J Wysocki <rjw@rjwysocki.net>
-Tested-by: Robert Richter <rrichter@cavium.com>
-Tested-by: Timur Tabi <timur@codeaurora.org>
-Acked-by: Robert Richter <rrichter@cavium.com>
+It will be no functional change for x86 and IA64.
+
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Al Stone <al.stone@linaro.org>
 Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/osl.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/Kconfig       | 1 +
+ arch/x86/Kconfig        | 1 +
+ drivers/acpi/Kconfig    | 4 ++++
+ drivers/acpi/Makefile   | 2 +-
+ drivers/acpi/internal.h | 4 ++++
+ 5 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index f9eeae8..39748bb 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -336,11 +336,11 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
- 	return NULL;
- }
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index 074e52b..cc3414f 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -10,6 +10,7 @@ config IA64
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select PCI if (!IA64_HP_SIM)
+ 	select ACPI if (!IA64_HP_SIM)
++	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+ 	select HAVE_UNSTABLE_SCHED_CLOCK
+ 	select HAVE_IDE
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b7d31ca..c3ea9f9 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -22,6 +22,7 @@ config X86_64
+ ### Arch settings
+ config X86
+ 	def_bool y
++	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+ 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
+ 	select ARCH_HAS_FAST_MULTIPLIER
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index e6c3ddd..a726381 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -48,9 +48,13 @@ config ACPI_LEGACY_TABLES_LOOKUP
+ config ARCH_MIGHT_HAVE_ACPI_PDC
+ 	bool
  
--#ifndef CONFIG_IA64
--#define should_use_kmap(pfn)   page_is_ram(pfn)
--#else
-+#if defined(CONFIG_IA64) || defined(CONFIG_ARM64)
- /* ioremap will take care of cache attributes */
- #define should_use_kmap(pfn)   0
++config ACPI_SYSTEM_POWER_STATES_SUPPORT
++	bool
++
+ config ACPI_SLEEP
+ 	bool
+ 	depends on SUSPEND || HIBERNATION
++	depends on ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	default y
+ 
+ config ACPI_PROCFS_POWER
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 623b117..db153c6 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -23,7 +23,7 @@ acpi-y				+= nvs.o
+ 
+ # Power management related files
+ acpi-y				+= wakeup.o
+-acpi-y				+= sleep.o
++acpi-$(CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT) += sleep.o
+ acpi-y				+= device_pm.o
+ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+ 
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 56b321a..ba4a61e 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -161,7 +161,11 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
+ /*--------------------------------------------------------------------------
+                                   Suspend/Resume
+   -------------------------------------------------------------------------- */
++#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+ extern int acpi_sleep_init(void);
 +#else
-+#define should_use_kmap(pfn)   page_is_ram(pfn)
- #endif
++static inline int acpi_sleep_init(void) { return -ENXIO; }
++#endif
  
- static void __iomem *acpi_map(acpi_physical_address pg_off, unsigned long pg_sz)
+ #ifdef CONFIG_ACPI_SLEEP
+ int acpi_sleep_proc_init(void);
 -- 
 1.9.1
