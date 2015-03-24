@@ -1,54 +1,112 @@
-From: Liam Girdwood <liam.r.girdwood@linux.intel.com>
-Subject: Re: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
-Date: Tue, 24 Mar 2015 09:17:37 +0000
-Message-ID: <1427188657.7155.11.camel@loki>
-References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
-	 <1426363131-14530-1-git-send-email-jason.ekstrand@intel.com>
-	 <CAOFGe95CiLcHtzD3Vv-KJoCXfeHCyGa55OBkzHSZMWwdOyLnfg@mail.gmail.com>
-	 <20150323120331.GA3007@codeblueprint.co.uk> <5510FB37.6030808@dell.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bugfix] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Tue, 24 Mar 2015 08:18:35 -0500
+Message-ID: <CAErSpo6uBK2FWK838BUob+54T1NHoak9HiO34TstPwGPazp72A@mail.gmail.com>
+References: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com>
+ <20150323164809.GS26935@google.com> <5510CA69.30309@linux.intel.com>
+ <CAErSpo72DoOu1XR8jYW_VsEKfnhcL9ydqtkjwBTUSm-mN-Rn2A@mail.gmail.com> <5510D327.5060400@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52022 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752106AbbCXJSF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Mar 2015 05:18:05 -0400
-In-Reply-To: <5510FB37.6030808@dell.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5510D327.5060400@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mario Limonciello <mario_limonciello@dell.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>, Jason Ekstrand <jason@jlekstrand.net>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Tue, 2015-03-24 at 00:50 -0500, Mario Limonciello wrote:
+On Mon, Mar 23, 2015 at 9:59 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> On 2015/3/24 10:42, Bjorn Helgaas wrote:
+>> On Mon, Mar 23, 2015 at 9:22 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+>>> On 2015/3/24 0:48, Bjorn Helgaas wrote:
+>>>> On Mon, Mar 23, 2015 at 03:22:14PM +0800, Jiang Liu wrote:
+>>>>> Commit 63f1789ec716("Ignore resources consumed by host bridge itself")
+>>>>> tries to ignore resources consumed by PCI host bridge itself by
+>>>>> checking IORESOURCE_WINDOW flag, which causes regression on some
+>>>>> platforms.
+>>>>
+>>>> "Do.  Or do not.  There is no try."
+>>>> [http://www.starwars.com/video/do-or-do-not]
+>>>>
+>>>> That commit doesn't *try* to do something.  It *does* something.  Just
+>>>> explain what it does and what's wrong with what it does.
+>>>>
+>>>>> For example, PC Engines APU.1C platform defines PCI MMIO resources with
+>>>>> ACPI Memory32Fixed operator as below:
+>>>>> Name (CRES, ResourceTemplate ()
+>>>>> {
+>>>>>     ...
+>>>>>     WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+>>>>>         0x0000,             // Granularity
+>>>>>         0x0D00,             // Range Minimum
+>>>>>         0xFFFF,             // Range Maximum
+>>>>>         0x0000,             // Translation Offset
+>>>>>         0xF300,             // Length
+>>>>>         ,, , TypeStatic)
+>>>>>     Memory32Fixed (ReadOnly,
+>>>>>         0x000A0000,         // Address Base
+>>>>>         0x00020000,         // Address Length
+>>>>>         )
+>>>>>     Memory32Fixed (ReadOnly,
+>>>>>         0x00000000,         // Address Base
+>>>>>         0x00000000,         // Address Length
+>>>>>         _Y00)
+>>>>> })
+>>>>>
+>>>>> Memory32Fixed operator doesn't support concept of "producer/consumer"
+>>>>> and it will be treated as "consumer" by the ACPI resource parsing
+>>>>> interface, thus cause regression. So the fix is only to check
+>>>>> "producer/consumer" flag for resources having "producer/consumer" flag.
+>>>>
+>>>> Apparently the problem is with the Memory32Fixed resources above; it sounds
+>>>> like we ignore them after 63f1789ec716?  I don't quite understand how this
+>>>> fix works.  acpi_dev_filter_resource_type() has cases for both
+>>>> ACPI_RESOURCE_TYPE_FIXED_MEMORY32 and ACPI_RESOURCE_TYPE_ADDRESSxx, but
+>>>> this patch only touches the latter, not the
+>>>> ACPI_RESOURCE_TYPE_FIXED_MEMORY32 case.
+>>> The idea is:
+>>> 1) caller specifies IORESOURCE_WINDOW to query resources provided
+>>>    by the device, otherwise it's querying resources consumed by
+>>>    the device.
+>>> 2) For resource descriptors having producer/consumer flag, such as
+>>>     ACPI_RESOURCE_TYPE_ADDRESSxx, we check the producer/consumer flag.
+>>> 3) For resource descriptors not having producer/consumer flag, such
+>>>    as ACPI_RESOURCE_TYPE_FIXED_MEMORY32, we skip checking the
+>>>    producer/consumer flag.
+>>
+>> I figured out that much by reading the code.  But I think the code is
+>> very hard to read, and I still don't really understand how it works.
+>>
+>> Before this fix, we ignore Memory32Fixed resources.  After this fix,
+>> we use Memory32Fixed as a window.  I think that's an incorrect
+>> interpretation of Memory32Fixed.
+> Hi Bjorn,
+>         I think it's illegal to use Memory32Fixed for PCI host
+> bridge resource window too. The fix is to solve the regression
+> by relaxing constraints, but that may not be the right solution.
 
-> I believe a majority of the kernel work is complete, but from some off
-> kernel mailing list discussions I understand that pulseaudio doesn't
-> understand the control interface that gets used for I2S for jack
-> detection. 
+Relaxing the constraint for all platforms is only a solution if we're
+confident that it works for all platforms.  I'm not confident because
+I don't know what effect this patch has on systems that use
+Memory32Fixed correctly.
 
-There is some work in progress here to standardise the jack kcontrols
-between HDA, ASoC and other ALSA drivers. I would expect this to be
-upstream in the next week or two.  
+It's possible that you can analyze the behavior and explain that if
+you relax the constraint, the Memory32Fixed handling (both for bridge
+and non-bridge devices) will be the same as it was before
+63f1789ec716.  If you can do that, I think it would be reasonable
+because you'd be preserving the previous, known-working behavior.
 
->  UCM can't be used for it. 
+If you go that route, I'd like to see a patch that explicitly touches
+the Memory32Fixed handling.  The current patch claims to change the
+way we handle Memory32Fixed, but nothing in the code change is
+directly related to Memory32Fixed, so it's very confusing.
 
-UCM configs and jack support for this DSP and codec combination have now
-been upstreamed :)
+>         How about waiting for a while to see whether there are more
+> bug reports related to this. If only limited platform affected,
+> we could treat it as BIOS bugs and use quirk to handle it.
+> Otherwise we may need to relax the constraint.
 
->  This leads to a really confusing mixer design that needs a variety of
-> toggles manually changed when headphones or a headset get plugged in.
+I don't think waiting is a good strategy.  We know we have a
+regression, and I think we need to fix that ASAP without waiting for
+more failure reports.
 
-Generic patches to support UCM jack switching are now upstream in
-pulseaudio too.
-
->   There have also been some stability problem with audio reported
-> after a few days usage.
-
-Can you send these to me privately.
-
-Thanks
-
-Liam
-
-
+Bjorn
