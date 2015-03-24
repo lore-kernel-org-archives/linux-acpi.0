@@ -1,199 +1,45 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Xen-devel] 3.18 xen-pcifront regression?
-Date: Tue, 24 Mar 2015 12:27:02 -0500
-Message-ID: <20150324172702.GC2495@google.com>
-References: <OF77E25ED8.9CA80CE3-ON85257E12.004F7B31-85257E12.0053B9A0@gdeb.com>
- <20150324152806.GD14418@l.oracle.com>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
+Date: Tue, 24 Mar 2015 12:22:18 -0500
+Message-ID: <55119D4A.5050809@dell.com>
+References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com> <1426363131-14530-1-git-send-email-jason.ekstrand@intel.com> <CAOFGe95CiLcHtzD3Vv-KJoCXfeHCyGa55OBkzHSZMWwdOyLnfg@mail.gmail.com> <20150323120331.GA3007@codeblueprint.co.uk> <5510FB37.6030808@dell.com> <20150324152412.GA4706@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150324152806.GD14418@l.oracle.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Michael D Labriola <mlabriol@gdeb.com>, xen-devel@lists.xenproject.org, Stuart Wehrly <swehrly@gdeb.com>, michael.d.labriola@gmail.com, Jayson A Dyke <jdyke@gdeb.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150324152412.GA4706@codeblueprint.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Jason Ekstrand <jason@jlekstrand.net>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Rafael, linux-pci, linux-acpi]
 
-On Tue, Mar 24, 2015 at 11:28:06AM -0400, Konrad Rzeszutek Wilk wrote:
-> On Tue, Mar 24, 2015 at 11:14:29AM -0400, Michael D Labriola wrote:
-> > I'm having problems booting a 3.18 or newer domU w/ PCI devices passed 
-> > through.  It only seems to be the domU kernel that's upset (i.e., Behavior 
-> > is identical whether I'm running 3.19 or 3.13 dom0).  I'm running a 32bit 
-> > dom0 (3.13.11) w/ 64bit 4.4.0 hypervisor and 32bit domU.  I get the 
-> > following Oops when trying to boot my domU with a couple PCI cards passed 
-> > through:
-> > 
-> > BUG: unable to handle kernel paging request at 0030303e
-> > IP: [<c06ed0e6>] acpi_ns_validate_handle+0x12/0x1a
-> > *pdpt = 00000000019f1027 *pde = 0000000000000000 
-> > Oops: 0000 [#1] PREEMPT SMP 
-> > Modules linked in: xen_pcifront(+) pcspkr xen_blkfront loop
-> > CPU: 0 PID: 18 Comm: xenwatch Not tainted 3.17.0-test+ #6
-> > task: cb869950 ti: cb8ae000 task.ti: cb8ae000
-> > EIP: 0061:[<c06ed0e6>] EFLAGS: 00010246 CPU: 0
-> > EIP is at acpi_ns_validate_handle+0x12/0x1a
-> > EAX: 00000000 EBX: cb895dc0 ECX: 00000000 EDX: 0030303a
-> > ESI: c0a6bccd EDI: 00000000 EBP: 00000004 ESP: cb8afd00
-> >  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0069
-> > CR0: 8005003b CR2: 0030303e CR3: 0a68e000 CR4: 00040660
-> > Stack:
-> >  c06eda4d 00000000 c096a21d 00000000 00000000 00006462 00000000 c0c102c0
-> >  0030303a 00040004 0030303a cb8afd94 cb8afdec cb8afd60 c06b78e1 cb8afd60
-> >  00000061 00000246 c0407bc7 c0c102c0 00000000 cb8afda0 cb8afda8 cb8afdb0
-> > Call Trace:
-> >  [<c06eda4d>] ? acpi_evaluate_object+0x31/0x1fc
-> 
-> We should not be calling in any acpi code in PV domU guests.
-> 
-> WE actually disable it (acpi=0) to make sure we don't call it - as
-> there is no ACPI AML data at all in the guest.
-> 
-> CC-ing Bjorn.
-> >  [<c096a21d>] ? resume_kernel+0x5/0x7
-> >  [<c06b78e1>] ? pci_get_hp_params+0x111/0x4e0
-> >  [<c0407bc7>] ? xen_force_evtchn_callback+0x17/0x30
-> >  [<c04085fb>] ? xen_restore_fl_direct_reloc+0x4/0x4
-> >  [<c0699d34>] ? pci_device_add+0x24/0x450
-> >  [<c06975ce>] ? pci_bus_read_config_word+0x6e/0x80
-> >  [<c069a66d>] ? pci_scan_single_device+0x8d/0xb0
-> >  [<c069a6cc>] ? pci_scan_slot+0x3c/0xf0
-> >  [<c069b1bc>] ? pci_scan_child_bus+0x1c/0x90
-> >  [<c069b71a>] ? pci_scan_bus_parented+0x6a/0x90
-> >  [<d088d241>] ? pcifront_scan_root+0x91/0x130 [xen_pcifront]
-> >  [<d088e69f>] ? pcifront_backend_changed+0x4af/0x654 [xen_pcifront]
-> >  [<c070dd0f>] ? xenbus_gather+0x5f/0x90
-> >  [<c070dd0f>] ? xenbus_gather+0x5f/0x90
-> >  [<c070c393>] ? xenbus_read_driver_state+0x33/0x50
-> >  [<c070f375>] ? xenbus_otherend_changed+0x95/0xa0
-> >  [<c0710a5f>] ? backend_changed+0xf/0x20
-> >  [<c070d712>] ? xenwatch_thread+0x72/0x110
-> >  [<c0486140>] ? bit_waitqueue+0x50/0x50
-> >  [<c070d6a0>] ? join+0x70/0x70
-> >  [<c046e59b>] ? kthread+0xab/0xd0
-> >  [<c096a1c1>] ? ret_from_kernel_thread+0x21/0x30
-> >  [<c046e4f0>] ? flush_kthread_worker+0xa0/0xa0
-> > Code: 03 10 00 00 eb 0e 46 83 c2 04 4b 85 db 75 b9 c6 02 00 31 c0 5b 5e 5f 
-> > 5d c3 89 c2 8d 40 ff 83 f8 fd 76 06 a1 2c 32 c1 c0 c3 31 c0 <80> 7a 04 0f 
-> > 0f 44 c2 c3 83 ec 10 83 f8 1d 76 24 89 44 24 0c c7
-> > EIP: [<c06ed0e6>] acpi_ns_validate_handle+0x12/0x1a SS:ESP 0069:cb8afd00
-> > CR2: 000000000030303e
-> > ---[ end trace d4ddeb038cbcbdf7 ]---
-> > 
-> > 
-> > I've bisected down to the following commit in 3.18, which breaks my 
-> > system.
-> > 
-> > 6cd33649fa83d97ba7b66f1d871a360e867c5220 is the first bad commit
-> > commit 6cd33649fa83d97ba7b66f1d871a360e867c5220
-> > Author: Bjorn Helgaas <bhelgaas@google.com>
-> > Date:   Wed Aug 27 14:29:47 2014 -0600
-> > 
-> >     PCI: Add pci_configure_device() during enumeration
-> >  
-> >     Some platforms can tell the OS how to configure PCI devices, e.g., how 
-> > to
-> >     set cache line size, error reporting enables, etc.  ACPI defines _HPP 
-> > and
-> >     _HPX methods for this purpose.
-> >  
-> >     This configuration was previously done by some of the hotplug drivers 
-> > using
-> >     pci_configure_slot().  But not all hotplug drivers did this, and per 
-> > the
-> >     spec (ACPI rev 5.0, sec 6.2.7), we can also do it for "devices not
-> >     configured by the BIOS at system boot."
-> >  
-> >     Move this configuration into the PCI core by adding 
-> > pci_configure_device()
-> >     and calling it from pci_device_add(), so we do this for all devices as 
-> > we
-> >     enumerate them.
-> >  
-> >     This is based on pci_configure_slot(), which is used by hotplug 
-> > drivers.
-> >     I omitted:
-> >  
-> >       - pcie_bus_configure_settings() because it configures MPS and MRRS, 
-> > which
-> >         requires global knowledge of the fabric and must be done later, 
-> > and
-> >  
-> >       - configuration of subordinate devices; that will happen when we 
-> > call
-> >         pci_device_add() for those devices.
-> >  
-> >     Because pci_configure_slot() was only done by hotplug drivers, this 
-> > initial
-> >     version of pci_configure_device() only configures hot-added devices,
-> >     ignoring anything added during boot.
-> >  
-> >     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> >     Acked-by: Yinghai Lu <yinghai@kernel.org>
-> > 
-> > :040000 040000 4fadbe1e5f8f18daa6be7bdb7c9c1d6def0a2615 
-> > 9aef037aa35ca156ac46553f7fc4c5b1b3980c19 M      drivers
-> > 
-> > 
-> > I've reverted that commit on top of 3.19, which feels incredibly wrong, 
-> > but does fix the problem on my system.  This is a little over my head, 
-> > though...  ;-)
-> > 
-> > Thoughts?
+On 03/24/2015 10:24 AM, Matt Fleming wrote:
+> On Tue, 24 Mar, at 12:50:47AM, Mario Limonciello wrote:
+> Running a recent kernel is the tradeoff to be paid for using brand new
+> hardware. I certainly don't expect to be able to install a 4-year old
+> version of Fedora on a laptop released this year and have it work
+> flawlessly.
+Yes, of course older kernels won't include everything, but there are plenty of people out there that don't use (or know how to use) a newer kernel in their distro.  There's enough customers that our support staff will deal with mandate particular (older) kernel versions or particular distros.  Some stuff can certainly be backported into stable and come in the form of updates to those older kernels, but it is indeed a tradeoff.
+> Besides, distributions aggressively backport patches for new hardware
+> support anyway and you should work with the distribution developers to
+> ensure that happens for your hardware. Preferably before it gets
+> released.
+With the XPS 13 (2015) in particular, we've been working with Canonical for a very long time in planning and development.  Long enough that when the plans w/ our IHV's for the audio to be HDA in Linux were made before this commit even landed:
+https://github.com/torvalds/linux/commit/faae404ebdc6bba744919d82e64c16448eb24a36#diff-aa93b5317c200560767b97a9d9301bd8
 
-Thanks for the report, Michael, and sorry for the inconvenience.  I think
-the patch below will fix it, but I don't think it's the right fix either
-because it seems a little ad hoc to sprinkle "acpi_pci_disabled" tests
-around like fairy dust.  I wonder if we can set things up so ACPI methods
-would fail gracefully like they do when ACPI is disabled at compile-time.
-
-I can boot with "acpi=off" on qemu just fine, and when we look up the ACPI
-device handles, we just get NULL pointers, so everything works out even
-without a fix like the one below.
-
-There must be something different about the way things get set up in that
-domU kernel.  I'll try to look into that some more, but I'm going on
-vacation for the next week, so if you learn anything before then, let me
-know.
-
-Bjorn
-
-
-commit 6678b0fb6504c890481863b4916089b41e6042bf
-Author: Bjorn Helgaas <bhelgaas@google.com>
-Date:   Tue Mar 24 11:12:45 2015 -0500
-
-    PCI: Don't look for ACPI hotplug parameters if ACPI is disabled
-    
-    In a kernel with CONFIG_ACPI=y, pci_get_hp_params() evaluates ACPI methods
-    (_HPX, _HPP, etc.) to learn how to configure devices.  If ACPI has been
-    disabled at runtime, e.g., with "acpi=off", this causes an oops because
-    there's no AML at all.
-    
-    Before 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration"),
-    we only used pci_get_hp_params() for hot-added devices, but after it, we
-    use it for all devices, so we're much more likely to see the oops.
-    
-    Don't bother looking for ACPI configuration information if ACPI has been
-    disabled.
-    
-    Fixes: 6cd33649fa83 ("PCI: Add pci_configure_device() during enumeration")
-    Reported-by: Michael D Labriola <mlabriol@gdeb.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-    CC: stable@vger.kernel.org	# v3.18+
-
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 489063987325..c93fbe76d281 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -248,6 +248,9 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
- 	acpi_handle handle, phandle;
- 	struct pci_bus *pbus;
- 
-+	if (acpi_pci_disabled)
-+		return -ENODEV;
-+
- 	handle = NULL;
- 	for (pbus = dev->bus; pbus; pbus = pbus->parent) {
- 		handle = acpi_pci_get_bridge_handle(pbus);
+At that time rt286 I2S wasn't even in the kernel.  Bard didn't start to land it until later that year (https://github.com/torvalds/linux/commit/07cf7cbadb4d97a78be61119a406de8fe446467e). Was it really that crazy to plan Linux to take HDA mode?
+> Because, fundamentally, when you make these decisions about Linux in the
+> BIOS you're pitting the BIOS and kernel development models against each
+> other. What is going to happen when i2s/i2c finally works correctly in
+> the kernel and distros? It would seem unlikely that a BIOS update would
+> be available to switch everyone to that mode.
+>
+Once all this I2S development spun up specific to the XPS 13, that's exactly the plan that we had discussed.  Try to get the major distros on board with all the patches that were needed and issue a BIOS update to adjust the behavior.
+> I'm sure the audio folks would love to hear about them.
+Liam is aware of the details here.  Other than one issue, it optimistically sounds like a majority of the issues will be sorted in the next few weeks on both the kernel and user-space side.
+>
+> Unless the patch gets backported to stable kernel versions older than
+> 4.x. Which is likely.
+>
+I would like to respectfully ask that this patch not be added to older stable kernel versions.  It will knowingly cause a regression with hardware in the field.  If this isn't an appropriate criteria for avoiding to backport a patch to stable, what is?
