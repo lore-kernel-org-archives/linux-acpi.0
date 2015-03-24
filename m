@@ -1,53 +1,110 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 03/23] ARM64: allow late use of early_ioremap
-Date: Tue, 24 Mar 2015 22:02:36 +0800
-Message-ID: <1427205776-5060-4-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 01/23] ACPI / table: Use pr_debug() instead of pr_info() for MADT table scanning
+Date: Tue, 24 Mar 2015 22:02:34 +0800
+Message-ID: <1427205776-5060-2-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Leif Lindholm <leif.lindholm@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Mark Salter <msalter@redhat.com>
+For a normal 8 cpu sockets system, it will up to 240 cpu threads (Xeon E7
+v2 family for now), and we need 240 entries for local apic or local x2apic
+in MADT table, so it will be much verbose information printed with a slow
+uart console when system booted, this will be even worse with large system
+with 16/32 cpu sockets.
 
-Commit 0e63ea48b4d8 (arm64/efi: add missing call to early_ioremap_reset())
-added a missing call to early_ioremap_reset(). This triggers a BUG if code
-tries using early_ioremap() after the early_ioremap_reset(). This is a
-problem for some ACPI code which needs short-lived temporary mappings
-after paging_init() but before acpi_early_init() in start_kernel(). This
-patch adds definitions for the __late_set_fixmap() and __late_clear_fixmap()
-which avoids the BUG by allowing later use of early_ioremap().
+This patch just use pr_debug() instead of pr_info() for ioapic/iosapic,
+local apic/x2apic/sapic structures when scanning the MADT table to remove
+those verbose information, but leave other structures unchanged.
 
-CC: Leif Lindholm <leif.lindholm@linaro.org>
-CC: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-Tested-by: Jon Masters <jcm@redhat.com>
-Tested-by: Robert Richter <rrichter@cavium.com>
+CC: Rafael J Wysocki <rjw@rjwysocki.net>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Olof Johansson <olof@lixom.net>
+Acked-by: Grant Likely <grant.likely@linaro.org>
 Tested-by: Timur Tabi <timur@codeaurora.org>
-Acked-by: Robert Richter <rrichter@cavium.com>
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
-Signed-off-by: Mark Salter <msalter@redhat.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/fixmap.h | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/acpi/tables.c | 30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm64/include/asm/fixmap.h b/arch/arm64/include/asm/fixmap.h
-index defa0ff9..f196e40 100644
---- a/arch/arm64/include/asm/fixmap.h
-+++ b/arch/arm64/include/asm/fixmap.h
-@@ -62,6 +62,9 @@ void __init early_fixmap_init(void);
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 93b8152..f4e5b88 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -23,6 +23,8 @@
+  *
+  */
  
- #define __early_set_fixmap __set_fixmap
++/* Uncomment next line to get verbose printout */
++/* #define DEBUG */
+ #define pr_fmt(fmt) "ACPI: " fmt
  
-+#define __late_set_fixmap __set_fixmap
-+#define __late_clear_fixmap(idx) __set_fixmap((idx), 0, FIXMAP_PAGE_CLEAR)
-+
- extern void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t prot);
+ #include <linux/init.h>
+@@ -61,9 +63,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 		{
+ 			struct acpi_madt_local_apic *p =
+ 			    (struct acpi_madt_local_apic *)header;
+-			pr_info("LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+-				p->processor_id, p->id,
+-				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
++			pr_debug("LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
++				 p->processor_id, p->id,
++				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+ 		}
+ 		break;
  
- #include <asm-generic/fixmap.h>
+@@ -71,9 +73,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 		{
+ 			struct acpi_madt_local_x2apic *p =
+ 			    (struct acpi_madt_local_x2apic *)header;
+-			pr_info("X2APIC (apic_id[0x%02x] uid[0x%02x] %s)\n",
+-				p->local_apic_id, p->uid,
+-				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
++			pr_debug("X2APIC (apic_id[0x%02x] uid[0x%02x] %s)\n",
++				 p->local_apic_id, p->uid,
++				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+ 		}
+ 		break;
+ 
+@@ -81,8 +83,8 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 		{
+ 			struct acpi_madt_io_apic *p =
+ 			    (struct acpi_madt_io_apic *)header;
+-			pr_info("IOAPIC (id[0x%02x] address[0x%08x] gsi_base[%d])\n",
+-				p->id, p->address, p->global_irq_base);
++			pr_debug("IOAPIC (id[0x%02x] address[0x%08x] gsi_base[%d])\n",
++				 p->id, p->address, p->global_irq_base);
+ 		}
+ 		break;
+ 
+@@ -155,9 +157,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 		{
+ 			struct acpi_madt_io_sapic *p =
+ 			    (struct acpi_madt_io_sapic *)header;
+-			pr_info("IOSAPIC (id[0x%x] address[%p] gsi_base[%d])\n",
+-				p->id, (void *)(unsigned long)p->address,
+-				p->global_irq_base);
++			pr_debug("IOSAPIC (id[0x%x] address[%p] gsi_base[%d])\n",
++				 p->id, (void *)(unsigned long)p->address,
++				 p->global_irq_base);
+ 		}
+ 		break;
+ 
+@@ -165,9 +167,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 		{
+ 			struct acpi_madt_local_sapic *p =
+ 			    (struct acpi_madt_local_sapic *)header;
+-			pr_info("LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+-				p->processor_id, p->id, p->eid,
+-				(p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
++			pr_debug("LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
++				 p->processor_id, p->id, p->eid,
++				 (p->lapic_flags & ACPI_MADT_ENABLED) ? "enabled" : "disabled");
+ 		}
+ 		break;
+ 
 -- 
 1.9.1
