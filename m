@@ -1,193 +1,312 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH 4/5] ARM64: kernel: acpi: refactor ACPI tables init and checks
-Date: Tue, 24 Mar 2015 17:58:54 +0000
-Message-ID: <1427219940-27201-5-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: [PATCH 1/5] ACPI: move arm64 GSI IRQ model to generic GSI IRQ layer
+Date: Tue, 24 Mar 2015 17:58:51 +0000
+Message-ID: <1427219940-27201-2-git-send-email-lorenzo.pieralisi@arm.com>
 References: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Current ACPI init code on ARM64 relies on acpi_table_parse() API to
-check if the FADT is present and to carry out sanity checks on that.
+The code deployed to implement GSI linux IRQ numbers mapping on arm64 turns
+out to be generic enough so that it can be moved to ACPI core code along
+with its respective config option ACPI_GENERIC_GSI selectable on
+architectures that can reuse the same code.
 
-The handler passed to the acpi_table_parse() function and used to
-carry out the parsing on the requested table returns a value that is
-ignored by the acpi_table_parse() function, so it is not possible
-to propagate errors back to the acpi_table_parse() caller through
-the handler.
+Current ACPI IRQ mapping code is not integrated in the kernel IRQ domain
+infrastructure, in particular there is no way to look-up the
+IRQ domain associated with a particular interrupt controller, so this
+first version of GSI generic code carries out the GSI<->IRQ mapping relying
+on the IRQ default domain which is supposed to be always set on a
+specific architecture in case the domain structure passed to
+irq_create/find_mapping() functions is missing.
 
-This forces ARM64 ACPI init code to have disable_acpi() calls scattered
-all over the place that makes code unwieldy and not easy to follow.
+This patch moves the arm64 acpi functions that implement the gsi mappings:
 
-This patch refactors the ARM64 ACPI init code, by creating a
-self-contained function (ie acpi_fadt_sanity_check()) that carries
-out the required checks on FADT and returns an adequate return value
-to the caller. This allows creating a common error path that disables
-ACPI and makes code more readable and easy to parse and change were
-further checks FADT to be added in the future.
+acpi_gsi_to_irq()
+acpi_register_gsi()
+acpi_unregister_gsi()
+
+to ACPI core code. Since the generic GSI<->domain mapping is based on IRQ
+domains, it can be extended as soon as a way to map an interrupt
+controller to an IRQ domain is implemented for ACPI in the IRQ domain
+layer.
+
+x86 and ia64 code for GSI mappings cannot rely on the generic GSI
+layer at present for legacy reasons, so they do not select the
+ACPI_GENERIC_GSI config options and keep relying on their arch
+specific GSI mapping layer.
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 ---
- arch/arm64/kernel/acpi.c | 104 +++++++++++++++++++++++++++++++----------------
- 1 file changed, 70 insertions(+), 34 deletions(-)
+ arch/arm64/Kconfig        |   1 +
+ arch/arm64/kernel/acpi.c  |  73 --------------------------------
+ drivers/acpi/Kconfig      |   3 ++
+ drivers/acpi/Makefile     |   1 +
+ drivers/acpi/gsi.c        | 105 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/irqchip/irq-gic.c |   2 +
+ 6 files changed, 112 insertions(+), 73 deletions(-)
+ create mode 100644 drivers/acpi/gsi.c
 
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index e5aa081..0659db3 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -1,5 +1,6 @@
+ config ARM64
+ 	def_bool y
++	select ACPI_GENERIC_GSI if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
 diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index a70f714..542f045 100644
+index fe9d8f0..a70f714 100644
 --- a/arch/arm64/kernel/acpi.c
 +++ b/arch/arm64/kernel/acpi.c
-@@ -218,43 +218,60 @@ void __init acpi_init_cpus(void)
- 	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
- }
- 
--static int __init acpi_parse_fadt(struct acpi_table_header *table)
-+/*
-+ * acpi_fadt_sanity_check() - Check FADT presence and carry out sanity
-+ *			      checks on it
-+ *
-+ * Return 0 on success,  <0 on failure
-+ */
-+static int __init acpi_fadt_sanity_check(void)
- {
--	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
-+	struct acpi_table_header *table;
-+	struct acpi_table_fadt *fadt;
-+	acpi_status status;
-+	acpi_size tbl_size;
-+	int ret = 0;
-+
-+	/*
-+	 * FADT is required on arm64; retrieve it to check its presence
-+	 * and carry out revision and ACPI HW reduced compliancy tests
-+	 */
-+	status = acpi_get_table_with_size(ACPI_SIG_FADT, 0, &table, &tbl_size);
-+	if (ACPI_FAILURE(status)) {
-+		const char *msg = acpi_format_exception(status);
-+
-+		pr_err("Failed to get FADT table, %s\n", msg);
-+		return -ENODEV;
-+	}
-+
-+	fadt = (struct acpi_table_fadt *)table;
- 
- 	/*
- 	 * Revision in table header is the FADT Major revision, and there
- 	 * is a minor revision of FADT which was introduced by ACPI 5.1,
- 	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
--	 * boot protocol configuration data, or we will disable ACPI.
-+	 * boot protocol configuration data.
- 	 */
--	if (table->revision > 5 ||
--	    (table->revision == 5 && fadt->minor_revision >= 1)) {
--		if (!acpi_gbl_reduced_hardware) {
--			pr_err("Not hardware reduced ACPI mode, will not be supported\n");
--			goto disable_acpi;
--		}
--
--		/*
--		 * ACPI 5.1 only has two explicit methods to boot up SMP,
--		 * PSCI and Parking protocol, but the Parking protocol is
--		 * only specified for ARMv7 now, so make PSCI as the only
--		 * way for the SMP boot protocol before some updates for
--		 * the Parking protocol spec.
--		 */
--		if (acpi_psci_present())
--			return 0;
--
--		pr_warn("No PSCI support, will not bring up secondary CPUs\n");
--		return -EOPNOTSUPP;
-+	if (table->revision < 5 ||
-+	   (table->revision == 5 && fadt->minor_revision < 1)) {
-+		pr_err("Unsupported FADT revision %d.%d, should be 5.1+\n",
-+		       table->revision, fadt->minor_revision);
-+		ret = -EINVAL;
-+		goto out;
- 	}
- 
--	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
--		table->revision, fadt->minor_revision);
-+	if (!(fadt->flags & ACPI_FADT_HW_REDUCED)) {
-+		pr_err("FADT not ACPI hardware reduced compliant\n");
-+		ret = -EINVAL;
-+	}
- 
--disable_acpi:
--	disable_acpi();
--	return -EINVAL;
-+out:
-+	/*
-+	 * acpi_get_table_with_size() creates FADT table mapping that
-+	 * should be released after parsing and before resuming boot
-+	 */
-+	early_acpi_os_unmap_memory(table, tbl_size);
-+	return ret;
+@@ -76,12 +76,6 @@ static int __init dt_scan_depth1_nodes(unsigned long node,
  }
  
  /*
-@@ -262,12 +279,18 @@ disable_acpi:
-  *	1. find RSDP and get its address, and then find XSDT
-  *	2. extract all tables and checksums them all
-  *	3. check ACPI FADT revision
-+ *	4. check ACPI FADT HW reduced flag
-  *
-  * We can parse ACPI boot-time tables such as MADT after
-  * this function is called.
-+ *
-+ * ACPI is enabled on return if ACPI tables initialized and sanity checks
-+ * passed, disabled otherwise
+- * Since we're on ARM, the default interrupt routing model
+- * clearly has to be GIC.
+- */
+-enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+-
+-/*
+  * __acpi_map_table() will be called before page_init(), so early_ioremap()
+  * or early_memremap() should be called here to for ACPI table mapping.
   */
- void __init acpi_boot_table_init(void)
- {
-+	int err;
-+
- 	/*
- 	 * Enable ACPI instead of device tree unless
- 	 * - ACPI has been disabled explicitly (acpi=off), or
-@@ -278,19 +301,32 @@ void __init acpi_boot_table_init(void)
- 	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
- 		return;
- 
-+	/*
-+	 * ACPI is disabled at this point. Enable it in order to parse
-+	 * the ACPI tables and carry out sanity checks
-+	 */
- 	enable_acpi();
- 
- 	/* Initialize the ACPI boot-time table parser. */
--	if (acpi_table_init()) {
--		disable_acpi();
--		return;
-+	err = acpi_table_init();
-+	if (err) {
-+		pr_err("Failed to init ACPI tables\n");
-+		goto out;
- 	}
- 
--	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
--		/* disable ACPI if no FADT is found */
-+	/*
-+	 * Check FADT presence and carry out FADT sanity checks
-+	 */
-+	err = acpi_fadt_sanity_check();
-+
-+out:
-+	/*
-+	 * If ACPI tables are initialized and FADT sanity checks passed,
-+	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
-+	 * on initialization error.
-+	 */
-+	if (err)
- 		disable_acpi();
--		pr_err("Can't find FADT\n");
--	}
+@@ -224,73 +218,6 @@ void __init acpi_init_cpus(void)
+ 	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
  }
  
- void __init acpi_gic_init(void)
+-int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+-{
+-	*irq = irq_find_mapping(NULL, gsi);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+-
+-/*
+- * success: return IRQ number (>0)
+- * failure: return =< 0
+- */
+-int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+-{
+-	unsigned int irq;
+-	unsigned int irq_type;
+-
+-	/*
+-	 * ACPI have no bindings to indicate SPI or PPI, so we
+-	 * use different mappings from DT in ACPI.
+-	 *
+-	 * For FDT
+-	 * PPI interrupt: in the range [0, 15];
+-	 * SPI interrupt: in the range [0, 987];
+-	 *
+-	 * For ACPI, GSI should be unique so using
+-	 * the hwirq directly for the mapping:
+-	 * PPI interrupt: in the range [16, 31];
+-	 * SPI interrupt: in the range [32, 1019];
+-	 */
+-
+-	if (trigger == ACPI_EDGE_SENSITIVE &&
+-				polarity == ACPI_ACTIVE_LOW)
+-		irq_type = IRQ_TYPE_EDGE_FALLING;
+-	else if (trigger == ACPI_EDGE_SENSITIVE &&
+-				polarity == ACPI_ACTIVE_HIGH)
+-		irq_type = IRQ_TYPE_EDGE_RISING;
+-	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+-				polarity == ACPI_ACTIVE_LOW)
+-		irq_type = IRQ_TYPE_LEVEL_LOW;
+-	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+-				polarity == ACPI_ACTIVE_HIGH)
+-		irq_type = IRQ_TYPE_LEVEL_HIGH;
+-	else
+-		irq_type = IRQ_TYPE_NONE;
+-
+-	/*
+-	 * Since only one GIC is supported in ACPI 5.0, we can
+-	 * create mapping refer to the default domain
+-	 */
+-	irq = irq_create_mapping(NULL, gsi);
+-	if (!irq)
+-		return irq;
+-
+-	/* Set irq type if specified and different than the current one */
+-	if (irq_type != IRQ_TYPE_NONE &&
+-		irq_type != irq_get_trigger_type(irq))
+-		irq_set_irq_type(irq, irq_type);
+-	return irq;
+-}
+-EXPORT_SYMBOL_GPL(acpi_register_gsi);
+-
+-void acpi_unregister_gsi(u32 gsi)
+-{
+-}
+-EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+-
+ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index a8f531e2..ab2cbb5 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -48,6 +48,9 @@ config ACPI_LEGACY_TABLES_LOOKUP
+ config ARCH_MIGHT_HAVE_ACPI_PDC
+ 	bool
+ 
++config ACPI_GENERIC_GSI
++	bool
++
+ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	bool
+ 
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index db153c6..8a063e2 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -56,6 +56,7 @@ ifdef CONFIG_ACPI_VIDEO
+ acpi-y				+= video_detect.o
+ endif
+ acpi-y				+= acpi_lpat.o
++acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+ 
+ # These are (potentially) separate modules
+ 
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+new file mode 100644
+index 0000000..38208f2
+--- /dev/null
++++ b/drivers/acpi/gsi.c
+@@ -0,0 +1,105 @@
++/*
++ * ACPI GSI IRQ layer
++ *
++ * Copyright (C) 2015 ARM Ltd.
++ * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/acpi.h>
++#include <linux/irq.h>
++#include <linux/irqdomain.h>
++
++enum acpi_irq_model_id acpi_irq_model;
++
++static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
++{
++	switch (polarity) {
++	case ACPI_ACTIVE_LOW:
++		return trigger == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_FALLING :
++		       IRQ_TYPE_LEVEL_LOW;
++	case ACPI_ACTIVE_HIGH:
++		return trigger == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_RISING :
++		       IRQ_TYPE_LEVEL_HIGH;
++	case ACPI_ACTIVE_BOTH:
++		if (trigger == ACPI_EDGE_SENSITIVE)
++			return IRQ_TYPE_EDGE_BOTH;
++	default:
++		return IRQ_TYPE_NONE;
++	}
++}
++
++/**
++ * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
++ * @gsi: GSI IRQ number to map
++ * @irq: pointer where linux IRQ number is stored
++ *
++ * irq location updated with irq value [>0 on success, 0 on failure]
++ *
++ * Returns: linux IRQ number on success (>0)
++ *          -EINVAL on failure
++ */
++int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
++{
++	/*
++	 * Only default domain is supported at present, always find
++	 * the mapping corresponding to default domain by passing NULL
++	 * as irq_domain parameter
++	 */
++	*irq = irq_find_mapping(NULL, gsi);
++	/*
++	 * *irq == 0 means no mapping, that should
++	 * be reported as a failure
++	 */
++	return (*irq > 0) ? *irq : -EINVAL;
++}
++EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
++
++/**
++ * acpi_register_gsi() - Map a GSI to a linux IRQ number
++ * @dev: device for which IRQ has to be mapped
++ * @gsi: GSI IRQ number
++ * @trigger: trigger type of the GSI number to be mapped
++ * @polarity: polarity of the GSI to be mapped
++ *
++ * Returns: a valid linux IRQ number on success
++ *          -EINVAL on failure
++ */
++int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
++		      int polarity)
++{
++	unsigned int irq;
++	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
++
++	/*
++	 * There is no way at present to look-up the IRQ domain on ACPI,
++	 * hence always create mapping referring to the default domain
++	 * by passing NULL as irq_domain parameter
++	 */
++	irq = irq_create_mapping(NULL, gsi);
++	if (!irq)
++		return -EINVAL;
++
++	/* Set irq type if specified and different than the current one */
++	if (irq_type != IRQ_TYPE_NONE &&
++		irq_type != irq_get_trigger_type(irq))
++		irq_set_irq_type(irq, irq_type);
++	return irq;
++}
++EXPORT_SYMBOL_GPL(acpi_register_gsi);
++
++/**
++ * acpi_unregister_gsi() - Free a GSI<->linux IRQ number mapping
++ * @gsi: GSI IRQ number
++ */
++void acpi_unregister_gsi(u32 gsi)
++{
++	int irq = irq_find_mapping(NULL, gsi);
++
++	irq_dispose_mapping(irq);
++}
++EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index d15a36a..f1efb53 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1189,6 +1189,8 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+ 	 */
+ 	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+ 	irq_set_default_host(gic_data[0].domain);
++
++	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+ 	return 0;
+ }
+ #endif
 -- 
 2.2.1
