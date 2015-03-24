@@ -1,110 +1,95 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH 2/5] ARM64: kernel: psci: factor out probe function
-Date: Tue, 24 Mar 2015 17:58:52 +0000
-Message-ID: <1427219940-27201-3-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: [PATCH 5/5] ARM64: kernel: acpi: honour acpi=force command line parameter
+Date: Tue, 24 Mar 2015 17:58:55 +0000
+Message-ID: <1427219940-27201-6-git-send-email-lorenzo.pieralisi@arm.com>
 References: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:49127 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754584AbbCXR7g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Mar 2015 13:59:36 -0400
 In-Reply-To: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Mark Rutland <mark.rutland@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
 
-PSCI v0.2+ versions provide a specific PSCI call (PSCI_VERSION) to
-detect the PSCI version at run-time. Current PSCI v0.2 init code
-carries out the version probing in the PSCI 0.2 DT init function,
-but the version probing does not depend on DT so it can be factored out
-in order to make it available to other boot mechanisms (ie ACPI) to
-reuse. The psci_probe() probing function can be easily extended
-to add detection and initialization of PSCI functions defined in
-PSCI versions >0.2.
+If acpi=force is passed on the command line, it forces ACPI to be
+the only available boot method, hence it must be left enabled even
+if the initialization and sanity checks on ACPI tables fails.
+
+This patch refactors ACPI initialization to prevent disabling ACPI
+if acpi=force is passed on the command line.
 
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 ---
- arch/arm64/kernel/psci.c | 50 ++++++++++++++++++++++++++++++++----------------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ arch/arm64/include/asm/acpi.h | 3 ---
+ arch/arm64/kernel/acpi.c      | 6 ++++--
+ arch/arm64/kernel/setup.c     | 2 +-
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm64/kernel/psci.c b/arch/arm64/kernel/psci.c
-index d3c52ce..2caac44 100644
---- a/arch/arm64/kernel/psci.c
-+++ b/arch/arm64/kernel/psci.c
-@@ -303,25 +303,19 @@ static void __init psci_0_2_set_functions(void)
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index e1a8965..59c05d8 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -38,7 +38,6 @@ typedef u64 phys_cpuid_t;
+ extern int acpi_disabled;
+ extern int acpi_noirq;
+ extern int acpi_pci_disabled;
+-extern bool param_acpi_force;
+ 
+ /* 1 to indicate PSCI 0.2+ is implemented */
+ static inline bool acpi_psci_present(void)
+@@ -92,8 +91,6 @@ void __init acpi_init_cpus(void);
+ static inline bool acpi_psci_present(void) { return false; }
+ static inline bool acpi_psci_use_hvc(void) { return false; }
+ static inline void acpi_init_cpus(void) { }
+-
+-#define param_acpi_force false
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 542f045..789994a 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -43,7 +43,7 @@ static int enabled_cpus;
+ static bool bootcpu_valid  __initdata;
+ 
+ static bool param_acpi_off __initdata;
+-bool param_acpi_force __initdata;
++static bool param_acpi_force __initdata;
+ 
+ static int __init parse_acpi(char *arg)
+ {
+@@ -324,8 +324,10 @@ out:
+ 	 * If ACPI tables are initialized and FADT sanity checks passed,
+ 	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
+ 	 * on initialization error.
++	 * If acpi=force was passed on the command line it forces ACPI
++	 * to be enabled even if its initialization failed.
+ 	 */
+-	if (err)
++	if (err && !param_acpi_force)
+ 		disable_acpi();
  }
  
- /*
-- * PSCI Function IDs for v0.2+ are well defined so use
-- * standard values.
-+ * Probe function for PSCI firmware versions >= 0.2
-  */
--static int __init psci_0_2_init(struct device_node *np)
-+static int __init psci_probe(void)
- {
--	int err, ver;
--
--	err = get_set_conduit_method(np);
--
--	if (err)
--		goto out_put_node;
--
--	ver = psci_get_version();
-+	int ver = psci_get_version();
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index d60b1ad..b278311 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -390,7 +390,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	if (ver == PSCI_RET_NOT_SUPPORTED) {
--		/* PSCI v0.2 mandates implementation of PSCI_ID_VERSION. */
-+		/*
-+		 * PSCI versions >=0.2 mandates implementation of
-+		 * PSCI_VERSION.
-+		 */
- 		pr_err("PSCI firmware does not comply with the v0.2 spec.\n");
--		err = -EOPNOTSUPP;
--		goto out_put_node;
-+		return -EOPNOTSUPP;
- 	} else {
- 		pr_info("PSCIv%d.%d detected in firmware.\n",
- 				PSCI_VERSION_MAJOR(ver),
-@@ -329,14 +323,38 @@ static int __init psci_0_2_init(struct device_node *np)
+ 	early_ioremap_reset();
  
- 		if (PSCI_VERSION_MAJOR(ver) == 0 &&
- 				PSCI_VERSION_MINOR(ver) < 2) {
--			err = -EINVAL;
- 			pr_err("Conflicting PSCI version detected.\n");
--			goto out_put_node;
-+			return -EINVAL;
- 		}
- 	}
- 
- 	psci_0_2_set_functions();
- 
-+	return 0;
-+}
-+
-+/*
-+ * PSCI init function for PSCI versions >=0.2
-+ *
-+ * Probe based on PSCI PSCI_VERSION function
-+ */
-+static int __init psci_0_2_init(struct device_node *np)
-+{
-+	int err;
-+
-+	err = get_set_conduit_method(np);
-+
-+	if (err)
-+		goto out_put_node;
-+	/*
-+	 * Starting with v0.2, the PSCI specification introduced a call
-+	 * (PSCI_VERSION) that allows probing the firmware version, so
-+	 * that PSCI function IDs and version specific initialization
-+	 * can be carried out according to the specific version reported
-+	 * by firmware
-+	 */
-+	err = psci_probe();
-+
- out_put_node:
- 	of_node_put(np);
- 	return err;
+-	if (acpi_disabled  && !param_acpi_force) {
++	if (acpi_disabled) {
+ 		unflatten_device_tree();
+ 		psci_dt_init();
+ 		cpu_read_bootcpu_ops();
 -- 
 2.2.1
+
