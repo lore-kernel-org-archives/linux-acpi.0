@@ -1,78 +1,76 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: Re: [PATCH] ACPI: Adjust the return value of _REV on x86
-Date: Tue, 24 Mar 2015 15:24:12 +0000
-Message-ID: <20150324152412.GA4706@codeblueprint.co.uk>
-References: <1426150247-18309-1-git-send-email-matthew.garrett@nebula.com>
- <1426363131-14530-1-git-send-email-jason.ekstrand@intel.com>
- <CAOFGe95CiLcHtzD3Vv-KJoCXfeHCyGa55OBkzHSZMWwdOyLnfg@mail.gmail.com>
- <20150323120331.GA3007@codeblueprint.co.uk>
- <5510FB37.6030808@dell.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: Re: [patch v11 19/23] XEN / ACPI: Make XEN ACPI depend on X86
+Date: Tue, 24 Mar 2015 11:30:11 -0400
+Message-ID: <55118303.8060003@oracle.com>
+References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
+ <1427205776-5060-20-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5510FB37.6030808@dell.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mario Limonciello <mario_limonciello@dell.com>
-Cc: Jason Ekstrand <jason@jlekstrand.net>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bard Liao <bardliao@realtek.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1427205776-5060-20-git-send-email-hanjun.guo@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Mark Salter <msalter@redhat.com>, linux-kernel@vger.kernel.org, Julien Grall <julien.grall@linaro.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, David Vrabel <david.vrabel@citrix.com>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Sudeep Holla <Sudeep.Holla@arm.com>, 'Stefano Stabellini' <stefano.stabellini@eu.citrix.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 24 Mar, at 12:50:47AM, Mario Limonciello wrote:
+On 03/24/2015 10:02 AM, Hanjun Guo wrote:
+> When ACPI is enabled on ARM64, XEN ACPI will also compiled
+> into the kernel, but XEN ACPI is x86 dependent, so introduce
+> CONFIG_XEN_ACPI to make it depend on x86 before XEN ACPI is
+> functional on ARM64.
 >
-> Aside from the mistake that was made in A01 ( which has been corrected
-> for the recently released A02 ), the goal of this workaround is to be
-> able to provide a more functional audio solution across a wider
-> user-base.  Supporting HDA audio for Linux means that users from older
-> kernels will still have a mostly working solution and not need to wait
-> for the entire set of I2S kernel and userspace patches to land in
-> their distro of choice.  We can't expect everyone to run the latest
-> kernel just to have working audio.
-
-Running a recent kernel is the tradeoff to be paid for using brand new
-hardware. I certainly don't expect to be able to install a 4-year old
-version of Fedora on a laptop released this year and have it work
-flawlessly.
-
-Besides, distributions aggressively backport patches for new hardware
-support anyway and you should work with the distribution developers to
-ensure that happens for your hardware. Preferably before it gets
-released.
-
-Because, fundamentally, when you make these decisions about Linux in the
-BIOS you're pitting the BIOS and kernel development models against each
-other. What is going to happen when i2s/i2c finally works correctly in
-the kernel and distros? It would seem unlikely that a BIOS update would
-be available to switch everyone to that mode.
-
-> The entire I2S experience is maturing (thanks Bard), but even in
-> 4.0-rc5 there are still gaps.
-
-I'm sure the audio folks would love to hear about them.
-
-> >Non-Windows BIOS code paths are not validated to the same degree as
-> >those traversed by running Windows, which is exactly why we try so hard
-> >to emulate Windows whenever we interact with the BIOS.
+> CC: 'Stefano Stabellini' <stefano.stabellini@eu.citrix.com>
+> CC: Julien Grall <julien.grall@linaro.org>
+> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+> CC: David Vrabel <david.vrabel@citrix.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>   drivers/xen/Kconfig  | 4 ++++
+>   drivers/xen/Makefile | 2 +-
+>   2 files changed, 5 insertions(+), 1 deletion(-)
 >
-> To be clear - this codepath is activating the Windows 7 audio
-> experience even when Windows 8.1 is detected (Windows 2013 _OSI
-> responds True).  It's still a Windows BIOS codepath and it's still
-> heavily validated.  There are 3 values you'll find in a decompiled
-> DSDT to achieve this in the _REV test block.  2 of them are used to
-> provide inputs into the EC to toggle HDA or I2S mode.  The other
-> modifies what ACPI audio device is presented to the system.  There
-> isn't a special OS type to represent Linux here.  The selected OSTP
-> corresponds to the Windows 7 OS type.
- 
-Thanks, that is clearer and it does address my concerns about Linux-only
-code paths in the BIOS. But the use of _REV is still only exists to
-detect Linux (or more accurately an ACPICA OS), and that's a big issue.
+> diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
+> index b812462..a31cd29 100644
+> --- a/drivers/xen/Kconfig
+> +++ b/drivers/xen/Kconfig
+> @@ -253,4 +253,8 @@ config XEN_EFI
+>   	def_bool y
+>   	depends on X86_64 && EFI
+>   
+> +config XEN_ACPI
+> +	def_bool y
+> +	depends on X86 && ACPI
+> +
 
-> In any case, if the _REV patch does land in the kernel, I think (we)
-> Dell will still be mostly happy with the results.  Anything older than
-> 4.x won't contain the the _REV patch and will run in HDA mode.
 
-Unless the patch gets backported to stable kernel versions older than
-4.x. Which is likely.
+I think XEN_DOM0 (in arch/x86/xen/Kconfig) should select this option. 
+Otherwise, if it is set to 'n', we won't be able to build enlighten.c 
+(xen_start_kernel() -> xen_acpi_sleep_register() refers to 
+xen_acpi_notify_hypervisor_sleep()).
 
--- 
-Matt Fleming, Intel Open Source Technology Center
+-boris
+
+>   endmenu
+> diff --git a/drivers/xen/Makefile b/drivers/xen/Makefile
+> index 2ccd359..f4622ab 100644
+> --- a/drivers/xen/Makefile
+> +++ b/drivers/xen/Makefile
+> @@ -13,7 +13,7 @@ CFLAGS_efi.o				+= -fshort-wchar
+>   
+>   dom0-$(CONFIG_PCI) += pci.o
+>   dom0-$(CONFIG_USB_SUPPORT) += dbgp.o
+> -dom0-$(CONFIG_ACPI) += acpi.o $(xen-pad-y)
+> +dom0-$(CONFIG_XEN_ACPI) += acpi.o $(xen-pad-y)
+>   xen-pad-$(CONFIG_X86) += xen-acpi-pad.o
+>   dom0-$(CONFIG_X86) += pcpu.o
+>   obj-$(CONFIG_XEN_DOM0)			+= $(dom0-y)
