@@ -1,255 +1,75 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 17/23] clocksource / arch_timer: Parse GTDT to initialize arch timer
-Date: Tue, 24 Mar 2015 22:02:50 +0800
-Message-ID: <1427205776-5060-18-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 23/23] ARM64 / ACPI: Don't unflatten device tree if acpi=force is passed
+Date: Tue, 24 Mar 2015 22:02:56 +0800
+Message-ID: <1427205776-5060-24-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:36697 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227AbbCXOF1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Mar 2015 10:05:27 -0400
-Received: by padcy3 with SMTP id cy3so226752806pad.3
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Mar 2015 07:05:26 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Using the information presented by GTDT (Generic Timer Description Table)
-to initialize the arch timer (not memory-mapped).
+Since the policy is that once we pass acpi=force in the early
+param, we will not unflatten device tree even if ACPI is disabled
+in ACPI table init fails, so fix the code by comparinging both
+acpi_disabled and param_acpi_force before the device tree is
+unflattened.
 
-CC: Daniel Lezcano <daniel.lezcano@linaro.org>
-CC: Thomas Gleixner <tglx@linutronix.de>
-Originally-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Yijing Wang <wangyijing@huawei.com>
-Tested-by: Mark Langsdorf <mlangsdo@redhat.com>
-Tested-by: Jon Masters <jcm@redhat.com>
-Tested-by: Timur Tabi <timur@codeaurora.org>
-Tested-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reviewed-by: Grant Likely <grant.likely@linaro.org>
+CC: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/kernel/time.c             |   7 ++
- drivers/clocksource/arm_arch_timer.c | 132 ++++++++++++++++++++++++++++-------
- include/linux/clocksource.h          |   6 ++
- 3 files changed, 118 insertions(+), 27 deletions(-)
+ arch/arm64/include/asm/acpi.h | 3 +++
+ arch/arm64/kernel/acpi.c      | 2 +-
+ arch/arm64/kernel/setup.c     | 2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-index 1a7125c..42f9195 100644
---- a/arch/arm64/kernel/time.c
-+++ b/arch/arm64/kernel/time.c
-@@ -35,6 +35,7 @@
- #include <linux/delay.h>
- #include <linux/clocksource.h>
- #include <linux/clk-provider.h>
-+#include <linux/acpi.h>
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 59c05d8..e1a8965 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -38,6 +38,7 @@ typedef u64 phys_cpuid_t;
+ extern int acpi_disabled;
+ extern int acpi_noirq;
+ extern int acpi_pci_disabled;
++extern bool param_acpi_force;
  
- #include <clocksource/arm_arch_timer.h>
- 
-@@ -72,6 +73,12 @@ void __init time_init(void)
- 
- 	tick_setup_hrtimer_broadcast();
- 
-+	/*
-+	 * Since ACPI or FDT will only one be available in the system,
-+	 * we can use acpi_generic_timer_init() here safely
-+	 */
-+	acpi_generic_timer_init();
+ /* 1 to indicate PSCI 0.2+ is implemented */
+ static inline bool acpi_psci_present(void)
+@@ -91,6 +92,8 @@ void __init acpi_init_cpus(void);
+ static inline bool acpi_psci_present(void) { return false; }
+ static inline bool acpi_psci_use_hvc(void) { return false; }
+ static inline void acpi_init_cpus(void) { }
 +
- 	arch_timer_rate = arch_timer_get_rate();
- 	if (!arch_timer_rate)
- 		panic("Unable to initialise architected timer.\n");
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index a3025e7..ea62fc7 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -22,6 +22,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/sched_clock.h>
-+#include <linux/acpi.h>
++#define param_acpi_force false
+ #endif /* CONFIG_ACPI */
  
- #include <asm/arch_timer.h>
- #include <asm/virt.h>
-@@ -371,8 +372,12 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
- 	if (arch_timer_rate)
- 		return;
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 5819ef7..fe9d8f0 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -43,7 +43,7 @@ static int enabled_cpus;
+ static bool bootcpu_valid  __initdata;
  
--	/* Try to determine the frequency from the device tree or CNTFRQ */
--	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
-+	/*
-+	 * Try to determine the frequency from the device tree or CNTFRQ,
-+	 * if ACPI is enabled, get the frequency from CNTFRQ ONLY.
-+	 */
-+	if (!acpi_disabled ||
-+	    of_property_read_u32(np, "clock-frequency", &arch_timer_rate)) {
- 		if (cntbase)
- 			arch_timer_rate = readl_relaxed(cntbase + CNTFRQ);
- 		else
-@@ -691,28 +696,8 @@ static void __init arch_timer_common_init(void)
- 	arch_timer_arch_init();
- }
+ static bool param_acpi_off __initdata;
+-static bool param_acpi_force __initdata;
++bool param_acpi_force __initdata;
  
--static void __init arch_timer_init(struct device_node *np)
-+static void __init arch_timer_init(void)
+ static int __init parse_acpi(char *arg)
  {
--	int i;
--
--	if (arch_timers_present & ARCH_CP15_TIMER) {
--		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
--		return;
--	}
--
--	arch_timers_present |= ARCH_CP15_TIMER;
--	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
--		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
--	arch_timer_detect_rate(NULL, np);
--
--	/*
--	 * If we cannot rely on firmware initializing the timer registers then
--	 * we should use the physical timers instead.
--	 */
--	if (IS_ENABLED(CONFIG_ARM) &&
--	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
--			arch_timer_use_virtual = false;
--
- 	/*
- 	 * If HYP mode is available, we know that the physical timer
- 	 * has been configured to be accessible from PL1. Use it, so
-@@ -731,13 +716,39 @@ static void __init arch_timer_init(struct device_node *np)
- 		}
- 	}
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index b278311..d60b1ad 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -390,7 +390,7 @@ void __init setup_arch(char **cmdline_p)
  
--	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
--
- 	arch_timer_register();
- 	arch_timer_common_init();
- }
--CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_init);
--CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_init);
-+
-+static void __init arch_timer_of_init(struct device_node *np)
-+{
-+	int i;
-+
-+	if (arch_timers_present & ARCH_CP15_TIMER) {
-+		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-+		return;
-+	}
-+
-+	arch_timers_present |= ARCH_CP15_TIMER;
-+	for (i = PHYS_SECURE_PPI; i < MAX_TIMER_PPI; i++)
-+		arch_timer_ppi[i] = irq_of_parse_and_map(np, i);
-+
-+	arch_timer_detect_rate(NULL, np);
-+
-+	arch_timer_c3stop = !of_property_read_bool(np, "always-on");
-+
-+	/*
-+	 * If we cannot rely on firmware initializing the timer registers then
-+	 * we should use the physical timers instead.
-+	 */
-+	if (IS_ENABLED(CONFIG_ARM) &&
-+	    of_property_read_bool(np, "arm,cpu-registers-not-fw-configured"))
-+			arch_timer_use_virtual = false;
-+
-+	arch_timer_init();
-+}
-+CLOCKSOURCE_OF_DECLARE(armv7_arch_timer, "arm,armv7-timer", arch_timer_of_init);
-+CLOCKSOURCE_OF_DECLARE(armv8_arch_timer, "arm,armv8-timer", arch_timer_of_init);
+ 	early_ioremap_reset();
  
- static void __init arch_timer_mem_init(struct device_node *np)
- {
-@@ -804,3 +815,70 @@ static void __init arch_timer_mem_init(struct device_node *np)
- }
- CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
- 		       arch_timer_mem_init);
-+
-+#ifdef CONFIG_ACPI
-+static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
-+{
-+	int trigger, polarity;
-+
-+	if (!interrupt)
-+		return 0;
-+
-+	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-+			: ACPI_LEVEL_SENSITIVE;
-+
-+	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-+			: ACPI_ACTIVE_HIGH;
-+
-+	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
-+}
-+
-+/* Initialize per-processor generic timer */
-+static int __init arch_timer_acpi_init(struct acpi_table_header *table)
-+{
-+	struct acpi_table_gtdt *gtdt;
-+
-+	if (arch_timers_present & ARCH_CP15_TIMER) {
-+		pr_warn("arch_timer: already initialized, skipping\n");
-+		return -EINVAL;
-+	}
-+
-+	gtdt = container_of(table, struct acpi_table_gtdt, header);
-+
-+	arch_timers_present |= ARCH_CP15_TIMER;
-+
-+	arch_timer_ppi[PHYS_SECURE_PPI] =
-+		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
-+		gtdt->secure_el1_flags);
-+
-+	arch_timer_ppi[PHYS_NONSECURE_PPI] =
-+		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
-+		gtdt->non_secure_el1_flags);
-+
-+	arch_timer_ppi[VIRT_PPI] =
-+		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
-+		gtdt->virtual_timer_flags);
-+
-+	arch_timer_ppi[HYP_PPI] =
-+		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
-+		gtdt->non_secure_el2_flags);
-+
-+	/* Get the frequency from CNTFRQ */
-+	arch_timer_detect_rate(NULL, NULL);
-+
-+	/* Always-on capability */
-+	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-+
-+	arch_timer_init();
-+	return 0;
-+}
-+
-+/* Initialize all the generic timers presented in GTDT */
-+void __init acpi_generic_timer_init(void)
-+{
-+	if (acpi_disabled)
-+		return;
-+
-+	acpi_table_parse(ACPI_SIG_GTDT, arch_timer_acpi_init);
-+}
-+#endif
-diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-index 9c78d15..2b2e1f8 100644
---- a/include/linux/clocksource.h
-+++ b/include/linux/clocksource.h
-@@ -244,4 +244,10 @@ extern void clocksource_of_init(void);
- static inline void clocksource_of_init(void) {}
- #endif
- 
-+#ifdef CONFIG_ACPI
-+void acpi_generic_timer_init(void);
-+#else
-+static inline void acpi_generic_timer_init(void) { }
-+#endif
-+
- #endif /* _LINUX_CLOCKSOURCE_H */
+-	if (acpi_disabled) {
++	if (acpi_disabled  && !param_acpi_force) {
+ 		unflatten_device_tree();
+ 		psci_dt_init();
+ 		cpu_read_bootcpu_ops();
 -- 
 1.9.1
-
