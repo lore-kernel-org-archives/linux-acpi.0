@@ -1,7 +1,7 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [patch v11 20/23] ARM64 / ACPI: Enable ARM64 in Kconfig
-Date: Tue, 24 Mar 2015 22:02:53 +0800
-Message-ID: <1427205776-5060-21-git-send-email-hanjun.guo@linaro.org>
+Subject: [patch v11 18/23] ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64
+Date: Tue, 24 Mar 2015 22:02:51 +0800
+Message-ID: <1427205776-5060-19-git-send-email-hanjun.guo@linaro.org>
 References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
@@ -10,14 +10,16 @@ To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysock
 Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+From: Al Stone <al.stone@linaro.org>
 
-Add Kconfigs to build ACPI on ARM64, and make ACPI available on ARM64.
+ACPI reduced hardware mode is disabled by default, but ARM64
+can only run properly in ACPI hardware reduced mode, so select
+ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64.
 
-acpi_idle driver is x86/IA64 dependent now, so make CONFIG_ACPI_PROCESSOR
-depend on X86 || IA64, and implement it on ARM64 in the future.
+If the firmware is not using hardware reduced ACPI mode, we
+will disable ACPI to avoid nightmare such as accessing some
+registers which are not available on ARM64.
 
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
 CC: Catalin Marinas <catalin.marinas@arm.com>
 CC: Will Deacon <will.deacon@arm.com>
 Reviewed-by: Grant Likely <grant.likely@linaro.org>
@@ -28,48 +30,50 @@ Tested-by: Jon Masters <jcm@redhat.com>
 Tested-by: Timur Tabi <timur@codeaurora.org>
 Tested-by: Robert Richter <rrichter@cavium.com>
 Acked-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
 Signed-off-by: Al Stone <al.stone@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/Kconfig   | 2 ++
- drivers/acpi/Kconfig | 3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig       | 1 +
+ arch/arm64/kernel/acpi.c | 8 +++++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index d00ab9a..e5aa081 100644
+index 1b8e973..d00ab9a 100644
 --- a/arch/arm64/Kconfig
 +++ b/arch/arm64/Kconfig
-@@ -713,6 +713,8 @@ source "drivers/Kconfig"
- 
- source "drivers/firmware/Kconfig"
- 
-+source "drivers/acpi/Kconfig"
+@@ -1,5 +1,6 @@
+ config ARM64
+ 	def_bool y
++	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 6468f88..5819ef7 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -303,6 +303,11 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+ 	 */
+ 	if (table->revision > 5 ||
+ 	    (table->revision == 5 && fadt->minor_revision >= 1)) {
++		if (!acpi_gbl_reduced_hardware) {
++			pr_err("Not hardware reduced ACPI mode, will not be supported\n");
++			goto disable_acpi;
++		}
 +
- source "fs/Kconfig"
+ 		/*
+ 		 * ACPI 5.1 only has two explicit methods to boot up SMP,
+ 		 * PSCI and Parking protocol, but the Parking protocol is
+@@ -319,8 +324,9 @@ static int __init acpi_parse_fadt(struct acpi_table_header *table)
  
- source "arch/arm64/kvm/Kconfig"
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a726381..a8f531e2 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -5,7 +5,7 @@
- menuconfig ACPI
- 	bool "ACPI (Advanced Configuration and Power Interface) Support"
- 	depends on !IA64_HP_SIM
--	depends on IA64 || X86
-+	depends on IA64 || X86 || (ARM64 && EXPERT)
- 	depends on PCI
- 	select PNP
- 	default y
-@@ -167,6 +167,7 @@ config ACPI_PROCESSOR
- 	tristate "Processor"
- 	select THERMAL
- 	select CPU_IDLE
-+	depends on X86 || IA64
- 	default y
- 	help
- 	  This driver installs ACPI as the idle handler for Linux and uses
+ 	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
+ 		table->revision, fadt->minor_revision);
+-	disable_acpi();
+ 
++disable_acpi:
++	disable_acpi();
+ 	return -EINVAL;
+ }
+ 
 -- 
 1.9.1
