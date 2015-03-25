@@ -1,48 +1,28 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Bugfix] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Wed, 25 Mar 2015 15:25:45 +0800
-Message-ID: <551262F9.7080809@linux.intel.com>
-References: <1427095334-7430-1-git-send-email-jiang.liu@linux.intel.com> <20150323164809.GS26935@google.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] driver core: property: Update
+ fwnode_property_read_string_array()
+Date: Wed, 25 Mar 2015 09:29:15 +0100
+Message-ID: <20150325082915.GB28023@kroah.com>
+References: <1670743.YY8G2nYXVm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:65317 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752198AbbCYHZs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Mar 2015 03:25:48 -0400
-In-Reply-To: <20150323164809.GS26935@google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1670743.YY8G2nYXVm@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-
-
-On 2015/3/24 0:48, Bjorn Helgaas wrote:
-> On Mon, Mar 23, 2015 at 03:22:14PM +0800, Jiang Liu wrote:
-<snit>
->> ---
->>  arch/x86/pci/acpi.c     |    5 ++---
->>  drivers/acpi/resource.c |    3 +++
->>  2 files changed, 5 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
->> index e4695985f9de..8c4b1201f340 100644
->> --- a/arch/x86/pci/acpi.c
->> +++ b/arch/x86/pci/acpi.c
->> @@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->>  	info->bridge = device;
->>  	ret = acpi_dev_get_resources(device, list,
->>  				     acpi_dev_filter_resource_type_cb,
->> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
->> +				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
+On Tue, Mar 24, 2015 at 01:40:13AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> Tangent: I'm disappointed that ia64 didn't get reworked to track the x86
-> code here.  Is that coming soon?
-Hi Bjorn,
-	Recall the memory now, IA64 may have mutiple 64K IO space, which
-also support SPARSE attribute. Currently ACPI resource parsing interface
-have no support of these two requirements yet. Will try to improve it.
-Thanks!
-Gerry
+> Commit 5c0acf3b4f96 (driver core: Add comments about returning array
+> counts) forgot to update fwnode_property_read_string_array() along
+> the lines of device_property_read_string_array(), although it did
+> change the kerneldoc comment of it.  Fix that.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
