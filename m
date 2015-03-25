@@ -1,55 +1,254 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [V5 PATCH 1/2] ACPI / scan: Add support for ACPI _CLS device
- matching
-Date: Wed, 25 Mar 2015 17:11:39 +0200
-Message-ID: <20150325151139.GA1878@lahna.fi.intel.com>
-References: <1425622302-15193-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <55117373.3020808@amd.com>
- <20150324144346.GO1878@lahna.fi.intel.com>
- <1602323.I0oL7Cv9OO@vostro.rjw.lan>
- <5512CFB6.1020606@amd.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 4/5] ARM64: kernel: acpi: refactor ACPI tables init and
+ checks
+Date: Wed, 25 Mar 2015 15:13:56 +0000
+Message-ID: <20150325151356.GA21478@red-moon>
+References: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1427219940-27201-5-git-send-email-lorenzo.pieralisi@arm.com>
+ <20150325142623.GK24636@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5512CFB6.1020606@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, lv.zheng@intel.com, hpa@linux.intel.com, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, arnd@arndb.de, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+In-Reply-To: <20150325142623.GK24636@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 25, 2015 at 10:09:42AM -0500, Suravee Suthikulpanit wrote:
-> On 3/24/15 15:20, Rafael J. Wysocki wrote:
-> >On Tuesday, March 24, 2015 04:43:46 PM Mika Westerberg wrote:
-> >>On Tue, Mar 24, 2015 at 09:23:47AM -0500, Suravee Suthikulpanit wrote:
-> >>>On 3/9/15 10:20, Mika Westerberg wrote:
-> >>>>>[....]
-> >>>>>diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-> >>>>>index e530533..9a42522 100644
-> >>>>>--- a/include/linux/mod_devicetable.h
-> >>>>>+++ b/include/linux/mod_devicetable.h
-> >>>>>@@ -189,6 +189,7 @@ struct css_device_id {
-> >>>>>  struct acpi_device_id {
-> >>>>>  	__u8 id[ACPI_ID_LEN];
-> >>>>>  	kernel_ulong_t driver_data;
-> >>>>>+	__u32 cls;
-> >>>>
-> >>>>It would be nice if we could change ordering here but I understand that
-> >>>>it breaks quite many drivers. Perhaps we should consider creating
-> >>>>ACPI_DEVICE() macro and convert existing drivers to that at some point.
-> >>>
-> >>>Yes, a roughly grep in the drivers directory showing about 112 files at the
-> >>>moment. If you think this is the right approach going forward, we can work
-> >>>on cleaning this up on a separate patch series. Please let me know what you
-> >>>think.
-> >>
-> >>I think having ACPI_DEVICE() macro would be pretty useful and it avoids
-> >>things like this if we need to add new fields in the future. Rafael has
-> >>the last word, though :-)
-> >
-> >I agree.
-> 
-> Okay, how should I organize this big change? Can we do this as a separate
-> patch series?
+On Wed, Mar 25, 2015 at 02:26:23PM +0000, Will Deacon wrote:
+> On Tue, Mar 24, 2015 at 05:58:54PM +0000, Lorenzo Pieralisi wrote:
 
-Separate patch series is fine.
+[...]
+
+> >  void __init acpi_boot_table_init(void)
+> >  {
+> > +	int err;
+> > +
+> >  	/*
+> >  	 * Enable ACPI instead of device tree unless
+> >  	 * - ACPI has been disabled explicitly (acpi=off), or
+> > @@ -278,19 +301,32 @@ void __init acpi_boot_table_init(void)
+> >  	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+> >  		return;
+> >  
+> > +	/*
+> > +	 * ACPI is disabled at this point. Enable it in order to parse
+> > +	 * the ACPI tables and carry out sanity checks
+> > +	 */
+> >  	enable_acpi();
+> >  
+> >  	/* Initialize the ACPI boot-time table parser. */
+> > -	if (acpi_table_init()) {
+> > -		disable_acpi();
+> > -		return;
+> > +	err = acpi_table_init();
+> > +	if (err) {
+> > +		pr_err("Failed to init ACPI tables\n");
+> > +		goto out;
+> >  	}
+> >  
+> > -	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
+> > -		/* disable ACPI if no FADT is found */
+> > +	/*
+> > +	 * Check FADT presence and carry out FADT sanity checks
+> > +	 */
+> > +	err = acpi_fadt_sanity_check();
+> > +
+> > +out:
+> > +	/*
+> > +	 * If ACPI tables are initialized and FADT sanity checks passed,
+> > +	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
+> > +	 * on initialization error.
+> > +	 */
+> > +	if (err)
+> >  		disable_acpi();
+> > -		pr_err("Can't find FADT\n");
+> > -	}
+> 
+> Could you rewrite most of this as:
+> 
+>   enable_acpi();
+>   if (acpi_table_init() || acpi_fadt_sanity_check()) {
+> 	pr_err("Failed to init ACPI tables\n");
+> 	disable_acpi();
+>   }
+> 
+> I think it reads a bit better without the out: label.
+
+Yes it makes sense acpi_fadt_sanity_check() already spits some errors
+but there is not really a point in jumping around.
+
+Here is the updated patch (please note this requires updating patch 5
+too, I will send it inline shortly), thanks.
+
+-- >8 --
+Subject: [PATCH] ARM64: kernel: acpi: refactor ACPI tables init and checks
+
+Current ACPI init code on ARM64 relies on acpi_table_parse() API to
+check if the FADT is present and to carry out sanity checks on that.
+
+The handler passed to the acpi_table_parse() function and used to
+carry out the parsing on the requested table returns a value that is
+ignored by the acpi_table_parse() function, so it is not possible
+to propagate errors back to the acpi_table_parse() caller through
+the handler.
+
+This forces ARM64 ACPI init code to have disable_acpi() calls scattered
+all over the place that makes code unwieldy and not easy to follow.
+
+This patch refactors the ARM64 ACPI init code, by creating a
+self-contained function (ie acpi_fadt_sanity_check()) that carries
+out the required checks on FADT and returns an adequate return value
+to the caller. This allows creating a common error path that disables
+ACPI and makes code more readable and easy to parse and change were
+further checks FADT to be added in the future.
+
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+---
+ arch/arm64/kernel/acpi.c | 95 ++++++++++++++++++++++++++++++------------------
+ 1 file changed, 59 insertions(+), 36 deletions(-)
+
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index a70f714..172b7c9 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -218,43 +218,60 @@ void __init acpi_init_cpus(void)
+ 	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+ }
+ 
+-static int __init acpi_parse_fadt(struct acpi_table_header *table)
++/*
++ * acpi_fadt_sanity_check() - Check FADT presence and carry out sanity
++ *			      checks on it
++ *
++ * Return 0 on success,  <0 on failure
++ */
++static int __init acpi_fadt_sanity_check(void)
+ {
+-	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
++	struct acpi_table_header *table;
++	struct acpi_table_fadt *fadt;
++	acpi_status status;
++	acpi_size tbl_size;
++	int ret = 0;
++
++	/*
++	 * FADT is required on arm64; retrieve it to check its presence
++	 * and carry out revision and ACPI HW reduced compliancy tests
++	 */
++	status = acpi_get_table_with_size(ACPI_SIG_FADT, 0, &table, &tbl_size);
++	if (ACPI_FAILURE(status)) {
++		const char *msg = acpi_format_exception(status);
++
++		pr_err("Failed to get FADT table, %s\n", msg);
++		return -ENODEV;
++	}
++
++	fadt = (struct acpi_table_fadt *)table;
+ 
+ 	/*
+ 	 * Revision in table header is the FADT Major revision, and there
+ 	 * is a minor revision of FADT which was introduced by ACPI 5.1,
+ 	 * we only deal with ACPI 5.1 or newer revision to get GIC and SMP
+-	 * boot protocol configuration data, or we will disable ACPI.
++	 * boot protocol configuration data.
+ 	 */
+-	if (table->revision > 5 ||
+-	    (table->revision == 5 && fadt->minor_revision >= 1)) {
+-		if (!acpi_gbl_reduced_hardware) {
+-			pr_err("Not hardware reduced ACPI mode, will not be supported\n");
+-			goto disable_acpi;
+-		}
+-
+-		/*
+-		 * ACPI 5.1 only has two explicit methods to boot up SMP,
+-		 * PSCI and Parking protocol, but the Parking protocol is
+-		 * only specified for ARMv7 now, so make PSCI as the only
+-		 * way for the SMP boot protocol before some updates for
+-		 * the Parking protocol spec.
+-		 */
+-		if (acpi_psci_present())
+-			return 0;
+-
+-		pr_warn("No PSCI support, will not bring up secondary CPUs\n");
+-		return -EOPNOTSUPP;
++	if (table->revision < 5 ||
++	   (table->revision == 5 && fadt->minor_revision < 1)) {
++		pr_err("Unsupported FADT revision %d.%d, should be 5.1+\n",
++		       table->revision, fadt->minor_revision);
++		ret = -EINVAL;
++		goto out;
+ 	}
+ 
+-	pr_warn("Unsupported FADT revision %d.%d, should be 5.1+, will disable ACPI\n",
+-		table->revision, fadt->minor_revision);
++	if (!(fadt->flags & ACPI_FADT_HW_REDUCED)) {
++		pr_err("FADT not ACPI hardware reduced compliant\n");
++		ret = -EINVAL;
++	}
+ 
+-disable_acpi:
+-	disable_acpi();
+-	return -EINVAL;
++out:
++	/*
++	 * acpi_get_table_with_size() creates FADT table mapping that
++	 * should be released after parsing and before resuming boot
++	 */
++	early_acpi_os_unmap_memory(table, tbl_size);
++	return ret;
+ }
+ 
+ /*
+@@ -262,9 +279,13 @@ disable_acpi:
+  *	1. find RSDP and get its address, and then find XSDT
+  *	2. extract all tables and checksums them all
+  *	3. check ACPI FADT revision
++ *	4. check ACPI FADT HW reduced flag
+  *
+  * We can parse ACPI boot-time tables such as MADT after
+  * this function is called.
++ *
++ * ACPI is enabled on return if ACPI tables initialized and sanity checks
++ * passed, disabled otherwise
+  */
+ void __init acpi_boot_table_init(void)
+ {
+@@ -278,18 +299,20 @@ void __init acpi_boot_table_init(void)
+ 	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+ 		return;
+ 
++	/*
++	 * ACPI is disabled at this point. Enable it in order to parse
++	 * the ACPI tables and carry out sanity checks
++	 */
+ 	enable_acpi();
+ 
+-	/* Initialize the ACPI boot-time table parser. */
+-	if (acpi_table_init()) {
+-		disable_acpi();
+-		return;
+-	}
+-
+-	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt)) {
+-		/* disable ACPI if no FADT is found */
++	/*
++	 * If ACPI tables are initialized and FADT sanity checks passed,
++	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
++	 * on initialization error.
++	 */
++	if (acpi_table_init() || acpi_fadt_sanity_check()) {
++		pr_err("Failed to init ACPI tables\n");
+ 		disable_acpi();
+-		pr_err("Can't find FADT\n");
+ 	}
+ }
+ 
+-- 
+2.2.1
