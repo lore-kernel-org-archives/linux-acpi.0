@@ -1,110 +1,74 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v3 1/3] PCI: rename _DSM UUID array
-Date: Wed, 25 Mar 2015 14:31:41 +0800
-Message-ID: <5512564D.7050204@intel.com>
+Subject: [PATCH v3 2/3] PCI: rename find_pci_host_bridge and export it
+Date: Wed, 25 Mar 2015 14:32:25 +0800
+Message-ID: <55125679.1080201@intel.com>
 References: <54FD4FB9.2060802@intel.com> <55125611.8040507@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:30115 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751212AbbCYGd7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Mar 2015 02:33:59 -0400
 In-Reply-To: <55125611.8040507@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-According to the PCI firmware spec, there is only one assigned UUID used
-for PCI system so rename the device_label_dsm_uuid to something more
-common as: pci_acpi_dsm_uuid and put it in drivers/pci/pci-acpi.c. Make
-that UUID array extern in the pci-acpi.h so that other code can also
-make use of it.
-
-This patch shouldn't bring any functional change.
+The find_pci_host_bridge function can be useful to other PCI code so
+export it. In the meantime, change its name to more like other interfaces
+as pci_find_host_bridge.
 
 Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/pci-acpi.c   |  9 +++++++++
- drivers/pci/pci-label.c  | 11 ++---------
- include/linux/pci-acpi.h |  3 +++
- 3 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/pci/host-bridge.c | 6 +++---
+ drivers/pci/pci.h         | 2 ++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 489063987325..e0afc94aca01 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -18,6 +18,15 @@
- #include <linux/pm_qos.h>
- #include "pci.h"
- 
-+/*
-+ * The UUID is defined in the PCI firmware specification available here:
-+ * https://www.pcisig.com/members/downloads/pcifw_r3_1_13Dec10.pdf
-+ */
-+const u8 pci_acpi_dsm_uuid[] = {
-+	0xd0, 0x37, 0xc9, 0xe5, 0x53, 0x35, 0x7a, 0x4d,
-+	0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
-+};
-+
- phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
- {
- 	acpi_status status = AE_NOT_EXIST;
-diff --git a/drivers/pci/pci-label.c b/drivers/pci/pci-label.c
-index 2ab1b47c7651..024b5c179348 100644
---- a/drivers/pci/pci-label.c
-+++ b/drivers/pci/pci-label.c
-@@ -31,8 +31,6 @@
- #include <linux/pci-acpi.h>
- #include "pci.h"
- 
--#define	DEVICE_LABEL_DSM	0x07
--
- #ifdef CONFIG_DMI
- enum smbios_attr_enum {
- 	SMBIOS_ATTR_NONE = 0,
-@@ -148,11 +146,6 @@ static inline void pci_remove_smbiosname_file(struct pci_dev *pdev)
- #endif
- 
- #ifdef CONFIG_ACPI
--static const char device_label_dsm_uuid[] = {
--	0xD0, 0x37, 0xC9, 0xE5, 0x53, 0x35, 0x7A, 0x4D,
--	0x91, 0x17, 0xEA, 0x4D, 0x19, 0xC3, 0x43, 0x4D
--};
--
- enum acpi_attr_enum {
- 	ACPI_ATTR_LABEL_SHOW,
- 	ACPI_ATTR_INDEX_SHOW,
-@@ -179,7 +172,7 @@ static int dsm_get_label(struct device *dev, char *buf,
- 	if (!handle)
- 		return -1;
- 
--	obj = acpi_evaluate_dsm(handle, device_label_dsm_uuid, 0x2,
-+	obj = acpi_evaluate_dsm(handle, pci_acpi_dsm_uuid, 0x2,
- 				DEVICE_LABEL_DSM, NULL);
- 	if (!obj)
- 		return -1;
-@@ -219,7 +212,7 @@ static bool device_has_dsm(struct device *dev)
- 	if (!handle)
- 		return false;
- 
--	return !!acpi_check_dsm(handle, device_label_dsm_uuid, 0x2,
-+	return !!acpi_check_dsm(handle, pci_acpi_dsm_uuid, 0x2,
- 				1 << DEVICE_LABEL_DSM);
+diff --git a/drivers/pci/host-bridge.c b/drivers/pci/host-bridge.c
+index 3e5bbf9e8889..5f4a2e04c8d7 100644
+--- a/drivers/pci/host-bridge.c
++++ b/drivers/pci/host-bridge.c
+@@ -16,7 +16,7 @@ static struct pci_bus *find_pci_root_bus(struct pci_bus *bus)
+ 	return bus;
  }
  
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 24c7728ca681..3801c704a945 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -77,6 +77,9 @@ static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
- static inline void acpiphp_check_host_bridge(struct acpi_device *adev) { }
+-static struct pci_host_bridge *find_pci_host_bridge(struct pci_bus *bus)
++struct pci_host_bridge *pci_find_host_bridge(struct pci_bus *bus)
+ {
+ 	struct pci_bus *root_bus = find_pci_root_bus(bus);
+ 
+@@ -48,7 +48,7 @@ void pci_set_host_bridge_release(struct pci_host_bridge *bridge,
+ void pcibios_resource_to_bus(struct pci_bus *bus, struct pci_bus_region *region,
+ 			     struct resource *res)
+ {
+-	struct pci_host_bridge *bridge = find_pci_host_bridge(bus);
++	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
+ 	struct resource_entry *window;
+ 	resource_size_t offset = 0;
+ 
+@@ -73,7 +73,7 @@ static bool region_contains(struct pci_bus_region *region1,
+ void pcibios_bus_to_resource(struct pci_bus *bus, struct resource *res,
+ 			     struct pci_bus_region *region)
+ {
+-	struct pci_host_bridge *bridge = find_pci_host_bridge(bus);
++	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
+ 	struct resource_entry *window;
+ 	resource_size_t offset = 0;
+ 
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 4091f82239cd..d72f849174a4 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -321,4 +321,6 @@ static inline int pci_dev_specific_reset(struct pci_dev *dev, int probe)
+ }
  #endif
  
-+extern const u8 pci_acpi_dsm_uuid[];
-+#define DEVICE_LABEL_DSM	0x07
++struct pci_host_bridge *pci_find_host_bridge(struct pci_bus *bus);
 +
- #else	/* CONFIG_ACPI */
- static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
- static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+ #endif /* DRIVERS_PCI_H */
 -- 
 2.1.0
+
