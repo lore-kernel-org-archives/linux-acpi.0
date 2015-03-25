@@ -1,28 +1,44 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] driver core: property: Update
- fwnode_property_read_string_array()
-Date: Wed, 25 Mar 2015 09:29:15 +0100
-Message-ID: <20150325082915.GB28023@kroah.com>
-References: <1670743.YY8G2nYXVm@vostro.rjw.lan>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Wed, 25 Mar 2015 11:24:11 +0000
+Message-ID: <20150325112410.GA24636@arm.com>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <20150318190509.GM10863@arm.com>
+ <550A4BFD.4070804@huawei.com>
+ <20150319101727.GC24556@red-moon>
+ <20150319193927.GG4751@arm.com>
+ <20150324220253.9595AC407F8@trevor.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1670743.YY8G2nYXVm@vostro.rjw.lan>
+In-Reply-To: <20150324220253.9595AC407F8@trevor.secretlab.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-kernel@vger.kernel.org" <lin>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 24, 2015 at 01:40:13AM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, Mar 24, 2015 at 10:02:53PM +0000, Grant Likely wrote:
+> On Thu, 19 Mar 2015 19:39:27 +0000 , Will Deacon <will.deacon@arm.com>
+> wrote:
+> > On Thu, Mar 19, 2015 at 10:17:27AM +0000, Lorenzo Pieralisi wrote:
+> > > Not only that, Sudeep has a patch to consolidate DT and ACPI SMP code,
+> > > I am working on it, I do not think it should be a blocking point, patch
+> > > coming asap on top of your series.
+> > 
+> > Well, I don't really want to merge the series without those patches so I
+> > do think it blocks the code from getting into mainline.
 > 
-> Commit 5c0acf3b4f96 (driver core: Add comments about returning array
-> counts) forgot to update fwnode_property_read_string_array() along
-> the lines of device_property_read_string_array(), although it did
-> change the kerneldoc comment of it.  Fix that.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
+> Really? It's a pretty minor duplication problem and it's been identified
+> as something requiring refactoring to both the ACPI and DT code. It
+> isn't at all dangerous. Why is this a blocking point?
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Because I don't really see a valid excuse not to get this right first time
+around. Lorenzo already has patches on top, so we just need a co-ordinated
+review effort.
+
+I wouldn't accept another patch series that needed minor rework (which by
+its very nature is easily addressed), so why should ACPI be treated any
+differently?
+
+Will
