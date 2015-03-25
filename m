@@ -1,70 +1,73 @@
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Subject: Re: [patch v11 19/23] XEN / ACPI: Make XEN ACPI depend on X86
-Date: Wed, 25 Mar 2015 15:38:57 +0000
-Message-ID: <alpine.DEB.2.02.1503251538380.7982@kaball.uk.xensource.com>
-References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
- <1427205776-5060-20-git-send-email-hanjun.guo@linaro.org>
- <55118303.8060003@oracle.com>
- <alpine.DEB.2.02.1503241723520.7982@kaball.uk.xensource.com>
- <20150325115113.GF24636@arm.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Request for additional arm64 branch in linux-next
+Date: Wed, 25 Mar 2015 17:20:03 +0000
+Message-ID: <20150325172002.GN24636@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:35049 "EHLO SMTP.CITRIX.COM"
+Received: from foss.arm.com ([217.140.101.70]:51274 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754494AbbCYPlJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Mar 2015 11:41:09 -0400
-In-Reply-To: <20150325115113.GF24636@arm.com>
+	id S1753004AbbCYRUH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Mar 2015 13:20:07 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, linux-acpi@vger.kern
+To: sfr@canb.auug.org.au
+Cc: catalin.marinas@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, grant.likely@linaro.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, msalter@redhat.com
 
-On Wed, 25 Mar 2015, Will Deacon wrote:
-> Hi Stefano,
-> 
-> On Tue, Mar 24, 2015 at 05:24:53PM +0000, Stefano Stabellini wrote:
-> > On Tue, 24 Mar 2015, Boris Ostrovsky wrote:
-> > > On 03/24/2015 10:02 AM, Hanjun Guo wrote:
-> > > > When ACPI is enabled on ARM64, XEN ACPI will also compiled
-> > > > into the kernel, but XEN ACPI is x86 dependent, so introduce
-> > > > CONFIG_XEN_ACPI to make it depend on x86 before XEN ACPI is
-> > > > functional on ARM64.
-> > > > 
-> > > > CC: 'Stefano Stabellini' <stefano.stabellini@eu.citrix.com>
-> > > > CC: Julien Grall <julien.grall@linaro.org>
-> > > > CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> > > > CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-> > > > CC: David Vrabel <david.vrabel@citrix.com>
-> > > > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > > ---
-> > > >   drivers/xen/Kconfig  | 4 ++++
-> > > >   drivers/xen/Makefile | 2 +-
-> > > >   2 files changed, 5 insertions(+), 1 deletion(-)
-> > > > 
-> > > > diff --git a/drivers/xen/Kconfig b/drivers/xen/Kconfig
-> > > > index b812462..a31cd29 100644
-> > > > --- a/drivers/xen/Kconfig
-> > > > +++ b/drivers/xen/Kconfig
-> > > > @@ -253,4 +253,8 @@ config XEN_EFI
-> > > >   	def_bool y
-> > > >   	depends on X86_64 && EFI
-> > > >   +config XEN_ACPI
-> > > > +	def_bool y
-> > > > +	depends on X86 && ACPI
-> > > > +
-> > > 
-> > > 
-> > > I think XEN_DOM0 (in arch/x86/xen/Kconfig) should select this option.
-> > > Otherwise, if it is set to 'n', we won't be able to build enlighten.c
-> > > (xen_start_kernel() -> xen_acpi_sleep_register() refers to
-> > > xen_acpi_notify_hypervisor_sleep()).
-> > > 
-> > 
-> > I don't think that it is necessary: XEN_ACPI gets automatically enabled
-> > anyway.
-> 
-> In which case, can I have your Ack on this please?
+Hi Stephen,
 
-Acked-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+We've got a series of patches introducing ACPI support for arm64 that
+are tentatively targetting the 4.1 merge window. Whilst there are
+face-to-face discussions set to happen in the next day or so around this
+topic, could you please pull this into linux-next under the assumption
+that we decide to go ahead for mainline inclusion?
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/acpi
+
+I've kept the series separate from the usual arm64 branch (for-next/core)
+but they merge without conflicts. Merging with today's next, I see two
+trivial Kconfig conflicts (resolution below).
+
+I'll let you know when the branch is no longer needed.
+
+Thanks,
+
+Will
+
+--->8
+
+diff --cc arch/arm64/Kconfig
+index 4085df18e558,0659db374731..0eae06cdac27
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@@ -1,7 -1,9 +1,9 @@@
+  config ARM64
+  	def_bool y
++ 	select ACPI_GENERIC_GSI if ACPI
++ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ -	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ +	select ARCH_HAS_ELF_RANDOMIZE
+  	select ARCH_HAS_GCOV_PROFILE_ALL
+  	select ARCH_HAS_SG_CHAIN
+  	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+diff --cc drivers/xen/Kconfig
+index afc39ca5cc4f,a31cd29b68a8..31347cd8c046
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
+@@@ -253,10 -253,8 +253,14 @@@ config XEN_EF
+  	def_bool y
+  	depends on X86_64 && EFI
+  
+ +config XEN_AUTO_XLATE
+ +	def_bool y
+ +	depends on ARM || ARM64 || XEN_PVHVM
+ +	help
+ +	  Support for auto-translated physmap guests.
+ +
++ config XEN_ACPI
++ 	def_bool y
++ 	depends on X86 && ACPI
++ 
+  endmenu
