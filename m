@@ -1,67 +1,106 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Wed, 25 Mar 2015 13:16:41 +0100
-Message-ID: <2286147.A9elpz2VHW@vostro.rjw.lan>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org> <2694196.2XPpkm7uxF@vostro.rjw.lan> <20150325113839.GD24636@arm.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [patch v11 00/23] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Wed, 25 Mar 2015 20:55:40 +0800
+Message-ID: <5512B04C.30401@huawei.com>
+References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org> <4061891.uxG6kiGRZE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150325113839.GD24636@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "grant.likely@linaro.org" <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kern
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:14112 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990AbbCYM4u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Mar 2015 08:56:50 -0400
+In-Reply-To: <4061891.uxG6kiGRZE@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wednesday, March 25, 2015 11:38:43 AM Will Deacon wrote:
-> On Wed, Mar 25, 2015 at 11:54:25AM +0000, Rafael J. Wysocki wrote:
-> > On Wednesday, March 25, 2015 11:24:11 AM Will Deacon wrote:
-> > > On Tue, Mar 24, 2015 at 10:02:53PM +0000, Grant Likely wrote:
-> > > > On Thu, 19 Mar 2015 19:39:27 +0000 , Will Deacon <will.deacon@arm.com>
-> > > > wrote:
-> > > > > On Thu, Mar 19, 2015 at 10:17:27AM +0000, Lorenzo Pieralisi wrote:
-> > > > > > Not only that, Sudeep has a patch to consolidate DT and ACPI SMP code,
-> > > > > > I am working on it, I do not think it should be a blocking point, patch
-> > > > > > coming asap on top of your series.
-> > > > > 
-> > > > > Well, I don't really want to merge the series without those patches so I
-> > > > > do think it blocks the code from getting into mainline.
-> > > > 
-> > > > Really? It's a pretty minor duplication problem and it's been identified
-> > > > as something requiring refactoring to both the ACPI and DT code. It
-> > > > isn't at all dangerous. Why is this a blocking point?
-> > > 
-> > > Because I don't really see a valid excuse not to get this right first time
-> > > around. Lorenzo already has patches on top, so we just need a co-ordinated
-> > > review effort.
-> > > 
-> > > I wouldn't accept another patch series that needed minor rework (which by
-> > > its very nature is easily addressed), so why should ACPI be treated any
-> > > differently?
-> > 
-> > Not ACPI, but this particular patchset I think.  The problem is that it has
-> > already been reviewed and ACKed by multiple people and it would be a shame
-> > to require all of those people to do their reviews once again because of
-> > that minor rework (which arguably can be done on top of the patchset just
-> > fine).
-> > 
-> > Of course, if the minor rework in question would not involve the need to
-> > review things once again, then I agree that it'd be better to do it upfront,
-> > but otherwise there's a good reason not to.
-> 
-> Aha, I think this is just a misunderstanding -- I'm certainly not suggesting
-> that Hanjun rework the current set! What I *am* asking for is that they go
-> into mainline with Lorenzo's patches on top, which means that his series [1]
-> needs some review (and I plan to look at it later today).
+On 2015/3/25 7:04, Rafael J. Wysocki wrote:
+> On Tuesday, March 24, 2015 10:02:33 PM Hanjun Guo wrote:
+>> Some fixes since last version:
+>>
+>>  - Add a patch 19/23 for disabling ACPI for Xen on ARM64 for now to fix
+>>    compile errors on XEN ACPI, Stefano and Julien are ok with this
+>>    temporary solution.
+>>  - Add patch "ARM64 / ACPI: Don't unflatten device tree if acpi=force 
+>>    is passed", which will fix the problem that the device tree will
+>>    be unflattened even if acpi=force passed, that will not obey the
+>>    policy.
+>>  - update patch "irqchip: Add GICv2 specific ACPI boot support",
+>>    which will cause compile error on i386 with both DT and ACPI
+>>    enabled:
+>>
+>>    All error/warnings:
+>>
+>>     In file included from include/linux/acpi_irq.h:4:0,
+>>                      from drivers/irqchip/irqchip.c:11:
+>>     arch/x86/include/asm/irq.h:35:8: error: unknown type name 'bool'
+>>      extern bool handle_irq(unsigned irq, struct pt_regs *regs);
+>>             ^
+>>     arch/x86/include/asm/irq.h:35:45: warning: 'struct pt_regs' declared 
+>>     inside parameter list
+>>      extern bool handle_irq(unsigned irq, struct pt_regs *regs);
+>>                                                  ^
+>>     arch/x86/include/asm/irq.h:35:45: warning: its scope is only this 
+>>     definition or declaration, which is probably not what you want
+>>     ....
+>>
+>>    That's because of I include the <asm/irq.h> in <linux/acpi_irq.h>,
+>>    and <linux/acpi_irq.h> will be put on the top of all head files,
+>>    so use <linux/irq.h> instead of <asm/irq.h> in acpi_irq.h (in
+>>    <linux/irq.h>, it will include <linux/*.h> before include
+>>    <asm/irq.h>), this is the only update for this patch.
+>>
+>> Lorenzo will send some cleanup patches on top of this one soon.
+>>
+>> Thanks
+>> Hanjun
+>>
+>> Al Stone (4):
+>>   ARM64 / ACPI: Get RSDP and ACPI boot-time tables
+>>   ARM64 / ACPI: Introduce early_param "acpi=" to enable/disable ACPI
+>>   ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
+>>     ARM64
+>>   ARM64 / ACPI: additions of ACPI documentation for arm64
+>>
+>> Graeme Gregory (6):
+>>   ACPI: add arm64 to the platforms that use ioremap
+>>   ACPI / sleep: Introduce CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+>>   ARM64 / ACPI: If we chose to boot from acpi then disable FDT
+>>   ARM64 / ACPI: Get PSCI flags in FADT for PSCI init
+>>   ARM64 / ACPI: Enable ARM64 in Kconfig
+>>   Documentation: ACPI for ARM64
+>>
+>> Hanjun Guo (10):
+>>   ACPI / table: Use pr_debug() instead of pr_info() for MADT table
+>>     scanning
+>>   ARM64 / ACPI: Introduce PCI stub functions for ACPI
+>>   ACPI / table: Print GIC information when MADT is parsed
+>>   ARM64 / ACPI: Parse MADT for SMP initialization
+>>   ACPI / processor: Introduce phys_cpuid_t for CPU hardware ID
+>>   ACPI / processor: Make it possible to get CPU hardware ID via GICC
+>>   ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
+>>   clocksource / arch_timer: Parse GTDT to initialize arch timer
+>>   XEN / ACPI: Make XEN ACPI depend on X86
+>>   ARM64 / ACPI: Don't unflatten device tree if acpi=force is passed
+>>
+>> Mark Salter (2):
+>>   ARM64: allow late use of early_ioremap
+>>   ACPI: fix acpi_os_ioremap for arm64
+>>
+>> Tomasz Nowicki (1):
+>>   irqchip: Add GICv2 specific ACPI boot support
+> OK, so I don't think there's anything more I need to ACK in this series, so
+> it is now up to the maintainers of ARM64 and the other subsystems involved
+> to decide whether or not to apply it.
+>
+> If you need to change any patches that I've already ACKed, please let me know,
+> but otherwise I'm not going to look at this series any more unless specifically
+> requested.
 
-OK, that works for me, thanks for the clarification!
+OK, thank you very much!
 
-For the record, I've looked at the Lorenzo's series already and I don't see
-anything particularly objectionable in it.
+Hanjun
 
-> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2015-March/333257.html
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
