@@ -1,104 +1,30 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH 5/5] ARM64: kernel: acpi: honour acpi=force command line
- parameter
-Date: Wed, 25 Mar 2015 21:56:47 +0800
-Message-ID: <5512BE9F.8070305@huawei.com>
-References: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com> <1427219940-27201-6-git-send-email-lorenzo.pieralisi@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] ACPI/PMIC: Fix typo in MODULE_DESCRIPTION in intel_pmic_crc.c
+Date: Wed, 25 Mar 2015 23:13:08 +0900
+Message-ID: <1427292788-6739-1-git-send-email-standby24x7@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427219940-27201-6-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, aaron.lu@intel.com
+Cc: Masanari Iida <standby24x7@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/3/25 1:58, Lorenzo Pieralisi wrote:
-> If acpi=force is passed on the command line, it forces ACPI to be
-> the only available boot method, hence it must be left enabled even
-> if the initialization and sanity checks on ACPI tables fails.
->
-> This patch refactors ACPI initialization to prevent disabling ACPI
-> if acpi=force is passed on the command line.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> ---
+This patch fix a spelling typo in MODULE_DESCRIPTION within intel_pmic_crc.c
 
-Although it will introduce some useless table parsing for some
-bad ACPI tables, it still obey the policy for acpi=force, and it makes
-param_acpi_force much self-contained, so
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ drivers/acpi/pmic/intel_pmic_crc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Thanks
-Hanjun
-
-
->  arch/arm64/include/asm/acpi.h | 3 ---
->  arch/arm64/kernel/acpi.c      | 6 ++++--
->  arch/arm64/kernel/setup.c     | 2 +-
->  3 files changed, 5 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index e1a8965..59c05d8 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -38,7 +38,6 @@ typedef u64 phys_cpuid_t;
->  extern int acpi_disabled;
->  extern int acpi_noirq;
->  extern int acpi_pci_disabled;
-> -extern bool param_acpi_force;
->  
->  /* 1 to indicate PSCI 0.2+ is implemented */
->  static inline bool acpi_psci_present(void)
-> @@ -92,8 +91,6 @@ void __init acpi_init_cpus(void);
->  static inline bool acpi_psci_present(void) { return false; }
->  static inline bool acpi_psci_use_hvc(void) { return false; }
->  static inline void acpi_init_cpus(void) { }
-> -
-> -#define param_acpi_force false
->  #endif /* CONFIG_ACPI */
->  
->  #endif /*_ASM_ACPI_H*/
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index 542f045..789994a 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -43,7 +43,7 @@ static int enabled_cpus;
->  static bool bootcpu_valid  __initdata;
->  
->  static bool param_acpi_off __initdata;
-> -bool param_acpi_force __initdata;
-> +static bool param_acpi_force __initdata;
->  
->  static int __init parse_acpi(char *arg)
->  {
-> @@ -324,8 +324,10 @@ out:
->  	 * If ACPI tables are initialized and FADT sanity checks passed,
->  	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
->  	 * on initialization error.
-> +	 * If acpi=force was passed on the command line it forces ACPI
-> +	 * to be enabled even if its initialization failed.
->  	 */
-> -	if (err)
-> +	if (err && !param_acpi_force)
->  		disable_acpi();
->  }
->  
-> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> index d60b1ad..b278311 100644
-> --- a/arch/arm64/kernel/setup.c
-> +++ b/arch/arm64/kernel/setup.c
-> @@ -390,7 +390,7 @@ void __init setup_arch(char **cmdline_p)
->  
->  	early_ioremap_reset();
->  
-> -	if (acpi_disabled  && !param_acpi_force) {
-> +	if (acpi_disabled) {
->  		unflatten_device_tree();
->  		psci_dt_init();
->  		cpu_read_bootcpu_ops();
+diff --git a/drivers/acpi/pmic/intel_pmic_crc.c b/drivers/acpi/pmic/intel_pmic_crc.c
+index ef7d8ff..42df46a 100644
+--- a/drivers/acpi/pmic/intel_pmic_crc.c
++++ b/drivers/acpi/pmic/intel_pmic_crc.c
+@@ -207,5 +207,5 @@ static int __init intel_crc_pmic_opregion_driver_init(void)
+ }
+ module_init(intel_crc_pmic_opregion_driver_init);
+ 
+-MODULE_DESCRIPTION("CrystalCove ACPI opration region driver");
++MODULE_DESCRIPTION("CrystalCove ACPI operation region driver");
+ MODULE_LICENSE("GPL");
+-- 
+2.3.4.274.g92e625d
