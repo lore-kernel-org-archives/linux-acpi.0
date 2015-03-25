@@ -1,92 +1,45 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: Request for additional arm64 branch in linux-next
-Date: Thu, 26 Mar 2015 11:10:55 +1100
-Message-ID: <20150326111055.273aa644@canb.auug.org.au>
-References: <20150325172002.GN24636@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [patch v11 05/23] ACPI: fix acpi_os_ioremap for arm64
+Date: Wed, 25 Mar 2015 16:50:04 +0000
+Message-ID: <20150325165004.GD14585@localhost>
+References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
+ <1427205776-5060-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/wQEtbBlWIOHjlL5gTPx5.xe"; protocol="application/pgp-signature"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:60587 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751334AbbCZALB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Mar 2015 20:11:01 -0400
-In-Reply-To: <20150325172002.GN24636@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1427205776-5060-6-git-send-email-hanjun.guo@linaro.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Ashwin Chaugule <ashwinc@codeaurora.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Timur Tabi <timur@codeaurora.org>, Mark Salter <msalter@redhat.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Sudeep Holla <Sudeep.Holla@arm.com>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Jon Masters <jcm@redhat.com>, Olof Johansson <olof@lixom.net>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: catalin.marinas@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, grant.likely@linaro.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, msalter@redhat.com
 
---Sig_/wQEtbBlWIOHjlL5gTPx5.xe
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Tue, Mar 24, 2015 at 10:02:38PM +0800, Hanjun Guo wrote:
+> From: Mark Salter <msalter@redhat.com>
+> 
+> The acpi_os_ioremap() function may be used to map normal RAM or IO
+> regions. The current implementation simply uses ioremap_cache(). This
+> will work for some architectures, but arm64 ioremap_cache() cannot be
+> used to map IO regions which don't support caching. So for arm64, use
+> ioremap() for non-RAM regions.
+> 
+> CC: Rafael J Wysocki <rjw@rjwysocki.net>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> Tested-by: Robert Richter <rrichter@cavium.com>
+> Tested-by: Timur Tabi <timur@codeaurora.org>
+> Acked-by: Robert Richter <rrichter@cavium.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Reviewed-by: Grant Likely <grant.likely@linaro.org>
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi Will,
-
-On Wed, 25 Mar 2015 17:20:03 +0000 Will Deacon <will.deacon@arm.com> wrote:
->
-> We've got a series of patches introducing ACPI support for arm64 that
-> are tentatively targetting the 4.1 merge window. Whilst there are
-> face-to-face discussions set to happen in the next day or so around this
-> topic, could you please pull this into linux-next under the assumption
-> that we decide to go ahead for mainline inclusion?
->=20
->   git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/=
-acpi
->=20
-> I've kept the series separate from the usual arm64 branch (for-next/core)
-> but they merge without conflicts. Merging with today's next, I see two
-> trivial Kconfig conflicts (resolution below).
-
-Added from today (and thanks for the hints).  Will this be merged via
-another tree, or go directly to Linus?
-
-> I'll let you know when the branch is no longer needed.
-
-Excellent.
-
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgment of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
-
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-        Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
-
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
-
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
-
---Sig_/wQEtbBlWIOHjlL5gTPx5.xe
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVE06TAAoJEMDTa8Ir7ZwVevgP/RWbH8tGiFS5vOrPDca7qICw
-PEozvmYlgn0JGcw5yExe3g3hMayWxRhPFcIEieT+bZQa0pnDwZpqo5TTzg+0oR6k
-nnzL+j5lgAUFA56HFBKjllcDUBFEY5SiQMhIVs2M6Dm4H44xGiDeaO10jgd8C7aY
-LoAvJMN1CT07Q1TCdW9lunNVM9VE4Y48CjUnFqsDNuh23uDsB5mH6mADxiJnvmv9
-PAJ1Sz2fgaWuKyJ9+85y4pLnN9Y3XyK8WfZ40ISLAeK36KGIrf+6Br69zSfCmFzA
-VP2FcR4a+Ht5xeoECD4k70g6NNG9NvbFmyM1+iDJlMjnGwiUMZH3wbiEpP7uqfYf
-a8werexFOlzDPJW24sCvnWAMCofu1VZh5g79ieLJVlUVLilkPWr23ZWyb5jk33TM
-f+MIACC8nwtuZCNp31jsv9SrK0ICM7jxuiy/ok6MGZP0Ue9QWNsJAD7pW7LOve2o
-cTQlW8gTurZwxW0HxFT7VDmiRW+c0hBFhFvdiMXTqOLvuCPwlJsWnFZCH62n6fk/
-Z9YFjhkVnfsMOEhdDqxY8LIMP9UuTJ6Hf5JYqEIyyXwZY9Ob0suAeWv+YAJbZa24
-psH1VFhzLCUw2O2UAKvRMDy0URklhmEJVFwMSyj5sTqeTP1fc2hdmK8iE25YOTZf
-9CsbZxjcufQF7wWLZSU3
-=AKVs
------END PGP SIGNATURE-----
-
---Sig_/wQEtbBlWIOHjlL5gTPx5.xe--
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
