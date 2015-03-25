@@ -1,106 +1,331 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [patch v11 00/23] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Wed, 25 Mar 2015 20:55:40 +0800
-Message-ID: <5512B04C.30401@huawei.com>
-References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org> <4061891.uxG6kiGRZE@vostro.rjw.lan>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 1/5] ACPI: move arm64 GSI IRQ model to generic GSI IRQ
+ layer
+Date: Wed, 25 Mar 2015 13:20:44 +0000
+Message-ID: <5512B62C.7030500@arm.com>
+References: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com> <1427219940-27201-2-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:14112 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbbCYM4u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Mar 2015 08:56:50 -0400
-In-Reply-To: <4061891.uxG6kiGRZE@vostro.rjw.lan>
+Received: from foss.arm.com ([217.140.101.70]:50741 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752095AbbCYNUs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Mar 2015 09:20:48 -0400
+In-Reply-To: <1427219940-27201-2-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Jon Masters <jcm@redhat.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 2015/3/25 7:04, Rafael J. Wysocki wrote:
-> On Tuesday, March 24, 2015 10:02:33 PM Hanjun Guo wrote:
->> Some fixes since last version:
->>
->>  - Add a patch 19/23 for disabling ACPI for Xen on ARM64 for now to fix
->>    compile errors on XEN ACPI, Stefano and Julien are ok with this
->>    temporary solution.
->>  - Add patch "ARM64 / ACPI: Don't unflatten device tree if acpi=force 
->>    is passed", which will fix the problem that the device tree will
->>    be unflattened even if acpi=force passed, that will not obey the
->>    policy.
->>  - update patch "irqchip: Add GICv2 specific ACPI boot support",
->>    which will cause compile error on i386 with both DT and ACPI
->>    enabled:
->>
->>    All error/warnings:
->>
->>     In file included from include/linux/acpi_irq.h:4:0,
->>                      from drivers/irqchip/irqchip.c:11:
->>     arch/x86/include/asm/irq.h:35:8: error: unknown type name 'bool'
->>      extern bool handle_irq(unsigned irq, struct pt_regs *regs);
->>             ^
->>     arch/x86/include/asm/irq.h:35:45: warning: 'struct pt_regs' declared 
->>     inside parameter list
->>      extern bool handle_irq(unsigned irq, struct pt_regs *regs);
->>                                                  ^
->>     arch/x86/include/asm/irq.h:35:45: warning: its scope is only this 
->>     definition or declaration, which is probably not what you want
->>     ....
->>
->>    That's because of I include the <asm/irq.h> in <linux/acpi_irq.h>,
->>    and <linux/acpi_irq.h> will be put on the top of all head files,
->>    so use <linux/irq.h> instead of <asm/irq.h> in acpi_irq.h (in
->>    <linux/irq.h>, it will include <linux/*.h> before include
->>    <asm/irq.h>), this is the only update for this patch.
->>
->> Lorenzo will send some cleanup patches on top of this one soon.
->>
->> Thanks
->> Hanjun
->>
->> Al Stone (4):
->>   ARM64 / ACPI: Get RSDP and ACPI boot-time tables
->>   ARM64 / ACPI: Introduce early_param "acpi=" to enable/disable ACPI
->>   ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on
->>     ARM64
->>   ARM64 / ACPI: additions of ACPI documentation for arm64
->>
->> Graeme Gregory (6):
->>   ACPI: add arm64 to the platforms that use ioremap
->>   ACPI / sleep: Introduce CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
->>   ARM64 / ACPI: If we chose to boot from acpi then disable FDT
->>   ARM64 / ACPI: Get PSCI flags in FADT for PSCI init
->>   ARM64 / ACPI: Enable ARM64 in Kconfig
->>   Documentation: ACPI for ARM64
->>
->> Hanjun Guo (10):
->>   ACPI / table: Use pr_debug() instead of pr_info() for MADT table
->>     scanning
->>   ARM64 / ACPI: Introduce PCI stub functions for ACPI
->>   ACPI / table: Print GIC information when MADT is parsed
->>   ARM64 / ACPI: Parse MADT for SMP initialization
->>   ACPI / processor: Introduce phys_cpuid_t for CPU hardware ID
->>   ACPI / processor: Make it possible to get CPU hardware ID via GICC
->>   ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
->>   clocksource / arch_timer: Parse GTDT to initialize arch timer
->>   XEN / ACPI: Make XEN ACPI depend on X86
->>   ARM64 / ACPI: Don't unflatten device tree if acpi=force is passed
->>
->> Mark Salter (2):
->>   ARM64: allow late use of early_ioremap
->>   ACPI: fix acpi_os_ioremap for arm64
->>
->> Tomasz Nowicki (1):
->>   irqchip: Add GICv2 specific ACPI boot support
-> OK, so I don't think there's anything more I need to ACK in this series, so
-> it is now up to the maintainers of ARM64 and the other subsystems involved
-> to decide whether or not to apply it.
->
-> If you need to change any patches that I've already ACKed, please let me know,
-> but otherwise I'm not going to look at this series any more unless specifically
-> requested.
+On 24/03/15 17:58, Lorenzo Pieralisi wrote:
+> The code deployed to implement GSI linux IRQ numbers mapping on arm64 turns
+> out to be generic enough so that it can be moved to ACPI core code along
+> with its respective config option ACPI_GENERIC_GSI selectable on
+> architectures that can reuse the same code.
+> 
+> Current ACPI IRQ mapping code is not integrated in the kernel IRQ domain
+> infrastructure, in particular there is no way to look-up the
+> IRQ domain associated with a particular interrupt controller, so this
+> first version of GSI generic code carries out the GSI<->IRQ mapping relying
+> on the IRQ default domain which is supposed to be always set on a
+> specific architecture in case the domain structure passed to
+> irq_create/find_mapping() functions is missing.
+> 
+> This patch moves the arm64 acpi functions that implement the gsi mappings:
+> 
+> acpi_gsi_to_irq()
+> acpi_register_gsi()
+> acpi_unregister_gsi()
+> 
+> to ACPI core code. Since the generic GSI<->domain mapping is based on IRQ
+> domains, it can be extended as soon as a way to map an interrupt
+> controller to an IRQ domain is implemented for ACPI in the IRQ domain
+> layer.
+> 
+> x86 and ia64 code for GSI mappings cannot rely on the generic GSI
+> layer at present for legacy reasons, so they do not select the
+> ACPI_GENERIC_GSI config options and keep relying on their arch
+> specific GSI mapping layer.
 
-OK, thank you very much!
+This looks like the right thing to do. I definitely like the sanity
+checking that has been added here.
 
-Hanjun
+FWIW: Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
+	M.
+
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Jiang Liu <jiang.liu@linux.intel.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  arch/arm64/Kconfig        |   1 +
+>  arch/arm64/kernel/acpi.c  |  73 --------------------------------
+>  drivers/acpi/Kconfig      |   3 ++
+>  drivers/acpi/Makefile     |   1 +
+>  drivers/acpi/gsi.c        | 105 ++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/irqchip/irq-gic.c |   2 +
+>  6 files changed, 112 insertions(+), 73 deletions(-)
+>  create mode 100644 drivers/acpi/gsi.c
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index e5aa081..0659db3 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -1,5 +1,6 @@
+>  config ARM64
+>  	def_bool y
+> +	select ACPI_GENERIC_GSI if ACPI
+>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>  	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index fe9d8f0..a70f714 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -76,12 +76,6 @@ static int __init dt_scan_depth1_nodes(unsigned long node,
+>  }
+>  
+>  /*
+> - * Since we're on ARM, the default interrupt routing model
+> - * clearly has to be GIC.
+> - */
+> -enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+> -
+> -/*
+>   * __acpi_map_table() will be called before page_init(), so early_ioremap()
+>   * or early_memremap() should be called here to for ACPI table mapping.
+>   */
+> @@ -224,73 +218,6 @@ void __init acpi_init_cpus(void)
+>  	pr_info("%d CPUs enabled, %d CPUs total\n", enabled_cpus, total_cpus);
+>  }
+>  
+> -int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> -{
+> -	*irq = irq_find_mapping(NULL, gsi);
+> -
+> -	return 0;
+> -}
+> -EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+> -
+> -/*
+> - * success: return IRQ number (>0)
+> - * failure: return =< 0
+> - */
+> -int acpi_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+> -{
+> -	unsigned int irq;
+> -	unsigned int irq_type;
+> -
+> -	/*
+> -	 * ACPI have no bindings to indicate SPI or PPI, so we
+> -	 * use different mappings from DT in ACPI.
+> -	 *
+> -	 * For FDT
+> -	 * PPI interrupt: in the range [0, 15];
+> -	 * SPI interrupt: in the range [0, 987];
+> -	 *
+> -	 * For ACPI, GSI should be unique so using
+> -	 * the hwirq directly for the mapping:
+> -	 * PPI interrupt: in the range [16, 31];
+> -	 * SPI interrupt: in the range [32, 1019];
+> -	 */
+> -
+> -	if (trigger == ACPI_EDGE_SENSITIVE &&
+> -				polarity == ACPI_ACTIVE_LOW)
+> -		irq_type = IRQ_TYPE_EDGE_FALLING;
+> -	else if (trigger == ACPI_EDGE_SENSITIVE &&
+> -				polarity == ACPI_ACTIVE_HIGH)
+> -		irq_type = IRQ_TYPE_EDGE_RISING;
+> -	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+> -				polarity == ACPI_ACTIVE_LOW)
+> -		irq_type = IRQ_TYPE_LEVEL_LOW;
+> -	else if (trigger == ACPI_LEVEL_SENSITIVE &&
+> -				polarity == ACPI_ACTIVE_HIGH)
+> -		irq_type = IRQ_TYPE_LEVEL_HIGH;
+> -	else
+> -		irq_type = IRQ_TYPE_NONE;
+> -
+> -	/*
+> -	 * Since only one GIC is supported in ACPI 5.0, we can
+> -	 * create mapping refer to the default domain
+> -	 */
+> -	irq = irq_create_mapping(NULL, gsi);
+> -	if (!irq)
+> -		return irq;
+> -
+> -	/* Set irq type if specified and different than the current one */
+> -	if (irq_type != IRQ_TYPE_NONE &&
+> -		irq_type != irq_get_trigger_type(irq))
+> -		irq_set_irq_type(irq, irq_type);
+> -	return irq;
+> -}
+> -EXPORT_SYMBOL_GPL(acpi_register_gsi);
+> -
+> -void acpi_unregister_gsi(u32 gsi)
+> -{
+> -}
+> -EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+> -
+>  static int __init acpi_parse_fadt(struct acpi_table_header *table)
+>  {
+>  	struct acpi_table_fadt *fadt = (struct acpi_table_fadt *)table;
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index a8f531e2..ab2cbb5 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -48,6 +48,9 @@ config ACPI_LEGACY_TABLES_LOOKUP
+>  config ARCH_MIGHT_HAVE_ACPI_PDC
+>  	bool
+>  
+> +config ACPI_GENERIC_GSI
+> +	bool
+> +
+>  config ACPI_SYSTEM_POWER_STATES_SUPPORT
+>  	bool
+>  
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index db153c6..8a063e2 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -56,6 +56,7 @@ ifdef CONFIG_ACPI_VIDEO
+>  acpi-y				+= video_detect.o
+>  endif
+>  acpi-y				+= acpi_lpat.o
+> +acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+>  
+>  # These are (potentially) separate modules
+>  
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> new file mode 100644
+> index 0000000..38208f2
+> --- /dev/null
+> +++ b/drivers/acpi/gsi.c
+> @@ -0,0 +1,105 @@
+> +/*
+> + * ACPI GSI IRQ layer
+> + *
+> + * Copyright (C) 2015 ARM Ltd.
+> + * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/acpi.h>
+> +#include <linux/irq.h>
+> +#include <linux/irqdomain.h>
+> +
+> +enum acpi_irq_model_id acpi_irq_model;
+> +
+> +static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+> +{
+> +	switch (polarity) {
+> +	case ACPI_ACTIVE_LOW:
+> +		return trigger == ACPI_EDGE_SENSITIVE ?
+> +		       IRQ_TYPE_EDGE_FALLING :
+> +		       IRQ_TYPE_LEVEL_LOW;
+> +	case ACPI_ACTIVE_HIGH:
+> +		return trigger == ACPI_EDGE_SENSITIVE ?
+> +		       IRQ_TYPE_EDGE_RISING :
+> +		       IRQ_TYPE_LEVEL_HIGH;
+> +	case ACPI_ACTIVE_BOTH:
+> +		if (trigger == ACPI_EDGE_SENSITIVE)
+> +			return IRQ_TYPE_EDGE_BOTH;
+> +	default:
+> +		return IRQ_TYPE_NONE;
+> +	}
+> +}
+> +
+> +/**
+> + * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
+> + * @gsi: GSI IRQ number to map
+> + * @irq: pointer where linux IRQ number is stored
+> + *
+> + * irq location updated with irq value [>0 on success, 0 on failure]
+> + *
+> + * Returns: linux IRQ number on success (>0)
+> + *          -EINVAL on failure
+> + */
+> +int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> +{
+> +	/*
+> +	 * Only default domain is supported at present, always find
+> +	 * the mapping corresponding to default domain by passing NULL
+> +	 * as irq_domain parameter
+> +	 */
+> +	*irq = irq_find_mapping(NULL, gsi);
+> +	/*
+> +	 * *irq == 0 means no mapping, that should
+> +	 * be reported as a failure
+> +	 */
+> +	return (*irq > 0) ? *irq : -EINVAL;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+> +
+> +/**
+> + * acpi_register_gsi() - Map a GSI to a linux IRQ number
+> + * @dev: device for which IRQ has to be mapped
+> + * @gsi: GSI IRQ number
+> + * @trigger: trigger type of the GSI number to be mapped
+> + * @polarity: polarity of the GSI to be mapped
+> + *
+> + * Returns: a valid linux IRQ number on success
+> + *          -EINVAL on failure
+> + */
+> +int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+> +		      int polarity)
+> +{
+> +	unsigned int irq;
+> +	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+> +
+> +	/*
+> +	 * There is no way at present to look-up the IRQ domain on ACPI,
+> +	 * hence always create mapping referring to the default domain
+> +	 * by passing NULL as irq_domain parameter
+> +	 */
+> +	irq = irq_create_mapping(NULL, gsi);
+> +	if (!irq)
+> +		return -EINVAL;
+> +
+> +	/* Set irq type if specified and different than the current one */
+> +	if (irq_type != IRQ_TYPE_NONE &&
+> +		irq_type != irq_get_trigger_type(irq))
+> +		irq_set_irq_type(irq, irq_type);
+> +	return irq;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_register_gsi);
+> +
+> +/**
+> + * acpi_unregister_gsi() - Free a GSI<->linux IRQ number mapping
+> + * @gsi: GSI IRQ number
+> + */
+> +void acpi_unregister_gsi(u32 gsi)
+> +{
+> +	int irq = irq_find_mapping(NULL, gsi);
+> +
+> +	irq_dispose_mapping(irq);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index d15a36a..f1efb53 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -1189,6 +1189,8 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+>  	 */
+>  	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+>  	irq_set_default_host(gic_data[0].domain);
+> +
+> +	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+>  	return 0;
+>  }
+>  #endif
+> 
+
+
+-- 
+Jazz is not dead. It just smells funny...
