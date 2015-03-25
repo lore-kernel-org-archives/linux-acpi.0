@@ -1,144 +1,59 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 5/5] ARM64: kernel: acpi: honour acpi=force command line
- parameter
-Date: Wed, 25 Mar 2015 15:22:13 +0000
-Message-ID: <20150325152213.GB21478@red-moon>
+Subject: Re: [PATCH 1/5] ACPI: move arm64 GSI IRQ model to generic GSI IRQ
+ layer
+Date: Wed, 25 Mar 2015 15:41:12 +0000
+Message-ID: <20150325154112.GC21478@red-moon>
 References: <1427219940-27201-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1427219940-27201-6-git-send-email-lorenzo.pieralisi@arm.com>
- <5512BE9F.8070305@huawei.com>
+ <1427219940-27201-2-git-send-email-lorenzo.pieralisi@arm.com>
+ <5512B62C.7030500@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50930 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355AbbCYPWF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Mar 2015 11:22:05 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5512BE9F.8070305@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <5512B62C.7030500@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Will Deacon <Will.Deacon@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, will.deacon@arm.com
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-Hi Will,
+On Wed, Mar 25, 2015 at 01:20:44PM +0000, Marc Zyngier wrote:
+> On 24/03/15 17:58, Lorenzo Pieralisi wrote:
+> > The code deployed to implement GSI linux IRQ numbers mapping on arm64 turns
+> > out to be generic enough so that it can be moved to ACPI core code along
+> > with its respective config option ACPI_GENERIC_GSI selectable on
+> > architectures that can reuse the same code.
+> > 
+> > Current ACPI IRQ mapping code is not integrated in the kernel IRQ domain
+> > infrastructure, in particular there is no way to look-up the
+> > IRQ domain associated with a particular interrupt controller, so this
+> > first version of GSI generic code carries out the GSI<->IRQ mapping relying
+> > on the IRQ default domain which is supposed to be always set on a
+> > specific architecture in case the domain structure passed to
+> > irq_create/find_mapping() functions is missing.
+> > 
+> > This patch moves the arm64 acpi functions that implement the gsi mappings:
+> > 
+> > acpi_gsi_to_irq()
+> > acpi_register_gsi()
+> > acpi_unregister_gsi()
+> > 
+> > to ACPI core code. Since the generic GSI<->domain mapping is based on IRQ
+> > domains, it can be extended as soon as a way to map an interrupt
+> > controller to an IRQ domain is implemented for ACPI in the IRQ domain
+> > layer.
+> > 
+> > x86 and ia64 code for GSI mappings cannot rely on the generic GSI
+> > layer at present for legacy reasons, so they do not select the
+> > ACPI_GENERIC_GSI config options and keep relying on their arch
+> > specific GSI mapping layer.
+> 
+> This looks like the right thing to do. I definitely like the sanity
+> checking that has been added here.
+> 
+> FWIW: Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
-On Wed, Mar 25, 2015 at 01:56:47PM +0000, Hanjun Guo wrote:
-> On 2015/3/25 1:58, Lorenzo Pieralisi wrote:
-> > If acpi=force is passed on the command line, it forces ACPI to be
-> > the only available boot method, hence it must be left enabled even
-> > if the initialization and sanity checks on ACPI tables fails.
-> >
-> > This patch refactors ACPI initialization to prevent disabling ACPI
-> > if acpi=force is passed on the command line.
-> >
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > ---
+Thank you, I think it makes it easier to add stacked IRQ domains support
+later (ie sooner) and by code inspection I suspect x86 can make some use
+of this code too with a bit of refactoring.
 
-As mentioned, here is the update version for this patch:
-
--- >8 --
-Subject: [PATCH] ARM64: kernel: acpi: honour acpi=force command line parameter
-
-If acpi=force is passed on the command line, it forces ACPI to be
-the only available boot method, hence it must be left enabled even
-if the initialization and sanity checks on ACPI tables fails.
-
-This patch refactors ACPI initialization to prevent disabling ACPI
-if acpi=force is passed on the command line.
-
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
----
- arch/arm64/include/asm/acpi.h |  3 ---
- arch/arm64/kernel/acpi.c      | 16 ++++++++++++----
- arch/arm64/kernel/setup.c     |  2 +-
- 3 files changed, 13 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index e1a8965..59c05d8 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -38,7 +38,6 @@ typedef u64 phys_cpuid_t;
- extern int acpi_disabled;
- extern int acpi_noirq;
- extern int acpi_pci_disabled;
--extern bool param_acpi_force;
- 
- /* 1 to indicate PSCI 0.2+ is implemented */
- static inline bool acpi_psci_present(void)
-@@ -92,8 +91,6 @@ void __init acpi_init_cpus(void);
- static inline bool acpi_psci_present(void) { return false; }
- static inline bool acpi_psci_use_hvc(void) { return false; }
- static inline void acpi_init_cpus(void) { }
--
--#define param_acpi_force false
- #endif /* CONFIG_ACPI */
- 
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 172b7c9..cd60329 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -43,7 +43,7 @@ static int enabled_cpus;
- static bool bootcpu_valid  __initdata;
- 
- static bool param_acpi_off __initdata;
--bool param_acpi_force __initdata;
-+static bool param_acpi_force __initdata;
- 
- static int __init parse_acpi(char *arg)
- {
-@@ -284,8 +284,13 @@ out:
-  * We can parse ACPI boot-time tables such as MADT after
-  * this function is called.
-  *
-- * ACPI is enabled on return if ACPI tables initialized and sanity checks
-- * passed, disabled otherwise
-+ * On return ACPI is enabled if either:
-+ *
-+ * - ACPI tables are initialized and sanity checks passed
-+ * - acpi=force was passed in the command line and ACPI was not disabled
-+ *   explicitly through acpi=off command line parameter
-+ *
-+ * ACPI is disabled on function return otherwise
-  */
- void __init acpi_boot_table_init(void)
- {
-@@ -309,10 +314,13 @@ void __init acpi_boot_table_init(void)
- 	 * If ACPI tables are initialized and FADT sanity checks passed,
- 	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
- 	 * on initialization error.
-+	 * If acpi=force was passed on the command line it forces ACPI
-+	 * to be enabled even if its initialization failed.
- 	 */
- 	if (acpi_table_init() || acpi_fadt_sanity_check()) {
- 		pr_err("Failed to init ACPI tables\n");
--		disable_acpi();
-+		if (!param_acpi_force)
-+			disable_acpi();
- 	}
- }
- 
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index d60b1ad..b278311 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -390,7 +390,7 @@ void __init setup_arch(char **cmdline_p)
- 
- 	early_ioremap_reset();
- 
--	if (acpi_disabled  && !param_acpi_force) {
-+	if (acpi_disabled) {
- 		unflatten_device_tree();
- 		psci_dt_init();
- 		cpu_read_bootcpu_ops();
--- 
-2.2.1
-
+Lorenzo
