@@ -1,28 +1,83 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [V6 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Thu, 26 Mar 2015 12:21:06 +0200
-Message-ID: <20150326102106.GE1878@lahna.fi.intel.com>
-References: <1427316368-20965-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1427316368-20965-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Thu, 26 Mar 2015 10:24:17 +0000
+Message-ID: <20150326102417.GA10949@red-moon>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+ <20150318190509.GM10863@arm.com>
+ <550A4BFD.4070804@huawei.com>
+ <20150319101727.GC24556@red-moon>
+ <20150319193927.GG4751@arm.com>
+ <20150324220253.9595AC407F8@trevor.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:51506 "EHLO mga03.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:52822 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751382AbbCZKXr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Mar 2015 06:23:47 -0400
+	id S1751278AbbCZKYO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Mar 2015 06:24:14 -0400
 Content-Disposition: inline
-In-Reply-To: <1427316368-20965-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+In-Reply-To: <20150324220253.9595AC407F8@trevor.secretlab.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: rjw@rjwysocki.net, robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Will Deacon <Will.Deacon@arm.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vg>
 
-On Wed, Mar 25, 2015 at 03:46:06PM -0500, Suravee Suthikulpanit wrote:
-> ACPI Device configuration often contain _CLS object to suppy PCI-defined
-> class code for the device. This patch introduces logic to process the _CLS
-> object.
+On Tue, Mar 24, 2015 at 10:02:53PM +0000, Grant Likely wrote:
+> On Thu, 19 Mar 2015 19:39:27 +0000
+> , Will Deacon <will.deacon@arm.com>
+>  wrote:
+> > On Thu, Mar 19, 2015 at 10:17:27AM +0000, Lorenzo Pieralisi wrote:
+> > > On Thu, Mar 19, 2015 at 04:09:33AM +0000, Hanjun Guo wrote:
+> > > > On 2015/3/19 3:05, Will Deacon wrote:
+> > > > > On Wed, Mar 11, 2015 at 12:39:26PM +0000, Hanjun Guo wrote:
+> > > > >> This patch set already tested on multi platforms:
+> > > > >>  - AMD Seattle board;
+> > > > >>  - Cavium Thunder board;
+> > > > >>  - Huawei D02 board;
+> > > > >>  - Qualcomm ARM64 platform
+> > > > >>
+> > > > >> This version 10 patch set address some minor comments and collect ACKs and
+> > > > >> Reviewed-bys for v9:
+> > > > >>
+> > > > >>  - new Acks from Rafael, Olof, Grant, Lorenzo
+> > > > >>  - new way to handle typdef phys_cpuid_t which suggested by Rafael,
+> > > > >>    but no functional change
+> > > > >>  - Remove if(!phys) for early ioremappings
+> > > > >>  - Rework sleep function for ARM64
+> > > > >>  - Introduce linux/acpi_irq.h to hold acpi_irq_init()
+> > > > >>  - Disable ACPI if not HW_REDUCED_ACPI compliant
+> > > > >>  - Remove the doc of why ACPI on ARM
+> > > > > So I've had a look at the current state of this series and I think there
+> > > > > are a few immediate things left to do:
+> > > > >
+> > > > >   (1) Resolve the acpi=force cmdline issue highlighted by Lorenzo and
+> > > > >       Catalin
+> > > > 
+> > > > Sure, it will be done after the confirmation with Ard.
+> > > > 
+> > > > >
+> > > > >   (2) I believe Sudeep and Lorenzo have concerns about patch 13 (SMP init),
+> > > > >       so I'm assuming there will be additional patches from them that are
+> > > > >       required.
+> > > > 
+> > > > Sorry, I assume that it is about the print information for PSCI absent for SMP init, right?
+> > > 
+> > > Not only that, Sudeep has a patch to consolidate DT and ACPI SMP code,
+> > > I am working on it, I do not think it should be a blocking point, patch
+> > > coming asap on top of your series.
+> > 
+> > Well, I don't really want to merge the series without those patches so I
+> > do think it blocks the code from getting into mainline.
 > 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Really? It's a pretty minor duplication problem and it's been identified
+> as something requiring refactoring to both the ACPI and DT code. It
+> isn't at all dangerous. Why is this a blocking point?
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+The SMP init ACPI/DT consolidation, in particular in relation to cpu_ops may
+not be a blocking point, but it is not a whim either and it deserves some
+thought.
+
+I will post a patch asap and the ACPI parking protocol support patches
+strictly depend on this clean-up to be completed.
+
+Lorenzo
