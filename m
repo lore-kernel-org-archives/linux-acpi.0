@@ -1,106 +1,46 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [V6 PATCH 3/3] ata: ahci_platform: Add ACPI _CLS matching
-Date: Thu, 26 Mar 2015 12:31:40 +0200
-Message-ID: <20150326103140.GG1878@lahna.fi.intel.com>
-References: <1427316368-20965-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1427316368-20965-4-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [patch v11 09/23] ARM64 / ACPI: If we chose to boot from acpi
+ then disable FDT
+Date: Thu, 26 Mar 2015 10:57:46 +0000
+Message-ID: <20150326105746.GA11095@red-moon>
+References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org>
+ <1427205776-5060-10-git-send-email-hanjun.guo@linaro.org>
+ <20150325170027.GG14585@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:52887 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751025AbbCZK5l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Mar 2015 06:57:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1427316368-20965-4-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: rjw@rjwysocki.net, robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+In-Reply-To: <20150325170027.GG14585@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, "msalter@redhat.com" <msalter@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Sudeep Holla <Sudeep.Holla@arm.c>
 
-On Wed, Mar 25, 2015 at 03:46:08PM -0500, Suravee Suthikulpanit wrote:
-> This patch adds ACPI supports for AHCI platform driver, which uses _CLS
-> method to match the device.
+On Wed, Mar 25, 2015 at 05:00:27PM +0000, Catalin Marinas wrote:
+> On Tue, Mar 24, 2015 at 10:02:42PM +0800, Hanjun Guo wrote:
+> > If the early boot methods of acpi are happy that we have valid ACPI
+> > tables and acpi=force has been passed, then do not unflat devicetree
+> > effectively disabling further hardware probing from DT.
+> [...]
+> > --- a/arch/arm64/kernel/setup.c
+> > +++ b/arch/arm64/kernel/setup.c
+> > @@ -390,7 +390,8 @@ void __init setup_arch(char **cmdline_p)
+> >  
+> >  	early_ioremap_reset();
+> >  
+> > -	unflatten_device_tree();
+> > +	if (acpi_disabled)
+> > +		unflatten_device_tree();
 > 
-> The following is an example of ASL structure in DSDT for a SATA controller,
-> which contains _CLS package to be matched by the ahci_platform driver:
-> 
->   Device (AHC0) // AHCI Controller
->   {
->     Name(_HID, "AMDI0600")
->     Name (_CCA, 1)
->     Name (_CLS, Package (3)
->     {
->       0x01, // Base Class: Mass Storage
->       0x06, // Sub-Class: serial ATA
->       0x01, // Interface: AHCI
->     })
->     Name (_CRS, ResourceTemplate ()
->     {
->       Memory32Fixed (ReadWrite, 0xE0300000, 0x00010000)
->       Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 387 }
->     })
->   }
-> 
-> Also, since ATA driver should not require PCI support for ATA_ACPI,
-> this patch removes dependency in the driver/ata/Kconfig.
-> 
-> Acked-by: Tejun Heo <tj@kernel.org>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> So if we have acpi=force but the acpi failed, do we have acpi_disabled
+> set? Or this requires Lorenzo's patch?
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hanjun did not squash with this patch a later patch in the series that
+caters for that, I reverted it and added my change on top to make things
+simpler, it is all done.
 
-One minor comment, see below.
-
-> ---
->  drivers/ata/Kconfig         | 2 +-
->  drivers/ata/ahci_platform.c | 9 +++++++++
->  2 files changed, 10 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-> index 5f60155..50305e3 100644
-> --- a/drivers/ata/Kconfig
-> +++ b/drivers/ata/Kconfig
-> @@ -48,7 +48,7 @@ config ATA_VERBOSE_ERROR
->  
->  config ATA_ACPI
->  	bool "ATA ACPI Support"
-> -	depends on ACPI && PCI
-> +	depends on ACPI
->  	default y
->  	help
->  	  This option adds support for ATA-related ACPI objects.
-> diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
-> index 78d6ae0..0536940 100644
-> --- a/drivers/ata/ahci_platform.c
-> +++ b/drivers/ata/ahci_platform.c
-> @@ -20,6 +20,8 @@
->  #include <linux/platform_device.h>
->  #include <linux/libata.h>
->  #include <linux/ahci_platform.h>
-> +#include <linux/acpi.h>
-> +#include <linux/pci_ids.h>
->  #include "ahci.h"
->  
->  #define DRV_NAME "ahci"
-> @@ -78,12 +80,19 @@ static const struct of_device_id ahci_of_match[] = {
->  };
->  MODULE_DEVICE_TABLE(of, ahci_of_match);
->  
-> +static const struct acpi_device_id ahci_acpi_match[] = {
-> +	{ ACPI_DEVICE_CLASS(PCI_CLASS_STORAGE_SATA_AHCI, 0xFFFFFF) },
-                                                         ^^^^^^^^
-We typically write hex literals in lower case (0xffffff).
-
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(acpi, ahci_acpi_match);
-> +
->  static struct platform_driver ahci_driver = {
->  	.probe = ahci_probe,
->  	.remove = ata_platform_remove_one,
->  	.driver = {
->  		.name = DRV_NAME,
->  		.of_match_table = ahci_of_match,
-> +		.acpi_match_table = ahci_acpi_match,
->  		.pm = &ahci_pm_ops,
->  	},
->  };
-> -- 
-> 2.1.0
+Lorenzo
