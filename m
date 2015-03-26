@@ -1,106 +1,71 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [V7 PATCH 0/3] Introduce ACPI support for ahci_platform driver
-Date: Thu, 26 Mar 2015 15:57:51 -0400
-Message-ID: <1427399871.9430.51.camel@deneb.redhat.com>
-References: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] [RFC]ACPI: enable wakeup GPE in freeze mode
+Date: Thu, 26 Mar 2015 21:51:45 +0100
+Message-ID: <2658941.bWdUA4mxsM@vostro.rjw.lan>
+References: <1427175480-22066-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, hanjun.guo@linaro.org, mjg59@srcf.ucam.org, graeme.gregory@linaro.org, al.stone@linaro.org, linux-ide@vger.kernel.org, gregkh@linuxfoundation.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, tj@kernel.org, lenb@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1427175480-22066-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: len.brown@intel.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2015-03-26 at 14:13 -0500, Suravee Suthikulpanit wrote:
-> This patch series introduce ACPI support for AHCI platform driver.
-> Existing ACPI support for AHCI assumes the device controller is a PCI device.
-> Since there is no ACPI _CID for generic AHCI controller, the driver
-> could not use it for matching devices. Therefore, this patch introduces
-> a mechanism for drivers to match devices using ACPI _CLS method.
-> _CLS contains PCI-defined class-code.
+On Tuesday, March 24, 2015 01:38:00 PM Chen Yu wrote:
+> Currently, in freeze state, wakeup GPE for PCI devices are
+> handled properly because acpi_pci_sleep_wake() invokes acpi_enable_gpe()
+> to enable the wakeup GPE directly. But for the other wakeup-capable
+> devices in ACPI bus, acpi_enable_wakeup_devices() should be invoked
+> to update enable_for_wake mask in gpe_register_info structure, thus
+> acpi_enable_all_wakeup_gpes() can enable the wakeup GPE referred in
+> _PRW methods.
 > 
-> This patch series also modifies ACPI modalias to add class-code to the
-> exisiting format, which currently only uses _HID and _CIDs. This is required
-> to support loadable modules w/ _CLS.
+> This patch fixes a power button wakeup problem on Surface Pro 3,
+> on which platform power button uses EC to deliver event
+> (EC GPE is referred in _PRW).
 > 
-> This is rebased from and tested with:
+> Note: enabling EC GPE during freeze state may bring some risks
+> because EC events are expected to fire more frequently than others.
+> Thus it may bring the system out of freeze state unnecessarily.
+> (We already have comments about this in bugzilla)
 > 
->     http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
+> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=84651
 > 
-> This topic was discussed earlier here (as part of introducing support for
-> AMD Seattle SATA controller):
+> Reported-and-tested-by: Ethan Schoonover <es@ethanschoonover.com>
+> Tested-by: Peter Amidon <psa.pub.0@picnicpark.org>
+> Tested-by: Yani Ioadnnou <yani.ioannou@gmail.com>
+> Tested-by: Mister Wardrop <mister.wardrop@gmail.com>
+> Tested-by: Anton Anikin <anton@anikin.name>
+> Tested-by: Keith McClelland <zismylaptop@gmail.com>
+> Reviewed-by: Zhang Rui <rui.zhang@intel.com>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> ---
+>  drivers/acpi/sleep.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
->     http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
-> 
-> Changes from V6 (https://lkml.org/lkml/2015/3/25/797)
-> 	* Adding Acked-by Mika, and Reviewed-by Hanjun
-> 	* Minor clen up to use lower case 0xffffff for cls_msk
-> 	  (per Mika suggestions).
-> 	* Modify the ACPI_DEVICE_CLASS macro to use designated initializer
-> 	  (per Mika suggestions).
-> 
-> Changes from V5 (https://lkml.org/lkml/2015/3/6/24)
-> 	* Rebased and tested with acpi-5.1-v11
-> 	* Splitting up the ACPICA changes into a separate patch [1/3].
-> 	  (per Mika suggestion)
-> 	* Adding class-code mask support (per Mika suggestion)
-> 	* Use macro to define struct acpi_device_id entry (per Mika suggestion)
-> 	* Note: Mika also recommend reordering the member of struct acpi_device_id
-> 	  and define a macro to be used for declaring each table entry. This is a
-> 	  large amount of changes, and will be done separtely from this patch series.
-> 
-> Changes from V4 (https://lkml.org/lkml/2015/3/2/56)
-> 	* [1/2] Bug fixed: Reorder the declaration of
-> 	  struct acpi_pnp_device_id cls in the struct acpi_device_info
-> 	  (include/acpi/actypes.h) since compatible_id_list must be last one.
-> 	* [2/2] Added Acked-by: Tejun Heo <tj@kernel.org>
-> 
-> Changes from V3 (https://lkml.org/lkml/2015/2/8/106)
-> 	* Instead of introducing new structure acpi_device_cls, add cls into
-> 	  the acpi_device_id, and modify the __acpi_match_device
-> 	  to also match for cls. (per Mika suggestion.)
-> 	* Add loadable module support, which requires changes in ACPI
-> 	  modalias. (per Mika suggestion.)
-> 	* Rebased and tested with acpi-5.1-v9
-> 
-> Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
-> 	* Update with review comment from Rafael in patch 1/2
-> 	* Rebased and tested with acpi-5.1-v8
-> 
-> Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
-> 	* Rebased to 3.19.0-rc2
-> 	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
-> 	* Change the matching logic in acpi_driver_match_device() due to the new
-> 	  special PRP0001 _HID.
-> 	* Simplify the return type of acpi_match_device_cls() to boolean.
-> 
-> Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
-> 	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
-> 	  as inline. (per Arnd)
-> 	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
-> 
-> Suravee Suthikulpanit (3):
->   ACPICA: Add ACPI _CLS processing
->   ACPI / scan: Add support for ACPI _CLS device matching
->   ata: ahci_platform: Add ACPI _CLS matching
-> 
->  drivers/acpi/acpica/acutils.h     |  3 ++
->  drivers/acpi/acpica/nsxfname.c    | 21 ++++++++++--
->  drivers/acpi/acpica/utids.c       | 71 +++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/scan.c               | 36 +++++++++++++++++---
->  drivers/ata/Kconfig               |  2 +-
->  drivers/ata/ahci_platform.c       |  9 +++++
->  include/acpi/acnames.h            |  1 +
->  include/acpi/actypes.h            |  4 ++-
->  include/linux/acpi.h              | 13 +++++++
->  include/linux/mod_devicetable.h   |  2 ++
->  scripts/mod/devicetable-offsets.c |  2 ++
->  scripts/mod/file2alias.c          | 32 ++++++++++++++++--
->  12 files changed, 186 insertions(+), 10 deletions(-)
-> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 7f251dd..91b55e6 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -629,6 +629,7 @@ static int acpi_freeze_begin(void)
+>  
+>  static int acpi_freeze_prepare(void)
+>  {
+> +	acpi_enable_wakeup_devices(ACPI_STATE_S0);
+>  	acpi_enable_all_wakeup_gpes();
+>  	acpi_os_wait_events_complete();
+>  	enable_irq_wake(acpi_gbl_FADT.sci_interrupt);
 
-FWIW,
+This looks OK to me, but I think that we need a complementary
+acpi_disable_wakeup_devices() call in acpi_freeze_restore().
 
-Tested-by: Mark Salter <msalter@redhat.com>
+Without it, user space may not be able to prevent devices from
+waking up the system from suspend-to-idle.  Or am I missing
+anything?
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
