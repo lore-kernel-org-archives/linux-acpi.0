@@ -1,133 +1,106 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [patch v11 12/23] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Fri, 27 Mar 2015 03:48:50 +0800
-Message-ID: <551462A2.4070308@linaro.org>
-References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org> <1427205776-5060-13-git-send-email-hanjun.guo@linaro.org> <20150325171735.GI14585@localhost> <20150326151510.GI2805@arm.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [V7 PATCH 0/3] Introduce ACPI support for ahci_platform driver
+Date: Thu, 26 Mar 2015 15:57:51 -0400
+Message-ID: <1427399871.9430.51.camel@deneb.redhat.com>
+References: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150326151510.GI2805@arm.com>
+In-Reply-To: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, "msalter@redhat.com" <msalter@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Sudeep Holla <Sudeep.Holl>
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, hanjun.guo@linaro.org, mjg59@srcf.ucam.org, graeme.gregory@linaro.org, al.stone@linaro.org, linux-ide@vger.kernel.org, gregkh@linuxfoundation.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hdegoede@redhat.com, tj@kernel.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015=E5=B9=B403=E6=9C=8826=E6=97=A5 23:15, Will Deacon wrote:
-> On Wed, Mar 25, 2015 at 05:17:35PM +0000, Catalin Marinas wrote:
->> On Tue, Mar 24, 2015 at 10:02:45PM +0800, Hanjun Guo wrote:
->>> +/**
->>> + * acpi_map_gic_cpu_interface - generates a logical cpu number
->>> + * and map to MPIDR represented by GICC structure
->>> + * @mpidr: CPU's hardware id to register, MPIDR represented in MAD=
-T
->>> + * @enabled: this cpu is enabled or not
->>> + *
->>> + * Returns the logical cpu number which maps to MPIDR
->>> + */
->>> +static int __init acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled=
-)
->>
->> So here we have an u8 enabled.
->>
->>> +static int __init
->>> +acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
->>> +				const unsigned long end)
->>> +{
->>> +	struct acpi_madt_generic_interrupt *processor;
->>> +
->>> +	processor =3D (struct acpi_madt_generic_interrupt *)header;
->>> +
->>> +	if (BAD_MADT_ENTRY(processor, end))
->>> +		return -EINVAL;
->>> +
->>> +	acpi_table_print_madt_entry(header);
->>> +
->>> +	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITM=
-ASK,
->>> +		processor->flags & ACPI_MADT_ENABLED);
->>
->> and here processor->flags is u32. Luckily, ACPI_MADT_ENABLED is 1 an=
-d we
->> don't lose any information. So either make the enabled above a bool =
-or
->> simply pass the flags with the check in acpi_map_gic_cpu_interface()
->> (personal preference for the latter).
->
-> I've applied the following patch on top of the series.
->
-> Will
->
-> --->8
->
-> commit 8ef320319592693f4a6286d80df210fd47b3e356
-> Author: Will Deacon <will.deacon@arm.com>
-> Date:   Thu Mar 26 15:09:20 2015 +0000
->
->      ARM64 / ACPI: fix usage of acpi_map_gic_cpu_interface
->
->      acpi_parse_gic_cpu_interface calls acpi_map_gic_cpu_interface by=
- both
->      passing a 32-bit value in the u8 enabled parameter and then subs=
-equently
->      ignoring its return value.
->
->      Sort it out.
->
->      Reported-by: Catalin Marinas <catalin.marinas@arm.com>
->      Signed-off-by: Will Deacon <will.deacon@arm.com>
->
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index cd60329da8c4..07649e413244 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -103,9 +103,12 @@ void __init __acpi_unmap_table(char *map, unsign=
-ed long size)
->    *
->    * Returns the logical cpu number which maps to MPIDR
->    */
-> -static int __init acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled)
-> +static int __init
-> +acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *proce=
-ssor)
+On Thu, 2015-03-26 at 14:13 -0500, Suravee Suthikulpanit wrote:
+> This patch series introduce ACPI support for AHCI platform driver.
+> Existing ACPI support for AHCI assumes the device controller is a PCI device.
+> Since there is no ACPI _CID for generic AHCI controller, the driver
+> could not use it for matching devices. Therefore, this patch introduces
+> a mechanism for drivers to match devices using ACPI _CLS method.
+> _CLS contains PCI-defined class-code.
+> 
+> This patch series also modifies ACPI modalias to add class-code to the
+> exisiting format, which currently only uses _HID and _CIDs. This is required
+> to support loadable modules w/ _CLS.
+> 
+> This is rebased from and tested with:
+> 
+>     http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
+> 
+> This topic was discussed earlier here (as part of introducing support for
+> AMD Seattle SATA controller):
+> 
+>     http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
+> 
+> Changes from V6 (https://lkml.org/lkml/2015/3/25/797)
+> 	* Adding Acked-by Mika, and Reviewed-by Hanjun
+> 	* Minor clen up to use lower case 0xffffff for cls_msk
+> 	  (per Mika suggestions).
+> 	* Modify the ACPI_DEVICE_CLASS macro to use designated initializer
+> 	  (per Mika suggestions).
+> 
+> Changes from V5 (https://lkml.org/lkml/2015/3/6/24)
+> 	* Rebased and tested with acpi-5.1-v11
+> 	* Splitting up the ACPICA changes into a separate patch [1/3].
+> 	  (per Mika suggestion)
+> 	* Adding class-code mask support (per Mika suggestion)
+> 	* Use macro to define struct acpi_device_id entry (per Mika suggestion)
+> 	* Note: Mika also recommend reordering the member of struct acpi_device_id
+> 	  and define a macro to be used for declaring each table entry. This is a
+> 	  large amount of changes, and will be done separtely from this patch series.
+> 
+> Changes from V4 (https://lkml.org/lkml/2015/3/2/56)
+> 	* [1/2] Bug fixed: Reorder the declaration of
+> 	  struct acpi_pnp_device_id cls in the struct acpi_device_info
+> 	  (include/acpi/actypes.h) since compatible_id_list must be last one.
+> 	* [2/2] Added Acked-by: Tejun Heo <tj@kernel.org>
+> 
+> Changes from V3 (https://lkml.org/lkml/2015/2/8/106)
+> 	* Instead of introducing new structure acpi_device_cls, add cls into
+> 	  the acpi_device_id, and modify the __acpi_match_device
+> 	  to also match for cls. (per Mika suggestion.)
+> 	* Add loadable module support, which requires changes in ACPI
+> 	  modalias. (per Mika suggestion.)
+> 	* Rebased and tested with acpi-5.1-v9
+> 
+> Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
+> 	* Update with review comment from Rafael in patch 1/2
+> 	* Rebased and tested with acpi-5.1-v8
+> 
+> Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
+> 	* Rebased to 3.19.0-rc2
+> 	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
+> 	* Change the matching logic in acpi_driver_match_device() due to the new
+> 	  special PRP0001 _HID.
+> 	* Simplify the return type of acpi_match_device_cls() to boolean.
+> 
+> Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
+> 	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
+> 	  as inline. (per Arnd)
+> 	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
+> 
+> Suravee Suthikulpanit (3):
+>   ACPICA: Add ACPI _CLS processing
+>   ACPI / scan: Add support for ACPI _CLS device matching
+>   ata: ahci_platform: Add ACPI _CLS matching
+> 
+>  drivers/acpi/acpica/acutils.h     |  3 ++
+>  drivers/acpi/acpica/nsxfname.c    | 21 ++++++++++--
+>  drivers/acpi/acpica/utids.c       | 71 +++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/scan.c               | 36 +++++++++++++++++---
+>  drivers/ata/Kconfig               |  2 +-
+>  drivers/ata/ahci_platform.c       |  9 +++++
+>  include/acpi/acnames.h            |  1 +
+>  include/acpi/actypes.h            |  4 ++-
+>  include/linux/acpi.h              | 13 +++++++
+>  include/linux/mod_devicetable.h   |  2 ++
+>  scripts/mod/devicetable-offsets.c |  2 ++
+>  scripts/mod/file2alias.c          | 32 ++++++++++++++++--
+>  12 files changed, 186 insertions(+), 10 deletions(-)
+> 
 
-How about just replace u8 with u32? This function has its purpose to
-be lived, on x86/ia64, ACPI core will get the physcal cpu ID via
-ACPI handle, then pass it to the arch specific mapping function
-to map the physcal cpu ID with logical cpu ID for the new added
-CPU, so when ACPI based CPU hot-plug is introduced on ARM64, we
-need to go back to that solution.
+FWIW,
 
->   {
->   	int i;
-> +	u64 mpidr =3D processor->arm_mpidr & MPIDR_HWID_BITMASK;
-> +	bool enabled =3D !!(processor->flags & ACPI_MADT_ENABLED);
->
->   	if (mpidr =3D=3D INVALID_HWID) {
->   		pr_info("Skip MADT cpu entry with invalid MPIDR\n");
-> @@ -178,11 +181,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtabl=
-e_header *header,
->   		return -EINVAL;
->
->   	acpi_table_print_madt_entry(header);
-> -
-> -	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITMAS=
-K,
-> -		processor->flags & ACPI_MADT_ENABLED);
-> -
-> -	return 0;
-> +	return acpi_map_gic_cpu_interface(processor);
-
-I don't think we need to return the error value here, in ACPI
-core, it will stop the MADT scanning once it returned the error
-value, but actually we can skip some disabled GICC (cpu) entries
-and find all the enabled ones in MADT, for example,
-
-cpu0 entry, with flag enabled
-cpu1 entry, disabled  - if we return the error value, table scanning
-                         will stop
-cpu2 entry, enabled   - and this cpu will be ignored
-
-Thanks
-Hanjun
+Tested-by: Mark Salter <msalter@redhat.com>
