@@ -1,41 +1,62 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: Request for additional arm64 branch in linux-next
-Date: Thu, 26 Mar 2015 13:49:33 +0000
-Message-ID: <20150326134932.GD2805@arm.com>
-References: <20150325172002.GN24636@arm.com>
- <20150326111055.273aa644@canb.auug.org.au>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [V6 PATCH 2/3] ACPI / scan: Add support for ACPI _CLS device
+ matching
+Date: Thu, 26 Mar 2015 09:39:48 -0500
+Message-ID: <55141A34.6030402@amd.com>
+References: <1427316368-20965-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1427316368-20965-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20150326102941.GF1878@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53476 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752411AbbCZNtg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Mar 2015 09:49:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20150326111055.273aa644@canb.auug.org.au>
+Received: from mail-by2on0136.outbound.protection.outlook.com ([207.46.100.136]:33856
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752135AbbCZOj5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Mar 2015 10:39:57 -0400
+In-Reply-To: <20150326102941.GF1878@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: rjw@rjwysocki.net, robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Thu, Mar 26, 2015 at 12:10:55AM +0000, Stephen Rothwell wrote:
-> On Wed, 25 Mar 2015 17:20:03 +0000 Will Deacon <will.deacon@arm.com> wrote:
-> > We've got a series of patches introducing ACPI support for arm64 that
-> > are tentatively targetting the 4.1 merge window. Whilst there are
-> > face-to-face discussions set to happen in the next day or so around this
-> > topic, could you please pull this into linux-next under the assumption
-> > that we decide to go ahead for mainline inclusion?
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/acpi
-> > 
-> > I've kept the series separate from the usual arm64 branch (for-next/core)
-> > but they merge without conflicts. Merging with today's next, I see two
-> > trivial Kconfig conflicts (resolution below).
-> 
-> Added from today (and thanks for the hints).  Will this be merged via
-> another tree, or go directly to Linus?
 
-Thank, Stephen. Yes, we've been collecting Acks for a while now, so the
-plan is to send this to Linus as an extra arm64 pull request.
 
-Will
+On 3/26/15 05:29, Mika Westerberg wrote:
+> On Wed, Mar 25, 2015 at 03:46:07PM -0500, Suravee Suthikulpanit wrote:
+>> [...]
+>> diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+>> index e530533..9563abe 100644
+>> --- a/include/linux/mod_devicetable.h
+>> +++ b/include/linux/mod_devicetable.h
+>> @@ -189,8 +189,12 @@ struct css_device_id {
+>>   struct acpi_device_id {
+>>   	__u8 id[ACPI_ID_LEN];
+>>   	kernel_ulong_t driver_data;
+>> +	__u32 cls;
+>> +	__u32 cls_msk;
+>>   };
+>>
+>> +#define ACPI_DEVICE_CLASS(cls, msk)		"", 0, cls, msk
+>
+> Consider moving this to <linux/acpi.h>, just like PCI_DEVICE_CLASS() is
+> defined in <linux/pci.h>.
+>
+> Also please use designated initializers here, eg:
+>
+> #define ACPI_DEVICE_CLASS(cls, msk)	.cls = (cls), .cls_mask = (msk)
+>
+> Once done you can add my,
+>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+Ah right. I should have done that. I'll send out V7 with this change and 
+acked-by.
+
+Thanks,
+Suravee
+>
+>> +
+>>   #define PNP_ID_LEN	8
+>>   #define PNP_MAX_DEVICES	8
