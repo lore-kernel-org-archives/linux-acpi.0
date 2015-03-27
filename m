@@ -1,66 +1,66 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Fri, 27 Mar 2015 10:22:58 +0100
-Message-ID: <1427448178-20689-6-git-send-email-bp@alien8.de>
+Subject: [RFC PATCH 3/5] GHES: Panic right after detection
+Date: Fri, 27 Mar 2015 10:22:56 +0100
+Message-ID: <1427448178-20689-4-git-send-email-bp@alien8.de>
 References: <1427448178-20689-1-git-send-email-bp@alien8.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1427448178-20689-1-git-send-email-bp@alien8.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-edac <linux-edac@vger.kernel.org>
-Cc: Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Jiri Kosina <jkosina@suse.cz>
+From: Borislav Petkov <bp@suse.de>
 
-Since GHES sources are global, we theoretically need only a single CPU
-reading them per NMI instead of a thundering herd of CPUs waiting on a
-spinlock in NMI context for no reason at all.
+The moment we log an error of panic severity, there's no need to noodle
+through the ghes_nmi list anymore. So panic instead right then and
+there.
 
-Do that.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Borislav Petkov <bp@suse.de>
 ---
- drivers/acpi/apei/ghes.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/acpi/apei/ghes.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 94a44bad5576..2bfd53cbfe80 100644
+index 712ed95b1dca..0de3adcca03e 100644
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -729,10 +729,10 @@ static struct llist_head ghes_estatus_llist;
- static struct irq_work ghes_proc_irq_work;
+@@ -837,9 +837,8 @@ static void __ghes_panic(struct ghes *ghes)
  
- /*
-- * NMI may be triggered on any CPU, so ghes_nmi_lock is used for
-- * mutual exclusion.
-+ * NMI may be triggered on any CPU, so ghes_in_nmi is used for
-+ * having only one concurrent reader.
-  */
--static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
-+static atomic_t ghes_in_nmi = ATOMIC_INIT(0);
+ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ {
+-	struct ghes *ghes, *ghes_global = NULL;
+-	int sev, sev_global = -1;
+-	int ret = NMI_DONE;
++	struct ghes *ghes;
++	int sev, ret = NMI_DONE;
  
- static LIST_HEAD(ghes_nmi);
- 
-@@ -840,7 +840,9 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- 	struct ghes *ghes;
- 	int sev, ret = NMI_DONE;
- 
--	raw_spin_lock(&ghes_nmi_lock);
-+	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
-+		return ret;
-+
+ 	raw_spin_lock(&ghes_nmi_lock);
  	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
- 		if (ghes_read_estatus(ghes, 1)) {
+@@ -847,20 +846,17 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
  			ghes_clear_estatus(ghes);
-@@ -863,7 +865,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- #ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	irq_work_queue(&ghes_proc_irq_work);
- #endif
--	raw_spin_unlock(&ghes_nmi_lock);
-+	atomic_dec(&ghes_in_nmi);
- 	return ret;
- }
+ 			continue;
+ 		}
++
+ 		sev = ghes_severity(ghes->estatus->error_severity);
+-		if (sev > sev_global) {
+-			sev_global = sev;
+-			ghes_global = ghes;
+-		}
++		if (sev >= GHES_SEV_PANIC)
++			__ghes_panic(ghes);
++
+ 		ret = NMI_HANDLED;
+ 	}
  
+ 	if (ret == NMI_DONE)
+ 		goto out;
+ 
+-	if (sev_global >= GHES_SEV_PANIC)
+-		__ghes_panic(ghes_global);
+-
+ 	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
+ 		if (!(ghes->flags & GHES_TO_CLEAR))
+ 			continue;
 -- 
 2.3.3
