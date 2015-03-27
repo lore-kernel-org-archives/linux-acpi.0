@@ -1,62 +1,77 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: [RFC PATCH 4/5] GHES: Elliminate double-loop in the NMI handler
-Date: Fri, 27 Mar 2015 10:22:57 +0100
-Message-ID: <1427448178-20689-5-git-send-email-bp@alien8.de>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+From: Yu Chen <yu.c.chen@intel.com>
+Subject: Re: [PATCH] [RFC]ACPI: enable wakeup GPE in freeze mode
+Date: Fri, 27 Mar 2015 17:59:07 +0800
+Message-ID: <551529EB.50505@intel.com>
+References: <1427175480-22066-1-git-send-email-yu.c.chen@intel.com> <2658941.bWdUA4mxsM@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:58661 "EHLO mail.skyhub.de"
+Received: from mga11.intel.com ([192.55.52.93]:28153 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753340AbbC0JYv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Mar 2015 05:24:51 -0400
-In-Reply-To: <1427448178-20689-1-git-send-email-bp@alien8.de>
+	id S964808AbbC0Jy7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Mar 2015 05:54:59 -0400
+In-Reply-To: <2658941.bWdUA4mxsM@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-edac <linux-edac@vger.kernel.org>
-Cc: Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: len.brown@intel.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-From: Borislav Petkov <bp@suse.de>
+On 03/27/2015 04:51 AM, Rafael J. Wysocki wrote:
+> On Tuesday, March 24, 2015 01:38:00 PM Chen Yu wrote:
+>> Currently, in freeze state, wakeup GPE for PCI devices are
+>> handled properly because acpi_pci_sleep_wake() invokes acpi_enable_gpe()
+>> to enable the wakeup GPE directly. But for the other wakeup-capable
+>> devices in ACPI bus, acpi_enable_wakeup_devices() should be invoked
+>> to update enable_for_wake mask in gpe_register_info structure, thus
+>> acpi_enable_all_wakeup_gpes() can enable the wakeup GPE referred in
+>> _PRW methods.
+>>
+>> This patch fixes a power button wakeup problem on Surface Pro 3,
+>> on which platform power button uses EC to deliver event
+>> (EC GPE is referred in _PRW).
+>>
+>> Note: enabling EC GPE during freeze state may bring some risks
+>> because EC events are expected to fire more frequently than others.
+>> Thus it may bring the system out of freeze state unnecessarily.
+>> (We already have comments about this in bugzilla)
+>>
+>> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=84651
+>>
+>> Reported-and-tested-by: Ethan Schoonover <es@ethanschoonover.com>
+>> Tested-by: Peter Amidon <psa.pub.0@picnicpark.org>
+>> Tested-by: Yani Ioadnnou <yani.ioannou@gmail.com>
+>> Tested-by: Mister Wardrop <mister.wardrop@gmail.com>
+>> Tested-by: Anton Anikin <anton@anikin.name>
+>> Tested-by: Keith McClelland <zismylaptop@gmail.com>
+>> Reviewed-by: Zhang Rui <rui.zhang@intel.com>
+>> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+>> ---
+>>   drivers/acpi/sleep.c | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+>> index 7f251dd..91b55e6 100644
+>> --- a/drivers/acpi/sleep.c
+>> +++ b/drivers/acpi/sleep.c
+>> @@ -629,6 +629,7 @@ static int acpi_freeze_begin(void)
+>>
+>>   static int acpi_freeze_prepare(void)
+>>   {
+>> +	acpi_enable_wakeup_devices(ACPI_STATE_S0);
+>>   	acpi_enable_all_wakeup_gpes();
+>>   	acpi_os_wait_events_complete();
+>>   	enable_irq_wake(acpi_gbl_FADT.sci_interrupt);
+>
+> This looks OK to me, but I think that we need a complementary
+> acpi_disable_wakeup_devices() call in acpi_freeze_restore().
+>
+Yes, I'll add acpi_disable_wakeup_devices() before disable_irq_wake(),
+and send another patch, thanks you!
 
-There's no real need to iterate twice over the HW error sources in the
-NMI handler. With the previous cleanups, elliminating the second loop is
-almost trivial.
-
-Signed-off-by: Borislav Petkov <bp@suse.de>
----
- drivers/acpi/apei/ghes.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 0de3adcca03e..94a44bad5576 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -851,25 +851,18 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- 		if (sev >= GHES_SEV_PANIC)
- 			__ghes_panic(ghes);
- 
--		ret = NMI_HANDLED;
--	}
--
--	if (ret == NMI_DONE)
--		goto out;
--
--	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
- 		if (!(ghes->flags & GHES_TO_CLEAR))
- 			continue;
- 
- 		__process_error(ghes);
- 		ghes_clear_estatus(ghes);
-+
-+		ret = NMI_HANDLED;
- 	}
- 
- #ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	irq_work_queue(&ghes_proc_irq_work);
- #endif
--
--out:
- 	raw_spin_unlock(&ghes_nmi_lock);
- 	return ret;
- }
--- 
-2.3.3
+> Without it, user space may not be able to prevent devices from
+> waking up the system from suspend-to-idle.  Or am I missing
+> anything?
+>
+>
 
