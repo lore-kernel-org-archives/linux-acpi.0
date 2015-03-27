@@ -1,104 +1,50 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [patch v11 12/23] ARM64 / ACPI: Parse MADT for SMP initialization
-Date: Fri, 27 Mar 2015 07:01:10 +0800
-Message-ID: <55148FB6.1030106@linaro.org>
-References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org> <1427205776-5060-13-git-send-email-hanjun.guo@linaro.org> <20150325171735.GI14585@localhost> <20150326151510.GI2805@arm.com> <551462A2.4070308@linaro.org> <20150326211239.GA23660@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150326211239.GA23660@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Rutland <Mark.Rutland@arm.com>, Ashwin Chaugule <ashwinc@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, "msalter@redhat.com" <msalter@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthik>
+From: Borislav Petkov <bp@alien8.de>
+Subject: [RFC PATCH 0/5] GHES NMI handler cleanup
+Date: Fri, 27 Mar 2015 10:22:53 +0100
+Message-ID: <1427448178-20689-1-git-send-email-bp@alien8.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:58640 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753103AbbC0JYu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Mar 2015 05:24:50 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-edac <linux-edac@vger.kernel.org>
+Cc: Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2015=E5=B9=B403=E6=9C=8827=E6=97=A5 05:12, Will Deacon wrote:
-> On Thu, Mar 26, 2015 at 07:48:50PM +0000, Hanjun Guo wrote:
->> On 2015=E5=B9=B403=E6=9C=8826=E6=97=A5 23:15, Will Deacon wrote:
->>> commit 8ef320319592693f4a6286d80df210fd47b3e356
->>> Author: Will Deacon <will.deacon@arm.com>
->>> Date:   Thu Mar 26 15:09:20 2015 +0000
->>>
->>>       ARM64 / ACPI: fix usage of acpi_map_gic_cpu_interface
->>>
->>>       acpi_parse_gic_cpu_interface calls acpi_map_gic_cpu_interface=
- by both
->>>       passing a 32-bit value in the u8 enabled parameter and then s=
-ubsequently
->>>       ignoring its return value.
->>>
->>>       Sort it out.
->>>
->>>       Reported-by: Catalin Marinas <catalin.marinas@arm.com>
->>>       Signed-off-by: Will Deacon <will.deacon@arm.com>
->>>
->>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->>> index cd60329da8c4..07649e413244 100644
->>> --- a/arch/arm64/kernel/acpi.c
->>> +++ b/arch/arm64/kernel/acpi.c
->>> @@ -103,9 +103,12 @@ void __init __acpi_unmap_table(char *map, unsi=
-gned long size)
->>>     *
->>>     * Returns the logical cpu number which maps to MPIDR
->>>     */
->>> -static int __init acpi_map_gic_cpu_interface(u64 mpidr, u8 enabled=
-)
->>> +static int __init
->>> +acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *pro=
-cessor)
->>
->> How about just replace u8 with u32? This function has its purpose to
->> be lived, on x86/ia64, ACPI core will get the physcal cpu ID via
->> ACPI handle, then pass it to the arch specific mapping function
->> to map the physcal cpu ID with logical cpu ID for the new added
->> CPU, so when ACPI based CPU hot-plug is introduced on ARM64, we
->> need to go back to that solution.
->
-> If/when that happens, we can change things then. Right now, this is a=
- static
-> function with one caller. One step at a time, please.
->
->>>    {
->>>    	int i;
->>> +	u64 mpidr =3D processor->arm_mpidr & MPIDR_HWID_BITMASK;
->>> +	bool enabled =3D !!(processor->flags & ACPI_MADT_ENABLED);
->>>
->>>    	if (mpidr =3D=3D INVALID_HWID) {
->>>    		pr_info("Skip MADT cpu entry with invalid MPIDR\n");
->>> @@ -178,11 +181,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subta=
-ble_header *header,
->>>    		return -EINVAL;
->>>
->>>    	acpi_table_print_madt_entry(header);
->>> -
->>> -	acpi_map_gic_cpu_interface(processor->arm_mpidr & MPIDR_HWID_BITM=
-ASK,
->>> -		processor->flags & ACPI_MADT_ENABLED);
->>> -
->>> -	return 0;
->>> +	return acpi_map_gic_cpu_interface(processor);
->>
->> I don't think we need to return the error value here, in ACPI
->> core, it will stop the MADT scanning once it returned the error
->> value, but actually we can skip some disabled GICC (cpu) entries
->> and find all the enabled ones in MADT, for example,
->>
->> cpu0 entry, with flag enabled
->> cpu1 entry, disabled  - if we return the error value, table scanning
->>                           will stop
->> cpu2 entry, enabled   - and this cpu will be ignored
->
-> Then send me a patch making acpi_map_gic_cpu_interface have a void re=
-turn
-> type. Ignoring the return type is usually a good way to introduce sub=
-tle
-> bugs.
+From: Borislav Petkov <bp@suse.de>
 
-OK, I will, and I will cleanup the comments for this function too.
+So this patchset is the result of us seeing this while debugging a
+customer issue:
 
-Need some sleep first...
+[  118.113136] INFO: NMI handler (ghes_notify_nmi) took too long to run: 1.005 msecs
 
-Thanks
-Hanjun
+Looking at that NMI handler, it could use a good scrubbing as it has
+grown some needless fat. So let's try it.
+
+First 4 patches simplify it and clean it, and the last one does the
+bold move of making the status reader CPU be a single one based on
+the not-100-percent-confirmed observation that GHES error sources are
+global in the firmware glue and thus only one reader suffices to see all
+errors.
+
+This last thing still needs to be confirmed but I'm sending the patches
+now so that people can look at them and poke holes. Thus the RFC tag.
+
+Thanks.
+
+Borislav Petkov (4):
+  GHES: Carve out error queueing in a separate function
+  GHES: Carve out the panic functionality
+  GHES: Panic right after detection
+  GHES: Elliminate double-loop in the NMI handler
+
+Jiri Kosina (1):
+  GHES: Make NMI handler have a single reader
+
+ drivers/acpi/apei/ghes.c | 108 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 55 insertions(+), 53 deletions(-)
+
+-- 
+2.3.3
+
