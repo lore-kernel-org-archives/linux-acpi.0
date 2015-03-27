@@ -1,52 +1,224 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 0/7] minor cleanups for ACPI processor driver
-Date: Fri, 27 Mar 2015 14:40:15 +0000
-Message-ID: <20150327144014.GJ1562@arm.com>
-References: <1427464513-14414-1-git-send-email-hanjun.guo@linaro.org>
- <20150327140336.GG1562@arm.com>
- <55156B28.9030802@linaro.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [V7 PATCH 1/3] ACPICA: Add ACPI _CLS processing
+Date: Fri, 27 Mar 2015 17:51:48 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2A5F70@ORSMSX112.amr.corp.intel.com>
+References: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1427397195-15273-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56575 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753208AbbC0OkT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Mar 2015 10:40:19 -0400
-Content-Disposition: inline
-In-Reply-To: <55156B28.9030802@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1427397195-15273-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Content-Language: en-US
+Sender: linux-ide-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Fri, Mar 27, 2015 at 02:37:28PM +0000, Hanjun Guo wrote:
-> On 2015=E5=B9=B403=E6=9C=8827=E6=97=A5 22:03, Will Deacon wrote:
-> > Right now most maintainers are probably trying to stabilise their c=
-urrent
-> > queues, so the most helpful thing you can do is test linux-next and=
- send
-> > fixes for any issues you find there.
->=20
-> Sure, I will test linux-next on ARM64 platforms and x86 too.
++	cls_objects = obj_desc->package.elements;
++
++	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
++	    obj_desc->package.count == 3 &&
++	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
++	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
++	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
++
++		/* Allocate a buffer for the CLS */
++		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
++					 (acpi_size) 7);
 
-Thanks.
+I would like to see an error returned if an object or subobject is of the incorrect type.
+Then, the caller knows not to attempt to look at it.
 
-> > It doesn't help that the series you posted seems to include two pat=
-ch
-> > series (n/7 and n/2).
->=20
-> oh, side effects of staying up all night for the firmware mini-summit=
-,
-> please take those two patches for ARM64 ACPI if it is OK to you.
 
-I already pushed them out :)
+> -----Original Message-----
+> From: Suravee Suthikulpanit [mailto:Suravee.Suthikulpanit@amd.com]
+> Sent: Thursday, March 26, 2015 12:13 PM
+> To: rjw@rjwysocki.net; mika.westerberg@linux.intel.com; Moore, Robert;
+> Zheng, Lv; hanjun.guo@linaro.org
+> Cc: lenb@kernel.org; hdegoede@redhat.com; tj@kernel.org;
+> mjg59@srcf.ucam.org; gregkh@linuxfoundation.org; al.stone@linaro.org;
+> graeme.gregory@linaro.org; leo.duran@amd.com; linux-ide@vger.kernel.org;
+> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
+> acpi@lists.linaro.org; Suravee Suthikulpanit
+> Subject: [V7 PATCH 1/3] ACPICA: Add ACPI _CLS processing
+> 
+> ACPI Device configuration often contain _CLS object to suppy PCI-defined
+> class code for the device. This patch introduces logic to process the _CLS
+> object.
+> 
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+>  drivers/acpi/acpica/acutils.h  |  3 ++
+>  drivers/acpi/acpica/nsxfname.c | 21 +++++++++++--
+>  drivers/acpi/acpica/utids.c    | 71
+> ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 93 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+> index c2f03e8..2aef850 100644
+> --- a/drivers/acpi/acpica/acutils.h
+> +++ b/drivers/acpi/acpica/acutils.h
+> @@ -430,6 +430,9 @@ acpi_status
+>  acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
+>  		    struct acpi_pnp_device_id_list ** return_cid_list);
+> 
+> +acpi_status
+> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
+> +		    struct acpi_pnp_device_id **return_id);
+>  /*
+>   * utlock - reader/writer locks
+>   */
+> diff --git a/drivers/acpi/acpica/nsxfname.c
+> b/drivers/acpi/acpica/nsxfname.c index d66c326..590ef06 100644
+> --- a/drivers/acpi/acpica/nsxfname.c
+> +++ b/drivers/acpi/acpica/nsxfname.c
+> @@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
+>  	struct acpi_pnp_device_id *hid = NULL;
+>  	struct acpi_pnp_device_id *uid = NULL;
+>  	struct acpi_pnp_device_id *sub = NULL;
+> +	struct acpi_pnp_device_id *cls = NULL;
+>  	char *next_id_string;
+>  	acpi_object_type type;
+>  	acpi_name name;
+>  	u8 param_count = 0;
+> -	u8 valid = 0;
+> +	u16 valid = 0;
+>  	u32 info_size;
+>  	u32 i;
+>  	acpi_status status;
+> @@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
+>  	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
+>  		/*
+>  		 * Get extra info for ACPI Device/Processor objects only:
+> -		 * Run the Device _HID, _UID, _SUB, and _CID methods.
+> +		 * Run the Device _HID, _UID, _SUB, _CID and _CLS methods.
+>  		 *
+>  		 * Note: none of these methods are required, so they may or
+> may
+>  		 * not be present for this device. The Info->Valid bitfield is
+> used @@ -351,6 +352,14 @@ acpi_get_object_info(acpi_handle handle,
+>  			valid |= ACPI_VALID_SUB;
+>  		}
+> 
+> +		/* Execute the Device._CLS method */
+> +
+> +		status = acpi_ut_execute_CLS(node, &cls);
+> +		if (ACPI_SUCCESS(status)) {
+> +			info_size += cls->length;
+> +			valid |= ACPI_VALID_CLS;
+> +		}
+> +
+>  		/* Execute the Device._CID method */
+> 
+>  		status = acpi_ut_execute_CID(node, &cid_list); @@ -468,6
+> +477,11 @@ acpi_get_object_info(acpi_handle handle,
+>  							sub, next_id_string);
+>  	}
+> 
+> +	if (cls) {
+> +		next_id_string = acpi_ns_copy_device_id(&info->cls,
+> +							cls, next_id_string);
+> +	}
+> +
+>  	if (cid_list) {
+>  		info->compatible_id_list.count = cid_list->count;
+>  		info->compatible_id_list.list_size = cid_list->list_size; @@ -
+> 507,6 +521,9 @@ cleanup:
+>  	if (sub) {
+>  		ACPI_FREE(sub);
+>  	}
+> +	if (cls) {
+> +		ACPI_FREE(cls);
+> +	}
+>  	if (cid_list) {
+>  		ACPI_FREE(cid_list);
+>  	}
+> diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
+> index 27431cf..a64b5d1 100644
+> --- a/drivers/acpi/acpica/utids.c
+> +++ b/drivers/acpi/acpica/utids.c
+> @@ -416,3 +416,74 @@ cleanup:
+>  	acpi_ut_remove_reference(obj_desc);
+>  	return_ACPI_STATUS(status);
+>  }
+> +
+> +/**********************************************************************
+> +*********
+> + *
+> + * FUNCTION:    acpi_ut_execute_CLS
+> + *
+> + * PARAMETERS:  device_node         - Node for the device
+> + *              return_id           - Where the string UID is returned
+> + *
+> + * RETURN:      Status
+> + *
+> + * DESCRIPTION: Executes the _CLS control method that returns PCI-defined
+> + *              class code of the device. The ACPI spec define _CLS as a
+> + *              package with three integers. The returned string has
+> format:
+> + *
+> + *                      "bbsspp"
+> + *              where:
+> + *                  bb = Base-class code
+> + *                  ss = Sub-class code
+> + *                  pp = Programming Interface code
+> + *
+> +
+> +***********************************************************************
+> +*******/
+> +
+> +acpi_status
+> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
+> +		    struct acpi_pnp_device_id **return_id) {
+> +	struct acpi_pnp_device_id *cls;
+> +	union acpi_operand_object *obj_desc;
+> +	union acpi_operand_object **cls_objects;
+> +	acpi_status status;
+> +
+> +	ACPI_FUNCTION_TRACE(ut_execute_CLS);
+> +	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
+> +					 ACPI_BTYPE_PACKAGE, &obj_desc);
+> +	if (ACPI_FAILURE(status))
+> +		return_ACPI_STATUS(status);
+> +
+> +	cls_objects = obj_desc->package.elements;
+> +
+> +	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
+> +	    obj_desc->package.count == 3 &&
+> +	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
+> +	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
+> +	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
+> +
+> +		/* Allocate a buffer for the CLS */
+> +		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
+> +					 (acpi_size) 7);
+> +		if (!cls) {
+> +			status = AE_NO_MEMORY;
+> +			goto cleanup;
+> +		}
+> +
+> +		cls->string =
+> +		    ACPI_ADD_PTR(char, cls, sizeof(struct
+> acpi_pnp_device_id));
+> +
+> +		sprintf(cls->string, "%02x%02x%02x",
+> +			(u8)ACPI_TO_INTEGER(cls_objects[0]->integer.value),
+> +			(u8)ACPI_TO_INTEGER(cls_objects[1]->integer.value),
+> +			(u8)ACPI_TO_INTEGER(cls_objects[2]->integer.value));
+> +		cls->length = 7;
+> +		*return_id = cls;
+> +	}
+> +
+> +cleanup:
+> +
+> +	/* On exit, we must delete the return object */
+> +
+> +	acpi_ut_remove_reference(obj_desc);
+> +	return_ACPI_STATUS(status);
+> +}
+> --
+> 2.1.0
 
-Have a good weekend,
-
-Will
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
