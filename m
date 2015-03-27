@@ -1,92 +1,48 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
-Date: Fri, 27 Mar 2015 22:02:28 +0800
-Message-ID: <1427464948-14564-8-git-send-email-hanjun.guo@linaro.org>
-References: <1427464948-14564-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:34776 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932190AbbC0OEJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2015 10:04:09 -0400
-Received: by pacwe9 with SMTP id we9so96666384pac.1
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Mar 2015 07:04:08 -0700 (PDT)
-In-Reply-To: <1427464948-14564-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 0/7] minor cleanups for ACPI processor driver
+Date: Fri, 27 Mar 2015 14:03:36 +0000
+Message-ID: <20150327140336.GG1562@arm.com>
+References: <1427464513-14414-1-git-send-email-hanjun.guo@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1427464513-14414-1-git-send-email-hanjun.guo@linaro.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Introduce invalid_phys_cpuid() to identify cpu with invalid
-physical ID, then used it as replacement of the direct comparisons
-with PHYS_CPUID_INVALID.
+Hanjun,
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/acpi_processor.c | 4 ++--
- drivers/acpi/processor_core.c | 4 ++--
- include/linux/acpi.h          | 5 +++++
- 3 files changed, 9 insertions(+), 4 deletions(-)
+On Fri, Mar 27, 2015 at 01:55:04PM +0000, Hanjun Guo wrote:
+> This patch set are some minor cleanups for ACPI processor driver
+> to address the comments which raised by Rafael in ARM64 ACPI core
+> patches, so this patch set is on top of ARM64 ACPI core patches
+> the git tree is
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git
+> branch for-next/acpi.
+> 
+> Rafael, I assume this patchset will be taken with your tree if
+> it makes sense, any rebase work needed please let me know.
+> 
+> the last patch - ACPI / processor: Introduce invalid_phys_cpuid()
+> will cut u64 mpidr to int, but I think it is ok for error values,
+> correct me if I'm wrong.
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 62c846b..92a5f73 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -170,7 +170,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- 	acpi_status status;
- 	int ret;
- 
--	if (pr->phys_id == PHYS_CPUID_INVALID)
-+	if (invalid_phys_cpuid(pr->phys_id))
- 		return -ENODEV;
- 
- 	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
-@@ -264,7 +264,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 
- 	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
- 					pr->acpi_id);
--	if (pr->phys_id == PHYS_CPUID_INVALID)
-+	if (invalid_phys_cpuid(pr->phys_id))
- 		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
- 
- 	pr->id = acpi_map_cpuid(pr->phys_id, pr->acpi_id);
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index fd4140d..33a38d6 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -184,7 +184,7 @@ phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
- 	phys_cpuid_t phys_id;
- 
- 	phys_id = map_mat_entry(handle, type, acpi_id);
--	if (phys_id == PHYS_CPUID_INVALID)
-+	if (invalid_phys_cpuid(phys_id))
- 		phys_id = map_madt_entry(type, acpi_id);
- 
- 	return phys_id;
-@@ -196,7 +196,7 @@ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
- 	int i;
- #endif
- 
--	if (phys_id == PHYS_CPUID_INVALID) {
-+	if (invalid_phys_cpuid(phys_id)) {
- 		/*
- 		 * On UP processor, there is no _MAT or MADT table.
- 		 * So above phys_id is always set to PHYS_CPUID_INVALID.
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index fd8a2a4..9a1f467 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -157,6 +157,11 @@ static inline bool invalid_logical_cpuid(u32 cpuid)
- 	return (int)cpuid < 0;
- }
- 
-+static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
-+{
-+	return (int)phys_id < 0;
-+}
-+
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
--- 
-1.9.1
+I appreciate that you probably have a bunch of code building on top of
+the series that's in linux-next, but sending it out at the moment is
+hugely confusing -- particularly when this is targetting an independent
+tree. If you have patches for 4.2, please can you wait until after the
+merge window before posting for review?
 
+Right now most maintainers are probably trying to stabilise their current
+queues, so the most helpful thing you can do is test linux-next and send
+fixes for any issues you find there.
+
+It doesn't help that the series you posted seems to include two patch
+series (n/7 and n/2).
+
+Will
