@@ -1,50 +1,92 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 6/7] ACPI / processor: return specific error instead of -1
-Date: Fri, 27 Mar 2015 22:02:27 +0800
-Message-ID: <1427464948-14564-7-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
+Date: Fri, 27 Mar 2015 22:02:28 +0800
+Message-ID: <1427464948-14564-8-git-send-email-hanjun.guo@linaro.org>
 References: <1427464948-14564-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:34776 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932190AbbC0OEJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2015 10:04:09 -0400
+Received: by pacwe9 with SMTP id we9so96666384pac.1
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Mar 2015 07:04:08 -0700 (PDT)
 In-Reply-To: <1427464948-14564-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-Since invalid_logical_cpuid() can check error values, so
-return specific error instead of -1 for acpi_map_cpuid().
+Introduce invalid_phys_cpuid() to identify cpu with invalid
+physical ID, then used it as replacement of the direct comparisons
+with PHYS_CPUID_INVALID.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/processor_core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpi_processor.c | 4 ++--
+ drivers/acpi/processor_core.c | 4 ++--
+ include/linux/acpi.h          | 5 +++++
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 62c846b..92a5f73 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -170,7 +170,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+ 	acpi_status status;
+ 	int ret;
+ 
+-	if (pr->phys_id == PHYS_CPUID_INVALID)
++	if (invalid_phys_cpuid(pr->phys_id))
+ 		return -ENODEV;
+ 
+ 	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
+@@ -264,7 +264,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 
+ 	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
+ 					pr->acpi_id);
+-	if (pr->phys_id == PHYS_CPUID_INVALID)
++	if (invalid_phys_cpuid(pr->phys_id))
+ 		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
+ 
+ 	pr->id = acpi_map_cpuid(pr->phys_id, pr->acpi_id);
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index b1ec78b..fd4140d 100644
+index fd4140d..33a38d6 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -215,12 +215,12 @@ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
- 		 * Ignores phys_id and always returns 0 for the processor
- 		 * handle with acpi id 0 if nr_cpu_ids is 1.
- 		 * This should be the case if SMP tables are not found.
--		 * Return -1 for other CPU's handle.
-+		 * Return -EINVAL for other CPU's handle.
- 		 */
- 		if (nr_cpu_ids <= 1 && acpi_id == 0)
- 			return acpi_id;
- 		else
--			return -1;
-+			return -EINVAL;
- 	}
+@@ -184,7 +184,7 @@ phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
+ 	phys_cpuid_t phys_id;
  
- #ifdef CONFIG_SMP
-@@ -233,7 +233,7 @@ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
- 	if (phys_id == 0)
- 		return phys_id;
+ 	phys_id = map_mat_entry(handle, type, acpi_id);
+-	if (phys_id == PHYS_CPUID_INVALID)
++	if (invalid_phys_cpuid(phys_id))
+ 		phys_id = map_madt_entry(type, acpi_id);
+ 
+ 	return phys_id;
+@@ -196,7 +196,7 @@ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
+ 	int i;
  #endif
--	return -1;
-+	return -ENODEV;
+ 
+-	if (phys_id == PHYS_CPUID_INVALID) {
++	if (invalid_phys_cpuid(phys_id)) {
+ 		/*
+ 		 * On UP processor, there is no _MAT or MADT table.
+ 		 * So above phys_id is always set to PHYS_CPUID_INVALID.
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index fd8a2a4..9a1f467 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -157,6 +157,11 @@ static inline bool invalid_logical_cpuid(u32 cpuid)
+ 	return (int)cpuid < 0;
  }
  
- int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
++static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
++{
++	return (int)phys_id < 0;
++}
++
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ /* Arch dependent functions for cpu hotplug support */
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
 -- 
 1.9.1
+
