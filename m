@@ -1,65 +1,43 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: [PATCH v2] ACPI: Enable wakeup GPE in freeze mode
-Date: Fri, 27 Mar 2015 18:08:48 +0800
-Message-ID: <1427450928-7049-1-git-send-email-yu.c.chen@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: len.brown@intel.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH 1/2] ARM64 / ACPI: Ignore the return error value of acpi_map_gic_cpu_interface()
+Date: Fri, 27 Mar 2015 20:14:35 +0800
+Message-ID: <1427458476-20140-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:35146 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483AbbC0MPI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2015 08:15:08 -0400
+Received: by pdbop1 with SMTP id op1so94909113pdb.2
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Mar 2015 05:15:07 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Currently, in freeze state, wakeup GPE for PCI devices are
-handled properly because acpi_pci_sleep_wake() invokes acpi_enable_gpe()
-to enable the wakeup GPE directly. But for the other wakeup-capable
-devices in ACPI bus, acpi_enable_wakeup_devices() should be invoked
-to update enable_for_wake mask in gpe_register_info structure, thus
-acpi_enable_all_wakeup_gpes() can enable the wakeup GPE referred in
-_PRW methods. And acpi_disable_wakeup_devices() will be called
-before disable_irq_wake() in acpi_freeze_restore() to restore the mask.
+MADT table scannig will stopped once it gets the errors
+returned by the handler, which is acpi_map_gic_cpu_interface()
+in for ARM64, so Ignore the return error value to search for
+all enabled CPUs for SMP init.
 
-This patch fixes a power button wakeup problem on Surface Pro 3,
-on which platform power button uses EC to deliver event
-(EC GPE is referred in _PRW).
-
-Note: enabling EC GPE during freeze state may bring some risks
-because EC events are expected to fire more frequently than others.
-Thus it may bring the system out of freeze state unnecessarily.
-(We already have comments about this in bugzilla)
-
-Fixes https://bugzilla.kernel.org/show_bug.cgi?id=84651
-
-Reported-and-tested-by: Ethan Schoonover <es@ethanschoonover.com>
-Tested-by: Peter Amidon <psa.pub.0@picnicpark.org>
-Tested-by: Yani Ioadnnou <yani.ioannou@gmail.com>
-Tested-by: Mister Wardrop <mister.wardrop@gmail.com>
-Tested-by: Anton Anikin <anton@anikin.name>
-Tested-by: Keith McClelland <zismylaptop@gmail.com>
-Reviewed-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/sleep.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm64/kernel/acpi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 7f251dd..81e5bd4 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -629,6 +629,7 @@ static int acpi_freeze_begin(void)
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 07649e4..c263cba 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -181,7 +181,8 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+ 		return -EINVAL;
  
- static int acpi_freeze_prepare(void)
- {
-+	acpi_enable_wakeup_devices(ACPI_STATE_S0);
- 	acpi_enable_all_wakeup_gpes();
- 	acpi_os_wait_events_complete();
- 	enable_irq_wake(acpi_gbl_FADT.sci_interrupt);
-@@ -637,6 +638,7 @@ static int acpi_freeze_prepare(void)
- 
- static void acpi_freeze_restore(void)
- {
-+	acpi_disable_wakeup_devices(ACPI_STATE_S0);
- 	disable_irq_wake(acpi_gbl_FADT.sci_interrupt);
- 	acpi_enable_all_runtime_gpes();
+ 	acpi_table_print_madt_entry(header);
+-	return acpi_map_gic_cpu_interface(processor);
++	acpi_map_gic_cpu_interface(processor);
++	return 0;
  }
+ 
+ /* Parse GIC cpu interface entries in MADT for SMP init */
 -- 
-1.8.4.2
+1.9.1
 
