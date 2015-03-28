@@ -1,15 +1,15 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/3] device property: Introduce firmware node type for platform data
-Date: Sat, 28 Mar 2015 02:10:53 +0100
-Message-ID: <3051309.NLlLMHClVp@vostro.rjw.lan>
+Subject: [PATCH 3/3][RFD] device property: Implement fallback to built-in properties
+Date: Sat, 28 Mar 2015 02:26:35 +0100
+Message-ID: <5634167.lftqZnjhIC@vostro.rjw.lan>
 References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <10066684.kPKm7OTnxF@vostro.rjw.lan> <1594911.7FXIhSfjIv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51979 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51912 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752249AbbC1BDH (ORCPT
+	with SMTP id S1752397AbbC1BDH (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2015 21:03:07 -0400
 In-Reply-To: <1594911.7FXIhSfjIv@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -19,210 +19,138 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Heikki Krogerus <heikki.kro
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Introduce data structures and code allowing "built-in" properties
-to be associated with devices in such a way that they will be used
-by the device_property_* API if no proper firmware node (neither DT
-nor ACPI) is present for the given device.
+Modify the fwnode_property_* accessors so as to make them fall back
+to using "built-in" device properties from a property_set structure
+associated with the given device (as the secondary firmware node)
+if the property in question cannot be retrieved from the primary
+firmware node (DT or ACPI).  That will make the device_properties_*
+functions do the same thing as they use fwnode_property_* internally.
 
-Each property is to be represented by a property_entry structure.
-An array of property_entry structures (terminated with a null
-entry) can be pointed to by the properties field of struct
-property_set that can be added as a firmware node to a struct
-device using device_add_property_set().  That will cause the
-device_property_* API to use that property_set as the source
-of properties if the given device does not have a DT node or
-an ACPI companion device object associated with it.
+That should make it easier to provide default values for device
+properties used by device drivers to be used in case the properties
+in question are not provided by the platform firmare at all or
+they cannot be retireved from the platform firmware due to errors.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/base/property.c  |   98 ++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/fwnode.h   |    1 
- include/linux/property.h |   33 +++++++++++++++
- 3 files changed, 127 insertions(+), 5 deletions(-)
 
-Index: linux-pm/include/linux/fwnode.h
-===================================================================
---- linux-pm.orig/include/linux/fwnode.h
-+++ linux-pm/include/linux/fwnode.h
-@@ -16,6 +16,7 @@ enum fwnode_type {
- 	FWNODE_INVALID = 0,
- 	FWNODE_OF,
- 	FWNODE_ACPI,
-+	FWNODE_PDATA,
- };
- 
- struct fwnode_handle {
-Index: linux-pm/include/linux/property.h
-===================================================================
---- linux-pm.orig/include/linux/property.h
-+++ linux-pm/include/linux/property.h
-@@ -131,4 +131,37 @@ static inline int fwnode_property_read_u
- 	return fwnode_property_read_u64_array(fwnode, propname, val, 1);
- }
- 
-+/**
-+ * struct property_entry - "Built-in" device property representation.
-+ * @name: Name of the property.
-+ * @type: Type of the property.
-+ * @nval: Number of items of type @type making up the value.
-+ * @value: Value of the property (an array of @nval items of type @type).
-+ */
-+struct property_entry {
-+	const char *name;
-+	enum dev_prop_type type;
-+	size_t nval;
-+	union {
-+		void *raw_data;
-+		u8 *u8_data;
-+		u16 *u16_data;
-+		u32 *u32_data;
-+		u64 *u64_data;
-+		const char **str;
-+	} value;
-+};
-+
-+/**
-+ * struct property_set - Collection of "built-in" device properties.
-+ * @fwnode: Handle to be pointed to by the fwnode field of struct device.
-+ * @properties: Array of properties terminated with a null entry.
-+ */
-+struct property_set {
-+	struct fwnode_handle fwnode;
-+	struct property_entry *properties;
-+};
-+
-+void device_add_property_set(struct device *dev, struct property_set *pset);
-+
- #endif /* _LINUX_PROPERTY_H_ */
+First of all, this should show why I thought it would be better to use
+the primary/secondary scheme for firmware nodes instead of just having a
+list of them with the head pointed to by the struct device's fwnode field.
+Namely, within the primary/secondary scheme the ordering of property lookup
+is always well defined and there's no overhead when, for example, somebody
+specifically wants to access the ACPI companion firmware node etc.
+
+Second, as I said in the intro message, this is not for immediate application
+(apart from any review comments on [1-2/3]), because it would introduce an
+artificial difference between DT and ACPI that I'd prefer to avoid.
+
+Namely, dev_fwnode() (introduced by one of the patches in linux-next) returns
+the address of the dev->of_node's fwnode field if dev->of_node is present and
+that would not have the secondary pointer set.  On the other hand, since ACPI
+is now using set_primary_fwnode() to add its firmware node companions to
+devices, the secondary pointer in its firmware node handle will be set if the
+"built-in" properties are present.  So, effectively, with this patch applied
+ACPI would always fall back to the "built-in" properties (if present), while
+DT would not do that (unless the DT node is missing entirely).
+
+That difference could be worked around, though, if dev->fwnode is always set
+whenever dev->of_node is set in essentially this way:
+
+	dev->of_node = dn;
+	set_primary_fwnode(dev, &dn->fwnode);
+
+(that, of course, can be defined as a macro or static inline).  Now, I'm not
+sure about that, but my somewhat educated guess is that while dev->of_node is
+read in many many places, the number of places in which it is set is actually
+much smaller and making this change in one go should be a workable thing.
+
+Please let me know what you think.
+
+---
+ drivers/base/property.c |   61 ++++++++++++++++++++++++------------------------
+ 1 file changed, 31 insertions(+), 30 deletions(-)
+
 Index: linux-pm/drivers/base/property.c
 ===================================================================
 --- linux-pm.orig/drivers/base/property.c
 +++ linux-pm/drivers/base/property.c
-@@ -10,10 +10,96 @@
-  * published by the Free Software Foundation.
+@@ -127,12 +119,16 @@ EXPORT_SYMBOL_GPL(device_property_presen
   */
- 
--#include <linux/property.h>
--#include <linux/export.h>
- #include <linux/acpi.h>
-+#include <linux/export.h>
-+#include <linux/kernel.h>
- #include <linux/of.h>
-+#include <linux/property.h>
-+
-+/**
-+ * device_add_property_set - Add a collection of properties to a device object.
-+ * @dev: Device to add properties to.
-+ * @pset: Collection of properties to add.
-+ *
-+ * Associate a collection of device properties represented by @pset with @dev
-+ * as its secondary firmware node.
-+ */
-+void device_add_property_set(struct device *dev, struct property_set *pset)
-+{
-+	if (pset)
-+		pset->fwnode.type = FWNODE_PDATA;
-+
-+	set_secondary_fwnode(dev, &pset->fwnode);
-+}
-+EXPORT_SYMBOL_GPL(device_add_property_set);
-+
-+static inline bool is_pset(struct fwnode_handle *fwnode)
-+{
-+	return fwnode && fwnode->type == FWNODE_PDATA;
-+}
-+
-+static inline struct property_set *to_pset(struct fwnode_handle *fwnode)
-+{
-+	return is_pset(fwnode) ?
-+		container_of(fwnode, struct property_set, fwnode) : NULL;
-+}
-+
-+static struct property_entry *pset_prop_get(struct property_set *pset,
-+					    const char *name)
-+{
-+	struct property_entry *prop;
-+
-+	if (!pset || !pset->properties)
-+		return NULL;
-+
-+	for (prop = pset->properties; prop->name; prop++)
-+		if (!strcmp(name, prop->name))
-+			return prop;
-+
-+	return NULL;
-+}
-+
-+static int pset_prop_read_array(struct property_set *pset, const char *name,
-+				enum dev_prop_type type, void *val, size_t nval)
-+{
-+	struct property_entry *prop;
-+	unsigned int item_size;
-+
-+	prop = pset_prop_get(pset, name);
-+	if (!prop)
-+		return -ENODATA;
-+
-+	if (prop->type != type)
-+		return -EPROTO;
-+
-+	if (!val)
-+		return prop->nval;
-+
-+	if (prop->nval < nval)
-+		return -EOVERFLOW;
-+
-+	switch (type) {
-+	case DEV_PROP_U8:
-+		item_size = sizeof(u8);
-+		break;
-+	case DEV_PROP_U16:
-+		item_size = sizeof(u16);
-+		break;
-+	case DEV_PROP_U32:
-+		item_size = sizeof(u32);
-+		break;
-+	case DEV_PROP_U64:
-+		item_size = sizeof(u64);
-+		break;
-+	case DEV_PROP_STRING:
-+		item_size = sizeof(const char *);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	memcpy(val, prop->value.raw_data, nval * item_size);
-+	return 0;
-+}
- 
- static inline struct fwnode_handle *dev_fwnode(struct device *dev)
+ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
  {
-@@ -46,7 +132,7 @@ bool fwnode_property_present(struct fwno
- 	else if (is_acpi_node(fwnode))
- 		return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
+-	if (is_of_node(fwnode))
+-		return of_property_read_bool(of_node(fwnode), propname);
+-	else if (is_acpi_node(fwnode))
+-		return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
++	bool ret = false;
  
--	return false;
-+	return !!pset_prop_get(to_pset(fwnode), propname);
+-	return !!pset_prop_get(to_pset(fwnode), propname);
++	if (is_of_node(fwnode)) {
++		ret = of_property_read_bool(of_node(fwnode), propname);
++		fwnode = fwnode->secondary;
++	} else if (is_acpi_node(fwnode)) {
++		ret = !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
++		fwnode = fwnode->secondary;
++	}
++	return ret ? true : !!pset_prop_get(to_pset(fwnode), propname);
  }
  EXPORT_SYMBOL_GPL(fwnode_property_present);
  
-@@ -205,7 +291,8 @@ EXPORT_SYMBOL_GPL(device_property_read_s
+@@ -283,17 +279,18 @@ EXPORT_SYMBOL_GPL(device_property_read_s
+ 
+ #define FWNODE_PROP_READ_ARRAY(_fwnode_, _propname_, _type_, _proptype_, _val_, _nval_) \
+ ({ \
+-	int _ret_; \
+-	if (is_of_node(_fwnode_)) \
++	int _ret_ = -ENXIO; \
++	if (is_of_node(_fwnode_)) { \
+ 		_ret_ = OF_DEV_PROP_READ_ARRAY(of_node(_fwnode_), _propname_, \
+ 					       _type_, _val_, _nval_); \
+-	else if (is_acpi_node(_fwnode_)) \
++		_fwnode_ = _fwnode_->secondary; \
++	} else if (is_acpi_node(_fwnode_)) { \
  		_ret_ = acpi_dev_prop_read(acpi_node(_fwnode_), _propname_, \
  					   _proptype_, _val_, _nval_); \
- 	else \
--		_ret_ = -ENXIO; \
-+		_ret_ = pset_prop_read_array(to_pset(_fwnode_), _propname_, \
-+					     _proptype_, _val_, _nval_); \
- 	_ret_; \
+-	else \
+-		_ret_ = pset_prop_read_array(to_pset(_fwnode_), _propname_, \
+-					     _proptype_, _val_, _nval_); \
+-	_ret_; \
++		_fwnode_ = _fwnode_->secondary; \
++	} \
++	_ret_ ? pset_prop_read_array(to_pset(_fwnode_), _propname_, \
++				     _proptype_, _val_, _nval_) : 0; \
  })
  
-@@ -344,7 +431,8 @@ int fwnode_property_read_string_array(st
- 		return acpi_dev_prop_read(acpi_node(fwnode), propname,
- 					  DEV_PROP_STRING, val, nval);
- 
--	return -ENXIO;
-+	return pset_prop_read_array(to_pset(fwnode), propname,
-+				    DEV_PROP_STRING, val, nval);
+ /**
+@@ -422,17 +419,21 @@ int fwnode_property_read_string_array(st
+ 				      const char *propname, const char **val,
+ 				      size_t nval)
+ {
+-	if (is_of_node(fwnode))
+-		return val ?
++	int ret = -ENXIO;
++
++	if (is_of_node(fwnode)) {
++		ret = val ?
+ 			of_property_read_string_array(of_node(fwnode), propname,
+ 						      val, nval) :
+ 			of_property_count_strings(of_node(fwnode), propname);
+-	else if (is_acpi_node(fwnode))
+-		return acpi_dev_prop_read(acpi_node(fwnode), propname,
+-					  DEV_PROP_STRING, val, nval);
+-
+-	return pset_prop_read_array(to_pset(fwnode), propname,
+-				    DEV_PROP_STRING, val, nval);
++		fwnode = fwnode->secondary;
++	} else if (is_acpi_node(fwnode)) {
++		ret = acpi_dev_prop_read(acpi_node(fwnode), propname,
++					 DEV_PROP_STRING, val, nval);
++		fwnode = fwnode->secondary;
++	}
++	return ret ? pset_prop_read_array(to_pset(fwnode), propname,
++					  DEV_PROP_STRING, val, nval) : 0;
  }
  EXPORT_SYMBOL_GPL(fwnode_property_read_string_array);
  
+
