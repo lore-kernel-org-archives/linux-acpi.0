@@ -1,43 +1,164 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/3] device property: support for "built-in" properties
-Date: Sat, 28 Mar 2015 02:05:19 +0100
-Message-ID: <1594911.7FXIhSfjIv@vostro.rjw.lan>
-References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <CACxGe6tiDszPDpP_u1yxNgMA8HjagDKtGuu35hfkyJtZdGE0Aw@mail.gmail.com> <10066684.kPKm7OTnxF@vostro.rjw.lan>
+Subject: [PATCH 1/3] device property: Make it possible to use secondary firmware nodes
+Date: Sat, 28 Mar 2015 02:09:57 +0100
+Message-ID: <4788329.QZVG0Ou1W1@vostro.rjw.lan>
+References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <10066684.kPKm7OTnxF@vostro.rjw.lan> <1594911.7FXIhSfjIv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64564 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57786 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752249AbbC1BDJ (ORCPT
+	with SMTP id S1752270AbbC1BDJ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2015 21:03:09 -0400
-In-Reply-To: <10066684.kPKm7OTnxF@vostro.rjw.lan>
+In-Reply-To: <1594911.7FXIhSfjIv@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Patches [1-2/3] add support for properties provided in a "pdata way"
-roughly along the lines of the Heikki's patch at
+Add a secondary pointer to struct fwnode_handle so as to make it
+possible for a device to have two firmware nodes associated with
+it at the same time, for example, an ACPI node and a node with
+a set of properties provided by platform initialization code.
 
-https://patchwork.kernel.org/patch/5709461/
+In the future that will allow device property lookup to fall back
+from the primary firmware node to the secondary one if the given
+property is not present there to make it easier to provide defaults
+for device properties used by device drivers.
 
-but using the fwnode field in struct device introduced by one of my
-previous patches (currently in linux-next).
+Introduce two helper routines, set_primary_fwnode() and
+set_secondary_fwnode() allowing callers to add a primary/secondary
+firmware node to the given device in such a way that
 
-Patch [3/3] does one more interesting thing on top of that, but is mostly
-for discussion.  Namely, it changes the behavior of the unified device
-properties API to fall back to the "built-in" properties when it cannot
-find the requested data in the stuff provided by the platform firmware.
+ (1) If there's only one firmware node for that device, it will be
+     pointed to by the device's firmware node pointer.
+ (2) If both the primary and secondary firmware nodes are present,
+     the primary one will be pointed to by the device's firmware
+     node pointer, while the secondary one will be pointed to by the
+     primary node's secondary pointer.
+ (3) If one of these nodes is removed (by calling one of the new
+     nelpers with NULL as the second argument), the other one will
+     be preserved.
 
-Currently, that patch would introduce an artificial difference between ACPI
-and DT, because DT uses the of_node pointer in struct device won't use the
-set_primary_fwnode() thing introduced buy the [1/3].  However, I have an
-idea about how that can be worked around, but more on that in the changelog
-of patch [3/3].
+Make ACPI use set_primary_fwnode() for attaching its firmware nodes
+to devices.
 
-Kind regards,
-Rafael
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/core.c    |   51 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h   |    4 +--
+ include/linux/device.h |    3 ++
+ include/linux/fwnode.h |    1 
+ 4 files changed, 57 insertions(+), 2 deletions(-)
 
+Index: linux-pm/include/linux/fwnode.h
+===================================================================
+--- linux-pm.orig/include/linux/fwnode.h
++++ linux-pm/include/linux/fwnode.h
+@@ -20,6 +20,7 @@ enum fwnode_type {
+ 
+ struct fwnode_handle {
+ 	enum fwnode_type type;
++	struct fwnode_handle *secondary;
+ };
+ 
+ #endif
+Index: linux-pm/include/linux/device.h
+===================================================================
+--- linux-pm.orig/include/linux/device.h
++++ linux-pm/include/linux/device.h
+@@ -940,6 +940,9 @@ extern void unlock_device_hotplug(void);
+ extern int lock_device_hotplug_sysfs(void);
+ extern int device_offline(struct device *dev);
+ extern int device_online(struct device *dev);
++extern void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode);
++extern void set_secondary_fwnode(struct device *dev, struct fwnode_handle *fwnode);
++
+ /*
+  * Root device objects for grouping under /sys/devices
+  */
+Index: linux-pm/include/linux/acpi.h
+===================================================================
+--- linux-pm.orig/include/linux/acpi.h
++++ linux-pm/include/linux/acpi.h
+@@ -54,8 +54,8 @@ static inline acpi_handle acpi_device_ha
+ }
+ 
+ #define ACPI_COMPANION(dev)		acpi_node((dev)->fwnode)
+-#define ACPI_COMPANION_SET(dev, adev)	(dev)->fwnode = (adev) ? \
+-	acpi_fwnode_handle(adev) : NULL
++#define ACPI_COMPANION_SET(dev, adev)	set_primary_fwnode(dev, (adev) ? \
++	acpi_fwnode_handle(adev) : NULL)
+ #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+ 
+ static inline bool has_acpi_companion(struct device *dev)
+Index: linux-pm/drivers/base/core.c
+===================================================================
+--- linux-pm.orig/drivers/base/core.c
++++ linux-pm/drivers/base/core.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/err.h>
++#include <linux/fwnode.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -2132,4 +2133,54 @@ define_dev_printk_level(dev_warn, KERN_W
+ define_dev_printk_level(dev_notice, KERN_NOTICE);
+ define_dev_printk_level(_dev_info, KERN_INFO);
+ 
++static inline bool fwnode_is_primary(struct fwnode_handle *fwnode)
++{
++	return fwnode && !IS_ERR(fwnode->secondary);
++}
++
++/**
++ * set_primary_fwnode - Change the primary firmware node of a given device.
++ * @dev: Device to handle.
++ * @fwnode: New primary firmware node of the device.
++ *
++ * Set the device's firmware node pointer to @fwnode, but if a secondary
++ * firmware node of the device is present, preserve it.
++ */
++void set_primary_fwnode(struct device *dev, struct fwnode_handle *fwnode)
++{
++	if (fwnode) {
++		struct fwnode_handle *fn = dev->fwnode;
++
++		if (fwnode_is_primary(fn))
++			fn = fn->secondary;
++
++		fwnode->secondary = fn;
++		dev->fwnode = fwnode;
++	} else {
++		dev->fwnode = fwnode_is_primary(dev->fwnode) ?
++			dev->fwnode->secondary : NULL;
++	}
++}
++EXPORT_SYMBOL_GPL(set_primary_fwnode);
++
++/**
++ * set_secondary_fwnode - Change the secondary firmware node of a given device.
++ * @dev: Device to handle.
++ * @fwnode: New secondary firmware node of the device.
++ *
++ * If a primary firmware node of the device is present, set its secondary
++ * pointer to @fwnode.  Otherwise, set the device's firmware node pointer to
++ * @fwnode.
++ */
++void set_secondary_fwnode(struct device *dev, struct fwnode_handle *fwnode)
++{
++	if (fwnode)
++		fwnode->secondary = ERR_PTR(-ENODEV);
++
++	if (fwnode_is_primary(dev->fwnode))
++		dev->fwnode->secondary = fwnode;
++	else
++		dev->fwnode = fwnode;
++}
++
+ #endif
