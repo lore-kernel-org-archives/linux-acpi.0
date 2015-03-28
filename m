@@ -1,205 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix v2] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Sat, 28 Mar 2015 02:35:05 +0100
-Message-ID: <29753783.Vd1ACXQxMN@vostro.rjw.lan>
-References: <1427267843-18710-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1427267843-18710-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
+Date: Sat, 28 Mar 2015 12:34:09 +0000
+Message-ID: <20150328123409.95225C4079E@trevor.secretlab.ca>
+References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
+	<20150324220253.9595AC407F8@trevor.secretlab.ca>
+	<20150325112410.GA24636@arm.com> <2694196.2XPpkm7uxF@vostro.rjw.lan>
+	<20150325113839.GD24636@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:36565 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387AbbC1OvG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2015 10:51:06 -0400
+Received: by wibg7 with SMTP id g7so56373824wib.1
+        for <linux-acpi@vger.kernel.org>; Sat, 28 Mar 2015 07:51:05 -0700 (PDT)
+In-Reply-To: <20150325113839.GD24636@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@
 
-On Wednesday, March 25, 2015 03:17:23 PM Jiang Liu wrote:
-> Before commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource
-> interfaces to simplify implementation"), arch/x86/pci/acpi.c applies
-> following rules when parsing ACPI resources for PCI host bridge:
-> 1) Ignore IO port resources defined by acpi_resource_io and
->    acpi_resource_fixed_io, which should be used to define resource
->    for PCI device instead of PCI bridge.
-> 2) Accept IOMEM resource defined by acpi_resource_memory24,
->    acpi_resource_memory32 and acpi_resource_fixed_memory32.
->    These IOMEM resources are accepted to workaround some BIOS issue,
->    though they should be ignored. For example, PC Engines APU.1C
->    platform defines PCI host bridge IOMEM resources as:
->                 Memory32Fixed (ReadOnly,
->                     0x000A0000,         // Address Base
->                     0x00020000,         // Address Length
->                     )
->                 Memory32Fixed (ReadOnly,
->                     0x00000000,         // Address Base
->                     0x00000000,         // Address Length
->                     _Y00)
-> 3) Accept all IO port and IOMEM resources defined by
->    acpi_resource_address{16,32,64,extended64}, no matter it's marked as
->    ACPI_CONSUMER or ACPI_PRODUCER.
+On Wed, 25 Mar 2015 11:38:43 +0000
+, Will Deacon <will.deacon@arm.com>
+ wrote:
+> On Wed, Mar 25, 2015 at 11:54:25AM +0000, Rafael J. Wysocki wrote:
+> > On Wednesday, March 25, 2015 11:24:11 AM Will Deacon wrote:
+> > > On Tue, Mar 24, 2015 at 10:02:53PM +0000, Grant Likely wrote:
+> > > > On Thu, 19 Mar 2015 19:39:27 +0000 , Will Deacon <will.deacon@arm.com>
+> > > > wrote:
+> > > > > On Thu, Mar 19, 2015 at 10:17:27AM +0000, Lorenzo Pieralisi wrote:
+> > > > > > Not only that, Sudeep has a patch to consolidate DT and ACPI SMP code,
+> > > > > > I am working on it, I do not think it should be a blocking point, patch
+> > > > > > coming asap on top of your series.
+> > > > > 
+> > > > > Well, I don't really want to merge the series without those patches so I
+> > > > > do think it blocks the code from getting into mainline.
+> > > > 
+> > > > Really? It's a pretty minor duplication problem and it's been identified
+> > > > as something requiring refactoring to both the ACPI and DT code. It
+> > > > isn't at all dangerous. Why is this a blocking point?
+> > > 
+> > > Because I don't really see a valid excuse not to get this right first time
+> > > around. Lorenzo already has patches on top, so we just need a co-ordinated
+> > > review effort.
+> > > 
+> > > I wouldn't accept another patch series that needed minor rework (which by
+> > > its very nature is easily addressed), so why should ACPI be treated any
+> > > differently?
+> > 
+> > Not ACPI, but this particular patchset I think.  The problem is that it has
+> > already been reviewed and ACKed by multiple people and it would be a shame
+> > to require all of those people to do their reviews once again because of
+> > that minor rework (which arguably can be done on top of the patchset just
+> > fine).
+> > 
+> > Of course, if the minor rework in question would not involve the need to
+> > review things once again, then I agree that it'd be better to do it upfront,
+> > but otherwise there's a good reason not to.
 > 
-> Commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces
-> to simplify implementation") accept all IO port and IOMEM resources
-> defined by acpi_resource_io, acpi_resource_fixed_io,
-> acpi_resource_memory24, acpi_resource_memory32,
-> acpi_resource_fixed_memory32 and
-> acpi_resource_address{16,32,64,extended64}, which causes IO port
-> resources consumed by host bridge itself are listed in host bridge
-> resource list.
-> 
-> Then commit 63f1789ec716 ("x86/PCI/ACPI: Ignore resources consumed by
-> host bridge itself") ignores resources consumed by host bridge itself
-> by checking IORESOURCE_WINDOW flag, which accidently removed the
-> workaround for BIOS bug in 2) listed above.
-> 
-> It's really costed us much time to figure out this whole picture.
-> So we will refine interface acpi_dev_filter_resource_type as below,
-> which should be much easier for maintence:
-> 1) Caller specifies IORESOURCE_WINDOW flag to explicitly query resource
->    for bridge(PRODUCER), otherwise it's querying resource for
->    device(CONSUMER).
-> 2) Ignore IO port resources defined by acpi_resource_io and
->    acpi_resource_fixed_io if IORESOURCE_WINDOW is specified.
-> 3) Accpet IOMEM resource defined by acpi_resource_memory24,
->    acpi_resource_memory32 and acpi_resource_fixed_memory32 to work
->    around BIOS bugs, with comment to state it's workaround for BIOS bug.
-> 4) Accept IO port and IOMEM defined by acpi_resource_addressxx if
->    a) IORESOURCE_WINDOW is specified and ACPI_PRODUCER is true
->    b) IORESOURCE_WINDOW is not specified and ACPI_PRODUCER is false
-> 
-> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
-> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
-> 
-> Sample ACPI table needing the workaround are archived at:
-> https://bugzilla.kernel.org/show_bug.cgi?id=94221
-> 
-> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
-> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
-> Hi Bjorn and Rafael,
-> 	Great thanks to you two:) Now I think I have fully understand
-> the whole picture and the final code should be much easier for
-> understanding and maintenance.
+> Aha, I think this is just a misunderstanding -- I'm certainly not suggesting
+> that Hanjun rework the current set! What I *am* asking for is that they go
+> into mainline with Lorenzo's patches on top, which means that his series [1]
+> needs some review (and I plan to look at it later today).
 
-It all makes sense to me, but one minor nit below. ->
+Okay, thanks for the clarification.
 
+g.
 
-> ---
->  arch/x86/pci/acpi.c     |    5 ++---
->  drivers/acpi/resource.c |   38 ++++++++++++++++++++++++++++++++++----
->  2 files changed, 36 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index e4695985f9de..8c4b1201f340 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->  	info->bridge = device;
->  	ret = acpi_dev_get_resources(device, list,
->  				     acpi_dev_filter_resource_type_cb,
-> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
-> +				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
->  	if (ret < 0)
->  		dev_warn(&device->dev,
->  			 "failed to parse _CRS method, error code %d\n", ret);
-> @@ -346,8 +346,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->  			"no IO and memory resources present in _CRS\n");
->  	else
->  		resource_list_for_each_entry_safe(entry, tmp, list) {
-> -			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
-> -			    (entry->res->flags & IORESOURCE_DISABLED))
-> +			if (entry->res->flags & IORESOURCE_DISABLED)
->  				resource_list_destroy_entry(entry);
->  			else
->  				entry->res->name = info->name;
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 5589a6e2a023..68b44eef67eb 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -567,6 +567,17 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
->  }
->  EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
->  
-> +static inline bool acpi_dev_match_producer_consumer(unsigned long types,
-> +						    int producer)
-> +{
-> +	if ((types & IORESOURCE_WINDOW) && producer == ACPI_PRODUCER)
-> +		return true;
-> +	else if ((types & IORESOURCE_WINDOW) == 0 && producer == ACPI_CONSUMER)
-> +		return true;
-> +	else
-> +		return false;
-> +}
-
--> This can be implemented as
-
-static bool acpi_dev_match_producer_consumer(unsigned long types, int producer)
-{
-	return ((types & IORESOURCE_WINDOW) && producer == ACPI_PRODUCER) ||
-		((types & IORESOURCE_WINDOW) == 0 && producer == ACPI_CONSUMER);
-}
-
-(and I dropped the "inline", because it may be better to let the complier decide
-whether or not to inline this).
-
-
-> +
->  /**
->   * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
->   *				   types
-> @@ -585,27 +596,46 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
->  	case ACPI_RESOURCE_TYPE_MEMORY24:
->  	case ACPI_RESOURCE_TYPE_MEMORY32:
->  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-> +		/*
-> +		 * These types of resource descriptor should be used to
-> +		 * describe resource consumption instead of resource provision.
-> +		 * But some platforms, such as PC Engines APU.1C, reports
-> +		 * resource provision by Memory32Fixed(). Please refer to:
-> +		 * https://bugzilla.kernel.org/show_bug.cgi?id=94221
-> +		 * So accept it no matter IORESOURCE_WINDOW is specified or not.
-> +		 */
->  		type = IORESOURCE_MEM;
->  		break;
->  	case ACPI_RESOURCE_TYPE_IO:
->  	case ACPI_RESOURCE_TYPE_FIXED_IO:
-> -		type = IORESOURCE_IO;
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_IO;
->  		break;
->  	case ACPI_RESOURCE_TYPE_IRQ:
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_IRQ;
-> +		break;
->  	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> -		type = IORESOURCE_IRQ;
-> +		if (acpi_dev_match_producer_consumer(types,
-> +				ares->data.extended_irq.producer_consumer))
-> +			type = IORESOURCE_IRQ;
->  		break;
->  	case ACPI_RESOURCE_TYPE_DMA:
->  	case ACPI_RESOURCE_TYPE_FIXED_DMA:
-> -		type = IORESOURCE_DMA;
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_DMA;
->  		break;
->  	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
-> -		type = IORESOURCE_REG;
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_REG;
->  		break;
->  	case ACPI_RESOURCE_TYPE_ADDRESS16:
->  	case ACPI_RESOURCE_TYPE_ADDRESS32:
->  	case ACPI_RESOURCE_TYPE_ADDRESS64:
->  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
-> +		if (!acpi_dev_match_producer_consumer(types,
-> +				ares->data.address.producer_consumer))
-> +			break;
->  		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
->  			type = IORESOURCE_MEM;
->  		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
