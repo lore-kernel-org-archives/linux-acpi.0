@@ -1,224 +1,228 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [V7 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Fri, 27 Mar 2015 17:51:48 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2A5F70@ORSMSX112.amr.corp.intel.com>
-References: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1427397195-15273-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 2/3] device property: Introduce firmware node type for platform data
+Date: Sat, 28 Mar 2015 02:10:53 +0100
+Message-ID: <3051309.NLlLMHClVp@vostro.rjw.lan>
+References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <10066684.kPKm7OTnxF@vostro.rjw.lan> <1594911.7FXIhSfjIv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1427397195-15273-2-git-send-email-Suravee.Suthikulpanit@amd.com>
-Content-Language: en-US
-Sender: linux-ide-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51979 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752249AbbC1BDH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Mar 2015 21:03:07 -0400
+In-Reply-To: <1594911.7FXIhSfjIv@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
 
-+	cls_objects = obj_desc->package.elements;
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Introduce data structures and code allowing "built-in" properties
+to be associated with devices in such a way that they will be used
+by the device_property_* API if no proper firmware node (neither DT
+nor ACPI) is present for the given device.
+
+Each property is to be represented by a property_entry structure.
+An array of property_entry structures (terminated with a null
+entry) can be pointed to by the properties field of struct
+property_set that can be added as a firmware node to a struct
+device using device_add_property_set().  That will cause the
+device_property_* API to use that property_set as the source
+of properties if the given device does not have a DT node or
+an ACPI companion device object associated with it.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/property.c  |   98 ++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/fwnode.h   |    1 
+ include/linux/property.h |   33 +++++++++++++++
+ 3 files changed, 127 insertions(+), 5 deletions(-)
+
+Index: linux-pm/include/linux/fwnode.h
+===================================================================
+--- linux-pm.orig/include/linux/fwnode.h
++++ linux-pm/include/linux/fwnode.h
+@@ -16,6 +16,7 @@ enum fwnode_type {
+ 	FWNODE_INVALID = 0,
+ 	FWNODE_OF,
+ 	FWNODE_ACPI,
++	FWNODE_PDATA,
+ };
+ 
+ struct fwnode_handle {
+Index: linux-pm/include/linux/property.h
+===================================================================
+--- linux-pm.orig/include/linux/property.h
++++ linux-pm/include/linux/property.h
+@@ -131,4 +131,37 @@ static inline int fwnode_property_read_u
+ 	return fwnode_property_read_u64_array(fwnode, propname, val, 1);
+ }
+ 
++/**
++ * struct property_entry - "Built-in" device property representation.
++ * @name: Name of the property.
++ * @type: Type of the property.
++ * @nval: Number of items of type @type making up the value.
++ * @value: Value of the property (an array of @nval items of type @type).
++ */
++struct property_entry {
++	const char *name;
++	enum dev_prop_type type;
++	size_t nval;
++	union {
++		void *raw_data;
++		u8 *u8_data;
++		u16 *u16_data;
++		u32 *u32_data;
++		u64 *u64_data;
++		const char **str;
++	} value;
++};
 +
-+	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
-+	    obj_desc->package.count == 3 &&
-+	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
-+	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
-+	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
++/**
++ * struct property_set - Collection of "built-in" device properties.
++ * @fwnode: Handle to be pointed to by the fwnode field of struct device.
++ * @properties: Array of properties terminated with a null entry.
++ */
++struct property_set {
++	struct fwnode_handle fwnode;
++	struct property_entry *properties;
++};
 +
-+		/* Allocate a buffer for the CLS */
-+		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-+					 (acpi_size) 7);
-
-I would like to see an error returned if an object or subobject is of the incorrect type.
-Then, the caller knows not to attempt to look at it.
-
-
-> -----Original Message-----
-> From: Suravee Suthikulpanit [mailto:Suravee.Suthikulpanit@amd.com]
-> Sent: Thursday, March 26, 2015 12:13 PM
-> To: rjw@rjwysocki.net; mika.westerberg@linux.intel.com; Moore, Robert;
-> Zheng, Lv; hanjun.guo@linaro.org
-> Cc: lenb@kernel.org; hdegoede@redhat.com; tj@kernel.org;
-> mjg59@srcf.ucam.org; gregkh@linuxfoundation.org; al.stone@linaro.org;
-> graeme.gregory@linaro.org; leo.duran@amd.com; linux-ide@vger.kernel.org;
-> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> acpi@lists.linaro.org; Suravee Suthikulpanit
-> Subject: [V7 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-> 
-> ACPI Device configuration often contain _CLS object to suppy PCI-defined
-> class code for the device. This patch introduces logic to process the _CLS
-> object.
-> 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
->  drivers/acpi/acpica/acutils.h  |  3 ++
->  drivers/acpi/acpica/nsxfname.c | 21 +++++++++++--
->  drivers/acpi/acpica/utids.c    | 71
-> ++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 93 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-> index c2f03e8..2aef850 100644
-> --- a/drivers/acpi/acpica/acutils.h
-> +++ b/drivers/acpi/acpica/acutils.h
-> @@ -430,6 +430,9 @@ acpi_status
->  acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
->  		    struct acpi_pnp_device_id_list ** return_cid_list);
-> 
-> +acpi_status
-> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-> +		    struct acpi_pnp_device_id **return_id);
->  /*
->   * utlock - reader/writer locks
->   */
-> diff --git a/drivers/acpi/acpica/nsxfname.c
-> b/drivers/acpi/acpica/nsxfname.c index d66c326..590ef06 100644
-> --- a/drivers/acpi/acpica/nsxfname.c
-> +++ b/drivers/acpi/acpica/nsxfname.c
-> @@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
->  	struct acpi_pnp_device_id *hid = NULL;
->  	struct acpi_pnp_device_id *uid = NULL;
->  	struct acpi_pnp_device_id *sub = NULL;
-> +	struct acpi_pnp_device_id *cls = NULL;
->  	char *next_id_string;
->  	acpi_object_type type;
->  	acpi_name name;
->  	u8 param_count = 0;
-> -	u8 valid = 0;
-> +	u16 valid = 0;
->  	u32 info_size;
->  	u32 i;
->  	acpi_status status;
-> @@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
->  	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
->  		/*
->  		 * Get extra info for ACPI Device/Processor objects only:
-> -		 * Run the Device _HID, _UID, _SUB, and _CID methods.
-> +		 * Run the Device _HID, _UID, _SUB, _CID and _CLS methods.
->  		 *
->  		 * Note: none of these methods are required, so they may or
-> may
->  		 * not be present for this device. The Info->Valid bitfield is
-> used @@ -351,6 +352,14 @@ acpi_get_object_info(acpi_handle handle,
->  			valid |= ACPI_VALID_SUB;
->  		}
-> 
-> +		/* Execute the Device._CLS method */
-> +
-> +		status = acpi_ut_execute_CLS(node, &cls);
-> +		if (ACPI_SUCCESS(status)) {
-> +			info_size += cls->length;
-> +			valid |= ACPI_VALID_CLS;
-> +		}
-> +
->  		/* Execute the Device._CID method */
-> 
->  		status = acpi_ut_execute_CID(node, &cid_list); @@ -468,6
-> +477,11 @@ acpi_get_object_info(acpi_handle handle,
->  							sub, next_id_string);
->  	}
-> 
-> +	if (cls) {
-> +		next_id_string = acpi_ns_copy_device_id(&info->cls,
-> +							cls, next_id_string);
-> +	}
-> +
->  	if (cid_list) {
->  		info->compatible_id_list.count = cid_list->count;
->  		info->compatible_id_list.list_size = cid_list->list_size; @@ -
-> 507,6 +521,9 @@ cleanup:
->  	if (sub) {
->  		ACPI_FREE(sub);
->  	}
-> +	if (cls) {
-> +		ACPI_FREE(cls);
-> +	}
->  	if (cid_list) {
->  		ACPI_FREE(cid_list);
->  	}
-> diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
-> index 27431cf..a64b5d1 100644
-> --- a/drivers/acpi/acpica/utids.c
-> +++ b/drivers/acpi/acpica/utids.c
-> @@ -416,3 +416,74 @@ cleanup:
->  	acpi_ut_remove_reference(obj_desc);
->  	return_ACPI_STATUS(status);
->  }
-> +
-> +/**********************************************************************
-> +*********
-> + *
-> + * FUNCTION:    acpi_ut_execute_CLS
-> + *
-> + * PARAMETERS:  device_node         - Node for the device
-> + *              return_id           - Where the string UID is returned
-> + *
-> + * RETURN:      Status
-> + *
-> + * DESCRIPTION: Executes the _CLS control method that returns PCI-defined
-> + *              class code of the device. The ACPI spec define _CLS as a
-> + *              package with three integers. The returned string has
-> format:
-> + *
-> + *                      "bbsspp"
-> + *              where:
-> + *                  bb = Base-class code
-> + *                  ss = Sub-class code
-> + *                  pp = Programming Interface code
-> + *
-> +
-> +***********************************************************************
-> +*******/
-> +
-> +acpi_status
-> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-> +		    struct acpi_pnp_device_id **return_id) {
-> +	struct acpi_pnp_device_id *cls;
-> +	union acpi_operand_object *obj_desc;
-> +	union acpi_operand_object **cls_objects;
-> +	acpi_status status;
-> +
-> +	ACPI_FUNCTION_TRACE(ut_execute_CLS);
-> +	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
-> +					 ACPI_BTYPE_PACKAGE, &obj_desc);
-> +	if (ACPI_FAILURE(status))
-> +		return_ACPI_STATUS(status);
-> +
-> +	cls_objects = obj_desc->package.elements;
-> +
-> +	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
-> +	    obj_desc->package.count == 3 &&
-> +	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
-> +	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
-> +	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
-> +
-> +		/* Allocate a buffer for the CLS */
-> +		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-> +					 (acpi_size) 7);
-> +		if (!cls) {
-> +			status = AE_NO_MEMORY;
-> +			goto cleanup;
-> +		}
-> +
-> +		cls->string =
-> +		    ACPI_ADD_PTR(char, cls, sizeof(struct
-> acpi_pnp_device_id));
-> +
-> +		sprintf(cls->string, "%02x%02x%02x",
-> +			(u8)ACPI_TO_INTEGER(cls_objects[0]->integer.value),
-> +			(u8)ACPI_TO_INTEGER(cls_objects[1]->integer.value),
-> +			(u8)ACPI_TO_INTEGER(cls_objects[2]->integer.value));
-> +		cls->length = 7;
-> +		*return_id = cls;
-> +	}
-> +
-> +cleanup:
-> +
-> +	/* On exit, we must delete the return object */
-> +
-> +	acpi_ut_remove_reference(obj_desc);
-> +	return_ACPI_STATUS(status);
-> +}
-> --
-> 2.1.0
-
++void device_add_property_set(struct device *dev, struct property_set *pset);
++
+ #endif /* _LINUX_PROPERTY_H_ */
+Index: linux-pm/drivers/base/property.c
+===================================================================
+--- linux-pm.orig/drivers/base/property.c
++++ linux-pm/drivers/base/property.c
+@@ -10,10 +10,96 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-#include <linux/property.h>
+-#include <linux/export.h>
+ #include <linux/acpi.h>
++#include <linux/export.h>
++#include <linux/kernel.h>
+ #include <linux/of.h>
++#include <linux/property.h>
++
++/**
++ * device_add_property_set - Add a collection of properties to a device object.
++ * @dev: Device to add properties to.
++ * @pset: Collection of properties to add.
++ *
++ * Associate a collection of device properties represented by @pset with @dev
++ * as its secondary firmware node.
++ */
++void device_add_property_set(struct device *dev, struct property_set *pset)
++{
++	if (pset)
++		pset->fwnode.type = FWNODE_PDATA;
++
++	set_secondary_fwnode(dev, &pset->fwnode);
++}
++EXPORT_SYMBOL_GPL(device_add_property_set);
++
++static inline bool is_pset(struct fwnode_handle *fwnode)
++{
++	return fwnode && fwnode->type == FWNODE_PDATA;
++}
++
++static inline struct property_set *to_pset(struct fwnode_handle *fwnode)
++{
++	return is_pset(fwnode) ?
++		container_of(fwnode, struct property_set, fwnode) : NULL;
++}
++
++static struct property_entry *pset_prop_get(struct property_set *pset,
++					    const char *name)
++{
++	struct property_entry *prop;
++
++	if (!pset || !pset->properties)
++		return NULL;
++
++	for (prop = pset->properties; prop->name; prop++)
++		if (!strcmp(name, prop->name))
++			return prop;
++
++	return NULL;
++}
++
++static int pset_prop_read_array(struct property_set *pset, const char *name,
++				enum dev_prop_type type, void *val, size_t nval)
++{
++	struct property_entry *prop;
++	unsigned int item_size;
++
++	prop = pset_prop_get(pset, name);
++	if (!prop)
++		return -ENODATA;
++
++	if (prop->type != type)
++		return -EPROTO;
++
++	if (!val)
++		return prop->nval;
++
++	if (prop->nval < nval)
++		return -EOVERFLOW;
++
++	switch (type) {
++	case DEV_PROP_U8:
++		item_size = sizeof(u8);
++		break;
++	case DEV_PROP_U16:
++		item_size = sizeof(u16);
++		break;
++	case DEV_PROP_U32:
++		item_size = sizeof(u32);
++		break;
++	case DEV_PROP_U64:
++		item_size = sizeof(u64);
++		break;
++	case DEV_PROP_STRING:
++		item_size = sizeof(const char *);
++		break;
++	default:
++		return -EINVAL;
++	}
++	memcpy(val, prop->value.raw_data, nval * item_size);
++	return 0;
++}
+ 
+ static inline struct fwnode_handle *dev_fwnode(struct device *dev)
+ {
+@@ -46,7 +132,7 @@ bool fwnode_property_present(struct fwno
+ 	else if (is_acpi_node(fwnode))
+ 		return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
+ 
+-	return false;
++	return !!pset_prop_get(to_pset(fwnode), propname);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_present);
+ 
+@@ -205,7 +291,8 @@ EXPORT_SYMBOL_GPL(device_property_read_s
+ 		_ret_ = acpi_dev_prop_read(acpi_node(_fwnode_), _propname_, \
+ 					   _proptype_, _val_, _nval_); \
+ 	else \
+-		_ret_ = -ENXIO; \
++		_ret_ = pset_prop_read_array(to_pset(_fwnode_), _propname_, \
++					     _proptype_, _val_, _nval_); \
+ 	_ret_; \
+ })
+ 
+@@ -344,7 +431,8 @@ int fwnode_property_read_string_array(st
+ 		return acpi_dev_prop_read(acpi_node(fwnode), propname,
+ 					  DEV_PROP_STRING, val, nval);
+ 
+-	return -ENXIO;
++	return pset_prop_read_array(to_pset(fwnode), propname,
++				    DEV_PROP_STRING, val, nval);
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_read_string_array);
+ 
