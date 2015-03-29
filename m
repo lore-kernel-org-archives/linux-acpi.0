@@ -1,68 +1,39 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH v10 00/21] Introduce ACPI for ARM64 based on ACPI 5.1
-Date: Sat, 28 Mar 2015 12:34:09 +0000
-Message-ID: <20150328123409.95225C4079E@trevor.secretlab.ca>
-References: <1426077587-1561-1-git-send-email-hanjun.guo@linaro.org>
-	<20150324220253.9595AC407F8@trevor.secretlab.ca>
-	<20150325112410.GA24636@arm.com> <2694196.2XPpkm7uxF@vostro.rjw.lan>
-	<20150325113839.GD24636@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:36565 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387AbbC1OvG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Mar 2015 10:51:06 -0400
-Received: by wibg7 with SMTP id g7so56373824wib.1
-        for <linux-acpi@vger.kernel.org>; Sat, 28 Mar 2015 07:51:05 -0700 (PDT)
-In-Reply-To: <20150325113839.GD24636@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: [PATCH 13/86] acpi/video: use uapi/linux/pci_ids.h directly
+Date: Sun, 29 Mar 2015 15:38:38 +0200
+Message-ID: <1427635734-24786-14-git-send-email-mst@redhat.com>
+References: <1427635734-24786-1-git-send-email-mst@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1427635734-24786-1-git-send-email-mst@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <Mark.Rutland@arm.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Mark Brown <broonie@kernel.org>, Robert Richter <rric@kernel.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwinc@codeaurora.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linaro-acpi@
 
-On Wed, 25 Mar 2015 11:38:43 +0000
-, Will Deacon <will.deacon@arm.com>
- wrote:
-> On Wed, Mar 25, 2015 at 11:54:25AM +0000, Rafael J. Wysocki wrote:
-> > On Wednesday, March 25, 2015 11:24:11 AM Will Deacon wrote:
-> > > On Tue, Mar 24, 2015 at 10:02:53PM +0000, Grant Likely wrote:
-> > > > On Thu, 19 Mar 2015 19:39:27 +0000 , Will Deacon <will.deacon@arm.com>
-> > > > wrote:
-> > > > > On Thu, Mar 19, 2015 at 10:17:27AM +0000, Lorenzo Pieralisi wrote:
-> > > > > > Not only that, Sudeep has a patch to consolidate DT and ACPI SMP code,
-> > > > > > I am working on it, I do not think it should be a blocking point, patch
-> > > > > > coming asap on top of your series.
-> > > > > 
-> > > > > Well, I don't really want to merge the series without those patches so I
-> > > > > do think it blocks the code from getting into mainline.
-> > > > 
-> > > > Really? It's a pretty minor duplication problem and it's been identified
-> > > > as something requiring refactoring to both the ACPI and DT code. It
-> > > > isn't at all dangerous. Why is this a blocking point?
-> > > 
-> > > Because I don't really see a valid excuse not to get this right first time
-> > > around. Lorenzo already has patches on top, so we just need a co-ordinated
-> > > review effort.
-> > > 
-> > > I wouldn't accept another patch series that needed minor rework (which by
-> > > its very nature is easily addressed), so why should ACPI be treated any
-> > > differently?
-> > 
-> > Not ACPI, but this particular patchset I think.  The problem is that it has
-> > already been reviewed and ACKed by multiple people and it would be a shame
-> > to require all of those people to do their reviews once again because of
-> > that minor rework (which arguably can be done on top of the patchset just
-> > fine).
-> > 
-> > Of course, if the minor rework in question would not involve the need to
-> > review things once again, then I agree that it'd be better to do it upfront,
-> > but otherwise there's a good reason not to.
-> 
-> Aha, I think this is just a misunderstanding -- I'm certainly not suggesting
-> that Hanjun rework the current set! What I *am* asking for is that they go
-> into mainline with Lorenzo's patches on top, which means that his series [1]
-> needs some review (and I plan to look at it later today).
+Header moved from linux/pci_ids.h to uapi/linux/pci_ids.h,
+use the new header directly so we can drop
+the wrapper in include/linux/pci_ids.h.
 
-Okay, thanks for the clarification.
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ drivers/acpi/video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-g.
-
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 26eb70c..e7c7e0a 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -35,7 +35,7 @@
+ #include <linux/thermal.h>
+ #include <linux/sort.h>
+ #include <linux/pci.h>
+-#include <linux/pci_ids.h>
++#include <uapi/linux/pci_ids.h>
+ #include <linux/slab.h>
+ #include <linux/dmi.h>
+ #include <linux/suspend.h>
+-- 
+MST
