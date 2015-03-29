@@ -1,39 +1,38 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: [PATCH 13/86] acpi/video: use uapi/linux/pci_ids.h directly
-Date: Sun, 29 Mar 2015 15:38:38 +0200
-Message-ID: <1427635734-24786-14-git-send-email-mst@redhat.com>
-References: <1427635734-24786-1-git-send-email-mst@redhat.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v3 0/3] PCI / ACPI: PCI delay optimization from ACPI
+Date: Sun, 29 Mar 2015 22:17:19 +0800
+Message-ID: <20150329141719.GA23537@aaronlu.sh.intel.com>
+References: <54FD4FB9.2060802@intel.com>
+ <55125611.8040507@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:14464 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752610AbbC2OS6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Mar 2015 10:18:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1427635734-24786-1-git-send-email-mst@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <55125611.8040507@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-Header moved from linux/pci_ids.h to uapi/linux/pci_ids.h,
-use the new header directly so we can drop
-the wrapper in include/linux/pci_ids.h.
+Hi Bjorn,
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- drivers/acpi/video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I suppose this will go through the PCI tree?
+May I know if this will be queued for v4.1?
+Thanks.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 26eb70c..e7c7e0a 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -35,7 +35,7 @@
- #include <linux/thermal.h>
- #include <linux/sort.h>
- #include <linux/pci.h>
--#include <linux/pci_ids.h>
-+#include <uapi/linux/pci_ids.h>
- #include <linux/slab.h>
- #include <linux/dmi.h>
- #include <linux/suspend.h>
--- 
-MST
+-Aaron
+
+On Wed, Mar 25, 2015 at 02:30:41PM +0800, Aaron Lu wrote:
+> Here is v3, changes from v2 are:
+> - Patch 1/3: add Rafael's acked-by tag;
+> - Patch 2/3: newly introduced, to rename find_pci_host_bridge and export it
+> - Patch 3/3: address Bjorn's comments for v2
+> 
+> Thanks a lot for your suggestions and review!
+> 
+> Regards,
+> Aaron
