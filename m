@@ -1,181 +1,53 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Mon, 30 Mar 2015 10:40:43 +0800
-Message-ID: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
+Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
+Date: Mon, 30 Mar 2015 13:05:00 +0000
+Message-ID: <1427720699.14897.448.camel@intel.com>
+References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1424695552.14897.7.camel@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32317 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:39795 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752322AbbC3CiS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Mar 2015 22:38:18 -0400
+	id S1751622AbbC3NFL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Mar 2015 09:05:11 -0400
+In-Reply-To: <1424695552.14897.7.camel@linux.intel.com>
+Content-Language: en-US
+Content-ID: <571DB08295618045980F1A2995B8ACE9@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "x86@kernel.org" <x86@kernel.org>
+Cc: "aubrey.li@linux.intel.com" <aubrey.li@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>
 
-Before commit 593669c2ac0f("Use common ACPI resource interfaces to
-simplify implementation"), arch/x86/pci/acpi.c applies following
-rules when parsing ACPI resources for PCI host bridge:
-1) Ignore IO port resources defined by acpi_resource_io and
-   acpi_resource_fixed_io, which should be used to define resource
-   for PCI device instead of PCI bridge.
-2) Accept IOMEM resource defined by acpi_resource_memory24,
-   acpi_resource_memory32 and acpi_resource_fixed_memory32.
-   These IOMEM resources are accepted to workaround some BIOS issue,
-   though they should be ignored. For example, PC Engines APU.1C
-   platform defines PCI host bridge IOMEM resources as:
-                Memory32Fixed (ReadOnly,
-                    0x000A0000,         // Address Base
-                    0x00020000,         // Address Length
-                    )
-                Memory32Fixed (ReadOnly,
-                    0x00000000,         // Address Base
-                    0x00000000,         // Address Length
-                    _Y00)
-3) Accept all IO port and IOMEM resources defined by
-   acpi_resource_address{16,32,64,extended64}, no matter it's marked as
-   ACPI_CONSUMER or ACPI_PRODUCER.
-
-Commit 593669c2ac0f("Use common ACPI resource interfaces to
-simplify implementation") accept all IO port and IOMEM resources
-defined by acpi_resource_io, acpi_resource_fixed_io,
-acpi_resource_memory24, acpi_resource_memory32,
-acpi_resource_fixed_memory32 and
-acpi_resource_address{16,32,64,extended64}, which causes IO port
-resources consumed by host bridge itself are listed in to host bridge
-resource list.
-
-Then commit 63f1789ec716("Ignore resources consumed by host bridge
-itself") ignores resources consumed by host bridge itself by checking
-IORESOURCE_WINDOW flag, which accidently removed the workaround in 2)
-above for BIOS bug .
-
-It's really costed us much time to figure out this whole picture.
-So we refine interface acpi_dev_filter_resource_type as below,
-which should be easier for maintence:
-1) Caller specifies IORESOURCE_WINDOW flag to explicitly query resource
-   for bridge(PRODUCER), otherwise it's querying resource for
-   device(CONSUMER).
-2) Ignore IO port resources defined by acpi_resource_io and
-   acpi_resource_fixed_io if IORESOURCE_WINDOW is specified.
-3) Accpet IOMEM resource defined by acpi_resource_memory24,
-   acpi_resource_memory32 and acpi_resource_fixed_memory32 for BIOS
-   bugs, with comment to state it's workaround for BIOS bug.
-4) Accept IO port and IOMEM defined by acpi_resource_addressxx if
-   a) IORESOURCE_WINDOW is specified and ACPI_PRODUCER is true
-   b) IORESOURCE_WINDOW is not specified and ACPI_PRODUCER is false
-
-Currently acpi_dev_filter_resource_type() is only used by ACPI pci
-host bridge and IOAPIC driver, so it shouldn't affect other drivers.
-
-Another possible fix is to only ignore IO resource consumed by host
-bridge and keep IOMEM resource consumed by host bridge, please refer to:
-http://www.spinics.net/lists/linux-pci/msg39706.html
-
-Sample ACPI table are archived at:
-https://bugzilla.kernel.org/show_bug.cgi?id=94221
-
-V2->V3:
-Refine function acpi_dev_match_producer_consumer() as suggested by Rafael
-
-Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
-Reported-and-Tested-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/pci/acpi.c     |    5 ++---
- drivers/acpi/resource.c |   33 +++++++++++++++++++++++++++++----
- 2 files changed, 31 insertions(+), 7 deletions(-)
-
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index e4695985f9de..8c4b1201f340 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
- 	info->bridge = device;
- 	ret = acpi_dev_get_resources(device, list,
- 				     acpi_dev_filter_resource_type_cb,
--				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
-+				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
- 	if (ret < 0)
- 		dev_warn(&device->dev,
- 			 "failed to parse _CRS method, error code %d\n", ret);
-@@ -346,8 +346,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
- 			"no IO and memory resources present in _CRS\n");
- 	else
- 		resource_list_for_each_entry_safe(entry, tmp, list) {
--			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
--			    (entry->res->flags & IORESOURCE_DISABLED))
-+			if (entry->res->flags & IORESOURCE_DISABLED)
- 				resource_list_destroy_entry(entry);
- 			else
- 				entry->res->name = info->name;
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 5589a6e2a023..e761a868bdba 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -567,6 +567,12 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
- }
- EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
- 
-+static bool acpi_dev_match_producer_consumer(unsigned long types, int producer)
-+{
-+	return ((types & IORESOURCE_WINDOW) && producer == ACPI_PRODUCER) ||
-+		((types & IORESOURCE_WINDOW) == 0 && producer == ACPI_CONSUMER);
-+}
-+
- /**
-  * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
-  *				   types
-@@ -585,27 +591,46 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-+		/*
-+		 * These types of resource descriptor should be used to
-+		 * describe resource consumption instead of resource provision.
-+		 * But some platforms, such as PC Engines APU.1C, reports
-+		 * resource provision by Memory32Fixed(). Please refer to:
-+		 * https://bugzilla.kernel.org/show_bug.cgi?id=94221
-+		 * So accept it no matter IORESOURCE_WINDOW is specified or not.
-+		 */
- 		type = IORESOURCE_MEM;
- 		break;
- 	case ACPI_RESOURCE_TYPE_IO:
- 	case ACPI_RESOURCE_TYPE_FIXED_IO:
--		type = IORESOURCE_IO;
-+		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-+			type = IORESOURCE_IO;
- 		break;
- 	case ACPI_RESOURCE_TYPE_IRQ:
-+		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-+			type = IORESOURCE_IRQ;
-+		break;
- 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
--		type = IORESOURCE_IRQ;
-+		if (acpi_dev_match_producer_consumer(types,
-+				ares->data.extended_irq.producer_consumer))
-+			type = IORESOURCE_IRQ;
- 		break;
- 	case ACPI_RESOURCE_TYPE_DMA:
- 	case ACPI_RESOURCE_TYPE_FIXED_DMA:
--		type = IORESOURCE_DMA;
-+		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-+			type = IORESOURCE_DMA;
- 		break;
- 	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
--		type = IORESOURCE_REG;
-+		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-+			type = IORESOURCE_REG;
- 		break;
- 	case ACPI_RESOURCE_TYPE_ADDRESS16:
- 	case ACPI_RESOURCE_TYPE_ADDRESS32:
- 	case ACPI_RESOURCE_TYPE_ADDRESS64:
- 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
-+		if (!acpi_dev_match_producer_consumer(types,
-+				ares->data.address.producer_consumer))
-+			break;
- 		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
- 			type = IORESOURCE_MEM;
- 		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
--- 
-1.7.10.4
+T24gTW9uLCAyMDE1LTAyLTIzIGF0IDE0OjQ1ICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6
+DQo+IE9uIFR1ZSwgMjAxNS0wMS0yMCBhdCAyMzo0OSArMDIwMCwgQW5keSBTaGV2Y2hlbmtvIHdy
+b3RlOg0KPiA+IFRoaXMgaXMgdGhlIHJld29ya2VkIHBhdGNoIHNlcmllcyB3aGljaCBoYWQgYmVl
+biBzZW50IGVhcmxpZXIgWzFdIHRvIHN1cHBvcnQNCj4gPiBJbnRlbCBDaGVycnlUcmFpbCBTb0Mu
+DQo+ID4gDQo+ID4gVGhlIHBhdGNoZXMgd2VyZSB0ZXN0ZWQgb24gYm90aCBCYXlUcmFpbCBhbmQg
+Q2hlcnJ5VHJhaWwgU29Dcy4NCj4gPiANCj4gPiBbMV0gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVs
+Lm9yZy9wYXRjaC81MjM1ODkxLw0KPiANCj4gQXVicmV5LCBpcyBldmVyeXRoaW5nIGlzIGNsZWFy
+IGZvciB5b3Ugbm93PyBDYW4gSSBzZW5kIHYzIHdpdGggeW91cg0KPiBBY2sncz8NCg0KU28sIHdo
+YXQgaXMgdGhlIHN0YXR1cyBvZiB0aGUgcmV2aWV3IHRoZW4/IERvIEkgaGF2ZSBhbnl0aGluZyB0
+bw0KaW1wcm92ZSAvIGNvbW1lbnQ/DQoNCj4gDQo+ID4gDQo+ID4gQ2hhbmdlcyB0byB2MToNCj4g
+PiAgLSByZWJhc2VkIG9uIHRvcCBvZiByZWNlbnQgcG1jX2F0b20gY2hhbmdlcw0KPiA+ICAtIGNs
+ZWFuZWQgdXAsIHJlcW9ya2VkIGFuZCBzcGxpdCB0byBmZXcgc21hbGxlciBwYXRjaGVzDQo+ID4g
+DQo+ID4gQW5keSBTaGV2Y2hlbmtvICg0KToNCj4gPiAgIHg4NjogcG1jX2F0b206IHNhdmUgc3Ry
+dWN0IGRldmljZSBwb2ludGVyIGluIHBtYw0KPiA+ICAgeDg2OiBwbWNfYXRvbTogcHJpbnQgaW5k
+ZXggb2YgZGV2aWNlIGluIGxvb3ANCj4gPiAgIHg4NjogcG1jX2F0b206IHN1cHBseSByZWdpc3Rl
+ciBtYXBwaW5ncyB2aWEgcG1jIG9iamVjdA0KPiA+ICAgUE1DIGRyaXZlcjogQWRkIENoZXJyeXRy
+YWlsIFBNQyBpbnRlcmZhY2UNCj4gPiANCj4gPiAgYXJjaC94ODYvaW5jbHVkZS9hc20vcG1jX2F0
+b20uaCB8ICAyNSArKysrDQo+ID4gIGFyY2gveDg2L2tlcm5lbC9wbWNfYXRvbS5jICAgICAgfCAy
+NzAgKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLQ0KPiA+ICAyIGZpbGVz
+IGNoYW5nZWQsIDE5OCBpbnNlcnRpb25zKCspLCA5NyBkZWxldGlvbnMoLSkNCj4gPiANCj4gDQo+
+IA0KDQoNCi0tIA0KQW5keSBTaGV2Y2hlbmtvIDxhbmRyaXkuc2hldmNoZW5rb0BpbnRlbC5jb20+
+DQpJbnRlbCBGaW5sYW5kIE95DQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSW50ZWwgRmlubGFuZCBPeQpSZWdpc3Rl
+cmVkIEFkZHJlc3M6IFBMIDI4MSwgMDAxODEgSGVsc2lua2kgCkJ1c2luZXNzIElkZW50aXR5IENv
+ZGU6IDAzNTc2MDYgLSA0IApEb21pY2lsZWQgaW4gSGVsc2lua2kgCgpUaGlzIGUtbWFpbCBhbmQg
+YW55IGF0dGFjaG1lbnRzIG1heSBjb250YWluIGNvbmZpZGVudGlhbCBtYXRlcmlhbCBmb3IKdGhl
+IHNvbGUgdXNlIG9mIHRoZSBpbnRlbmRlZCByZWNpcGllbnQocykuIEFueSByZXZpZXcgb3IgZGlz
+dHJpYnV0aW9uCmJ5IG90aGVycyBpcyBzdHJpY3RseSBwcm9oaWJpdGVkLiBJZiB5b3UgYXJlIG5v
+dCB0aGUgaW50ZW5kZWQKcmVjaXBpZW50LCBwbGVhc2UgY29udGFjdCB0aGUgc2VuZGVyIGFuZCBk
+ZWxldGUgYWxsIGNvcGllcy4K
 
