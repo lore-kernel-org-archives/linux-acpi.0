@@ -1,57 +1,80 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [V7 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Mon, 30 Mar 2015 17:09:02 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2B1C7B@ORSMSX112.amr.corp.intel.com>
-References: <1427397195-15273-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1427397195-15273-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2A5F70@ORSMSX112.amr.corp.intel.com>
- <55195AE6.2050801@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2] ACPI: Enable wakeup GPE in freeze mode
+Date: Mon, 30 Mar 2015 21:12:09 +0200
+Message-ID: <4698835.VT8nBgTpoe@vostro.rjw.lan>
+References: <1427450928-7049-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55195AE6.2050801@amd.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59132 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753077AbbC3Sr6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2015 14:47:58 -0400
+In-Reply-To: <1427450928-7049-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: len.brown@intel.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-AE_AML_OPERAND_TYPE -- used to indicate an exception raised by a type issue related to the AML code. Used to differentiate between a programmer error (AE_TYPE).
+On Friday, March 27, 2015 06:08:48 PM Chen Yu wrote:
+> Currently, in freeze state, wakeup GPE for PCI devices are
+> handled properly because acpi_pci_sleep_wake() invokes acpi_enable_gpe()
+> to enable the wakeup GPE directly. But for the other wakeup-capable
+> devices in ACPI bus, acpi_enable_wakeup_devices() should be invoked
+> to update enable_for_wake mask in gpe_register_info structure, thus
+> acpi_enable_all_wakeup_gpes() can enable the wakeup GPE referred in
+> _PRW methods. And acpi_disable_wakeup_devices() will be called
+> before disable_irq_wake() in acpi_freeze_restore() to restore the mask.
+> 
+> This patch fixes a power button wakeup problem on Surface Pro 3,
+> on which platform power button uses EC to deliver event
+> (EC GPE is referred in _PRW).
+> 
+> Note: enabling EC GPE during freeze state may bring some risks
+> because EC events are expected to fire more frequently than others.
+> Thus it may bring the system out of freeze state unnecessarily.
+> (We already have comments about this in bugzilla)
+> 
+> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=84651
+> 
+> Reported-and-tested-by: Ethan Schoonover <es@ethanschoonover.com>
+> Tested-by: Peter Amidon <psa.pub.0@picnicpark.org>
+> Tested-by: Yani Ioadnnou <yani.ioannou@gmail.com>
+> Tested-by: Mister Wardrop <mister.wardrop@gmail.com>
+> Tested-by: Anton Anikin <anton@anikin.name>
+> Tested-by: Keith McClelland <zismylaptop@gmail.com>
+> Reviewed-by: Zhang Rui <rui.zhang@intel.com>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
 
+Queued up for 4.1 with minor changes in the changelog/subject, thanks!
 
-> -----Original Message-----
-> From: Suravee Suthikulanit [mailto:suravee.suthikulpanit@amd.com]
-> Sent: Monday, March 30, 2015 7:17 AM
-> To: Moore, Robert; rjw@rjwysocki.net; mika.westerberg@linux.intel.com;
-> Zheng, Lv; hanjun.guo@linaro.org
-> Cc: lenb@kernel.org; hdegoede@redhat.com; tj@kernel.org;
-> mjg59@srcf.ucam.org; gregkh@linuxfoundation.org; al.stone@linaro.org;
-> graeme.gregory@linaro.org; leo.duran@amd.com; linux-ide@vger.kernel.org;
-> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> acpi@lists.linaro.org
-> Subject: Re: [V7 PATCH 1/3] ACPICA: Add ACPI _CLS processing
+> ---
+>  drivers/acpi/sleep.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> On 3/27/2015 12:51 PM, Moore, Robert wrote:
-> > +	cls_objects = obj_desc->package.elements;
-> > +
-> > +	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
-> > +	    obj_desc->package.count == 3 &&
-> > +	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
-> > +	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
-> > +	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
-> > +
-> > +		/* Allocate a buffer for the CLS */
-> > +		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-> > +					 (acpi_size) 7);
-> >
-> > I would like to see an error returned if an object or subobject is of
-> the incorrect type.
-> > Then, the caller knows not to attempt to look at it.
-> >
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 7f251dd..81e5bd4 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -629,6 +629,7 @@ static int acpi_freeze_begin(void)
+>  
+>  static int acpi_freeze_prepare(void)
+>  {
+> +	acpi_enable_wakeup_devices(ACPI_STATE_S0);
+>  	acpi_enable_all_wakeup_gpes();
+>  	acpi_os_wait_events_complete();
+>  	enable_irq_wake(acpi_gbl_FADT.sci_interrupt);
+> @@ -637,6 +638,7 @@ static int acpi_freeze_prepare(void)
+>  
+>  static void acpi_freeze_restore(void)
+>  {
+> +	acpi_disable_wakeup_devices(ACPI_STATE_S0);
+>  	disable_irq_wake(acpi_gbl_FADT.sci_interrupt);
+>  	acpi_enable_all_runtime_gpes();
+>  }
 > 
-> Ok. I will return AE_TYPE if the condition is false here.
-> 
-> Thanks,
-> 
-> Suravee
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
