@@ -1,41 +1,60 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [Linaro-acpi] [PATCH 1/2] ARM64 / ACPI: Ignore the return error
- value of acpi_map_gic_cpu_interface()
-Date: Tue, 31 Mar 2015 09:42:40 +0800
-Message-ID: <5519FB90.4010400@huawei.com>
-References: <1427458476-20140-1-git-send-email-hanjun.guo@linaro.org> <5519C5C8.2020903@linaro.org>
+Subject: Re: [patch v11 13/23] ACPI / processor: Introduce phys_cpuid_t for
+ CPU hardware ID
+Date: Tue, 31 Mar 2015 09:49:42 +0800
+Message-ID: <5519FD36.2080901@huawei.com>
+References: <1427205776-5060-1-git-send-email-hanjun.guo@linaro.org> <1427205776-5060-14-git-send-email-hanjun.guo@linaro.org> <20150325172109.GJ14585@localhost> <551381CD.5010804@huawei.com> <55155DCA.3060006@linaro.org> <20150330135810.GC5964@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:57790 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753969AbbCaBmu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Mar 2015 21:42:50 -0400
-In-Reply-To: <5519C5C8.2020903@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150330135810.GC5964@e104818-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Robert Richter <rric@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Ashwin Chaugule <ashwinc@codeaurora.org>, linaro-acpi@lists.linaro.org, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Timur Tabi <timur@codeaurora.org>, Mark Salter <msalter@redhat.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Sudeep Holla <Sudeep.Holla@arm.com>, Olof Johansson <olof@lixom.net>, Mark Brown <broonie@kernel.org>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>, Grant Likely <grant.likely@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 2015/3/31 5:53, Al Stone wrote:
-> On 03/27/2015 06:14 AM, Hanjun Guo wrote:
->> MADT table scannig will stopped once it gets the errors
->> returned by the handler, which is acpi_map_gic_cpu_interface()
->> in for ARM64, so Ignore the return error value to search for
->> all enabled CPUs for SMP init.
-> I think the comment should say something like:
->
-> MADT scanning will stop when it gets an error from the handler,
-> acpi_map_gic_cpu_interface(), on arm64.  However, we need to
-> find all of the enabled CPUs so that SMP initialization can work
-> properly.  So, if an error occurs in this case, ignore it for
-> now so that we can find all of the enabled CPUs.
->
-> Is that what you meant, Hanjun?
+On 2015/3/30 21:58, Catalin Marinas wrote:
+> On Fri, Mar 27, 2015 at 09:40:26PM +0800, Hanjun Guo wrote:
+>> On 2015=E5=B9=B403=E6=9C=8826=E6=97=A5 11:49, Hanjun Guo wrote:
+>>> On 2015/3/26 1:21, Catalin Marinas wrote:
+>>>> On Tue, Mar 24, 2015 at 10:02:46PM +0800, Hanjun Guo wrote:
+>>>>> --- a/drivers/acpi/acpi_processor.c
+>>>>> +++ b/drivers/acpi/acpi_processor.c
+>>>>> @@ -170,7 +170,7 @@ static int acpi_processor_hotadd_init(struct =
+acpi_processor *pr)
+>>>>>  	acpi_status status;
+>>>>>  	int ret;
+>>>>>
+>>>>> -	if (pr->phys_id =3D=3D -1)
+>>>>> +	if (pr->phys_id =3D=3D PHYS_CPUID_INVALID)
+>>>>>  		return -ENODEV;
+>>>> If PHYS_CPUID_INVALID is the same as INVALID_HWID, we should get r=
+id of
+>>>> the latter in the arm64 code (as a subsequent clean-up patch).
+>>> OK, I'm preparing a patch set to introduce invalid_phys_cpuid() and=
+ invalid_logical_cpuid()
+>>> to remove the direct comparison of PHYS_CPUID_INVALID and -1 in ACP=
+I processor drivers,
+>>> which is suggested by Rafael, I will cleanup PHYS_CPUID_INVALID in =
+this patch set.
+>> I met difficulty to do so, because we use
+>>
+>> +#ifndef PHYS_CPUID_INVALID
+>> +typedef u32 phys_cpuid_t;
+>> +#define PHYS_CPUID_INVALID (phys_cpuid_t)(-1)
+>> +#endif
+>>
+>> in the common head file linux/acpi.h, we need macro
+>> PHYS_CPUID_INVALID to identify if phys_cpuid_t is typedefed
+>> for different arch, so if we want remove PHYS_CPUID_INVALID
+>> for ARM64, we need to got back to typedef phys_cpuid_t for
+>> each arch using ACPI. which means that
+> What I meant was removing INVALID_HWID from arm64 and always use the
+> PHYS_CPUID_INVALID but I think we should leave them as they are for n=
+ow
+> since PHYS_CPUID_INVALID is defined in the asm/acpi.h file.
 
-That's exactly what I mean, you describe it much clearer :)
+OK, thanks for the clarify.
 
-Thanks
 Hanjun
-
