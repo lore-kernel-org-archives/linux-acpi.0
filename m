@@ -1,46 +1,79 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2 0/4] x86: pmc_atom: Add Cherrytrail support
-Date: Tue, 31 Mar 2015 12:59:21 +0200
-Message-ID: <20150331105921.GB25180@gmail.com>
-References: <1421790603-30097-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1424695552.14897.7.camel@linux.intel.com>
- <1427720699.14897.448.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] Documentation: gpio: Update ACPI part of the document to mention _DSD
+Date: Tue, 31 Mar 2015 14:43:15 +0300
+Message-ID: <1427802195-221906-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:35102 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbbCaK7Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Mar 2015 06:59:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1427720699.14897.448.camel@intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:48350 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753891AbbCaLnT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Mar 2015 07:43:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-Cc: "x86@kernel.org" <x86@kernel.org>, "aubrey.li@linux.intel.com" <aubrey.li@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@linux.intel.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
+With ACPI 5.1 _DSD (Device Specific Data) it is now possible to name
+functions just like Device Tree is doing. Make sure that the documentation
+mentions _DSD as the recommended way to describe GPIOs in ACPI systems.
 
-* Shevchenko, Andriy <andriy.shevchenko@intel.com> wrote:
+Reported-by: Darren Hart <dvhart@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ Documentation/gpio/board.txt | 41 +++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 4 deletions(-)
 
-> On Mon, 2015-02-23 at 14:45 +0200, Andy Shevchenko wrote:
-> > On Tue, 2015-01-20 at 23:49 +0200, Andy Shevchenko wrote:
-> > > This is the reworked patch series which had been sent earlier [1] to support
-> > > Intel CherryTrail SoC.
-> > > 
-> > > The patches were tested on both BayTrail and CherryTrail SoCs.
-> > > 
-> > > [1] https://patchwork.kernel.org/patch/5235891/
-> > 
-> > Aubrey, is everything is clear for you now? Can I send v3 with your
-> > Ack's?
-> 
-> So, what is the status of the review then? Do I have anything to
-> improve / comment?
+diff --git a/Documentation/gpio/board.txt b/Documentation/gpio/board.txt
+index 8b35f51fe7b6..b68cfa8a6865 100644
+--- a/Documentation/gpio/board.txt
++++ b/Documentation/gpio/board.txt
+@@ -50,10 +50,43 @@ gpiod_is_active_low(power) will be true).
+ 
+ ACPI
+ ----
+-ACPI does not support function names for GPIOs. Therefore, only the "idx"
+-argument of gpiod_get_index() is useful to discriminate between GPIOs assigned
+-to a device. The "con_id" argument can still be set for debugging purposes (it
+-will appear under error messages as well as debug and sysfs nodes).
++ACPI does also support function names for GPIOs in similar fashion than DT.
++The above DT example can be converted to corresponding ACPI version with
++the help of _DSD (Device Specific Data) which was introduced in ACPI 5.1:
++
++	Device (FOO) {
++		Name (_CRS, ResourceTemplate () {
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {15} // red
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {16} // green
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {17} // blue
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {1} // power
++		})
++
++		Name (_DSD, Package () {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () {
++					"led-gpios",
++					Package () {
++						^FOO, 0, 0, 1,
++						^FOO, 1, 0, 1,
++						^FOO, 2, 0, 1,
++					}
++				},
++				Package () {
++					"power-gpios",
++					Package () {^FOO, 3, 0, 0},
++				},
++			}
++		})
++	}
++
++For more information about the ACPI GPIO bindings see
++Documentation/acpi/gpio-properties.txt.
+ 
+ Platform Data
+ -------------
+-- 
+2.1.4
 
-So the last review pass pointed out a few minor problems (and also 
-generated a few acks), please propagate those into the series and 
-resend the latestest so I can have a fresh look.
-
-Thanks,
-
-	Ingo
