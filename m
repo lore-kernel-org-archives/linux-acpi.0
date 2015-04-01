@@ -1,77 +1,92 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2] Documentation: gpio: Update ACPI part of the document to mention _DSD
-Date: Wed,  1 Apr 2015 11:13:16 +0300
-Message-ID: <1427875996-216926-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2] Documentation: gpio: Update ACPI part of the document to mention _DSD
+Date: Wed, 01 Apr 2015 15:37:43 +0200
+Message-ID: <6992212.k2gEnaWg9n@vostro.rjw.lan>
+References: <1427875996-216926-1-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56243 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752083AbbDANN2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Apr 2015 09:13:28 -0400
+In-Reply-To: <1427875996-216926-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Darren Hart <dvhart@linux.intel.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 
-With ACPI 5.1 _DSD (Device Specific Data) it is now possible to name
-functions just like Device Tree is doing. Make sure that the documentation
-mentions _DSD as the recommended way to describe GPIOs in ACPI systems.
+On Wednesday, April 01, 2015 11:13:16 AM Mika Westerberg wrote:
+> With ACPI 5.1 _DSD (Device Specific Data) it is now possible to name
+> functions just like Device Tree is doing. Make sure that the documentation
+> mentions _DSD as the recommended way to describe GPIOs in ACPI systems.
+> 
+> Reported-by: Darren Hart <dvhart@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Reported-by: Darren Hart <dvhart@linux.intel.com>
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
-v2: Corrected text according what Darren suggested
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
- Documentation/gpio/board.txt | 41 +++++++++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 4 deletions(-)
+> ---
+> v2: Corrected text according what Darren suggested
+> 
+>  Documentation/gpio/board.txt | 41 +++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 37 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/gpio/board.txt b/Documentation/gpio/board.txt
+> index 8b35f51fe7b6..b80606de545a 100644
+> --- a/Documentation/gpio/board.txt
+> +++ b/Documentation/gpio/board.txt
+> @@ -50,10 +50,43 @@ gpiod_is_active_low(power) will be true).
+>  
+>  ACPI
+>  ----
+> -ACPI does not support function names for GPIOs. Therefore, only the "idx"
+> -argument of gpiod_get_index() is useful to discriminate between GPIOs assigned
+> -to a device. The "con_id" argument can still be set for debugging purposes (it
+> -will appear under error messages as well as debug and sysfs nodes).
+> +ACPI also supports function names for GPIOs in a similar fashion to DT.
+> +The above DT example can be converted to an equivalent ACPI description
+> +with the help of _DSD (Device Specific Data), introduced in ACPI 5.1:
+> +
+> +	Device (FOO) {
+> +		Name (_CRS, ResourceTemplate () {
+> +			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
+> +				"\\_SB.GPI0") {15} // red
+> +			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
+> +				"\\_SB.GPI0") {16} // green
+> +			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
+> +				"\\_SB.GPI0") {17} // blue
+> +			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
+> +				"\\_SB.GPI0") {1} // power
+> +		})
+> +
+> +		Name (_DSD, Package () {
+> +			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> +			Package () {
+> +				Package () {
+> +					"led-gpios",
+> +					Package () {
+> +						^FOO, 0, 0, 1,
+> +						^FOO, 1, 0, 1,
+> +						^FOO, 2, 0, 1,
+> +					}
+> +				},
+> +				Package () {
+> +					"power-gpios",
+> +					Package () {^FOO, 3, 0, 0},
+> +				},
+> +			}
+> +		})
+> +	}
+> +
+> +For more information about the ACPI GPIO bindings see
+> +Documentation/acpi/gpio-properties.txt.
+>  
+>  Platform Data
+>  -------------
+> 
 
-diff --git a/Documentation/gpio/board.txt b/Documentation/gpio/board.txt
-index 8b35f51fe7b6..b80606de545a 100644
---- a/Documentation/gpio/board.txt
-+++ b/Documentation/gpio/board.txt
-@@ -50,10 +50,43 @@ gpiod_is_active_low(power) will be true).
- 
- ACPI
- ----
--ACPI does not support function names for GPIOs. Therefore, only the "idx"
--argument of gpiod_get_index() is useful to discriminate between GPIOs assigned
--to a device. The "con_id" argument can still be set for debugging purposes (it
--will appear under error messages as well as debug and sysfs nodes).
-+ACPI also supports function names for GPIOs in a similar fashion to DT.
-+The above DT example can be converted to an equivalent ACPI description
-+with the help of _DSD (Device Specific Data), introduced in ACPI 5.1:
-+
-+	Device (FOO) {
-+		Name (_CRS, ResourceTemplate () {
-+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
-+				"\\_SB.GPI0") {15} // red
-+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
-+				"\\_SB.GPI0") {16} // green
-+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
-+				"\\_SB.GPI0") {17} // blue
-+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
-+				"\\_SB.GPI0") {1} // power
-+		})
-+
-+		Name (_DSD, Package () {
-+			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+			Package () {
-+				Package () {
-+					"led-gpios",
-+					Package () {
-+						^FOO, 0, 0, 1,
-+						^FOO, 1, 0, 1,
-+						^FOO, 2, 0, 1,
-+					}
-+				},
-+				Package () {
-+					"power-gpios",
-+					Package () {^FOO, 3, 0, 0},
-+				},
-+			}
-+		})
-+	}
-+
-+For more information about the ACPI GPIO bindings see
-+Documentation/acpi/gpio-properties.txt.
- 
- Platform Data
- -------------
 -- 
-2.1.4
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
