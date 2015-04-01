@@ -1,177 +1,185 @@
-From: Tom Lendacky <thomas.lendacky@amd.com>
-Subject: Re: [RFC PATCH] ACPI / scan: Introduce _CCA parsing logic and setting
- up device coherency
-Date: Wed, 1 Apr 2015 12:45:59 -0500
-Message-ID: <551C2ED7.5060507@amd.com>
-References: <1427901620-2194-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Subject: [PATCH] fix sysfs showing the correct C-states after AC->DC and DC->AC transitions
+Date: Wed, 01 Apr 2015 20:04:34 +0200
+Message-ID: <3701793.GEjYLvWeTc@netbook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0125.outbound.protection.outlook.com ([207.46.100.125]:53203
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752334AbbDARqL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Apr 2015 13:46:11 -0400
-In-Reply-To: <1427901620-2194-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="nextPart2818934.tJEj2j1ePN"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, hanjun.guo@linaro.org
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, al.stone@linaro.org, msalter@redhat.com, gregkh@linuxfoundation.org, leo.duran@amd.com, arnd@arndb.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 04/01/2015 10:20 AM, Suravee Suthikulpanit wrote:
-> ACPI v5.1 introduced _CCA object for specifying cache coherency attribute
-> for devices. This patch implements a logic, which traverses device namespace
-> to parse the coherency information, and calling the corresponded
-> arch_setup_dma_ops().
->
-> It checks the _CCA during ACPI scan, and setup coherency during acpi_device creation.
-> Then, this is propagted to the platform_device when it is created at later time.
->
-> CC: Mark Salter <msalter@redhat.com>
-> CC: Hanjun Guo <hanjun.guo@linaro.org>
-> CC: Al Stone <al.stone@linaro.org>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
->
-> NOTE:
->
-> The original patch has been submitted by Mark Salter, and discussed here:
->
-> * http://comments.gmane.org/gmane.linux.acpi.devel/70424
->
-> One of the reveiw comment was dissusing whether we need the do/while loop for
-> travesing parents of the device.  AFAIK, there are no APIs that would do upsearch
-> from a particular node.  The acpi_get_handle() is the closest one, but it is using
-> ACPI_NS_NO_UPSEARCH.
->
-> This has been rebased and tested with:
-> 	* http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
-> 	* [V8 PATCH 0/3] Introduce ACPI support for ahci_platform driver
-> 	  (https://lkml.org/lkml/2015/3/30/729)
->
->   drivers/acpi/acpi_platform.c |  5 +++-
->   drivers/acpi/scan.c          | 56 ++++++++++++++++++++++++++++++++++++++++++++
->   2 files changed, 60 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> index 1284138..47e37a8 100644
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -108,9 +108,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
->   	if (IS_ERR(pdev))
->   		dev_err(&adev->dev, "platform device creation failed: %ld\n",
->   			PTR_ERR(pdev));
-> -	else
-> +	else {
-> +		arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
-> +				   is_device_dma_coherent(&adev->dev));
->   		dev_dbg(&adev->dev, "created platform device %s\n",
->   			dev_name(&pdev->dev));
-> +	}
->
->   	kfree(resources);
->   	return pdev;
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 230ec983..4d81c55 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -11,6 +11,7 @@
->   #include <linux/kthread.h>
->   #include <linux/dmi.h>
->   #include <linux/nls.h>
-> +#include <linux/dma-mapping.h>
->
->   #include <asm/pgtable.h>
->
-> @@ -57,6 +58,9 @@ struct acpi_device_bus_id{
->   	struct list_head node;
->   };
->
-> +static int acpi_bus_type_and_status(acpi_handle handle, int *type,
-> +				    unsigned long long *sta);
-> +
->   void acpi_scan_lock_acquire(void)
->   {
->   	mutex_lock(&acpi_scan_lock);
-> @@ -1327,6 +1331,51 @@ void acpi_bus_put_acpi_device(struct acpi_device *adev)
->   	put_device(&adev->dev);
->   }
->
-> +/**
-> + * acpi_check_and_set_coherency - check and set cache coherency of a device
-> + * @device: ACPI device
-> + *
-> + * Search a device and its parents for a _CCA method and calculate
-> + * the effective coherency property of the device. If found, set up
-> + * appropriate dma_ops for the device.
-> + *
-> + * Note From ACPIv5.1 spec:
-> + * If used _CCA must be included under all bus-master-capable
-> + * devices defined as children of \_SB. The value of _CCA is inherited
-> + * by all descendants of these devices, so it need not be repeated for
-> + * their children devices and will be ignored by OSPM if it is provided
-> + * there.
-> + */
-> +static int acpi_check_and_set_coherency(struct acpi_device *device)
-> +{
-> +	acpi_status status;
-> +	unsigned long long eff_cca = ~0ULL;
-> +	acpi_handle tmp, handle = device->handle;
-> +
-> +	/* Calculate effective _CCA from all parents of this device */
-> +	do {
-> +		unsigned long cca;
-> +
-> +		status = acpi_get_handle(handle, "_CCA", &tmp);
-> +		if (ACPI_SUCCESS(status)) {
-> +			status = acpi_evaluate_integer(tmp, "_CCA", NULL, &cca);
-> +			/* Other values besides 0 and 1 are reserved */
-> +			if (ACPI_FAILURE(status) || (cca != 0 && cca != 1))
-> +				return -EINVAL;
-> +			eff_cca = cca;
-> +		}
-> +
-> +		status = acpi_get_parent(handle, &handle);
-> +		if (ACPI_FAILURE(status))
-> +			break;
-> +	} while (ACPI_SUCCESS(status));
+This is a multi-part message in MIME format.
 
-Having the above portion/loop be a separate function that could be
-callable by others (such as drivers) would be good so that both the
-ACPI code and the driver code look for the _CCA attribute the same
-way - similar to the of_dma_is_coherent function.
+--nextPart2818934.tJEj2j1ePN
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-Possibly even work this into a a generic call like the device property
-functions (even though this doesn't fall into the _DSD area for ACPI) -
-where for device tree the of_dma_is_coherent call is made and for ACPI
-an acpi_dma_is_coherent call is made - device_dma_is_coherent?
+Hello,
 
-Thanks,
-Tom
+I do have a Samsung NC20 netbook which provides the C-states C1 and C2 to the 
+OS when connected to AC, and additionally provides the C3 C-state when 
+disconnected from AC. With the current kernels I have these two problems 
+(regressions):
 
-> +
-> +	if (eff_cca != ~0ULL)
-> +		arch_setup_dma_ops(&device->dev, 0, 0, NULL, eff_cca);
-> +
-> +	return 0;
-> +}
-> +
->   int acpi_device_add(struct acpi_device *device,
->   		    void (*release)(struct device *))
->   {
-> @@ -1398,6 +1447,13 @@ int acpi_device_add(struct acpi_device *device,
->   		device->dev.parent = &device->parent->dev;
->   	device->dev.bus = &acpi_bus_type;
->   	device->dev.release = release;
-> +
-> +	result = acpi_check_and_set_coherency(device);
-> +	if (result) {
-> +		dev_err(&device->dev, "Error getting device _CCA information\n");
-> +		goto err;
-> +	}
-> +
->   	result = device_add(&device->dev);
->   	if (result) {
->   		dev_err(&device->dev, "Error registering device\n");
->
+1. The number of C-states shown in sysfs is fixed to the number of C-states
+   present at boot.
+   If I boot with AC connected, I always only see the C-states up to C2 even
+   if I disconnect AC.
+
+   The reason is commit 130a5f692425e6237229598a8624da0a247f33d5
+   "ACPI / cpuidle: remove dev->state_count setting". It removes the update of
+   dev->state_count, but sysfs uses exactly this variable to show the
+   C-states.
+
+   The fix is to use drv->state_count in sysfs. As this is currently the last
+   user of dev->state_count, this variable can be completely removed. And this
+   is exactly what Bartlomiej Zolnierkiewicz's not yet applied patch "[PATCH
+   v2 9/9] cpuidle: remove state_count field from struct cpuidle_device"
+   http://marc.info/?m=138756533317836 does.
+
+   Long story short: That patch fixes problem 1 for me.
+
+2. After a AC->DC or DC->AC transition, the name and description of the
+   POLLING C-state become "<null>".
+
+   Here, the reason is commit d7c7f103262bc2248548ed0e113e916e843c4eeb
+   "cpuidle: don't call poll_idle_init() for every cpu". It only calls
+   poll_idle_init() during cpuidle_register_driver() instead of
+   cpuidle_enable_device() and thus does not re-initialize the fields of
+   drv->states[0] after acpi_processor_setup_cpuidle_states() cleared them.
+
+   Here, the fix is to _not_ clear drv->states[0] in
+   acpi_processor_setup_cpuidle_states(). For this purpose I created a small
+   patch.
+
+For your convenience, both of the fixing patches are attached to this mail.
+The first one is necessary for all kernels since 3.14, the second one for all
+kernels since 3.13. So I'd propose to push both of them also to the necessary
+stable kernels.
+
+Kind regards,
+  Thomas
+--nextPart2818934.tJEj2j1ePN
+Content-Disposition: inline; filename="0001-cpuidle-remove-state_count-field-from-struct-cpuidle.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="UTF-8"; name="0001-cpuidle-remove-state_count-field-from-struct-cpuidle.patch"
+
+>From cce99e1975a03b15e374dcd42099448a22390c65 Mon Sep 17 00:00:00 2001
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Date: Tue, 31 Mar 2015 20:15:09 +0200
+Subject: [PATCH 1/2] cpuidle: remove state_count field from struct
+ cpuidle_device
+
+dev->state_count is now always equal to drv->state_count so
+it can be removed.
+
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/cpuidle/cpuidle.c | 3 ---
+ drivers/cpuidle/sysfs.c   | 5 +++--
+ include/linux/cpuidle.h   | 1 -
+ 3 files changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 080bd2d..7a73a27 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -330,9 +330,6 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+ 	if (!dev->registered)
+ 		return -EINVAL;
+ 
+-	if (!dev->state_count)
+-		dev->state_count = drv->state_count;
+-
+ 	ret = cpuidle_add_device_sysfs(dev);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
+index 97c5903..832a2c3 100644
+--- a/drivers/cpuidle/sysfs.c
++++ b/drivers/cpuidle/sysfs.c
+@@ -401,7 +401,7 @@ static int cpuidle_add_state_sysfs(struct cpuidle_device *device)
+ 	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(device);
+ 
+ 	/* state statistics */
+-	for (i = 0; i < device->state_count; i++) {
++	for (i = 0; i < drv->state_count; i++) {
+ 		kobj = kzalloc(sizeof(struct cpuidle_state_kobj), GFP_KERNEL);
+ 		if (!kobj)
+ 			goto error_state;
+@@ -433,9 +433,10 @@ error_state:
+  */
+ static void cpuidle_remove_state_sysfs(struct cpuidle_device *device)
+ {
++	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(device);
+ 	int i;
+ 
+-	for (i = 0; i < device->state_count; i++)
++	for (i = 0; i < drv->state_count; i++)
+ 		cpuidle_free_state_kobj(device, i);
+ }
+ 
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 306178d..9c5e892 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -77,7 +77,6 @@ struct cpuidle_device {
+ 	unsigned int		cpu;
+ 
+ 	int			last_residency;
+-	int			state_count;
+ 	struct cpuidle_state_usage	states_usage[CPUIDLE_STATE_MAX];
+ 	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
+ 	struct cpuidle_driver_kobj *kobj_driver;
+-- 
+2.1.0
+
+
+--nextPart2818934.tJEj2j1ePN
+Content-Disposition: inline; filename="0002-ACPI-cpuidle-do-not-overwrite-name-and-description-o.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="UTF-8"; name="0002-ACPI-cpuidle-do-not-overwrite-name-and-description-o.patch"
+
+>From d8357a73b8bf4e23a4b5ac4499224b39d0079ddb Mon Sep 17 00:00:00 2001
+From: Thomas Schlichter <thomas.schlichter@web.de>
+Date: Tue, 31 Mar 2015 20:24:39 +0200
+Subject: [PATCH 2/2] ACPI / cpuidle: do not overwrite name and description of
+ C0
+
+This fixes a bug that leads to showing name and description of C-state C0 as
+"<null>" in sysfs after the ACPI C-states changed (e.g. after AC->DC or DC->AC
+transition).
+
+The function poll_idle_init() in drivers/cpuidle/driver.c initializes the
+state 0 during cpuidle_register_driver(). So we better do not overwrite it
+again with '\0' during acpi_processor_cst_has_changed().
+
+Signed-off-by: Thomas Schlichter <thomas.schlichter@web.de>
+---
+ drivers/acpi/processor_idle.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index c6bb9f1..f98db0b 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -922,7 +922,7 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ 		return -EINVAL;
+ 
+ 	drv->safe_state_index = -1;
+-	for (i = 0; i < CPUIDLE_STATE_MAX; i++) {
++	for (i = CPUIDLE_DRIVER_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
+ 		drv->states[i].name[0] = '\0';
+ 		drv->states[i].desc[0] = '\0';
+ 	}
+-- 
+2.1.0
+
+
+--nextPart2818934.tJEj2j1ePN--
+
