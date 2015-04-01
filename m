@@ -1,48 +1,41 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Wed, 1 Apr 2015 09:45:53 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de> <1427448178-20689-6-git-send-email-bp@alien8.de>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
+Date: Wed, 1 Apr 2015 10:45:53 +0300
+Message-ID: <20150401074553.GV1524@lahna.fi.intel.com>
+References: <1427836680-13008-1-git-send-email-fkan@apm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58462 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752908AbbDAHp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Apr 2015 03:45:59 -0400
-In-Reply-To: <1427448178-20689-6-git-send-email-bp@alien8.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1427836680-13008-1-git-send-email-fkan@apm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Feng Kan <fkan@apm.com>
+Cc: patches@apm.com, jassisinghbrar@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-edac <linux-edac@vger.kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
 
-On Fri, 27 Mar 2015, Borislav Petkov wrote:
-
-> From: Jiri Kosina <jkosina@suse.cz>
+On Tue, Mar 31, 2015 at 02:18:00PM -0700, Feng Kan wrote:
+> This will add support for ACPI parsing of the mboxes attribute
+> when booting with ACPI table. The client will have a attribute
+> mimic the dts call "mboxes". In the ACPI case, the client will
+> mark "mboxes" with the ACPI HID of the mbox it wishes to use.
 > 
-> Since GHES sources are global, we theoretically need only a single CPU
-> reading them per NMI instead of a thundering herd of CPUs waiting on a
-> spinlock in NMI context for no reason at all.
+> 	Name (_DSD, Package () {
+> 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> 		Package () {
+> 			Package (2) {"mboxes", "ACPIHID"},
+> 		}
+> 	})
 
-I originally wasn't 100% sure whether GHES sources are global (i.e. if it 
-really doesn't matter which CPU is reading the registers), but looking at 
-the code more it actually seems that this is really the right thing to do.
+Instead of this, why not match against the DT compatible property?
 
-Rationale: ghes_ioremap_pfn_nmi() always ioremaps() (exclusively) the page 
-with the registers, performs apei_read() (which is ghes-source specific, 
-but not CPU-specific) and unmaps the page again.
+	Name (_HID, "PRP0001")
 
-There is nothing that would make this CPU-specific. Adding Huang Ying (the 
-original author of the code) to confirm this. Huang?
+ 	Name (_DSD, Package () {
+ 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+ 		Package () {
+ 			Package (2) {"compatible", "your-dt-compatible-string"},
+ 		}
+ 	})
 
-> Do that.
-
-I think this should indeed be pushed forward. It fixes horrible spinlock 
-contention on systems which are under NMI storm (such as when perf is 
-active) unrelated to GHES.
-
-Thanks,
-
--- 
-Jiri Kosina
-SUSE Labs
+This all will be done for you automatically with zero changes in the
+code.
