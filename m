@@ -1,41 +1,48 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH] ACPI/EC: Call acpi_walk_dep_device_list() after installing EC opregion handler
-Date: Wed,  1 Apr 2015 09:47:18 +0800
-Message-ID: <1427852838-6443-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, valentin.lab_bugzilla.kernel.org@kalysto.org, lompik@voila.fr
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Wed, 1 Apr 2015 09:45:53 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de> <1427448178-20689-6-git-send-email-bp@alien8.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:58462 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752908AbbDAHp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Apr 2015 03:45:59 -0400
+In-Reply-To: <1427448178-20689-6-git-send-email-bp@alien8.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-edac <linux-edac@vger.kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
 
-On some machines(E,G Mircosoft surface 3), ACPI battery depends on
-the EC operation region and it has _DEP method which contains EC.
-Current code doesn't support such devices whose dep_unmet will be
-not be decreased after EC opregion handler being installed. This
-blocks battery device to be attached with its driver. This patch
-is to fix the issue.
+On Fri, 27 Mar 2015, Borislav Petkov wrote:
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=90161
-Tested-and-reported-by: Lompik <lompik@voila.fr>
-Tested-by: Valentin Lab <valentin.lab_bugzilla.kernel.org@kalysto.org>
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/acpi/ec.c | 3 +++
- 1 file changed, 3 insertions(+)
+> From: Jiri Kosina <jkosina@suse.cz>
+> 
+> Since GHES sources are global, we theoretically need only a single CPU
+> reading them per NMI instead of a thundering herd of CPUs waiting on a
+> spinlock in NMI context for no reason at all.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a362f20..220d640 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1147,6 +1147,9 @@ static int acpi_ec_add(struct acpi_device *device)
- 
- 	ret = ec_install_handlers(ec);
- 
-+	/* Reprobe devices depending on the EC */
-+	acpi_walk_dep_device_list(ec->handle);
-+
- 	/* EC is fully operational, allow queries */
- 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 
+I originally wasn't 100% sure whether GHES sources are global (i.e. if it 
+really doesn't matter which CPU is reading the registers), but looking at 
+the code more it actually seems that this is really the right thing to do.
+
+Rationale: ghes_ioremap_pfn_nmi() always ioremaps() (exclusively) the page 
+with the registers, performs apei_read() (which is ghes-source specific, 
+but not CPU-specific) and unmaps the page again.
+
+There is nothing that would make this CPU-specific. Adding Huang Ying (the 
+original author of the code) to confirm this. Huang?
+
+> Do that.
+
+I think this should indeed be pushed forward. It fixes horrible spinlock 
+contention on systems which are under NMI storm (such as when perf is 
+active) unrelated to GHES.
+
+Thanks,
+
 -- 
-1.8.4.rc0.1.g8f6a3e5.dirty
+Jiri Kosina
+SUSE Labs
