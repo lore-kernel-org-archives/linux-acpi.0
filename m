@@ -1,115 +1,41 @@
-From: Darren Hart <dvhart@linux.intel.com>
-Subject: Re: [PATCH] Documentation: gpio: Update ACPI part of the document to
- mention _DSD
-Date: Tue, 31 Mar 2015 17:19:21 -0700
-Message-ID: <D14086D9.C4A08%dvhart@linux.intel.com>
-References: <1427802195-221906-1-git-send-email-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1427802195-221906-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/EC: Call acpi_walk_dep_device_list() after installing EC opregion handler
+Date: Wed,  1 Apr 2015 09:47:18 +0800
+Message-ID: <1427852838-6443-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, valentin.lab_bugzilla.kernel.org@kalysto.org, lompik@voila.fr
 List-Id: linux-acpi@vger.kernel.org
 
-On 3/31/15, 4:43 AM, "Mika Westerberg" <mika.westerberg@linux.intel.com>
-wrote:
+On some machines(E,G Mircosoft surface 3), ACPI battery depends on
+the EC operation region and it has _DEP method which contains EC.
+Current code doesn't support such devices whose dep_unmet will be
+not be decreased after EC opregion handler being installed. This
+blocks battery device to be attached with its driver. This patch
+is to fix the issue.
 
->With ACPI 5.1 _DSD (Device Specific Data) it is now possible to name
->functions just like Device Tree is doing. Make sure that the documentation
->mentions _DSD as the recommended way to describe GPIOs in ACPI systems.
->
->Reported-by: Darren Hart <dvhart@linux.intel.com>
->Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=90161
+Tested-and-reported-by: Lompik <lompik@voila.fr>
+Tested-by: Valentin Lab <valentin.lab_bugzilla.kernel.org@kalysto.org>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/ec.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks Mika! Couple of nits below to help it read a little better.
-
->---
-> Documentation/gpio/board.txt | 41
->+++++++++++++++++++++++++++++++++++++----
-> 1 file changed, 37 insertions(+), 4 deletions(-)
->
->diff --git a/Documentation/gpio/board.txt b/Documentation/gpio/board.txt
->index 8b35f51fe7b6..b68cfa8a6865 100644
->--- a/Documentation/gpio/board.txt
->+++ b/Documentation/gpio/board.txt
->@@ -50,10 +50,43 @@ gpiod_is_active_low(power) will be true).
-> 
-> ACPI
-> ----
->-ACPI does not support function names for GPIOs. Therefore, only the "idx"
->-argument of gpiod_get_index() is useful to discriminate between GPIOs
->assigned
->-to a device. The "con_id" argument can still be set for debugging
->purposes (it
->-will appear under error messages as well as debug and sysfs nodes).
->+ACPI does also support function names for GPIOs in similar fashion than
->DT.
-
-ACPI also supports function names for GPIOs in a similar fashion to DT.
-
->+The above DT example can be converted to corresponding ACPI version with
-
-... to an equivalent ACPI description with
-
->+the help of _DSD (Device Specific Data) which was introduced in ACPI 5.1:
-
-
-s/ which was/, /
-
-
---
-Darren
-
->+
->+	Device (FOO) {
->+		Name (_CRS, ResourceTemplate () {
->+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
->+				"\\_SB.GPI0") {15} // red
->+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
->+				"\\_SB.GPI0") {16} // green
->+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
->+				"\\_SB.GPI0") {17} // blue
->+			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
->+				"\\_SB.GPI0") {1} // power
->+		})
->+
->+		Name (_DSD, Package () {
->+			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->+			Package () {
->+				Package () {
->+					"led-gpios",
->+					Package () {
->+						^FOO, 0, 0, 1,
->+						^FOO, 1, 0, 1,
->+						^FOO, 2, 0, 1,
->+					}
->+				},
->+				Package () {
->+					"power-gpios",
->+					Package () {^FOO, 3, 0, 0},
->+				},
->+			}
->+		})
->+	}
->+
->+For more information about the ACPI GPIO bindings see
->+Documentation/acpi/gpio-properties.txt.
-> 
-> Platform Data
-> -------------
->-- 
->2.1.4
->
->
-
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index a362f20..220d640 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1147,6 +1147,9 @@ static int acpi_ec_add(struct acpi_device *device)
+ 
+ 	ret = ec_install_handlers(ec);
+ 
++	/* Reprobe devices depending on the EC */
++	acpi_walk_dep_device_list(ec->handle);
++
+ 	/* EC is fully operational, allow queries */
+ 	clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 
 -- 
-Darren Hart
-Intel Open Source Technology Center
-
-
-
+1.8.4.rc0.1.g8f6a3e5.dirty
