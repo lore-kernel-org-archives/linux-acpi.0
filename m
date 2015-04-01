@@ -1,41 +1,77 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
-Date: Wed, 1 Apr 2015 10:45:53 +0300
-Message-ID: <20150401074553.GV1524@lahna.fi.intel.com>
-References: <1427836680-13008-1-git-send-email-fkan@apm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1427836680-13008-1-git-send-email-fkan@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Feng Kan <fkan@apm.com>
-Cc: patches@apm.com, jassisinghbrar@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [PATCH v2] Documentation: gpio: Update ACPI part of the document to mention _DSD
+Date: Wed,  1 Apr 2015 11:13:16 +0300
+Message-ID: <1427875996-216926-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 31, 2015 at 02:18:00PM -0700, Feng Kan wrote:
-> This will add support for ACPI parsing of the mboxes attribute
-> when booting with ACPI table. The client will have a attribute
-> mimic the dts call "mboxes". In the ACPI case, the client will
-> mark "mboxes" with the ACPI HID of the mbox it wishes to use.
-> 
-> 	Name (_DSD, Package () {
-> 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> 		Package () {
-> 			Package (2) {"mboxes", "ACPIHID"},
-> 		}
-> 	})
+With ACPI 5.1 _DSD (Device Specific Data) it is now possible to name
+functions just like Device Tree is doing. Make sure that the documentation
+mentions _DSD as the recommended way to describe GPIOs in ACPI systems.
 
-Instead of this, why not match against the DT compatible property?
+Reported-by: Darren Hart <dvhart@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+v2: Corrected text according what Darren suggested
 
-	Name (_HID, "PRP0001")
+ Documentation/gpio/board.txt | 41 +++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 4 deletions(-)
 
- 	Name (_DSD, Package () {
- 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
- 		Package () {
- 			Package (2) {"compatible", "your-dt-compatible-string"},
- 		}
- 	})
+diff --git a/Documentation/gpio/board.txt b/Documentation/gpio/board.txt
+index 8b35f51fe7b6..b80606de545a 100644
+--- a/Documentation/gpio/board.txt
++++ b/Documentation/gpio/board.txt
+@@ -50,10 +50,43 @@ gpiod_is_active_low(power) will be true).
+ 
+ ACPI
+ ----
+-ACPI does not support function names for GPIOs. Therefore, only the "idx"
+-argument of gpiod_get_index() is useful to discriminate between GPIOs assigned
+-to a device. The "con_id" argument can still be set for debugging purposes (it
+-will appear under error messages as well as debug and sysfs nodes).
++ACPI also supports function names for GPIOs in a similar fashion to DT.
++The above DT example can be converted to an equivalent ACPI description
++with the help of _DSD (Device Specific Data), introduced in ACPI 5.1:
++
++	Device (FOO) {
++		Name (_CRS, ResourceTemplate () {
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {15} // red
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {16} // green
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {17} // blue
++			GpioIo (Exclusive, ..., IoRestrictionOutputOnly,
++				"\\_SB.GPI0") {1} // power
++		})
++
++		Name (_DSD, Package () {
++			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++			Package () {
++				Package () {
++					"led-gpios",
++					Package () {
++						^FOO, 0, 0, 1,
++						^FOO, 1, 0, 1,
++						^FOO, 2, 0, 1,
++					}
++				},
++				Package () {
++					"power-gpios",
++					Package () {^FOO, 3, 0, 0},
++				},
++			}
++		})
++	}
++
++For more information about the ACPI GPIO bindings see
++Documentation/acpi/gpio-properties.txt.
+ 
+ Platform Data
+ -------------
+-- 
+2.1.4
 
-This all will be done for you automatically with zero changes in the
-code.
