@@ -1,77 +1,50 @@
-From: Feng Kan <fkan@apm.com>
-Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
-Date: Thu, 2 Apr 2015 11:04:24 -0700
-Message-ID: <CAL85gmA1mjcX6FEmUHipn0iSzpti2z6D4++7Q3gxGiPGZaE_Cw@mail.gmail.com>
-References: <1427836680-13008-1-git-send-email-fkan@apm.com>
-	<20150401074553.GV1524@lahna.fi.intel.com>
-	<CAL85gmDE5qD2tTABuz-6ccoVtnN4zN1Vbyyz+nQbdhT74UH37A@mail.gmail.com>
-	<20150402090702.GD17830@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/20] clockevents_notify() removal
+Date: Fri, 03 Apr 2015 00:19:41 +0200
+Message-ID: <2186067.gb1n6y4Zoc@vostro.rjw.lan>
+References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <20150402123935.GA31934@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150402090702.GD17830@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: patches <patches@apm.com>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20150402123935.GA31934@gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 2, 2015 at 2:07 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Wed, Apr 01, 2015 at 10:01:45AM -0700, Feng Kan wrote:
->> On Wed, Apr 1, 2015 at 12:45 AM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->> > On Tue, Mar 31, 2015 at 02:18:00PM -0700, Feng Kan wrote:
->> >> This will add support for ACPI parsing of the mboxes attribute
->> >> when booting with ACPI table. The client will have a attribute
->> >> mimic the dts call "mboxes". In the ACPI case, the client will
->> >> mark "mboxes" with the ACPI HID of the mbox it wishes to use.
->> >>
->> >>       Name (_DSD, Package () {
->> >>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> >>               Package () {
->> >>                       Package (2) {"mboxes", "ACPIHID"},
->> >>               }
->> >>       })
->> >
->> > Instead of this, why not match against the DT compatible property?
->> >
->> >         Name (_HID, "PRP0001")
->> >
->> >         Name (_DSD, Package () {
->> >                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->> >                 Package () {
->> >                         Package (2) {"compatible", "your-dt-compatible-string"},
->> >                 }
->> >         })
->> I think my description was not clear enough. The _DSD section is not
->> meant to identify the mailbox driver, but used by the acpi node that will
->> request the mailbox channel. The dts version would be as below.
->>
->>    mailbox: {
->>    }
->>
->>    user-mbox: {
->>       mboxes: <&mailbox 0>
->>    }
->>
->> The mboxes attribute in the user of the mbox has to specify the HID of the
->> mbox in order to retrieve channel pointer.
->
-> Okay, then I think you can use reference instead of _HID, like
->
->         // The mailbox device
->         Device (MLBX) {
->         }
->
->         // User-mbox device
->         Device (USBX) {
->                 Name (_DSD, Package () {
->                         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                         Package () {
->                                 Package () {"mboxes", Package () {^^MLBX, 0}}),
->                         }
->                 })
->         }
+On Thursday, April 02, 2015 02:39:35 PM Ingo Molnar wrote:
+> 
+> * Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> 
+> > Hi,
+> > 
+> > This is the next batch of patches from Thomas that remove clockevents_notify().
+> > 
+> > I've reordered the set (to put more stratightforward things to the front) and
+> > rebased it on top of the timers material currently queued up for 4.1.
+> > 
+> > This series in based on the bleeding-edge branch of the linux-pm tree (which
+> > for all practical purposes is my linux-next branch with timers/core from tip
+> > merged into it).
+> > 
+> > Please let me know how to proceed with these.
+> 
+> Would you mind to resend these merged on top of the very latest 
+> tip:timers/core (or tip:master) tree?
+> 
+> These changes conflict (mildly) with the other series from Thomas 
+> which needed some fixes/enhancements.
 
-Thanks, will try this. A side question on your previous reply. Would you
-prefer a new driver using the PRP0001 or an actual proper HID.
+I'll do that later today.
+
+This series also depends on:
+
+http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-pad&id=6e9f8b5f1f319cbdb4cfe3696fc74fbe39318960
+
+which is in my acpi-pad branch at the moment, but I'll add it to the front of
+the series in case you prefer to apply it directly.
+
+Thanks,
+Rafael
+
