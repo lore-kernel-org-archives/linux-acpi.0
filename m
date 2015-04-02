@@ -1,50 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/20] clockevents_notify() removal
-Date: Fri, 03 Apr 2015 00:19:41 +0200
-Message-ID: <2186067.gb1n6y4Zoc@vostro.rjw.lan>
-References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <20150402123935.GA31934@gmail.com>
+From: "Qatar Foundation" <qatarfund@qf.org.qa>
+Subject: =?utf-8?b?4oKsOTUwLDAwMC4wMCBFVVJP?=
+Date: Thu, 02 Apr 2015 21:28:20 +0100
+Message-ID: <20150402202750.DA30E1E7283__29816.9723748744$1428013111$gmane$org@mta.zimbra.uny.ac.id>
+Reply-To: info.qfoundation@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150402123935.GA31934@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mta.zimbra.uny.ac.id ([101.203.168.70]:50207 "HELO
+	mta.zimbra.uny.ac.id" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752562AbbDBWRd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2015 18:17:33 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <qatarfund@qf.org.qa>
 
-On Thursday, April 02, 2015 02:39:35 PM Ingo Molnar wrote:
-> 
-> * Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> 
-> > Hi,
-> > 
-> > This is the next batch of patches from Thomas that remove clockevents_notify().
-> > 
-> > I've reordered the set (to put more stratightforward things to the front) and
-> > rebased it on top of the timers material currently queued up for 4.1.
-> > 
-> > This series in based on the bleeding-edge branch of the linux-pm tree (which
-> > for all practical purposes is my linux-next branch with timers/core from tip
-> > merged into it).
-> > 
-> > Please let me know how to proceed with these.
-> 
-> Would you mind to resend these merged on top of the very latest 
-> tip:timers/core (or tip:master) tree?
-> 
-> These changes conflict (mildly) with the other series from Thomas 
-> which needed some fixes/enhancements.
+Dear Beneficiary,
 
-I'll do that later today.
+You have been selected to receive =E2=82=AC950,000.00 EURO as charity d=
+onations / aid of the Qatar Foundation. Reply back for more information=
+=2E
 
-This series also depends on:
+Yours sincerely,
+Engineer Saad Al Muhannadi.
+Reply to: info.qfoundation@gmail.com
 
-http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpi-pad&id=6e9f8b5f1f319cbdb4cfe3696fc74fbe39318960
+President of the Qatar Foundation.
 
-which is in my acpi-pad branch at the moment, but I'll add it to the front of
-the series in case you prefer to apply it directly.
+---
+This email has been checked for viruses by Avast antivirus software.
+http://www.avast.com
 
-Thanks,
-Rafael
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
