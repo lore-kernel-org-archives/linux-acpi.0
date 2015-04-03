@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [v2][PATCH 11/21] x86, amd_idle: Use explicit broadcast oneshot control functions
-Date: Fri, 03 Apr 2015 02:05:53 +0200
-Message-ID: <8569669.lgxIty9PKW@vostro.rjw.lan>
+Subject: [v2][PATCH 13/21] ACPI / processor: Use explicit broadcast controll function
+Date: Fri, 03 Apr 2015 02:12:03 +0200
+Message-ID: <2653377.MSAlfA939I@vostro.rjw.lan>
 References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <2186067.gb1n6y4Zoc@vostro.rjw.lan> <3410621.5uMny9y0B7@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -20,29 +20,27 @@ Replace the clockevents_notify() call with an explicit function call.
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- arch/x86/kernel/process.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Index: linux-pm/arch/x86/kernel/process.c
+Index: linux-pm/drivers/acpi/processor_idle.c
 ===================================================================
---- linux-pm.orig/arch/x86/kernel/process.c
-+++ linux-pm/arch/x86/kernel/process.c
-@@ -381,7 +381,7 @@ static void amd_e400_idle(void)
- 			tick_broadcast_force();
- 			pr_info("Switch to broadcast mode on CPU%d\n", cpu);
- 		}
--		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
-+		tick_broadcast_enter();
+--- linux-pm.orig/drivers/acpi/processor_idle.c
++++ linux-pm/drivers/acpi/processor_idle.c
+@@ -178,11 +178,10 @@ static void lapic_timer_state_broadcast(
+ 	int state = cx - pr->power.states;
  
- 		default_idle();
+ 	if (state >= pr->power.timer_broadcast_on_state) {
+-		unsigned long reason;
+-
+-		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
+-			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
+-		clockevents_notify(reason, &pr->id);
++		if (broadcast)
++			tick_broadcast_enter();
++		else
++			tick_broadcast_exit();
+ 	}
+ }
  
-@@ -390,7 +390,7 @@ static void amd_e400_idle(void)
- 		 * called with interrupts disabled.
- 		 */
- 		local_irq_disable();
--		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
-+		tick_broadcast_exit();
- 		local_irq_enable();
- 	} else
- 		default_idle();
 
