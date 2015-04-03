@@ -1,39 +1,53 @@
-From: "Qatar Foundation" <qatarfund@qf.org.qa>
-Subject: =?utf-8?b?4oKsOTUwLDAwMC4wMCBFVVJP?=
-Date: Thu, 02 Apr 2015 21:28:20 +0100
-Message-ID: <20150402202750.DA30E1E7283__29816.9723748744$1428013111$gmane$org@mta.zimbra.uny.ac.id>
-Reply-To: info.qfoundation@gmail.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [v2][PATCH 17/21] sched/idle: Use explicit broadcast oneshot control function
+Date: Fri, 03 Apr 2015 02:34:49 +0200
+Message-ID: <6422336.RMm7oUHcXh@vostro.rjw.lan>
+References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <2186067.gb1n6y4Zoc@vostro.rjw.lan> <3410621.5uMny9y0B7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta.zimbra.uny.ac.id ([101.203.168.70]:50207 "HELO
-	mta.zimbra.uny.ac.id" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752562AbbDBWRd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2015 18:17:33 -0400
-Content-Description: Mail message body
+Received: from v094114.home.net.pl ([79.96.170.134]:56747 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752692AbbDCAQO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Apr 2015 20:16:14 -0400
+In-Reply-To: <3410621.5uMny9y0B7@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <qatarfund@qf.org.qa>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Dear Beneficiary,
+From: Thomas Gleixner <tglx@linutronix.de>
 
-You have been selected to receive =E2=82=AC950,000.00 EURO as charity d=
-onations / aid of the Qatar Foundation. Reply back for more information=
-=2E
+Replace the clockevents_notify() call with an explicit function call.
 
-Yours sincerely,
-Engineer Saad Al Muhannadi.
-Reply to: info.qfoundation@gmail.com
-
-President of the Qatar Foundation.
-
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
-This email has been checked for viruses by Avast antivirus software.
-http://www.avast.com
+ kernel/sched/idle.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-pm/kernel/sched/idle.c
+===================================================================
+--- linux-pm.orig/kernel/sched/idle.c
++++ linux-pm/kernel/sched/idle.c
+@@ -158,8 +158,7 @@ static void cpuidle_idle_call(void)
+ 	 * is used from another cpu as a broadcast timer, this call may
+ 	 * fail if it is not available
+ 	 */
+-	if (broadcast &&
+-	    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu))
++	if (broadcast && tick_broadcast_enter())
+ 		goto use_default;
+ 
+ 	/* Take note of the planned idle state. */
+@@ -176,7 +175,7 @@ static void cpuidle_idle_call(void)
+ 	idle_set_state(this_rq(), NULL);
+ 
+ 	if (broadcast)
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++		tick_broadcast_exit();
+ 
+ 	/*
+ 	 * Give the governor an opportunity to reflect on the outcome
+
