@@ -1,81 +1,99 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v4 0/9] PCI: MMCONFIG clean up
-Date: Fri, 03 Apr 2015 14:06:55 +0200
-Message-ID: <551E825F.9060304@linaro.org>
-References: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 3/3][RFD] device property: Implement fallback to built-in properties
+Date: Fri, 03 Apr 2015 15:59:39 +0200
+Message-ID: <6006085.9igFVRhWlG@vostro.rjw.lan>
+References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com> <5634167.lftqZnjhIC@vostro.rjw.lan> <20150402143506.GA2057@kuha.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: bhelgaas@google.com
-Cc: wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, al.stone@linaro.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:59402 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751433AbbDCNfX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2015 09:35:23 -0400
+In-Reply-To: <20150402143506.GA2057@kuha.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
 
-Hi Bjorn,
+On Thursday, April 02, 2015 05:35:06 PM Heikki Krogerus wrote:
+> 
+> --AqsLC8rIMeq19msA
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> 
+> Hi,
+> 
+> On Sat, Mar 28, 2015 at 02:26:35AM +0100, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Modify the fwnode_property_* accessors so as to make them fall back
+> > to using "built-in" device properties from a property_set structure
+> > associated with the given device (as the secondary firmware node)
+> > if the property in question cannot be retrieved from the primary
+> > firmware node (DT or ACPI).  That will make the device_properties_*
+> > functions do the same thing as they use fwnode_property_* internally.
+> > 
+> > That should make it easier to provide default values for device
+> > properties used by device drivers to be used in case the properties
+> > in question are not provided by the platform firmare at all or
+> > they cannot be retireved from the platform firmware due to errors.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> FWIW for the whole series:
+> 
+> Tested-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> 
+> I'm attaching the little patch I used to test this with Synopsys
+> Designware USB Device Controller. Everything worked nicely.
 
-Any comments before I post next version ?
+Thanks a lot for testing this!
 
-Regards,
-Tomasz
+> > First of all, this should show why I thought it would be better to use
+> > the primary/secondary scheme for firmware nodes instead of just having a
+> > list of them with the head pointed to by the struct device's fwnode field.
+> > Namely, within the primary/secondary scheme the ordering of property lookup
+> > is always well defined and there's no overhead when, for example, somebody
+> > specifically wants to access the ACPI companion firmware node etc.
+> > 
+> > Second, as I said in the intro message, this is not for immediate application
+> > (apart from any review comments on [1-2/3]), because it would introduce an
+> > artificial difference between DT and ACPI that I'd prefer to avoid.
+> > 
+> > Namely, dev_fwnode() (introduced by one of the patches in linux-next) returns
+> > the address of the dev->of_node's fwnode field if dev->of_node is present and
+> > that would not have the secondary pointer set.  On the other hand, since ACPI
+> > is now using set_primary_fwnode() to add its firmware node companions to
+> > devices, the secondary pointer in its firmware node handle will be set if the
+> > "built-in" properties are present.  So, effectively, with this patch applied
+> > ACPI would always fall back to the "built-in" properties (if present), while
+> > DT would not do that (unless the DT node is missing entirely).
+> > 
+> > That difference could be worked around, though, if dev->fwnode is always set
+> > whenever dev->of_node is set in essentially this way:
+> > 
+> > 	dev->of_node = dn;
+> > 	set_primary_fwnode(dev, &dn->fwnode);
+> > 
+> > (that, of course, can be defined as a macro or static inline).  Now, I'm not
+> > sure about that, but my somewhat educated guess is that while dev->of_node is
+> > read in many many places, the number of places in which it is set is actually
+> > much smaller and making this change in one go should be a workable thing.
+> > 
+> > Please let me know what you think.
+> 
+> To me falling back to the "built-in" device properties is the most
+> interesting thing. I have already a set of mfd and probing drivers,
+> such as dwc3-pci.c in my example, in my mind, where I have the ACPI
+> companion but could still really use the build-in properties.
 
-On 11.03.2015 15:12, Tomasz Nowicki wrote:
-> MCFG ACPI table and PCI ECAM standard have no arch dependencies so it can be
-> used across all architectures. Currently MMCONFIG related code resides in
-> arch/x86 directories. This patch set is going to isolate non-architecture
-> specific code and make it accessible for all architectures.
->
-> v3 -> v4 changes:
-> - bug fixes after kbuild test robot report
->      - add asm/io.h header for ecam.c
->      - rename mmcfg -> ecam for drivers/xen/pci.c and arch/x86/pci/numachip.c
-> - rework Kconfig logic
->
-> v2 -> v3 changes:
-> - rebase patch set v2 to v4.0-rc1
->
-> v1 -> v2 changes:
-> - use generic readb/readw etc. accessors instead of AMD Fam10h workaround
-> - separate ACPI and ECAM code
-> - improve ECAM code naming
->
-> Tomasz Nowicki (9):
->    x86, pci: Clean up comment about buggy MMIO config space access for
->      AMD Fam10h CPUs.
->    x86, pci: Abstract PCI config accessors and use AMD Fam10h workaround
->      exclusively.
->    x86, pci: Reorder logic of pci_mmconfig_insert() function
->    x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
->      out of arch/x86/ directory
->    pci, acpi, mcfg: Provide generic implementation of MCFG code
->      initialization.
->    x86, pci: mmconfig_{32,64}.c code refactoring - remove code
->      duplication.
->    x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
->      driver.
->    pci, acpi, mcfg: Share ACPI PCI config space accessors.
->    pci, ecam: Improve naming for ecam.c content and areas where it is
->      used.
->
->   arch/x86/Kconfig               |   4 +
->   arch/x86/include/asm/pci_x86.h |  34 +---
->   arch/x86/pci/Makefile          |   5 +-
->   arch/x86/pci/acpi.c            |   3 +-
->   arch/x86/pci/mmconfig-shared.c | 346 +++++++++++----------------------------
->   arch/x86/pci/mmconfig_32.c     |  47 ++----
->   arch/x86/pci/mmconfig_64.c     | 153 ------------------
->   arch/x86/pci/numachip.c        |  29 +---
->   drivers/acpi/Makefile          |   1 +
->   drivers/acpi/mcfg.c            | 121 ++++++++++++++
->   drivers/pci/Kconfig            |  10 ++
->   drivers/pci/Makefile           |   5 +
->   drivers/pci/ecam.c             | 358 +++++++++++++++++++++++++++++++++++++++++
->   drivers/xen/pci.c              |   7 +-
->   include/linux/ecam.h           |  56 +++++++
->   15 files changed, 679 insertions(+), 500 deletions(-)
->   delete mode 100644 arch/x86/pci/mmconfig_64.c
->   create mode 100644 drivers/acpi/mcfg.c
->   create mode 100644 drivers/pci/ecam.c
->   create mode 100644 include/linux/ecam.h
->
+Yes, this is the most interesting part to me too, but as I said, I wouldn't like
+to introduce functional differences between DT and ACPI due to this and we need
+response from the DT party to make changes along the lines of patch [3/3].
+
+For now, let me resend patches [1-2/3] with your Tested-by: tag. :-)
+
+Rafael
+
