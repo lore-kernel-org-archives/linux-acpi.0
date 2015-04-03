@@ -1,60 +1,96 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 1/2] device property: Make it possible to use secondary
- firmware nodes
-Date: Fri, 3 Apr 2015 16:06:48 +0200
-Message-ID: <20150403140648.GB12376@kroah.com>
-References: <1422278260-108175-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1594911.7FXIhSfjIv@vostro.rjw.lan>
- <1845472.ky0kR6YsnQ@vostro.rjw.lan>
- <4319396.BzsUBIbBMA@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v4 0/9] PCI: MMCONFIG clean up
+Date: Fri, 3 Apr 2015 10:20:44 -0500
+Message-ID: <CAErSpo6DVe1U701M5Nqkd_HHPtK54f5odoqsKQ0aSdD4hUtYsA@mail.gmail.com>
+References: <1426083169-8698-1-git-send-email-tomasz.nowicki@linaro.org> <551E825F.9060304@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41324 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753089AbbDCOGx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2015 10:06:53 -0400
-Content-Disposition: inline
-In-Reply-To: <4319396.BzsUBIbBMA@vostro.rjw.lan>
+Received: from mail-qc0-f177.google.com ([209.85.216.177]:35253 "EHLO
+	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489AbbDCPVF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Apr 2015 11:21:05 -0400
+Received: by qcbii10 with SMTP id ii10so68397384qcb.2
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Apr 2015 08:21:04 -0700 (PDT)
+In-Reply-To: <551E825F.9060304@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd@linaro.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Yijing Wang <wangyijing@huawei.com>, Arnd Bergmann <arnd@arndb.de>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Rafael Wysocki <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linaro-acpi@lists.linaro.org
 
-On Fri, Apr 03, 2015 at 04:03:27PM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Add a "secondary" pointer to struct fwnode_handle so as to make it
-> possible for a device to have two firmware nodes associated with
-> it at the same time, for example, an ACPI node and a node with
-> a set of properties provided by platform initialization code.
-> 
-> In the future that will allow device property lookup to fall back
-> from the primary firmware node to the secondary one if the given
-> property is not present there to make it easier to provide defaults
-> for device properties used by device drivers.
-> 
-> Introduce two helper routines, set_primary_fwnode() and
-> set_secondary_fwnode() allowing callers to add a primary/secondary
-> firmware node to the given device in such a way that
-> 
->  (1) If there's only one firmware node for that device, it will be
->      pointed to by the device's firmware node pointer.
->  (2) If both the primary and secondary firmware nodes are present,
->      the primary one will be pointed to by the device's firmware
->      node pointer, while the secondary one will be pointed to by the
->      primary node's secondary pointer.
->  (3) If one of these nodes is removed (by calling one of the new
->      nelpers with NULL as the second argument), the other one will
->      be preserved.
-> 
-> Make ACPI use set_primary_fwnode() for attaching its firmware nodes
-> to devices.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Tested-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
-> 
-> Greg, any objections here?
+On Fri, Apr 3, 2015 at 7:06 AM, Tomasz Nowicki
+<tomasz.nowicki@linaro.org> wrote:
+> Hi Bjorn,
+>
+> Any comments before I post next version ?
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Nope.  I've been on vacation for a week and am just trying to catch
+up.  Haven't had time to do any more than build-test your v4 series.
+
+Bjorn
+
+> On 11.03.2015 15:12, Tomasz Nowicki wrote:
+>>
+>> MCFG ACPI table and PCI ECAM standard have no arch dependencies so it can
+>> be
+>> used across all architectures. Currently MMCONFIG related code resides in
+>> arch/x86 directories. This patch set is going to isolate non-architecture
+>> specific code and make it accessible for all architectures.
+>>
+>> v3 -> v4 changes:
+>> - bug fixes after kbuild test robot report
+>>      - add asm/io.h header for ecam.c
+>>      - rename mmcfg -> ecam for drivers/xen/pci.c and
+>> arch/x86/pci/numachip.c
+>> - rework Kconfig logic
+>>
+>> v2 -> v3 changes:
+>> - rebase patch set v2 to v4.0-rc1
+>>
+>> v1 -> v2 changes:
+>> - use generic readb/readw etc. accessors instead of AMD Fam10h workaround
+>> - separate ACPI and ECAM code
+>> - improve ECAM code naming
+>>
+>> Tomasz Nowicki (9):
+>>    x86, pci: Clean up comment about buggy MMIO config space access for
+>>      AMD Fam10h CPUs.
+>>    x86, pci: Abstract PCI config accessors and use AMD Fam10h workaround
+>>      exclusively.
+>>    x86, pci: Reorder logic of pci_mmconfig_insert() function
+>>    x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+>>      out of arch/x86/ directory
+>>    pci, acpi, mcfg: Provide generic implementation of MCFG code
+>>      initialization.
+>>    x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+>>      duplication.
+>>    x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+>>      driver.
+>>    pci, acpi, mcfg: Share ACPI PCI config space accessors.
+>>    pci, ecam: Improve naming for ecam.c content and areas where it is
+>>      used.
+>>
+>>   arch/x86/Kconfig               |   4 +
+>>   arch/x86/include/asm/pci_x86.h |  34 +---
+>>   arch/x86/pci/Makefile          |   5 +-
+>>   arch/x86/pci/acpi.c            |   3 +-
+>>   arch/x86/pci/mmconfig-shared.c | 346
+>> +++++++++++----------------------------
+>>   arch/x86/pci/mmconfig_32.c     |  47 ++----
+>>   arch/x86/pci/mmconfig_64.c     | 153 ------------------
+>>   arch/x86/pci/numachip.c        |  29 +---
+>>   drivers/acpi/Makefile          |   1 +
+>>   drivers/acpi/mcfg.c            | 121 ++++++++++++++
+>>   drivers/pci/Kconfig            |  10 ++
+>>   drivers/pci/Makefile           |   5 +
+>>   drivers/pci/ecam.c             | 358
+>> +++++++++++++++++++++++++++++++++++++++++
+>>   drivers/xen/pci.c              |   7 +-
+>>   include/linux/ecam.h           |  56 +++++++
+>>   15 files changed, 679 insertions(+), 500 deletions(-)
+>>   delete mode 100644 arch/x86/pci/mmconfig_64.c
+>>   create mode 100644 drivers/acpi/mcfg.c
+>>   create mode 100644 drivers/pci/ecam.c
+>>   create mode 100644 include/linux/ecam.h
+>>
+>
