@@ -1,30 +1,24 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2] Documentation: gpio: Update ACPI part of the
- document to mention _DSD
-Date: Sat, 4 Apr 2015 11:27:57 +0200
-Message-ID: <20150404112757.04d9f5fd@lwn.net>
-References: <1427875996-216926-1-git-send-email-mika.westerberg@linux.intel.com>
+From: "Bill William And Andrea Groner" <nga@johnrichardvn.com>
+Subject: Charity Project
+Date: Mon, 06 Apr 2015 04:28:36 +0800
+Message-ID: <20150405202942.0B883E24C8@mail.johnrichardvn.com>
+Reply-To: b.a.groner@foxmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:34707 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752186AbbDDJ2F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Apr 2015 05:28:05 -0400
-In-Reply-To: <1427875996-216926-1-git-send-email-mika.westerberg@linux.intel.com>
+Received: from ns1432.ztomy.com ([61.28.225.61]:44988 "EHLO
+	mail.johnrichardvn.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384AbbDEUj6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Apr 2015 16:39:58 -0400
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Darren Hart <dvhart@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Recipients <nga@johnrichardvn.com>
 
-On Wed,  1 Apr 2015 11:13:16 +0300
-Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
+I saw your email address during the course of my  research today. My name is Bill William Groner my wife and I won a Jackpot Lottery of $50 Million Dollars in December 2013, we are donating the sum of $1 million Dollars to 6 lucky individual all over the world as part of our charity project. Do get back to us for further details on how to get the donation.
 
-> With ACPI 5.1 _DSD (Device Specific Data) it is now possible to name
-> functions just like Device Tree is doing. Make sure that the documentation
-> mentions _DSD as the recommended way to describe GPIOs in ACPI systems.
+http://www.huffingtonpost.ca/2014/07/22/50-million-edmonton-lotto_n_5610890.html
 
-OK, I've applied this to the docs tree, thanks.
-
-jon
+Good luck,
+Bill William And Andrean Groner
