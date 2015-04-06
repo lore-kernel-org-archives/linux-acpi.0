@@ -1,164 +1,123 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: 4.0-rc6 errors when opening LID
-Date: Mon, 6 Apr 2015 12:02:05 +0200
-Message-ID: <201504061202.05760@pali>
-References: <201412241951.48652@pali> <201412270919.49540@pali> <1818900.MY9q0yfluC@vostro.rjw.lan>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V8 PATCH 0/3] Introduce ACPI support for ahci_platform driver
+Date: Mon, 6 Apr 2015 10:45:19 -0500
+Message-ID: <5522AA0F.8000008@amd.com>
+References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2302127.WgGjK1nGBK";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:37027 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913AbbDFKCJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Apr 2015 06:02:09 -0400
-In-Reply-To: <1818900.MY9q0yfluC@vostro.rjw.lan>
+Received: from mail-by2on0116.outbound.protection.outlook.com ([207.46.100.116]:24704
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753052AbbDFPpq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 Apr 2015 11:45:46 -0400
+In-Reply-To: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: nick <xerofoify@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, hanjun.guo@linaro.org
+Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
---nextPart2302127.WgGjK1nGBK
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Ping.
 
-On Saturday 27 December 2014 21:22:56 Rafael J. Wysocki wrote:
-> On Saturday, December 27, 2014 09:19:49 AM Pali Roh=C3=A1r wrote:
-> > Hello,
-> >=20
-> > in attachment is output of ls -l /sys/bus/acpi/devices from
-> > both 3.13 and 3.19 kernels.
-> >=20
-> > Anyway Gabriele Mazzotta wrote me that new acpi devices
-> > could be created after commit faae404ebdc6bba (ACPICA: Add
-> > "Windows 2013" string to _OSI support).
-> >=20
-> > Maybe this another output could help you:
-> >=20
-> > $ cat /sys/bus/acpi/devices/INT33C5\:00/status
-> > 0
-> > $ cat /sys/bus/acpi/devices/INT33C5\:00/power_state
-> > (unknown)
-> >=20
-> > Device INT33C5 is in that dmesg log:
-> > acpi INT33C5:00: Cannot transition to non-D0 state from D3
->=20
-> The appended patch should make these messages go away, please
-> test.
->=20
-> > And status 0 in sysnode could indicate that acpi device is
-> > not present right?
->=20
-> That's correct.
->=20
-> ---
->  drivers/acpi/device_pm.c |    7 ++++---
->  include/acpi/acpi_bus.h  |    3 ++-
->  2 files changed, 6 insertions(+), 4 deletions(-)
->=20
-> Index: linux-pm/include/acpi/acpi_bus.h
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D=3D=3D=3D --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -589,7 +589,8 @@ static inline u32 acpi_target_system_sta
->=20
->  static inline bool acpi_device_power_manageable(struct
-> acpi_device *adev) {
-> -	return adev->flags.power_manageable;
-> +	return adev->flags.power_manageable
-> +		&& (adev->status.present || adev->status.functional);
->  }
->=20
->  static inline bool acpi_device_can_wakeup(struct acpi_device
-> *adev) Index: linux-pm/drivers/acpi/device_pm.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D=3D=3D=3D --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -68,7 +68,8 @@ int acpi_device_get_power(struct acpi_de
->  {
->  	int result =3D ACPI_STATE_UNKNOWN;
->=20
-> -	if (!device || !state)
-> +	if (!device || !state
-> +	    || !(device->status.present ||
-> device->status.functional)) return -EINVAL;
->=20
->  	if (!device->flags.power_manageable) {
-> @@ -156,7 +157,7 @@ int acpi_device_set_power(struct acpi_de
->  	int result =3D 0;
->  	bool cut_power =3D false;
->=20
-> -	if (!device || !device->flags.power_manageable
-> +	if (!device || !acpi_device_power_manageable(device)
->=20
->  	    || (state < ACPI_STATE_D0) || (state >
->  	    || ACPI_STATE_D3_COLD))
->=20
->  		return -EINVAL;
->=20
-> @@ -361,7 +362,7 @@ bool acpi_bus_power_manageable(acpi_hand
->  	int result;
->=20
->  	result =3D acpi_bus_get_device(handle, &device);
-> -	return result ? false : device->flags.power_manageable;
-> +	return result ? false :
-> acpi_device_power_manageable(device); }
->  EXPORT_SYMBOL(acpi_bus_power_manageable);
+Are there any other concerns for this patch series?
 
-Hello Rafael,
+Thanks,
 
-sorry for long delay. Now I tested your patch on top of 4.0-rc6=20
-version and I'm still getting one acpi error message (and lot of =20
-others) in dmesg each time I open LID of my laptop:
+Suravee
 
-kernel: [   62.016803] acpi device:41: Cannot transition to power=20
-state D3cold for parent in (unknown)
+On 3/30/2015 4:56 PM, Suravee Suthikulpanit wrote:
+> This patch series introduce ACPI support for AHCI platform driver.
+> Existing ACPI support for AHCI assumes the device controller is a PCI device.
+> Since there is no ACPI _CID for generic AHCI controller, the driver
+> could not use it for matching devices. Therefore, this patch introduces
+> a mechanism for drivers to match devices using ACPI _CLS method.
+> _CLS contains PCI-defined class-code.
+>
+> This patch series also modifies ACPI modalias to add class-code to the
+> exisiting format, which currently only uses _HID and _CIDs. This is required
+> to support loadable modules w/ _CLS.
+>
+> This is rebased from and tested with:
+>
+>      http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
+>
+> This topic was discussed earlier here (as part of introducing support for
+> AMD Seattle SATA controller):
+>
+>      http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
+>
+> Changes from V7 (https://lkml.org/lkml/2015/3/26/592)
+> 	* [1/3] Return AE_AML_OPERAND_TYPE when _CLS package containing
+> 	  invalid type (per Robert Moore suggestion).
+> 	* [2/3] Fixed build error due missing ACPI_DEVICE_CLASS definition
+> 	  when disabling ACPI.
+>
+> Changes from V6 (https://lkml.org/lkml/2015/3/25/797)
+> 	* Adding Acked-by Mika, and Reviewed-by Hanjun
+> 	* Minor clen up to use lower case 0xffffff for cls_msk
+> 	  (per Mika suggestions).
+> 	* Modify the ACPI_DEVICE_CLASS macro to use designated initializer
+> 	  (per Mika suggestions).
+>
+> Changes from V5 (https://lkml.org/lkml/2015/3/6/24)
+> 	* Rebased and tested with acpi-5.1-v11
+> 	* Splitting up the ACPICA changes into a separate patch [1/3].
+> 	  (per Mika suggestion)
+> 	* Adding class-code mask support (per Mika suggestion)
+> 	* Use macro to define struct acpi_device_id entry (per Mika suggestion)
+> 	* Note: Mika also recommend reordering the member of struct acpi_device_id
+> 	  and define a macro to be used for declaring each table entry. This is a
+> 	  large amount of changes, and will be done separtely from this patch series.
+>
+> Changes from V4 (https://lkml.org/lkml/2015/3/2/56)
+> 	* [1/2] Bug fixed: Reorder the declaration of
+> 	  struct acpi_pnp_device_id cls in the struct acpi_device_info
+> 	  (include/acpi/actypes.h) since compatible_id_list must be last one.
+> 	* [2/2] Added Acked-by: Tejun Heo <tj@kernel.org>
+>
+> Changes from V3 (https://lkml.org/lkml/2015/2/8/106)
+> 	* Instead of introducing new structure acpi_device_cls, add cls into
+> 	  the acpi_device_id, and modify the __acpi_match_device
+> 	  to also match for cls. (per Mika suggestion.)
+> 	* Add loadable module support, which requires changes in ACPI
+> 	  modalias. (per Mika suggestion.)
+> 	* Rebased and tested with acpi-5.1-v9
+>
+> Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
+> 	* Update with review comment from Rafael in patch 1/2
+> 	* Rebased and tested with acpi-5.1-v8
+>
+> Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
+> 	* Rebased to 3.19.0-rc2
+> 	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
+> 	* Change the matching logic in acpi_driver_match_device() due to the new
+> 	  special PRP0001 _HID.
+> 	* Simplify the return type of acpi_match_device_cls() to boolean.
+>
+> Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
+> 	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
+> 	  as inline. (per Arnd)
+> 	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
+>
+> Suravee Suthikulpanit (3):
+>    ACPICA: Add ACPI _CLS processing
+>    ACPI / scan: Add support for ACPI _CLS device matching
+>    ata: ahci_platform: Add ACPI _CLS matching
+>
+>   drivers/acpi/acpica/acutils.h     |  3 ++
+>   drivers/acpi/acpica/nsxfname.c    | 21 +++++++++--
+>   drivers/acpi/acpica/utids.c       | 73 +++++++++++++++++++++++++++++++++++++++
+>   drivers/acpi/scan.c               | 36 ++++++++++++++++---
+>   drivers/ata/Kconfig               |  2 +-
+>   drivers/ata/ahci_platform.c       |  9 +++++
+>   include/acpi/acnames.h            |  1 +
+>   include/acpi/actypes.h            |  4 ++-
+>   include/linux/acpi.h              | 14 ++++++++
+>   include/linux/mod_devicetable.h   |  2 ++
+>   scripts/mod/devicetable-offsets.c |  2 ++
+>   scripts/mod/file2alias.c          | 32 +++++++++++++++--
+>   12 files changed, 189 insertions(+), 10 deletions(-)
+>
 
-If it helps here is more info about that acpi "device:41":
 
-/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C6:00/device:41
-$ grep "" *
-adr:0x00000001
-path:\_SB_.PCI0.SDHC.WI01
-power_state:D0
-status:15
-
-And here about parent ("../")
-
-/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C6:00
-$ grep "" *
-adr:0x00170000
-hid:INT33C6
-modalias:acpi:INT33C6:PNP0D40:
-path:\_SB_.PCI0.SDHC
-status:0
-uevent:MODALIAS=3Dacpi:INT33C6:PNP0D40:
-uid:1
-
-It is OK, that one device has status 0 (not present) and its=20
-child has non zero status? Looks like here is problem...
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2302127.WgGjK1nGBK
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlUiWZ0ACgkQi/DJPQPkQ1LIBwCfQr2WtuvcjyaUYbBtqP4aTKBx
-XRYAnih6mEWQwAKYYLS0p4iNirupIUJa
-=vywH
------END PGP SIGNATURE-----
-
---nextPart2302127.WgGjK1nGBK--
