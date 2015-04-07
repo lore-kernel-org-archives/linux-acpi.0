@@ -1,100 +1,83 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC 3/7] ia64/PCI: Use common struct resource_entry to replace struct iospace_resource
-Date: Tue,  7 Apr 2015 12:31:08 +0800
-Message-ID: <1428381072-27486-4-git-send-email-jiang.liu@linux.intel.com>
-References: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Yinghai Lu <yinghai@kernel.org>, Lv Zheng <lv.zheng@intel.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-ia64@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
+Date: Tue, 7 Apr 2015 11:41:43 +0300
+Message-ID: <20150407084143.GP17830@lahna.fi.intel.com>
+References: <1427836680-13008-1-git-send-email-fkan@apm.com>
+ <20150401074553.GV1524@lahna.fi.intel.com>
+ <CAL85gmDE5qD2tTABuz-6ccoVtnN4zN1Vbyyz+nQbdhT74UH37A@mail.gmail.com>
+ <20150402090702.GD17830@lahna.fi.intel.com>
+ <CAL85gmA1mjcX6FEmUHipn0iSzpti2z6D4++7Q3gxGiPGZaE_Cw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAL85gmA1mjcX6FEmUHipn0iSzpti2z6D4++7Q3gxGiPGZaE_Cw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Feng Kan <fkan@apm.com>
+Cc: patches <patches@apm.com>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Use common struct resource_entry to replace private struct iospace_resource.
+On Thu, Apr 02, 2015 at 11:04:24AM -0700, Feng Kan wrote:
+> On Thu, Apr 2, 2015 at 2:07 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > On Wed, Apr 01, 2015 at 10:01:45AM -0700, Feng Kan wrote:
+> >> On Wed, Apr 1, 2015 at 12:45 AM, Mika Westerberg
+> >> <mika.westerberg@linux.intel.com> wrote:
+> >> > On Tue, Mar 31, 2015 at 02:18:00PM -0700, Feng Kan wrote:
+> >> >> This will add support for ACPI parsing of the mboxes attribute
+> >> >> when booting with ACPI table. The client will have a attribute
+> >> >> mimic the dts call "mboxes". In the ACPI case, the client will
+> >> >> mark "mboxes" with the ACPI HID of the mbox it wishes to use.
+> >> >>
+> >> >>       Name (_DSD, Package () {
+> >> >>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> >>               Package () {
+> >> >>                       Package (2) {"mboxes", "ACPIHID"},
+> >> >>               }
+> >> >>       })
+> >> >
+> >> > Instead of this, why not match against the DT compatible property?
+> >> >
+> >> >         Name (_HID, "PRP0001")
+> >> >
+> >> >         Name (_DSD, Package () {
+> >> >                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >> >                 Package () {
+> >> >                         Package (2) {"compatible", "your-dt-compatible-string"},
+> >> >                 }
+> >> >         })
+> >> I think my description was not clear enough. The _DSD section is not
+> >> meant to identify the mailbox driver, but used by the acpi node that will
+> >> request the mailbox channel. The dts version would be as below.
+> >>
+> >>    mailbox: {
+> >>    }
+> >>
+> >>    user-mbox: {
+> >>       mboxes: <&mailbox 0>
+> >>    }
+> >>
+> >> The mboxes attribute in the user of the mbox has to specify the HID of the
+> >> mbox in order to retrieve channel pointer.
+> >
+> > Okay, then I think you can use reference instead of _HID, like
+> >
+> >         // The mailbox device
+> >         Device (MLBX) {
+> >         }
+> >
+> >         // User-mbox device
+> >         Device (USBX) {
+> >                 Name (_DSD, Package () {
+> >                         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >                         Package () {
+> >                                 Package () {"mboxes", Package () {^^MLBX, 0}}),
+> >                         }
+> >                 })
+> >         }
+> 
+> Thanks, will try this. A side question on your previous reply. Would you
+> prefer a new driver using the PRP0001 or an actual proper HID.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/ia64/include/asm/pci.h |    5 -----
- arch/ia64/pci/pci.c         |   17 ++++++++---------
- 2 files changed, 8 insertions(+), 14 deletions(-)
-
-diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
-index 52af5ed9f60b..5c10e0ec48d4 100644
---- a/arch/ia64/include/asm/pci.h
-+++ b/arch/ia64/include/asm/pci.h
-@@ -83,11 +83,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
- #define pci_legacy_read platform_pci_legacy_read
- #define pci_legacy_write platform_pci_legacy_write
- 
--struct iospace_resource {
--	struct list_head list;
--	struct resource res;
--};
--
- struct pci_controller {
- 	struct acpi_device *companion;
- 	void *iommu;
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index cafe8e47afb2..c5630dd5e181 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -154,14 +154,14 @@ new_space (u64 phys_base, int sparse)
- static int add_io_space(struct device *dev, struct pci_root_info *info,
- 			struct resource_entry *entry)
- {
--	struct iospace_resource *iospace;
-+	struct resource_entry *iospace;
- 	struct resource *resource, *res = entry->res;
- 	char *name;
- 	unsigned long base, min, max, base_port;
- 	unsigned int sparse = 0, space_nr, len;
- 
- 	len = strlen(info->name) + 32;
--	iospace = kzalloc(sizeof(*iospace) + len, GFP_KERNEL);
-+	iospace = resource_list_create_entry(NULL, len);
- 	if (!iospace) {
- 		dev_err(dev, "PCI: No memory for %s I/O port space\n",
- 			info->name);
-@@ -190,7 +190,7 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 	if (space_nr == 0)
- 		sparse = 1;
- 
--	resource = &iospace->res;
-+	resource = iospace->res;
- 	resource->name  = name;
- 	resource->flags = IORESOURCE_MEM;
- 	resource->start = base + (sparse ? IO_SPACE_SPARSE_ENCODING(min) : min);
-@@ -205,12 +205,12 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 	entry->offset = base_port;
- 	res->start = min + base_port;
- 	res->end = max + base_port;
--	list_add_tail(&iospace->list, &info->io_resources);
-+	resource_list_add_tail(iospace, &info->io_resources);
- 
- 	return 0;
- 
- free_resource:
--	kfree(iospace);
-+	resource_list_free_entry(iospace);
- 	return -ENOSPC;
- }
- 
-@@ -348,12 +348,11 @@ static void add_resources(struct pci_root_info *info, struct device *dev)
- static void __release_pci_root_info(struct pci_root_info *info)
- {
- 	struct resource *res;
--	struct iospace_resource *iospace, *tmp;
- 	struct resource_entry *entry, *tentry;
- 
--	list_for_each_entry_safe(iospace, tmp, &info->io_resources, list) {
--		release_resource(&iospace->res);
--		kfree(iospace);
-+	resource_list_for_each_entry_safe(entry, tentry, &info->io_resources) {
-+		release_resource(entry->res);
-+		resource_list_destroy_entry(entry);
- 	}
- 
- 	resource_list_for_each_entry_safe(entry, tentry, &info->resources) {
--- 
-1.7.10.4
-
+If you have existing DT bindings for this, then PRP0001 is fine.
+Otherwise you should use the proper _HID for this particular device.
