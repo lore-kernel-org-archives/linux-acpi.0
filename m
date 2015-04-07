@@ -1,236 +1,81 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix v4] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Tue, 07 Apr 2015 13:47:50 +0200
-Message-ID: <2892229.MnX9GPrTyU@vostro.rjw.lan>
-References: <1428381018-27406-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [RFC 0/7] Consolidate common ACPI PCI host bridge code into ACPI core
+Date: Tue, 07 Apr 2015 13:48:57 +0200
+Message-ID: <1602543.J47QWOMlgo@vostro.rjw.lan>
+References: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428381018-27406-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, April 07, 2015 12:30:18 PM Jiang Liu wrote:
-> Before commit 593669c2ac0f("Use common ACPI resource interfaces to
-> simplify implementation"), arch/x86/pci/acpi.c applies following
-> rules when parsing ACPI resources for PCI host bridge:
-> 1) Ignore IO port resources defined by acpi_resource_io and
->    acpi_resource_fixed_io, which should be used to define resource
->    for PCI device instead of PCI bridge.
-> 2) Accept IOMEM resource defined by acpi_resource_memory24,
->    acpi_resource_memory32 and acpi_resource_fixed_memory32.
->    These IOMEM resources are accepted to workaround some BIOS issue,
->    though they should be ignored. For example, PC Engines APU.1C
->    platform defines PCI host bridge IOMEM resources as:
->                 Memory32Fixed (ReadOnly,
->                     0x000A0000,         // Address Base
->                     0x00020000,         // Address Length
->                     )
->                 Memory32Fixed (ReadOnly,
->                     0x00000000,         // Address Base
->                     0x00000000,         // Address Length
->                     _Y00)
-> 3) Accept all IO port and IOMEM resources defined by
->    acpi_resource_address{16,32,64,extended64}, no matter it's marked as
->    ACPI_CONSUMER or ACPI_PRODUCER.
+On Tuesday, April 07, 2015 12:31:05 PM Jiang Liu wrote:
+> As suggested by Bjorn, this patch set consolidates common ACPI PCI host
+> bridge code from x86 and IA64 into ACPI core. It may also help to
+> support ACPI PCI host bridge on ARM64 platfrom too in future.
 > 
-> Commit 593669c2ac0f("Use common ACPI resource interfaces to
-> simplify implementation") accept all IO port and IOMEM resources
-> defined by acpi_resource_io, acpi_resource_fixed_io,
-> acpi_resource_memory24, acpi_resource_memory32,
-> acpi_resource_fixed_memory32 and
-> acpi_resource_address{16,32,64,extended64}, which causes IO port
-> resources consumed by host bridge itself are listed in to host bridge
-> resource list.
+> It introduces struct acpi_pci_root_ops and acpi_pci_root_create().
+> Arch code only needs to implement struct acpi_pci_root_ops and then
+> invoke acpi_pci_root_create() to parse ACPI resources and create
+> PCI root bus.
+> struct acpi_pci_root_info_common {
+>         struct pci_controller           controller;
+>         struct acpi_pci_root            *root;
+>         struct acpi_device              *bridge;
+>         struct acpi_pci_root_ops        *ops;
+>         struct list_head                resources;
+>         char                            name[16];
+> };
+> struct acpi_pci_root_ops {
+> 	struct pci_ops *pci_ops;
+> 	int (*init_info)(struct acpi_pci_root_info_common *info);
+> 	void (*release_info)(struct acpi_pci_root_info_common *info);
+> 	int (*prepare_resources)(struct acpi_pci_root_info_common *info,
+> 				 int status);
+> };
+> extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> 					    struct acpi_pci_root_ops *ops,
+> 					    size_t extra_size);
+> It passes Fengguang's 0day test suite and has been tested on 
+> 1) An Intel x86 4 socket platform
+> 2) An Intel IA64 SDV
+> 3) An HP IA64 platform
 > 
-> Then commit 63f1789ec716("Ignore resources consumed by host bridge
-> itself") ignores resources consumed by host bridge itself by checking
-> IORESOURCE_WINDOW flag, which accidently removed the workaround in 2)
-> above for BIOS bug .
+> And you may access it at:
+> https://github.com/jiangliu/linux.git acpi_pci_root_v1
 > 
-> It's really costed us much time to figure out this whole picture.
-> So we refine interface acpi_dev_filter_resource_type as below,
-> which should be easier for maintence:
-> 1) Caller specifies IORESOURCE_WINDOW flag to explicitly query resource
->    for bridge(PRODUCER), otherwise it's querying resource for
->    device(CONSUMER).
-> 2) Ignore IO port resources defined by acpi_resource_io and
->    acpi_resource_fixed_io if IORESOURCE_WINDOW is specified.
-> 3) Accpet IOMEM resource defined by acpi_resource_memory24,
->    acpi_resource_memory32 and acpi_resource_fixed_memory32 if both
->    IORESOURCE_WINDOW and IORESOURCE_MEM_8AND16BIT are specified to work
->    around BIOS issues.
-> 4) Accept IO port and IOMEM defined by acpi_resource_addressxx if
->    a) IORESOURCE_WINDOW is specified and ACPI_PRODUCER is true
->    b) IORESOURCE_WINDOW is not specified and ACPI_PRODUCER is false
+> Thanks!
+> Gerry
 > 
-> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
-> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
+> Jiang Liu (7):
+>   ACPI/PCI: Enhance ACPI core to support sparse IO space
+>   ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
+>     bridge
+>   ia64/PCI: Use common struct resource_entry to replace struct
+>     iospace_resource
+>   x86/PCI: Rename struct pci_sysdata as struct pci_controller
+>   PCI/ACPI: Consolidate common PCI host bridge code into ACPI core
+>   x86/PCI/ACPI: Use common interface to support PCI host bridge
+>   ia64/PCI/ACPI: Use common interface to support PCI host bridge
 > 
-> Another possible fix is to only ignore IO resource consumed by host
-> bridge and keep IOMEM resource consumed by host bridge, please refer to:
-> http://www.spinics.net/lists/linux-pci/msg39706.html
-> 
-> Sample ACPI table are archived at:
-> https://bugzilla.kernel.org/show_bug.cgi?id=94221
-> 
-> V3->V4:
-> 1) Improve comments
-> 2) Use flag IORESOURCE_MEM_8AND16BIT to work around BIOS issue
+>  arch/ia64/include/asm/pci.h   |    5 -
+>  arch/ia64/pci/pci.c           |  360 ++++++++++-------------------------------
+>  arch/x86/include/asm/pci.h    |   12 +-
+>  arch/x86/include/asm/pci_64.h |    4 +-
+>  arch/x86/pci/acpi.c           |  283 +++++++++-----------------------
+>  arch/x86/pci/common.c         |    2 +-
+>  drivers/acpi/pci_root.c       |  215 ++++++++++++++++++++++++
+>  drivers/acpi/resource.c       |    9 +-
+>  include/linux/ioport.h        |    1 +
+>  include/linux/pci-acpi.h      |   24 +++
+>  10 files changed, 409 insertions(+), 506 deletions(-)
 
-OK, so how does that address the comments in the previous thread?
+That's generally fine by me, but let's fix the resources issue first, shall we?
 
-It would *really* help if you responded there instead of starting a new
-thread by sending a new patch version.  This makes it really difficult to
-follow the entire discussion, which is part of why we keep forgetting things.
-
-> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
-> Reported-and-Tested-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  arch/x86/pci/acpi.c     |    8 +++++---
->  drivers/acpi/resource.c |   52 +++++++++++++++++++++++++++++++++++++++++------
->  2 files changed, 51 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index e4695985f9de..150774be0f3f 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -332,12 +332,15 @@ static void probe_pci_root_info(struct pci_root_info *info,
->  {
->  	int ret;
->  	struct resource_entry *entry, *tmp;
-> +	unsigned long res_flags;
->  
->  	sprintf(info->name, "PCI Bus %04x:%02x", domain, busnum);
->  	info->bridge = device;
-> +	res_flags = IORESOURCE_IO | IORESOURCE_MEM |
-> +		    IORESOURCE_WINDOW | IORESOURCE_MEM_8AND16BIT;
->  	ret = acpi_dev_get_resources(device, list,
->  				     acpi_dev_filter_resource_type_cb,
-> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
-> +				     (void *)res_flags);
->  	if (ret < 0)
->  		dev_warn(&device->dev,
->  			 "failed to parse _CRS method, error code %d\n", ret);
-> @@ -346,8 +349,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
->  			"no IO and memory resources present in _CRS\n");
->  	else
->  		resource_list_for_each_entry_safe(entry, tmp, list) {
-> -			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
-> -			    (entry->res->flags & IORESOURCE_DISABLED))
-> +			if (entry->res->flags & IORESOURCE_DISABLED)
->  				resource_list_destroy_entry(entry);
->  			else
->  				entry->res->name = info->name;
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 5589a6e2a023..0187e0e11bb8 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -567,6 +567,12 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
->  }
->  EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
->  
-> +static bool acpi_dev_match_producer_consumer(unsigned long types, int producer)
-> +{
-> +	return ((types & IORESOURCE_WINDOW) && producer == ACPI_PRODUCER) ||
-> +		((types & IORESOURCE_WINDOW) == 0 && producer == ACPI_CONSUMER);
-> +}
-> +
->  /**
->   * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
->   *				   types
-> @@ -574,7 +580,19 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
->   * @types: Valid resource types of IORESOURCE_XXX
->   *
->   * This is a hepler function to support acpi_dev_get_resources(), which filters
-> - * ACPI resource objects according to resource types.
-> + * ACPI resource objects according to resource types and flags as below:
-> + * 1) If flag IORESOURCE_WINDOW is not specified, it's querying resources
-> + *    consumed by device. That is to return:
-> + * 	a) ACPI resources without producer_consumer flag
-> + *	b) ACPI resources with producer_consumer flag setting to CONSUMER.
-
-OK, so what if the resource is not of an "extended" type, say DWORD address space,
-but has a non-empty Resource Source field pointing to the device itself?
-
-Shouldn't we treat that device as a "producer" too?
-
-> + * 2) If flag IORESOURCE_WINDOW is specified, it's querying resources provided
-> + *    by device. That is to return:
-> + *	a) ACPI resources with producer_consumer flag setting to PRODUCER.
-> + * 3) But there's an exception. Some platforms, such as PC Engines APU.1C,
-> + *    report PCI host bridge resource provision by Memory32Fixed().
-> + *    Please refer to https://bugzilla.kernel.org/show_bug.cgi?id=94221
-> + *    So a special flag IORESOURCE_MEM_8AND16BIT is used to work around this
-> + *    BIOS issue.
-
-This is a legitimate thing for the BIOS to do if my reading of the spec is
-correct, as the "producer" thing really is supposed to mean "this resource
-comes from the device itself".
-
->   */
->  int acpi_dev_filter_resource_type(struct acpi_resource *ares,
->  				  unsigned long types)
-> @@ -585,27 +603,49 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
->  	case ACPI_RESOURCE_TYPE_MEMORY24:
->  	case ACPI_RESOURCE_TYPE_MEMORY32:
->  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-> -		type = IORESOURCE_MEM;
-> +		/*
-> +		 * These types of resource descriptor should be used to
-> +		 * describe resource consumption instead of resource provision.
-> +		 * But some platforms, such as PC Engines APU.1C, report
-> +		 * resource provision by Memory32Fixed(). Please refer to:
-> +		 * https://bugzilla.kernel.org/show_bug.cgi?id=94221
-> +		 * So a special rule to work around BIOS issues.
-> +		 */
-> +		if ((types & (IORESOURCE_WINDOW | IORESOURCE_MEM_8AND16BIT)) ==
-> +		    (IORESOURCE_WINDOW | IORESOURCE_MEM_8AND16BIT) ||
-> +		    acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_MEM;
->  		break;
->  	case ACPI_RESOURCE_TYPE_IO:
->  	case ACPI_RESOURCE_TYPE_FIXED_IO:
-> -		type = IORESOURCE_IO;
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_IO;
->  		break;
->  	case ACPI_RESOURCE_TYPE_IRQ:
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_IRQ;
-> +		break;
->  	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-> -		type = IORESOURCE_IRQ;
-> +		if (acpi_dev_match_producer_consumer(types,
-> +				ares->data.extended_irq.producer_consumer))
-> +			type = IORESOURCE_IRQ;
->  		break;
->  	case ACPI_RESOURCE_TYPE_DMA:
->  	case ACPI_RESOURCE_TYPE_FIXED_DMA:
-> -		type = IORESOURCE_DMA;
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_DMA;
->  		break;
->  	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
-> -		type = IORESOURCE_REG;
-> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
-> +			type = IORESOURCE_REG;
->  		break;
->  	case ACPI_RESOURCE_TYPE_ADDRESS16:
->  	case ACPI_RESOURCE_TYPE_ADDRESS32:
->  	case ACPI_RESOURCE_TYPE_ADDRESS64:
->  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
-> +		if (!acpi_dev_match_producer_consumer(types,
-> +				ares->data.address.producer_consumer))
-> +			break;
->  		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
->  			type = IORESOURCE_MEM;
->  		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
-> 
 
 -- 
 I speak only for myself.
