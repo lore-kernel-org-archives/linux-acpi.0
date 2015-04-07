@@ -1,82 +1,66 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC 0/7] Consolidate common ACPI PCI host bridge code into ACPI core
-Date: Tue, 07 Apr 2015 13:48:57 +0200
-Message-ID: <1602543.J47QWOMlgo@vostro.rjw.lan>
-References: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [PATCH] ACPI / HOTPLUG: fix device->physical_node_lock deadlock
+Date: Tue, 07 Apr 2015 13:50:48 +0200
+Message-ID: <12760195.2odgqTkKju@vostro.rjw.lan>
+References: <1428397392-26200-1-git-send-email-xiexiuqi@huawei.com> <5219717.RxvSXtBaZ8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60471 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752661AbbDGL0Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2015 07:26:25 -0400
+In-Reply-To: <5219717.RxvSXtBaZ8@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: lenb@kernel.org, guohanjun@huawei.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday, April 07, 2015 12:31:05 PM Jiang Liu wrote:
-> As suggested by Bjorn, this patch set consolidates common ACPI PCI host
-> bridge code from x86 and IA64 into ACPI core. It may also help to
-> support ACPI PCI host bridge on ARM64 platfrom too in future.
+On Tuesday, April 07, 2015 01:22:52 PM Rafael J. Wysocki wrote:
+> On Tuesday, April 07, 2015 05:03:12 PM Xie XiuQi wrote:
+> > I meet a deadlock during cpu hotplug. The code path is bellow:
+> > 
+> > Call Trace:
+> >  [<ffffffff816e373c>] dump_stack+0x19/0x1b
+> >  [<ffffffff810fd85a>] validate_chain.isra.43+0xf4a/0x1120
+> >  [<ffffffff810236c9>] ? sched_clock+0x9/0x10
+> >  [<ffffffff810ca8bd>] ? sched_clock_local+0x1d/0x80
+> >  [<ffffffff810caa88>] ? sched_clock_cpu+0xa8/0x100
+> >  [<ffffffff810fe846>] __lock_acquire+0x3c6/0xb70
+> >  [<ffffffff810caa88>] ? sched_clock_cpu+0xa8/0x100
+> >  [<ffffffff810ff7e2>] lock_acquire+0xa2/0x1f0
+> >  [<ffffffff813ba132>] ? acpi_scan_is_offline+0x2c/0xa3
+> >  [<ffffffff816e7a14>] mutex_lock_nested+0x94/0x3f0
+> >  [<ffffffff813ba132>] ? acpi_scan_is_offline+0x2c/0xa3
+> >  [<ffffffff813ba132>] ? acpi_scan_is_offline+0x2c/0xa3
+> >  [<ffffffff810fe0fd>] ? trace_hardirqs_on+0xd/0x10
+> >  [<ffffffff813ba132>] acpi_scan_is_offline+0x2c/0xa3	--> LOCK (DEADLOCK)
 > 
-> It introduces struct acpi_pci_root_ops and acpi_pci_root_create().
-> Arch code only needs to implement struct acpi_pci_root_ops and then
-> invoke acpi_pci_root_create() to parse ACPI resources and create
-> PCI root bus.
-> struct acpi_pci_root_info_common {
->         struct pci_controller           controller;
->         struct acpi_pci_root            *root;
->         struct acpi_device              *bridge;
->         struct acpi_pci_root_ops        *ops;
->         struct list_head                resources;
->         char                            name[16];
-> };
-> struct acpi_pci_root_ops {
-> 	struct pci_ops *pci_ops;
-> 	int (*init_info)(struct acpi_pci_root_info_common *info);
-> 	void (*release_info)(struct acpi_pci_root_info_common *info);
-> 	int (*prepare_resources)(struct acpi_pci_root_info_common *info,
-> 				 int status);
-> };
-> extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-> 					    struct acpi_pci_root_ops *ops,
-> 					    size_t extra_size);
-> It passes Fengguang's 0day test suite and has been tested on 
-> 1) An Intel x86 4 socket platform
-> 2) An Intel IA64 SDV
-> 3) An HP IA64 platform
-> 
-> And you may access it at:
-> https://github.com/jiangliu/linux.git acpi_pci_root_v1
-> 
-> Thanks!
-> Gerry
-> 
-> Jiang Liu (7):
->   ACPI/PCI: Enhance ACPI core to support sparse IO space
->   ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
->     bridge
->   ia64/PCI: Use common struct resource_entry to replace struct
->     iospace_resource
->   x86/PCI: Rename struct pci_sysdata as struct pci_controller
->   PCI/ACPI: Consolidate common PCI host bridge code into ACPI core
->   x86/PCI/ACPI: Use common interface to support PCI host bridge
->   ia64/PCI/ACPI: Use common interface to support PCI host bridge
-> 
->  arch/ia64/include/asm/pci.h   |    5 -
->  arch/ia64/pci/pci.c           |  360 ++++++++++-------------------------------
->  arch/x86/include/asm/pci.h    |   12 +-
->  arch/x86/include/asm/pci_64.h |    4 +-
->  arch/x86/pci/acpi.c           |  283 +++++++++-----------------------
->  arch/x86/pci/common.c         |    2 +-
->  drivers/acpi/pci_root.c       |  215 ++++++++++++++++++++++++
->  drivers/acpi/resource.c       |    9 +-
->  include/linux/ioport.h        |    1 +
->  include/linux/pci-acpi.h      |   24 +++
->  10 files changed, 409 insertions(+), 506 deletions(-)
+> Is it the same device, actually?  acpi_container_offline() walks the *children*
+> of the container while acpi_bus_offline() locks the container itself.
 
-That's generally fine by me, but let's fix the resources issue first, shall we?
+So the patch below should make the splat go away too if I'm not mistaken.
 
+---
+ drivers/acpi/scan.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -298,7 +298,11 @@ bool acpi_scan_is_offline(struct acpi_de
+ 	struct acpi_device_physical_node *pn;
+ 	bool offline = true;
+ 
+-	mutex_lock(&adev->physical_node_lock);
++	/*
++	 * acpi_container_offline() calls this for all of the container's
++	 * children under the container's physical_node_lock lock.
++	 */
++	mutex_lock_nested(&adev->physical_node_lock, SINGLE_DEPTH_NESTING);
+ 
+ 	list_for_each_entry(pn, &adev->physical_node_list, node)
+ 		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
+
