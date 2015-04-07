@@ -1,77 +1,77 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC 0/7] Consolidate common ACPI PCI host bridge code into ACPI core
-Date: Tue,  7 Apr 2015 12:31:05 +0800
-Message-ID: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23638 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752902AbbDGE2w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Apr 2015 00:28:52 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
+Subject: [RFC 1/7] ACPI/PCI: Enhance ACPI core to support sparse IO space
+Date: Tue,  7 Apr 2015 12:31:06 +0800
+Message-ID: <1428381072-27486-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-As suggested by Bjorn, this patch set consolidates common ACPI PCI host
-bridge code from x86 and IA64 into ACPI core. It may also help to
-support ACPI PCI host bridge on ARM64 platfrom too in future.
+Enhance ACPI resource parsing interfaces to support sparse IO space,
+which will be used to share common code between x86 and IA64.
 
-It introduces struct acpi_pci_root_ops and acpi_pci_root_create().
-Arch code only needs to implement struct acpi_pci_root_ops and then
-invoke acpi_pci_root_create() to parse ACPI resources and create
-PCI root bus.
-struct acpi_pci_root_info_common {
-        struct pci_controller           controller;
-        struct acpi_pci_root            *root;
-        struct acpi_device              *bridge;
-        struct acpi_pci_root_ops        *ops;
-        struct list_head                resources;
-        char                            name[16];
-};
-struct acpi_pci_root_ops {
-	struct pci_ops *pci_ops;
-	int (*init_info)(struct acpi_pci_root_info_common *info);
-	void (*release_info)(struct acpi_pci_root_info_common *info);
-	int (*prepare_resources)(struct acpi_pci_root_info_common *info,
-				 int status);
-};
-extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-					    struct acpi_pci_root_ops *ops,
-					    size_t extra_size);
-It passes Fengguang's 0day test suite and has been tested on 
-1) An Intel x86 4 socket platform
-2) An Intel IA64 SDV
-3) An HP IA64 platform
+Tested-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/resource.c |    9 ++++++---
+ include/linux/ioport.h  |    1 +
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-And you may access it at:
-https://github.com/jiangliu/linux.git acpi_pci_root_v1
-
-Thanks!
-Gerry
-
-Jiang Liu (7):
-  ACPI/PCI: Enhance ACPI core to support sparse IO space
-  ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
-    bridge
-  ia64/PCI: Use common struct resource_entry to replace struct
-    iospace_resource
-  x86/PCI: Rename struct pci_sysdata as struct pci_controller
-  PCI/ACPI: Consolidate common PCI host bridge code into ACPI core
-  x86/PCI/ACPI: Use common interface to support PCI host bridge
-  ia64/PCI/ACPI: Use common interface to support PCI host bridge
-
- arch/ia64/include/asm/pci.h   |    5 -
- arch/ia64/pci/pci.c           |  360 ++++++++++-------------------------------
- arch/x86/include/asm/pci.h    |   12 +-
- arch/x86/include/asm/pci_64.h |    4 +-
- arch/x86/pci/acpi.c           |  283 +++++++++-----------------------
- arch/x86/pci/common.c         |    2 +-
- drivers/acpi/pci_root.c       |  215 ++++++++++++++++++++++++
- drivers/acpi/resource.c       |    9 +-
- include/linux/ioport.h        |    1 +
- include/linux/pci-acpi.h      |   24 +++
- 10 files changed, 409 insertions(+), 506 deletions(-)
-
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 0187e0e11bb8..5727c3bf98c9 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+ 
+ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+-				      u8 io_decode)
++				      u8 io_decode, u8 translation_type)
+ {
+ 	res->flags = IORESOURCE_IO;
+ 
+@@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+ 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
++	if (translation_type == ACPI_SPARSE_TRANSLATION)
++		res->flags |= IORESOURCE_IO_SPARSE;
+ }
+ 
+ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+@@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+ {
+ 	res->start = start;
+ 	res->end = start + len - 1;
+-	acpi_dev_ioresource_flags(res, len, io_decode);
++	acpi_dev_ioresource_flags(res, len, io_decode, 0);
+ }
+ 
+ /**
+@@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		acpi_dev_memresource_flags(res, len, wp);
+ 		break;
+ 	case ACPI_IO_RANGE:
+-		acpi_dev_ioresource_flags(res, len, iodec);
++		acpi_dev_ioresource_flags(res, len, iodec,
++					  addr->info.io.translation_type);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 2c5250222278..b9762760ca49 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -94,6 +94,7 @@ struct resource {
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+ #define IORESOURCE_IO_FIXED		(1<<1)
++#define IORESOURCE_IO_SPARSE		(1<<2)
+ 
+ /* PCI ROM control bits (IORESOURCE_BITS) */
+ #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
 -- 
 1.7.10.4
-
