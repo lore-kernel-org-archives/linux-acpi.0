@@ -1,93 +1,236 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
-Date: Tue, 07 Apr 2015 13:37:56 +0200
-Message-ID: <11619620.g1RKbURH6u@vostro.rjw.lan>
-References: <1427836680-13008-1-git-send-email-fkan@apm.com> <CAL85gmA1mjcX6FEmUHipn0iSzpti2z6D4++7Q3gxGiPGZaE_Cw@mail.gmail.com> <20150407084143.GP17830@lahna.fi.intel.com>
+Subject: Re: [Bugfix v4] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Tue, 07 Apr 2015 13:47:50 +0200
+Message-ID: <2892229.MnX9GPrTyU@vostro.rjw.lan>
+References: <1428381018-27406-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62344 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752479AbbDGLNd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Apr 2015 07:13:33 -0400
-In-Reply-To: <20150407084143.GP17830@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1428381018-27406-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Feng Kan <fkan@apm.com>, patches <patches@apm.com>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tuesday, April 07, 2015 11:41:43 AM Mika Westerberg wrote:
-> On Thu, Apr 02, 2015 at 11:04:24AM -0700, Feng Kan wrote:
-> > On Thu, Apr 2, 2015 at 2:07 AM, Mika Westerberg
-> > <mika.westerberg@linux.intel.com> wrote:
-> > > On Wed, Apr 01, 2015 at 10:01:45AM -0700, Feng Kan wrote:
-> > >> On Wed, Apr 1, 2015 at 12:45 AM, Mika Westerberg
-> > >> <mika.westerberg@linux.intel.com> wrote:
-> > >> > On Tue, Mar 31, 2015 at 02:18:00PM -0700, Feng Kan wrote:
-> > >> >> This will add support for ACPI parsing of the mboxes attribute
-> > >> >> when booting with ACPI table. The client will have a attribute
-> > >> >> mimic the dts call "mboxes". In the ACPI case, the client will
-> > >> >> mark "mboxes" with the ACPI HID of the mbox it wishes to use.
-> > >> >>
-> > >> >>       Name (_DSD, Package () {
-> > >> >>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > >> >>               Package () {
-> > >> >>                       Package (2) {"mboxes", "ACPIHID"},
-> > >> >>               }
-> > >> >>       })
-> > >> >
-> > >> > Instead of this, why not match against the DT compatible property?
-> > >> >
-> > >> >         Name (_HID, "PRP0001")
-> > >> >
-> > >> >         Name (_DSD, Package () {
-> > >> >                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > >> >                 Package () {
-> > >> >                         Package (2) {"compatible", "your-dt-compatible-string"},
-> > >> >                 }
-> > >> >         })
-> > >> I think my description was not clear enough. The _DSD section is not
-> > >> meant to identify the mailbox driver, but used by the acpi node that will
-> > >> request the mailbox channel. The dts version would be as below.
-> > >>
-> > >>    mailbox: {
-> > >>    }
-> > >>
-> > >>    user-mbox: {
-> > >>       mboxes: <&mailbox 0>
-> > >>    }
-> > >>
-> > >> The mboxes attribute in the user of the mbox has to specify the HID of the
-> > >> mbox in order to retrieve channel pointer.
-> > >
-> > > Okay, then I think you can use reference instead of _HID, like
-> > >
-> > >         // The mailbox device
-> > >         Device (MLBX) {
-> > >         }
-> > >
-> > >         // User-mbox device
-> > >         Device (USBX) {
-> > >                 Name (_DSD, Package () {
-> > >                         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > >                         Package () {
-> > >                                 Package () {"mboxes", Package () {^^MLBX, 0}}),
-> > >                         }
-> > >                 })
-> > >         }
-> > 
-> > Thanks, will try this. A side question on your previous reply. Would you
-> > prefer a new driver using the PRP0001 or an actual proper HID.
+On Tuesday, April 07, 2015 12:30:18 PM Jiang Liu wrote:
+> Before commit 593669c2ac0f("Use common ACPI resource interfaces to
+> simplify implementation"), arch/x86/pci/acpi.c applies following
+> rules when parsing ACPI resources for PCI host bridge:
+> 1) Ignore IO port resources defined by acpi_resource_io and
+>    acpi_resource_fixed_io, which should be used to define resource
+>    for PCI device instead of PCI bridge.
+> 2) Accept IOMEM resource defined by acpi_resource_memory24,
+>    acpi_resource_memory32 and acpi_resource_fixed_memory32.
+>    These IOMEM resources are accepted to workaround some BIOS issue,
+>    though they should be ignored. For example, PC Engines APU.1C
+>    platform defines PCI host bridge IOMEM resources as:
+>                 Memory32Fixed (ReadOnly,
+>                     0x000A0000,         // Address Base
+>                     0x00020000,         // Address Length
+>                     )
+>                 Memory32Fixed (ReadOnly,
+>                     0x00000000,         // Address Base
+>                     0x00000000,         // Address Length
+>                     _Y00)
+> 3) Accept all IO port and IOMEM resources defined by
+>    acpi_resource_address{16,32,64,extended64}, no matter it's marked as
+>    ACPI_CONSUMER or ACPI_PRODUCER.
 > 
-> If you have existing DT bindings for this, then PRP0001 is fine.
-> Otherwise you should use the proper _HID for this particular device.
+> Commit 593669c2ac0f("Use common ACPI resource interfaces to
+> simplify implementation") accept all IO port and IOMEM resources
+> defined by acpi_resource_io, acpi_resource_fixed_io,
+> acpi_resource_memory24, acpi_resource_memory32,
+> acpi_resource_fixed_memory32 and
+> acpi_resource_address{16,32,64,extended64}, which causes IO port
+> resources consumed by host bridge itself are listed in to host bridge
+> resource list.
+> 
+> Then commit 63f1789ec716("Ignore resources consumed by host bridge
+> itself") ignores resources consumed by host bridge itself by checking
+> IORESOURCE_WINDOW flag, which accidently removed the workaround in 2)
+> above for BIOS bug .
+> 
+> It's really costed us much time to figure out this whole picture.
+> So we refine interface acpi_dev_filter_resource_type as below,
+> which should be easier for maintence:
+> 1) Caller specifies IORESOURCE_WINDOW flag to explicitly query resource
+>    for bridge(PRODUCER), otherwise it's querying resource for
+>    device(CONSUMER).
+> 2) Ignore IO port resources defined by acpi_resource_io and
+>    acpi_resource_fixed_io if IORESOURCE_WINDOW is specified.
+> 3) Accpet IOMEM resource defined by acpi_resource_memory24,
+>    acpi_resource_memory32 and acpi_resource_fixed_memory32 if both
+>    IORESOURCE_WINDOW and IORESOURCE_MEM_8AND16BIT are specified to work
+>    around BIOS issues.
+> 4) Accept IO port and IOMEM defined by acpi_resource_addressxx if
+>    a) IORESOURCE_WINDOW is specified and ACPI_PRODUCER is true
+>    b) IORESOURCE_WINDOW is not specified and ACPI_PRODUCER is false
+> 
+> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
+> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
+> 
+> Another possible fix is to only ignore IO resource consumed by host
+> bridge and keep IOMEM resource consumed by host bridge, please refer to:
+> http://www.spinics.net/lists/linux-pci/msg39706.html
+> 
+> Sample ACPI table are archived at:
+> https://bugzilla.kernel.org/show_bug.cgi?id=94221
+> 
+> V3->V4:
+> 1) Improve comments
+> 2) Use flag IORESOURCE_MEM_8AND16BIT to work around BIOS issue
 
-To be precise, PRP0001 specifically means "Use the 'compatible' property
-to find the driver for this device", so if *that* is what you want to do,
-you can use PRP0001 as the _HID.  For Windows (and such) compatibility, you
-can provide a _CID whith a (list of) proper device ID(s) in addition to that.
+OK, so how does that address the comments in the previous thread?
 
+It would *really* help if you responded there instead of starting a new
+thread by sending a new patch version.  This makes it really difficult to
+follow the entire discussion, which is part of why we keep forgetting things.
+
+> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+> Reported-and-Tested-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/x86/pci/acpi.c     |    8 +++++---
+>  drivers/acpi/resource.c |   52 +++++++++++++++++++++++++++++++++++++++++------
+>  2 files changed, 51 insertions(+), 9 deletions(-)
+> 
+> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> index e4695985f9de..150774be0f3f 100644
+> --- a/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -332,12 +332,15 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>  {
+>  	int ret;
+>  	struct resource_entry *entry, *tmp;
+> +	unsigned long res_flags;
+>  
+>  	sprintf(info->name, "PCI Bus %04x:%02x", domain, busnum);
+>  	info->bridge = device;
+> +	res_flags = IORESOURCE_IO | IORESOURCE_MEM |
+> +		    IORESOURCE_WINDOW | IORESOURCE_MEM_8AND16BIT;
+>  	ret = acpi_dev_get_resources(device, list,
+>  				     acpi_dev_filter_resource_type_cb,
+> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
+> +				     (void *)res_flags);
+>  	if (ret < 0)
+>  		dev_warn(&device->dev,
+>  			 "failed to parse _CRS method, error code %d\n", ret);
+> @@ -346,8 +349,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>  			"no IO and memory resources present in _CRS\n");
+>  	else
+>  		resource_list_for_each_entry_safe(entry, tmp, list) {
+> -			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
+> -			    (entry->res->flags & IORESOURCE_DISABLED))
+> +			if (entry->res->flags & IORESOURCE_DISABLED)
+>  				resource_list_destroy_entry(entry);
+>  			else
+>  				entry->res->name = info->name;
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 5589a6e2a023..0187e0e11bb8 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -567,6 +567,12 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+>  
+> +static bool acpi_dev_match_producer_consumer(unsigned long types, int producer)
+> +{
+> +	return ((types & IORESOURCE_WINDOW) && producer == ACPI_PRODUCER) ||
+> +		((types & IORESOURCE_WINDOW) == 0 && producer == ACPI_CONSUMER);
+> +}
+> +
+>  /**
+>   * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
+>   *				   types
+> @@ -574,7 +580,19 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+>   * @types: Valid resource types of IORESOURCE_XXX
+>   *
+>   * This is a hepler function to support acpi_dev_get_resources(), which filters
+> - * ACPI resource objects according to resource types.
+> + * ACPI resource objects according to resource types and flags as below:
+> + * 1) If flag IORESOURCE_WINDOW is not specified, it's querying resources
+> + *    consumed by device. That is to return:
+> + * 	a) ACPI resources without producer_consumer flag
+> + *	b) ACPI resources with producer_consumer flag setting to CONSUMER.
+
+OK, so what if the resource is not of an "extended" type, say DWORD address space,
+but has a non-empty Resource Source field pointing to the device itself?
+
+Shouldn't we treat that device as a "producer" too?
+
+> + * 2) If flag IORESOURCE_WINDOW is specified, it's querying resources provided
+> + *    by device. That is to return:
+> + *	a) ACPI resources with producer_consumer flag setting to PRODUCER.
+> + * 3) But there's an exception. Some platforms, such as PC Engines APU.1C,
+> + *    report PCI host bridge resource provision by Memory32Fixed().
+> + *    Please refer to https://bugzilla.kernel.org/show_bug.cgi?id=94221
+> + *    So a special flag IORESOURCE_MEM_8AND16BIT is used to work around this
+> + *    BIOS issue.
+
+This is a legitimate thing for the BIOS to do if my reading of the spec is
+correct, as the "producer" thing really is supposed to mean "this resource
+comes from the device itself".
+
+>   */
+>  int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>  				  unsigned long types)
+> @@ -585,27 +603,49 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>  	case ACPI_RESOURCE_TYPE_MEMORY24:
+>  	case ACPI_RESOURCE_TYPE_MEMORY32:
+>  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+> -		type = IORESOURCE_MEM;
+> +		/*
+> +		 * These types of resource descriptor should be used to
+> +		 * describe resource consumption instead of resource provision.
+> +		 * But some platforms, such as PC Engines APU.1C, report
+> +		 * resource provision by Memory32Fixed(). Please refer to:
+> +		 * https://bugzilla.kernel.org/show_bug.cgi?id=94221
+> +		 * So a special rule to work around BIOS issues.
+> +		 */
+> +		if ((types & (IORESOURCE_WINDOW | IORESOURCE_MEM_8AND16BIT)) ==
+> +		    (IORESOURCE_WINDOW | IORESOURCE_MEM_8AND16BIT) ||
+> +		    acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+> +			type = IORESOURCE_MEM;
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_IO:
+>  	case ACPI_RESOURCE_TYPE_FIXED_IO:
+> -		type = IORESOURCE_IO;
+> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+> +			type = IORESOURCE_IO;
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_IRQ:
+> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+> +			type = IORESOURCE_IRQ;
+> +		break;
+>  	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> -		type = IORESOURCE_IRQ;
+> +		if (acpi_dev_match_producer_consumer(types,
+> +				ares->data.extended_irq.producer_consumer))
+> +			type = IORESOURCE_IRQ;
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_DMA:
+>  	case ACPI_RESOURCE_TYPE_FIXED_DMA:
+> -		type = IORESOURCE_DMA;
+> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+> +			type = IORESOURCE_DMA;
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+> -		type = IORESOURCE_REG;
+> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+> +			type = IORESOURCE_REG;
+>  		break;
+>  	case ACPI_RESOURCE_TYPE_ADDRESS16:
+>  	case ACPI_RESOURCE_TYPE_ADDRESS32:
+>  	case ACPI_RESOURCE_TYPE_ADDRESS64:
+>  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+> +		if (!acpi_dev_match_producer_consumer(types,
+> +				ares->data.address.producer_consumer))
+> +			break;
+>  		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
+>  			type = IORESOURCE_MEM;
+>  		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
+> 
 
 -- 
 I speak only for myself.
