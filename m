@@ -1,86 +1,29 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC 0/7] Consolidate common ACPI PCI host bridge code into ACPI
- core
-Date: Tue, 07 Apr 2015 21:35:36 +0800
-Message-ID: <5523DD28.8040702@linux.intel.com>
-References: <1428381072-27486-1-git-send-email-jiang.liu@linux.intel.com> <1602543.J47QWOMlgo@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
+Date: Tue, 7 Apr 2015 17:05:05 +0300
+Message-ID: <20150407140505.GB1734@lahna.fi.intel.com>
+References: <1427836680-13008-1-git-send-email-fkan@apm.com>
+ <CAL85gmA1mjcX6FEmUHipn0iSzpti2z6D4++7Q3gxGiPGZaE_Cw@mail.gmail.com>
+ <20150407084143.GP17830@lahna.fi.intel.com>
+ <11619620.g1RKbURH6u@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1602543.J47QWOMlgo@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:37494 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753484AbbDGOHT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Apr 2015 10:07:19 -0400
+Content-Disposition: inline
+In-Reply-To: <11619620.g1RKbURH6u@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Feng Kan <fkan@apm.com>, patches <patches@apm.com>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2015/4/7 19:48, Rafael J. Wysocki wrote:
-> On Tuesday, April 07, 2015 12:31:05 PM Jiang Liu wrote:
->> As suggested by Bjorn, this patch set consolidates common ACPI PCI host
->> bridge code from x86 and IA64 into ACPI core. It may also help to
->> support ACPI PCI host bridge on ARM64 platfrom too in future.
->>
->> It introduces struct acpi_pci_root_ops and acpi_pci_root_create().
->> Arch code only needs to implement struct acpi_pci_root_ops and then
->> invoke acpi_pci_root_create() to parse ACPI resources and create
->> PCI root bus.
->> struct acpi_pci_root_info_common {
->>         struct pci_controller           controller;
->>         struct acpi_pci_root            *root;
->>         struct acpi_device              *bridge;
->>         struct acpi_pci_root_ops        *ops;
->>         struct list_head                resources;
->>         char                            name[16];
->> };
->> struct acpi_pci_root_ops {
->> 	struct pci_ops *pci_ops;
->> 	int (*init_info)(struct acpi_pci_root_info_common *info);
->> 	void (*release_info)(struct acpi_pci_root_info_common *info);
->> 	int (*prepare_resources)(struct acpi_pci_root_info_common *info,
->> 				 int status);
->> };
->> extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->> 					    struct acpi_pci_root_ops *ops,
->> 					    size_t extra_size);
->> It passes Fengguang's 0day test suite and has been tested on 
->> 1) An Intel x86 4 socket platform
->> 2) An Intel IA64 SDV
->> 3) An HP IA64 platform
->>
->> And you may access it at:
->> https://github.com/jiangliu/linux.git acpi_pci_root_v1
->>
->> Thanks!
->> Gerry
->>
->> Jiang Liu (7):
->>   ACPI/PCI: Enhance ACPI core to support sparse IO space
->>   ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
->>     bridge
->>   ia64/PCI: Use common struct resource_entry to replace struct
->>     iospace_resource
->>   x86/PCI: Rename struct pci_sysdata as struct pci_controller
->>   PCI/ACPI: Consolidate common PCI host bridge code into ACPI core
->>   x86/PCI/ACPI: Use common interface to support PCI host bridge
->>   ia64/PCI/ACPI: Use common interface to support PCI host bridge
->>
->>  arch/ia64/include/asm/pci.h   |    5 -
->>  arch/ia64/pci/pci.c           |  360 ++++++++++-------------------------------
->>  arch/x86/include/asm/pci.h    |   12 +-
->>  arch/x86/include/asm/pci_64.h |    4 +-
->>  arch/x86/pci/acpi.c           |  283 +++++++++-----------------------
->>  arch/x86/pci/common.c         |    2 +-
->>  drivers/acpi/pci_root.c       |  215 ++++++++++++++++++++++++
->>  drivers/acpi/resource.c       |    9 +-
->>  include/linux/ioport.h        |    1 +
->>  include/linux/pci-acpi.h      |   24 +++
->>  10 files changed, 409 insertions(+), 506 deletions(-)
-> 
-> That's generally fine by me, but let's fix the resources issue first, shall we?
-Hi Rafael,
-	Absolutely we should fix the bug first. Actually this patch set is
-based on the ACPI resource bugfixing patch. There are too many
-patches pending in my hand, so I send out this patch set earlier,
-hoping we could catch up with v4.2.
-Thanks!
-Gerry
+On Tue, Apr 07, 2015 at 01:37:56PM +0200, Rafael J. Wysocki wrote:
+> To be precise, PRP0001 specifically means "Use the 'compatible' property
+> to find the driver for this device", so if *that* is what you want to do,
+> you can use PRP0001 as the _HID.  For Windows (and such) compatibility, you
+> can provide a _CID whith a (list of) proper device ID(s) in addition to that.
+
+Thanks for clarification Rafael :-)
