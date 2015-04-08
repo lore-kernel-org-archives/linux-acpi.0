@@ -1,221 +1,194 @@
-From: Feng Kan <fkan@apm.com>
-Subject: Re: [PATCH V2] mailbox: add ACPI support for mailbox framework
-Date: Tue, 7 Apr 2015 17:35:54 -0700
-Message-ID: <CAL85gmBKvJfs8Uagnafj_6DsOONFQaRoUWoLfi9dJ5E4at4qzA@mail.gmail.com>
-References: <1428449652-29957-1-git-send-email-fkan@apm.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Wed, 08 Apr 2015 13:48:46 +0800
+Message-ID: <5524C13E.3060101@linux.intel.com>
+References: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com> <20150404030411.GG10892@google.com> <1832914.AK2bZGkVxq@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428449652-29957-1-git-send-email-fkan@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: patches <patches@apm.com>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Feng Kan <fkan@apm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1832914.AK2bZGkVxq@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Please disregard this, I messed up on the indexing. Will resubmit after fixing.
+On 2015/4/7 8:28, Rafael J. Wysocki wrote:
+> On Friday, April 03, 2015 10:04:11 PM Bjorn Helgaas wrote:
+>> Hi Jiang,
+<snip>
+>>> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
+>>> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
+>>
+>> We should assume it will eventually be used for all ACPI devices,
+>> shouldn't we?
+> 
+> I'm not sure about that, really.  In fact, I'd restrict its use to devices
+> types that actually can "produce" resources (ie. do not require the resources
+> to be provided by their ancestors or to be available from a global pool).
+> 
+> Otherwise we're pretty much guaranteed to get into trouble.
+> 
+> And all of the above rules need to be documented in the kernel source tree
+> or people will get confused.
+Hi Rafael,
+    How about following comments for acpi_dev_filter_resource_type()?
+Thanks!
+Gerry
+--------------------------------------------------------------------
+/**
+ * According to ACPI specifications, Consumer/Producer flag in ACPI resource
+ * descriptor means:
+ *      1(CONSUMER): This device consumes this resource
+ *      0(PRODUCER): This device produces and consumes this resource
+ * But for ACPI PCI host bridge, it is interpreted in another way:
+ *      1(CONSUMER): PCI host bridge itself consumes the resource, such as
+ *                   IOPORT 0xCF8-0xCFF to access PCI configuraiton space.
+ *      0(PRODUCER): PCI host bridge provides this resource to its child
+ *                   bus and devices.
+ *
+ * So this is a specially designed helper function to support ACPI PCI host
+ * bridge and ACPI IOAPIC, and its usage should be limited to those specific
+ * scenarioso only. It filters ACPI resource descriptors as below:
+ * 1) If flag IORESOURCE_WINDOW is not specified, it's querying resources
+ *    consumed by device. That is to return:
+ *      a) ACPI resources without producer_consumer flag
+ *      b) ACPI resources with producer_consumer flag setting to CONSUMER.
+ * 2) If flag IORESOURCE_WINDOW is specified, it's querying resources
+provided
+ *    by device. That is to return:
+ *      a) ACPI resources with producer_consumer flag setting to PRODUCER.
+ * 3) But there's an exception. Some platforms, such as PC Engines APU.1C,
+ *    report PCI host bridge resource provision by Memory32Fixed().
+ *    Please refer to https://bugzilla.kernel.org/show_bug.cgi?id=94221
+ *    So a special flag IORESOURCE_MEM_8AND16BIT is used to work around this
+ *    BIOS issue.
+ */
 
-On Tue, Apr 7, 2015 at 4:34 PM, Feng Kan <fkan@apm.com> wrote:
-> This will add support for ACPI parsing of the mboxes attribute
-> when booting with ACPI table. The client will have a attribute
-> mimic the dts call "mboxes". In the ACPI case, the client will
-> mark "mboxes" with the ACPI reference of the mbox it wishes to
-> use.
->
->         Name (_DSD, Package () {
->                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                 Package () {
->                         Package (2) {"mboxes", "^^MBOXREF"},
->                 }
->         })
->
-> Signed-off-by: Feng Kan <fkan@apm.com>
-> ---
->  V2 CHANGE:
->         - change to use ACPI reference rather than use ACPI HID directly.
->         - consolidate to use one single xlate function
->
->
->  drivers/mailbox/mailbox.c          | 105 ++++++++++++++++++++++++++-----------
->  include/linux/mailbox_controller.h |   6 +--
->  2 files changed, 76 insertions(+), 35 deletions(-)
->
-> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-> index 19b491d..8359f2e 100644
-> --- a/drivers/mailbox/mailbox.c
-> +++ b/drivers/mailbox/mailbox.c
-> @@ -9,6 +9,7 @@
->   * published by the Free Software Foundation.
->   */
->
-> +#include <linux/acpi.h>
->  #include <linux/interrupt.h>
->  #include <linux/spinlock.h>
->  #include <linux/mutex.h>
-> @@ -278,6 +279,70 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
->  }
->  EXPORT_SYMBOL_GPL(mbox_send_message);
->
-> +#ifdef CONFIG_ACPI
-> +static struct mbox_chan *mbox_acpi_parse_chan(struct device *dev, int index)
-> +{
-> +       struct acpi_device *acpi_dev;
-> +       struct mbox_controller *mbox;
-> +       struct mbox_chan *chan;
-> +       int status;
-> +       struct acpi_reference_args args;
-> +
-> +       status = acpi_dev_get_property_reference(ACPI_COMPANION(dev), "mboxes",
-> +                                                0, &args);
-> +       if (ACPI_FAILURE(status)) {
-> +               dev_dbg(dev, "mbox: no matching mbox found in ACPI table\n");
-> +               return ERR_PTR(-ENODEV);
-> +       }
-> +       acpi_dev = args.adev;
-> +
-> +       chan = NULL;
-> +       list_for_each_entry(mbox, &mbox_cons, node)
-> +               if (ACPI_COMPANION(mbox->dev) == acpi_dev) {
-> +                       chan = mbox->chan_xlate(mbox, index);
-> +                       break;
-> +               }
-> +
-> +       return chan;
-> +}
-> +#endif
-> +
-> +static struct mbox_chan *mbox_of_parse_chan(struct device *dev, int index)
-> +{
-> +       struct of_phandle_args spec;
-> +       struct mbox_controller *mbox;
-> +       struct mbox_chan *chan;
-> +
-> +       if (of_parse_phandle_with_args(dev->of_node, "mboxes",
-> +                                      "#mbox-cells", index, &spec)) {
-> +               dev_dbg(dev, "%s: can't parse \"mboxes\" property\n", __func__);
-> +               return ERR_PTR(-ENODEV);
-> +       }
-> +
-> +       chan = NULL;
-> +       list_for_each_entry(mbox, &mbox_cons, node)
-> +               if (mbox->dev->of_node == spec.np) {
-> +                       chan = mbox->chan_xlate(mbox, spec.args[0]);
-> +                       break;
-> +               }
-> +
-> +       of_node_put(spec.np);
-> +       return chan;
-> +}
-> +
-> +static struct mbox_chan *mbox_parse_chan(struct device *dev, int index)
-> +{
-> +       if (!dev)
-> +               return ERR_PTR(-ENODEV);
-> +
-> +       if (dev->of_node)
-> +               return mbox_of_parse_chan(dev, index);
-> +#ifdef CONFIG_ACPI
-> +       else
-> +               return mbox_acpi_parse_chan(dev, index);
-> +#endif
-> +}
-> +
->  /**
->   * mbox_request_channel - Request a mailbox channel.
->   * @cl: Identity of the client requesting the channel.
-> @@ -298,36 +363,15 @@ EXPORT_SYMBOL_GPL(mbox_send_message);
->  struct mbox_chan *mbox_request_channel(struct mbox_client *cl, int index)
->  {
->         struct device *dev = cl->dev;
-> -       struct mbox_controller *mbox;
-> -       struct of_phandle_args spec;
->         struct mbox_chan *chan;
->         unsigned long flags;
->         int ret;
->
-> -       if (!dev || !dev->of_node) {
-> -               pr_debug("%s: No owner device node\n", __func__);
-> -               return ERR_PTR(-ENODEV);
-> -       }
-> -
->         mutex_lock(&con_mutex);
-> +       chan = mbox_parse_chan(dev, index);
->
-> -       if (of_parse_phandle_with_args(dev->of_node, "mboxes",
-> -                                      "#mbox-cells", index, &spec)) {
-> -               dev_dbg(dev, "%s: can't parse \"mboxes\" property\n", __func__);
-> -               mutex_unlock(&con_mutex);
-> -               return ERR_PTR(-ENODEV);
-> -       }
-> -
-> -       chan = NULL;
-> -       list_for_each_entry(mbox, &mbox_cons, node)
-> -               if (mbox->dev->of_node == spec.np) {
-> -                       chan = mbox->of_xlate(mbox, &spec);
-> -                       break;
-> -               }
-> -
-> -       of_node_put(spec.np);
-> -
-> -       if (!chan || chan->cl || !try_module_get(mbox->dev->driver->owner)) {
-> +       if (!chan || chan->cl ||
-> +           !try_module_get(chan->mbox->dev->driver->owner)) {
->                 dev_dbg(dev, "%s: mailbox not free\n", __func__);
->                 mutex_unlock(&con_mutex);
->                 return ERR_PTR(-EBUSY);
-> @@ -384,15 +428,12 @@ void mbox_free_channel(struct mbox_chan *chan)
->  EXPORT_SYMBOL_GPL(mbox_free_channel);
->
->  static struct mbox_chan *
-> -of_mbox_index_xlate(struct mbox_controller *mbox,
-> -                   const struct of_phandle_args *sp)
-> +mbox_index_xlate(struct mbox_controller *mbox, int chan)
->  {
-> -       int ind = sp->args[0];
-> -
-> -       if (ind >= mbox->num_chans)
-> +       if (chan >= mbox->num_chans)
->                 return NULL;
->
-> -       return &mbox->chans[ind];
-> +       return &mbox->chans[chan];
->  }
->
->  /**
-> @@ -431,8 +472,8 @@ int mbox_controller_register(struct mbox_controller *mbox)
->                 spin_lock_init(&chan->lock);
->         }
->
-> -       if (!mbox->of_xlate)
-> -               mbox->of_xlate = of_mbox_index_xlate;
-> +       if (!mbox->chan_xlate)
-> +               mbox->chan_xlate = mbox_index_xlate;
->
->         mutex_lock(&con_mutex);
->         list_add_tail(&mbox->node, &mbox_cons);
-> diff --git a/include/linux/mailbox_controller.h b/include/linux/mailbox_controller.h
-> index d4cf96f..920e545 100644
-> --- a/include/linux/mailbox_controller.h
-> +++ b/include/linux/mailbox_controller.h
-> @@ -66,7 +66,7 @@ struct mbox_chan_ops {
->   *                     no interrupt rises. Ignored if 'txdone_irq' is set.
->   * @txpoll_period:     If 'txdone_poll' is in effect, the API polls for
->   *                     last TX's status after these many millisecs
-> - * @of_xlate:          Controller driver specific mapping of channel via DT
-> + * @chan_xlate:                Controller driver specific mapping index to channel
->   * @poll:              API private. Used to poll for TXDONE on all channels.
->   * @node:              API private. To hook into list of controllers.
->   */
-> @@ -78,8 +78,8 @@ struct mbox_controller {
->         bool txdone_irq;
->         bool txdone_poll;
->         unsigned txpoll_period;
-> -       struct mbox_chan *(*of_xlate)(struct mbox_controller *mbox,
-> -                                     const struct of_phandle_args *sp);
-> +       struct mbox_chan *(*chan_xlate)(struct mbox_controller *mbox,
-> +                                       int chan);
->         /* Internal to API */
->         struct timer_list poll;
->         struct list_head node;
-> --
-> 1.9.1
->
+> 
+>>> Another possible fix is to only ignore IO resource consumed by host
+>>> bridge and keep IOMEM resource consumed by host bridge, please refer to:
+>>> http://www.spinics.net/lists/linux-pci/msg39706.html
+>>>
+>>> Sample ACPI table are archived at:
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=94221
+>>>
+>>> V2->V3:
+>>> Refine function acpi_dev_match_producer_consumer() as suggested by Rafael
+>>>
+>>> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+>>> Reported-and-Tested-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>>> ---
+>>>  arch/x86/pci/acpi.c     |    5 ++---
+>>>  drivers/acpi/resource.c |   33 +++++++++++++++++++++++++++++----
+>>>  2 files changed, 31 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+>>> index e4695985f9de..8c4b1201f340 100644
+>>> --- a/arch/x86/pci/acpi.c
+>>> +++ b/arch/x86/pci/acpi.c
+>>> @@ -337,7 +337,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>>>  	info->bridge = device;
+>>>  	ret = acpi_dev_get_resources(device, list,
+>>>  				     acpi_dev_filter_resource_type_cb,
+>>> -				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
+>>> +				     (void *)(IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_WINDOW));
+>>>  	if (ret < 0)
+>>>  		dev_warn(&device->dev,
+>>>  			 "failed to parse _CRS method, error code %d\n", ret);
+>>> @@ -346,8 +346,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>>>  			"no IO and memory resources present in _CRS\n");
+>>>  	else
+>>>  		resource_list_for_each_entry_safe(entry, tmp, list) {
+>>> -			if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
+>>> -			    (entry->res->flags & IORESOURCE_DISABLED))
+>>> +			if (entry->res->flags & IORESOURCE_DISABLED)
+>>>  				resource_list_destroy_entry(entry);
+>>>  			else
+>>>  				entry->res->name = info->name;
+>>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>>> index 5589a6e2a023..e761a868bdba 100644
+>>> --- a/drivers/acpi/resource.c
+>>> +++ b/drivers/acpi/resource.c
+>>> @@ -567,6 +567,12 @@ int acpi_dev_get_resources(struct acpi_device *adev, struct list_head *list,
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+>>>  
+>>> +static bool acpi_dev_match_producer_consumer(unsigned long types, int producer)
+>>> +{
+>>> +	return ((types & IORESOURCE_WINDOW) && producer == ACPI_PRODUCER) ||
+>>> +		((types & IORESOURCE_WINDOW) == 0 && producer == ACPI_CONSUMER);
+>>> +}
+>>> +
+>>>  /**
+>>>   * acpi_dev_filter_resource_type - Filter ACPI resource according to resource
+>>>   *				   types
+>>> @@ -585,27 +591,46 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>>>  	case ACPI_RESOURCE_TYPE_MEMORY24:
+>>>  	case ACPI_RESOURCE_TYPE_MEMORY32:
+>>>  	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+>>> +		/*
+>>> +		 * These types of resource descriptor should be used to
+>>> +		 * describe resource consumption instead of resource provision.
+>>> +		 * But some platforms, such as PC Engines APU.1C, reports
+>>> +		 * resource provision by Memory32Fixed(). Please refer to:
+>>> +		 * https://bugzilla.kernel.org/show_bug.cgi?id=94221
+>>> +		 * So accept it no matter IORESOURCE_WINDOW is specified or not.
+>>> +		 */
+>>>  		type = IORESOURCE_MEM;
+>>
+>> I think this means these resources will be accepted regardless of whether
+>> the caller is looking for Consumer or Producer resources.  To preserve the
+>> behavior I added with 66528fdd45b0, we might be forced to do that for PCI
+>> host bridges (or maybe we could just add a quirk for the PC Engines BIOS).
+>>
+>> But I don't think it matches the ACPI spec intent, so I'm not sure it's
+>> right to do it for all devices.
+> 
+> No, it isn't, which is why acpi_dev_filter_resource_type() should not be used
+> for all devices.
+> 
+>>>  		break;
+>>>  	case ACPI_RESOURCE_TYPE_IO:
+>>>  	case ACPI_RESOURCE_TYPE_FIXED_IO:
+>>> -		type = IORESOURCE_IO;
+>>> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+>>> +			type = IORESOURCE_IO;
+>>>  		break;
+>>>  	case ACPI_RESOURCE_TYPE_IRQ:
+>>> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+>>> +			type = IORESOURCE_IRQ;
+>>> +		break;
+>>>  	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+>>> -		type = IORESOURCE_IRQ;
+>>> +		if (acpi_dev_match_producer_consumer(types,
+>>> +				ares->data.extended_irq.producer_consumer))
+>>> +			type = IORESOURCE_IRQ;
+>>>  		break;
+>>>  	case ACPI_RESOURCE_TYPE_DMA:
+>>>  	case ACPI_RESOURCE_TYPE_FIXED_DMA:
+>>> -		type = IORESOURCE_DMA;
+>>> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+>>> +			type = IORESOURCE_DMA;
+>>>  		break;
+>>>  	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+>>> -		type = IORESOURCE_REG;
+>>> +		if (acpi_dev_match_producer_consumer(types, ACPI_CONSUMER))
+>>> +			type = IORESOURCE_REG;
+>>>  		break;
+>>>  	case ACPI_RESOURCE_TYPE_ADDRESS16:
+>>>  	case ACPI_RESOURCE_TYPE_ADDRESS32:
+>>>  	case ACPI_RESOURCE_TYPE_ADDRESS64:
+>>>  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+>>> +		if (!acpi_dev_match_producer_consumer(types,
+>>> +				ares->data.address.producer_consumer))
+>>> +			break;
+>>>  		if (ares->data.address.resource_type == ACPI_MEMORY_RANGE)
+>>>  			type = IORESOURCE_MEM;
+>>>  		else if (ares->data.address.resource_type == ACPI_IO_RANGE)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
