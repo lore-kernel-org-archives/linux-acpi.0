@@ -1,328 +1,110 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [update][PATCH 4/4] ACPI / scan: Rework modalias creation when "compatible" is present
-Date: Thu, 09 Apr 2015 23:13:56 +0200
-Message-ID: <1584233.lpv5odbKkI@vostro.rjw.lan>
-References: <4378053.gHTT51U7FJ@vostro.rjw.lan> <1630931.9AX0JeoSOf@vostro.rjw.lan>
+Subject: Re: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Thu, 09 Apr 2015 23:37:42 +0200
+Message-ID: <3369608.UAniFEi9kX@vostro.rjw.lan>
+References: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com> <1859870.HzuzAL1ZiX@vostro.rjw.lan> <5525E8DA.601@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1630931.9AX0JeoSOf@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5525E8DA.601@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thursday, April 09, 2015 10:50:02 AM Jiang Liu wrote:
+> On 2015/4/9 7:44, Rafael J. Wysocki wrote:
+> > On Wednesday, April 08, 2015 01:48:46 PM Jiang Liu wrote:
+> >> On 2015/4/7 8:28, Rafael J. Wysocki wrote:
+> >>> On Friday, April 03, 2015 10:04:11 PM Bjorn Helgaas wrote:
+> >>>> Hi Jiang,
+> >> <snip>
+> >>>>> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
+> >>>>> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
+> >>>>
+> >>>> We should assume it will eventually be used for all ACPI devices,
+> >>>> shouldn't we?
+> >>>
+> >>> I'm not sure about that, really.  In fact, I'd restrict its use to devices
+> >>> types that actually can "produce" resources (ie. do not require the resources
+> >>> to be provided by their ancestors or to be available from a global pool).
+> >>>
+> >>> Otherwise we're pretty much guaranteed to get into trouble.
+> >>>
+> >>> And all of the above rules need to be documented in the kernel source tree
+> >>> or people will get confused.
+> >> Hi Rafael,
+> >>     How about following comments for acpi_dev_filter_resource_type()?
+> >> Thanks!
+> >> Gerry
+> >> --------------------------------------------------------------------
+> >> /**
+> >>  * According to ACPI specifications, Consumer/Producer flag in ACPI resource
+> >>  * descriptor means:
+> >>  *      1(CONSUMER): This device consumes this resource
+> >>  *      0(PRODUCER): This device produces and consumes this resource
+> >>  * But for ACPI PCI host bridge, it is interpreted in another way:
+> > 
+> > So first of all, this leads to a question: Why is it interpreted for ACPI PCI
+> > host bridges differently?
+> > 
+> > Is it something we've figured out from experience, or is there a standard
+> > mandating that? 
+> Hi Rafael,
+> 	I think we got this knowledge by experiences. PCI FW spec only
+> states _CRS reports resources assigned to the host bridge by firmware.
+> There's no statement about whether the resource is consumed by host
+> bridge itself or provided to it's child bus/devices. On x86/IA64 side,
+> the main resource consumed by PCI host bridge is IOPORT 0xCF8-0xCFF,
+> but not sure about ARM64 side. So how about:
 
-Currently, the ACPI modalias creation covers two mutually exclusive
-cases: If the PRP0001 device ID is present in the device's list of
-ACPI/PNP IDs and the "compatible" property is present in _DSD, the
-created modalias will follow the OF rules of modalias creation.
-Otherwise, ACPI rules are used.
+This:
 
-However, that is not really desirable, because the presence of PRP0001
-in the list of device IDs generally does not preclude using other
-ACPI/PNP IDs with that device and those other IDs may be of higher
-priority.  In those cases, the other IDs should take preference over
-PRP0001 and therefore they also should be present in the modalias.
+> PCI Firmware specification states that _CRS reports resources
+> assigned to the host bridge, but there's no way to tell whether
+> the resource is consumed by host bridge itself or provided to
+> its child bus/devices.
 
-For this reason, rework the modalias creation for ACPI so that it
-shows both the ACPI-style and OF-style modalias strings if the
-device has a non-empty list of ACPI/PNP IDs (other than PRP0001)
-and a valid "compatible" property at the same time.
+looks OK to me, but I'd replace the below with something like:
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+"However, experience shows, that in the PCI host bridge case firmware writers
+ expect the resource to be provided to devices on the bus (below the bridge) for
+ consumption entirely if its Consumer/Producer flag is clear.  That expectation
+ is reflected by the code in this routine as follows:".
+ 
 
-This should have the problems spotted by Mika in the previous version fixed.
+> So according to experiences, PCI host bridge
+> interprets Consumer/Producer flag as below to tell whether the resource
+> is consumed by host bridge itself.
+> 
+> > 
+> >>  *      1(CONSUMER): PCI host bridge itself consumes the resource, such as
+> >>  *                   IOPORT 0xCF8-0xCFF to access PCI configuraiton space.
+> >>  *      0(PRODUCER): PCI host bridge provides this resource to its child
+> >>  *                   bus and devices.
+> >>  *
+> >>  * So this is a specially designed helper function to support ACPI PCI host
+> >>  * bridge and ACPI IOAPIC, and its usage should be limited to those specific
+> > 
+> > And this will make the reader wonder why the IOAPIC should be treated the same
+> > way as a PCI host bridge in that respect.
 
----
- drivers/acpi/scan.c |  216 +++++++++++++++++++++++++++++++---------------------
- 1 file changed, 132 insertions(+), 84 deletions(-)
+Your responses would be easier to follow if they were clearly separate from the
+original message text (ie. add an empty line between the paragraph you're
+responding to and the response).
 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -122,8 +122,8 @@ int acpi_scan_add_handler_with_hotplug(s
-  *         -EINVAL: output error
-  *         -ENOMEM: output is truncated
- */
--static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
--			   int size)
-+static int create_pnp_modalias(struct acpi_device *acpi_dev, char *modalias,
-+			       int size)
- {
- 	int len;
- 	int count;
-@@ -133,57 +133,85 @@ static int create_modalias(struct acpi_d
- 		return 0;
- 
- 	/*
--	 * If the device has PRP0001 we expose DT compatible modalias
--	 * instead in form of of:NnameTCcompatible.
-+	 * Since we skip PRP0001 from the modalias below, 0 should be returned
-+	 * if PRP0001 is the only ACPI/PNP ID in the device's list.
- 	 */
--	if (acpi_dev->data.of_compatible) {
--		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
--		const union acpi_object *of_compatible, *obj;
--		int i, nval;
--		char *c;
--
--		acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
--		/* DT strings are all in lower case */
--		for (c = buf.pointer; *c != '\0'; c++)
--			*c = tolower(*c);
--
--		len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
--		ACPI_FREE(buf.pointer);
--
--		of_compatible = acpi_dev->data.of_compatible;
--		if (of_compatible->type == ACPI_TYPE_PACKAGE) {
--			nval = of_compatible->package.count;
--			obj = of_compatible->package.elements;
--		} else { /* Must be ACPI_TYPE_STRING. */
--			nval = 1;
--			obj = of_compatible;
--		}
--		for (i = 0; i < nval; i++, obj++) {
--			count = snprintf(&modalias[len], size, "C%s",
--					 obj->string.pointer);
--			if (count < 0)
--				return -EINVAL;
--			if (count >= size)
--				return -ENOMEM;
-+	count = 0;
-+	list_for_each_entry(id, &acpi_dev->pnp.ids, list)
-+		if (strcmp(id->id, "PRP0001"))
-+			count++;
- 
--			len += count;
--			size -= count;
--		}
--	} else {
--		len = snprintf(modalias, size, "acpi:");
--		size -= len;
-+	if (!count)
-+		return 0;
- 
--		list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
--			count = snprintf(&modalias[len], size, "%s:", id->id);
--			if (count < 0)
--				return -EINVAL;
--			if (count >= size)
--				return -ENOMEM;
--			len += count;
--			size -= count;
--		}
-+	len = snprintf(modalias, size, "acpi:");
-+	size -= len;
-+
-+	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
-+		if (!strcmp(id->id, "PRP0001"))
-+			continue;
-+
-+		count = snprintf(&modalias[len], size, "%s:", id->id);
-+		if (count < 0)
-+			return -EINVAL;
-+
-+		if (count >= size)
-+			return -ENOMEM;
-+
-+		len += count;
-+		size -= count;
- 	}
-+	modalias[len] = '\0';
-+	return len;
-+}
-+
-+static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
-+			      int size)
-+{
-+	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
-+	const union acpi_object *of_compatible, *obj;
-+	int len, count;
-+	int i, nval;
-+	char *c;
-+
-+	/*
-+	 * If the device has PRP0001 we expose DT compatible modalias as
-+	 * of:NnameTCcompatible.
-+	 */
-+	if (!acpi_dev->data.of_compatible)
-+		return 0;
-+
-+	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
-+	/* DT strings are all in lower case */
-+	for (c = buf.pointer; *c != '\0'; c++)
-+		*c = tolower(*c);
-+
-+	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
-+	ACPI_FREE(buf.pointer);
- 
-+	if (len <= 0)
-+		return len;
-+
-+	of_compatible = acpi_dev->data.of_compatible;
-+	if (of_compatible->type == ACPI_TYPE_PACKAGE) {
-+		nval = of_compatible->package.count;
-+		obj = of_compatible->package.elements;
-+	} else { /* Must be ACPI_TYPE_STRING. */
-+		nval = 1;
-+		obj = of_compatible;
-+	}
-+	for (i = 0; i < nval; i++, obj++) {
-+		count = snprintf(&modalias[len], size, "C%s",
-+				 obj->string.pointer);
-+		if (count < 0)
-+			return -EINVAL;
-+
-+		if (count >= size)
-+			return -ENOMEM;
-+
-+		len += count;
-+		size -= count;
-+	}
- 	modalias[len] = '\0';
- 	return len;
- }
-@@ -236,61 +264,89 @@ static struct acpi_device *acpi_companio
- 	return adev;
- }
- 
--/*
-- * Creates uevent modalias field for ACPI enumerated devices.
-- * Because the other buses does not support ACPI HIDs & CIDs.
-- * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
-- * "acpi:IBM0001:ACPI0001"
-- */
--int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
-+int __acpi_device_uevent_modalias(struct acpi_device *adev,
-+				  struct kobj_uevent_env *env)
- {
- 	int len;
- 
--	if (!acpi_companion_match(dev))
-+	if (!adev)
- 		return -ENODEV;
- 
- 	if (add_uevent_var(env, "MODALIAS="))
- 		return -ENOMEM;
--	len = create_modalias(ACPI_COMPANION(dev), &env->buf[env->buflen - 1],
--				sizeof(env->buf) - env->buflen);
--	if (len <= 0)
-+
-+	len = create_pnp_modalias(adev, &env->buf[env->buflen - 1],
-+				  sizeof(env->buf) - env->buflen);
-+	if (len < 0) {
-+		return len;
-+	} else if (len > 0) {
-+		env->buflen += len;
-+
-+		if (add_uevent_var(env, "MODALIAS="))
-+			return -ENOMEM;
-+	}
-+	len = create_of_modalias(adev, &env->buf[env->buflen - 1],
-+				 sizeof(env->buf) - env->buflen);
-+	if (len < 0)
- 		return len;
-+
- 	env->buflen += len;
-+
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(acpi_device_uevent_modalias);
- 
- /*
-- * Creates modalias sysfs attribute for ACPI enumerated devices.
-+ * Creates uevent modalias field for ACPI enumerated devices.
-  * Because the other buses does not support ACPI HIDs & CIDs.
-  * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
-  * "acpi:IBM0001:ACPI0001"
-  */
--int acpi_device_modalias(struct device *dev, char *buf, int size)
-+int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
- {
--	int len;
-+	return __acpi_device_uevent_modalias(acpi_companion_match(dev), env);
-+}
-+EXPORT_SYMBOL_GPL(acpi_device_uevent_modalias);
-+
-+static int __acpi_device_modalias(struct acpi_device *adev, char *buf, int size)
-+{
-+	int len, count;
- 
--	if (!acpi_companion_match(dev))
-+	if (!adev)
- 		return -ENODEV;
- 
--	len = create_modalias(ACPI_COMPANION(dev), buf, size -1);
--	if (len <= 0)
-+	len = create_pnp_modalias(adev, buf, size - 1);
-+	if (len < 0) {
- 		return len;
--	buf[len++] = '\n';
-+	} else if (len > 0) {
-+		buf[len++] = '\n';
-+		size -= len;
-+	}
-+	count = create_of_modalias(adev, buf + len, size - 1);
-+	if (count < 0) {
-+		return count;
-+	} else if (count > 0) {
-+		len += count;
-+		buf[len++] = '\n';
-+	}
-+
- 	return len;
- }
-+
-+/*
-+ * Creates modalias sysfs attribute for ACPI enumerated devices.
-+ * Because the other buses does not support ACPI HIDs & CIDs.
-+ * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
-+ * "acpi:IBM0001:ACPI0001"
-+ */
-+int acpi_device_modalias(struct device *dev, char *buf, int size)
-+{
-+	return __acpi_device_modalias(acpi_companion_match(dev), buf, size);
-+}
- EXPORT_SYMBOL_GPL(acpi_device_modalias);
- 
- static ssize_t
- acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, char *buf) {
--	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	int len;
--
--	len = create_modalias(acpi_dev, buf, 1024);
--	if (len <= 0)
--		return len;
--	buf[len++] = '\n';
--	return len;
-+	return __acpi_device_modalias(to_acpi_device(dev), buf, 1024);
- }
- static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
- 
-@@ -1051,19 +1107,11 @@ static int acpi_bus_match(struct device
- static int acpi_device_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
--	int len;
- 
- 	if (list_empty(&acpi_dev->pnp.ids))
- 		return 0;
- 
--	if (add_uevent_var(env, "MODALIAS="))
--		return -ENOMEM;
--	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
--			      sizeof(env->buf) - env->buflen);
--	if (len <= 0)
--		return len;
--	env->buflen += len;
--	return 0;
-+	return __acpi_device_uevent_modalias(acpi_dev, env);
- }
- 
- static void acpi_device_notify(acpi_handle handle, u32 event, void *data)
+> If a hot-pluggable IOAPIC is represented as an ACPI device, its _CRS
+> reports MMIO address assigned to the IOAPIC. And an IOAPIC device
+> won't produce MMIO resources by itself. So we could reuse
+> acpi_dev_filter_resource_type() here.
+> How about:
+>   * So this is a specially designed helper function to support:
+>   * 1) ACPI PCI host bridge, as explained above
+>   * 2) ACPI IOAPIC, its _CRS reports only one MMIO resource and
+>   *    it won't produce MMIO resources by itself.
+
+OK, so I'd like to see how the code would look like if those two cases had their
+own "filter" routines, if that's not a problem.
+
+Rafael
