@@ -1,36 +1,106 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/4] ACPI / scan: Clean up the handling of the PRP0001 device ID
-Date: Thu, 09 Apr 2015 02:18:45 +0200
-Message-ID: <4378053.gHTT51U7FJ@vostro.rjw.lan>
+Subject: [PATCH 2/4] ACPI / scan: Simplify acpi_match_device()
+Date: Thu, 09 Apr 2015 02:20:51 +0200
+Message-ID: <1745204.4cEygKHaXn@vostro.rjw.lan>
+References: <4378053.gHTT51U7FJ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55746 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754969AbbDHX54 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Apr 2015 19:57:56 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4378053.gHTT51U7FJ@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This series of patches reworks the handling of the PRP0001 device ID with
-the following goals:
+Redefine acpi_companion_match() to return an ACPI device object
+pointer instead of a bool and use it to remove some redundant code
+from acpi_match_device().
 
- (a) Make PRP0001 work as a _CID too.
- (b) Prevent PRP0001 from overriding the other ACPI/PNP IDs entirely.
- (c) Change ACPI modalias to cover ACPI/PNP/compatible at the same time.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |   30 +++++++++++-------------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
 
-[1/4] Generalize the of_compatible matching routine
-[2/4] Simplify acpi_match_device()
-[3/4] Take PRP0001 in _CID lists into account too.
-[4/4] Rework modalias creation if the "compatible" property is present.
-
-Comments, remarks, testing welcome!
-
-Kind regards,
-Rafael
-
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -194,7 +194,8 @@ static int create_modalias(struct acpi_d
+  *
+  * Check if the given device has an ACPI companion and if that companion has
+  * a valid list of PNP IDs, and if the device is the first (primary) physical
+- * device associated with it.
++ * device associated with it.  Return the companion pointer if that's the case
++ * or NULL otherwise.
+  *
+  * If multiple physical devices are attached to a single ACPI companion, we need
+  * to be careful.  The usage scenario for this kind of relationship is that all
+@@ -208,31 +209,31 @@ static int create_modalias(struct acpi_d
+  * resources available from it but they will be matched normally using functions
+  * provided by their bus types (and analogously for their modalias).
+  */
+-static bool acpi_companion_match(const struct device *dev)
++static struct acpi_device *acpi_companion_match(const struct device *dev)
+ {
+ 	struct acpi_device *adev;
+-	bool ret;
+ 
+ 	adev = ACPI_COMPANION(dev);
+ 	if (!adev)
+-		return false;
++		return NULL;
+ 
+ 	if (list_empty(&adev->pnp.ids))
+-		return false;
++		return NULL;
+ 
+ 	mutex_lock(&adev->physical_node_lock);
+ 	if (list_empty(&adev->physical_node_list)) {
+-		ret = false;
++		adev = NULL;
+ 	} else {
+ 		const struct acpi_device_physical_node *node;
+ 
+ 		node = list_first_entry(&adev->physical_node_list,
+ 					struct acpi_device_physical_node, node);
+-		ret = node->dev == dev;
++		if (node->dev != dev)
++			adev = NULL;
+ 	}
+ 	mutex_unlock(&adev->physical_node_lock);
+ 
+-	return ret;
++	return adev;
+ }
+ 
+ /*
+@@ -908,7 +909,7 @@ static const struct acpi_device_id *__ac
+ 	 * If the device is not present, it is unnecessary to load device
+ 	 * driver for it.
+ 	 */
+-	if (!device->status.present)
++	if (!device || !device->status.present)
+ 		return NULL;
+ 
+ 	for (id = ids; id->id[0]; id++)
+@@ -933,16 +934,7 @@ static const struct acpi_device_id *__ac
+ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ 					       const struct device *dev)
+ {
+-	struct acpi_device *adev;
+-	acpi_handle handle = ACPI_HANDLE(dev);
+-
+-	if (!ids || !handle || acpi_bus_get_device(handle, &adev))
+-		return NULL;
+-
+-	if (!acpi_companion_match(dev))
+-		return NULL;
+-
+-	return __acpi_match_device(adev, ids);
++	return __acpi_match_device(acpi_companion_match(dev), ids);
+ }
+ EXPORT_SYMBOL_GPL(acpi_match_device);
+ 
