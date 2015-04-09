@@ -1,110 +1,171 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Thu, 09 Apr 2015 23:37:42 +0200
-Message-ID: <3369608.UAniFEi9kX@vostro.rjw.lan>
-References: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com> <1859870.HzuzAL1ZiX@vostro.rjw.lan> <5525E8DA.601@linux.intel.com>
+Subject: Re: [RFC PATCH] ACPI / scan: Introduce _CCA parsing logic and setting up device coherency
+Date: Thu, 09 Apr 2015 23:43:55 +0200
+Message-ID: <3346157.KeMTNn1Omm@vostro.rjw.lan>
+References: <1427901620-2194-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5525E8DA.601@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53010 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756123AbbDIVTb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Apr 2015 17:19:31 -0400
+In-Reply-To: <1427901620-2194-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, lenb@kernel.org, hanjun.guo@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, al.stone@linaro.org, msalter@redhat.com, gregkh@linuxfoundation.org, leo.duran@amd.com, arnd@arndb.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Thursday, April 09, 2015 10:50:02 AM Jiang Liu wrote:
-> On 2015/4/9 7:44, Rafael J. Wysocki wrote:
-> > On Wednesday, April 08, 2015 01:48:46 PM Jiang Liu wrote:
-> >> On 2015/4/7 8:28, Rafael J. Wysocki wrote:
-> >>> On Friday, April 03, 2015 10:04:11 PM Bjorn Helgaas wrote:
-> >>>> Hi Jiang,
-> >> <snip>
-> >>>>> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
-> >>>>> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
-> >>>>
-> >>>> We should assume it will eventually be used for all ACPI devices,
-> >>>> shouldn't we?
-> >>>
-> >>> I'm not sure about that, really.  In fact, I'd restrict its use to devices
-> >>> types that actually can "produce" resources (ie. do not require the resources
-> >>> to be provided by their ancestors or to be available from a global pool).
-> >>>
-> >>> Otherwise we're pretty much guaranteed to get into trouble.
-> >>>
-> >>> And all of the above rules need to be documented in the kernel source tree
-> >>> or people will get confused.
-> >> Hi Rafael,
-> >>     How about following comments for acpi_dev_filter_resource_type()?
-> >> Thanks!
-> >> Gerry
-> >> --------------------------------------------------------------------
-> >> /**
-> >>  * According to ACPI specifications, Consumer/Producer flag in ACPI resource
-> >>  * descriptor means:
-> >>  *      1(CONSUMER): This device consumes this resource
-> >>  *      0(PRODUCER): This device produces and consumes this resource
-> >>  * But for ACPI PCI host bridge, it is interpreted in another way:
-> > 
-> > So first of all, this leads to a question: Why is it interpreted for ACPI PCI
-> > host bridges differently?
-> > 
-> > Is it something we've figured out from experience, or is there a standard
-> > mandating that? 
-> Hi Rafael,
-> 	I think we got this knowledge by experiences. PCI FW spec only
-> states _CRS reports resources assigned to the host bridge by firmware.
-> There's no statement about whether the resource is consumed by host
-> bridge itself or provided to it's child bus/devices. On x86/IA64 side,
-> the main resource consumed by PCI host bridge is IOPORT 0xCF8-0xCFF,
-> but not sure about ARM64 side. So how about:
-
-This:
-
-> PCI Firmware specification states that _CRS reports resources
-> assigned to the host bridge, but there's no way to tell whether
-> the resource is consumed by host bridge itself or provided to
-> its child bus/devices.
-
-looks OK to me, but I'd replace the below with something like:
-
-"However, experience shows, that in the PCI host bridge case firmware writers
- expect the resource to be provided to devices on the bus (below the bridge) for
- consumption entirely if its Consumer/Producer flag is clear.  That expectation
- is reflected by the code in this routine as follows:".
- 
-
-> So according to experiences, PCI host bridge
-> interprets Consumer/Producer flag as below to tell whether the resource
-> is consumed by host bridge itself.
+On Wednesday, April 01, 2015 10:20:20 AM Suravee Suthikulpanit wrote:
+> ACPI v5.1 introduced _CCA object for specifying cache coherency attribute
+> for devices. This patch implements a logic, which traverses device namespace
+> to parse the coherency information, and calling the corresponded
+> arch_setup_dma_ops().
 > 
-> > 
-> >>  *      1(CONSUMER): PCI host bridge itself consumes the resource, such as
-> >>  *                   IOPORT 0xCF8-0xCFF to access PCI configuraiton space.
-> >>  *      0(PRODUCER): PCI host bridge provides this resource to its child
-> >>  *                   bus and devices.
-> >>  *
-> >>  * So this is a specially designed helper function to support ACPI PCI host
-> >>  * bridge and ACPI IOAPIC, and its usage should be limited to those specific
-> > 
-> > And this will make the reader wonder why the IOAPIC should be treated the same
-> > way as a PCI host bridge in that respect.
+> It checks the _CCA during ACPI scan, and setup coherency during acpi_device creation.
+> Then, this is propagted to the platform_device when it is created at later time.
+> 
+> CC: Mark Salter <msalter@redhat.com>
+> CC: Hanjun Guo <hanjun.guo@linaro.org>
+> CC: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+> 
+> NOTE:
+> 
+> The original patch has been submitted by Mark Salter, and discussed here:
+> 
+> * http://comments.gmane.org/gmane.linux.acpi.devel/70424
+> 
+> One of the reveiw comment was dissusing whether we need the do/while loop for
+> travesing parents of the device.  AFAIK, there are no APIs that would do upsearch
+> from a particular node.  The acpi_get_handle() is the closest one, but it is using
+> ACPI_NS_NO_UPSEARCH.
+> 
+> This has been rebased and tested with:
+> 	* http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
+> 	* [V8 PATCH 0/3] Introduce ACPI support for ahci_platform driver
+> 	  (https://lkml.org/lkml/2015/3/30/729)
+> 
+>  drivers/acpi/acpi_platform.c |  5 +++-
+>  drivers/acpi/scan.c          | 56 ++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 60 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index 1284138..47e37a8 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -108,9 +108,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>  	if (IS_ERR(pdev))
+>  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+>  			PTR_ERR(pdev));
+> -	else
+> +	else {
+> +		arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
+> +				   is_device_dma_coherent(&adev->dev));
+>  		dev_dbg(&adev->dev, "created platform device %s\n",
+>  			dev_name(&pdev->dev));
+> +	}
+>  
+>  	kfree(resources);
+>  	return pdev;
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 230ec983..4d81c55 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -11,6 +11,7 @@
+>  #include <linux/kthread.h>
+>  #include <linux/dmi.h>
+>  #include <linux/nls.h>
+> +#include <linux/dma-mapping.h>
+>  
+>  #include <asm/pgtable.h>
+>  
+> @@ -57,6 +58,9 @@ struct acpi_device_bus_id{
+>  	struct list_head node;
+>  };
+>  
+> +static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+> +				    unsigned long long *sta);
+> +
+>  void acpi_scan_lock_acquire(void)
+>  {
+>  	mutex_lock(&acpi_scan_lock);
+> @@ -1327,6 +1331,51 @@ void acpi_bus_put_acpi_device(struct acpi_device *adev)
+>  	put_device(&adev->dev);
+>  }
+>  
+> +/**
+> + * acpi_check_and_set_coherency - check and set cache coherency of a device
+> + * @device: ACPI device
+> + *
+> + * Search a device and its parents for a _CCA method and calculate
+> + * the effective coherency property of the device. If found, set up
+> + * appropriate dma_ops for the device.
+> + *
+> + * Note From ACPIv5.1 spec:
+> + * If used _CCA must be included under all bus-master-capable
+> + * devices defined as children of \_SB. The value of _CCA is inherited
+> + * by all descendants of these devices, so it need not be repeated for
+> + * their children devices and will be ignored by OSPM if it is provided
+> + * there.
+> + */
+> +static int acpi_check_and_set_coherency(struct acpi_device *device)
+> +{
+> +	acpi_status status;
+> +	unsigned long long eff_cca = ~0ULL;
+> +	acpi_handle tmp, handle = device->handle;
+> +
+> +	/* Calculate effective _CCA from all parents of this device */
+> +	do {
+> +		unsigned long cca;
+> +
+> +		status = acpi_get_handle(handle, "_CCA", &tmp);
+> +		if (ACPI_SUCCESS(status)) {
+> +			status = acpi_evaluate_integer(tmp, "_CCA", NULL, &cca);
+> +			/* Other values besides 0 and 1 are reserved */
+> +			if (ACPI_FAILURE(status) || (cca != 0 && cca != 1))
+> +				return -EINVAL;
+> +			eff_cca = cca;
+> +		}
+> +
+> +		status = acpi_get_parent(handle, &handle);
 
-Your responses would be easier to follow if they were clearly separate from the
-original message text (ie. add an empty line between the paragraph you're
-responding to and the response).
+So if I'm not mistaken, this is going to evaluate _CCA for all of the ancestors
+of the device even though it already might have been evaluated for all of them.
 
-> If a hot-pluggable IOAPIC is represented as an ACPI device, its _CRS
-> reports MMIO address assigned to the IOAPIC. And an IOAPIC device
-> won't produce MMIO resources by itself. So we could reuse
-> acpi_dev_filter_resource_type() here.
-> How about:
->   * So this is a specially designed helper function to support:
->   * 1) ACPI PCI host bridge, as explained above
->   * 2) ACPI IOAPIC, its _CRS reports only one MMIO resource and
->   *    it won't produce MMIO resources by itself.
+Any chance to optimize it somewhat?
 
-OK, so I'd like to see how the code would look like if those two cases had their
-own "filter" routines, if that's not a problem.
+> +		if (ACPI_FAILURE(status))
+> +			break;
+> +	} while (ACPI_SUCCESS(status));
+> +
+> +	if (eff_cca != ~0ULL)
+> +		arch_setup_dma_ops(&device->dev, 0, 0, NULL, eff_cca);
+> +
+> +	return 0;
+> +}
+> +
+>  int acpi_device_add(struct acpi_device *device,
+>  		    void (*release)(struct device *))
+>  {
+> @@ -1398,6 +1447,13 @@ int acpi_device_add(struct acpi_device *device,
+>  		device->dev.parent = &device->parent->dev;
+>  	device->dev.bus = &acpi_bus_type;
+>  	device->dev.release = release;
+> +
+> +	result = acpi_check_and_set_coherency(device);
+> +	if (result) {
+> +		dev_err(&device->dev, "Error getting device _CCA information\n");
+> +		goto err;
+> +	}
+> +
+>  	result = device_add(&device->dev);
+>  	if (result) {
+>  		dev_err(&device->dev, "Error registering device\n");
+> 
 
-Rafael
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
