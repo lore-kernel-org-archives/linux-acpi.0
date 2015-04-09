@@ -1,145 +1,328 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI: Don't clear ASPM bits when the FADT declares it's
- unsupported
-Date: Thu, 9 Apr 2015 14:21:27 -0500
-Message-ID: <20150409192127.GJ30967@google.com>
-References: <1428430020-29633-1-git-send-email-mjg59@coreos.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [update][PATCH 4/4] ACPI / scan: Rework modalias creation when "compatible" is present
+Date: Thu, 09 Apr 2015 23:13:56 +0200
+Message-ID: <1584233.lpv5odbKkI@vostro.rjw.lan>
+References: <4378053.gHTT51U7FJ@vostro.rjw.lan> <1630931.9AX0JeoSOf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1428430020-29633-1-git-send-email-mjg59@coreos.com>
+In-Reply-To: <1630931.9AX0JeoSOf@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@coreos.com>
-Cc: linux-pci@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 07, 2015 at 11:07:00AM -0700, Matthew Garrett wrote:
-> Communications with a hardware vendor confirm that the expected behaviour on
-> systems that set the FADT ASPM disable bit but which still grant full PCIe
-> control is for the OS to leave any BIOS configuration intact and refuse to
-> touch the ASPM bits. This mimics the behaviour of Windows.
-> 
-> Signed-off-by: Matthew Garrett <mjg59@coreos.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applied to pci/misc for v4.1, thanks!
+Currently, the ACPI modalias creation covers two mutually exclusive
+cases: If the PRP0001 device ID is present in the device's list of
+ACPI/PNP IDs and the "compatible" property is present in _DSD, the
+created modalias will follow the OF rules of modalias creation.
+Otherwise, ACPI rules are used.
 
-> ---
->  drivers/acpi/pci_root.c  | 19 ++++++++-----------
->  drivers/pci/pcie/aspm.c  | 18 ------------------
->  include/linux/pci-aspm.h |  4 ----
->  3 files changed, 8 insertions(+), 33 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 68a5f71..1b5569c 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -423,8 +423,7 @@ out:
->  }
->  EXPORT_SYMBOL(acpi_pci_osc_control_set);
->  
-> -static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
-> -				 int *clear_aspm)
-> +static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
->  {
->  	u32 support, control, requested;
->  	acpi_status status;
-> @@ -495,10 +494,12 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
->  		decode_osc_control(root, "OS now controls", control);
->  		if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM) {
->  			/*
-> -			 * We have ASPM control, but the FADT indicates
-> -			 * that it's unsupported. Clear it.
-> +			 * We have ASPM control, but the FADT indicates that
-> +			 * it's unsupported. Leave existing configuration
-> +			 * intact and prevent the OS from touching it.
->  			 */
-> -			*clear_aspm = 1;
-> +			dev_info(&device->dev, "FADT indicates ASPM is unsupported, using BIOS configuration\n");
-> +			*no_aspm = 1;
->  		}
->  	} else {
->  		decode_osc_control(root, "OS requested", requested);
-> @@ -525,7 +526,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->  	int result;
->  	struct acpi_pci_root *root;
->  	acpi_handle handle = device->handle;
-> -	int no_aspm = 0, clear_aspm = 0;
-> +	int no_aspm = 0;
->  	bool hotadd = system_state != SYSTEM_BOOTING;
->  
->  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-> @@ -584,7 +585,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
->  
->  	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
->  
-> -	negotiate_os_control(root, &no_aspm, &clear_aspm);
-> +	negotiate_os_control(root, &no_aspm);
->  
->  	/*
->  	 * TBD: Need PCI interface for enumeration/configuration of roots.
-> @@ -607,10 +608,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
->  		goto remove_dmar;
->  	}
->  
-> -	if (clear_aspm) {
-> -		dev_info(&device->dev, "Disabling ASPM (FADT indicates it is unsupported)\n");
-> -		pcie_clear_aspm(root->bus);
-> -	}
->  	if (no_aspm)
->  		pcie_no_aspm();
->  
-> diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-> index 820740a..7d4fcdc 100644
-> --- a/drivers/pci/pcie/aspm.c
-> +++ b/drivers/pci/pcie/aspm.c
-> @@ -782,24 +782,6 @@ void pci_disable_link_state(struct pci_dev *pdev, int state)
->  }
->  EXPORT_SYMBOL(pci_disable_link_state);
->  
-> -void pcie_clear_aspm(struct pci_bus *bus)
-> -{
-> -	struct pci_dev *child;
-> -
-> -	if (aspm_force)
-> -		return;
-> -
-> -	/*
-> -	 * Clear any ASPM setup that the firmware has carried out on this bus
-> -	 */
-> -	list_for_each_entry(child, &bus->devices, bus_list) {
-> -		__pci_disable_link_state(child, PCIE_LINK_STATE_L0S |
-> -					 PCIE_LINK_STATE_L1 |
-> -					 PCIE_LINK_STATE_CLKPM,
-> -					 false, true);
-> -	}
-> -}
-> -
->  static int pcie_aspm_set_policy(const char *val, struct kernel_param *kp)
->  {
->  	int i;
-> diff --git a/include/linux/pci-aspm.h b/include/linux/pci-aspm.h
-> index 8af4610..207c561 100644
-> --- a/include/linux/pci-aspm.h
-> +++ b/include/linux/pci-aspm.h
-> @@ -29,7 +29,6 @@ void pcie_aspm_pm_state_change(struct pci_dev *pdev);
->  void pcie_aspm_powersave_config_link(struct pci_dev *pdev);
->  void pci_disable_link_state(struct pci_dev *pdev, int state);
->  void pci_disable_link_state_locked(struct pci_dev *pdev, int state);
-> -void pcie_clear_aspm(struct pci_bus *bus);
->  void pcie_no_aspm(void);
->  #else
->  static inline void pcie_aspm_init_link_state(struct pci_dev *pdev)
-> @@ -47,9 +46,6 @@ static inline void pcie_aspm_powersave_config_link(struct pci_dev *pdev)
->  static inline void pci_disable_link_state(struct pci_dev *pdev, int state)
->  {
->  }
-> -static inline void pcie_clear_aspm(struct pci_bus *bus)
-> -{
-> -}
->  static inline void pcie_no_aspm(void)
->  {
->  }
-> -- 
-> 2.3.4
-> 
+However, that is not really desirable, because the presence of PRP0001
+in the list of device IDs generally does not preclude using other
+ACPI/PNP IDs with that device and those other IDs may be of higher
+priority.  In those cases, the other IDs should take preference over
+PRP0001 and therefore they also should be present in the modalias.
+
+For this reason, rework the modalias creation for ACPI so that it
+shows both the ACPI-style and OF-style modalias strings if the
+device has a non-empty list of ACPI/PNP IDs (other than PRP0001)
+and a valid "compatible" property at the same time.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+This should have the problems spotted by Mika in the previous version fixed.
+
+---
+ drivers/acpi/scan.c |  216 +++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 132 insertions(+), 84 deletions(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -122,8 +122,8 @@ int acpi_scan_add_handler_with_hotplug(s
+  *         -EINVAL: output error
+  *         -ENOMEM: output is truncated
+ */
+-static int create_modalias(struct acpi_device *acpi_dev, char *modalias,
+-			   int size)
++static int create_pnp_modalias(struct acpi_device *acpi_dev, char *modalias,
++			       int size)
+ {
+ 	int len;
+ 	int count;
+@@ -133,57 +133,85 @@ static int create_modalias(struct acpi_d
+ 		return 0;
+ 
+ 	/*
+-	 * If the device has PRP0001 we expose DT compatible modalias
+-	 * instead in form of of:NnameTCcompatible.
++	 * Since we skip PRP0001 from the modalias below, 0 should be returned
++	 * if PRP0001 is the only ACPI/PNP ID in the device's list.
+ 	 */
+-	if (acpi_dev->data.of_compatible) {
+-		struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
+-		const union acpi_object *of_compatible, *obj;
+-		int i, nval;
+-		char *c;
+-
+-		acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
+-		/* DT strings are all in lower case */
+-		for (c = buf.pointer; *c != '\0'; c++)
+-			*c = tolower(*c);
+-
+-		len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
+-		ACPI_FREE(buf.pointer);
+-
+-		of_compatible = acpi_dev->data.of_compatible;
+-		if (of_compatible->type == ACPI_TYPE_PACKAGE) {
+-			nval = of_compatible->package.count;
+-			obj = of_compatible->package.elements;
+-		} else { /* Must be ACPI_TYPE_STRING. */
+-			nval = 1;
+-			obj = of_compatible;
+-		}
+-		for (i = 0; i < nval; i++, obj++) {
+-			count = snprintf(&modalias[len], size, "C%s",
+-					 obj->string.pointer);
+-			if (count < 0)
+-				return -EINVAL;
+-			if (count >= size)
+-				return -ENOMEM;
++	count = 0;
++	list_for_each_entry(id, &acpi_dev->pnp.ids, list)
++		if (strcmp(id->id, "PRP0001"))
++			count++;
+ 
+-			len += count;
+-			size -= count;
+-		}
+-	} else {
+-		len = snprintf(modalias, size, "acpi:");
+-		size -= len;
++	if (!count)
++		return 0;
+ 
+-		list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
+-			count = snprintf(&modalias[len], size, "%s:", id->id);
+-			if (count < 0)
+-				return -EINVAL;
+-			if (count >= size)
+-				return -ENOMEM;
+-			len += count;
+-			size -= count;
+-		}
++	len = snprintf(modalias, size, "acpi:");
++	size -= len;
++
++	list_for_each_entry(id, &acpi_dev->pnp.ids, list) {
++		if (!strcmp(id->id, "PRP0001"))
++			continue;
++
++		count = snprintf(&modalias[len], size, "%s:", id->id);
++		if (count < 0)
++			return -EINVAL;
++
++		if (count >= size)
++			return -ENOMEM;
++
++		len += count;
++		size -= count;
+ 	}
++	modalias[len] = '\0';
++	return len;
++}
++
++static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
++			      int size)
++{
++	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER };
++	const union acpi_object *of_compatible, *obj;
++	int len, count;
++	int i, nval;
++	char *c;
++
++	/*
++	 * If the device has PRP0001 we expose DT compatible modalias as
++	 * of:NnameTCcompatible.
++	 */
++	if (!acpi_dev->data.of_compatible)
++		return 0;
++
++	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
++	/* DT strings are all in lower case */
++	for (c = buf.pointer; *c != '\0'; c++)
++		*c = tolower(*c);
++
++	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
++	ACPI_FREE(buf.pointer);
+ 
++	if (len <= 0)
++		return len;
++
++	of_compatible = acpi_dev->data.of_compatible;
++	if (of_compatible->type == ACPI_TYPE_PACKAGE) {
++		nval = of_compatible->package.count;
++		obj = of_compatible->package.elements;
++	} else { /* Must be ACPI_TYPE_STRING. */
++		nval = 1;
++		obj = of_compatible;
++	}
++	for (i = 0; i < nval; i++, obj++) {
++		count = snprintf(&modalias[len], size, "C%s",
++				 obj->string.pointer);
++		if (count < 0)
++			return -EINVAL;
++
++		if (count >= size)
++			return -ENOMEM;
++
++		len += count;
++		size -= count;
++	}
+ 	modalias[len] = '\0';
+ 	return len;
+ }
+@@ -236,61 +264,89 @@ static struct acpi_device *acpi_companio
+ 	return adev;
+ }
+ 
+-/*
+- * Creates uevent modalias field for ACPI enumerated devices.
+- * Because the other buses does not support ACPI HIDs & CIDs.
+- * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
+- * "acpi:IBM0001:ACPI0001"
+- */
+-int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
++int __acpi_device_uevent_modalias(struct acpi_device *adev,
++				  struct kobj_uevent_env *env)
+ {
+ 	int len;
+ 
+-	if (!acpi_companion_match(dev))
++	if (!adev)
+ 		return -ENODEV;
+ 
+ 	if (add_uevent_var(env, "MODALIAS="))
+ 		return -ENOMEM;
+-	len = create_modalias(ACPI_COMPANION(dev), &env->buf[env->buflen - 1],
+-				sizeof(env->buf) - env->buflen);
+-	if (len <= 0)
++
++	len = create_pnp_modalias(adev, &env->buf[env->buflen - 1],
++				  sizeof(env->buf) - env->buflen);
++	if (len < 0) {
++		return len;
++	} else if (len > 0) {
++		env->buflen += len;
++
++		if (add_uevent_var(env, "MODALIAS="))
++			return -ENOMEM;
++	}
++	len = create_of_modalias(adev, &env->buf[env->buflen - 1],
++				 sizeof(env->buf) - env->buflen);
++	if (len < 0)
+ 		return len;
++
+ 	env->buflen += len;
++
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(acpi_device_uevent_modalias);
+ 
+ /*
+- * Creates modalias sysfs attribute for ACPI enumerated devices.
++ * Creates uevent modalias field for ACPI enumerated devices.
+  * Because the other buses does not support ACPI HIDs & CIDs.
+  * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
+  * "acpi:IBM0001:ACPI0001"
+  */
+-int acpi_device_modalias(struct device *dev, char *buf, int size)
++int acpi_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
+ {
+-	int len;
++	return __acpi_device_uevent_modalias(acpi_companion_match(dev), env);
++}
++EXPORT_SYMBOL_GPL(acpi_device_uevent_modalias);
++
++static int __acpi_device_modalias(struct acpi_device *adev, char *buf, int size)
++{
++	int len, count;
+ 
+-	if (!acpi_companion_match(dev))
++	if (!adev)
+ 		return -ENODEV;
+ 
+-	len = create_modalias(ACPI_COMPANION(dev), buf, size -1);
+-	if (len <= 0)
++	len = create_pnp_modalias(adev, buf, size - 1);
++	if (len < 0) {
+ 		return len;
+-	buf[len++] = '\n';
++	} else if (len > 0) {
++		buf[len++] = '\n';
++		size -= len;
++	}
++	count = create_of_modalias(adev, buf + len, size - 1);
++	if (count < 0) {
++		return count;
++	} else if (count > 0) {
++		len += count;
++		buf[len++] = '\n';
++	}
++
+ 	return len;
+ }
++
++/*
++ * Creates modalias sysfs attribute for ACPI enumerated devices.
++ * Because the other buses does not support ACPI HIDs & CIDs.
++ * e.g. for a device with hid:IBM0001 and cid:ACPI0001 you get:
++ * "acpi:IBM0001:ACPI0001"
++ */
++int acpi_device_modalias(struct device *dev, char *buf, int size)
++{
++	return __acpi_device_modalias(acpi_companion_match(dev), buf, size);
++}
+ EXPORT_SYMBOL_GPL(acpi_device_modalias);
+ 
+ static ssize_t
+ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, char *buf) {
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	int len;
+-
+-	len = create_modalias(acpi_dev, buf, 1024);
+-	if (len <= 0)
+-		return len;
+-	buf[len++] = '\n';
+-	return len;
++	return __acpi_device_modalias(to_acpi_device(dev), buf, 1024);
+ }
+ static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+ 
+@@ -1051,19 +1107,11 @@ static int acpi_bus_match(struct device
+ static int acpi_device_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	int len;
+ 
+ 	if (list_empty(&acpi_dev->pnp.ids))
+ 		return 0;
+ 
+-	if (add_uevent_var(env, "MODALIAS="))
+-		return -ENOMEM;
+-	len = create_modalias(acpi_dev, &env->buf[env->buflen - 1],
+-			      sizeof(env->buf) - env->buflen);
+-	if (len <= 0)
+-		return len;
+-	env->buflen += len;
+-	return 0;
++	return __acpi_device_uevent_modalias(acpi_dev, env);
+ }
+ 
+ static void acpi_device_notify(acpi_handle handle, u32 event, void *data)
