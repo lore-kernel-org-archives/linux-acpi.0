@@ -1,83 +1,122 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for 4.0-rc8
-Date: Fri, 10 Apr 2015 01:09:45 +0200
-Message-ID: <CAJZ5v0iOnLxPjBeXSJPpg9c9AMTX-7zd8epLvjdzx4Y0tPrD6Q@mail.gmail.com>
+Subject: Re: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Fri, 10 Apr 2015 02:28:48 +0200
+Message-ID: <CAJZ5v0jtv8pB4EJHVLpsMfeqi7stnH1vvANbhFSTKiaU2RB1Ug@mail.gmail.com>
+References: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com>
+	<3369608.UAniFEi9kX@vostro.rjw.lan>
+	<CAErSpo5aMwv5thgx+6195Cg+AM7FEeNJ_KDJj-pVCWGQp70XMg@mail.gmail.com>
+	<2169521.1seaK7G9oX@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vn0-f48.google.com ([209.85.216.48]:42610 "EHLO
-	mail-vn0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbbDIXJq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Apr 2015 19:09:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2169521.1seaK7G9oX@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On Fri, Apr 10, 2015 at 12:37 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, April 09, 2015 05:00:08 PM Bjorn Helgaas wrote:
+>> On Thu, Apr 9, 2015 at 4:37 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Thursday, April 09, 2015 10:50:02 AM Jiang Liu wrote:
+>> >> On 2015/4/9 7:44, Rafael J. Wysocki wrote:
+>> >> > On Wednesday, April 08, 2015 01:48:46 PM Jiang Liu wrote:
+>> >> >> On 2015/4/7 8:28, Rafael J. Wysocki wrote:
+>> >> >>> On Friday, April 03, 2015 10:04:11 PM Bjorn Helgaas wrote:
+>> >> >>>> Hi Jiang,
+>> >> >> <snip>
+>> >> >>>>> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
+>> >> >>>>> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
+>> >> >>>>
+>> >> >>>> We should assume it will eventually be used for all ACPI devices,
+>> >> >>>> shouldn't we?
+>> >> >>>
+>> >> >>> I'm not sure about that, really.  In fact, I'd restrict its use to devices
+>> >> >>> types that actually can "produce" resources (ie. do not require the resources
+>> >> >>> to be provided by their ancestors or to be available from a global pool).
+>> >> >>>
+>> >> >>> Otherwise we're pretty much guaranteed to get into trouble.
+>> >> >>>
+>> >> >>> And all of the above rules need to be documented in the kernel source tree
+>> >> >>> or people will get confused.
+>> >> >> Hi Rafael,
+>> >> >>     How about following comments for acpi_dev_filter_resource_type()?
+>> >> >> Thanks!
+>> >> >> Gerry
+>> >> >> --------------------------------------------------------------------
+>> >> >> /**
+>> >> >>  * According to ACPI specifications, Consumer/Producer flag in ACPI resource
+>> >> >>  * descriptor means:
+>> >> >>  *      1(CONSUMER): This device consumes this resource
+>> >> >>  *      0(PRODUCER): This device produces and consumes this resource
+>> >> >>  * But for ACPI PCI host bridge, it is interpreted in another way:
+>> >> >
+>> >> > So first of all, this leads to a question: Why is it interpreted for ACPI PCI
+>> >> > host bridges differently?
+>> >> >
+>> >> > Is it something we've figured out from experience, or is there a standard
+>> >> > mandating that?
+>> >> Hi Rafael,
+>> >>       I think we got this knowledge by experiences. PCI FW spec only
+>> >> states _CRS reports resources assigned to the host bridge by firmware.
+>> >> There's no statement about whether the resource is consumed by host
+>> >> bridge itself or provided to it's child bus/devices. On x86/IA64 side,
+>> >> the main resource consumed by PCI host bridge is IOPORT 0xCF8-0xCFF,
+>> >> but not sure about ARM64 side. So how about:
+>> >
+>> > This:
+>> >
+>> >> PCI Firmware specification states that _CRS reports resources
+>> >> assigned to the host bridge, but there's no way to tell whether
+>> >> the resource is consumed by host bridge itself or provided to
+>> >> its child bus/devices.
+>> >
+>> > looks OK to me, but I'd replace the below with something like:
+>> >
+>> > "However, experience shows, that in the PCI host bridge case firmware writers
+>> >  expect the resource to be provided to devices on the bus (below the bridge) for
+>> >  consumption entirely if its Consumer/Producer flag is clear.  That expectation
+>> >  is reflected by the code in this routine as follows:".
+>>
+>> What a mess.  The spec is regrettably lacking in Consumer/Producer
+>> specifics.  But I don't see what's confusing about the descriptors
+>> that have Consumer/Producer bits.
+>>
+>> QWord, DWord, and Word descriptors don't seem to have a
+>> Consumer/Producer bit, but they do contain _TRA, so they must be
+>> intended for bridge windows.  Can they also be used for device
+>> registers?  I don't know.
+>>
+>> The Extended Address descriptor has a Consumer/Producer bit, and I
+>> would interpret the spec to mean that if the flag is clear (the device
+>> produces and consumes this resource), the resource is available on the
+>> bus below the bridge, i.e., the bridge consumes the resource on its
+>> upstream side and produces it on its downstream side.
+>
+> OK, that makes sense for bridges.
+>
+>> If the bit were
+>> set (the device only consumes the resource), I would expect that to
+>> mean the descriptor is for bridge registers like 0xcf8/0xcfc that
+>> never appear on the downstream side.
+>
+> That part is clear.  What is not clear is whether or not we can *always*
+> expect the resources with Consumer/Producer *clear* to be produced on the
+> downstram side.  That appears to be the case for host bridges if my
+> understanding of things is correct, but is it the case in general?
+>
+>> Maybe I'm reading the spec too naively, but this doesn't seem a matter
+>> of experience.
+>
+> Well, the specification is not clear enough in that respect, at least as
+> far as I can say, or maybe it is, but then does firmware always follow that
+> interpretation?
 
-Please pull from
+So I guess I'd like to propose to go back to the 3.19 behavior for PCI host
+bridges and then to handle the IOAPIC as a separate case.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.0-rc8
+We can think about consolidating the two later.
 
-to receive power management and ACPI fixes for v4.0-rc8 (if
-there's one) or for final v4.0 (if there isn't) with top-most
-commit b2d5fb97d37fb35708a0811af74d9e76e44d421c
+Any objections to doing that?
 
- Merge branches 'pm-sleep', 'pm-cpufreq' and 'pm-cpuidle'
-
-on top of commit f22e6e847115abc3a0e2ad7bb18d243d42275af1
-
- Linux 4.0-rc7
-
-These are stable-candidate fixes of some recently reported issues
-in the cpufreq core, cpuidle core, the ACPI cpuidle driver and the
-hibernate core.
-
-Specifics:
-
- - Revert a 3.17 hibernate commit that was supposed to fix an issue
-   related to e820 reserved regions, but broke resume from hibernation
-   on Lenovo x230 (Rafael J Wysocki).
-
- - Prevent the ACPI cpuidle driver from overwriting the name and
-   description of the C0 state set by the core when the list of
-   C-states changes (Thomas Schlichter).
-
- - Remove the no longer needed state_count field from struct cpuidle_device
-   which prevents the list of C-states shown by the sysfs interface from
-   becoming incorrect when the current number of them is different from
-   the number of C-states on boot (Bartlomiej Zolnierkiewicz).
-
- - The cpufreq core updates the policy object of the only online CPU
-   during system resume to make it reflect the current hardware state,
-   but it always assumes that CPU to be CPU0 which need not be the
-   case, so fix the code to avoid that assumption (Viresh Kumar).
-
-Thanks!
-
-
----------------
-
-Bartlomiej Zolnierkiewicz (1):
-      cpuidle: remove state_count field from struct cpuidle_device
-
-Rafael J. Wysocki (1):
-      Revert "PM / hibernate: avoid unsafe pages in e820 reserved regions"
-
-Thomas Schlichter (1):
-      cpuidle: ACPI: do not overwrite name and description of C0
-
-Viresh Kumar (1):
-      cpufreq: Schedule work for the first-online CPU on resume
-
----------------
-
- drivers/acpi/processor_idle.c |  2 +-
- drivers/cpufreq/cpufreq.c     | 19 +++++++++++--------
- drivers/cpuidle/cpuidle.c     |  3 ---
- drivers/cpuidle/sysfs.c       |  5 +++--
- include/linux/cpuidle.h       |  1 -
- kernel/power/snapshot.c       | 21 +--------------------
- 6 files changed, 16 insertions(+), 35 deletions(-)
+Rafael
