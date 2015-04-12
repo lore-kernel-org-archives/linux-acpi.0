@@ -1,108 +1,86 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] mailbox: add ACPI support for mailbox framework
-Date: Sat, 11 Apr 2015 01:42:42 +0200
-Message-ID: <3022123.nmnOLI8qhE@vostro.rjw.lan>
-References: <1427836680-13008-1-git-send-email-fkan@apm.com> <11619620.g1RKbURH6u@vostro.rjw.lan> <CAL85gmCHWoVEhxS=bVFrMZbE8NMfmFn6e=g6KG7PMKHRURJ4XA@mail.gmail.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Last minutes thermal-SoC management updates for v4.0
+Date: Sat, 11 Apr 2015 19:46:13 -0700
+Message-ID: <20150412024611.GA12807@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51049 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752657AbbDJXSP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Apr 2015 19:18:15 -0400
-In-Reply-To: <CAL85gmCHWoVEhxS=bVFrMZbE8NMfmFn6e=g6KG7PMKHRURJ4XA@mail.gmail.com>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:33251 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208AbbDLCp5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Apr 2015 22:45:57 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Kan <fkan@apm.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, patches <patches@apm.com>, Jassi Brar <jassisinghbrar@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-
-On Tuesday, April 07, 2015 03:58:36 PM Feng Kan wrote:
-> On Tue, Apr 7, 2015 at 4:37 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, April 07, 2015 11:41:43 AM Mika Westerberg wrote:
-> >> On Thu, Apr 02, 2015 at 11:04:24AM -0700, Feng Kan wrote:
-> >> > On Thu, Apr 2, 2015 at 2:07 AM, Mika Westerberg
-> >> > <mika.westerberg@linux.intel.com> wrote:
-> >> > > On Wed, Apr 01, 2015 at 10:01:45AM -0700, Feng Kan wrote:
-> >> > >> On Wed, Apr 1, 2015 at 12:45 AM, Mika Westerberg
-> >> > >> <mika.westerberg@linux.intel.com> wrote:
-> >> > >> > On Tue, Mar 31, 2015 at 02:18:00PM -0700, Feng Kan wrote:
-> >> > >> >> This will add support for ACPI parsing of the mboxes attribute
-> >> > >> >> when booting with ACPI table. The client will have a attribute
-> >> > >> >> mimic the dts call "mboxes". In the ACPI case, the client will
-> >> > >> >> mark "mboxes" with the ACPI HID of the mbox it wishes to use.
-> >> > >> >>
-> >> > >> >>       Name (_DSD, Package () {
-> >> > >> >>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >> > >> >>               Package () {
-> >> > >> >>                       Package (2) {"mboxes", "ACPIHID"},
-> >> > >> >>               }
-> >> > >> >>       })
-> >> > >> >
-> >> > >> > Instead of this, why not match against the DT compatible property?
-> >> > >> >
-> >> > >> >         Name (_HID, "PRP0001")
-> >> > >> >
-> >> > >> >         Name (_DSD, Package () {
-> >> > >> >                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >> > >> >                 Package () {
-> >> > >> >                         Package (2) {"compatible", "your-dt-compatible-string"},
-> >> > >> >                 }
-> >> > >> >         })
-> >> > >> I think my description was not clear enough. The _DSD section is not
-> >> > >> meant to identify the mailbox driver, but used by the acpi node that will
-> >> > >> request the mailbox channel. The dts version would be as below.
-> >> > >>
-> >> > >>    mailbox: {
-> >> > >>    }
-> >> > >>
-> >> > >>    user-mbox: {
-> >> > >>       mboxes: <&mailbox 0>
-> >> > >>    }
-> >> > >>
-> >> > >> The mboxes attribute in the user of the mbox has to specify the HID of the
-> >> > >> mbox in order to retrieve channel pointer.
-> >> > >
-> >> > > Okay, then I think you can use reference instead of _HID, like
-> >> > >
-> >> > >         // The mailbox device
-> >> > >         Device (MLBX) {
-> >> > >         }
-> >> > >
-> >> > >         // User-mbox device
-> >> > >         Device (USBX) {
-> >> > >                 Name (_DSD, Package () {
-> >> > >                         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >> > >                         Package () {
-> >> > >                                 Package () {"mboxes", Package () {^^MLBX, 0}}),
-> >> > >                         }
-> >> > >                 })
-> >> > >         }
-> >> >
-> >> > Thanks, will try this. A side question on your previous reply. Would you
-> >> > prefer a new driver using the PRP0001 or an actual proper HID.
-> >>
-> >> If you have existing DT bindings for this, then PRP0001 is fine.
-> >> Otherwise you should use the proper _HID for this particular device.
-> >
-> > To be precise, PRP0001 specifically means "Use the 'compatible' property
-> > to find the driver for this device", so if *that* is what you want to do,
->
-> I am a bit uneasy about this. I understand the application of this. For a system
-> that is both DT and ACPI compatible, this would open up a flood of PRP0001
-> device drivers. What is the guideline here? Is this PRP0001 only exist
-> to support legacy devices that do not have a proper HID.
->
-
-For Windows-compatible firmware it generally would be better to use PRP0001 in
-a _CID and make the _HID return a proper device ID that could be matched by a
-Windows driver.
-
-Then, the PRP0001 makes it possible to match drivers using the existing DT
-device identification without having to add the ACPI device IDs to those
-drivers in order to enable them to work with newfangled ACPI tables.
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hello Linus,
+
+Please pull from
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+
+to receive Thermal-SoC Management updates for v4.0-rc7 with top-most
+
+541d529f9845d249d1cb84f1b395e48f0a117e3f:
+
+  drivers: thermal: st: remove several sparse warnings (2015-04-07 13:43:28 -0700)
+
+on top of commit f8b3d8a5af7559a58613384cd23fc03a3c787acf:
+
+  Merge tag 'usb-4.0-rc6' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb (2015-04-04 12:26:28 -0700)
+
+Specifics:
+- Minor fixes on ST and RCAR thermal drivers.
+- Avoid flooding kernel log when driver returns -EAGAIN.
+
+Note: I am sending this pull on Rui's behalf while he fixes issues in
+his Linux box.
+
+BR,
+
+Eduardo Valentin
+----------------------------------------------------------------
+Eduardo Valentin (1):
+      drivers: thermal: st: remove several sparse warnings
+
+Fabian Frederick (1):
+      thermal: constify of_device_id array
+
+Geert Uytterhoeven (1):
+      thermal: rcar: Fix typo in r8a73a4 SoC name
+
+Hans de Goede (1):
+      thermal: Do not log an error if thermal_zone_get_temp returns -EAGAIN
+
+ Documentation/devicetree/bindings/thermal/rcar-thermal.txt |  2 +-
+ drivers/thermal/st/st_thermal.c                            |  2 +-
+ drivers/thermal/st/st_thermal_memmap.c                     | 10 +++++-----
+ drivers/thermal/st/st_thermal_syscfg.c                     | 14 +++++++-------
+ drivers/thermal/thermal_core.c                             |  6 ++++--
+ 5 files changed, 18 insertions(+), 16 deletions(-)
+
+--82I3+IH0IqGh5yIs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQEcBAEBAgAGBQJVKdxmAAoJEMLUO4d9pOJW6lgH/3VGTzyVPxUAD8T3Zm5KP64H
+/mtwnzhVyfQurDWb9tg7UK1ExN2menpab3Wr27loZgPMMCuQHDkuDVrKCEiu2etA
+WBu/PWuS25qA5XPK6L/gs3u4DYP59wt2HcvHhcQqhkcBM49nQzUc4nk8a2URSRd2
+nuzGfTLhxHWHWv6EYz3NqC1TlxU8hUAMiBQdanV3pf2EgBSXkKwzmYo8AEQT08TV
+3RUfkbwQWyStHgLpMX7Eekt8RdDDuqTPtVgvZzBg8stXpraNV8CkkGRXCzTXWUHG
+IrB1NYtIvXk47W4Rxec8yM/uJ0L4Ul1p7Z2a4/3/OCIpFXX3oJ2efikpL4CsYho=
+=cyKs
+-----END PGP SIGNATURE-----
+
+--82I3+IH0IqGh5yIs--
