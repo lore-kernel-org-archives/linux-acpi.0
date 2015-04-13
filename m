@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 28/31] ACPICA: iASL: Add support for MSDM ACPI table.
-Date: Mon, 13 Apr 2015 11:51:08 +0800
-Message-ID: <08c2b64c45ec7f3770b044b012bf24c3a605cee7.1428893939.git.lv.zheng@intel.com>
+Subject: [PATCH 29/31] ACPICA: Disassembler: Some cleanup of the table dump module.
+Date: Mon, 13 Apr 2015 11:51:16 +0800
+Message-ID: <dcd3d65ba07b8fc19b284ed58c9e453868f377a8.1428893939.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
@@ -12,62 +12,31 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit a2c590ce9bff850e3abf4fd430cede860a3cb1fa
+ACPICA commit 330e3b7ec96fbd2e0677b786c09d86be36dd5673
 
-This is the Microsoft Data Management table.
+Cleanup of LPIT table output (Dean Nelson)
+Split some long lines.
 
-MSDM table is not used in the Linux kernel.
-
-Link: https://github.com/acpica/acpica/commit/a2c590ce
+Link: https://github.com/acpica/acpica/commit/330e3b7e
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ include/acpi/actbl2.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index df729bf..e3ab1ff 100644
+index e3ab1ff..cafdeb5 100644
 --- a/include/acpi/actbl2.h
 +++ b/include/acpi/actbl2.h
-@@ -73,6 +73,7 @@
- #define ACPI_SIG_LPIT           "LPIT"	/* Low Power Idle Table */
- #define ACPI_SIG_MCFG           "MCFG"	/* PCI Memory Mapped Configuration table */
- #define ACPI_SIG_MCHI           "MCHI"	/* Management Controller Host Interface table */
-+#define ACPI_SIG_MSDM           "MSDM"	/* Microsoft Data Management Table */
- #define ACPI_SIG_MTMR           "MTMR"	/* MID Timer table */
- #define ACPI_SIG_SLIC           "SLIC"	/* Software Licensing Description Table */
- #define ACPI_SIG_SPCR           "SPCR"	/* Serial Port Console Redirection table */
-@@ -935,6 +936,21 @@ struct acpi_table_mchi {
+@@ -846,7 +846,8 @@ struct acpi_lpit_header {
  
- /*******************************************************************************
-  *
-+ * MSDM - Microsoft Data Management table
-+ *
-+ * Conforms to "Microsoft Software Licensing Tables (SLIC and MSDM)",
-+ * November 29, 2011. Copyright 2011 Microsoft
-+ *
-+ ******************************************************************************/
-+
-+/* Basic MSDM table is only the common ACPI header */
-+
-+struct acpi_table_msdm {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+};
-+
-+/*******************************************************************************
-+ *
-  * MTMR - MID Timer Table
-  *        Version 1
-  *
-@@ -961,8 +977,7 @@ struct acpi_mtmr_entry {
-  * SLIC - Software Licensing Description Table
-  *
-  * Conforms to "Microsoft Software Licensing Tables (SLIC and MSDM)",
-- * November 29, 2011
-- * Copyright 2011 Microsoft
-+ * November 29, 2011. Copyright 2011 Microsoft
-  *
-  ******************************************************************************/
+ enum acpi_lpit_type {
+ 	ACPI_LPIT_TYPE_NATIVE_CSTATE = 0x00,
+-	ACPI_LPIT_TYPE_SIMPLE_IO = 0x01
++	ACPI_LPIT_TYPE_SIMPLE_IO = 0x01,
++	ACPI_LPIT_TYPE_RESERVED = 0x02	/* 2 and above are reserved */
+ };
  
+ /* Masks for Flags field above  */
 -- 
 1.7.10
