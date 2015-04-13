@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 21/31] ACPICA: iASL: Enhancement for constant folding.
-Date: Mon, 13 Apr 2015 11:50:26 +0800
-Message-ID: <38c2eec0abd74de933241dca8d23543e017aeddc.1428893938.git.lv.zheng@intel.com>
+Subject: [PATCH 20/31] ACPICA: iASL/Disassembler: Add option to assume table contains valid AML.
+Date: Mon, 13 Apr 2015 11:50:21 +0800
+Message-ID: <fa0cd3ff758dadd3ef64c4982eaaee88e64d13f3.1428893938.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
@@ -12,41 +12,34 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 4f9e950d41cd6f6c704d5d6cf518647620d65e99
+ACPICA commit f5d2ff3fa05341d9fe27250fcb2e14c7f871432c
 
-Add support to fold expressions with a target operand -- these are
-folded and converted to a Store operator:
-
-Add (4, 3, INT1) --> Store (7, INT1)
-
-Also supports ASL+ constructs:
-
-INT1 = 4 + 3 --> Store (7, INT1)
+For dynamically loaded tables that have unknown ACPI signatures,
+this option (-df) forces the disassembler to treat the table as if
+it contains valid AML code (like a DSDT or SSDT). Otherwise, the
+disassembler will treat the table as an unkown data table and
+simply do a hex dump of the table.
 
 Linux kernel is not affected by this patch.
 
-Link: https://github.com/acpica/acpica/commit/4f9e950d
+Link: https://github.com/acpica/acpica/commit/f5d2ff3f
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acstruct.h |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/acpica/acstruct.h b/drivers/acpi/acpica/acstruct.h
-index d14b547..87c7860 100644
---- a/drivers/acpi/acpica/acstruct.h
-+++ b/drivers/acpi/acpica/acstruct.h
-@@ -68,11 +68,6 @@
- #define ACPI_WALK_METHOD            0x01
- #define ACPI_WALK_METHOD_RESTART    0x02
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 8a99dcb..a0c4787 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -306,6 +306,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_db_output_flags, ACPI_DB_CONSOLE_OUTPUT);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
  
--/* Flags for iASL compiler only */
--
--#define ACPI_WALK_CONST_REQUIRED    0x10
--#define ACPI_WALK_CONST_OPTIONAL    0x20
--
- struct acpi_walk_state {
- 	struct acpi_walk_state *next;	/* Next walk_state in list */
- 	u8 descriptor_type;	/* To differentiate various internal objs */
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_disasm);
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_verbose);
 -- 
 1.7.10
