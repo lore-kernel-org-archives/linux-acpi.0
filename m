@@ -1,19 +1,16 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 32/37] x86/irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
-Date: Mon, 13 Apr 2015 14:11:54 +0800
-Message-ID: <1428905519-23704-33-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v8 27/37] x86/irq: Simplify MSI/DMAR/HPET implementation by using common code
+Date: Mon, 13 Apr 2015 14:11:49 +0800
+Message-ID: <1428905519-23704-28-git-send-email-jiang.liu@linux.intel.com>
 References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Jiang Liu <jiang.liu@linux.intel.com>, Jan Beulich <JBeulich@suse.com>, Grant Likely <grant.likely@linaro.org>, David Cohen <david.a.cohen@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Introduce helper functions to manipulate struct irq_alloc_info for IOAPIC.
-Also add extra parameter to IOAPIC interfaces to prepare for hierarchy
-irqdomain. Function mp_set_gsi_attr() will be killed once we have
-switched to hierarchy irqdomain.
+Use common MSI interfaces to simplify DMAR/HPET driver implementation.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -26,293 +23,307 @@ Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: David Cohen <david.a.cohen@linux.intel.com>
-Link: http://lkml.kernel.org/r/1416901802-24211-5-git-send-email-jiang.liu@linux.intel.com
+Link: http://lkml.kernel.org/r/1416894816-23245-28-git-send-email-jiang.liu@linux.intel.com
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/x86/include/asm/io_apic.h                     |   14 ++++++-
- arch/x86/kernel/acpi/boot.c                        |    6 ++-
- arch/x86/kernel/apic/io_apic.c                     |   39 +++++++++++++-------
- arch/x86/pci/intel_mid_pci.c                       |    4 +-
- .../platform/intel-mid/device_libs/platform_wdt.c  |    4 +-
- arch/x86/platform/intel-mid/sfi.c                  |    9 +++--
- 6 files changed, 54 insertions(+), 22 deletions(-)
+ arch/x86/kernel/apic/msi.c |  192 +++++++++++++-------------------------------
+ 1 file changed, 54 insertions(+), 138 deletions(-)
 
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index c976de126a91..1fbeda50a77d 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -95,6 +95,8 @@ struct IR_IO_APIC_route_entry {
- 		index		: 15;
- } __attribute__ ((packed));
+diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
+index f5b899514634..da163da5fdee 100644
+--- a/arch/x86/kernel/apic/msi.c
++++ b/arch/x86/kernel/apic/msi.c
+@@ -62,10 +62,8 @@ static struct irq_chip pci_msi_controller = {
+ 	.irq_unmask		= pci_msi_unmask_irq,
+ 	.irq_mask		= pci_msi_mask_irq,
+ 	.irq_ack		= irq_chip_ack_parent,
+-	.irq_set_affinity	= msi_domain_set_affinity,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+ 	.irq_compose_msi_msg	= irq_msi_compose_msg,
+-	.irq_write_msi_msg	= pci_msi_domain_write_msg,
+ 	.flags			= IRQCHIP_SKIP_SET_WAKE,
+ };
  
-+struct irq_alloc_info;
-+
- #define IOAPIC_AUTO     -1
- #define IOAPIC_EDGE     0
- #define IOAPIC_LEVEL    1
-@@ -194,7 +196,8 @@ extern u32 gsi_top;
- extern int mp_find_ioapic(u32 gsi);
- extern int mp_find_ioapic_pin(int ioapic, u32 gsi);
- extern u32 mp_pin_to_gsi(int ioapic, int pin);
--extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags);
-+extern int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
-+			     struct irq_alloc_info *info);
- extern void mp_unmap_irq(int irq);
- extern int mp_register_ioapic(int id, u32 address, u32 gsi_base,
- 			      struct ioapic_domain_cfg *cfg);
-@@ -203,6 +206,8 @@ extern int mp_ioapic_registered(u32 gsi_base);
- extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
- 			    irq_hw_number_t hwirq);
- extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
-+extern void ioapic_set_alloc_attr(struct irq_alloc_info *info,
-+				  int node, int trigger, int polarity);
- extern int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node);
+@@ -153,9 +151,7 @@ static struct irq_chip pci_msi_ir_controller = {
+ 	.irq_unmask		= pci_msi_unmask_irq,
+ 	.irq_mask		= pci_msi_mask_irq,
+ 	.irq_ack		= irq_chip_ack_parent,
+-	.irq_set_affinity	= msi_domain_set_affinity,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+-	.irq_write_msi_msg	= pci_msi_domain_write_msg,
+ 	.flags			= IRQCHIP_SKIP_SET_WAKE,
+ };
  
- extern void mp_save_irq(struct mpc_intsrc *m);
-@@ -253,7 +258,12 @@ static inline void print_IO_APICs(void) {}
- #define gsi_top (NR_IRQS_LEGACY)
- static inline int mp_find_ioapic(u32 gsi) { return 0; }
- static inline u32 mp_pin_to_gsi(int ioapic, int pin) { return UINT_MAX; }
--static inline int mp_map_gsi_to_irq(u32 gsi, unsigned int flags) { return gsi; }
-+static inline int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
-+				    struct irq_alloc_info *info)
-+{
-+	return gsi;
-+}
-+
- static inline void mp_unmap_irq(int irq) { }
- 
- static inline int save_ioapic_entries(void)
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 803b684676ff..a43a4d3c60e1 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -404,6 +404,7 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
- 			   int polarity)
- {
- 	int irq, node;
-+	struct irq_alloc_info info;
- 
- 	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
- 		return gsi;
-@@ -416,7 +417,8 @@ static int mp_register_gsi(struct device *dev, u32 gsi, int trigger,
- 		return -1;
- 	}
- 
--	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC);
-+	ioapic_set_alloc_attr(&info, node, trigger, polarity);
-+	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info);
- 	if (irq < 0)
- 		return irq;
- 
-@@ -434,7 +436,7 @@ static void mp_unregister_gsi(u32 gsi)
- 	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
- 		return;
- 
--	irq = mp_map_gsi_to_irq(gsi, 0);
-+	irq = mp_map_gsi_to_irq(gsi, 0, NULL);
- 	if (irq > 0)
- 		mp_unmap_irq(irq);
- }
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 540598c77e55..5c953bb96ecf 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -938,7 +938,19 @@ static int irq_trigger(int idx)
- 	return trigger;
- }
- 
--static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
-+void ioapic_set_alloc_attr(struct irq_alloc_info *info, int node,
-+			   int trigger, int polarity)
-+{
-+	init_irq_alloc_info(info, NULL);
-+	info->type = X86_IRQ_ALLOC_TYPE_IOAPIC;
-+	info->ioapic_node = node;
-+	info->ioapic_trigger = trigger;
-+	info->ioapic_polarity = polarity;
-+	info->ioapic_valid = 1;
-+}
-+
-+static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin,
-+				 struct irq_alloc_info *info)
- {
- 	int irq = -1;
- 	int ioapic = (int)(long)domain->host_data;
-@@ -971,11 +983,11 @@ static int alloc_irq_from_domain(struct irq_domain *domain, u32 gsi, int pin)
- }
- 
- static int mp_map_pin_to_irq(u32 gsi, int idx, int ioapic, int pin,
--			     unsigned int flags)
-+			     unsigned int flags, struct irq_alloc_info *info)
- {
- 	int irq;
- 	struct irq_domain *domain = mp_ioapic_irqdomain(ioapic);
--	struct mp_pin_info *info = mp_pin_info(ioapic, pin);
-+	struct mp_pin_info *pinfo = mp_pin_info(ioapic, pin);
- 
- 	if (!domain)
- 		return -1;
-@@ -997,30 +1009,30 @@ static int mp_map_pin_to_irq(u32 gsi, int idx, int ioapic, int pin,
- 	if (idx >= 0 && test_bit(mp_irqs[idx].srcbus, mp_bus_not_pci)) {
- 		irq = mp_irqs[idx].srcbusirq;
- 		if (flags & IOAPIC_MAP_ALLOC) {
--			if (info->count == 0 &&
-+			if (pinfo->count == 0 &&
- 			    mp_irqdomain_map(domain, irq, pin) != 0)
- 				irq = -1;
- 
- 			/* special handling for timer IRQ0 */
- 			if (irq == 0)
--				info->count++;
-+				pinfo->count++;
- 		}
- 	} else {
- 		irq = irq_find_mapping(domain, pin);
- 		if (irq <= 0 && (flags & IOAPIC_MAP_ALLOC))
--			irq = alloc_irq_from_domain(domain, gsi, pin);
-+			irq = alloc_irq_from_domain(domain, gsi, pin, info);
- 	}
- 
- 	if (flags & IOAPIC_MAP_ALLOC) {
- 		/* special handling for legacy IRQs */
--		if (irq < nr_legacy_irqs() && info->count == 1 &&
-+		if (irq < nr_legacy_irqs() && pinfo->count == 1 &&
- 		    mp_irqdomain_map(domain, irq, pin) != 0)
- 			irq = -1;
- 
- 		if (irq > 0)
--			info->count++;
--		else if (info->count == 0)
--			info->set = 0;
-+			pinfo->count++;
-+		else if (pinfo->count == 0)
-+			pinfo->set = 0;
- 	}
- 
- 	mutex_unlock(&ioapic_mutex);
-@@ -1058,10 +1070,11 @@ static int pin_2_irq(int idx, int ioapic, int pin, unsigned int flags)
- 	}
+@@ -175,23 +171,6 @@ struct irq_domain *arch_create_msi_irq_domain(struct irq_domain *parent)
  #endif
  
--	return  mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags);
-+	return  mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags, NULL);
+ #ifdef CONFIG_DMAR_TABLE
+-static int
+-dmar_msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
+-		      bool force)
+-{
+-	struct irq_data *parent = data->parent_data;
+-	struct msi_msg msg;
+-	int ret;
+-
+-	ret = parent->chip->irq_set_affinity(parent, mask, force);
+-	if (ret >= 0) {
+-		irq_chip_compose_msi_msg(data, &msg);
+-		dmar_msi_write(data->irq, &msg);
+-	}
+-
+-	return ret;
+-}
+-
+ static void dmar_msi_write_msg(struct irq_data *data, struct msi_msg *msg)
+ {
+ 	dmar_msi_write(data->irq, msg);
+@@ -202,67 +181,37 @@ static struct irq_chip dmar_msi_controller = {
+ 	.irq_unmask		= dmar_msi_unmask,
+ 	.irq_mask		= dmar_msi_mask,
+ 	.irq_ack		= irq_chip_ack_parent,
+-	.irq_set_affinity	= dmar_msi_set_affinity,
++	.irq_set_affinity	= msi_domain_set_affinity,
+ 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
+ 	.irq_compose_msi_msg	= irq_msi_compose_msg,
+ 	.irq_write_msi_msg	= dmar_msi_write_msg,
+ 	.flags			= IRQCHIP_SKIP_SET_WAKE,
+ };
+ 
+-static int dmar_domain_alloc(struct irq_domain *domain, unsigned int virq,
+-			     unsigned int nr_irqs, void *arg)
++static irq_hw_number_t dmar_msi_get_hwirq(struct msi_domain_info *info,
++					  msi_alloc_info_t *arg)
+ {
+-	struct irq_alloc_info *info = arg;
+-	int ret;
+-
+-	if (nr_irqs > 1 || !info || info->type != X86_IRQ_ALLOC_TYPE_DMAR)
+-		return -EINVAL;
+-	if (irq_find_mapping(domain, info->dmar_id)) {
+-		pr_warn("IRQ for DMAR%d already exists.\n", info->dmar_id);
+-		return -EEXIST;
+-	}
+-
+-	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
+-	if (ret >= 0) {
+-		irq_domain_set_hwirq_and_chip(domain, virq, info->dmar_id,
+-					      &dmar_msi_controller, NULL);
+-		irq_set_handler_data(virq, info->dmar_data);
+-		__irq_set_handler(virq, handle_edge_irq, 0, "edge");
+-	}
+-
+-	return ret;
++	return arg->dmar_id;
  }
  
--int mp_map_gsi_to_irq(u32 gsi, unsigned int flags)
-+int mp_map_gsi_to_irq(u32 gsi, unsigned int flags,
-+		      struct irq_alloc_info *info)
+-static void dmar_domain_free(struct irq_domain *domain, unsigned int virq,
+-			     unsigned int nr_irqs)
++static int dmar_msi_init(struct irq_domain *domain,
++			 struct msi_domain_info *info, unsigned int virq,
++			 irq_hw_number_t hwirq, msi_alloc_info_t *arg)
  {
- 	int ioapic, pin, idx;
+-	BUG_ON(nr_irqs > 1);
+-	irq_domain_free_irqs_top(domain, virq, nr_irqs);
+-}
++	irq_domain_set_info(domain, virq, arg->dmar_id, info->chip, NULL,
++			    handle_edge_irq, arg->dmar_data, "edge");
  
-@@ -1074,7 +1087,7 @@ int mp_map_gsi_to_irq(u32 gsi, unsigned int flags)
- 	if ((flags & IOAPIC_MAP_CHECK) && idx < 0)
- 		return -1;
- 
--	return mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags);
-+	return mp_map_pin_to_irq(gsi, idx, ioapic, pin, flags, info);
+-static void dmar_domain_activate(struct irq_domain *domain,
+-				 struct irq_data *irq_data)
+-{
+-	struct msi_msg msg;
+-
+-	BUG_ON(irq_chip_compose_msi_msg(irq_data, &msg));
+-	dmar_msi_write(irq_data->irq, &msg);
++	return 0;
  }
  
- void mp_unmap_irq(int irq)
-diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
-index 852aa4c92da0..57b5719b617b 100644
---- a/arch/x86/pci/intel_mid_pci.c
-+++ b/arch/x86/pci/intel_mid_pci.c
-@@ -208,6 +208,7 @@ static int pci_write(struct pci_bus *bus, unsigned int devfn, int where,
+-static void dmar_domain_deactivate(struct irq_domain *domain,
+-				   struct irq_data *irq_data)
+-{
+-	struct msi_msg msg;
+-
+-	memset(&msg, 0, sizeof(msg));
+-	dmar_msi_write(irq_data->irq, &msg);
+-}
++static struct msi_domain_ops dmar_msi_domain_ops = {
++	.get_hwirq	= dmar_msi_get_hwirq,
++	.msi_init	= dmar_msi_init,
++};
  
- static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+-static struct irq_domain_ops dmar_domain_ops = {
+-	.alloc = dmar_domain_alloc,
+-	.free = dmar_domain_free,
+-	.activate = dmar_domain_activate,
+-	.deactivate = dmar_domain_deactivate,
++static struct msi_domain_info dmar_msi_domain_info = {
++	.ops		= &dmar_msi_domain_ops,
++	.chip		= &dmar_msi_controller,
+ };
+ 
+ static struct irq_domain *dmar_get_irq_domain(void)
+@@ -271,11 +220,9 @@ static struct irq_domain *dmar_get_irq_domain(void)
+ 	static DEFINE_MUTEX(dmar_lock);
+ 
+ 	mutex_lock(&dmar_lock);
+-	if (dmar_domain == NULL) {
+-		dmar_domain = irq_domain_add_tree(NULL, &dmar_domain_ops, NULL);
+-		if (dmar_domain)
+-			dmar_domain->parent = x86_vector_domain;
+-	}
++	if (dmar_domain == NULL)
++		dmar_domain = msi_create_irq_domain(NULL, &dmar_msi_domain_info,
++						    x86_vector_domain);
+ 	mutex_unlock(&dmar_lock);
+ 
+ 	return dmar_domain;
+@@ -309,23 +256,9 @@ void dmar_free_hwirq(int irq)
+ #ifdef CONFIG_HPET_TIMER
+ static inline int hpet_dev_id(struct irq_domain *domain)
  {
-+	struct irq_alloc_info info;
- 	int polarity;
+-	return (int)(long)domain->host_data;
+-}
++	struct msi_domain_info *info = msi_get_domain_info(domain);
  
- 	if (dev->irq_managed && dev->irq > 0)
-@@ -217,6 +218,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- 		polarity = 0; /* active high */
+-static int hpet_msi_set_affinity(struct irq_data *data,
+-				 const struct cpumask *mask, bool force)
+-{
+-	struct irq_data *parent = data->parent_data;
+-	struct msi_msg msg;
+-	int ret;
+-
+-	ret = parent->chip->irq_set_affinity(parent, mask, force);
+-	if (ret >= 0 && ret != IRQ_SET_MASK_OK_DONE) {
+-		irq_chip_compose_msi_msg(data, &msg);
+-		hpet_msi_write(data->handler_data, &msg);
+-	}
+-
+-	return ret;
++	return (int)(long)info->data;
+ }
+ 
+ static void hpet_msi_write_msg(struct irq_data *data, struct msi_msg *msg)
+@@ -338,79 +271,63 @@ static struct irq_chip hpet_msi_controller = {
+ 	.irq_unmask = hpet_msi_unmask,
+ 	.irq_mask = hpet_msi_mask,
+ 	.irq_ack = irq_chip_ack_parent,
+-	.irq_set_affinity = hpet_msi_set_affinity,
++	.irq_set_affinity = msi_domain_set_affinity,
+ 	.irq_retrigger = irq_chip_retrigger_hierarchy,
+ 	.irq_compose_msi_msg = irq_msi_compose_msg,
+ 	.irq_write_msi_msg = hpet_msi_write_msg,
+ 	.flags = IRQCHIP_SKIP_SET_WAKE,
+ };
+ 
+-static int hpet_domain_alloc(struct irq_domain *domain, unsigned int virq,
+-			     unsigned int nr_irqs, void *arg)
+-{
+-	struct irq_alloc_info *info = arg;
+-	int ret;
+-
+-	if (nr_irqs > 1 || !info || info->type != X86_IRQ_ALLOC_TYPE_HPET)
+-		return -EINVAL;
+-	if (irq_find_mapping(domain, info->hpet_index)) {
+-		pr_warn("IRQ for HPET%d already exists.\n", info->hpet_index);
+-		return -EEXIST;
+-	}
+-
+-	ret = irq_domain_alloc_irqs_parent(domain, virq, nr_irqs, arg);
+-	if (ret >= 0) {
+-		irq_set_status_flags(virq, IRQ_MOVE_PCNTXT);
+-		irq_domain_set_hwirq_and_chip(domain, virq, info->hpet_index,
+-					      &hpet_msi_controller, NULL);
+-		irq_set_handler_data(virq, info->hpet_data);
+-		__irq_set_handler(virq, handle_edge_irq, 0, "edge");
+-	}
+-
+-	return ret;
+-}
+-
+-static void hpet_domain_free(struct irq_domain *domain, unsigned int virq,
+-			     unsigned int nr_irqs)
++static irq_hw_number_t hpet_msi_get_hwirq(struct msi_domain_info *info,
++					  msi_alloc_info_t *arg)
+ {
+-	BUG_ON(nr_irqs > 1);
+-	irq_clear_status_flags(virq, IRQ_MOVE_PCNTXT);
+-	irq_domain_free_irqs_top(domain, virq, nr_irqs);
++	return arg->hpet_index;
+ }
+ 
+-static void hpet_domain_activate(struct irq_domain *domain,
+-				struct irq_data *irq_data)
++static int hpet_msi_init(struct irq_domain *domain,
++			 struct msi_domain_info *info, unsigned int virq,
++			 irq_hw_number_t hwirq, msi_alloc_info_t *arg)
+ {
+-	struct msi_msg msg;
++	irq_set_status_flags(virq, IRQ_MOVE_PCNTXT);
++	irq_domain_set_info(domain, virq, arg->hpet_index, info->chip, NULL,
++			    handle_edge_irq, arg->hpet_data, "edge");
+ 
+-	BUG_ON(irq_chip_compose_msi_msg(irq_data, &msg));
+-	hpet_msi_write(irq_get_handler_data(irq_data->irq), &msg);
++	return 0;
+ }
+ 
+-static void hpet_domain_deactivate(struct irq_domain *domain,
+-				  struct irq_data *irq_data)
++static void hpet_msi_free(struct irq_domain *domain,
++			  struct msi_domain_info *info, unsigned int virq)
+ {
+-	struct msi_msg msg;
+-
+-	memset(&msg, 0, sizeof(msg));
+-	hpet_msi_write(irq_get_handler_data(irq_data->irq), &msg);
++	irq_clear_status_flags(virq, IRQ_MOVE_PCNTXT);
+ }
+ 
+-static struct irq_domain_ops hpet_domain_ops = {
+-	.alloc = hpet_domain_alloc,
+-	.free = hpet_domain_free,
+-	.activate = hpet_domain_activate,
+-	.deactivate = hpet_domain_deactivate,
++static struct msi_domain_ops hpet_msi_domain_ops = {
++	.get_hwirq	= hpet_msi_get_hwirq,
++	.msi_init	= hpet_msi_init,
++	.msi_free	= hpet_msi_free,
++};
++
++static struct msi_domain_info hpet_msi_domain_info = {
++	.ops		= &hpet_msi_domain_ops,
++	.chip		= &hpet_msi_controller,
+ };
+ 
+ struct irq_domain *hpet_create_irq_domain(int hpet_id)
+ {
+ 	struct irq_domain *parent;
+ 	struct irq_alloc_info info;
++	struct msi_domain_info *domain_info;
+ 
+ 	if (x86_vector_domain == NULL)
+ 		return NULL;
+ 
++	domain_info = kzalloc(sizeof(*domain_info), GFP_KERNEL);
++	if (!domain_info)
++		return NULL;
++
++	*domain_info = hpet_msi_domain_info;
++	domain_info->data = (void *)(long)hpet_id;
++
+ 	init_irq_alloc_info(&info, NULL);
+ 	info.type = X86_IRQ_ALLOC_TYPE_HPET;
+ 	info.hpet_id = hpet_id;
+@@ -420,8 +337,7 @@ struct irq_domain *hpet_create_irq_domain(int hpet_id)
  	else
- 		polarity = 1; /* active low */
-+	ioapic_set_alloc_attr(&info, dev_to_node(&dev->dev), 1, polarity);
+ 		hpet_msi_controller.name = "IR-HPET-MSI";
  
- 	/*
- 	 * MRST only have IOAPIC, the PCI irq lines are 1:1 mapped to
-@@ -224,7 +226,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- 	 */
- 	if (mp_set_gsi_attr(dev->irq, 1, polarity, dev_to_node(&dev->dev)))
- 		return -EBUSY;
--	if (mp_map_gsi_to_irq(dev->irq, IOAPIC_MAP_ALLOC) < 0)
-+	if (mp_map_gsi_to_irq(dev->irq, IOAPIC_MAP_ALLOC, &info) < 0)
- 		return -EBUSY;
- 
- 	dev->irq_managed = 1;
-diff --git a/arch/x86/platform/intel-mid/device_libs/platform_wdt.c b/arch/x86/platform/intel-mid/device_libs/platform_wdt.c
-index 0b283d4d0ad7..de0009f6d555 100644
---- a/arch/x86/platform/intel-mid/device_libs/platform_wdt.c
-+++ b/arch/x86/platform/intel-mid/device_libs/platform_wdt.c
-@@ -27,6 +27,7 @@ static struct platform_device wdt_dev = {
- static int tangier_probe(struct platform_device *pdev)
- {
- 	int gsi;
-+	struct irq_alloc_info info;
- 	struct intel_mid_wdt_pdata *pdata = pdev->dev.platform_data;
- 
- 	if (!pdata)
-@@ -34,8 +35,9 @@ static int tangier_probe(struct platform_device *pdev)
- 
- 	/* IOAPIC builds identity mapping between GSI and IRQ on MID */
- 	gsi = pdata->irq;
-+	ioapic_set_alloc_attr(&info, cpu_to_node(0), 1, 0);
- 	if (mp_set_gsi_attr(gsi, 1, 0, cpu_to_node(0)) ||
--	    mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC) <= 0) {
-+	    mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info) <= 0) {
- 		dev_warn(&pdev->dev, "cannot find interrupt %d in ioapic\n",
- 			 gsi);
- 		return -EINVAL;
-diff --git a/arch/x86/platform/intel-mid/sfi.c b/arch/x86/platform/intel-mid/sfi.c
-index 9a16749935d4..7d17355d820e 100644
---- a/arch/x86/platform/intel-mid/sfi.c
-+++ b/arch/x86/platform/intel-mid/sfi.c
-@@ -104,7 +104,7 @@ int __init sfi_parse_mtmr(struct sfi_table_header *table)
- 		mp_irq.dstapic = MP_APIC_ALL;
- 		mp_irq.dstirq = pentry->irq;
- 		mp_save_irq(&mp_irq);
--		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
-+		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC, NULL);
- 	}
- 
- 	return 0;
-@@ -175,7 +175,7 @@ int __init sfi_parse_mrtc(struct sfi_table_header *table)
- 		mp_irq.dstapic = MP_APIC_ALL;
- 		mp_irq.dstirq = pentry->irq;
- 		mp_save_irq(&mp_irq);
--		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
-+		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC, NULL);
- 	}
- 	return 0;
+-	return irq_domain_add_hierarchy(parent, 0, 0, NULL, &hpet_domain_ops,
+-					(void *)(long)hpet_id);
++	return msi_create_irq_domain(NULL, domain_info, parent);
  }
-@@ -434,6 +434,7 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
- 	struct devs_id *dev = NULL;
- 	int num, i, ret;
- 	int polarity;
-+	struct irq_alloc_info info;
  
- 	sb = (struct sfi_table_simple *)table;
- 	num = SFI_GET_NUM_ENTRIES(sb, struct sfi_device_table_entry);
-@@ -467,9 +468,11 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
- 				polarity = 1;
- 			}
- 
-+			ioapic_set_alloc_attr(&info, NUMA_NO_NODE, 1, polarity);
- 			ret = mp_set_gsi_attr(irq, 1, polarity, NUMA_NO_NODE);
- 			if (ret == 0)
--				ret = mp_map_gsi_to_irq(irq, IOAPIC_MAP_ALLOC);
-+				ret = mp_map_gsi_to_irq(irq, IOAPIC_MAP_ALLOC,
-+							&info);
- 			WARN_ON(ret < 0);
- 		}
- 
+ int hpet_assign_irq(struct irq_domain *domain, struct hpet_dev *dev,
 -- 
 1.7.10.4
