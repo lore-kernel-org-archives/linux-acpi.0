@@ -1,228 +1,260 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/31] ACPICA: Utilities: Cleanup to convert physical address printing formats.
-Date: Mon, 13 Apr 2015 11:48:46 +0800
-Message-ID: <146b41bcedf54656337c5ca22ce7ad69ef3e0e61.1428893936.git.lv.zheng@intel.com>
+Subject: [PATCH 07/31] ACPICA: Utilities: Cleanup to remove useless ACPI_PRINTF/FORMAT_xxx helpers.
+Date: Mon, 13 Apr 2015 11:48:52 +0800
+Message-ID: <7ea3d8f02975b27086802d5fed01379f079748c8.1428893937.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39125 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753283AbbDMDst (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Apr 2015 23:48:49 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 7f06739db43a85083a70371c14141008f20b2198
+ACPICA commit b60612373a4ef63b64a57c124576d7ddb6d8efb6
 
 For physical addresses, since the address may exceed 32-bit address range
-after calculation, we should use %8.8X%8.8X (see ACPI_FORMAT_UINT64()) to
-convert the %p formats.
+after calculation, we should use 0x%8.8X%8.8X instead of ACPI_PRINTF_UINT
+and ACPI_FORMAT_UINT64() instead of
+ACPI_FORMAT_NATIVE_UINT()/ACPI_FORMAT_TO_UINT().
+
+This patch also removes above replaced macros as there are no users.
 
 This is a preparation to switch acpi_physical_address to 64-bit on 32-bit
 kernel builds.
 
-Link: https://github.com/acpica/acpica/commit/7f06739d
+Link: https://github.com/acpica/acpica/commit/b6061237
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/exfldio.c   |   10 ++++------
- drivers/acpi/acpica/hwvalid.c   |   16 ++++++++--------
- drivers/acpi/acpica/nsdump.c    |    7 +++----
- drivers/acpi/acpica/tbinstal.c  |   15 +++++++++------
- drivers/acpi/acpica/utaddress.c |   34 +++++++++++++++-------------------
- 5 files changed, 39 insertions(+), 43 deletions(-)
+ drivers/acpi/acpica/acmacros.h |   13 +------------
+ drivers/acpi/acpica/dsopcode.c |    4 ++--
+ drivers/acpi/acpica/evregion.c |    2 +-
+ drivers/acpi/acpica/exdump.c   |    4 ++--
+ drivers/acpi/acpica/exregion.c |    8 +++-----
+ drivers/acpi/acpica/nsdump.c   |    5 +++--
+ drivers/acpi/acpica/tbdata.c   |    6 +++---
+ drivers/acpi/acpica/tbinstal.c |    8 ++++----
+ drivers/acpi/acpica/tbprint.c  |   19 ++++++-------------
+ 9 files changed, 25 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
-index 4947992..725a374 100644
---- a/drivers/acpi/acpica/exfldio.c
-+++ b/drivers/acpi/acpica/exfldio.c
-@@ -263,17 +263,15 @@ acpi_ex_access_region(union acpi_operand_object *obj_desc,
- 	}
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index cf607fe..c240bdf 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -63,23 +63,12 @@
+ #define ACPI_SET64(ptr, val)            (*ACPI_CAST64 (ptr) = (u64) (val))
  
- 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_BFIELD,
--			      " Region [%s:%X], Width %X, ByteBase %X, Offset %X at %p\n",
-+			      " Region [%s:%X], Width %X, ByteBase %X, Offset %X at %8.8X%8.8X\n",
- 			      acpi_ut_get_region_name(rgn_desc->region.
- 						      space_id),
- 			      rgn_desc->region.space_id,
- 			      obj_desc->common_field.access_byte_width,
- 			      obj_desc->common_field.base_byte_offset,
--			      field_datum_byte_offset, ACPI_CAST_PTR(void,
--								     (rgn_desc->
--								      region.
--								      address +
--								      region_offset))));
-+			      field_datum_byte_offset,
-+			      ACPI_FORMAT_UINT64(rgn_desc->region.address +
-+						 region_offset)));
+ /*
+- * printf() format helpers. These macros are workarounds for the difficulties
++ * printf() format helper. This macros is a workaround for the difficulties
+  * with emitting 64-bit integers and 64-bit pointers with the same code
+  * for both 32-bit and 64-bit hosts.
+  */
+ #define ACPI_FORMAT_UINT64(i)           ACPI_HIDWORD(i), ACPI_LODWORD(i)
  
- 	/* Invoke the appropriate address_space/op_region handler */
+-#if ACPI_MACHINE_WIDTH == 64
+-#define ACPI_FORMAT_NATIVE_UINT(i)      ACPI_FORMAT_UINT64(i)
+-#define ACPI_FORMAT_TO_UINT(i)          ACPI_FORMAT_UINT64(i)
+-#define ACPI_PRINTF_UINT                 "0x%8.8X%8.8X"
+-
+-#else
+-#define ACPI_FORMAT_NATIVE_UINT(i)      0, (u32) (i)
+-#define ACPI_FORMAT_TO_UINT(i)          (u32) (i)
+-#define ACPI_PRINTF_UINT                 "0x%8.8X"
+-#endif
+-
+ /*
+  * Macros for moving data around to/from buffers that are possibly unaligned.
+  * If the hardware supports the transfer of unaligned data, just do the store.
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 398e208..ea0cc4e 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -446,7 +446,7 @@ acpi_ds_eval_region_operands(struct acpi_walk_state *walk_state,
  
-diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
-index 2bd33fe..29033d7 100644
---- a/drivers/acpi/acpica/hwvalid.c
-+++ b/drivers/acpi/acpica/hwvalid.c
-@@ -142,17 +142,17 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
- 	byte_width = ACPI_DIV_8(bit_width);
- 	last_address = address + byte_width - 1;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "RgnObj %p Addr %8.8X%8.8X Len %X\n",
+ 			  obj_desc,
+-			  ACPI_FORMAT_NATIVE_UINT(obj_desc->region.address),
++			  ACPI_FORMAT_UINT64(obj_desc->region.address),
+ 			  obj_desc->region.length));
  
--	ACPI_DEBUG_PRINT((ACPI_DB_IO, "Address %p LastAddress %p Length %X",
--			  ACPI_CAST_PTR(void, address), ACPI_CAST_PTR(void,
--								      last_address),
--			  byte_width));
-+	ACPI_DEBUG_PRINT((ACPI_DB_IO,
-+			  "Address %8.8X%8.8X LastAddress %8.8X%8.8X Length %X",
+ 	/* Now the address and length are valid for this opregion */
+@@ -544,7 +544,7 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "RgnObj %p Addr %8.8X%8.8X Len %X\n",
+ 			  obj_desc,
+-			  ACPI_FORMAT_NATIVE_UINT(obj_desc->region.address),
++			  ACPI_FORMAT_UINT64(obj_desc->region.address),
+ 			  obj_desc->region.length));
+ 
+ 	/* Now the address and length are valid for this opregion */
+diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
+index 9abace3..2ba28a6 100644
+--- a/drivers/acpi/acpica/evregion.c
++++ b/drivers/acpi/acpica/evregion.c
+@@ -272,7 +272,7 @@ acpi_ev_address_space_dispatch(union acpi_operand_object *region_obj,
+ 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+ 			  "Handler %p (@%p) Address %8.8X%8.8X [%s]\n",
+ 			  &region_obj->region.handler->address_space, handler,
+-			  ACPI_FORMAT_NATIVE_UINT(address),
 +			  ACPI_FORMAT_UINT64(address),
-+			  ACPI_FORMAT_UINT64(last_address), byte_width));
+ 			  acpi_ut_get_region_name(region_obj->region.
+ 						  space_id)));
  
- 	/* Maximum 16-bit address in I/O space */
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 7c213b6..1da52be 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -767,8 +767,8 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
+ 			acpi_os_printf("\n");
+ 		} else {
+ 			acpi_os_printf(" base %8.8X%8.8X Length %X\n",
+-				       ACPI_FORMAT_NATIVE_UINT(obj_desc->region.
+-							       address),
++				       ACPI_FORMAT_UINT64(obj_desc->region.
++							  address),
+ 				       obj_desc->region.length);
+ 		}
+ 		break;
+diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
+index 2b8cae6..389a412 100644
+--- a/drivers/acpi/acpica/exregion.c
++++ b/drivers/acpi/acpica/exregion.c
+@@ -182,7 +182,7 @@ acpi_ex_system_memory_space_handler(u32 function,
+ 		if (!mem_info->mapped_logical_address) {
+ 			ACPI_ERROR((AE_INFO,
+ 				    "Could not map memory at 0x%8.8X%8.8X, size %u",
+-				    ACPI_FORMAT_NATIVE_UINT(address),
++				    ACPI_FORMAT_UINT64(address),
+ 				    (u32)map_length));
+ 			mem_info->mapped_length = 0;
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+@@ -203,8 +203,7 @@ acpi_ex_system_memory_space_handler(u32 function,
  
- 	if (last_address > ACPI_UINT16_MAX) {
- 		ACPI_ERROR((AE_INFO,
--			    "Illegal I/O port address/length above 64K: %p/0x%X",
--			    ACPI_CAST_PTR(void, address), byte_width));
-+			    "Illegal I/O port address/length above 64K: %8.8X%8.8X/0x%X",
-+			    ACPI_FORMAT_UINT64(address), byte_width));
- 		return_ACPI_STATUS(AE_LIMIT);
- 	}
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "System-Memory (width %u) R/W %u Address=%8.8X%8.8X\n",
+-			  bit_width, function,
+-			  ACPI_FORMAT_NATIVE_UINT(address)));
++			  bit_width, function, ACPI_FORMAT_UINT64(address)));
  
-@@ -181,8 +181,8 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 	/*
+ 	 * Perform the memory read or write
+@@ -319,8 +318,7 @@ acpi_ex_system_io_space_handler(u32 function,
  
- 			if (acpi_gbl_osi_data >= port_info->osi_dependency) {
- 				ACPI_DEBUG_PRINT((ACPI_DB_IO,
--						  "Denied AML access to port 0x%p/%X (%s 0x%.4X-0x%.4X)",
--						  ACPI_CAST_PTR(void, address),
-+						  "Denied AML access to port 0x%8.8X%8.8X/%X (%s 0x%.4X-0x%.4X)",
-+						  ACPI_FORMAT_UINT64(address),
- 						  byte_width, port_info->name,
- 						  port_info->start,
- 						  port_info->end));
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "System-IO (width %u) R/W %u Address=%8.8X%8.8X\n",
+-			  bit_width, function,
+-			  ACPI_FORMAT_NATIVE_UINT(address)));
++			  bit_width, function, ACPI_FORMAT_UINT64(address)));
+ 
+ 	/* Decode the function parameter */
+ 
 diff --git a/drivers/acpi/acpica/nsdump.c b/drivers/acpi/acpica/nsdump.c
-index 80f097e..e76d8fd 100644
+index e76d8fd..d259393 100644
 --- a/drivers/acpi/acpica/nsdump.c
 +++ b/drivers/acpi/acpica/nsdump.c
-@@ -271,12 +271,11 @@ acpi_ns_dump_one_object(acpi_handle obj_handle,
- 		switch (type) {
- 		case ACPI_TYPE_PROCESSOR:
- 
--			acpi_os_printf("ID %02X Len %02X Addr %p\n",
-+			acpi_os_printf("ID %02X Len %02X Addr %8.8X%8.8X\n",
- 				       obj_desc->processor.proc_id,
- 				       obj_desc->processor.length,
--				       ACPI_CAST_PTR(void,
--						     obj_desc->processor.
--						     address));
-+				       ACPI_FORMAT_UINT64(obj_desc->processor.
-+							  address));
- 			break;
- 
- 		case ACPI_TYPE_DEVICE:
+@@ -346,8 +346,9 @@ acpi_ns_dump_one_object(acpi_handle obj_handle,
+ 							       space_id));
+ 			if (obj_desc->region.flags & AOPOBJ_DATA_VALID) {
+ 				acpi_os_printf(" Addr %8.8X%8.8X Len %.4X\n",
+-					       ACPI_FORMAT_NATIVE_UINT
+-					       (obj_desc->region.address),
++					       ACPI_FORMAT_UINT64(obj_desc->
++								  region.
++								  address),
+ 					       obj_desc->region.length);
+ 			} else {
+ 				acpi_os_printf
+diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
+index 0383449..fd5998b 100644
+--- a/drivers/acpi/acpica/tbdata.c
++++ b/drivers/acpi/acpica/tbdata.c
+@@ -399,14 +399,14 @@ acpi_tb_verify_temp_table(struct acpi_table_desc * table_desc, char *signature)
+ 					    table_desc->length);
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY,
+-					"%4.4s " ACPI_PRINTF_UINT
++					"%4.4s 0x%8.8X%8.8X"
+ 					" Attempted table install failed",
+ 					acpi_ut_valid_acpi_name(table_desc->
+ 								signature.
+ 								ascii) ?
+ 					table_desc->signature.ascii : "????",
+-					ACPI_FORMAT_TO_UINT(table_desc->
+-							    address)));
++					ACPI_FORMAT_UINT64(table_desc->
++							   address)));
+ 			goto invalidate_and_exit;
+ 		}
+ 	}
 diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 201332a..65da4c0 100644
+index 65da4c0..0d184c4 100644
 --- a/drivers/acpi/acpica/tbinstal.c
 +++ b/drivers/acpi/acpica/tbinstal.c
-@@ -187,8 +187,9 @@ acpi_tb_install_fixed_table(acpi_physical_address address,
- 	status = acpi_tb_acquire_temp_table(&new_table_desc, address,
- 					    ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL);
- 	if (ACPI_FAILURE(status)) {
--		ACPI_ERROR((AE_INFO, "Could not acquire table length at %p",
--			    ACPI_PHYSADDR_TO_PTR(address)));
-+		ACPI_ERROR((AE_INFO,
-+			    "Could not acquire table length at %8.8X%8.8X",
-+			    ACPI_FORMAT_UINT64(address)));
- 		return_ACPI_STATUS(status);
+@@ -432,11 +432,11 @@ finish_override:
+ 		return;
  	}
  
-@@ -246,8 +247,9 @@ acpi_tb_install_standard_table(acpi_physical_address address,
+-	ACPI_INFO((AE_INFO, "%4.4s " ACPI_PRINTF_UINT
+-		   " %s table override, new table: " ACPI_PRINTF_UINT,
++	ACPI_INFO((AE_INFO, "%4.4s 0x%8.8X%8.8X"
++		   " %s table override, new table: 0x%8.8X%8.8X",
+ 		   old_table_desc->signature.ascii,
+-		   ACPI_FORMAT_TO_UINT(old_table_desc->address),
+-		   override_type, ACPI_FORMAT_TO_UINT(new_table_desc.address)));
++		   ACPI_FORMAT_UINT64(old_table_desc->address),
++		   override_type, ACPI_FORMAT_UINT64(new_table_desc.address)));
  
- 	status = acpi_tb_acquire_temp_table(&new_table_desc, address, flags);
- 	if (ACPI_FAILURE(status)) {
--		ACPI_ERROR((AE_INFO, "Could not acquire table length at %p",
--			    ACPI_PHYSADDR_TO_PTR(address)));
-+		ACPI_ERROR((AE_INFO,
-+			    "Could not acquire table length at %8.8X%8.8X",
-+			    ACPI_FORMAT_UINT64(address)));
- 		return_ACPI_STATUS(status);
- 	}
+ 	/* We can now uninstall the original table */
  
-@@ -258,9 +260,10 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 	if (!reload &&
- 	    acpi_gbl_disable_ssdt_table_install &&
- 	    ACPI_COMPARE_NAME(&new_table_desc.signature, ACPI_SIG_SSDT)) {
--		ACPI_INFO((AE_INFO, "Ignoring installation of %4.4s at %p",
-+		ACPI_INFO((AE_INFO,
-+			   "Ignoring installation of %4.4s at %8.8X%8.8X",
- 			   new_table_desc.signature.ascii,
--			   ACPI_PHYSADDR_TO_PTR(address)));
-+			   ACPI_FORMAT_UINT64(address)));
- 		goto release_and_exit;
- 	}
+diff --git a/drivers/acpi/acpica/tbprint.c b/drivers/acpi/acpica/tbprint.c
+index ef16c06..77ba5c7 100644
+--- a/drivers/acpi/acpica/tbprint.c
++++ b/drivers/acpi/acpica/tbprint.c
+@@ -127,18 +127,12 @@ acpi_tb_print_table_header(acpi_physical_address address,
+ {
+ 	struct acpi_table_header local_header;
  
-diff --git a/drivers/acpi/acpica/utaddress.c b/drivers/acpi/acpica/utaddress.c
-index 1279f50..911ea8e 100644
---- a/drivers/acpi/acpica/utaddress.c
-+++ b/drivers/acpi/acpica/utaddress.c
-@@ -107,10 +107,10 @@ acpi_ut_add_address_range(acpi_adr_space_type space_id,
- 	acpi_gbl_address_range_list[space_id] = range_info;
+-	/*
+-	 * The reason that we use ACPI_PRINTF_UINT and ACPI_FORMAT_TO_UINT is to
+-	 * support both 32-bit and 64-bit hosts/addresses in a consistent manner.
+-	 * The %p specifier does not emit uniform output on all hosts. On some,
+-	 * leading zeros are not supported.
+-	 */
+ 	if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_FACS)) {
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
--			  "\nAdded [%4.4s] address range: 0x%p-0x%p\n",
-+			  "\nAdded [%4.4s] address range: 0x%8.8X%8.8X-0x%8.8X%8.8X\n",
- 			  acpi_ut_get_node_name(range_info->region_node),
--			  ACPI_CAST_PTR(void, address),
--			  ACPI_CAST_PTR(void, range_info->end_address)));
-+			  ACPI_FORMAT_UINT64(address),
-+			  ACPI_FORMAT_UINT64(range_info->end_address)));
+ 		/* FACS only has signature and length fields */
  
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 	return_ACPI_STATUS(AE_OK);
-@@ -160,15 +160,13 @@ acpi_ut_remove_address_range(acpi_adr_space_type space_id,
- 			}
+-		ACPI_INFO((AE_INFO, "%-4.4s " ACPI_PRINTF_UINT " %06X",
+-			   header->signature, ACPI_FORMAT_TO_UINT(address),
++		ACPI_INFO((AE_INFO, "%-4.4s 0x%8.8X%8.8X %06X",
++			   header->signature, ACPI_FORMAT_UINT64(address),
+ 			   header->length));
+ 	} else if (ACPI_VALIDATE_RSDP_SIG(header->signature)) {
  
- 			ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
--					  "\nRemoved [%4.4s] address range: 0x%p-0x%p\n",
-+					  "\nRemoved [%4.4s] address range: 0x%8.8X%8.8X-0x%8.8X%8.8X\n",
- 					  acpi_ut_get_node_name(range_info->
- 								region_node),
--					  ACPI_CAST_PTR(void,
--							range_info->
--							start_address),
--					  ACPI_CAST_PTR(void,
--							range_info->
--							end_address)));
-+					  ACPI_FORMAT_UINT64(range_info->
-+							     start_address),
-+					  ACPI_FORMAT_UINT64(range_info->
-+							     end_address)));
+@@ -149,9 +143,8 @@ acpi_tb_print_table_header(acpi_physical_address address,
+ 					  header)->oem_id, ACPI_OEM_ID_SIZE);
+ 		acpi_tb_fix_string(local_header.oem_id, ACPI_OEM_ID_SIZE);
  
- 			ACPI_FREE(range_info);
- 			return_VOID;
-@@ -245,16 +243,14 @@ acpi_ut_check_address_range(acpi_adr_space_type space_id,
- 								  region_node);
+-		ACPI_INFO((AE_INFO,
+-			   "RSDP " ACPI_PRINTF_UINT " %06X (v%.2d %-6.6s)",
+-			   ACPI_FORMAT_TO_UINT(address),
++		ACPI_INFO((AE_INFO, "RSDP 0x%8.8X%8.8X %06X (v%.2d %-6.6s)",
++			   ACPI_FORMAT_UINT64(address),
+ 			   (ACPI_CAST_PTR(struct acpi_table_rsdp, header)->
+ 			    revision >
+ 			    0) ? ACPI_CAST_PTR(struct acpi_table_rsdp,
+@@ -165,9 +158,9 @@ acpi_tb_print_table_header(acpi_physical_address address,
+ 		acpi_tb_cleanup_table_header(&local_header, header);
  
- 				ACPI_WARNING((AE_INFO,
--					      "%s range 0x%p-0x%p conflicts with OpRegion 0x%p-0x%p (%s)",
-+					      "%s range 0x%8.8X%8.8X-0x%8.8X%8.8X conflicts with OpRegion 0x%8.8X%8.8X-0x%8.8X%8.8X (%s)",
- 					      acpi_ut_get_region_name(space_id),
--					      ACPI_CAST_PTR(void, address),
--					      ACPI_CAST_PTR(void, end_address),
--					      ACPI_CAST_PTR(void,
--							    range_info->
--							    start_address),
--					      ACPI_CAST_PTR(void,
--							    range_info->
--							    end_address),
-+					      ACPI_FORMAT_UINT64(address),
-+					      ACPI_FORMAT_UINT64(end_address),
-+					      ACPI_FORMAT_UINT64(range_info->
-+								 start_address),
-+					      ACPI_FORMAT_UINT64(range_info->
-+								 end_address),
- 					      pathname));
- 				ACPI_FREE(pathname);
- 			}
+ 		ACPI_INFO((AE_INFO,
+-			   "%-4.4s " ACPI_PRINTF_UINT
++			   "%-4.4s 0x%8.8X%8.8X"
+ 			   " %06X (v%.2d %-6.6s %-8.8s %08X %-4.4s %08X)",
+-			   local_header.signature, ACPI_FORMAT_TO_UINT(address),
++			   local_header.signature, ACPI_FORMAT_UINT64(address),
+ 			   local_header.length, local_header.revision,
+ 			   local_header.oem_id, local_header.oem_table_id,
+ 			   local_header.oem_revision,
 -- 
 1.7.10
-
