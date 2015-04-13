@@ -1,49 +1,117 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/31] ACPICA: Tables: Don't release ACPI_MTX_TABLES in acpi_tb_install_standard_table().
-Date: Mon, 13 Apr 2015 11:49:05 +0800
-Message-ID: <1b16d2aa00da5adadfb1de6a7fbe47c990adfb58.1428893937.git.lv.zheng@intel.com>
+Subject: [PATCH 08/31] ACPICA: Utilities: split IO address types from data type models.
+Date: Mon, 13 Apr 2015 11:48:58 +0800
+Message-ID: <4baba17ae37fcd0831fcbe779f75bc5cee6c63fb.1428893937.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Octavian Purdila <octavian.purdila@intel.com>
+ACPICA commit aacf863cfffd46338e268b7415f7435cae93b451
 
-ACPICA commit c70434d4da13e65b6163c79a5aa16b40193631c7
+It is reported that on a physically 64-bit addressed machine, 32-bit kernel
+can trigger crashes in accessing the memory regions that are beyond the
+32-bit boundary. The region field's start address should still be 32-bit
+compliant, but after a calculation (adding some offsets), it may exceed the
+32-bit boundary. This case is rare and buggy, but there are real BIOSes
+leaked with such issues (see References below).
 
-ACPI_MTX_TABLES is acquired and released by the callers of
-acpi_tb_install_standard_table() so releasing it in the function itself is
-causing the following error in Linux kernel if the table is reloaded:
+This patch fixes this gap by always defining IO addresses as 64-bit, and
+allows OSPMs to optimize it for a real 32-bit machine to reduce the size of
+the internal objects.
 
-ACPI Error: Mutex [0x2] is not acquired, cannot release (20141107/utmutex-321)
-Call Trace:
-  [<ffffffff81b0bd48>] dump_stack+0x4f/0x7b
-  [<ffffffff81546bf5>] acpi_ut_release_mutex+0x47/0x67
-  [<ffffffff81544357>] acpi_load_table+0x73/0xcb
+Internal acpi_physical_address usages in the structures that can be fixed
+by this change include:
+1. struct acpi_object_region:
+    acpi_physical_address		address;
+2. struct acpi_address_range:
+    acpi_physical_address		start_address;
+    acpi_physical_address		end_address;
+3. struct acpi_mem_space_context;
+    acpi_physical_address		address;
+4. struct acpi_table_desc
+    acpi_physical_address		address;
+See known issues 1 for other usages.
 
-Link: https://github.com/acpica/acpica/commit/c70434d4
-Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
+Note that acpi_io_address which is used for ACPI_PROCESSOR may also suffer
+from same problem, so this patch changes it accordingly.
+
+For iasl, it will enforce acpi_physical_address as 32-bit to generate
+32-bit OSPM compatible tables on 32-bit platforms, we need to define
+ACPI_32BIT_PHYSICAL_ADDRESS for it in acenv.h.
+
+Known issues:
+1. Cleanup of mapped virtual address
+   In struct acpi_mem_space_context, acpi_physical_address is used as a virtual
+   address:
+    acpi_physical_address                   mapped_physical_address;
+   It is better to introduce acpi_virtual_address or use acpi_size instead.
+   This patch doesn't make such a change. Because this should be done along
+   with a change to acpi_os_map_memory()/acpi_os_unmap_memory().
+   There should be no functional problem to leave this unchanged except
+   that only this structure is enlarged unexpectedly.
+
+Link: https://github.com/acpica/acpica/commit/aacf863c
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=87971
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=79501
+Reported-and-tested-by: Paul Menzel <paulepanter@users.sourceforge.net>
+Reported-and-tested-by: Sial Nije <sialnije@gmail.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
-Cc: 3.16+ <stable@vger.kernel.org> # 3.16+
+Cc: <stable@vger.kernel.org>
 ---
- drivers/acpi/acpica/tbinstal.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/acpi/actypes.h        |   20 ++++++++++++++++++++
+ include/acpi/platform/acenv.h |    1 +
+ 2 files changed, 21 insertions(+)
 
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 0d184c4..7e69bc7 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -349,7 +349,6 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 				 */
- 				acpi_tb_uninstall_table(&new_table_desc);
- 				*table_index = i;
--				(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
- 				return_ACPI_STATUS(AE_OK);
- 			}
- 		}
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index b034f10..658c42e 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -199,9 +199,29 @@ typedef int s32;
+ typedef s32 acpi_native_int;
+ 
+ typedef u32 acpi_size;
++
++#ifdef ACPI_32BIT_PHYSICAL_ADDRESS
++
++/*
++ * OSPMs can define this to shrink the size of the structures for 32-bit
++ * none PAE environment. ASL compiler may always define this to generate
++ * 32-bit OSPM compliant tables.
++ */
+ typedef u32 acpi_io_address;
+ typedef u32 acpi_physical_address;
+ 
++#else				/* ACPI_32BIT_PHYSICAL_ADDRESS */
++
++/*
++ * It is reported that, after some calculations, the physical addresses can
++ * wrap over the 32-bit boundary on 32-bit PAE environment.
++ * https://bugzilla.kernel.org/show_bug.cgi?id=87971
++ */
++typedef u64 acpi_io_address;
++typedef u64 acpi_physical_address;
++
++#endif				/* ACPI_32BIT_PHYSICAL_ADDRESS */
++
+ #define ACPI_MAX_PTR                    ACPI_UINT32_MAX
+ #define ACPI_SIZE_MAX                   ACPI_UINT32_MAX
+ 
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index ad74dc5..ecdf940 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -76,6 +76,7 @@
+ #define ACPI_LARGE_NAMESPACE_NODE
+ #define ACPI_DATA_TABLE_DISASSEMBLY
+ #define ACPI_SINGLE_THREADED
++#define ACPI_32BIT_PHYSICAL_ADDRESS
+ #endif
+ 
+ /* acpi_exec configuration. Multithreaded with full AML debugger */
 -- 
 1.7.10
