@@ -1,17 +1,17 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 04/37] x86/MSI: Use new irqdomain interfaces to allocate/free IRQ
-Date: Mon, 13 Apr 2015 14:11:26 +0800
-Message-ID: <1428905519-23704-5-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v8 05/37] x86/uv: Use new irqdomain interfaces to allocate/free IRQ
+Date: Mon, 13 Apr 2015 14:11:27 +0800
+Message-ID: <1428905519-23704-6-git-send-email-jiang.liu@linux.intel.com>
 References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use new irqdomain interfaces to allocate/free IRQ for PCI MSI, so we
-could kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ later.
+Use new irqdomain interfaces to allocate/free IRQ, so we could
+kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ later.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -24,60 +24,91 @@ Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Link: http://lkml.kernel.org/r/1416894816-23245-5-git-send-email-jiang.liu@linux.intel.com
+Link: http://lkml.kernel.org/r/1416894816-23245-6-git-send-email-jiang.liu@linux.intel.com
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- arch/x86/kernel/apic/msi.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/x86/platform/uv/uv_irq.c |   27 +++++++++++----------------
+ 1 file changed, 11 insertions(+), 16 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
-index d6ba2d660dc5..76cc2c902176 100644
---- a/arch/x86/kernel/apic/msi.c
-+++ b/arch/x86/kernel/apic/msi.c
-@@ -14,6 +14,7 @@
- #include <linux/dmar.h>
- #include <linux/hpet.h>
- #include <linux/msi.h>
+diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
+index 0ce673645432..474912d03f40 100644
+--- a/arch/x86/platform/uv/uv_irq.c
++++ b/arch/x86/platform/uv/uv_irq.c
+@@ -12,6 +12,7 @@
+ #include <linux/rbtree.h>
+ #include <linux/slab.h>
+ #include <linux/irq.h>
 +#include <linux/irqdomain.h>
- #include <asm/msidef.h>
- #include <asm/hpet.h>
- #include <asm/hw_irq.h>
-@@ -146,23 +147,20 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 
+ #include <asm/apic.h>
+ #include <asm/uv/uv_irq.h>
+@@ -130,24 +131,14 @@ static int
+ arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
+ 		       unsigned long mmr_offset, int limit)
  {
- 	struct msi_desc *msidesc;
--	unsigned int irq;
--	int node, ret;
-+	int irq, ret;
+-	const struct cpumask *eligible_cpu = cpumask_of(cpu);
+ 	struct irq_cfg *cfg = irq_cfg(irq);
+ 	unsigned long mmr_value;
+ 	struct uv_IO_APIC_route_entry *entry;
+-	int mmr_pnode, err;
+-	unsigned int dest;
++	int mmr_pnode;
  
- 	/* Multiple MSI vectors only supported with interrupt remapping */
- 	if (type == PCI_CAP_ID_MSI && nvec > 1)
- 		return 1;
+ 	BUILD_BUG_ON(sizeof(struct uv_IO_APIC_route_entry) !=
+ 			sizeof(unsigned long));
  
--	node = dev_to_node(&dev->dev);
+-	err = assign_irq_vector(irq, cfg, eligible_cpu);
+-	if (err != 0)
+-		return err;
 -
- 	list_for_each_entry(msidesc, &dev->msi_list, list) {
--		irq = irq_alloc_hwirq(node);
--		if (!irq)
-+		irq = irq_domain_alloc_irqs(NULL, 1, NUMA_NO_NODE, NULL);
-+		if (irq <= 0)
- 			return -ENOSPC;
+-	err = apic->cpu_mask_to_apicid_and(eligible_cpu, eligible_cpu, &dest);
+-	if (err != 0)
+-		return err;
+-
+ 	if (limit == UV_AFFINITY_CPU)
+ 		irq_set_status_flags(irq, IRQ_NO_BALANCING);
+ 	else
+@@ -164,7 +155,7 @@ arch_enable_uv_irq(char *irq_name, unsigned int irq, int cpu, int mmr_blade,
+ 	entry->polarity		= 0;
+ 	entry->trigger		= 0;
+ 	entry->mask		= 0;
+-	entry->dest		= dest;
++	entry->dest		= cfg->dest_apicid;
  
- 		ret = setup_msi_irq(dev, msidesc, irq, 0);
- 		if (ret < 0) {
--			irq_free_hwirq(irq);
-+			irq_domain_free_irqs(irq, 1);
- 			return ret;
- 		}
- 
-@@ -172,7 +170,7 @@ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- 
- void native_teardown_msi_irq(unsigned int irq)
+ 	mmr_pnode = uv_blade_to_pnode(mmr_blade);
+ 	uv_write_global_mmr64(mmr_pnode, mmr_offset, mmr_value);
+@@ -238,9 +229,13 @@ uv_set_irq_affinity(struct irq_data *data, const struct cpumask *mask,
+ int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
+ 		 unsigned long mmr_offset, int limit)
  {
+-	int ret, irq = irq_alloc_hwirq(uv_blade_to_memory_nid(mmr_blade));
++	int ret, irq;
++	struct irq_alloc_info info;
+ 
+-	if (!irq)
++	init_irq_alloc_info(&info, cpumask_of(cpu));
++	irq = irq_domain_alloc_irqs(NULL, 1, uv_blade_to_memory_nid(mmr_blade),
++				    &info);
++	if (irq <= 0)
+ 		return -EBUSY;
+ 
+ 	ret = arch_enable_uv_irq(irq_name, irq, cpu, mmr_blade, mmr_offset,
+@@ -248,7 +243,7 @@ int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
+ 	if (ret == irq)
+ 		uv_set_irq_2_mmr_info(irq, mmr_offset, mmr_blade);
+ 	else
+-		irq_free_hwirq(irq);
++		irq_domain_free_irqs(irq, 1);
+ 
+ 	return ret;
+ }
+@@ -283,6 +278,6 @@ void uv_teardown_irq(unsigned int irq)
+ 			n = n->rb_right;
+ 	}
+ 	spin_unlock_irqrestore(&uv_irq_lock, irqflags);
 -	irq_free_hwirq(irq);
 +	irq_domain_free_irqs(irq, 1);
  }
- 
- #ifdef CONFIG_DMAR_TABLE
+ EXPORT_SYMBOL_GPL(uv_teardown_irq);
 -- 
 1.7.10.4
