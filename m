@@ -1,201 +1,81 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Mon, 13 Apr 2015 15:54:59 +0200
-Message-ID: <20712118.KNxfLdZmsN@vostro.rjw.lan>
-References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1427752579-19234-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH] PCI / hotplug: Propagate the "ignore hotplug" setting to parent
+Date: Mon, 13 Apr 2015 16:23:36 +0200
+Message-ID: <2001450.KHHLaZsp3O@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1427752579-19234-2-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, hanjun.guo@linaro.org, lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, March 30, 2015 04:56:17 PM Suravee Suthikulpanit wrote:
-> ACPI Device configuration often contain _CLS object to suppy PCI-defined
-> class code for the device. This patch introduces logic to process the _CLS
-> object.
-> 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-As you know, this patch is for ACPICA, so I'd prefer it to go into
-upstream ACPICA first and then to Linux from there.
+Refine the mechanism introduced by commit f244d8b623da (ACPIPHP / radeon
+/ nouveau: Fix VGA switcheroo problem related to hotplug) to propagate
+the ignore_hotplug setting of the device to its parent bridge in case
+hotplug notifications related to the graphics adapter switching are
+given for the bridge rather than for the device itself (the need to
+be ignored in both cases).
 
-I can apply the remaining two patches on top of it when that happens.
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=61891
+Link: https://bugs.freedesktop.org/show_bug.cgi?id=88927
+Reported-and-tested-by: tiagdtd-lava <tiagdtd-lava@yahoo.de>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-Would that work or is it a really big deal?
+"Stable" material AFAICS.
 
-> ---
->  drivers/acpi/acpica/acutils.h  |  3 ++
->  drivers/acpi/acpica/nsxfname.c | 21 ++++++++++--
->  drivers/acpi/acpica/utids.c    | 73 ++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 95 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-> index c2f03e8..2aef850 100644
-> --- a/drivers/acpi/acpica/acutils.h
-> +++ b/drivers/acpi/acpica/acutils.h
-> @@ -430,6 +430,9 @@ acpi_status
->  acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
->  		    struct acpi_pnp_device_id_list ** return_cid_list);
->  
-> +acpi_status
-> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-> +		    struct acpi_pnp_device_id **return_id);
->  /*
->   * utlock - reader/writer locks
->   */
-> diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
-> index d66c326..590ef06 100644
-> --- a/drivers/acpi/acpica/nsxfname.c
-> +++ b/drivers/acpi/acpica/nsxfname.c
-> @@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
->  	struct acpi_pnp_device_id *hid = NULL;
->  	struct acpi_pnp_device_id *uid = NULL;
->  	struct acpi_pnp_device_id *sub = NULL;
-> +	struct acpi_pnp_device_id *cls = NULL;
->  	char *next_id_string;
->  	acpi_object_type type;
->  	acpi_name name;
->  	u8 param_count = 0;
-> -	u8 valid = 0;
-> +	u16 valid = 0;
->  	u32 info_size;
->  	u32 i;
->  	acpi_status status;
-> @@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
->  	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
->  		/*
->  		 * Get extra info for ACPI Device/Processor objects only:
-> -		 * Run the Device _HID, _UID, _SUB, and _CID methods.
-> +		 * Run the Device _HID, _UID, _SUB, _CID and _CLS methods.
->  		 *
->  		 * Note: none of these methods are required, so they may or may
->  		 * not be present for this device. The Info->Valid bitfield is used
-> @@ -351,6 +352,14 @@ acpi_get_object_info(acpi_handle handle,
->  			valid |= ACPI_VALID_SUB;
->  		}
->  
-> +		/* Execute the Device._CLS method */
-> +
-> +		status = acpi_ut_execute_CLS(node, &cls);
-> +		if (ACPI_SUCCESS(status)) {
-> +			info_size += cls->length;
-> +			valid |= ACPI_VALID_CLS;
-> +		}
-> +
->  		/* Execute the Device._CID method */
->  
->  		status = acpi_ut_execute_CID(node, &cid_list);
-> @@ -468,6 +477,11 @@ acpi_get_object_info(acpi_handle handle,
->  							sub, next_id_string);
->  	}
->  
-> +	if (cls) {
-> +		next_id_string = acpi_ns_copy_device_id(&info->cls,
-> +							cls, next_id_string);
-> +	}
-> +
->  	if (cid_list) {
->  		info->compatible_id_list.count = cid_list->count;
->  		info->compatible_id_list.list_size = cid_list->list_size;
-> @@ -507,6 +521,9 @@ cleanup:
->  	if (sub) {
->  		ACPI_FREE(sub);
->  	}
-> +	if (cls) {
-> +		ACPI_FREE(cls);
-> +	}
->  	if (cid_list) {
->  		ACPI_FREE(cid_list);
->  	}
-> diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
-> index 27431cf..9745065 100644
-> --- a/drivers/acpi/acpica/utids.c
-> +++ b/drivers/acpi/acpica/utids.c
-> @@ -416,3 +416,76 @@ cleanup:
->  	acpi_ut_remove_reference(obj_desc);
->  	return_ACPI_STATUS(status);
->  }
-> +
-> +/*******************************************************************************
-> + *
-> + * FUNCTION:    acpi_ut_execute_CLS
-> + *
-> + * PARAMETERS:  device_node         - Node for the device
-> + *              return_id           - Where the string UID is returned
-> + *
-> + * RETURN:      Status
-> + *
-> + * DESCRIPTION: Executes the _CLS control method that returns PCI-defined
-> + *              class code of the device. The ACPI spec define _CLS as a
-> + *              package with three integers. The returned string has format:
-> + *
-> + *                      "bbsspp"
-> + *              where:
-> + *                  bb = Base-class code
-> + *                  ss = Sub-class code
-> + *                  pp = Programming Interface code
-> + *
-> + ******************************************************************************/
-> +
-> +acpi_status
-> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-> +		    struct acpi_pnp_device_id **return_id)
-> +{
-> +	struct acpi_pnp_device_id *cls;
-> +	union acpi_operand_object *obj_desc;
-> +	union acpi_operand_object **cls_objects;
-> +	acpi_status status;
-> +
-> +	ACPI_FUNCTION_TRACE(ut_execute_CLS);
-> +	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
-> +					 ACPI_BTYPE_PACKAGE, &obj_desc);
-> +	if (ACPI_FAILURE(status))
-> +		return_ACPI_STATUS(status);
-> +
-> +	cls_objects = obj_desc->package.elements;
-> +
-> +	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
-> +	    obj_desc->package.count == 3 &&
-> +	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
-> +	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
-> +	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
-> +
-> +		/* Allocate a buffer for the CLS */
-> +		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-> +					 (acpi_size) 7);
-> +		if (!cls) {
-> +			status = AE_NO_MEMORY;
-> +			goto cleanup;
-> +		}
-> +
-> +		cls->string =
-> +		    ACPI_ADD_PTR(char, cls, sizeof(struct acpi_pnp_device_id));
-> +
-> +		sprintf(cls->string, "%02x%02x%02x",
-> +			(u8)ACPI_TO_INTEGER(cls_objects[0]->integer.value),
-> +			(u8)ACPI_TO_INTEGER(cls_objects[1]->integer.value),
-> +			(u8)ACPI_TO_INTEGER(cls_objects[2]->integer.value));
-> +		cls->length = 7;
-> +		*return_id = cls;
-> +	} else {
-> +		status = AE_AML_OPERAND_TYPE;
-> +	}
-> +
-> +cleanup:
-> +
-> +	/* On exit, we must delete the return object */
-> +
-> +	acpi_ut_remove_reference(obj_desc);
-> +	return_ACPI_STATUS(status);
-> +}
-> 
+---
+ drivers/pci/pci.c   |   11 +++++++++++
+ include/linux/pci.h |    6 +-----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/pci/pci.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci.c
++++ linux-pm/drivers/pci/pci.c
+@@ -4319,6 +4319,17 @@ bool pci_device_is_present(struct pci_de
+ }
+ EXPORT_SYMBOL_GPL(pci_device_is_present);
+ 
++void pci_ignore_hotplug(struct pci_dev *dev)
++{
++	struct pci_dev *bridge = dev->bus->self;
++
++	dev->ignore_hotplug = 1;
++	/* Propagate the "ignore hotplug" setting to the parent bridge. */
++	if (bridge)
++		bridge->ignore_hotplug = 1;
++}
++EXPORT_SYMBOL_GPL(pci_ignore_hotplug);
++
+ #define RESOURCE_ALIGNMENT_PARAM_SIZE COMMAND_LINE_SIZE
+ static char resource_alignment_param[RESOURCE_ALIGNMENT_PARAM_SIZE] = {0};
+ static DEFINE_SPINLOCK(resource_alignment_lock);
+Index: linux-pm/include/linux/pci.h
+===================================================================
+--- linux-pm.orig/include/linux/pci.h
++++ linux-pm/include/linux/pci.h
+@@ -1002,6 +1002,7 @@ int __must_check pci_assign_resource(str
+ int __must_check pci_reassign_resource(struct pci_dev *dev, int i, resource_size_t add_size, resource_size_t align);
+ int pci_select_bars(struct pci_dev *dev, unsigned long flags);
+ bool pci_device_is_present(struct pci_dev *pdev);
++void pci_ignore_hotplug(struct pci_dev *dev);
+ 
+ /* ROM control related routines */
+ int pci_enable_rom(struct pci_dev *pdev);
+@@ -1039,11 +1040,6 @@ bool pci_dev_run_wake(struct pci_dev *de
+ bool pci_check_pme_status(struct pci_dev *dev);
+ void pci_pme_wakeup_bus(struct pci_bus *bus);
+ 
+-static inline void pci_ignore_hotplug(struct pci_dev *dev)
+-{
+-	dev->ignore_hotplug = 1;
+-}
+-
+ static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
+ 				  bool enable)
+ {
