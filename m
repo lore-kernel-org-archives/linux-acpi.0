@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 24/37] x86/MSI: Simplify the way to deal with remapped MSI interrupts
-Date: Mon, 13 Apr 2015 14:11:46 +0800
-Message-ID: <1428905519-23704-25-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v8 23/37] x86/irq: Normalize x86 irq_chip name
+Date: Mon, 13 Apr 2015 14:11:45 +0800
+Message-ID: <1428905519-23704-24-git-send-email-jiang.liu@linux.intel.com>
 References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
@@ -10,8 +10,8 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.cra
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Simplify the way to deal with remapped MSI interrupts, so we could
-kill irq_chip.irq_print_chip later.
+Some irq_chip names use underscore, others use hyphen. So normalize them
+to use hythen as separator.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -24,80 +24,33 @@ Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Link: http://lkml.kernel.org/r/1416894816-23245-25-git-send-email-jiang.liu@linux.intel.com
+Link: http://lkml.kernel.org/r/1416894816-23245-24-git-send-email-jiang.liu@linux.intel.com
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- arch/x86/kernel/apic/msi.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ arch/x86/kernel/apic/msi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
-index 2bf13484fbfd..8e8f2435f25e 100644
+index a24b803b199a..2bf13484fbfd 100644
 --- a/arch/x86/kernel/apic/msi.c
 +++ b/arch/x86/kernel/apic/msi.c
-@@ -77,7 +77,6 @@ static struct irq_chip pci_msi_controller = {
+@@ -188,7 +188,7 @@ dmar_msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ }
+ 
+ static struct irq_chip dmar_msi_controller = {
+-	.name			= "DMAR_MSI",
++	.name			= "DMAR-MSI",
+ 	.irq_unmask		= dmar_msi_unmask,
+ 	.irq_mask		= dmar_msi_mask,
  	.irq_ack		= irq_chip_ack_parent,
- 	.irq_set_affinity	= msi_domain_set_affinity,
- 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
--	.irq_print_chip		= irq_remapping_print_chip,
- 	.irq_compose_msi_msg	= irq_msi_compose_msg,
- 	.irq_write_msi_msg	= pci_msi_domain_write_msg,
- 	.flags			= IRQCHIP_SKIP_SET_WAKE,
-@@ -143,7 +142,7 @@ static struct msi_domain_ops pci_msi_domain_ops = {
- 
- static struct msi_domain_info pci_msi_domain_info = {
- 	.flags		= MSI_FLAG_USE_DEF_DOM_OPS | MSI_FLAG_USE_DEF_CHIP_OPS |
--			  MSI_FLAG_MULTI_PCI_MSI | MSI_FLAG_PCI_MSIX,
-+			  MSI_FLAG_PCI_MSIX,
- 	.ops		= &pci_msi_domain_ops,
- 	.chip		= &pci_msi_controller,
- 	.handler	= handle_edge_irq,
-@@ -162,9 +161,29 @@ void arch_init_msi_domain(struct irq_domain *parent)
+@@ -319,7 +319,7 @@ static int hpet_msi_set_affinity(struct irq_data *data,
  }
  
- #ifdef CONFIG_IRQ_REMAP
-+static struct irq_chip pci_msi_ir_controller = {
-+	.name			= "IR-PCI-MSI",
-+	.irq_unmask		= pci_msi_unmask_irq,
-+	.irq_mask		= pci_msi_mask_irq,
-+	.irq_ack		= irq_chip_ack_parent,
-+	.irq_set_affinity	= msi_domain_set_affinity,
-+	.irq_retrigger		= irq_chip_retrigger_hierarchy,
-+	.irq_write_msi_msg	= pci_msi_domain_write_msg,
-+	.flags			= IRQCHIP_SKIP_SET_WAKE,
-+};
-+
-+static struct msi_domain_info pci_msi_ir_domain_info = {
-+	.flags		= MSI_FLAG_USE_DEF_DOM_OPS | MSI_FLAG_USE_DEF_CHIP_OPS |
-+			  MSI_FLAG_MULTI_PCI_MSI | MSI_FLAG_PCI_MSIX,
-+	.ops		= &pci_msi_domain_ops,
-+	.chip		= &pci_msi_ir_controller,
-+	.handler	= handle_edge_irq,
-+	.handler_name	= "edge",
-+};
-+
- struct irq_domain *arch_create_msi_irq_domain(struct irq_domain *parent)
- {
--	return msi_create_irq_domain(NULL, &pci_msi_domain_info, parent);
-+	return pci_msi_create_irq_domain(NULL, &pci_msi_ir_domain_info, parent);
- }
- #endif
- 
-@@ -325,7 +344,6 @@ static struct irq_chip hpet_msi_controller = {
+ static struct irq_chip hpet_msi_controller = {
+-	.name = "HPET_MSI",
++	.name = "HPET-MSI",
+ 	.irq_unmask = hpet_msi_unmask,
+ 	.irq_mask = hpet_msi_mask,
  	.irq_ack = irq_chip_ack_parent,
- 	.irq_set_affinity = hpet_msi_set_affinity,
- 	.irq_retrigger = irq_chip_retrigger_hierarchy,
--	.irq_print_chip = irq_remapping_print_chip,
- 	.irq_compose_msi_msg = irq_msi_compose_msg,
- 	.flags = IRQCHIP_SKIP_SET_WAKE,
- };
-@@ -402,6 +420,8 @@ struct irq_domain *hpet_create_irq_domain(int hpet_id)
- 	parent = irq_remapping_get_ir_irq_domain(&info);
- 	if (parent == NULL)
- 		parent = x86_vector_domain;
-+	else
-+		hpet_msi_controller.name = "IR-HPET-MSI";
- 
- 	return irq_domain_add_hierarchy(parent, 0, 0, NULL, &hpet_domain_ops,
- 					(void *)(long)hpet_id);
 -- 
 1.7.10.4
