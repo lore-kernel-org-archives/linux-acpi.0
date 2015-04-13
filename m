@@ -1,50 +1,17 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 29/37] x86/intel-mid: Delay initialization of APB timer
-Date: Mon, 13 Apr 2015 14:11:51 +0800
-Message-ID: <1428905519-23704-30-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v8 30/37] x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
+Date: Mon, 13 Apr 2015 14:11:52 +0800
+Message-ID: <1428905519-23704-31-git-send-email-jiang.liu@linux.intel.com>
 References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@linux.intel.com>, Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>, Ingo Molnar <mingo@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiri Kosina <trivial@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Correctly indent code in function sfi_parse_mtmr().
 
-MID has no PIC, but depending on the platform it requires the
-abt_timer, which is connected to irq0. The timer is set up at
-late_time_init().
-
-But, looking at the MID code it seems, that there is no reason to do
-so. The only code which might need the timer working is the TSC
-calibration code, but thats a non issue on MID as that is using its
-own empty calibration function. And check_timer() is not invoked
-either because MID has no PIC and therefor no legacy irqs.
-
-So if you look at intel_mid_time_init() then you'll see that in the
-ARAT case the timer setup is skipped already. So until the point where
-x86_init.timers.setup_percpu_clockev() is called for the boot cpu
-nothing really needs a timer on MID.
-
-According to the MID code the apbt horror is only used for moorestown.
-Medfield and later use the local apic timer without the apbt nonsense.
-
-The best thing we can do is to drop moorestown support and get rid of
-that apbt nonsense alltogether.
-
-I don't think anyone deeply cares about it not being supported from
-3.18 on. The number of devices which sport a moorestown should be
-pretty limited and the only relevant use case of those is to act as a
-pocket heater with short battery life time. Its pretty pointless to
-update kernels on pocket heaters except for bragging reasons.
-
-If someone at Intel really thinks that we need to keep moorestown
-alive for other than documentary and sentimental reasons, then we can
-move the apbt setup to x86_init.timers.setup_percpu_clockev(). At that
-point the IOAPIC is setup already, so it should just work.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Tony Luck <tony.luck@intel.com>
@@ -57,87 +24,45 @@ Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Jiri Kosina <trivial@kernel.org>
 Cc: David Cohen <david.a.cohen@linux.intel.com>
-Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Link: http://lkml.kernel.org/r/1416901802-24211-2-git-send-email-jiang.liu@linux.intel.com
+Link: http://lkml.kernel.org/r/1416901802-24211-3-git-send-email-jiang.liu@linux.intel.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/x86/kernel/apb_timer.c             |    4 ----
- arch/x86/platform/intel-mid/intel-mid.c |   18 +++++++++++++-----
- arch/x86/platform/intel-mid/sfi.c       |    2 --
- 3 files changed, 13 insertions(+), 11 deletions(-)
+ arch/x86/platform/intel-mid/sfi.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/x86/kernel/apb_timer.c b/arch/x86/kernel/apb_timer.c
-index 6a7c23ff21d3..ede92c3364d3 100644
---- a/arch/x86/kernel/apb_timer.c
-+++ b/arch/x86/kernel/apb_timer.c
-@@ -171,10 +171,6 @@ static int __init apbt_clockevent_register(void)
- 
- static void apbt_setup_irq(struct apbt_dev *adev)
- {
--	/* timer0 irq has been setup early */
--	if (adev->irq == 0)
--		return;
--
- 	irq_modify_status(adev->irq, 0, IRQ_MOVE_PCNTXT);
- 	irq_set_affinity(adev->irq, cpumask_of(adev->cpu));
- }
-diff --git a/arch/x86/platform/intel-mid/intel-mid.c b/arch/x86/platform/intel-mid/intel-mid.c
-index 3005f0c89f2e..01d54ea766c1 100644
---- a/arch/x86/platform/intel-mid/intel-mid.c
-+++ b/arch/x86/platform/intel-mid/intel-mid.c
-@@ -81,26 +81,34 @@ static unsigned long __init intel_mid_calibrate_tsc(void)
- 	return 0;
- }
- 
-+static void __init intel_mid_setup_bp_timer(void)
-+{
-+	apbt_time_init();
-+	setup_boot_APIC_clock();
-+}
-+
- static void __init intel_mid_time_init(void)
- {
- 	sfi_table_parse(SFI_SIG_MTMR, NULL, NULL, sfi_parse_mtmr);
-+
- 	switch (intel_mid_timer_options) {
- 	case INTEL_MID_TIMER_APBT_ONLY:
- 		break;
- 	case INTEL_MID_TIMER_LAPIC_APBT:
--		x86_init.timers.setup_percpu_clockev = setup_boot_APIC_clock;
-+		/* Use apbt and local apic */
-+		x86_init.timers.setup_percpu_clockev = intel_mid_setup_bp_timer;
- 		x86_cpuinit.setup_percpu_clockev = setup_secondary_APIC_clock;
--		break;
-+		return;
- 	default:
- 		if (!boot_cpu_has(X86_FEATURE_ARAT))
- 			break;
-+		/* Lapic only, no apbt */
- 		x86_init.timers.setup_percpu_clockev = setup_boot_APIC_clock;
- 		x86_cpuinit.setup_percpu_clockev = setup_secondary_APIC_clock;
- 		return;
- 	}
--	/* we need at least one APB timer */
--	pre_init_apic_IRQ0();
--	apbt_time_init();
-+
-+	x86_init.timers.setup_percpu_clockev = apbt_time_init;
- }
- 
- static void intel_mid_arch_setup(void)
 diff --git a/arch/x86/platform/intel-mid/sfi.c b/arch/x86/platform/intel-mid/sfi.c
-index c14ad34776c4..aa59f88868f8 100644
+index aa59f88868f8..9a16749935d4 100644
 --- a/arch/x86/platform/intel-mid/sfi.c
 +++ b/arch/x86/platform/intel-mid/sfi.c
-@@ -95,8 +95,6 @@ int __init sfi_parse_mtmr(struct sfi_table_header *table)
+@@ -95,16 +95,16 @@ int __init sfi_parse_mtmr(struct sfi_table_header *table)
  		pr_debug("timer[%d]: paddr = 0x%08x, freq = %dHz, irq = %d\n",
  			totallen, (u32)pentry->phys_addr,
  			pentry->freq_hz, pentry->irq);
--			if (!pentry->irq)
--				continue;
- 			mp_irq.type = MP_INTSRC;
- 			mp_irq.irqtype = mp_INT;
- /* triggering mode edge bit 2-3, active high polarity bit 0-1 */
+-			mp_irq.type = MP_INTSRC;
+-			mp_irq.irqtype = mp_INT;
+-/* triggering mode edge bit 2-3, active high polarity bit 0-1 */
+-			mp_irq.irqflag = 5;
+-			mp_irq.srcbus = MP_BUS_ISA;
+-			mp_irq.srcbusirq = pentry->irq;	/* IRQ */
+-			mp_irq.dstapic = MP_APIC_ALL;
+-			mp_irq.dstirq = pentry->irq;
+-			mp_save_irq(&mp_irq);
+-			mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
++		mp_irq.type = MP_INTSRC;
++		mp_irq.irqtype = mp_INT;
++		/* triggering mode edge bit 2-3, active high polarity bit 0-1 */
++		mp_irq.irqflag = 5;
++		mp_irq.srcbus = MP_BUS_ISA;
++		mp_irq.srcbusirq = pentry->irq;	/* IRQ */
++		mp_irq.dstapic = MP_APIC_ALL;
++		mp_irq.dstirq = pentry->irq;
++		mp_save_irq(&mp_irq);
++		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
+ 	}
+ 
+ 	return 0;
 -- 
 1.7.10.4
