@@ -1,146 +1,117 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Mon, 13 Apr 2015 12:31:20 +0800
-Message-ID: <552B4698.4020703@linux.intel.com>
-References: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com>	<3369608.UAniFEi9kX@vostro.rjw.lan>	<CAErSpo5aMwv5thgx+6195Cg+AM7FEeNJ_KDJj-pVCWGQp70XMg@mail.gmail.com>	<2169521.1seaK7G9oX@vostro.rjw.lan> <CAJZ5v0jtv8pB4EJHVLpsMfeqi7stnH1vvANbhFSTKiaU2RB1Ug@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jtv8pB4EJHVLpsMfeqi7stnH1vvANbhFSTKiaU2RB1Ug@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: [Patch Part1 v8 00/37] Convert x86 to hierarchy irqdomain and stacked irqchip
+Date: Mon, 13 Apr 2015 14:11:22 +0800
+Message-ID: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/4/10 8:28, Rafael J. Wysocki wrote:
-> On Fri, Apr 10, 2015 at 12:37 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Thursday, April 09, 2015 05:00:08 PM Bjorn Helgaas wrote:
->>> On Thu, Apr 9, 2015 at 4:37 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->>>> On Thursday, April 09, 2015 10:50:02 AM Jiang Liu wrote:
->>>>> On 2015/4/9 7:44, Rafael J. Wysocki wrote:
->>>>>> On Wednesday, April 08, 2015 01:48:46 PM Jiang Liu wrote:
->>>>>>> On 2015/4/7 8:28, Rafael J. Wysocki wrote:
->>>>>>>> On Friday, April 03, 2015 10:04:11 PM Bjorn Helgaas wrote:
->>>>>>>>> Hi Jiang,
->>>>>>> <snip>
->>>>>>>>>> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
->>>>>>>>>> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
->>>>>>>>>
->>>>>>>>> We should assume it will eventually be used for all ACPI devices,
->>>>>>>>> shouldn't we?
->>>>>>>>
->>>>>>>> I'm not sure about that, really.  In fact, I'd restrict its use to devices
->>>>>>>> types that actually can "produce" resources (ie. do not require the resources
->>>>>>>> to be provided by their ancestors or to be available from a global pool).
->>>>>>>>
->>>>>>>> Otherwise we're pretty much guaranteed to get into trouble.
->>>>>>>>
->>>>>>>> And all of the above rules need to be documented in the kernel source tree
->>>>>>>> or people will get confused.
->>>>>>> Hi Rafael,
->>>>>>>     How about following comments for acpi_dev_filter_resource_type()?
->>>>>>> Thanks!
->>>>>>> Gerry
->>>>>>> --------------------------------------------------------------------
->>>>>>> /**
->>>>>>>  * According to ACPI specifications, Consumer/Producer flag in ACPI resource
->>>>>>>  * descriptor means:
->>>>>>>  *      1(CONSUMER): This device consumes this resource
->>>>>>>  *      0(PRODUCER): This device produces and consumes this resource
->>>>>>>  * But for ACPI PCI host bridge, it is interpreted in another way:
->>>>>>
->>>>>> So first of all, this leads to a question: Why is it interpreted for ACPI PCI
->>>>>> host bridges differently?
->>>>>>
->>>>>> Is it something we've figured out from experience, or is there a standard
->>>>>> mandating that?
->>>>> Hi Rafael,
->>>>>       I think we got this knowledge by experiences. PCI FW spec only
->>>>> states _CRS reports resources assigned to the host bridge by firmware.
->>>>> There's no statement about whether the resource is consumed by host
->>>>> bridge itself or provided to it's child bus/devices. On x86/IA64 side,
->>>>> the main resource consumed by PCI host bridge is IOPORT 0xCF8-0xCFF,
->>>>> but not sure about ARM64 side. So how about:
->>>>
->>>> This:
->>>>
->>>>> PCI Firmware specification states that _CRS reports resources
->>>>> assigned to the host bridge, but there's no way to tell whether
->>>>> the resource is consumed by host bridge itself or provided to
->>>>> its child bus/devices.
->>>>
->>>> looks OK to me, but I'd replace the below with something like:
->>>>
->>>> "However, experience shows, that in the PCI host bridge case firmware writers
->>>>  expect the resource to be provided to devices on the bus (below the bridge) for
->>>>  consumption entirely if its Consumer/Producer flag is clear.  That expectation
->>>>  is reflected by the code in this routine as follows:".
->>>
->>> What a mess.  The spec is regrettably lacking in Consumer/Producer
->>> specifics.  But I don't see what's confusing about the descriptors
->>> that have Consumer/Producer bits.
->>>
->>> QWord, DWord, and Word descriptors don't seem to have a
->>> Consumer/Producer bit, but they do contain _TRA, so they must be
->>> intended for bridge windows.  Can they also be used for device
->>> registers?  I don't know.
->>>
->>> The Extended Address descriptor has a Consumer/Producer bit, and I
->>> would interpret the spec to mean that if the flag is clear (the device
->>> produces and consumes this resource), the resource is available on the
->>> bus below the bridge, i.e., the bridge consumes the resource on its
->>> upstream side and produces it on its downstream side.
->>
->> OK, that makes sense for bridges.
+Hi all,
+	The generic hierarchy irqdomain and stacked irqchip implementation
+has been merged into v3.19, so this patch set converts x86 interupt
+management to hierarchy irqdomain and stacked irqchip. You may access it at:
+https://github.com/jiangliu/linux.git irqdomain/x86_p1_v8
 
->>> If the bit were
->>> set (the device only consumes the resource), I would expect that to
->>> mean the descriptor is for bridge registers like 0xcf8/0xcfc that
->>> never appear on the downstream side.
->>
->> That part is clear.  What is not clear is whether or not we can *always*
->> expect the resources with Consumer/Producer *clear* to be produced on the
->> downstram side.  That appears to be the case for host bridges if my
->> understanding of things is correct, but is it the case in general?
->>
->>> Maybe I'm reading the spec too naively, but this doesn't seem a matter
->>> of experience.
->>
->> Well, the specification is not clear enough in that respect, at least as
->> far as I can say, or maybe it is, but then does firmware always follow that
->> interpretation?
-> 
-> So I guess I'd like to propose to go back to the 3.19 behavior for PCI host
-> bridges and then to handle the IOAPIC as a separate case.
-> 
-> We can think about consolidating the two later.
-> 
-> Any objections to doing that?
-Hi Rafael,
-	When reverting to the behavior before v3.19, I found a simpler
-solution. The logic before v3.19 is:
-on x86 and IA64, all IO port and MMIO resources assigned to PCI host
-bridge are available to child bus/devices, except one special case to
-filter out IO port[0xCF8-0xCFF] for PCI configuration space access.
+	This patch set has been reviewed several times and it missed v3.19
+merging because several bugs got fixed just before the merging window.
+The main changes since last review are:
+1) Rebased the patch set onto v4.0-rc6.
+2) Merged bugfixes into the patch introducing the bug so they don't break
+   bisecting.
 
-And with pre-v3.19 kernels, all IO port defined by IO and fixed_IO
-resource descriptors are ignored to filter out IO port[0xCF8-0xCFF].
+I will send out another following-on patch set to clean up code and interfaces
+obseleted by this patch set.
 
-So I plan to make following change to revert to the behavior before
-v3.19:
-1) make acpi_dev_filter_resource_type() filter descriptors based on
-   descriptor type, and don't check consumer_producer flag anymore.
-2) use IORESOURCE_IO_FIXED flag to filter out io and fixed_io resource
-   descriptors.
-3) x86 ACPI pci host bridge driver calls acpi_dev_filter_resource_type()
-   with flag IORESOURCE_IO_FIXED,
+Jiang Liu (36):
+  x86/irq: Save destination CPU ID in irq_cfg
+  x86/irq: Use hierarchy irqdomain to manage CPU interrupt vectors
+  x86/hpet: Use new irqdomain interfaces to allocate/free IRQ
+  x86/MSI: Use new irqdomain interfaces to allocate/free IRQ
+  x86/uv: Use new irqdomain interfaces to allocate/free IRQ
+  x86/htirq: Use new irqdomain interfaces to allocate/free IRQ
+  x86/dmar: Use new irqdomain interfaces to allocate/free IRQ
+  irq_remapping: Introduce new interfaces to support hierarchy
+    irqdomain
+  irq_remapping/vt-d: Change prototypes to prepare for enabling
+    hierarchy irqdomain
+  irq_remapping/vt-d: Enhance Intel IR driver to support hierarchy
+    irqdomain
+  irq_remapping/amd: Enhance AMD IR driver to support hierarchy
+    irqdomain
+  x86/hpet: Enhance HPET IRQ to support hierarchy irqdomain
+  x86/MSI: Use hierarchy irqdomain to manage MSI interrupts
+  x86/irq: Directly call native_compose_msi_msg() for DMAR IRQ
+  irq_remapping/vt-d: Clean up unused MSI related code
+  irq_remapping/amd: Clean up unused MSI related code
+  irq_remapping: Clean up unused MSI related code
+  x86/MSI: Clean up unused MSI related code and interfaces
+  iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
+  x86/irq: Use hierarchy irqdomain to manage DMAR interrupts
+  x86/htirq: Use hierarchy irqdomain to manage Hypertransport
+    interrupts
+  x86/uv: Use hierarchy irqdomain to manage UV interrupts
+  x86/irq: Normalize x86 irq_chip name
+  x86/MSI: Simplify the way to deal with remapped MSI interrupts
+  x86/MSI: Replace msi_update_msg() with irq_chip_compose_msi_msg()
+  x86/irq: Implement irq_chip.irq_write_msi_msg for MSI/DMAR/HPET
+    irq_chips
+  x86/irq: Simplify MSI/DMAR/HPET implementation by using common code
+  irq_remapping: Kill unused function irq_remapping_print_chip()
+  x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
+  x86/irq: Kill unused pre_init_apic_IRQ0()
+  x86/irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
+  x86/irq: Implement callbacks to enable hierarchy irqdomain on IOAPICs
+  x86/irq: Refine the way to allocate irq_cfg for legacy IRQs
+  x86/irq: Simplify the way to print IOAPIC entry
+  x86/irq: Introduce helper functions to support hierarchy irqdomain
+    for IOAPIC
+  x86/irq: Convert IOAPIC to use hierarchy irqdomain interfaces
 
-By this way, we could keep acpi_dev_filter_resource_type()
-as a generic interface and could be reused. And the change
-is small too. Any comments?
+Thomas Gleixner (1):
+  x86/intel-mid: Delay initialization of APB timer
 
-Thanks!
-Gerry
-> Rafael
-> 
+ arch/ia64/include/asm/irq_remapping.h              |    2 -
+ arch/ia64/kernel/msi_ia64.c                        |   30 +-
+ arch/x86/Kconfig                                   |    4 +-
+ arch/x86/include/asm/hpet.h                        |   16 +-
+ arch/x86/include/asm/hw_irq.h                      |   91 +++
+ arch/x86/include/asm/io_apic.h                     |   25 +-
+ arch/x86/include/asm/irq_remapping.h               |   45 +-
+ arch/x86/include/asm/msi.h                         |    7 +
+ arch/x86/include/asm/pci.h                         |    5 -
+ arch/x86/include/asm/x86_init.h                    |    4 -
+ arch/x86/kernel/acpi/boot.c                        |   17 +-
+ arch/x86/kernel/apb_timer.c                        |    4 -
+ arch/x86/kernel/apic/htirq.c                       |  173 ++++--
+ arch/x86/kernel/apic/io_apic.c                     |  602 +++++++++++++++-----
+ arch/x86/kernel/apic/msi.c                         |  416 ++++++++------
+ arch/x86/kernel/apic/vector.c                      |  205 ++++++-
+ arch/x86/kernel/devicetree.c                       |   37 +-
+ arch/x86/kernel/hpet.c                             |   57 +-
+ arch/x86/kernel/mpparse.c                          |    6 +-
+ arch/x86/kernel/x86_init.c                         |    2 -
+ arch/x86/pci/intel_mid_pci.c                       |    6 +-
+ .../platform/intel-mid/device_libs/platform_wdt.c  |    5 +-
+ arch/x86/platform/intel-mid/intel-mid.c            |   18 +-
+ arch/x86/platform/intel-mid/sfi.c                  |   30 +-
+ arch/x86/platform/sfi/sfi.c                        |    5 +-
+ arch/x86/platform/uv/uv_irq.c                      |  299 ++++------
+ drivers/iommu/amd_iommu.c                          |  376 +++++++++---
+ drivers/iommu/amd_iommu_init.c                     |    4 +
+ drivers/iommu/amd_iommu_proto.h                    |    9 +
+ drivers/iommu/amd_iommu_types.h                    |    5 +
+ drivers/iommu/dmar.c                               |   19 +-
+ drivers/iommu/intel_irq_remapping.c                |  451 ++++++++++-----
+ drivers/iommu/irq_remapping.c                      |  178 ++----
+ drivers/iommu/irq_remapping.h                      |   20 +-
+ drivers/pci/htirq.c                                |   48 +-
+ include/linux/dmar.h                               |    3 +-
+ include/linux/htirq.h                              |   22 +-
+ include/linux/intel-iommu.h                        |    4 +
+ 38 files changed, 2100 insertions(+), 1150 deletions(-)
+ create mode 100644 arch/x86/include/asm/msi.h
+
+-- 
+1.7.10.4
