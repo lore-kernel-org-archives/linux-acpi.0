@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/31] ACPICA: Tables: Move an iasl specific table function to iasl source file.
-Date: Mon, 13 Apr 2015 11:49:30 +0800
-Message-ID: <95eb730a01baed96d7ba80cf1465b9a935c81a92.1428893937.git.lv.zheng@intel.com>
+Subject: [PATCH 14/31] ACPICA: Utilities: Correct conditional compilation definitions.
+Date: Mon, 13 Apr 2015 11:49:39 +0800
+Message-ID: <f5e3923e6f22ef178113874cc374cf64b8d237aa.1428893937.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
@@ -10,168 +10,121 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 6eb364d790dd103bd4990f808e0095a421c437cb
+ACPICA commit 9a5982afbebc56289c4834b5f6dac87e0f04af14
 
-acpi_tb_store_table() implements a logic that is only correct to iasl. So it
-won't be used by any other utilities except iasl. This function is
-complained by the kernel users as an unused function. The best choice to
-stop releasing it to the Linux kernel should be moving it to adisasm.c.
+Some conditional compilation definitions are wrong across header and source
+files. This patch corrects them for the utilities component.
 
-ACPI table manager can use both struct acpi_table_desc (direct referencing)
-and table index (indirect referencing) as the descriptor to the table, so
-acpi_tb_get_next_root_index() is extended to return both of them to allow
-maximum usability from the callers. NOTE that indirect referencing is a
-design result to meet the boot stage static allocation requirement for the
-table descriptors.
-
-This is a linuxized acpi_tb_store_table() removing result, there should be
-no functional changes introduced to the Linux kernel by this patch except
-the additonal kernel unused argument for acpi_tb_get_next_root_index()
-(renamed to acpi_tb_get_next_root_index()). This argument is used in the
-ACPICA upstream.
-
-Link: https://github.com/acpica/acpica/commit/6eb364d7
+Link: https://github.com/acpica/acpica/commit/9a5982af
 Reported-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/actables.h |    9 +++------
- drivers/acpi/acpica/tbdata.c   |   20 ++++++++++++++++----
- drivers/acpi/acpica/tbinstal.c |   39 +--------------------------------------
- 3 files changed, 20 insertions(+), 48 deletions(-)
+ drivers/acpi/acpica/acutils.h |   14 ++++++++++++--
+ drivers/acpi/acpica/utmisc.c  |    2 ++
+ drivers/acpi/acpica/utuuid.c  |    2 ++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 1c127a4..7e0b6f1 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -58,7 +58,9 @@ u8 *acpi_tb_scan_memory_for_rsdp(u8 *start_address, u32 length);
- /*
-  * tbdata - table data structure management
-  */
--acpi_status acpi_tb_get_next_root_index(u32 *table_index);
-+acpi_status
-+acpi_tb_get_next_table_descriptor(u32 *table_index,
-+				  struct acpi_table_desc **table_desc);
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 04f4c31..2b3c5bd 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -502,6 +502,9 @@ const union acpi_predefined_info *acpi_ut_get_next_predefined_method(const union
+ 
+ const union acpi_predefined_info *acpi_ut_match_predefined_method(char *name);
+ 
++void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes);
++
++#if (defined ACPI_ASL_COMPILER || defined ACPI_HELP_APP)
+ const union acpi_predefined_info *acpi_ut_match_resource_name(char *name);
  
  void
- acpi_tb_init_table_descriptor(struct acpi_table_desc *table_desc,
-@@ -119,11 +121,6 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 			       u8 flags,
- 			       u8 reload, u8 override, u32 *table_index);
+@@ -509,9 +512,8 @@ acpi_ut_display_predefined_method(char *buffer,
+ 				  const union acpi_predefined_info *this_name,
+ 				  u8 multi_line);
  
--acpi_status
--acpi_tb_store_table(acpi_physical_address address,
--		    struct acpi_table_header *table,
--		    u32 length, u8 flags, u32 *table_index);
+-void acpi_ut_get_expected_return_types(char *buffer, u32 expected_btypes);
 -
- void acpi_tb_uninstall_table(struct acpi_table_desc *table_desc);
+ u32 acpi_ut_get_resource_bit_width(char *buffer, u16 types);
++#endif
  
- void acpi_tb_terminate(void);
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index fd5998b..d7f8386 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -484,19 +484,23 @@ acpi_status acpi_tb_resize_root_table_list(void)
+ /*
+  * utstate - Generic state creation/cache routines
+@@ -562,7 +564,9 @@ const struct acpi_exception_info *acpi_ut_validate_exception(acpi_status
  
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_tb_get_next_root_index
-+ * FUNCTION:    acpi_tb_get_next_table_descriptor
-  *
-  * PARAMETERS:  table_index         - Where table index is returned
-+ *              table_desc          - Where table descriptor is returned
-  *
-- * RETURN:      Status and table index.
-+ * RETURN:      Status and table index/descriptor.
-  *
-  * DESCRIPTION: Allocate a new ACPI table entry to the global table list
-  *
-  ******************************************************************************/
+ u8 acpi_ut_is_pci_root_bridge(char *id);
  
--acpi_status acpi_tb_get_next_root_index(u32 *table_index)
-+acpi_status
-+acpi_tb_get_next_table_descriptor(u32 *table_index,
-+				  struct acpi_table_desc **table_desc)
- {
- 	acpi_status status;
-+	u32 i;
++#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP)
+ u8 acpi_ut_is_aml_table(struct acpi_table_header *table);
++#endif
  
- 	/* Ensure that there is room for the table in the Root Table List */
+ acpi_status
+ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
+@@ -621,15 +625,19 @@ acpi_ut_get_resource_end_tag(union acpi_operand_object *obj_desc, u8 **end_tag);
+  */
+ void acpi_ut_strupr(char *src_string);
  
-@@ -508,8 +512,16 @@ acpi_status acpi_tb_get_next_root_index(u32 *table_index)
- 		}
- 	}
++#ifdef ACPI_ASL_COMPILER
+ void acpi_ut_strlwr(char *src_string);
  
--	*table_index = acpi_gbl_root_table_list.current_table_count;
-+	i = acpi_gbl_root_table_list.current_table_count;
- 	acpi_gbl_root_table_list.current_table_count++;
-+
-+	if (table_index) {
-+		*table_index = i;
-+	}
-+	if (table_desc) {
-+		*table_desc = &acpi_gbl_root_table_list.tables[i];
-+	}
-+
- 	return (AE_OK);
+ int acpi_ut_stricmp(char *string1, char *string2);
++#endif
+ 
+ acpi_status acpi_ut_strtoul64(char *string, u32 base, u64 *ret_integer);
+ 
+ void acpi_ut_print_string(char *string, u16 max_length);
+ 
++#if defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP
+ void ut_convert_backslashes(char *pathname);
++#endif
+ 
+ u8 acpi_ut_valid_acpi_name(char *name);
+ 
+@@ -777,6 +785,8 @@ int acpi_ut_file_printf(ACPI_FILE file, const char *format, ...);
+ /*
+  * utuuid -- UUID support functions
+  */
++#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_HELP_APP)
+ void acpi_ut_convert_string_to_uuid(char *in_string, u8 *uuid_buffer);
++#endif
+ 
+ #endif				/* _ACUTILS_H */
+diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+index 56bbacd..cbb7034 100644
+--- a/drivers/acpi/acpica/utmisc.c
++++ b/drivers/acpi/acpica/utmisc.c
+@@ -75,6 +75,7 @@ u8 acpi_ut_is_pci_root_bridge(char *id)
+ 	return (FALSE);
  }
  
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 7e69bc7..008a251 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -356,7 +356,7 @@ acpi_tb_install_standard_table(acpi_physical_address address,
++#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP)
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ut_is_aml_table
+@@ -102,6 +103,7 @@ u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
  
- 	/* Add the table to the global root table list */
- 
--	status = acpi_tb_get_next_root_index(&i);
-+	status = acpi_tb_get_next_table_descriptor(&i, NULL);
- 	if (ACPI_FAILURE(status)) {
- 		goto release_and_exit;
- 	}
-@@ -457,43 +457,6 @@ finish_override:
+ 	return (FALSE);
+ }
++#endif
  
  /*******************************************************************************
   *
-- * FUNCTION:    acpi_tb_store_table
-- *
-- * PARAMETERS:  address             - Table address
-- *              table               - Table header
-- *              length              - Table length
-- *              flags               - Install flags
-- *              table_index         - Where the table index is returned
-- *
-- * RETURN:      Status and table index.
-- *
-- * DESCRIPTION: Add an ACPI table to the global table list
-- *
-- ******************************************************************************/
--
--acpi_status
--acpi_tb_store_table(acpi_physical_address address,
--		    struct acpi_table_header * table,
--		    u32 length, u8 flags, u32 *table_index)
--{
--	acpi_status status;
--	struct acpi_table_desc *table_desc;
--
--	status = acpi_tb_get_next_root_index(table_index);
--	if (ACPI_FAILURE(status)) {
--		return (status);
--	}
--
--	/* Initialize added table */
--
--	table_desc = &acpi_gbl_root_table_list.tables[*table_index];
--	acpi_tb_init_table_descriptor(table_desc, address, flags, table);
--	table_desc->pointer = table;
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_tb_uninstall_table
+diff --git a/drivers/acpi/acpica/utuuid.c b/drivers/acpi/acpica/utuuid.c
+index c6149a2..e6cab66 100644
+--- a/drivers/acpi/acpica/utuuid.c
++++ b/drivers/acpi/acpica/utuuid.c
+@@ -47,6 +47,7 @@
+ #define _COMPONENT          ACPI_COMPILER
+ ACPI_MODULE_NAME("utuuid")
+ 
++#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_HELP_APP)
+ /*
+  * UUID support functions.
   *
-  * PARAMETERS:  table_desc          - Table descriptor
+@@ -94,3 +95,4 @@ void acpi_ut_convert_string_to_uuid(char *in_string, u8 *uuid_buffer)
+ 					       1]);
+ 	}
+ }
++#endif
 -- 
 1.7.10
