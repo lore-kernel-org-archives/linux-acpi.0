@@ -1,97 +1,45 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/31] ACPICA: Linuxize: Reduce divergences for 20150410 release.
-Date: Mon, 13 Apr 2015 11:48:12 +0800
-Message-ID: <1eb832296d0c4e02fcb7369939add33784a63ef0.1428893936.git.lv.zheng@intel.com>
+Subject: [PATCH 03/31] ACPICA: Unix: Cleanup to use ACPI_TO_INTEGER() to calc page offset.
+Date: Mon, 13 Apr 2015 11:48:24 +0800
+Message-ID: <3bbc0eab7349e36bc242007960540a05b263acf0.1428893936.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:50899 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752663AbbDMDs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Apr 2015 23:48:28 -0400
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-This patch reduces source code differences between the Linux kernel and the
-ACPICA upstream so that the linuxized ACPICA 20150410 release can be
-applied with reduced human intervention.
+ACPICA commit 9e2d8180f4d5e61949b17513bae8aff6412f62dd
 
+The offset calculation needn't convert a pointer to a special integer type.
+So this patch uses ACPI_TO_INTEGER() instead.
+
+This patch only affects acpidump tool.
+
+Link: https://github.com/acpica/acpica/commit/9e2d8180
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acresrc.h  |    2 +-
- drivers/acpi/acpica/acutils.h  |    2 --
- drivers/acpi/acpica/exregion.c |    2 +-
- drivers/acpi/acpica/rsdump.c   |    2 +-
- drivers/acpi/acpica/tbxfroot.c |    2 +-
- 5 files changed, 4 insertions(+), 6 deletions(-)
+ tools/power/acpi/os_specific/service_layers/osunixmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/acresrc.h b/drivers/acpi/acpica/acresrc.h
-index efc4c71..959be91 100644
---- a/drivers/acpi/acpica/acresrc.h
-+++ b/drivers/acpi/acpica/acresrc.h
-@@ -303,7 +303,7 @@ acpi_rs_set_resource_length(acpi_rsdesc_size total_length,
-  */
- void acpi_rs_dump_resource_list(struct acpi_resource *resource);
+diff --git a/tools/power/acpi/os_specific/service_layers/osunixmap.c b/tools/power/acpi/os_specific/service_layers/osunixmap.c
+index 3853a73..0b1fa29 100644
+--- a/tools/power/acpi/os_specific/service_layers/osunixmap.c
++++ b/tools/power/acpi/os_specific/service_layers/osunixmap.c
+@@ -146,6 +146,6 @@ void acpi_os_unmap_memory(void *where, acpi_size length)
+ 	acpi_size page_size;
  
--void acpi_rs_dump_irq_list(u8 * route_table);
-+void acpi_rs_dump_irq_list(u8 *route_table);
- 
- /*
-  * Resource conversion tables
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index c2f03e8..3ae0447 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -539,13 +539,11 @@ acpi_ut_create_update_state_and_push(union acpi_operand_object *object,
- 				     u16 action,
- 				     union acpi_generic_state **state_list);
- 
--#ifdef	ACPI_FUTURE_USAGE
- acpi_status
- acpi_ut_create_pkg_state_and_push(void *internal_object,
- 				  void *external_object,
- 				  u16 index,
- 				  union acpi_generic_state **state_list);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- union acpi_generic_state *acpi_ut_create_control_state(void);
- 
-diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
-index 0fe188e2..0ca217e 100644
---- a/drivers/acpi/acpica/exregion.c
-+++ b/drivers/acpi/acpica/exregion.c
-@@ -182,7 +182,7 @@ acpi_ex_system_memory_space_handler(u32 function,
- 			ACPI_ERROR((AE_INFO,
- 				    "Could not map memory at 0x%8.8X%8.8X, size %u",
- 				    ACPI_FORMAT_NATIVE_UINT(address),
--				    (u32) map_length));
-+				    (u32)map_length));
- 			mem_info->mapped_length = 0;
- 			return_ACPI_STATUS(AE_NO_MEMORY);
- 		}
-diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
-index 1539394..8d4f262 100644
---- a/drivers/acpi/acpica/rsdump.c
-+++ b/drivers/acpi/acpica/rsdump.c
-@@ -438,7 +438,7 @@ void acpi_rs_dump_resource_list(struct acpi_resource *resource_list)
-  *
-  ******************************************************************************/
- 
--void acpi_rs_dump_irq_list(u8 * route_table)
-+void acpi_rs_dump_irq_list(u8 *route_table)
- {
- 	struct acpi_pci_routing_table *prt_element;
- 	u8 count;
-diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
-index eac52cf..e1416a2 100644
---- a/drivers/acpi/acpica/tbxfroot.c
-+++ b/drivers/acpi/acpica/tbxfroot.c
-@@ -142,7 +142,7 @@ acpi_status acpi_tb_validate_rsdp(struct acpi_table_rsdp * rsdp)
-  *
-  ******************************************************************************/
- 
--acpi_status __init acpi_find_root_pointer(acpi_size *table_address)
-+acpi_status __init acpi_find_root_pointer(acpi_size * table_address)
- {
- 	u8 *table_ptr;
- 	u8 *mem_rover;
+ 	page_size = acpi_os_get_page_size();
+-	offset = (acpi_physical_address) where % page_size;
++	offset = ACPI_TO_INTEGER(where) % page_size;
+ 	munmap((u8 *)where - offset, (length + offset));
+ }
 -- 
 1.7.10
+
