@@ -1,117 +1,104 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/31] ACPICA: Utilities: split IO address types from data type models.
-Date: Mon, 13 Apr 2015 11:48:58 +0800
-Message-ID: <4baba17ae37fcd0831fcbe779f75bc5cee6c63fb.1428893937.git.lv.zheng@intel.com>
+Subject: [PATCH 12/31] ACPICA: Utilities: Remove unused acpi_ut_create_pkg_state_and_push().
+Date: Mon, 13 Apr 2015 11:49:24 +0800
+Message-ID: <f6859560990d58bf07612e70107f1e43b4bc4993.1428893937.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:34766 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753321AbbDMDt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Apr 2015 23:49:28 -0400
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, stable@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit aacf863cfffd46338e268b7415f7435cae93b451
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 
-It is reported that on a physically 64-bit addressed machine, 32-bit kernel
-can trigger crashes in accessing the memory regions that are beyond the
-32-bit boundary. The region field's start address should still be 32-bit
-compliant, but after a calculation (adding some offsets), it may exceed the
-32-bit boundary. This case is rare and buggy, but there are real BIOSes
-leaked with such issues (see References below).
+ACPICA commit 2a9ebd974aee41391f4b0edcd4f0cc5ee23ec2f8
 
-This patch fixes this gap by always defining IO addresses as 64-bit, and
-allows OSPMs to optimize it for a real 32-bit machine to reduce the size of
-the internal objects.
+Remove the function acpi_ut_create_pkg_state_and_push() that is not used anywhere.
+This was partially found by using a static code analysis program called cppcheck.
 
-Internal acpi_physical_address usages in the structures that can be fixed
-by this change include:
-1. struct acpi_object_region:
-    acpi_physical_address		address;
-2. struct acpi_address_range:
-    acpi_physical_address		start_address;
-    acpi_physical_address		end_address;
-3. struct acpi_mem_space_context;
-    acpi_physical_address		address;
-4. struct acpi_table_desc
-    acpi_physical_address		address;
-See known issues 1 for other usages.
-
-Note that acpi_io_address which is used for ACPI_PROCESSOR may also suffer
-from same problem, so this patch changes it accordingly.
-
-For iasl, it will enforce acpi_physical_address as 32-bit to generate
-32-bit OSPM compatible tables on 32-bit platforms, we need to define
-ACPI_32BIT_PHYSICAL_ADDRESS for it in acenv.h.
-
-Known issues:
-1. Cleanup of mapped virtual address
-   In struct acpi_mem_space_context, acpi_physical_address is used as a virtual
-   address:
-    acpi_physical_address                   mapped_physical_address;
-   It is better to introduce acpi_virtual_address or use acpi_size instead.
-   This patch doesn't make such a change. Because this should be done along
-   with a change to acpi_os_map_memory()/acpi_os_unmap_memory().
-   There should be no functional problem to leave this unchanged except
-   that only this structure is enlarged unexpectedly.
-
-Link: https://github.com/acpica/acpica/commit/aacf863c
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=87971
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=79501
-Reported-and-tested-by: Paul Menzel <paulepanter@users.sourceforge.net>
-Reported-and-tested-by: Sial Nije <sialnije@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/2a9ebd97
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actypes.h        |   20 ++++++++++++++++++++
- include/acpi/platform/acenv.h |    1 +
- 2 files changed, 21 insertions(+)
+ drivers/acpi/acpica/acutils.h |    6 ------
+ drivers/acpi/acpica/utstate.c |   34 ----------------------------------
+ 2 files changed, 40 deletions(-)
 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index b034f10..658c42e 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -199,9 +199,29 @@ typedef int s32;
- typedef s32 acpi_native_int;
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 3ae0447..04f4c31 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -539,12 +539,6 @@ acpi_ut_create_update_state_and_push(union acpi_operand_object *object,
+ 				     u16 action,
+ 				     union acpi_generic_state **state_list);
  
- typedef u32 acpi_size;
-+
-+#ifdef ACPI_32BIT_PHYSICAL_ADDRESS
-+
-+/*
-+ * OSPMs can define this to shrink the size of the structures for 32-bit
-+ * none PAE environment. ASL compiler may always define this to generate
-+ * 32-bit OSPM compliant tables.
-+ */
- typedef u32 acpi_io_address;
- typedef u32 acpi_physical_address;
+-acpi_status
+-acpi_ut_create_pkg_state_and_push(void *internal_object,
+-				  void *external_object,
+-				  u16 index,
+-				  union acpi_generic_state **state_list);
+-
+ union acpi_generic_state *acpi_ut_create_control_state(void);
  
-+#else				/* ACPI_32BIT_PHYSICAL_ADDRESS */
-+
-+/*
-+ * It is reported that, after some calculations, the physical addresses can
-+ * wrap over the 32-bit boundary on 32-bit PAE environment.
-+ * https://bugzilla.kernel.org/show_bug.cgi?id=87971
-+ */
-+typedef u64 acpi_io_address;
-+typedef u64 acpi_physical_address;
-+
-+#endif				/* ACPI_32BIT_PHYSICAL_ADDRESS */
-+
- #define ACPI_MAX_PTR                    ACPI_UINT32_MAX
- #define ACPI_SIZE_MAX                   ACPI_UINT32_MAX
+ void acpi_ut_delete_generic_state(union acpi_generic_state *state);
+diff --git a/drivers/acpi/acpica/utstate.c b/drivers/acpi/acpica/utstate.c
+index 8274cc1..f201171 100644
+--- a/drivers/acpi/acpica/utstate.c
++++ b/drivers/acpi/acpica/utstate.c
+@@ -49,39 +49,6 @@ ACPI_MODULE_NAME("utstate")
  
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index ad74dc5..ecdf940 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -76,6 +76,7 @@
- #define ACPI_LARGE_NAMESPACE_NODE
- #define ACPI_DATA_TABLE_DISASSEMBLY
- #define ACPI_SINGLE_THREADED
-+#define ACPI_32BIT_PHYSICAL_ADDRESS
- #endif
- 
- /* acpi_exec configuration. Multithreaded with full AML debugger */
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_ut_create_pkg_state_and_push
+- *
+- * PARAMETERS:  object          - Object to be added to the new state
+- *              action          - Increment/Decrement
+- *              state_list      - List the state will be added to
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Create a new state and push it
+- *
+- ******************************************************************************/
+-acpi_status
+-acpi_ut_create_pkg_state_and_push(void *internal_object,
+-				  void *external_object,
+-				  u16 index,
+-				  union acpi_generic_state **state_list)
+-{
+-	union acpi_generic_state *state;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	state =
+-	    acpi_ut_create_pkg_state(internal_object, external_object, index);
+-	if (!state) {
+-		return (AE_NO_MEMORY);
+-	}
+-
+-	acpi_ut_push_generic_state(state_list, state);
+-	return (AE_OK);
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_ut_push_generic_state
+  *
+  * PARAMETERS:  list_head           - Head of the state stack
+@@ -92,7 +59,6 @@ acpi_ut_create_pkg_state_and_push(void *internal_object,
+  * DESCRIPTION: Push a state object onto a state stack
+  *
+  ******************************************************************************/
+-
+ void
+ acpi_ut_push_generic_state(union acpi_generic_state **list_head,
+ 			   union acpi_generic_state *state)
 -- 
 1.7.10
+
