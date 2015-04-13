@@ -1,23 +1,17 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 01/37] x86/irq: Save destination CPU ID in irq_cfg
-Date: Mon, 13 Apr 2015 14:11:23 +0800
-Message-ID: <1428905519-23704-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v8 03/37] x86/hpet: Use new irqdomain interfaces to allocate/free IRQ
+Date: Mon, 13 Apr 2015 14:11:25 +0800
+Message-ID: <1428905519-23704-4-git-send-email-jiang.liu@linux.intel.com>
 References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:49312 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751498AbbDMGKB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Apr 2015 02:10:01 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Andy Lutomirski <luto@amacapital.net>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Cache destination CPU APIC ID into struct irq_cfg when assigning vector
-for interrupt. Upper layer just needs to read the cached APIC ID instead
-of calling apic->cpu_mask_to_apicid_and(), it helps to hide APIC driver
-details from IOAPIC/HPET/MSI drivers..
+Use new irqdomain interfaces to allocate/free IRQ for HPET, so we could
+kill GENERIC_IRQ_LEGACY_ALLOC_HWIRQ later.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
@@ -30,42 +24,47 @@ Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Link: http://lkml.kernel.org/r/1416894816-23245-2-git-send-email-jiang.liu@linux.intel.com
+Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Link: http://lkml.kernel.org/r/1416894816-23245-4-git-send-email-jiang.liu@linux.intel.com
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- arch/x86/include/asm/hw_irq.h |    1 +
- arch/x86/kernel/apic/vector.c |    6 ++++++
- 2 files changed, 7 insertions(+)
+ arch/x86/kernel/hpet.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
-index 9662290e0b20..b988ddf7434b 100644
---- a/arch/x86/include/asm/hw_irq.h
-+++ b/arch/x86/include/asm/hw_irq.h
-@@ -116,6 +116,7 @@ struct irq_data;
- struct irq_cfg {
- 	cpumask_var_t		domain;
- 	cpumask_var_t		old_domain;
-+	unsigned int		dest_apicid;
- 	u8			vector;
- 	u8			move_in_progress : 1;
- #ifdef CONFIG_IRQ_REMAP
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 6cedd7914581..c724ef6b218c 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -188,6 +188,12 @@ next:
+diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
+index 3acbff4716b0..ae29554f57ea 100644
+--- a/arch/x86/kernel/hpet.c
++++ b/arch/x86/kernel/hpet.c
+@@ -11,6 +11,7 @@
+ #include <linux/cpu.h>
+ #include <linux/pm.h>
+ #include <linux/io.h>
++#include <linux/irqdomain.h>
+ 
+ #include <asm/fixmap.h>
+ #include <asm/hpet.h>
+@@ -476,7 +477,7 @@ static int hpet_msi_next_event(unsigned long delta,
+ static int hpet_setup_msi_irq(unsigned int irq)
+ {
+ 	if (x86_msi.setup_hpet_msi(irq, hpet_blockid)) {
+-		irq_free_hwirq(irq);
++		irq_domain_free_irqs(irq, 1);
+ 		return -EINVAL;
  	}
- 	free_cpumask_var(tmp_mask);
+ 	return 0;
+@@ -484,9 +485,10 @@ static int hpet_setup_msi_irq(unsigned int irq)
  
-+	if (!err) {
-+		/* cache destination APIC IDs into cfg->dest_apicid */
-+		err = apic->cpu_mask_to_apicid_and(mask, cfg->domain,
-+						   &cfg->dest_apicid);
-+	}
-+
- 	return err;
- }
+ static int hpet_assign_irq(struct hpet_dev *dev)
+ {
+-	unsigned int irq = irq_alloc_hwirq(-1);
++	int irq;
  
+-	if (!irq)
++	irq = irq_domain_alloc_irqs(NULL, 1, NUMA_NO_NODE, NULL);
++	if (irq <= 0)
+ 		return -EINVAL;
+ 
+ 	irq_set_handler_data(irq, dev);
 -- 
 1.7.10.4
-
