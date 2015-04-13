@@ -1,52 +1,52 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 26/31] ACPICA: Add "//" before ascii output of buffers.
-Date: Mon, 13 Apr 2015 11:50:56 +0800
-Message-ID: <4b2cc90b14569234157a997c20b1a739fb4f53fd.1428893938.git.lv.zheng@intel.com>
+Subject: [PATCH 23/31] ACPICA: Add "Windows 2015" string to _OSI support.
+Date: Mon, 13 Apr 2015 11:50:37 +0800
+Message-ID: <4dc66c69d1f9ab3190c358702d02cc3a2c595026.1428893938.git.lv.zheng@intel.com>
 References: <cover.1428893935.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:34030 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932123AbbDMDvA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Apr 2015 23:51:00 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 657dc227672709895df3192fa5ea59a649b9a76f
+ACPICA commit b293f602a67da478ae0bec129e68bd99787d9908
 
-Updates the dump buffer utility to comment out the ascii part
-of buffer dump. Prevents some tools from getting confused.
+This change adds this string for Windows 10.
 
-Link: https://github.com/acpica/acpica/commit/657dc227
+Link: https://github.com/acpica/acpica/commit/b293f602
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utbuffer.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/acpica/utosi.c |    1 +
+ include/acpi/actypes.h      |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/acpica/utbuffer.c b/drivers/acpi/acpica/utbuffer.c
-index 242bd07..a8c3964 100644
---- a/drivers/acpi/acpica/utbuffer.c
-+++ b/drivers/acpi/acpica/utbuffer.c
-@@ -150,6 +150,14 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
- 				return;
- 			}
+diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
+index 574cd31..44035ab 100644
+--- a/drivers/acpi/acpica/utosi.c
++++ b/drivers/acpi/acpica/utosi.c
+@@ -100,6 +100,7 @@ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
+ 	{"Windows 2009", NULL, 0, ACPI_OSI_WIN_7},	/* Windows 7 and Server 2008 R2 - Added 09/2009 */
+ 	{"Windows 2012", NULL, 0, ACPI_OSI_WIN_8},	/* Windows 8 and Server 2012 - Added 08/2012 */
+ 	{"Windows 2013", NULL, 0, ACPI_OSI_WIN_8},	/* Windows 8.1 and Server 2012 R2 - Added 01/2014 */
++	{"Windows 2015", NULL, 0, ACPI_OSI_WIN_10},	/* Windows 10 - Added 03/2015 */
  
-+			/*
-+			 * Add comment characters so rest of line is ignored when
-+			 * compiled
-+			 */
-+			if (j == 0) {
-+				acpi_os_printf("// ");
-+			}
-+
- 			buf_char = buffer[(acpi_size) i + j];
- 			if (ACPI_IS_PRINT(buf_char)) {
- 				acpi_os_printf("%c", buf_char);
+ 	/* Feature Group Strings */
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index f18b7a8..ace520f 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1274,6 +1274,7 @@ struct acpi_memory_list {
+ #define ACPI_OSI_WIN_VISTA_SP2          0x0A
+ #define ACPI_OSI_WIN_7                  0x0B
+ #define ACPI_OSI_WIN_8                  0x0C
++#define ACPI_OSI_WIN_10                 0x0D
+ 
+ /* Definitions of file IO */
+ 
 -- 
 1.7.10
-
