@@ -1,68 +1,73 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 30/37] x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
-Date: Mon, 13 Apr 2015 14:11:52 +0800
-Message-ID: <1428905519-23704-31-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch Part1 v8 31/37] x86/irq: Kill unused pre_init_apic_IRQ0()
+Date: Mon, 13 Apr 2015 14:11:53 +0800
+Message-ID: <1428905519-23704-32-git-send-email-jiang.liu@linux.intel.com>
 References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiri Kosina <trivial@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Jan Beulich <JBeulich@suse.com>, Grant Likely <grant.likely@linaro.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Correctly indent code in function sfi_parse_mtmr().
+Now there's no user of pre_init_apic_IRQ0(), so kill it.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: H. Peter Anvin <hpa@linux.intel.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Jiri Kosina <trivial@kernel.org>
-Cc: David Cohen <david.a.cohen@linux.intel.com>
-Link: http://lkml.kernel.org/r/1416901802-24211-3-git-send-email-jiang.liu@linux.intel.com
+Cc: Grant Likely <grant.likely@linaro.org>
+Link: http://lkml.kernel.org/r/1416901802-24211-4-git-send-email-jiang.liu@linux.intel.com
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/x86/platform/intel-mid/sfi.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/io_apic.h |    1 -
+ arch/x86/kernel/apic/io_apic.c |   17 -----------------
+ 2 files changed, 18 deletions(-)
 
-diff --git a/arch/x86/platform/intel-mid/sfi.c b/arch/x86/platform/intel-mid/sfi.c
-index aa59f88868f8..9a16749935d4 100644
---- a/arch/x86/platform/intel-mid/sfi.c
-+++ b/arch/x86/platform/intel-mid/sfi.c
-@@ -95,16 +95,16 @@ int __init sfi_parse_mtmr(struct sfi_table_header *table)
- 		pr_debug("timer[%d]: paddr = 0x%08x, freq = %dHz, irq = %d\n",
- 			totallen, (u32)pentry->phys_addr,
- 			pentry->freq_hz, pentry->irq);
--			mp_irq.type = MP_INTSRC;
--			mp_irq.irqtype = mp_INT;
--/* triggering mode edge bit 2-3, active high polarity bit 0-1 */
--			mp_irq.irqflag = 5;
--			mp_irq.srcbus = MP_BUS_ISA;
--			mp_irq.srcbusirq = pentry->irq;	/* IRQ */
--			mp_irq.dstapic = MP_APIC_ALL;
--			mp_irq.dstirq = pentry->irq;
--			mp_save_irq(&mp_irq);
--			mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
-+		mp_irq.type = MP_INTSRC;
-+		mp_irq.irqtype = mp_INT;
-+		/* triggering mode edge bit 2-3, active high polarity bit 0-1 */
-+		mp_irq.irqflag = 5;
-+		mp_irq.srcbus = MP_BUS_ISA;
-+		mp_irq.srcbusirq = pentry->irq;	/* IRQ */
-+		mp_irq.dstapic = MP_APIC_ALL;
-+		mp_irq.dstirq = pentry->irq;
-+		mp_save_irq(&mp_irq);
-+		mp_map_gsi_to_irq(pentry->irq, IOAPIC_MAP_ALLOC);
- 	}
+diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
+index 2f91685fe1cd..c976de126a91 100644
+--- a/arch/x86/include/asm/io_apic.h
++++ b/arch/x86/include/asm/io_apic.h
+@@ -204,7 +204,6 @@ extern int mp_irqdomain_map(struct irq_domain *domain, unsigned int virq,
+ 			    irq_hw_number_t hwirq);
+ extern void mp_irqdomain_unmap(struct irq_domain *domain, unsigned int virq);
+ extern int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node);
+-extern void __init pre_init_apic_IRQ0(void);
  
- 	return 0;
+ extern void mp_save_irq(struct mpc_intsrc *m);
+ 
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 56d532106ef3..540598c77e55 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3091,20 +3091,3 @@ int mp_set_gsi_attr(u32 gsi, int trigger, int polarity, int node)
+ 
+ 	return ret;
+ }
+-
+-/* Enable IOAPIC early just for system timer */
+-void __init pre_init_apic_IRQ0(void)
+-{
+-	struct io_apic_irq_attr attr = { 0, 0, 0, 0 };
+-
+-	printk(KERN_INFO "Early APIC setup for system timer0\n");
+-#ifndef CONFIG_SMP
+-	physid_set_mask_of_physid(boot_cpu_physical_apicid,
+-					 &phys_cpu_present_map);
+-#endif
+-	setup_local_APIC();
+-
+-	io_apic_setup_irq_pin(0, 0, &attr);
+-	irq_set_chip_and_handler_name(0, &ioapic_chip, handle_edge_irq,
+-				      "edge");
+-}
 -- 
 1.7.10.4
