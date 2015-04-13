@@ -1,45 +1,146 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/31] ACPICA: Unix: Cleanup to use ACPI_TO_INTEGER() to calc page offset.
-Date: Mon, 13 Apr 2015 11:48:24 +0800
-Message-ID: <3bbc0eab7349e36bc242007960540a05b263acf0.1428893936.git.lv.zheng@intel.com>
-References: <cover.1428893935.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:50899 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752663AbbDMDs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Apr 2015 23:48:28 -0400
-In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Bugfix v3] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Mon, 13 Apr 2015 12:31:20 +0800
+Message-ID: <552B4698.4020703@linux.intel.com>
+References: <1427683243-14355-1-git-send-email-jiang.liu@linux.intel.com>	<3369608.UAniFEi9kX@vostro.rjw.lan>	<CAErSpo5aMwv5thgx+6195Cg+AM7FEeNJ_KDJj-pVCWGQp70XMg@mail.gmail.com>	<2169521.1seaK7G9oX@vostro.rjw.lan> <CAJZ5v0jtv8pB4EJHVLpsMfeqi7stnH1vvANbhFSTKiaU2RB1Ug@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0jtv8pB4EJHVLpsMfeqi7stnH1vvANbhFSTKiaU2RB1Ug@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 9e2d8180f4d5e61949b17513bae8aff6412f62dd
+On 2015/4/10 8:28, Rafael J. Wysocki wrote:
+> On Fri, Apr 10, 2015 at 12:37 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> On Thursday, April 09, 2015 05:00:08 PM Bjorn Helgaas wrote:
+>>> On Thu, Apr 9, 2015 at 4:37 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>>> On Thursday, April 09, 2015 10:50:02 AM Jiang Liu wrote:
+>>>>> On 2015/4/9 7:44, Rafael J. Wysocki wrote:
+>>>>>> On Wednesday, April 08, 2015 01:48:46 PM Jiang Liu wrote:
+>>>>>>> On 2015/4/7 8:28, Rafael J. Wysocki wrote:
+>>>>>>>> On Friday, April 03, 2015 10:04:11 PM Bjorn Helgaas wrote:
+>>>>>>>>> Hi Jiang,
+>>>>>>> <snip>
+>>>>>>>>>> Currently acpi_dev_filter_resource_type() is only used by ACPI pci
+>>>>>>>>>> host bridge and IOAPIC driver, so it shouldn't affect other drivers.
+>>>>>>>>>
+>>>>>>>>> We should assume it will eventually be used for all ACPI devices,
+>>>>>>>>> shouldn't we?
+>>>>>>>>
+>>>>>>>> I'm not sure about that, really.  In fact, I'd restrict its use to devices
+>>>>>>>> types that actually can "produce" resources (ie. do not require the resources
+>>>>>>>> to be provided by their ancestors or to be available from a global pool).
+>>>>>>>>
+>>>>>>>> Otherwise we're pretty much guaranteed to get into trouble.
+>>>>>>>>
+>>>>>>>> And all of the above rules need to be documented in the kernel source tree
+>>>>>>>> or people will get confused.
+>>>>>>> Hi Rafael,
+>>>>>>>     How about following comments for acpi_dev_filter_resource_type()?
+>>>>>>> Thanks!
+>>>>>>> Gerry
+>>>>>>> --------------------------------------------------------------------
+>>>>>>> /**
+>>>>>>>  * According to ACPI specifications, Consumer/Producer flag in ACPI resource
+>>>>>>>  * descriptor means:
+>>>>>>>  *      1(CONSUMER): This device consumes this resource
+>>>>>>>  *      0(PRODUCER): This device produces and consumes this resource
+>>>>>>>  * But for ACPI PCI host bridge, it is interpreted in another way:
+>>>>>>
+>>>>>> So first of all, this leads to a question: Why is it interpreted for ACPI PCI
+>>>>>> host bridges differently?
+>>>>>>
+>>>>>> Is it something we've figured out from experience, or is there a standard
+>>>>>> mandating that?
+>>>>> Hi Rafael,
+>>>>>       I think we got this knowledge by experiences. PCI FW spec only
+>>>>> states _CRS reports resources assigned to the host bridge by firmware.
+>>>>> There's no statement about whether the resource is consumed by host
+>>>>> bridge itself or provided to it's child bus/devices. On x86/IA64 side,
+>>>>> the main resource consumed by PCI host bridge is IOPORT 0xCF8-0xCFF,
+>>>>> but not sure about ARM64 side. So how about:
+>>>>
+>>>> This:
+>>>>
+>>>>> PCI Firmware specification states that _CRS reports resources
+>>>>> assigned to the host bridge, but there's no way to tell whether
+>>>>> the resource is consumed by host bridge itself or provided to
+>>>>> its child bus/devices.
+>>>>
+>>>> looks OK to me, but I'd replace the below with something like:
+>>>>
+>>>> "However, experience shows, that in the PCI host bridge case firmware writers
+>>>>  expect the resource to be provided to devices on the bus (below the bridge) for
+>>>>  consumption entirely if its Consumer/Producer flag is clear.  That expectation
+>>>>  is reflected by the code in this routine as follows:".
+>>>
+>>> What a mess.  The spec is regrettably lacking in Consumer/Producer
+>>> specifics.  But I don't see what's confusing about the descriptors
+>>> that have Consumer/Producer bits.
+>>>
+>>> QWord, DWord, and Word descriptors don't seem to have a
+>>> Consumer/Producer bit, but they do contain _TRA, so they must be
+>>> intended for bridge windows.  Can they also be used for device
+>>> registers?  I don't know.
+>>>
+>>> The Extended Address descriptor has a Consumer/Producer bit, and I
+>>> would interpret the spec to mean that if the flag is clear (the device
+>>> produces and consumes this resource), the resource is available on the
+>>> bus below the bridge, i.e., the bridge consumes the resource on its
+>>> upstream side and produces it on its downstream side.
+>>
+>> OK, that makes sense for bridges.
 
-The offset calculation needn't convert a pointer to a special integer type.
-So this patch uses ACPI_TO_INTEGER() instead.
+>>> If the bit were
+>>> set (the device only consumes the resource), I would expect that to
+>>> mean the descriptor is for bridge registers like 0xcf8/0xcfc that
+>>> never appear on the downstream side.
+>>
+>> That part is clear.  What is not clear is whether or not we can *always*
+>> expect the resources with Consumer/Producer *clear* to be produced on the
+>> downstram side.  That appears to be the case for host bridges if my
+>> understanding of things is correct, but is it the case in general?
+>>
+>>> Maybe I'm reading the spec too naively, but this doesn't seem a matter
+>>> of experience.
+>>
+>> Well, the specification is not clear enough in that respect, at least as
+>> far as I can say, or maybe it is, but then does firmware always follow that
+>> interpretation?
+> 
+> So I guess I'd like to propose to go back to the 3.19 behavior for PCI host
+> bridges and then to handle the IOAPIC as a separate case.
+> 
+> We can think about consolidating the two later.
+> 
+> Any objections to doing that?
+Hi Rafael,
+	When reverting to the behavior before v3.19, I found a simpler
+solution. The logic before v3.19 is:
+on x86 and IA64, all IO port and MMIO resources assigned to PCI host
+bridge are available to child bus/devices, except one special case to
+filter out IO port[0xCF8-0xCFF] for PCI configuration space access.
 
-This patch only affects acpidump tool.
+And with pre-v3.19 kernels, all IO port defined by IO and fixed_IO
+resource descriptors are ignored to filter out IO port[0xCF8-0xCFF].
 
-Link: https://github.com/acpica/acpica/commit/9e2d8180
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- tools/power/acpi/os_specific/service_layers/osunixmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+So I plan to make following change to revert to the behavior before
+v3.19:
+1) make acpi_dev_filter_resource_type() filter descriptors based on
+   descriptor type, and don't check consumer_producer flag anymore.
+2) use IORESOURCE_IO_FIXED flag to filter out io and fixed_io resource
+   descriptors.
+3) x86 ACPI pci host bridge driver calls acpi_dev_filter_resource_type()
+   with flag IORESOURCE_IO_FIXED,
 
-diff --git a/tools/power/acpi/os_specific/service_layers/osunixmap.c b/tools/power/acpi/os_specific/service_layers/osunixmap.c
-index 3853a73..0b1fa29 100644
---- a/tools/power/acpi/os_specific/service_layers/osunixmap.c
-+++ b/tools/power/acpi/os_specific/service_layers/osunixmap.c
-@@ -146,6 +146,6 @@ void acpi_os_unmap_memory(void *where, acpi_size length)
- 	acpi_size page_size;
- 
- 	page_size = acpi_os_get_page_size();
--	offset = (acpi_physical_address) where % page_size;
-+	offset = ACPI_TO_INTEGER(where) % page_size;
- 	munmap((u8 *)where - offset, (length + offset));
- }
--- 
-1.7.10
+By this way, we could keep acpi_dev_filter_resource_type()
+as a generic interface and could be reused. And the change
+is small too. Any comments?
 
+Thanks!
+Gerry
+> Rafael
+> 
