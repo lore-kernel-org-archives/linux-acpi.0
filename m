@@ -1,62 +1,90 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH] ACPI / scan: Annotate physical_node_lock in acpi_scan_is_offline()
-Date: Mon, 13 Apr 2015 09:28:51 +0800
-Message-ID: <552B1BD3.7050706@huawei.com>
-References: <1428397392-26200-1-git-send-email-xiexiuqi@huawei.com> <5219717.RxvSXtBaZ8@vostro.rjw.lan> <12760195.2odgqTkKju@vostro.rjw.lan> <2181841.0nPiIAbDNm@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [119.145.14.65] ([119.145.14.65]:32774 "EHLO
-	szxga02-in.huawei.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752454AbbDMB32 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Apr 2015 21:29:28 -0400
-In-Reply-To: <2181841.0nPiIAbDNm@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 02/31] ACPICA: Tables: Change acpi_find_root_pointer() to use acpi_physical_address.
+Date: Mon, 13 Apr 2015 11:48:18 +0800
+Message-ID: <84b75a1f898e3f39a236f7f9e3e3652f4f6c799e.1428893936.git.lv.zheng@intel.com>
+References: <cover.1428893935.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1428893935.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: guohanjun@huawei.com, hanjun.guo@linaro.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 
-On 2015/4/11 7:31, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> acpi_scan_is_offline() may be called under the physical_node_lock
-> of the given device object's parent, so prevent lockdep from
-> complaining about that by annotating that instance with
-> SINGLE_DEPTH_NESTING.
-> 
-> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+ACPICA commit 7d9fd64397d7c38899d3dc497525f6e6b044e0e3
 
-Thank you for your patch, I'll test soon.
+OSPMs like Linux expect an acpi_physical_address returning value from
+acpi_find_root_pointer(). This triggers warnings if sizeof (acpi_size) doesn't
+equal to sizeof (acpi_physical_address):
+  drivers/acpi/osl.c:275:3: warning: passing argument 1 of 'acpi_find_root_pointer' from incompatible pointer type [enabled by default]
+  In file included from include/acpi/acpi.h:64:0,
+                   from include/linux/acpi.h:36,
+                   from drivers/acpi/osl.c:41:
+  include/acpi/acpixf.h:433:1: note: expected 'acpi_size *' but argument is of type 'acpi_physical_address *'
+This patch corrects acpi_find_root_pointer().
 
-Thanks,
-Xie XiuQi
+Link: https://github.com/acpica/acpica/commit/7d9fd643
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/tbxfroot.c |    7 ++++---
+ include/acpi/acpixf.h          |   12 ++++++------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-> ---
->  drivers/acpi/scan.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -298,7 +298,11 @@ bool acpi_scan_is_offline(struct acpi_de
->  	struct acpi_device_physical_node *pn;
->  	bool offline = true;
->  
-> -	mutex_lock(&adev->physical_node_lock);
-> +	/*
-> +	 * acpi_container_offline() calls this for all of the container's
-> +	 * children under the container's physical_node_lock lock.
-> +	 */
-> +	mutex_lock_nested(&adev->physical_node_lock, SINGLE_DEPTH_NESTING);
->  
->  	list_for_each_entry(pn, &adev->physical_node_list, node)
->  		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
-> 
-> 
-> .
-> 
-
-
+diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
+index e1416a2..fa76a36 100644
+--- a/drivers/acpi/acpica/tbxfroot.c
++++ b/drivers/acpi/acpica/tbxfroot.c
+@@ -142,7 +142,7 @@ acpi_status acpi_tb_validate_rsdp(struct acpi_table_rsdp * rsdp)
+  *
+  ******************************************************************************/
+ 
+-acpi_status __init acpi_find_root_pointer(acpi_size * table_address)
++acpi_status __init acpi_find_root_pointer(acpi_physical_address * table_address)
+ {
+ 	u8 *table_ptr;
+ 	u8 *mem_rover;
+@@ -200,7 +200,8 @@ acpi_status __init acpi_find_root_pointer(acpi_size * table_address)
+ 			physical_address +=
+ 			    (u32) ACPI_PTR_DIFF(mem_rover, table_ptr);
+ 
+-			*table_address = physical_address;
++			*table_address =
++			    (acpi_physical_address) physical_address;
+ 			return_ACPI_STATUS(AE_OK);
+ 		}
+ 	}
+@@ -233,7 +234,7 @@ acpi_status __init acpi_find_root_pointer(acpi_size * table_address)
+ 		    (ACPI_HI_RSDP_WINDOW_BASE +
+ 		     ACPI_PTR_DIFF(mem_rover, table_ptr));
+ 
+-		*table_address = physical_address;
++		*table_address = (acpi_physical_address) physical_address;
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index d56f5d7..65aa4fa 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -431,13 +431,13 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status __init acpi_load_tables(void))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status __init acpi_reallocate_root_table(void))
+ 
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status __init
+-			    acpi_find_root_pointer(acpi_size * rsdp_address))
+-
++			    acpi_find_root_pointer(acpi_physical_address *
++						   rsdp_address))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+-			    acpi_get_table_header(acpi_string signature,
+-						  u32 instance,
+-						  struct acpi_table_header
+-						  *out_table_header))
++			     acpi_get_table_header(acpi_string signature,
++						   u32 instance,
++						   struct acpi_table_header
++						   *out_table_header))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			     acpi_get_table(acpi_string signature, u32 instance,
+ 					    struct acpi_table_header
+-- 
+1.7.10
