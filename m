@@ -1,117 +1,71 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part1 v8 00/37] Convert x86 to hierarchy irqdomain and stacked irqchip
-Date: Mon, 13 Apr 2015 14:11:22 +0800
-Message-ID: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: [Patch Part1 v8 01/37] x86/irq: Save destination CPU ID in irq_cfg
+Date: Mon, 13 Apr 2015 14:11:23 +0800
+Message-ID: <1428905519-23704-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:49312 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751498AbbDMGKB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Apr 2015 02:10:01 -0400
+In-Reply-To: <1428905519-23704-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi all,
-	The generic hierarchy irqdomain and stacked irqchip implementation
-has been merged into v3.19, so this patch set converts x86 interupt
-management to hierarchy irqdomain and stacked irqchip. You may access it at:
-https://github.com/jiangliu/linux.git irqdomain/x86_p1_v8
+Cache destination CPU APIC ID into struct irq_cfg when assigning vector
+for interrupt. Upper layer just needs to read the cached APIC ID instead
+of calling apic->cpu_mask_to_apicid_and(), it helps to hide APIC driver
+details from IOAPIC/HPET/MSI drivers..
 
-	This patch set has been reviewed several times and it missed v3.19
-merging because several bugs got fixed just before the merging window.
-The main changes since last review are:
-1) Rebased the patch set onto v4.0-rc6.
-2) Merged bugfixes into the patch introducing the bug so they don't break
-   bisecting.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Link: http://lkml.kernel.org/r/1416894816-23245-2-git-send-email-jiang.liu@linux.intel.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/x86/include/asm/hw_irq.h |    1 +
+ arch/x86/kernel/apic/vector.c |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-I will send out another following-on patch set to clean up code and interfaces
-obseleted by this patch set.
-
-Jiang Liu (36):
-  x86/irq: Save destination CPU ID in irq_cfg
-  x86/irq: Use hierarchy irqdomain to manage CPU interrupt vectors
-  x86/hpet: Use new irqdomain interfaces to allocate/free IRQ
-  x86/MSI: Use new irqdomain interfaces to allocate/free IRQ
-  x86/uv: Use new irqdomain interfaces to allocate/free IRQ
-  x86/htirq: Use new irqdomain interfaces to allocate/free IRQ
-  x86/dmar: Use new irqdomain interfaces to allocate/free IRQ
-  irq_remapping: Introduce new interfaces to support hierarchy
-    irqdomain
-  irq_remapping/vt-d: Change prototypes to prepare for enabling
-    hierarchy irqdomain
-  irq_remapping/vt-d: Enhance Intel IR driver to support hierarchy
-    irqdomain
-  irq_remapping/amd: Enhance AMD IR driver to support hierarchy
-    irqdomain
-  x86/hpet: Enhance HPET IRQ to support hierarchy irqdomain
-  x86/MSI: Use hierarchy irqdomain to manage MSI interrupts
-  x86/irq: Directly call native_compose_msi_msg() for DMAR IRQ
-  irq_remapping/vt-d: Clean up unused MSI related code
-  irq_remapping/amd: Clean up unused MSI related code
-  irq_remapping: Clean up unused MSI related code
-  x86/MSI: Clean up unused MSI related code and interfaces
-  iommu/vt-d: Refine the interfaces to create IRQ for DMAR unit
-  x86/irq: Use hierarchy irqdomain to manage DMAR interrupts
-  x86/htirq: Use hierarchy irqdomain to manage Hypertransport
-    interrupts
-  x86/uv: Use hierarchy irqdomain to manage UV interrupts
-  x86/irq: Normalize x86 irq_chip name
-  x86/MSI: Simplify the way to deal with remapped MSI interrupts
-  x86/MSI: Replace msi_update_msg() with irq_chip_compose_msi_msg()
-  x86/irq: Implement irq_chip.irq_write_msi_msg for MSI/DMAR/HPET
-    irq_chips
-  x86/irq: Simplify MSI/DMAR/HPET implementation by using common code
-  irq_remapping: Kill unused function irq_remapping_print_chip()
-  x86/intel-mid, trivial: Refine code syntax for sfi_parse_mtmr()
-  x86/irq: Kill unused pre_init_apic_IRQ0()
-  x86/irq: Prepare IOAPIC interfaces to support hierarchy irqdomain
-  x86/irq: Implement callbacks to enable hierarchy irqdomain on IOAPICs
-  x86/irq: Refine the way to allocate irq_cfg for legacy IRQs
-  x86/irq: Simplify the way to print IOAPIC entry
-  x86/irq: Introduce helper functions to support hierarchy irqdomain
-    for IOAPIC
-  x86/irq: Convert IOAPIC to use hierarchy irqdomain interfaces
-
-Thomas Gleixner (1):
-  x86/intel-mid: Delay initialization of APB timer
-
- arch/ia64/include/asm/irq_remapping.h              |    2 -
- arch/ia64/kernel/msi_ia64.c                        |   30 +-
- arch/x86/Kconfig                                   |    4 +-
- arch/x86/include/asm/hpet.h                        |   16 +-
- arch/x86/include/asm/hw_irq.h                      |   91 +++
- arch/x86/include/asm/io_apic.h                     |   25 +-
- arch/x86/include/asm/irq_remapping.h               |   45 +-
- arch/x86/include/asm/msi.h                         |    7 +
- arch/x86/include/asm/pci.h                         |    5 -
- arch/x86/include/asm/x86_init.h                    |    4 -
- arch/x86/kernel/acpi/boot.c                        |   17 +-
- arch/x86/kernel/apb_timer.c                        |    4 -
- arch/x86/kernel/apic/htirq.c                       |  173 ++++--
- arch/x86/kernel/apic/io_apic.c                     |  602 +++++++++++++++-----
- arch/x86/kernel/apic/msi.c                         |  416 ++++++++------
- arch/x86/kernel/apic/vector.c                      |  205 ++++++-
- arch/x86/kernel/devicetree.c                       |   37 +-
- arch/x86/kernel/hpet.c                             |   57 +-
- arch/x86/kernel/mpparse.c                          |    6 +-
- arch/x86/kernel/x86_init.c                         |    2 -
- arch/x86/pci/intel_mid_pci.c                       |    6 +-
- .../platform/intel-mid/device_libs/platform_wdt.c  |    5 +-
- arch/x86/platform/intel-mid/intel-mid.c            |   18 +-
- arch/x86/platform/intel-mid/sfi.c                  |   30 +-
- arch/x86/platform/sfi/sfi.c                        |    5 +-
- arch/x86/platform/uv/uv_irq.c                      |  299 ++++------
- drivers/iommu/amd_iommu.c                          |  376 +++++++++---
- drivers/iommu/amd_iommu_init.c                     |    4 +
- drivers/iommu/amd_iommu_proto.h                    |    9 +
- drivers/iommu/amd_iommu_types.h                    |    5 +
- drivers/iommu/dmar.c                               |   19 +-
- drivers/iommu/intel_irq_remapping.c                |  451 ++++++++++-----
- drivers/iommu/irq_remapping.c                      |  178 ++----
- drivers/iommu/irq_remapping.h                      |   20 +-
- drivers/pci/htirq.c                                |   48 +-
- include/linux/dmar.h                               |    3 +-
- include/linux/htirq.h                              |   22 +-
- include/linux/intel-iommu.h                        |    4 +
- 38 files changed, 2100 insertions(+), 1150 deletions(-)
- create mode 100644 arch/x86/include/asm/msi.h
-
+diff --git a/arch/x86/include/asm/hw_irq.h b/arch/x86/include/asm/hw_irq.h
+index 9662290e0b20..b988ddf7434b 100644
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
+@@ -116,6 +116,7 @@ struct irq_data;
+ struct irq_cfg {
+ 	cpumask_var_t		domain;
+ 	cpumask_var_t		old_domain;
++	unsigned int		dest_apicid;
+ 	u8			vector;
+ 	u8			move_in_progress : 1;
+ #ifdef CONFIG_IRQ_REMAP
+diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+index 6cedd7914581..c724ef6b218c 100644
+--- a/arch/x86/kernel/apic/vector.c
++++ b/arch/x86/kernel/apic/vector.c
+@@ -188,6 +188,12 @@ next:
+ 	}
+ 	free_cpumask_var(tmp_mask);
+ 
++	if (!err) {
++		/* cache destination APIC IDs into cfg->dest_apicid */
++		err = apic->cpu_mask_to_apicid_and(mask, cfg->domain,
++						   &cfg->dest_apicid);
++	}
++
+ 	return err;
+ }
+ 
 -- 
 1.7.10.4
+
