@@ -1,41 +1,66 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] PCI / hotplug: Propagate the "ignore hotplug" setting to
- parent
-Date: Tue, 14 Apr 2015 12:28:12 -0300
-Message-ID: <1429025292.3383705.253616133.4A1DF301@webmail.messagingengine.com>
-References: <2001450.KHHLaZsp3O@vostro.rjw.lan>
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Subject: Re: [BUG] oops in cpufreq driver with AMD Kaveri CPU
+Date: Tue, 14 Apr 2015 19:07:46 +0300
+Message-ID: <1465982.AWUTj1UaDo@spock>
+References: <4708675.eITUXPv8Ih@spock> <1767434.385ncFoNtj@spock> <9508464.Rg48i9FdUc@spock>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:40317 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754077AbbDNP2N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Apr 2015 11:28:13 -0400
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
-	by mailout.nyi.internal (Postfix) with ESMTP id E42D920ABA
-	for <linux-acpi@vger.kernel.org>; Tue, 14 Apr 2015 11:28:12 -0400 (EDT)
-In-Reply-To: <2001450.KHHLaZsp3O@vostro.rjw.lan>
+Received: from kaylee.natalenko.name ([188.166.59.243]:49905 "EHLO
+	natalenko.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753196AbbDNQRa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Apr 2015 12:17:30 -0400
+In-Reply-To: <9508464.Rg48i9FdUc@spock>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Mon, Apr 13, 2015, at 11:23, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cross-posting from kernel bugzilla:
+
+===
+Definitely not a kernel bug.
+
+I've replaced RAM module with another one and the issue went away.
+
+No idea why oopses refered to ACPI, but they seem to be the result of simple 
+hardware incompatibility.
+===
+
+On Tuesday 18 November 2014 21:07:51 Oleksandr Natalenko wrote:
+> Hmmm, weird, acpi=off as well as disabling ASPM and NMI watchdog didn't help
+> : (.
 > 
-> Refine the mechanism introduced by commit f244d8b623da (ACPIPHP / radeon
-> / nouveau: Fix VGA switcheroo problem related to hotplug) to propagate
-> the ignore_hotplug setting of the device to its parent bridge in case
-> hotplug notifications related to the graphics adapter switching are
-> given for the bridge rather than for the device itself (the need to
-> be ignored in both cases).
-
-I do apologise if this is a stupid question, but is there any chance the bridge will be connected to other devices that do require hotplug handling, and not just to the GPU?
-
+> Now trying to update BIOS.
+> 
+> P.S. Still affected while using 3.17.2 kernel.
+> 
+> On Tuesday 11 November 2014 12:41:18 Oleksandr Natalenko wrote:
+> > It seems that this bug has nothing to do with acpi-cpufreq code but with
+> > another ACPI area.
+> > 
+> > With ACPI enabled kernel may hang in a day or in a week (never survived
+> > more than approx. 2 weeks). With acpi=off it seems to work OK. For
+> > instance, I had to boot Ubuntu installer with acpi disabled to finish it
+> > successfully.
+> > 
+> > Usually, hanging is not accompanied by panic log. Only small vertical red
+> > lines appear on the screen near letters (tried to use plaintext 80x25
+> > console without radeon and got the same issue).
+> > 
+> > Still observing this for 3.16 kernel.
+> > 
+> > On Wednesday 13 August 2014 10:12:06 Viresh Kumar wrote:
+> > > On 13 August 2014 00:24, Oleksandr Natalenko <oleksandr@natalenko.name>
+> > 
+> > wrote:
+> > > > Updated logs.
+> > > 
+> > > Also will it be possible for you to find the last working kernel after
+> > > which this
+> > > happened?
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Oleksandr post-factum Natalenko, MSc
+pf-kernel community
+https://natalenko.name/
