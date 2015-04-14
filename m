@@ -1,75 +1,79 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch Part2 v5 17/33] x86/irq: Kill struct io_apic_irq_attr
-Date: Tue, 14 Apr 2015 10:29:54 +0800
-Message-ID: <1428978610-28986-18-git-send-email-jiang.liu@linux.intel.com>
-References: <1428978610-28986-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428978610-28986-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Grant Likely <grant.likely@linaro.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI / scan: Simplify acpi_match_device()
+Date: Tue, 14 Apr 2015 13:37:29 +0300
+Message-ID: <20150414103729.GE1677@lahna.fi.intel.com>
+References: <20150413192159.GA10774@mwanda>
+ <1668402.ZSbgXyXmVa@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:20964 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753022AbbDNKhd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Apr 2015 06:37:33 -0400
+Content-Disposition: inline
+In-Reply-To: <1668402.ZSbgXyXmVa@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org
 
-Now there's no user of struct io_apic_irq_attr anymore, so kill it.
+On Mon, Apr 13, 2015 at 09:59:48PM +0200, Rafael J. Wysocki wrote:
+> On Monday, April 13, 2015 10:21:59 PM Dan Carpenter wrote:
+> > Hello Rafael J. Wysocki,
+> > 
+> > The patch e1acdeb0e770: "ACPI / scan: Simplify acpi_match_device()"
+> > from Apr 10, 2015, leads to the following static checker warning:
+> > 
+> > 	drivers/acpi/scan.c:269 acpi_companion_match()
+> > 	error: potential NULL dereference 'adev'.
+> > 
+> > drivers/acpi/scan.c
+> >    247  static struct acpi_device *acpi_companion_match(const struct device *dev)
+> >    248  {
+> >    249          struct acpi_device *adev;
+> >    250  
+> >    251          adev = ACPI_COMPANION(dev);
+> >    252          if (!adev)
+> >    253                  return NULL;
+> >    254  
+> >    255          if (list_empty(&adev->pnp.ids))
+> >    256                  return NULL;
+> >    257  
+> >    258          mutex_lock(&adev->physical_node_lock);
+> >    259          if (list_empty(&adev->physical_node_list)) {
+> >    260                  adev = NULL;
+> >                         ^^^^^^^^^^^
+> >    261          } else {
+> >    262                  const struct acpi_device_physical_node *node;
+> >    263  
+> >    264                  node = list_first_entry(&adev->physical_node_list,
+> >    265                                          struct acpi_device_physical_node, node);
+> >    266                  if (node->dev != dev)
+> >    267                          adev = NULL;
+> >                                 ^^^^^^^^^^^^
+> >    268          }
+> >    269          mutex_unlock(&adev->physical_node_lock);
+> >                               ^^^^^^
+> > Dereference.
+> > 
+> >    270  
+> >    271          return adev;
+> >    272  }
+> 
+> Right, thanks.
+> 
+> The patch below should fix it.
+> 
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / scan: Fix NULL pointer dereference in acpi_companion_match()
+> 
+> Commit e1acdeb0e770 "ACPI / scan: Simplify acpi_match_device()"
+> introduced code that may lead to a NULL pointer dereference when
+> trying to unlock a mutex.  Fix that.
+> 
+> Fixes: e1acdeb0e770 "ACPI / scan: Simplify acpi_match_device()"
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Grant Likely <grant.likely@linaro.org>
-Link: http://lkml.kernel.org/r/1416901802-24211-27-git-send-email-jiang.liu@linux.intel.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Joerg Roedel <jroedel@suse.de>
----
- arch/x86/include/asm/io_apic.h |    7 -------
- arch/x86/kernel/apic/io_apic.c |   10 ----------
- 2 files changed, 17 deletions(-)
-
-diff --git a/arch/x86/include/asm/io_apic.h b/arch/x86/include/asm/io_apic.h
-index fa4b25ebd658..4eb4bcc5f219 100644
---- a/arch/x86/include/asm/io_apic.h
-+++ b/arch/x86/include/asm/io_apic.h
-@@ -157,13 +157,6 @@ extern int restore_ioapic_entries(void);
- extern void setup_ioapic_ids_from_mpc(void);
- extern void setup_ioapic_ids_from_mpc_nocheck(void);
- 
--struct io_apic_irq_attr {
--	int ioapic;
--	int ioapic_pin;
--	int trigger;
--	int polarity;
--};
--
- enum ioapic_domain_type {
- 	IOAPIC_DOMAIN_INVALID,
- 	IOAPIC_DOMAIN_LEGACY,
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index a1abdcf2cb5f..76dc9f5bfdbc 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -2959,16 +2959,6 @@ int mp_ioapic_registered(u32 gsi_base)
- 	return 0;
- }
- 
--static inline void set_io_apic_irq_attr(struct io_apic_irq_attr *irq_attr,
--					int ioapic, int ioapic_pin,
--					int trigger, int polarity)
--{
--	irq_attr->ioapic	= ioapic;
--	irq_attr->ioapic_pin	= ioapic_pin;
--	irq_attr->trigger	= trigger;
--	irq_attr->polarity	= polarity;
--}
--
- static void mp_irqdomain_get_attr(u32 gsi, struct mp_chip_data *data,
- 				  struct irq_alloc_info *info)
- {
--- 
-1.7.10.4
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
