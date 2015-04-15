@@ -1,57 +1,88 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI / hotplug: Propagate the "ignore hotplug" setting to parent
-Date: Wed, 15 Apr 2015 15:16:01 +0200
-Message-ID: <CAJZ5v0g+zdvDMyg+YE4iUH5Q6HCCQDfhfXZo9=euNYv0=BiGLw@mail.gmail.com>
-References: <2001450.KHHLaZsp3O@vostro.rjw.lan>
-	<1429025292.3383705.253616133.4A1DF301@webmail.messagingengine.com>
-	<2638174.Fqeb1nNFUX@vostro.rjw.lan>
-	<CAErSpo4tOqv+raFs2LH8sYBmg9vTbNAmKt2KSKFkCJ1dc_QJsw@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v1 2/4] PCI: Mark invalid BARs as unassigned
+Date: Wed, 15 Apr 2015 09:48:19 -0500
+Message-ID: <20150415144819.GD19151@google.com>
+References: <20150312173201.1052.28341.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <20150312173533.1052.46464.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <CA+8MBbJv-RwX_RDzk85X_sHAHUG6cTsCAKd-_iE7wrdQ9wYKsQ@mail.gmail.com>
+ <CAErSpo6PV7+cZKgDPBA7tDn4oyp_hONqJFegTFxVLz2KaTeK4A@mail.gmail.com>
+ <CA+8MBbLnFQ2_zWniBFN6=kJMo-3PbBQvdsfPFV+zyApYpN6BQA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:33878 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754610AbbDONQa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2015 09:16:30 -0400
-In-Reply-To: <CAErSpo4tOqv+raFs2LH8sYBmg9vTbNAmKt2KSKFkCJ1dc_QJsw@mail.gmail.com>
+Received: from mail-yk0-f169.google.com ([209.85.160.169]:34257 "EHLO
+	mail-yk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911AbbDOOsW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Apr 2015 10:48:22 -0400
+Received: by ykft189 with SMTP id t189so1510938ykf.1
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Apr 2015 07:48:22 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CA+8MBbLnFQ2_zWniBFN6=kJMo-3PbBQvdsfPFV+zyApYpN6BQA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Luck <tony.luck@gmail.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, Apr 15, 2015 at 2:55 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Tue, Apr 14, 2015 at 8:03 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Tuesday, April 14, 2015 12:28:12 PM Henrique de Moraes Holschuh wrote:
->>> On Mon, Apr 13, 2015, at 11:23, Rafael J. Wysocki wrote:
->>> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> >
->>> > Refine the mechanism introduced by commit f244d8b623da (ACPIPHP / radeon
->>> > / nouveau: Fix VGA switcheroo problem related to hotplug) to propagate
->>> > the ignore_hotplug setting of the device to its parent bridge in case
->>> > hotplug notifications related to the graphics adapter switching are
->>> > given for the bridge rather than for the device itself (the need to
->>> > be ignored in both cases).
->>>
->>> I do apologise if this is a stupid question, but is there any chance the
->>> bridge will be connected to other devices that do require hotplug handling,
->>> and not just to the GPU?
->>
->> The bridge is actually a downstream PCIe port holding the GPU, so no. :-)
->
-> When radeon/nouveau call pci_ignore_hotplug(), that's the case, but in
-> general all we know is that pci_ignore_hotplug() receives a PCI
-> device.  We don't know whether it's PCI or PCIe.  In the hotplug
-> topologies I'm familiar with, a bridge only leads to one hot-pluggable
-> slot, but I don't remember anything that would guarantee that.  For
-> PCIe, I think there can only be one slot, but for PCI I would think it
-> possible to have one bridge leading to several hotpluggable slots,
-> with the hotplug controller(s) being separate from the bridge.
+On Tue, Apr 14, 2015 at 04:57:06PM -0700, Tony Luck wrote:
+> On Tue, Apr 14, 2015 at 4:30 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> > Thanks for the report, and sorry for breaking you.  I hate to ask for
+> > more after all your work already, but would you mind collecting logs
+> > with "ignore_loglevel"?  We only print the BAR information at
+> > KERN_DEBUG, so it doesn't make it to the console unless you use
+> > ignore_loglevel.
+> >
+> > I don't really see how the mptsas device at 83:00.0 worked before;
+> > ACPI didn't tell us about any MMIO apertures in the PCI1 host bridge.
+> > But I'll look closer.
+> 
+> Attached logs with ignore_loglevel
 
-Realistically, the switcheroo people are the only users of
-pci_ignore_hotplug() today and if somebody wants the hotplug events to
-be ignored for him and perhaps not for someone else on the same
-bridge, then something is seriously broken about that system anyway.
+Thanks, Tony.  Can you try with the attached debug patch (old kernel or
+new, it doesn't matter)?
 
-Still, it is up to you whether or not to apply the patch. :-)
+We think the host bridge apertures are (note that we didn't find an
+MMIO aperture):
 
-Rafael
+  ACPI: PCI Root Bridge [PCI1] (domain 0000 [bus 80-ff])
+  pci_bus 0000:80: root bus resource [io  0x9000-0xfffe]
+  pci_bus 0000:80: root bus resource [bus 80-ff]
+
+but BIOS set up MMIO windows on the bridges at 80:01.0 and 80:05.0,
+and it assigned space for igb and mptsas BARs below those bridges:
+
+  pci 0000:80:01.0: PCI bridge to [bus 81]
+  pci 0000:80:01.0:   bridge window [mem 0xa0100000-0xa01fffff]
+  pci 0000:81:00.0: reg 0x10: [mem 0xa0160000-0xa017ffff]
+  pci 0000:81:00.1: reg 0x10: [mem 0xa0120000-0xa013ffff]
+
+  pci 0000:80:05.0: PCI bridge to [bus 83]
+  pci 0000:80:05.0:   bridge window [mem 0xa0000000-0xa00fffff]
+  pci 0000:83:00.0: reg 0x14: [mem 0xa0010000-0xa0013fff 64bit]
+
+Prior to c770cb4cb505, we complained about the PCI bridge windows not
+being inside a host bridge window, but we enabled the igb and mptsas
+devices anyway.  After c770cb4cb505, we don't enable them (you reported
+that your disk is broken, and I think those two NICs are also broken).
+
+I don't know whether the BIOS failed to tell us about the MMIO aperture,
+or it did tell us and we parsed the _CRS info incorrectly.
+
+Bjorn
+
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 48cc65705db4..9e419c5a3d43 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -276,6 +276,12 @@ static acpi_status add_window(struct acpi_resource *res, void *data)
+ 	unsigned long flags, offset = 0;
+ 	struct resource *root;
+ 
++	/* ACPI_RESOURCE_TYPE_IRQ etc. */
++	printk("host bridge resource %02d length %#02x\n", res->type,
++	       res->length);
++	print_hex_dump(KERN_INFO, "  : ", DUMP_PREFIX_OFFSET, 16, 1,
++		       &res->data, res->length, 0);
++
+ 	/* Return AE_OK for non-window resources to keep scanning for more */
+ 	status = resource_to_window(res, &addr);
+ 	if (!ACPI_SUCCESS(status))
