@@ -1,232 +1,75 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Fri, 17 Apr 2015 03:48:12 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2BEAE4@ORSMSX112.amr.corp.intel.com>
-References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1427752579-19234-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: [PATCH v5 0/9] PCI: MMCONFIG clean up
+Date: Fri, 17 Apr 2015 09:14:49 +0200
+Message-ID: <1429254898-32743-1-git-send-email-tomasz.nowicki@linaro.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, wangyijing@huawei.com, arnd@arndb.de, hanjun.guo@linaro.org, Liviu.Dudau@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, rjw@rjwysocki.net, al.stone@linaro.org, lorenzo.pieralisi@arm.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, this is a good question that we should think about.
-Bob
+MCFG ACPI table and PCI ECAM standard have no arch dependencies so it can be
+used across all architectures. Currently MMCONFIG related code resides in
+arch/x86 directories. This patch set is going to isolate non-architecture
+specific code and make it accessible for all architectures.
 
+v4 -> v5 changes:
+- improvements for Makefile logic
+- provide arch-specific checks for MCFG entry
+- fix MCFG injection logic (support absence of _CBA() method)
 
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Thursday, April 16, 2015 6:46 PM
-> To: Suravee Suthikulpanit; rjw@rjwysocki.net;
-> mika.westerberg@linux.intel.com; Moore, Robert; hanjun.guo@linaro.org
-> Cc: lenb@kernel.org; hdegoede@redhat.com; tj@kernel.org;
-> mjg59@srcf.ucam.org; gregkh@linuxfoundation.org; al.stone@linaro.org;
-> graeme.gregory@linaro.org; leo.duran@amd.com; linux-ide@vger.kernel.org;
-> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> acpi@lists.linaro.org
-> Subject: RE: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-> 
-> Before back porting this to ACPICA, let me ask one simple question.
-> According to the spec, the _CLS is optional and PCI specific.
-> So why should we implement it in ACPICA core not OSPM specific modules?
-> If this need to be implemented in ACPICA, then what about the following
-> device identification objects?
-> _DDN, _HRV, _MLS, _PLD, _STR, _SUN
-> 
-> Thanks and best regards
-> -Lv
-> 
-> > From: Suravee Suthikulpanit [mailto:Suravee.Suthikulpanit@amd.com]
-> > Sent: Tuesday, March 31, 2015 5:56 AM
-> >
-> > ACPI Device configuration often contain _CLS object to suppy
-> > PCI-defined class code for the device. This patch introduces logic to
-> > process the _CLS object.
-> >
-> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> > ---
-> >  drivers/acpi/acpica/acutils.h  |  3 ++
-> > drivers/acpi/acpica/nsxfname.c | 21 ++++++++++--
-> >  drivers/acpi/acpica/utids.c    | 73
-> ++++++++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 95 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpica/acutils.h
-> > b/drivers/acpi/acpica/acutils.h index c2f03e8..2aef850 100644
-> > --- a/drivers/acpi/acpica/acutils.h
-> > +++ b/drivers/acpi/acpica/acutils.h
-> > @@ -430,6 +430,9 @@ acpi_status
-> >  acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
-> >  		    struct acpi_pnp_device_id_list ** return_cid_list);
-> >
-> > +acpi_status
-> > +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-> > +		    struct acpi_pnp_device_id **return_id);
-> >  /*
-> >   * utlock - reader/writer locks
-> >   */
-> > diff --git a/drivers/acpi/acpica/nsxfname.c
-> > b/drivers/acpi/acpica/nsxfname.c index d66c326..590ef06 100644
-> > --- a/drivers/acpi/acpica/nsxfname.c
-> > +++ b/drivers/acpi/acpica/nsxfname.c
-> > @@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
-> >  	struct acpi_pnp_device_id *hid = NULL;
-> >  	struct acpi_pnp_device_id *uid = NULL;
-> >  	struct acpi_pnp_device_id *sub = NULL;
-> > +	struct acpi_pnp_device_id *cls = NULL;
-> >  	char *next_id_string;
-> >  	acpi_object_type type;
-> >  	acpi_name name;
-> >  	u8 param_count = 0;
-> > -	u8 valid = 0;
-> > +	u16 valid = 0;
-> >  	u32 info_size;
-> >  	u32 i;
-> >  	acpi_status status;
-> > @@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
-> >  	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
-> >  		/*
-> >  		 * Get extra info for ACPI Device/Processor objects only:
-> > -		 * Run the Device _HID, _UID, _SUB, and _CID methods.
-> > +		 * Run the Device _HID, _UID, _SUB, _CID and _CLS methods.
-> >  		 *
-> >  		 * Note: none of these methods are required, so they may or
-> may
-> >  		 * not be present for this device. The Info->Valid bitfield is
-> used
-> > @@ -351,6 +352,14 @@ acpi_get_object_info(acpi_handle handle,
-> >  			valid |= ACPI_VALID_SUB;
-> >  		}
-> >
-> > +		/* Execute the Device._CLS method */
-> > +
-> > +		status = acpi_ut_execute_CLS(node, &cls);
-> > +		if (ACPI_SUCCESS(status)) {
-> > +			info_size += cls->length;
-> > +			valid |= ACPI_VALID_CLS;
-> > +		}
-> > +
-> >  		/* Execute the Device._CID method */
-> >
-> >  		status = acpi_ut_execute_CID(node, &cid_list); @@ -468,6
-> +477,11 @@
-> > acpi_get_object_info(acpi_handle handle,
-> >  							sub, next_id_string);
-> >  	}
-> >
-> > +	if (cls) {
-> > +		next_id_string = acpi_ns_copy_device_id(&info->cls,
-> > +							cls, next_id_string);
-> > +	}
-> > +
-> >  	if (cid_list) {
-> >  		info->compatible_id_list.count = cid_list->count;
-> >  		info->compatible_id_list.list_size = cid_list->list_size; @@ -
-> 507,6
-> > +521,9 @@ cleanup:
-> >  	if (sub) {
-> >  		ACPI_FREE(sub);
-> >  	}
-> > +	if (cls) {
-> > +		ACPI_FREE(cls);
-> > +	}
-> >  	if (cid_list) {
-> >  		ACPI_FREE(cid_list);
-> >  	}
-> > diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
-> > index 27431cf..9745065 100644
-> > --- a/drivers/acpi/acpica/utids.c
-> > +++ b/drivers/acpi/acpica/utids.c
-> > @@ -416,3 +416,76 @@ cleanup:
-> >  	acpi_ut_remove_reference(obj_desc);
-> >  	return_ACPI_STATUS(status);
-> >  }
-> > +
-> > +/********************************************************************
-> > +***********
-> > + *
-> > + * FUNCTION:    acpi_ut_execute_CLS
-> > + *
-> > + * PARAMETERS:  device_node         - Node for the device
-> > + *              return_id           - Where the string UID is returned
-> > + *
-> > + * RETURN:      Status
-> > + *
-> > + * DESCRIPTION: Executes the _CLS control method that returns PCI-
-> defined
-> > + *              class code of the device. The ACPI spec define _CLS as
-> a
-> > + *              package with three integers. The returned string has
-> format:
-> > + *
-> > + *                      "bbsspp"
-> > + *              where:
-> > + *                  bb = Base-class code
-> > + *                  ss = Sub-class code
-> > + *                  pp = Programming Interface code
-> > + *
-> > +
-> > +*********************************************************************
-> > +*********/
-> > +
-> > +acpi_status
-> > +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-> > +		    struct acpi_pnp_device_id **return_id) {
-> > +	struct acpi_pnp_device_id *cls;
-> > +	union acpi_operand_object *obj_desc;
-> > +	union acpi_operand_object **cls_objects;
-> > +	acpi_status status;
-> > +
-> > +	ACPI_FUNCTION_TRACE(ut_execute_CLS);
-> > +	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
-> > +					 ACPI_BTYPE_PACKAGE, &obj_desc);
-> > +	if (ACPI_FAILURE(status))
-> > +		return_ACPI_STATUS(status);
-> > +
-> > +	cls_objects = obj_desc->package.elements;
-> > +
-> > +	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
-> > +	    obj_desc->package.count == 3 &&
-> > +	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
-> > +	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
-> > +	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
-> > +
-> > +		/* Allocate a buffer for the CLS */
-> > +		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-> > +					 (acpi_size) 7);
-> > +		if (!cls) {
-> > +			status = AE_NO_MEMORY;
-> > +			goto cleanup;
-> > +		}
-> > +
-> > +		cls->string =
-> > +		    ACPI_ADD_PTR(char, cls, sizeof(struct
-> acpi_pnp_device_id));
-> > +
-> > +		sprintf(cls->string, "%02x%02x%02x",
-> > +			(u8)ACPI_TO_INTEGER(cls_objects[0]->integer.value),
-> > +			(u8)ACPI_TO_INTEGER(cls_objects[1]->integer.value),
-> > +			(u8)ACPI_TO_INTEGER(cls_objects[2]->integer.value));
-> > +		cls->length = 7;
-> > +		*return_id = cls;
-> > +	} else {
-> > +		status = AE_AML_OPERAND_TYPE;
-> > +	}
-> > +
-> > +cleanup:
-> > +
-> > +	/* On exit, we must delete the return object */
-> > +
-> > +	acpi_ut_remove_reference(obj_desc);
-> > +	return_ACPI_STATUS(status);
-> > +}
-> > --
-> > 2.1.0
+v3 -> v4 changes:
+- bug fixes after kbuild test robot report
+    - add asm/io.h header for ecam.c
+    - rename mmcfg -> ecam for drivers/xen/pci.c and arch/x86/pci/numachip.c
+- rework Kconfig logic
+
+v2 -> v3 changes:
+- rebase patch set v2 to v4.0-rc1
+
+v1 -> v2 changes:
+- use generic readb/readw etc. accessors instead of AMD Fam10h workaround
+- separate ACPI and ECAM code
+- improve ECAM code naming
+
+Tomasz Nowicki (9):
+  x86, pci: Clean up comment about buggy MMIO config space access for
+    AMD Fam10h CPUs.
+  x86, pci: Abstract PCI config accessors and use AMD Fam10h workaround
+    exclusively.
+  x86, pci: Reorder logic of pci_mmconfig_insert() function
+  x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+    out of arch/x86/ directory
+  pci, acpi, mcfg: Provide generic implementation of MCFG code
+    initialization.
+  x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+    duplication.
+  x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+    driver.
+  pci, acpi, mcfg: Share ACPI PCI config space accessors.
+  pci, ecam: Improve naming for ecam.c content and areas where it is
+    used.
+
+ arch/x86/Kconfig               |   4 +
+ arch/x86/include/asm/pci_x86.h |  34 +---
+ arch/x86/pci/Makefile          |   5 +-
+ arch/x86/pci/acpi.c            |   3 +-
+ arch/x86/pci/mmconfig-shared.c | 346 +++++++++++----------------------------
+ arch/x86/pci/mmconfig_32.c     |  47 ++----
+ arch/x86/pci/mmconfig_64.c     | 153 ------------------
+ arch/x86/pci/numachip.c        |  29 +---
+ drivers/acpi/Makefile          |   1 +
+ drivers/acpi/mcfg.c            | 121 ++++++++++++++
+ drivers/pci/Kconfig            |  10 ++
+ drivers/pci/Makefile           |   5 +
+ drivers/pci/ecam.c             | 358 +++++++++++++++++++++++++++++++++++++++++
+ drivers/xen/pci.c              |   7 +-
+ include/linux/ecam.h           |  56 +++++++
+ 15 files changed, 679 insertions(+), 500 deletions(-)
+ delete mode 100644 arch/x86/pci/mmconfig_64.c
+ create mode 100644 drivers/acpi/mcfg.c
+ create mode 100644 drivers/pci/ecam.c
+ create mode 100644 include/linux/ecam.h
+
+-- 
+1.9.1
