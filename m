@@ -1,174 +1,204 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPICA updates for v4.1-rc1
-Date: Fri, 17 Apr 2015 02:48:44 +0200
-Message-ID: <CAJZ5v0guxwWXZhkdhGQEDCESMDySjbPKDzhwGfi1TePjK1RMgg@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
+Date: Fri, 17 Apr 2015 01:45:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com>
+References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1427752579-19234-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:35077 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbbDQAsq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Apr 2015 20:48:46 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1427752579-19234-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Content-Language: en-US
+Sender: linux-ide-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+Before back porting this to ACPICA, let me ask one simple question.
+According to the spec, the _CLS is optional and PCI specific.
+So why should we implement it in ACPICA core not OSPM specific modules?
+If this need to be implemented in ACPICA, then what about the following device identification objects?
+_DDN, _HRV, _MLS, _PLD, _STR, _SUN
 
-Please pull from
+Thanks and best regards
+-Lv
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpica-4.1-rc1
+> From: Suravee Suthikulpanit [mailto:Suravee.Suthikulpanit@amd.com]
+> Sent: Tuesday, March 31, 2015 5:56 AM
+> 
+> ACPI Device configuration often contain _CLS object to suppy PCI-defined
+> class code for the device. This patch introduces logic to process the _CLS
+> object.
+> 
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+>  drivers/acpi/acpica/acutils.h  |  3 ++
+>  drivers/acpi/acpica/nsxfname.c | 21 ++++++++++--
+>  drivers/acpi/acpica/utids.c    | 73 ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 95 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+> index c2f03e8..2aef850 100644
+> --- a/drivers/acpi/acpica/acutils.h
+> +++ b/drivers/acpi/acpica/acutils.h
+> @@ -430,6 +430,9 @@ acpi_status
+>  acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
+>  		    struct acpi_pnp_device_id_list ** return_cid_list);
+> 
+> +acpi_status
+> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
+> +		    struct acpi_pnp_device_id **return_id);
+>  /*
+>   * utlock - reader/writer locks
+>   */
+> diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+> index d66c326..590ef06 100644
+> --- a/drivers/acpi/acpica/nsxfname.c
+> +++ b/drivers/acpi/acpica/nsxfname.c
+> @@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
+>  	struct acpi_pnp_device_id *hid = NULL;
+>  	struct acpi_pnp_device_id *uid = NULL;
+>  	struct acpi_pnp_device_id *sub = NULL;
+> +	struct acpi_pnp_device_id *cls = NULL;
+>  	char *next_id_string;
+>  	acpi_object_type type;
+>  	acpi_name name;
+>  	u8 param_count = 0;
+> -	u8 valid = 0;
+> +	u16 valid = 0;
+>  	u32 info_size;
+>  	u32 i;
+>  	acpi_status status;
+> @@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
+>  	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
+>  		/*
+>  		 * Get extra info for ACPI Device/Processor objects only:
+> -		 * Run the Device _HID, _UID, _SUB, and _CID methods.
+> +		 * Run the Device _HID, _UID, _SUB, _CID and _CLS methods.
+>  		 *
+>  		 * Note: none of these methods are required, so they may or may
+>  		 * not be present for this device. The Info->Valid bitfield is used
+> @@ -351,6 +352,14 @@ acpi_get_object_info(acpi_handle handle,
+>  			valid |= ACPI_VALID_SUB;
+>  		}
+> 
+> +		/* Execute the Device._CLS method */
+> +
+> +		status = acpi_ut_execute_CLS(node, &cls);
+> +		if (ACPI_SUCCESS(status)) {
+> +			info_size += cls->length;
+> +			valid |= ACPI_VALID_CLS;
+> +		}
+> +
+>  		/* Execute the Device._CID method */
+> 
+>  		status = acpi_ut_execute_CID(node, &cid_list);
+> @@ -468,6 +477,11 @@ acpi_get_object_info(acpi_handle handle,
+>  							sub, next_id_string);
+>  	}
+> 
+> +	if (cls) {
+> +		next_id_string = acpi_ns_copy_device_id(&info->cls,
+> +							cls, next_id_string);
+> +	}
+> +
+>  	if (cid_list) {
+>  		info->compatible_id_list.count = cid_list->count;
+>  		info->compatible_id_list.list_size = cid_list->list_size;
+> @@ -507,6 +521,9 @@ cleanup:
+>  	if (sub) {
+>  		ACPI_FREE(sub);
+>  	}
+> +	if (cls) {
+> +		ACPI_FREE(cls);
+> +	}
+>  	if (cid_list) {
+>  		ACPI_FREE(cid_list);
+>  	}
+> diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
+> index 27431cf..9745065 100644
+> --- a/drivers/acpi/acpica/utids.c
+> +++ b/drivers/acpi/acpica/utids.c
+> @@ -416,3 +416,76 @@ cleanup:
+>  	acpi_ut_remove_reference(obj_desc);
+>  	return_ACPI_STATUS(status);
+>  }
+> +
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_ut_execute_CLS
+> + *
+> + * PARAMETERS:  device_node         - Node for the device
+> + *              return_id           - Where the string UID is returned
+> + *
+> + * RETURN:      Status
+> + *
+> + * DESCRIPTION: Executes the _CLS control method that returns PCI-defined
+> + *              class code of the device. The ACPI spec define _CLS as a
+> + *              package with three integers. The returned string has format:
+> + *
+> + *                      "bbsspp"
+> + *              where:
+> + *                  bb = Base-class code
+> + *                  ss = Sub-class code
+> + *                  pp = Programming Interface code
+> + *
+> + ******************************************************************************/
+> +
+> +acpi_status
+> +acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
+> +		    struct acpi_pnp_device_id **return_id)
+> +{
+> +	struct acpi_pnp_device_id *cls;
+> +	union acpi_operand_object *obj_desc;
+> +	union acpi_operand_object **cls_objects;
+> +	acpi_status status;
+> +
+> +	ACPI_FUNCTION_TRACE(ut_execute_CLS);
+> +	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
+> +					 ACPI_BTYPE_PACKAGE, &obj_desc);
+> +	if (ACPI_FAILURE(status))
+> +		return_ACPI_STATUS(status);
+> +
+> +	cls_objects = obj_desc->package.elements;
+> +
+> +	if (obj_desc->common.type == ACPI_TYPE_PACKAGE &&
+> +	    obj_desc->package.count == 3 &&
+> +	    cls_objects[0]->common.type == ACPI_TYPE_INTEGER &&
+> +	    cls_objects[1]->common.type == ACPI_TYPE_INTEGER &&
+> +	    cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
+> +
+> +		/* Allocate a buffer for the CLS */
+> +		cls = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
+> +					 (acpi_size) 7);
+> +		if (!cls) {
+> +			status = AE_NO_MEMORY;
+> +			goto cleanup;
+> +		}
+> +
+> +		cls->string =
+> +		    ACPI_ADD_PTR(char, cls, sizeof(struct acpi_pnp_device_id));
+> +
+> +		sprintf(cls->string, "%02x%02x%02x",
+> +			(u8)ACPI_TO_INTEGER(cls_objects[0]->integer.value),
+> +			(u8)ACPI_TO_INTEGER(cls_objects[1]->integer.value),
+> +			(u8)ACPI_TO_INTEGER(cls_objects[2]->integer.value));
+> +		cls->length = 7;
+> +		*return_id = cls;
+> +	} else {
+> +		status = AE_AML_OPERAND_TYPE;
+> +	}
+> +
+> +cleanup:
+> +
+> +	/* On exit, we must delete the return object */
+> +
+> +	acpi_ut_remove_reference(obj_desc);
+> +	return_ACPI_STATUS(status);
+> +}
+> --
+> 2.1.0
 
-to receive ACPICA material for v4.1-rc1 with top-most commit
-0ee0d34985ceffe4036319e1e46df8bff591b9e3
-
- ACPICA: Store GPE register enable masks upfront
-
-on top of commit 39a8804455fb23f09157341d3ba7db6d7ae6ee76
-
- Linux 4.0
-
-This updates the kernel's ACPICA code to upstream revision 20150410
-and adds a fix for a GPE handling regression introduced during the
-3.19 cycle on top of that.
-
-Included are two stable-candidate bug fixes (one of them fixing a
-3.16 regression), multiple other fixes and a bunch of cleanups.
-
-Specifics:
-
- - Fix for a GPE handling regression on Dell Latitude D600 that
-   caused GPE signaling to stop working on that machine, which
-   appears to be due to a hardware glitch, but it used to work
-   and it can be made work again in a relativly straightforward
-   way (Rafael J Wysocki).
-
- - Fix for a mutex unlock regression related to the handling of ACPI
-   tables introduced during the 3.16 development cycle (Octavian Purdila).
-
- - _REV modification to always return 2 which has been done by all
-   versions of Windows since NT and the firmware people started to
-   use it to distinguish between OSes in their AML and do some silly
-   and wrong things on that basis (Bob Moore).
-
- - Fixes and cleanups related to the acpi_physicall_address data type
-   including one stable-candidate fix for an issue occasionally occuring
-   on 64-bit machines running 32-bit kernels where using offsets provided
-   by the firmware may lead to address overflows (Lv Zheng).
-
- - External() opcode support infrastructure needed for recompiling
-   disassembled ACPI tables in some cases including interpreter
-   modification to ignore that opcode (Bob Moore).
-
- - Support for the "Windows 2015" string in _OSI (Bob Moore).
-
- - GPE debug interface change to return values read from hardware
-   registers (Lv Zheng).
-
- - Removal of the __DATE__ macro usage in tools (Rasmus Villemoes).
-
- - Assorted minor fixes and cleanups (Lv Zheng, Rickard Strandqvist,
-   Bob Moore).
-
-Thanks!
-
-
----------------
-
-Bob Moore (15):
-      ACPICA: Casting changes around acpi_physical_address/acpi_size.
-      ACPICA: Fix a sscanf format string.
-      ACPICA: Update Resource descriptor dump module.
-      ACPICA: Update AML Debugger global variables.
-      ACPICA: iASL/Disassembler: Add option to assume table contains valid AML.
-      ACPICA: iASL: Enhancement for constant folding.
-      ACPICA: Add infrastructure for External() opcode.
-      ACPICA: Add "Windows 2015" string to _OSI support.
-      ACPICA: Permanently set _REV to the value '2'.
-      ACPICA: Remove unused internal AML opcode.
-      ACPICA: Add "//" before ascii output of buffers.
-      ACPICA: Update for SLIC ACPI table.
-      ACPICA: iASL: Add support for MSDM ACPI table.
-      ACPICA: Disassembler: Some cleanup of the table dump module.
-      ACPICA: Update version to 20150410.
-
-Lv Zheng (13):
-      ACPICA: Linuxize: Reduce divergences for 20150410 release.
-      ACPICA: Tables: Change acpi_find_root_pointer() to use
-acpi_physical_address.
-      ACPICA: Unix: Cleanup to use ACPI_TO_INTEGER() to calc page offset.
-      ACPICA: Executer: Cleanup to remove an unnecessary conversion.
-      ACPICA: Utilities: Cleanup to enforce
-ACPI_PHYSADDR_TO_PTR()/ACPI_PTR_TO_PHYSADDR().
-      ACPICA: Utilities: Cleanup to convert physical address printing formats.
-      ACPICA: Utilities: Cleanup to remove useless
-ACPI_PRINTF/FORMAT_xxx helpers.
-      ACPICA: Utilities: split IO address types from data type models.
-      ACPICA: Events: Add support to return both enable/status
-register values for GPE and fixed event.
-      ACPICA: Tables: Move an iasl specific table function to iasl source file.
-      ACPICA: Utilities: Correct conditional compilation definitions.
-      ACPICA: Resources: Correct conditional compilation definitions.
-      ACPICA: Fix a couple issues with the local printf module.
-
-Octavian Purdila (1):
-      ACPICA: Tables: Don't release ACPI_MTX_TABLES in
-acpi_tb_install_standard_table().
-
-Rafael J. Wysocki (1):
-      ACPICA: Store GPE register enable masks upfront
-
-Rasmus Villemoes (1):
-      ACPICA: Applications: Remove use of __DATE__ macro.
-
-Rickard Strandqvist (1):
-      ACPICA: Utilities: Remove unused acpi_ut_create_pkg_state_and_push().
-
----------------
-
- drivers/acpi/acpica/acapps.h                       |   8 +-
- drivers/acpi/acpica/acglobal.h                     |   5 +-
- drivers/acpi/acpica/aclocal.h                      |   2 +-
- drivers/acpi/acpica/acmacros.h                     |  13 +-
- drivers/acpi/acpica/acopcode.h                     |   2 +
- drivers/acpi/acpica/acresrc.h                      |   6 +-
- drivers/acpi/acpica/acstruct.h                     |   5 -
- drivers/acpi/acpica/actables.h                     |   9 +-
- drivers/acpi/acpica/acutils.h                      |  22 +-
- drivers/acpi/acpica/amlcode.h                      |   2 +-
- drivers/acpi/acpica/dsopcode.c                     |   7 +-
- drivers/acpi/acpica/dsutils.c                      |  11 +
- drivers/acpi/acpica/evgpe.c                        |   5 +-
- drivers/acpi/acpica/evregion.c                     |   2 +-
- drivers/acpi/acpica/evxfevnt.c                     |   5 +-
- drivers/acpi/acpica/exdump.c                       |   4 +-
- drivers/acpi/acpica/exfldio.c                      |  10 +-
- drivers/acpi/acpica/exoparg3.c                     |  13 +-
- drivers/acpi/acpica/exregion.c                     |  17 +-
- drivers/acpi/acpica/hwgpe.c                        |  24 ++-
- drivers/acpi/acpica/hwvalid.c                      |  16 +-
- drivers/acpi/acpica/nsdump.c                       |  12 +-
- drivers/acpi/acpica/psopcode.c                     |   8 +-
- drivers/acpi/acpica/psopinfo.c                     |   2 +-
- drivers/acpi/acpica/rsdump.c                       | 227 +++++++++++----------
- drivers/acpi/acpica/tbdata.c                       |  35 +++-
- drivers/acpi/acpica/tbinstal.c                     |  67 ++----
- drivers/acpi/acpica/tbprint.c                      |  19 +-
- drivers/acpi/acpica/tbxfroot.c                     |   7 +-
- drivers/acpi/acpica/utaddress.c                    |  34 ++-
- drivers/acpi/acpica/utbuffer.c                     |   8 +
- drivers/acpi/acpica/utglobal.c                     |  13 +-
- drivers/acpi/acpica/utmisc.c                       |   2 +
- drivers/acpi/acpica/utosi.c                        |   1 +
- drivers/acpi/acpica/utprint.c                      |  13 +-
- drivers/acpi/acpica/utstate.c                      |  34 ---
- drivers/acpi/acpica/utuuid.c                       |   2 +
- include/acpi/acpixf.h                              |  14 +-
- include/acpi/actbl2.h                              |  70 ++-----
- include/acpi/actypes.h                             |  50 +++--
- include/acpi/platform/acenv.h                      |   1 +
- .../acpi/os_specific/service_layers/oslinuxtbl.c   |   2 +-
- .../acpi/os_specific/service_layers/osunixmap.c    |   2 +-
- 43 files changed, 391 insertions(+), 420 deletions(-)
