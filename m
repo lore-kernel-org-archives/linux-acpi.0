@@ -1,42 +1,49 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI / scan: Annotate physical_node_lock in
- acpi_scan_is_offline()
-Date: Thu, 16 Apr 2015 13:01:57 -0600
-Message-ID: <1429210917.17259.5.camel@misato.fc.hp.com>
-References: <1428397392-26200-1-git-send-email-xiexiuqi@huawei.com>
-	 <5219717.RxvSXtBaZ8@vostro.rjw.lan> <12760195.2odgqTkKju@vostro.rjw.lan>
-	 <2181841.0nPiIAbDNm@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] Gracely handle GPE dispatch failure
+Date: Fri, 17 Apr 2015 03:02:24 +0200
+Message-ID: <1618556.15QVDXiiFD@vostro.rjw.lan>
+References: <CAMe9rOqud3k4kxd_b9L26GH8zH8AKoY7a7imN0YP7TGFW7zRWg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hp.com ([15.240.92.67]:37006 "EHLO
-	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072AbbDPTUn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Apr 2015 15:20:43 -0400
-In-Reply-To: <2181841.0nPiIAbDNm@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:60489 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751426AbbDQAht (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Apr 2015 20:37:49 -0400
+In-Reply-To: <CAMe9rOqud3k4kxd_b9L26GH8zH8AKoY7a7imN0YP7TGFW7zRWg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, Xie XiuQi <xiexiuqi@huawei.com>, guohanjun@huawei.com, hanjun.guo@linaro.org, linux-kernel@vger.kernel.org
+To: "H.J. Lu" <hjl.tools@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, 2015-04-11 at 01:31 +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thursday, April 16, 2015 04:37:45 PM H.J. Lu wrote:
+> When GPE dispatch fails due to missing handler, kernel issues
 > 
-> acpi_scan_is_offline() may be called under the physical_node_lock
-> of the given device object's parent, so prevent lockdep from
-> complaining about that by annotating that instance with
-> SINGLE_DEPTH_NESTING.
+> ACPI Error: No handler for Region
+> ACPI Error: Region EmbeddedControl
+> ACPI Error: Method parse/execution failed
+> ACPI Exception: AE_NOT_EXIST, while evaluating GPE method
 > 
-> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> and goes ahead enable GPE anyway.  After that, kernel goes into an
+> infinite loop:
+> 
+> ACPI Error: No handler for Region
+> ACPI Error: Region EmbeddedControl
+> ACPI Error: Method parse/execution failed
+> ACPI Exception: AE_NOT_EXIST, while evaluating GPE method
+> 
+> and repeat.  This patch avoids the infinite loop by not enabling GPE if
+> GPE dispatch fails.
 
-Agreed that the issue is likely with the lock-class.  Assuming Xie's
-test goes well (we will need to wait for that :),
+First, please send patches inline not in attachements.
 
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+Second, please CC this one to linux-acpi@vger.kernel.org and to the ACPICA
+maintainers as per the information in the MAINTAINERS file.
 
-Thanks,
--Toshi
+Thanks!
 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
