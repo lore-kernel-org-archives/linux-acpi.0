@@ -1,72 +1,30 @@
-From: Nikolaus Rath <Nikolaus@rath.org>
-Subject: Re: Help with debugging intermittent crash on resume from hibernation
-Date: Fri, 17 Apr 2015 20:15:19 -0700
-Message-ID: <5531CC47.9000008@rath.org>
-References: <8761a3s1vq.fsf@vostro.rath.org>	 <87vbhwwdzz.fsf@vostro.rath.org> <1426823821.3150.4.camel@gmail.com>
+From: Mike Galbraith <umgwanakikbuti@gmail.com>
+Subject: Re: Help with debugging intermittent crash on resume from
+ hibernation
+Date: Sat, 18 Apr 2015 06:01:43 +0200
+Message-ID: <1429329703.4034.4.camel@gmail.com>
+References: <8761a3s1vq.fsf@vostro.rath.org>
+	 <87vbhwwdzz.fsf@vostro.rath.org> <1426823821.3150.4.camel@gmail.com>
+	 <5531CC47.9000008@rath.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebox.rath.org ([23.92.25.96]:43425 "EHLO ebox.rath.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751703AbbDRDPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Apr 2015 23:15:32 -0400
-In-Reply-To: <1426823821.3150.4.camel@gmail.com>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:36346 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbbDRECC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Apr 2015 00:02:02 -0400
+In-Reply-To: <5531CC47.9000008@rath.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Galbraith <umgwanakikbuti@gmail.com>
+To: Nikolaus Rath <Nikolaus@rath.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>
 
-On 03/19/2015 08:57 PM, Mike Galbraith wrote:
-> (+CC)
->=20
-> On Thu, 2015-03-19 at 20:21 -0700, Nikolaus Rath wrote:
->> On Mar 13 2015, Nikolaus Rath <Nikolaus@rath.org> wrote:
->>> Hello,
->>>
->>> In about one out of 10 resumes from hibernation, my system resets a=
-fter
->>> the hibernation image has been loaded. I am hibernating using
->>>
->>> # echo platform > /sys/power/disk
->>> # echo disk > /sys/power/state
->>>
->>> When testing hibernation using
->>>
->>> # echo core > /sys/power/pm_test
->>> # echo platform > /sys/power/disk
->>> # echo disk > /sys/power/state
->>>
->>> I was not able to produce the same failure.
->>>
->>> I then tried attaching a serial console and booted with
->>> console=3DttyS0,115200n8 no_console_suspend. For the failed attempt=
-, the
->>> last messages before the reset are:
->> [...]
->>
->> I reproduced the same problem with 4.0.0-rc3. Is there anything I ca=
-n do
->> to get more debugging information?
+On Fri, 2015-04-17 at 20:15 -0700, Nikolaus Rath wrote:
+> 
+> Is there anything I can do to help debug this issue?
 
-I also found that blacklisting the nouveau module seems to dramatically
-reduce the occurence of this problem (it only happened once since I
-blacklisted the module which is probably about ~30 resumes ago).
+You could try to bisect it, but judging from the problem description, 
+that could be more like a career than a troubleshooting session.
 
-Is there anything I can do to help debug this issue?
-
-
-Best,
--Nikolaus
-
---=20
-GPG encrypted emails preferred. Key id: 0xD113FCAC3C4E599F
-=46ingerprint: ED31 791B 2C5C 1613 AF38 8B8A D113 FCAC 3C4E 599F
-
-             =C2=BBTime flies like an arrow, fruit flies like a Banana.=
-=C2=AB
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        -Mike
