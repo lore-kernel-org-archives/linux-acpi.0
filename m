@@ -1,145 +1,154 @@
-From: Chris Bainbridge <chris.bainbridge@gmail.com>
-Subject: [BUG] rmmod sbshc: unable to handle kernel NULL pointer dereference
- in acpi_ec_put_query_handler
-Date: Fri, 17 Apr 2015 12:11:24 +0100
-Message-ID: <20150417111124.GA3554@localhost>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
+Date: Fri, 17 Apr 2015 21:35:14 -0400
+Message-ID: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:37234 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753637AbbDQLL3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Apr 2015 07:11:29 -0400
-Received: by widdi4 with SMTP id di4so16567121wid.0
-        for <linux-acpi@vger.kernel.org>; Fri, 17 Apr 2015 04:11:27 -0700 (PDT)
-Content-Disposition: inline
+Received: from mga14.intel.com ([192.55.52.115]:13323 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751494AbbDRBhz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Apr 2015 21:37:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Boaz Harrosh <boaz@plexistor.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>, linux-kernel@vger.kernel.org
 
-Booting 4.0.0 or latest git (4fc8adc) and doing:
+Since 2010 Intel has included non-volatile memory support on a few
+storage-focused platforms with a feature named ADR (Asynchronous DRAM
+Refresh).  These platforms were mostly targeted at custom applications
+and never enjoyed standard discovery mechanisms for platform firmware
+to advertise non-volatile memory capabilities.  This now changes with
+the publication of version 6 of the ACPI specification [1] and its
+inclusion of a new table for describing platform memory capabilities.
+The NVDIMM Firmware Interface Table (NFIT), along with new EFI and E820
+memory types, enumerates persistent memory ranges, memory-mapped-I/O
+apertures, physical memory devices (DIMMs), and their associated
+properties.
 
-rmmod sbs
-rmmod sbshc
+The ND-subsystem wraps a Linux device driver model around the objects
+and address boundaries defined in the specification and introduces 3 new
+drivers.
 
-Results in:
+  nd_pmem: NFIT enabled version of the existing 'pmem' driver [2]
+  nd_blk: mmio aperture method for accessing persistent storage
+  nd_btt: give persistent memory disk semantics (atomic sector update)
 
-[   17.478679] BUG: unable to handle kernel NULL pointer dereference at 000000000000002c
-[   17.480360] IP: [<ffffffff814d69c8>] acpi_ec_put_query_handler+0x7/0x1a
-[   17.482073] PGD 0 
-[   17.483738] Oops: 0002 [#1] SMP 
-[   17.485388] Modules linked in: sbshc(-) [last unloaded: sbs]
-[   17.485393] CPU: 2 PID: 3973 Comm: rmmod Tainted: G        W       4.0.0+ #2
-[   17.485394] Hardware name: Apple Inc. MacBookPro10,2/Mac-AFD8A9D944EA4843, BIOS MBP102.88Z.0106.B07.1501071215 01/07/2015
-[   17.485395] task: ffff88026538ad50 ti: ffff8802511e0000 task.ti: ffff8802511e0000
-[   17.485397] RIP: 0010:[<ffffffff814d69c8>] 
-[   17.485399]  [<ffffffff814d69c8>] acpi_ec_put_query_handler+0x7/0x1a
-[   17.485400] RSP: 0018:ffff8802511e3dc0  EFLAGS: 00010213
-[   17.485401] RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffea0009443400
-[   17.485402] RDX: 0000000000000007 RSI: 0000000000018e40 RDI: 000000000000002c
-[   17.485403] RBP: ffff8802511e3df8 R08: 0000000000000001 R09: 000000018040003f
-[   17.485404] R10: ffffffff814d67ab R11: ffffea00021f03c0 R12: ffff8802511e3dc8
-[   17.485405] R13: ffff88026533d210 R14: ffff880265134638 R15: 0000557e8f5151e0
-[   17.485406] FS:  00007fb52352a700(0000) GS:ffff88026f280000(0000) knlGS:0000000000000000
-[   17.485407] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   17.485408] CR2: 000000000000002c CR3: 0000000251196000 CR4: 00000000001406e0
-[   17.485409] Stack:
-[   17.485409]  ffffffff814d6ae5
-[   17.485410]  ffff8802654c1680
-[   17.485410]  ffff880264549200
-[   17.485411]  ffff88026533d000
+See the documentation in patch2 for more details, and there is
+supplemental documentation on pmem.io [4].  Please review, and
+patches welcome...
 
-[   17.485412]  ffff880264a0d180
-[   17.485412]  ffff88026533d2b8
-[   17.485413]  0000000000000000
-[   17.485413]  ffff8802511e3e18
+For kicking the tires, this release is accompanied by a userspace
+management library 'ndctl' that includes unit tests (make check) for all
+of the kernel ABIs.  The nfit_test.ko module can be used to explore a
+sample NFIT topology.
 
-[   17.485414]  ffffffffa00000f4
-[   17.485415]  ffff88026533d258
-[   17.485415]  ffffffffa00007c0
-[   17.485415]  ffff8802511e3e38
+[1]: http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
+[2]: https://git.kernel.org/cgit/linux/kernel/git/tip/tip.git/log/?h=x86/pmem
+[3]: https://github.com/pmem/ndctl
+[4]: http://pmem.io/documents/
 
-[   17.485416] Call Trace:
-[   17.485419]  [<ffffffff814d6ae5>] ? acpi_ec_remove_query_handler+0x87/0x97
-[   17.485423]  [<ffffffffa00000f4>] acpi_smbus_hc_remove+0x2a/0x44 [sbshc]
-[   17.485425]  [<ffffffff814d27db>] acpi_device_remove+0x7b/0x9a
-[   17.485428]  [<ffffffff81649b6e>] __device_release_driver+0x7e/0x110
-[   17.485430]  [<ffffffff8164a650>] driver_detach+0xb0/0xc0
-[   17.485432]  [<ffffffff81649804>] bus_remove_driver+0x54/0xe0
-[   17.485434]  [<ffffffff8164adfb>] driver_unregister+0x2b/0x60
-[   17.485436]  [<ffffffff814d2f63>] acpi_bus_unregister_driver+0x10/0x12
-[   17.485438]  [<ffffffffa000059e>] acpi_smb_hc_driver_exit+0x10/0x12 [sbshc]
-[   17.485442]  [<ffffffff8112f008>] SyS_delete_module+0x1b8/0x210
-[   17.485444]  [<ffffffff81a8da57>] system_call_fastpath+0x12/0x6a
-[   17.485445] Code: 
-[   17.485446] 00 
-[   17.485447] 48 
-[   17.485447] 89 
-[   17.485447] 83 
-[   17.485448] 98 
-[   17.485448] 00 
-[   17.485448] 00 
-[   17.485449] 00 
-[   17.485449] 48 
-[   17.485450] 8d 
-[   17.485450] 83 
-[   17.485450] a0 
-[   17.485451] 00 
-[   17.485451] 00 
-[   17.485451] 00 
-[   17.485452] 48 
-[   17.485452] 89 
-[   17.485453] 83 
-[   17.485453] a0 
-[   17.485453] 00 
-[   17.485454] 00 
-[   17.485454] 00 
-[   17.485454] 48 
-[   17.485455] 89 
-[   17.485455] 83 
-[   17.485456] a8 
-[   17.485456] 00 
-[   17.485456] 00 
-[   17.485457] 00 
-[   17.485457] 48 
-[   17.485457] 89 
-[   17.485458] d8 
-[   17.485458] 5a 
-[   17.485459] 5b 
-[   17.485459] 5d 
-[   17.485459] c3 
-[   17.485460] 48 
-[   17.485460] 89 
-[   17.485460] f8 
-[   17.485461] 48 
-[   17.485461] 8d 
-[   17.485462] 7f 
-[   17.485462] 2c 
-[   17.485463] <f0> 
-[   17.485463] 83 
-[   17.485463] 68 
-[   17.485464] 2c 
-[   17.485464] 01 
-[   17.485464] 74 
-[   17.485465] 01 
-[   17.485465] c3 
-[   17.485466] 55 
-[   17.485466] 48 
-[   17.485466] 89 
-[   17.485467] e5 
-[   17.485467] e8 
-[   17.485468] c5 
-[   17.485468] fd 
-[   17.485468] ff 
-[   17.485469] ff 
-[   17.485469] 5d 
-[   17.485469] c3 
-[   17.485470] 48 
-[   17.485470] 85 
+--
+Dan for the NFIT driver development team Andy Rudoff, Matthew Wilcox, Ross
+Zwisler, and Vishal Verma
 
-[   17.485471] RIP 
-[   17.485473]  [<ffffffff814d69c8>] acpi_ec_put_query_handler+0x7/0x1a
-[   17.485473]  RSP <ffff8802511e3dc0>
-[   17.485474] CR2: 000000000000002c
-[   17.485484] ---[ end trace f803e2fbf43098cf ]---
+
+---
+
+Dan Williams (19):
+      e820, efi: add ACPI 6.0 persistent memory types
+      ND NFIT-Defined/NVIDIMM Subsystem
+      nd_acpi: initial core implementation and nfit skeleton
+      nd: create an 'nd_bus' from an 'nfit_desc'
+      nfit-test: manufactured NFITs for interface development
+      nd: ndctl class device, and nd bus attributes
+      nd: dimm devices (nfit "memory-devices")
+      nd: ndctl.h, the nd ioctl abi
+      nd_dimm: dimm driver and base nd-bus device-driver infrastructure
+      nd: regions (block-data-window, persistent memory, volatile memory)
+      nd_region: support for legacy nvdimms
+      nd_pmem: add NFIT support to the pmem driver
+      nd: add interleave-set state-tracking infrastructure
+      nd: namespace indices: read and validate
+      nd: pmem label sets and namespace instantiation.
+      nd: blk labels and namespace instantiation
+      nd: write pmem label set
+      nd: write blk label set
+      nd: infrastructure for btt devices
+
+Ross Zwisler (1):
+      nd_blk: nfit blk driver
+
+Vishal Verma (1):
+      nd_btt: atomic sector updates
+
+
+ Documentation/blockdev/btt.txt    |  273 ++++++
+ Documentation/blockdev/nd.txt     |  867 +++++++++++++++++++
+ MAINTAINERS                       |   34 +
+ arch/arm64/kernel/efi.c           |    1 
+ arch/ia64/kernel/efi.c            |    1 
+ arch/x86/boot/compressed/eboot.c  |    4 
+ arch/x86/include/uapi/asm/e820.h  |    1 
+ arch/x86/kernel/e820.c            |   25 -
+ arch/x86/platform/efi/efi.c       |    3 
+ drivers/block/Kconfig             |   13 
+ drivers/block/Makefile            |    2 
+ drivers/block/nd/Kconfig          |  130 +++
+ drivers/block/nd/Makefile         |   39 +
+ drivers/block/nd/acpi.c           |  443 ++++++++++
+ drivers/block/nd/blk.c            |  269 ++++++
+ drivers/block/nd/btt.c            | 1423 +++++++++++++++++++++++++++++++
+ drivers/block/nd/btt.h            |  185 ++++
+ drivers/block/nd/btt_devs.c       |  443 ++++++++++
+ drivers/block/nd/bus.c            |  703 +++++++++++++++
+ drivers/block/nd/core.c           |  963 +++++++++++++++++++++
+ drivers/block/nd/dimm.c           |  126 +++
+ drivers/block/nd/dimm_devs.c      |  701 +++++++++++++++
+ drivers/block/nd/label.c          |  925 ++++++++++++++++++++
+ drivers/block/nd/label.h          |  143 +++
+ drivers/block/nd/namespace_devs.c | 1697 +++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/nd-private.h     |  203 ++++
+ drivers/block/nd/nd.h             |  310 +++++++
+ drivers/block/nd/nfit.h           |  238 +++++
+ drivers/block/nd/pmem.c           |  122 ++-
+ drivers/block/nd/region.c         |   95 ++
+ drivers/block/nd/region_devs.c    | 1196 ++++++++++++++++++++++++++
+ drivers/block/nd/test/Makefile    |    5 
+ drivers/block/nd/test/iomap.c     |  199 ++++
+ drivers/block/nd/test/nfit.c      | 1018 ++++++++++++++++++++++
+ drivers/block/nd/test/nfit_test.h |   37 +
+ include/linux/efi.h               |    3 
+ include/linux/nd.h                |   98 ++
+ include/uapi/linux/Kbuild         |    1 
+ include/uapi/linux/ndctl.h        |  199 ++++
+ 39 files changed, 13102 insertions(+), 36 deletions(-)
+ create mode 100644 Documentation/blockdev/btt.txt
+ create mode 100644 Documentation/blockdev/nd.txt
+ create mode 100644 drivers/block/nd/Kconfig
+ create mode 100644 drivers/block/nd/Makefile
+ create mode 100644 drivers/block/nd/acpi.c
+ create mode 100644 drivers/block/nd/blk.c
+ create mode 100644 drivers/block/nd/btt.c
+ create mode 100644 drivers/block/nd/btt.h
+ create mode 100644 drivers/block/nd/btt_devs.c
+ create mode 100644 drivers/block/nd/bus.c
+ create mode 100644 drivers/block/nd/core.c
+ create mode 100644 drivers/block/nd/dimm.c
+ create mode 100644 drivers/block/nd/dimm_devs.c
+ create mode 100644 drivers/block/nd/label.c
+ create mode 100644 drivers/block/nd/label.h
+ create mode 100644 drivers/block/nd/namespace_devs.c
+ create mode 100644 drivers/block/nd/nd-private.h
+ create mode 100644 drivers/block/nd/nd.h
+ create mode 100644 drivers/block/nd/nfit.h
+ rename drivers/block/{pmem.c => nd/pmem.c} (68%)
+ create mode 100644 drivers/block/nd/region.c
+ create mode 100644 drivers/block/nd/region_devs.c
+ create mode 100644 drivers/block/nd/test/Makefile
+ create mode 100644 drivers/block/nd/test/iomap.c
+ create mode 100644 drivers/block/nd/test/nfit.c
+ create mode 100644 drivers/block/nd/test/nfit_test.h
+ create mode 100644 include/linux/nd.h
+ create mode 100644 include/uapi/linux/ndctl.h
