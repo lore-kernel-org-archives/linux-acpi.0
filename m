@@ -1,70 +1,28 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH] ia64/PCI: Treat all host bridge Address Space Descriptors
- (even consumers) as windows
-Date: Mon, 20 Apr 2015 18:30:55 -0500
-Message-ID: <20150420233055.20866.87460.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+From: Jassi Brar <jassisinghbrar@gmail.com>
+Subject: Re: [PATCH V2 RESEND] mailbox: add ACPI support for mailbox framework
+Date: Tue, 21 Apr 2015 16:53:14 +0900
+Message-ID: <CABb+yY0+jxdUEostxLuDdOR+guJyz3SCCLmN26LY4jXUPD40nw@mail.gmail.com>
+References: <1428537507-30561-1-git-send-email-fkan@apm.com>
+	<CAL85gmDde_BYHoDeKLw279QTUuDOJ6zQ+LmSDWFazMkrZD-C8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:36700 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbbDUHxO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Apr 2015 03:53:14 -0400
+In-Reply-To: <CAL85gmDde_BYHoDeKLw279QTUuDOJ6zQ+LmSDWFazMkrZD-C8w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Feng Kan <fkan@apm.com>
+Cc: patches <patches@apm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Prior to c770cb4cb505 ("PCI: Mark invalid BARs as unassigned"), if we tried
-to claim a PCI BAR but could not find an upstream bridge window that
-matched it, we complained but still allowed the device to be enabled.
-
-c770cb4cb505 broke devices that previously worked (mptsas and igb in the
-case Tony reported, but it could be any devices) because it marks those
-BARs as IORESOURCE_UNSET, which makes pci_enable_device() complain and
-return failure:
-
-  igb 0000:81:00.0: can't enable device: BAR 0 [mem size 0x00020000] not assigned
-  igb: probe of 0000:81:00.0 failed with error -22
-
-The underlying cause is an ACPI Address Space Descriptor for a PCI host
-bridge window that is marked as "consumer".  This is a firmware defect:
-resources that are produced on the downstream side of a bridge should be
-marked "producer".  But rejecting these BARs that we previously allowed is
-a functionality regression, and firmware has not used the producer/consumer
-bit consistently, so we can't rely on it anyway.
-
-Stop checking the producer/consumer bit, and assume all bridge Address
-Space Descriptors are for bridge windows.
-
-Note that this change does not affect I/O Port or Fixed Location I/O Port
-Descriptors, which are commonly used for the [io 0x0cf8-0x0cff] config
-access range.  That range is a "consumer" range and should not be treated
-as a window.
-
-Fixes: c770cb4cb505 ("PCI: Mark invalid BARs as unassigned")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96961
-Reported-and-tested-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- arch/ia64/pci/pci.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 48cc65705db4..d4e162d35b34 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -240,15 +240,12 @@ static acpi_status resource_to_window(struct acpi_resource *resource,
- 	 * We're only interested in _CRS descriptors that are
- 	 *	- address space descriptors for memory or I/O space
- 	 *	- non-zero size
--	 *	- producers, i.e., the address space is routed downstream,
--	 *	  not consumed by the bridge itself
- 	 */
- 	status = acpi_resource_to_address64(resource, addr);
- 	if (ACPI_SUCCESS(status) &&
- 	    (addr->resource_type == ACPI_MEMORY_RANGE ||
- 	     addr->resource_type == ACPI_IO_RANGE) &&
--	    addr->address.address_length &&
--	    addr->producer_consumer == ACPI_PRODUCER)
-+	    addr->address.address_length)
- 		return AE_OK;
- 
- 	return AE_ERROR;
+On Tue, Apr 21, 2015 at 6:28 AM, Feng Kan <fkan@apm.com> wrote:
+>
+> Just want to ping this. I haven't gotten any response from mailbox
+> maintainer for this
+> patch or any of my other mailbox patches.
+>
+Sorry I had been busy and still need to have a critical look at the
+new api. It would sooth my nerves to see an ACK from some acpi god.
+Btw, we also have ACPI-PCC specific api recently added.
