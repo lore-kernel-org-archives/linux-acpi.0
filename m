@@ -1,51 +1,62 @@
-From: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
-Subject: [PATCH V2 4/4] arm64: dts: mailbox device tree node for APM X-Gene platform.
-Date: Wed, 22 Apr 2015 15:18:45 -0700
-Message-ID: <1429741125-29156-5-git-send-email-fkan@apm.com>
+From: Feng Kan <fkan@apm.com>
+Subject: [PATCH V2 3/4] Documentation: mailbox: Add APM X-Gene SLIMpro mailbox dts documentation
+Date: Wed, 22 Apr 2015 15:18:44 -0700
+Message-ID: <1429741125-29156-4-git-send-email-fkan@apm.com>
 References: <1429741125-29156-1-git-send-email-fkan@apm.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1429741125-29156-1-git-send-email-fkan-qTEPVZfXA3Y@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: patches-qTEPVZfXA3Y@public.gmane.org, jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1429741125-29156-1-git-send-email-fkan@apm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: patches@apm.com, jassisinghbrar@gmail.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Feng Kan <fkan@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Mailbox device tree node for APM X-Gene platform.
+This adds the APM X-Gene SLIMpro mailbox device tree node documentation.
 
-Signed-off-by: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+Signed-off-by: Feng Kan <fkan@apm.com>
 ---
- arch/arm64/boot/dts/apm/apm-storm.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ .../bindings/mailbox/xgene-slimpro-mailbox.txt     | 34 ++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
 
-diff --git a/arch/arm64/boot/dts/apm/apm-storm.dtsi b/arch/arm64/boot/dts/apm/apm-storm.dtsi
-index c8d3e0e..92e7b6b 100644
---- a/arch/arm64/boot/dts/apm/apm-storm.dtsi
-+++ b/arch/arm64/boot/dts/apm/apm-storm.dtsi
-@@ -489,6 +489,20 @@
- 			clocks = <&pcie4clk 0>;
- 		};
- 
-+		mailbox: slimpro-mbox@10540000 {
+diff --git a/Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt b/Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
+new file mode 100644
+index 0000000..d02a3d8
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
+@@ -0,0 +1,34 @@
++The APM X-Gene SLIMpro mailbox is used to communicate messages between
++the ARM64 processors and the Cortex M3 (dubbed SLIMpro). It uses a simple
++interrupt based door bell mechanism and can exchange simple messages using the
++internal registers.
++
++There are total of 7 interrupts in this mailbox. Each used for an individual
++door bell (or mailbox channel).
++
++Required properties:
++- compatible:	Should be as "apm, xgene-slimpro-mbox".
++
++- reg:		Contain the mailbox register address range.
++
++- interrupts:	7 interrupts must start from 0 to 6, interrupt 0 define the
++		the interrupt for mailbox channel 0 and interrupt 1 for
++		mailbox channel 1 and so likewise for the reminder.
++
++- #mbox-cells:	only one to specify the mailbox channel number.
++
++Example:
++
++Mailbox Node:
++		slimpro-mbox: slimpro-mbox@10540000 {
 +			compatible = "apm,xgene-slimpro-mbox";
 +			reg = <0x0 0x10540000 0x0 0xa000>;
 +			#mbox-cells = <1>;
-+			interrupts =    <0x0 0x0 0x4>,
++			interrupts =  	<0x0 0x0 0x4>,
 +					<0x0 0x1 0x4>,
 +					<0x0 0x2 0x4>,
 +					<0x0 0x3 0x4>,
 +					<0x0 0x4 0x4>,
 +					<0x0 0x5 0x4>,
 +					<0x0 0x6 0x4>,
-+					<0x0 0x7 0x4>;
 +		};
-+
- 		serial0: serial@1c020000 {
- 			status = "disabled";
- 			device_type = "serial";
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
