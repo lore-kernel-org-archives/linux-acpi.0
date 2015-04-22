@@ -1,43 +1,53 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / scan: Add a scan handler for PRP0001
-Date: Wed, 22 Apr 2015 12:57:18 +0300
-Message-ID: <20150422095718.GM1677@lahna.fi.intel.com>
-References: <3444888.xxxTREorHY@vostro.rjw.lan>
- <4530573.vsU6fqTbSL@vostro.rjw.lan>
- <1915841.HSgUQOmSYM@vostro.rjw.lan>
- <1816071.3jMa2RA6JD@vostro.rjw.lan>
+From: Kast Bernd <kastbernd@gmx.de>
+Subject: [RFC 1/2] ACPI: activate&export acpi_os_get_physical_address
+Date: Wed, 22 Apr 2015 16:12:24 +0200
+Message-ID: <f14ffb9df15cdf617bb4ccae575a9787866675c8.1429653764.git.kastbernd@gmx.de>
+References: <cover.1429653764.git.kastbernd@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:53607 "EHLO mga14.intel.com"
+Received: from mout.gmx.net ([212.227.17.21]:58473 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934366AbbDVJ5Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Apr 2015 05:57:24 -0400
+	id S1757161AbbDVOMc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Apr 2015 10:12:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1816071.3jMa2RA6JD@vostro.rjw.lan>
+In-Reply-To: <cover.1429653764.git.kastbernd@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: corentin.chary@gmail.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dvhart@infradead.org, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
-On Wed, Apr 22, 2015 at 03:54:16AM +0200, Rafael J. Wysocki wrote:
-> Any comments?
-> 
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: ACPI / property: Refine consistency check for PRP0001
-> > 
-> > Refine the check for the presence of the "compatible" property
-> > if the PRP0001 device ID is present in the device's list of
-> > ACPI/PNP IDs to also print the message if _DSD is missing
-> > entirely or the format of it is incorrect.
-> > 
-> > While at it, reduce the log level of the message to "info"
-> > and reduce the log level of the "broken _DSD" message to
-> > "debug" (noise reduction).
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+acpi_os_get_physical_address will be needed by an acpi driver (asus-wmi.c).
+Additionally it could  be used by dell-laptop.c instead of directly calling virt_to_phys.
 
-Looks good,
+acpi_os_get_physical_address gets exported and ACPI_FUTURE_USAGE is removed
 
-Reviewed-by: Mika Westerberg <mika.westerberb@linux.intel.com>
+Signed-off-by: Kast Bernd <kastbernd@gmx.de>
+---
+ drivers/acpi/osl.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index f9eeae8..566e6ad 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -524,7 +524,6 @@ void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
+ }
+ EXPORT_SYMBOL(acpi_os_unmap_generic_address);
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ acpi_status
+ acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
+ {
+@@ -535,7 +534,7 @@ acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
+ 
+ 	return AE_OK;
+ }
+-#endif
++EXPORT_SYMBOL(acpi_os_get_physical_address);
+ 
+ #define ACPI_MAX_OVERRIDE_LEN 100
+ 
+-- 
+2.3.5
+
