@@ -1,46 +1,64 @@
-From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Subject: RE: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
-Date: Wed, 22 Apr 2015 19:06:35 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
+Date: Wed, 22 Apr 2015 12:39:19 -0700
+Message-ID: <CAPcyv4ioeSdQZVQ7PczAOPqs5zCoWLbs+WG-mZgrBWsBZspeDQ@mail.gmail.com>
 References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: Ingo Molnar <mingo@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:37115 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754484AbbDVTjW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2015 15:39:22 -0400
+Received: by widdi4 with SMTP id di4so69355799wid.0
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Apr 2015 12:39:21 -0700 (PDT)
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Ingo Molnar <mingo@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, "Moore, Robert" <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Beha=
-lf Of
-> Dan Williams
-> Sent: Friday, April 17, 2015 8:35 PM
-> To: linux-nvdimm@lists.01.org
-> Subject: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsy=
-stem
->=20
-=2E..
->  create mode 100644 drivers/block/nd/acpi.c
->  create mode 100644 drivers/block/nd/blk.c
->  create mode 100644 drivers/block/nd/bus.c
->  create mode 100644 drivers/block/nd/core.c
-=2E..
+On Wed, Apr 22, 2015 at 12:06 PM, Elliott, Robert (Server Storage)
+<Elliott@hp.com> wrote:
+>> -----Original Message-----
+>> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Beh=
+alf Of
+>> Dan Williams
+>> Sent: Friday, April 17, 2015 8:35 PM
+>> To: linux-nvdimm@lists.01.org
+>> Subject: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subs=
+ystem
+>>
+> ...
+>>  create mode 100644 drivers/block/nd/acpi.c
+>>  create mode 100644 drivers/block/nd/blk.c
+>>  create mode 100644 drivers/block/nd/bus.c
+>>  create mode 100644 drivers/block/nd/core.c
+> ...
+>
+> The kernel already has lots of files with these names:
+>  5 acpi.c
+> 10 bus.c
+> 66 core.c
+>
+> I often use ctags like this:
+>         vim -t core.c
+> but that doesn=E2=80=99t immediately work with common filenames - it
+> presents a list of all 66 files to choose from.
+>
+> Also, blk.c is a name one might expect to see in the block/
+> directory (e.g., next to blk.h).
+>
+> An nd_ prefix on all the filenames would help.
+>
 
-The kernel already has lots of files with these names:
- 5 acpi.c
-10 bus.c
-66 core.c
-
-I often use ctags like this:
-	vim -t core.c
-but that doesn=92t immediately work with common filenames - it=20
-presents a list of all 66 files to choose from.
-
-Also, blk.c is a name one might expect to see in the block/=20
-directory (e.g., next to blk.h).
-
-An nd_ prefix on all the filenames would help.
+I picked up the "don't duplicate the directory name in the source file
+name" approach from a review comment from Linus on a SCSI driver a
+long time back (iirc).  I'm not motivated to stop that practice now.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
