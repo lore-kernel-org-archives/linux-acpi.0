@@ -1,64 +1,34 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
-Date: Wed, 22 Apr 2015 12:39:19 -0700
-Message-ID: <CAPcyv4ioeSdQZVQ7PczAOPqs5zCoWLbs+WG-mZgrBWsBZspeDQ@mail.gmail.com>
-References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:37115 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484AbbDVTjW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2015 15:39:22 -0400
-Received: by widdi4 with SMTP id di4so69355799wid.0
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Apr 2015 12:39:21 -0700 (PDT)
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Feng Kan <fkan@apm.com>
+Subject: [PATCH V2 0/4] APM X-Gene Mailbox driver
+Date: Wed, 22 Apr 2015 15:18:41 -0700
+Message-ID: <1429741125-29156-1-git-send-email-fkan@apm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: patches@apm.com, jassisinghbrar@gmail.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Feng Kan <fkan@apm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Ingo Molnar <mingo@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, "Moore, Robert" <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Apr 22, 2015 at 12:06 PM, Elliott, Robert (Server Storage)
-<Elliott@hp.com> wrote:
->> -----Original Message-----
->> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Beh=
-alf Of
->> Dan Williams
->> Sent: Friday, April 17, 2015 8:35 PM
->> To: linux-nvdimm@lists.01.org
->> Subject: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subs=
-ystem
->>
-> ...
->>  create mode 100644 drivers/block/nd/acpi.c
->>  create mode 100644 drivers/block/nd/blk.c
->>  create mode 100644 drivers/block/nd/bus.c
->>  create mode 100644 drivers/block/nd/core.c
-> ...
->
-> The kernel already has lots of files with these names:
->  5 acpi.c
-> 10 bus.c
-> 66 core.c
->
-> I often use ctags like this:
->         vim -t core.c
-> but that doesn=E2=80=99t immediately work with common filenames - it
-> presents a list of all 66 files to choose from.
->
-> Also, blk.c is a name one might expect to see in the block/
-> directory (e.g., next to blk.h).
->
-> An nd_ prefix on all the filenames would help.
->
+This adds the mailbox driver for the APM X-Gene SoC
 
-I picked up the "don't duplicate the directory name in the source file
-name" approach from a review comment from Linus on a SCSI driver a
-long time back (iirc).  I'm not motivated to stop that practice now.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+V2 change
+	- Add ACPI support
+	- use defines for reg offset
+
+Feng Kan (4):
+  mailbox: add support for APM X-Gene platform mailbox driver
+  mailbox: xgene: add ACPI support for X-Gene mailbox driver
+  Documentation: mailbox: Add APM X-Gene SLIMpro mailbox dts
+    documentation
+  arm64: dts: mailbox device tree node for APM X-Gene platform.
+
+ .../bindings/mailbox/xgene-slimpro-mailbox.txt     |  34 +++
+ arch/arm64/boot/dts/apm/apm-storm.dtsi             |  14 ++
+ drivers/mailbox/Kconfig                            |  10 +
+ drivers/mailbox/Makefile                           |   2 +
+ drivers/mailbox/mailbox-xgene-slimpro.c            | 271 +++++++++++++++++++++
+ 5 files changed, 331 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
+ create mode 100644 drivers/mailbox/mailbox-xgene-slimpro.c
+
+-- 
+1.9.1
