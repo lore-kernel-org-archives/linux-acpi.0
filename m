@@ -1,62 +1,63 @@
 From: Feng Kan <fkan@apm.com>
-Subject: [PATCH V2 3/4] Documentation: mailbox: Add APM X-Gene SLIMpro mailbox dts documentation
-Date: Wed, 22 Apr 2015 15:18:44 -0700
-Message-ID: <1429741125-29156-4-git-send-email-fkan@apm.com>
+Subject: [PATCH V2 2/4] mailbox: xgene: add ACPI support for X-Gene mailbox driver
+Date: Wed, 22 Apr 2015 15:18:43 -0700
+Message-ID: <1429741125-29156-3-git-send-email-fkan@apm.com>
 References: <1429741125-29156-1-git-send-email-fkan@apm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from exprod5og110.obsmtp.com ([64.18.0.20]:47363 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934361AbbDVWSp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2015 18:18:45 -0400
+Received: by pabtp1 with SMTP id tp1so316791pab.2
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Apr 2015 15:18:45 -0700 (PDT)
 In-Reply-To: <1429741125-29156-1-git-send-email-fkan@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: patches@apm.com, jassisinghbrar@gmail.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: Feng Kan <fkan@apm.com>
-List-Id: linux-acpi@vger.kernel.org
 
-This adds the APM X-Gene SLIMpro mailbox device tree node documentation.
+Add ACPI support for APM X-Gene mailbox driver.
 
 Signed-off-by: Feng Kan <fkan@apm.com>
 ---
- .../bindings/mailbox/xgene-slimpro-mailbox.txt     | 34 ++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
+ drivers/mailbox/mailbox-xgene-slimpro.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt b/Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
-new file mode 100644
-index 0000000..d02a3d8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
-@@ -0,0 +1,34 @@
-+The APM X-Gene SLIMpro mailbox is used to communicate messages between
-+the ARM64 processors and the Cortex M3 (dubbed SLIMpro). It uses a simple
-+interrupt based door bell mechanism and can exchange simple messages using the
-+internal registers.
+diff --git a/drivers/mailbox/mailbox-xgene-slimpro.c b/drivers/mailbox/mailbox-xgene-slimpro.c
+index 49370e5..890f95b 100644
+--- a/drivers/mailbox/mailbox-xgene-slimpro.c
++++ b/drivers/mailbox/mailbox-xgene-slimpro.c
+@@ -18,6 +18,7 @@
+  * along with this program; if not, see <http://www.gnu.org/licenses/>.
+  *
+  */
++#include <linux/acpi.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+@@ -240,6 +241,14 @@ static const struct of_device_id slimpro_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, slimpro_of_match);
+ 
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id slimpro_acpi_ids[] = {
++	{"APMC0D01", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(acpi, slimpro_acpi_ids);
++#endif
 +
-+There are total of 7 interrupts in this mailbox. Each used for an individual
-+door bell (or mailbox channel).
-+
-+Required properties:
-+- compatible:	Should be as "apm, xgene-slimpro-mbox".
-+
-+- reg:		Contain the mailbox register address range.
-+
-+- interrupts:	7 interrupts must start from 0 to 6, interrupt 0 define the
-+		the interrupt for mailbox channel 0 and interrupt 1 for
-+		mailbox channel 1 and so likewise for the reminder.
-+
-+- #mbox-cells:	only one to specify the mailbox channel number.
-+
-+Example:
-+
-+Mailbox Node:
-+		slimpro-mbox: slimpro-mbox@10540000 {
-+			compatible = "apm,xgene-slimpro-mbox";
-+			reg = <0x0 0x10540000 0x0 0xa000>;
-+			#mbox-cells = <1>;
-+			interrupts =  	<0x0 0x0 0x4>,
-+					<0x0 0x1 0x4>,
-+					<0x0 0x2 0x4>,
-+					<0x0 0x3 0x4>,
-+					<0x0 0x4 0x4>,
-+					<0x0 0x5 0x4>,
-+					<0x0 0x6 0x4>,
-+		};
+ static struct platform_driver slimpro_mbox_driver = {
+ 	.probe	= slimpro_mbox_probe,
+ 	.remove = slimpro_mbox_remove,
+@@ -247,6 +256,7 @@ static struct platform_driver slimpro_mbox_driver = {
+ 		.name = "xgene-slimpro-mbox",
+ 		.owner = THIS_MODULE,
+ 		.of_match_table = of_match_ptr(slimpro_of_match),
++		.acpi_match_table = ACPI_PTR(slimpro_acpi_ids)
+ 	},
+ };
+ 
 -- 
 1.9.1
+
