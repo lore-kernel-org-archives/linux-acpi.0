@@ -1,34 +1,51 @@
-From: Feng Kan <fkan@apm.com>
-Subject: [PATCH V2 0/4] APM X-Gene Mailbox driver
-Date: Wed, 22 Apr 2015 15:18:41 -0700
-Message-ID: <1429741125-29156-1-git-send-email-fkan@apm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: patches@apm.com, jassisinghbrar@gmail.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Feng Kan <fkan@apm.com>
+From: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+Subject: [PATCH V2 4/4] arm64: dts: mailbox device tree node for APM X-Gene platform.
+Date: Wed, 22 Apr 2015 15:18:45 -0700
+Message-ID: <1429741125-29156-5-git-send-email-fkan@apm.com>
+References: <1429741125-29156-1-git-send-email-fkan@apm.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1429741125-29156-1-git-send-email-fkan-qTEPVZfXA3Y@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: patches-qTEPVZfXA3Y@public.gmane.org, jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This adds the mailbox driver for the APM X-Gene SoC
+Mailbox device tree node for APM X-Gene platform.
 
-V2 change
-	- Add ACPI support
-	- use defines for reg offset
+Signed-off-by: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
+---
+ arch/arm64/boot/dts/apm/apm-storm.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-Feng Kan (4):
-  mailbox: add support for APM X-Gene platform mailbox driver
-  mailbox: xgene: add ACPI support for X-Gene mailbox driver
-  Documentation: mailbox: Add APM X-Gene SLIMpro mailbox dts
-    documentation
-  arm64: dts: mailbox device tree node for APM X-Gene platform.
-
- .../bindings/mailbox/xgene-slimpro-mailbox.txt     |  34 +++
- arch/arm64/boot/dts/apm/apm-storm.dtsi             |  14 ++
- drivers/mailbox/Kconfig                            |  10 +
- drivers/mailbox/Makefile                           |   2 +
- drivers/mailbox/mailbox-xgene-slimpro.c            | 271 +++++++++++++++++++++
- 5 files changed, 331 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mailbox/xgene-slimpro-mailbox.txt
- create mode 100644 drivers/mailbox/mailbox-xgene-slimpro.c
-
+diff --git a/arch/arm64/boot/dts/apm/apm-storm.dtsi b/arch/arm64/boot/dts/apm/apm-storm.dtsi
+index c8d3e0e..92e7b6b 100644
+--- a/arch/arm64/boot/dts/apm/apm-storm.dtsi
++++ b/arch/arm64/boot/dts/apm/apm-storm.dtsi
+@@ -489,6 +489,20 @@
+ 			clocks = <&pcie4clk 0>;
+ 		};
+ 
++		mailbox: slimpro-mbox@10540000 {
++			compatible = "apm,xgene-slimpro-mbox";
++			reg = <0x0 0x10540000 0x0 0xa000>;
++			#mbox-cells = <1>;
++			interrupts =    <0x0 0x0 0x4>,
++					<0x0 0x1 0x4>,
++					<0x0 0x2 0x4>,
++					<0x0 0x3 0x4>,
++					<0x0 0x4 0x4>,
++					<0x0 0x5 0x4>,
++					<0x0 0x6 0x4>,
++					<0x0 0x7 0x4>;
++		};
++
+ 		serial0: serial@1c020000 {
+ 			status = "disabled";
+ 			device_type = "serial";
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
