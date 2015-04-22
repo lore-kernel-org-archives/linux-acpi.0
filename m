@@ -1,44 +1,46 @@
-From: Chris Bainbridge <chris.bainbridge@gmail.com>
-Subject: [PATCH] ACPI SBS: Re-enable battery manager
-Date: Wed, 22 Apr 2015 16:40:21 +0100
-Message-ID: <20150422154021.GA16720@localhost>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
+Date: Wed, 22 Apr 2015 19:06:35 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
+References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:36120 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964995AbbDVPkZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2015 11:40:25 -0400
-Received: by wgen6 with SMTP id n6so36413568wge.3
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Apr 2015 08:40:24 -0700 (PDT)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Ingo Molnar <mingo@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-Commit 9faf6136 introduced a regression disabling the SBS battery
-manager. The battery manager should be marked as present when
-acpi_manager_get_info returns 0.
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Beha=
+lf Of
+> Dan Williams
+> Sent: Friday, April 17, 2015 8:35 PM
+> To: linux-nvdimm@lists.01.org
+> Subject: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsy=
+stem
+>=20
+=2E..
+>  create mode 100644 drivers/block/nd/acpi.c
+>  create mode 100644 drivers/block/nd/blk.c
+>  create mode 100644 drivers/block/nd/bus.c
+>  create mode 100644 drivers/block/nd/core.c
+=2E..
 
-Signed-off-by: Chris Bainbridge <chris.bainbridge@gmail.com>
----
- drivers/acpi/sbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The kernel already has lots of files with these names:
+ 5 acpi.c
+10 bus.c
+66 core.c
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index cd82762..01504c8 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -684,7 +684,7 @@ static int acpi_sbs_add(struct acpi_device *device)
- 	if (!sbs_manager_broken) {
- 		result = acpi_manager_get_info(sbs);
- 		if (!result) {
--			sbs->manager_present = 0;
-+			sbs->manager_present = 1;
- 			for (id = 0; id < MAX_SBS_BAT; ++id)
- 				if ((sbs->batteries_supported & (1 << id)))
- 					acpi_battery_add(sbs, id);
--- 
-2.1.4
+I often use ctags like this:
+	vim -t core.c
+but that doesn=92t immediately work with common filenames - it=20
+presents a list of all 66 files to choose from.
 
+Also, blk.c is a name one might expect to see in the block/=20
+directory (e.g., next to blk.h).
+
+An nd_ prefix on all the filenames would help.
