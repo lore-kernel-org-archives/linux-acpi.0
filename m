@@ -1,53 +1,52 @@
 From: Kast Bernd <kastbernd@gmx.de>
-Subject: [RFC 1/2] ACPI: activate&export acpi_os_get_physical_address
-Date: Wed, 22 Apr 2015 16:12:24 +0200
-Message-ID: <f14ffb9df15cdf617bb4ccae575a9787866675c8.1429653764.git.kastbernd@gmx.de>
-References: <cover.1429653764.git.kastbernd@gmx.de>
+Subject: [RFC 0/2] asus notebook fan control
+Date: Wed, 22 Apr 2015 16:12:26 +0200
+Message-ID: <cover.1429653764.git.kastbernd@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:58473 "EHLO mout.gmx.net"
+Received: from mout.gmx.net ([212.227.17.22]:50117 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757161AbbDVOMc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1757232AbbDVOMc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Wed, 22 Apr 2015 10:12:32 -0400
 Content-Disposition: inline
-In-Reply-To: <cover.1429653764.git.kastbernd@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: corentin.chary@gmail.com
 Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dvhart@infradead.org, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
-acpi_os_get_physical_address will be needed by an acpi driver (asus-wmi.c).
-Additionally it could  be used by dell-laptop.c instead of directly calling virt_to_phys.
+Hello,
 
-acpi_os_get_physical_address gets exported and ACPI_FUTURE_USAGE is removed
+This patchset implements a fan control for asus notebooks.
+It's based on Felipe Contreras' patch
+(https://lkml.org/lkml/2013/10/8/800), that was proposed one and a half
+year ago, but never made it to the kernel, because of the use of
+"virt_to_phys".
+This problem is solved by using the acpi internal function that is
+activated by the first patch (ACPI_FUTURE_USAGE is removed).
+The second patch implements the actual fan control functions, with a
+similar logic than Felipe, but using hwmon instead of the thermal
+interface and some bugs removed.
 
-Signed-off-by: Kast Bernd <kastbernd@gmx.de>
----
- drivers/acpi/osl.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This patchset contains the following 2 patches:
+0001-ACPI-activate-export-acpi_os_get_physical_address.patch
+0002-asus-wmi-add-fan-control.patch
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index f9eeae8..566e6ad 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -524,7 +524,6 @@ void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
- }
- EXPORT_SYMBOL(acpi_os_unmap_generic_address);
- 
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
- acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
- {
-@@ -535,7 +534,7 @@ acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
- 
- 	return AE_OK;
- }
--#endif
-+EXPORT_SYMBOL(acpi_os_get_physical_address);
- 
- #define ACPI_MAX_OVERRIDE_LEN 100
- 
+This is my first kernel patch. I tried to respect all style rules and
+implement it properly. I couldn't find any try to fix the old patch in
+recent time, thus I wrote this new patch.
+
+I would appreciate any kind of feedback to get this patch upstream.
+
+
+Kast Bernd (2):
+  ACPI: activate&export acpi_os_get_physical_address
+  asus-wmi: add fan control
+
+ drivers/acpi/osl.c              |   3 +-
+ drivers/platform/x86/asus-wmi.c | 297 +++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 278 insertions(+), 22 deletions(-)
+
 -- 
 2.3.5
 
