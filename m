@@ -1,74 +1,60 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
-Date: Thu, 23 Apr 2015 07:43:27 +0200
-Message-ID: <20150423054327.GA28898@gmail.com>
-References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
- <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Thu, 23 Apr 2015 10:39:58 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1504231038470.3695@pobox.suse.cz>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de> <1427448178-20689-6-git-send-email-bp@alien8.de> <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz> <20150401134913.GB18523@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:33106 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522AbbDWFnd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2015 01:43:33 -0400
-Content-Disposition: inline
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
+Received: from cantor2.suse.de ([195.135.220.15]:41052 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756497AbbDWIkD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Apr 2015 04:40:03 -0400
+In-Reply-To: <20150401134913.GB18523@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Borislav Petkov <bp@suse.de>
+Cc: linux-edac <linux-edac@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
 
+On Wed, 1 Apr 2015, Borislav Petkov wrote:
 
-* Elliott, Robert (Server Storage) <Elliott@hp.com> wrote:
+> > > From: Jiri Kosina <jkosina@suse.cz>
+> > > 
+> > > Since GHES sources are global, we theoretically need only a single CPU
+> > > reading them per NMI instead of a thundering herd of CPUs waiting on a
+> > > spinlock in NMI context for no reason at all.
+> > 
+> > I originally wasn't 100% sure whether GHES sources are global (i.e. if it 
+> > really doesn't matter which CPU is reading the registers), but looking at 
+> > the code more it actually seems that this is really the right thing to do.
+> > 
+> > Rationale: ghes_ioremap_pfn_nmi() always ioremaps() (exclusively) the page 
+> > with the registers, performs apei_read() (which is ghes-source specific, 
+> > but not CPU-specific) and unmaps the page again.
+> > 
+> > There is nothing that would make this CPU-specific. Adding Huang Ying (the 
+> > original author of the code) to confirm this. Huang?
+> > 
+> > > Do that.
+> > 
+> > I think this should indeed be pushed forward. It fixes horrible spinlock 
+> > contention on systems which are under NMI storm (such as when perf is 
+> > active) unrelated to GHES.
+> 
+> Right, so I tested injecting an error without your patch and same
+> behavior. So it all points at global sources AFAICT. It would be cool,
+> though, if someone who knows the fw confirms unambiguously.
 
-> > -----Original Message-----
-> > From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Be=
-half Of
-> > Dan Williams
-> > Sent: Friday, April 17, 2015 8:35 PM
-> > To: linux-nvdimm@lists.01.org
-> > Subject: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Sub=
-system
-> >=20
-> ...
-> >  create mode 100644 drivers/block/nd/acpi.c
-> >  create mode 100644 drivers/block/nd/blk.c
-> >  create mode 100644 drivers/block/nd/bus.c
-> >  create mode 100644 drivers/block/nd/core.c
-> ...
->=20
-> The kernel already has lots of files with these names:
->  5 acpi.c
-> 10 bus.c
-> 66 core.c
->=20
-> I often use ctags like this:
-> 	vim -t core.c
-> but that doesn=E2=80=99t immediately work with common filenames - it=20
-> presents a list of all 66 files to choose from.
->=20
-> Also, blk.c is a name one might expect to see in the block/=20
-> directory (e.g., next to blk.h).
->=20
-> An nd_ prefix on all the filenames would help.
+Three weeks have passed, therefore I find this an appropriate time for a 
+friendly ping :)
 
-It's really stupid to duplicate information that is present in the=20
-pathname.
+Rafael? Naoya? Huang?
 
-To type:
-
-  vim -t nd/core.c
-
-should be the same as:
-
-  vim -t nd_core.c
+This fixes a contention spinlock problem in NMI observed on a real HW, so 
+it would be really nice to have it fixed.
 
 Thanks,
 
-	Ingo
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jiri Kosina
+SUSE Labs
