@@ -1,320 +1,43 @@
-From: Feng Kan <fkan@apm.com>
-Subject: [PATCH V2 1/4] mailbox: add support for APM X-Gene platform mailbox driver
-Date: Wed, 22 Apr 2015 15:18:42 -0700
-Message-ID: <1429741125-29156-2-git-send-email-fkan@apm.com>
-References: <1429741125-29156-1-git-send-email-fkan@apm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1429741125-29156-1-git-send-email-fkan@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: patches@apm.com, jassisinghbrar@gmail.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Feng Kan <fkan@apm.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: [PATCH] ACPI / blacklist:  blacklist Win8 OSI for Dell Inspiron 7437
+Date: Thu, 23 Apr 2015 11:24:35 +0800
+Message-ID: <1429759476-13186-1-git-send-email-alex.hung@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:38895 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932246AbbDWDYp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2015 23:24:45 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
 
-Add support for APM X-Gene platform mailbox driver.
+Dell Inspiron 7437's ACPI events does not work well with Win8 OSI.
+Disabling Win8 OSI can fix wireless hotkey and ACPI battery.
 
-Signed-off-by: Feng Kan <fkan@apm.com>
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
 ---
- drivers/mailbox/Kconfig                 |  10 ++
- drivers/mailbox/Makefile                |   2 +
- drivers/mailbox/mailbox-xgene-slimpro.c | 261 ++++++++++++++++++++++++++++++++
- 3 files changed, 273 insertions(+)
- create mode 100644 drivers/mailbox/mailbox-xgene-slimpro.c
+ drivers/acpi/blacklist.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index 84b0a2d..64120cc 100644
---- a/drivers/mailbox/Kconfig
-+++ b/drivers/mailbox/Kconfig
-@@ -60,4 +60,14 @@ config ALTERA_MBOX
- 	  An implementation of the Altera Mailbox soft core. It is used
- 	  to send message between processors. Say Y here if you want to use the
- 	  Altera mailbox support.
-+
-+config XGENE_SLIMPRO_MBOX
-+	tristate "APM SoC X-Gene SLIMpro Mailbox Controller"
-+	depends on ARCH_XGENE
-+	help
-+	  An implementation of the APM X-Gene Interprocessor Communication
-+	  Mailbox (IPCM) between the ARM 64-bit cores and SLIMpro controller.
-+	  It is used to send short messages between ARM64-bit cores and
-+	  the SLIMpro Management Engine, primarily for PM. Say Y here if you
-+	  want to use the APM X-Gene SLIMpro IPCM support.
- endif
-diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
-index b18201e..1e0bed5 100644
---- a/drivers/mailbox/Makefile
-+++ b/drivers/mailbox/Makefile
-@@ -11,3 +11,5 @@ obj-$(CONFIG_OMAP2PLUS_MBOX)	+= omap-mailbox.o
- obj-$(CONFIG_PCC)		+= pcc.o
- 
- obj-$(CONFIG_ALTERA_MBOX)	+= mailbox-altera.o
-+
-+obj-$(CONFIG_XGENE_SLIMPRO_MBOX) += mailbox-xgene-slimpro.o
-diff --git a/drivers/mailbox/mailbox-xgene-slimpro.c b/drivers/mailbox/mailbox-xgene-slimpro.c
-new file mode 100644
-index 0000000..49370e5
---- /dev/null
-+++ b/drivers/mailbox/mailbox-xgene-slimpro.c
-@@ -0,0 +1,261 @@
-+/*
-+ * APM X-Gene SLIMpro MailBox Driver
-+ *
-+ * Copyright (c) 2014, Applied Micro Circuits Corporation
-+ * Author: Feng Kan fkan@apm.com
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of
-+ * the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ */
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/mailbox_controller.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
-+
-+#define MBOX_CON_NAME			"slimpro-mbox"
-+#define MBOX_REG_SET_OFFSET		0x1000
-+#define MBOX_CNT			8
-+#define MBOX_STATUS_AVAIL_MASK		BIT(16)
-+#define MBOX_STATUS_ACK_MASK		BIT(0)
-+
-+/* Configuration and Status Registers */
-+#define REG_DB_IN		0x00
-+#define REG_DB_DIN0		0x04
-+#define REG_DB_DIN1		0x08
-+#define REG_DB_OUT		0x10
-+#define REG_DB_DOUT0		0x14
-+#define REG_DB_DOUT1		0x18
-+#define REG_DB_STAT		0x20
-+#define REG_DB_STATMASK		0x24
-+
-+struct slimpro_mbox_chan {
-+	struct device *dev;
-+	struct mbox_chan *chan;
-+	void __iomem *reg;
-+	int id;
-+	int irq;
-+	u32 rx_msg[3];
-+};
-+
-+struct slimpro_mbox {
-+	struct mbox_controller mb_ctrl;
-+	struct slimpro_mbox_chan mc[MBOX_CNT];
-+	struct mbox_chan chans[MBOX_CNT];
-+};
-+
-+static inline void mb_chan_send_msg(struct slimpro_mbox_chan *mb_chan, u32 *msg)
-+{
-+	writel(msg[1], mb_chan->reg + REG_DB_DOUT0);
-+	writel(msg[2], mb_chan->reg + REG_DB_DOUT1);
-+	writel(msg[0], mb_chan->reg + REG_DB_OUT);
-+}
-+
-+static inline void mb_chan_recv_msg(struct slimpro_mbox_chan *mb_chan)
-+{
-+	mb_chan->rx_msg[1] = readl(mb_chan->reg + REG_DB_DIN0);
-+	mb_chan->rx_msg[2] = readl(mb_chan->reg + REG_DB_DIN1);
-+	mb_chan->rx_msg[0] = readl(mb_chan->reg + REG_DB_IN);
-+}
-+
-+static void mb_chan_enable_int(struct slimpro_mbox_chan *mb_chan, u32 mask)
-+{
-+	u32 val = readl(mb_chan->reg + REG_DB_STATMASK);
-+
-+	val &= ~mask;
-+
-+	writel(val, mb_chan->reg + REG_DB_STATMASK);
-+}
-+
-+static void mb_chan_disable_int(struct slimpro_mbox_chan *mb_chan, u32 mask)
-+{
-+	u32 val = readl(mb_chan->reg + REG_DB_STATMASK);
-+
-+	val |= mask;
-+
-+	writel(val, mb_chan->reg + REG_DB_STATMASK);
-+}
-+
-+static int mb_chan_status_ack(struct slimpro_mbox_chan *mb_chan)
-+{
-+	u32 val = readl(mb_chan->reg + REG_DB_STAT);
-+
-+	if (val & MBOX_STATUS_ACK_MASK) {
-+		writel(MBOX_STATUS_ACK_MASK, mb_chan->reg + REG_DB_STAT);
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+static int mb_chan_status_avail(struct slimpro_mbox_chan *mb_chan)
-+{
-+	u32 val = readl(mb_chan->reg + REG_DB_STAT);
-+
-+	if (val & MBOX_STATUS_AVAIL_MASK) {
-+		mb_chan_recv_msg(mb_chan);
-+		writel(MBOX_STATUS_AVAIL_MASK, mb_chan->reg + REG_DB_STAT);
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+static irqreturn_t slimpro_mbox_irq(int irq, void *id)
-+{
-+	struct slimpro_mbox_chan *mb_chan = id;
-+
-+	if (mb_chan_status_ack(mb_chan))
-+		mbox_chan_txdone(mb_chan->chan, 0);
-+
-+	if (mb_chan_status_avail(mb_chan))
-+		mbox_chan_received_data(mb_chan->chan, mb_chan->rx_msg);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int slimpro_mbox_send_data(struct mbox_chan *chan, void *msg)
-+{
-+	struct slimpro_mbox_chan *mb_chan =
-+				(struct slimpro_mbox_chan *)chan->con_priv;
-+
-+	mb_chan_send_msg(mb_chan, msg);
-+	return 0;
-+}
-+
-+static int slimpro_mbox_startup(struct mbox_chan *chan)
-+{
-+	struct slimpro_mbox_chan *mb_chan =
-+				(struct slimpro_mbox_chan *)chan->con_priv;
-+	int rc;
-+
-+	rc = devm_request_irq(mb_chan->dev, mb_chan->irq, slimpro_mbox_irq, 0,
-+			      MBOX_CON_NAME, mb_chan);
-+	if (unlikely(rc)) {
-+		dev_err(mb_chan->dev, "failed to register mailbox interrupt %d\n",
-+			mb_chan->irq);
-+		return rc;
-+	}
-+
-+	/* Enable HW interrupt */
-+	writel(MBOX_STATUS_ACK_MASK | MBOX_STATUS_AVAIL_MASK,
-+	       mb_chan->reg + REG_DB_STAT);
-+	mb_chan_enable_int(mb_chan, MBOX_STATUS_ACK_MASK |
-+					MBOX_STATUS_AVAIL_MASK);
-+	return 0;
-+}
-+
-+static void slimpro_mbox_shutdown(struct mbox_chan *chan)
-+{
-+	struct slimpro_mbox_chan *mb_chan =
-+				(struct slimpro_mbox_chan *)chan->con_priv;
-+
-+	mb_chan_disable_int(mb_chan, MBOX_STATUS_ACK_MASK |
-+				  MBOX_STATUS_AVAIL_MASK);
-+	devm_free_irq(mb_chan->dev, mb_chan->irq, mb_chan);
-+}
-+
-+static struct mbox_chan_ops slimpro_mbox_ops = {
-+	.send_data = slimpro_mbox_send_data,
-+	.startup = slimpro_mbox_startup,
-+	.shutdown = slimpro_mbox_shutdown,
-+};
-+
-+static int __init slimpro_mbox_probe(struct platform_device *pdev)
-+{
-+	struct slimpro_mbox *ctx;
-+	struct resource *regs;
-+	void __iomem *mb_base;
-+	int rc;
-+	int i;
-+
-+	ctx = devm_kzalloc(&pdev->dev, sizeof(struct slimpro_mbox), GFP_KERNEL);
-+	if (IS_ERR(ctx))
-+		return PTR_ERR(ctx);
-+
-+	platform_set_drvdata(pdev, ctx);
-+
-+	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	mb_base = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
-+	if (IS_ERR(mb_base))
-+		return PTR_ERR(mb_base);
-+
-+	/* Setup mailbox links */
-+	for (i = 0; i < MBOX_CNT; i++) {
-+		ctx->mc[i].irq = platform_get_irq(pdev, i);
-+		if (ctx->mc[i].irq < 0) {
-+			dev_err(&pdev->dev, "no IRQ at index %d\n",
-+				ctx->mc[i].irq);
-+			return -ENODEV;
-+		}
-+
-+		ctx->mc[i].dev = &pdev->dev;
-+		ctx->mc[i].reg = mb_base + i * MBOX_REG_SET_OFFSET;
-+		ctx->mc[i].id = i;
-+		ctx->mc[i].chan = &ctx->chans[i];
-+		ctx->chans[i].con_priv = &ctx->mc[i];
-+	}
-+
-+	/* Setup mailbox controller */
-+	ctx->mb_ctrl.dev = &pdev->dev;
-+	ctx->mb_ctrl.chans = ctx->chans;
-+	ctx->mb_ctrl.txdone_irq = true;
-+	ctx->mb_ctrl.ops = &slimpro_mbox_ops;
-+	ctx->mb_ctrl.num_chans = MBOX_CNT;
-+
-+	rc = mbox_controller_register(&ctx->mb_ctrl);
-+	if (rc) {
-+		dev_err(&pdev->dev,
-+			"APM X-Gene SLIMpro MailBox register failed:%d\n", rc);
-+		return rc;
-+	}
-+
-+	dev_info(&pdev->dev, "APM X-Gene SLIMpro MailBox registered\n");
-+	return 0;
-+}
-+
-+static int slimpro_mbox_remove(struct platform_device *pdev)
-+{
-+	struct slimpro_mbox *smb = platform_get_drvdata(pdev);
-+
-+	mbox_controller_unregister(&smb->mb_ctrl);
-+	return 0;
-+}
-+
-+static const struct of_device_id slimpro_of_match[] = {
-+	{.compatible = "apm,xgene-slimpro-mbox" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, slimpro_of_match);
-+
-+static struct platform_driver slimpro_mbox_driver = {
-+	.probe	= slimpro_mbox_probe,
-+	.remove = slimpro_mbox_remove,
-+	.driver	= {
-+		.name = "xgene-slimpro-mbox",
-+		.owner = THIS_MODULE,
-+		.of_match_table = of_match_ptr(slimpro_of_match),
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 37925a3..e2db565 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -306,6 +306,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3546"),
+ 		},
+ 	},
++	{
++	.callback = dmi_disable_osi_win8,
++	.ident = "Dell Inspiron 7437",
++	.matches = {
++		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7437"),
++		},
 +	},
-+};
-+
-+static int __init slimpro_mbox_init(void)
-+{
-+	return platform_driver_register(&slimpro_mbox_driver);
-+}
-+
-+subsys_initcall(slimpro_mbox_init);
-+
-+MODULE_DESCRIPTION("APM X-Gene SLIMpro Mailbox Driver");
-+MODULE_LICENSE("GPL");
+ 
+ 	/*
+ 	 * The brightness hotkeys do not work on those machines when
 -- 
-1.9.1
+1.7.9.5
+
