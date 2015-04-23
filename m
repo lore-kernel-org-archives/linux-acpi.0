@@ -1,43 +1,74 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: [PATCH] ACPI / blacklist:  blacklist Win8 OSI for Dell Inspiron 7437
-Date: Thu, 23 Apr 2015 11:24:35 +0800
-Message-ID: <1429759476-13186-1-git-send-email-alex.hung@canonical.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Subsystem
+Date: Thu, 23 Apr 2015 07:43:27 +0200
+Message-ID: <20150423054327.GA28898@gmail.com>
+References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38895 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932246AbbDWDYp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Apr 2015 23:24:45 -0400
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:33106 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522AbbDWFnd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2015 01:43:33 -0400
+Content-Disposition: inline
+In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A8BE846@G9W0745.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
+To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Dell Inspiron 7437's ACPI events does not work well with Win8 OSI.
-Disabling Win8 OSI can fix wireless hotkey and ACPI battery.
 
-Signed-off-by: Alex Hung <alex.hung@canonical.com>
----
- drivers/acpi/blacklist.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+* Elliott, Robert (Server Storage) <Elliott@hp.com> wrote:
 
-diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
-index 37925a3..e2db565 100644
---- a/drivers/acpi/blacklist.c
-+++ b/drivers/acpi/blacklist.c
-@@ -306,6 +306,14 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 		    DMI_MATCH(DMI_PRODUCT_NAME, "Vostro 3546"),
- 		},
- 	},
-+	{
-+	.callback = dmi_disable_osi_win8,
-+	.ident = "Dell Inspiron 7437",
-+	.matches = {
-+		    DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		    DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 7437"),
-+		},
-+	},
- 
- 	/*
- 	 * The brightness hotkeys do not work on those machines when
--- 
-1.7.9.5
+> > -----Original Message-----
+> > From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Be=
+half Of
+> > Dan Williams
+> > Sent: Friday, April 17, 2015 8:35 PM
+> > To: linux-nvdimm@lists.01.org
+> > Subject: [Linux-nvdimm] [PATCH 00/21] ND: NFIT-Defined / NVDIMM Sub=
+system
+> >=20
+> ...
+> >  create mode 100644 drivers/block/nd/acpi.c
+> >  create mode 100644 drivers/block/nd/blk.c
+> >  create mode 100644 drivers/block/nd/bus.c
+> >  create mode 100644 drivers/block/nd/core.c
+> ...
+>=20
+> The kernel already has lots of files with these names:
+>  5 acpi.c
+> 10 bus.c
+> 66 core.c
+>=20
+> I often use ctags like this:
+> 	vim -t core.c
+> but that doesn=E2=80=99t immediately work with common filenames - it=20
+> presents a list of all 66 files to choose from.
+>=20
+> Also, blk.c is a name one might expect to see in the block/=20
+> directory (e.g., next to blk.h).
+>=20
+> An nd_ prefix on all the filenames would help.
 
+It's really stupid to duplicate information that is present in the=20
+pathname.
+
+To type:
+
+  vim -t nd/core.c
+
+should be the same as:
+
+  vim -t nd_core.c
+
+Thanks,
+
+	Ingo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
