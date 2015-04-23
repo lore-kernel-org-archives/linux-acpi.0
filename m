@@ -1,215 +1,141 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: [GIT PULL] ACPI for arm64
-Date: Thu, 23 Apr 2015 11:38:57 +0100
-Message-ID: <20150423103857.GC1652@arm.com>
+From: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [V8 PATCH 0/3] Introduce ACPI support for ahci_platform driver
+Date: Thu, 23 Apr 2015 16:32:25 +0000
+Message-ID: <D15E87A6.198EE%suravee.suthikulpanit@amd.com>
+References: <5522AA0F.8000008@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50848 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933398AbbDWKjE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Apr 2015 06:39:04 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5522AA0F.8000008@amd.com>
+Content-Language: en-US
+Content-ID: <95F9E17AAE07DD49A277AB6504D5AA13@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, linux-acpi@vger.kernel.org, grant.likely@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, msalter@redhat.com
 
-Hi Linus,
+Mika/Rafael, 
 
-ACPI for arm64 has been in development for a while now and hardware has
-been available that can boot with either FDT or ACPI tables. This has
-been made possible by both changes to the ACPI spec to cater for
-ARM-based machines (known as "hardware-reduced" in ACPI parlance) but
-also a Linaro-driven effort to get this supported on top of the Linux
-kernel. This pull request is the result of that work.
-
-These changes allow us to initialise the CPUs, interrupt controller, and
-timers via ACPI tables, with memory information and cmdline coming from
-EFI. We don't support a hybrid ACPI/FDT scheme. Of course, there is
-still plenty of work to do (a serial console would be nice!) but I
-expect that to happen on a per-driver basis after this core series has
-been merged.
-
-Anyway, the diff stat here is fairly horrible, but splitting this up and
-merging it via all the different subsystems would have been extremely
-painful. Instead, we've got all the relevant Acks in place and I've not
-seen anything other than trivial (Kconfig) conflicts in -next (for
-completeness, I've included my resolution below). Nearly half of the
-insertions fall under Documentation/.
-
-So, we'll see how this goes. Right now, it all depends on EXPERT and I
-fully expect people to use FDT by default for the immediate future.
-
-Please pull.
+If there are no other concerns about this patch series, do you think this
+ready to be pushed to linux-next tree along with the rest of the ARM64
+ACPI patch series from Linaro?
 
 Thanks,
 
-Will
+Suravee
 
---->8
+On 4/6/15, 10:45, "Suravee Suthikulanit" <suravee.suthikulpanit@amd.com>
+wrote:
 
-diff --cc arch/arm64/Kconfig
-index b8d96f1554af,0659db374731..baf212797d0e
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@@ -1,7 -1,9 +1,9 @@@
-  config ARM64
-  	def_bool y
-+ 	select ACPI_GENERIC_GSI if ACPI
-+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
- -	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
-  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- +	select ARCH_HAS_ELF_RANDOMIZE
-  	select ARCH_HAS_GCOV_PROFILE_ALL
-  	select ARCH_HAS_SG_CHAIN
-  	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
-diff --cc drivers/xen/Kconfig
-index a270004c9605,a31cd29b68a8..7cd226da15fe
---- a/drivers/xen/Kconfig
-+++ b/drivers/xen/Kconfig
-@@@ -270,10 -253,8 +270,14 @@@ config XEN_EF
-  	def_bool y
-  	depends on X86_64 && EFI
-  
- +config XEN_AUTO_XLATE
- +	def_bool y
- +	depends on ARM || ARM64 || XEN_PVHVM
- +	help
- +	  Support for auto-translated physmap guests.
- +
-+ config XEN_ACPI
-+ 	def_bool y
-+ 	depends on X86 && ACPI
-+ 
-  endmenu
-
---->8
-
-The following changes since commit 06e5801b8cb3fc057d88cb4dc03c0b64b2744cda:
-
-  Linux 4.0-rc4 (2015-03-15 17:38:20 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git tags/arm64-upstream
-
-for you to fetch changes up to 7676fa70feb2f3bcdd4b854a553a57d8ef8505aa:
-
-  ARM64 / ACPI: make acpi_map_gic_cpu_interface() as void function (2015-03-31 16:31:00 +0100)
-
-----------------------------------------------------------------
-Initial ACPI support for arm64:
-
-This series introduces preliminary ACPI 5.1 support to the arm64 kernel
-using the "hardware reduced" profile. We don't support any peripherals
-yet, so it's fairly limited in scope:
-
-- Memory init (UEFI)
-- ACPI discovery (RSDP via UEFI)
-- CPU init (FADT)
-- GIC init (MADT)
-- SMP boot (MADT + PSCI)
-- ACPI Kconfig options (dependent on EXPERT)
-
-----------------------------------------------------------------
-Al Stone (4):
-      ARM64 / ACPI: Get RSDP and ACPI boot-time tables
-      ARM64 / ACPI: Introduce early_param "acpi=" to enable/disable ACPI
-      ARM64 / ACPI: Select ACPI_REDUCED_HARDWARE_ONLY if ACPI is enabled on ARM64
-      ARM64 / ACPI: additions of ACPI documentation for arm64
-
-Catalin Marinas (1):
-      ACPI / processor: Introduce phys_cpuid_t for CPU hardware ID
-
-Graeme Gregory (6):
-      ACPI: add arm64 to the platforms that use ioremap
-      ACPI / sleep: Introduce CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
-      ARM64 / ACPI: If we chose to boot from acpi then disable FDT
-      ARM64 / ACPI: Get PSCI flags in FADT for PSCI init
-      ARM64 / ACPI: Enable ARM64 in Kconfig
-      Documentation: ACPI for ARM64
-
-Hanjun Guo (11):
-      ACPI / table: Use pr_debug() instead of pr_info() for MADT table scanning
-      ARM64 / ACPI: Introduce PCI stub functions for ACPI
-      ACPI / table: Print GIC information when MADT is parsed
-      ARM64 / ACPI: Parse MADT for SMP initialization
-      ACPI / processor: Make it possible to get CPU hardware ID via GICC
-      ARM64 / ACPI: Introduce ACPI_IRQ_MODEL_GIC and register device's gsi
-      clocksource / arch_timer: Parse GTDT to initialize arch timer
-      XEN / ACPI: Make XEN ACPI depend on X86
-      ARM64 / ACPI: Don't unflatten device tree if acpi=force is passed
-      ARM64 / ACPI: Ignore the return error value of acpi_map_gic_cpu_interface()
-      ARM64 / ACPI: make acpi_map_gic_cpu_interface() as void function
-
-Lorenzo Pieralisi (5):
-      ACPI: move arm64 GSI IRQ model to generic GSI IRQ layer
-      ARM64: kernel: psci: factor out probe function
-      ARM64: kernel: psci: let ACPI probe PSCI version
-      ARM64: kernel: acpi: refactor ACPI tables init and checks
-      ARM64: kernel: acpi: honour acpi=force command line parameter
-
-Mark Salter (2):
-      ARM64: allow late use of early_ioremap
-      ACPI: fix acpi_os_ioremap for arm64
-
-Tomasz Nowicki (1):
-      irqchip: Add GICv2 specific ACPI boot support
-
-Will Deacon (1):
-      ARM64 / ACPI: fix usage of acpi_map_gic_cpu_interface
-
- Documentation/arm64/acpi_object_usage.txt | 593 ++++++++++++++++++++++++++++++
- Documentation/arm64/arm-acpi.txt          | 505 +++++++++++++++++++++++++
- Documentation/kernel-parameters.txt       |   3 +-
- arch/arm64/Kconfig                        |   4 +
- arch/arm64/include/asm/acenv.h            |  18 +
- arch/arm64/include/asm/acpi.h             |  96 +++++
- arch/arm64/include/asm/cpu_ops.h          |   1 +
- arch/arm64/include/asm/fixmap.h           |   3 +
- arch/arm64/include/asm/irq.h              |  13 +
- arch/arm64/include/asm/pci.h              |   6 +
- arch/arm64/include/asm/psci.h             |   3 +-
- arch/arm64/include/asm/smp.h              |   5 +-
- arch/arm64/kernel/Makefile                |   1 +
- arch/arm64/kernel/acpi.c                  | 345 +++++++++++++++++
- arch/arm64/kernel/cpu_ops.c               |   2 +-
- arch/arm64/kernel/pci.c                   |  25 ++
- arch/arm64/kernel/psci.c                  | 112 ++++--
- arch/arm64/kernel/setup.c                 |  21 +-
- arch/arm64/kernel/smp.c                   |   2 +-
- arch/arm64/kernel/time.c                  |   7 +
- arch/ia64/Kconfig                         |   1 +
- arch/ia64/kernel/acpi.c                   |   2 +-
- arch/x86/Kconfig                          |   1 +
- arch/x86/kernel/acpi/boot.c               |   2 +-
- drivers/acpi/Kconfig                      |  10 +-
- drivers/acpi/Makefile                     |   3 +-
- drivers/acpi/acpi_processor.c             |   7 +-
- drivers/acpi/bus.c                        |   3 +
- drivers/acpi/gsi.c                        | 105 ++++++
- drivers/acpi/internal.h                   |   4 +
- drivers/acpi/osl.c                        |   6 +-
- drivers/acpi/processor_core.c             |  60 ++-
- drivers/acpi/tables.c                     |  52 ++-
- drivers/clocksource/arm_arch_timer.c      | 132 +++++--
- drivers/irqchip/irq-gic.c                 | 104 ++++++
- drivers/irqchip/irqchip.c                 |   3 +
- drivers/xen/Kconfig                       |   4 +
- drivers/xen/Makefile                      |   2 +-
- include/acpi/acpi_io.h                    |   4 +
- include/acpi/processor.h                  |   6 +-
- include/linux/acpi.h                      |   8 +-
- include/linux/acpi_irq.h                  |  10 +
- include/linux/clocksource.h               |   6 +
- include/linux/irqchip/arm-gic-acpi.h      |  31 ++
- 44 files changed, 2216 insertions(+), 115 deletions(-)
- create mode 100644 Documentation/arm64/acpi_object_usage.txt
- create mode 100644 Documentation/arm64/arm-acpi.txt
- create mode 100644 arch/arm64/include/asm/acenv.h
- create mode 100644 arch/arm64/include/asm/acpi.h
- create mode 100644 arch/arm64/kernel/acpi.c
- create mode 100644 drivers/acpi/gsi.c
- create mode 100644 include/linux/acpi_irq.h
- create mode 100644 include/linux/irqchip/arm-gic-acpi.h
+>Ping.
+>
+>Are there any other concerns for this patch series?
+>
+>Thanks,
+>
+>Suravee
+>
+>On 3/30/2015 4:56 PM, Suravee Suthikulpanit wrote:
+>> This patch series introduce ACPI support for AHCI platform driver.
+>> Existing ACPI support for AHCI assumes the device controller is a PCI
+>>device.
+>> Since there is no ACPI _CID for generic AHCI controller, the driver
+>> could not use it for matching devices. Therefore, this patch introduces
+>> a mechanism for drivers to match devices using ACPI _CLS method.
+>> _CLS contains PCI-defined class-code.
+>>
+>> This patch series also modifies ACPI modalias to add class-code to the
+>> exisiting format, which currently only uses _HID and _CIDs. This is
+>>required
+>> to support loadable modules w/ _CLS.
+>>
+>> This is rebased from and tested with:
+>>
+>>      http://git.linaro.org/leg/acpi/acpi.git acpi-5.1-v11
+>>
+>> This topic was discussed earlier here (as part of introducing support
+>>for
+>> AMD Seattle SATA controller):
+>>
+>>      http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
+>>
+>> Changes from V7 (https://lkml.org/lkml/2015/3/26/592)
+>> 	* [1/3] Return AE_AML_OPERAND_TYPE when _CLS package containing
+>> 	  invalid type (per Robert Moore suggestion).
+>> 	* [2/3] Fixed build error due missing ACPI_DEVICE_CLASS definition
+>> 	  when disabling ACPI.
+>>
+>> Changes from V6 (https://lkml.org/lkml/2015/3/25/797)
+>> 	* Adding Acked-by Mika, and Reviewed-by Hanjun
+>> 	* Minor clen up to use lower case 0xffffff for cls_msk
+>> 	  (per Mika suggestions).
+>> 	* Modify the ACPI_DEVICE_CLASS macro to use designated initializer
+>> 	  (per Mika suggestions).
+>>
+>> Changes from V5 (https://lkml.org/lkml/2015/3/6/24)
+>> 	* Rebased and tested with acpi-5.1-v11
+>> 	* Splitting up the ACPICA changes into a separate patch [1/3].
+>> 	  (per Mika suggestion)
+>> 	* Adding class-code mask support (per Mika suggestion)
+>> 	* Use macro to define struct acpi_device_id entry (per Mika suggestion)
+>> 	* Note: Mika also recommend reordering the member of struct
+>>acpi_device_id
+>> 	  and define a macro to be used for declaring each table entry. This
+>>is a
+>> 	  large amount of changes, and will be done separtely from this patch
+>>series.
+>>
+>> Changes from V4 (https://lkml.org/lkml/2015/3/2/56)
+>> 	* [1/2] Bug fixed: Reorder the declaration of
+>> 	  struct acpi_pnp_device_id cls in the struct acpi_device_info
+>> 	  (include/acpi/actypes.h) since compatible_id_list must be last one.
+>> 	* [2/2] Added Acked-by: Tejun Heo <tj@kernel.org>
+>>
+>> Changes from V3 (https://lkml.org/lkml/2015/2/8/106)
+>> 	* Instead of introducing new structure acpi_device_cls, add cls into
+>> 	  the acpi_device_id, and modify the __acpi_match_device
+>> 	  to also match for cls. (per Mika suggestion.)
+>> 	* Add loadable module support, which requires changes in ACPI
+>> 	  modalias. (per Mika suggestion.)
+>> 	* Rebased and tested with acpi-5.1-v9
+>>
+>> Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
+>> 	* Update with review comment from Rafael in patch 1/2
+>> 	* Rebased and tested with acpi-5.1-v8
+>>
+>> Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
+>> 	* Rebased to 3.19.0-rc2
+>> 	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun
+>>comment)
+>> 	* Change the matching logic in acpi_driver_match_device() due to the
+>>new
+>> 	  special PRP0001 _HID.
+>> 	* Simplify the return type of acpi_match_device_cls() to boolean.
+>>
+>> Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
+>> 	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
+>> 	  as inline. (per Arnd)
+>> 	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
+>>
+>> Suravee Suthikulpanit (3):
+>>    ACPICA: Add ACPI _CLS processing
+>>    ACPI / scan: Add support for ACPI _CLS device matching
+>>    ata: ahci_platform: Add ACPI _CLS matching
+>>
+>>   drivers/acpi/acpica/acutils.h     |  3 ++
+>>   drivers/acpi/acpica/nsxfname.c    | 21 +++++++++--
+>>   drivers/acpi/acpica/utids.c       | 73
+>>+++++++++++++++++++++++++++++++++++++++
+>>   drivers/acpi/scan.c               | 36 ++++++++++++++++---
+>>   drivers/ata/Kconfig               |  2 +-
+>>   drivers/ata/ahci_platform.c       |  9 +++++
+>>   include/acpi/acnames.h            |  1 +
+>>   include/acpi/actypes.h            |  4 ++-
+>>   include/linux/acpi.h              | 14 ++++++++
+>>   include/linux/mod_devicetable.h   |  2 ++
+>>   scripts/mod/devicetable-offsets.c |  2 ++
+>>   scripts/mod/file2alias.c          | 32 +++++++++++++++--
+>>   12 files changed, 189 insertions(+), 10 deletions(-)
+>>
+>
