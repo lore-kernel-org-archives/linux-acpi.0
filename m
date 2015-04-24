@@ -1,93 +1,39 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [RESEND RFC PATCH 2/2] gfp: use the best near online node if
- the target node is offline
-Date: Fri, 24 Apr 2015 13:01:53 -0700
-Message-ID: <20150424130153.f7b494f1533529651b2696c6@linux-foundation.org>
-References: <1429869513-2906-1-git-send-email-guz.fnst@cn.fujitsu.com>
-	<1429869513-2906-2-git-send-email-guz.fnst@cn.fujitsu.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [V8 PATCH 0/3] Introduce ACPI support for ahci_platform driver
+Date: Fri, 24 Apr 2015 15:46:00 -0500
+Message-ID: <553AAB88.3070108@amd.com>
+References: <D15E87A6.198EE%suravee.suthikulpanit@amd.com>
+ <1478598.GRG3QyNdDN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55456 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933628AbbDXUBy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2015 16:01:54 -0400
-In-Reply-To: <1429869513-2906-2-git-send-email-guz.fnst@cn.fujitsu.com>
+Received: from mail-bn1bon0148.outbound.protection.outlook.com ([157.56.111.148]:14362
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S966779AbbDXUqN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Apr 2015 16:46:13 -0400
+In-Reply-To: <1478598.GRG3QyNdDN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, tj@kernel.org, mingo@redhat.com, x86@kernel.org, rjw@rjwysocki.net, hpa@zytor.com, linux-acpi@vger.kernel.org, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, izumi.taku@jp.fujitsu.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Fri, 24 Apr 2015 17:58:33 +0800 Gu Zheng <guz.fnst@cn.fujitsu.com> wrote:
 
-> Since the change to the cpu <--> mapping (map the cpu to the physical
-> node for all possible at the boot), the node of cpu may be not present,
-> so we use the best near online node if the node is not present in the low
-> level allocation APIs.
-> 
-> ...
+
+On 4/23/15 12:02, Rafael J. Wysocki wrote:
+> On Thursday, April 23, 2015 04:32:25 PM Suthikulpanit, Suravee wrote:
+>> >Mika/Rafael,
+>> >
+>> >If there are no other concerns about this patch series, do you think this
+>> >ready to be pushed to linux-next tree along with the rest of the ARM64
+>> >ACPI patch series from Linaro?
+> There are concerns regarding patch [1/3] from Bob and Lv (please look at the
+> last message from Bob in this thread for details).
 >
-> --- a/include/linux/gfp.h
-> +++ b/include/linux/gfp.h
-> @@ -298,9 +298,31 @@ __alloc_pages(gfp_t gfp_mask, unsigned int order,
->  	return __alloc_pages_nodemask(gfp_mask, order, zonelist, NULL);
->  }
->  
-> +static int find_near_online_node(int node)
-> +{
-> +	int n, val;
-> +	int min_val = INT_MAX;
-> +	int best_node = -1;
-> +
-> +	for_each_online_node(n) {
-> +		val = node_distance(node, n);
-> +
-> +		if (val < min_val) {
-> +			min_val = val;
-> +			best_node = n;
-> +		}
-> +	}
-> +
-> +	return best_node;
-> +}
 
-This should be `inline' if it's in a header file.
+Sorry, I missed that email. I'll take a look and reply to that now.
 
-But it is far too large to be inlined anyway - please move it to a .c file.
+Thanks,
 
-And please document it.  A critical thing to describe is how we
-determine whether a node is "near".  There are presumably multiple ways
-in which we could decide that a node is "near" (number of hops, minimum
-latency, ...).  Which one did you choose, and why?
-
->  static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
->  						unsigned int order)
->  {
-> +	/* Offline node, use the best near online node */
-> +	if (!node_online(nid))
-> +		nid = find_near_online_node(nid);
-> +
->  	/* Unknown node is current node */
->  	if (nid < 0)
->  		nid = numa_node_id();
-> @@ -311,7 +333,11 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
->  static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
->  						unsigned int order)
->  {
-> -	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
-> +	/* Offline node, use the best near online node */
-> +	if (!node_online(nid))
-> +		nid = find_near_online_node(nid);
-> +
-> +	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
->  
->  	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
->  }
-
-Ouch.  These functions are called very frequently, and adding overhead
-to them is a big deal.  And the patch even adds overhead to non-x86
-architectures which don't benefit from it!
-
-Is there no way this problem can be fixed somewhere else?  Preferably
-by fixing things up at hotplug time.
+Suravee
