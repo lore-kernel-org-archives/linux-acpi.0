@@ -1,57 +1,69 @@
-From: Feng Kan <fkan@apm.com>
-Subject: [PATCH V4 2/4] i2c: busses: xgene: add acpi support for i2c xgene SLIMpro driver
-Date: Fri, 24 Apr 2015 10:11:31 -0700
-Message-ID: <1429895493-30176-3-git-send-email-fkan@apm.com>
-References: <1429895493-30176-1-git-send-email-fkan@apm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1429895493-30176-1-git-send-email-fkan@apm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: patches@apm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Feng Kan <fkan@apm.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Linux-nvdimm] [PATCH 08/21] nd: ndctl.h, the nd ioctl abi
+Date: Fri, 24 Apr 2015 11:18:01 -0600
+Message-ID: <1429895881.23761.16.camel@misato.fc.hp.com>
+References: <20150418013256.25237.96403.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150418013557.25237.81354.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <1429890991.16996.55.camel@misato.fc.hp.com>
+	 <CAPcyv4gCk-5yi0iF5O2+ydFsTnpoZ-JNadHbzaGn7Vg02tWNWA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g2t1383g.austin.hp.com ([15.217.136.92]:54293 "EHLO
+	g2t1383g.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966549AbbDXRgz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2015 13:36:55 -0400
+In-Reply-To: <CAPcyv4gCk-5yi0iF5O2+ydFsTnpoZ-JNadHbzaGn7Vg02tWNWA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This adds support for ACPI for the APM X-Gene I2C SLIMpro proxy
-driver.
+On Fri, 2015-04-24 at 09:25 -0700, Dan Williams wrote:
+> On Fri, Apr 24, 2015 at 8:56 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Fri, 2015-04-17 at 21:35 -0400, Dan Williams wrote:
+> >> Most configuration of the nd-subsystem is done via nd-sysfs.  However,
+> >> the NFIT specification defines a small set of messages that can be
+> >> passed to the subsystem via platform-firmware-defined methods.  The
+> >> command set (as of the current version of the NFIT-DSM spec) is:
+> >>
+> >>     NFIT_CMD_SMART: media health and diagnostics
+> >>     NFIT_CMD_GET_CONFIG_SIZE: size of the label space
+> >>     NFIT_CMD_GET_CONFIG_DATA: read label
+> >>     NFIT_CMD_SET_CONFIG_DATA: write label
+> >>     NFIT_CMD_VENDOR: vendor-specific command passthrough
+> >>     NFIT_CMD_ARS_CAP: report address-range-scrubbing capabilities
+> >>     NFIT_CMD_START_ARS: initiate scrubbing
+> >>     NFIT_CMD_QUERY_ARS: report on scrubbing state
+> >>     NFIT_CMD_SMART_THRESHOLD: configure alarm thresholds for smart events
+> >
+> > "nd/bus.c" provides two features, 1) the top level ND bus driver which
+> > is the central part of the ND, and 2) the ioctl interface specific to
+> > the example-DSM-interface.  I think the example-DSM-specific part should
+> > be put into an example-DSM-support module, so that the ND can support
+> > other _DSMs as necessary.  Also, _DSM needs to be handled as optional.
+> 
+> I don't think it needs to be separated, they'll both end up using the
+> same infrastructure just with different UUIDs on the ACPI device
+> interface or different format-interface-codes.  A firmware
+> implementation is also free to disable individual DSMs (see
+> nd_acpi_add_dimm).  
 
-Signed-off-by: Feng Kan <fkan@apm.com>
----
- drivers/i2c/busses/i2c-xgene-slimpro.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+Well, ioctl cmd# is essentially func# of the _DSM, and each cmd
+structure needs to match with its _DSM output data structure.  So, I do
+not think these cmds will work for other _DSMs.  That said, the ND is
+complex enough already, and we should not make it more complicated for
+the initial version...  So, how about changing the name of /dev/ndctl0
+to indicate RFIC 0x0201, ex. /dev/nd0201ctl0?  That should allow
+separate ioctl()s for other RFICs.  The code can be updated when other
+_DSM actually needs to be supported by the ND.
 
-diff --git a/drivers/i2c/busses/i2c-xgene-slimpro.c b/drivers/i2c/busses/i2c-xgene-slimpro.c
-index afe4cf2..f1caa29 100644
---- a/drivers/i2c/busses/i2c-xgene-slimpro.c
-+++ b/drivers/i2c/busses/i2c-xgene-slimpro.c
-@@ -22,6 +22,7 @@
-  * using the APM X-Gene SLIMpro mailbox driver.
-  *
-  */
-+#include <linux/acpi.h>
- #include <linux/dma-mapping.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-@@ -442,12 +443,21 @@ static const struct of_device_id xgene_slimpro_i2c_id[] = {
- };
- MODULE_DEVICE_TABLE(of, xgene_slimpro_i2c_dt_ids);
- 
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id xgene_slimpro_i2c_acpi_ids[] = {
-+	{"APMC0D40", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(acpi, slimpro_acpi_ids);
-+#endif
-+
- static struct platform_driver xgene_slimpro_i2c_driver = {
- 	.probe	= xgene_slimpro_i2c_probe,
- 	.remove	= xgene_slimpro_i2c_remove,
- 	.driver	= {
- 		.name	= "xgene-slimpro-i2c",
--		.of_match_table = of_match_ptr(xgene_slimpro_i2c_id)
-+		.of_match_table = of_match_ptr(xgene_slimpro_i2c_id),
-+		.acpi_match_table = ACPI_PTR(xgene_slimpro_i2c_acpi_ids)
- 	},
- };
- 
--- 
-1.9.1
+> That said, you're right, we do need a fix to allow
+> PMEM from DIMMs without DSMs to activate.
+
+Great!
+
+Thanks,
+-Toshi
+
