@@ -1,64 +1,135 @@
-From: Feng Kan <fkan@apm.com>
-Subject: [PATCH V3 2/4] i2c: busses: xgene: add acpi support for i2c xgene SLIMpro driver
-Date: Thu, 23 Apr 2015 11:07:08 -0700
-Message-ID: <1429812430-31631-3-git-send-email-fkan@apm.com>
-References: <1429812430-31631-1-git-send-email-fkan@apm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [Update][PATCH] ACPI / scan: Add a scan handler for PRP0001
+Date: Fri, 24 Apr 2015 02:15:22 +0200
+Message-ID: <2014594.ptBLVGNNCY@vostro.rjw.lan>
+References: <3444888.xxxTREorHY@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exprod5og126.obsmtp.com ([64.18.0.251]:38794 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1030571AbbDWSHN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2015 14:07:13 -0400
-Received: by pabtp1 with SMTP id tp1so24471530pab.2
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2015 11:07:12 -0700 (PDT)
-In-Reply-To: <1429812430-31631-1-git-send-email-fkan@apm.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:56433 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1030875AbbDWXuj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2015 19:50:39 -0400
+In-Reply-To: <3444888.xxxTREorHY@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: patches@apm.com, devicetree@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: Feng Kan <fkan@apm.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-This adds support for ACPI for the APM X-Gene I2C SLIMpro proxy
-driver.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Feng Kan <fkan@apm.com>
+If the special PRP0001 device ID is present in the given device's list
+of ACPI/PNP IDs and the device has a valid "compatible" property in
+the _DSD, it should be enumerated using the default mechanism,
+unless some scan handlers match the IDs preceding PRP0001 in the
+device's list of ACPI/PNP IDs.  In addition to that, no scan handlers
+matching the IDs following PRP0001 in that list should be attached
+to the device.
+
+To make that happen, define a scan handler that will match PRP0001
+and trigger the default enumeration for the matching devices if the
+"compatible" property is present for them.
+
+Since that requires the check for platform_id and device->handler
+to be removed from acpi_default_enumeration(), move the fallback
+invocation of acpi_default_enumeration() to acpi_bus_attach()
+(after it's checked if there's a matching ACPI driver for the
+device), which is a better place to call it, and do the platform_id
+check in there too (device->handler is guaranteed to be unset at
+the point where the function is looking for a matching ACPI driver).
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Darren Hart <dvhart@linux.intel.com>
 ---
- drivers/i2c/busses/i2c-xgene-slimpro.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/i2c/busses/i2c-xgene-slimpro.c b/drivers/i2c/busses/i2c-xgene-slimpro.c
-index afe4cf2..0035760 100644
---- a/drivers/i2c/busses/i2c-xgene-slimpro.c
-+++ b/drivers/i2c/busses/i2c-xgene-slimpro.c
-@@ -22,6 +22,7 @@
-  * using the APM X-Gene SLIMpro mailbox driver.
-  *
-  */
-+#include <linux/acpi.h>
- #include <linux/dma-mapping.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-@@ -442,12 +443,21 @@ static const struct of_device_id xgene_slimpro_i2c_id[] = {
- };
- MODULE_DEVICE_TABLE(of, xgene_slimpro_i2c_dt_ids);
+The change from the original patch is to change the scan handler
+behavior to make it return 1 also if the "compatible" property is
+not present, in which case the additional scan handlers should not
+trigger too *and* the default enumeration should not trigger either
+(as there's no ID to match to), which will allow things like
+auxiliary nodes (think GPIO buttons/LEDs etc) to be easily represented.
+
+Darren, I've tentatively added your Acked-by tag to this one, please
+let me know if that's not appropriate.
+
+Rafael
+
+
+---
+ drivers/acpi/scan.c |   33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
+
+Index: linux-pm/drivers/acpi/scan.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/scan.c
++++ linux-pm/drivers/acpi/scan.c
+@@ -2388,9 +2388,6 @@ static void acpi_default_enumeration(str
+ 	struct list_head resource_list;
+ 	bool is_spi_i2c_slave = false;
  
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id xgene_slimpro_i2c_acpi_ids[] = {
-+	{"PRP0001", 0},
-+	{}
+-	if (!device->pnp.type.platform_id || device->handler)
+-		return;
+-
+ 	/*
+ 	 * Do not enemerate SPI/I2C slaves as they will be enuerated by their
+ 	 * respective parents.
+@@ -2403,6 +2400,29 @@ static void acpi_default_enumeration(str
+ 		acpi_create_platform_device(device);
+ }
+ 
++static const struct acpi_device_id generic_device_ids[] = {
++	{"PRP0001", },
++	{"", },
 +};
-+MODULE_DEVICE_TABLE(acpi, slimpro_acpi_ids);
-+#endif
 +
- static struct platform_driver xgene_slimpro_i2c_driver = {
- 	.probe	= xgene_slimpro_i2c_probe,
- 	.remove	= xgene_slimpro_i2c_remove,
- 	.driver	= {
- 		.name	= "xgene-slimpro-i2c",
--		.of_match_table = of_match_ptr(xgene_slimpro_i2c_id)
-+		.of_match_table = of_match_ptr(xgene_slimpro_i2c_id),
-+		.acpi_match_table = ACPI_PTR(xgene_slimpro_i2c_acpi_ids)
- 	},
- };
++static int acpi_generic_device_attach(struct acpi_device *adev,
++				      const struct acpi_device_id *not_used)
++{
++	/*
++	 * Since PRP0001 is the only ID handled here, the test below can be
++	 * unconditional.
++	 */
++	if (adev->data.of_compatible)
++		acpi_default_enumeration(adev);
++
++	return 1;
++}
++
++static struct acpi_scan_handler generic_device_handler = {
++	.ids = generic_device_ids,
++	.attach = acpi_generic_device_attach,
++};
++
+ static int acpi_scan_attach_handler(struct acpi_device *device)
+ {
+ 	struct acpi_hardware_id *hwid;
+@@ -2428,8 +2448,6 @@ static int acpi_scan_attach_handler(stru
+ 				break;
+ 		}
+ 	}
+-	if (!ret)
+-		acpi_default_enumeration(device);
  
--- 
-1.9.1
+ 	return ret;
+ }
+@@ -2471,6 +2489,9 @@ static void acpi_bus_attach(struct acpi_
+ 		ret = device_attach(&device->dev);
+ 		if (ret < 0)
+ 			return;
++
++		if (!ret && device->pnp.type.platform_id)
++			acpi_default_enumeration(device);
+ 	}
+ 	device->flags.visited = true;
+ 
+@@ -2629,6 +2650,8 @@ int __init acpi_scan_init(void)
+ 	acpi_pnp_init();
+ 	acpi_int340x_thermal_init();
+ 
++	acpi_scan_add_handler(&generic_device_handler);
++
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
 
