@@ -1,45 +1,51 @@
 From: Feng Kan <fkan@apm.com>
-Subject: [PATCH RESEND V4 0/4] i2c: busses: xgene: I2C proxy driver for X-Gene
-Date: Fri, 24 Apr 2015 15:17:49 -0700
-Message-ID: <1429913873-13627-1-git-send-email-fkan@apm.com>
+Subject: [PATCH RESEND V4 3/4] Documentation: i2c: Add APM X-Gene platform SLIMpro I2C driver documentation
+Date: Fri, 24 Apr 2015 15:17:52 -0700
+Message-ID: <1429913873-13627-4-git-send-email-fkan@apm.com>
+References: <1429913873-13627-1-git-send-email-fkan@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exprod5og108.obsmtp.com ([64.18.0.186]:46076 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965778AbbDXWRy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Apr 2015 18:17:54 -0400
-Received: by pdbnk13 with SMTP id nk13so60158382pdb.0
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2015 15:17:53 -0700 (PDT)
+Received: from exprod5og118.obsmtp.com ([64.18.0.160]:35391 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1946140AbbDXWR6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2015 18:17:58 -0400
+Received: by pabtp1 with SMTP id tp1so59879459pab.2
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2015 15:17:57 -0700 (PDT)
+In-Reply-To: <1429913873-13627-1-git-send-email-fkan@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: patches@apm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Feng Kan <fkan@apm.com>
+Cc: Feng Kan <fkan@apm.com>, Hieu Le <hnle@apm.com>
 
-This is a proxy I2C driver for APM X-Gene SoC. It uses the mailbox driver
-to tunnel i2c transactions via the SLIMpro processor.
+Add APM X-Gene platform SLIMpro I2C driver documentation.
 
-V4 Change:
-	- Remove PRP0001 and use a real ACPI id
-V3 Change:
-	- Add ACPI support
-	- Fix previous comments.
-
-Feng Kan (4):
-  i2c: busses: add SLIMpro I2C device driver on APM X-Gene platform
-  i2c: busses: xgene: add acpi support for i2c xgene SLIMpro driver
-  Documentation: i2c: Add APM X-Gene platform SLIMpro I2C driver
-    documentation
-  arm64: dts: add proxy I2C device driver on APM X-Gene platform
-
- .../devicetree/bindings/i2c/i2c-xgene-slimpro.txt  |  15 +
- arch/arm64/boot/dts/apm/apm-storm.dtsi             |   5 +
- drivers/i2c/busses/Kconfig                         |   9 +
- drivers/i2c/busses/Makefile                        |   1 +
- drivers/i2c/busses/i2c-xgene-slimpro.c             | 469 +++++++++++++++++++++
- 5 files changed, 499 insertions(+)
+Signed-off-by: Feng Kan <fkan@apm.com>
+Signed-off-by: Hieu Le <hnle@apm.com>
+---
+ .../devicetree/bindings/i2c/i2c-xgene-slimpro.txt         | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/i2c/i2c-xgene-slimpro.txt
- create mode 100644 drivers/i2c/busses/i2c-xgene-slimpro.c
 
+diff --git a/Documentation/devicetree/bindings/i2c/i2c-xgene-slimpro.txt b/Documentation/devicetree/bindings/i2c/i2c-xgene-slimpro.txt
+new file mode 100644
+index 0000000..f6b2c20
+--- /dev/null
++++ b/Documentation/devicetree/bindings/i2c/i2c-xgene-slimpro.txt
+@@ -0,0 +1,15 @@
++APM X-Gene SLIMpro Mailbox I2C Driver
++
++An I2C controller accessed over the "SLIMpro" mailbox.
++
++Required properties :
++
++ - compatible : should be "apm,xgene-slimpro-i2c"
++ - mboxes : use the label reference for the mailbox as the first parameter.
++	    The second parameter is the channel number.
++
++Example :
++	i2cslimpro {
++		compatible = "apm,xgene-slimpro-i2c";
++		mboxes = <&mailbox 0>;
++	};
 -- 
 1.9.1
 
