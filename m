@@ -1,135 +1,191 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [Update][PATCH] ACPI / scan: Add a scan handler for PRP0001
-Date: Fri, 24 Apr 2015 02:15:22 +0200
-Message-ID: <2014594.ptBLVGNNCY@vostro.rjw.lan>
-References: <3444888.xxxTREorHY@vostro.rjw.lan>
+From: Chris Bainbridge <chris.bainbridge@gmail.com>
+Subject: [PATCH] ACPI SBS: Fix intermittent hangs on Apple Macbook
+Date: Fri, 24 Apr 2015 02:25:30 +0100
+Message-ID: <20150424012530.GA16763@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56433 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1030875AbbDWXuj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2015 19:50:39 -0400
-In-Reply-To: <3444888.xxxTREorHY@vostro.rjw.lan>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33317 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751654AbbDXBZe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Apr 2015 21:25:34 -0400
+Received: by wiax7 with SMTP id x7so24321691wia.0
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Apr 2015 18:25:33 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Commit 7bc5a2b exposed the SBS on Apple hardware, resulting in
+intermittent hangs of several minutes on boot, and failure to detect or
+report the battery. We fix this two ways:
 
-If the special PRP0001 device ID is present in the given device's list
-of ACPI/PNP IDs and the device has a valid "compatible" property in
-the _DSD, it should be enumerated using the default mechanism,
-unless some scan handlers match the IDs preceding PRP0001 in the
-device's list of ACPI/PNP IDs.  In addition to that, no scan handlers
-matching the IDs following PRP0001 in that list should be attached
-to the device.
-
-To make that happen, define a scan handler that will match PRP0001
-and trigger the default enumeration for the matching devices if the
-"compatible" property is present for them.
-
-Since that requires the check for platform_id and device->handler
-to be removed from acpi_default_enumeration(), move the fallback
-invocation of acpi_default_enumeration() to acpi_bus_attach()
-(after it's checked if there's a matching ACPI driver for the
-device), which is a better place to call it, and do the platform_id
-check in there too (device->handler is guaranteed to be unset at
-the point where the function is looking for a matching ACPI driver).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Darren Hart <dvhart@linux.intel.com>
----
-
-The change from the original patch is to change the scan handler
-behavior to make it return 1 also if the "compatible" property is
-not present, in which case the additional scan handlers should not
-trigger too *and* the default enumeration should not trigger either
-(as there's no ID to match to), which will allow things like
-auxiliary nodes (think GPIO buttons/LEDs etc) to be easily represented.
-
-Darren, I've tentatively added your Acked-by tag to this one, please
-let me know if that's not appropriate.
-
-Rafael
-
-
----
- drivers/acpi/scan.c |   33 ++++++++++++++++++++++++++++-----
- 1 file changed, 28 insertions(+), 5 deletions(-)
-
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -2388,9 +2388,6 @@ static void acpi_default_enumeration(str
- 	struct list_head resource_list;
- 	bool is_spi_i2c_slave = false;
+ - SMBUS hang should not hang the whole system. Respect the specified
+   timeout by busy waiting instead of sleeping.
+   This fix is already used on MSI hardware.
  
--	if (!device->pnp.type.platform_id || device->handler)
--		return;
--
- 	/*
- 	 * Do not enemerate SPI/I2C slaves as they will be enuerated by their
- 	 * respective parents.
-@@ -2403,6 +2400,29 @@ static void acpi_default_enumeration(str
- 		acpi_create_platform_device(device);
+ - Stop the SBS from hanging in the first place by introducing a 5us
+   delay before each SMBUS transaction. This fix is the result of
+   experimentation. This particular delay was found to completely fix
+   the problem on an Ivybridge Macbook Pro 13. Hangs were observed with
+   3us delay but never with 5us.
+
+Also, pr_warn if SBS communication fails instead of silently ignoring.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=94651
+Signed-off-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+---
+ drivers/acpi/ec.c    | 14 +++++++++++++-
+ drivers/acpi/sbs.c   | 10 +++++++---
+ drivers/acpi/sbshc.c | 24 ++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 220d640..7c9dacc 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -131,6 +131,7 @@ struct acpi_ec *boot_ec, *first_ec;
+ EXPORT_SYMBOL(first_ec);
+ 
+ static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
++static int EC_FLAGS_APPLE; /* Out-of-spec Apple controller */
+ static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
+ static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
+ static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
+@@ -505,7 +506,7 @@ static int ec_poll(struct acpi_ec *ec)
+ 		unsigned long usecs = ACPI_EC_UDELAY_POLL;
+ 		do {
+ 			/* don't sleep with disabled interrupts */
+-			if (EC_FLAGS_MSI || irqs_disabled()) {
++			if (EC_FLAGS_APPLE || EC_FLAGS_MSI || irqs_disabled()) {
+ 				usecs = ACPI_EC_MSI_UDELAY;
+ 				udelay(usecs);
+ 				if (ec_transaction_completed(ec))
+@@ -1246,6 +1247,14 @@ static int ec_flag_msi(const struct dmi_system_id *id)
+ 	return 0;
  }
  
-+static const struct acpi_device_id generic_device_ids[] = {
-+	{"PRP0001", },
-+	{"", },
-+};
-+
-+static int acpi_generic_device_attach(struct acpi_device *adev,
-+				      const struct acpi_device_id *not_used)
++/* Apple Macbook needs special treatment, enable it */
++static int ec_flag_apple(const struct dmi_system_id *id)
 +{
-+	/*
-+	 * Since PRP0001 is the only ID handled here, the test below can be
-+	 * unconditional.
-+	 */
-+	if (adev->data.of_compatible)
-+		acpi_default_enumeration(adev);
-+
-+	return 1;
++	pr_debug("Detected Apple hardware, enabling workarounds.\n");
++	EC_FLAGS_APPLE = 1;
++	return 0;
 +}
 +
-+static struct acpi_scan_handler generic_device_handler = {
-+	.ids = generic_device_ids,
-+	.attach = acpi_generic_device_attach,
+ /*
+  * Clevo M720 notebook actually works ok with IRQ mode, if we lifted
+  * the GPE storm threshold back to 20
+@@ -1323,6 +1332,9 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
+ 	DMI_MATCH(DMI_SYS_VENDOR, "CLEVO CO."),
+ 	DMI_MATCH(DMI_PRODUCT_NAME, "W35_37ET"),}, NULL},
+ 	{
++	ec_flag_apple, "Apple", {
++	DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc.")}, NULL},
++	{
+ 	ec_validate_ecdt, "ASUS hardware", {
+ 	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
+ 	{
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index cd82762..165519e 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -369,8 +369,11 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+ 					 info_readers[i].command,
+ 					 (u8 *) battery +
+ 						info_readers[i].offset);
+-		if (result)
++		if (result) {
++			pr_warn("sbs read battery failed (cmd=%x)\n",
++				info_readers[i].command);
+ 			break;
++		}
+ 	}
+ 	return result;
+ }
+@@ -412,7 +415,6 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery)
+ 
+ 	int ret;
+ 
+-
+ 	if (sbs->manager_present) {
+ 		ret = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_MANAGER,
+ 				0x01, (u8 *)&value);
+@@ -442,8 +444,10 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ 	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER,
+ 				 0x13, (u8 *) & status);
+ 
+-	if (result)
++	if (result) {
++		pr_warn("sbs read charger failed\n");
+ 		return result;
++	}
+ 
+ 	/*
+ 	 * The spec requires that bit 4 always be 1. If it's not set, assume
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index 26e5b50..2d40c24 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -14,6 +14,7 @@
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
++#include <linux/dmi.h>
+ #include "sbshc.h"
+ 
+ #define PREFIX "ACPI: "
+@@ -87,6 +88,8 @@ enum acpi_smb_offset {
+ 	ACPI_SMB_ALARM_DATA = 0x26,	/* 2 bytes alarm data */
+ };
+ 
++static int SMBUS_FLAGS_APPLE;
++
+ static inline int smb_hc_read(struct acpi_smb_hc *hc, u8 address, u8 *data)
+ {
+ 	return ec_read(hc->offset + address, data);
+@@ -132,6 +135,8 @@ static int acpi_smbus_transaction(struct acpi_smb_hc *hc, u8 protocol,
+ 	}
+ 
+ 	mutex_lock(&hc->lock);
++	if (SMBUS_FLAGS_APPLE)
++		udelay(5);
+ 	if (smb_hc_read(hc, ACPI_SMB_PROTOCOL, &temp))
+ 		goto end;
+ 	if (temp) {
+@@ -257,12 +262,31 @@ extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
+ 			      acpi_handle handle, acpi_ec_query_func func,
+ 			      void *data);
+ 
++static int smbus_flag_apple(const struct dmi_system_id *d)
++{
++	SMBUS_FLAGS_APPLE = 1;
++	return 0;
++}
++
++static struct dmi_system_id acpi_smbus_dmi_table[] = {
++	{
++		.callback = smbus_flag_apple,
++		.ident = "Apple",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc.")
++		},
++	},
++	{ },
 +};
 +
- static int acpi_scan_attach_handler(struct acpi_device *device)
+ static int acpi_smbus_hc_add(struct acpi_device *device)
  {
- 	struct acpi_hardware_id *hwid;
-@@ -2428,8 +2448,6 @@ static int acpi_scan_attach_handler(stru
- 				break;
- 		}
- 	}
--	if (!ret)
--		acpi_default_enumeration(device);
+ 	int status;
+ 	unsigned long long val;
+ 	struct acpi_smb_hc *hc;
  
- 	return ret;
- }
-@@ -2471,6 +2489,9 @@ static void acpi_bus_attach(struct acpi_
- 		ret = device_attach(&device->dev);
- 		if (ret < 0)
- 			return;
++	dmi_check_system(acpi_smbus_dmi_table);
 +
-+		if (!ret && device->pnp.type.platform_id)
-+			acpi_default_enumeration(device);
- 	}
- 	device->flags.visited = true;
+ 	if (!device)
+ 		return -EINVAL;
  
-@@ -2629,6 +2650,8 @@ int __init acpi_scan_init(void)
- 	acpi_pnp_init();
- 	acpi_int340x_thermal_init();
- 
-+	acpi_scan_add_handler(&generic_device_handler);
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
+-- 
+2.1.4
 
