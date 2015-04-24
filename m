@@ -1,53 +1,45 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Fri, 24 Apr 2015 16:08:31 -0500
-Message-ID: <553AB0CF.1010904@amd.com>
-References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1427752579-19234-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Feng Kan <fkan@apm.com>
+Subject: [PATCH RESEND V4 0/4] i2c: busses: xgene: I2C proxy driver for X-Gene
+Date: Fri, 24 Apr 2015 15:17:49 -0700
+Message-ID: <1429913873-13627-1-git-send-email-fkan@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0129.outbound.protection.outlook.com ([65.55.169.129]:8154
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S965580AbbDXVIo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Apr 2015 17:08:44 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com>
+Received: from exprod5og108.obsmtp.com ([64.18.0.186]:46076 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965778AbbDXWRy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Apr 2015 18:17:54 -0400
+Received: by pdbnk13 with SMTP id nk13so60158382pdb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Apr 2015 15:17:53 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: patches@apm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Feng Kan <fkan@apm.com>
 
-On 4/16/15 20:45, Zheng, Lv wrote:
-> Before back porting this to ACPICA, let me ask one simple question.
-> According to the spec, the _CLS is optional and PCI specific.
-> So why should we implement it in ACPICA core not OSPM specific modules?
-> If this need to be implemented in ACPICA, then what about the following device identification objects?
-> _DDN, _HRV, _MLS, _PLD, _STR, _SUN
->
-> Thanks and best regards
-> -Lv
+This is a proxy I2C driver for APM X-Gene SoC. It uses the mailbox driver
+to tunnel i2c transactions via the SLIMpro processor.
 
-Hi,
+V4 Change:
+	- Remove PRP0001 and use a real ACPI id
+V3 Change:
+	- Add ACPI support
+	- Fix previous comments.
 
-Sorry for late reply. As for the justification for introducing the _CLS 
-support in the ACPICA, this is mainly because ACPI does not currently 
-define _CID for certain device classes, which used to mostly be PCI 
-devices. Instead, ACPI spec mentioned that _CLS can be used for loading 
-generic drivers on hardware that is compatible with PCI-defined device 
-classes, but that is not implemented on the PCI bus (and is therefore 
-enumerated by ACPI.)
+Feng Kan (4):
+  i2c: busses: add SLIMpro I2C device driver on APM X-Gene platform
+  i2c: busses: xgene: add acpi support for i2c xgene SLIMpro driver
+  Documentation: i2c: Add APM X-Gene platform SLIMpro I2C driver
+    documentation
+  arm64: dts: add proxy I2C device driver on APM X-Gene platform
 
-The code introduced for supporting _CLS is also similar in the way 
-ACPICA is currently parsing the _CID or _SUB (which are also optional), 
-and using it for the same purpose of identifying devices for loading 
-drivers.
+ .../devicetree/bindings/i2c/i2c-xgene-slimpro.txt  |  15 +
+ arch/arm64/boot/dts/apm/apm-storm.dtsi             |   5 +
+ drivers/i2c/busses/Kconfig                         |   9 +
+ drivers/i2c/busses/Makefile                        |   1 +
+ drivers/i2c/busses/i2c-xgene-slimpro.c             | 469 +++++++++++++++++++++
+ 5 files changed, 499 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/i2c/i2c-xgene-slimpro.txt
+ create mode 100644 drivers/i2c/busses/i2c-xgene-slimpro.c
 
-Also, since this method for identifying devices is OS-independent, I 
-believe this should not be done in the OSPM specific modules.
+-- 
+1.9.1
 
-Thanks,
-
-Suravee
