@@ -1,102 +1,64 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] More ACPI and power management updates for v4.1-rc1
-Date: Sat, 25 Apr 2015 04:18:58 +0200
-Message-ID: <CAJZ5v0iLmRNhpfgsX8_ZyKTihvFj7vs0Ho845chtDoRsqNvP4g@mail.gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [RESEND RFC PATCH 1/2] x86/cpu hotplug: make apicid <--> cpuid
+ mapping persistent
+Date: Sat, 25 Apr 2015 18:14:52 +0800
+Message-ID: <553B691C.2030808@huawei.com>
+References: <1429869513-2906-1-git-send-email-guz.fnst@cn.fujitsu.com> <9864973.ZP6z8adBRm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:34763 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757050AbbDYCS7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2015 22:18:59 -0400
+Received: from szxga01-in.huawei.com ([58.251.152.64]:45883 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbbDYKPL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Apr 2015 06:15:11 -0400
+In-Reply-To: <9864973.ZP6z8adBRm@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, tj@kernel.org, mingo@redhat.com, x86@kernel.org, akpm@linux-foundation.org, hpa@zytor.com, linux-acpi@vger.kernel.org, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, izumi.taku@jp.fujitsu.com
 
-Hi Linus,
+On 2015/4/24 22:45, Rafael J. Wysocki wrote:
+> On Friday, April 24, 2015 05:58:32 PM Gu Zheng wrote:
+>> Yasuaki Ishimatsu found that with node online/offline, cpu<->node relationship
+>> is  established. Because workqueue uses a info which  was established at boot
+>> time, but it may be changed by node hotpluging.
+>>
+>> Once pool->node points to a stale node, following allocation failure
+>> happens.
+>>   ==
+>>      SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+>>       cache: kmalloc-192, object size: 192, buffer size: 192, default
+>> order:
+>>     1, min order: 0
+>>       node 0: slabs: 6172, objs: 259224, free: 245741
+>>       node 1: slabs: 3261, objs: 136962, free: 127656
+>>   ==
+>>
+>> As the apicid <---> pxm and pxm <--> node relationship are persistent, then
+>> the apicid <--> node mapping is persistent, so the root cause is the
+>> cpu-id <-> lapicid mapping is not persistent (because the currently implementation
+>> always choose the first free cpu id for the new added cpu). If we can build
+>> persistent cpu-id <-> lapicid relationship, this problem will be fixed.
+>>
+>> This patch tries to build the whole world mapping cpuid <-> apicid <-> pxm <-> node
+>> for all possible processor at the boot, the detail implementation are 2 steps:
+>> Step1: generate a logic cpu id for all the local apic (both enabled and dsiabled)
+>>        when register local apic
+>> Step2: map the cpu to the phyical node via an additional acpi ns walk for processor.
+>>
+>> Please refer to:
+>> https://lkml.org/lkml/2015/2/27/145
+>> https://lkml.org/lkml/2015/3/25/989
+>> for the previous discussion.
+>>
+>> Reported-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+> This one will conflict with the ARM64 ACPI material when that goes in, so it'll
+> need to be rebased on top of that.
 
-Please pull from
+Yes, please. Then I will take a look too.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.1-rc1-2
+Thanks
+Hanjun
 
-to receive additional power management and ACPI material for v4.1-rc1
-with top-most commit e0155a99b28f63e007c0c74076ad8ae486a3c9d3
-
- Merge branches 'acpi-dock', 'acpi-ec' and 'acpi-scan'
-
-on top of commit 0f5abd4020bfd2b1eec6975b91bd5068aa674a93
-
- Merge tag 'acpica-4.1-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-These are fixes mostly (intel_pstate, ACPI core, ACPI EC driver, cpupower
-tool), a new CPU ID for the Intel RAPL driver and one intel_pstate driver
-improvement that didn't make it to my previous pull requests due to timing.
-
-Specifics:
-
- - Fix a build warning in the intel_pstate driver showing up in non-SMP
-   builds (Borislav Petkov).
-
- - Change one of the intel_pstate's P-state selection parameters for
-   Baytrail and Cherrytrail CPUs to significantly improve performance
-   at the cost of a small increase in energy consumption (Kristen
-   Carlson Accardi).
-
- - Fix a NULL pointer dereference in the ACPI EC driver due to an unsafe
-   list walk in the query handler removal routine (Chris Bainbridge).
-
- - Get rid of a false-positive lockdep warning in the ACPI container
-   hot-remove code (Rafael J Wysocki).
-
- - Prevent the ACPI device enumeration code from creating device
-   objects of a wrong type in some cases (Rafael J Wysocki).
-
- - Add Skylake processors support to the Intel RAPL power capping
-   driver (Brian Bian).
-
- - Drop the stale MAINTAINERS entry for the ACPI dock driver that is
-   regarded as part of the ACPI core and maintained along with it now
-   (Chao Yu).
-
- - Fix cpupower tool breakage caused by a library API change in libpci
-   3.3.0 (Lucas Stach).
-
-Thanks!
-
-
----------------
-
-Borislav Petkov (1):
-      cpufreq: intel_pstate: Fix an annoying !CONFIG_SMP warning
-
-Brian Bian (1):
-      powercap / RAPL: Add support for Intel Skylake processors
-
-Chao Yu (1):
-      MAINTAINERS: remove maintainship entry of docking station driver
-
-Chris Bainbridge (1):
-      ACPI / EC: fix NULL pointer dereference in acpi_ec_remove_query_handler()
-
-Kristen Carlson Accardi (1):
-      intel_pstate: Change the setpoint for Atom params
-
-Lucas Stach (1):
-      cpupower: fix breakage from libpci API change
-
-Rafael J. Wysocki (2):
-      ACPI / scan: Annotate physical_node_lock in acpi_scan_is_offline()
-      ACPI / scan: Add a scan handler for PRP0001
-
----------------
-
- MAINTAINERS                              |  6 -----
- drivers/acpi/ec.c                        |  2 +-
- drivers/acpi/scan.c                      | 39 +++++++++++++++++++++++++++-----
- drivers/cpufreq/intel_pstate.c           | 14 ++++++------
- drivers/powercap/intel_rapl.c            |  1 +
- tools/power/cpupower/utils/helpers/pci.c | 11 +++++++--
- 6 files changed, 51 insertions(+), 22 deletions(-)
