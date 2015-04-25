@@ -1,43 +1,102 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Sat, 25 Apr 2015 04:28:57 +0200
-Message-ID: <1960107.SMA7G3OmSP@vostro.rjw.lan>
-References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com> <553AB0CF.1010904@amd.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] More ACPI and power management updates for v4.1-rc1
+Date: Sat, 25 Apr 2015 04:18:58 +0200
+Message-ID: <CAJZ5v0iLmRNhpfgsX8_ZyKTihvFj7vs0Ho845chtDoRsqNvP4g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <553AB0CF.1010904@amd.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:34763 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757050AbbDYCS7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2015 22:18:59 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, April 24, 2015 04:08:31 PM Suravee Suthikulpanit wrote:
-> On 4/16/15 20:45, Zheng, Lv wrote:
-> > Before back porting this to ACPICA, let me ask one simple question.
-> > According to the spec, the _CLS is optional and PCI specific.
-> > So why should we implement it in ACPICA core not OSPM specific modules?
-> > If this need to be implemented in ACPICA, then what about the following device identification objects?
-> > _DDN, _HRV, _MLS, _PLD, _STR, _SUN
-> >
-> > Thanks and best regards
-> > -Lv
-> 
-> Hi,
-> 
-> Sorry for late reply. As for the justification for introducing the _CLS 
-> support in the ACPICA, this is mainly because ACPI does not currently 
-> define _CID for certain device classes, which used to mostly be PCI 
-> devices. Instead, ACPI spec mentioned that _CLS can be used for loading 
-> generic drivers on hardware that is compatible with PCI-defined device 
-> classes, but that is not implemented on the PCI bus (and is therefore 
-> enumerated by ACPI.)
+Hi Linus,
 
-I think it would be good to point to the particular part of the spec
-making that provision.  In what section is that mentioned, exactly?
+Please pull from
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.1-rc1-2
+
+to receive additional power management and ACPI material for v4.1-rc1
+with top-most commit e0155a99b28f63e007c0c74076ad8ae486a3c9d3
+
+ Merge branches 'acpi-dock', 'acpi-ec' and 'acpi-scan'
+
+on top of commit 0f5abd4020bfd2b1eec6975b91bd5068aa674a93
+
+ Merge tag 'acpica-4.1-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+These are fixes mostly (intel_pstate, ACPI core, ACPI EC driver, cpupower
+tool), a new CPU ID for the Intel RAPL driver and one intel_pstate driver
+improvement that didn't make it to my previous pull requests due to timing.
+
+Specifics:
+
+ - Fix a build warning in the intel_pstate driver showing up in non-SMP
+   builds (Borislav Petkov).
+
+ - Change one of the intel_pstate's P-state selection parameters for
+   Baytrail and Cherrytrail CPUs to significantly improve performance
+   at the cost of a small increase in energy consumption (Kristen
+   Carlson Accardi).
+
+ - Fix a NULL pointer dereference in the ACPI EC driver due to an unsafe
+   list walk in the query handler removal routine (Chris Bainbridge).
+
+ - Get rid of a false-positive lockdep warning in the ACPI container
+   hot-remove code (Rafael J Wysocki).
+
+ - Prevent the ACPI device enumeration code from creating device
+   objects of a wrong type in some cases (Rafael J Wysocki).
+
+ - Add Skylake processors support to the Intel RAPL power capping
+   driver (Brian Bian).
+
+ - Drop the stale MAINTAINERS entry for the ACPI dock driver that is
+   regarded as part of the ACPI core and maintained along with it now
+   (Chao Yu).
+
+ - Fix cpupower tool breakage caused by a library API change in libpci
+   3.3.0 (Lucas Stach).
+
+Thanks!
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+---------------
+
+Borislav Petkov (1):
+      cpufreq: intel_pstate: Fix an annoying !CONFIG_SMP warning
+
+Brian Bian (1):
+      powercap / RAPL: Add support for Intel Skylake processors
+
+Chao Yu (1):
+      MAINTAINERS: remove maintainship entry of docking station driver
+
+Chris Bainbridge (1):
+      ACPI / EC: fix NULL pointer dereference in acpi_ec_remove_query_handler()
+
+Kristen Carlson Accardi (1):
+      intel_pstate: Change the setpoint for Atom params
+
+Lucas Stach (1):
+      cpupower: fix breakage from libpci API change
+
+Rafael J. Wysocki (2):
+      ACPI / scan: Annotate physical_node_lock in acpi_scan_is_offline()
+      ACPI / scan: Add a scan handler for PRP0001
+
+---------------
+
+ MAINTAINERS                              |  6 -----
+ drivers/acpi/ec.c                        |  2 +-
+ drivers/acpi/scan.c                      | 39 +++++++++++++++++++++++++++-----
+ drivers/cpufreq/intel_pstate.c           | 14 ++++++------
+ drivers/powercap/intel_rapl.c            |  1 +
+ tools/power/cpupower/utils/helpers/pci.c | 11 +++++++--
+ 6 files changed, 51 insertions(+), 22 deletions(-)
