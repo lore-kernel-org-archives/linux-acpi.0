@@ -1,69 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Update][PATCH] ACPI / scan: Add a scan handler for PRP0001
-Date: Sat, 25 Apr 2015 04:25:59 +0200
-Message-ID: <39726896.AI3Qx9bJPO@vostro.rjw.lan>
-References: <3444888.xxxTREorHY@vostro.rjw.lan> <2014594.ptBLVGNNCY@vostro.rjw.lan> <20150424222100.GA2514@vmdeb7>
+Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
+Date: Sat, 25 Apr 2015 04:28:57 +0200
+Message-ID: <1960107.SMA7G3OmSP@vostro.rjw.lan>
+References: <1427752579-19234-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1AE640813FDE7649BE1B193DEA596E8802704682@SHSMSX101.ccr.corp.intel.com> <553AB0CF.1010904@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51504 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755798AbbDYCBQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Apr 2015 22:01:16 -0400
-In-Reply-To: <20150424222100.GA2514@vmdeb7>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <553AB0CF.1010904@amd.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, April 24, 2015 03:21:00 PM Darren Hart wrote:
-> On Fri, Apr 24, 2015 at 02:15:22AM +0200, Rafael Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > If the special PRP0001 device ID is present in the given device's list
-> > of ACPI/PNP IDs and the device has a valid "compatible" property in
-> > the _DSD, it should be enumerated using the default mechanism,
-> > unless some scan handlers match the IDs preceding PRP0001 in the
-> > device's list of ACPI/PNP IDs.  In addition to that, no scan handlers
-> > matching the IDs following PRP0001 in that list should be attached
-> > to the device.
-> > 
-> > To make that happen, define a scan handler that will match PRP0001
-> > and trigger the default enumeration for the matching devices if the
-> > "compatible" property is present for them.
-> > 
-> > Since that requires the check for platform_id and device->handler
-> > to be removed from acpi_default_enumeration(), move the fallback
-> > invocation of acpi_default_enumeration() to acpi_bus_attach()
-> > (after it's checked if there's a matching ACPI driver for the
-> > device), which is a better place to call it, and do the platform_id
-> > check in there too (device->handler is guaranteed to be unset at
-> > the point where the function is looking for a matching ACPI driver).
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Acked-by: Darren Hart <dvhart@linux.intel.com>
-> > ---
-> > 
-> > The change from the original patch is to change the scan handler
-> > behavior to make it return 1 also if the "compatible" property is
-> > not present, in which case the additional scan handlers should not
-> > trigger too *and* the default enumeration should not trigger either
-> > (as there's no ID to match to), which will allow things like
-> > auxiliary nodes (think GPIO buttons/LEDs etc) to be easily represented.
+On Friday, April 24, 2015 04:08:31 PM Suravee Suthikulpanit wrote:
+> On 4/16/15 20:45, Zheng, Lv wrote:
+> > Before back porting this to ACPICA, let me ask one simple question.
+> > According to the spec, the _CLS is optional and PCI specific.
+> > So why should we implement it in ACPICA core not OSPM specific modules?
+> > If this need to be implemented in ACPICA, then what about the following device identification objects?
+> > _DDN, _HRV, _MLS, _PLD, _STR, _SUN
+> >
+> > Thanks and best regards
+> > -Lv
 > 
+> Hi,
 > 
-> This should probably be spelled out in the commit message itself as it's a fairly
-> unique condition.
+> Sorry for late reply. As for the justification for introducing the _CLS 
+> support in the ACPICA, this is mainly because ACPI does not currently 
+> define _CID for certain device classes, which used to mostly be PCI 
+> devices. Instead, ACPI spec mentioned that _CLS can be used for loading 
+> generic drivers on hardware that is compatible with PCI-defined device 
+> classes, but that is not implemented on the PCI bus (and is therefore 
+> enumerated by ACPI.)
 
-I'm going to document that in Documentation/acpi/enumeration.txt anyway.
+I think it would be good to point to the particular part of the spec
+making that provision.  In what section is that mentioned, exactly?
 
-> > Darren, I've tentatively added your Acked-by tag to this one, please
-> > let me know if that's not appropriate.
-> 
-> Spent a bit more time on it this time, so:
-> 
-> Reviewed-by: Darren Hart <dvhart@linux.intel.com>
 
-Thanks!
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
