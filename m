@@ -1,101 +1,34 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [GIT PULL] Thermal-SoC management updates for v4.1-rc1
-Date: Mon, 27 Apr 2015 16:58:02 -0700
-Message-ID: <20150427235801.GA4658@localhost.localdomain>
-References: <20150415054819.GA16396@localhost.localdomain>
- <20150427083536.GB3066@e104805>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron
+ 7437
+Date: Mon, 27 Apr 2015 18:46:46 +0100
+Message-ID: <20150427174646.GA22664@srcf.ucam.org>
+References: <1429759476-13186-1-git-send-email-alex.hung@canonical.com>
+ <20150424082115.GA3783@srcf.ucam.org>
+ <CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:34480 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752986AbbD0Q6F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2015 12:58:05 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:60237 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752965AbbD0Rqu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2015 13:46:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20150427083536.GB3066@e104805>
+In-Reply-To: <CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Javi Merino <javi.merino@arm.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Alex Hung <alex.hung@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
+On Mon, Apr 27, 2015 at 04:30:11PM +0800, Alex Hung wrote:
+> I don't have any Win8 media to test it but I will try to look for one.
+> 
+> I recalled that kernel 4.1rc has a patch "ACPICA: Permanently set _REV
+> to the value '2'" that may also change firmware's behaviours, but it
+> does not fix Inspiron 7437's ACPI event just for references.
 
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The _REV behaviour didn't change between Windows 7 and 8, so it 
+shouldn't be relevant here.
 
-Javi,
-
-On Mon, Apr 27, 2015 at 09:35:36AM +0100, Javi Merino wrote:
-> On Wed, Apr 15, 2015 at 06:48:20AM +0100, Eduardo Valentin wrote:
-> > Hello Rui,
-> >=20
-> > Please pull from
-> >=20
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-ther=
-mal linus
-> >=20
-> > to receive Thermal-SoC Management updates for v4.1-rc1 with top-most
-> >=20
-> > 55920e072776533fd314fb3d9b69c866ed90b3df:
-> >=20
-> >   thermal: exynos: Add the support for Exynos5433 TMU (2015-04-14 22:31=
-:17 -0700)
-> >=20
-> > on top of commit f8b3d8a5af7559a58613384cd23fc03a3c787acf:
-> >=20
-> >   Merge tag 'usb-4.0-rc6' of git://git.kernel.org/pub/scm/linux/kernel/=
-git/gregkh/usb (2015-04-04 12:26:28 -0700)
-> >=20
-> > Specifics:
-> > - Exynos thermal driver learns how to handle Exynos5433 TMU. Thanks to =
-Chanwoo C.;
-> > - Thermal Framework now supports QPNP PMIC temperature alarm as a new t=
-hermal
-> >   driver. Thanks to Ivan T. I.;
-> > - TI thermal driver now has a better implementation for EOCZ bit. Thank=
-s to Pavel M.;
-> > - Thermal Framework now has learned several new capabilities:
-> >   . use power estimates
-> >   . compute weights with relative integers instead of percentages
-> >   . allow governors to have private data in thermal zones
-> >   . export thermal zone parameters through sysfs
-> >   Thanks to the ARM thermal team (Javi M., Punit A., and KP).
-> > - Thermal Framework earns a new thermal governor: power allocator. Firs=
-t in kernel
-> >   closed loop PI(D) controller for thermal control. Thanks to ARM therm=
-al team.
-> > - OF thermal now allows thermal zones to have sustainable power HW spec=
-ification.
-> >   Thanks to Punit.
->=20
-> 4.1-rc1 is out and it looks like this fell through the cracks.  If
-> there isn't any objection, can any of you send the pull request to
-> Linus?
->=20
-
-It has been sent already:
-http://marc.info/?l=3Dlinux-pm&m=3D143013593125080&w=3D2
-
-> Thanks,
-> Javi
->=20
-
---SUOF0GtieIMvvwua
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJVPsz/AAoJEMLUO4d9pOJWh84IAIIchKU3yGIje17otUjD/UP4
-n1bK9TemeDhuVvOtTWwf0jaob99mfWrOsM6keugMq/ndEPs4E81vRG+SdSFxjB0t
-UY2Xl4yv/c1kPCst6HnATK+aI9aC7DfoZl/8mFhfrHbZT8RzkJJMcTTqnkjco4oS
-Byo7mkZL6sgp79j/9g8e1/pEdlbCxk43rfEyeDYfMmzL/mKJrO7vfIx0WPu1mdrC
-x7qILvWFINhjstm1lcvIc69NCBAKvVXAPnNz39z+9ncGRMMEqzTttC6jJDAY8+67
-++wsbew2ouN0t6+jkOwYsiAzuV8SKxxnM1qSRnRgpkrrcrHTstJQnK4Y2+0enaw=
-=lMSU
------END PGP SIGNATURE-----
-
---SUOF0GtieIMvvwua--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
