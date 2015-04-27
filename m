@@ -1,55 +1,58 @@
-From: Javi Merino <javi.merino@arm.com>
-Subject: Re: [GIT PULL] Thermal-SoC management updates for v4.1-rc1
-Date: Mon, 27 Apr 2015 09:35:36 +0100
-Message-ID: <20150427083536.GB3066@e104805>
-References: <20150415054819.GA16396@localhost.localdomain>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Mon, 27 Apr 2015 10:46:31 +0200
+Message-ID: <20150427084631.GA6774@pd.tnic>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
+ <1AE640813FDE7649BE1B193DEA596E880270F2B2@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150415054819.GA16396@localhost.localdomain>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:42509 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932133AbbD0Iqt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Apr 2015 04:46:49 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880270F2B2@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Apr 15, 2015 at 06:48:20AM +0100, Eduardo Valentin wrote:
-> Hello Rui,
+On Mon, Apr 27, 2015 at 03:16:00AM +0000, Zheng, Lv wrote:
+> > @@ -840,7 +840,9 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+> >  	struct ghes *ghes;
+> >  	int sev, ret = NMI_DONE;
+> > 
+> > -	raw_spin_lock(&ghes_nmi_lock);
+> > +	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
+> > +		return ret;
+> > +
 > 
-> Please pull from
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
-> 
-> to receive Thermal-SoC Management updates for v4.1-rc1 with top-most
-> 
-> 55920e072776533fd314fb3d9b69c866ed90b3df:
-> 
->   thermal: exynos: Add the support for Exynos5433 TMU (2015-04-14 22:31:17 -0700)
-> 
-> on top of commit f8b3d8a5af7559a58613384cd23fc03a3c787acf:
-> 
->   Merge tag 'usb-4.0-rc6' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb (2015-04-04 12:26:28 -0700)
-> 
-> Specifics:
-> - Exynos thermal driver learns how to handle Exynos5433 TMU. Thanks to Chanwoo C.;
-> - Thermal Framework now supports QPNP PMIC temperature alarm as a new thermal
->   driver. Thanks to Ivan T. I.;
-> - TI thermal driver now has a better implementation for EOCZ bit. Thanks to Pavel M.;
-> - Thermal Framework now has learned several new capabilities:
->   . use power estimates
->   . compute weights with relative integers instead of percentages
->   . allow governors to have private data in thermal zones
->   . export thermal zone parameters through sysfs
->   Thanks to the ARM thermal team (Javi M., Punit A., and KP).
-> - Thermal Framework earns a new thermal governor: power allocator. First in kernel
->   closed loop PI(D) controller for thermal control. Thanks to ARM thermal team.
-> - OF thermal now allows thermal zones to have sustainable power HW specification.
->   Thanks to Punit.
+> Just a simple question.
+> Why not just using cmpxchg here instead of atomic_add_unless so that no atomic_dec will be needed.
 
-4.1-rc1 is out and it looks like this fell through the cracks.  If
-there isn't any objection, can any of you send the pull request to
-Linus?
+What do you think atomic_add_unless ends up doing:
 
-Thanks,
-Javi
+#APP
+# 177 "./arch/x86/include/asm/atomic.h" 1
+	.pushsection .smp_locks,"a"
+.balign 4
+.long 671f - .
+.popsection
+671:
+	lock; cmpxchgl %edx,ghes_in_nmi(%rip)	# D.37056, MEM[(volatile u32 *)&ghes_in_nmi]
+# 0 "" 2
+#NO_APP
+
+And you need to atomic_dec() so that another reader can enter, i.e. how
+the exclusion primitive works.
+
+Or did you have something else in mind?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
