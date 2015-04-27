@@ -1,56 +1,96 @@
-From: sathyanarayanan kuppuswamy
-	<sathyanarayanan.kuppuswamy@linux.intel.com>
-Subject: Re: [RFC PATCH 3/3] iio: derive the mounting matrix from ACPI _PLD
- objects
-Date: Mon, 27 Apr 2015 14:57:07 -0700
-Message-ID: <553EB0B3.5000707@linux.intel.com>
-References: <1430146908-27919-1-git-send-email-octavian.purdila@intel.com>	<1430146908-27919-4-git-send-email-octavian.purdila@intel.com>	<64714.10.254.87.235.1430149342.squirrel@linux.intel.com> <CAE1zot+YKTPmVbG-_fNRy-E_VCcqq1VE78H3PMSMb5HvsBheQw@mail.gmail.com>
-Reply-To: sathyanarayanan.kuppuswamy@linux.intel.com
+From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
+Date: Mon, 27 Apr 2015 17:18:28 -0500
+Message-ID: <553EB5B4.4030901@amd.com>
+References: <D162D21D.19BCD%suravee.suthikulpanit@amd.com>
+ <3419939.l8boJE7mrB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52670 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965261AbbD0V5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Apr 2015 17:57:14 -0400
-In-Reply-To: <CAE1zot+YKTPmVbG-_fNRy-E_VCcqq1VE78H3PMSMb5HvsBheQw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <3419939.l8boJE7mrB@vostro.rjw.lan>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Robert Moore <robert.moore@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, lenb@kernel.org, linux-api@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi
 
-On 04/27/2015 08:54 AM, Octavian Purdila wrote:
-> On Mon, Apr 27, 2015 at 6:42 PM, Kuppuswamy Sathyanarayanan
-> <sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
->> Since Acpi framework already exports this info to user space, Why not do
->> this derivation in user space code ? Why do we need new ABI, if the same
->> can be derived from existing one.
+
+On 04/27/2015 03:38 PM, Rafael J. Wysocki wrote:
+> On Sunday, April 26, 2015 10:45:29 PM Suthikulpanit, Suravee wrote:
+>> On 4/24/15, 21:28, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
 >>
-> The ABI was added in the previous patch so that we can present the
-> sensor orientation information to userspace even in the case of device
-> tree.
-If the main reason for implementing a new ABI is to support DT 
-platforms, Why not implement a version of _PLD for device tree ? Don't 
-you think it would be much better than adding a new ABI to export 
-redundant information ?
-
-Also the location information of the device is not just specific to iio 
-drivers. You should consider that we would have similar requirements for 
-devices implemented as input or platform drivers.
+>>> On Friday, April 24, 2015 04:08:31 PM Suravee Suthikulpanit wrote:
+>>>> On 4/16/15 20:45, Zheng, Lv wrote:
+>>>>> Before back porting this to ACPICA, let me ask one simple questio=
+n.
+>>>>> According to the spec, the _CLS is optional and PCI specific.
+>>>>> So why should we implement it in ACPICA core not OSPM specific
+>>>> modules?
+>>>>> If this need to be implemented in ACPICA, then what about the
+>>>> following device identification objects?
+>>>>> _DDN, _HRV, _MLS, _PLD, _STR, _SUN
+>>>>>
+>>>>> Thanks and best regards
+>>>>> -Lv
+>>>>
+>>>> Hi,
+>>>>
+>>>> Sorry for late reply. As for the justification for introducing the=
+ _CLS
+>>>> support in the ACPICA, this is mainly because ACPI does not curren=
+tly
+>>>> define _CID for certain device classes, which used to mostly be PC=
+I
+>>>> devices. Instead, ACPI spec mentioned that _CLS can be used for lo=
+ading
+>>>> generic drivers on hardware that is compatible with PCI-defined de=
+vice
+>>>> classes, but that is not implemented on the PCI bus (and is theref=
+ore
+>>>> enumerated by ACPI.)
+>>>
+>>> I think it would be good to point to the particular part of the spe=
+c
+>>> making that provision.  In what section is that mentioned, exactly?
+>>
+>> Here is the copied from section 6.1.3 _CLS (Class Code) from ACPI 5.=
+1 spec:
+>> "This object is used to supply OSPM with the PCI-defined class, subc=
+lass
+>> and programming interface for a device. This object is optional but =
+may be
+>> useful for generic drivers written for PCI devices that move off of =
+PCI
+>> and are enumerated by ACPI."
 >
-> The purpose of this patch is to provide a consistent ABI to userspace,
-> i.e. to avoid doing one thing in the ACPI case and another thing in
-> the case of device tree.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> OK, so the "move off of PCI" part should be understood as "something =
+that
+> used to be on the PCI bus, but now may be included into an SoC direct=
+ly
+> in which case it won't be a PCI device any more", right?
+
+That's right. For example, the SATA controller is a good example for=20
+this case. On most x86 platforms, they are often enumerated as PCI=20
+devices. However, in the ARM64 SOC (e.g. on AMD Seattle), it could be=20
+enumerated as non-PCI device.
+
+Thanks,
+
+Suravee
+
 >
-
--- 
-Sathyanarayanan Kuppuswamy
-Android kernel developer
-
+>> Otherwise, if the community think it=C2=B9s better to not putting th=
+e _CLS the
+>> _CLS parsing code in ACPICA since, I can try looking into pulling th=
+e code
+>> out of ACPICA. I also noticed a little issue in the patch series whe=
+re the
+>> ACPI_VALID_CLS is used in the patch 1 but defined in patch 2. I can =
+send
+>> out v9 with the fix once we agree on the _CLS parsing.
+>
+> To me that pretty much depends on the answer to the above question.
+>
+>
