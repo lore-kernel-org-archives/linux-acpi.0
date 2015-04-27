@@ -1,48 +1,56 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Mon, 27 Apr 2015 22:23:50 +0200
-Message-ID: <20150427202349.GM28871@pd.tnic>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz>
- <20150401134913.GB18523@pd.tnic>
- <alpine.LNX.2.00.1504231038470.3695@pobox.suse.cz>
- <20150423085939.GC28340@pd.tnic>
- <3908561D78D1C84285E8C5FCA982C28F32A6446B@ORSMSX114.amr.corp.intel.com>
+From: sathyanarayanan kuppuswamy
+	<sathyanarayanan.kuppuswamy@linux.intel.com>
+Subject: Re: [RFC PATCH 3/3] iio: derive the mounting matrix from ACPI _PLD
+ objects
+Date: Mon, 27 Apr 2015 14:57:07 -0700
+Message-ID: <553EB0B3.5000707@linux.intel.com>
+References: <1430146908-27919-1-git-send-email-octavian.purdila@intel.com>	<1430146908-27919-4-git-send-email-octavian.purdila@intel.com>	<64714.10.254.87.235.1430149342.squirrel@linux.intel.com> <CAE1zot+YKTPmVbG-_fNRy-E_VCcqq1VE78H3PMSMb5HvsBheQw@mail.gmail.com>
+Reply-To: sathyanarayanan.kuppuswamy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32A6446B@ORSMSX114.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@suse.de>, Jiri Kosina <jkosina@suse.cz>, linux-edac <linux-edac@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, "Zheng, Lv" <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:52670 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965261AbbD0V5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Apr 2015 17:57:14 -0400
+In-Reply-To: <CAE1zot+YKTPmVbG-_fNRy-E_VCcqq1VE78H3PMSMb5HvsBheQw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Robert Moore <robert.moore@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, lenb@kernel.org, linux-api@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Apr 23, 2015 at 06:00:15PM +0000, Luck, Tony wrote:
-> > I think we should apply this.
-> >
-> > Here's why: nothing in the ghes_notify_nmi() handler does CPU-specific
-> > accesses
-> 
-> This looks to be true.
-> 
-> > Tony, objections?
-> 
-> No objections.
+Hi
 
-Thanks, queued for 4.2, pending one last test I'm doing on a machine
-which says
+On 04/27/2015 08:54 AM, Octavian Purdila wrote:
+> On Mon, Apr 27, 2015 at 6:42 PM, Kuppuswamy Sathyanarayanan
+> <sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
+>> Since Acpi framework already exports this info to user space, Why not do
+>> this derivation in user space code ? Why do we need new ABI, if the same
+>> can be derived from existing one.
+>>
+> The ABI was added in the previous patch so that we can present the
+> sensor orientation information to userspace even in the case of device
+> tree.
+If the main reason for implementing a new ABI is to support DT 
+platforms, Why not implement a version of _PLD for device tree ? Don't 
+you think it would be much better than adding a new ABI to export 
+redundant information ?
 
-[   24.332560] INFO: NMI handler (ghes_notify_nmi) took too long to run: 3.265 msecs
-[   24.332567] INFO: NMI handler (ghes_notify_nmi) took too long to run: 5.946 msecs
-[   24.332568] INFO: NMI handler (ghes_notify_nmi) took too long to run: 5.948 msecs
-
-during boot.
+Also the location information of the device is not just specific to iio 
+drivers. You should consider that we would have similar requirements for 
+devices implemented as input or platform drivers.
+>
+> The purpose of this patch is to provide a consistent ABI to userspace,
+> i.e. to avoid doing one thing in the ACPI case and another thing in
+> the case of device tree.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 -- 
-Regards/Gruss,
-    Boris.
+Sathyanarayanan Kuppuswamy
+Android kernel developer
 
-ECO tip #101: Trim your mails when you reply.
---
