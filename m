@@ -1,84 +1,88 @@
-From: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Sun, 26 Apr 2015 22:45:29 +0000
-Message-ID: <D162D21D.19BCD%suravee.suthikulpanit@amd.com>
-References: <1960107.SMA7G3OmSP@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Mon, 27 Apr 2015 03:16:00 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880270F2B2@SHSMSX101.ccr.corp.intel.com>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0146.outbound.protection.outlook.com ([207.46.100.146]:22294
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751043AbbDZWpf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Apr 2015 18:45:35 -0400
-In-Reply-To: <1960107.SMA7G3OmSP@vostro.rjw.lan>
+Received: from mga03.intel.com ([134.134.136.65]:21831 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751988AbbD0DQH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Apr 2015 23:16:07 -0400
+In-Reply-To: <1427448178-20689-6-git-send-email-bp@alien8.de>
 Content-Language: en-US
-Content-ID: <C6C560B2ED667240BBA5CE9F4D895E73@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Borislav Petkov <bp@alien8.de>, linux-edac <linux-edac@vger.kernel.org>
+Cc: Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 4/24/15, 21:28, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+Hi,
 
->On Friday, April 24, 2015 04:08:31 PM Suravee Suthikulpanit wrote:
->> On 4/16/15 20:45, Zheng, Lv wrote:
->> > Before back porting this to ACPICA, let me ask one simple question=
-=2E
->> > According to the spec, the _CLS is optional and PCI specific.
->> > So why should we implement it in ACPICA core not OSPM specific
->>modules?
->> > If this need to be implemented in ACPICA, then what about the
->>following device identification objects?
->> > _DDN, _HRV, _MLS, _PLD, _STR, _SUN
->> >
->> > Thanks and best regards
->> > -Lv
->>=20
->> Hi,
->>=20
->> Sorry for late reply. As for the justification for introducing the _=
-CLS
->> support in the ACPICA, this is mainly because ACPI does not currentl=
-y
->> define _CID for certain device classes, which used to mostly be PCI
->> devices. Instead, ACPI spec mentioned that _CLS can be used for load=
-ing
->> generic drivers on hardware that is compatible with PCI-defined devi=
-ce
->> classes, but that is not implemented on the PCI bus (and is therefor=
-e
->> enumerated by ACPI.)
->
->I think it would be good to point to the particular part of the spec
->making that provision.  In what section is that mentioned, exactly?
+> From: Borislav Petkov [mailto:bp@alien8.de]
+> Sent: Friday, March 27, 2015 5:23 PM
+> 
+> From: Jiri Kosina <jkosina@suse.cz>
+> 
+> Since GHES sources are global, we theoretically need only a single CPU
+> reading them per NMI instead of a thundering herd of CPUs waiting on a
+> spinlock in NMI context for no reason at all.
+> 
+> Do that.
+> 
+> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+> Signed-off-by: Borislav Petkov <bp@suse.de>
+> ---
+>  drivers/acpi/apei/ghes.c | 12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 94a44bad5576..2bfd53cbfe80 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -729,10 +729,10 @@ static struct llist_head ghes_estatus_llist;
+>  static struct irq_work ghes_proc_irq_work;
+> 
+>  /*
+> - * NMI may be triggered on any CPU, so ghes_nmi_lock is used for
+> - * mutual exclusion.
+> + * NMI may be triggered on any CPU, so ghes_in_nmi is used for
+> + * having only one concurrent reader.
+>   */
+> -static DEFINE_RAW_SPINLOCK(ghes_nmi_lock);
+> +static atomic_t ghes_in_nmi = ATOMIC_INIT(0);
+> 
+>  static LIST_HEAD(ghes_nmi);
+> 
+> @@ -840,7 +840,9 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>  	struct ghes *ghes;
+>  	int sev, ret = NMI_DONE;
+> 
+> -	raw_spin_lock(&ghes_nmi_lock);
+> +	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
+> +		return ret;
+> +
 
-Here is the copied from section 6.1.3 _CLS (Class Code) from ACPI 5.1 s=
-pec:
-"This object is used to supply OSPM with the PCI-defined class, subclas=
-s
-and programming interface for a device. This object is optional but may=
- be
-useful for generic drivers written for PCI devices that move off of PCI
-and are enumerated by ACPI.=B2
+Just a simple question.
+Why not just using cmpxchg here instead of atomic_add_unless so that no atomic_dec will be needed.
 
-Otherwise, if the community think it=B9s better to not putting the _CLS=
- the
-_CLS parsing code in ACPICA since, I can try looking into pulling the c=
-ode
-out of ACPICA. I also noticed a little issue in the patch series where =
-the
-ACPI_VALID_CLS is used in the patch 1 but defined in patch 2. I can sen=
-d
-out v9 with the fix once we agree on the _CLS parsing.
+Thanks and best regards
+-Lv
 
-Thanks,
+>  	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
+>  		if (ghes_read_estatus(ghes, 1)) {
+>  			ghes_clear_estatus(ghes);
+> @@ -863,7 +865,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>  #ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+>  	irq_work_queue(&ghes_proc_irq_work);
+>  #endif
+> -	raw_spin_unlock(&ghes_nmi_lock);
+> +	atomic_dec(&ghes_in_nmi);
+>  	return ret;
+>  }
+> 
+> --
+> 2.3.3
 
-Suravee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
