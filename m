@@ -1,73 +1,56 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] acpi: fix generic acpi_register_gsi() handling of
- shared interrupts
-Date: Tue, 28 Apr 2015 13:29:34 -0400
-Message-ID: <1430242174.24034.32.camel@deneb.redhat.com>
-References: <1430239874-15928-1-git-send-email-msalter@redhat.com>
-	 <553FBE9C.5070408@arm.com>
+From: sathyanarayanan kuppuswamy
+	<sathyanarayanan.kuppuswamy@linux.intel.com>
+Subject: Re: [PATCH 0/2] ACPI: Translate Linux IRQ number directly from GpioInt
+Date: Tue, 28 Apr 2015 10:36:48 -0700
+Message-ID: <553FC530.1020305@linux.intel.com>
+References: <1430233507-29389-1-git-send-email-mika.westerberg@linux.intel.com>
+Reply-To: sathyanarayanan.kuppuswamy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33723 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030284AbbD1R3g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2015 13:29:36 -0400
-In-Reply-To: <553FBE9C.5070408@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1430233507-29389-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <Will.Deacon@arm.com>
 
-On Tue, 2015-04-28 at 18:08 +0100, Marc Zyngier wrote:
-> On 28/04/15 17:51, Mark Salter wrote:
-> > If there are devices sharing an interrupt, acpi_register_gsi() could
-> > be called multiple times for the same gsi. Currently, it just maps
-> > the gsi without checking for a previous mapping. This patch adds a
-> > check for an existing mapping and uses that if found.
-> > 
-> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > Cc: Marc Zyngier <marc.zyngier@arm.com>
-> > Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > ---
-> >  drivers/acpi/gsi.c | 7 +++++++
-> >  1 file changed, 7 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> > index 38208f2..5698c4f 100644
-> > --- a/drivers/acpi/gsi.c
-> > +++ b/drivers/acpi/gsi.c
-> > @@ -76,6 +76,13 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
-> >  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
-> >  
-> >  	/*
-> > +	 * The gsi may be shared with other devices, so check for a
-> > +	 * previous mapping and use that if found.
-> > +	 */
-> > +	if (acpi_gsi_to_irq(gsi, &irq) > 0)
-> > +		return irq;
-> 
-> I'm afraid that's completely racy, and doesn't prevent much (two CPUs
-> can execute this at the same time and still end up executing the rest of
-> the code).
-> 
-> Furthermore, irq_create_mapping is *designed* to handle that situation,
 
-You're right. irq_create_mapping does that check already. But if it
-is truly racy, irq_create_mapping has the same problem.
 
-> and returns the same virtual IRQ for a given hwirq (and it has the
-> proper locking...).
-> 
-> So maybe it would be worth explaining the actual problem you're seeing,
-> because the code as it stands should handle the problem you seem to
-> describe.
+On 04/28/2015 08:05 AM, Mika Westerberg wrote:
+> Hi,
+>
+> Currently drivers for ACPI enumerated devices that have their interrupt
+> line connected to a GPIO controller instead of IO-APIC are required to do
+> complete gpiod_get()/gpiod_to_irq() etc. dance themselves. This adds
+> unnecessary lines of code to these drivers.
+>
+> It turned out that DT solved the problem already with introduction of
+> of_irq_get() which is able to handle GPIO based interrupts as well through
+> irqchip API [1].
+>
+> Following two patches does the same for ACPI by introducing new function
+> acpi_dev_gpio_irq_get() that is then used in I2C core to automatically
+> translate ACPI GpioInt resource to Linux IRQ number.
+>
+> This requires that the boot firmware (BIOS/coreboot) configures these pins
+> correctly (input, etc) before handing over to OS. I've tested this on Intel
+> Baytrail, Braswell and Skylake based machines where this is true.
+Why not configure the GPIO pin as input in the API itself ?
+>
+> [1] https://lkml.org/lkml/2015/3/25/103
+>
+> Mika Westerberg (2):
+>    gpio / ACPI: Add support for retrieving GpioInt resources from a device
+>    i2c / ACPI: Assign IRQ for devices that have GpioInt automatically
+>
+>   drivers/gpio/gpiolib-acpi.c | 29 +++++++++++++++++++++++++++++
+>   drivers/i2c/i2c-core.c      |  9 +++++++--
+>   include/linux/acpi.h        |  7 +++++++
+>   3 files changed, 43 insertions(+), 2 deletions(-)
+>
 
-Sorry for the noise. I was experimenting with some other code
-in acpi_register_gsi which called __irq_domain_alloc_irqs
-directly which bypassed the check in irq_create_mapping. And
-that turns out to be a silly thing to do anyway, so nevermind.
-
+-- 
+Sathyanarayanan Kuppuswamy
+Android kernel developer
 
