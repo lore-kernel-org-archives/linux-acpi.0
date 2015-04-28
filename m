@@ -1,116 +1,58 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [V9 PATCH 0/3] Introduce ACPI support for ahci_platform driver
-Date: Tue, 28 Apr 2015 10:39:58 -0500
-Message-ID: <1430235601-8842-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Tue, 28 Apr 2015 18:22:29 +0200
+Message-ID: <20150428162229.GH19025@pd.tnic>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
+ <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz>
+ <20150428143009.GA98296@redhat.com>
+ <20150428145548.GE19025@pd.tnic>
+ <20150428153521.GE98296@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-ide-owner@vger.kernel.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, hanjun.guo@linaro.org
-Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:46103 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965916AbbD1QWs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Apr 2015 12:22:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20150428153521.GE98296@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Don Zickus <dzickus@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>, linux-edac <linux-edac@vger.kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
 
-This patch series introduce ACPI support for AHCI platform driver.
-Existing ACPI support for AHCI assumes the device controller is a PCI device.
-Since there is no ACPI _CID for generic AHCI controller, the driver
-could not use it for matching devices. Therefore, this patch introduces
-a mechanism for drivers to match devices using ACPI _CLS method.
-_CLS contains PCI-defined class-code.
+On Tue, Apr 28, 2015 at 11:35:21AM -0400, Don Zickus wrote:
+> Your solution seems much simpler. :-)
 
-This patch series also modifies ACPI modalias to add class-code to the
-exisiting format, which currently only uses _HID and _CIDs. This is required
-to support loadable modules w/ _CLS.
+... and I love simpler :-)
 
-This is rebased from and tested with linux-4.1-rc1
+> I followed up in another email stating I mis-spoke.  I forgot this still
+> uses the NMI_LOCAL shared NMI.  So every perf NMI, will also call the GHES
+> handler to make sure NMIs did not piggy back each other.  So I don't believe
 
-This topic was discussed earlier here (as part of introducing support for
-AMD Seattle SATA controller):
+And this is something we should really fix - perf and RAS should
+not have anything to do with each other. But I don't know the NMI
+code to even have an idea how. I don't even know whether we can
+differentiate NMIs, hell, I can't imagine the hardware giving us a
+different NMI reason through get_nmi_reason(). Maybe that byte returned
+from NMI_REASON_PORT is too small and hangs on too much legacy crap to
+even be usable. Questions over questions...
 
-    http://marc.info/?l=linux-arm-kernel&m=141083492521584&w=2
+> the NMI reason lock is called a majority of the time (except when the NMI is
+> swallowed, but that is under heavy perf load...).
 
-Changes from V8 (https://lkml.org/lkml/2015/3/30/729)
-	* Rebased to 4.1-rc1
-	* [1/3] Misc changes for ACPICA:
-		- Re-organized certain parts from patch 2 since it should
-		  have been part of the ACPICA.
-		- Modified logic for copying class code string (Lv)
-		- Add changes and signed-off-by Lv Zheng
-	* [2/3] Rebased due to added PRP001 matching code
+..
 
-Changes from V7 (https://lkml.org/lkml/2015/3/26/592)
-	* [1/3] Return AE_AML_OPERAND_TYPE when _CLS package containing
-	  invalid type (per Robert Moore suggestion). 
-	* [2/3] Fixed build error due missing ACPI_DEVICE_CLASS definition
-	  when disabling ACPI.
+> We both agree the mechanics of the spinlock are overkill here and cause much
+> cache contention.  Simplifying it to just 'reads' and return removes most of
+> the problem.
 
-Changes from V6 (https://lkml.org/lkml/2015/3/25/797)
-	* Adding Acked-by Mika, and Reviewed-by Hanjun
-	* Minor clen up to use lower case 0xffffff for cls_msk
-	  (per Mika suggestions).
-	* Modify the ACPI_DEVICE_CLASS macro to use designated initializer
-	  (per Mika suggestions).
-
-Changes from V5 (https://lkml.org/lkml/2015/3/6/24)
-	* Rebased and tested with acpi-5.1-v11
-	* Splitting up the ACPICA changes into a separate patch [1/3].
-	  (per Mika suggestion)
-	* Adding class-code mask support (per Mika suggestion)
-	* Use macro to define struct acpi_device_id entry (per Mika suggestion)
-	* Note: Mika also recommend reordering the member of struct acpi_device_id
-	  and define a macro to be used for declaring each table entry. This is a
-	  large amount of changes, and will be done separtely from this patch series.
-
-Changes from V4 (https://lkml.org/lkml/2015/3/2/56)
-	* [1/2] Bug fixed: Reorder the declaration of
-	  struct acpi_pnp_device_id cls in the struct acpi_device_info
-	  (include/acpi/actypes.h) since compatible_id_list must be last one.
-	* [2/2] Added Acked-by: Tejun Heo <tj@kernel.org>
-
-Changes from V3 (https://lkml.org/lkml/2015/2/8/106)
-	* Instead of introducing new structure acpi_device_cls, add cls into
-	  the acpi_device_id, and modify the __acpi_match_device
-	  to also match for cls. (per Mika suggestion.)
-	* Add loadable module support, which requires changes in ACPI
-	  modalias. (per Mika suggestion.)
-	* Rebased and tested with acpi-5.1-v9
-
-Changes from V2 (https://lkml.org/lkml/2015/1/5/662)
-	* Update with review comment from Rafael in patch 1/2
-	* Rebased and tested with acpi-5.1-v8
-
-Changes from V1 (https://lkml.org/lkml/2014/12/19/345)
-	* Rebased to 3.19.0-rc2
-	* Change from acpi_cls in device_driver to acpi_match_cls (Hanjun comment)
-	* Change the matching logic in acpi_driver_match_device() due to the new
-	  special PRP0001 _HID.
-	* Simplify the return type of acpi_match_device_cls() to boolean.
-
-Changes from RFC (https://lkml.org/lkml/2014/12/17/446)
-	* Remove #ifdef and make non-ACPI version of the acpi_match_device_cls
-	  as inline. (per Arnd)
-	* Simplify logic to retrieve and evaluate _CLS handle. (per Hanjun)
-
-Suravee Suthikulpanit (3):
-  ACPICA: Utilities: Add _CLS processing
-  ACPI / scan: Add support for ACPI _CLS device matching
-  ata: ahci_platform: Add ACPI _CLS matching
-
- drivers/acpi/acpica/acinterp.h    |  2 +
- drivers/acpi/acpica/acutils.h     |  4 ++
- drivers/acpi/acpica/exutils.c     | 32 ++++++++++++++
- drivers/acpi/acpica/nsxfname.c    | 23 ++++++++--
- drivers/acpi/acpica/utids.c       | 91 ++++++++++++++++++++++++++++++++++++++-
- drivers/acpi/scan.c               | 32 +++++++++++++-
- drivers/ata/Kconfig               |  2 +-
- drivers/ata/ahci_platform.c       |  9 ++++
- include/acpi/acnames.h            |  1 +
- include/acpi/actypes.h            | 24 +++++++----
- include/linux/acpi.h              | 14 ++++++
- include/linux/mod_devicetable.h   |  2 +
- scripts/mod/devicetable-offsets.c |  2 +
- scripts/mod/file2alias.c          | 32 +++++++++++++-
- 14 files changed, 252 insertions(+), 18 deletions(-)
+Right.
 
 -- 
-2.1.0
+Regards/Gruss,
+    Boris.
 
+ECO tip #101: Trim your mails when you reply.
+--
