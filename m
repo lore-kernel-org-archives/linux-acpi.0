@@ -1,53 +1,49 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: Request for additional arm64 branch in linux-next
-Date: Tue, 28 Apr 2015 17:35:52 +0100
-Message-ID: <20150428163552.GB14963@arm.com>
-References: <20150325172002.GN24636@arm.com>
- <20150326111055.273aa644@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mark Salter <msalter@redhat.com>
+Subject: [PATCH] acpi: fix generic acpi_register_gsi() handling of shared interrupts
+Date: Tue, 28 Apr 2015 12:51:14 -0400
+Message-ID: <1430239874-15928-1-git-send-email-msalter@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59624 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49166 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030365AbbD1Qf4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2015 12:35:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20150326111055.273aa644@canb.auug.org.au>
+	id S1030353AbbD1Qv3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Apr 2015 12:51:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Salter <msalter@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>
 
-On Thu, Mar 26, 2015 at 12:10:55AM +0000, Stephen Rothwell wrote:
-> Hi Will,
+If there are devices sharing an interrupt, acpi_register_gsi() could
+be called multiple times for the same gsi. Currently, it just maps
+the gsi without checking for a previous mapping. This patch adds a
+check for an existing mapping and uses that if found.
 
-Hi again Stephen,
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Mark Salter <msalter@redhat.com>
+---
+ drivers/acpi/gsi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-> On Wed, 25 Mar 2015 17:20:03 +0000 Will Deacon <will.deacon@arm.com> wrote:
-> >
-> > We've got a series of patches introducing ACPI support for arm64 that
-> > are tentatively targetting the 4.1 merge window. Whilst there are
-> > face-to-face discussions set to happen in the next day or so around this
-> > topic, could you please pull this into linux-next under the assumption
-> > that we decide to go ahead for mainline inclusion?
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/acpi
-> > 
-> > I've kept the series separate from the usual arm64 branch (for-next/core)
-> > but they merge without conflicts. Merging with today's next, I see two
-> > trivial Kconfig conflicts (resolution below).
-> 
-> Added from today (and thanks for the hints).  Will this be merged via
-> another tree, or go directly to Linus?
-> 
-> > I'll let you know when the branch is no longer needed.
-> 
-> Excellent.
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index 38208f2..5698c4f 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -76,6 +76,13 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+ 
+ 	/*
++	 * The gsi may be shared with other devices, so check for a
++	 * previous mapping and use that if found.
++	 */
++	if (acpi_gsi_to_irq(gsi, &irq) > 0)
++		return irq;
++
++	/*
+ 	 * There is no way at present to look-up the IRQ domain on ACPI,
+ 	 * hence always create mapping referring to the default domain
+ 	 * by passing NULL as irq_domain parameter
+-- 
+1.8.3.1
 
-Just to say that, since the ACPI support code for arm64 was merged in the
-recent merge window, this branch is no longer required and can be dropped
-from linux-next.
-
-Thanks,
-
-Will
