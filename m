@@ -1,66 +1,63 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH] acpi: fix generic acpi_register_gsi() handling of shared
- interrupts
-Date: Tue, 28 Apr 2015 18:08:44 +0100
-Message-ID: <553FBE9C.5070408@arm.com>
-References: <1430239874-15928-1-git-send-email-msalter@redhat.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron
+ 7437
+Date: Tue, 28 Apr 2015 18:11:00 +0100
+Message-ID: <20150428171100.GA24599@srcf.ucam.org>
+References: <1429759476-13186-1-git-send-email-alex.hung@canonical.com>
+ <20150424082115.GA3783@srcf.ucam.org>
+ <CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com>
+ <20150427174646.GA22664@srcf.ucam.org>
+ <CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com>
+ <20150428052448.GA3458@srcf.ucam.org>
+ <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59709 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030398AbbD1RIs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2015 13:08:48 -0400
-In-Reply-To: <1430239874-15928-1-git-send-email-msalter@redhat.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:46748 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030470AbbD1RLD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 13:11:03 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Will Deacon <Will.Deacon@arm.com>
+To: Alex Hung <alex.hung@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-On 28/04/15 17:51, Mark Salter wrote:
-> If there are devices sharing an interrupt, acpi_register_gsi() could
-> be called multiple times for the same gsi. Currently, it just maps
-> the gsi without checking for a previous mapping. This patch adds a
-> check for an existing mapping and uses that if found.
-> 
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> ---
->  drivers/acpi/gsi.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> index 38208f2..5698c4f 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/gsi.c
-> @@ -76,6 +76,13 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->  
->  	/*
-> +	 * The gsi may be shared with other devices, so check for a
-> +	 * previous mapping and use that if found.
-> +	 */
-> +	if (acpi_gsi_to_irq(gsi, &irq) > 0)
-> +		return irq;
+With Windows 8 enabled you're going down this path:
 
-I'm afraid that's completely racy, and doesn't prevent much (two CPUs
-can execute this at the same time and still end up executing the rest of
-the code).
+        If (_OSI (WIN8))
+        {
+            Local0 = 0x81
+        }
 
-Furthermore, irq_create_mapping is *designed* to handle that situation,
-and returns the same virtual IRQ for a given hwirq (and it has the
-proper locking...).
+With it blacklisted, you're going down this path:
 
-So maybe it would be worth explaining the actual problem you're seeing,
-because the code as it stands should handle the problem you seem to
-describe.
+        If (_OSI (WIN7))
+        {
+            Local0 = 0x80
+            Local1 = _REV /* \_REV */
+            If ((Local1 == 0x05))
+            {
+                Local0 = 0x40
+            }
+        }
 
-Thanks,
+So your guess about _REV was actually correct - if the OS claims to be 
+Windows 7 and returns 5 to _REV, it'll let Local0 to 0x40. This results 
+in:
 
-	M.
+        If ((Local0 == 0x40))
+        {
+            MIS0 = SMI (0x98, Zero)
+            MIS0 &= 0x13
+        }
+
+MIS0 appears to be involved in various event delivery paths, so my 
+suspicion is that the firmware is deliberately working around a quirk of 
+Linux behaviour in order to deliver events appropriately. If so, your 
+patch won't help in 4.1 because _REV now returns 2, and so we need to 
+root cause the actual problem and fix that instead.
+
 -- 
-Jazz is not dead. It just smells funny...
+Matthew Garrett | mjg59@srcf.ucam.org
