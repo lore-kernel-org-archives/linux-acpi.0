@@ -1,121 +1,357 @@
-From: Don Zickus <dzickus@redhat.com>
-Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Tue, 28 Apr 2015 11:35:21 -0400
-Message-ID: <20150428153521.GE98296@redhat.com>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz>
- <20150428143009.GA98296@redhat.com>
- <20150428145548.GE19025@pd.tnic>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [V9 PATCH 1/3] ACPICA: Utilities: Add _CLS processing
+Date: Tue, 28 Apr 2015 10:39:59 -0500
+Message-ID: <1430235601-8842-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+References: <1430235601-8842-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150428145548.GE19025@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Jiri Kosina <jkosina@suse.cz>, linux-edac <linux-edac@vger.kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2on0143.outbound.protection.outlook.com ([65.55.169.143]:54144
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1030358AbbD1PkN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Apr 2015 11:40:13 -0400
+In-Reply-To: <1430235601-8842-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, mika.westerberg@linux.intel.com, robert.moore@intel.com, lv.zheng@intel.com, hanjun.guo@linaro.org
+Cc: lenb@kernel.org, hdegoede@redhat.com, tj@kernel.org, mjg59@srcf.ucam.org, gregkh@linuxfoundation.org, al.stone@linaro.org, graeme.gregory@linaro.org, leo.duran@amd.com, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On Tue, Apr 28, 2015 at 04:55:48PM +0200, Borislav Petkov wrote:
-> On Tue, Apr 28, 2015 at 10:30:09AM -0400, Don Zickus wrote:
-> > On Wed, Apr 01, 2015 at 09:45:53AM +0200, Jiri Kosina wrote:
-> > > On Fri, 27 Mar 2015, Borislav Petkov wrote:
-> > > 
-> > > > From: Jiri Kosina <jkosina@suse.cz>
-> > > > 
-> > > > Since GHES sources are global, we theoretically need only a single CPU
-> > > > reading them per NMI instead of a thundering herd of CPUs waiting on a
-> > > > spinlock in NMI context for no reason at all.
-> > > 
-> > > I originally wasn't 100% sure whether GHES sources are global (i.e. if it 
-> > > really doesn't matter which CPU is reading the registers), but looking at 
-> > > the code more it actually seems that this is really the right thing to do.
-> > > 
-> > > Rationale: ghes_ioremap_pfn_nmi() always ioremaps() (exclusively) the page 
-> > > with the registers, performs apei_read() (which is ghes-source specific, 
-> > > but not CPU-specific) and unmaps the page again.
-> > > 
-> > > There is nothing that would make this CPU-specific. Adding Huang Ying (the 
-> > > original author of the code) to confirm this. Huang?
-> > 
-> > Hi,
-> > 
-> > I believe the answer to this question is no, they are not global but
-> > instead external.  All external NMIs are routed to one cpu, normally cpu0.
-> 
-> Actually, the things we're talking about here are not global NMIs but
-> global error sources. I.e., the GHES sources which use an NMI to report
-> errors with and which we noodle over in ghes_notify_nmi() twice:
-> 
-> 	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
+ACPI Device object often contains a _CLS object to suppy PCI-defined class
+code for the device. This patch introduces logic to process the _CLS
+object.
 
-Sure, most systems use NMI to report them I believe (at least the ones I
-have played with).  Regardless, I have hit performance problems on this lock
-while doing perf testing.
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/acinterp.h |  2 +
+ drivers/acpi/acpica/acutils.h  |  4 ++
+ drivers/acpi/acpica/exutils.c  | 32 +++++++++++++++
+ drivers/acpi/acpica/nsxfname.c | 23 +++++++++--
+ drivers/acpi/acpica/utids.c    | 91 +++++++++++++++++++++++++++++++++++++++++-
+ include/acpi/acnames.h         |  1 +
+ include/acpi/actypes.h         | 24 ++++++-----
+ 7 files changed, 164 insertions(+), 13 deletions(-)
 
-I tried to work around it by splitting the NMI list into an
-nmi_register(INTERNAL,...) and nmi_register(EXTERNAL,...) to allow perf to
-avoid hitting this lock.  But the fallout of that change included missed
-NMIs and various solutions from that resulted in complexities that blocked
-inclusion last year.
+diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
+index 1886bde..7ac9800 100644
+--- a/drivers/acpi/acpica/acinterp.h
++++ b/drivers/acpi/acpica/acinterp.h
+@@ -468,6 +468,8 @@ void acpi_ex_eisa_id_to_string(char *dest, u64 compressed_id);
+ 
+ void acpi_ex_integer_to_string(char *dest, u64 value);
+ 
++void acpi_ex_pci_cls_to_string(char *dest, u8 class_code[3]);
++
+ u8 acpi_is_valid_space_id(u8 space_id);
+ 
+ /*
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 2b3c5bd..f1f4c83 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -430,6 +430,10 @@ acpi_status
+ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
+ 		    struct acpi_pnp_device_id_list ** return_cid_list);
+ 
++acpi_status
++acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
++		    struct acpi_pnp_device_id **return_id);
++
+ /*
+  * utlock - reader/writer locks
+  */
+diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
+index 3f4225e..30c3f46 100644
+--- a/drivers/acpi/acpica/exutils.c
++++ b/drivers/acpi/acpica/exutils.c
+@@ -380,6 +380,38 @@ void acpi_ex_integer_to_string(char *out_string, u64 value)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_ex_pci_cls_to_string
++ *
++ * PARAMETERS:  out_string      - Where to put the converted string (7 bytes)
++ * PARAMETERS:  class_code      - PCI class code to be converted (3 bytes)
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Convert 3-bytes PCI class code to string representation.
++ *              Return buffer must be large enough to hold the string. The
++ *              string returned is always exactly of length
++ *              ACPI_PCICLS_STRING_SIZE (includes null terminator).
++ *
++ ******************************************************************************/
++
++void acpi_ex_pci_cls_to_string(char *out_string, u8 class_code[3])
++{
++
++	ACPI_FUNCTION_ENTRY();
++
++	/* All 3 bytes are hexadecimal */
++
++	out_string[0] = acpi_ut_hex_to_ascii_char((u64)class_code[0], 4);
++	out_string[1] = acpi_ut_hex_to_ascii_char((u64)class_code[0], 0);
++	out_string[2] = acpi_ut_hex_to_ascii_char((u64)class_code[1], 4);
++	out_string[3] = acpi_ut_hex_to_ascii_char((u64)class_code[1], 0);
++	out_string[4] = acpi_ut_hex_to_ascii_char((u64)class_code[2], 4);
++	out_string[5] = acpi_ut_hex_to_ascii_char((u64)class_code[2], 0);
++	out_string[6] = 0;
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_is_valid_space_id
+  *
+  * PARAMETERS:  space_id            - ID to be validated
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index d66c326..49266b4 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -260,7 +260,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
+  *              control methods (Such as in the case of a device.)
+  *
+  * For Device and Processor objects, run the Device _HID, _UID, _CID, _SUB,
+- * _STA, _ADR, _sx_w, and _sx_d methods.
++ * _CLS, _STA, _ADR, _sx_w, and _sx_d methods.
+  *
+  * Note: Allocates the return buffer, must be freed by the caller.
+  *
+@@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
+ 	struct acpi_pnp_device_id *hid = NULL;
+ 	struct acpi_pnp_device_id *uid = NULL;
+ 	struct acpi_pnp_device_id *sub = NULL;
++	struct acpi_pnp_device_id *cls = NULL;
+ 	char *next_id_string;
+ 	acpi_object_type type;
+ 	acpi_name name;
+ 	u8 param_count = 0;
+-	u8 valid = 0;
++	u16 valid = 0;
+ 	u32 info_size;
+ 	u32 i;
+ 	acpi_status status;
+@@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
+ 	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
+ 		/*
+ 		 * Get extra info for ACPI Device/Processor objects only:
+-		 * Run the Device _HID, _UID, _SUB, and _CID methods.
++		 * Run the Device _HID, _UID, _SUB, _CID, and _CLS methods.
+ 		 *
+ 		 * Note: none of these methods are required, so they may or may
+ 		 * not be present for this device. The Info->Valid bitfield is used
+@@ -363,6 +364,14 @@ acpi_get_object_info(acpi_handle handle,
+ 			     sizeof(struct acpi_pnp_device_id_list));
+ 			valid |= ACPI_VALID_CID;
+ 		}
++
++		/* Execute the Device._CLS method */
++
++		status = acpi_ut_execute_CLS(node, &cls);
++		if (ACPI_SUCCESS(status)) {
++			info_size += cls->length;
++			valid |= ACPI_VALID_CLS;
++		}
+ 	}
+ 
+ 	/*
+@@ -486,6 +495,11 @@ acpi_get_object_info(acpi_handle handle,
+ 		}
+ 	}
+ 
++	if (cls) {
++		next_id_string = acpi_ns_copy_device_id(&info->cls,
++							cls, next_id_string);
++	}
++
+ 	/* Copy the fixed-length data */
+ 
+ 	info->info_size = info_size;
+@@ -510,6 +524,9 @@ cleanup:
+ 	if (cid_list) {
+ 		ACPI_FREE(cid_list);
+ 	}
++	if (cls) {
++		ACPI_FREE(cls);
++	}
+ 	return (status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
+index 27431cf..3afe07f 100644
+--- a/drivers/acpi/acpica/utids.c
++++ b/drivers/acpi/acpica/utids.c
+@@ -1,6 +1,6 @@
+ /******************************************************************************
+  *
+- * Module Name: utids - support for device Ids - HID, UID, CID
++ * Module Name: utids - support for device Ids - HID, UID, CID, SUB, CLS
+  *
+  *****************************************************************************/
+ 
+@@ -416,3 +416,92 @@ cleanup:
+ 	acpi_ut_remove_reference(obj_desc);
+ 	return_ACPI_STATUS(status);
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_execute_CLS
++ *
++ * PARAMETERS:  device_node         - Node for the device
++ *              return_id           - Where the _CLS is returned
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Executes the _CLS control method that returns PCI-defined
++ *              class code of the device. The _CLS value is always a package
++ *              containing PCI class information as a list of integers.
++ *              The returned string has format "BBSSPP", where:
++ *                BB = Base-class code
++ *                SS = Sub-class code
++ *                PP = Programming Interface code
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
++		    struct acpi_pnp_device_id **return_id)
++{
++	union acpi_operand_object *obj_desc;
++	union acpi_operand_object **cls_objects;
++	u32 count;
++	struct acpi_pnp_device_id *cls;
++	u32 length;
++	acpi_status status;
++	u8 class_code[3] = { 0, 0, 0 };
++
++	ACPI_FUNCTION_TRACE(ut_execute_CLS);
++
++	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
++					 ACPI_BTYPE_PACKAGE, &obj_desc);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Get the size of the String to be returned, includes null terminator */
++
++	length = ACPI_PCICLS_STRING_SIZE;
++	cls_objects = obj_desc->package.elements;
++	count = obj_desc->package.count;
++
++	if (obj_desc->common.type == ACPI_TYPE_PACKAGE) {
++		if (count > 0
++		    && cls_objects[0]->common.type == ACPI_TYPE_INTEGER) {
++			class_code[0] = (u8)cls_objects[0]->integer.value;
++		}
++		if (count > 1
++		    && cls_objects[1]->common.type == ACPI_TYPE_INTEGER) {
++			class_code[1] = (u8)cls_objects[1]->integer.value;
++		}
++		if (count > 2
++		    && cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
++			class_code[2] = (u8)cls_objects[2]->integer.value;
++		}
++	}
++
++	/* Allocate a buffer for the CLS */
++
++	cls =
++	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
++				 (acpi_size) length);
++	if (!cls) {
++		status = AE_NO_MEMORY;
++		goto cleanup;
++	}
++
++	/* Area for the string starts after PNP_DEVICE_ID struct */
++
++	cls->string =
++	    ACPI_ADD_PTR(char, cls, sizeof(struct acpi_pnp_device_id));
++
++	/* Simply copy existing string */
++
++	acpi_ex_pci_cls_to_string(cls->string, class_code);
++	cls->length = length;
++	*return_id = cls;
++
++cleanup:
++
++	/* On exit, we must delete the return object */
++
++	acpi_ut_remove_reference(obj_desc);
++	return_ACPI_STATUS(status);
++}
+diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
+index 273de70..b52c0dc 100644
+--- a/include/acpi/acnames.h
++++ b/include/acpi/acnames.h
+@@ -51,6 +51,7 @@
+ #define METHOD_NAME__BBN        "_BBN"
+ #define METHOD_NAME__CBA        "_CBA"
+ #define METHOD_NAME__CID        "_CID"
++#define METHOD_NAME__CLS        "_CLS"
+ #define METHOD_NAME__CRS        "_CRS"
+ #define METHOD_NAME__DDN        "_DDN"
+ #define METHOD_NAME__HID        "_HID"
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index f5ca0e9..3da3ea2 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1145,6 +1145,10 @@ u32 (*acpi_interface_handler) (acpi_string interface_name, u32 supported);
+ 
+ #define ACPI_UUID_LENGTH                16
+ 
++/* Length of 3-byte PCI class code values when converted back to a string */
++
++#define ACPI_PCICLS_STRING_SIZE         7	/* Includes null terminator */
++
+ /* Structures used for device/processor HID, UID, CID, and SUB */
+ 
+ struct acpi_pnp_device_id {
+@@ -1167,7 +1171,7 @@ struct acpi_device_info {
+ 	u32 name;		/* ACPI object Name */
+ 	acpi_object_type type;	/* ACPI object Type */
+ 	u8 param_count;		/* If a method, required parameter count */
+-	u8 valid;		/* Indicates which optional fields are valid */
++	u16 valid;		/* Indicates which optional fields are valid */
+ 	u8 flags;		/* Miscellaneous info */
+ 	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not valid */
+ 	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
+@@ -1176,6 +1180,7 @@ struct acpi_device_info {
+ 	struct acpi_pnp_device_id hardware_id;	/* _HID value */
+ 	struct acpi_pnp_device_id unique_id;	/* _UID value */
+ 	struct acpi_pnp_device_id subsystem_id;	/* _SUB value */
++	struct acpi_pnp_device_id cls;		/* _CLS value */
+ 	struct acpi_pnp_device_id_list compatible_id_list;	/* _CID list <must be last> */
+ };
+ 
+@@ -1185,14 +1190,15 @@ struct acpi_device_info {
+ 
+ /* Flags for Valid field above (acpi_get_object_info) */
+ 
+-#define ACPI_VALID_STA                  0x01
+-#define ACPI_VALID_ADR                  0x02
+-#define ACPI_VALID_HID                  0x04
+-#define ACPI_VALID_UID                  0x08
+-#define ACPI_VALID_SUB                  0x10
+-#define ACPI_VALID_CID                  0x20
+-#define ACPI_VALID_SXDS                 0x40
+-#define ACPI_VALID_SXWS                 0x80
++#define ACPI_VALID_STA                  0x0001
++#define ACPI_VALID_ADR                  0x0002
++#define ACPI_VALID_HID                  0x0004
++#define ACPI_VALID_UID                  0x0008
++#define ACPI_VALID_SUB                  0x0010
++#define ACPI_VALID_CID                  0x0020
++#define ACPI_VALID_CLS                  0x0040
++#define ACPI_VALID_SXDS                 0x0100
++#define ACPI_VALID_SXWS                 0x0200
+ 
+ /* Flags for _STA return value (current_status above) */
+ 
+-- 
+2.1.0
 
-Your solution seems much simpler. :-)
-
-> 		...
-> 
-> > This spinlock was made global to handle the 'someday' case of hotplugging
-> > the bsp cpu (cpu0).
-> > 
-> > The other external NMIs (IO_CHECK and SERR) suffer from the same spinlock
-> > problem.  I tried using an irq_workqueue to work around quirks there and
-> > PeterZ wasn't very fond of it (though he couldn't think of a better way to
-> > solve it).
-> > 
-> > This patch seems interesting but you might still run into the thundering
-> > herd problem with the global spinlock in
-> > arch/x86/kernel/nmi.c::default_do_nmi().  That functions grabs a global
-> > spinlock before processing the external NMI list (which GHES is a part of).
-> 
-> nmi_reason_lock? And our handler is registered with
-> register_nmi_handler() and so we iterate over it in nmi_handle(). It'd
-> be interesting to know what NMI reason we get for those GHES NMIs so
-> that we know whether nmi_handle() is called under the lock or not...
-
-I followed up in another email stating I mis-spoke.  I forgot this still
-uses the NMI_LOCAL shared NMI.  So every perf NMI, will also call the GHES
-handler to make sure NMIs did not piggy back each other.  So I don't believe
-the NMI reason lock is called a majority of the time (except when the NMI is
-swallowed, but that is under heavy perf load...).
-
-
-> 
-> > So I am assuming this patch solves the 'thundering herd' problem by
-> > minimizing all the useless writes the spinlock would do for each cpu that
-> > noticed it had no work to do?
-> 
-> Not that spinlock. It used to take another one in ghes_notify_nmi().
-> Removing it solved the issue. There were even boxes which would do:
-> 
-> [   24.332560] INFO: NMI handler (ghes_notify_nmi) took too long to run: 3.265 msecs
-> [   24.332567] INFO: NMI handler (ghes_notify_nmi) took too long to run: 5.946 msecs
-> [   24.332568] INFO: NMI handler (ghes_notify_nmi) took too long to run: 5.948 msecs
-> 
-> just like that during boot.
-> 
-> It was basically a lot of purely useless lock grabbing for no reason
-> whatsoever.
-
-Yes, I meant the 'raw_spin_lock(&ghes_nmi_lock);' one.  I poorly typed my
-email and confused you into thinking I was referring to the wrong one.
-
-Well, it isn't exactly no reason, but more along the lines of 'we do not
-know who gets the external NMI, so everyone tries to talk with the GHES
-firmware'.  But I think that is just me squabbling.
-
-We both agree the mechanics of the spinlock are overkill here and cause much
-cache contention.  Simplifying it to just 'reads' and return removes most of
-the problem.
-
-Cheers,
-Don
