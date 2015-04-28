@@ -1,92 +1,28 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH v2 00/20] libnd: non-volatile memory device support
-Date: Tue, 28 Apr 2015 16:05:17 -0700
-Message-ID: <CALCETrVno_bWKzfzfEa_gQSCaS-u8QpgdeFCmvEvnxR-4L6HoQ@mail.gmail.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CALCETrV0gE7j+OaJ+UrV=rANrTpALKX6MXFQs6GKAMe0rSxRRw@mail.gmail.com>
- <CAPcyv4hMfTD9eEVD9NSG3DDT-_5d+BZHL=RHNMR8kh+iBd6FuQ@mail.gmail.com>
- <CALCETrVJafaxJwZi1C8cAsQs51nvGFywAkNTNbc=BjE+bjBgnQ@mail.gmail.com> <CAPcyv4jeV-4D+uJyjmBa8Zn5VC8LmTf2+eWj_CdVzcAWZvRrKg@mail.gmail.com>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Discussion around quirking the _REV behavior for the XPS 13 (2015)
+ until 4.2
+Date: Tue, 28 Apr 2015 18:21:38 -0500
+Message-ID: <55401602.5050907@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:33594 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031114AbbD1XFj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 19:05:39 -0400
-Received: by lbbzk7 with SMTP id zk7so7775472lbb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Apr 2015 16:05:38 -0700 (PDT)
-In-Reply-To: <CAPcyv4jeV-4D+uJyjmBa8Zn5VC8LmTf2+eWj_CdVzcAWZvRrKg@mail.gmail.com>
+Received: from ausxipps301.us.dell.com ([143.166.148.223]:22245 "EHLO
+	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031051AbbD1XVj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 19:21:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Christoph Hellwig <hch@lst.de>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Apr 28, 2015 at 3:28 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Tue, Apr 28, 2015 at 2:06 PM, Andy Lutomirski <luto@amacapital.net> wrote:
->> On Tue, Apr 28, 2015 at 1:59 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->>> On Tue, Apr 28, 2015 at 1:52 PM, Andy Lutomirski <luto@amacapital.net> wrote:
->>>> On Tue, Apr 28, 2015 at 11:24 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->>>>> Changes since v1 [1]: Incorporates feedback received prior to April 24.
->>>>>
->>>>> 1/ Ingo said [2]:
->>>>>
->>>>>        "So why on earth is this whole concept and the naming itself
->>>>>        ('drivers/block/nd/' stands for 'NFIT Defined', apparently)
->>>>>        revolving around a specific 'firmware' mindset and revolving
->>>>>        around specific, weirdly named, overly complicated looking
->>>>>        firmware interfaces that come with their own new weird
->>>>>        glossary??"
->>>>>
->>>>>    Indeed, we of course consulted the NFIT specification to determine
->>>>>    the shape of the sub-system, but then let its terms and data
->>>>>    structures permeate too deep into the implementation.  That is fixed
->>>>>    now with all NFIT specifics factored out into acpi.c.  The NFIT is no
->>>>>    longer required reading to review libnd.  Only three concepts are
->>>>>    needed:
->>>>>
->>>>>       i/ PMEM - contiguous memory range where cpu stores are
->>>>>          persistent once they are flushed through the memory
->>>>>          controller.
->>>>>
->>>>>      ii/ BLK - mmio apertures (sliding windows) that can be
->>>>>          programmed to access an aperture's-worth of persistent
->>>>>          media at a time.
->>>>>
->>>>>     iii/ DPA - "dimm-physical-address", address space local to a
->>>>>          dimm.  A dimm may provide both PMEM-mode and BLK-mode
->>>>>          access to a range of DPA.  libnd manages allocation of DPA
->>>>>          to either PMEM or BLK-namespaces to resolve this aliasing.
->>>>
->>>> Mostly for my understanding: is there a name for "address relative to
->>>> the address lines on the DIMM"?  That is, a DIMM that exposes 8 GB of
->>>> apparent physical memory, possibly interleaved, broken up, or weirdly
->>>> remapped by the memory controller, would still have addresses between
->>>> 0 and 8 GB.  Some of those might be PMEM windows, some might be MMIO,
->>>> some might be BLK apertures, etc.
->>>>
->>>> IIUC "DPA" refers to actual addressable storage, not this type of address?
->>>
->>> No, DPA is exactly as you describe above.  You can't directly access
->>> it except through a PMEM mapping (possibly interleaved with DPA from
->>> other DIMMs) or a BLK aperture (mmio window into DPA).
->>
->> So the thing I'm describing has no name, then?  Oh, well.
->
-> What?  The thing you are describing *is* DPA.
+Hi,
 
-I'm confused.  Here are the two things I have in mind:
+Due to b1ef2972586577e0ca9675254ee141f65a8824e5 landing recently as a result of some previous ACPI community discussion, the Dell XPS 13 (2015) no longer has fully functional audio.  In case you aren't aware, the XPS 13 (2015) switches audio modes based upon a combination of what's detected for the _OSI string and _REV values. When "Windows 2013" is found with _REV=2 the audio codec will be configured for I2S audio mode.  When "Windows 2013" with _REV=5 is found it will be configured for HDA audio mode.
 
-1. An address into on-DIMM storage.  If I have a DIMM that is mapped
-to 8 GB of SPA but has 64 GB of usable storage (accessed through BLK
-apertures, say), then this address runs from 0 to 64 GB.
+I2S audio is improving, but not as mature as HDA audio mode is at this point.  Currently jack detection does not work properly in 4.1 with I2S audio codecs.  I've been notified that the support for jack detection will be landing in 4.2.  I'd like to discuss the possibility of including a quirk for the _REV behavior when the DMI information corresponding to the Dell XPS 13 (2015) is detected for 4.1.  This will let it continue to run in HDA mode until I2S mode is mature.
 
-2. An address into the DIMM's view of physical address space.  If I
-have a DIMM that is mapped to 8 GB of SPA but has 64 GB of usable
-storage (accessed through BLK apertures, say), then this address runs
-from 0 to 8 GB.  There's a one-to-one mapping between SPA and this
-type of address.
+I'd also like to plan for the quirk to be dropped when jack detection has landed for 4.2 (or if it gets pushed out further when it lands for 4.3).
 
-Since you said "a dimm may provide both PMEM-mode and BLK-mode access
-to a range of DPA.," I thought that DPA was #1.
+Would you guys be open to that?
 
---Andy
+Thanks,
