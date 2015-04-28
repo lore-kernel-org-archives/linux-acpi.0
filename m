@@ -1,58 +1,53 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Tue, 28 Apr 2015 18:22:29 +0200
-Message-ID: <20150428162229.GH19025@pd.tnic>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <alpine.LNX.2.00.1504010941040.843@pobox.suse.cz>
- <20150428143009.GA98296@redhat.com>
- <20150428145548.GE19025@pd.tnic>
- <20150428153521.GE98296@redhat.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: Request for additional arm64 branch in linux-next
+Date: Tue, 28 Apr 2015 17:35:52 +0100
+Message-ID: <20150428163552.GB14963@arm.com>
+References: <20150325172002.GN24636@arm.com>
+ <20150326111055.273aa644@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:46103 "EHLO mail.skyhub.de"
+Received: from foss.arm.com ([217.140.101.70]:59624 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965916AbbD1QWs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2015 12:22:48 -0400
+	id S1030365AbbD1Qf4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Apr 2015 12:35:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20150428153521.GE98296@redhat.com>
+In-Reply-To: <20150326111055.273aa644@canb.auug.org.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Don Zickus <dzickus@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>, linux-edac <linux-edac@vger.kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>
 
-On Tue, Apr 28, 2015 at 11:35:21AM -0400, Don Zickus wrote:
-> Your solution seems much simpler. :-)
+On Thu, Mar 26, 2015 at 12:10:55AM +0000, Stephen Rothwell wrote:
+> Hi Will,
 
-... and I love simpler :-)
+Hi again Stephen,
 
-> I followed up in another email stating I mis-spoke.  I forgot this still
-> uses the NMI_LOCAL shared NMI.  So every perf NMI, will also call the GHES
-> handler to make sure NMIs did not piggy back each other.  So I don't believe
+> On Wed, 25 Mar 2015 17:20:03 +0000 Will Deacon <will.deacon@arm.com> wrote:
+> >
+> > We've got a series of patches introducing ACPI support for arm64 that
+> > are tentatively targetting the 4.1 merge window. Whilst there are
+> > face-to-face discussions set to happen in the next day or so around this
+> > topic, could you please pull this into linux-next under the assumption
+> > that we decide to go ahead for mainline inclusion?
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/acpi
+> > 
+> > I've kept the series separate from the usual arm64 branch (for-next/core)
+> > but they merge without conflicts. Merging with today's next, I see two
+> > trivial Kconfig conflicts (resolution below).
+> 
+> Added from today (and thanks for the hints).  Will this be merged via
+> another tree, or go directly to Linus?
+> 
+> > I'll let you know when the branch is no longer needed.
+> 
+> Excellent.
 
-And this is something we should really fix - perf and RAS should
-not have anything to do with each other. But I don't know the NMI
-code to even have an idea how. I don't even know whether we can
-differentiate NMIs, hell, I can't imagine the hardware giving us a
-different NMI reason through get_nmi_reason(). Maybe that byte returned
-from NMI_REASON_PORT is too small and hangs on too much legacy crap to
-even be usable. Questions over questions...
+Just to say that, since the ACPI support code for arm64 was merged in the
+recent merge window, this branch is no longer required and can be dropped
+from linux-next.
 
-> the NMI reason lock is called a majority of the time (except when the NMI is
-> swallowed, but that is under heavy perf load...).
+Thanks,
 
-..
-
-> We both agree the mechanics of the spinlock are overkill here and cause much
-> cache contention.  Simplifying it to just 'reads' and return removes most of
-> the problem.
-
-Right.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+Will
