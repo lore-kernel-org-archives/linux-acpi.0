@@ -1,96 +1,50 @@
-From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [V8 PATCH 1/3] ACPICA: Add ACPI _CLS processing
-Date: Mon, 27 Apr 2015 17:18:28 -0500
-Message-ID: <553EB5B4.4030901@amd.com>
-References: <D162D21D.19BCD%suravee.suthikulpanit@amd.com>
- <3419939.l8boJE7mrB@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Tue, 28 Apr 2015 00:44:12 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880270F55F@SHSMSX101.ccr.corp.intel.com>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
+ <1AE640813FDE7649BE1B193DEA596E880270F2B2@SHSMSX101.ccr.corp.intel.com>
+ <20150427084631.GA6774@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <3419939.l8boJE7mrB@vostro.rjw.lan>
-Sender: linux-ide-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "Moore, Robert" <robert.moore@intel.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "hdegoede@redhat.com" <hdegoede@redhat.com>, "tj@kernel.org" <tj@kernel.org>, "mjg59@srcf.ucam.org" <mjg59@srcf.ucam.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "Duran, Leo" <leo.duran@amd.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:29586 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752597AbbD1AoS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Apr 2015 20:44:18 -0400
+In-Reply-To: <20150427084631.GA6774@pd.tnic>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-
-
-On 04/27/2015 03:38 PM, Rafael J. Wysocki wrote:
-> On Sunday, April 26, 2015 10:45:29 PM Suthikulpanit, Suravee wrote:
->> On 4/24/15, 21:28, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
->>
->>> On Friday, April 24, 2015 04:08:31 PM Suravee Suthikulpanit wrote:
->>>> On 4/16/15 20:45, Zheng, Lv wrote:
->>>>> Before back porting this to ACPICA, let me ask one simple questio=
-n.
->>>>> According to the spec, the _CLS is optional and PCI specific.
->>>>> So why should we implement it in ACPICA core not OSPM specific
->>>> modules?
->>>>> If this need to be implemented in ACPICA, then what about the
->>>> following device identification objects?
->>>>> _DDN, _HRV, _MLS, _PLD, _STR, _SUN
->>>>>
->>>>> Thanks and best regards
->>>>> -Lv
->>>>
->>>> Hi,
->>>>
->>>> Sorry for late reply. As for the justification for introducing the=
- _CLS
->>>> support in the ACPICA, this is mainly because ACPI does not curren=
-tly
->>>> define _CID for certain device classes, which used to mostly be PC=
-I
->>>> devices. Instead, ACPI spec mentioned that _CLS can be used for lo=
-ading
->>>> generic drivers on hardware that is compatible with PCI-defined de=
-vice
->>>> classes, but that is not implemented on the PCI bus (and is theref=
-ore
->>>> enumerated by ACPI.)
->>>
->>> I think it would be good to point to the particular part of the spe=
-c
->>> making that provision.  In what section is that mentioned, exactly?
->>
->> Here is the copied from section 6.1.3 _CLS (Class Code) from ACPI 5.=
-1 spec:
->> "This object is used to supply OSPM with the PCI-defined class, subc=
-lass
->> and programming interface for a device. This object is optional but =
-may be
->> useful for generic drivers written for PCI devices that move off of =
-PCI
->> and are enumerated by ACPI."
->
-> OK, so the "move off of PCI" part should be understood as "something =
-that
-> used to be on the PCI bus, but now may be included into an SoC direct=
-ly
-> in which case it won't be a PCI device any more", right?
-
-That's right. For example, the SATA controller is a good example for=20
-this case. On most x86 platforms, they are often enumerated as PCI=20
-devices. However, in the ARM64 SOC (e.g. on AMD Seattle), it could be=20
-enumerated as non-PCI device.
-
-Thanks,
-
-Suravee
-
->
->> Otherwise, if the community think it=C2=B9s better to not putting th=
-e _CLS the
->> _CLS parsing code in ACPICA since, I can try looking into pulling th=
-e code
->> out of ACPICA. I also noticed a little issue in the patch series whe=
-re the
->> ACPI_VALID_CLS is used in the patch 1 but defined in patch 2. I can =
-send
->> out v9 with the fix once we agree on the _CLS parsing.
->
-> To me that pretty much depends on the answer to the above question.
->
->
+SGksDQoNCj4gRnJvbTogQm9yaXNsYXYgUGV0a292IFttYWlsdG86YnBAYWxpZW44LmRlXQ0KPiBT
+ZW50OiBNb25kYXksIEFwcmlsIDI3LCAyMDE1IDQ6NDcgUE0NCj4gDQo+IE9uIE1vbiwgQXByIDI3
+LCAyMDE1IGF0IDAzOjE2OjAwQU0gKzAwMDAsIFpoZW5nLCBMdiB3cm90ZToNCj4gPiA+IEBAIC04
+NDAsNyArODQwLDkgQEAgc3RhdGljIGludCBnaGVzX25vdGlmeV9ubWkodW5zaWduZWQgaW50IGNt
+ZCwgc3RydWN0IHB0X3JlZ3MgKnJlZ3MpDQo+ID4gPiAgCXN0cnVjdCBnaGVzICpnaGVzOw0KPiA+
+ID4gIAlpbnQgc2V2LCByZXQgPSBOTUlfRE9ORTsNCj4gPiA+DQo+ID4gPiAtCXJhd19zcGluX2xv
+Y2soJmdoZXNfbm1pX2xvY2spOw0KPiA+ID4gKwlpZiAoIWF0b21pY19hZGRfdW5sZXNzKCZnaGVz
+X2luX25taSwgMSwgMSkpDQo+ID4gPiArCQlyZXR1cm4gcmV0Ow0KPiA+ID4gKw0KPiA+DQo+ID4g
+SnVzdCBhIHNpbXBsZSBxdWVzdGlvbi4NCj4gPiBXaHkgbm90IGp1c3QgdXNpbmcgY21weGNoZyBo
+ZXJlIGluc3RlYWQgb2YgYXRvbWljX2FkZF91bmxlc3Mgc28gdGhhdCBubyBhdG9taWNfZGVjIHdp
+bGwgYmUgbmVlZGVkLg0KPiANCj4gV2hhdCBkbyB5b3UgdGhpbmsgYXRvbWljX2FkZF91bmxlc3Mg
+ZW5kcyB1cCBkb2luZzoNCj4gDQo+ICNBUFANCj4gIyAxNzcgIi4vYXJjaC94ODYvaW5jbHVkZS9h
+c20vYXRvbWljLmgiIDENCj4gCS5wdXNoc2VjdGlvbiAuc21wX2xvY2tzLCJhIg0KPiAuYmFsaWdu
+IDQNCj4gLmxvbmcgNjcxZiAtIC4NCj4gLnBvcHNlY3Rpb24NCj4gNjcxOg0KPiAJbG9jazsgY21w
+eGNoZ2wgJWVkeCxnaGVzX2luX25taSglcmlwKQkjIEQuMzcwNTYsIE1FTVsodm9sYXRpbGUgdTMy
+ICopJmdoZXNfaW5fbm1pXQ0KPiAjIDAgIiIgMg0KPiAjTk9fQVBQDQo+IA0KPiBBbmQgeW91IG5l
+ZWQgdG8gYXRvbWljX2RlYygpIHNvIHRoYXQgYW5vdGhlciByZWFkZXIgY2FuIGVudGVyLCBpLmUu
+IGhvdw0KPiB0aGUgZXhjbHVzaW9uIHByaW1pdGl2ZSB3b3Jrcy4NCj4gDQo+IE9yIGRpZCB5b3Ug
+aGF2ZSBzb21ldGhpbmcgZWxzZSBpbiBtaW5kPw0KDQpNeSBtaXN0YWtlLg0KSSBtZWFuIGNtcHhj
+aGcoKSBhbmQgeGNoZygpIChvciBhdG9taWNfY21weGNoZygpIGFuZCBhdG9taWNfeGNoZygpKSBw
+YWlyIGhlcmUsIHNvIG5vdGhpbmcgY2FuIGJlIHJlZHVjZWQuDQoNCkJ1dCBJTU8sIGF0b21pY19h
+ZGRfdW5sZXNzKCkgaXMgaW1wbGVtZW50ZWQgdmlhIGNtcHhjaGcgb24gbWFueSBhcmNoaXRlY3R1
+cmVzLg0KQW5kIGl0IG1pZ2h0IGJlIGJldHRlciB0byB1c2UgaXQgZGlyZWN0bHkgaGVyZSB3aGlj
+aCBpcyBhIGJpdCBmYXN0ZXIgYXMgeW91IGFjdHVhbGx5IG9ubHkgbmVlZCBvbmUgdmFsdWUgc3dp
+dGNoIGhlcmUuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KDQo+IA0KPiAtLQ0K
+PiBSZWdhcmRzL0dydXNzLA0KPiAgICAgQm9yaXMuDQo+IA0KPiBFQ08gdGlwICMxMDE6IFRyaW0g
+eW91ciBtYWlscyB3aGVuIHlvdSByZXBseS4NCj4gLS0NCg==
