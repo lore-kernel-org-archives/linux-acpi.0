@@ -1,71 +1,60 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 16/20] sched/idle: Use explicit broadcast oneshot control
- function
-Date: Tue, 28 Apr 2015 14:58:37 +0100
-Message-ID: <553F920D.6090404@arm.com>
-References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <8051605.iKEaLUIlGb@vostro.rjw.lan> <4162206.ldgadmp1aL@vostro.rjw.lan> <21687949.Wq8byZT4f8@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Tue, 28 Apr 2015 15:59:13 +0200
+Message-ID: <20150428135913.GD19025@pd.tnic>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
+ <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <21687949.Wq8byZT4f8@vostro.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Apr 28, 2015 at 01:38:41PM +0000, Zheng, Lv wrote:
+> > -	raw_spin_lock(&ghes_nmi_lock);
+> > +	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
+> > +		return ret;
+> > +
+> 
+> if (atomic_cmpxchg(&ghes_in_nmi, 0, 1))
+> 	return ret;
 
+Ok, now I understand what you mean.
 
-On 28/04/15 15:14, Rafael J. Wysocki wrote:
-> On Tuesday, April 28, 2015 03:37:44 PM Rafael J. Wysocki wrote:
->> On Tuesday, April 28, 2015 03:31:54 PM Rafael J. Wysocki wrote:
->>> On Tuesday, April 28, 2015 02:37:10 PM Linus Walleij wrote:
->>>> On Tue, Apr 28, 2015 at 2:19 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>>>> Sudeep:
->>>>>> At-least I observed issue only when I am using hardware broadcast timer.
->>>>>> It doesn't hang when I am using hrtimer as broadcast timer in which case
->>>>>> one of the cpu will be not enter deeper idle states that lose timer.
->>>>>> I will rerun on v4.1-rc1 and post the complete log.
->>>>>
->>>>> So the bug here is that cpuidle_enter() enables interrupts, so the
->>>>> assumption about them being not enabled made by
->>>>> tick_broadcast_oneshot_control() is actually not valid.
->>>>>
->>>>> It looks like we need to acquire the clockevents_lock at least in this
->>>>> particular case.  Let me see where to put it and I'll send a patch for
->>>>> testing.
->>>>
->>>> Aha that looks very much like it. Put me on the patch and I'll
->>>> take it for a spin.
->>>
->>> OK, so something like the below for starters (the _irqsave variant is used to
->>> avoid adding one more WARN_ON(irqs_disabled()) in there).
->>>
->>> I haven't tested it, but then I can't reproduce the original issue in the
->>> first place.
->>
->> Of course, the whole "broadcast" thing could be done from cpuidle_enter()
->> in the first place, but then we could not avoid the problem with the cpuidle
->> *callback* enabling interrupts possibly in there anyway (not to mention the
->> "coupled" stuff).
->
-> That said, if the given state is marked with CPUIDLE_FLAG_TIMER_STOP, I really
-> wouldn't expect it to re-enable interrupts on exit and the "coupled" thing
-> seems to be fundamentally at odds with that flag either.
->
-> So it should be possible to move the "broadcast" logic into the cpuidle layer,
-> which I'm going to try to do.
->
+We absolutely want to use atomic_add_unless() because we get to save us
+the expensive
 
-Makes sense.
+	LOCK; CMPXCHG
 
-> Please test the patch I've sent, though, as it should bring the code back to
-> where it was before the clockevents_notify() removal and it'd be good to verify
-> that.
->
+if the value was already 1. Which is exactly what this patch is trying
+to avoid - a thundering herd of cores CMPXCHGing a global variable.
 
-I tested your patch and it works now. Anyways I am continuing to run
-stress tests on my board. I will report if I find any issues.
+I.e.,
 
-Regards,
-Sudeep
+	movl	ghes_in_nmi(%rip), %ecx	# MEM[(const int *)&ghes_in_nmi], c
+	cmpl	$1, %ecx	#, c
+	je	.L311	#,				<--- exit here if ghes_in_nmi == 1.
+	leal	1(%rcx), %edx	#, D.37163
+	movl	%ecx, %eax	# c, c
+#APP
+# 177 "./arch/x86/include/asm/atomic.h" 1
+	.pushsection .smp_locks,"a"
+.balign 4
+.long 671f - .
+.popsection
+671:
+	lock; cmpxchgl %edx,ghes_in_nmi(%rip)	# D.37163, MEM[(volatile u32 *)&ghes_in_nmi]
+# 0 "" 2
+#NO_APP
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
