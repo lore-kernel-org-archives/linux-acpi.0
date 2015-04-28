@@ -1,50 +1,63 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Tue, 28 Apr 2015 00:44:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880270F55F@SHSMSX101.ccr.corp.intel.com>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <1AE640813FDE7649BE1B193DEA596E880270F2B2@SHSMSX101.ccr.corp.intel.com>
- <20150427084631.GA6774@pd.tnic>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [RFC PATCH 3/3] iio: derive the mounting matrix from ACPI _PLD objects
+Date: Tue, 28 Apr 2015 05:23:03 +0300
+Message-ID: <CAE1zot+fusrvow+s2+CmoctcSD=c2BxoSyd2b=7MBv-pg68A+Q@mail.gmail.com>
+References: <1430146908-27919-1-git-send-email-octavian.purdila@intel.com>
+	<1430146908-27919-4-git-send-email-octavian.purdila@intel.com>
+	<64714.10.254.87.235.1430149342.squirrel@linux.intel.com>
+	<CAE1zot+YKTPmVbG-_fNRy-E_VCcqq1VE78H3PMSMb5HvsBheQw@mail.gmail.com>
+	<553EB0B3.5000707@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:29586 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752597AbbD1AoS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Apr 2015 20:44:18 -0400
-In-Reply-To: <20150427084631.GA6774@pd.tnic>
-Content-Language: en-US
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:36246 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932233AbbD1CXF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Apr 2015 22:23:05 -0400
+Received: by wgen6 with SMTP id n6so135114639wge.3
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Apr 2015 19:23:04 -0700 (PDT)
+In-Reply-To: <553EB0B3.5000707@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: sathyanarayanan.kuppuswamy@linux.intel.com
+Cc: Jonathan Cameron <jic23@kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Robert Moore <robert.moore@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, lenb@kernel.org, linux-api@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-SGksDQoNCj4gRnJvbTogQm9yaXNsYXYgUGV0a292IFttYWlsdG86YnBAYWxpZW44LmRlXQ0KPiBT
-ZW50OiBNb25kYXksIEFwcmlsIDI3LCAyMDE1IDQ6NDcgUE0NCj4gDQo+IE9uIE1vbiwgQXByIDI3
-LCAyMDE1IGF0IDAzOjE2OjAwQU0gKzAwMDAsIFpoZW5nLCBMdiB3cm90ZToNCj4gPiA+IEBAIC04
-NDAsNyArODQwLDkgQEAgc3RhdGljIGludCBnaGVzX25vdGlmeV9ubWkodW5zaWduZWQgaW50IGNt
-ZCwgc3RydWN0IHB0X3JlZ3MgKnJlZ3MpDQo+ID4gPiAgCXN0cnVjdCBnaGVzICpnaGVzOw0KPiA+
-ID4gIAlpbnQgc2V2LCByZXQgPSBOTUlfRE9ORTsNCj4gPiA+DQo+ID4gPiAtCXJhd19zcGluX2xv
-Y2soJmdoZXNfbm1pX2xvY2spOw0KPiA+ID4gKwlpZiAoIWF0b21pY19hZGRfdW5sZXNzKCZnaGVz
-X2luX25taSwgMSwgMSkpDQo+ID4gPiArCQlyZXR1cm4gcmV0Ow0KPiA+ID4gKw0KPiA+DQo+ID4g
-SnVzdCBhIHNpbXBsZSBxdWVzdGlvbi4NCj4gPiBXaHkgbm90IGp1c3QgdXNpbmcgY21weGNoZyBo
-ZXJlIGluc3RlYWQgb2YgYXRvbWljX2FkZF91bmxlc3Mgc28gdGhhdCBubyBhdG9taWNfZGVjIHdp
-bGwgYmUgbmVlZGVkLg0KPiANCj4gV2hhdCBkbyB5b3UgdGhpbmsgYXRvbWljX2FkZF91bmxlc3Mg
-ZW5kcyB1cCBkb2luZzoNCj4gDQo+ICNBUFANCj4gIyAxNzcgIi4vYXJjaC94ODYvaW5jbHVkZS9h
-c20vYXRvbWljLmgiIDENCj4gCS5wdXNoc2VjdGlvbiAuc21wX2xvY2tzLCJhIg0KPiAuYmFsaWdu
-IDQNCj4gLmxvbmcgNjcxZiAtIC4NCj4gLnBvcHNlY3Rpb24NCj4gNjcxOg0KPiAJbG9jazsgY21w
-eGNoZ2wgJWVkeCxnaGVzX2luX25taSglcmlwKQkjIEQuMzcwNTYsIE1FTVsodm9sYXRpbGUgdTMy
-ICopJmdoZXNfaW5fbm1pXQ0KPiAjIDAgIiIgMg0KPiAjTk9fQVBQDQo+IA0KPiBBbmQgeW91IG5l
-ZWQgdG8gYXRvbWljX2RlYygpIHNvIHRoYXQgYW5vdGhlciByZWFkZXIgY2FuIGVudGVyLCBpLmUu
-IGhvdw0KPiB0aGUgZXhjbHVzaW9uIHByaW1pdGl2ZSB3b3Jrcy4NCj4gDQo+IE9yIGRpZCB5b3Ug
-aGF2ZSBzb21ldGhpbmcgZWxzZSBpbiBtaW5kPw0KDQpNeSBtaXN0YWtlLg0KSSBtZWFuIGNtcHhj
-aGcoKSBhbmQgeGNoZygpIChvciBhdG9taWNfY21weGNoZygpIGFuZCBhdG9taWNfeGNoZygpKSBw
-YWlyIGhlcmUsIHNvIG5vdGhpbmcgY2FuIGJlIHJlZHVjZWQuDQoNCkJ1dCBJTU8sIGF0b21pY19h
-ZGRfdW5sZXNzKCkgaXMgaW1wbGVtZW50ZWQgdmlhIGNtcHhjaGcgb24gbWFueSBhcmNoaXRlY3R1
-cmVzLg0KQW5kIGl0IG1pZ2h0IGJlIGJldHRlciB0byB1c2UgaXQgZGlyZWN0bHkgaGVyZSB3aGlj
-aCBpcyBhIGJpdCBmYXN0ZXIgYXMgeW91IGFjdHVhbGx5IG9ubHkgbmVlZCBvbmUgdmFsdWUgc3dp
-dGNoIGhlcmUuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KDQo+IA0KPiAtLQ0K
-PiBSZWdhcmRzL0dydXNzLA0KPiAgICAgQm9yaXMuDQo+IA0KPiBFQ08gdGlwICMxMDE6IFRyaW0g
-eW91ciBtYWlscyB3aGVuIHlvdSByZXBseS4NCj4gLS0NCg==
+On Tue, Apr 28, 2015 at 12:57 AM, sathyanarayanan kuppuswamy
+<sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
+> Hi
+>
+> On 04/27/2015 08:54 AM, Octavian Purdila wrote:
+>>
+>> On Mon, Apr 27, 2015 at 6:42 PM, Kuppuswamy Sathyanarayanan
+>> <sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
+>>>
+>>> Since Acpi framework already exports this info to user space, Why not do
+>>> this derivation in user space code ? Why do we need new ABI, if the same
+>>> can be derived from existing one.
+>>>
+>> The ABI was added in the previous patch so that we can present the
+>> sensor orientation information to userspace even in the case of device
+>> tree.
+>
+> If the main reason for implementing a new ABI is to support DT platforms,
+> Why not implement a version of _PLD for device tree ? Don't you think it
+> would be much better than adding a new ABI to export redundant information ?
+>
+
+IMO the mounting matrix is more consistent with the IIO ABIs. Although
+I have no issue with repicating _PLD for device tree if people agree
+that it is better.
+
+> Also the location information of the device is not just specific to iio
+> drivers. You should consider that we would have similar requirements for
+> devices implemented as input or platform drivers.
+
+The upstream standard for those sensors where the orientation matters
+(accelerometer, gyro, compass) is IIO.
+
+Granted, there are other device types for which the orientation
+information may be useful (e.g. camera). However the actual
+interpretation and action to be taken is different for each subsystem
+(e.g. in the camera case do the correction via V4L2_CID_HFLIP /
+V4L2_CID_VFLIP) so I think it is better to expose it at the subsystem
+level in a way consistent with the subsystem's ABIs.
