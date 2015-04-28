@@ -1,47 +1,52 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron 7437
-Date: Tue, 28 Apr 2015 17:51:12 +0800
-Message-ID: <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com>
-References: <1429759476-13186-1-git-send-email-alex.hung@canonical.com>
-	<20150424082115.GA3783@srcf.ucam.org>
-	<CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com>
-	<20150427174646.GA22664@srcf.ucam.org>
-	<CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com>
-	<20150428052448.GA3458@srcf.ucam.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 16/20] sched/idle: Use explicit broadcast oneshot control function
+Date: Tue, 28 Apr 2015 12:11:19 +0200
+Message-ID: <CACRpkdZYK1AMx1j0TV2tj9_ipG5NpXFhB+RpzN9Cy8L72hMPKg@mail.gmail.com>
+References: <2112147.0kYCHhbEJT@vostro.rjw.lan>
+	<18575128.8R6Lp68k0Q@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:36125 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932454AbbD1JvO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 05:51:14 -0400
-Received: by lbbqq2 with SMTP id qq2so102783112lbb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Apr 2015 02:51:12 -0700 (PDT)
-In-Reply-To: <20150428052448.GA3458@srcf.ucam.org>
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:32990 "EHLO
+	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933028AbbD1KLU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 06:11:20 -0400
+Received: by oica37 with SMTP id a37so112069490oic.0
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Apr 2015 03:11:19 -0700 (PDT)
+In-Reply-To: <18575128.8R6Lp68k0Q@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Matthew,
+On Thu, Apr 2, 2015 at 12:22 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 
-Its acpidump is available @ http://people.canonical.com/~alexhung/LP1435731/
-
-
-On Tue, Apr 28, 2015 at 1:24 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Tue, Apr 28, 2015 at 12:53:10PM +0800, Alex Hung wrote:
->> I tried Windows 8.1 Pro, and it seems that wireless hotkey works fine
->> (with AirplaneMode driver installed) and ACPI battery works fine too.
->> I didn't observe similar ACPI interrupt problems that occur on Linux.
+> From: Thomas Gleixner <tglx@linutronix.de>
 >
-> Ok, sounds like we've got another problem somewhere. Do you have the
-> acpidump?
+> Replace the clockevents_notify() call with an explicit function call.
 >
-> --
-> Matthew Garrett | mjg59@srcf.ucam.org
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+For some reason this makes my Ux500 system arbitrarily hang,
+especially during boot. Bisected down to this commit.
+Since the entire changeset is removing the notifications
+altogether I can't just revert it.
 
+Disabling CONFIG_CPU_IDLE removes the problem.
 
--- 
-Cheers,
-Alex Hung
+Tried registering a stub driver (I just #if 0 all the code in
+drivers/cpuidle/cpuidle-ux500.c) it still crashes.
+
+That makes me think something inside the cpuidle subsystem
+is locking up after this, but my other idea is that the timer
+may be involved in some way, like this is stressing the timer
+in some new yet untested way.
+
+Has anyone else seen problems with this or is it only
+ux500?
+
+I'm looking closer at it but feel a bit clueless...
+
+Yours,
+Linus Walleij
