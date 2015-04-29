@@ -1,131 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH][Fix] cpuidle: Run tick_broadcast_exit() with disabled interrupts
-Date: Wed, 29 Apr 2015 16:07:10 +0200
-Message-ID: <2872649.RClMYKns0i@vostro.rjw.lan>
-References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <6185796.9I7OmaAAcQ@vostro.rjw.lan> <5540A981.6060209@arm.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH 1/2] arm/arm64: ACPI: Introduce CONFIG_ACPI_MUST_HAVE_CCA
+Date: Wed, 29 Apr 2015 08:44:08 -0500
+Message-ID: <1430315049-4663-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5540A981.6060209@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, Peter Zijlstra <peterz@infradead.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0104.outbound.protection.outlook.com ([207.46.100.104]:31507
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1422969AbbD2NoQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2015 09:44:16 -0400
+In-Reply-To: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, arnd@arndb.de, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>From ACPIv6 (http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf),
+section 6.2.17 _CCA states that ARM platforms require ACPI _CCA object to be
+specified for DMA-cabpable devices. This patch introduces ACPI_MUST_HAVE_CCA
+in arm and arm64 Kconfig to specify such requirement.
 
-Commit 335f49196fd6 (sched/idle: Use explicit broadcast oneshot
-control function) replaced clockevents_notify() invocations in
-cpuidle_idle_call() with direct calls to tick_broadcast_enter()
-and tick_broadcast_exit(), but it overlooked the fact that
-interrupts were already enabled before calling the latter which
-led to functional breakage on systems using idle states with the
-CPUIDLE_FLAG_TIMER_STOP flag set.
+Note that when _CCA is required, if it is missing in the DSDT. ACPI driver
+will default to setting up devices as non-coherent.
 
-Fix that by moving the invocations of tick_broadcast_enter()
-and tick_broadcast_exit() down into cpuidle_enter_state() where
-interrupts are still disabled when tick_broadcast_exit() is
-called.  Also ensure that interrupts will be disabled before
-running tick_broadcast_exit() even if they have been enabled by
-the idle state's ->enter callback.  Trigger a WARN_ON_ONCE() in
-that case, as we generally don't want that to happen for states
-with CPUIDLE_FLAG_TIMER_STOP set.
-
-Fixes: 335f49196fd6 (sched/idle: Use explicit broadcast oneshot control function)
-Reported-and-tested-by: Linus Walleij <linus.walleij@linaro.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reported-and-tested-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
+ arch/arm/Kconfig     | 1 +
+ arch/arm64/Kconfig   | 1 +
+ drivers/acpi/Kconfig | 3 +++
+ 3 files changed, 5 insertions(+)
 
-Thanks for the testing and ACKs, here it goes again with all tags and
-a changelog.
-
-If anything is missing/incorrect, please let me know ASAP as I'm going to
-push this to Linus in a couple of days.
-
----
- drivers/cpuidle/cpuidle.c |   16 ++++++++++++++++
- kernel/sched/idle.c       |   16 ++--------------
- 2 files changed, 18 insertions(+), 14 deletions(-)
-
-Index: linux-pm/kernel/sched/idle.c
-===================================================================
---- linux-pm.orig/kernel/sched/idle.c
-+++ linux-pm/kernel/sched/idle.c
-@@ -81,7 +81,6 @@ static void cpuidle_idle_call(void)
- 	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
- 	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev);
- 	int next_state, entered_state;
--	unsigned int broadcast;
- 	bool reflect;
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 45df48b..2a0d036 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1,6 +1,7 @@
+ config ARM
+ 	bool
+ 	default y
++	select ACPI_MUST_HAVE_CCA if ACPI
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 4269dba..e5471f8 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -1,6 +1,7 @@
+ config ARM64
+ 	def_bool y
+ 	select ACPI_GENERIC_GSI if ACPI
++	select ACPI_MUST_HAVE_CCA if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ab2cbb5..620ee67 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -54,6 +54,9 @@ config ACPI_GENERIC_GSI
+ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	bool
  
- 	/*
-@@ -150,17 +149,6 @@ static void cpuidle_idle_call(void)
- 		goto exit_idle;
- 	}
- 
--	broadcast = drv->states[next_state].flags & CPUIDLE_FLAG_TIMER_STOP;
--
--	/*
--	 * Tell the time framework to switch to a broadcast timer
--	 * because our local timer will be shutdown. If a local timer
--	 * is used from another cpu as a broadcast timer, this call may
--	 * fail if it is not available
--	 */
--	if (broadcast && tick_broadcast_enter())
--		goto use_default;
--
- 	/* Take note of the planned idle state. */
- 	idle_set_state(this_rq(), &drv->states[next_state]);
- 
-@@ -174,8 +162,8 @@ static void cpuidle_idle_call(void)
- 	/* The cpu is no longer idle or about to enter idle. */
- 	idle_set_state(this_rq(), NULL);
- 
--	if (broadcast)
--		tick_broadcast_exit();
-+	if (entered_state == -EBUSY)
-+		goto use_default;
- 
- 	/*
- 	 * Give the governor an opportunity to reflect on the outcome
-Index: linux-pm/drivers/cpuidle/cpuidle.c
-===================================================================
---- linux-pm.orig/drivers/cpuidle/cpuidle.c
-+++ linux-pm/drivers/cpuidle/cpuidle.c
-@@ -158,9 +158,18 @@ int cpuidle_enter_state(struct cpuidle_d
- 	int entered_state;
- 
- 	struct cpuidle_state *target_state = &drv->states[index];
-+	bool broadcast = !!(target_state->flags & CPUIDLE_FLAG_TIMER_STOP);
- 	ktime_t time_start, time_end;
- 	s64 diff;
- 
-+	/*
-+	 * Tell the time framework to switch to a broadcast timer because our
-+	 * local timer will be shut down.  If a local timer is used from another
-+	 * CPU as a broadcast timer, this call may fail if it is not available.
-+	 */
-+	if (broadcast && tick_broadcast_enter())
-+		return -EBUSY;
++config ACPI_MUST_HAVE_CCA
++	bool
 +
- 	trace_cpu_idle_rcuidle(index, dev->cpu);
- 	time_start = ktime_get();
- 
-@@ -169,6 +178,13 @@ int cpuidle_enter_state(struct cpuidle_d
- 	time_end = ktime_get();
- 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, dev->cpu);
- 
-+	if (broadcast) {
-+		if (WARN_ON_ONCE(!irqs_disabled()))
-+			local_irq_disable();
-+
-+		tick_broadcast_exit();
-+	}
-+
- 	if (!cpuidle_state_is_coupled(dev, drv, entered_state))
- 		local_irq_enable();
- 
+ config ACPI_SLEEP
+ 	bool
+ 	depends on SUSPEND || HIBERNATION
+-- 
+2.1.0
+
