@@ -1,41 +1,55 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
-Date: Wed, 29 Apr 2015 18:15:40 +0200
-Message-ID: <2718230.tGqneBjFr2@wuerfel>
-References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com> <5540FB2D.4080905@linaro.org>
+Subject: Re: [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Wed, 29 Apr 2015 18:25:04 +0200
+Message-ID: <2968069.n1L1S3Mp2q@wuerfel>
+References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1430315049-4663-3-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:60301 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753702AbbD2QQQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 12:16:16 -0400
-In-Reply-To: <5540FB2D.4080905@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430315049-4663-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, al.stone@linaro.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Al Stone <al.stone@linaro.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Wednesday 29 April 2015 09:39:25 Al Stone wrote:
+On Wednesday 29 April 2015 08:44:09 Suravee Suthikulpanit wrote:
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index 4bf7559..a4db208 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -108,9 +108,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>         if (IS_ERR(pdev))
+>                 dev_err(&adev->dev, "platform device creation failed: %ld\n",
+>                         PTR_ERR(pdev));
+> -       else
+> +       else {
+> +               arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
+> +                                  adev->flags.is_coherent);
+>                 dev_dbg(&adev->dev, "created platform device %s\n",
+>                         dev_name(&pdev->dev));
+> +       }
+>  
+>         kfree(resources);
 > 
-> When the spec was being changed for _CCA, it was determined by the ASWG
-> that there was no reasonable default -- either choice would break something.
-> Multiple OSs, SoC vendors, and platform vendors were asked.  So, the spec
-> says for ARMv8, _CCA must be specified when needed and is not assumed to have
-> any value.  Obviously, any OS can choose to behave differently, but that's
-> what was specified and why it was specified that way.
 
-Ok, so it was essentially a CYA strategy. As we know that for Linux we're
-only interested in server parts here, but we also want to be compliant,
-I'd still argue that we check the property value and just disallow DMA
-for any device that is lacking CCA or contains zero here.
+Looking at this code in more detail, it seems that it unconditionally
+sets pdevinfo.dma_mask = DMA_BIT_MASK(32), before calling
+arch_setup_dma_ops(). This assignment should really done inside of
+arch_setup_dma_ops() instead, which means we should implement that
+function on all architectures that support ACPI.
 
-The current patch actually implements non-standard behavior: if _CCA
-is missing, it registers the device as dma-capable with coherency turned
-off, where my interpretation of the cited standard would be that we
-treat a missing _CCA as not being able to perform DMA. What I'd like
-to see instead is to only enable DMA support if _CCA is present and
-enabled.
+For the case where _CCA is missing (or coherency disabled, if you ask
+me), we would not call that function.
+
+On a related note, I'm not sure how to handle different DMA masks here.
+arch_setup_dma_ops() gets passed a size (and offset) argument, which should
+match the DMA mask, but I don't know if there is a way to find out the
+size from ACPI. Should we assume it's always 64-bit DMA capable?
+
+For legacy reasons, the default mask is probably best left at 32-bit,
+but drivers are expected to call dma_set_mask() if they can do 64-bit DMA,
+and that should fail based on the information provided by the platform
+if the bus is not capable of doing that.
 
 	Arnd
