@@ -1,58 +1,43 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Wed, 29 Apr 2015 10:13:55 +0200
-Message-ID: <20150429081355.GA5498@pd.tnic>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
- <20150428135913.GD19025@pd.tnic>
- <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Antonio Ospite <ao2@ao2.it>
+Subject: [PATCH 2/2] Documentation / ACPI: fix a typo, s/objecte/object/
+Date: Wed, 29 Apr 2015 10:37:25 +0200
+Message-ID: <1430296645-18086-3-git-send-email-ao2@ao2.it>
+References: <1430296645-18086-1-git-send-email-ao2@ao2.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:46820 "EHLO mail.skyhub.de"
+Received: from smtp208.alice.it ([82.57.200.104]:29722 "EHLO smtp208.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031044AbbD2IOP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Apr 2015 04:14:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
+	id S1031507AbbD2Ihj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2015 04:37:39 -0400
+In-Reply-To: <1430296645-18086-1-git-send-email-ao2@ao2.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Antonio Ospite <ao2@ao2.it>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Wed, Apr 29, 2015 at 12:49:59AM +0000, Zheng, Lv wrote:
-> > > We absolutely want to use atomic_add_unless() because we get to save us
-> > > the expensive
-> > >
-> > > 	LOCK; CMPXCHG
-> > >
-> > > if the value was already 1. Which is exactly what this patch is trying
-> > > to avoid - a thundering herd of cores CMPXCHGing a global variable.
-> > 
-> > IMO, on most architectures, the "cmp" part should work just like what you've done with "if".
-> > And on some architectures, if the "xchg" doesn't happen, the "cmp" part even won't cause a pipe line hazard.
+Also add some commas to make it clear that the word "object" refers to
+"configuration" and not to "names".
 
-Even if CMPXCHG is being split into several microops, they all still
-need to flow down the pipe and require resources and tracking. And you
-only know at retire time what the CMP result is and can "discard" the
-XCHG part. Provided the uarch is smart enough to do that.
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ Documentation/acpi/gpio-properties.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This is probably why CMPXCHG needs 5,6,7,10,22,... cycles depending on
-uarch and vendor, if I can trust Agner Fog's tables. And I bet those
-numbers are best-case only and in real-life they probably tend to fall
-out even worse.
-
-CMP needs only 1. On almost every uarch and vendor. And even that cycle
-probably gets hidden with a good branch predictor.
-
-> If you man the LOCK prefix, I understand now.
-
-And that makes several times worse: 22, 40, 80, ... cycles.
-
+diff --git a/Documentation/acpi/gpio-properties.txt b/Documentation/acpi/gpio-properties.txt
+index ae36fcf..cd4b6c7 100644
+--- a/Documentation/acpi/gpio-properties.txt
++++ b/Documentation/acpi/gpio-properties.txt
+@@ -1,7 +1,7 @@
+ _DSD Device Properties Related to GPIO
+ --------------------------------------
+ 
+-With the release of ACPI 5.1 and the _DSD configuration objecte names
++With the release of ACPI 5.1, and the _DSD configuration object, names
+ can finally be given to GPIOs (and other things as well) returned by
+ _CRS.  Previously, we were only able to use an integer index to find
+ the corresponding GPIO, which is pretty error prone (it depends on
 -- 
-Regards/Gruss,
-    Boris.
+2.1.4
 
-ECO tip #101: Trim your mails when you reply.
---
