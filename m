@@ -1,38 +1,69 @@
-From: sathyanarayanan kuppuswamy
-	<sathyanarayanan.kuppuswamy@linux.intel.com>
-Subject: Re: [PATCH 0/2] ACPI: Translate Linux IRQ number directly from GpioInt
-Date: Wed, 29 Apr 2015 10:45:44 -0700
-Message-ID: <554118C8.4020204@linux.intel.com>
-References: <1430233507-29389-1-git-send-email-mika.westerberg@linux.intel.com> <553FC530.1020305@linux.intel.com> <20150429092609.GP1534@lahna.fi.intel.com>
-Reply-To: sathyanarayanan.kuppuswamy@linux.intel.com
+From: Chris Bainbridge <chris.bainbridge@gmail.com>
+Subject: Re: [PATCH] ACPI SBS: Fix intermittent hangs on Apple Macbook
+Date: Wed, 29 Apr 2015 21:13:14 +0100
+Message-ID: <20150429201314.GA25904@localhost>
+References: <20150424012530.GA16763@localhost>
+ <4435249.leKkNHm9IZ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150429092609.GP1534@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:36244 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750788AbbD2UNT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 16:13:19 -0400
+Received: by wizk4 with SMTP id k4so194112098wiz.1
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2015 13:13:17 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4435249.leKkNHm9IZ@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
+On Wed, Apr 29, 2015 at 02:37:57AM +0200, Rafael J. Wysocki wrote:
+> On Friday, April 24, 2015 02:25:30 AM Chris Bainbridge wrote:
+> > Commit 7bc5a2b exposed the SBS on Apple hardware, resulting in
+> > intermittent hangs of several minutes on boot, and failure to detect or
+> > report the battery. We fix this two ways:
+> > 
+> >  - SMBUS hang should not hang the whole system. Respect the specified
+> >    timeout by busy waiting instead of sleeping.
+> >    This fix is already used on MSI hardware.
+> >  
+> >  - Stop the SBS from hanging in the first place by introducing a 5us
+> >    delay before each SMBUS transaction. This fix is the result of
+> >    experimentation. This particular delay was found to completely fix
+> >    the problem on an Ivybridge Macbook Pro 13. Hangs were observed with
+> >    3us delay but never with 5us.
+> > 
+> > Also, pr_warn if SBS communication fails instead of silently ignoring.
+> > 
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=94651
+> > Signed-off-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+> 
+> Well, this looks like two patches combined to me.  Are the quirks actually
+> related except that they are both needed to fix the problem?
+> 
 
+Not related, so should have been separate patches. One fixes the problem
+of causing the SBS controller to stop responding, which results in a
+hang.  The other fixes the problem of the resulting hang - but now I'm
+thinking we don't need this, since it should never happen unless we hang
+the SBS. I'll resend just the first fix as a new patch.
 
-On 04/29/2015 02:26 AM, Mika Westerberg wrote:
-> On Tue, Apr 28, 2015 at 10:36:48AM -0700, sathyanarayanan kuppuswamy wrote:
->>> This requires that the boot firmware (BIOS/coreboot) configures these pins
->>> correctly (input, etc) before handing over to OS. I've tested this on Intel
->>> Baytrail, Braswell and Skylake based machines where this is true.
->> Why not configure the GPIO pin as input in the API itself ?
-> IIRC Octavian tried to do just that but it turned out that some of the
-> irqchip functions are called with spinlock held, which means you can't
-> call all gpiod_* functions there (as they might sleep).
-Got it. Thanks.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> 
+> Do we really need this for all Apple hardware?
+> 
 
--- 
-Sathyanarayanan Kuppuswamy
-Android kernel developer
+Just MacBooks. I don't know which ones - the hang has been reported on:
+
+    MacBookAir6,1 hsw 11" 2013
+    MacBookPro10,2 ivb 13" 2012/2013
+    MacBookPro11,1 hsw 15" 2013/2014
+
+But it could affect earlier or later models too. The next patch will
+limit this to MacBooks only - I have no way to narrow down the list of
+affected hardware further, but since the fix only adds a 5us delay to
+each SBS read it shouldn't cause any problems on unaffected hardware.
+
+Thanks for the review.
