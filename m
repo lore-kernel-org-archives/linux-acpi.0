@@ -1,56 +1,165 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Wed, 29 Apr 2015 00:49:59 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
- <20150428135913.GD19025@pd.tnic>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 00/20] libnd: non-volatile memory device support
+Date: Tue, 28 Apr 2015 18:22:05 -0700
+Message-ID: <CAPcyv4hT0DGOd8Fqs7eLqJG1hrFVgAWozuY3o5oucTYv+22Sog@mail.gmail.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<2127273.OhQ7MIpEUu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:40987 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031281AbbD2Aua (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Apr 2015 20:50:30 -0400
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2127273.OhQ7MIpEUu@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Christoph Hellwig <hch@lst.de>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogWmhlbmcsIEx2DQo+IFNlbnQ6IFdlZG5lc2RheSwgQXByaWwgMjksIDIw
-MTUgODoyNSBBTQ0KPiBTdWJqZWN0OiBSRTogW1JGQyBQQVRDSCA1LzVdIEdIRVM6IE1ha2UgTk1J
-IGhhbmRsZXIgaGF2ZSBhIHNpbmdsZSByZWFkZXINCj4gDQo+IEhpLA0KPiANCj4gPiBGcm9tOiBC
-b3Jpc2xhdiBQZXRrb3YgW21haWx0bzpicEBhbGllbjguZGVdDQo+ID4gU2VudDogVHVlc2RheSwg
-QXByaWwgMjgsIDIwMTUgOTo1OSBQTQ0KPiA+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENIIDUvNV0g
-R0hFUzogTWFrZSBOTUkgaGFuZGxlciBoYXZlIGEgc2luZ2xlIHJlYWRlcg0KPiA+DQo+ID4gT24g
-VHVlLCBBcHIgMjgsIDIwMTUgYXQgMDE6Mzg6NDFQTSArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0K
-PiA+ID4gPiAtCXJhd19zcGluX2xvY2soJmdoZXNfbm1pX2xvY2spOw0KPiA+ID4gPiArCWlmICgh
-YXRvbWljX2FkZF91bmxlc3MoJmdoZXNfaW5fbm1pLCAxLCAxKSkNCj4gPiA+ID4gKwkJcmV0dXJu
-IHJldDsNCj4gPiA+ID4gKw0KPiA+ID4NCj4gPiA+IGlmIChhdG9taWNfY21weGNoZygmZ2hlc19p
-bl9ubWksIDAsIDEpKQ0KPiA+ID4gCXJldHVybiByZXQ7DQo+ID4NCj4gPiBPaywgbm93IEkgdW5k
-ZXJzdGFuZCB3aGF0IHlvdSBtZWFuLg0KPiA+DQo+ID4gV2UgYWJzb2x1dGVseSB3YW50IHRvIHVz
-ZSBhdG9taWNfYWRkX3VubGVzcygpIGJlY2F1c2Ugd2UgZ2V0IHRvIHNhdmUgdXMNCj4gPiB0aGUg
-ZXhwZW5zaXZlDQo+ID4NCj4gPiAJTE9DSzsgQ01QWENIRw0KPiA+DQo+ID4gaWYgdGhlIHZhbHVl
-IHdhcyBhbHJlYWR5IDEuIFdoaWNoIGlzIGV4YWN0bHkgd2hhdCB0aGlzIHBhdGNoIGlzIHRyeWlu
-Zw0KPiA+IHRvIGF2b2lkIC0gYSB0aHVuZGVyaW5nIGhlcmQgb2YgY29yZXMgQ01QWENIR2luZyBh
-IGdsb2JhbCB2YXJpYWJsZS4NCj4gDQo+IElNTywgb24gbW9zdCBhcmNoaXRlY3R1cmVzLCB0aGUg
-ImNtcCIgcGFydCBzaG91bGQgd29yayBqdXN0IGxpa2Ugd2hhdCB5b3UndmUgZG9uZSB3aXRoICJp
-ZiIuDQo+IEFuZCBvbiBzb21lIGFyY2hpdGVjdHVyZXMsIGlmIHRoZSAieGNoZyIgZG9lc24ndCBo
-YXBwZW4sIHRoZSAiY21wIiBwYXJ0IGV2ZW4gd29uJ3QgY2F1c2UgYSBwaXBlIGxpbmUgaGF6YXJk
-Lg0KDQpJZiB5b3UgbWFuIHRoZSBMT0NLIHByZWZpeCwgSSB1bmRlcnN0YW5kIG5vdy4NCg0KVGhh
-bmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiBUaGFua3MgYW5kIGJlc3QgcmVnYXJk
-cw0KPiAtTHYNCj4gDQo+IA0KPiA+DQo+ID4gSS5lLiwNCj4gPg0KPiA+IAltb3ZsCWdoZXNfaW5f
-bm1pKCVyaXApLCAlZWN4CSMgTUVNWyhjb25zdCBpbnQgKikmZ2hlc19pbl9ubWldLCBjDQo+ID4g
-CWNtcGwJJDEsICVlY3gJIywgYw0KPiA+IAlqZQkuTDMxMQkjLAkJCQk8LS0tIGV4aXQgaGVyZSBp
-ZiBnaGVzX2luX25taSA9PSAxLg0KPiA+IAlsZWFsCTEoJXJjeCksICVlZHgJIywgRC4zNzE2Mw0K
-PiA+IAltb3ZsCSVlY3gsICVlYXgJIyBjLCBjDQo+ID4gI0FQUA0KPiA+ICMgMTc3ICIuL2FyY2gv
-eDg2L2luY2x1ZGUvYXNtL2F0b21pYy5oIiAxDQo+ID4gCS5wdXNoc2VjdGlvbiAuc21wX2xvY2tz
-LCJhIg0KPiA+IC5iYWxpZ24gNA0KPiA+IC5sb25nIDY3MWYgLSAuDQo+ID4gLnBvcHNlY3Rpb24N
-Cj4gPiA2NzE6DQo+ID4gCWxvY2s7IGNtcHhjaGdsICVlZHgsZ2hlc19pbl9ubWkoJXJpcCkJIyBE
-LjM3MTYzLCBNRU1bKHZvbGF0aWxlIHUzMiAqKSZnaGVzX2luX25taV0NCj4gPiAjIDAgIiIgMg0K
-PiA+ICNOT19BUFANCj4gPg0KPiA+IC0tDQo+ID4gUmVnYXJkcy9HcnVzcywNCj4gPiAgICAgQm9y
-aXMuDQo+ID4NCj4gPiBFQ08gdGlwICMxMDE6IFRyaW0geW91ciBtYWlscyB3aGVuIHlvdSByZXBs
-eS4NCj4gPiAtLQ0K
+On Tue, Apr 28, 2015 at 5:25 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, April 28, 2015 02:24:12 PM Dan Williams wrote:
+>> Changes since v1 [1]: Incorporates feedback received prior to April 24.
+>>
+>> 1/ Ingo said [2]:
+>>
+>>        "So why on earth is this whole concept and the naming itself
+>>        ('drivers/block/nd/' stands for 'NFIT Defined', apparently)
+>>        revolving around a specific 'firmware' mindset and revolving
+>>        around specific, weirdly named, overly complicated looking
+>>        firmware interfaces that come with their own new weird
+>>        glossary??"
+>>
+>>    Indeed, we of course consulted the NFIT specification to determine
+>>    the shape of the sub-system, but then let its terms and data
+>>    structures permeate too deep into the implementation.  That is fixed
+>>    now with all NFIT specifics factored out into acpi.c.  The NFIT is no
+>>    longer required reading to review libnd.  Only three concepts are
+>>    needed:
+>>
+>>       i/ PMEM - contiguous memory range where cpu stores are
+>>        persistent once they are flushed through the memory
+>>          controller.
+>>
+>>      ii/ BLK - mmio apertures (sliding windows) that can be
+>>        programmed to access an aperture's-worth of persistent
+>>          media at a time.
+>>
+>>     iii/ DPA - "dimm-physical-address", address space local to a
+>>        dimm.  A dimm may provide both PMEM-mode and BLK-mode
+>>        access to a range of DPA.  libnd manages allocation of DPA
+>>          to either PMEM or BLK-namespaces to resolve this aliasing.
+>>
+>>    The v1..v2 diffstat below shows the migration of nfit-specifics to
+>>    acpi.c and the new state of libnd being nfit-free.  "nd" now only
+>>    refers to "non-volatile devices".  Note, reworked documentation will
+>>    return once the review has settled.
+>>
+>>    Documentation/blockdev/nd.txt     |  867 ---------------------
+>>    MAINTAINERS                       |   34 +-
+>>    arch/ia64/kernel/efi.c            |    5 +-
+>>    arch/x86/kernel/e820.c            |   11 +-
+>>    arch/x86/kernel/pmem.c            |    2 +-
+>>    drivers/block/Makefile            |    2 +-
+>>    drivers/block/nd/Kconfig          |  135 ++--
+>>    drivers/block/nd/Makefile         |   32 +-
+>>    drivers/block/nd/acpi.c           | 1506 +++++++++++++++++++++++++++++++------
+>>    drivers/block/nd/acpi_nfit.h      |  321 ++++++++
+>>    drivers/block/nd/blk.c            |   27 +-
+>>    drivers/block/nd/btt.c            |    6 +-
+>>    drivers/block/nd/btt_devs.c       |    8 +-
+>>    drivers/block/nd/bus.c            |  337 +++++----
+>>    drivers/block/nd/core.c           |  574 +-------------
+>>    drivers/block/nd/dimm.c           |   11 -
+>>    drivers/block/nd/dimm_devs.c      |  292 ++-----
+>>    drivers/block/nd/e820.c           |  100 +++
+>>    drivers/block/nd/libnd.h          |  122 +++
+>>    drivers/block/nd/namespace_devs.c |   10 +-
+>>    drivers/block/nd/nd-private.h     |  107 +--
+>>    drivers/block/nd/nd.h             |   91 +--
+>>    drivers/block/nd/nfit.h           |  238 ------
+>>    drivers/block/nd/pmem.c           |   56 +-
+>>    drivers/block/nd/region.c         |   78 +-
+>>    drivers/block/nd/region_devs.c    |  783 +++----------------
+>>    drivers/block/nd/test/iomap.c     |   86 +--
+>>    drivers/block/nd/test/nfit.c      | 1115 +++++++++++++++------------
+>>    drivers/block/nd/test/nfit_test.h |   15 +-
+>>    include/uapi/linux/ndctl.h        |  130 ++--
+>>    30 files changed, 3166 insertions(+), 3935 deletions(-)
+>>    delete mode 100644 Documentation/blockdev/nd.txt
+>>    create mode 100644 drivers/block/nd/acpi_nfit.h
+>>    create mode 100644 drivers/block/nd/e820.c
+>>    create mode 100644 drivers/block/nd/libnd.h
+>>    delete mode 100644 drivers/block/nd/nfit.h
+>>
+>>    [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-April/000484.html
+>>    [2]: https://lists.01.org/pipermail/linux-nvdimm/2015-April/000520.html
+>>
+>> 2/ Christoph asked the pmem ida conversion to be moved to its own patch
+>>    (done), and to consider leaving the current pmem.c in drivers/block/.
+>>    Instead, I converted the e820-type-12 enabling to be the first
+>>    non-ACPI-NFIT based consumer of libnd.  The new nd_e820 driver simply
+>>    registers e820-type-12 ranges as libnd PMEM regions.  Among other
+>>    things this conversion enables BTT for these ranges.  The alternative
+>>    is to move drivers/block/nd/nd.h internals out to include/linux/
+>>    which I think is worse.
+>>
+>> 3/ Toshi reported that the NFIT parsing fails to handle the case of a
+>>    PMEM range with a single-dimm (non-aliasing) interleave description.
+>>    Support for this case was added and is tested by default by the
+>>    nfit_test.1 configuration.
+>>
+>> 4/ Toshi reported that we should not be treating a missing _STA property
+>>    as a "dimm disabled by firmware" case.  (fixed).
+>>
+>> 5/ Christoph noted that ND_ARCH_HAS_IOREMAP_CACHE needs to be moved to
+>>    arch code.  It is gone for now and we'll revisit when adding cached
+>>    mappings back to the PMEM driver.
+>>
+>> 6/ Toshi mentioned that the presence of two different nd_bus_probe()
+>>    functions was confusing.  (cleaned up).
+>>
+>> 7/ Robert asked for s/btt_checksum/nd_btt_checksum/ (done).
+>>
+>> 8/ Linda asked for nfit_test to honor dynamic cma reservations via the
+>>    cma= command line (done).  The cma requirements have also been
+>>    reduced to 128M as only the simulated DAX regions need CMA.  The rest
+>>    can use vmalloc().
+>>
+>> ---
+>>
+>> Available here:
+>>   git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm nd-v2
+>>
+>> ---
+>>
+>> Dan Williams (18):
+>>       e820, efi: add ACPI 6.0 persistent memory types
+>>       libnd, nd_acpi: initial libnd infrastructure and NFIT support
+>>       nd_acpi, nfit-test: manufactured NFITs for interface development
+>>       libnd: ndctl class device, and nd bus attributes
+>>       libnd, nd_acpi: dimm/memory-devices
+>>       libnd: ndctl.h, the nd ioctl abi
+>>       libnd, nd_dimm: dimm driver and base libnd device-driver infrastructure
+>>       libnd, nd_acpi: regions (block-data-window, persistent memory, volatile memory)
+>>       libnd: support for legacy (non-aliasing) nvdimms
+>>       pmem: use ida
+>>       libnd, nd_pmem: add libnd support to the pmem driver
+>>       libnd, nd_acpi: add interleave-set state-tracking infrastructure
+>>       libnd: namespace indices: read and validate
+>>       libnd: pmem label sets and namespace instantiation.
+>>       libnd: blk labels and namespace instantiation
+>>       libnd: write pmem label set
+>>       libnd: write blk label set
+>>       libnd: infrastructure for btt devices
+>>
+>> Ross Zwisler (1):
+>>       libnd, nd_acpi, nd_blk: driver for BLK-mode access persistent memory
+>>
+>> Vishal Verma (1):
+>>       nd_btt: atomic sector updates
+>
+> I'm wondering what's wrong with CCing all of the series to linux-acpi?
+>
+> Is there anything in it that the people on that list should not see, by any
+> chance?
+
+linux-acpi may not care about the dimm-metadata labeling patches that
+are completely independent of ACPI, but might as well include
+linux-acpi on the whole series at this point.
