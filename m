@@ -1,39 +1,54 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Subject: Re: [PATCH V2 RESEND] mailbox: add ACPI support for mailbox framework
-Date: Wed, 29 Apr 2015 08:22:37 +0530
-Message-ID: <CABb+yY0NA44eHqxVK=B5Y57Rxa18L-542KHdnUz15Bgen39gxA@mail.gmail.com>
-References: <1428537507-30561-1-git-send-email-fkan@apm.com>
-	<CAL85gmDde_BYHoDeKLw279QTUuDOJ6zQ+LmSDWFazMkrZD-C8w@mail.gmail.com>
-	<CABb+yY0+jxdUEostxLuDdOR+guJyz3SCCLmN26LY4jXUPD40nw@mail.gmail.com>
-	<2931755.BICyILJPre@vostro.rjw.lan>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 16/20] sched/idle: Use explicit broadcast oneshot control function
+Date: Wed, 29 Apr 2015 09:10:18 +0200
+Message-ID: <CACRpkdZUS9Qj25waYHWUNeeVS3QiK3+QFc-CEgwUPqGd_cEDCg@mail.gmail.com>
+References: <2112147.0kYCHhbEJT@vostro.rjw.lan>
+	<553F920D.6090404@arm.com>
+	<2361707.7eGhMTvCz6@vostro.rjw.lan>
+	<6185796.9I7OmaAAcQ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f179.google.com ([209.85.213.179]:37527 "EHLO
-	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031412AbbD2Cwi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 22:52:38 -0400
-In-Reply-To: <2931755.BICyILJPre@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <6185796.9I7OmaAAcQ@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Feng Kan <fkan@apm.com>, patches <patches@apm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 22, 2015 at 7:34 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, April 21, 2015 04:53:14 PM Jassi Brar wrote:
->> On Tue, Apr 21, 2015 at 6:28 AM, Feng Kan <fkan@apm.com> wrote:
->> >
->> > Just want to ping this. I haven't gotten any response from mailbox
->> > maintainer for this
->> > patch or any of my other mailbox patches.
->> >
->> Sorry I had been busy and still need to have a critical look at the
->> new api. It would sooth my nerves to see an ACK from some acpi god.
->
-> I'm far from one, but I'll be looking at this is detail next week if
-> that helps (this week I'm traveling).
->
-No, you are one on my list :)   Your review from acpi perspective will
-be greatly helpful.
+On Wed, Apr 29, 2015 at 3:04 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, April 29, 2015 02:50:22 AM Rafael J. Wysocki wrote:
 
-Thanks.
+>> Below is the patch I came up with in the meantime.
+>>
+>> This moves the "switch to broadcast" timer logic into
+>> cpuidle_enter_state() which allows tick_broadcast_exit() to be
+>> called directly with interrupts disabled (as required), but
+>> it also adds a fallback branch reflecting the 4.0 and earlier
+>> behavior for idle states that enable interrupts on exit
+>> from their ->enter callbacks.
+>>
+>> I'm not aware of any valid cases when CPUIDLE_FLAG_TIMER_STOP can be
+>> set for such states, but people may try to add stuff like that in the
+>> future, so it's better to catch that (hence the WARN_ON_ONCE) and do
+>> our best to handle it gracefully anyway, IMO.
+>>
+>> The "if (entered_state == -EBUSY)" check is conservative.  It may
+>> be better to do "if (entered_state < 0)" and fall back to the default
+>> on all errors, but that's not what we do today (I guess the concern
+>> would be "what if the state ->enter returns an error after entering
+>> and exiting the idle state, in which case we may miss a wakeup event
+>> if we fall back to the default").
+>
+> Actually, if my understanding of things is correct (the local clock event
+> device cannot go away from under code executed with interrupts disabled
+> on the local CPU), the simplified one below should be sufficient.
+
+Rock solid, after this patch the issues are gone and system stable.
+Using it as stabilizer base for all v4.2 work now.
+
+Excellent work Rafael!
+
+Tested-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
