@@ -1,87 +1,52 @@
-From: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup
- device coherency
-Date: Wed, 29 Apr 2015 14:57:10 +0000
-Message-ID: <D1665A4F.19E17%suravee.suthikulpanit@amd.com>
-References: <3246744.xVj4sLRlWl@wuerfel>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Detecting that a battery is inside a dock?
+Date: Wed, 29 Apr 2015 17:08:18 +0200
+Message-ID: <1430320098.2525.105.camel@hadess.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3246744.xVj4sLRlWl@wuerfel>
-Content-Language: en-US
-Content-ID: <6CAF71ED978F994C838BF63F72F3B77F@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:33626 "EHLO
+	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423016AbbD2PIV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 11:08:21 -0400
+Received: from mfilter37-d.gandi.net (mfilter37-d.gandi.net [217.70.178.168])
+	by relay6-d.mail.gandi.net (Postfix) with ESMTP id 4070AFB9BA
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2015 17:08:20 +0200 (CEST)
+Received: from relay6-d.mail.gandi.net ([217.70.183.198])
+	by mfilter37-d.gandi.net (mfilter37-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id KhxsTBIdpHjh for <linux-acpi@vger.kernel.org>;
+	Wed, 29 Apr 2015 17:08:15 +0200 (CEST)
+Received: from nuvo (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
+	(Authenticated sender: hadess@hadess.net)
+	by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id CC6FCFB8F3
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2015 17:08:18 +0200 (CEST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hey,
 
+I have access to a convertible Toshiba machine where the 2nd battery 
+is in detachable keyboard. This is the decompiled DSDT:
+https://hadess.fedorapeople.org/toshiba.dsl
 
-On 4/29/15, 09:47, "Arnd Bergmann" <arnd@arndb.de> wrote:
+There's no BAT0, BAT1 is in the screen, and BAT2 is in the keyboard.
 
->On Wednesday 29 April 2015 09:45:43 Suravee Suthikulpanit wrote:
->> On 04/29/2015 09:03 AM, Arnd Bergmann wrote:
->> > On Wednesday 29 April 2015 08:44:09 Suravee Suthikulpanit wrote:
->> >> +                       device->flags.cca_seen = 1;
->> >> +               } else if (IS_ENABLED(CONFIG_ACPI_MUST_HAVE_CCA)) {
->> >> +                       /*
->> >> +                        * Architecture has specified that if the
->>device
->> >> +                        * can do DMA, it must have ACPI _CCA object.
->> >> +                        * Here, there could be two cases:
->> >> +                        *   1. Not DMA-able device.
->> >> +                        *   2. DMA-able device, but missing _CCA
->>object.
->> >> +                        *
->> >> +                        * In both cases, we will default to dma
->>non-coherent.
->> >> +                        */
->> >> +                       cca = 0;
->> >> +               } else {
->> >> +                       /*
->> >> +                        * If architecture does not specify that
->>device must
->> >> +                        * specify ACPI _CCA (e.g. x86), we default
->>to use
->> >> +                        * dma coherent.
->> >> +                        */
->> >> +                       cca = 1;
->> >> +               }
->> >>
->> >
->> > What does it mean here if a device does DMA but is not coherent? Do
->>you
->> > have an example of a server that needs this?
->> >
->> > Can we please make the default for ARM64 cca=1 as well?
->> >
->> >       Arnd
->> >
->> 
->> Actually, I am trying to implement the logic for when missing _CCA to
->>be 
->> consistent with the behavior when the devicetree entry does not specify
->> "dma-coherent" property. IIUC, in such case, Linux will default to
->>using 
->> non-coherent DMA.
->
->Why?
->
->	Arnd
+BAT2 can be ejected (it has an _EJD method), but the dock code doesn't 
+see it as having a battery:
+$ pwd
+/sys/devices/platform/dock.0
+$ cat flags
+16
+$ cat type
+dock_station
 
-Otherwise, it would seem inconsistent with what states in the ACPI spec:
- 
-  CCA objects are only relevant for devices that can access CPU-visible
-memory,
-  such as devices that are DMA capable. On ARM based systems, the _CCA
-object 
-  must be supplied all such devices. On Intel platforms, if the _CCA
-object is 
-  not supplied, the OSPM will assume the devices are hardware cache
-coherent.
+Any ideas what might be missing here?
 
->From the statement above, I interpreted as if it is not present, it would
-be non-coherent.
+I'd eventually like to be able to say that, if I can detect that the 
+battery is inside the dock, to mark it as such in the UI[1] (even 
+better would be to say it's "in the keyboard" but I'm not sure we can 
+easily detect that).
 
-Suravee
+[1]: https://bugzilla.gnome.org/show_bug.cgi?id=748592
