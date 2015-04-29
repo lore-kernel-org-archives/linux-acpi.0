@@ -1,58 +1,62 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH 16/20] sched/idle: Use explicit broadcast oneshot control
- function
-Date: Wed, 29 Apr 2015 10:50:57 +0100
-Message-ID: <5540A981.6060209@arm.com>
-References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <553F920D.6090404@arm.com> <2361707.7eGhMTvCz6@vostro.rjw.lan> <6185796.9I7OmaAAcQ@vostro.rjw.lan>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 2/2] i2c / ACPI: Assign IRQ for devices that have GpioInt
+ automatically
+Date: Wed, 29 Apr 2015 11:56:06 +0200
+Message-ID: <20150429095605.GA2470@katana>
+References: <1430233507-29389-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1430233507-29389-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60937 "EHLO foss.arm.com"
+Received: from sauhun.de ([89.238.76.85]:56120 "EHLO pokefinder.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422667AbbD2JvB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Apr 2015 05:51:01 -0400
-In-Reply-To: <6185796.9I7OmaAAcQ@vostro.rjw.lan>
+	id S1031647AbbD2J4R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2015 05:56:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1430233507-29389-3-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Peter Zijlstra <peterz@infradead.org>, Sudeep Holla <sudeep.holla@arm.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Rafael,
 
-On 29/04/15 02:04, Rafael J. Wysocki wrote:
-> On Wednesday, April 29, 2015 02:50:22 AM Rafael J. Wysocki wrote:
+--ew6BAiZeqk4r7MaW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[...]
 
->>
->> Below is the patch I came up with in the meantime.
->>
->> This moves the "switch to broadcast" timer logic into
->> cpuidle_enter_state() which allows tick_broadcast_exit() to be
->> called directly with interrupts disabled (as required), but
->> it also adds a fallback branch reflecting the 4.0 and earlier
->> behavior for idle states that enable interrupts on exit
->> from their ->enter callbacks.
->>
->> I'm not aware of any valid cases when CPUIDLE_FLAG_TIMER_STOP can be
->> set for such states, but people may try to add stuff like that in the
->> future, so it's better to catch that (hence the WARN_ON_ONCE) and do
->> our best to handle it gracefully anyway, IMO.
->>
->> The "if (entered_state == -EBUSY)" check is conservative.  It may
->> be better to do "if (entered_state < 0)" and fall back to the default
->> on all errors, but that's not what we do today (I guess the concern
->> would be "what if the state ->enter returns an error after entering
->> and exiting the idle state, in which case we may miss a wakeup event
->> if we fall back to the default").
->
-> Actually, if my understanding of things is correct (the local clock event
-> device cannot go away from under code executed with interrupts disabled
-> on the local CPU), the simplified one below should be sufficient.
->
+> -	if (!client->irq && dev->of_node) {
+> -		int irq = of_irq_get(dev->of_node, 0);
+> +	if (client->irq <= 0) {
+> +		int irq = -ENOENT;
 
-Tested-by: Sudeep Holla <sudeep.holla@arm.com>
+Why the move from !client->irq to <= 0? If I didn't miss something,
+interrupt numbers are still a sleeping dog with all the unsigned vs
+signed fuzz. If this change is needed, this needs proper description and
+ideally a seperate patch.
 
-Regards,
-Sudeep
+
+--ew6BAiZeqk4r7MaW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVQKq1AAoJEBQN5MwUoCm28nIP/Auuh9ImyjChU2OW5Jc+Dm/v
+3K7hAMm/R6Vj4/2/qtEDN7hd4rXQ82xvOeSUfWIHrjlIVtE4oP6YH+tLTCwUYP2M
+zS3RUhFTs4Xn9ve3CmY8FaZan+vPYZWhOGtBIVLooEp2H/pVbWCm0Z1zb3cZZxrb
+E8xM5Hp0z0BkWXgX9HJa8nYK/EAtVkxqp9xwlMG1V+ZChPMHMzWAbmopdt/AysNA
+j/cvJTrkrUHuTc+WNIF2YFU8LrhisLoIePYrcf01MGoXcGM6q5/sjE+T40WEUuKM
+avafglP0vxosyRkLeoF26Y1CWNP0Cc3in0Q6izL8qFnGNfDMP1RziVo/Q3RIoGIB
+mE2A++/EfysqwFlicmxNP9XxJSeY5Uvgjgvrm2Isv5+x2r3mu71P40aOFcfDXdor
+9wKTuyeeWcSUETOqej6w1Vd8l/P743aY3EVSFp4g9OJStmmO3MAIJF5qeA/2x9bj
+zsIMgq4pzztolEiIXsWzc+yVCPmuoLJoWQEIwUWNdXKNypEacZg8VzYMU/sK8G3g
+tIpC6gFfx8VTR5VD1K7sIw4y2dRcS61UnWJq4744LU1HW5MR9XuebyNykIFAdLFp
+P/M1myMnp2yXB54UNRwE2Q6qtRnL/vbxU5FPTD+NereXkmN95uXv2KCHlEi+GnGa
+A5oIGwjaIBBiG/WlSyar
+=QPJV
+-----END PGP SIGNATURE-----
+
+--ew6BAiZeqk4r7MaW--
