@@ -1,78 +1,171 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron 7437
-Date: Wed, 29 Apr 2015 18:09:27 +0800
-Message-ID: <CAJ=jquZMMBNsKO2CZe649OcXTBxfzO43gkxwkJn2mvHhnp+zSQ@mail.gmail.com>
-References: <1429759476-13186-1-git-send-email-alex.hung@canonical.com>
-	<20150424082115.GA3783@srcf.ucam.org>
-	<CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com>
-	<20150427174646.GA22664@srcf.ucam.org>
-	<CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com>
-	<20150428052448.GA3458@srcf.ucam.org>
-	<CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com>
-	<20150428171100.GA24599@srcf.ucam.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bugfix v5] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Wed, 29 Apr 2015 08:20:43 -0500
+Message-ID: <CAErSpo4zBFUBwSJjF1CuB8w06CDwYx+ZZaL1X71Joi0uMCObbg@mail.gmail.com>
+References: <1429499338-16967-1-git-send-email-jiang.liu@linux.intel.com> <3492366.RzMG5dcPfN@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f45.google.com ([209.85.192.45]:36040 "EHLO
-	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827AbbD2KJ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 06:09:28 -0400
-Received: by qgeb100 with SMTP id b100so9026629qge.3
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2015 03:09:27 -0700 (PDT)
-In-Reply-To: <20150428171100.GA24599@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3492366.RzMG5dcPfN@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-Matthew,
+On Tue, Apr 28, 2015 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, April 20, 2015 11:08:58 AM Jiang Liu wrote:
+>> An IO port or MMIO resource assigned to a PCI host bridge may be
+>> consumed by the host bridge itself or available to its child
+>> bus/devices. On x86 and IA64 platforms, all IO port and MMIO
+>> resources are assumed to be available to child bus/devices
+>> except one special case:
+>>     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
+>>     to access PCI configuration space.
+>>
+>> But the ACPI and PCI Firmware specifications haven't provided a method
+>> to tell whether a resource is consumed by the host bridge itself.
+>> So before commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource
+>> interfaces to simplify implementation"), arch/x86/pci/acpi.c ignored
+>> all IO port resources defined by acpi_resource_io and
+>> acpi_resource_fixed_io to filter out IO ports consumed by the host
+>> bridge itself.
+>>
+>> Commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces
+>> to simplify implementation")started accepting all IO port and MMIO
+>> resources, which caused a regression that IO port resources consumed
+>> by the host bridge itself became available to its child devices.
+>>
+>> Then commit 63f1789ec716 ("x86/PCI/ACPI: Ignore resources consumed by
+>> host bridge itself") ignored resources consumed by the host bridge
+>> itself by checking the IORESOURCE_WINDOW flag, which accidently removed
+>> MMIO resources defined by acpi_resource_memory24, acpi_resource_memory32
+>> and acpi_resource_fixed_memory32.
+>>
+>> So revert to the behavior before v3.19 to fix the regression.
+>>
+>> There is also a discussion about ignoring the Producer/Consumer flag on
+>> IA64 platforms at:
+>> http://patchwork.ozlabs.org/patch/461633/
+>>
+>> Related ACPI table are archived at:
+>> https://bugzilla.kernel.org/show_bug.cgi?id=94221
+>>
+>> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+>> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>
+> Bjorn, Ingo, is anyone looking at this?  We're still having a regression in
+> this area ...
 
-Your conclusion is correct. Disabling OSI(Windows 2012/2013) in kernel
-4.1rc will not work. I will take a closer look into this machine.
+>> ---
+>>  arch/x86/pci/acpi.c     |   25 ++++++++++++++++++++++---
+>>  drivers/acpi/resource.c |    6 +++++-
+>>  2 files changed, 27 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+>> index e4695985f9de..fc2da98985c3 100644
+>> --- a/arch/x86/pci/acpi.c
+>> +++ b/arch/x86/pci/acpi.c
+>> @@ -332,12 +332,32 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>>  {
+>>       int ret;
+>>       struct resource_entry *entry, *tmp;
+>> +     unsigned long res_flags;
+>>
+>>       sprintf(info->name, "PCI Bus %04x:%02x", domain, busnum);
+>>       info->bridge = device;
+>> +
+>> +     /*
+>> +      * An IO or MMIO resource assigned to PCI host bridge may be consumed
+>> +      * by the host bridge itself or available to its child bus/devices.
+>> +      * On x86 and IA64 platforms, all IO and MMIO resources are assumed to
+>> +      * be available to child bus/devices except one special case:
+>> +      *      IO port [0xCF8-0xCFF] is consumed by host bridge itself to
+>> +      *      access PCI configuration space.
+>> +      *
+>> +      * Due to lack of specification to define resources consumed by host
+>> +      * bridge itself, all IO port resources defined by acpi_resource_io
+>> +      * and acpi_resource_fixed_io are ignored to filter out IO
+>> +      * port[0xCF8-0xCFF]. Seems this solution works with all BIOSes, though
+>> +      * it's not perfect.
 
-Thanks.
+1) I think it's misleading to say "the specs haven't provided a
+method."  As far as I can tell, the Producer/Consumer bit is intended
+precisely to distinguish resources consumed by a bridge from those
+forwarded to downstream devices.  It would be more accurate to say
+"the spec defines a bit, but firmware hasn't used that bit
+consistently, so we can't rely on it."
 
-On Wed, Apr 29, 2015 at 1:11 AM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> With Windows 8 enabled you're going down this path:
->
->         If (_OSI (WIN8))
->         {
->             Local0 = 0x81
->         }
->
-> With it blacklisted, you're going down this path:
->
->         If (_OSI (WIN7))
->         {
->             Local0 = 0x80
->             Local1 = _REV /* \_REV */
->             If ((Local1 == 0x05))
->             {
->                 Local0 = 0x40
->             }
->         }
->
-> So your guess about _REV was actually correct - if the OS claims to be
-> Windows 7 and returns 5 to _REV, it'll let Local0 to 0x40. This results
-> in:
->
->         If ((Local0 == 0x40))
->         {
->             MIS0 = SMI (0x98, Zero)
->             MIS0 &= 0x13
->         }
->
-> MIS0 appears to be involved in various event delivery paths, so my
-> suspicion is that the firmware is deliberately working around a quirk of
-> Linux behaviour in order to deliver events appropriately. If so, your
-> patch won't help in 4.1 because _REV now returns 2, and so we need to
-> root cause the actual problem and fix that instead.
+If you want to say "it's not perfect," it would be useful to mention
+the ways in which it is not perfect.  This code is still a candidate
+for unification with ia64 and arm64, so we should avoid x86-specific
+things here as much as possible.
+
+>> +      *
+>> +      * Another possible solution is to explicitly filter out IO
+>> +      * port[0xCF8-0xCFF].
+>> +      */
+>> +     res_flags = IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_IO_FIXED;
+
+2) The usage of IORESOURCE_IO_FIXED here seems like a hack.  It's not
+related to other existing use of IORESOURCE_IO_FIXED, and it's not
+intuitive that supplying IORESOURCE_MEM means "I want all the
+memory-type resources," but supplying IORESOURCE_IO_FIXED means "I
+*don't* want the fixed I/O-type resources."
+
+A struct resource is not as expressive as a struct acpi_resource.
+We're going through a lot of contortions to pass nuances of
+acpi_resource through to code that only knows about struct resource.
+I'm not sure that's a good long-term strategy, but I don't have a
+better suggestion.
+
+>>       ret = acpi_dev_get_resources(device, list,
+>>                                    acpi_dev_filter_resource_type_cb,
+>> -                                  (void *)(IORESOURCE_IO | IORESOURCE_MEM));
+>> +                                  (void *)res_flags);
+>>       if (ret < 0)
+>>               dev_warn(&device->dev,
+>>                        "failed to parse _CRS method, error code %d\n", ret);
+>> @@ -346,8 +366,7 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>>                       "no IO and memory resources present in _CRS\n");
+>>       else
+>>               resource_list_for_each_entry_safe(entry, tmp, list) {
+>> -                     if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
+>> -                         (entry->res->flags & IORESOURCE_DISABLED))
+>> +                     if (entry->res->flags & IORESOURCE_DISABLED)
+>>                               resource_list_destroy_entry(entry);
+>>                       else
+>>                               entry->res->name = info->name;
+>> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+>> index 5589a6e2a023..79b6d3b5ffd2 100644
+>> --- a/drivers/acpi/resource.c
+>> +++ b/drivers/acpi/resource.c
+>> @@ -575,6 +575,9 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+>>   *
+>>   * This is a hepler function to support acpi_dev_get_resources(), which filters
+>>   * ACPI resource objects according to resource types.
+
+3)  Since you're touching this comment anyway, can you fix the
+"hepler" typo above, too?
+
+>> + *
+>> + * Flag IORESOURCE_IO_FIXED is used to opt out io and fixed_io resource
+>> + * descriptors for ACPI host bridges on x86 and IA64 platforms.
+>>   */
+>>  int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>>                                 unsigned long types)
+>> @@ -589,7 +592,8 @@ int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+>>               break;
+>>       case ACPI_RESOURCE_TYPE_IO:
+>>       case ACPI_RESOURCE_TYPE_FIXED_IO:
+>> -             type = IORESOURCE_IO;
+>> +             if ((types & IORESOURCE_IO_FIXED) == 0)
+>> +                     type = IORESOURCE_IO;
+>>               break;
+>>       case ACPI_RESOURCE_TYPE_IRQ:
+>>       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+>>
 >
 > --
-> Matthew Garrett | mjg59@srcf.ucam.org
-
-
-
--- 
-Cheers,
-Alex Hung
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
