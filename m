@@ -1,170 +1,216 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 00/20] libnd: non-volatile memory device support
-Date: Wed, 29 Apr 2015 02:25:04 +0200
-Message-ID: <2127273.OhQ7MIpEUu@vostro.rjw.lan>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: Re: [PATCH] ACPI SBS: Fix intermittent hangs on Apple Macbook
+Date: Wed, 29 Apr 2015 02:37:57 +0200
+Message-ID: <4435249.leKkNHm9IZ@vostro.rjw.lan>
+References: <20150424012530.GA16763@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64784 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59728 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1031083AbbD2AAM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 20:00:12 -0400
-In-Reply-To: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	with SMTP id S1031083AbbD2ANF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Apr 2015 20:13:05 -0400
+In-Reply-To: <20150424012530.GA16763@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Christoph Hellwig <hch@lst.de>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Chris Bainbridge <chris.bainbridge@gmail.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday, April 28, 2015 02:24:12 PM Dan Williams wrote:
-> Changes since v1 [1]: Incorporates feedback received prior to April 24.
+On Friday, April 24, 2015 02:25:30 AM Chris Bainbridge wrote:
+> Commit 7bc5a2b exposed the SBS on Apple hardware, resulting in
+> intermittent hangs of several minutes on boot, and failure to detect or
+> report the battery. We fix this two ways:
 > 
-> 1/ Ingo said [2]:
+>  - SMBUS hang should not hang the whole system. Respect the specified
+>    timeout by busy waiting instead of sleeping.
+>    This fix is already used on MSI hardware.
+>  
+>  - Stop the SBS from hanging in the first place by introducing a 5us
+>    delay before each SMBUS transaction. This fix is the result of
+>    experimentation. This particular delay was found to completely fix
+>    the problem on an Ivybridge Macbook Pro 13. Hangs were observed with
+>    3us delay but never with 5us.
 > 
->        "So why on earth is this whole concept and the naming itself
->        ('drivers/block/nd/' stands for 'NFIT Defined', apparently)
->        revolving around a specific 'firmware' mindset and revolving
->        around specific, weirdly named, overly complicated looking
->        firmware interfaces that come with their own new weird
->        glossary??"
+> Also, pr_warn if SBS communication fails instead of silently ignoring.
 > 
->    Indeed, we of course consulted the NFIT specification to determine
->    the shape of the sub-system, but then let its terms and data
->    structures permeate too deep into the implementation.  That is fixed
->    now with all NFIT specifics factored out into acpi.c.  The NFIT is no
->    longer required reading to review libnd.  Only three concepts are
->    needed:
-> 
->       i/ PMEM - contiguous memory range where cpu stores are
-> 	 persistent once they are flushed through the memory
->          controller.
-> 
->      ii/ BLK - mmio apertures (sliding windows) that can be
-> 	 programmed to access an aperture's-worth of persistent
->          media at a time.
-> 
->     iii/ DPA - "dimm-physical-address", address space local to a
-> 	 dimm.  A dimm may provide both PMEM-mode and BLK-mode
-> 	 access to a range of DPA.  libnd manages allocation of DPA
->          to either PMEM or BLK-namespaces to resolve this aliasing. 
-> 
->    The v1..v2 diffstat below shows the migration of nfit-specifics to
->    acpi.c and the new state of libnd being nfit-free.  "nd" now only
->    refers to "non-volatile devices".  Note, reworked documentation will
->    return once the review has settled.
-> 
->    Documentation/blockdev/nd.txt     |  867 ---------------------
->    MAINTAINERS                       |   34 +-
->    arch/ia64/kernel/efi.c            |    5 +-
->    arch/x86/kernel/e820.c            |   11 +-
->    arch/x86/kernel/pmem.c            |    2 +-
->    drivers/block/Makefile            |    2 +-
->    drivers/block/nd/Kconfig          |  135 ++--
->    drivers/block/nd/Makefile         |   32 +-
->    drivers/block/nd/acpi.c           | 1506 +++++++++++++++++++++++++++++++------
->    drivers/block/nd/acpi_nfit.h      |  321 ++++++++
->    drivers/block/nd/blk.c            |   27 +-
->    drivers/block/nd/btt.c            |    6 +-
->    drivers/block/nd/btt_devs.c       |    8 +-
->    drivers/block/nd/bus.c            |  337 +++++----
->    drivers/block/nd/core.c           |  574 +-------------
->    drivers/block/nd/dimm.c           |   11 -
->    drivers/block/nd/dimm_devs.c      |  292 ++-----
->    drivers/block/nd/e820.c           |  100 +++
->    drivers/block/nd/libnd.h          |  122 +++
->    drivers/block/nd/namespace_devs.c |   10 +-
->    drivers/block/nd/nd-private.h     |  107 +--
->    drivers/block/nd/nd.h             |   91 +--
->    drivers/block/nd/nfit.h           |  238 ------
->    drivers/block/nd/pmem.c           |   56 +-
->    drivers/block/nd/region.c         |   78 +-
->    drivers/block/nd/region_devs.c    |  783 +++----------------
->    drivers/block/nd/test/iomap.c     |   86 +--
->    drivers/block/nd/test/nfit.c      | 1115 +++++++++++++++------------
->    drivers/block/nd/test/nfit_test.h |   15 +-
->    include/uapi/linux/ndctl.h        |  130 ++--
->    30 files changed, 3166 insertions(+), 3935 deletions(-)
->    delete mode 100644 Documentation/blockdev/nd.txt
->    create mode 100644 drivers/block/nd/acpi_nfit.h
->    create mode 100644 drivers/block/nd/e820.c
->    create mode 100644 drivers/block/nd/libnd.h
->    delete mode 100644 drivers/block/nd/nfit.h
-> 
->    [1]: https://lists.01.org/pipermail/linux-nvdimm/2015-April/000484.html
->    [2]: https://lists.01.org/pipermail/linux-nvdimm/2015-April/000520.html
-> 
-> 2/ Christoph asked the pmem ida conversion to be moved to its own patch
->    (done), and to consider leaving the current pmem.c in drivers/block/.
->    Instead, I converted the e820-type-12 enabling to be the first
->    non-ACPI-NFIT based consumer of libnd.  The new nd_e820 driver simply
->    registers e820-type-12 ranges as libnd PMEM regions.  Among other
->    things this conversion enables BTT for these ranges.  The alternative
->    is to move drivers/block/nd/nd.h internals out to include/linux/
->    which I think is worse.
-> 
-> 3/ Toshi reported that the NFIT parsing fails to handle the case of a
->    PMEM range with a single-dimm (non-aliasing) interleave description.
->    Support for this case was added and is tested by default by the
->    nfit_test.1 configuration.
-> 
-> 4/ Toshi reported that we should not be treating a missing _STA property
->    as a "dimm disabled by firmware" case.  (fixed).
-> 
-> 5/ Christoph noted that ND_ARCH_HAS_IOREMAP_CACHE needs to be moved to
->    arch code.  It is gone for now and we'll revisit when adding cached
->    mappings back to the PMEM driver.
-> 
-> 6/ Toshi mentioned that the presence of two different nd_bus_probe()
->    functions was confusing.  (cleaned up).
-> 
-> 7/ Robert asked for s/btt_checksum/nd_btt_checksum/ (done).
-> 
-> 8/ Linda asked for nfit_test to honor dynamic cma reservations via the
->    cma= command line (done).  The cma requirements have also been
->    reduced to 128M as only the simulated DAX regions need CMA.  The rest
->    can use vmalloc().
-> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=94651
+> Signed-off-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+
+Well, this looks like two patches combined to me.  Are the quirks actually
+related except that they are both needed to fix the problem?
+
 > ---
+>  drivers/acpi/ec.c    | 14 +++++++++++++-
+>  drivers/acpi/sbs.c   | 10 +++++++---
+>  drivers/acpi/sbshc.c | 24 ++++++++++++++++++++++++
+>  3 files changed, 44 insertions(+), 4 deletions(-)
 > 
-> Available here:
->   git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm nd-v2
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 220d640..7c9dacc 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -131,6 +131,7 @@ struct acpi_ec *boot_ec, *first_ec;
+>  EXPORT_SYMBOL(first_ec);
+>  
+>  static int EC_FLAGS_MSI; /* Out-of-spec MSI controller */
+> +static int EC_FLAGS_APPLE; /* Out-of-spec Apple controller */
+>  static int EC_FLAGS_VALIDATE_ECDT; /* ASUStec ECDTs need to be validated */
+>  static int EC_FLAGS_SKIP_DSDT_SCAN; /* Not all BIOS survive early DSDT scan */
+>  static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
+> @@ -505,7 +506,7 @@ static int ec_poll(struct acpi_ec *ec)
+>  		unsigned long usecs = ACPI_EC_UDELAY_POLL;
+>  		do {
+>  			/* don't sleep with disabled interrupts */
+> -			if (EC_FLAGS_MSI || irqs_disabled()) {
+> +			if (EC_FLAGS_APPLE || EC_FLAGS_MSI || irqs_disabled()) {
+
+Does EC_FLAGS_MSI do anything in addition to this?  If not, it might be better
+to rename it and use it for both Apple and MSI.
+
+>  				usecs = ACPI_EC_MSI_UDELAY;
+>  				udelay(usecs);
+>  				if (ec_transaction_completed(ec))
+> @@ -1246,6 +1247,14 @@ static int ec_flag_msi(const struct dmi_system_id *id)
+>  	return 0;
+>  }
+>  
+> +/* Apple Macbook needs special treatment, enable it */
+> +static int ec_flag_apple(const struct dmi_system_id *id)
+> +{
+> +	pr_debug("Detected Apple hardware, enabling workarounds.\n");
+> +	EC_FLAGS_APPLE = 1;
+> +	return 0;
+> +}
+> +
+>  /*
+>   * Clevo M720 notebook actually works ok with IRQ mode, if we lifted
+>   * the GPE storm threshold back to 20
+> @@ -1323,6 +1332,9 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
+>  	DMI_MATCH(DMI_SYS_VENDOR, "CLEVO CO."),
+>  	DMI_MATCH(DMI_PRODUCT_NAME, "W35_37ET"),}, NULL},
+>  	{
+> +	ec_flag_apple, "Apple", {
+> +	DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc.")}, NULL},
+
+Do we really need this for all Apple hardware?
+
+> +	{
+>  	ec_validate_ecdt, "ASUS hardware", {
+>  	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
+>  	{
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index cd82762..165519e 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -369,8 +369,11 @@ static int acpi_battery_get_info(struct acpi_battery *battery)
+>  					 info_readers[i].command,
+>  					 (u8 *) battery +
+>  						info_readers[i].offset);
+> -		if (result)
+> +		if (result) {
+> +			pr_warn("sbs read battery failed (cmd=%x)\n",
+> +				info_readers[i].command);
+
+This should be a debug printk() and the one below too.  Also I'm not sure
+why it belongs to this patch.
+
+>  			break;
+> +		}
+>  	}
+>  	return result;
+>  }
+> @@ -412,7 +415,6 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery)
+>  
+>  	int ret;
+>  
+> -
+>  	if (sbs->manager_present) {
+>  		ret = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_MANAGER,
+>  				0x01, (u8 *)&value);
+> @@ -442,8 +444,10 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+>  	result = acpi_smbus_read(sbs->hc, SMBUS_READ_WORD, ACPI_SBS_CHARGER,
+>  				 0x13, (u8 *) & status);
+>  
+> -	if (result)
+> +	if (result) {
+> +		pr_warn("sbs read charger failed\n");
+>  		return result;
+> +	}
+>  
+>  	/*
+>  	 * The spec requires that bit 4 always be 1. If it's not set, assume
+> diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+> index 26e5b50..2d40c24 100644
+> --- a/drivers/acpi/sbshc.c
+> +++ b/drivers/acpi/sbshc.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/module.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/dmi.h>
+>  #include "sbshc.h"
+>  
+>  #define PREFIX "ACPI: "
+> @@ -87,6 +88,8 @@ enum acpi_smb_offset {
+>  	ACPI_SMB_ALARM_DATA = 0x26,	/* 2 bytes alarm data */
+>  };
+>  
+> +static int SMBUS_FLAGS_APPLE;
+
+Why upper case?  The EC driver has this weird naming convention, but is there
+any good reason to spread it?
+
+> +
+>  static inline int smb_hc_read(struct acpi_smb_hc *hc, u8 address, u8 *data)
+>  {
+>  	return ec_read(hc->offset + address, data);
+> @@ -132,6 +135,8 @@ static int acpi_smbus_transaction(struct acpi_smb_hc *hc, u8 protocol,
+>  	}
+>  
+>  	mutex_lock(&hc->lock);
+> +	if (SMBUS_FLAGS_APPLE)
+> +		udelay(5);
+>  	if (smb_hc_read(hc, ACPI_SMB_PROTOCOL, &temp))
+>  		goto end;
+>  	if (temp) {
+> @@ -257,12 +262,31 @@ extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
+>  			      acpi_handle handle, acpi_ec_query_func func,
+>  			      void *data);
+>  
+> +static int smbus_flag_apple(const struct dmi_system_id *d)
+> +{
+> +	SMBUS_FLAGS_APPLE = 1;
+> +	return 0;
+> +}
+> +
+> +static struct dmi_system_id acpi_smbus_dmi_table[] = {
+> +	{
+> +		.callback = smbus_flag_apple,
+> +		.ident = "Apple",
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc.")
+
+Again, is this really needed for all Apple hardware?
+
+> +		},
+> +	},
+> +	{ },
+> +};
+> +
+>  static int acpi_smbus_hc_add(struct acpi_device *device)
+>  {
+>  	int status;
+>  	unsigned long long val;
+>  	struct acpi_smb_hc *hc;
+>  
+> +	dmi_check_system(acpi_smbus_dmi_table);
+> +
+>  	if (!device)
+>  		return -EINVAL;
+>  
 > 
-> ---
-> 
-> Dan Williams (18):
->       e820, efi: add ACPI 6.0 persistent memory types
->       libnd, nd_acpi: initial libnd infrastructure and NFIT support
->       nd_acpi, nfit-test: manufactured NFITs for interface development
->       libnd: ndctl class device, and nd bus attributes
->       libnd, nd_acpi: dimm/memory-devices
->       libnd: ndctl.h, the nd ioctl abi
->       libnd, nd_dimm: dimm driver and base libnd device-driver infrastructure
->       libnd, nd_acpi: regions (block-data-window, persistent memory, volatile memory)
->       libnd: support for legacy (non-aliasing) nvdimms
->       pmem: use ida
->       libnd, nd_pmem: add libnd support to the pmem driver
->       libnd, nd_acpi: add interleave-set state-tracking infrastructure
->       libnd: namespace indices: read and validate
->       libnd: pmem label sets and namespace instantiation.
->       libnd: blk labels and namespace instantiation
->       libnd: write pmem label set
->       libnd: write blk label set
->       libnd: infrastructure for btt devices
-> 
-> Ross Zwisler (1):
->       libnd, nd_acpi, nd_blk: driver for BLK-mode access persistent memory
-> 
-> Vishal Verma (1):
->       nd_btt: atomic sector updates
 
-I'm wondering what's wrong with CCing all of the series to linux-acpi?
-
-Is there anything in it that the people on that list should not see, by any
-chance?
-
-Like patch [01/20], for the most obvious example.  It even has "ACPI 6" in the
-subject ...
-
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
