@@ -1,77 +1,63 @@
 From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH 1/2] arm/arm64: ACPI: Introduce CONFIG_ACPI_MUST_HAVE_CCA
-Date: Wed, 29 Apr 2015 09:44:47 -0500
-Message-ID: <5540EE5F.1060305@amd.com>
+Subject: Re: [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Wed, 29 Apr 2015 09:45:43 -0500
+Message-ID: <5540EE97.70202@amd.com>
 References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1430315049-4663-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20150429140445.GA18867@e104818-lin.cambridge.arm.com>
- <5540EB27.8060507@amd.com>
- <20150429144232.GC18867@e104818-lin.cambridge.arm.com>
+ <1430315049-4663-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <5542288.z0SSOZ4xV7@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0116.outbound.protection.outlook.com ([207.46.100.116]:45745
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+Received: from mail-bn1on0137.outbound.protection.outlook.com ([157.56.110.137]:21440
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1423013AbbD2Ooz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Apr 2015 10:44:55 -0400
-In-Reply-To: <20150429144232.GC18867@e104818-lin.cambridge.arm.com>
+	id S1423153AbbD2Op5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2015 10:45:57 -0400
+In-Reply-To: <5542288.z0SSOZ4xV7@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: al.stone@linaro.org, arnd@arndb.de, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, al.stone@linaro.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org
 
 
 
-On 04/29/2015 09:42 AM, Catalin Marinas wrote:
-> On Wed, Apr 29, 2015 at 09:31:03AM -0500, Suravee Suthikulpanit wrote:
+On 04/29/2015 09:03 AM, Arnd Bergmann wrote:
+> On Wednesday 29 April 2015 08:44:09 Suravee Suthikulpanit wrote:
+>> +                       device->flags.cca_seen = 1;
+>> +               } else if (IS_ENABLED(CONFIG_ACPI_MUST_HAVE_CCA)) {
+>> +                       /*
+>> +                        * Architecture has specified that if the device
+>> +                        * can do DMA, it must have ACPI _CCA object.
+>> +                        * Here, there could be two cases:
+>> +                        *   1. Not DMA-able device.
+>> +                        *   2. DMA-able device, but missing _CCA object.
+>> +                        *
+>> +                        * In both cases, we will default to dma non-coherent.
+>> +                        */
+>> +                       cca = 0;
+>> +               } else {
+>> +                       /*
+>> +                        * If architecture does not specify that device must
+>> +                        * specify ACPI _CCA (e.g. x86), we default to use
+>> +                        * dma coherent.
+>> +                        */
+>> +                       cca = 1;
+>> +               }
 >>
->>
->> On 04/29/2015 09:04 AM, Catalin Marinas wrote:
->>> On Wed, Apr 29, 2015 at 08:44:08AM -0500, Suravee Suthikulpanit wrote:
->>>>  From ACPIv6 (http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf),
->>>> section 6.2.17 _CCA states that ARM platforms require ACPI _CCA object to be
->>>> specified for DMA-cabpable devices. This patch introduces ACPI_MUST_HAVE_CCA
->>>> in arm and arm64 Kconfig to specify such requirement.
->>>>
->>>> Note that when _CCA is required, if it is missing in the DSDT. ACPI driver
->>>> will default to setting up devices as non-coherent.
->>>>
->>>> Signed-off-by: Mark Salter <msalter@redhat.com>
->>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>>> ---
->>>>   arch/arm/Kconfig     | 1 +
->>>>   arch/arm64/Kconfig   | 1 +
->>>>   drivers/acpi/Kconfig | 3 +++
->>>>   3 files changed, 5 insertions(+)
->>>>
->>>> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->>>> index 45df48b..2a0d036 100644
->>>> --- a/arch/arm/Kconfig
->>>> +++ b/arch/arm/Kconfig
->>>> @@ -1,6 +1,7 @@
->>>>   config ARM
->>>>   	bool
->>>>   	default y
->>>> +	select ACPI_MUST_HAVE_CCA if ACPI
->>>>   	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->>>>   	select ARCH_HAS_ELF_RANDOMIZE
->>>>   	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
->>>
->>> Any plans for ACPI on 32-bit ARM?
->>
->> Not that I am aware, but I could be totally wrong. The reason I am adding
->> this here for 32-bit ARM is because the ACPI spec mentioned this.
->>
->> If you think this is not necessary until we introduce ACPI for ARM32, it can
->> be removed.
 >
-> I think it should be removed (as long as ACPI cannot be selected on
-> arm32).
+> What does it mean here if a device does DMA but is not coherent? Do you
+> have an example of a server that needs this?
+>
+> Can we please make the default for ARM64 cca=1 as well?
+>
+> 	Arnd
 >
 
-Ok, I'll remove that in V2.
+Actually, I am trying to implement the logic for when missing _CCA to be 
+consistent with the behavior when the devicetree entry does not specify 
+"dma-coherent" property. IIUC, in such case, Linux will default to using 
+non-coherent DMA.
 
 Thanks,
 
