@@ -1,54 +1,58 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 16/20] sched/idle: Use explicit broadcast oneshot control function
-Date: Wed, 29 Apr 2015 09:10:18 +0200
-Message-ID: <CACRpkdZUS9Qj25waYHWUNeeVS3QiK3+QFc-CEgwUPqGd_cEDCg@mail.gmail.com>
-References: <2112147.0kYCHhbEJT@vostro.rjw.lan>
-	<553F920D.6090404@arm.com>
-	<2361707.7eGhMTvCz6@vostro.rjw.lan>
-	<6185796.9I7OmaAAcQ@vostro.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Wed, 29 Apr 2015 10:13:55 +0200
+Message-ID: <20150429081355.GA5498@pd.tnic>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
+ <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
+ <20150428135913.GD19025@pd.tnic>
+ <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <6185796.9I7OmaAAcQ@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:46820 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1031044AbbD2IOP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Apr 2015 04:14:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Apr 29, 2015 at 3:04 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, April 29, 2015 02:50:22 AM Rafael J. Wysocki wrote:
+On Wed, Apr 29, 2015 at 12:49:59AM +0000, Zheng, Lv wrote:
+> > > We absolutely want to use atomic_add_unless() because we get to save us
+> > > the expensive
+> > >
+> > > 	LOCK; CMPXCHG
+> > >
+> > > if the value was already 1. Which is exactly what this patch is trying
+> > > to avoid - a thundering herd of cores CMPXCHGing a global variable.
+> > 
+> > IMO, on most architectures, the "cmp" part should work just like what you've done with "if".
+> > And on some architectures, if the "xchg" doesn't happen, the "cmp" part even won't cause a pipe line hazard.
 
->> Below is the patch I came up with in the meantime.
->>
->> This moves the "switch to broadcast" timer logic into
->> cpuidle_enter_state() which allows tick_broadcast_exit() to be
->> called directly with interrupts disabled (as required), but
->> it also adds a fallback branch reflecting the 4.0 and earlier
->> behavior for idle states that enable interrupts on exit
->> from their ->enter callbacks.
->>
->> I'm not aware of any valid cases when CPUIDLE_FLAG_TIMER_STOP can be
->> set for such states, but people may try to add stuff like that in the
->> future, so it's better to catch that (hence the WARN_ON_ONCE) and do
->> our best to handle it gracefully anyway, IMO.
->>
->> The "if (entered_state == -EBUSY)" check is conservative.  It may
->> be better to do "if (entered_state < 0)" and fall back to the default
->> on all errors, but that's not what we do today (I guess the concern
->> would be "what if the state ->enter returns an error after entering
->> and exiting the idle state, in which case we may miss a wakeup event
->> if we fall back to the default").
->
-> Actually, if my understanding of things is correct (the local clock event
-> device cannot go away from under code executed with interrupts disabled
-> on the local CPU), the simplified one below should be sufficient.
+Even if CMPXCHG is being split into several microops, they all still
+need to flow down the pipe and require resources and tracking. And you
+only know at retire time what the CMP result is and can "discard" the
+XCHG part. Provided the uarch is smart enough to do that.
 
-Rock solid, after this patch the issues are gone and system stable.
-Using it as stabilizer base for all v4.2 work now.
+This is probably why CMPXCHG needs 5,6,7,10,22,... cycles depending on
+uarch and vendor, if I can trust Agner Fog's tables. And I bet those
+numbers are best-case only and in real-life they probably tend to fall
+out even worse.
 
-Excellent work Rafael!
+CMP needs only 1. On almost every uarch and vendor. And even that cycle
+probably gets hidden with a good branch predictor.
 
-Tested-by: Linus Walleij <linus.walleij@linaro.org>
+> If you man the LOCK prefix, I understand now.
 
-Yours,
-Linus Walleij
+And that makes several times worse: 22, 40, 80, ... cycles.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
