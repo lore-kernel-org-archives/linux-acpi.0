@@ -1,59 +1,107 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
-Date: Wed, 29 Apr 2015 17:54:02 +0200
-Message-ID: <2817500.sgztgK2NzB@wuerfel>
-References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions
+ (block-data-window, persistent memory, volatile memory)
+Date: Wed, 29 Apr 2015 15:53:24 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A8CA1D0@G9W0745.americas.hpqcorp.net>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:55106 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964905AbbD2PyI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 11:54:08 -0400
-In-Reply-To: <D1665A4F.19E17%suravee.suthikulpanit@amd.com>
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:58398 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966285AbbD2Pyp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 11:54:45 -0400
+In-Reply-To: <20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
+To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday 29 April 2015 14:57:10 Suthikulpanit, Suravee wrote:
-> Otherwise, it would seem inconsistent with what states in the ACPI spec:
->  
->   CCA objects are only relevant for devices that can access CPU-visible
-> memory,
->   such as devices that are DMA capable. On ARM based systems, the _CCA
-> object 
->   must be supplied all such devices. On Intel platforms, if the _CCA
-> object is 
->   not supplied, the OSPM will assume the devices are hardware cache
-> coherent.
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
+> Dan Williams
+> Sent: Tuesday, April 28, 2015 1:25 PM
+> Subject: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions (block-
+> data-window, persistent memory, volatile memory)
 > 
-> From the statement above, I interpreted as if it is not present, it would
-> be non-coherent.
+> A "region" device represents the maximum capacity of a BLK range (mmio
+> block-data-window(s)), or a PMEM range (DAX-capable persistent memory or
+> volatile memory), without regard for aliasing.  Aliasing, in the
+> dimm-local address space (DPA), is resolved by metadata on a dimm to
+> designate which exclusive interface will access the aliased DPA ranges.
+> Support for the per-dimm metadata/label arrvies is in a subsequent
+> patch.
 > 
+> The name format of "region" devices is "regionN" where, like dimms, N is
+> a global ida index assigned at discovery time.  This id is not reliable
+> across reboots nor in the presence of hotplug.  Look to attributes of
+> the region or static id-data of the sub-namespace to generate a
+> persistent name.
+...
+> +++ b/drivers/block/nd/region_devs.c
+...
+> +static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
+> +		struct nd_region_desc *ndr_desc, struct device_type *dev_type)
+> +{
+> +	struct nd_region *nd_region;
+> +	struct device *dev;
+> +	u16 i;
+> +
+> +	for (i = 0; i < ndr_desc->num_mappings; i++) {
+> +		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
+> +		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
+> +
+> +		if ((nd_mapping->start | nd_mapping->size) % SZ_4K) {
+> +			dev_err(&nd_bus->dev, "%pf: %s mapping%d is not 4K
+> aligned\n",
+> +					__builtin_return_address(0),
 
-My guess is that this section was included for Windows Phone, which runs
-on embedded SoCs that usually have noncoherent DMA in a particular way.
+Please use "KiB" rather than the unclear "K".
 
-Linux however only uses ACPI for servers, so that case does not happen.
+Same comment for a dev_dbg print in patch 14.
 
-I guess it would be reasonable to add a run-time warning here if you
-try to do DMA on a device that does not have CCA set, and you should
-probably set the DMA mask to 0 in that case as well.
+> +					dev_name(&nd_dimm->dev), i);
+> +
+> +			return NULL;
+> +		}
+> +	}
+> +
+> +	nd_region = kzalloc(sizeof(struct nd_region)
+> +			+ sizeof(struct nd_mapping) * ndr_desc->num_mappings,
+> +			GFP_KERNEL);
+> +	if (!nd_region)
+> +		return NULL;
+> +	nd_region->id = ida_simple_get(&region_ida, 0, 0, GFP_KERNEL);
+> +	if (nd_region->id < 0) {
+> +		kfree(nd_region);
+> +		return NULL;
+> +	}
+> +
+> +	memcpy(nd_region->mapping, ndr_desc->nd_mapping,
+> +			sizeof(struct nd_mapping) * ndr_desc->num_mappings);
+> +	for (i = 0; i < ndr_desc->num_mappings; i++) {
+> +		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
+> +		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
+> +
+> +		get_device(&nd_dimm->dev);
+> +	}
+> +	nd_region->ndr_mappings = ndr_desc->num_mappings;
+> +	nd_region->provider_data = ndr_desc->provider_data;
+> +	dev = &nd_region->dev;
+> +	dev_set_name(dev, "region%d", nd_region->id);
 
-Note that there are lots of ways in which you could have noncoherent DMA:
-the default on ARM32 is that it requires uncached access or explicit
-cache flushes, but it's also possible to have an SMP system where a device
-is only coherent with some of the CPUs and requires explicit synchronization
-(not flushes) otherwise. In a multi-level cache hierarchy, there could be
-all sorts of combinations of flushes and syncs you would need to do.
+Could this include "nd" in the name, like "ndregion%d"?
 
-With DT, we handle this using SoC-specific overrides for platforms that
-are noncoherent in funny ways, see
-http://lxr.free-electrons.com/source/arch/arm/mach-mvebu/coherency.c?v=3.18#L263
-for instance. If we just disallow DMA to devices that are marked with _CCA=0
-in ACPI, we can avoid this case, or discuss it by the time someone has hardware
-that wants it, and then make a more informed decision about it.
+The other dev_set_name calls in this patch set use:
+	btt%d
+	ndbus%d
+	nmem%d
+	namespace%d.%d
 
-	Arnd
+which are a bit more distinctive.
+
+---
+Robert Elliott, HP Server Storage
