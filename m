@@ -1,86 +1,41 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions
- (block-data-window, persistent memory, volatile memory)
-Date: Wed, 29 Apr 2015 08:59:03 -0700
-Message-ID: <CAPcyv4ggJGus44p4f9XWZNV5r=Gbmcct_xEtfp7Ja-AMO03T2w@mail.gmail.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<94D0CD8314A33A4D9D801C0FE68B40295A8CA1D0@G9W0745.americas.hpqcorp.net>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Wed, 29 Apr 2015 18:15:40 +0200
+Message-ID: <2718230.tGqneBjFr2@wuerfel>
+References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com> <5540FB2D.4080905@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:33163 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753810AbbD2P7E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 11:59:04 -0400
-Received: by wief7 with SMTP id f7so43613049wie.0
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Apr 2015 08:59:03 -0700 (PDT)
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A8CA1D0@G9W0745.americas.hpqcorp.net>
+Received: from mout.kundenserver.de ([212.227.17.10]:60301 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753702AbbD2QQQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 12:16:16 -0400
+In-Reply-To: <5540FB2D.4080905@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linaro-acpi@lists.linaro.org
+Cc: Al Stone <al.stone@linaro.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Wed, Apr 29, 2015 at 8:53 AM, Elliott, Robert (Server Storage)
-<Elliott@hp.com> wrote:
->> -----Original Message-----
->> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
->> Dan Williams
->> Sent: Tuesday, April 28, 2015 1:25 PM
->> Subject: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions (block-
->> data-window, persistent memory, volatile memory)
->>
->> A "region" device represents the maximum capacity of a BLK range (mmio
->> block-data-window(s)), or a PMEM range (DAX-capable persistent memory or
->> volatile memory), without regard for aliasing.  Aliasing, in the
->> dimm-local address space (DPA), is resolved by metadata on a dimm to
->> designate which exclusive interface will access the aliased DPA ranges.
->> Support for the per-dimm metadata/label arrvies is in a subsequent
->> patch.
->>
->> The name format of "region" devices is "regionN" where, like dimms, N is
->> a global ida index assigned at discovery time.  This id is not reliable
->> across reboots nor in the presence of hotplug.  Look to attributes of
->> the region or static id-data of the sub-namespace to generate a
->> persistent name.
-> ...
->> +++ b/drivers/block/nd/region_devs.c
-> ...
->> +static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
->> +             struct nd_region_desc *ndr_desc, struct device_type *dev_type)
->> +{
->> +     struct nd_region *nd_region;
->> +     struct device *dev;
->> +     u16 i;
->> +
->> +     for (i = 0; i < ndr_desc->num_mappings; i++) {
->> +             struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
->> +             struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
->> +
->> +             if ((nd_mapping->start | nd_mapping->size) % SZ_4K) {
->> +                     dev_err(&nd_bus->dev, "%pf: %s mapping%d is not 4K
->> aligned\n",
->> +                                     __builtin_return_address(0),
->
-> Please use "KiB" rather than the unclear "K".
+On Wednesday 29 April 2015 09:39:25 Al Stone wrote:
+> 
+> When the spec was being changed for _CCA, it was determined by the ASWG
+> that there was no reasonable default -- either choice would break something.
+> Multiple OSs, SoC vendors, and platform vendors were asked.  So, the spec
+> says for ARMv8, _CCA must be specified when needed and is not assumed to have
+> any value.  Obviously, any OS can choose to behave differently, but that's
+> what was specified and why it was specified that way.
 
-Ok.
+Ok, so it was essentially a CYA strategy. As we know that for Linux we're
+only interested in server parts here, but we also want to be compliant,
+I'd still argue that we check the property value and just disallow DMA
+for any device that is lacking CCA or contains zero here.
 
-> Same comment for a dev_dbg print in patch 14.
+The current patch actually implements non-standard behavior: if _CCA
+is missing, it registers the device as dma-capable with coherency turned
+off, where my interpretation of the cited standard would be that we
+treat a missing _CCA as not being able to perform DMA. What I'd like
+to see instead is to only enable DMA support if _CCA is present and
+enabled.
 
-It's a debug statement, but ok.
-
-[..]
->
-> Could this include "nd" in the name, like "ndregion%d"?
->
-> The other dev_set_name calls in this patch set use:
->         btt%d
->         ndbus%d
->         nmem%d
->         namespace%d.%d
->
-> which are a bit more distinctive.
-
-They sit on an "nd" bus and don't have global device nodes, I don't
-see a need to make them anymore distinctive.
+	Arnd
