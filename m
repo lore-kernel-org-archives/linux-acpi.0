@@ -1,74 +1,23 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device
- coherency
-Date: Wed, 29 Apr 2015 09:39:25 -0600
-Message-ID: <5540FB2D.4080905@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Wed, 29 Apr 2015 17:54:02 +0200
+Message-ID: <2817500.sgztgK2NzB@wuerfel>
 References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.10]:55106 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964905AbbD2PyI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Apr 2015 11:54:08 -0400
 In-Reply-To: <D1665A4F.19E17%suravee.suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, Arnd Bergmann <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-On 04/29/2015 08:57 AM, Suthikulpanit, Suravee wrote:
-> 
-> 
-> On 4/29/15, 09:47, "Arnd Bergmann" <arnd@arndb.de> wrote:
-> 
->> On Wednesday 29 April 2015 09:45:43 Suravee Suthikulpanit wrote:
->>> On 04/29/2015 09:03 AM, Arnd Bergmann wrote:
->>>> On Wednesday 29 April 2015 08:44:09 Suravee Suthikulpanit wrote:
->>>>> +                       device->flags.cca_seen = 1;
->>>>> +               } else if (IS_ENABLED(CONFIG_ACPI_MUST_HAVE_CCA)) {
->>>>> +                       /*
->>>>> +                        * Architecture has specified that if the
->>> device
->>>>> +                        * can do DMA, it must have ACPI _CCA object.
->>>>> +                        * Here, there could be two cases:
->>>>> +                        *   1. Not DMA-able device.
->>>>> +                        *   2. DMA-able device, but missing _CCA
->>> object.
->>>>> +                        *
->>>>> +                        * In both cases, we will default to dma
->>> non-coherent.
->>>>> +                        */
->>>>> +                       cca = 0;
->>>>> +               } else {
->>>>> +                       /*
->>>>> +                        * If architecture does not specify that
->>> device must
->>>>> +                        * specify ACPI _CCA (e.g. x86), we default
->>> to use
->>>>> +                        * dma coherent.
->>>>> +                        */
->>>>> +                       cca = 1;
->>>>> +               }
->>>>>
->>>>
->>>> What does it mean here if a device does DMA but is not coherent? Do
->>> you
->>>> have an example of a server that needs this?
->>>>
->>>> Can we please make the default for ARM64 cca=1 as well?
->>>>
->>>>       Arnd
->>>>
->>>
->>> Actually, I am trying to implement the logic for when missing _CCA to
->>> be 
->>> consistent with the behavior when the devicetree entry does not specify
->>> "dma-coherent" property. IIUC, in such case, Linux will default to
->>> using 
->>> non-coherent DMA.
->>
->> Why?
->>
->> 	Arnd
-> 
+On Wednesday 29 April 2015 14:57:10 Suthikulpanit, Suravee wrote:
 > Otherwise, it would seem inconsistent with what states in the ACPI spec:
 >  
 >   CCA objects are only relevant for devices that can access CPU-visible
@@ -83,23 +32,28 @@ On 04/29/2015 08:57 AM, Suthikulpanit, Suravee wrote:
 > From the statement above, I interpreted as if it is not present, it would
 > be non-coherent.
 > 
-> Suravee
 
-A little background to Suravee's statement...
+My guess is that this section was included for Windows Phone, which runs
+on embedded SoCs that usually have noncoherent DMA in a particular way.
 
-When the spec was being changed for _CCA, it was determined by the ASWG
-that there was no reasonable default -- either choice would break something.
-Multiple OSs, SoC vendors, and platform vendors were asked.  So, the spec
-says for ARMv8, _CCA must be specified when needed and is not assumed to have
-any value.  Obviously, any OS can choose to behave differently, but that's
-what was specified and why it was specified that way.
+Linux however only uses ACPI for servers, so that case does not happen.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+I guess it would be reasonable to add a run-time warning here if you
+try to do DMA on a device that does not have CCA set, and you should
+probably set the DMA mask to 0 in that case as well.
+
+Note that there are lots of ways in which you could have noncoherent DMA:
+the default on ARM32 is that it requires uncached access or explicit
+cache flushes, but it's also possible to have an SMP system where a device
+is only coherent with some of the CPUs and requires explicit synchronization
+(not flushes) otherwise. In a multi-level cache hierarchy, there could be
+all sorts of combinations of flushes and syncs you would need to do.
+
+With DT, we handle this using SoC-specific overrides for platforms that
+are noncoherent in funny ways, see
+http://lxr.free-electrons.com/source/arch/arm/mach-mvebu/coherency.c?v=3.18#L263
+for instance. If we just disallow DMA to devices that are marked with _CCA=0
+in ACPI, we can avoid this case, or discuss it by the time someone has hardware
+that wants it, and then make a more informed decision about it.
+
+	Arnd
