@@ -1,151 +1,120 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
-Date: Wed, 29 Apr 2015 08:44:09 -0500
-Message-ID: <1430315049-4663-3-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Bugfix v5] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Wed, 29 Apr 2015 16:15:34 +0200
+Message-ID: <2290160.KqiWSgJfFU@vostro.rjw.lan>
+References: <1429499338-16967-1-git-send-email-jiang.liu@linux.intel.com> <CAErSpo4zBFUBwSJjF1CuB8w06CDwYx+ZZaL1X71Joi0uMCObbg@mail.gmail.com> <5540DD9C.9030707@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, arnd@arndb.de, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5540DD9C.9030707@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch implements support for ACPI _CCA object, which is introduced in
-ACPIv5.1, can be used for specifying device DMA coherency attribute.
+On Wednesday, April 29, 2015 09:33:16 PM Jiang Liu wrote:
+> On 2015/4/29 21:20, Bjorn Helgaas wrote:
+> > On Tue, Apr 28, 2015 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> On Monday, April 20, 2015 11:08:58 AM Jiang Liu wrote:
+> >>> An IO port or MMIO resource assigned to a PCI host bridge may be
+> >>> consumed by the host bridge itself or available to its child
+> >>> bus/devices. On x86 and IA64 platforms, all IO port and MMIO
+> >>> resources are assumed to be available to child bus/devices
+> >>> except one special case:
+> >>>     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
+> >>>     to access PCI configuration space.
+> >>>
+> >>> But the ACPI and PCI Firmware specifications haven't provided a method
+> >>> to tell whether a resource is consumed by the host bridge itself.
+> >>> So before commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource
+> >>> interfaces to simplify implementation"), arch/x86/pci/acpi.c ignored
+> >>> all IO port resources defined by acpi_resource_io and
+> >>> acpi_resource_fixed_io to filter out IO ports consumed by the host
+> >>> bridge itself.
+> >>>
+> >>> Commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces
+> >>> to simplify implementation")started accepting all IO port and MMIO
+> >>> resources, which caused a regression that IO port resources consumed
+> >>> by the host bridge itself became available to its child devices.
+> >>>
+> >>> Then commit 63f1789ec716 ("x86/PCI/ACPI: Ignore resources consumed by
+> >>> host bridge itself") ignored resources consumed by the host bridge
+> >>> itself by checking the IORESOURCE_WINDOW flag, which accidently removed
+> >>> MMIO resources defined by acpi_resource_memory24, acpi_resource_memory32
+> >>> and acpi_resource_fixed_memory32.
+> >>>
+> >>> So revert to the behavior before v3.19 to fix the regression.
+> >>>
+> >>> There is also a discussion about ignoring the Producer/Consumer flag on
+> >>> IA64 platforms at:
+> >>> http://patchwork.ozlabs.org/patch/461633/
+> >>>
+> >>> Related ACPI table are archived at:
+> >>> https://bugzilla.kernel.org/show_bug.cgi?id=94221
+> >>>
+> >>> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+> >>> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+> >>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> >>
+> >> Bjorn, Ingo, is anyone looking at this?  We're still having a regression in
+> >> this area ...
+> > 
+> >>> ---
+> >>>  arch/x86/pci/acpi.c     |   25 ++++++++++++++++++++++---
+> >>>  drivers/acpi/resource.c |    6 +++++-
+> >>>  2 files changed, 27 insertions(+), 4 deletions(-)
+> >>>
+> >>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> >>> index e4695985f9de..fc2da98985c3 100644
+> >>> --- a/arch/x86/pci/acpi.c
+> >>> +++ b/arch/x86/pci/acpi.c
+> >>> @@ -332,12 +332,32 @@ static void probe_pci_root_info(struct pci_root_info *info,
+> >>>  {
+> >>>       int ret;
+> >>>       struct resource_entry *entry, *tmp;
+> >>> +     unsigned long res_flags;
+> >>>
+> >>>       sprintf(info->name, "PCI Bus %04x:%02x", domain, busnum);
+> >>>       info->bridge = device;
+> >>> +
+> >>> +     /*
+> >>> +      * An IO or MMIO resource assigned to PCI host bridge may be consumed
+> >>> +      * by the host bridge itself or available to its child bus/devices.
+> >>> +      * On x86 and IA64 platforms, all IO and MMIO resources are assumed to
+> >>> +      * be available to child bus/devices except one special case:
+> >>> +      *      IO port [0xCF8-0xCFF] is consumed by host bridge itself to
+> >>> +      *      access PCI configuration space.
+> >>> +      *
+> >>> +      * Due to lack of specification to define resources consumed by host
+> >>> +      * bridge itself, all IO port resources defined by acpi_resource_io
+> >>> +      * and acpi_resource_fixed_io are ignored to filter out IO
+> >>> +      * port[0xCF8-0xCFF]. Seems this solution works with all BIOSes, though
+> >>> +      * it's not perfect.
+> > 
+> > 1) I think it's misleading to say "the specs haven't provided a
+> > method."  As far as I can tell, the Producer/Consumer bit is intended
+> > precisely to distinguish resources consumed by a bridge from those
+> > forwarded to downstream devices.  It would be more accurate to say
+> > "the spec defines a bit, but firmware hasn't used that bit
+> > consistently, so we can't rely on it."
+> 
+> Hi Bjorn,
+> 	Thanks for review, I will refine the words as suggested by you.
+> 
+> > If you want to say "it's not perfect," it would be useful to mention
+> > the ways in which it is not perfect.  This code is still a candidate
+> > for unification with ia64 and arm64, so we should avoid x86-specific
+> > things here as much as possible.
+> 
+> Yes, I have another pending patch set to consolidate IA64 and x86 code
+> for ACPI PCI root.
 
-The parsing logic traverses device namespace to parse coherency
-information, and stores it in acpi_device_flags. Then uses it to call
-arch_setup_dma_ops() when creating each device enumerated in DSDT
-during ACPI scan.
+That's OK, but can we please fix the regression first before doing that
+unification?  Like to make life easier for the "stable" people and
+whoever wants to backport the fix?
 
-This patch also introduces acpi_dma_is_coherent(), which provides
-an interface for device drivers to check the coherency information
-similarly to the of_dma_is_coherent().
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/acpi/acpi_platform.c |  5 ++++-
- drivers/acpi/scan.c          | 45 ++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h      |  9 ++++++++-
- 3 files changed, 57 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 4bf7559..a4db208 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -108,9 +108,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	if (IS_ERR(pdev))
- 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
- 			PTR_ERR(pdev));
--	else
-+	else {
-+		arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
-+				   adev->flags.is_coherent);
- 		dev_dbg(&adev->dev, "created platform device %s\n",
- 			dev_name(&pdev->dev));
-+	}
- 
- 	kfree(resources);
- 	return pdev;
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 849b699..509d0157 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -11,6 +11,7 @@
- #include <linux/kthread.h>
- #include <linux/dmi.h>
- #include <linux/nls.h>
-+#include <linux/dma-mapping.h>
- 
- #include <asm/pgtable.h>
- 
-@@ -2137,6 +2138,49 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp)
- 	kfree(pnp->unique_id);
- }
- 
-+static void acpi_init_coherency(struct acpi_device *device)
-+{
-+	unsigned long long cca;
-+	acpi_status status;
-+	struct acpi_device *parent = device->parent;
-+
-+	if (parent && parent->flags.cca_seen) {
-+		/*
-+		 * From ACPIv5.1, OSPM will ignore _CCA if an ancestor
-+		 * already saw one.
-+		 */
-+		device->flags.cca_seen = 1;
-+		cca = acpi_dma_is_coherent(parent);
-+	} else {
-+		status = acpi_evaluate_integer(device->handle, "_CCA",
-+					       NULL, &cca);
-+		if (ACPI_SUCCESS(status)) {
-+			device->flags.cca_seen = 1;
-+		} else if (IS_ENABLED(CONFIG_ACPI_MUST_HAVE_CCA)) {
-+			/*
-+			 * Architecture has specified that if the device
-+			 * can do DMA, it must have ACPI _CCA object.
-+			 * Here, there could be two cases:
-+			 *   1. Not DMA-able device.
-+			 *   2. DMA-able device, but missing _CCA object.
-+			 *
-+			 * In both cases, we will default to dma non-coherent.
-+			 */
-+			cca = 0;
-+		} else {
-+			/*
-+			 * If architecture does not specify that device must
-+			 * specify ACPI _CCA (e.g. x86), we default to use
-+			 * dma coherent.
-+			 */
-+			cca = 1;
-+		}
-+	}
-+
-+	device->flags.is_coherent = cca;
-+	arch_setup_dma_ops(&device->dev, 0, 0, NULL, cca);
-+}
-+
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 			     int type, unsigned long long sta)
- {
-@@ -2155,6 +2199,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	device->flags.visited = false;
- 	device_initialize(&device->dev);
- 	dev_set_uevent_suppress(&device->dev, true);
-+	acpi_init_coherency(device);
- }
- 
- void acpi_device_add_finalize(struct acpi_device *device)
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 8de4fa9..7e8cd4c 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -208,7 +208,9 @@ struct acpi_device_flags {
- 	u32 visited:1;
- 	u32 hotplug_notify:1;
- 	u32 is_dock_station:1;
--	u32 reserved:23;
-+	u32 is_coherent:1;
-+	u32 cca_seen:1;
-+	u32 reserved:21;
- };
- 
- /* File System */
-@@ -380,6 +382,11 @@ struct acpi_device {
- 	void (*remove)(struct acpi_device *);
- };
- 
-+static inline bool acpi_dma_is_coherent(struct acpi_device *adev)
-+{
-+	return adev && adev->flags.is_coherent;
-+}
-+
- static inline bool is_acpi_node(struct fwnode_handle *fwnode)
- {
- 	return fwnode && fwnode->type == FWNODE_ACPI;
 -- 
-2.1.0
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
