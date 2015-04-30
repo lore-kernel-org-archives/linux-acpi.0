@@ -1,150 +1,91 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH][Fix] cpuidle: Run tick_broadcast_exit() with disabled
- interrupts
-Date: Thu, 30 Apr 2015 16:12:46 -0400 (EDT)
-Message-ID: <alpine.LFD.2.11.1504301602180.1582@knanqh.ubzr>
-References: <2112147.0kYCHhbEJT@vostro.rjw.lan> <6185796.9I7OmaAAcQ@vostro.rjw.lan> <5540A981.6060209@arm.com> <2872649.RClMYKns0i@vostro.rjw.lan>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v2 00/20] libnd: non-volatile memory device support
+Date: Thu, 30 Apr 2015 14:56:30 -0600
+Message-ID: <1430427390.23785.1.camel@theros.lm.intel.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <CALCETrV0gE7j+OaJ+UrV=rANrTpALKX6MXFQs6GKAMe0rSxRRw@mail.gmail.com>
+	 <CAPcyv4hMfTD9eEVD9NSG3DDT-_5d+BZHL=RHNMR8kh+iBd6FuQ@mail.gmail.com>
+	 <CALCETrVJafaxJwZi1C8cAsQs51nvGFywAkNTNbc=BjE+bjBgnQ@mail.gmail.com>
+	 <CAPcyv4jeV-4D+uJyjmBa8Zn5VC8LmTf2+eWj_CdVzcAWZvRrKg@mail.gmail.com>
+	 <CALCETrVno_bWKzfzfEa_gQSCaS-u8QpgdeFCmvEvnxR-4L6HoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2872649.RClMYKns0i@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Peter Zijlstra <peterz@infradead.org>, Linus Walleij <linus.walleij@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:16612 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750800AbbD3U4g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Apr 2015 16:56:36 -0400
+In-Reply-To: <CALCETrVno_bWKzfzfEa_gQSCaS-u8QpgdeFCmvEvnxR-4L6HoQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Christoph Hellwig <hch@lst.de>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wed, 29 Apr 2015, Rafael J. Wysocki wrote:
+On Tue, 2015-04-28 at 16:05 -0700, Andy Lutomirski wrote:
+> On Tue, Apr 28, 2015 at 3:28 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> > On Tue, Apr 28, 2015 at 2:06 PM, Andy Lutomirski <luto@amacapital.net> wrote:
+> >> On Tue, Apr 28, 2015 at 1:59 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> >>> On Tue, Apr 28, 2015 at 1:52 PM, Andy Lutomirski <luto@amacapital.net> wrote:
+> >>>> On Tue, Apr 28, 2015 at 11:24 AM, Dan Williams <dan.j.williams@intel.com> wrote:
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>> Mostly for my understanding: is there a name for "address relative to
+> >>>> the address lines on the DIMM"?  That is, a DIMM that exposes 8 GB of
+> >>>> apparent physical memory, possibly interleaved, broken up, or weirdly
+> >>>> remapped by the memory controller, would still have addresses between
+> >>>> 0 and 8 GB.  Some of those might be PMEM windows, some might be MMIO,
+> >>>> some might be BLK apertures, etc.
+> >>>>
+> >>>> IIUC "DPA" refers to actual addressable storage, not this type of address?
+> >>>
+> >>> No, DPA is exactly as you describe above.  You can't directly access
+> >>> it except through a PMEM mapping (possibly interleaved with DPA from
+> >>> other DIMMs) or a BLK aperture (mmio window into DPA).
+> >>
+> >> So the thing I'm describing has no name, then?  Oh, well.
+> >
+> > What?  The thing you are describing *is* DPA.
 > 
-> Commit 335f49196fd6 (sched/idle: Use explicit broadcast oneshot
-> control function) replaced clockevents_notify() invocations in
-> cpuidle_idle_call() with direct calls to tick_broadcast_enter()
-> and tick_broadcast_exit(), but it overlooked the fact that
-> interrupts were already enabled before calling the latter which
-> led to functional breakage on systems using idle states with the
-> CPUIDLE_FLAG_TIMER_STOP flag set.
+> I'm confused.  Here are the two things I have in mind:
 > 
-> Fix that by moving the invocations of tick_broadcast_enter()
-> and tick_broadcast_exit() down into cpuidle_enter_state() where
-> interrupts are still disabled when tick_broadcast_exit() is
-> called.  Also ensure that interrupts will be disabled before
-> running tick_broadcast_exit() even if they have been enabled by
-> the idle state's ->enter callback.  Trigger a WARN_ON_ONCE() in
-> that case, as we generally don't want that to happen for states
-> with CPUIDLE_FLAG_TIMER_STOP set.
+> 1. An address into on-DIMM storage.  If I have a DIMM that is mapped
+> to 8 GB of SPA but has 64 GB of usable storage (accessed through BLK
+> apertures, say), then this address runs from 0 to 64 GB.
+> 
+> 2. An address into the DIMM's view of physical address space.  If I
+> have a DIMM that is mapped to 8 GB of SPA but has 64 GB of usable
+> storage (accessed through BLK apertures, say), then this address runs
+> from 0 to 8 GB.  There's a one-to-one mapping between SPA and this
+> type of address.
+> 
+> Since you said "a dimm may provide both PMEM-mode and BLK-mode access
+> to a range of DPA.," I thought that DPA was #1.
+> 
+> --Andy
 
-Incidentally I was debugging this issue as well when I saw this thread.
+I think that you've got the right definition, #1 above, for DPA.  The DPA is
+relative to the DIMM, knows nothing about interleaving or SPA or anything else
+in the system, and is basically equivalent to the idea of an LBA on a disk.  A
+DIMM that has 64 GiB of storage could have a DPA space ranging from 0 to 64
+GiB.
 
-And it turns out that I did report this issue 2 months ago:
-http://article.gmane.org/gmane.linux.kernel/1892049
-What happened?
+The second concept is a little trickier - we've been talking about this by
+using the term "N-way interleave set".  Say you have your 64 GiB DIMM and only
+the first 8 GiB are given to the OS in an SPA, and that DIMM isn't interleaved
+with any other DIMMs.  This would be a 1-way interleave set, ranging from DPA
+0 - 8GiB on the DIMM.
 
-> Fixes: 335f49196fd6 (sched/idle: Use explicit broadcast oneshot control function)
-> Reported-and-tested-by: Linus Walleij <linus.walleij@linaro.org>
-> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Reported-and-tested-by: Sudeep Holla <sudeep.holla@arm.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+If you have 2 DIMMs of size 64 GiB, and they each have a 8 GiB region given to
+the SPA space, those two regions could be interleaved together.  The OS would
+then see a 16 GiB 2-way interleave set, made up of DPAs 0 -> 8 GiB on each of
+the two DIMMs.
 
-Tested-by: Nicolas Pitre <nico@linaro.org>
+You can figure out exactly how all the interleaving works by looking at the
+SPA tables, the Memory Device tables and the Interleave Tables.
 
-> ---
-> 
-> Thanks for the testing and ACKs, here it goes again with all tags and
-> a changelog.
-> 
-> If anything is missing/incorrect, please let me know ASAP as I'm going to
-> push this to Linus in a couple of days.
-> 
-> ---
->  drivers/cpuidle/cpuidle.c |   16 ++++++++++++++++
->  kernel/sched/idle.c       |   16 ++--------------
->  2 files changed, 18 insertions(+), 14 deletions(-)
-> 
-> Index: linux-pm/kernel/sched/idle.c
-> ===================================================================
-> --- linux-pm.orig/kernel/sched/idle.c
-> +++ linux-pm/kernel/sched/idle.c
-> @@ -81,7 +81,6 @@ static void cpuidle_idle_call(void)
->  	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
->  	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev);
->  	int next_state, entered_state;
-> -	unsigned int broadcast;
->  	bool reflect;
->  
->  	/*
-> @@ -150,17 +149,6 @@ static void cpuidle_idle_call(void)
->  		goto exit_idle;
->  	}
->  
-> -	broadcast = drv->states[next_state].flags & CPUIDLE_FLAG_TIMER_STOP;
-> -
-> -	/*
-> -	 * Tell the time framework to switch to a broadcast timer
-> -	 * because our local timer will be shutdown. If a local timer
-> -	 * is used from another cpu as a broadcast timer, this call may
-> -	 * fail if it is not available
-> -	 */
-> -	if (broadcast && tick_broadcast_enter())
-> -		goto use_default;
-> -
->  	/* Take note of the planned idle state. */
->  	idle_set_state(this_rq(), &drv->states[next_state]);
->  
-> @@ -174,8 +162,8 @@ static void cpuidle_idle_call(void)
->  	/* The cpu is no longer idle or about to enter idle. */
->  	idle_set_state(this_rq(), NULL);
->  
-> -	if (broadcast)
-> -		tick_broadcast_exit();
-> +	if (entered_state == -EBUSY)
-> +		goto use_default;
->  
->  	/*
->  	 * Give the governor an opportunity to reflect on the outcome
-> Index: linux-pm/drivers/cpuidle/cpuidle.c
-> ===================================================================
-> --- linux-pm.orig/drivers/cpuidle/cpuidle.c
-> +++ linux-pm/drivers/cpuidle/cpuidle.c
-> @@ -158,9 +158,18 @@ int cpuidle_enter_state(struct cpuidle_d
->  	int entered_state;
->  
->  	struct cpuidle_state *target_state = &drv->states[index];
-> +	bool broadcast = !!(target_state->flags & CPUIDLE_FLAG_TIMER_STOP);
->  	ktime_t time_start, time_end;
->  	s64 diff;
->  
-> +	/*
-> +	 * Tell the time framework to switch to a broadcast timer because our
-> +	 * local timer will be shut down.  If a local timer is used from another
-> +	 * CPU as a broadcast timer, this call may fail if it is not available.
-> +	 */
-> +	if (broadcast && tick_broadcast_enter())
-> +		return -EBUSY;
-> +
->  	trace_cpu_idle_rcuidle(index, dev->cpu);
->  	time_start = ktime_get();
->  
-> @@ -169,6 +178,13 @@ int cpuidle_enter_state(struct cpuidle_d
->  	time_end = ktime_get();
->  	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, dev->cpu);
->  
-> +	if (broadcast) {
-> +		if (WARN_ON_ONCE(!irqs_disabled()))
-> +			local_irq_disable();
-> +
-> +		tick_broadcast_exit();
-> +	}
-> +
->  	if (!cpuidle_state_is_coupled(dev, drv, entered_state))
->  		local_irq_enable();
->  
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
+These are in sections 5.2.25.1 - 5.2.25.3 in ACPI 6, and are in our code as
+struct acpi_nfit_spa, struct acpi_nfit_memdev and struct acpi_nfit_idt.
+
+- Ross
+
+
