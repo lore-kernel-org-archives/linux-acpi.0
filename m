@@ -1,104 +1,64 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup
- device coherency
-Date: Thu, 30 Apr 2015 16:55:14 +0100
-Message-ID: <20150430155513.GC27755@e104818-lin.cambridge.arm.com>
-References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <2597359.pR23oR6gM8@wuerfel>
- <20150430131345.GG32373@arm.com>
- <2797677.7Ghz879K9z@wuerfel>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [RFC 0/2] asus notebook fan control
+Date: Thu, 30 Apr 2015 11:00:07 -0700
+Message-ID: <20150430180007.GB40200@fury.dvhart.com>
+References: <cover.1429653764.git.kastbernd@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:36297 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750883AbbD3PzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2015 11:55:19 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2797677.7Ghz879K9z@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <cover.1429653764.git.kastbernd@gmx.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Kast Bernd <kastbernd@gmx.de>
+Cc: corentin.chary@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Will Deacon <will.deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thu, Apr 30, 2015 at 03:52:17PM +0200, Arnd Bergmann wrote:
-> On Thursday 30 April 2015 14:13:45 Will Deacon wrote:
-> > On Thu, Apr 30, 2015 at 02:03:00PM +0100, Arnd Bergmann wrote:
-> > > On Thursday 30 April 2015 12:46:15 Will Deacon wrote:
-> > > > Cache sync doesn't exist in the ARM/arm64architecture, what are the
-> > > > semantics supposed to be? Maybe it's just DSB for us (complete all pending
-> > > > maintenance).
-> > > 
-> > > It ensures that a state of a buffer as observed by CPU and device is
-> > > identical. It's possible that we removed all platforms that did something
-> > > interesting here, so it's one of these:
-> > > 
-> > > a) On architectures that are mostly coherent, it's a barrier
-> > >    that is broadcast to all devices, like I assume DSB is. IA64
-> > >    currently does this for all machines, but IIRC it used to 
-> > >    access some cluster interconnect at some point to enforce a
-> > >    flush.
-> > >    The ARM32 based ArmadaXP also falls into this model if the cache
-> > >    coherency fabric is enabled, as that needs to be synchronized
-
-I'm getting confused by the ArmadaXP case. IIRC, the point of the
-arm,io-coherent property to the PL310 was precisely to make the
-outer_sync a no-op when the coherency is enabled. So basically an mb()
-would only issue a DSB on such platform without the PL310 cache sync.
-
-On coherent systems, devices usually snoop the inner/CPU cache and not
-the system cache, that's further down the line. So a DSB would ensure
-the visibility at the coherent interconnect level before the system
-cache. I don't think it needs to be broadcast all the way to devices.
-
-> > > b) On architectures where the device may not see the state of the cache,
-> > >    but the CPU is always aware of anything the device sends it,
-> > >    it flushes the cache. This seems to be the case on parisc,
-> > >    and in particular, there are some variants that do not support
-> > >    dma_alloc_coherent but only dma_alloc_noncoherent.
-> > > c) On architectures that need the synchronization both ways,
-> > >    it does (almost) the same invalidate/clean/flush thing as
-> > >    ARM, except it doesn't have to worry about cache lines from
-> > >    speculative prefetch which make it impossible to implement on
-> > >    ARM.
-> > 
-> > Okey doke, thanks for the explanation. It sounds like we can just build
-> > the primitive out of the existing cache maintenance routines if we need
-> > to implement it.
+On Wed, Apr 22, 2015 at 04:12:26PM +0200, Kast Bernd wrote:
+> Hello,
 > 
-> Cases a) and b) yes, but not c), otherwise we could simplify
-> the ARM dma-mapping implementation and just merge __dma_page_cpu_to_dev
-> and __dma_page_dev_to_cpu into one function.
-
-I don't fully understand c) or b). Wouldn't the non-coherent ops cover
-them both, though potentially not as efficient?
-
-> And a) and b) are both for systems that are more coherent than what
-> our noncoherent dma_map_ops implement, but less coherent than what
-> the coherent dma_map_ops do, and that is specifically what the ACPI
-> binding cannot describe, unless you argue that either ACPI or ARMv8
-> forbids both of these models.
-
-In general, a DSB should work as described in the ARM ARM without the
-need to poke additional devices (PL310 is an example not to follow).
-
-> > > I guess we could handle that case as well, by requiring any ACPI based
-> > > firmware to turn off the coherency fabric on that system and just making
-> > > it dog slow.
-> > 
-> > We already require something similar in Documentation/arm64/booting.txt:
-> > 
-> >   `System caches which do not respect architected cache maintenance by VA
-> >    operations (not recommended) must be configured and disabled.'
+> This patchset implements a fan control for asus notebooks.
+> It's based on Felipe Contreras' patch
+> (https://lkml.org/lkml/2013/10/8/800), that was proposed one and a half
+> year ago, but never made it to the kernel, because of the use of
+> "virt_to_phys".
+> This problem is solved by using the acpi internal function that is
+> activated by the first patch (ACPI_FUTURE_USAGE is removed).
+> The second patch implements the actual fan control functions, with a
+> similar logic than Felipe, but using hwmon instead of the thermal
+> interface and some bugs removed.
 > 
-> Hmm, does that rule really get violated here? I think it fully respects
-> the cache maintenance (flush/invalidate/clean) operations, but it does
-> not fully respect the dsb/dmb instructions, which is something else.
+> This patchset contains the following 2 patches:
+> 0001-ACPI-activate-export-acpi_os_get_physical_address.patch
+> 0002-asus-wmi-add-fan-control.patch
+> 
+> This is my first kernel patch. I tried to respect all style rules and
+> implement it properly. I couldn't find any try to fix the old patch in
+> recent time, thus I wrote this new patch.
+> 
+> I would appreciate any kind of feedback to get this patch upstream.
 
-If it fully respects the cache maintenance, it should also respect the
-completion and ordering requirements of the cache maintenance
-operations. That means that a DSB guarantees completion of such
-operations.
+Nice cover letter for your first patch submission, providing the context and the
+reference is useful. Thanks for that.
+
+I would suggest including Felipe on Cc (done).
+
+Review to follow...
+
+> 
+> 
+> Kast Bernd (2):
+>   ACPI: activate&export acpi_os_get_physical_address
+>   asus-wmi: add fan control
+> 
+>  drivers/acpi/osl.c              |   3 +-
+>  drivers/platform/x86/asus-wmi.c | 297 +++++++++++++++++++++++++++++++++++++---
+>  2 files changed, 278 insertions(+), 22 deletions(-)
+> 
+> -- 
+> 2.3.5
+> 
+> 
 
 -- 
-Catalin
+Darren Hart
+Intel Open Source Technology Center
