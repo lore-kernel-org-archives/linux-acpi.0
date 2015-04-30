@@ -1,139 +1,89 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Bugfix v6] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
-Date: Thu, 30 Apr 2015 08:28:17 -0500
-Message-ID: <CAErSpo4XrOx4DmR-xUzy45UxS6iErANJbojC_X1JVdjsAzL8WQ@mail.gmail.com>
-References: <CAErSpo7D_CDM+1mzO0ADdzbAE9xwnwiyJ-dk0WFthr+ReKpidg@mail.gmail.com>
- <1430368888-21402-1-git-send-email-jiang.liu@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 1/2] arm/arm64: ACPI: Introduce CONFIG_ACPI_MUST_HAVE_CCA
+Date: Thu, 30 Apr 2015 21:47:13 +0800
+Message-ID: <55423261.4050008@linaro.org>
+References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1430315049-4663-2-git-send-email-Suravee.Suthikulpanit@amd.com> <20150429140445.GA18867@e104818-lin.cambridge.arm.com> <5540EB27.8060507@amd.com> <20150429144232.GC18867@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:36108 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbbD3N2j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2015 09:28:39 -0400
-Received: by qcpm10 with SMTP id m10so28607759qcp.3
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2015 06:28:38 -0700 (PDT)
-In-Reply-To: <1430368888-21402-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:35107 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920AbbD3NrV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2015 09:47:21 -0400
+Received: by pabtp1 with SMTP id tp1so60363176pab.2
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2015 06:47:21 -0700 (PDT)
+In-Reply-To: <20150429144232.GC18867@e104818-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Cc: al.stone@linaro.org, arnd@arndb.de, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, msalter@redhat.com, grant.likely@linaro.org, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 
-On Wed, Apr 29, 2015 at 11:41 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> An IO port or MMIO resource assigned to a PCI host bridge may be
-> consumed by the host bridge itself or available to its child
-> bus/devices. The ACPI specification defines a bit (Producer/Consumer)
-> to tell whether the resource is consumed by the host bridge itself,
-> but firmware hasn't used that bit consistently, so we can't rely on it.
+On 2015=E5=B9=B404=E6=9C=8829=E6=97=A5 22:42, Catalin Marinas wrote:
+> On Wed, Apr 29, 2015 at 09:31:03AM -0500, Suravee Suthikulpanit wrote=
+:
+>>
+>>
+>> On 04/29/2015 09:04 AM, Catalin Marinas wrote:
+>>> On Wed, Apr 29, 2015 at 08:44:08AM -0500, Suravee Suthikulpanit wro=
+te:
+>>>>  From ACPIv6 (http://www.uefi.org/sites/default/files/resources/AC=
+PI_6.0.pdf),
+>>>> section 6.2.17 _CCA states that ARM platforms require ACPI _CCA ob=
+ject to be
+>>>> specified for DMA-cabpable devices. This patch introduces ACPI_MUS=
+T_HAVE_CCA
+>>>> in arm and arm64 Kconfig to specify such requirement.
+>>>>
+>>>> Note that when _CCA is required, if it is missing in the DSDT. ACP=
+I driver
+>>>> will default to setting up devices as non-coherent.
+>>>>
+>>>> Signed-off-by: Mark Salter <msalter@redhat.com>
+>>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.co=
+m>
+>>>> ---
+>>>>   arch/arm/Kconfig     | 1 +
+>>>>   arch/arm64/Kconfig   | 1 +
+>>>>   drivers/acpi/Kconfig | 3 +++
+>>>>   3 files changed, 5 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+>>>> index 45df48b..2a0d036 100644
+>>>> --- a/arch/arm/Kconfig
+>>>> +++ b/arch/arm/Kconfig
+>>>> @@ -1,6 +1,7 @@
+>>>>   config ARM
+>>>>   	bool
+>>>>   	default y
+>>>> +	select ACPI_MUST_HAVE_CCA if ACPI
+>>>>   	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>>>>   	select ARCH_HAS_ELF_RANDOMIZE
+>>>>   	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+>>>
+>>> Any plans for ACPI on 32-bit ARM?
+>>
+>> Not that I am aware, but I could be totally wrong. The reason I am a=
+dding
+>> this here for 32-bit ARM is because the ACPI spec mentioned this.
+>>
+>> If you think this is not necessary until we introduce ACPI for ARM32=
+, it can
+>> be removed.
 >
-> Before commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource
-> interfaces to simplify implementation"), arch/x86/pci/acpi.c ignored
-> all IO port resources defined by acpi_resource_io and
-> acpi_resource_fixed_io to filter out IO ports consumed by the host
-> bridge itself.
->
-> Commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces
-> to simplify implementation") started accepting all IO port and MMIO
-> resources, which caused a regression that IO port resources consumed
-> by the host bridge itself became available to its child devices.
->
-> Then commit 63f1789ec716 ("x86/PCI/ACPI: Ignore resources consumed by
-> host bridge itself") ignored resources consumed by the host bridge
-> itself by checking the IORESOURCE_WINDOW flag, which accidently removed
-> MMIO resources defined by acpi_resource_memory24, acpi_resource_memory32
-> and acpi_resource_fixed_memory32.
->
-> On x86 and IA64 platforms, all IO port and MMIO resources are assumed
-> to be available to child bus/devices except one special case:
->     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
->     to access PCI configuration space.
->
-> So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF]. This solution
-> will also ease the way to consolidate ACPI PCI host bridge common code
-> from x86, ia64 and ARM64.
->
-> Related ACPI table are archived at:
-> https://bugzilla.kernel.org/show_bug.cgi?id=94221
->
-> Related discussions at:
-> http://patchwork.ozlabs.org/patch/461633/
-> https://lkml.org/lkml/2015/3/29/304
->
-> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
-> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: <stable@vger.kernel.org> # 4.0
-> ---
->  arch/x86/pci/acpi.c     |   24 ++++++++++++++++++++++--
->  drivers/acpi/resource.c |    2 +-
->  2 files changed, 23 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index e4695985f9de..d93963340c3c 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -325,6 +325,26 @@ static void release_pci_root_info(struct pci_host_bridge *bridge)
->         kfree(info);
->  }
->
-> +/*
-> + * An IO port or MMIO resource assigned to a PCI host bridge may be
-> + * consumed by the host bridge itself or available to its child
-> + * bus/devices. The ACPI specification defines a bit (Producer/Consumer)
-> + * to tell whether the resource is consumed by the host bridge itself,
-> + * but firmware hasn't used that bit consistently, so we can't rely on it.
-> + *
-> + * On x86 and IA64 platforms, all IO port and MMIO resources are assumed
-> + * to be available to child bus/devices except one special case:
-> + *     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
-> + *     to access PCI configuration space.
-> + *
-> + * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-> + */
-> +static bool resource_is_pcicfg_ioport(struct resource *res)
-> +{
-> +       return (res->flags & IORESOURCE_IO) &&
-> +               res->start == 0xCF8 && res->end == 0xCFF;
-> +}
-> +
->  static void probe_pci_root_info(struct pci_root_info *info,
->                                 struct acpi_device *device,
->                                 int busnum, int domain,
-> @@ -346,8 +366,8 @@ static void probe_pci_root_info(struct pci_root_info *info,
->                         "no IO and memory resources present in _CRS\n");
->         else
->                 resource_list_for_each_entry_safe(entry, tmp, list) {
-> -                       if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
-> -                           (entry->res->flags & IORESOURCE_DISABLED))
-> +                       if ((entry->res->flags & IORESOURCE_DISABLED) ||
-> +                           resource_is_pcicfg_ioport(entry->res))
+> I think it should be removed (as long as ACPI cannot be selected on
+> arm32).
 
-Hey, I can understand this code!  This is *way* better that what you
-had before.  Thanks for persevering.
+I agree.
 
-My only remaining comment is that the subject line ("Fix regression
-caused by commit ...") doesn't really describe the code.  It should
-say something specific, like maybe "x86/PCI/ACPI: Make all resources
-except [io 0xcf8-0xcff] available on PCI bus".
+Now there is no plan for ARM32 ACPI as I know, ACPI for ARM targets
+for ARM64 based enterprise system at now.
 
-Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
-
->                                 resource_list_destroy_entry(entry);
->                         else
->                                 entry->res->name = info->name;
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 5589a6e2a023..8244f013f210 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -573,7 +573,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
->   * @ares: Input ACPI resource object.
->   * @types: Valid resource types of IORESOURCE_XXX
->   *
-> - * This is a hepler function to support acpi_dev_get_resources(), which filters
-> + * This is a helper function to support acpi_dev_get_resources(), which filters
->   * ACPI resource objects according to resource types.
->   */
->  int acpi_dev_filter_resource_type(struct acpi_resource *ares,
-> --
-> 1.7.10.4
->
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
