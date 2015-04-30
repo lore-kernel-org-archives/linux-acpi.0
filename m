@@ -1,127 +1,139 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup
- device coherency
-Date: Thu, 30 Apr 2015 14:13:45 +0100
-Message-ID: <20150430131345.GG32373@arm.com>
-References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <2204172.bmnN8Vg9Bj@wuerfel>
- <20150430114614.GF32373@arm.com>
- <2597359.pR23oR6gM8@wuerfel>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bugfix v6] x86/PCI/ACPI: Fix regression caused by commit 63f1789ec716
+Date: Thu, 30 Apr 2015 08:28:17 -0500
+Message-ID: <CAErSpo4XrOx4DmR-xUzy45UxS6iErANJbojC_X1JVdjsAzL8WQ@mail.gmail.com>
+References: <CAErSpo7D_CDM+1mzO0ADdzbAE9xwnwiyJ-dk0WFthr+ReKpidg@mail.gmail.com>
+ <1430368888-21402-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35750 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750995AbbD3NNt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2015 09:13:49 -0400
-Content-Disposition: inline
-In-Reply-To: <2597359.pR23oR6gM8@wuerfel>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:36108 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891AbbD3N2j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2015 09:28:39 -0400
+Received: by qcpm10 with SMTP id m10so28607759qcp.3
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Apr 2015 06:28:38 -0700 (PDT)
+In-Reply-To: <1430368888-21402-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Apr 30, 2015 at 02:03:00PM +0100, Arnd Bergmann wrote:
-> On Thursday 30 April 2015 12:46:15 Will Deacon wrote:
-> > On Thu, Apr 30, 2015 at 12:24:12PM +0100, Arnd Bergmann wrote:
-> > > In particular, there are two common models that we support in Linux:
-> > > 
-> > > a) embedded ARM32 and others
-> > > 
-> > > dma_alloc_non_coherent() == dma_alloc_coherent() == alloc uncached
-> > > dma_cache_sync() == not supportable
-> > > dma_sync_{single,sg,page}_for_{device,cpu} == {flush, invalidate, ...}
-> > > 
-> > > b) NUMA servers (parisc, itanium) and others
-> > > 
-> > > dma_alloc_noncoherent() == alloc cached
-> > 
-> > This would lead to mismatched memory attributes on ARM/arm64.
-> 
-> How so? This is just what __dma_alloc() on arm64 does for
-> coherent devices:
-> 
->         /* no need for non-cacheable mapping if coherent */
->         if (coherent)
->                 return ptr;
+On Wed, Apr 29, 2015 at 11:41 PM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> An IO port or MMIO resource assigned to a PCI host bridge may be
+> consumed by the host bridge itself or available to its child
+> bus/devices. The ACPI specification defines a bit (Producer/Consumer)
+> to tell whether the resource is consumed by the host bridge itself,
+> but firmware hasn't used that bit consistently, so we can't rely on it.
+>
+> Before commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource
+> interfaces to simplify implementation"), arch/x86/pci/acpi.c ignored
+> all IO port resources defined by acpi_resource_io and
+> acpi_resource_fixed_io to filter out IO ports consumed by the host
+> bridge itself.
+>
+> Commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces
+> to simplify implementation") started accepting all IO port and MMIO
+> resources, which caused a regression that IO port resources consumed
+> by the host bridge itself became available to its child devices.
+>
+> Then commit 63f1789ec716 ("x86/PCI/ACPI: Ignore resources consumed by
+> host bridge itself") ignored resources consumed by the host bridge
+> itself by checking the IORESOURCE_WINDOW flag, which accidently removed
+> MMIO resources defined by acpi_resource_memory24, acpi_resource_memory32
+> and acpi_resource_fixed_memory32.
+>
+> On x86 and IA64 platforms, all IO port and MMIO resources are assumed
+> to be available to child bus/devices except one special case:
+>     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
+>     to access PCI configuration space.
+>
+> So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF]. This solution
+> will also ease the way to consolidate ACPI PCI host bridge common code
+> from x86, ia64 and ARM64.
+>
+> Related ACPI table are archived at:
+> https://bugzilla.kernel.org/show_bug.cgi?id=94221
+>
+> Related discussions at:
+> http://patchwork.ozlabs.org/patch/461633/
+> https://lkml.org/lkml/2015/3/29/304
+>
+> Fixes: 63f1789ec716("Ignore resources consumed by host bridge itself")
+> Reported-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Cc: <stable@vger.kernel.org> # 4.0
+> ---
+>  arch/x86/pci/acpi.c     |   24 ++++++++++++++++++++++--
+>  drivers/acpi/resource.c |    2 +-
+>  2 files changed, 23 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> index e4695985f9de..d93963340c3c 100644
+> --- a/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -325,6 +325,26 @@ static void release_pci_root_info(struct pci_host_bridge *bridge)
+>         kfree(info);
+>  }
+>
+> +/*
+> + * An IO port or MMIO resource assigned to a PCI host bridge may be
+> + * consumed by the host bridge itself or available to its child
+> + * bus/devices. The ACPI specification defines a bit (Producer/Consumer)
+> + * to tell whether the resource is consumed by the host bridge itself,
+> + * but firmware hasn't used that bit consistently, so we can't rely on it.
+> + *
+> + * On x86 and IA64 platforms, all IO port and MMIO resources are assumed
+> + * to be available to child bus/devices except one special case:
+> + *     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
+> + *     to access PCI configuration space.
+> + *
+> + * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
+> + */
+> +static bool resource_is_pcicfg_ioport(struct resource *res)
+> +{
+> +       return (res->flags & IORESOURCE_IO) &&
+> +               res->start == 0xCF8 && res->end == 0xCFF;
+> +}
+> +
+>  static void probe_pci_root_info(struct pci_root_info *info,
+>                                 struct acpi_device *device,
+>                                 int busnum, int domain,
+> @@ -346,8 +366,8 @@ static void probe_pci_root_info(struct pci_root_info *info,
+>                         "no IO and memory resources present in _CRS\n");
+>         else
+>                 resource_list_for_each_entry_safe(entry, tmp, list) {
+> -                       if ((entry->res->flags & IORESOURCE_WINDOW) == 0 ||
+> -                           (entry->res->flags & IORESOURCE_DISABLED))
+> +                       if ((entry->res->flags & IORESOURCE_DISABLED) ||
+> +                           resource_is_pcicfg_ioport(entry->res))
 
-Ok, I thought that you were only describing the cases when the device is
-non-coherent (_CCA=0). Otherwise, your assertion above that
-dma_alloc_coherent == alloc uncached isn't true for coherent devices.
+Hey, I can understand this code!  This is *way* better that what you
+had before.  Thanks for persevering.
 
-So now I'm confused...
+My only remaining comment is that the subject line ("Fix regression
+caused by commit ...") doesn't really describe the code.  It should
+say something specific, like maybe "x86/PCI/ACPI: Make all resources
+except [io 0xcf8-0xcff] available on PCI bus".
 
-> > > dma_alloc_coherent() == alloc uncached
-> > > dma_sync_{single,sg,page}_for_{device,cpu} ==  dma_cache_sync() == cache sync
-> > 
-> > Cache sync doesn't exist in the ARM/arm64architecture, what are the
-> > semantics supposed to be? Maybe it's just DSB for us (complete all pending
-> > maintenance).
-> 
-> It ensures that a state of a buffer as observed by CPU and device is
-> identical. It's possible that we removed all platforms that did something
-> interesting here, so it's one of these:
-> 
-> a) On architectures that are mostly coherent, it's a barrier
->    that is broadcast to all devices, like I assume DSB is. IA64
->    currently does this for all machines, but IIRC it used to 
->    access some cluster interconnect at some point to enforce a
->    flush.
->    The ARM32 based ArmadaXP also falls into this model if the cache
->    coherency fabric is enabled, as that needs to be synchronized
-> b) On architectures where the device may not see the state of the cache,
->    but the CPU is always aware of anything the device sends it,
->    it flushes the cache. This seems to be the case on parisc,
->    and in particular, there are some variants that do not support
->    dma_alloc_coherent but only dma_alloc_noncoherent.
-> c) On architectures that need the synchronization both ways,
->    it does (almost) the same invalidate/clean/flush thing as
->    ARM, except it doesn't have to worry about cache lines from
->    speculative prefetch which make it impossible to implement on
->    ARM.
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Okey doke, thanks for the explanation. It sounds like we can just build
-the primitive out of the existing cache maintenance routines if we need
-to implement it.
-
-> > > There are probably other models that could happen, but the patch
-> > > set seems to assume a) is the only possible model, while the
-> > > architecture description you cite seems to still allow both a) and
-> > > b), as well as some variations, and it's possible that we will 
-> > > see b) on arm64 servers but not a)
-> > 
-> > Well, we should be careful not to confuse the ACPI spec with the ARM
-> > architecture. The latter is more permissive, but does disallow system
-> > caches that do not respect broadcast maintenance.
-> > 
-> > It's also worth pointing out that the architecture doesn't distinguish
-> > between embedded and server machines using A-class processors.
-> > 
-> > > You could also have a system that requires cache invalidation for
-> > > sending data from the device to memory, but does not require anything
-> > > for memory-to-device data, or you could have the opposite.
-> > 
-> > You could theoretically build all sorts of strange devices, but that doesn't
-> > mean we have to support them. In the case you describe, they'd have to put
-> > up with the cost of redundant cache cleaning but it should at least function
-> > correctly.
-> 
-> Which case would a variant of ArmadaXP with a 64-bit core fall into then?
-> Do I understand it right that requiring to sync the coherency fabric
-> would make it noncompliant with ACPI but still architecturally compliant?
-
-I would say that the ArmadaXP coherency fabric is not compliant with ARMv8
-as it requires additional steps over those cache maintenance instructions
-described by the architecture (i.e. it falls into class (1) of the three
-classes of system cache in the architecture).
-
-> I guess we could handle that case as well, by requiring any ACPI based
-> firmware to turn off the coherency fabric on that system and just making
-> it dog slow.
-
-We already require something similar in Documentation/arm64/booting.txt:
-
-  `System caches which do not respect architected cache maintenance by VA
-   operations (not recommended) must be configured and disabled.'
-
-Will
+>                                 resource_list_destroy_entry(entry);
+>                         else
+>                                 entry->res->name = info->name;
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 5589a6e2a023..8244f013f210 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -573,7 +573,7 @@ EXPORT_SYMBOL_GPL(acpi_dev_get_resources);
+>   * @ares: Input ACPI resource object.
+>   * @types: Valid resource types of IORESOURCE_XXX
+>   *
+> - * This is a hepler function to support acpi_dev_get_resources(), which filters
+> + * This is a helper function to support acpi_dev_get_resources(), which filters
+>   * ACPI resource objects according to resource types.
+>   */
+>  int acpi_dev_filter_resource_type(struct acpi_resource *ares,
+> --
+> 1.7.10.4
+>
