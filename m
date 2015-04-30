@@ -1,62 +1,120 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 1/2] arm/arm64: ACPI: Introduce CONFIG_ACPI_MUST_HAVE_CCA
-Date: Thu, 30 Apr 2015 14:50:18 +0100
-Message-ID: <20150430135018.GH32373@arm.com>
-References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1430315049-4663-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20150429140445.GA18867@e104818-lin.cambridge.arm.com>
- <5540EB27.8060507@amd.com>
- <20150429144232.GC18867@e104818-lin.cambridge.arm.com>
- <55423261.4050008@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Thu, 30 Apr 2015 15:52:17 +0200
+Message-ID: <2797677.7Ghz879K9z@wuerfel>
+References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com> <2597359.pR23oR6gM8@wuerfel> <20150430131345.GG32373@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35863 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839AbbD3NuX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2015 09:50:23 -0400
-Content-Disposition: inline
-In-Reply-To: <55423261.4050008@linaro.org>
+Received: from mout.kundenserver.de ([212.227.126.131]:54518 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831AbbD3NwW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2015 09:52:22 -0400
+In-Reply-To: <20150430131345.GG32373@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "al.stone@linaro.org" <al.stone@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thu, Apr 30, 2015 at 02:47:13PM +0100, Hanjun Guo wrote:
-> On 2015=E5=B9=B404=E6=9C=8829=E6=97=A5 22:42, Catalin Marinas wrote:
-> > On Wed, Apr 29, 2015 at 09:31:03AM -0500, Suravee Suthikulpanit wro=
-te:
-> >> On 04/29/2015 09:04 AM, Catalin Marinas wrote:
-> >>> On Wed, Apr 29, 2015 at 08:44:08AM -0500, Suravee Suthikulpanit w=
-rote:
-> >>> Any plans for ACPI on 32-bit ARM?
-> >>
-> >> Not that I am aware, but I could be totally wrong. The reason I am=
- adding
-> >> this here for 32-bit ARM is because the ACPI spec mentioned this.
-> >>
-> >> If you think this is not necessary until we introduce ACPI for ARM=
-32, it can
-> >> be removed.
-> >
-> > I think it should be removed (as long as ACPI cannot be selected on
-> > arm32).
->=20
-> I agree.
->=20
-> Now there is no plan for ARM32 ACPI as I know, ACPI for ARM targets
-> for ARM64 based enterprise system at now.
+On Thursday 30 April 2015 14:13:45 Will Deacon wrote:
+> On Thu, Apr 30, 2015 at 02:03:00PM +0100, Arnd Bergmann wrote:
+> > On Thursday 30 April 2015 12:46:15 Will Deacon wrote:
+> > > On Thu, Apr 30, 2015 at 12:24:12PM +0100, Arnd Bergmann wrote:
+> > > > In particular, there are two common models that we support in Linux:
+> > > > 
+> > > > a) embedded ARM32 and others
+> > > > 
+> > > > dma_alloc_non_coherent() == dma_alloc_coherent() == alloc uncached
+> > > > dma_cache_sync() == not supportable
+> > > > dma_sync_{single,sg,page}_for_{device,cpu} == {flush, invalidate, ...}
+> > > > 
+> > > > b) NUMA servers (parisc, itanium) and others
+> > > > 
+> > > > dma_alloc_noncoherent() == alloc cached
+> > > 
+> > > This would lead to mismatched memory attributes on ARM/arm64.
+> > 
+> > How so? This is just what __dma_alloc() on arm64 does for
+> > coherent devices:
+> > 
+> >         /* no need for non-cacheable mapping if coherent */
+> >         if (coherent)
+> >                 return ptr;
+> 
+> Ok, I thought that you were only describing the cases when the device is
+> non-coherent (_CCA=0). Otherwise, your assertion above that
+> dma_alloc_coherent == alloc uncached isn't true for coherent devices.
+> 
+> So now I'm confused...
 
-While we're at it, do we *really* need to support CONFIG_ACPI_PROCFS_PO=
-WER
-on arm64? It's a deprecated /proc/acpi interface and it would be nice t=
-o
-avoid introducing deprecated behaviour if we can avoid it.
+What I was describing here is a device that is not fully coherent,
+but instead requires some operation other than a cache flush/invalidate
+to complete before the memory can be accessed.
 
-Will
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > > dma_alloc_coherent() == alloc uncached
+> > > > dma_sync_{single,sg,page}_for_{device,cpu} ==  dma_cache_sync() == cache sync
+> > > 
+> > > Cache sync doesn't exist in the ARM/arm64architecture, what are the
+> > > semantics supposed to be? Maybe it's just DSB for us (complete all pending
+> > > maintenance).
+> > 
+> > It ensures that a state of a buffer as observed by CPU and device is
+> > identical. It's possible that we removed all platforms that did something
+> > interesting here, so it's one of these:
+> > 
+> > a) On architectures that are mostly coherent, it's a barrier
+> >    that is broadcast to all devices, like I assume DSB is. IA64
+> >    currently does this for all machines, but IIRC it used to 
+> >    access some cluster interconnect at some point to enforce a
+> >    flush.
+> >    The ARM32 based ArmadaXP also falls into this model if the cache
+> >    coherency fabric is enabled, as that needs to be synchronized
+> > b) On architectures where the device may not see the state of the cache,
+> >    but the CPU is always aware of anything the device sends it,
+> >    it flushes the cache. This seems to be the case on parisc,
+> >    and in particular, there are some variants that do not support
+> >    dma_alloc_coherent but only dma_alloc_noncoherent.
+> > c) On architectures that need the synchronization both ways,
+> >    it does (almost) the same invalidate/clean/flush thing as
+> >    ARM, except it doesn't have to worry about cache lines from
+> >    speculative prefetch which make it impossible to implement on
+> >    ARM.
+> 
+> Okey doke, thanks for the explanation. It sounds like we can just build
+> the primitive out of the existing cache maintenance routines if we need
+> to implement it.
+
+Cases a) and b) yes, but not c), otherwise we could simplify
+the ARM dma-mapping implementation and just merge __dma_page_cpu_to_dev
+and __dma_page_dev_to_cpu into one function.
+
+And a) and b) are both for systems that are more coherent than what
+our noncoherent dma_map_ops implement, but less coherent than what
+the coherent dma_map_ops do, and that is specifically what the ACPI
+binding cannot describe, unless you argue that either ACPI or ARMv8
+forbids both of these models.
+
+> > Which case would a variant of ArmadaXP with a 64-bit core fall into then?
+> > Do I understand it right that requiring to sync the coherency fabric
+> > would make it noncompliant with ACPI but still architecturally compliant?
+> 
+> I would say that the ArmadaXP coherency fabric is not compliant with ARMv8
+> as it requires additional steps over those cache maintenance instructions
+> described by the architecture (i.e. it falls into class (1) of the three
+> classes of system cache in the architecture).
+> 
+> > I guess we could handle that case as well, by requiring any ACPI based
+> > firmware to turn off the coherency fabric on that system and just making
+> > it dog slow.
+> 
+> We already require something similar in Documentation/arm64/booting.txt:
+> 
+>   `System caches which do not respect architected cache maintenance by VA
+>    operations (not recommended) must be configured and disabled.'
+
+Hmm, does that rule really get violated here? I think it fully respects
+the cache maintenance (flush/invalidate/clean) operations, but it does
+not fully respect the dsb/dmb instructions, which is something else.
+
+	Arnd
