@@ -1,57 +1,154 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
-Date: Thu, 30 Apr 2015 08:05:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802712130@SHSMSX101.ccr.corp.intel.com>
-References: <1427448178-20689-1-git-send-email-bp@alien8.de>
- <1427448178-20689-6-git-send-email-bp@alien8.de>
- <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
- <20150428135913.GD19025@pd.tnic>
- <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
- <20150429081355.GA5498@pd.tnic>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Thu, 30 Apr 2015 10:23:59 +0200
+Message-ID: <6513459.YvvHTY3yyJ@wuerfel>
+References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com> <2968069.n1L1S3Mp2q@wuerfel> <554152C6.7020600@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27674 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750808AbbD3IFU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Apr 2015 04:05:20 -0400
-In-Reply-To: <20150429081355.GA5498@pd.tnic>
-Content-Language: en-US
+Received: from mout.kundenserver.de ([212.227.126.187]:60454 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120AbbD3IYN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Apr 2015 04:24:13 -0400
+In-Reply-To: <554152C6.7020600@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linaro-acpi@lists.linaro.org
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, will.deacon@arm.com, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-SGksDQoNCj4gRnJvbTogQm9yaXNsYXYgUGV0a292IFttYWlsdG86YnBAYWxpZW44LmRlXQ0KPiBT
-ZW50OiBXZWRuZXNkYXksIEFwcmlsIDI5LCAyMDE1IDQ6MTQgUE0NCj4gU3ViamVjdDogUmU6IFtS
-RkMgUEFUQ0ggNS81XSBHSEVTOiBNYWtlIE5NSSBoYW5kbGVyIGhhdmUgYSBzaW5nbGUgcmVhZGVy
-DQo+IA0KPiBPbiBXZWQsIEFwciAyOSwgMjAxNSBhdCAxMjo0OTo1OUFNICswMDAwLCBaaGVuZywg
-THYgd3JvdGU6DQo+ID4gPiA+IFdlIGFic29sdXRlbHkgd2FudCB0byB1c2UgYXRvbWljX2FkZF91
-bmxlc3MoKSBiZWNhdXNlIHdlIGdldCB0byBzYXZlIHVzDQo+ID4gPiA+IHRoZSBleHBlbnNpdmUN
-Cj4gPiA+ID4NCj4gPiA+ID4gCUxPQ0s7IENNUFhDSEcNCj4gPiA+ID4NCj4gPiA+ID4gaWYgdGhl
-IHZhbHVlIHdhcyBhbHJlYWR5IDEuIFdoaWNoIGlzIGV4YWN0bHkgd2hhdCB0aGlzIHBhdGNoIGlz
-IHRyeWluZw0KPiA+ID4gPiB0byBhdm9pZCAtIGEgdGh1bmRlcmluZyBoZXJkIG9mIGNvcmVzIENN
-UFhDSEdpbmcgYSBnbG9iYWwgdmFyaWFibGUuDQo+ID4gPg0KPiA+ID4gSU1PLCBvbiBtb3N0IGFy
-Y2hpdGVjdHVyZXMsIHRoZSAiY21wIiBwYXJ0IHNob3VsZCB3b3JrIGp1c3QgbGlrZSB3aGF0IHlv
-dSd2ZSBkb25lIHdpdGggImlmIi4NCj4gPiA+IEFuZCBvbiBzb21lIGFyY2hpdGVjdHVyZXMsIGlm
-IHRoZSAieGNoZyIgZG9lc24ndCBoYXBwZW4sIHRoZSAiY21wIiBwYXJ0IGV2ZW4gd29uJ3QgY2F1
-c2UgYSBwaXBlIGxpbmUgaGF6YXJkLg0KPiANCj4gRXZlbiBpZiBDTVBYQ0hHIGlzIGJlaW5nIHNw
-bGl0IGludG8gc2V2ZXJhbCBtaWNyb29wcywgdGhleSBhbGwgc3RpbGwNCj4gbmVlZCB0byBmbG93
-IGRvd24gdGhlIHBpcGUgYW5kIHJlcXVpcmUgcmVzb3VyY2VzIGFuZCB0cmFja2luZy4gQW5kIHlv
-dQ0KPiBvbmx5IGtub3cgYXQgcmV0aXJlIHRpbWUgd2hhdCB0aGUgQ01QIHJlc3VsdCBpcyBhbmQg
-Y2FuICJkaXNjYXJkIiB0aGUNCj4gWENIRyBwYXJ0LiBQcm92aWRlZCB0aGUgdWFyY2ggaXMgc21h
-cnQgZW5vdWdoIHRvIGRvIHRoYXQuDQo+IA0KPiBUaGlzIGlzIHByb2JhYmx5IHdoeSBDTVBYQ0hH
-IG5lZWRzIDUsNiw3LDEwLDIyLC4uLiBjeWNsZXMgZGVwZW5kaW5nIG9uDQo+IHVhcmNoIGFuZCB2
-ZW5kb3IsIGlmIEkgY2FuIHRydXN0IEFnbmVyIEZvZydzIHRhYmxlcy4gQW5kIEkgYmV0IHRob3Nl
-DQo+IG51bWJlcnMgYXJlIGJlc3QtY2FzZSBvbmx5IGFuZCBpbiByZWFsLWxpZmUgdGhleSBwcm9i
-YWJseSB0ZW5kIHRvIGZhbGwNCj4gb3V0IGV2ZW4gd29yc2UuDQo+IA0KPiBDTVAgbmVlZHMgb25s
-eSAxLiBPbiBhbG1vc3QgZXZlcnkgdWFyY2ggYW5kIHZlbmRvci4gQW5kIGV2ZW4gdGhhdCBjeWNs
-ZQ0KPiBwcm9iYWJseSBnZXRzIGhpZGRlbiB3aXRoIGEgZ29vZCBicmFuY2ggcHJlZGljdG9yLg0K
-DQpBcmUgdGhlcmUgYW55IHN1Y2ggZGF0YSBhcm91bmQgdGhlIFNDIGFuZCBMTCAoTUlQUyk/DQoN
-Cj4gDQo+ID4gSWYgeW91IG1hbiB0aGUgTE9DSyBwcmVmaXgsIEkgdW5kZXJzdGFuZCBub3cuDQo+
-IA0KPiBBbmQgdGhhdCBtYWtlcyBzZXZlcmFsIHRpbWVzIHdvcnNlOiAyMiwgNDAsIDgwLCAuLi4g
-Y3ljbGVzLg0KDQpJJ20gT0sgaWYgdGhlIGNvZGUgc3RpbGwga2VlcHMgdGhlIHJlYWRhYmlsaXR5
-IHRoZW4uDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gLS0NCj4gUmVn
-YXJkcy9HcnVzcywNCj4gICAgIEJvcmlzLg0KPiANCj4gRUNPIHRpcCAjMTAxOiBUcmltIHlvdXIg
-bWFpbHMgd2hlbiB5b3UgcmVwbHkuDQo+IC0tDQo=
+On Wednesday 29 April 2015 16:53:10 Suravee Suthikulpanit wrote:
+> On 4/29/15 11:25, Arnd Bergmann wrote:
+> > On Wednesday 29 April 2015 08:44:09 Suravee Suthikulpanit wrote:
+> >> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> >> index 4bf7559..a4db208 100644
+> >> --- a/drivers/acpi/acpi_platform.c
+> >> +++ b/drivers/acpi/acpi_platform.c
+> >> @@ -108,9 +108,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+> >>          if (IS_ERR(pdev))
+> >>                  dev_err(&adev->dev, "platform device creation failed: %ld\n",
+> >>                          PTR_ERR(pdev));
+> >> -       else
+> >> +       else {
+> >> +               arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
+> >> +                                  adev->flags.is_coherent);
+> >>                  dev_dbg(&adev->dev, "created platform device %s\n",
+> >>                          dev_name(&pdev->dev));
+> >> +       }
+> >>
+> >>          kfree(resources);
+> >>
+> >
+> > Looking at this code in more detail, it seems that it unconditionally
+> > sets pdevinfo.dma_mask = DMA_BIT_MASK(32), before calling
+> > arch_setup_dma_ops().
+> 
+> I think that's just the default legacy value assigned when it first 
+> create the platform_device from acpi_device.
+
+Understood. And on x86 there is no way to find out if a device supports
+DMA or not, so it has to do this I guess.
+
+> > This assignment should really done inside of arch_setup_dma_ops()
+>  > instead, which means we should implement that
+> > function on all architectures that support ACPI.
+> 
+> 
+> > For the case where _CCA is missing (or coherency disabled, if you ask
+> > me), we would not call that function.
+> 
+> Actually, I agree for the case of missing _CCA when needed, ACPI driver 
+> probably should not make assumption and leave the decision for the 
+> default underlying arch-specific default. Basically, it should not be 
+> calling arch_setup_dma_ops().
+
+Ok.
+
+> As for the case where _CCA=0, I think the ACPI driver should essentially 
+> communicate the information as HW is non-coherent as described in the 
+> spec, and should be calling arch_setup_dma_ops(dev, false). It is true 
+> that this in probably less-likely for the ARM64 server platforms. 
+> However, I would think that the ACPI driver should not be making such 
+> assumption.
+
+Can you add a description to the ACPI spec then to describe in detail what
+"non-coherent" is supposed to mean, and which action the OS is supposed to
+take when accessing data from device or CPU?
+
+As I explained, the way we handle it by default on ARM64 is what embedded
+systems typically do, but that might be completely different on the imagined
+server chips that are not coherent for some reason. Just saying a device
+is not coherent is like saying the CPU has known bugs but not saying how
+to prevent it from crashing.
+
+Is there some AML method that the OS can call to synchronize the cache
+controller for all DMA to/from a particular device?
+
+> > On a related note, I'm not sure how to handle different DMA masks here.
+> > arch_setup_dma_ops() gets passed a size (and offset) argument, which should
+> > match the DMA mask, but I don't know if there is a way to find out the
+> > size from ACPI. Should we assume it's always 64-bit DMA capable?
+> 
+> Looking at the ACPI spec, it does have the _DMA object. IIUC, this can 
+> be used to describe DMA properties of a particular bus.
+> 
+> Method(_DMA, ResourceTemplate()
+> {
+> 	QWORDMemory(
+> 	ResourceConsumer,
+> 	PosDecode, // _DEC
+> 	MinFixed, // _MIF
+> 	MaxFixed, // _MAF
+> 	Prefetchable, // _MEM
+> 	ReadWrite, // _RW
+> 	0, // _GRA
+> 	0, // _MIN
+> 	0x1fffffff, // _MAX
+> 	0x200000000, // _TRA
+> 	0x20000000, // _LEN
+> 	, , ,	
+> 	)
+> }
+> 
+> I am not sure if this is an appropriate use for this object, but this 
+> seems to be similar to the dma-ranges property for OF, and probably can 
+> be used to specify baseaddr and size information when calling 
+> arch_setup_dma_ops().
+
+Yes, that seems like a good idea. What is the expected behavior when that
+object is absent? Do we assume that the parent device is not DMA capable?
+
+Is this sufficient to describe the case where a device can only do DMA
+to a specific address range that is not at bus address zero but that maps
+to the beginning of physical RAM?
+
+> > For legacy reasons, the default mask is probably best left at 32-bit,
+> > but drivers are expected to call dma_set_mask() if they can do 64-bit DMA,
+> > and that should fail based on the information provided by the platform
+> > if the bus is not capable of doing that.
+> >
+> 
+> However, on ARM64 the dma_base and size parameter for 
+> arch_setup_dma_ops() is currently not used, and only coherent flag is 
+> used. 
+
+We can hope that we won't need the dma_base setting here, but it's
+good to have the option to pass it down if we need it.
+
+Not passing the size is a bug that needs to be fixed ASAP, I believe
+a number of folks have run into this, most recently the APM X-Gene
+MMC controller
+
+> We probably should look at this separately. For the moment, we can 
+> probably say that if _CCA object is missing when needed, the ACPI driver 
+> won't set up dma_mask when creating platform_device, which should be 
+> equivalent to saying DMA is not supported.
+> 
+> Please let me know if this is acceptable, and I'll make change in V2 
+> accordingly.
+
+I would still ask that you treat non-coherent to mean "no DMA" until
+we have come up with a way to sufficiently describe the kind of
+non-coherency in ACPI.
+
+	Arnd
