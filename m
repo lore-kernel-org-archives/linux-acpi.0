@@ -1,111 +1,74 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 05/20] libnd, nd_acpi:
- dimm/memory-devices
-Date: Fri, 01 May 2015 14:08:08 -0600
-Message-ID: <1430510888.23761.185.camel@misato.fc.hp.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150428182439.35812.81191.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <1430502493.23761.145.camel@misato.fc.hp.com>
-	 <CAPcyv4hUeWzBgOv4q7UHN1+nDVGV2QzNg0dojZvs04YObok3SQ@mail.gmail.com>
-	 <1430504355.23761.153.camel@misato.fc.hp.com>
-	 <CAPcyv4hZsnFvZhdAAo4_oHGWbWCjVDQUwj8pDXHHW+wpYCiwgg@mail.gmail.com>
-	 <1430507711.23761.182.camel@misato.fc.hp.com>
-	 <CAPcyv4h1h=UFkJR_RzaLcJRZ4D5rNsoqxfzabYvw+dfBH1Fe3w@mail.gmail.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH 15/17] ACPICA/ARM: ACPI 5.1: Update for GTDT table changes.
+Date: Fri, 1 May 2015 17:43:39 -0500
+Message-ID: <CAOZdJXU6vENaPJdwt6VBOwWrZ5tcjqk4k4uxBX2T5QPUDCgo7A@mail.gmail.com>
+References: <cover.1406689493.git.lv.zheng@intel.com>
+	<a3f86a5075c565002cd4bed0befb7d167fa0f105.1406689494.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t1613g.houston.hp.com ([15.240.0.71]:41762 "EHLO
-	g9t1613g.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454AbbEAU1L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2015 16:27:11 -0400
-Received: from g1t5424.austin.hp.com (g1t5424.austin.hp.com [15.216.225.54])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by g9t1613g.houston.hp.com (Postfix) with ESMTPS id E791060A8A
-	for <linux-acpi@vger.kernel.org>; Fri,  1 May 2015 20:27:10 +0000 (UTC)
-In-Reply-To: <CAPcyv4h1h=UFkJR_RzaLcJRZ4D5rNsoqxfzabYvw+dfBH1Fe3w@mail.gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48831 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbbEAWnn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2015 18:43:43 -0400
+In-Reply-To: <a3f86a5075c565002cd4bed0befb7d167fa0f105.1406689494.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Bob Moore <robert.moore@intel.com>
 
-On Fri, 2015-05-01 at 12:38 -0700, Dan Williams wrote:
-> On Fri, May 1, 2015 at 12:15 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > On Fri, 2015-05-01 at 11:43 -0700, Dan Williams wrote:
-> >> On Fri, May 1, 2015 at 11:19 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> >> > On Fri, 2015-05-01 at 11:22 -0700, Dan Williams wrote:
-> >> >> On Fri, May 1, 2015 at 10:48 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> >> >> > On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
-> >> >> >> Register the memory devices described in the nfit as libnd 'dimm'
-> >> >> >> devices on an nd bus.  The kernel assigned device id for dimms is
-> >> >> >> dynamic.  If userspace needs a more static identifier it should consult
-> >> >> >> a provider-specific attribute.  In the case where NFIT is the provider,
-> >> >> >> the 'nmemX/nfit/handle' or 'nmemX/nfit/serial' attributes may be used
-> >> >> >> for this purpose.
-> >> >> >  :
-> >> >> >> +
-> >> >> >> +static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
-> >> >> >> +{
-> >> >> >> +     struct nfit_mem *nfit_mem;
-> >> >> >> +
-> >> >> >> +     list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-> >> >> >> +             struct nd_dimm *nd_dimm;
-> >> >> >> +             unsigned long flags = 0;
-> >> >> >> +             u32 nfit_handle;
-> >> >> >> +
-> >> >> >> +             nfit_handle = __to_nfit_memdev(nfit_mem)->nfit_handle;
-> >> >> >> +             nd_dimm = nd_acpi_dimm_by_handle(acpi_desc, nfit_handle);
-> >> >> >> +             if (nd_dimm) {
-> >> >> >> +                     /*
-> >> >> >> +                      * If for some reason we find multiple DCRs the
-> >> >> >> +                      * first one wins
-> >> >> >> +                      */
-> >> >> >> +                     dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
-> >> >> >> +                                     nd_dimm_name(nd_dimm));
-> >> >> >> +                     continue;
-> >> >> >> +             }
-> >> >> >> +
-> >> >> >> +             if (nfit_mem->bdw && nfit_mem->memdev_pmem)
-> >> >> >> +                     flags |= NDD_ALIASING;
-> >> >> >
-> >> >> > Does this check work for a NVDIMM card which has multiple pmem regions
-> >> >> > with label info, but does not have any bdw region configured?
-> >> >>
-> >> >> If you have multiple pmem regions then you don't have aliasing and
-> >> >> don't need a label.  You'll get an nd_namespace_io per region.
-> >> >>
-> >> >> > The code assumes that namespace_pmem (NDD_ALIASING) and namespace_blk
-> >> >> > have label info.  There may be an NVDIMM card with a single blk region
-> >> >> > without label info.
-> >> >>
-> >> >> I'd really like to suggest that labels are only for resolving aliasing
-> >> >> and that if you have a BLK-only NVDIMM you'll get an automatic
-> >> >> namespace created the same as a PMEM-only.  Partitioning is always
-> >> >> there to provide sub-divisions of a namespace.  The only reason to
-> >> >> support multiple BLK-namespaces per-region is to give each a different
-> >> >> sector size.  I may eventually need to relent on this position, but
-> >> >> I'd really like to understand the use case for requiring labels when
-> >> >> aliasing is not present as it seems like a waste to me.
-> >> >
-> >> > By looking at the callers of is_namespace_pmem() and is_namespace_blk(),
-> >> > such as nd_namespace_label_update(), I am concerned that the namespace
-> >> > types are also used for indicating the presence a label.  Is it OK for
-> >> > nd_namespace_label_update() to do nothing when there is no aliasing?
-> >
-> > Did you forget to answer this question?  I am not asking to have a
-> > label.  I am asking if the namespace types can handle it correctly.
-> > Restating the nd_namespace_label_update() example:
-> >  - namespace_io case: Skip, but a label may still exist. Correct?
-> >  - namespace_blk case: Proceed, but blk does not require a label.
-> 
-> Ah, ok.  This is handled by nd_namespace_attr_visible() only labelled
-> namespaces have writable sysfs attributes.  This would need to be
-> extended for a label-less BLK namespace type.
+On Tue, Jul 29, 2014 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>
+> New fields and new subtables. Tomasz Nowicki.
+> tomasz.nowicki@linaro.org
+>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-I prefer not to duplicate each namespace type with and without a label,
-but I am OK as long as the presence of labels is handled properly.
+Hi, I know this patch is old, but something confuses me about it:
 
-Thanks,
--Toshi
+> +/* Common GTDT subtable header */
+> +
+> +struct acpi_gtdt_header {
+> +       u8 type;
+> +       u16 length;
+> +};
 
+I'm trying to write a function that parses the watchdog structure
+(acpi_gtdt_watchdog).  The first entry in that structure is
+acpi_gtdt_header.  Looking at the ACPI specification, I see that this
+is correct: the type is one byte, and the length is two bytes.
+
+However, this means that I cannot use acpi_parse_entries() to parse
+the watchdog subtable:
+
+int __init
+acpi_parse_entries(char *id, unsigned long table_size,
+        acpi_tbl_entry_handler handler,
+        struct acpi_table_header *table_header,
+        int entry_id, unsigned int max_entries)
+
+acpi_tbl_entry_handler takes an acpi_subtable_header as its first
+parameter.  However, that structure looks like this:
+
+struct acpi_subtable_header {
+    u8 type;
+    u8 length;
+};
+
+This is not compatible, so I'm confused now.  How do I properly parse
+the watchdog subtable, if I cannot use acpi_parse_entries?
+
+For context, here is my patch:
+
+http://www.spinics.net/lists/linux-watchdog/msg06240.html
+
+Scroll down to function arm_sbsa_wdt_parse_gtdt().  The typecast in
+first line is invalid:
+
++    struct acpi_gtdt_watchdog *wdg = (struct acpi_gtdt_watchdog *)header;
+
+because of the mismatch.  I don't know how to fix this.
