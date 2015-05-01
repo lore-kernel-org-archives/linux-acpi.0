@@ -1,52 +1,70 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: [PATCH] ACPI/PNP: add two IDs to list for PNPACPI device enumeration
-Date: Fri,  1 May 2015 19:05:20 +0200
-Message-ID: <1430499920-28599-1-git-send-email-Witold.Szczeponik@gmx.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: Witold Szczeponik <Witold.Szczeponik@gmx.net>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Linux-nvdimm] [PATCH v2 05/20] libnd, nd_acpi:
+ dimm/memory-devices
+Date: Fri, 01 May 2015 11:48:13 -0600
+Message-ID: <1430502493.23761.145.camel@misato.fc.hp.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150428182439.35812.81191.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5009.houston.hp.com ([15.240.92.67]:56488 "EHLO
+	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750913AbbEASHP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2015 14:07:15 -0400
+In-Reply-To: <20150428182439.35812.81191.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Commit eec15edbb0e14485998635ea7c62e30911b465f0 ("ACPI / PNP: use
-device ID list for PNPACPI device enumeration") changed the way how
-ACPI devices are enumerated and when they are added to the PNP bus.
+On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
+> Register the memory devices described in the nfit as libnd 'dimm'
+> devices on an nd bus.  The kernel assigned device id for dimms is
+> dynamic.  If userspace needs a more static identifier it should consult
+> a provider-specific attribute.  In the case where NFIT is the provider,
+> the 'nmemX/nfit/handle' or 'nmemX/nfit/serial' attributes may be used
+> for this purpose.
+ :
+> +
+> +static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
+> +{
+> +	struct nfit_mem *nfit_mem;
+> +
+> +	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
+> +		struct nd_dimm *nd_dimm;
+> +		unsigned long flags = 0;
+> +		u32 nfit_handle;
+> +
+> +		nfit_handle = __to_nfit_memdev(nfit_mem)->nfit_handle;
+> +		nd_dimm = nd_acpi_dimm_by_handle(acpi_desc, nfit_handle);
+> +		if (nd_dimm) {
+> +			/*
+> +			 * If for some reason we find multiple DCRs the
+> +			 * first one wins
+> +			 */
+> +			dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
+> +					nd_dimm_name(nd_dimm));
+> +			continue;
+> +		}
+> +
+> +		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
+> +			flags |= NDD_ALIASING;
 
-However, it broke the sound card support on (at least) a vintage
-IBM ThinkPad 600E: with said commit applied, two of the necessary
-"CSC01xx" devices are not added to the PNP bus and hence can not be
-found during the initialization of the "snd-cs4236" module.  As a
-consequence, loading "snd-cs4236" causes null pointer exceptions.
-The attached patch fixes the problem end re-enables sound on the
-IBM ThinkPad 600E.
+Does this check work for a NVDIMM card which has multiple pmem regions
+with label info, but does not have any bdw region configured?
 
-The patch is applied against Linux 4.0.x.
+The code assumes that namespace_pmem (NDD_ALIASING) and namespace_blk
+have label info.  There may be an NVDIMM card with a single blk region
+without label info.
 
+Instead of using the namespace types to assume the label info, how about
+adding a flag to indicate the presence of the label info?  This avoids
+the separation of namespace_io and namespace_pmem for the same pmem
+driver.
 
-NB: A quick way to see if existing devices are missing from the
-PNP bus, the following script can be used to list candidates IDs.
-
-hids="/sys/bus/acpi/devices/*/hid"
-for hid in $(grep -v -h -E -e "^(LNX|PNP|ACPI)" $hids | sort -u)
-do
-        grep -q \"$hid\" drivers/acpi/acpi_pnp.c || echo $hid
-done
-
-Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Thanks,
+-Toshi
 
 
-diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
-index b193f84..ff6d8ad 100644
---- a/drivers/acpi/acpi_pnp.c
-+++ b/drivers/acpi/acpi_pnp.c
-@@ -304,6 +304,8 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
-        {"PNPb006"},
-        /* cs423x-pnpbios */
-        {"CSC0100"},
-+       {"CSC0103"},
-+       {"CSC0110"},
-        {"CSC0000"},
-        {"GIM0100"},            /* Guillemot Turtlebeach something appears to be cs4232 compatible */
-        /* es18xx-pnpbios */
--- 
-1.9.1
