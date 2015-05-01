@@ -1,97 +1,26 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 05/20] libnd, nd_acpi: dimm/memory-devices
-Date: Fri, 1 May 2015 12:38:23 -0700
-Message-ID: <CAPcyv4h1h=UFkJR_RzaLcJRZ4D5rNsoqxfzabYvw+dfBH1Fe3w@mail.gmail.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150428182439.35812.81191.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<1430502493.23761.145.camel@misato.fc.hp.com>
-	<CAPcyv4hUeWzBgOv4q7UHN1+nDVGV2QzNg0dojZvs04YObok3SQ@mail.gmail.com>
-	<1430504355.23761.153.camel@misato.fc.hp.com>
-	<CAPcyv4hZsnFvZhdAAo4_oHGWbWCjVDQUwj8pDXHHW+wpYCiwgg@mail.gmail.com>
-	<1430507711.23761.182.camel@misato.fc.hp.com>
+From: jono <lejono@gmail.com>
+Subject: Resume from suspend not working in Lenovo Helix (2nd gen)
+Date: Fri, 1 May 2015 21:14:31 +0100
+Message-ID: <CAJXMp+qsGW8YysD=AeNdL7f74qC8kwHgudqBJHtvaLP4PcQ2NQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:32969 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535AbbEATiZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2015 15:38:25 -0400
-Received: by wgin8 with SMTP id n8so98834429wgi.0
-        for <linux-acpi@vger.kernel.org>; Fri, 01 May 2015 12:38:23 -0700 (PDT)
-In-Reply-To: <1430507711.23761.182.camel@misato.fc.hp.com>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:32859 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbbEAUOb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2015 16:14:31 -0400
+Received: by oica37 with SMTP id a37so77190856oic.0
+        for <linux-acpi@vger.kernel.org>; Fri, 01 May 2015 13:14:31 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Fri, May 1, 2015 at 12:15 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Fri, 2015-05-01 at 11:43 -0700, Dan Williams wrote:
->> On Fri, May 1, 2015 at 11:19 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> > On Fri, 2015-05-01 at 11:22 -0700, Dan Williams wrote:
->> >> On Fri, May 1, 2015 at 10:48 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> >> > On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
->> >> >> Register the memory devices described in the nfit as libnd 'dimm'
->> >> >> devices on an nd bus.  The kernel assigned device id for dimms is
->> >> >> dynamic.  If userspace needs a more static identifier it should consult
->> >> >> a provider-specific attribute.  In the case where NFIT is the provider,
->> >> >> the 'nmemX/nfit/handle' or 'nmemX/nfit/serial' attributes may be used
->> >> >> for this purpose.
->> >> >  :
->> >> >> +
->> >> >> +static int nd_acpi_register_dimms(struct acpi_nfit_desc *acpi_desc)
->> >> >> +{
->> >> >> +     struct nfit_mem *nfit_mem;
->> >> >> +
->> >> >> +     list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
->> >> >> +             struct nd_dimm *nd_dimm;
->> >> >> +             unsigned long flags = 0;
->> >> >> +             u32 nfit_handle;
->> >> >> +
->> >> >> +             nfit_handle = __to_nfit_memdev(nfit_mem)->nfit_handle;
->> >> >> +             nd_dimm = nd_acpi_dimm_by_handle(acpi_desc, nfit_handle);
->> >> >> +             if (nd_dimm) {
->> >> >> +                     /*
->> >> >> +                      * If for some reason we find multiple DCRs the
->> >> >> +                      * first one wins
->> >> >> +                      */
->> >> >> +                     dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
->> >> >> +                                     nd_dimm_name(nd_dimm));
->> >> >> +                     continue;
->> >> >> +             }
->> >> >> +
->> >> >> +             if (nfit_mem->bdw && nfit_mem->memdev_pmem)
->> >> >> +                     flags |= NDD_ALIASING;
->> >> >
->> >> > Does this check work for a NVDIMM card which has multiple pmem regions
->> >> > with label info, but does not have any bdw region configured?
->> >>
->> >> If you have multiple pmem regions then you don't have aliasing and
->> >> don't need a label.  You'll get an nd_namespace_io per region.
->> >>
->> >> > The code assumes that namespace_pmem (NDD_ALIASING) and namespace_blk
->> >> > have label info.  There may be an NVDIMM card with a single blk region
->> >> > without label info.
->> >>
->> >> I'd really like to suggest that labels are only for resolving aliasing
->> >> and that if you have a BLK-only NVDIMM you'll get an automatic
->> >> namespace created the same as a PMEM-only.  Partitioning is always
->> >> there to provide sub-divisions of a namespace.  The only reason to
->> >> support multiple BLK-namespaces per-region is to give each a different
->> >> sector size.  I may eventually need to relent on this position, but
->> >> I'd really like to understand the use case for requiring labels when
->> >> aliasing is not present as it seems like a waste to me.
->> >
->> > By looking at the callers of is_namespace_pmem() and is_namespace_blk(),
->> > such as nd_namespace_label_update(), I am concerned that the namespace
->> > types are also used for indicating the presence a label.  Is it OK for
->> > nd_namespace_label_update() to do nothing when there is no aliasing?
->
-> Did you forget to answer this question?  I am not asking to have a
-> label.  I am asking if the namespace types can handle it correctly.
-> Restating the nd_namespace_label_update() example:
->  - namespace_io case: Skip, but a label may still exist. Correct?
->  - namespace_blk case: Proceed, but blk does not require a label.
-
-Ah, ok.  This is handled by nd_namespace_attr_visible() only labelled
-namespaces have writable sysfs attributes.  This would need to be
-extended for a label-less BLK namespace type.
+Hi,
+New Lenovo Helix 2nd generation, running fresh install of kernel
+4.1.0rc1 (or previous kernels), and Ubuntu 15.04. The laptop fails to
+resume after a suspend or lid closure. I've recompiled the kernel with
+ACPI_DEBUG=y and attach the output from dmesg. Another user has put up
+some info at:
+http://www.thinkwiki.org/wiki/Installing_Kubuntu_15.04_on_a_Thinkpad_Helix_2nd_generation
+Best,
+Jonathan
