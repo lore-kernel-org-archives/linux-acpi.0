@@ -1,74 +1,41 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH 15/17] ACPICA/ARM: ACPI 5.1: Update for GTDT table changes.
-Date: Fri, 1 May 2015 17:43:39 -0500
-Message-ID: <CAOZdJXU6vENaPJdwt6VBOwWrZ5tcjqk4k4uxBX2T5QPUDCgo7A@mail.gmail.com>
-References: <cover.1406689493.git.lv.zheng@intel.com>
-	<a3f86a5075c565002cd4bed0befb7d167fa0f105.1406689494.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 5/5] GHES: Make NMI handler have a single reader
+Date: Sat, 2 May 2015 00:34:19 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802712455@SHSMSX101.ccr.corp.intel.com>
+References: <1427448178-20689-1-git-send-email-bp@alien8.de>
+ <1427448178-20689-6-git-send-email-bp@alien8.de>
+ <1AE640813FDE7649BE1B193DEA596E880270F835@SHSMSX101.ccr.corp.intel.com>
+ <20150428135913.GD19025@pd.tnic>
+ <1AE640813FDE7649BE1B193DEA596E880270FB3B@SHSMSX101.ccr.corp.intel.com>
+ <20150429081355.GA5498@pd.tnic>
+ <1AE640813FDE7649BE1B193DEA596E8802712130@SHSMSX101.ccr.corp.intel.com>
+ <20150430084838.GC3488@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48831 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbbEAWnn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 May 2015 18:43:43 -0400
-In-Reply-To: <a3f86a5075c565002cd4bed0befb7d167fa0f105.1406689494.git.lv.zheng@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:6209 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750808AbbEBAem (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 May 2015 20:34:42 -0400
+In-Reply-To: <20150430084838.GC3488@pd.tnic>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Bob Moore <robert.moore@intel.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-edac <linux-edac@vger.kernel.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Chen, Gong" <gong.chen@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Jul 29, 2014 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> New fields and new subtables. Tomasz Nowicki.
-> tomasz.nowicki@linaro.org
->
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-
-Hi, I know this patch is old, but something confuses me about it:
-
-> +/* Common GTDT subtable header */
-> +
-> +struct acpi_gtdt_header {
-> +       u8 type;
-> +       u16 length;
-> +};
-
-I'm trying to write a function that parses the watchdog structure
-(acpi_gtdt_watchdog).  The first entry in that structure is
-acpi_gtdt_header.  Looking at the ACPI specification, I see that this
-is correct: the type is one byte, and the length is two bytes.
-
-However, this means that I cannot use acpi_parse_entries() to parse
-the watchdog subtable:
-
-int __init
-acpi_parse_entries(char *id, unsigned long table_size,
-        acpi_tbl_entry_handler handler,
-        struct acpi_table_header *table_header,
-        int entry_id, unsigned int max_entries)
-
-acpi_tbl_entry_handler takes an acpi_subtable_header as its first
-parameter.  However, that structure looks like this:
-
-struct acpi_subtable_header {
-    u8 type;
-    u8 length;
-};
-
-This is not compatible, so I'm confused now.  How do I properly parse
-the watchdog subtable, if I cannot use acpi_parse_entries?
-
-For context, here is my patch:
-
-http://www.spinics.net/lists/linux-watchdog/msg06240.html
-
-Scroll down to function arm_sbsa_wdt_parse_gtdt().  The typecast in
-first line is invalid:
-
-+    struct acpi_gtdt_watchdog *wdg = (struct acpi_gtdt_watchdog *)header;
-
-because of the mismatch.  I don't know how to fix this.
+SGksDQoNCj4gRnJvbTogQm9yaXNsYXYgUGV0a292IFttYWlsdG86YnBAYWxpZW44LmRlXQ0KPiBT
+ZW50OiBUaHVyc2RheSwgQXByaWwgMzAsIDIwMTUgNDo0OSBQTQ0KPiANCj4gT24gVGh1LCBBcHIg
+MzAsIDIwMTUgYXQgMDg6MDU6MTJBTSArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEFyZSB0
+aGVyZSBhbnkgc3VjaCBkYXRhIGFyb3VuZCB0aGUgU0MgYW5kIExMIChNSVBTKT8NCj4gDQo+IFdo
+YXQsIHlvdSBjYW4ndCBzZWFyY2ggdGhlIGludGVybmV0IHlvdXJzZWxmPw0KDQpJIG1lYW4gaWYg
+TEwgY2FuIGRvIHdoYXQgeW91IGV4YWN0bHkgZGlkIHdpdGggImlmIiBhbmQgbm8gQUJBIHByb2Js
+ZW0gY2FuIGJyZWFrIHRoZSBhdG9taWNfYWRkX3VubGVzcygpIHVzZXJzLg0KVGhlbiBubyBhdG9t
+aWNfY21weGNoZygpIHVzZXJzIG1pZ2h0IGJlIGJyb2tlbiBmb3IgdGhlIHNhbWUgcmVhc29uLg0K
+V2h5IGRvbid0IHlvdSBwdXQgYW4gImlmIiBpbiB0aGUgYXRvbWljX2NtcHhjaGcoKSB0byBhbGxv
+dyBvdGhlciB1c2VycyB0byBoYXZlIHRoZSBzYW1lIGJlbmVmaXQgYmVjYXVzZSBvZiB0aGUgZGF0
+YT8NCg0KQnV0IHRoaXMgaXMgb3V0IG9mIHRoZSBjb250ZXh0IGZvciB0aGlzIHBhdGNoLg0KSSBh
+Y3R1YWxseSBkb24ndCBoYXZlIGFueSBBUEkgdXNhZ2UgcHJlZmVyZW5jZSBub3cuDQoNClRoYW5r
+cw0KLUx2DQoNCj4gDQo+IC0tDQo+IFJlZ2FyZHMvR3J1c3MsDQo+ICAgICBCb3Jpcy4NCj4gDQo+
+IEVDTyB0aXAgIzEwMTogVHJpbSB5b3VyIG1haWxzIHdoZW4geW91IHJlcGx5Lg0KPiAtLQ0K
