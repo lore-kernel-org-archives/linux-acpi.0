@@ -1,71 +1,115 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] drivers: acpi: make ACPI_PROCFS_POWER X86 only
-Date: Sat, 02 May 2015 21:09:35 +0800
-Message-ID: <5544CC8F.70203@linaro.org>
-References: <1430476021-12247-1-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 15/17] ACPICA/ARM: ACPI 5.1: Update for GTDT table changes.
+Date: Sat, 02 May 2015 22:02:08 +0800
+Message-ID: <5544D8E0.9000301@linaro.org>
+References: <cover.1406689493.git.lv.zheng@intel.com>	<a3f86a5075c565002cd4bed0befb7d167fa0f105.1406689494.git.lv.zheng@intel.com> <CAOZdJXU6vENaPJdwt6VBOwWrZ5tcjqk4k4uxBX2T5QPUDCgo7A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:35104 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbbEBNJn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2015 09:09:43 -0400
-Received: by pabtp1 with SMTP id tp1so117025024pab.2
-        for <linux-acpi@vger.kernel.org>; Sat, 02 May 2015 06:09:43 -0700 (PDT)
-In-Reply-To: <1430476021-12247-1-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:36678 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276AbbEBOCS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 May 2015 10:02:18 -0400
+Received: by pabsx10 with SMTP id sx10so117813819pab.3
+        for <linux-acpi@vger.kernel.org>; Sat, 02 May 2015 07:02:18 -0700 (PDT)
+In-Reply-To: <CAOZdJXU6vENaPJdwt6VBOwWrZ5tcjqk4k4uxBX2T5QPUDCgo7A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Timur Tabi <timur@codeaurora.org>, Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Bob Moore <robert.moore@intel.com>
 
-On 2015=E5=B9=B405=E6=9C=8801=E6=97=A5 18:27, Lorenzo Pieralisi wrote:
-> The ACPI procfs power interface is initialized by compilation units
-> that are only selectable on X86 platforms. Since its usage is
-> deprecated and it cannot even be used on platforms other than X86
-> it should be compiled in only on X86 platforms.
->
-> This patch makes CONFIG_ACPI_PROCFS_POWER dependent on X86, so
-> that other architectures are prevented from compiling it in for
-> no purpose.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Lan Tianyu <tianyu.lan@intel.com>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Hi Timur,
 
-I think this proc fs was not used for IA64 (it is
-for server platform) too.
+oh, you already noticed this issue, sorry for the
+noise in my previous email.
 
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+On 2015=E5=B9=B405=E6=9C=8802=E6=97=A5 06:43, Timur Tabi wrote:
+> On Tue, Jul 29, 2014 at 11:21 PM, Lv Zheng <lv.zheng@intel.com> wrote=
+:
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>
+>> New fields and new subtables. Tomasz Nowicki.
+>> tomasz.nowicki@linaro.org
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>
+> Hi, I know this patch is old, but something confuses me about it:
+>
+>> +/* Common GTDT subtable header */
+>> +
+>> +struct acpi_gtdt_header {
+>> +       u8 type;
+>> +       u16 length;
+>> +};
+>
+> I'm trying to write a function that parses the watchdog structure
+> (acpi_gtdt_watchdog).  The first entry in that structure is
+> acpi_gtdt_header.  Looking at the ACPI specification, I see that this
+> is correct: the type is one byte, and the length is two bytes.
+>
+> However, this means that I cannot use acpi_parse_entries() to parse
+> the watchdog subtable:
+>
+> int __init
+> acpi_parse_entries(char *id, unsigned long table_size,
+>          acpi_tbl_entry_handler handler,
+>          struct acpi_table_header *table_header,
+>          int entry_id, unsigned int max_entries)
+>
+> acpi_tbl_entry_handler takes an acpi_subtable_header as its first
+> parameter.  However, that structure looks like this:
+>
+> struct acpi_subtable_header {
+>      u8 type;
+>      u8 length;
+> };
+>
+> This is not compatible, so I'm confused now.  How do I properly parse
+> the watchdog subtable, if I cannot use acpi_parse_entries?
 
-> ---
-> Lan, Rafael,
+This is really a pain. I noticed this when I was prototyping the code
+for GTDT in ACPI 5.1, and I even sent an email to Charles to ask him if
+there are mistakes here, but there are chances that more than 255 bytes
+in that structure so we must use u16 for the length.
+
 >
-> I do not see any reason why this option is allowed to be selected
-> on platforms other than X86, so let's make it X86 only. Please let
-> me know what you think, thanks.
+> For context, here is my patch:
 >
-> Lorenzo
+> http://www.spinics.net/lists/linux-watchdog/msg06240.html
 >
->   drivers/acpi/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> Scroll down to function arm_sbsa_wdt_parse_gtdt().  The typecast in
+> first line is invalid:
 >
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index ab2cbb5..16da185 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -62,7 +62,7 @@ config ACPI_SLEEP
+> +    struct acpi_gtdt_watchdog *wdg =3D (struct acpi_gtdt_watchdog *)=
+header;
 >
->   config ACPI_PROCFS_POWER
->   	bool "Deprecated power /proc/acpi directories"
-> -	depends on PROC_FS
-> +	depends on X86 && PROC_FS
->   	help
->   	  For backwards compatibility, this option allows
->             deprecated power /proc/acpi/ directories to exist, even w=
-hen
+> because of the mismatch.  I don't know how to fix this.
+
+Yes, you can't use acpi_parse_entries() anymore, in my opinion, you
+can introduce a similar function as acpi_parse_entries(), you can
+refer to some code that parsing the structures with u16 length, the
+code I'm familiar it's the code for Intel DMAR (similar with ARM IORT),
+for DMAR table parsing, it has the same head as GTDT watchdog timer:
+
+/* DMAR subtable header */
+
+struct acpi_dmar_header {
+         u16 type;
+         u16 length;
+};
+
+please refer to drivers/iommu/dmar.c and drivers/iommu/intel-iommu.c,
+hope it helps.
+
+Thanks
+Hanjun
+
+
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
