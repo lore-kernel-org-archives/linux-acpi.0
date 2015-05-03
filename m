@@ -1,42 +1,23 @@
-From: Marian Marinov <mm-l@yuhu.biz>
-Subject: Patch breaks suspend
-Date: Sat, 02 May 2015 23:27:32 +0300
-Message-ID: <55453334.9030002@yuhu.biz>
+From: "Mr. Sun  " <test@univate.com.au>
+Subject: Mail
+Date: Sun, 03 May 2015 12:20:22 +0100
+Message-ID: <20150503111039.411168A659A__39769.52042799$1430655294$gmane$org@mail.municaj.gob.pe>
+Reply-To: ricadtang@ymail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.municaj.gob.pe ([200.60.41.104]:33155 "EHLO
+	mail.municaj.gob.pe" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbbECMOj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 May 2015 08:14:39 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <test@univate.com.au>
 
-Hi guys,
-I have Lenovo T520 with one SSD and one SATA drive.
-
-I tried to upgrade to Linux 4.0 and found that after suspend and resume I can't access the second (SATA) drive.
-Both drives have bios encryption enabled.
-
-I did a bisect and found that the following patch causes the issue:
-commit 5d5132059a1f652de9dc2d62a8ff15561e648d11
-Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Date:   Sat Feb 22 00:48:31 2014 +0100
-
-    ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
-   
-    Modify the SATA subsystem to add hotplug contexts to ACPI companions
-    of SATA devices and ports instead of registering special ACPI dock
-    operations using register_hotplug_dock_device().
-   
-    That change will allow the entire code handling those special ACPI
-    dock operations to be dropped in the next commit.
-   
-    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-    Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-    Acked-by: Tejun Heo <tj@kernel.org>
-
-Unfortunately I do not understand this part of the code and have no idea what I can do.
-Any pointers would be very appreciated.
-
-Best regards,
-Marian
+Hello,
+My name is Mr. Richard Sun from Hong Kong. I want you to be my partner in a business project. Contact me back via my private e-mail address for more details;
+ricadtang@ymail.com
+Thank you.
+Mr. Richard Sun.
