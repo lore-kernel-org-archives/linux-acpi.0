@@ -1,80 +1,44 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions
- (block-data-window, persistent memory, volatile memory)
-Date: Mon, 04 May 2015 14:26:27 -0600
-Message-ID: <1430771187.23761.237.camel@misato.fc.hp.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH 0/2] map GHES memory region with EFI memory map
+Date: Mon,  4 May 2015 14:02:13 -0700
+Message-ID: <1430773335-22897-1-git-send-email-zjzhang@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t1383g.austin.hp.com ([15.217.136.92]:45041 "EHLO
-	g2t1383g.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858AbbEDUpc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 16:45:32 -0400
-In-Reply-To: <20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:51618 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbbEDVCm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 17:02:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
- :
-> +
-> +static int nd_acpi_register_region(struct acpi_nfit_desc *acpi_desc,
-> +		struct nfit_spa *nfit_spa)
-> +{
-> +	static struct nd_mapping nd_mappings[ND_MAX_MAPPINGS];
-> +	struct acpi_nfit_spa *spa = nfit_spa->spa;
-> +	struct nfit_memdev *nfit_memdev;
-> +	struct nd_region_desc ndr_desc;
-> +	int spa_type, count = 0;
-> +	struct resource res;
-> +	u16 spa_index;
-> +
-> +	spa_type = nfit_spa_type(spa);
-> +	spa_index = spa->spa_index;
-> +	if (spa_index == 0) {
-> +		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
-> +				__func__);
-> +		return 0;
-> +	}
-> +
-> +	memset(&res, 0, sizeof(res));
-> +	memset(&nd_mappings, 0, sizeof(nd_mappings));
-> +	memset(&ndr_desc, 0, sizeof(ndr_desc));
-> +	res.start = spa->spa_base;
-> +	res.end = res.start + spa->spa_length - 1;
-> +	ndr_desc.res = &res;
-> +	ndr_desc.provider_data = nfit_spa;
-> +	ndr_desc.attr_groups = nd_acpi_region_attribute_groups;
-> +	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-> +		struct acpi_nfit_memdev *memdev = nfit_memdev->memdev;
-> +		struct nd_mapping *nd_mapping;
-> +		struct nd_dimm *nd_dimm;
-> +
-> +		if (memdev->spa_index != spa_index)
-> +			continue;
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-The libnd does not support memdev->flags, which contains "Memory Device
-State Flags" defined in Table 5-129 of ACPI 6.0.  In case of major
-errors, we should only allow a failed NVDIMM be accessed with read-only
-for possible data recovery (or not allow any access when the data is
-completely lost), and should not let users operate normally over the
-corrupted data until the error is dealt properly.
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with cache 
+attribute even though EFI memory map defines this region as uncached, OS 
+gets stale data and errorneously reports there is no new HW error.
 
-Can you set memdev->flags to nd_region(_desc) so that the pmem driver
-can check the status in nd_pmem_probe()?  nd_pmem_probe() can then set
-the disk read-only or fail probing, and log errors accordingly.
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled.
 
-Thanks,
--Toshi
+Since both arch/x86 and arc/ia64 implemented architecture agnostic EFI 
+memory map attribue lookup function, the code is moved from arch/x86
+and arch/ia64 into EFI subsystem.
 
+Jonathan (Zhixiong) Zhang (2):
+  efi: arch, x86: arch, ia64: rearrange EFI memmap related functions
+  acpi, apei: use EFI memmap to map GHES memory
 
+ arch/ia64/kernel/efi.c      | 11 -----------
+ arch/x86/platform/efi/efi.c | 18 ------------------
+ drivers/acpi/apei/ghes.c    | 13 +++++++++++++
+ drivers/firmware/efi/efi.c  | 27 +++++++++++++++++++++++++++
+ include/linux/efi.h         |  1 +
+ 5 files changed, 41 insertions(+), 29 deletions(-)
 
-
-
-
-
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
