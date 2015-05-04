@@ -1,120 +1,97 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 10/11] genirq: Move field 'msi_desc' from struct irq_data into struct irq_common_data
-Date: Mon,  4 May 2015 11:15:38 +0800
-Message-ID: <1430709339-29083-11-git-send-email-jiang.liu@linux.intel.com>
-References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Grant Likely <grant.likely@linaro.org>, Kevin Cernekee <cernekee@gmail.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 3/3] iio: derive the mounting matrix from ACPI _PLD objects
+Date: Mon, 4 May 2015 11:21:27 +0300
+Message-ID: <CAE1zot+1qGPhquFH8+=MhiXNb-OoqKuiYJae3aATqntFO6Q-Jw@mail.gmail.com>
+References: <1430146908-27919-1-git-send-email-octavian.purdila@intel.com>
+	<1430146908-27919-4-git-send-email-octavian.purdila@intel.com>
+	<64714.10.254.87.235.1430149342.squirrel@linux.intel.com>
+	<CAE1zot+YKTPmVbG-_fNRy-E_VCcqq1VE78H3PMSMb5HvsBheQw@mail.gmail.com>
+	<553EB0B3.5000707@linux.intel.com>
+	<CAE1zot+fusrvow+s2+CmoctcSD=c2BxoSyd2b=7MBv-pg68A+Q@mail.gmail.com>
+	<5546C72E.2040101@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5546C72E.2040101-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sathyanarayanan.kuppuswamy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rafael J Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Srinivas Pandruvada <srinivas.pandruvada-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-MSI descriptors are per-irq instead of per irqchip, so move it into
-struct irq_common_data.
+On Mon, May 4, 2015 at 4:11 AM, Sathyanarayanan Kuppuswamy
+<sathyanarayanan.kuppuswamy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> Hi Octavian,
+>
+> On 04/27/2015 07:23 PM, Octavian Purdila wrote:
+>>
+>> On Tue, Apr 28, 2015 at 12:57 AM, sathyanarayanan kuppuswamy
+>> <sathyanarayanan.kuppuswamy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+>>>
+>>> Hi
+>>>
+>>> On 04/27/2015 08:54 AM, Octavian Purdila wrote:
+>>>>
+>>>> On Mon, Apr 27, 2015 at 6:42 PM, Kuppuswamy Sathyanarayanan
+>>>> <sathyanarayanan.kuppuswamy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+>>>>>
+>>>>> Since Acpi framework already exports this info to user space, Why not
+>>>>> do
+>>>>> this derivation in user space code ? Why do we need new ABI, if the
+>>>>> same
+>>>>> can be derived from existing one.
+>>>>>
+>>>> The ABI was added in the previous patch so that we can present the
+>>>> sensor orientation information to userspace even in the case of device
+>>>> tree.
+>>>
+>>> If the main reason for implementing a new ABI is to support DT platforms,
+>>> Why not implement a version of _PLD for device tree ? Don't you think it
+>>> would be much better than adding a new ABI to export redundant
+>>> information ?
+>>>
+>> IMO the mounting matrix is more consistent with the IIO ABIs. Although
+>> I have no issue with repicating _PLD for device tree if people agree
+>> that it is better.
+>
+> Since your main issue is, device tree lacking ABI to specify location
+> information, you should consider fixing it there. Let's wait for others
+> comment on this.
+>
+> If you think mounting matrix provides more information than what is
+> supported
+> by _PLD,  then we should consider implementing another ABI. AFAIK, that is
+> not
+> the case here.
+>
+> Adding adding a new ABI to represent the information that can be derived
+> from existing ABI does not seem to be useful.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- include/linux/irq.h     |    8 ++++----
- include/linux/irqdesc.h |    2 +-
- kernel/irq/chip.c       |    2 +-
- kernel/irq/irqdesc.c    |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+AFAICS the ACPI _PLD information is not (yet) exported to userspace. This patch:
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 6ac20b3f3053..e08bf8811cc1 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -132,6 +132,7 @@ struct irq_domain;
-  * @node:		node index useful for balancing
-  * @handler_data:	per-IRQ data for the irq_chip methods
-  * @affinity:		IRQ affinity on SMP
-+ * @msi_desc:		MSI descriptor
-  */
- struct irq_common_data {
- 	unsigned int		state_use_accessors;
-@@ -140,6 +141,7 @@ struct irq_common_data {
- #endif
- 	void			*handler_data;
- 	cpumask_var_t		affinity;
-+	struct msi_desc		*msi_desc;
- };
- 
- /**
-@@ -155,7 +157,6 @@ struct irq_common_data {
-  *			irq_domain
-  * @chip_data:		platform-specific per-chip private data for the chip
-  *			methods, to allow shared chip implementations
-- * @msi_desc:		MSI descriptor
-  *
-  * The fields here need to overlay the ones in irq_desc until we
-  * cleaned up the direct references and switched everything over to
-@@ -172,7 +173,6 @@ struct irq_data {
- 	struct irq_data		*parent_data;
- #endif
- 	void			*chip_data;
--	struct msi_desc		*msi_desc;
- };
- 
- /*
-@@ -622,12 +622,12 @@ static inline void *irq_data_get_irq_handler_data(struct irq_data *d)
- static inline struct msi_desc *irq_get_msi_desc(unsigned int irq)
- {
- 	struct irq_data *d = irq_get_irq_data(irq);
--	return d ? d->msi_desc : NULL;
-+	return d ? d->common->msi_desc : NULL;
- }
- 
- static inline struct msi_desc *irq_data_get_msi(struct irq_data *d)
- {
--	return d->msi_desc;
-+	return d->common->msi_desc;
- }
- 
- static inline u32 irq_get_trigger_type(unsigned int irq)
-diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
-index 5d5776f40129..81a7231c0379 100644
---- a/include/linux/irqdesc.h
-+++ b/include/linux/irqdesc.h
-@@ -116,7 +116,7 @@ static inline void *irq_desc_get_handler_data(struct irq_desc *desc)
- 
- static inline struct msi_desc *irq_desc_get_msi_desc(struct irq_desc *desc)
- {
--	return desc->irq_data.msi_desc;
-+	return desc->irq_common_data.msi_desc;
- }
- 
- /*
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 46c487fc71dd..d7a50974b77d 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -105,7 +105,7 @@ int irq_set_msi_desc_off(unsigned int irq_base, unsigned int irq_offset,
- 
- 	if (!desc)
- 		return -EINVAL;
--	desc->irq_data.msi_desc = entry;
-+	desc->irq_common_data.msi_desc = entry;
- 	if (entry && !irq_offset)
- 		entry->irq = irq_base;
- 	irq_put_desc_unlock(desc, flags);
-diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index 2c39a203f78b..358f620c035a 100644
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -74,12 +74,12 @@ static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node,
- 	int cpu;
- 
- 	desc->irq_common_data.handler_data = NULL;
-+	desc->irq_common_data.msi_desc = NULL;
- 
- 	desc->irq_data.common = &desc->irq_common_data;
- 	desc->irq_data.irq = irq;
- 	desc->irq_data.chip = &no_irq_chip;
- 	desc->irq_data.chip_data = NULL;
--	desc->irq_data.msi_desc = NULL;
- 	irq_settings_clr_and_set(desc, ~0, _IRQ_DEFAULT_INIT_FLAGS);
- 	irqd_set(&desc->irq_data, IRQD_IRQ_DISABLED);
- 	desc->handle_irq = handle_bad_irq;
--- 
-1.7.10.4
+http://marc.info/?t=140795040700003&r=1&w=2
+
+does not seem to be merged upstream. So there is no existing ABI to
+derive from :)
+
+>>
+>>
+>>> Also the location information of the device is not just specific to iio
+>>> drivers. You should consider that we would have similar requirements for
+>>> devices implemented as input or platform drivers.
+>>
+>> The upstream standard for those sensors where the orientation matters
+>> (accelerometer, gyro, compass) is IIO.
+>>
+>> Granted, there are other device types for which the orientation
+>> information may be useful (e.g. camera). However the actual
+>> interpretation and action to be taken is different for each subsystem
+>> (e.g. in the camera case do the correction via V4L2_CID_HFLIP /
+>> V4L2_CID_VFLIP) so I think it is better to expose it at the subsystem
+>> level in a way consistent with the subsystem's ABIs.
+>
+> I agree that location information is used differently at different
+> sub systems. But my question is why we need  a new ABI ?
+>
+> Why not handle it in user space ?
+>
+> -
