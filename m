@@ -1,52 +1,68 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v1 07/11] net/mlx4: Cache irq_desc->affinity instead of
- irq_desc
-Date: Mon, 04 May 2015 22:00:38 +0800
-Message-ID: <55477B86.70705@linux.intel.com>
-References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>	<1430709339-29083-8-git-send-email-jiang.liu@linux.intel.com> <CAPcc5Ph4pk+4aL-PduvF67YU-A+vn2bfx6v3mr-tbY58zs7sZw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI/PNP: add two IDs to list for PNPACPI device enumeration
+Date: Mon, 04 May 2015 16:33:01 +0200
+Message-ID: <1715926.NqNih49uH4@vostro.rjw.lan>
+References: <1430499920-28599-1-git-send-email-Witold.Szczeponik@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:39575 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751976AbbEDOAs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 May 2015 10:00:48 -0400
-In-Reply-To: <CAPcc5Ph4pk+4aL-PduvF67YU-A+vn2bfx6v3mr-tbY58zs7sZw@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:52042 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751455AbbEDOIC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 10:08:02 -0400
+In-Reply-To: <1430499920-28599-1-git-send-email-Witold.Szczeponik@gmx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amir Vadai <amirv@mellanox.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ido Shamay <idos@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Eric Dumazet <edumazet@google.com>, Hadar Hen Zion <hadarh@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Joe Perches <joe@perches.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2015/5/4 20:10, Amir Vadai wrote:
-> On Mon, May 4, 2015 at 6:15 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->> The field 'affinity' in irq_desc won't change once the irq_desc data
->> structure is created. So cache irq_desc->affinity instead of irq_desc.
->> This also helps to hide struct irq_desc from device drivers.
+On Friday, May 01, 2015 07:05:20 PM Witold Szczeponik wrote:
+> Commit eec15edbb0e14485998635ea7c62e30911b465f0 ("ACPI / PNP: use
+> device ID list for PNPACPI device enumeration") changed the way how
+> ACPI devices are enumerated and when they are added to the PNP bus.
 > 
-> Hi Jiang,
+> However, it broke the sound card support on (at least) a vintage
+> IBM ThinkPad 600E: with said commit applied, two of the necessary
+> "CSC01xx" devices are not added to the PNP bus and hence can not be
+> found during the initialization of the "snd-cs4236" module.  As a
+> consequence, loading "snd-cs4236" causes null pointer exceptions.
+> The attached patch fixes the problem end re-enables sound on the
+> IBM ThinkPad 600E.
 > 
-> I might not understand the new changes irq core, but up until now
-> affinity was changed when the user changed it through
-> /proc/irq/<IRQ>/smp_affinity.
-> This code is monitoring the affinity from the napi_poll context to
-> detect affinity changes, and prevent napi from keep running on the
-> wrong CPU.
-> Therefore, the affinity can't be cached at the beginning. Please
-> revert this caching.
-Hi Amir,
-	Thanks for review:) We want to hide irq_desc implementation
-details from device drivers, so made these changes.
-	Function irq_get_affinity_mask() returns 'struct cpumask *'
-and we cache the returned pointer. On the other hand, user may change
-IRQ affinity through /proc/irq/<IRQ>/smp_affinity, but that only
-changes the bitmap pointed to by the cached pointer and won't change
-the pointer itself. So it should always return the latest affinity
-setting by calling cpumask_test_cpu(cpu_curr, cq->irq_affinity).
-Or am I missing something here?
-Thanks!
-Gerry
+> The patch is applied against Linux 4.0.x.
+
+Queued up as a fix for 4.1, thanks!
+
+But your e-mail client mangles whitespace.
+
+> NB: A quick way to see if existing devices are missing from the
+> PNP bus, the following script can be used to list candidates IDs.
 > 
-> Thanks,
-> Amir
+> hids="/sys/bus/acpi/devices/*/hid"
+> for hid in $(grep -v -h -E -e "^(LNX|PNP|ACPI)" $hids | sort -u)
+> do
+>         grep -q \"$hid\" drivers/acpi/acpi_pnp.c || echo $hid
+> done
 > 
+> Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+> 
+> 
+> diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+> index b193f84..ff6d8ad 100644
+> --- a/drivers/acpi/acpi_pnp.c
+> +++ b/drivers/acpi/acpi_pnp.c
+> @@ -304,6 +304,8 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+>         {"PNPb006"},
+>         /* cs423x-pnpbios */
+>         {"CSC0100"},
+> +       {"CSC0103"},
+> +       {"CSC0110"},
+>         {"CSC0000"},
+>         {"GIM0100"},            /* Guillemot Turtlebeach something appears to be cs4232 compatible */
+>         /* es18xx-pnpbios */
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
