@@ -1,108 +1,56 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH 2/2] acpi, apei: use EFI memmap to map GHES memory
-Date: Mon,  4 May 2015 14:02:15 -0700
-Message-ID: <1430773335-22897-3-git-send-email-zjzhang@codeaurora.org>
-References: <1430773335-22897-1-git-send-email-zjzhang@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Patch breaks suspend
+Date: Tue, 05 May 2015 01:37:33 +0200
+Message-ID: <2970725.6ieOiJg9HH@vostro.rjw.lan>
+References: <55453334.9030002@yuhu.biz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51653 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680AbbEDVDE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 17:03:04 -0400
-In-Reply-To: <1430773335-22897-1-git-send-email-zjzhang@codeaurora.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:57270 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751606AbbEDXMc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:12:32 -0400
+In-Reply-To: <55453334.9030002@yuhu.biz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Marian Marinov <mm-l@yuhu.biz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+On Saturday, May 02, 2015 11:27:32 PM Marian Marinov wrote:
+> Hi guys,
+> I have Lenovo T520 with one SSD and one SATA drive.
+> 
+> I tried to upgrade to Linux 4.0 and found that after suspend and resume I can't access the second (SATA) drive.
+> Both drives have bios encryption enabled.
+> 
+> I did a bisect and found that the following patch causes the issue:
+> commit 5d5132059a1f652de9dc2d62a8ff15561e648d11
+> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Date:   Sat Feb 22 00:48:31 2014 +0100
+> 
+>     ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
+>    
+>     Modify the SATA subsystem to add hotplug contexts to ACPI companions
+>     of SATA devices and ports instead of registering special ACPI dock
+>     operations using register_hotplug_dock_device().
+>    
+>     That change will allow the entire code handling those special ACPI
+>     dock operations to be dropped in the next commit.
+>    
+>     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>     Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+>     Acked-by: Tejun Heo <tj@kernel.org>
+> 
+> Unfortunately I do not understand this part of the code and have no idea what I can do.
+> Any pointers would be very appreciated.
 
-With ACPI APEI firmware first handling, generic hardware error
-record is updated by firmware in GHES memory region. After firmware
-updated GHES memory region, Linux reads stale data from cache.
+Well, not right from the top of my head, but this looks really suspicious to me.
 
-GHES memory region should be mapped with cache attributes defined 
-by EFI memory map when applicable. If firmware updates DDR directly, 
-EFI memory map would have GHES memory region defined as uncached; 
-If firmware updates cache, EFI memory map would have GHES memory 
-region defined as cached.
+Can you please file a bug entry for this at bugzilla.kernel.org (in the ACPI/BIOS
+category), assign it to me and CC Aaron?
 
-When EFI is configued, map IRQ page using efi_remap() provided by
-EFI subsystem.
 
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index e82d0976a5d0..56875ca76aa7 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -48,6 +48,7 @@
- #include <linux/pci.h>
- #include <linux/aer.h>
- #include <linux/nmi.h>
-+#include <linux/efi.h>
- 
- #include <acpi/ghes.h>
- #include <acpi/apei.h>
-@@ -159,6 +160,7 @@ static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
- 	return (void __iomem *)vaddr;
- }
- 
-+#ifndef CONFIG_EFI
- static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- {
- 	unsigned long vaddr;
-@@ -169,6 +171,7 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- 
- 	return (void __iomem *)vaddr;
- }
-+#endif
- 
- static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
- {
-@@ -180,6 +183,7 @@ static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
- 	arch_apei_flush_tlb_one(vaddr);
- }
- 
-+#ifndef CONFIG_EFI
- static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
- {
- 	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
-@@ -189,6 +193,7 @@ static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
- 	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
- 	arch_apei_flush_tlb_one(vaddr);
- }
-+#endif
- 
- static int ghes_estatus_pool_init(void)
- {
-@@ -309,7 +314,11 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
- 			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
- 		} else {
- 			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
-+#ifdef CONFIG_EFI
-+			vaddr = efi_remap(paddr & PAGE_MASK, PAGE_SIZE);
-+#else
- 			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
-+#endif
- 		}
- 		trunk = PAGE_SIZE - offset;
- 		trunk = min(trunk, len);
-@@ -324,7 +333,11 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
- 			ghes_iounmap_nmi(vaddr);
- 			raw_spin_unlock(&ghes_ioremap_lock_nmi);
- 		} else {
-+#ifdef CONFIG_EFI
-+			iounmap(vaddr);
-+#else
- 			ghes_iounmap_irq(vaddr);
-+#endif
- 			spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
- 		}
- 	}
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
