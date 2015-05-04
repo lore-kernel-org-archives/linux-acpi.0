@@ -1,106 +1,164 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 09/11] genirq: Use helper function to access irq_data->msi_desc
-Date: Mon,  4 May 2015 11:15:37 +0800
-Message-ID: <1430709339-29083-10-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 11/11] genirq: Pass irq_data to helper function __irq_set_chip_handler_name_locked()
+Date: Mon,  4 May 2015 11:15:39 +0800
+Message-ID: <1430709339-29083-12-git-send-email-jiang.liu@linux.intel.com>
 References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Chris Metcalf <cmetcalf@ezchip.com>, Jiang Liu <jiang.liu@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Tejun Heo <tj@kernel.org>, Joe Perches <joe@perches.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Ralf Baechle <ralf@linux-mips.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>, James Hogan <james.hogan@imgtec.com>, Jason Cooper <jason@lakedaemon.net>, Manuel Lauss <manuel.lauss@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use helper function to access irq_data->msi_desc, so we could move
-msi_desc from struct irq_data into struct irq_common_data later.
+For most cases, callers pass irq_data->irq to helper function
+__irq_set_chip_handler_name_locked() and then it looks up irq_data again
+by calling irq_get_irq_data(irq).
+
+So pass irq_data directly instead of irq_data->irq to
+__irq_set_chip_handler_name_locked().
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/ia64/kernel/msi_ia64.c         |    2 +-
- arch/ia64/sn/kernel/msi_sn.c        |    2 +-
- arch/powerpc/sysdev/xics/ics-opal.c |    2 +-
- arch/powerpc/sysdev/xics/ics-rtas.c |    2 +-
- arch/tile/kernel/pci_gx.c           |    2 +-
- drivers/pci/msi.c                   |    2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+ arch/ia64/kernel/iosapic.c      |    6 +++---
+ arch/mips/alchemy/common/irq.c  |    4 ++--
+ drivers/gpio/gpio-zynq.c        |    9 ++++-----
+ drivers/irqchip/irq-metag-ext.c |    5 ++---
+ drivers/irqchip/irq-mips-gic.c  |   11 ++++-------
+ include/linux/irqdesc.h         |    6 +++---
+ 6 files changed, 18 insertions(+), 23 deletions(-)
 
-diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
-index 6c50d332b7d7..591b66d21bd1 100644
---- a/arch/ia64/kernel/msi_ia64.c
-+++ b/arch/ia64/kernel/msi_ia64.c
-@@ -23,7 +23,7 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
- 	if (irq_prepare_move(irq, cpu))
- 		return -1;
+diff --git a/arch/ia64/kernel/iosapic.c b/arch/ia64/kernel/iosapic.c
+index 4d2698d43c39..317993e92cba 100644
+--- a/arch/ia64/kernel/iosapic.c
++++ b/arch/ia64/kernel/iosapic.c
+@@ -610,9 +610,9 @@ register_intr (unsigned int gsi, int irq, unsigned char delivery,
+ 			       chip->name, irq_type->name);
+ 		chip = irq_type;
+ 	}
+-	__irq_set_chip_handler_name_locked(irq, chip, trigger == IOSAPIC_EDGE ?
+-					   handle_edge_irq : handle_level_irq,
+-					   NULL);
++	__irq_set_chip_handler_name_locked(irq_get_irq_data(irq), chip,
++		trigger == IOSAPIC_EDGE ? handle_edge_irq : handle_level_irq,
++		NULL);
+ 	return 0;
+ }
  
--	__get_cached_msi_msg(idata->msi_desc, &msg);
-+	__get_cached_msi_msg(irq_data_get_msi(idata), &msg);
+diff --git a/arch/mips/alchemy/common/irq.c b/arch/mips/alchemy/common/irq.c
+index 6cb60abfdcc9..026c4eed37d5 100644
+--- a/arch/mips/alchemy/common/irq.c
++++ b/arch/mips/alchemy/common/irq.c
+@@ -491,7 +491,7 @@ static int au1x_ic_settype(struct irq_data *d, unsigned int flow_type)
+ 	default:
+ 		ret = -EINVAL;
+ 	}
+-	__irq_set_chip_handler_name_locked(d->irq, chip, handler, name);
++	__irq_set_chip_handler_name_locked(d, chip, handler, name);
  
- 	addr = msg.address_lo;
- 	addr &= MSI_ADDR_DEST_ID_MASK;
-diff --git a/arch/ia64/sn/kernel/msi_sn.c b/arch/ia64/sn/kernel/msi_sn.c
-index 42b5a13af142..6ccc39b36947 100644
---- a/arch/ia64/sn/kernel/msi_sn.c
-+++ b/arch/ia64/sn/kernel/msi_sn.c
-@@ -175,7 +175,7 @@ static int sn_set_msi_irq_affinity(struct irq_data *data,
- 	 * Release XIO resources for the old MSI PCI address
- 	 */
+ 	wmb();
  
--	__get_cached_msi_msg(data->msi_desc, &msg);
-+	__get_cached_msi_msg(irq_data_get_msi(data), &msg);
- 	sn_pdev = (struct pcidev_info *)sn_irq_info->irq_pciioinfo;
- 	pdev = sn_pdev->pdi_linux_pcidev;
- 	provider = SN_PCIDEV_BUSPROVIDER(pdev);
-diff --git a/arch/powerpc/sysdev/xics/ics-opal.c b/arch/powerpc/sysdev/xics/ics-opal.c
-index 3996393c254d..a709d81f885a 100644
---- a/arch/powerpc/sysdev/xics/ics-opal.c
-+++ b/arch/powerpc/sysdev/xics/ics-opal.c
-@@ -72,7 +72,7 @@ static unsigned int ics_opal_startup(struct irq_data *d)
- 	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
- 	 * at that level, so we do it here by hand.
- 	 */
--	if (d->msi_desc)
-+	if (irq_data_get_msi(d))
- 		pci_msi_unmask_irq(d);
- #endif
+@@ -703,7 +703,7 @@ static int au1300_gpic_settype(struct irq_data *d, unsigned int type)
+ 		return -EINVAL;
+ 	}
  
-diff --git a/arch/powerpc/sysdev/xics/ics-rtas.c b/arch/powerpc/sysdev/xics/ics-rtas.c
-index e2665a9dfc0f..f09a7b3136b2 100644
---- a/arch/powerpc/sysdev/xics/ics-rtas.c
-+++ b/arch/powerpc/sysdev/xics/ics-rtas.c
-@@ -75,7 +75,7 @@ static unsigned int ics_rtas_startup(struct irq_data *d)
- 	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
- 	 * at that level, so we do it here by hand.
- 	 */
--	if (d->msi_desc)
-+	if (irq_data_get_msi(d))
- 		pci_msi_unmask_irq(d);
- #endif
- 	/* unmask it */
-diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
-index b1df847d0686..1438c60e263d 100644
---- a/arch/tile/kernel/pci_gx.c
-+++ b/arch/tile/kernel/pci_gx.c
-@@ -1442,7 +1442,7 @@ static struct pci_ops tile_cfg_ops = {
- /* MSI support starts here. */
- static unsigned int tilegx_msi_startup(struct irq_data *d)
- {
--	if (d->msi_desc)
-+	if (irq_data_get_msi(d))
- 		pci_msi_unmask_irq(d);
+-	__irq_set_chip_handler_name_locked(d->irq, &au1300_gpic, hdl, name);
++	__irq_set_chip_handler_name_locked(d, &au1300_gpic, hdl, name);
+ 
+ 	au1300_gpic_chgcfg(d->irq - ALCHEMY_GPIC_INT_BASE, GPIC_CFG_IC_MASK, s);
+ 
+diff --git a/drivers/gpio/gpio-zynq.c b/drivers/gpio/gpio-zynq.c
+index 184c4b1b2558..aea6075e5b2e 100644
+--- a/drivers/gpio/gpio-zynq.c
++++ b/drivers/gpio/gpio-zynq.c
+@@ -422,13 +422,12 @@ static int zynq_gpio_set_irq_type(struct irq_data *irq_data, unsigned int type)
+ 	writel_relaxed(int_any,
+ 		       gpio->base_addr + ZYNQ_GPIO_INTANY_OFFSET(bank_num));
+ 
+-	if (type & IRQ_TYPE_LEVEL_MASK) {
+-		__irq_set_chip_handler_name_locked(irq_data->irq,
++	if (type & IRQ_TYPE_LEVEL_MASK)
++		__irq_set_chip_handler_name_locked(irq_data,
+ 			&zynq_gpio_level_irqchip, handle_fasteoi_irq, NULL);
+-	} else {
+-		__irq_set_chip_handler_name_locked(irq_data->irq,
++	else
++		__irq_set_chip_handler_name_locked(irq_data,
+ 			&zynq_gpio_edge_irqchip, handle_level_irq, NULL);
+-	}
  
  	return 0;
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index c3e7dfcf9ff5..74b48ea0cf26 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -1178,7 +1178,7 @@ EXPORT_SYMBOL(pci_enable_msix_range);
-  */
- void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg)
- {
--	struct msi_desc *desc = irq_data->msi_desc;
-+	struct msi_desc *desc = irq_data_get_msi(irq_data);
+ }
+diff --git a/drivers/irqchip/irq-metag-ext.c b/drivers/irqchip/irq-metag-ext.c
+index 2cb474ad8809..52e501d8c8f0 100644
+--- a/drivers/irqchip/irq-metag-ext.c
++++ b/drivers/irqchip/irq-metag-ext.c
+@@ -404,7 +404,6 @@ static int meta_intc_irq_set_type(struct irq_data *data, unsigned int flow_type)
+ #ifdef CONFIG_METAG_SUSPEND_MEM
+ 	struct meta_intc_priv *priv = &meta_intc_priv;
+ #endif
+-	unsigned int irq = data->irq;
+ 	irq_hw_number_t hw = data->hwirq;
+ 	unsigned int bit = 1 << meta_intc_offset(hw);
+ 	void __iomem *level_addr = meta_intc_level_addr(hw);
+@@ -413,10 +412,10 @@ static int meta_intc_irq_set_type(struct irq_data *data, unsigned int flow_type)
  
- 	/*
- 	 * For MSI-X desc->irq is always equal to irq_data->irq. For
+ 	/* update the chip/handler */
+ 	if (flow_type & IRQ_TYPE_LEVEL_MASK)
+-		__irq_set_chip_handler_name_locked(irq, &meta_intc_level_chip,
++		__irq_set_chip_handler_name_locked(data, &meta_intc_level_chip,
+ 						   handle_level_irq, NULL);
+ 	else
+-		__irq_set_chip_handler_name_locked(irq, &meta_intc_edge_chip,
++		__irq_set_chip_handler_name_locked(data, &meta_intc_edge_chip,
+ 						   handle_edge_irq, NULL);
+ 
+ 	/* and clear/set the bit in HWLEVELEXT */
+diff --git a/drivers/irqchip/irq-mips-gic.c b/drivers/irqchip/irq-mips-gic.c
+index 09257c301bd2..fb2e64b1f414 100644
+--- a/drivers/irqchip/irq-mips-gic.c
++++ b/drivers/irqchip/irq-mips-gic.c
+@@ -365,15 +365,12 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
+ 		break;
+ 	}
+ 
+-	if (is_edge) {
+-		__irq_set_chip_handler_name_locked(d->irq,
+-						   &gic_edge_irq_controller,
++	if (is_edge)
++		__irq_set_chip_handler_name_locked(d, &gic_edge_irq_controller,
+ 						   handle_edge_irq, NULL);
+-	} else {
+-		__irq_set_chip_handler_name_locked(d->irq,
+-						   &gic_level_irq_controller,
++	else
++		__irq_set_chip_handler_name_locked(d, &gic_level_irq_controller,
+ 						   handle_level_irq, NULL);
+-	}
+ 	spin_unlock_irqrestore(&gic_lock, flags);
+ 
+ 	return 0;
+diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
+index 81a7231c0379..720ff116b533 100644
+--- a/include/linux/irqdesc.h
++++ b/include/linux/irqdesc.h
+@@ -168,15 +168,15 @@ static inline void __irq_set_handler_locked(unsigned int irq,
+ 
+ /* caller has locked the irq_desc and both params are valid */
+ static inline void
+-__irq_set_chip_handler_name_locked(unsigned int irq, struct irq_chip *chip,
++__irq_set_chip_handler_name_locked(struct irq_data *data, struct irq_chip *chip,
+ 				   irq_flow_handler_t handler, const char *name)
+ {
+ 	struct irq_desc *desc;
+ 
+-	desc = irq_to_desc(irq);
+-	irq_desc_get_irq_data(desc)->chip = chip;
++	desc = irq_to_desc(data->irq);
+ 	desc->handle_irq = handler;
+ 	desc->name = name;
++	data->chip = chip;
+ }
+ 
+ static inline int irq_balancing_disabled(unsigned int irq)
 -- 
 1.7.10.4
-
