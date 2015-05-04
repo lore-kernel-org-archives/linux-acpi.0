@@ -1,191 +1,102 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch 2/2] x86, irq: Support CPU vector allocation policies
-Date: Mon,  4 May 2015 10:47:41 +0800
-Message-ID: <1430707662-28598-3-git-send-email-jiang.liu@linux.intel.com>
-References: <1430707662-28598-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 00/11] Split struct irq_data into common part and per-chip part
+Date: Mon,  4 May 2015 11:15:28 +0800
+Message-ID: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1430707662-28598-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, Jonathan Corbet <corbet@lwn.net>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>, linux-doc@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On NUMA systems, an IO device may be associated with a NUMA node.
-It may improve IO performance to allocate resources, such as memory
-and interrupts, from device local node.
+Hi all,
+	Now the irq core supports hierarchy irq and stacked irqchips,
+so there may be multiple irq_datas associated with the same irq. But
+some fields in struct irq_data are per-irq instance and duplicating
+those fields into multiple irq_data may cause troubles.
+	So this patch introduces a new data structure 'struct
+irq_common_data' to host per-irq instance data fields, and struct
+irq_data will only host per-chip data fields after the conversion.
 
-This patch introduces a mechanism to support CPU vector allocation
-policies, so users may choose the best suitable CPU vector allocation
-policy. Currently there are two supported allocation policies:
-1) allocate CPU vectors from CPUs on device local node
-2) allocate CPU vectors from all online CPUs
+It's based on tip/x86/apic plus these two patches at:
+https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg879700.html
 
-This mechanism may be used to support NumaConnect systems to allocate
-CPU vectors from device local node.
+And it passes Fengguang's zeroday test suite.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Daniel J Blueman <daniel@numascale.com>
----
- Documentation/kernel-parameters.txt |    5 +++
- arch/x86/kernel/apic/vector.c       |   83 +++++++++++++++++++++++++++++++----
- 2 files changed, 79 insertions(+), 9 deletions(-)
+Thanks!
+Gerry
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 274252f205b7..5e8b1c6f0677 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -3840,6 +3840,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 	vector=		[IA-64,SMP]
- 			vector=percpu: enable percpu vector domain
- 
-+	vector_alloc=	[x86,SMP]
-+			vector_alloc=node: try to allocate CPU vectors from CPUs on
-+			device local node first, fallback to all online CPUs
-+			vector_alloc=global: allocate CPU vector from all online CPUs
-+
- 	video=		[FB] Frame buffer configuration
- 			See Documentation/fb/modedb.txt.
- 
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 1c7dd42b98c1..96ce5068a926 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -28,6 +28,17 @@ struct apic_chip_data {
- 	u8			move_in_progress : 1;
- };
- 
-+enum {
-+	/* Allocate CPU vectors from CPUs on device local node */
-+	X86_VECTOR_POL_NODE = 0x1,
-+	/* Allocate CPU vectors from all online CPUs */
-+	X86_VECTOR_POL_GLOBAL = 0x2,
-+	/* Allocate CPU vectors from caller specified CPUs */
-+	X86_VECTOR_POL_CALLER = 0x4,
-+	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
-+	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
-+};
-+
- struct irq_domain *x86_vector_domain;
- static DEFINE_RAW_SPINLOCK(vector_lock);
- static cpumask_var_t vector_cpumask;
-@@ -35,6 +46,9 @@ static struct irq_chip lapic_controller;
- #ifdef	CONFIG_X86_IO_APIC
- static struct apic_chip_data *legacy_irq_data[NR_IRQS_LEGACY];
- #endif
-+static unsigned int vector_alloc_policy = X86_VECTOR_POL_NODE |
-+					  X86_VECTOR_POL_GLOBAL |
-+					  X86_VECTOR_POL_CALLER;
- 
- void lock_vector_lock(void)
- {
-@@ -258,12 +272,6 @@ void copy_irq_alloc_info(struct irq_alloc_info *dst, struct irq_alloc_info *src)
- 		memset(dst, 0, sizeof(*dst));
- }
- 
--static inline const struct cpumask *
--irq_alloc_info_get_mask(struct irq_alloc_info *info)
--{
--	return (!info || !info->mask) ? apic->target_cpus() : info->mask;
--}
--
- static void x86_vector_free_irqs(struct irq_domain *domain,
- 				 unsigned int virq, unsigned int nr_irqs)
- {
-@@ -284,12 +292,58 @@ static void x86_vector_free_irqs(struct irq_domain *domain,
- 	}
- }
- 
-+static int assign_irq_vector_policy(int irq, int node,
-+				    struct apic_chip_data *data,
-+				    struct irq_alloc_info *info)
-+{
-+	int err = -EBUSY;
-+	unsigned int policy;
-+	const struct cpumask *mask;
-+
-+	if (info && info->mask)
-+		policy = X86_VECTOR_POL_CALLER;
-+	else
-+		policy = X86_VECTOR_POL_MIN;
-+
-+	for (; policy <= X86_VECTOR_POL_MAX; policy <<= 1) {
-+		if (!(vector_alloc_policy & policy))
-+			continue;
-+
-+		switch (policy) {
-+		case X86_VECTOR_POL_NODE:
-+			if (node >= 0)
-+				mask = cpumask_of_node(node);
-+			else
-+				mask = NULL;
-+			break;
-+		case X86_VECTOR_POL_GLOBAL:
-+			mask = apic->target_cpus();
-+			break;
-+		case X86_VECTOR_POL_CALLER:
-+			if (info && info->mask)
-+				mask = info->mask;
-+			else
-+				mask = NULL;
-+			break;
-+		default:
-+			mask = NULL;
-+			break;
-+		}
-+		if (mask) {
-+			err = assign_irq_vector(irq, data, mask);
-+			if (!err)
-+				return 0;
-+		}
-+	}
-+
-+	return err;
-+}
-+
- static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 				 unsigned int nr_irqs, void *arg)
- {
- 	struct irq_alloc_info *info = arg;
- 	struct apic_chip_data *data;
--	const struct cpumask *mask;
- 	struct irq_data *irq_data;
- 	int i, err;
- 
-@@ -300,7 +354,6 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 	if ((info->flags & X86_IRQ_ALLOC_CONTIGUOUS_VECTORS) && nr_irqs > 1)
- 		return -ENOSYS;
- 
--	mask = irq_alloc_info_get_mask(info);
- 	for (i = 0; i < nr_irqs; i++) {
- 		irq_data = irq_domain_get_irq_data(domain, virq + i);
- 		BUG_ON(!irq_data);
-@@ -318,7 +371,8 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 		irq_data->chip = &lapic_controller;
- 		irq_data->chip_data = data;
- 		irq_data->hwirq = virq + i;
--		err = assign_irq_vector(virq, data, mask);
-+		err = assign_irq_vector_policy(virq, irq_data->node, data,
-+					       info);
- 		if (err)
- 			goto error;
- 	}
-@@ -809,6 +863,17 @@ static __init int setup_show_lapic(char *arg)
- }
- __setup("show_lapic=", setup_show_lapic);
- 
-+static int __init apic_parse_vector_policy(char *str)
-+{
-+	if (!strncmp(str, "node", 4))
-+		vector_alloc_policy |= X86_VECTOR_POL_NODE;
-+	else if (!strncmp(str, "global", 6))
-+		vector_alloc_policy &= ~X86_VECTOR_POL_NODE;
-+
-+	return 1;
-+}
-+__setup("vector_alloc=", apic_parse_vector_policy);
-+
- static int __init print_ICs(void)
- {
- 	if (apic_verbosity == APIC_QUIET)
+Jiang Liu (11):
+  genirq: Introduce struct irq_common_data to host shared irq data
+  genirq: Move field 'node' from struct irq_data into struct
+    irq_common_data
+  genirq: Use CONFIG_NUMA instead of CONFIG_SMP to guard
+    irq_common_data.node
+  genirq: Move field 'handler_data' from struct irq_data into struct
+    irq_common_data
+  mn10300: Fix incorrect use of data->affinity
+  genirq: Introduce helper function irq_data_get_affinity_mask()
+  net/mlx4: Cache irq_desc->affinity instead of irq_desc
+  genirq: Move field 'affinity' from struct irq_data into struct
+    irq_common_data
+  genirq: Use helper function to access irq_data->msi_desc
+  genirq: Move field 'msi_desc' from struct irq_data into struct
+    irq_common_data
+  genirq: Pass irq_data to helper function
+    __irq_set_chip_handler_name_locked()
+
+ arch/alpha/kernel/irq.c                      |    2 +-
+ arch/arm/kernel/irq.c                        |    4 +-
+ arch/arm64/kernel/irq.c                      |    4 +-
+ arch/blackfin/mach-common/ints-priority.c    |    3 +-
+ arch/ia64/kernel/iosapic.c                   |    8 +-
+ arch/ia64/kernel/irq.c                       |    6 +-
+ arch/ia64/kernel/msi_ia64.c                  |    6 +-
+ arch/ia64/sn/kernel/msi_sn.c                 |    4 +-
+ arch/metag/kernel/irq.c                      |   10 ++-
+ arch/mips/alchemy/common/irq.c               |    4 +-
+ arch/mips/bcm63xx/irq.c                      |    2 +-
+ arch/mips/cavium-octeon/octeon-irq.c         |   14 ++--
+ arch/mips/pmcs-msp71xx/msp_irq_cic.c         |    3 +-
+ arch/mn10300/kernel/cevt-mn10300.c           |    2 +-
+ arch/mn10300/kernel/irq.c                    |   13 +--
+ arch/parisc/kernel/irq.c                     |   12 +--
+ arch/powerpc/kernel/irq.c                    |    2 +-
+ arch/powerpc/sysdev/xics/ics-opal.c          |    4 +-
+ arch/powerpc/sysdev/xics/ics-rtas.c          |    4 +-
+ arch/sh/kernel/irq.c                         |    9 ++-
+ arch/sparc/kernel/irq_64.c                   |   27 ++++---
+ arch/sparc/kernel/leon_kernel.c              |    6 +-
+ arch/sparc/kernel/sun4d_irq.c                |    4 +-
+ arch/sparc/kernel/sun4m_irq.c                |    6 +-
+ arch/tile/kernel/pci_gx.c                    |    2 +-
+ arch/x86/kernel/apic/io_apic.c               |    2 +-
+ arch/x86/kernel/apic/msi.c                   |    2 +-
+ arch/x86/kernel/apic/vector.c                |   13 ++-
+ arch/x86/kernel/hpet.c                       |    4 +-
+ arch/x86/kernel/irq.c                        |    5 +-
+ arch/x86/platform/uv/uv_irq.c                |    2 +-
+ arch/xtensa/kernel/irq.c                     |   10 ++-
+ drivers/gpio/gpio-davinci.c                  |    2 +-
+ drivers/gpio/gpio-zynq.c                     |    9 +--
+ drivers/irqchip/irq-metag-ext.c              |    5 +-
+ drivers/irqchip/irq-mips-gic.c               |   13 ++-
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c   |    6 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c   |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |    2 +-
+ drivers/parisc/iosapic.c                     |    2 +-
+ drivers/pci/msi.c                            |    2 +-
+ drivers/sh/intc/chip.c                       |    6 +-
+ drivers/sh/intc/virq.c                       |    4 +-
+ drivers/xen/events/events_base.c             |    4 +-
+ include/linux/irq.h                          |  109 +++++++++++++++++---------
+ include/linux/irqdesc.h                      |   11 +--
+ kernel/irq/chip.c                            |    4 +-
+ kernel/irq/internals.h                       |   15 ++--
+ kernel/irq/irqdesc.c                         |   27 +++----
+ kernel/irq/irqdomain.c                       |    5 +-
+ kernel/irq/manage.c                          |   14 ++--
+ kernel/irq/proc.c                            |    4 +-
+ 52 files changed, 250 insertions(+), 198 deletions(-)
+
 -- 
 1.7.10.4
