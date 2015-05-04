@@ -1,55 +1,129 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Patch breaks suspend
-Date: Tue, 05 May 2015 01:37:33 +0200
-Message-ID: <2970725.6ieOiJg9HH@vostro.rjw.lan>
-References: <55453334.9030002@yuhu.biz>
+Subject: Re: [PATCH 1/2] gpio / ACPI: Add support for retrieving GpioInt resources from a device
+Date: Tue, 05 May 2015 01:47:36 +0200
+Message-ID: <1988723.gb0XCG22Xj@vostro.rjw.lan>
+References: <1430233507-29389-1-git-send-email-mika.westerberg@linux.intel.com> <1430233507-29389-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57270 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:50540 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751606AbbEDXMc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:12:32 -0400
-In-Reply-To: <55453334.9030002@yuhu.biz>
+	with SMTP id S1751161AbbEDXWg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:22:36 -0400
+In-Reply-To: <1430233507-29389-2-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marian Marinov <mm-l@yuhu.biz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Saturday, May 02, 2015 11:27:32 PM Marian Marinov wrote:
-> Hi guys,
-> I have Lenovo T520 with one SSD and one SATA drive.
+On Tuesday, April 28, 2015 06:05:06 PM Mika Westerberg wrote:
+> ACPI specification knows two types of GPIOs: GpioIo and GpioInt. The latter
+> is used to describe that a given device interrupt line is connected to a
+> specific GPIO pin. Typical ACPI _CRS entry for such device looks like
+> below:
 > 
-> I tried to upgrade to Linux 4.0 and found that after suspend and resume I can't access the second (SATA) drive.
-> Both drives have bios encryption enabled.
+>     Name (_CRS, ResourceTemplate ()
+>     {
+>         I2cSerialBus (0x004A, ControllerInitiated, 0x00061A80,
+>                       AddressingMode7Bit, "\\_SB.PCI0.I2C6",
+>                       0x00, ResourceConsumer)
+>         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
+>                 IoRestrictionOutputOnly, "\\_SB.GPO0",
+>                 0x00, ResourceConsumer)
+>         {
+>             0x004B
+>         }
+>         GpioInt (Level, ActiveLow, Shared, PullDefault, 0x0000,
+>                  "\\_SB.GPO0", 0x00, ResourceConsumer)
+>         {
+>             0x004C
+>         }
+>     })
 > 
-> I did a bisect and found that the following patch causes the issue:
-> commit 5d5132059a1f652de9dc2d62a8ff15561e648d11
-> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Date:   Sat Feb 22 00:48:31 2014 +0100
+> Currently drivers need to request a GPIO corresponding to the right GpioInt
+> and then translate that to Linux IRQ number. This adds unnecessary lines of
+> boiler-plate code.
 > 
->     ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
->    
->     Modify the SATA subsystem to add hotplug contexts to ACPI companions
->     of SATA devices and ports instead of registering special ACPI dock
->     operations using register_hotplug_dock_device().
->    
->     That change will allow the entire code handling those special ACPI
->     dock operations to be dropped in the next commit.
->    
->     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->     Reviewed-by: Aaron Lu <aaron.lu@intel.com>
->     Acked-by: Tejun Heo <tj@kernel.org>
+> We can ease this a bit by introducing acpi_dev_gpio_irq_get() analogous to
+> of_irq_get(). This function translates given GpioInt resource under the
+> device in question to the suitable Linux IRQ number.
 > 
-> Unfortunately I do not understand this part of the code and have no idea what I can do.
-> Any pointers would be very appreciated.
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Well, not right from the top of my head, but this looks really suspicious to me.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Can you please file a bug entry for this at bugzilla.kernel.org (in the ACPI/BIOS
-category), assign it to me and CC Aaron?
-
+> ---
+>  drivers/gpio/gpiolib-acpi.c | 29 +++++++++++++++++++++++++++++
+>  include/linux/acpi.h        |  7 +++++++
+>  2 files changed, 36 insertions(+)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index d2303d50f561..bff29bb0a3fe 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -514,6 +514,35 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
+>  	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
+>  }
+>  
+> +/**
+> + * acpi_dev_gpio_irq_get() - Find GpioInt and translate it to Linux IRQ number
+> + * @adev: pointer to a ACPI device to get IRQ from
+> + * @index: index of GpioInt resource (starting from %0)
+> + *
+> + * If the device has one or more GpioInt resources, this function can be
+> + * used to translate from the GPIO offset in the resource to the Linux IRQ
+> + * number.
+> + *
+> + * Return: Linux IRQ number (>%0) on success, negative errno on failure.
+> + */
+> +int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
+> +{
+> +	int idx, i;
+> +
+> +	for (i = 0, idx = 0; idx <= index; i++) {
+> +		struct acpi_gpio_info info;
+> +		struct gpio_desc *desc;
+> +
+> +		desc = acpi_get_gpiod_by_index(adev, NULL, i, &info);
+> +		if (IS_ERR(desc))
+> +			break;
+> +		if (info.gpioint && idx++ == index)
+> +			return gpiod_to_irq(desc);
+> +	}
+> +	return -ENOENT;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_dev_gpio_irq_get);
+> +
+>  static acpi_status
+>  acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+>  			    u32 bits, u64 *value, void *handler_context,
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index e4da5e35e29c..f57c440642cd 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -721,6 +721,8 @@ static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev)
+>  	if (adev)
+>  		adev->driver_gpios = NULL;
+>  }
+> +
+> +int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index);
+>  #else
+>  static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+>  			      const struct acpi_gpio_mapping *gpios)
+> @@ -728,6 +730,11 @@ static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+>  	return -ENXIO;
+>  }
+>  static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev) {}
+> +
+> +static inline int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
+> +{
+> +	return -ENXIO;
+> +}
+>  #endif
+>  
+>  /* Device properties */
+> 
 
 -- 
 I speak only for myself.
