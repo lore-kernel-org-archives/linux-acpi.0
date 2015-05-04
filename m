@@ -1,45 +1,37 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/7] minor cleanups for ACPI processor driver
-Date: Tue, 05 May 2015 01:50:01 +0200
-Message-ID: <3387207.gDIT3Sn6JX@vostro.rjw.lan>
-References: <1427464948-14564-1-git-send-email-hanjun.guo@linaro.org>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Re: Discussion around quirking the _REV behavior for the XPS 13 (2015)
+ until 4.2
+Date: Mon, 04 May 2015 18:26:25 -0500
+Message-ID: <55480021.1090402@dell.com>
+References: <55401602.5050907@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56791 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750832AbbEDXZB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:25:01 -0400
-In-Reply-To: <1427464948-14564-1-git-send-email-hanjun.guo@linaro.org>
+Received: from ausxipps301.us.dell.com ([143.166.148.223]:37685 "EHLO
+	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751270AbbEDX01 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:26:27 -0400
+In-Reply-To: <55401602.5050907@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
-
-On Friday, March 27, 2015 10:02:21 PM Hanjun Guo wrote:
-> This patch set are some minor cleanups for ACPI processor driver
-> to address the comments which raised by Rafael in ARM64 ACPI core
-> patches, so this patch set is on top of ARM64 ACPI core patches
-> the git tree is
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git
-> branch for-next/acpi.
-> 
-> Rafael, I assume this patchset will be taken with your tree if
-> it makes sense, any rebase work needed please let me know.
-> 
-> the last patch - ACPI / processor: Introduce invalid_phys_cpuid()
-> will cut u64 mpidr to int, but I think it is ok for error values,
-> correct me if I'm wrong.
-> 
-> Comments are welcomed.
-
-The patches look OK to me and all their dependencies should be met for 4.2,
-so can you please make sure that they still apply and possibly resend on
-top of the current Linus' tree?
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+On 04/28/2015 06:21 PM, Mario Limonciello wrote:
+> Hi,
+>
+> Due to b1ef2972586577e0ca9675254ee141f65a8824e5 landing recently as a result of some previous ACPI community discussion, the Dell XPS 13 (2015) no longer has fully functional audio.  In case you aren't aware, the XPS 13 (2015) switches audio modes based upon a combination of what's detected for the _OSI string and _REV values. When "Windows 2013" is found with _REV=2 the audio codec will be configured for I2S audio mode.  When "Windows 2013" with _REV=5 is found it will be configured for HDA audio mode.
+>
+> I2S audio is improving, but not as mature as HDA audio mode is at this point.  Currently jack detection does not work properly in 4.1 with I2S audio codecs.  I've been notified that the support for jack detection will be landing in 4.2.  I'd like to discuss the possibility of including a quirk for the _REV behavior when the DMI information corresponding to the Dell XPS 13 (2015) is detected for 4.1.  This will let it continue to run in HDA mode until I2S mode is mature.
+>
+> I'd also like to plan for the quirk to be dropped when jack detection has landed for 4.2 (or if it gets pushed out further when it lands for 4.3).
+>
+> Would you guys be open to that?
+>
+> Thanks,
+Hello,
+
+I just wanted to follow up on this, I would like to come up with a solution before it's too late for 4.1 on the XPS 13 (2015).
+
+Thanks,
