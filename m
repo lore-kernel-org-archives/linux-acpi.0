@@ -1,65 +1,56 @@
-From: Amir Vadai <amirv@mellanox.com>
-Subject: Re: [RFC v1 07/11] net/mlx4: Cache irq_desc->affinity instead of irq_desc
-Date: Tue, 5 May 2015 12:17:28 +0300
-Message-ID: <CAPcc5Pi7qNQKocTVmfZafVhi3MJwboY=XKYzNmqAnVqt0gU4vw@mail.gmail.com>
-References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
-	<1430709339-29083-8-git-send-email-jiang.liu@linux.intel.com>
-	<CAPcc5Ph4pk+4aL-PduvF67YU-A+vn2bfx6v3mr-tbY58zs7sZw@mail.gmail.com>
-	<alpine.DEB.2.11.1505041708190.4225@nanos>
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Subject: Re: [PATCH v2 5/7] Xen / ACPI / processor: Remove unneeded NULL
+ check in xen_acpi_processor_enable()
+Date: Tue, 5 May 2015 11:29:05 +0100
+Message-ID: <alpine.DEB.2.02.1505051128400.2640@kaball.uk.xensource.com>
+References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org>
+ <1430793998-21631-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1505041708190.4225@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Amir Vadai <amirv@mellanox.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ido Shamay <idos@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Eric Dumazet <edumazet@google.com>, Hadar Hen Zion <hadarh@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Joe Perches <joe@perches.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci@vger.kern
+Content-Type: text/plain; charset="US-ASCII"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.citrix.com ([66.165.176.89]:50385 "EHLO SMTP.CITRIX.COM"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752347AbbEEK32 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 May 2015 06:29:28 -0400
+In-Reply-To: <1430793998-21631-6-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Vrabel <david.vrabel@citrix.com>
 
-On Mon, May 4, 2015 at 6:10 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> On Mon, 4 May 2015, Amir Vadai wrote:
->
->> On Mon, May 4, 2015 at 6:15 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->> > The field 'affinity' in irq_desc won't change once the irq_desc data
->> > structure is created. So cache irq_desc->affinity instead of irq_desc.
->> > This also helps to hide struct irq_desc from device drivers.
->>
->> Hi Jiang,
->>
->> I might not understand the new changes irq core, but up until now
->> affinity was changed when the user changed it through
->> /proc/irq/<IRQ>/smp_affinity.
->> This code is monitoring the affinity from the napi_poll context to
->> detect affinity changes, and prevent napi from keep running on the
->> wrong CPU.
->> Therefore, the affinity can't be cached at the beginning. Please
->> revert this caching.
->
-> Sigh. All of this is completely wrong. Polling in the internals of
-> irq_desc is just crap.
-Hi,
+CC'ing Konrad and David.
 
->
-> irq_set_affinity_notifier() has been added for exactly this purpose.
-rmap is already registered on irq_set_affinity_notifier().
-Actually, I did post an extension to the affinity notifier, to use
-affinity chain which you rejected [1] (and BTW, convinced me that this
-is not the way to do it).
-Current code is according to your suggestion.
-
-[1] - https://lkml.org/lkml/2014/5/26/222
-
-Amir
-
->
-> Please get rid of your irq_desc abuse.
->
-> Thanks,
->
->         tglx
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+On Tue, 5 May 2015, Hanjun Guo wrote:
+> Before xen_acpi_processor_enable() is called, struct acpi_processor *pr is
+> allocated in xen_acpi_processor_add() and checked if it's NULL, so no need
+> to check again when passed to xen_acpi_processor_enable(), just remove it.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+> CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+> ---
+>  drivers/xen/xen-acpi-cpuhotplug.c | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/xen/xen-acpi-cpuhotplug.c b/drivers/xen/xen-acpi-cpuhotplug.c
+> index 5a62aa0..f4a3694 100644
+> --- a/drivers/xen/xen-acpi-cpuhotplug.c
+> +++ b/drivers/xen/xen-acpi-cpuhotplug.c
+> @@ -46,13 +46,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
+>  	unsigned long long value;
+>  	union acpi_object object = { 0 };
+>  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+> -	struct acpi_processor *pr;
+> -
+> -	pr = acpi_driver_data(device);
+> -	if (!pr) {
+> -		pr_err(PREFIX "Cannot find driver data\n");
+> -		return -EINVAL;
+> -	}
+> +	struct acpi_processor *pr = acpi_driver_data(device);
+>  
+>  	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
+>  		/* Declared with "Processor" statement; match ProcessorID */
+> -- 
+> 1.9.1
+> 
