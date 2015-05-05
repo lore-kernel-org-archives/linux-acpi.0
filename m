@@ -1,83 +1,220 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [RFC PATCH 6/9] ACPI / gsi: Add gsi_mutex to synchronize acpi_register_gsi()/acpi_unregister_gsi()
-Date: Tue,  5 May 2015 21:50:54 +0800
-Message-ID: <1430833857-30736-7-git-send-email-hanjun.guo@linaro.org>
-References: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:34113 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992746AbbEENw4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2015 09:52:56 -0400
-Received: by pdbqa5 with SMTP id qa5so196568960pdb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 05 May 2015 06:52:55 -0700 (PDT)
-In-Reply-To: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [V2 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
+Date: Tue, 5 May 2015 10:12:05 -0500
+Message-ID: <1430838729-21572-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net
+Cc: al.stone@linaro.org, arnd@arndb.de, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, msalter@redhat.com, grant.likely@linaro.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Add a mutex for acpi_register_gsi()/acpi_unregister_gsi() to avoid
-concurrency issues.
+This patch implements support for ACPI _CCA object, which is introduced in
+ACPIv5.1, can be used for specifying device DMA coherency attribute.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+The parsing logic traverses device namespace to parse coherency
+information, and stores it in acpi_device_flags. Then uses it to call
+arch_setup_dma_ops() when creating each device enumerated in DSDT
+during ACPI scan.
+
+This patch also introduces acpi_dma_is_coherent(), which provides
+an interface for device drivers to check the coherency information
+similarly to the of_dma_is_coherent().
+
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/acpi/gsi.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+NOTE:
+ * Since there seem to be conflict opinions regarding how
+   architecture should handle _CCA=0. So, I am proposing the
+   CONFIG_ARCH_SUPPORT_CCA_ZERO, which can be specified by
+   for each architecture to define behavior of the ACPI
+   scanning code when _CCA=0. Let me know if this is acceptable.
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index f4110d8..f0f219c 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -14,6 +14,7 @@
+ drivers/acpi/Kconfig         |  6 +++++
+ drivers/acpi/acpi_platform.c |  4 ++-
+ drivers/acpi/scan.c          | 62 ++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h      | 11 +++++++-
+ include/linux/acpi.h         |  5 ++++
+ 5 files changed, 86 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index ab2cbb5..dd386e9 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -54,6 +54,12 @@ config ACPI_GENERIC_GSI
+ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	bool
  
- enum acpi_irq_model_id acpi_irq_model;
- struct irq_domain *acpi_irq_domain;
-+static DEFINE_MUTEX(gsi_mutex);
- 
- static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
- {
-@@ -71,20 +72,24 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
- 	int irq;
- 	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
- 
-+	mutex_lock(&gsi_mutex);
- 	irq = irq_find_mapping(acpi_irq_domain, gsi);
- 	if (irq > 0)
--		return irq;
-+		goto out;
- 
- 	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
- 				    &gsi);
- 	if (irq <= 0)
--		return -EINVAL;
-+		goto out;
- 
- 	/* Set irq type if specified and different than the current one */
- 	if (irq_type != IRQ_TYPE_NONE &&
- 		irq_type != irq_get_trigger_type(irq))
- 		irq_set_irq_type(irq, irq_type);
--	return irq;
++config ACPI_MUST_HAVE_CCA
++	bool
 +
-+out:
-+	mutex_unlock(&gsi_mutex);
-+	return irq > 0 ? irq : -EINVAL;
- }
- EXPORT_SYMBOL_GPL(acpi_register_gsi);
- 
-@@ -94,8 +99,12 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
-  */
- void acpi_unregister_gsi(u32 gsi)
- {
--	int irq = irq_find_mapping(acpi_irq_domain, gsi);
-+	int irq;
++config ACPI_SUPPORT_CCA_ZERO
++	bool
 +
-+	mutex_lock(&gsi_mutex);
-+	irq = irq_find_mapping(acpi_irq_domain, gsi);
+ config ACPI_SLEEP
+ 	bool
+ 	depends on SUSPEND || HIBERNATION
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 4bf7559..a6feca4 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -108,9 +108,11 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 	if (IS_ERR(pdev))
+ 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+ 			PTR_ERR(pdev));
+-	else
++	else {
++		acpi_setup_device_dma(adev, &pdev->dev);
+ 		dev_dbg(&adev->dev, "created platform device %s\n",
+ 			dev_name(&pdev->dev));
++	}
  
- 	irq_dispose_mapping(irq);
-+	mutex_unlock(&gsi_mutex);
+ 	kfree(resources);
+ 	return pdev;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 849b699..ac33b29 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -11,6 +11,7 @@
+ #include <linux/kthread.h>
+ #include <linux/dmi.h>
+ #include <linux/nls.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <asm/pgtable.h>
+ 
+@@ -2137,6 +2138,66 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp)
+ 	kfree(pnp->unique_id);
  }
- EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+ 
++void acpi_setup_device_dma(struct acpi_device *adev, struct device *dev)
++{
++	int coherent = acpi_dma_is_coherent(adev);
++
++	/**
++	 * Currently, we only support DMA for devices that _CCA=1
++	 * since this seems to be the case on most ACPI platforms.
++	 *
++	 * For the case when _CCA=0 (i.e. is_coherent=0 && cca_seen=1),
++	 * we would rely on arch-specific cache maintenance for
++	 * non-coherence DMA operations if architecture enables
++	 * CONFIG_ACPI_SUPPORT_CCA_ZERO.
++	 *
++	 * For the case when _CCA is missing but platform requires it
++	 * (i.e. is_coherent=0 && cca_seen=0), we do not call
++	 * arch_setup_dma_ops() and fallback to arch-specific default
++	 * handling.
++	 */
++	if (adev->flags.cca_seen) {
++		if (!coherent && !IS_ENABLED(CONFIG_ACPI_SUPPORT_CCA_ZERO))
++			return;
++		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
++	}
++}
++
++static void acpi_init_coherency(struct acpi_device *adev)
++{
++	unsigned long long cca = 0;
++	acpi_status status;
++	struct acpi_device *parent = adev->parent;
++
++	if (parent && parent->flags.cca_seen) {
++		/*
++		 * From ACPI spec, OSPM will ignore _CCA if an ancestor
++		 * already saw one.
++		 */
++		adev->flags.cca_seen = 1;
++		cca = acpi_dma_is_coherent(parent);
++	} else {
++		status = acpi_evaluate_integer(adev->handle, "_CCA",
++					       NULL, &cca);
++		if (ACPI_SUCCESS(status)) {
++			adev->flags.cca_seen = 1;
++		} else if (!IS_ENABLED(CONFIG_ACPI_MUST_HAVE_CCA)) {
++			/*
++			 * If architecture does not specify that _CCA is
++			 * required for DMA-able devices (e.g. x86),
++			 * we default to _CCA=1.
++			 */
++			cca = 1;
++		} else {
++			dev_err(&adev->dev, FW_BUG
++				"DMA is not setup due to missing _CCA.\n");
++		}
++	}
++
++	adev->flags.is_coherent = cca;
++	acpi_setup_device_dma(adev, &adev->dev);
++}
++
+ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 			     int type, unsigned long long sta)
+ {
+@@ -2155,6 +2216,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 	device->flags.visited = false;
+ 	device_initialize(&device->dev);
+ 	dev_set_uevent_suppress(&device->dev, true);
++	acpi_init_coherency(device);
+ }
+ 
+ void acpi_device_add_finalize(struct acpi_device *device)
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 8de4fa9..b804183 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -208,7 +208,9 @@ struct acpi_device_flags {
+ 	u32 visited:1;
+ 	u32 hotplug_notify:1;
+ 	u32 is_dock_station:1;
+-	u32 reserved:23;
++	u32 is_coherent:1;
++	u32 cca_seen:1;
++	u32 reserved:21;
+ };
+ 
+ /* File System */
+@@ -380,6 +382,13 @@ struct acpi_device {
+ 	void (*remove)(struct acpi_device *);
+ };
+ 
++static inline bool acpi_dma_is_coherent(struct acpi_device *adev)
++{
++	return adev && adev->flags.is_coherent;
++}
++
++void acpi_setup_device_dma(struct acpi_device *adev, struct device *dev);
++
+ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ {
+ 	return fwnode && fwnode->type == FWNODE_ACPI;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index b10c4a6..d14e777 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -583,6 +583,11 @@ static inline int acpi_device_modalias(struct device *dev,
+ 	return -ENODEV;
+ }
+ 
++static inline bool acpi_dma_is_coherent(struct acpi_device *adev)
++{
++	return false;
++}
++
+ #define ACPI_PTR(_ptr)	(NULL)
+ 
+ #endif	/* !CONFIG_ACPI */
 -- 
-1.9.1
-
+2.1.0
