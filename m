@@ -1,64 +1,52 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / scan: Add a scan handler for PRP0001
-Date: Tue, 5 May 2015 14:24:25 +0300
-Message-ID: <20150505112425.GB1541@lahna.fi.intel.com>
-References: <3444888.xxxTREorHY@vostro.rjw.lan>
- <1816071.3jMa2RA6JD@vostro.rjw.lan>
- <20150422095718.GM1677@lahna.fi.intel.com>
- <12683914.6j7dxAgR6V@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
+Date: Tue, 05 May 2015 12:25:57 +0100
+Message-ID: <5548A8C5.1080406@arm.com>
+References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org> <1430793998-21631-8-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29037 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933129AbbEELY3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 May 2015 07:24:29 -0400
-Content-Disposition: inline
-In-Reply-To: <12683914.6j7dxAgR6V@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430793998-21631-8-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Darren Hart <dvhart@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, May 05, 2015 at 02:49:55AM +0200, Rafael J. Wysocki wrote:
-> 
-> Thanks, I have an update, though.
-> 
-> In a recent discussion with Darren we've come to the conlusion that
-> having a parent with PRP0001 and "compatible" and a child with PRP0001 only
-> (without "compatible") is useful in cases when one complex device is
-> represented by a hierarchy of "device" objects (in analogy with device
-> nodes in a DT that have no struct device representations).  Thus it isn't
-> useful to complain that "compatible" is not present in such cases.
 
-OK, I see.
 
-> Updated patch:
-> 
+On 05/05/15 03:46, Hanjun Guo wrote:
+> Introduce invalid_phys_cpuid() to identify cpu with invalid
+> physical ID, then used it as replacement of the direct comparisons
+> with PHYS_CPUID_INVALID.
+>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / property: Refine consistency check for PRP0001
-> 
-> Refine the check for the presence of the "compatible" property
-> if the PRP0001 device ID is present in the device's list of
-> ACPI/PNP IDs to also print the message if _DSD is missing
-> entirely or the format of it is incorrect.
-> 
-> One special case to take into accout is that the "compatible"
-> property need not be provided for devices having the PRP0001
-> device ID in their lists of ACPI/PNP IDs if they are ancestors
-> of PRP0001 devices with the "compatible" property present.
-> This is to cover heriarchies of device objects where the kernel
-> is only supposed to use a struct device representation for the
-> topmost one and the others represent, for example, functional
-> blocks of a composite device.
-> 
-> While at it, reduce the log level of the message to "info"
-> and reduce the log level of the "broken _DSD" message to
-> "debug" (noise reduction).
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>   drivers/acpi/acpi_processor.c | 4 ++--
+>   drivers/acpi/processor_core.c | 4 ++--
+>   include/linux/acpi.h          | 5 +++++
+>   3 files changed, 9 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 62c846b..92a5f73 100644
+> --- a/drivers/acpi/acpi_processor.c
 
-Still looks fine to me,
+[...]
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 913b49f..cc82ff3 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -163,6 +163,11 @@ static inline bool invalid_logical_cpuid(u32 cpuid)
+>   	return (int)cpuid < 0;
+>   }
+>
+> +static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+> +{
+> +	return (int)phys_id < 0;
+
+Should this be phys_id == PHYS_CPUID_INVALID ? else I don't see why we
+need to even define PHYS_CPUID_INVALID
+
+Regards,
+Sudeep
