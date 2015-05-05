@@ -1,58 +1,81 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 3/7] ACPI / processor: Introduce invalid_logical_cpuid()
-Date: Tue, 05 May 2015 21:15:54 +0800
-Message-ID: <5548C28A.5040509@linaro.org>
-References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org> <1430793998-21631-4-git-send-email-hanjun.guo@linaro.org> <5548A641.6050407@arm.com> <3818196.qc8c4isrQe@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [RFC PATCH 0/9] Add self-probe infrastructure and stacked irqdomain support for ACPI based GICv2/3 init
+Date: Tue,  5 May 2015 21:50:48 +0800
+Message-ID: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:36737 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422947AbbEENQD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2015 09:16:03 -0400
-Received: by pabsx10 with SMTP id sx10so192839608pab.3
-        for <linux-acpi@vger.kernel.org>; Tue, 05 May 2015 06:16:02 -0700 (PDT)
-In-Reply-To: <3818196.qc8c4isrQe@vostro.rjw.lan>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:33445 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992653AbbEENvt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2015 09:51:49 -0400
+Received: by pdbnk13 with SMTP id nk13so196705044pdb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 05 May 2015 06:51:49 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sudeep Holla <sudeep.holla@arm.com>
-Cc: Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 20:04, Rafael J. Wysocki wrote:
-> On Tuesday, May 05, 2015 12:15:13 PM Sudeep Holla wrote:
->>
->> On 05/05/15 03:46, Hanjun Guo wrote:
->>> In ACPI processor drivers, we use direct comparisons of cpu logical
->>> id with -1 which are error prone in case logical cpuid is accidenta=
-lly
->>> assinged an error code and prevents us from returning an error-enco=
-ding
->>> cpuid directly in some cases.
->>>
->>> So introduce invalid_logical_cpuid() to identify cpu with invalid
->>> logical cpu num, then it will be used to replace the direct compari=
-sons
->>> with -1.
->>>
->>
->> Ah, OK I see that this fixes the issue I raised in PATCH 1/7, so I t=
-hink
->> you need to reorder this and 1/7 patch IMO.
->
-> Well, comparing an unsigned int with -1 is not technically invalid (a=
-lthough it
-> involves an implicit type conversion), but yes, Hanjun, please reorde=
-r the
-> patches.
+This patch set introduce self-probe infrastructure to init IRQ
+controllers and stacked irqdomain support for ACPI based GICv2/3
+init.
 
-Sure, I will.
+The self-probe infrastructure for ACPI GIC init is similar as
+IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+MADT table.
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We introduce acpi_irq_domain for GICv2/3 core domain to support
+stacked irqdomain, and pass the gsi (global system interrupt) as
+the agument (void *arg) for gic_irq_domain_alloc(), then we can
+alloc virqs via acpi_register_gsi() with stacked irqdomain.
+
+I already compiled this patch set ok with both ACPI=on/off on
+ARM64 and also compiled ok on x86, tested with GICv2 init on
+FVP model and it boot successfully.
+
+Next step I would consolidate all the ACPI GIC init into one
+file -- drivers/irqchip/irq-gic-acpi.c, and introduce ITS and
+IORT support.
+
+please comment on this patchset to see if we are on the right
+direction.
+
+Hanjun Guo (6):
+  irqchip / gic: Add GIC version support in ACPI MADT
+  irqchip: gic: ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+    code
+  irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+  ACPI / gsi: Add gsi_mutex to synchronize
+    acpi_register_gsi()/acpi_unregister_gsi()
+  irqchip / GICv3: Add ACPI support for GICv3+ initialization
+  irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+
+Tomasz Nowicki (3):
+  ACPICA: Introduce GIC version for arm based system
+  ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+    controller
+  irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+
+ arch/arm64/Kconfig                   |   1 +
+ arch/arm64/include/asm/irq.h         |  13 --
+ arch/arm64/kernel/acpi.c             |  25 ----
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/gsi.c                   |  39 ++---
+ drivers/acpi/irq.c                   |  40 ++++++
+ drivers/irqchip/Kconfig              |   3 +
+ drivers/irqchip/Makefile             |   1 +
+ drivers/irqchip/irq-gic-acpi.c       | 116 +++++++++++++++
+ drivers/irqchip/irq-gic-v3.c         | 267 ++++++++++++++++++++++++++++-------
+ drivers/irqchip/irq-gic.c            |  38 ++---
+ drivers/irqchip/irqchip.h            |  12 ++
+ include/acpi/actbl1.h                |  17 ++-
+ include/asm-generic/vmlinux.lds.h    |  13 ++
+ include/linux/acpi.h                 |  14 ++
+ include/linux/acpi_irq.h             |   4 +-
+ include/linux/irqchip/arm-gic-acpi.h |  12 +-
+ include/linux/mod_devicetable.h      |   7 +
+ 18 files changed, 489 insertions(+), 134 deletions(-)
+ create mode 100644 drivers/acpi/irq.c
+ create mode 100644 drivers/irqchip/irq-gic-acpi.c
+
+-- 
+1.9.1
+
