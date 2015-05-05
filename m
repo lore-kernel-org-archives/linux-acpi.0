@@ -1,95 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 02/20] libnd, nd_acpi: initial libnd infrastructure and NFIT support
-Date: Tue, 05 May 2015 01:58:15 +0200
-Message-ID: <6932657.HzjR3A75KT@vostro.rjw.lan>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com> <2235175.7DaGPJD1E4@vostro.rjw.lan> <CAPcyv4iuPy+KR1YgE+jc91XoHSueR_k0zry-8umJWBjXzcUasg@mail.gmail.com>
+Subject: Re: [PATCH v2 00/20] libnd: non-volatile memory device support
+Date: Tue, 05 May 2015 02:06:40 +0200
+Message-ID: <9076255.5kM0LKa3dN@vostro.rjw.lan>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com> <2127273.OhQ7MIpEUu@vostro.rjw.lan> <CAPcyv4hT0DGOd8Fqs7eLqJG1hrFVgAWozuY3o5oucTYv+22Sog@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56482 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59559 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750832AbbEDXdP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:33:15 -0400
-In-Reply-To: <CAPcyv4iuPy+KR1YgE+jc91XoHSueR_k0zry-8umJWBjXzcUasg@mail.gmail.com>
+	with SMTP id S1751697AbbEDXlk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 19:41:40 -0400
+In-Reply-To: <CAPcyv4hT0DGOd8Fqs7eLqJG1hrFVgAWozuY3o5oucTYv+22Sog@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Box <david.e.box@linux.intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Christoph Hellwig <hch@lst.de>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>
 
-On Friday, May 01, 2015 09:23:38 AM Dan Williams wrote:
-> On Thu, Apr 30, 2015 at 6:21 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, April 30, 2015 05:39:06 PM Dan Williams wrote:
-> >> On Thu, Apr 30, 2015 at 4:23 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> [..]
-> >> >> +if ND_DEVICES
-> >> >> +
-> >> >> +config LIBND
-> >> >> +     tristate "LIBND: libnd device driver support"
-> >> >> +     help
-> >> >> +       Platform agnostic device model for a libnd bus.  Publishes
-> >> >> +       resources for a PMEM (persistent-memory) driver and/or BLK
-> >> >> +       (sliding mmio window(s)) driver to attach.  Exposes a device
-> >> >> +       topology under a "ndX" bus device, a "/dev/ndctlX" bus-ioctl
-> >> >> +       message passing interface, and a "/dev/nmemX" dimm-ioctl
-> >> >> +       message interface for each memory device registered on the
-> >> >> +       bus.  instance.  A userspace library "ndctl" provides an API
-> >> >> +       to enumerate/manage this subsystem.
-> >> >> +
-> >> >> +config ND_ACPI
-> >> >> +     tristate "ACPI: NFIT to libnd bus support"
-> >> >> +     select LIBND
-> >> >> +     depends on ACPI
-> >> >> +     help
-> >> >> +       Infrastructure to probe ACPI 6 compliant platforms for
-> >> >> +       NVDIMMs (NFIT) and register a libnd device tree.  In
-> >> >> +       addition to storage devices this also enables libnd craft
-> >> >> +       ACPI._DSM messages for platform/dimm configuration.
-> >> >
-> >> > I'm wondering if the two CONFIG options above really need to be user-selectable?
-> >> >
-> >> > For example, what reason people (who've already selected ND_DEVICES) may have
-> >> > for not selecting ND_ACPI if ACPI is set?
+On Tuesday, April 28, 2015 06:22:05 PM Dan Williams wrote:
+> On Tue, Apr 28, 2015 at 5:25 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, April 28, 2015 02:24:12 PM Dan Williams wrote:
+> >> Changes since v1 [1]: Incorporates feedback received prior to April 24.
 > >>
-> >>
-> >> Later on in the series we introduce ND_E820 which supports creating a
-> >> libnd-bus from e820-type-12 memory ranges on pre-NFIT systems.  I'm
-> >> also considering a configfs defined libnd-bus because e820 types are
-> >> not nearly enough information to safely define nvdimm resources
-> >> outside of NFIT.
+
+[cut]
+
 > >
-> > I hope these are not mutually exclusive with ND_ACPI?  Otherwise distros
-> > will have problems with supporting them in one kernel.
+> > I'm wondering what's wrong with CCing all of the series to linux-acpi?
+> >
+> > Is there anything in it that the people on that list should not see, by any
+> > chance?
 > 
-> You can have ND_E820 support and ND_ACPI support in the same system.
-> Likely an NFIT enabled system will never have e820-type-12 ranges, but
-> if a user messes up and uses the new memmap=ss!nn command line to
-> overlap NFIT-defined memory then the request_mem_region() calls in the
-> driver will collide.  First to load wins in that scenario.
-> 
-> > If ND_E820 and ND_ACPI aren't mutually exclusive, I still don't see a good
-> > enough reason for asking users about ND_ACPI.  Why would I ever say "No"
-> > here if I said "Yes" or "Module" to ND_DEVICES?
-> 
-> I agree that if the user selects ND_DEVICES then ND_ACPI should
-> probably default on, but otherwise turning it off is a useful option.
-> If you know your system is pre-ACPI-6 then why bother including
-> support?
+> linux-acpi may not care about the dimm-metadata labeling patches that
+> are completely independent of ACPI, but might as well include
+> linux-acpi on the whole series at this point.
 
-If you're a distro, you don't care.  You have to support it regardless.
+I've gone through the ACPI-related patches in this series (other than [2/20]
+that I've commented directly) and while I haven't found anything horrible in
+them, I don't quite feel confident enough to ACK them.
 
-You might care if you're an end user building a kernel for yourself and just
-for this particular specific machine.  Honestly, how many *server* users do
-that?
-
-And fewer user-selectable options means fewer combination of options to test
-during development/validation.
-
-Also unrelated, but applies to this patch.
-
-Since your new driver will handle device ID ACPI0012 which is defined by the
-spec proper, it should go into drivers/acpi/, because there's where such things
-go as a rule.
+What I'm really missing in this series is a design document describing all that
+from a high-level perspective and making it clear where all of the pieces go
+and what their respective roles are.  Also reordering the series to introduce
+the nd subsystem to start with and then its users might help here.
 
 
 -- 
