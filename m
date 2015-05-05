@@ -1,32 +1,44 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [PATCH v2 3/7] ACPI / processor: Introduce invalid_logical_cpuid()
-Date: Tue, 05 May 2015 11:12:52 -0400
-Message-ID: <5548DDF4.2020404@oracle.com>
-References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org> <1430793998-21631-4-git-send-email-hanjun.guo@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [V2 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
+Date: Tue, 05 May 2015 20:02:53 +0200
+Message-ID: <9405327.TMH3y4SfqS@wuerfel>
+References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com> <5548EC47.3020501@amd.com> <5548EEA3.8010101@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430793998-21631-4-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5548EEA3.8010101@amd.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, herbert@gondor.apana.org.au, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/04/2015 10:46 PM, Hanjun Guo wrote:
-> In ACPI processor drivers, we use direct comparisons of cpu logical
-> id with -1 which are error prone in case logical cpuid is accidentally
-> assinged an error code and prevents us from returning an error-encoding
-> cpuid directly in some cases.
+On Tuesday 05 May 2015 11:24:03 Tom Lendacky wrote:
+> On 05/05/2015 11:13 AM, Suravee Suthikulanit wrote:
+> > On 5/5/2015 11:12 AM, Arnd Bergmann wrote:
+> >> On Tuesday 05 May 2015 11:09:38 Suravee Suthikulanit wrote:
+> >>>
+> >>> However, codes in several places are making use of dma_map_ops without
+> >>> checking if the ops are NULL (i.e.
+> >>> include/asm-generic/dma-mapping-common.h and in arch-specific
+> >>> implementation). If setting it to NULL is what we are planning to
+> >>> support, we would need to scrub the current code to put NULL check.
+> >>> Also, would you consider if that is safe to do going forward?
+> >>>
+> >>>
+> >>
+> >> I mean the dma_mask pointer, not dma_map_ops.
+> 
+> Except a lot of drivers will actually set the dma_mask pointer during
+> probe (usually by setting dev->dma_mask = &dev->coherent_dma_mask or by
+> calling dma_coerce_mask_and_coherent).  So I think the dummy_dma_ops
+> might be the safest way to go.
 
+Those drivers are broken already, I don't think we should worry about
+them. Let's just fix them properly when we run into problems with them.
 
-Which is exactly what Xen code does (xen_pcpu_id() and 
-xen_hotadd_cpu()). And patch 4/7 fixes this.
+Basically any use of dma_coerce_mask_and_coherent() is an annotation
+for a bug where a driver used to set dev->dma_mask = &dev->coherent_dma_mask
+manually.
 
-
--boris
-
->
-> So introduce invalid_logical_cpuid() to identify cpu with invalid
-> logical cpu num, then it will be used to replace the direct comparisons
-> with -1.
+	Arnd
