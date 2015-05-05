@@ -1,53 +1,39 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2 4/7] Xen / ACPI / processor: use invalid_logical_cpuid()
-Date: Tue,  5 May 2015 10:46:35 +0800
-Message-ID: <1430793998-21631-5-git-send-email-hanjun.guo@linaro.org>
-References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:35910 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965423AbbEECrr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 May 2015 22:47:47 -0400
-Received: by pabsx10 with SMTP id sx10so177872220pab.3
-        for <linux-acpi@vger.kernel.org>; Mon, 04 May 2015 19:47:46 -0700 (PDT)
-In-Reply-To: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: Re: [RFC v2 0/7] Consolidate ACPI PCI root common code into ACPI
+ core
+Date: Tue, 05 May 2015 11:10:27 +0800
+Message-ID: <554834A3.9060204@linaro.org>
+References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Use invalid_logical_cpuid(pr->id) instead of direct comparison
-of -1.
+Hi Gerry,
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
----
- drivers/xen/xen-acpi-cpuhotplug.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
+> This patch set consolidates common code to support ACPI PCI root on x=
+86
+> and IA64 platforms into ACPI core, to reproduce duplicated code and
+> simplify maintenance. The common code should also used to support PCI
+> host bridge on ARM64 too, but I'm lacking of knowledge about PCIe hos=
+t
+> bridge implementation details on ARM64, so please help to review whet=
+her
+> this is suitable for ARM64 too.
 
-diff --git a/drivers/xen/xen-acpi-cpuhotplug.c b/drivers/xen/xen-acpi-cpuhotplug.c
-index 3e62ee4..5a62aa0 100644
---- a/drivers/xen/xen-acpi-cpuhotplug.c
-+++ b/drivers/xen/xen-acpi-cpuhotplug.c
-@@ -77,7 +77,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
- 
- 	pr->id = xen_pcpu_id(pr->acpi_id);
- 
--	if ((int)pr->id < 0)
-+	if (invalid_logical_cpuid(pr->id))
- 		/* This cpu is not presented at hypervisor, try to hotadd it */
- 		if (ACPI_FAILURE(xen_acpi_cpu_hotadd(pr))) {
- 			pr_err(PREFIX "Hotadd CPU (acpi_id = %d) failed.\n",
-@@ -226,7 +226,7 @@ static acpi_status xen_acpi_cpu_hotadd(struct acpi_processor *pr)
- 		return AE_ERROR;
- 
- 	pr->id = xen_hotadd_cpu(pr);
--	if ((int)pr->id < 0)
-+	if (invalid_logical_cpuid(pr->id))
- 		return AE_ERROR;
- 
- 	/*
--- 
-1.9.1
+I like the idea and direction of this patch set a lot. :)
 
+I will rebase our ARM64 ACPI PCI host bridge patch on top of your
+patchset this week, then I will come up with more detail review
+comments and test results, for now, I'm pretty busy with ACPI GIC
+patches to support your stacked irqdomains :)
+
+Thanks
+Hanjun
