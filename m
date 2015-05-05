@@ -1,60 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / scan: Add a scan handler for PRP0001
-Date: Tue, 05 May 2015 14:14:57 +0200
-Message-ID: <1654400.V6HOKtoCaE@vostro.rjw.lan>
-References: <3444888.xxxTREorHY@vostro.rjw.lan> <12683914.6j7dxAgR6V@vostro.rjw.lan> <20150505112425.GB1541@lahna.fi.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/2] gpio / ACPI: Add support for retrieving GpioInt
+ resources from a device
+Date: Tue, 5 May 2015 15:29:54 +0300
+Message-ID: <20150505122954.GD1541@lahna.fi.intel.com>
+References: <1430233507-29389-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1430233507-29389-2-git-send-email-mika.westerberg@linux.intel.com>
+ <1988723.gb0XCG22Xj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150505112425.GB1541@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Darren Hart <dvhart@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1988723.gb0XCG22Xj@vostro.rjw.lan>
+Sender: linux-gpio-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, May 05, 2015 02:24:25 PM Mika Westerberg wrote:
-> On Tue, May 05, 2015 at 02:49:55AM +0200, Rafael J. Wysocki wrote:
+On Tue, May 05, 2015 at 01:47:36AM +0200, Rafael J. Wysocki wrote:
+> On Tuesday, April 28, 2015 06:05:06 PM Mika Westerberg wrote:
+> > ACPI specification knows two types of GPIOs: GpioIo and GpioInt. The latter
+> > is used to describe that a given device interrupt line is connected to a
+> > specific GPIO pin. Typical ACPI _CRS entry for such device looks like
+> > below:
 > > 
-> > Thanks, I have an update, though.
+> >     Name (_CRS, ResourceTemplate ()
+> >     {
+> >         I2cSerialBus (0x004A, ControllerInitiated, 0x00061A80,
+> >                       AddressingMode7Bit, "\\_SB.PCI0.I2C6",
+> >                       0x00, ResourceConsumer)
+> >         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
+> >                 IoRestrictionOutputOnly, "\\_SB.GPO0",
+> >                 0x00, ResourceConsumer)
+> >         {
+> >             0x004B
+> >         }
+> >         GpioInt (Level, ActiveLow, Shared, PullDefault, 0x0000,
+> >                  "\\_SB.GPO0", 0x00, ResourceConsumer)
+> >         {
+> >             0x004C
+> >         }
+> >     })
 > > 
-> > In a recent discussion with Darren we've come to the conlusion that
-> > having a parent with PRP0001 and "compatible" and a child with PRP0001 only
-> > (without "compatible") is useful in cases when one complex device is
-> > represented by a hierarchy of "device" objects (in analogy with device
-> > nodes in a DT that have no struct device representations).  Thus it isn't
-> > useful to complain that "compatible" is not present in such cases.
+> > Currently drivers need to request a GPIO corresponding to the right GpioInt
+> > and then translate that to Linux IRQ number. This adds unnecessary lines of
+> > boiler-plate code.
+> > 
+> > We can ease this a bit by introducing acpi_dev_gpio_irq_get() analogous to
+> > of_irq_get(). This function translates given GpioInt resource under the
+> > device in question to the suitable Linux IRQ number.
+> > 
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> OK, I see.
-> 
-> > Updated patch:
-> > 
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: ACPI / property: Refine consistency check for PRP0001
-> > 
-> > Refine the check for the presence of the "compatible" property
-> > if the PRP0001 device ID is present in the device's list of
-> > ACPI/PNP IDs to also print the message if _DSD is missing
-> > entirely or the format of it is incorrect.
-> > 
-> > One special case to take into accout is that the "compatible"
-> > property need not be provided for devices having the PRP0001
-> > device ID in their lists of ACPI/PNP IDs if they are ancestors
-> > of PRP0001 devices with the "compatible" property present.
-> > This is to cover heriarchies of device objects where the kernel
-> > is only supposed to use a struct device representation for the
-> > topmost one and the others represent, for example, functional
-> > blocks of a composite device.
-> > 
-> > While at it, reduce the log level of the message to "info"
-> > and reduce the log level of the "broken _DSD" message to
-> > "debug" (noise reduction).
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Still looks fine to me,
-> 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks!
+Thanks Rafael.
+
+I'm going to change the other patch a bit to address conserns from
+Wolfram so that we will use irq == 0 to indicate an invalid interrupt
+instead of -1.
