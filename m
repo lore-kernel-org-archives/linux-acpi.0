@@ -1,65 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Patch breaks suspend
-Date: Tue, 05 May 2015 14:14:35 +0200
-Message-ID: <8747459.CZQUHCQZpc@vostro.rjw.lan>
-References: <55453334.9030002@yuhu.biz> <2970725.6ieOiJg9HH@vostro.rjw.lan> <5548819A.5050503@yuhu.biz>
+Subject: Re: [PATCH] ACPI / scan: Add a scan handler for PRP0001
+Date: Tue, 05 May 2015 14:14:57 +0200
+Message-ID: <1654400.V6HOKtoCaE@vostro.rjw.lan>
+References: <3444888.xxxTREorHY@vostro.rjw.lan> <12683914.6j7dxAgR6V@vostro.rjw.lan> <20150505112425.GB1541@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63734 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752939AbbEELte (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 May 2015 07:49:34 -0400
-In-Reply-To: <5548819A.5050503@yuhu.biz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150505112425.GB1541@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Darren Hart <dvhart@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marian Marinov <mm-l@yuhu.biz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 
-On Tuesday, May 05, 2015 11:38:50 AM Marian Marinov wrote:
-> On 05/05/2015 02:37 AM, Rafael J. Wysocki wrote:
-> > On Saturday, May 02, 2015 11:27:32 PM Marian Marinov wrote:
-> >> Hi guys,
-> >> I have Lenovo T520 with one SSD and one SATA drive.
-> >>
-> >> I tried to upgrade to Linux 4.0 and found that after suspend and resume I can't access the second (SATA) drive.
-> >> Both drives have bios encryption enabled.
-> >>
-> >> I did a bisect and found that the following patch causes the issue:
-> >> commit 5d5132059a1f652de9dc2d62a8ff15561e648d11
-> >> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> Date:   Sat Feb 22 00:48:31 2014 +0100
-> >>
-> >>     ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
-> >>    
-> >>     Modify the SATA subsystem to add hotplug contexts to ACPI companions
-> >>     of SATA devices and ports instead of registering special ACPI dock
-> >>     operations using register_hotplug_dock_device().
-> >>    
-> >>     That change will allow the entire code handling those special ACPI
-> >>     dock operations to be dropped in the next commit.
-> >>    
-> >>     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>     Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-> >>     Acked-by: Tejun Heo <tj@kernel.org>
-> >>
-> >> Unfortunately I do not understand this part of the code and have no idea what I can do.
-> >> Any pointers would be very appreciated.
-> > Well, not right from the top of my head, but this looks really suspicious to me.
-> >
-> > Can you please file a bug entry for this at bugzilla.kernel.org (in the ACPI/BIOS
-> > category), assign it to me and CC Aaron?
-> BUG created: https://bugzilla.kernel.org/show_bug.cgi?id=97731
+On Tuesday, May 05, 2015 02:24:25 PM Mika Westerberg wrote:
+> On Tue, May 05, 2015 at 02:49:55AM +0200, Rafael J. Wysocki wrote:
+> > 
+> > Thanks, I have an update, though.
+> > 
+> > In a recent discussion with Darren we've come to the conlusion that
+> > having a parent with PRP0001 and "compatible" and a child with PRP0001 only
+> > (without "compatible") is useful in cases when one complex device is
+> > represented by a hierarchy of "device" objects (in analogy with device
+> > nodes in a DT that have no struct device representations).  Thus it isn't
+> > useful to complain that "compatible" is not present in such cases.
 > 
-> Added you and Aaron to the CC list.
+> OK, I see.
 > 
-> What additional info can I provide you? Would you like any debug info from the kernel it self?
-> Dmesg output?
+> > Updated patch:
+> > 
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI / property: Refine consistency check for PRP0001
+> > 
+> > Refine the check for the presence of the "compatible" property
+> > if the PRP0001 device ID is present in the device's list of
+> > ACPI/PNP IDs to also print the message if _DSD is missing
+> > entirely or the format of it is incorrect.
+> > 
+> > One special case to take into accout is that the "compatible"
+> > property need not be provided for devices having the PRP0001
+> > device ID in their lists of ACPI/PNP IDs if they are ancestors
+> > of PRP0001 devices with the "compatible" property present.
+> > This is to cover heriarchies of device objects where the kernel
+> > is only supposed to use a struct device representation for the
+> > topmost one and the others represent, for example, functional
+> > blocks of a composite device.
+> > 
+> > While at it, reduce the log level of the message to "info"
+> > and reduce the log level of the "broken _DSD" message to
+> > "debug" (noise reduction).
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Still looks fine to me,
+> 
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Let's track this one in the BZ from now on if that's not a problem.
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks!
