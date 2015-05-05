@@ -1,44 +1,48 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [V2 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
-Date: Tue, 05 May 2015 20:02:53 +0200
-Message-ID: <9405327.TMH3y4SfqS@wuerfel>
-References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com> <5548EC47.3020501@amd.com> <5548EEA3.8010101@amd.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch 2/2] x86, irq: Support CPU vector allocation policies
+Date: Tue, 5 May 2015 21:25:06 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505052116210.4225@nanos>
+References: <1430707662-28598-1-git-send-email-jiang.liu@linux.intel.com> <1430707662-28598-3-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <5548EEA3.8010101@amd.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, herbert@gondor.apana.org.au, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430707662-28598-3-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, Jonathan Corbet <corbet@lwn.net>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>, linux-doc@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 05 May 2015 11:24:03 Tom Lendacky wrote:
-> On 05/05/2015 11:13 AM, Suravee Suthikulanit wrote:
-> > On 5/5/2015 11:12 AM, Arnd Bergmann wrote:
-> >> On Tuesday 05 May 2015 11:09:38 Suravee Suthikulanit wrote:
-> >>>
-> >>> However, codes in several places are making use of dma_map_ops without
-> >>> checking if the ops are NULL (i.e.
-> >>> include/asm-generic/dma-mapping-common.h and in arch-specific
-> >>> implementation). If setting it to NULL is what we are planning to
-> >>> support, we would need to scrub the current code to put NULL check.
-> >>> Also, would you consider if that is safe to do going forward?
-> >>>
-> >>>
-> >>
-> >> I mean the dma_mask pointer, not dma_map_ops.
-> 
-> Except a lot of drivers will actually set the dma_mask pointer during
-> probe (usually by setting dev->dma_mask = &dev->coherent_dma_mask or by
-> calling dma_coerce_mask_and_coherent).  So I think the dummy_dma_ops
-> might be the safest way to go.
+On Mon, 4 May 2015, Jiang Liu wrote:
+> +enum {
+> +	/* Allocate CPU vectors from CPUs on device local node */
+> +	X86_VECTOR_POL_NODE = 0x1,
+> +	/* Allocate CPU vectors from all online CPUs */
+> +	X86_VECTOR_POL_GLOBAL = 0x2,
+> +	/* Allocate CPU vectors from caller specified CPUs */
+> +	X86_VECTOR_POL_CALLER = 0x4,
+> +	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
+> +	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
+> +}
 
-Those drivers are broken already, I don't think we should worry about
-them. Let's just fix them properly when we run into problems with them.
+> +static unsigned int vector_alloc_policy = X86_VECTOR_POL_NODE |
+> +					  X86_VECTOR_POL_GLOBAL |
+> +					  X86_VECTOR_POL_CALLER;
+  
+> +static int __init apic_parse_vector_policy(char *str)
+> +{
+> +	if (!strncmp(str, "node", 4))
+> +		vector_alloc_policy |= X86_VECTOR_POL_NODE;
 
-Basically any use of dma_coerce_mask_and_coherent() is an annotation
-for a bug where a driver used to set dev->dma_mask = &dev->coherent_dma_mask
-manually.
+This does not make sense. X86_VECTOR_POL_NODE is already set.
 
-	Arnd
+> +	else if (!strncmp(str, "global", 6))
+> +		vector_alloc_policy &= ~X86_VECTOR_POL_NODE;
+
+Why would one disable node aware allocation? We fall back to the
+global allocation anyway, if the node aware allocation fails.
+
+I'm completely missing the value of this command line option.
+
+Thanks,
+
+	tglx
