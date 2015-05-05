@@ -1,39 +1,60 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC v2 0/7] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Tue, 05 May 2015 11:10:27 +0800
-Message-ID: <554834A3.9060204@linaro.org>
-References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: Patch breaks suspend
+Date: Tue, 5 May 2015 13:47:00 +0800
+Message-ID: <20150505054700.GB5505@aaronlu.sh.intel.com>
+References: <55453334.9030002@yuhu.biz>
+ <2970725.6ieOiJg9HH@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2970725.6ieOiJg9HH@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marian Marinov <mm-l@yuhu.biz>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Gerry,
+On Tue, May 05, 2015 at 01:37:33AM +0200, Rafael J. Wysocki wrote:
+> On Saturday, May 02, 2015 11:27:32 PM Marian Marinov wrote:
+> > Hi guys,
+> > I have Lenovo T520 with one SSD and one SATA drive.
+> > 
+> > I tried to upgrade to Linux 4.0 and found that after suspend and resume I can't access the second (SATA) drive.
 
-On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
-> This patch set consolidates common code to support ACPI PCI root on x=
-86
-> and IA64 platforms into ACPI core, to reproduce duplicated code and
-> simplify maintenance. The common code should also used to support PCI
-> host bridge on ARM64 too, but I'm lacking of knowledge about PCIe hos=
-t
-> bridge implementation details on ARM64, so please help to review whet=
-her
-> this is suitable for ARM64 too.
+Is it disappeared after resume?
 
-I like the idea and direction of this patch set a lot. :)
+> > Both drives have bios encryption enabled.
+> > 
+> > I did a bisect and found that the following patch causes the issue:
+> > commit 5d5132059a1f652de9dc2d62a8ff15561e648d11
+> > Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Date:   Sat Feb 22 00:48:31 2014 +0100
+> > 
+> >     ACPI / ATA: Add hotplug contexts to ACPI companions of SATA devices
+> >    
+> >     Modify the SATA subsystem to add hotplug contexts to ACPI companions
+> >     of SATA devices and ports instead of registering special ACPI dock
+> >     operations using register_hotplug_dock_device().
+> >    
+> >     That change will allow the entire code handling those special ACPI
+> >     dock operations to be dropped in the next commit.
+> >    
+> >     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >     Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+> >     Acked-by: Tejun Heo <tj@kernel.org>
+> > 
+> > Unfortunately I do not understand this part of the code and have no idea what I can do.
+> > Any pointers would be very appreciated.
+> 
+> Well, not right from the top of my head, but this looks really suspicious to me.
+> 
+> Can you please file a bug entry for this at bugzilla.kernel.org (in the ACPI/BIOS
+> category), assign it to me and CC Aaron?
 
-I will rebase our ARM64 ACPI PCI host bridge patch on top of your
-patchset this week, then I will come up with more detail review
-comments and test results, for now, I'm pretty busy with ACPI GIC
-patches to support your stacked irqdomains :)
+Please attach dmesg, lspci and acpidump there when filing the bug, thanks.
 
-Thanks
-Hanjun
+BTW, this commit has been in upstream since v3.15, is your last kernel
+in use older than v3.15?
+
+Thanks,
+Aaron
