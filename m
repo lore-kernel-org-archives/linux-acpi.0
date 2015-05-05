@@ -1,48 +1,84 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch 2/2] x86, irq: Support CPU vector allocation policies
-Date: Tue, 5 May 2015 21:25:06 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1505052116210.4225@nanos>
-References: <1430707662-28598-1-git-send-email-jiang.liu@linux.intel.com> <1430707662-28598-3-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH 0/9] Add self-probe infrastructure and stacked irqdomain support for ACPI based GICv2/3 init
+Date: Tue, 05 May 2015 22:28:21 +0200
+Message-ID: <10866239.kAOUxUHTHm@vostro.rjw.lan>
+References: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430707662-28598-3-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dimitri Sivanich <sivanich@sgi.com>, Jonathan Corbet <corbet@lwn.net>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Cohen <david.a.cohen@linux.intel.com>, Sander Eikelenboom <linux@eikelenboom.it>, David Vrabel <david.vrabel@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>, linux-doc@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 4 May 2015, Jiang Liu wrote:
-> +enum {
-> +	/* Allocate CPU vectors from CPUs on device local node */
-> +	X86_VECTOR_POL_NODE = 0x1,
-> +	/* Allocate CPU vectors from all online CPUs */
-> +	X86_VECTOR_POL_GLOBAL = 0x2,
-> +	/* Allocate CPU vectors from caller specified CPUs */
-> +	X86_VECTOR_POL_CALLER = 0x4,
-> +	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
-> +	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
-> +}
+On Tuesday, May 05, 2015 09:50:48 PM Hanjun Guo wrote:
+> This patch set introduce self-probe infrastructure to init IRQ
+> controllers and stacked irqdomain support for ACPI based GICv2/3
+> init.
+> 
+> The self-probe infrastructure for ACPI GIC init is similar as
+> IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+> MADT table.
+> 
+> We introduce acpi_irq_domain for GICv2/3 core domain to support
+> stacked irqdomain, and pass the gsi (global system interrupt) as
+> the agument (void *arg) for gic_irq_domain_alloc(), then we can
+> alloc virqs via acpi_register_gsi() with stacked irqdomain.
+> 
+> I already compiled this patch set ok with both ACPI=on/off on
+> ARM64 and also compiled ok on x86, tested with GICv2 init on
+> FVP model and it boot successfully.
+> 
+> Next step I would consolidate all the ACPI GIC init into one
+> file -- drivers/irqchip/irq-gic-acpi.c, and introduce ITS and
+> IORT support.
+> 
+> please comment on this patchset to see if we are on the right
+> direction.
+> 
+> Hanjun Guo (6):
+>   irqchip / gic: Add GIC version support in ACPI MADT
+>   irqchip: gic: ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+>     code
+>   irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+>   ACPI / gsi: Add gsi_mutex to synchronize
+>     acpi_register_gsi()/acpi_unregister_gsi()
+>   irqchip / GICv3: Add ACPI support for GICv3+ initialization
+>   irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+> 
+> Tomasz Nowicki (3):
+>   ACPICA: Introduce GIC version for arm based system
+>   ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+>     controller
+>   irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+> 
+>  arch/arm64/Kconfig                   |   1 +
+>  arch/arm64/include/asm/irq.h         |  13 --
+>  arch/arm64/kernel/acpi.c             |  25 ----
+>  drivers/acpi/Makefile                |   1 +
+>  drivers/acpi/gsi.c                   |  39 ++---
+>  drivers/acpi/irq.c                   |  40 ++++++
+>  drivers/irqchip/Kconfig              |   3 +
+>  drivers/irqchip/Makefile             |   1 +
+>  drivers/irqchip/irq-gic-acpi.c       | 116 +++++++++++++++
+>  drivers/irqchip/irq-gic-v3.c         | 267 ++++++++++++++++++++++++++++-------
+>  drivers/irqchip/irq-gic.c            |  38 ++---
+>  drivers/irqchip/irqchip.h            |  12 ++
+>  include/acpi/actbl1.h                |  17 ++-
+>  include/asm-generic/vmlinux.lds.h    |  13 ++
+>  include/linux/acpi.h                 |  14 ++
+>  include/linux/acpi_irq.h             |   4 +-
+>  include/linux/irqchip/arm-gic-acpi.h |  12 +-
+>  include/linux/mod_devicetable.h      |   7 +
+>  18 files changed, 489 insertions(+), 134 deletions(-)
+>  create mode 100644 drivers/acpi/irq.c
+>  create mode 100644 drivers/irqchip/irq-gic-acpi.c
 
-> +static unsigned int vector_alloc_policy = X86_VECTOR_POL_NODE |
-> +					  X86_VECTOR_POL_GLOBAL |
-> +					  X86_VECTOR_POL_CALLER;
-  
-> +static int __init apic_parse_vector_policy(char *str)
-> +{
-> +	if (!strncmp(str, "node", 4))
-> +		vector_alloc_policy |= X86_VECTOR_POL_NODE;
+What's the connection between this and the Jiang Liu's patchset?
 
-This does not make sense. X86_VECTOR_POL_NODE is already set.
 
-> +	else if (!strncmp(str, "global", 6))
-> +		vector_alloc_policy &= ~X86_VECTOR_POL_NODE;
-
-Why would one disable node aware allocation? We fall back to the
-global allocation anyway, if the node aware allocation fails.
-
-I'm completely missing the value of this command line option.
-
-Thanks,
-
-	tglx
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
