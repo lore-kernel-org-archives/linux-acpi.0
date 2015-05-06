@@ -1,96 +1,49 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch v2] x86, irq: Support CPU vector allocation policies
-Date: Wed, 6 May 2015 12:22:02 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1505061216390.4225@nanos>
-References: <alpine.DEB.2.11.1505052116210.4225@nanos> <1430901368-20686-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 2/3] i2c / ACPI: Use 0 to indicate that device does not have interrupt assigned
+Date: Wed,  6 May 2015 13:29:07 +0300
+Message-ID: <1430908148-201129-3-git-send-email-mika.westerberg@linux.intel.com>
+References: <1430908148-201129-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:55218 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750816AbbEFKWT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2015 06:22:19 -0400
-In-Reply-To: <1430901368-20686-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:12841 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751036AbbEFK3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2015 06:29:14 -0400
+In-Reply-To: <1430908148-201129-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
 
-On Wed, 6 May 2015, Jiang Liu wrote:
-> Hi Thomas,
-> 	This is the simplified version, which removed the kernel parameter.
-> Seems much simpler:)
+This is the convention used in most parts of the kernel including DT
+counterpart of I2C slave enumeration. To make things consistent do the same
+for ACPI I2C slave enumeration path as well.
 
-But it can be made even simpler. :)
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/i2c/i2c-core.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 987c124432c5..c21b3de70234 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -107,7 +107,7 @@ static int acpi_i2c_add_resource(struct acpi_resource *ares, void *data)
+ 			if (sb->access_mode == ACPI_I2C_10BIT_MODE)
+ 				info->flags |= I2C_CLIENT_TEN;
+ 		}
+-	} else if (info->irq < 0) {
++	} else if (!info->irq) {
+ 		struct resource r;
  
-> +enum {
-> +	/* Allocate CPU vectors from CPUs on device local node */
-> +	X86_VECTOR_POL_NODE = 0x1,
-> +	/* Allocate CPU vectors from all online CPUs */
-> +	X86_VECTOR_POL_GLOBAL = 0x2,
-> +	/* Allocate CPU vectors from caller specified CPUs */
-> +	X86_VECTOR_POL_CALLER = 0x4,
-> +	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
-> +	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
-> +};
+ 		if (acpi_dev_resource_interrupt(ares, 0, &r))
+@@ -134,7 +134,6 @@ static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
+ 
+ 	memset(&info, 0, sizeof(info));
+ 	info.fwnode = acpi_fwnode_handle(adev);
+-	info.irq = -1;
+ 
+ 	INIT_LIST_HEAD(&resource_list);
+ 	ret = acpi_dev_get_resources(adev, &resource_list,
+-- 
+2.1.4
 
-  
-> +static int assign_irq_vector_policy(int irq, int node,
-> +				    struct apic_chip_data *data,
-> +				    struct irq_alloc_info *info)
-> +{
-> +	int err = -EBUSY;
-> +	unsigned int policy;
-> +	const struct cpumask *mask;
-> +
-> +	if (info && info->mask)
-> +		policy = X86_VECTOR_POL_CALLER;
-> +	else
-> +		policy = X86_VECTOR_POL_MIN;
-> +
-> +	for (; policy <= X86_VECTOR_POL_MAX; policy <<= 1) {
-> +		switch (policy) {
-> +		case X86_VECTOR_POL_NODE:
-> +			if (node >= 0)
-> +				mask = cpumask_of_node(node);
-> +			else
-> +				mask = NULL;
-> +			break;
-> +		case X86_VECTOR_POL_GLOBAL:
-> +			mask = apic->target_cpus();
-> +			break;
-> +		case X86_VECTOR_POL_CALLER:
-> +			if (info && info->mask)
-> +				mask = info->mask;
-> +			else
-> +				mask = NULL;
-> +			break;
-> +		default:
-> +			mask = NULL;
-> +			break;
-> +		}
-> +		if (mask) {
-> +			err = assign_irq_vector(irq, data, mask);
-> +			if (!err)
-> +				return 0;
-> +		}
-> +	}
-
-This looks pretty overengineered now that you don't have that parameter check.
-
-	if (info && info->mask)
-		return assign_irq_vector(irq, data, info->mask);
-
-	if (node >= 0) {
-		err = assign_irq_vector(irq, data, cpumask_of_node(node));
-		if (!err)
-			return 0;
-	}
-
-	return assign_irq_vector(irq, data, apic->target_cpus());
-
-Should do the same, right?
-
-Thanks,
-
-	tglx
