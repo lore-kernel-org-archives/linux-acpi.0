@@ -1,71 +1,96 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [V2 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
-Date: Wed, 06 May 2015 11:08:52 +0100
-Message-ID: <5549E834.1040305@arm.com>
-References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1430838729-21572-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch v2] x86, irq: Support CPU vector allocation policies
+Date: Wed, 6 May 2015 12:22:02 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505061216390.4225@nanos>
+References: <alpine.DEB.2.11.1505052116210.4225@nanos> <1430901368-20686-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:23864 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750743AbbEFKMM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 May 2015 06:12:12 -0400
-In-Reply-To: <1430838729-21572-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+Received: from www.linutronix.de ([62.245.132.108]:55218 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750816AbbEFKWT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2015 06:22:19 -0400
+In-Reply-To: <1430901368-20686-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "al.stone@linaro.org" <al.stone@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>
 
-Hi Suravee,
+On Wed, 6 May 2015, Jiang Liu wrote:
+> Hi Thomas,
+> 	This is the simplified version, which removed the kernel parameter.
+> Seems much simpler:)
 
-On 05/05/15 16:12, Suravee Suthikulpanit wrote:
->  From http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf,
-> section 6.2.17 _CCA states that ARM platforms require ACPI _CCA
-> object to be specified for DMA-cabpable devices. This patch introduces
-> ACPI_MUST_HAVE_CCA in arm64 Kconfig to specify such requirement.
->
-> In this case of missing _CCA, arm64 would assign dummy_dma_ops
-> to disable DMA capability of the device.
->
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
+But it can be made even simpler. :)
+ 
+> +enum {
+> +	/* Allocate CPU vectors from CPUs on device local node */
+> +	X86_VECTOR_POL_NODE = 0x1,
+> +	/* Allocate CPU vectors from all online CPUs */
+> +	X86_VECTOR_POL_GLOBAL = 0x2,
+> +	/* Allocate CPU vectors from caller specified CPUs */
+> +	X86_VECTOR_POL_CALLER = 0x4,
+> +	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
+> +	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
+> +};
 
-[...]
-> +static void __dummy_sync_single_for_cpu(struct device *dev,
-> +					dma_addr_t dev_addr, size_t size,
-> +					enum dma_data_direction dir)
+  
+> +static int assign_irq_vector_policy(int irq, int node,
+> +				    struct apic_chip_data *data,
+> +				    struct irq_alloc_info *info)
 > +{
-> +}
+> +	int err = -EBUSY;
+> +	unsigned int policy;
+> +	const struct cpumask *mask;
 > +
-> +static void __dummy_sync_single_for_device(struct device *dev,
-> +					   dma_addr_t dev_addr, size_t size,
-> +					   enum dma_data_direction dir)
-> +{
-> +}
-
-Minor point, but I don't see the need to have multiple dummy functions 
-with identical signatures - just have a generic dummy_sync_single and 
-assign it to both ops.
-
-> +static void __dummy_sync_sg_for_cpu(struct device *dev,
-> +				    struct scatterlist *sgl, int nelems,
-> +				    enum dma_data_direction dir)
-> +{
-> +}
+> +	if (info && info->mask)
+> +		policy = X86_VECTOR_POL_CALLER;
+> +	else
+> +		policy = X86_VECTOR_POL_MIN;
 > +
-> +static void __dummy_sync_sg_for_device(struct device *dev,
-> +				       struct scatterlist *sgl, int nelems,
-> +				       enum dma_data_direction dir)
-> +{
-> +}
+> +	for (; policy <= X86_VECTOR_POL_MAX; policy <<= 1) {
+> +		switch (policy) {
+> +		case X86_VECTOR_POL_NODE:
+> +			if (node >= 0)
+> +				mask = cpumask_of_node(node);
+> +			else
+> +				mask = NULL;
+> +			break;
+> +		case X86_VECTOR_POL_GLOBAL:
+> +			mask = apic->target_cpus();
+> +			break;
+> +		case X86_VECTOR_POL_CALLER:
+> +			if (info && info->mask)
+> +				mask = info->mask;
+> +			else
+> +				mask = NULL;
+> +			break;
+> +		default:
+> +			mask = NULL;
+> +			break;
+> +		}
+> +		if (mask) {
+> +			err = assign_irq_vector(irq, data, mask);
+> +			if (!err)
+> +				return 0;
+> +		}
+> +	}
 
-Ditto here with dummy_sync_sg.
+This looks pretty overengineered now that you don't have that parameter check.
 
-I wonder if there's any argument for putting the dummy DMA ops somewhere 
-common, like drivers/base/dma-mapping.c?
+	if (info && info->mask)
+		return assign_irq_vector(irq, data, info->mask);
 
-Robin.
+	if (node >= 0) {
+		err = assign_irq_vector(irq, data, cpumask_of_node(node));
+		if (!err)
+			return 0;
+	}
 
+	return assign_irq_vector(irq, data, apic->target_cpus());
+
+Should do the same, right?
+
+Thanks,
+
+	tglx
