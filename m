@@ -1,59 +1,99 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: Detecting that a battery is inside a dock?
-Date: Wed, 06 May 2015 16:20:17 +0200
-Message-ID: <1430922017.2786.10.camel@hadess.net>
-References: <1430320098.2525.105.camel@hadess.net>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH 0/9] Add self-probe infrastructure and stacked
+ irqdomain support for ACPI based GICv2/3 init
+Date: Wed, 6 May 2015 15:25:51 +0100
+Message-ID: <20150506142551.GD26028@red-moon>
+References: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org>
+ <10866239.kAOUxUHTHm@vostro.rjw.lan>
+ <554983D0.9030208@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51961 "EHLO
-	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751606AbbEFOUU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2015 10:20:20 -0400
-Received: from mfilter9-d.gandi.net (mfilter9-d.gandi.net [217.70.178.138])
-	by relay5-d.mail.gandi.net (Postfix) with ESMTP id 5FC4941C1CB
-	for <linux-acpi@vger.kernel.org>; Wed,  6 May 2015 16:20:19 +0200 (CEST)
-Received: from relay5-d.mail.gandi.net ([217.70.183.197])
-	by mfilter9-d.gandi.net (mfilter9-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id Ag0M-6CJFW6n for <linux-acpi@vger.kernel.org>;
-	Wed,  6 May 2015 16:20:16 +0200 (CEST)
-Received: from nuvo (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
-	(Authenticated sender: hadess@hadess.net)
-	by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id 045BE41C1AA
-	for <linux-acpi@vger.kernel.org>; Wed,  6 May 2015 16:20:17 +0200 (CEST)
-In-Reply-To: <1430320098.2525.105.camel@hadess.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <554983D0.9030208@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-On Wed, 2015-04-29 at 17:08 +0200, Bastien Nocera wrote:
-> Hey,
+On Wed, May 06, 2015 at 04:00:32AM +0100, Hanjun Guo wrote:
+> On 2015???05???06??? 04:28, Rafael J. Wysocki wrote:
+> > On Tuesday, May 05, 2015 09:50:48 PM Hanjun Guo wrote:
+> >> This patch set introduce self-probe infrastructure to init IRQ
+> >> controllers and stacked irqdomain support for ACPI based GICv2/3
+> >> init.
+> >>
+> >> The self-probe infrastructure for ACPI GIC init is similar as
+> >> IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+> >> MADT table.
+> >>
+> >> We introduce acpi_irq_domain for GICv2/3 core domain to support
+> >> stacked irqdomain, and pass the gsi (global system interrupt) as
+> >> the agument (void *arg) for gic_irq_domain_alloc(), then we can
+> >> alloc virqs via acpi_register_gsi() with stacked irqdomain.
+> >>
+> >> I already compiled this patch set ok with both ACPI=on/off on
+> >> ARM64 and also compiled ok on x86, tested with GICv2 init on
+> >> FVP model and it boot successfully.
+> >>
+> >> Next step I would consolidate all the ACPI GIC init into one
+> >> file -- drivers/irqchip/irq-gic-acpi.c, and introduce ITS and
+> >> IORT support.
+> >>
+> >> please comment on this patchset to see if we are on the right
+> >> direction.
+> >>
+> >> Hanjun Guo (6):
+> >>    irqchip / gic: Add GIC version support in ACPI MADT
+> >>    irqchip: gic: ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+> >>      code
+> >>    irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+> >>    ACPI / gsi: Add gsi_mutex to synchronize
+> >>      acpi_register_gsi()/acpi_unregister_gsi()
+> >>    irqchip / GICv3: Add ACPI support for GICv3+ initialization
+> >>    irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+> >>
+> >> Tomasz Nowicki (3):
+> >>    ACPICA: Introduce GIC version for arm based system
+> >>    ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+> >>      controller
+> >>    irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+> >>
+> >>   arch/arm64/Kconfig                   |   1 +
+> >>   arch/arm64/include/asm/irq.h         |  13 --
+> >>   arch/arm64/kernel/acpi.c             |  25 ----
+> >>   drivers/acpi/Makefile                |   1 +
+> >>   drivers/acpi/gsi.c                   |  39 ++---
+> >>   drivers/acpi/irq.c                   |  40 ++++++
+> >>   drivers/irqchip/Kconfig              |   3 +
+> >>   drivers/irqchip/Makefile             |   1 +
+> >>   drivers/irqchip/irq-gic-acpi.c       | 116 +++++++++++++++
+> >>   drivers/irqchip/irq-gic-v3.c         | 267 ++++++++++++++++++++++++++++-------
+> >>   drivers/irqchip/irq-gic.c            |  38 ++---
+> >>   drivers/irqchip/irqchip.h            |  12 ++
+> >>   include/acpi/actbl1.h                |  17 ++-
+> >>   include/asm-generic/vmlinux.lds.h    |  13 ++
+> >>   include/linux/acpi.h                 |  14 ++
+> >>   include/linux/acpi_irq.h             |   4 +-
+> >>   include/linux/irqchip/arm-gic-acpi.h |  12 +-
+> >>   include/linux/mod_devicetable.h      |   7 +
+> >>   18 files changed, 489 insertions(+), 134 deletions(-)
+> >>   create mode 100644 drivers/acpi/irq.c
+> >>   create mode 100644 drivers/irqchip/irq-gic-acpi.c
+> >
+> > What's the connection between this and the Jiang Liu's patchset?
 > 
-> I have access to a convertible Toshiba machine where the 2nd battery 
-> is in detachable keyboard. This is the decompiled DSDT:
-> https://hadess.fedorapeople.org/toshiba.dsl
-> 
-> There's no BAT0, BAT1 is in the screen, and BAT2 is in the keyboard.
-> 
-> BAT2 can be ejected (it has an _EJD method), but the dock code 
-> doesn't 
-> see it as having a battery:
-> $ pwd
-> /sys/devices/platform/dock.0
-> $ cat flags
-> 16
-> $ cat type
-> dock_station
-> 
-> Any ideas what might be missing here?
-> 
-> I'd eventually like to be able to say that, if I can detect that the 
-> battery is inside the dock, to mark it as such in the UI[1] (even 
-> better would be to say it's "in the keyboard" but I'm not sure we 
-> can 
-> easily detect that).
+> If you are mentioning Jiang Liu's patchset (Consolidate ACPI PCI
+> root common code into ACPI core), there is no direct connection
+> with my patchset, but this patch set is based on stacked irqdomain
+> which was introduced by Jiang Liu, and this is needed to support
+> PCI MSI on ARM64 in ACPI way.
 
-Anyone?
+Well, there is no direct connection but the two sets are fundamental
+to get PCIe ACPI support on arm64, as you mentioned this patchset is a
+requirement (stacked domains) for introducing ACPI PCI MSI support on
+arm64, that should be done with a separate patch on top of this series
+(I have one but first I have to find a decent solution for
+ACPI MSI frame <-> device matching).
 
-> [1]: https://bugzilla.gnome.org/show_bug.cgi?id=748592
+Lorenzo
