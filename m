@@ -1,166 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [V2 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
-Date: Thu, 07 May 2015 00:21:44 +0200
-Message-ID: <4573209.dHyztuCFMt@vostro.rjw.lan>
-References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com> <3234610.3j3NfP3xpR@vostro.rjw.lan> <55499569.8060403@amd.com>
+Subject: Re: Detecting that a battery is inside a dock?
+Date: Thu, 07 May 2015 00:26:25 +0200
+Message-ID: <238522372.SKjufVyRkH@vostro.rjw.lan>
+References: <1430320098.2525.105.camel@hadess.net> <1430922017.2786.10.camel@hadess.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61035 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:62617 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750868AbbEFV4m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2015 17:56:42 -0400
-In-Reply-To: <55499569.8060403@amd.com>
+	with SMTP id S1750868AbbEFWBW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2015 18:01:22 -0400
+In-Reply-To: <1430922017.2786.10.camel@hadess.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, arnd@arndb.de, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Bastien Nocera <hadess@hadess.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, May 05, 2015 11:15:37 PM Suravee Suthikulpanit wrote:
-> [RESEND]
+On Wednesday, May 06, 2015 04:20:17 PM Bastien Nocera wrote:
+> On Wed, 2015-04-29 at 17:08 +0200, Bastien Nocera wrote:
+> > Hey,
+> > 
+> > I have access to a convertible Toshiba machine where the 2nd battery 
+> > is in detachable keyboard. This is the decompiled DSDT:
+> > https://hadess.fedorapeople.org/toshiba.dsl
+> > 
+> > There's no BAT0, BAT1 is in the screen, and BAT2 is in the keyboard.
+> > 
+> > BAT2 can be ejected (it has an _EJD method), but the dock code 
+> > doesn't 
+> > see it as having a battery:
+> > $ pwd
+> > /sys/devices/platform/dock.0
+> > $ cat flags
+> > 16
+> > $ cat type
+> > dock_station
+> > 
+> > Any ideas what might be missing here?
+> > 
+> > I'd eventually like to be able to say that, if I can detect that the 
+> > battery is inside the dock, to mark it as such in the UI[1] (even 
+> > better would be to say it's "in the keyboard" but I'm not sure we 
+> > can 
+> > easily detect that).
 > 
-> On 5/5/15 15:36, Rafael J. Wysocki wrote:
-> > On Tuesday, May 05, 2015 10:12:05 AM Suravee Suthikulpanit wrote:
-> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> >> index ab2cbb5..dd386e9 100644
-> >> --- a/drivers/acpi/Kconfig
-> >> +++ b/drivers/acpi/Kconfig
-> >> @@ -54,6 +54,12 @@ config ACPI_GENERIC_GSI
-> >>   config ACPI_SYSTEM_POWER_STATES_SUPPORT
-> >>   	bool
-> >>
-> >> +config ACPI_MUST_HAVE_CCA
-> >
-> > ACPI_CCA_REQUIRED maybe?
-> 
-> Sure.
-> 
-> >
-> >> +	bool
-> >> +
-> >> +config ACPI_SUPPORT_CCA_ZERO
-> >
-> > I guess this means "we support devices that can DMA, but are not coherent".
-> > right?
-> 
-> Yes, basically when _CCA=0.
+> Anyone?
 
-So what about
+Not now, sorry.  Too many things are going on in parallel and this one is
+not the most urgent of them.
 
-	ARCH_SUPPORT_CACHE_INCOHERENT_DMA
-
-or something similar?
-
-> >> +	bool
-> >> +
-> >>   config ACPI_SLEEP
-> >>   	bool
-> >>   	depends on SUSPEND || HIBERNATION
-> >> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> >> index 4bf7559..a6feca4 100644
-> >> --- a/drivers/acpi/acpi_platform.c
-> >> +++ b/drivers/acpi/acpi_platform.c
-> >> @@ -108,9 +108,11 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
-> >>   	if (IS_ERR(pdev))
-> >>   		dev_err(&adev->dev, "platform device creation failed: %ld\n",
-> >>   			PTR_ERR(pdev));
-> >> -	else
-> >> +	else {
-> >
-> > Please add braces to both branches when making such changes (as per CodingStyle).
-> >
-> 
-> OK.
-> 
-> >> +		acpi_setup_device_dma(adev, &pdev->dev);
-> >
-> > Why do we need to do that here (for the second time)?
-> 
-> Because we are calling:
->    acpi_create_platform_device()
->      |--> platform_device_register_device_full()
->        |-->platform_device_alloc()
-> 
-> This creates platform_device, which allocate a new platform_device->dev. 
-> This is not the same as the original acpi_device->dev that was created 
-> during acpi_add_single_object(). So, we have to set up the device 
-> coherency again.
-
-Ah, so the second arg is different now.
-
-Well, in that case, why do we need to set it up for the adev's dev member?
-
-> >> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> >> index 849b699..ac33b29 100644
-> >> --- a/drivers/acpi/scan.c
-> >> +++ b/drivers/acpi/scan.c
-> >> @@ -11,6 +11,7 @@
-> >>   #include <linux/kthread.h>
-> >>   #include <linux/dmi.h>
-> >>   #include <linux/nls.h>
-> >> +#include <linux/dma-mapping.h>
-> >>
-> >>   #include <asm/pgtable.h>
-> >>
-> >> @@ -2137,6 +2138,66 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp)
-> >>   	kfree(pnp->unique_id);
-> >>   }
-> >>
-> >> +void acpi_setup_device_dma(struct acpi_device *adev, struct device *dev)
-> >> +{
-> >> +	int coherent = acpi_dma_is_coherent(adev);
-> >> +
-> >> +	/**
-> >> +	 * Currently, we only support DMA for devices that _CCA=1
-> >> +	 * since this seems to be the case on most ACPI platforms.
-> >> +	 *
-> >> +	 * For the case when _CCA=0 (i.e. is_coherent=0 && cca_seen=1),
-> >> +	 * we would rely on arch-specific cache maintenance for
-> >> +	 * non-coherence DMA operations if architecture enables
-> >> +	 * CONFIG_ACPI_SUPPORT_CCA_ZERO.
-> >> +	 *
-> >> +	 * For the case when _CCA is missing but platform requires it
-> >> +	 * (i.e. is_coherent=0 && cca_seen=0), we do not call
-> >> +	 * arch_setup_dma_ops() and fallback to arch-specific default
-> >> +	 * handling.
-> >> +	 */
-> >> +	if (adev->flags.cca_seen) {
-> >> +		if (!coherent && !IS_ENABLED(CONFIG_ACPI_SUPPORT_CCA_ZERO))
-> >> +			return;
-> >> +		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
-> >
-> > Oh dear.
-> 
-> I made a mistake here. This logic should also call arch_setup_dma_ops() 
-> when cca_seen=0 and coherent=1 (e.g. when _CCA is not required and 
-> default to coherent when it is missing). The current logic doesn't do that.
-> 
-> >
-> > What about
-> >
-> > 	if (adev->flags.cca_seen && (coherent || IS_ENABLED(CONFIG_ACPI_SUPPORT_CCA_ZERO)))
-> > 		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
-> 
-> What about:
-> 	if (coherent ||
-> 	    (adev->flags.cca_seen &&
-> 			IS_ENABLED(CONFIG_ACPI_SUPPORT_CCA_ZERO))
-> 		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
-
-Yes, that works.
-
-> > I wonder how this is going to affect x86/ia64 too?
-> >
-> 
-> This should not affect x86 since arch_setup_dma_ops() is currently not 
-> implement for x86, and default to NOP (see include/linux/dma-mapping.h). 
-
-OK
-
->   Also, on x86, _CCA is not required and default to 1 if missing.
-
-Well, that's the point. :-)
+Please file a bug for it at bugzilla.kernel.org in the ACPI category, so it's
+not forgotten.  Those bugs are looked at on a regular basis, so we'll get to
+it at one point.
 
 
 -- 
