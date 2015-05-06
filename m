@@ -1,153 +1,71 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2] x86, irq: Support CPU vector allocation policies
-Date: Wed,  6 May 2015 16:36:00 +0800
-Message-ID: <1430901368-20686-1-git-send-email-jiang.liu@linux.intel.com>
-References: <alpine.DEB.2.11.1505052116210.4225@nanos>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [V2 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
+Date: Wed, 06 May 2015 11:08:52 +0100
+Message-ID: <5549E834.1040305@arm.com>
+References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1430838729-21572-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55134 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752653AbbEFId6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 May 2015 04:33:58 -0400
-In-Reply-To: <alpine.DEB.2.11.1505052116210.4225@nanos>
+Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:23864 "EHLO
+	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750743AbbEFKMM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2015 06:12:12 -0400
+In-Reply-To: <1430838729-21572-3-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Daniel J Blueman <daniel@numascale.com>
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "al.stone@linaro.org" <al.stone@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>
 
-On NUMA systems, an IO device may be associated with a NUMA node.
-It may improve IO performance to allocate resources, such as memory
-and interrupts, from device local node.
+Hi Suravee,
 
-This patch introduces a mechanism to support CPU vector allocation
-policies. It tries to allocate CPU vectors from CPUs on device local
-node first, and then fallback to all online(global) CPUs.
+On 05/05/15 16:12, Suravee Suthikulpanit wrote:
+>  From http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf,
+> section 6.2.17 _CCA states that ARM platforms require ACPI _CCA
+> object to be specified for DMA-cabpable devices. This patch introduces
+> ACPI_MUST_HAVE_CCA in arm64 Kconfig to specify such requirement.
+>
+> In this case of missing _CCA, arm64 would assign dummy_dma_ops
+> to disable DMA capability of the device.
+>
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
 
-This mechanism may be used to support NumaConnect systems to allocate
-CPU vectors from device local node.
+[...]
+> +static void __dummy_sync_single_for_cpu(struct device *dev,
+> +					dma_addr_t dev_addr, size_t size,
+> +					enum dma_data_direction dir)
+> +{
+> +}
+> +
+> +static void __dummy_sync_single_for_device(struct device *dev,
+> +					   dma_addr_t dev_addr, size_t size,
+> +					   enum dma_data_direction dir)
+> +{
+> +}
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Daniel J Blueman <daniel@numascale.com>
----
-Hi Thomas,
-	This is the simplified version, which removed the kernel parameter.
-Seems much simpler:)
+Minor point, but I don't see the need to have multiple dummy functions 
+with identical signatures - just have a generic dummy_sync_single and 
+assign it to both ops.
 
-Thanks!
-Gerry
----
- arch/x86/kernel/apic/vector.c |   66 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 9 deletions(-)
+> +static void __dummy_sync_sg_for_cpu(struct device *dev,
+> +				    struct scatterlist *sgl, int nelems,
+> +				    enum dma_data_direction dir)
+> +{
+> +}
+> +
+> +static void __dummy_sync_sg_for_device(struct device *dev,
+> +				       struct scatterlist *sgl, int nelems,
+> +				       enum dma_data_direction dir)
+> +{
+> +}
 
-diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
-index 1c7dd42b98c1..44363ccce9b5 100644
---- a/arch/x86/kernel/apic/vector.c
-+++ b/arch/x86/kernel/apic/vector.c
-@@ -28,6 +28,17 @@ struct apic_chip_data {
- 	u8			move_in_progress : 1;
- };
- 
-+enum {
-+	/* Allocate CPU vectors from CPUs on device local node */
-+	X86_VECTOR_POL_NODE = 0x1,
-+	/* Allocate CPU vectors from all online CPUs */
-+	X86_VECTOR_POL_GLOBAL = 0x2,
-+	/* Allocate CPU vectors from caller specified CPUs */
-+	X86_VECTOR_POL_CALLER = 0x4,
-+	X86_VECTOR_POL_MIN = X86_VECTOR_POL_NODE,
-+	X86_VECTOR_POL_MAX = X86_VECTOR_POL_CALLER,
-+};
-+
- struct irq_domain *x86_vector_domain;
- static DEFINE_RAW_SPINLOCK(vector_lock);
- static cpumask_var_t vector_cpumask;
-@@ -258,12 +269,6 @@ void copy_irq_alloc_info(struct irq_alloc_info *dst, struct irq_alloc_info *src)
- 		memset(dst, 0, sizeof(*dst));
- }
- 
--static inline const struct cpumask *
--irq_alloc_info_get_mask(struct irq_alloc_info *info)
--{
--	return (!info || !info->mask) ? apic->target_cpus() : info->mask;
--}
--
- static void x86_vector_free_irqs(struct irq_domain *domain,
- 				 unsigned int virq, unsigned int nr_irqs)
- {
-@@ -284,12 +289,55 @@ static void x86_vector_free_irqs(struct irq_domain *domain,
- 	}
- }
- 
-+static int assign_irq_vector_policy(int irq, int node,
-+				    struct apic_chip_data *data,
-+				    struct irq_alloc_info *info)
-+{
-+	int err = -EBUSY;
-+	unsigned int policy;
-+	const struct cpumask *mask;
-+
-+	if (info && info->mask)
-+		policy = X86_VECTOR_POL_CALLER;
-+	else
-+		policy = X86_VECTOR_POL_MIN;
-+
-+	for (; policy <= X86_VECTOR_POL_MAX; policy <<= 1) {
-+		switch (policy) {
-+		case X86_VECTOR_POL_NODE:
-+			if (node >= 0)
-+				mask = cpumask_of_node(node);
-+			else
-+				mask = NULL;
-+			break;
-+		case X86_VECTOR_POL_GLOBAL:
-+			mask = apic->target_cpus();
-+			break;
-+		case X86_VECTOR_POL_CALLER:
-+			if (info && info->mask)
-+				mask = info->mask;
-+			else
-+				mask = NULL;
-+			break;
-+		default:
-+			mask = NULL;
-+			break;
-+		}
-+		if (mask) {
-+			err = assign_irq_vector(irq, data, mask);
-+			if (!err)
-+				return 0;
-+		}
-+	}
-+
-+	return err;
-+}
-+
- static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 				 unsigned int nr_irqs, void *arg)
- {
- 	struct irq_alloc_info *info = arg;
- 	struct apic_chip_data *data;
--	const struct cpumask *mask;
- 	struct irq_data *irq_data;
- 	int i, err;
- 
-@@ -300,7 +348,6 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 	if ((info->flags & X86_IRQ_ALLOC_CONTIGUOUS_VECTORS) && nr_irqs > 1)
- 		return -ENOSYS;
- 
--	mask = irq_alloc_info_get_mask(info);
- 	for (i = 0; i < nr_irqs; i++) {
- 		irq_data = irq_domain_get_irq_data(domain, virq + i);
- 		BUG_ON(!irq_data);
-@@ -318,7 +365,8 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
- 		irq_data->chip = &lapic_controller;
- 		irq_data->chip_data = data;
- 		irq_data->hwirq = virq + i;
--		err = assign_irq_vector(virq, data, mask);
-+		err = assign_irq_vector_policy(virq, irq_data->node, data,
-+					       info);
- 		if (err)
- 			goto error;
- 	}
--- 
-1.7.10.4
+Ditto here with dummy_sync_sg.
+
+I wonder if there's any argument for putting the dummy DMA ops somewhere 
+common, like drivers/base/dma-mapping.c?
+
+Robin.
 
