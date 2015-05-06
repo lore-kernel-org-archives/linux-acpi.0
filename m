@@ -1,43 +1,95 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPICA: Divergence: Remove redundant definitions.
-Date: Wed,  6 May 2015 10:57:53 +0800
-Message-ID: <34f53a89dcef23c362071f5ee48038494d940e9d.1430880973.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:13490 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756364AbbEFC6K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 May 2015 22:58:10 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC PATCH 0/9] Add self-probe infrastructure and stacked irqdomain
+ support for ACPI based GICv2/3 init
+Date: Wed, 06 May 2015 11:00:32 +0800
+Message-ID: <554983D0.9030208@linaro.org>
+References: <1430833857-30736-1-git-send-email-hanjun.guo@linaro.org> <10866239.kAOUxUHTHm@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <10866239.kAOUxUHTHm@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-There are two same "define"s in the actypes.h for ACPI_USE_NATIVE_DIVIDE,
-this patch removes one of them as it is useless and is not in the ACPICA
-upstream. It is likely that the useless block is there because of the
-issues in the old ACPICA release process.
+On 2015=E5=B9=B405=E6=9C=8806=E6=97=A5 04:28, Rafael J. Wysocki wrote:
+> On Tuesday, May 05, 2015 09:50:48 PM Hanjun Guo wrote:
+>> This patch set introduce self-probe infrastructure to init IRQ
+>> controllers and stacked irqdomain support for ACPI based GICv2/3
+>> init.
+>>
+>> The self-probe infrastructure for ACPI GIC init is similar as
+>> IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+>> MADT table.
+>>
+>> We introduce acpi_irq_domain for GICv2/3 core domain to support
+>> stacked irqdomain, and pass the gsi (global system interrupt) as
+>> the agument (void *arg) for gic_irq_domain_alloc(), then we can
+>> alloc virqs via acpi_register_gsi() with stacked irqdomain.
+>>
+>> I already compiled this patch set ok with both ACPI=3Don/off on
+>> ARM64 and also compiled ok on x86, tested with GICv2 init on
+>> FVP model and it boot successfully.
+>>
+>> Next step I would consolidate all the ACPI GIC init into one
+>> file -- drivers/irqchip/irq-gic-acpi.c, and introduce ITS and
+>> IORT support.
+>>
+>> please comment on this patchset to see if we are on the right
+>> direction.
+>>
+>> Hanjun Guo (6):
+>>    irqchip / gic: Add GIC version support in ACPI MADT
+>>    irqchip: gic: ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 in=
+it
+>>      code
+>>    irqchip / gic: Add stacked irqdomain support for ACPI based GICv2=
+ init
+>>    ACPI / gsi: Add gsi_mutex to synchronize
+>>      acpi_register_gsi()/acpi_unregister_gsi()
+>>    irqchip / GICv3: Add ACPI support for GICv3+ initialization
+>>    irqchip / GICv3: Add stacked irqdomain support for ACPI based ini=
+t
+>>
+>> Tomasz Nowicki (3):
+>>    ACPICA: Introduce GIC version for arm based system
+>>    ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+>>      controller
+>>    irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+>>
+>>   arch/arm64/Kconfig                   |   1 +
+>>   arch/arm64/include/asm/irq.h         |  13 --
+>>   arch/arm64/kernel/acpi.c             |  25 ----
+>>   drivers/acpi/Makefile                |   1 +
+>>   drivers/acpi/gsi.c                   |  39 ++---
+>>   drivers/acpi/irq.c                   |  40 ++++++
+>>   drivers/irqchip/Kconfig              |   3 +
+>>   drivers/irqchip/Makefile             |   1 +
+>>   drivers/irqchip/irq-gic-acpi.c       | 116 +++++++++++++++
+>>   drivers/irqchip/irq-gic-v3.c         | 267 +++++++++++++++++++++++=
++++++-------
+>>   drivers/irqchip/irq-gic.c            |  38 ++---
+>>   drivers/irqchip/irqchip.h            |  12 ++
+>>   include/acpi/actbl1.h                |  17 ++-
+>>   include/asm-generic/vmlinux.lds.h    |  13 ++
+>>   include/linux/acpi.h                 |  14 ++
+>>   include/linux/acpi_irq.h             |   4 +-
+>>   include/linux/irqchip/arm-gic-acpi.h |  12 +-
+>>   include/linux/mod_devicetable.h      |   7 +
+>>   18 files changed, 489 insertions(+), 134 deletions(-)
+>>   create mode 100644 drivers/acpi/irq.c
+>>   create mode 100644 drivers/irqchip/irq-gic-acpi.c
+>
+> What's the connection between this and the Jiang Liu's patchset?
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/actypes.h |    5 -----
- 1 file changed, 5 deletions(-)
+If you are mentioning Jiang Liu's patchset (Consolidate ACPI PCI
+root common code into ACPI core), there is no direct connection
+with my patchset, but this patch set is based on stacked irqdomain
+which was introduced by Jiang Liu, and this is needed to support
+PCI MSI on ARM64 in ACPI way.
 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 792c1a0..5298976b 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -472,11 +472,6 @@ typedef u8 acpi_owner_id;
- 
- #define ACPI_INTEGER_BIT_SIZE           64
- #define ACPI_MAX_DECIMAL_DIGITS         20	/* 2^64 = 18,446,744,073,709,551,616 */
--
--#if ACPI_MACHINE_WIDTH == 64
--#define ACPI_USE_NATIVE_DIVIDE	/* Use compiler native 64-bit divide */
--#endif
--
- #define ACPI_MAX64_DECIMAL_DIGITS       20
- #define ACPI_MAX32_DECIMAL_DIGITS       10
- #define ACPI_MAX16_DECIMAL_DIGITS        5
--- 
-1.7.10
-
+Thanks
+Hanjun
