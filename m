@@ -1,158 +1,71 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH RFC 3/5] ACPI / sleep: move acpi_processor_sleep to sleep.c
-Date: Wed,  6 May 2015 15:31:28 +0100
-Message-ID: <1430922690-6966-4-git-send-email-sudeep.holla@arm.com>
-References: <1430922690-6966-1-git-send-email-sudeep.holla@arm.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V2 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
+Date: Wed, 6 May 2015 09:34:25 -0500
+Message-ID: <554A2671.8020804@amd.com>
+References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1430838729-21572-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <5549E834.1040305@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47719 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753049AbbEFObw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 May 2015 10:31:52 -0400
-In-Reply-To: <1430922690-6966-1-git-send-email-sudeep.holla@arm.com>
+Received: from mail-bn1bon0117.outbound.protection.outlook.com ([157.56.111.117]:39647
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750940AbbEFOet (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2015 10:34:49 -0400
+In-Reply-To: <5549E834.1040305@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <ahs3@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Robin Murphy <robin.murphy@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "al.stone@linaro.org" <al.stone@linaro.org>, "arnd@arndb.de" <arnd@arndb.de>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>
 
-acpi_processor_sleep is neither related nor used by CPUIdle framework.
-It's used in system suspend/resume path as a syscore operation. It makes
-more sense to move it to acpi/sleep.c where all the S-state transition
-(a.k.a. Linux system suspend/hiberate) related code are present.
+On 5/6/2015 5:08 AM, Robin Murphy wrote:
+> [...]
+>> +static void __dummy_sync_single_for_cpu(struct device *dev,
+>> +                    dma_addr_t dev_addr, size_t size,
+>> +                    enum dma_data_direction dir)
+>> +{
+>> +}
+>> +
+>> +static void __dummy_sync_single_for_device(struct device *dev,
+>> +                       dma_addr_t dev_addr, size_t size,
+>> +                       enum dma_data_direction dir)
+>> +{
+>> +}
+>
+> Minor point, but I don't see the need to have multiple dummy functions
+> with identical signatures - just have a generic dummy_sync_single and
+> assign it to both ops.
+>
+>> +static void __dummy_sync_sg_for_cpu(struct device *dev,
+>> +                    struct scatterlist *sgl, int nelems,
+>> +                    enum dma_data_direction dir)
+>> +{
+>> +}
+>> +
+>> +static void __dummy_sync_sg_for_device(struct device *dev,
+>> +                       struct scatterlist *sgl, int nelems,
+>> +                       enum dma_data_direction dir)
+>> +{
+>> +}
+>
+> Ditto here with dummy_sync_sg.
 
-Also make it depend on CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT so that
-it's not compiled on architecture like ARM64 where S-states are not
-yet defined in ACPI.
+Hi Robin,
 
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/acpi/processor_idle.c | 37 -------------------------------------
- drivers/acpi/sleep.c          | 37 +++++++++++++++++++++++++++++++++++++
- include/acpi/processor.h      |  2 +-
- 3 files changed, 38 insertions(+), 38 deletions(-)
+Good point. I'll take care of that in V3.
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 39e0c8e36244..38bdbf36bf4e 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -34,7 +34,6 @@
- #include <linux/sched.h>       /* need_resched() */
- #include <linux/tick.h>
- #include <linux/cpuidle.h>
--#include <linux/syscore_ops.h>
- #include <acpi/processor.h>
- 
- /*
-@@ -198,42 +197,6 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- 
- #endif
- 
--#ifdef CONFIG_PM_SLEEP
--static u32 saved_bm_rld;
--
--static int acpi_processor_suspend(void)
--{
--	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
--	return 0;
--}
--
--static void acpi_processor_resume(void)
--{
--	u32 resumed_bm_rld = 0;
--
--	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
--	if (resumed_bm_rld == saved_bm_rld)
--		return;
--
--	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
--}
--
--static struct syscore_ops acpi_processor_syscore_ops = {
--	.suspend = acpi_processor_suspend,
--	.resume = acpi_processor_resume,
--};
--
--void acpi_processor_syscore_init(void)
--{
--	register_syscore_ops(&acpi_processor_syscore_ops);
--}
--
--void acpi_processor_syscore_exit(void)
--{
--	unregister_syscore_ops(&acpi_processor_syscore_ops);
--}
--#endif /* CONFIG_PM_SLEEP */
--
- #if defined(CONFIG_X86)
- static void tsc_check_state(int state)
- {
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 2f0d4db40a9e..cfea056e3d82 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -19,6 +19,7 @@
- #include <linux/reboot.h>
- #include <linux/acpi.h>
- #include <linux/module.h>
-+#include <linux/syscore_ops.h>
- #include <asm/io.h>
- #include <trace/events/power.h>
- 
-@@ -672,6 +673,42 @@ static void acpi_sleep_suspend_setup(void)
- static inline void acpi_sleep_suspend_setup(void) {}
- #endif /* !CONFIG_SUSPEND */
- 
-+#ifdef CONFIG_PM_SLEEP
-+static u32 saved_bm_rld;
-+
-+static int acpi_processor_suspend(void)
-+{
-+	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
-+	return 0;
-+}
-+
-+static void acpi_processor_resume(void)
-+{
-+	u32 resumed_bm_rld = 0;
-+
-+	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
-+	if (resumed_bm_rld == saved_bm_rld)
-+		return;
-+
-+	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
-+}
-+
-+static struct syscore_ops acpi_processor_syscore_ops = {
-+	.suspend = acpi_processor_suspend,
-+	.resume = acpi_processor_resume,
-+};
-+
-+void acpi_processor_syscore_init(void)
-+{
-+	register_syscore_ops(&acpi_processor_syscore_ops);
-+}
-+
-+void acpi_processor_syscore_exit(void)
-+{
-+	unregister_syscore_ops(&acpi_processor_syscore_ops);
-+}
-+#endif /* CONFIG_PM_SLEEP */
-+
- #ifdef CONFIG_HIBERNATION
- static unsigned long s4_hardware_signature;
- static struct acpi_table_facs *facs;
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 42a7ca744ff1..ffe675caa766 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -308,7 +308,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr);
- int acpi_processor_hotplug(struct acpi_processor *pr);
- extern struct cpuidle_driver acpi_idle_driver;
- 
--#ifdef CONFIG_PM_SLEEP
-+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT)
- void acpi_processor_syscore_init(void);
- void acpi_processor_syscore_exit(void);
- #else
--- 
-1.9.1
+>
+> I wonder if there's any argument for putting the dummy DMA ops somewhere
+> common, like drivers/base/dma-mapping.c?
+>
+> Robin.
+
+Hm.. If this approach will be adopted by other architectures, then it 
+would make sense. Currently, this is only used by arm64. So, I think it 
+is okay to leave this here for now.
+
+Thanks,
+Suravee
 
