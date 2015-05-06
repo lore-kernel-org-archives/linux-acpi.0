@@ -1,118 +1,59 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 1/3] gpio / ACPI: Add support for retrieving GpioInt resources from a device
-Date: Wed,  6 May 2015 13:29:06 +0300
-Message-ID: <1430908148-201129-2-git-send-email-mika.westerberg@linux.intel.com>
-References: <1430908148-201129-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1430908148-201129-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: Detecting that a battery is inside a dock?
+Date: Wed, 06 May 2015 16:20:17 +0200
+Message-ID: <1430922017.2786.10.camel@hadess.net>
+References: <1430320098.2525.105.camel@hadess.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51961 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606AbbEFOUU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 May 2015 10:20:20 -0400
+Received: from mfilter9-d.gandi.net (mfilter9-d.gandi.net [217.70.178.138])
+	by relay5-d.mail.gandi.net (Postfix) with ESMTP id 5FC4941C1CB
+	for <linux-acpi@vger.kernel.org>; Wed,  6 May 2015 16:20:19 +0200 (CEST)
+Received: from relay5-d.mail.gandi.net ([217.70.183.197])
+	by mfilter9-d.gandi.net (mfilter9-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id Ag0M-6CJFW6n for <linux-acpi@vger.kernel.org>;
+	Wed,  6 May 2015 16:20:16 +0200 (CEST)
+Received: from nuvo (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
+	(Authenticated sender: hadess@hadess.net)
+	by relay5-d.mail.gandi.net (Postfix) with ESMTPSA id 045BE41C1AA
+	for <linux-acpi@vger.kernel.org>; Wed,  6 May 2015 16:20:17 +0200 (CEST)
+In-Reply-To: <1430320098.2525.105.camel@hadess.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-ACPI specification knows two types of GPIOs: GpioIo and GpioInt. The latter
-is used to describe that a given device interrupt line is connected to a
-specific GPIO pin. Typical ACPI _CRS entry for such device looks like
-below:
+On Wed, 2015-04-29 at 17:08 +0200, Bastien Nocera wrote:
+> Hey,
+> 
+> I have access to a convertible Toshiba machine where the 2nd battery 
+> is in detachable keyboard. This is the decompiled DSDT:
+> https://hadess.fedorapeople.org/toshiba.dsl
+> 
+> There's no BAT0, BAT1 is in the screen, and BAT2 is in the keyboard.
+> 
+> BAT2 can be ejected (it has an _EJD method), but the dock code 
+> doesn't 
+> see it as having a battery:
+> $ pwd
+> /sys/devices/platform/dock.0
+> $ cat flags
+> 16
+> $ cat type
+> dock_station
+> 
+> Any ideas what might be missing here?
+> 
+> I'd eventually like to be able to say that, if I can detect that the 
+> battery is inside the dock, to mark it as such in the UI[1] (even 
+> better would be to say it's "in the keyboard" but I'm not sure we 
+> can 
+> easily detect that).
 
-    Name (_CRS, ResourceTemplate ()
-    {
-        I2cSerialBus (0x004A, ControllerInitiated, 0x00061A80,
-                      AddressingMode7Bit, "\\_SB.PCI0.I2C6",
-                      0x00, ResourceConsumer)
-        GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
-                IoRestrictionOutputOnly, "\\_SB.GPO0",
-                0x00, ResourceConsumer)
-        {
-            0x004B
-        }
-        GpioInt (Level, ActiveLow, Shared, PullDefault, 0x0000,
-                 "\\_SB.GPO0", 0x00, ResourceConsumer)
-        {
-            0x004C
-        }
-    })
+Anyone?
 
-Currently drivers need to request a GPIO corresponding to the right GpioInt
-and then translate that to Linux IRQ number. This adds unnecessary lines of
-boiler-plate code.
-
-We can ease this a bit by introducing acpi_dev_gpio_irq_get() analogous to
-of_irq_get(). This function translates given GpioInt resource under the
-device in question to the suitable Linux IRQ number.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/gpio/gpiolib-acpi.c | 29 +++++++++++++++++++++++++++++
- include/linux/acpi.h        |  7 +++++++
- 2 files changed, 36 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index d2303d50f561..bff29bb0a3fe 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -514,6 +514,35 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
- 	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
- }
- 
-+/**
-+ * acpi_dev_gpio_irq_get() - Find GpioInt and translate it to Linux IRQ number
-+ * @adev: pointer to a ACPI device to get IRQ from
-+ * @index: index of GpioInt resource (starting from %0)
-+ *
-+ * If the device has one or more GpioInt resources, this function can be
-+ * used to translate from the GPIO offset in the resource to the Linux IRQ
-+ * number.
-+ *
-+ * Return: Linux IRQ number (>%0) on success, negative errno on failure.
-+ */
-+int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
-+{
-+	int idx, i;
-+
-+	for (i = 0, idx = 0; idx <= index; i++) {
-+		struct acpi_gpio_info info;
-+		struct gpio_desc *desc;
-+
-+		desc = acpi_get_gpiod_by_index(adev, NULL, i, &info);
-+		if (IS_ERR(desc))
-+			break;
-+		if (info.gpioint && idx++ == index)
-+			return gpiod_to_irq(desc);
-+	}
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_gpio_irq_get);
-+
- static acpi_status
- acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
- 			    u32 bits, u64 *value, void *handler_context,
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4da5e35e29c..f57c440642cd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -721,6 +721,8 @@ static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev)
- 	if (adev)
- 		adev->driver_gpios = NULL;
- }
-+
-+int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index);
- #else
- static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
- 			      const struct acpi_gpio_mapping *gpios)
-@@ -728,6 +730,11 @@ static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
- 	return -ENXIO;
- }
- static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev) {}
-+
-+static inline int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
-+{
-+	return -ENXIO;
-+}
- #endif
- 
- /* Device properties */
--- 
-2.1.4
-
+> [1]: https://bugzilla.gnome.org/show_bug.cgi?id=748592
