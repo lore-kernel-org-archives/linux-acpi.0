@@ -1,250 +1,263 @@
-From: George McCollister <george.mccollister@gmail.com>
-Subject: Re: I/O conflict on Versalogic Tiger (VL-EPM-24)
-Date: Thu, 7 May 2015 08:28:35 -0500
-Message-ID: <CAFSKS=PxJMwkhrswHTdE-vVJqocHkzWELO=BvKm12NjFRtfNew@mail.gmail.com>
-References: <CAFSKS=M8bODT8bLckwtGFziknPG=32Y1=8mz3Fq0H7JcA3GhjQ@mail.gmail.com>
-	<CAErSpo4YEUTyrFth3xVyeja0=cbk69+tSQgsOFCO5nvFK=suhw@mail.gmail.com>
-	<CAFSKS=NbDdmr+khTTTPRRdj_wen4c5LR0X2AShO-ARE0yWGg1g@mail.gmail.com>
-	<16669466.MatE2KDcHs@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [RFC PATCH] cpuidle: Remove the default poll idle loop
+Date: Thu,  7 May 2015 18:56:20 +0200
+Message-ID: <1431017784-19599-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:32890 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192AbbEGN2f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2015 09:28:35 -0400
-In-Reply-To: <16669466.MatE2KDcHs@vostro.rjw.lan>
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:34537 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197AbbEGQ5Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2015 12:57:16 -0400
+Received: by wgic8 with SMTP id c8so23228923wgi.1
+        for <linux-acpi@vger.kernel.org>; Thu, 07 May 2015 09:57:15 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: daniel.lezcano@linaro.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mohammad Merajul Islam Molla <meraj.enigma@gmail.com>, Tejun Heo <tj@kernel.org>, Christoph Lameter <cl@linux.com>, Mel Gorman <mgorman@suse.de>, Javi Merino <javi.merino@arm.com>, Jiri Kosina <jkosina@suse.cz>, Antonio Ospite <ao2@ao2.it>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:CPUIDLE DRIVERS" <linux-pm@vger.kernel.org>
 
-On Wed, May 6, 2015 at 5:14 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, May 06, 2015 02:15:15 PM George McCollister wrote:
->> On Wed, May 6, 2015 at 10:51 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> > [+cc Rafael]
->> >
->> > On Wed, May 6, 2015 at 9:47 AM, George McCollister
->> > <george.mccollister@gmail.com> wrote:
->> >> We're using Versalogic Tiger (VL-EPM-24) SBCs in embedded systems
->> >> running linux 3.2.x without any problems. Recently, when testing the
->> >> latest mainline kernel I found the system hard locked during boot.
->> >>
->> >> After some investigation I noticed that the kernel print time stamps
->> >> were bogus after one of the pcieports was enabled:
->> >> [    1.658879] io scheduler cfq registered (default)
->> >> [    1.663905] pcieport 0000:00:1c.0: enabling device (0004 -> 0007)
->> >> [    6.254134] Serial: 8250/16550 driver, 21 ports, IRQ sharing enabled
->> >> [    6.254134] 00:03: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200)
->> >> is a 16550A
->> >> [    6.254134] 00:04: ttyS1 at I/O 0x2f8 (irq = 0, base_baud = 115200)
->> >> is a 16550A
->> >> [    6.254134] 00:05: ttyS2 at I/O 0x3e8 (irq = 0, base_baud = 115200)
->> >> is a 16550A
->> >> [    6.254134] 00:06: ttyS4 at I/O 0x238 (irq = 0, base_baud = 115200)
->> >> is a 16550A
->> >>
->> >> I was surprised to find that the problem existed as far back as 3.11.
->> >> I checked to make sure we were using the latest BIOS and contacted the
->> >> vendor to see if they were aware of anyone else using recent versions
->> >> of the linux kernel. They stated that they were unaware of anyone
->> >> using recent kernel versions on this board and tired to convince me to
->> >> stick with an old version.
->> >>
->> >> I then git bisected to this commit:
->> >> ac212b6980d8d5eda705864fc5a8ecddc6d6eacc ACPI / processor: Use common
->> >> hotplug infrastructure
->> >>
->> >> After diffing the kernel output before and after this commit I noticed
->> >> that the I/O BAR assigned to the pcieport (same one as above) changed
->> >> from 0x1000 to 0x2000.
->> >>
->> >> @@ -191,13 +191,13 @@
->> >> Switching to clocksource acpi_pm
->> >> pci 0000:00:1c.0: BAR 9: assigned [mem 0x80000000-0x801fffff pref]
->> >> pci 0000:00:1c.1: BAR 9: assigned [mem 0x80200000-0x803fffff pref]
->> >> -pci 0000:00:1c.0: BAR 7: assigned [io  0x1000-0x1fff]
->> >> +pci 0000:00:1c.0: BAR 7: assigned [io  0x2000-0x2fff]
->> >> pci 0000:02:01.0: PCI bridge to [bus 03]
->> >> pci 0000:02:01.0:   bridge window [mem 0xdff00000-0xdfffffff]
->> >> pci 0000:01:00.0: PCI bridge to [bus 02-03]
->> >> pci 0000:01:00.0:   bridge window [mem 0xdff00000-0xdfffffff]
->> >> pci 0000:00:1c.0: PCI bridge to [bus 01-03]
->> >> -pci 0000:00:1c.0:   bridge window [io  0x1000-0x1fff]
->> >> +pci 0000:00:1c.0:   bridge window [io  0x2000-0x2fff]
->> >> pci 0000:00:1c.0:   bridge window [mem 0xdff00000-0xdfffffff]
->> >> pci 0000:00:1c.0:   bridge window [mem 0x80000000-0x801fffff pref]
->> >> pci 0000:00:1c.1: PCI bridge to [bus 04]
->> >>
->> >> I also noticed the kernel output 'ACPI: PM-Timer IO Port: 0x2008' and
->> >> made the connection that since acpi_pm was being used as the
->> >> clocksource and since the problems started when the BAR switched from
->> >> 0x1000 to 0x2000 an I/O conflict must be the source of the problems.
->> >>
->> >> I did some reading into ACPI (since my understanding of it was novice
->> >> at the time) and dumped the DSDT. I found no reference to anything in
->> >> the 0x2xxx I/O range though I did find the following in the FADT:
->> >> PM1a_EVT_BLK at 0x2000-0x2003
->> >> PM1a_CNT_BLK at 0x2004-0x2005
->> >> PM_TMR at 0x2008-0x200b
->> >>
->> >> I dumped the DSDT on other systems and found that some used PNP0C02 to
->> >> reserve I/O ranges used by the ACPI PM registers.
->> >>
->> >> I added the following to the Versalogic Tiger dsdt.dsl under the PCI
->> >> bus, compiled it and and compiled into the linux kernel:
->> >>             Device (PMIO)
->> >>             {
->> >>                 Name (_HID, EisaId ("PNP0C02") /* PNP Motherboard
->> >> Resources */)  // _HID: Hardware ID
->> >>                 Name (_UID, 0x09)  // _UID: Unique ID
->> >>                 Method (_CRS, 0, NotSerialized)  // _CRS: Current
->> >> Resource Settings
->> >>                 {
->> >>                     Name (BUF0, ResourceTemplate ()
->> >>                     {
->> >>                         IO (Decode16,
->> >>                             0x2000,            // Range Minimum
->> >>                             0x2000,            // Range Maximum
->> >>                             0x01,              // Alignment
->> >>                             0xC,               // Length
->> >>                         )
->> >>                         IO (Decode16,
->> >>                             0x20C0,            // Range Minimum
->> >>                             0x20C0,            // Range Maximum
->> >>                             0x01,              // Alignment
->> >>                             0x8,               // Length
->> >>                         )
->> >>                     })
->> >>                     Return (BUF0)
->> >>                 }
->> >>             }
->> >>
->> >> It booted just fine! (comment welcome on whether or not this looks
->> >> like the correct fix)
->> >>
->> >> Unfortunately even if I get the vendor to release a new BIOS with the
->> >> DSDT modifications, rolling out BIOS updates to thousands of systems
->> >> in the field will be nearly impossible. When we roll out a new kernel
->> >> to the production systems we'll need it to work with the existing
->> >> BIOS.
->> >>
->> >> I've been searching around the linux kernel for a way to apply a quirk
->> >> specific to this board.
->> >> I've found I can do something like the following and match the Poulsbo
->> >> Host bridge and that it'll fix the problem but I don't see a decent
->> >> way of restricting it to this board.
->> >>
->> >> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
->> >> index 85f247e..1f16dbf 100644
->> >> --- a/drivers/pci/quirks.c
->> >> +++ b/drivers/pci/quirks.c
->> >> @@ -413,6 +413,17 @@ static void quirk_ati_exploding_mce(struct pci_dev *dev)
->> >> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATI,
->> >> PCI_DEVICE_ID_ATI_RS100,   quirk_ati_exploding_mce);
->> >>
->> >> /*
->> >> + * Versa Logic Tiger
->> >> + */
->> >> +static void quirk_versa_logic_tiger(struct pci_dev *dev)
->> >> +{
->> >> +       dev_info(&dev->dev, "Versalogic Tiger, reserving I/O ports\n");
->> >> +       request_region(0x2000, 0x0C, "Versalogic Tiger");
->> >> +       request_region(0x20C0, 0x08, "Versalogic Tiger");
->> >> +}
->> >> +DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x8100, quirk_versa_logic_tiger);
->> >> +
->> >> +/*
->> >>
->> >> Any suggestions on what could be done to get a fix for this board
->> >> mainlined into the kernel? Should I give up hope and just apply a cute
->> >> embedded non-sense hack?
->> >
->> > I think your DSDT tweak is on the right track.  We have some similar
->> > things in drivers/pnp/quirks.c.  Possibly a new region could be added
->> > to an existing PNP0C02 device, maybe via dmi_check_system() to limit
->> > it to this platform.
->> >
->> > But I notice that board claims Windows compatibility, so I wonder if
->> > there's a smarter way.  I doubt that Windows would have a quirk for
->> > this specific board, so we should be able to make Linux work without a
->> > quirk, too.
->>
->> Maybe it works by accident, linux worked too until 0x2000 started
->> getting used for the I/O window. Though I'm not sure why it changed
->> just by looking at the commit.
->>
->
-> The commit change the initialization ordering, especially if the ACPI processor
-> driver is modular in your kernel.  Before it would register the processors on
-> the module load and after the commit in question is registers them before
-> enumerating the PCI bus.
->
->> > Complete dmesg logs from pre- and post-ac212b6980d8 might have a clue
->> > about what changed.  It looks like your FADT should be enough to
->> > reserve those regions via acpi_reserve_resources().  But maybe there's
->> > something wrong there, or maybe we incorrectly use that for PCI space.
->> > Does  your post-ac212b6980d8 /proc/ioports show those regions?
->> I've attached the the last good and first bad dmesg logs.
->> acpi_reserve_resources() doesn't do any good (at least in 4.1rc2)
->> because it's called after pcieport has already enabled the device and
->> put the i/o window into use.
->> I wasn't able to get ac212b6980d8 to boot without making DSDT or
->> quirks.c changes but I was able to get 4.1rc2 to boot by disabling
->> PCIEPORTBUS which keeps 0000:00:1c.0 from being enabled. I've attached
->> the ioports information. It looks like ACPI PM1a_EVT_BLK, ACPI
->> PM1a_CNT_BLK and ACPI PM_TMR show up at 2000-2003, 2004-2005 and
->> 2008-200b respectively but instead of conflicting with the PCI-bridge
->> window they show up underneath it.
->>
->> I think the key here is that the region needs to be requested before
->> bridge window is assigned.
->
-> That's correct, so things don't happen in the right order now.
->
-> Well, acpi_reserve_resources() is a device_initcall(), so its ordering with
-> respect to other things is somewhat random.
->
-> Does the patch below make any difference by any chance?
->
+The poll idle loop is useful only for the *menu* governor: when there
+is a timer about to shutdown very soon (less than 5us), then we default
+to the poll idle if no other idle state is found, otherwise the 'hlt'
+state is the default.
 
-Yes, with this patch it boots with no problems.
+The poll idle state is x86 specific, hence leading to the DRIVER_START
+index hell all around the code and prone to buggy code.
 
->
-> ---
->  drivers/acpi/osl.c |    6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
->
-> Index: linux-pm/drivers/acpi/osl.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/osl.c
-> +++ linux-pm/drivers/acpi/osl.c
-> @@ -182,7 +182,7 @@ static void __init acpi_request_region (
->                 request_mem_region(addr, length, desc);
->  }
->
-> -static int __init acpi_reserve_resources(void)
-> +static void __init acpi_reserve_resources(void)
->  {
->         acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
->                 "ACPI PM1a_EVT_BLK");
-> @@ -211,10 +211,7 @@ static int __init acpi_reserve_resources
->         if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
->                 acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
->                                acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
-> -
-> -       return 0;
->  }
-> -device_initcall(acpi_reserve_resources);
->
->  void acpi_os_printf(const char *fmt, ...)
->  {
-> @@ -1845,6 +1842,7 @@ acpi_status __init acpi_os_initialize(vo
->
->  acpi_status __init acpi_os_initialize1(void)
->  {
-> +       acpi_reserve_resources();
->         kacpid_wq = alloc_workqueue("kacpid", 0, 1);
->         kacpi_notify_wq = alloc_workqueue("kacpi_notify", 0, 1);
->         kacpi_hotplug_wq = alloc_ordered_workqueue("kacpi_hotplug", 0);
->
+I have been looking on a x86 24 cpus system, how many times this state is
+called. It appears to be very rarely used with a recent kernel. Furthermore
+the poll code is more than 7 years old and now very fast idle instruction
+exists (less than 1us).
+
+Another pitfall with the poll idle state is when the governor makes a bad
+prediction and selects this state while the idle state duration is much
+more longer, that results in an excessive energy consumption.
+
+Remove this state and the related code as it brings more complexity for
+a very discutable benefit.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/acpi/processor_idle.c      |  8 ++++----
+ drivers/cpuidle/cpuidle.c          |  6 +++---
+ drivers/cpuidle/driver.c           | 32 --------------------------------
+ drivers/cpuidle/governors/ladder.c | 12 ++++++------
+ drivers/cpuidle/governors/menu.c   | 13 ++-----------
+ include/linux/cpuidle.h            |  6 ------
+ 6 files changed, 15 insertions(+), 62 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 39e0c8e..4fbbe07 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -799,7 +799,7 @@ static int acpi_idle_enter(struct cpuidle_device *dev,
+ 
+ 	if (cx->type != ACPI_STATE_C1) {
+ 		if (acpi_idle_fallback_to_c1(pr) && num_online_cpus() > 1) {
+-			index = CPUIDLE_DRIVER_STATE_START;
++			index = 0;
+ 			cx = per_cpu(acpi_cstate[index], dev->cpu);
+ 		} else if (cx->type == ACPI_STATE_C3 && pr->flags.bm_check) {
+ 			if (cx->bm_sts_skip || !acpi_idle_bm_check()) {
+@@ -863,7 +863,7 @@ struct cpuidle_driver acpi_idle_driver = {
+ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
+ 					   struct cpuidle_device *dev)
+ {
+-	int i, count = CPUIDLE_DRIVER_STATE_START;
++	int i, count = 0;
+ 	struct acpi_processor_cx *cx;
+ 
+ 	if (!pr->flags.power_setup_done)
+@@ -908,7 +908,7 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
+  */
+ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ {
+-	int i, count = CPUIDLE_DRIVER_STATE_START;
++	int i, count = 0;
+ 	struct acpi_processor_cx *cx;
+ 	struct cpuidle_state *state;
+ 	struct cpuidle_driver *drv = &acpi_idle_driver;
+@@ -920,7 +920,7 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ 		return -EINVAL;
+ 
+ 	drv->safe_state_index = -1;
+-	for (i = CPUIDLE_DRIVER_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
++	for (i = 0; i < CPUIDLE_STATE_MAX; i++) {
+ 		drv->states[i].name[0] = '\0';
+ 		drv->states[i].desc[0] = '\0';
+ 	}
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 61c417b..ffdbf1f 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -65,7 +65,7 @@ int cpuidle_play_dead(void)
+ 		return -ENODEV;
+ 
+ 	/* Find lowest-power state that supports long-term idle */
+-	for (i = drv->state_count - 1; i >= CPUIDLE_DRIVER_STATE_START; i--)
++	for (i = drv->state_count - 1; i >= 0; i--)
+ 		if (drv->states[i].enter_dead)
+ 			return drv->states[i].enter_dead(dev, i);
+ 
+@@ -76,9 +76,9 @@ static int find_deepest_state(struct cpuidle_driver *drv,
+ 			      struct cpuidle_device *dev, bool freeze)
+ {
+ 	unsigned int latency_req = 0;
+-	int i, ret = freeze ? -1 : CPUIDLE_DRIVER_STATE_START - 1;
++	int i, ret = freeze ? -1 : 0;
+ 
+-	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
++	for (i = 0; i < drv->state_count; i++) {
+ 		struct cpuidle_state *s = &drv->states[i];
+ 		struct cpuidle_state_usage *su = &dev->states_usage[i];
+ 
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index 5db1478..8b51220 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -177,36 +177,6 @@ static void __cpuidle_driver_init(struct cpuidle_driver *drv)
+ 	}
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+-static int poll_idle(struct cpuidle_device *dev,
+-		struct cpuidle_driver *drv, int index)
+-{
+-	local_irq_enable();
+-	if (!current_set_polling_and_test()) {
+-		while (!need_resched())
+-			cpu_relax();
+-	}
+-	current_clr_polling();
+-
+-	return index;
+-}
+-
+-static void poll_idle_init(struct cpuidle_driver *drv)
+-{
+-	struct cpuidle_state *state = &drv->states[0];
+-
+-	snprintf(state->name, CPUIDLE_NAME_LEN, "POLL");
+-	snprintf(state->desc, CPUIDLE_DESC_LEN, "CPUIDLE CORE POLL IDLE");
+-	state->exit_latency = 0;
+-	state->target_residency = 0;
+-	state->power_usage = -1;
+-	state->enter = poll_idle;
+-	state->disabled = false;
+-}
+-#else
+-static void poll_idle_init(struct cpuidle_driver *drv) {}
+-#endif /* !CONFIG_ARCH_HAS_CPU_RELAX */
+-
+ /**
+  * __cpuidle_register_driver: register the driver
+  * @drv: a valid pointer to a struct cpuidle_driver
+@@ -240,8 +210,6 @@ static int __cpuidle_register_driver(struct cpuidle_driver *drv)
+ 		on_each_cpu_mask(drv->cpumask, cpuidle_setup_broadcast_timer,
+ 				 (void *)1, 1);
+ 
+-	poll_idle_init(drv);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/cpuidle/governors/ladder.c b/drivers/cpuidle/governors/ladder.c
+index 401c010..304e08c 100644
+--- a/drivers/cpuidle/governors/ladder.c
++++ b/drivers/cpuidle/governors/ladder.c
+@@ -96,13 +96,13 @@ static int ladder_select_state(struct cpuidle_driver *drv,
+ 	}
+ 
+ 	/* consider demotion */
+-	if (last_idx > CPUIDLE_DRIVER_STATE_START &&
++	if (last_idx > 0 &&
+ 	    (drv->states[last_idx].disabled ||
+ 	    dev->states_usage[last_idx].disable ||
+ 	    drv->states[last_idx].exit_latency > latency_req)) {
+ 		int i;
+ 
+-		for (i = last_idx - 1; i > CPUIDLE_DRIVER_STATE_START; i--) {
++		for (i = last_idx - 1; i > 0; i--) {
+ 			if (drv->states[i].exit_latency <= latency_req)
+ 				break;
+ 		}
+@@ -110,7 +110,7 @@ static int ladder_select_state(struct cpuidle_driver *drv,
+ 		return i;
+ 	}
+ 
+-	if (last_idx > CPUIDLE_DRIVER_STATE_START &&
++	if (last_idx > 0 &&
+ 	    last_residency < last_state->threshold.demotion_time) {
+ 		last_state->stats.demotion_count++;
+ 		last_state->stats.promotion_count = 0;
+@@ -137,9 +137,9 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
+ 	struct ladder_device_state *lstate;
+ 	struct cpuidle_state *state;
+ 
+-	ldev->last_state_idx = CPUIDLE_DRIVER_STATE_START;
++	ldev->last_state_idx = 0;
+ 
+-	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
++	for (i = 0; i < drv->state_count; i++) {
+ 		state = &drv->states[i];
+ 		lstate = &ldev->states[i];
+ 
+@@ -151,7 +151,7 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
+ 
+ 		if (i < drv->state_count - 1)
+ 			lstate->threshold.promotion_time = state->exit_latency;
+-		if (i > CPUIDLE_DRIVER_STATE_START)
++		if (i > 0)
+ 			lstate->threshold.demotion_time = state->exit_latency;
+ 	}
+ 
+diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
+index b8a5fa1..5c5e7db 100644
+--- a/drivers/cpuidle/governors/menu.c
++++ b/drivers/cpuidle/governors/menu.c
+@@ -294,7 +294,7 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+ 		data->needs_update = 0;
+ 	}
+ 
+-	data->last_state_idx = CPUIDLE_DRIVER_STATE_START - 1;
++	data->last_state_idx = 0;
+ 
+ 	/* Special case when user has set very strict latency requirement */
+ 	if (unlikely(latency_req == 0))
+@@ -327,19 +327,10 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+ 		latency_req = interactivity_req;
+ 
+ 	/*
+-	 * We want to default to C1 (hlt), not to busy polling
+-	 * unless the timer is happening really really soon.
+-	 */
+-	if (data->next_timer_us > 5 &&
+-	    !drv->states[CPUIDLE_DRIVER_STATE_START].disabled &&
+-		dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable == 0)
+-		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
+-
+-	/*
+ 	 * Find the idle state with the lowest power while satisfying
+ 	 * our constraints.
+ 	 */
+-	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
++	for (i = 0; i < drv->state_count; i++) {
+ 		struct cpuidle_state *s = &drv->states[i];
+ 		struct cpuidle_state_usage *su = &dev->states_usage[i];
+ 
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 9c5e892..351b652 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -236,10 +236,4 @@ static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
+ {return 0;}
+ #endif
+ 
+-#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+-#define CPUIDLE_DRIVER_STATE_START	1
+-#else
+-#define CPUIDLE_DRIVER_STATE_START	0
+-#endif
+-
+ #endif /* _LINUX_CPUIDLE_H */
+-- 
+1.9.1
+
