@@ -1,74 +1,85 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: Detecting that a battery is inside a dock?
-Date: Thu, 07 May 2015 11:11:39 +0200
-Message-ID: <1430989899.2786.19.camel@hadess.net>
-References: <1430320098.2525.105.camel@hadess.net>
-	 <1430922017.2786.10.camel@hadess.net> <238522372.SKjufVyRkH@vostro.rjw.lan>
+From: Amir Vadai <amirv@mellanox.com>
+Subject: Re: [RFC v1 07/11] net/mlx4: Cache irq_desc->affinity instead of
+ irq_desc
+Date: Thu, 7 May 2015 13:41:48 +0300
+Message-ID: <554B416C.6050701@mellanox.com>
+References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
+ <1430709339-29083-8-git-send-email-jiang.liu@linux.intel.com>
+ <CAPcc5Ph4pk+4aL-PduvF67YU-A+vn2bfx6v3mr-tbY58zs7sZw@mail.gmail.com>
+ <alpine.DEB.2.11.1505041708190.4225@nanos>
+ <CAPcc5Pi7qNQKocTVmfZafVhi3MJwboY=XKYzNmqAnVqt0gU4vw@mail.gmail.com>
+ <alpine.DEB.2.11.1505051652280.4225@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:34309 "EHLO
-	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbbEGJLo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2015 05:11:44 -0400
-In-Reply-To: <238522372.SKjufVyRkH@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1505051652280.4225@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ido Shamay <idos@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Eric Dumazet <edumazet@google.com>, Hadar Hen Zion <hadarh@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Joe Perches <joe@perches.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org
 
-On Thu, 2015-05-07 at 00:26 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, May 06, 2015 04:20:17 PM Bastien Nocera wrote:
-> > On Wed, 2015-04-29 at 17:08 +0200, Bastien Nocera wrote:
-> > > Hey,
-> > > 
-> > > I have access to a convertible Toshiba machine where the 2nd 
-> > > battery 
-> > > is in detachable keyboard. This is the decompiled DSDT:
-> > > https://hadess.fedorapeople.org/toshiba.dsl
-> > > 
-> > > There's no BAT0, BAT1 is in the screen, and BAT2 is in the 
-> > > keyboard.
-> > > 
-> > > BAT2 can be ejected (it has an _EJD method), but the dock code 
-> > > doesn't 
-> > > see it as having a battery:
-> > > $ pwd
-> > > /sys/devices/platform/dock.0
-> > > $ cat flags
-> > > 16
-> > > $ cat type
-> > > dock_station
-> > > 
-> > > Any ideas what might be missing here?
-> > > 
-> > > I'd eventually like to be able to say that, if I can detect that 
-> > > the 
-> > > battery is inside the dock, to mark it as such in the UI[1] 
-> > > (even 
-> > > better would be to say it's "in the keyboard" but I'm not sure 
-> > > we 
-> > > can 
-> > > easily detect that).
-> > 
-> > Anyone?
+On 5/5/2015 5:53 PM, Thomas Gleixner wrote:
+> On Tue, 5 May 2015, Amir Vadai wrote:
 > 
-> Not now, sorry.  Too many things are going on in parallel and this 
-> one is
-> not the most urgent of them.
-
-Sure. I didn't expect a bug fix straight away, I just wanted to know
-whether I was missing something.
-
-> Please file a bug for it at bugzilla.kernel.org in the ACPI 
-> category, so it's
-> not forgotten.  Those bugs are looked at on a regular basis, so 
-> we'll get to
-> it at one point.
+>> On Mon, May 4, 2015 at 6:10 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
+>>> On Mon, 4 May 2015, Amir Vadai wrote:
+>>>
+>>>> On Mon, May 4, 2015 at 6:15 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+>>>>> The field 'affinity' in irq_desc won't change once the irq_desc data
+>>>>> structure is created. So cache irq_desc->affinity instead of irq_desc.
+>>>>> This also helps to hide struct irq_desc from device drivers.
+>>>>
+>>>> Hi Jiang,
+>>>>
+>>>> I might not understand the new changes irq core, but up until now
+>>>> affinity was changed when the user changed it through
+>>>> /proc/irq/<IRQ>/smp_affinity.
+>>>> This code is monitoring the affinity from the napi_poll context to
+>>>> detect affinity changes, and prevent napi from keep running on the
+>>>> wrong CPU.
+>>>> Therefore, the affinity can't be cached at the beginning. Please
+>>>> revert this caching.
+>>>
+>>> Sigh. All of this is completely wrong. Polling in the internals of
+>>> irq_desc is just crap.
+>> Hi,
+>>
+>>>
+>>> irq_set_affinity_notifier() has been added for exactly this purpose.
+>> rmap is already registered on irq_set_affinity_notifier().
+>> Actually, I did post an extension to the affinity notifier, to use
+>> affinity chain which you rejected [1] (and BTW, convinced me that this
+>> is not the way to do it).
+>> Current code is according to your suggestion.
+>>
+>> [1] - https://lkml.org/lkml/2014/5/26/222
+> 
+> No, it's not. I wrote:
+> 
+>  "So what's the point of adding notifier call chain complexity,
+>   ordering problems etc., if you can simply note the fact that the
+>   affinity changed in the rmap itself and check that in the RX path?"
+> 
+> I did not tell you to fiddle in irqdesc, really.
+> 
+> Thanks,
+> 
+> 	tglx
 > 
 
-Filed as:
-https://bugzilla.kernel.org/show_bug.cgi?id=97841
+It is problematic, since I didn't want to link the napi polling affinity
+issue and CONFIG_CPU_RMAP being selected. That's why I CC'd you when
+submitted the patch [1]. Guess it was my bad that I didn't do it in a
+better way that would give you a chance to fully review it.
 
-Cheers
+Anyway, I understand now that I shouldn't access irqdesc attributes from
+a device driver.
+I will see if I can live with disabling this whole feature (migrate a
+currently looping NAPI when affinity is changed), when CONFIG_CPU_RMAP
+is not selected. If not, I might modify the rmap code to give me this
+information even when it is not selected. I assume that rmap notifier
+callback can access this information.
+
+Thanks,
+Amir
