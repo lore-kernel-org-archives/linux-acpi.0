@@ -1,92 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: I/O conflict on Versalogic Tiger (VL-EPM-24)
-Date: Thu, 07 May 2015 23:06:38 +0200
-Message-ID: <2829685.et1KqHBDfq@vostro.rjw.lan>
-References: <CAFSKS=M8bODT8bLckwtGFziknPG=32Y1=8mz3Fq0H7JcA3GhjQ@mail.gmail.com> <16669466.MatE2KDcHs@vostro.rjw.lan> <CAFSKS=PxJMwkhrswHTdE-vVJqocHkzWELO=BvKm12NjFRtfNew@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for 4.1-rc3
+Date: Thu, 7 May 2015 23:11:15 +0200
+Message-ID: <CAJZ5v0iPW-DhwDyM1pZ=hG_sZeh3yMzh+T-Ej9k6uDpAXiBsUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAFSKS=PxJMwkhrswHTdE-vVJqocHkzWELO=BvKm12NjFRtfNew@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: George McCollister <george.mccollister@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:37951 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181AbbEGVLR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2015 17:11:17 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thursday, May 07, 2015 08:28:35 AM George McCollister wrote:
-> On Wed, May 6, 2015 at 5:14 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, May 06, 2015 02:15:15 PM George McCollister wrote:
-> >> On Wed, May 6, 2015 at 10:51 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> >> > [+cc Rafael]
+Hi Linus,
 
-[cut]
+Please pull from
 
-> >>
-> >> I think the key here is that the region needs to be requested before
-> >> bridge window is assigned.
-> >
-> > That's correct, so things don't happen in the right order now.
-> >
-> > Well, acpi_reserve_resources() is a device_initcall(), so its ordering with
-> > respect to other things is somewhat random.
-> >
-> > Does the patch below make any difference by any chance?
-> >
-> 
-> Yes, with this patch it boots with no problems.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.1-rc3
 
-OK
+to receive power management and ACPI fixes for v4.1-rc3 with
+top-most commit 9a5d9315e41cc0dfc97a3b0a8e222d30566cf3fe
 
-I'm queuing this one up as a fix for 4.1 and for -stable.
+ Merge branches 'acpi-resources', 'acpi-battery', 'acpi-doc' and 'acpi-pnp'
 
-Thanks for your report, it was a good one. :-)
+on top of commit 5ebe6afaf0057ac3eaeb98defd5456894b446d22
 
-Bjorn, please let me know if you think there's a better place to call
-acpi_reserve_resources() from.
+ Linux 4.1-rc2
+
+These include three regression fixes (PCI resources management, ACPI/PNP
+device enumeration, ACPI SBS on MacBook) and two ACPI documentation fixes
+related to GPIO.
+
+Specifics:
+
+ - Fix for a PCI resources management regression introduced during
+   the 4.0 cycle and related to the handling of ACPI resources'
+   Producer/Consumer flags that turn out to be useless (Jiang Liu).
+
+ - Fix for a MacBook regression related to the Smart Battery Subsystem
+   (SBS) driver causing various problems (stalls on boot, failure to
+   detect or report battery) to happen and introduced during the 3.18
+   cycle (Chris Bainbridge).
+
+ - Fix for an ACPI/PNP device enumeration regression introduced during
+   the 3.16 cycle caused by failing to include two PNP device IDs into
+   the list of IDs that PNP device objects need to be created for
+   (Witold Szczeponik).
+
+ - Fixes for two minor mistakes in the ACPI GPIO properties
+   documentation (Antonio Ospite, Rafael J Wysocki).
+
+Thanks!
 
 
-> > ---
-> >  drivers/acpi/osl.c |    6 ++----
-> >  1 file changed, 2 insertions(+), 4 deletions(-)
-> >
-> > Index: linux-pm/drivers/acpi/osl.c
-> > ===================================================================
-> > --- linux-pm.orig/drivers/acpi/osl.c
-> > +++ linux-pm/drivers/acpi/osl.c
-> > @@ -182,7 +182,7 @@ static void __init acpi_request_region (
-> >                 request_mem_region(addr, length, desc);
-> >  }
-> >
-> > -static int __init acpi_reserve_resources(void)
-> > +static void __init acpi_reserve_resources(void)
-> >  {
-> >         acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
-> >                 "ACPI PM1a_EVT_BLK");
-> > @@ -211,10 +211,7 @@ static int __init acpi_reserve_resources
-> >         if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
-> >                 acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
-> >                                acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
-> > -
-> > -       return 0;
-> >  }
-> > -device_initcall(acpi_reserve_resources);
-> >
-> >  void acpi_os_printf(const char *fmt, ...)
-> >  {
-> > @@ -1845,6 +1842,7 @@ acpi_status __init acpi_os_initialize(vo
-> >
-> >  acpi_status __init acpi_os_initialize1(void)
-> >  {
-> > +       acpi_reserve_resources();
-> >         kacpid_wq = alloc_workqueue("kacpid", 0, 1);
-> >         kacpi_notify_wq = alloc_workqueue("kacpi_notify", 0, 1);
-> >         kacpi_hotplug_wq = alloc_ordered_workqueue("kacpi_hotplug", 0);
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---------------
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Antonio Ospite (1):
+      ACPI / documentation: fix a sentence about GPIO resources
+
+Chris Bainbridge (1):
+      ACPI / SBS: Add 5 us delay to fix SBS hangs on MacBook
+
+Jiang Liu (1):
+      x86/PCI/ACPI: Make all resources except [io 0xcf8-0xcff]
+available on PCI bus
+
+Rafael J. Wysocki (1):
+      ACPI / documentation: Fix ambiguity in the GPIO properties document
+
+Witold Szczeponik (1):
+      ACPI / PNP: add two IDs to list for PNPACPI device enumeration
+
+---------------
+
+ Documentation/acpi/enumeration.txt     |  2 +-
+ Documentation/acpi/gpio-properties.txt |  6 +++---
+ arch/x86/pci/acpi.c                    | 24 ++++++++++++++++++++++--
+ drivers/acpi/acpi_pnp.c                |  2 ++
+ drivers/acpi/resource.c                |  2 +-
+ drivers/acpi/sbshc.c                   | 22 ++++++++++++++++++++++
+ 6 files changed, 51 insertions(+), 7 deletions(-)
