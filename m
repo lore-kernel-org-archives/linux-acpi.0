@@ -1,32 +1,37 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [Linux-nvdimm] [PATCH v2 00/20] libnd: non-volatile memory
-	device support
-Date: Thu, 7 May 2015 09:29:13 +0200
-Message-ID: <20150507072913.GB23239@lst.de>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com> <94D0CD8314A33A4D9D801C0FE68B40295A8C934B@G9W0745.americas.hpqcorp.net> <CAPcyv4g-M6NPVV4C3nB7DebhwuuzNKbNyYGDPKh_3N54P2b4Cw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [V2 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
+Date: Thu, 07 May 2015 11:07:08 +0200
+Message-ID: <2842267.oTDe4myPcU@wuerfel>
+References: <1430838729-21572-1-git-send-email-Suravee.Suthikulpanit@amd.com> <4573209.dHyztuCFMt@vostro.rjw.lan> <554A92C3.7060606@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:52630 "EHLO newverein.lst.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750843AbbEGH3P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 May 2015 03:29:15 -0400
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4g-M6NPVV4C3nB7DebhwuuzNKbNyYGDPKh_3N54P2b4Cw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <554A92C3.7060606@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linaro-acpi@lists.linaro.org
+Cc: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, herbert@gondor.apana.org.au, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Elliott, Robert (Server Storage)" <Elliott@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Tue, Apr 28, 2015 at 03:15:54PM -0700, Dan Williams wrote:
-> > lsblk's blkdev_scsi_type_to_name() considers 4 to mean
-> > SCSI_TYPE_WORM (write once read many ... used for certain optical
-> > and tape drives).
+On Wednesday 06 May 2015 17:16:35 Suravee Suthikulanit wrote:
+> On 5/6/2015 5:21 PM, Rafael J. Wysocki wrote:
+> >>>> > >>+      bool
+> >>>> > >>+
+> >>>> > >>+config ACPI_SUPPORT_CCA_ZERO
+> >>> > >
+> >>> > >I guess this means "we support devices that can DMA, but are not coherent".
+> >>> > >right?
+> >> >
+> >> >Yes, basically when _CCA=0.
+> > So what about
+> >
+> >       ARCH_SUPPORT_CACHE_INCOHERENT_DMA
 > 
-> Why is lsblk assuming these are scsi devices?  I'll need to go check that out.
+> Since this is specific to ACPI _CCA, I just want to be clear with the 
+> naming.
 
-It's a very common assumption unfortunately.  I rember fixing it in
-various in-house tools at customers and stumbled over it in targetcli
-recently.
+How about directly using the architecture names here, this is inherently
+architecture specific, and it's more likely that if another architecture
+gets added in the future that it will have other requirements.
 
-Please use a prefix for your type attribute to avoid this problem.
+	Arnd
