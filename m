@@ -1,91 +1,32 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC 1/4] PCI: Add hooks to allocate/free IRQ resources when binding/unbinding driver
-Date: Thu,  7 May 2015 11:12:51 +0800
-Message-ID: <1430968374-29286-2-git-send-email-jiang.liu@linux.intel.com>
-References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [Linux-nvdimm] [PATCH v2 00/20] libnd: non-volatile memory
+	device support
+Date: Thu, 7 May 2015 09:29:13 +0200
+Message-ID: <20150507072913.GB23239@lst.de>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com> <94D0CD8314A33A4D9D801C0FE68B40295A8C934B@G9W0745.americas.hpqcorp.net> <CAPcyv4g-M6NPVV4C3nB7DebhwuuzNKbNyYGDPKh_3N54P2b4Cw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from verein.lst.de ([213.95.11.211]:52630 "EHLO newverein.lst.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750843AbbEGH3P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 May 2015 03:29:15 -0400
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4g-M6NPVV4C3nB7DebhwuuzNKbNyYGDPKh_3N54P2b4Cw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Elliott, Robert (Server Storage)" <Elliott@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Add two hook points pcibios_{alloc|free}_irq() into PCI core, which will
-be called when binding/unbinding PCI device drivers. Then PCI arch code
-may hook into these two points to allocate IRQ resources on demand and
-free them when not used anymore.
+On Tue, Apr 28, 2015 at 03:15:54PM -0700, Dan Williams wrote:
+> > lsblk's blkdev_scsi_type_to_name() considers 4 to mean
+> > SCSI_TYPE_WORM (write once read many ... used for certain optical
+> > and tape drives).
+> 
+> Why is lsblk assuming these are scsi devices?  I'll need to go check that out.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/pci/pci-driver.c |   33 +++++++++++++++++++++++----------
- include/linux/pci.h      |    2 ++
- 2 files changed, 25 insertions(+), 10 deletions(-)
+It's a very common assumption unfortunately.  I rember fixing it in
+various in-house tools at customers and stumbled over it in targetcli
+recently.
 
-diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
-index 3cb2210de553..8af4a671686f 100644
---- a/drivers/pci/pci-driver.c
-+++ b/drivers/pci/pci-driver.c
-@@ -388,18 +388,30 @@ static int __pci_device_probe(struct pci_driver *drv, struct pci_dev *pci_dev)
- 	return error;
- }
- 
--static int pci_device_probe(struct device *dev)
-+int __weak pcibios_alloc_irq(struct pci_dev *dev)
- {
--	int error = 0;
--	struct pci_driver *drv;
--	struct pci_dev *pci_dev;
-+	return dev->irq;
-+}
- 
--	drv = to_pci_driver(dev->driver);
--	pci_dev = to_pci_dev(dev);
--	pci_dev_get(pci_dev);
--	error = __pci_device_probe(drv, pci_dev);
--	if (error)
--		pci_dev_put(pci_dev);
-+void __weak pcibios_free_irq(struct pci_dev *dev)
-+{
-+}
-+
-+static int pci_device_probe(struct device *dev)
-+{
-+	int error;
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = to_pci_driver(dev->driver);
-+
-+	error = pcibios_alloc_irq(pci_dev);
-+	if (error >= 0) {
-+		pci_dev_get(pci_dev);
-+		error = __pci_device_probe(drv, pci_dev);
-+		if (error) {
-+			pcibios_free_irq(pci_dev);
-+			pci_dev_put(pci_dev);
-+		}
-+	}
- 
- 	return error;
- }
-@@ -415,6 +427,7 @@ static int pci_device_remove(struct device *dev)
- 			drv->remove(pci_dev);
- 			pm_runtime_put_noidle(dev);
- 		}
-+		pcibios_free_irq(pci_dev);
- 		pci_dev->driver = NULL;
- 	}
- 
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 353db8dc4c6e..f50d16a04abc 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1656,6 +1656,8 @@ int pcibios_set_pcie_reset_state(struct pci_dev *dev,
- int pcibios_add_device(struct pci_dev *dev);
- void pcibios_release_device(struct pci_dev *dev);
- void pcibios_penalize_isa_irq(int irq, int active);
-+int pcibios_alloc_irq(struct pci_dev *dev);
-+void pcibios_free_irq(struct pci_dev *dev);
- 
- #ifdef CONFIG_HIBERNATE_CALLBACKS
- extern struct dev_pm_ops pcibios_pm_ops;
--- 
-1.7.10.4
+Please use a prefix for your type attribute to avoid this problem.
