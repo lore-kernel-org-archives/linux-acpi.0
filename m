@@ -1,44 +1,64 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC 0/4] Introduce a mechanism to allocate PCI IRQ on demand
-Date: Thu,  7 May 2015 11:12:50 +0800
-Message-ID: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling MSI/MSI-X
+Date: Thu,  7 May 2015 11:12:52 +0800
+Message-ID: <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com>
+References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch set introduces a mechanism to allocate PCI IRQ on demand and
-free it when not used anymore by hooking pci_device_probe() and
-pci_device_remove().
+Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
+make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
+So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
+when disabling MSI/MSI-X.
 
-It will be used to track IOAPIC pin usage on x86 so we could support
-IOAPIC hot-removal.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/pci/msi.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-The patch set passes Fengguang's 0day test suite and is available at:
-https://github.com/jiangliu/linux.git pci_irq_v1
-
-Thanks!
-Gerry
-
-Jiang Liu (4):
-  PCI: Add hooks to allocate/free IRQ resources when binding/unbinding
-    driver
-  PCI, MSI: Optionally free legacy PCI IRQ when enabling MSI/MSI-X
-  PCI, x86: Allocate PCI IRQ on demand and free it when not used
-    anymore
-  PCI: Introduce helpers to manage pci_dev->irq and
-    pci_dev->irq_managed
-
- arch/x86/include/asm/pci_x86.h |    2 --
- arch/x86/pci/common.c          |   20 +++++++++-----------
- arch/x86/pci/intel_mid_pci.c   |    9 ++++++---
- arch/x86/pci/irq.c             |   23 ++++-------------------
- drivers/acpi/pci_irq.c         |   17 ++++-------------
- drivers/pci/msi.c              |    6 +++++-
- drivers/pci/pci-driver.c       |   33 +++++++++++++++++++++++----------
- include/linux/pci.h            |   19 +++++++++++++++++++
- 8 files changed, 70 insertions(+), 59 deletions(-)
-
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index c3e7dfcf9ff5..47cf72c669f0 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -686,6 +686,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
+ 	msi_set_enable(dev, 1);
+ 	dev->msi_enabled = 1;
+ 
++	pcibios_free_irq(dev);
+ 	dev->irq = entry->irq;
+ 	return 0;
+ }
+@@ -813,9 +814,10 @@ static int msix_capability_init(struct pci_dev *dev,
+ 	/* Set MSI-X enabled bits and unmask the function */
+ 	pci_intx_for_msi(dev, 0);
+ 	dev->msix_enabled = 1;
+-
+ 	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_MASKALL, 0);
+ 
++	pcibios_free_irq(dev);
++
+ 	return 0;
+ 
+ out_avail:
+@@ -930,6 +932,7 @@ void pci_msi_shutdown(struct pci_dev *dev)
+ 
+ 	/* Restore dev->irq to its default pin-assertion irq */
+ 	dev->irq = desc->msi_attrib.default_irq;
++	pcibios_alloc_irq(dev);
+ }
+ 
+ void pci_disable_msi(struct pci_dev *dev)
+@@ -1030,6 +1033,7 @@ void pci_msix_shutdown(struct pci_dev *dev)
+ 	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_ENABLE, 0);
+ 	pci_intx_for_msi(dev, 1);
+ 	dev->msix_enabled = 0;
++	pcibios_alloc_irq(dev);
+ }
+ 
+ void pci_disable_msix(struct pci_dev *dev)
 -- 
 1.7.10.4
