@@ -1,64 +1,160 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling MSI/MSI-X
-Date: Thu,  7 May 2015 11:12:52 +0800
-Message-ID: <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC 3/4] PCI, x86: Allocate PCI IRQ on demand and free it when not used anymore
+Date: Thu,  7 May 2015 11:12:53 +0800
+Message-ID: <1430968374-29286-4-git-send-email-jiang.liu@linux.intel.com>
 References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:26433 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751677AbbEGDK4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 May 2015 23:10:56 -0400
 In-Reply-To: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
-make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
-So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
-when disabling MSI/MSI-X.
+To support IOAPIC hotplug, we need to correctly manage IOAPIC pin usage,
+which is to allocate IRQs on demand and free them when not used anymore.
+So use pcibios_alloc_irq() and pcibios_free_irq() to dynamically allocate
+and free PCI IRQs.
+
+Also remove obseleted code mp_should_keep_irq().
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/pci/msi.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/pci_x86.h |    2 --
+ arch/x86/pci/common.c          |   20 +++++++++-----------
+ arch/x86/pci/intel_mid_pci.c   |    7 +++++--
+ arch/x86/pci/irq.c             |   15 +--------------
+ drivers/acpi/pci_irq.c         |    9 +--------
+ 5 files changed, 16 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index c3e7dfcf9ff5..47cf72c669f0 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -686,6 +686,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
- 	msi_set_enable(dev, 1);
- 	dev->msi_enabled = 1;
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index 164e3f8d3c3d..fa1195dae425 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -93,8 +93,6 @@ extern raw_spinlock_t pci_config_lock;
+ extern int (*pcibios_enable_irq)(struct pci_dev *dev);
+ extern void (*pcibios_disable_irq)(struct pci_dev *dev);
  
-+	pcibios_free_irq(dev);
- 	dev->irq = entry->irq;
- 	return 0;
- }
-@@ -813,9 +814,10 @@ static int msix_capability_init(struct pci_dev *dev,
- 	/* Set MSI-X enabled bits and unmask the function */
- 	pci_intx_for_msi(dev, 0);
- 	dev->msix_enabled = 1;
+-extern bool mp_should_keep_irq(struct device *dev);
 -
- 	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_MASKALL, 0);
- 
-+	pcibios_free_irq(dev);
-+
+ struct pci_raw_ops {
+ 	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn,
+ 						int reg, int len, u32 *val);
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 8fd6f44aee83..dc78a4a9a466 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -673,24 +673,22 @@ int pcibios_add_device(struct pci_dev *dev)
  	return 0;
- 
- out_avail:
-@@ -930,6 +932,7 @@ void pci_msi_shutdown(struct pci_dev *dev)
- 
- 	/* Restore dev->irq to its default pin-assertion irq */
- 	dev->irq = desc->msi_attrib.default_irq;
-+	pcibios_alloc_irq(dev);
  }
  
- void pci_disable_msi(struct pci_dev *dev)
-@@ -1030,6 +1033,7 @@ void pci_msix_shutdown(struct pci_dev *dev)
- 	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_ENABLE, 0);
- 	pci_intx_for_msi(dev, 1);
- 	dev->msix_enabled = 0;
-+	pcibios_alloc_irq(dev);
+-int pcibios_enable_device(struct pci_dev *dev, int mask)
++int pcibios_alloc_irq(struct pci_dev *dev)
+ {
+-	int err;
+-
+-	if ((err = pci_enable_resources(dev, mask)) < 0)
+-		return err;
+-
+-	if (!pci_dev_msi_enabled(dev))
+-		return pcibios_enable_irq(dev);
+-	return 0;
++	return pcibios_enable_irq(dev);
  }
  
- void pci_disable_msix(struct pci_dev *dev)
+-void pcibios_disable_device (struct pci_dev *dev)
++void pcibios_free_irq(struct pci_dev *dev)
+ {
+-	if (!pci_dev_msi_enabled(dev) && pcibios_disable_irq)
++	if (pcibios_disable_irq)
+ 		pcibios_disable_irq(dev);
+ }
+ 
++int pcibios_enable_device(struct pci_dev *dev, int mask)
++{
++	return pci_enable_resources(dev, mask);
++}
++
+ int pci_ext_cfg_avail(void)
+ {
+ 	if (raw_pci_ext_ops)
+diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
+index 27062303c881..fb7a1f96d80c 100644
+--- a/arch/x86/pci/intel_mid_pci.c
++++ b/arch/x86/pci/intel_mid_pci.c
+@@ -234,10 +234,13 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 
+ static void intel_mid_pci_irq_disable(struct pci_dev *dev)
+ {
+-	if (!mp_should_keep_irq(&dev->dev) && dev->irq_managed &&
+-	    dev->irq > 0) {
++	if (dev->irq_managed && dev->irq > 0) {
+ 		mp_unmap_irq(dev->irq);
+ 		dev->irq_managed = 0;
++		/*
++		 * Don't reset dev->irq here, otherwise
++		 * intel_mid_pci_irq_enable() will fail on next call.
++		 */
+ 	}
+ }
+ 
+diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+index 5dc6ca5e1741..e71b3dbd87b8 100644
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
+@@ -1256,22 +1256,9 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 	return 0;
+ }
+ 
+-bool mp_should_keep_irq(struct device *dev)
+-{
+-	if (dev->power.is_prepared)
+-		return true;
+-#ifdef CONFIG_PM
+-	if (dev->power.runtime_status == RPM_SUSPENDING)
+-		return true;
+-#endif
+-
+-	return false;
+-}
+-
+ static void pirq_disable_irq(struct pci_dev *dev)
+ {
+-	if (io_apic_assign_pci_irqs && !mp_should_keep_irq(&dev->dev) &&
+-	    dev->irq_managed && dev->irq) {
++	if (io_apic_assign_pci_irqs && dev->irq_managed && dev->irq) {
+ 		mp_unmap_irq(dev->irq);
+ 		dev->irq = 0;
+ 		dev->irq_managed = 0;
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index b1def411c0b8..e7f718d6918a 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -485,14 +485,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	if (!pin || !dev->irq_managed || dev->irq <= 0)
+ 		return;
+ 
+-	/* Keep IOAPIC pin configuration when suspending */
+-	if (dev->dev.power.is_prepared)
+-		return;
+-#ifdef	CONFIG_PM
+-	if (dev->dev.power.runtime_status == RPM_SUSPENDING)
+-		return;
+-#endif
+-
+ 	entry = acpi_pci_irq_lookup(dev, pin);
+ 	if (!entry)
+ 		return;
+@@ -513,5 +505,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	if (gsi >= 0) {
+ 		acpi_unregister_gsi(gsi);
+ 		dev->irq_managed = 0;
++		dev->irq = 0;
+ 	}
+ }
 -- 
 1.7.10.4
+
