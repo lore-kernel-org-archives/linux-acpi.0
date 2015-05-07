@@ -1,75 +1,92 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Detecting that a battery is inside a dock?
-Date: Thu, 07 May 2015 22:43:24 +0200
-Message-ID: <5301673.l2qe00NcFC@vostro.rjw.lan>
-References: <1430320098.2525.105.camel@hadess.net> <238522372.SKjufVyRkH@vostro.rjw.lan> <1430989899.2786.19.camel@hadess.net>
+Subject: Re: I/O conflict on Versalogic Tiger (VL-EPM-24)
+Date: Thu, 07 May 2015 23:06:38 +0200
+Message-ID: <2829685.et1KqHBDfq@vostro.rjw.lan>
+References: <CAFSKS=M8bODT8bLckwtGFziknPG=32Y1=8mz3Fq0H7JcA3GhjQ@mail.gmail.com> <16669466.MatE2KDcHs@vostro.rjw.lan> <CAFSKS=PxJMwkhrswHTdE-vVJqocHkzWELO=BvKm12NjFRtfNew@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60640 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751167AbbEGUST (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 May 2015 16:18:19 -0400
-In-Reply-To: <1430989899.2786.19.camel@hadess.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAFSKS=PxJMwkhrswHTdE-vVJqocHkzWELO=BvKm12NjFRtfNew@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: George McCollister <george.mccollister@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>
-Cc: linux-acpi@vger.kernel.org
 
-On Thursday, May 07, 2015 11:11:39 AM Bastien Nocera wrote:
-> On Thu, 2015-05-07 at 00:26 +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, May 06, 2015 04:20:17 PM Bastien Nocera wrote:
-> > > On Wed, 2015-04-29 at 17:08 +0200, Bastien Nocera wrote:
-> > > > Hey,
-> > > > 
-> > > > I have access to a convertible Toshiba machine where the 2nd 
-> > > > battery 
-> > > > is in detachable keyboard. This is the decompiled DSDT:
-> > > > https://hadess.fedorapeople.org/toshiba.dsl
-> > > > 
-> > > > There's no BAT0, BAT1 is in the screen, and BAT2 is in the 
-> > > > keyboard.
-> > > > 
-> > > > BAT2 can be ejected (it has an _EJD method), but the dock code 
-> > > > doesn't 
-> > > > see it as having a battery:
-> > > > $ pwd
-> > > > /sys/devices/platform/dock.0
-> > > > $ cat flags
-> > > > 16
-> > > > $ cat type
-> > > > dock_station
-> > > > 
-> > > > Any ideas what might be missing here?
-> > > > 
-> > > > I'd eventually like to be able to say that, if I can detect that 
-> > > > the 
-> > > > battery is inside the dock, to mark it as such in the UI[1] 
-> > > > (even 
-> > > > better would be to say it's "in the keyboard" but I'm not sure 
-> > > > we 
-> > > > can 
-> > > > easily detect that).
-> > > 
-> > > Anyone?
-> > 
-> > Not now, sorry.  Too many things are going on in parallel and this 
-> > one is
-> > not the most urgent of them.
-> 
-> Sure. I didn't expect a bug fix straight away, I just wanted to know
-> whether I was missing something.
-> 
-> > Please file a bug for it at bugzilla.kernel.org in the ACPI 
-> > category, so it's
-> > not forgotten.  Those bugs are looked at on a regular basis, so 
-> > we'll get to
-> > it at one point.
-> > 
-> 
-> Filed as:
-> https://bugzilla.kernel.org/show_bug.cgi?id=97841
+On Thursday, May 07, 2015 08:28:35 AM George McCollister wrote:
+> On Wed, May 6, 2015 at 5:14 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, May 06, 2015 02:15:15 PM George McCollister wrote:
+> >> On Wed, May 6, 2015 at 10:51 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> >> > [+cc Rafael]
 
-Thanks!
+[cut]
 
+> >>
+> >> I think the key here is that the region needs to be requested before
+> >> bridge window is assigned.
+> >
+> > That's correct, so things don't happen in the right order now.
+> >
+> > Well, acpi_reserve_resources() is a device_initcall(), so its ordering with
+> > respect to other things is somewhat random.
+> >
+> > Does the patch below make any difference by any chance?
+> >
+> 
+> Yes, with this patch it boots with no problems.
+
+OK
+
+I'm queuing this one up as a fix for 4.1 and for -stable.
+
+Thanks for your report, it was a good one. :-)
+
+Bjorn, please let me know if you think there's a better place to call
+acpi_reserve_resources() from.
+
+
+> > ---
+> >  drivers/acpi/osl.c |    6 ++----
+> >  1 file changed, 2 insertions(+), 4 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/osl.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/osl.c
+> > +++ linux-pm/drivers/acpi/osl.c
+> > @@ -182,7 +182,7 @@ static void __init acpi_request_region (
+> >                 request_mem_region(addr, length, desc);
+> >  }
+> >
+> > -static int __init acpi_reserve_resources(void)
+> > +static void __init acpi_reserve_resources(void)
+> >  {
+> >         acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
+> >                 "ACPI PM1a_EVT_BLK");
+> > @@ -211,10 +211,7 @@ static int __init acpi_reserve_resources
+> >         if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
+> >                 acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
+> >                                acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
+> > -
+> > -       return 0;
+> >  }
+> > -device_initcall(acpi_reserve_resources);
+> >
+> >  void acpi_os_printf(const char *fmt, ...)
+> >  {
+> > @@ -1845,6 +1842,7 @@ acpi_status __init acpi_os_initialize(vo
+> >
+> >  acpi_status __init acpi_os_initialize1(void)
+> >  {
+> > +       acpi_reserve_resources();
+> >         kacpid_wq = alloc_workqueue("kacpid", 0, 1);
+> >         kacpi_notify_wq = alloc_workqueue("kacpi_notify", 0, 1);
+> >         kacpi_hotplug_wq = alloc_ordered_workqueue("kacpi_hotplug", 0);
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
