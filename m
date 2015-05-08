@@ -1,101 +1,77 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
-Date: Fri, 08 May 2015 16:01:31 +0200
-Message-ID: <7474451.VIDhPoBiY2@wuerfel>
-References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com> <2797677.7Ghz879K9z@wuerfel> <20150430155513.GC27755@e104818-lin.cambridge.arm.com>
+Date: Fri, 08 May 2015 16:08:53 +0200
+Message-ID: <2927907.rePQ55aASC@wuerfel>
+References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com> <2817500.sgztgK2NzB@wuerfel> <20150501110644.GF27755@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:49673 "EHLO
+Received: from mout.kundenserver.de ([212.227.17.10]:49897 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932213AbbEHOCG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 May 2015 10:02:06 -0400
-In-Reply-To: <20150430155513.GC27755@e104818-lin.cambridge.arm.com>
+	with ESMTP id S1752699AbbEHOJd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 May 2015 10:09:33 -0400
+In-Reply-To: <20150501110644.GF27755@e104818-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thursday 30 April 2015 16:55:14 Catalin Marinas wrote:
-> On Thu, Apr 30, 2015 at 03:52:17PM +0200, Arnd Bergmann wrote:
-> > On Thursday 30 April 2015 14:13:45 Will Deacon wrote:
-> > > On Thu, Apr 30, 2015 at 02:03:00PM +0100, Arnd Bergmann wrote:
-> > > > On Thursday 30 April 2015 12:46:15 Will Deacon wrote:
-> > > > > Cache sync doesn't exist in the ARM/arm64architecture, what are the
-> > > > > semantics supposed to be? Maybe it's just DSB for us (complete all pending
-> > > > > maintenance).
-> > > > 
-> > > > It ensures that a state of a buffer as observed by CPU and device is
-> > > > identical. It's possible that we removed all platforms that did something
-> > > > interesting here, so it's one of these:
-> > > > 
-> > > > a) On architectures that are mostly coherent, it's a barrier
-> > > >    that is broadcast to all devices, like I assume DSB is. IA64
-> > > >    currently does this for all machines, but IIRC it used to 
-> > > >    access some cluster interconnect at some point to enforce a
-> > > >    flush.
-> > > >    The ARM32 based ArmadaXP also falls into this model if the cache
-> > > >    coherency fabric is enabled, as that needs to be synchronized
+On Friday 01 May 2015 12:06:44 Catalin Marinas wrote:
 > 
-> I'm getting confused by the ArmadaXP case. IIRC, the point of the
-> arm,io-coherent property to the PL310 was precisely to make the
-> outer_sync a no-op when the coherency is enabled. So basically an mb()
-> would only issue a DSB on such platform without the PL310 cache sync.
-> 
-> On coherent systems, devices usually snoop the inner/CPU cache and not
-> the system cache, that's further down the line. So a DSB would ensure
-> the visibility at the coherent interconnect level before the system
-> cache. I don't think it needs to be broadcast all the way to devices.
-
-Sorry for the late reply. IIRC, the sync on Armada XP was not required
-for the cache controller, but rather for the bus fabric, to ensure
-that a DMA has made it into the memory controller.
-
-> > > > b) On architectures where the device may not see the state of the cache,
-> > > >    but the CPU is always aware of anything the device sends it,
-> > > >    it flushes the cache. This seems to be the case on parisc,
-> > > >    and in particular, there are some variants that do not support
-> > > >    dma_alloc_coherent but only dma_alloc_noncoherent.
-> > > > c) On architectures that need the synchronization both ways,
-> > > >    it does (almost) the same invalidate/clean/flush thing as
-> > > >    ARM, except it doesn't have to worry about cache lines from
-> > > >    speculative prefetch which make it impossible to implement on
-> > > >    ARM.
-> > > 
-> > > Okey doke, thanks for the explanation. It sounds like we can just build
-> > > the primitive out of the existing cache maintenance routines if we need
-> > > to implement it.
+> > Note that there are lots of ways in which you could have noncoherent DMA:
+> > the default on ARM32 is that it requires uncached access or explicit
+> > cache flushes, but it's also possible to have an SMP system where a device
+> > is only coherent with some of the CPUs and requires explicit synchronization
+> > (not flushes) otherwise. In a multi-level cache hierarchy, there could be
+> > all sorts of combinations of flushes and syncs you would need to do.
 > > 
-> > Cases a) and b) yes, but not c), otherwise we could simplify
-> > the ARM dma-mapping implementation and just merge __dma_page_cpu_to_dev
-> > and __dma_page_dev_to_cpu into one function.
+> > With DT, we handle this using SoC-specific overrides for platforms that
+> > are noncoherent in funny ways, see
+> > http://lxr.free-electrons.com/source/arch/arm/mach-mvebu/coherency.c?v=3.18#L263
+> > for instance.
 > 
-> I don't fully understand c) or b). Wouldn't the non-coherent ops cover
-> them both, though potentially not as efficient?
+> It looks like mach-mvebu no longer needs this, according to commit
+> 1bd4d8a6de5c (ARM: mvebu: use arm_coherent_dma_ops and re-enable hardware
+> I/O coherency).
 
-Turning off caches usually makes everything coherent, but the performance
-cost can be gigantic. Also, it might not help if the problem with coherency
-is the completion of the DMA as opposed to the caching.
+Yes, Thomas Petazzoni found a way to configure that chip to essentially
+provide PCI semantics where an MMIO read from a devices ensures that all
+previous DMA has completed, which made the sync unnecessary. I believe
+Marvell recommends against using that mode for performance reasons,
+and they still use their own manual syncs in their vendor kernel.
 
-> > > > I guess we could handle that case as well, by requiring any ACPI based
-> > > > firmware to turn off the coherency fabric on that system and just making
-> > > > it dog slow.
-> > > 
-> > > We already require something similar in Documentation/arm64/booting.txt:
-> > > 
-> > >   `System caches which do not respect architected cache maintenance by VA
-> > >    operations (not recommended) must be configured and disabled.'
-> > 
-> > Hmm, does that rule really get violated here? I think it fully respects
-> > the cache maintenance (flush/invalidate/clean) operations, but it does
-> > not fully respect the dsb/dmb instructions, which is something else.
+> Even if some hardware needs this, it's usually because it has some
+> broken assumptions about barriers which most likely are architecture
+> non-compliant. We can work around it on a case by case basis (SoC
+> quirks). One option would be to disable coherency altogether for that
+> device, even if the performance is affected (e.g. no partial coherency).
+> Another possibility may be to add a bus driver for that broken
+> interconnect which installs its own dma ops for each device attached.
+
+Whether the Armada XP example is broken or not is really a matter of
+perspective. I would count it broken on the basis that is does not
+match what the Linux DMA and MMIO APIs expect, but you can well build
+an OS around their semantics.
+
+> > If we just disallow DMA to devices that are marked with _CCA=0
+> > in ACPI, we can avoid this case, or discuss it by the time someone has hardware
+> > that wants it, and then make a more informed decision about it.
 > 
-> If it fully respects the cache maintenance, it should also respect the
-> completion and ordering requirements of the cache maintenance
-> operations. That means that a DSB guarantees completion of such
-> operations.
+> I don't think we should disallow DMA to devices with _CCA == 0 (only to
+> those that don't have a _CCA property at all) as long as _CCA == 0 has
+> clear semantics like only architected cache maintenance required (and
+> that's what the ARMv8 ARM requires from compliant system caches).
 
-Ok.
+Even if we exclude all cases in which the behavior may be unexpected,
+there is still the other point I raised initially:
+
+             what would that be good for?
+
+Can you think of a case where a server system has a reason to use
+a device in noncoherent mode? I think it's more likely to be a case
+where a device got misconfigured accidentally by the firmware, and
+we're better off warning about that in the kernel than trying to prepare
+for an unknown hardware that might use an obscure feature of the spec.
 
 	Arnd
