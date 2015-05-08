@@ -1,228 +1,260 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [V3 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
-Date: Thu, 7 May 2015 19:37:12 -0500
-Message-ID: <1431045436-8690-2-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1431045436-8690-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Yun Wu (Abel)" <wuyun.wu@huawei.com>
+Subject: Re: [RFC v1 02/11] genirq: Move field 'node' from struct irq_data
+ into struct irq_common_data
+Date: Fri, 8 May 2015 10:29:48 +0800
+Message-ID: <554C1F9C.7020300@huawei.com>
+References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com> <1430709339-29083-3-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1431045436-8690-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de
-Cc: al.stone@linaro.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, msalter@redhat.com, grant.likely@linaro.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1430709339-29083-3-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jason Cooper <jason@lakedaemon.net>, Grant Likely <grant.likely@linaro.org>, Kevin Cernekee <cernekee@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch implements support for ACPI _CCA object, which is introduced in
-ACPIv5.1, can be used for specifying device DMA coherency attribute.
+Hi Gerry,
+On 2015/5/4 11:15, Jiang Liu wrote:
 
-The parsing logic traverses device namespace to parse coherency
-information, and stores it in acpi_device_flags. Then uses it to call
-arch_setup_dma_ops() when creating each device enumerated in DSDT
-during ACPI scan.
+> NUMA node information is per-irq instead of per-irqchip, so move it into
+> struct irq_common_data.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/sh/kernel/irq.c          |    2 +-
+>  arch/x86/kernel/apic/vector.c |    8 ++++----
+>  arch/x86/platform/uv/uv_irq.c |    2 +-
+>  include/linux/irq.h           |   20 ++++++++++++++++++--
+>  kernel/irq/internals.h        |    5 +++++
+>  kernel/irq/irqdesc.c          |   10 ++--------
+>  kernel/irq/irqdomain.c        |    4 ++--
+>  kernel/irq/manage.c           |    2 +-
+>  kernel/irq/proc.c             |    2 +-
+>  9 files changed, 35 insertions(+), 20 deletions(-)
+> 
+> diff --git a/arch/sh/kernel/irq.c b/arch/sh/kernel/irq.c
+> index eb10ff84015c..8dc677cc136b 100644
+> --- a/arch/sh/kernel/irq.c
+> +++ b/arch/sh/kernel/irq.c
+> @@ -227,7 +227,7 @@ void migrate_irqs(void)
+>  	for_each_active_irq(irq) {
+>  		struct irq_data *data = irq_get_irq_data(irq);
+>  
+> -		if (data->node == cpu) {
+> +		if (irq_data_get_node(data) == cpu) {
+>  			unsigned int newcpu = cpumask_any_and(data->affinity,
+>  							      cpu_online_mask);
+>  			if (newcpu >= nr_cpu_ids) {
+> diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+> index 96ce5068a926..983bea2a09ce 100644
+> --- a/arch/x86/kernel/apic/vector.c
+> +++ b/arch/x86/kernel/apic/vector.c
+> @@ -345,7 +345,7 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
+>  	struct irq_alloc_info *info = arg;
+>  	struct apic_chip_data *data;
+>  	struct irq_data *irq_data;
+> -	int i, err;
+> +	int i, err, node;
+>  
+>  	if (disable_apic)
+>  		return -ENXIO;
+> @@ -357,12 +357,13 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
+>  	for (i = 0; i < nr_irqs; i++) {
+>  		irq_data = irq_domain_get_irq_data(domain, virq + i);
+>  		BUG_ON(!irq_data);
+> +		node = irq_data_get_node(irq_data);
+>  #ifdef	CONFIG_X86_IO_APIC
+>  		if (virq + i < nr_legacy_irqs() && legacy_irq_data[virq + i])
+>  			data = legacy_irq_data[virq + i];
+>  		else
+>  #endif
+> -			data = alloc_apic_chip_data(irq_data->node);
+> +			data = alloc_apic_chip_data(node);
+>  		if (!data) {
+>  			err = -ENOMEM;
+>  			goto error;
+> @@ -371,8 +372,7 @@ static int x86_vector_alloc_irqs(struct irq_domain *domain, unsigned int virq,
+>  		irq_data->chip = &lapic_controller;
+>  		irq_data->chip_data = data;
+>  		irq_data->hwirq = virq + i;
+> -		err = assign_irq_vector_policy(virq, irq_data->node, data,
+> -					       info);
+> +		err = assign_irq_vector_policy(virq, node, data, info);
+>  		if (err)
+>  			goto error;
+>  	}
+> diff --git a/arch/x86/platform/uv/uv_irq.c b/arch/x86/platform/uv/uv_irq.c
+> index cdf86cd3fd97..bc992b7b041f 100644
+> --- a/arch/x86/platform/uv/uv_irq.c
+> +++ b/arch/x86/platform/uv/uv_irq.c
+> @@ -89,7 +89,7 @@ static int uv_domain_alloc(struct irq_domain *domain, unsigned int virq,
+>  		return -EINVAL;
+>  
+>  	chip_data = kmalloc_node(sizeof(*chip_data), GFP_KERNEL,
+> -				 irq_data->node);
+> +				 irq_data_get_node(irq_data));
+>  	if (!chip_data)
+>  		return -ENOMEM;
+>  
+> diff --git a/include/linux/irq.h b/include/linux/irq.h
+> index 3b6e0def7f5c..3f999a0af713 100644
+> --- a/include/linux/irq.h
+> +++ b/include/linux/irq.h
+> @@ -129,9 +129,13 @@ struct irq_domain;
+>   * struct irq_common_data - per irq data shared by all irqchips
+>   * @state_use_accessors: status information for irq chip functions.
+>   *			Use accessor functions to deal with it
+> + * @node:		node index useful for balancing
+>   */
+>  struct irq_common_data {
+>  	unsigned int		state_use_accessors;
+> +#ifdef CONFIG_SMP
 
-This patch also introduces acpi_dma_is_coherent(), which provides
-an interface for device drivers to check the coherency information
-similarly to the of_dma_is_coherent().
+Would CONFIG_NUMA be a little more appropriate?
+Or even let @node be always compiled?
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/acpi/Kconfig         |  6 ++++++
- drivers/acpi/acpi_platform.c | 10 +++++++---
- drivers/acpi/scan.c          | 42 ++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h      | 32 +++++++++++++++++++++++++++++++-
- include/linux/acpi.h         | 10 ++++++++++
- 5 files changed, 96 insertions(+), 4 deletions(-)
+Thanks,
+	Abel
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index ab2cbb5..7822149 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -54,6 +54,12 @@ config ACPI_GENERIC_GSI
- config ACPI_SYSTEM_POWER_STATES_SUPPORT
- 	bool
- 
-+config ACPI_CCA_REQUIRED
-+	bool
-+
-+config ARM64_SUPPORT_ACPI_CCA_ZERO
-+	bool
-+
- config ACPI_SLEEP
- 	bool
- 	depends on SUSPEND || HIBERNATION
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 4bf7559..a084ea0 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -103,14 +103,18 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	pdevinfo.res = resources;
- 	pdevinfo.num_res = count;
- 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
--	pdevinfo.dma_mask = DMA_BIT_MASK(32);
-+	pdevinfo.dma_mask = acpi_dma_is_supported(adev)? DMA_BIT_MASK(32): 0;
- 	pdev = platform_device_register_full(&pdevinfo);
--	if (IS_ERR(pdev))
-+	if (IS_ERR(pdev)) {
- 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
- 			PTR_ERR(pdev));
--	else
-+	} else {
-+		if (acpi_dma_is_supported(adev))
-+			arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
-+					   acpi_dma_is_coherent(adev));
- 		dev_dbg(&adev->dev, "created platform device %s\n",
- 			dev_name(&pdev->dev));
-+	}
- 
- 	kfree(resources);
- 	return pdev;
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 849b699..0976dc2 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -11,6 +11,7 @@
- #include <linux/kthread.h>
- #include <linux/dmi.h>
- #include <linux/nls.h>
-+#include <linux/dma-mapping.h>
- 
- #include <asm/pgtable.h>
- 
-@@ -2137,6 +2138,46 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp)
- 	kfree(pnp->unique_id);
- }
- 
-+static void acpi_init_coherency(struct acpi_device *adev)
-+{
-+	unsigned long long cca = 0;
-+	acpi_status status;
-+	struct acpi_device *parent = adev->parent;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+
-+	if (parent && parent->flags.cca_seen) {
-+		/*
-+		 * From ACPI spec, OSPM will ignore _CCA if an ancestor
-+		 * already saw one.
-+		 */
-+		adev->flags.cca_seen = 1;
-+		cca = acpi_dma_is_coherent(parent);
-+	} else {
-+		status = acpi_evaluate_integer(adev->handle, "_CCA",
-+					       NULL, &cca);
-+		if (ACPI_SUCCESS(status)) {
-+			adev->flags.cca_seen = 1;
-+		} else if (!IS_ENABLED(CONFIG_ACPI_CCA_REQUIRED)) {
-+			/*
-+			 * If architecture does not specify that _CCA is
-+			 * required for DMA-able devices (e.g. x86),
-+			 * we default to _CCA=1.
-+			 */
-+			cca = 1;
-+		} else {
-+			acpi_get_name(adev->handle, ACPI_FULL_PATHNAME, &buffer);
-+			pr_debug("ACPI device %s is missing _CCA.\n",
-+				(char *) buffer.pointer);
-+			kfree(buffer.pointer);
-+		}
-+	}
-+
-+	adev->flags.is_coherent = cca;
-+	if (acpi_dma_is_supported(adev))
-+		arch_setup_dma_ops(&adev->dev, 0, 0, NULL,
-+				   acpi_dma_is_coherent(adev));
-+}
-+
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 			     int type, unsigned long long sta)
- {
-@@ -2155,6 +2196,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	device->flags.visited = false;
- 	device_initialize(&device->dev);
- 	dev_set_uevent_suppress(&device->dev, true);
-+	acpi_init_coherency(device);
- }
- 
- void acpi_device_add_finalize(struct acpi_device *device)
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 8de4fa9..17fb630 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -208,7 +208,9 @@ struct acpi_device_flags {
- 	u32 visited:1;
- 	u32 hotplug_notify:1;
- 	u32 is_dock_station:1;
--	u32 reserved:23;
-+	u32 is_coherent:1;
-+	u32 cca_seen:1;
-+	u32 reserved:21;
- };
- 
- /* File System */
-@@ -380,6 +382,34 @@ struct acpi_device {
- 	void (*remove)(struct acpi_device *);
- };
- 
-+static inline bool acpi_dma_is_supported(struct acpi_device *adev)
-+{
-+	/**
-+	 * Currently, we mainly support _CCA=1 (i.e. is_coherent=1)
-+	 * This should be equivalent to specifyig dma-coherent for
-+	 * a device in OF.
-+	 *
-+	 * For the case when _CCA=0 (i.e. is_coherent=0 && cca_seen=1),
-+	 * we would rely on arch-specific cache maintenance for
-+	 * non-coherence DMA operations if architecture specifies
-+	 * _XXX_SUPPORT_CCA_ZERO. Otherwise, we do not support
-+	 * DMA on this device and fallback to arch-specific default
-+	 * handling.
-+	 *
-+	 * For the case when _CCA is missing (i.e. cca_seen=0) but
-+	 * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
-+	 * and fallback to arch-specific default handling.
-+	 */
-+	return adev && (adev->flags.is_coherent ||
-+			(adev->flags.cca_seen &&
-+			 IS_ENABLED(CONFIG_ARM64_SUPPORT_ACPI_CCA_ZERO)));
-+}
-+
-+static inline bool acpi_dma_is_coherent(struct acpi_device *adev)
-+{
-+	return adev && adev->flags.is_coherent;
-+}
-+
- static inline bool is_acpi_node(struct fwnode_handle *fwnode)
- {
- 	return fwnode && fwnode->type == FWNODE_ACPI;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index b10c4a6..baccf3b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -583,6 +583,16 @@ static inline int acpi_device_modalias(struct device *dev,
- 	return -ENODEV;
- }
- 
-+static inline bool acpi_dma_is_supported(struct acpi_device *adev)
-+{
-+	return false;
-+}
-+
-+static inline bool acpi_dma_is_coherent(struct acpi_device *adev)
-+{
-+	return false;
-+}
-+
- #define ACPI_PTR(_ptr)	(NULL)
- 
- #endif	/* !CONFIG_ACPI */
--- 
-2.1.0
+> +	unsigned int		node;
+> +#endif
+>  };
+>  
+>  /**
+> @@ -139,7 +143,6 @@ struct irq_common_data {
+>   * @mask:		precomputed bitmask for accessing the chip registers
+>   * @irq:		interrupt number
+>   * @hwirq:		hardware interrupt number, local to the interrupt domain
+> - * @node:		node index useful for balancing
+>   * @common:		point to data shared by all irqchips
+>   * @chip:		low level interrupt hardware access
+>   * @domain:		Interrupt translation domain; responsible for mapping
+> @@ -160,7 +163,6 @@ struct irq_data {
+>  	u32			mask;
+>  	unsigned int		irq;
+>  	unsigned long		hwirq;
+> -	unsigned int		node;
+>  	struct irq_common_data	*common;
+>  	struct irq_chip		*chip;
+>  	struct irq_domain	*domain;
+> @@ -634,6 +636,20 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
+>  	return d ? irqd_get_trigger_type(d) : 0;
+>  }
+>  
+> +static inline int irq_common_data_get_node(struct irq_common_data *d)
+> +{
+> +#ifdef CONFIG_SMP
+> +	return d->node;
+> +#else
+> +	return 0;
+> +#endif
+> +}
+> +
+> +static inline int irq_data_get_node(struct irq_data *d)
+> +{
+> +	return irq_common_data_get_node(d->common);
+> +}
+> +
+>  unsigned int arch_dynirq_lower_bound(unsigned int from);
+>  
+>  int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
+> diff --git a/kernel/irq/internals.h b/kernel/irq/internals.h
+> index ed84299788b3..d82a77d39aeb 100644
+> --- a/kernel/irq/internals.h
+> +++ b/kernel/irq/internals.h
+> @@ -199,6 +199,11 @@ static inline void kstat_incr_irqs_this_cpu(unsigned int irq, struct irq_desc *d
+>  	__this_cpu_inc(kstat.irqs_sum);
+>  }
+>  
+> +static inline int irq_desc_get_node(struct irq_desc *desc)
+> +{
+> +	return irq_common_data_get_node(&desc->irq_common_data);
+> +}
+> +
+>  #ifdef CONFIG_PM_SLEEP
+>  bool irq_pm_check_wakeup(struct irq_desc *desc);
+>  void irq_pm_install_action(struct irq_desc *desc, struct irqaction *action);
+> diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
+> index eac1aac906ea..20773f073e24 100644
+> --- a/kernel/irq/irqdesc.c
+> +++ b/kernel/irq/irqdesc.c
+> @@ -52,23 +52,17 @@ static int alloc_masks(struct irq_desc *desc, gfp_t gfp, int node)
+>  
+>  static void desc_smp_init(struct irq_desc *desc, int node)
+>  {
+> -	desc->irq_data.node = node;
+> +	desc->irq_common_data.node = node;
+>  	cpumask_copy(desc->irq_data.affinity, irq_default_affinity);
+>  #ifdef CONFIG_GENERIC_PENDING_IRQ
+>  	cpumask_clear(desc->pending_mask);
+>  #endif
+>  }
+>  
+> -static inline int desc_node(struct irq_desc *desc)
+> -{
+> -	return desc->irq_data.node;
+> -}
+> -
+>  #else
+>  static inline int
+>  alloc_masks(struct irq_desc *desc, gfp_t gfp, int node) { return 0; }
+>  static inline void desc_smp_init(struct irq_desc *desc, int node) { }
+> -static inline int desc_node(struct irq_desc *desc) { return 0; }
+>  #endif
+>  
+>  static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node,
+> @@ -300,7 +294,7 @@ static void free_desc(unsigned int irq)
+>  	unsigned long flags;
+>  
+>  	raw_spin_lock_irqsave(&desc->lock, flags);
+> -	desc_set_defaults(irq, desc, desc_node(desc), NULL);
+> +	desc_set_defaults(irq, desc, irq_desc_get_node(desc), NULL);
+>  	raw_spin_unlock_irqrestore(&desc->lock, flags);
+>  }
+>  
+> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+> index 3552b8750efd..93ef89059022 100644
+> --- a/kernel/irq/irqdomain.c
+> +++ b/kernel/irq/irqdomain.c
+> @@ -830,12 +830,12 @@ static struct irq_data *irq_domain_insert_irq_data(struct irq_domain *domain,
+>  {
+>  	struct irq_data *irq_data;
+>  
+> -	irq_data = kzalloc_node(sizeof(*irq_data), GFP_KERNEL, child->node);
+> +	irq_data = kzalloc_node(sizeof(*irq_data), GFP_KERNEL,
+> +				irq_data_get_node(child));
+>  	if (irq_data) {
+>  		child->parent_data = irq_data;
+>  		irq_data->irq = child->irq;
+>  		irq_data->common = child->common;
+> -		irq_data->node = child->node;
+>  		irq_data->domain = domain;
+>  	}
+>  
+> diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+> index e68932bb308e..d206aa2c3378 100644
+> --- a/kernel/irq/manage.c
+> +++ b/kernel/irq/manage.c
+> @@ -332,7 +332,7 @@ static int
+>  setup_affinity(unsigned int irq, struct irq_desc *desc, struct cpumask *mask)
+>  {
+>  	struct cpumask *set = irq_default_affinity;
+> -	int node = desc->irq_data.node;
+> +	int node = irq_desc_get_node(desc);
+>  
+>  	/* Excludes PER_CPU and NO_BALANCE interrupts */
+>  	if (!irq_can_set_affinity(irq))
+> diff --git a/kernel/irq/proc.c b/kernel/irq/proc.c
+> index df2f4642d1e7..0e97c142ce40 100644
+> --- a/kernel/irq/proc.c
+> +++ b/kernel/irq/proc.c
+> @@ -241,7 +241,7 @@ static int irq_node_proc_show(struct seq_file *m, void *v)
+>  {
+>  	struct irq_desc *desc = irq_to_desc((long) m->private);
+>  
+> -	seq_printf(m, "%d\n", desc->irq_data.node);
+> +	seq_printf(m, "%d\n", irq_desc_get_node(desc));
+>  	return 0;
+>  }
+>  
