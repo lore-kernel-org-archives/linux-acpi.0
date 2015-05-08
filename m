@@ -1,96 +1,101 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH RFC 1/5] ACPI / containers : add support for ACPI0010 processor container
-Date: Fri, 08 May 2015 16:06:46 +0200
-Message-ID: <2334052.J3vzukF2MM@vostro.rjw.lan>
-References: <1430922690-6966-1-git-send-email-sudeep.holla@arm.com> <1430922690-6966-2-git-send-email-sudeep.holla@arm.com> <554C78C2.706@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device coherency
+Date: Fri, 08 May 2015 16:01:31 +0200
+Message-ID: <7474451.VIDhPoBiY2@wuerfel>
+References: <1430315049-4663-1-git-send-email-Suravee.Suthikulpanit@amd.com> <2797677.7Ghz879K9z@wuerfel> <20150430155513.GC27755@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61703 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752994AbbEHNll convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 May 2015 09:41:41 -0400
-In-Reply-To: <554C78C2.706@linaro.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:49673 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932213AbbEHOCG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 May 2015 10:02:06 -0400
+In-Reply-To: <20150430155513.GC27755@e104818-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Al Stone <ahs3@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: linaro-acpi@lists.linaro.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Friday, May 08, 2015 04:50:10 PM Hanjun Guo wrote:
-> Hi Sudeep,
->=20
-> On 2015=E5=B9=B405=E6=9C=8806=E6=97=A5 22:31, Sudeep Holla wrote:
-> > ACPI 6.0 adds support for optional processor container device which=
- may
-> > contain child objects that are either processor devices or other pr=
-ocessor
-> > containers. This allows representing hierarchical processor topolog=
-ies.
-> >
-> > It is declared using the _HID of ACPI0010. It may also have _CID of
-> > PNP0A05, which represents a generic container device.
->=20
-> Container device helps support hotplug of nodes, CPUs, and memory,
-> does this container device ACPI0010 used for the same purpose?
+On Thursday 30 April 2015 16:55:14 Catalin Marinas wrote:
+> On Thu, Apr 30, 2015 at 03:52:17PM +0200, Arnd Bergmann wrote:
+> > On Thursday 30 April 2015 14:13:45 Will Deacon wrote:
+> > > On Thu, Apr 30, 2015 at 02:03:00PM +0100, Arnd Bergmann wrote:
+> > > > On Thursday 30 April 2015 12:46:15 Will Deacon wrote:
+> > > > > Cache sync doesn't exist in the ARM/arm64architecture, what are the
+> > > > > semantics supposed to be? Maybe it's just DSB for us (complete all pending
+> > > > > maintenance).
+> > > > 
+> > > > It ensures that a state of a buffer as observed by CPU and device is
+> > > > identical. It's possible that we removed all platforms that did something
+> > > > interesting here, so it's one of these:
+> > > > 
+> > > > a) On architectures that are mostly coherent, it's a barrier
+> > > >    that is broadcast to all devices, like I assume DSB is. IA64
+> > > >    currently does this for all machines, but IIRC it used to 
+> > > >    access some cluster interconnect at some point to enforce a
+> > > >    flush.
+> > > >    The ARM32 based ArmadaXP also falls into this model if the cache
+> > > >    coherency fabric is enabled, as that needs to be synchronized
+> 
+> I'm getting confused by the ArmadaXP case. IIRC, the point of the
+> arm,io-coherent property to the PL310 was precisely to make the
+> outer_sync a no-op when the coherency is enabled. So basically an mb()
+> would only issue a DSB on such platform without the PL310 cache sync.
+> 
+> On coherent systems, devices usually snoop the inner/CPU cache and not
+> the system cache, that's further down the line. So a DSB would ensure
+> the visibility at the coherent interconnect level before the system
+> cache. I don't think it needs to be broadcast all the way to devices.
 
-That's correct and the patch isn't.
+Sorry for the late reply. IIRC, the sync on Armada XP was not required
+for the cache controller, but rather for the bus fabric, to ensure
+that a DMA has made it into the memory controller.
 
-Thanks!
+> > > > b) On architectures where the device may not see the state of the cache,
+> > > >    but the CPU is always aware of anything the device sends it,
+> > > >    it flushes the cache. This seems to be the case on parisc,
+> > > >    and in particular, there are some variants that do not support
+> > > >    dma_alloc_coherent but only dma_alloc_noncoherent.
+> > > > c) On architectures that need the synchronization both ways,
+> > > >    it does (almost) the same invalidate/clean/flush thing as
+> > > >    ARM, except it doesn't have to worry about cache lines from
+> > > >    speculative prefetch which make it impossible to implement on
+> > > >    ARM.
+> > > 
+> > > Okey doke, thanks for the explanation. It sounds like we can just build
+> > > the primitive out of the existing cache maintenance routines if we need
+> > > to implement it.
+> > 
+> > Cases a) and b) yes, but not c), otherwise we could simplify
+> > the ARM dma-mapping implementation and just merge __dma_page_cpu_to_dev
+> > and __dma_page_dev_to_cpu into one function.
+> 
+> I don't fully understand c) or b). Wouldn't the non-coherent ops cover
+> them both, though potentially not as efficient?
 
+Turning off caches usually makes everything coherent, but the performance
+cost can be gigantic. Also, it might not help if the problem with coherency
+is the completion of the DMA as opposed to the caching.
 
-> For my understanding, ACPI0010 is used to abstract CPU topology
-> like cluster, not for hotplug purpose, maybe I missed something,
-> or you just need this container driver for later use?
->=20
-> Thanks
-> Hanjun
->=20
-> >
-> > This patch enables the support for these ACPI processor containers.
-> >
-> > Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> > ---
-> >   Documentation/memory-hotplug.txt | 2 +-
-> >   drivers/acpi/container.c         | 1 +
-> >   2 files changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/Documentation/memory-hotplug.txt b/Documentation/memor=
-y-hotplug.txt
-> > index ce2cfcf35c27..bdbf7bb88d5d 100644
-> > --- a/Documentation/memory-hotplug.txt
-> > +++ b/Documentation/memory-hotplug.txt
-> > @@ -124,7 +124,7 @@ config options.
-> >
-> >   - As a related configuration, if your box has a feature of NUMA-n=
-ode hotplug
-> >     via ACPI, then this option is necessary too.
-> > -    ACPI0004,PNP0A05 and PNP0A06 Container Driver (under ACPI Supp=
-ort menu)
-> > +    ACPI0004, ACPI0010, PNP0A05 and PNP0A06 Container Driver (unde=
-r ACPI Support menu)
-> >       (CONFIG_ACPI_CONTAINER).
-> >       This option can be kernel module too.
-> >
-> > diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> > index c8ead9f97375..8c041b9ac359 100644
-> > --- a/drivers/acpi/container.c
-> > +++ b/drivers/acpi/container.c
-> > @@ -36,6 +36,7 @@ ACPI_MODULE_NAME("container");
-> >
-> >   static const struct acpi_device_id container_device_ids[] =3D {
-> >   	{"ACPI0004", 0},
-> > +	{"ACPI0010", 0},
-> >   	{"PNP0A05", 0},
-> >   	{"PNP0A06", 0},
-> >   	{"", 0},
-> >
+> > > > I guess we could handle that case as well, by requiring any ACPI based
+> > > > firmware to turn off the coherency fabric on that system and just making
+> > > > it dog slow.
+> > > 
+> > > We already require something similar in Documentation/arm64/booting.txt:
+> > > 
+> > >   `System caches which do not respect architected cache maintenance by VA
+> > >    operations (not recommended) must be configured and disabled.'
+> > 
+> > Hmm, does that rule really get violated here? I think it fully respects
+> > the cache maintenance (flush/invalidate/clean) operations, but it does
+> > not fully respect the dsb/dmb instructions, which is something else.
+> 
+> If it fully respects the cache maintenance, it should also respect the
+> completion and ordering requirements of the cache maintenance
+> operations. That means that a DSB guarantees completion of such
+> operations.
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok.
+
+	Arnd
