@@ -1,114 +1,79 @@
-From: Daniel J Blueman <daniel@numascale.com>
-Subject: Re: [Patch v3] x86, irq: Allocate CPU vectors from device local
- CPUs if possible
-Date: Fri, 08 May 2015 15:21:31 +0800
-Message-ID: <1431069691.9785.7@cpanel21.proisp.no>
-References: <1430967244-28905-1-git-send-email-jiang.liu@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH RFC 1/5] ACPI / containers : add support for ACPI0010
+ processor container
+Date: Fri, 08 May 2015 16:50:10 +0800
+Message-ID: <554C78C2.706@linaro.org>
+References: <1430922690-6966-1-git-send-email-sudeep.holla@arm.com> <1430922690-6966-2-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430967244-28905-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <1430922690-6966-2-git-send-email-sudeep.holla@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Steffen Persvold <sp@numascale.com>
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Al Stone <ahs3@redhat.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 7, 2015 at 10:53 AM, Jiang Liu <jiang.liu@linux.intel.com> 
-wrote:
-> On NUMA systems, an IO device may be associated with a NUMA node.
-> It may improve IO performance to allocate resources, such as memory
-> and interrupts, from device local node.
-> 
-> This patch introduces a mechanism to support CPU vector allocation
-> policies. It tries to allocate CPU vectors from CPUs on device local
-> node first, and then fallback to all online(global) CPUs.
-> 
-> This mechanism may be used to support NumaConnect systems to allocate
-> CPU vectors from device local node.
-> 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: Daniel J Blueman <daniel@numascale.com>
-> ---
-> Hi Thomas,
-> 	I feel this should be simpliest version now:)
-> Thanks!
-> Gerry
-> ---
->  arch/x86/kernel/apic/vector.c |   23 ++++++++++++++---------
->  1 file changed, 14 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/apic/vector.c 
-> b/arch/x86/kernel/apic/vector.c
-> index 1c7dd42b98c1..eb65c6b98de0 100644
-> --- a/arch/x86/kernel/apic/vector.c
-> +++ b/arch/x86/kernel/apic/vector.c
-> @@ -210,6 +210,18 @@ static int assign_irq_vector(int irq, struct 
-> apic_chip_data *data,
->  	return err;
->  }
-> 
-> +static int assign_irq_vector_policy(int irq, int node,
-> +				    struct apic_chip_data *data,
-> +				    struct irq_alloc_info *info)
-> +{
-> +	if (info && info->mask)
-> +		return assign_irq_vector(irq, data, info->mask);
-> +	if (node != NUMA_NO_NODE &&
-> +	    assign_irq_vector(irq, data, cpumask_of_node(node)) == 0)
-> +		return 0;
-> +	return assign_irq_vector(irq, data, apic->target_cpus());
-> +}
-> +
->  static void clear_irq_vector(int irq, struct apic_chip_data *data)
->  {
->  	int cpu, vector;
-> @@ -258,12 +270,6 @@ void copy_irq_alloc_info(struct irq_alloc_info 
-> *dst, struct irq_alloc_info *src)
->  		memset(dst, 0, sizeof(*dst));
->  }
-> 
-> -static inline const struct cpumask *
-> -irq_alloc_info_get_mask(struct irq_alloc_info *info)
-> -{
-> -	return (!info || !info->mask) ? apic->target_cpus() : info->mask;
-> -}
-> -
->  static void x86_vector_free_irqs(struct irq_domain *domain,
->  				 unsigned int virq, unsigned int nr_irqs)
->  {
-> @@ -289,7 +295,6 @@ static int x86_vector_alloc_irqs(struct 
-> irq_domain *domain, unsigned int virq,
->  {
->  	struct irq_alloc_info *info = arg;
->  	struct apic_chip_data *data;
-> -	const struct cpumask *mask;
->  	struct irq_data *irq_data;
->  	int i, err;
-> 
-> @@ -300,7 +305,6 @@ static int x86_vector_alloc_irqs(struct 
-> irq_domain *domain, unsigned int virq,
->  	if ((info->flags & X86_IRQ_ALLOC_CONTIGUOUS_VECTORS) && nr_irqs > 1)
->  		return -ENOSYS;
-> 
-> -	mask = irq_alloc_info_get_mask(info);
->  	for (i = 0; i < nr_irqs; i++) {
->  		irq_data = irq_domain_get_irq_data(domain, virq + i);
->  		BUG_ON(!irq_data);
-> @@ -318,7 +322,8 @@ static int x86_vector_alloc_irqs(struct 
-> irq_domain *domain, unsigned int virq,
->  		irq_data->chip = &lapic_controller;
->  		irq_data->chip_data = data;
->  		irq_data->hwirq = virq + i;
-> -		err = assign_irq_vector(virq, data, mask);
-> +		err = assign_irq_vector_policy(virq, irq_data->node, data,
-> +					       info);
->  		if (err)
->  			goto error;
->  	}
+Hi Sudeep,
 
-Testing x86/tip/apic with this patch on a 192 core/24 node NumaConnect 
-system, all the PCIe bridge, GPU, SATA, NIC etc interrupts are 
-allocated on the correct NUMA nodes, so it works great. Tested-by: 
-Daniel J Blueman <daniel@numascale.com>
+On 2015=E5=B9=B405=E6=9C=8806=E6=97=A5 22:31, Sudeep Holla wrote:
+> ACPI 6.0 adds support for optional processor container device which m=
+ay
+> contain child objects that are either processor devices or other proc=
+essor
+> containers. This allows representing hierarchical processor topologie=
+s.
+>
+> It is declared using the _HID of ACPI0010. It may also have _CID of
+> PNP0A05, which represents a generic container device.
 
-Many thanks!
-  Daniel
+Container device helps support hotplug of nodes, CPUs, and memory,
+does this container device ACPI0010 used for the same purpose?
+
+=46or my understanding, ACPI0010 is used to abstract CPU topology
+like cluster, not for hotplug purpose, maybe I missed something,
+or you just need this container driver for later use?
+
+Thanks
+Hanjun
+
+>
+> This patch enables the support for these ACPI processor containers.
+>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>   Documentation/memory-hotplug.txt | 2 +-
+>   drivers/acpi/container.c         | 1 +
+>   2 files changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/memory-hotplug.txt b/Documentation/memory-=
+hotplug.txt
+> index ce2cfcf35c27..bdbf7bb88d5d 100644
+> --- a/Documentation/memory-hotplug.txt
+> +++ b/Documentation/memory-hotplug.txt
+> @@ -124,7 +124,7 @@ config options.
+>
+>   - As a related configuration, if your box has a feature of NUMA-nod=
+e hotplug
+>     via ACPI, then this option is necessary too.
+> -    ACPI0004,PNP0A05 and PNP0A06 Container Driver (under ACPI Suppor=
+t menu)
+> +    ACPI0004, ACPI0010, PNP0A05 and PNP0A06 Container Driver (under =
+ACPI Support menu)
+>       (CONFIG_ACPI_CONTAINER).
+>       This option can be kernel module too.
+>
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index c8ead9f97375..8c041b9ac359 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -36,6 +36,7 @@ ACPI_MODULE_NAME("container");
+>
+>   static const struct acpi_device_id container_device_ids[] =3D {
+>   	{"ACPI0004", 0},
+> +	{"ACPI0010", 0},
+>   	{"PNP0A05", 0},
+>   	{"PNP0A06", 0},
+>   	{"", 0},
+>
