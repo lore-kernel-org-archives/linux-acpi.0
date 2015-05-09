@@ -1,54 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPICA: Divergence: Remove redundant definitions.
-Date: Fri, 08 May 2015 23:10:42 +0200
-Message-ID: <2141885.RRIlZlr0YX@vostro.rjw.lan>
-References: <34f53a89dcef23c362071f5ee48038494d940e9d.1430880973.git.lv.zheng@intel.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH v2 5/7] Xen / ACPI / processor: Remove unneeded NULL
+ check in xen_acpi_processor_enable()
+Date: Sat, 9 May 2015 18:06:42 -0400
+Message-ID: <20150509220642.GB27485@l.oracle.com>
+References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org>
+ <1430793998-21631-6-git-send-email-hanjun.guo@linaro.org>
+ <alpine.DEB.2.02.1505051128400.2640@kaball.uk.xensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51322 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753678AbbEHUph (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 May 2015 16:45:37 -0400
-In-Reply-To: <34f53a89dcef23c362071f5ee48038494d940e9d.1430880973.git.lv.zheng@intel.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:48035 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050AbbEIWHA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 May 2015 18:07:00 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1505051128400.2640@kaball.uk.xensource.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, David Vrabel <david.vrabel@citrix.com>
 
-On Wednesday, May 06, 2015 10:57:53 AM Lv Zheng wrote:
-> There are two same "define"s in the actypes.h for ACPI_USE_NATIVE_DIVIDE,
-> this patch removes one of them as it is useless and is not in the ACPICA
-> upstream. It is likely that the useless block is there because of the
-> issues in the old ACPICA release process.
+On Tue, May 05, 2015 at 11:29:05AM +0100, Stefano Stabellini wrote:
+> CC'ing Konrad and David.
 > 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> On Tue, 5 May 2015, Hanjun Guo wrote:
+> > Before xen_acpi_processor_enable() is called, struct acpi_processor *pr is
+> > allocated in xen_acpi_processor_add() and checked if it's NULL, so no need
+> > to check again when passed to xen_acpi_processor_enable(), just remove it.
 
-Queued up for 4.2, thanks!
+Sounds right.
 
-> ---
->  include/acpi/actypes.h |    5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index 792c1a0..5298976b 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -472,11 +472,6 @@ typedef u8 acpi_owner_id;
->  
->  #define ACPI_INTEGER_BIT_SIZE           64
->  #define ACPI_MAX_DECIMAL_DIGITS         20	/* 2^64 = 18,446,744,073,709,551,616 */
-> -
-> -#if ACPI_MACHINE_WIDTH == 64
-> -#define ACPI_USE_NATIVE_DIVIDE	/* Use compiler native 64-bit divide */
-> -#endif
-> -
->  #define ACPI_MAX64_DECIMAL_DIGITS       20
->  #define ACPI_MAX32_DECIMAL_DIGITS       10
->  #define ACPI_MAX16_DECIMAL_DIGITS        5
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> > 
+> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+> > CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+> > ---
+> >  drivers/xen/xen-acpi-cpuhotplug.c | 8 +-------
+> >  1 file changed, 1 insertion(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/xen/xen-acpi-cpuhotplug.c b/drivers/xen/xen-acpi-cpuhotplug.c
+> > index 5a62aa0..f4a3694 100644
+> > --- a/drivers/xen/xen-acpi-cpuhotplug.c
+> > +++ b/drivers/xen/xen-acpi-cpuhotplug.c
+> > @@ -46,13 +46,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
+> >  	unsigned long long value;
+> >  	union acpi_object object = { 0 };
+> >  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+> > -	struct acpi_processor *pr;
+> > -
+> > -	pr = acpi_driver_data(device);
+> > -	if (!pr) {
+> > -		pr_err(PREFIX "Cannot find driver data\n");
+> > -		return -EINVAL;
+> > -	}
+> > +	struct acpi_processor *pr = acpi_driver_data(device);
+> >  
+> >  	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
+> >  		/* Declared with "Processor" statement; match ProcessorID */
+> > -- 
+> > 1.9.1
+> > 
