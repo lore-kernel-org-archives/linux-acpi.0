@@ -1,73 +1,73 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [V3 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
-Date: Mon, 11 May 2015 17:16:27 +0100
-Message-ID: <20150511161626.GI18655@e104818-lin.cambridge.arm.com>
-References: <1431045436-8690-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1431045436-8690-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <3684853.vaQGhc4jR5@vostro.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
+Date: Mon, 11 May 2015 17:35:42 +0100
+Message-ID: <20150511163542.GB2942@red-moon>
+References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org>
+ <1430793998-21631-8-git-send-email-hanjun.guo@linaro.org>
+ <5548A8C5.1080406@arm.com>
+ <5548C219.9060100@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58673 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752407AbbEKQQe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 May 2015 12:16:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3684853.vaQGhc4jR5@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <5548C219.9060100@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, thomas.lendacky@amd.com, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, arnd@arndb.de, linaro-acpi@lists.linaro.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, al.stone@linaro.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 
-On Fri, May 08, 2015 at 10:53:59PM +0200, Rafael J. Wysocki wrote:
-> On Thursday, May 07, 2015 07:37:12 PM Suravee Suthikulpanit wrote:
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index ab2cbb5..7822149 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -54,6 +54,12 @@ config ACPI_GENERIC_GSI
-> >  config ACPI_SYSTEM_POWER_STATES_SUPPORT
-> >  	bool
-> >  
-> > +config ACPI_CCA_REQUIRED
-> > +	bool
-> > +
-> > +config ARM64_SUPPORT_ACPI_CCA_ZERO
+On Tue, May 05, 2015 at 02:14:01PM +0100, Hanjun Guo wrote:
+> On 2015???05???05??? 19:25, Sudeep Holla wrote:
+> >
+> >
+> > On 05/05/15 03:46, Hanjun Guo wrote:
+> >> Introduce invalid_phys_cpuid() to identify cpu with invalid
+> >> physical ID, then used it as replacement of the direct comparisons
+> >> with PHYS_CPUID_INVALID.
+> >>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> ---
+> >>   drivers/acpi/acpi_processor.c | 4 ++--
+> >>   drivers/acpi/processor_core.c | 4 ++--
+> >>   include/linux/acpi.h          | 5 +++++
+> >>   3 files changed, 9 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/acpi_processor.c
+> >> b/drivers/acpi/acpi_processor.c
+> >> index 62c846b..92a5f73 100644
+> >> --- a/drivers/acpi/acpi_processor.c
+> >
+> > [...]
+> >
+> >> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> >> index 913b49f..cc82ff3 100644
+> >> --- a/include/linux/acpi.h
+> >> +++ b/include/linux/acpi.h
+> >> @@ -163,6 +163,11 @@ static inline bool invalid_logical_cpuid(u32 cpuid)
+> >>       return (int)cpuid < 0;
+> >>   }
+> >>
+> >> +static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+> >> +{
+> >> +    return (int)phys_id < 0;
+> >
+> > Should this be phys_id == PHYS_CPUID_INVALID ? else I don't see why we
+> > need to even define PHYS_CPUID_INVALID
 > 
-> Hmm.  I guess the Arnd's idea what to simply use CONFIG_ARM64 directly instead
-> of adding this new option.
+> I'm OK with this. For now, CPU phys_id will be valid value or
+> PHYS_CPUID_INVALID in all cases for ACPI processor driver, but
+> I want ask Rafael's opinion on this, is it OK to you too, Rafael?
 
-I agree.
+Is your worry related to functions returning error values
+other than PHYS_CPUID_INVALID (when they are expected to return a
+physical id) ? Is there any in the current kernel ?
 
-> > +static inline bool acpi_dma_is_supported(struct acpi_device *adev)
-> > +{
-> > +	/**
-> > +	 * Currently, we mainly support _CCA=1 (i.e. is_coherent=1)
-> > +	 * This should be equivalent to specifyig dma-coherent for
-> > +	 * a device in OF.
-> > +	 *
-> > +	 * For the case when _CCA=0 (i.e. is_coherent=0 && cca_seen=1),
-> > +	 * we would rely on arch-specific cache maintenance for
-> > +	 * non-coherence DMA operations if architecture specifies
-> > +	 * _XXX_SUPPORT_CCA_ZERO. Otherwise, we do not support
-> > +	 * DMA on this device and fallback to arch-specific default
-> > +	 * handling.
-> > +	 *
-> > +	 * For the case when _CCA is missing (i.e. cca_seen=0) but
-> > +	 * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
-> > +	 * and fallback to arch-specific default handling.
-> > +	 */
-> > +	return adev && (adev->flags.is_coherent ||
-> > +			(adev->flags.cca_seen &&
-> > +			 IS_ENABLED(CONFIG_ARM64_SUPPORT_ACPI_CCA_ZERO)));
-> 
-> So what exactly would be wrong with using IS_ENABLED(CONFIG_ARM64) here?
+static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+{
+	return phys_id == PHYS_CPUID_INVALID;
+}
 
-I'm not sure I follow why we need to check for ARM64 here at all. Can we
-not just have something like:
+This should do, and if we need more mapping functions that are supposed
+to return physical ids they should return PHYS_CPUID_INVALID on failure.
 
-	return adev && (!IS_ENABLED(CONFIG_ACPI_CCA_REQUIRED) ||
-			adev->flags.cca_seen)
-
--- 
-Catalin
+Lorenzo
