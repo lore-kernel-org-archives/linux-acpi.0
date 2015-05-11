@@ -1,80 +1,60 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [V3 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
-Date: Mon, 11 May 2015 18:12:29 +0100
-Message-ID: <20150511171229.GK18655@e104818-lin.cambridge.arm.com>
-References: <1431045436-8690-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1431045436-8690-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device
+ coherency
+Date: Mon, 11 May 2015 18:24:02 +0100
+Message-ID: <5550E5B2.1030407@arm.com>
+References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com> <2817500.sgztgK2NzB@wuerfel> <20150501110644.GF27755@e104818-lin.cambridge.arm.com> <2927907.rePQ55aASC@wuerfel> <20150511171045.GJ18655@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1431045436-8690-3-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, al.stone@linaro.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from eu-smtp-delivery-143.mimecast.com ([146.101.78.143]:9049 "EHLO
+	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751039AbbEKRYI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 May 2015 13:24:08 -0400
+In-Reply-To: <20150511171045.GJ18655@e104818-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thu, May 07, 2015 at 07:37:13PM -0500, Suravee Suthikulpanit wrote:
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 4269dba..c7227e8 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -1,5 +1,6 @@
->  config ARM64
->  	def_bool y
-> +	select ACPI_CCA_REQUIRED if ACPI
->  	select ACPI_GENERIC_GSI if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-> @@ -19,6 +20,7 @@ config ARM64
->  	select ARM_GIC_V2M if PCI_MSI
->  	select ARM_GIC_V3
->  	select ARM_GIC_V3_ITS if PCI_MSI
-> +	select ARM64_SUPPORT_ACPI_CCA_ZERO if ACPI
+On 11/05/15 18:10, Catalin Marinas wrote:
+> On Fri, May 08, 2015 at 04:08:53PM +0200, Arnd Bergmann wrote:
+>> On Friday 01 May 2015 12:06:44 Catalin Marinas wrote:
+>>>> If we just disallow DMA to devices that are marked with _CCA=0
+>>>> in ACPI, we can avoid this case, or discuss it by the time someone has hardware
+>>>> that wants it, and then make a more informed decision about it.
+>>>
+>>> I don't think we should disallow DMA to devices with _CCA == 0 (only to
+>>> those that don't have a _CCA property at all) as long as _CCA == 0 has
+>>> clear semantics like only architected cache maintenance required (and
+>>> that's what the ARMv8 ARM requires from compliant system caches).
+>>
+>> Even if we exclude all cases in which the behavior may be unexpected,
+>> there is still the other point I raised initially:
+>>
+>>               what would that be good for?
+>>
+>> Can you think of a case where a server system has a reason to use
+>> a device in noncoherent mode? I think it's more likely to be a case
+>> where a device got misconfigured accidentally by the firmware, and
+>> we're better off warning about that in the kernel than trying to prepare
+>> for an unknown hardware that might use an obscure feature of the spec.
+>
+> Maybe some of the people involved in arm64 servers can give a better
+> answer, I'm not familiar with their hardware (plans).
+>
+> I would expect most DMA-capable devices to be cache coherent. However,
+> for (system) performance reasons, some of them could be configured as
+> non-coherent. An example, though unlikely on servers, is a display
+> device continuously accessing a framebuffer. You may not want to
+> overload the coherent interconnect.
 
-As per the other sub-thread, I don't think we need this option at all.
+FWIW, I've also had much the same argument put to me for IOMMUs, i.e. 
+they want to make the page table walk interface non-coherent because 
+they'd rather pay the cost of flushing the page tables once to save a 
+few extra cycles of latency for cache snooping on every TLB miss.
 
-> diff --git a/arch/arm64/include/asm/dma-mapping.h b/arch/arm64/include/asm/dma-mapping.h
-> index 9437e3d..f0d6d0b 100644
-> --- a/arch/arm64/include/asm/dma-mapping.h
-> +++ b/arch/arm64/include/asm/dma-mapping.h
-> @@ -18,6 +18,7 @@
->  
->  #ifdef __KERNEL__
->  
-> +#include <linux/acpi.h>
->  #include <linux/types.h>
->  #include <linux/vmalloc.h>
->  
-> @@ -28,13 +29,23 @@
->  
->  #define DMA_ERROR_CODE	(~(dma_addr_t)0)
->  extern struct dma_map_ops *dma_ops;
-> +extern struct dma_map_ops dummy_dma_ops;
->  
->  static inline struct dma_map_ops *__generic_dma_ops(struct device *dev)
->  {
-> -	if (unlikely(!dev) || !dev->archdata.dma_ops)
-> +	if (unlikely(!dev))
->  		return dma_ops;
-> -	else
-> +	else if (dev->archdata.dma_ops)
->  		return dev->archdata.dma_ops;
-> +	else if (acpi_disabled)
-> +		return dma_ops;
-> +
-> +	/*
-> +	 * When ACPI is enabled, if arch_set_dma_ops is not called,
-> +	 * we will disable device DMA capability by setting it
-> +	 * to dummy_dma_ops.
-> +	 */
-> +	return &dummy_dma_ops;
->  }
+Robin.
 
-The code looks fine to me but Arnd had some comments that I didn't fully
-understand (dropping dummy_map_ops in favour of simply setting dma_mask
-to NULL; I don't think the existing swiotlb ops would behave in a way
-that always return NULL).
-
--- 
-Catalin
