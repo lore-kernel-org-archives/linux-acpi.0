@@ -1,52 +1,51 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 2/7] Xen / ACPI / processor: use invalid_logical_cpuid()
-Date: Mon, 11 May 2015 12:17:14 +0800
-Message-ID: <1431317839-4584-3-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v3 3/7] Xen / ACPI / processor: Remove unneeded NULL check
+Date: Mon, 11 May 2015 12:17:15 +0800
+Message-ID: <1431317839-4584-4-git-send-email-hanjun.guo@linaro.org>
 References: <1431317839-4584-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:33333 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752268AbbEKESK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 00:18:10 -0400
-Received: by pdbnk13 with SMTP id nk13so136513698pdb.0
-        for <linux-acpi@vger.kernel.org>; Sun, 10 May 2015 21:18:09 -0700 (PDT)
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:35003 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290AbbEKESP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 00:18:15 -0400
+Received: by pdbqd1 with SMTP id qd1so136358050pdb.2
+        for <linux-acpi@vger.kernel.org>; Sun, 10 May 2015 21:18:14 -0700 (PDT)
 In-Reply-To: <1431317839-4584-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Use invalid_logical_cpuid(pr->id) instead of direct comparison.
+Before xen_acpi_processor_enable() is called, struct acpi_processor *pr is
+allocated in xen_acpi_processor_add() and checked if it's NULL, so no need
+to check again when passed to xen_acpi_processor_enable(), just remove it.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 ---
- drivers/xen/xen-acpi-cpuhotplug.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/xen/xen-acpi-cpuhotplug.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
 diff --git a/drivers/xen/xen-acpi-cpuhotplug.c b/drivers/xen/xen-acpi-cpuhotplug.c
-index 3e62ee4..5a62aa0 100644
+index 5a62aa0..f4a3694 100644
 --- a/drivers/xen/xen-acpi-cpuhotplug.c
 +++ b/drivers/xen/xen-acpi-cpuhotplug.c
-@@ -77,7 +77,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
+@@ -46,13 +46,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
+ 	unsigned long long value;
+ 	union acpi_object object = { 0 };
+ 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+-	struct acpi_processor *pr;
+-
+-	pr = acpi_driver_data(device);
+-	if (!pr) {
+-		pr_err(PREFIX "Cannot find driver data\n");
+-		return -EINVAL;
+-	}
++	struct acpi_processor *pr = acpi_driver_data(device);
  
- 	pr->id = xen_pcpu_id(pr->acpi_id);
- 
--	if ((int)pr->id < 0)
-+	if (invalid_logical_cpuid(pr->id))
- 		/* This cpu is not presented at hypervisor, try to hotadd it */
- 		if (ACPI_FAILURE(xen_acpi_cpu_hotadd(pr))) {
- 			pr_err(PREFIX "Hotadd CPU (acpi_id = %d) failed.\n",
-@@ -226,7 +226,7 @@ static acpi_status xen_acpi_cpu_hotadd(struct acpi_processor *pr)
- 		return AE_ERROR;
- 
- 	pr->id = xen_hotadd_cpu(pr);
--	if ((int)pr->id < 0)
-+	if (invalid_logical_cpuid(pr->id))
- 		return AE_ERROR;
- 
- 	/*
+ 	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
+ 		/* Declared with "Processor" statement; match ProcessorID */
 -- 
 1.9.1
 
