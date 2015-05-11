@@ -1,74 +1,56 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal-SoC management updates for v4.1-rc4
-Date: Mon, 11 May 2015 16:50:07 -0700
-Message-ID: <20150511235006.GB4810@localhost.localdomain>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup
+ device coherency
+Date: Mon, 11 May 2015 18:10:46 +0100
+Message-ID: <20150511171045.GJ18655@e104818-lin.cambridge.arm.com>
+References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com>
+ <2817500.sgztgK2NzB@wuerfel>
+ <20150501110644.GF27755@e104818-lin.cambridge.arm.com>
+ <2927907.rePQ55aASC@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-pm-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, lklm@localhost.localdomain
-List-Id: linux-acpi@vger.kernel.org
-
-
---s/l3CgOIzMHHjg/5
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:58810 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876AbbEKRKu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 May 2015 13:10:50 -0400
 Content-Disposition: inline
+In-Reply-To: <2927907.rePQ55aASC@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-Hello Rui,
+On Fri, May 08, 2015 at 04:08:53PM +0200, Arnd Bergmann wrote:
+> On Friday 01 May 2015 12:06:44 Catalin Marinas wrote:
+> > > If we just disallow DMA to devices that are marked with _CCA=0
+> > > in ACPI, we can avoid this case, or discuss it by the time someone has hardware
+> > > that wants it, and then make a more informed decision about it.
+> > 
+> > I don't think we should disallow DMA to devices with _CCA == 0 (only to
+> > those that don't have a _CCA property at all) as long as _CCA == 0 has
+> > clear semantics like only architected cache maintenance required (and
+> > that's what the ARMv8 ARM requires from compliant system caches).
+> 
+> Even if we exclude all cases in which the behavior may be unexpected,
+> there is still the other point I raised initially:
+> 
+>              what would that be good for?
+> 
+> Can you think of a case where a server system has a reason to use
+> a device in noncoherent mode? I think it's more likely to be a case
+> where a device got misconfigured accidentally by the firmware, and
+> we're better off warning about that in the kernel than trying to prepare
+> for an unknown hardware that might use an obscure feature of the spec.
 
-Please pull from
+Maybe some of the people involved in arm64 servers can give a better
+answer, I'm not familiar with their hardware (plans).
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+I would expect most DMA-capable devices to be cache coherent. However,
+for (system) performance reasons, some of them could be configured as
+non-coherent. An example, though unlikely on servers, is a display
+device continuously accessing a framebuffer. You may not want to
+overload the coherent interconnect.
 
-to receive Thermal-SoC Management updates for v4.1-rc4 with top-most
-
-efa86858e1d8970411a140fa1e0c4dd18a8f2a89:
-
-  thermal: armada: Update Armada 380 thermal sensor coefficients (2015-05-09 01:00:31 -0700)
-
-
-on top of commit 5ebe6afaf0057ac3eaeb98defd5456894b446d22:
-
-  Linux 4.1-rc2 (2015-05-03 19:22:23 -0700)
-
-Specifics:
-- Thermal soc drivers fixes on Armada (380) and TI (dra7 and OMAP5).
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Keerthy (2):
-      thermal: ti-soc-thermal: dra7: Implement Workaround for Errata i814
-      thermal: ti-soc-thermal: OMAP5: Implement Workaround for Errata i813
-
-Nadav Haklai (1):
-      thermal: armada: Update Armada 380 thermal sensor coefficients
-
- drivers/thermal/armada_thermal.c                   |  6 +-
- .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
- .../thermal/ti-soc-thermal/omap5-thermal-data.c    |  3 +-
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 78 +++++++++++++++++++++-
- drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  6 ++
- 5 files changed, 89 insertions(+), 7 deletions(-)
-
---s/l3CgOIzMHHjg/5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJVUUAnAAoJEMLUO4d9pOJW7ZsH/RqQY04kTfjfDwP5tX+JENdI
-A9HFrLU1IlMVruU2BV3iAgKOOlH9lTJ/O4GoQCw4yCFwPYrAmgNmiMIQXnARN4Y3
-pfu17jjVIRC6RaQC7rM2IBdxd9Yf9dt9z8lxSsEOpM2k8l/o8fGgWPcyKtniOejo
-kJpbEoCyK/LeMoypG+YoBkUGEzJUwLpsyC460mK81Pj37E3k/GrK1WRuAMjPMPl1
-9/vx2+tJEAzxggdAOuagUG4cEEm5eUY9eKS00wZXuaSRQ7dWX19ueMinZTNBfvdV
-+TcaM97u20fh+rX8/BvSmOQ10YzVKE4dpTVihFPgnSY2Eu8nqPoaqvh1Es41p/0=
-=VCDz
------END PGP SIGNATURE-----
-
---s/l3CgOIzMHHjg/5--
+-- 
+Catalin
