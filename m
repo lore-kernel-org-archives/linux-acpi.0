@@ -1,46 +1,45 @@
 From: Luis Henriques <luis.henriques@canonical.com>
-Subject: [PATCH] ACPI / battery: abort initialization earlier if acpi_disabled
-Date: Mon, 11 May 2015 22:48:38 +0100
-Message-ID: <1431380918-2837-1-git-send-email-luis.henriques@canonical.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47437 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbbEKVsm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 17:48:42 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH] ACPI / battery: drop useless return statements
+Date: Mon, 11 May 2015 22:48:46 +0100
+Message-ID: <1431380926-2880-1-git-send-email-luis.henriques@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Luis Henriques <luis.henriques@canonical.com>
-
-If ACPI is disabled there's no need to schedule an async function call,
-the driver initialization can be aborted earlier in acpi_battery_init().
+List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
- drivers/acpi/battery.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/battery.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 63d43677f644..69b8e607ec35 100644
+index 69b8e607ec35..9c676a6f32ce 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
-@@ -1292,9 +1292,6 @@ static struct acpi_driver acpi_battery_driver = {
+@@ -1292,20 +1292,20 @@ static struct acpi_driver acpi_battery_driver = {
  
  static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
  {
--	if (acpi_disabled)
--		return;
--
++	int result;
++
  	dmi_check_system(bat_dmi_table);
- 	
+-	
++
  #ifdef CONFIG_ACPI_PROCFS_POWER
-@@ -1313,6 +1310,9 @@ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
+ 	acpi_battery_dir = acpi_lock_battery_dir();
+ 	if (!acpi_battery_dir)
+ 		return;
+ #endif
+-	if (acpi_bus_register_driver(&acpi_battery_driver) < 0) {
++	result = acpi_bus_register_driver(&acpi_battery_driver);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
++	if (result < 0)
+ 		acpi_unlock_battery_dir(acpi_battery_dir);
+ #endif
+-		return;
+-	}
+-	return;
+ }
  
  static int __init acpi_battery_init(void)
- {
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
- 	async_schedule(acpi_battery_init_async, NULL);
- 	return 0;
- }
