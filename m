@@ -1,60 +1,74 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [Linaro-acpi] [PATCH 2/2] ACPI / scan: Parse _CCA and setup device
- coherency
-Date: Mon, 11 May 2015 18:24:02 +0100
-Message-ID: <5550E5B2.1030407@arm.com>
-References: <D1665A4F.19E17%suravee.suthikulpanit@amd.com> <2817500.sgztgK2NzB@wuerfel> <20150501110644.GF27755@e104818-lin.cambridge.arm.com> <2927907.rePQ55aASC@wuerfel> <20150511171045.GJ18655@e104818-lin.cambridge.arm.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: commit b1ef29725865 (ACPI _REV=2) causes sound
+ regression on Dell XPS 13 [Was: Discussion around quirking the _REV
+ behavior for the XPS 13 (2015) until 4.2]
+Date: Mon, 11 May 2015 20:26:58 +0200
+Message-ID: <20150511182658.GA8516@isilmar-3.linta.de>
+References: <55401602.5050907@dell.com>
+ <55480021.1090402@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([146.101.78.143]:9049 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751039AbbEKRYI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 May 2015 13:24:08 -0400
-In-Reply-To: <20150511171045.GJ18655@e104818-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <55480021.1090402@dell.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mario Limonciello <mario_limonciello@dell.com>, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, broonie@kernel.org, alsa-devel@alsa-project.org, han.lu@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-On 11/05/15 18:10, Catalin Marinas wrote:
-> On Fri, May 08, 2015 at 04:08:53PM +0200, Arnd Bergmann wrote:
->> On Friday 01 May 2015 12:06:44 Catalin Marinas wrote:
->>>> If we just disallow DMA to devices that are marked with _CCA=0
->>>> in ACPI, we can avoid this case, or discuss it by the time someone has hardware
->>>> that wants it, and then make a more informed decision about it.
->>>
->>> I don't think we should disallow DMA to devices with _CCA == 0 (only to
->>> those that don't have a _CCA property at all) as long as _CCA == 0 has
->>> clear semantics like only architected cache maintenance required (and
->>> that's what the ARMv8 ARM requires from compliant system caches).
->>
->> Even if we exclude all cases in which the behavior may be unexpected,
->> there is still the other point I raised initially:
->>
->>               what would that be good for?
->>
->> Can you think of a case where a server system has a reason to use
->> a device in noncoherent mode? I think it's more likely to be a case
->> where a device got misconfigured accidentally by the firmware, and
->> we're better off warning about that in the kernel than trying to prepare
->> for an unknown hardware that might use an obscure feature of the spec.
->
-> Maybe some of the people involved in arm64 servers can give a better
-> answer, I'm not familiar with their hardware (plans).
->
-> I would expect most DMA-capable devices to be cache coherent. However,
-> for (system) performance reasons, some of them could be configured as
-> non-coherent. An example, though unlikely on servers, is a display
-> device continuously accessing a framebuffer. You may not want to
-> overload the coherent interconnect.
+Hi,
 
-FWIW, I've also had much the same argument put to me for IOMMUs, i.e. 
-they want to make the page table walk interface non-coherent because 
-they'd rather pay the cost of flushing the page tables once to save a 
-few extra cycles of latency for cache snooping on every TLB miss.
+(CC'ing sound experts)
 
-Robin.
+indeed, commit b1ef29725865 causes a severe regression -- actually, it
+causes sound to be totally unusuable on the Dell XPS 13 (2015) on
+Debian jessie, while it works fine in 4.0 / with b1ef29725865 reverted.
 
+According to an off-list discussion, the sound breakage (and not just some
+jack detection issue) seems to be caused due to alsa-lib being too old.
+The matter is further complicated by the issue that the driver
+asks for some firmware blob intel/IntcPP01.bin which (at least) I
+cannot find anywhere.
+
+Under the no-regression rule, this means that either b1ef29725865 needs
+to be reverted or we need to find another solution to this matter, such as
+an override. And I think it is needed for longer than just for 4.1, as it
+will continue to be cause regressions on quite recent userspace.
+
+Best,
+	Dominik
+
+
+PS/OT: Probably I'm preaching to the choir, but @Mario: it's a pity the
+XPS (or some versions of it) with pre-installed Ubuntu actually ships
+with a Wifi adapter which seems to be unsupported by upstream Linux...
+
+
+On Mon, May 04, 2015 at 06:26:25PM -0500, Mario Limonciello wrote:
+> 
+> On 04/28/2015 06:21 PM, Mario Limonciello wrote:
+> >Hi,
+> >
+> >Due to b1ef2972586577e0ca9675254ee141f65a8824e5 landing recently as a result of some previous ACPI community discussion, the Dell XPS 13 (2015) no longer has fully functional audio.  In case you aren't aware, the XPS 13 (2015) switches audio modes based upon a combination of what's detected for the _OSI string and _REV values. When "Windows 2013" is found with _REV=2 the audio codec will be configured for I2S audio mode.  When "Windows 2013" with _REV=5 is found it will be configured for HDA audio mode.
+> >
+> >I2S audio is improving, but not as mature as HDA audio mode is at this point.  Currently jack detection does not work properly in 4.1 with I2S audio codecs.  I've been notified that the support for jack detection will be landing in 4.2.  I'd like to discuss the possibility of including a quirk for the _REV behavior when the DMI information corresponding to the Dell XPS 13 (2015) is detected for 4.1.  This will let it continue to run in HDA mode until I2S mode is mature.
+> >
+> >I'd also like to plan for the quirk to be dropped when jack detection has landed for 4.2 (or if it gets pushed out further when it lands for 4.3).
+> >
+> >Would you guys be open to that?
+> >
+> >Thanks,
+> Hello,
+> 
+> I just wanted to follow up on this, I would like to come up with a solution before it's too late for 4.1 on the XPS 13 (2015).
+> 
+> Thanks,
