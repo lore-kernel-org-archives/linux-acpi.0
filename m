@@ -1,262 +1,56 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC v2 5/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Mon, 11 May 2015 21:36:22 +0800
-Message-ID: <5550B056.2080608@linaro.org>
-References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH v3 3/7] Xen / ACPI / processor: Remove unneeded NULL check
+Date: Mon, 11 May 2015 09:58:05 -0400
+Message-ID: <20150511135805.GF18474@l.oracle.com>
+References: <1431317839-4584-1-git-send-email-hanjun.guo@linaro.org>
+ <1431317839-4584-4-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:33269 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246AbbEKNge (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 09:36:34 -0400
-Received: by pacwv17 with SMTP id wv17so110337817pac.0
-        for <linux-acpi@vger.kernel.org>; Mon, 11 May 2015 06:36:34 -0700 (PDT)
-In-Reply-To: <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:22495 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752350AbbEKN6U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 09:58:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1431317839-4584-4-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi Jiang,
+On Mon, May 11, 2015 at 12:17:15PM +0800, Hanjun Guo wrote:
+> Before xen_acpi_processor_enable() is called, struct acpi_processor *pr is
+> allocated in xen_acpi_processor_add() and checked if it's NULL, so no need
+> to check again when passed to xen_acpi_processor_enable(), just remove it.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+> CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 
-I have comments inline.
-
-On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
-> Introduce common interface acpi_pci_root_create() and related data
-> structures to create PCI root bus for ACPI PCI host bridges. It will
-> be used to kill duplicated arch specific code for IA64 and x86. It ma=
-y
-> also help ARM64 in future.
->
-> Tested-by: Tony Luck <tony.luck@intel.com>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 > ---
->   drivers/acpi/pci_root.c  |  214 +++++++++++++++++++++++++++++++++++=
-+++++++++++
->   include/linux/pci-acpi.h |   24 ++++++
->   2 files changed, 238 insertions(+)
->
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 1b5569c092c6..97c260959a54 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -656,6 +656,220 @@ static void acpi_pci_root_remove(struct acpi_de=
-vice *device)
->   	kfree(root);
->   }
->
-> +static void acpi_pci_root_validate_resources(struct device *dev,
-> +					     struct list_head *resources,
-> +					     unsigned long type)
-> +{
-> +	LIST_HEAD(list);
-> +	struct resource *res1, *res2, *root =3D NULL;
-> +	struct resource_entry *tmp, *entry, *entry2;
-> +
-> +	BUG_ON((type & (IORESOURCE_MEM | IORESOURCE_IO)) =3D=3D 0);
-> +	root =3D (type & IORESOURCE_MEM) ? &iomem_resource : &ioport_resour=
-ce;
-> +
-> +	list_splice_init(resources, &list);
-> +	resource_list_for_each_entry_safe(entry, tmp, &list) {
-> +		bool free =3D false;
-> +		resource_size_t end;
-> +
-> +		res1 =3D entry->res;
-> +		if (!(res1->flags & type))
-> +			goto next;
-> +
-> +		/* Exclude non-addressable range or non-addressable portion */
-> +		end =3D min(res1->end, root->end);
-> +		if (end <=3D res1->start) {
-> +			dev_info(dev, "host bridge window %pR (ignored, not CPU addressab=
-le)\n",
-> +				 res1);
-> +			free =3D true;
-> +			goto next;
-> +		} else if (res1->end !=3D end) {
-> +			dev_info(dev, "host bridge window %pR ([%#llx-%#llx] ignored, not=
- CPU addressable)\n",
-> +				 res1, (unsigned long long)end + 1,
-> +				 (unsigned long long)res1->end);
-> +			res1->end =3D end;
-> +		}
-> +
-> +		resource_list_for_each_entry(entry2, resources) {
-> +			res2 =3D entry2->res;
-> +			if (!(res2->flags & type))
-> +				continue;
-> +
-> +			/*
-> +			 * I don't like throwing away windows because then
-> +			 * our resources no longer match the ACPI _CRS, but
-> +			 * the kernel resource tree doesn't allow overlaps.
-> +			 */
-> +			if (resource_overlaps(res1, res2)) {
-> +				res2->start =3D min(res1->start, res2->start);
-> +				res2->end =3D max(res1->end, res2->end);
-> +				dev_info(dev, "host bridge window expanded to %pR; %pR ignored\n=
-",
-> +					 res2, res1);
-> +				free =3D true;
-> +				goto next;
-> +			}
-> +		}
-> +
-> +next:
-> +		resource_list_del(entry);
-> +		if (free)
-> +			resource_list_free_entry(entry);
-> +		else
-> +			resource_list_add_tail(entry, resources);
-> +	}
-> +}
-> +
-> +static int acpi_pci_probe_root_resources(struct acpi_pci_root_info_c=
-ommon *info)
-> +{
-> +	int ret;
-> +	struct list_head *list =3D &info->resources;
-> +	struct acpi_device *device =3D info->bridge;
-> +	struct resource_entry *entry, *tmp;
-> +	unsigned long flags;
-> +
-> +	flags =3D IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_MEM_8AND16BIT=
-;
-> +	ret =3D acpi_dev_get_resources(device, list,
-> +				     acpi_dev_filter_resource_type_cb,
-> +				     (void *)flags);
-> +	if (ret < 0)
-> +		dev_warn(&device->dev,
-> +			 "failed to parse _CRS method, error code %d\n", ret);
-> +	else if (ret =3D=3D 0)
-> +		dev_dbg(&device->dev,
-> +			"no IO and memory resources present in _CRS\n");
-> +	else {
-> +		resource_list_for_each_entry_safe(entry, tmp, list) {
-> +			if (entry->res->flags & IORESOURCE_DISABLED)
-> +				resource_list_destroy_entry(entry);
-> +			else
-> +				entry->res->name =3D info->name;
-> +		}
-> +		acpi_pci_root_validate_resources(&device->dev, list,
-> +						 IORESOURCE_MEM);
-> +		acpi_pci_root_validate_resources(&device->dev, list,
-> +						 IORESOURCE_IO);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static void pci_acpi_root_add_resources(struct acpi_pci_root_info_co=
-mmon *info)
-> +{
-> +	struct resource_entry *entry, *tmp;
-> +	struct resource *res, *conflict, *root =3D NULL;
-> +
-> +	resource_list_for_each_entry_safe(entry, tmp, &info->resources) {
-> +		res =3D entry->res;
-> +		if (res->flags & IORESOURCE_MEM)
-> +			root =3D &iomem_resource;
-> +		else if (res->flags & IORESOURCE_IO)
-> +			root =3D &ioport_resource;
-> +		else
-> +			continue;
-> +
-> +		conflict =3D insert_resource_conflict(root, res);
-> +		if (conflict) {
-> +			dev_info(&info->bridge->dev,
-> +				 "ignoring host bridge window %pR (conflicts with %s %pR)\n",
-> +				 res, conflict->name, conflict);
-> +			resource_list_destroy_entry(entry);
-> +		}
-> +	}
-> +}
-> +
-> +static void __acpi_pci_root_release_info(struct acpi_pci_root_info_c=
-ommon *info)
-> +{
-> +	struct resource *res;
-> +	struct resource_entry *entry, *tmp;
-> +
-> +	if (!info)
-> +		return;
-> +
-> +	if (info->ops && info->ops->release_info)
-> +		info->ops->release_info(info);
-> +
-> +	resource_list_for_each_entry_safe(entry, tmp, &info->resources) {
-> +		res =3D entry->res;
-> +		if (res->parent &&
-> +		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
-> +			release_resource(res);
-> +		resource_list_destroy_entry(entry);
-> +	}
-> +
-> +	kfree(info);
-> +}
-> +
-> +static void acpi_pci_root_release_info(struct pci_host_bridge *bridg=
-e)
-> +{
-> +	struct resource *res;
-> +	struct resource_entry *entry;
-> +
-> +	resource_list_for_each_entry(entry, &bridge->windows) {
-> +		res =3D entry->res;
-> +		if (res->parent &&
-> +		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
-> +			release_resource(res);
-> +	}
-> +	__acpi_pci_root_release_info(bridge->release_data);
-> +}
-> +
-> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-> +				     struct acpi_pci_root_ops *ops,
-> +				     size_t extra_size)
-> +{
-> +	int ret, busnum =3D root->secondary.start;
-> +	struct acpi_device *device =3D root->device;
-> +	struct acpi_pci_root_info_common *info;
-> +	struct pci_bus *bus;
-> +
-> +	info =3D kzalloc(sizeof(*info) + extra_size, GFP_KERNEL);
-
-=46or x86, the memory is allocated on its local numa node if memory
-is available by using kzalloc_node(), and if
-node =3D acpi_get_node(device->handle) is NUMA_NO_NODE, the code will
-get the numa node info by using x86_pci_root_bus_node() (which you
-consolidate them as a function pci_acpi_root_get_node() in later
-patch).
-
-but the code here just ignore that information, so the code
-here has functional change for x86 code since you didn't use numa
-information.
-
-I'm not sure how frequently used for the info after init, so
-not sure about the performance impact, but I think we should
-keep consistence with the code behavior as before.
-
-=46urther more, there is a implicit cast for
-struct acpi_pci_root_info_common *info to arch specific
-struct pci_root_info *info by using extra size, it's not
-easy to understand (at least for me :) ), so how about
-alloc the memory in arch specific function, and pass
-struct acpi_pci_root_info_common *info fr this function?
-
-other than that, this code is pretty good, I reworked ARM64
-ACPI based PCI host bridge init code, and this patch simplified
-the coed a lot, will have a test tomorrow and let you know
-the result.
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/xen/xen-acpi-cpuhotplug.c | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/xen/xen-acpi-cpuhotplug.c b/drivers/xen/xen-acpi-cpuhotplug.c
+> index 5a62aa0..f4a3694 100644
+> --- a/drivers/xen/xen-acpi-cpuhotplug.c
+> +++ b/drivers/xen/xen-acpi-cpuhotplug.c
+> @@ -46,13 +46,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
+>  	unsigned long long value;
+>  	union acpi_object object = { 0 };
+>  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+> -	struct acpi_processor *pr;
+> -
+> -	pr = acpi_driver_data(device);
+> -	if (!pr) {
+> -		pr_err(PREFIX "Cannot find driver data\n");
+> -		return -EINVAL;
+> -	}
+> +	struct acpi_processor *pr = acpi_driver_data(device);
+>  
+>  	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
+>  		/* Declared with "Processor" statement; match ProcessorID */
+> -- 
+> 1.9.1
+> 
