@@ -1,51 +1,47 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 3/7] Xen / ACPI / processor: Remove unneeded NULL check
-Date: Mon, 11 May 2015 12:17:15 +0800
-Message-ID: <1431317839-4584-4-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v3 5/7] ACPI / processor: remove phys_id in acpi_processor_get_info()
+Date: Mon, 11 May 2015 12:17:17 +0800
+Message-ID: <1431317839-4584-6-git-send-email-hanjun.guo@linaro.org>
 References: <1431317839-4584-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:35003 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290AbbEKESP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 00:18:15 -0400
-Received: by pdbqd1 with SMTP id qd1so136358050pdb.2
-        for <linux-acpi@vger.kernel.org>; Sun, 10 May 2015 21:18:14 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1431317839-4584-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Before xen_acpi_processor_enable() is called, struct acpi_processor *pr is
-allocated in xen_acpi_processor_add() and checked if it's NULL, so no need
-to check again when passed to xen_acpi_processor_enable(), just remove it.
+Use pr->phys_id to replace phys_id to simplify the code.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-CC: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 ---
- drivers/xen/xen-acpi-cpuhotplug.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/acpi/acpi_processor.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/xen/xen-acpi-cpuhotplug.c b/drivers/xen/xen-acpi-cpuhotplug.c
-index 5a62aa0..f4a3694 100644
---- a/drivers/xen/xen-acpi-cpuhotplug.c
-+++ b/drivers/xen/xen-acpi-cpuhotplug.c
-@@ -46,13 +46,7 @@ static int xen_acpi_processor_enable(struct acpi_device *device)
- 	unsigned long long value;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 0676b50..62c846b 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -215,7 +215,6 @@ static int acpi_processor_get_info(struct acpi_device *device)
  	union acpi_object object = { 0 };
  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
--	struct acpi_processor *pr;
--
--	pr = acpi_driver_data(device);
--	if (!pr) {
--		pr_err(PREFIX "Cannot find driver data\n");
--		return -EINVAL;
--	}
-+	struct acpi_processor *pr = acpi_driver_data(device);
+ 	struct acpi_processor *pr = acpi_driver_data(device);
+-	phys_cpuid_t phys_id;
+ 	int device_declaration = 0;
+ 	acpi_status status = AE_OK;
+ 	static int cpu0_initialized;
+@@ -263,10 +262,10 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		pr->acpi_id = value;
+ 	}
  
- 	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
- 		/* Declared with "Processor" statement; match ProcessorID */
+-	phys_id = acpi_get_phys_id(pr->handle, device_declaration, pr->acpi_id);
+-	if (phys_id == PHYS_CPUID_INVALID)
++	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
++					pr->acpi_id);
++	if (pr->phys_id == PHYS_CPUID_INVALID)
+ 		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
+-	pr->phys_id = phys_id;
+ 
+ 	pr->id = acpi_map_cpuid(pr->phys_id, pr->acpi_id);
+ 	if (!cpu0_initialized && !acpi_has_cpu_in_madt()) {
 -- 
 1.9.1
-
