@@ -1,74 +1,212 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [V3 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
-Date: Tue, 12 May 2015 03:20:04 +0200
-Message-ID: <1664523.WMm4AqWTY5@vostro.rjw.lan>
-References: <1431045436-8690-1-git-send-email-Suravee.Suthikulpanit@amd.com> <3684853.vaQGhc4jR5@vostro.rjw.lan> <20150511161626.GI18655@e104818-lin.cambridge.arm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: TCO Watchdog warning interrupt driver creation
+Date: Mon, 11 May 2015 18:28:22 -0700
+Message-ID: <20150512012822.GA10791@roeck-us.net>
+References: <B9C02DB17496AC4197F41A146D371B9B07625D40@hasmsx107.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20150511161626.GI18655@e104818-lin.cambridge.arm.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, thomas.lendacky@amd.com, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, arnd@arndb.de, linaro-acpi@lists.linaro.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, al.stone@linaro.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:44894 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922AbbELB2b (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 21:28:31 -0400
+Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.85)
+	(envelope-from <linux@roeck-us.net>)
+	id 1Yryzm-000xjw-KS
+	for linux-acpi@vger.kernel.org; Tue, 12 May 2015 01:28:30 +0000
+Content-Disposition: inline
+In-Reply-To: <B9C02DB17496AC4197F41A146D371B9B07625D40@hasmsx107.ger.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Muller, Francois-nicolas" <francois-nicolas.muller@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, "'platform-driver-x86@vger.kernel.org'" <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Wim Van Sebroeck <wim@iguana.be>
 
-On Monday, May 11, 2015 05:16:27 PM Catalin Marinas wrote:
-> On Fri, May 08, 2015 at 10:53:59PM +0200, Rafael J. Wysocki wrote:
-> > On Thursday, May 07, 2015 07:37:12 PM Suravee Suthikulpanit wrote:
-> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > > index ab2cbb5..7822149 100644
-> > > --- a/drivers/acpi/Kconfig
-> > > +++ b/drivers/acpi/Kconfig
-> > > @@ -54,6 +54,12 @@ config ACPI_GENERIC_GSI
-> > >  config ACPI_SYSTEM_POWER_STATES_SUPPORT
-> > >  	bool
-> > >  
-> > > +config ACPI_CCA_REQUIRED
-> > > +	bool
-> > > +
-> > > +config ARM64_SUPPORT_ACPI_CCA_ZERO
-> > 
-> > Hmm.  I guess the Arnd's idea what to simply use CONFIG_ARM64 directly instead
-> > of adding this new option.
-> 
-> I agree.
-> 
-> > > +static inline bool acpi_dma_is_supported(struct acpi_device *adev)
-> > > +{
-> > > +	/**
-> > > +	 * Currently, we mainly support _CCA=1 (i.e. is_coherent=1)
-> > > +	 * This should be equivalent to specifyig dma-coherent for
-> > > +	 * a device in OF.
-> > > +	 *
-> > > +	 * For the case when _CCA=0 (i.e. is_coherent=0 && cca_seen=1),
-> > > +	 * we would rely on arch-specific cache maintenance for
-> > > +	 * non-coherence DMA operations if architecture specifies
-> > > +	 * _XXX_SUPPORT_CCA_ZERO. Otherwise, we do not support
-> > > +	 * DMA on this device and fallback to arch-specific default
-> > > +	 * handling.
-> > > +	 *
-> > > +	 * For the case when _CCA is missing (i.e. cca_seen=0) but
-> > > +	 * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
-> > > +	 * and fallback to arch-specific default handling.
-> > > +	 */
-> > > +	return adev && (adev->flags.is_coherent ||
-> > > +			(adev->flags.cca_seen &&
-> > > +			 IS_ENABLED(CONFIG_ARM64_SUPPORT_ACPI_CCA_ZERO)));
-> > 
-> > So what exactly would be wrong with using IS_ENABLED(CONFIG_ARM64) here?
-> 
-> I'm not sure I follow why we need to check for ARM64 here at all. Can we
-> not just have something like:
-> 
-> 	return adev && (!IS_ENABLED(CONFIG_ACPI_CCA_REQUIRED) ||
-> 			adev->flags.cca_seen)
+On Mon, Mar 30, 2015 at 01:45:08PM +0000, Muller, Francois-nicolas wrote:
+> Thanks Rafael for your comments.
+> Please find my answers embedded below and a new version of the patch.
 
-If _CCA returns 0 on non-ARM64, DMA is not supported for this device, so
-in that case the function should return 'false' while the above check will
-make it return 'true'.
+This makes it quite difficult to find your patch.
+Please follow the guidelines in Documentation/SubmittingPatches
+when (re)submitting kernel patches.
 
+[ ... ]
+> 
+> I need to be able to enable the panic or not after the warning interrupt.
+> I could also use module parameters instead of Kconfig, I don't know which one
+> is preferred in this case. Any advice ?
+> 
+There should be one and only one option, and that should trigger a panic.
+Pretty much follow the "pretimeout" semantics in
+Documentation/watchdog/watchdog-api.txt.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> 
+> ##################################################################
+> 
+> >From 255184705e94f2983d965ad711f30281a1eed816 Mon Sep 17 00:00:00 2001
+> From: Francois-Nicolas Muller <francois-nicolas.muller@intel.com>
+> Date: Mon, 30 Mar 2015 14:56:39 +0200
+> Subject: [PATCH] Adding TCO watchdog warning interrupt handling.
+> 
+> This feature is useful to root cause watchdog expiration.
+> It is activated by boot parameter 'warn_irq' (disabled by default).
+> 
+> Upon first expiration of the TCO watchdog, a warning interrupt is fired,
+> then the interrupt handler dumps registers and call stack of all available
+> cpus.
+> TCO watchdog reloads with 2.4 seconds timeout for second expiration.
+> 
+> If CONFIG_ITCO_WARN_PANIC is set, the warning interrupt also calls panic()
+> which notifies the panic handlers then reboots the platform, depending on
+> CONFIG_PANIC_TIMEOUT value :
+> 
+> - If CONFIG_PANIC_TIMEOUT is zero or greater than 3 seconds, TCO watchdog will
+> reset the platform if second expiration happens before TCO has been kicked again.
+> 
+> - If CONFIG_PANIC_TIMEOUT is < 0, platform will reboot immediately (emergency
+> restart procedure).
+> 
+> - If CONFIG_PANIC_TIMEOUT is 1 or 2 seconds, platform will reboot after 1 or 2
+> seconds delay (emergency restart procedure).
+> 
+> See Documentation/watchdog/tco-wdt-warning-interrupt.txt for more details.
+> 
+> Signed-off-by: Francois-Nicolas Muller <francois-nicolas.muller@intel.com>
+> ---
+>  drivers/watchdog/Kconfig    | 13 ++++++++++++
+>  drivers/watchdog/iTCO_wdt.c | 48 +++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 61 insertions(+)
+> 
+> -- 
+> 1.9.1
+> 
+> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+> index 79d2589..41f3647 100644
+> --- a/drivers/watchdog/Kconfig
+> +++ b/drivers/watchdog/Kconfig
+> @@ -674,6 +674,19 @@ config ITCO_VENDOR_SUPPORT
+>  	  devices. At this moment we only have additional support for some
+>  	  SuperMicro Inc. motherboards.
+>  
+> +config ITCO_WARNING_PANIC
+> +	bool "Intel TCO Timer/Watchdog panic on warning interrupt"
+> +	depends on ITCO_WDT && ACPI
+> +	default y
+> +	---help---
+> +	  Force a call to panic() when TCO warning interrupt occurs.
+> +
+> +	  Warning interrupt happens if warn_irq module parameter is set and
+> +	  TCO timer first expires.
+> +
+> +	  If not set, only cpu backtraces are dumped, no call to panic() and
+> +	  no notification of panic are done.
+> +
+
+This option should go away.
+
+>  config IT8712F_WDT
+>  	tristate "IT8712F (Smart Guardian) Watchdog Timer"
+>  	depends on X86
+> diff --git a/drivers/watchdog/iTCO_wdt.c b/drivers/watchdog/iTCO_wdt.c
+> index e802a54..8cfa5e7 100644
+> --- a/drivers/watchdog/iTCO_wdt.c
+> +++ b/drivers/watchdog/iTCO_wdt.c
+> @@ -68,6 +68,8 @@
+>  #include <linux/pm.h>			/* For suspend/resume */
+>  #include <linux/mfd/core.h>
+>  #include <linux/mfd/lpc_ich.h>
+> +#include <linux/nmi.h>
+> +#include <linux/acpi.h>
+>  
+>  #include "iTCO_vendor.h"
+>  
+> @@ -126,6 +128,11 @@ module_param(turn_SMI_watchdog_clear_off, int, 0);
+>  MODULE_PARM_DESC(turn_SMI_watchdog_clear_off,
+>  	"Turn off SMI clearing watchdog (depends on TCO-version)(default=1)");
+>  
+> +static bool warn_irq;
+> +module_param(warn_irq, bool, 0);
+> +MODULE_PARM_DESC(warn_irq,
+> +	"Dump all cpus backtraces at first watchdog timer expiration (default=0)");
+> +
+This option (possibly with a better name) should be the only one
+needed to trigger the new functionality.
+
+>  /*
+>   * Some TCO specific functions
+>   */
+> @@ -200,6 +207,41 @@ static int iTCO_wdt_unset_NO_REBOOT_bit(void)
+>  	return ret; /* returns: 0 = OK, -EIO = Error */
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+
+Question is if this ifdef is needed. Most if not all ACPI functions
+are provided as dummies if ACPI is disabled.
+
+> +static unsigned char *tco_hid = "8086229C";
+> +static bool warn_irq_panic = CONFIG_ITCO_WARNING_PANIC;
+> +
+> +static u32 iTCO_wdt_wirq(acpi_handle gpe_device, u32 gpe, void *context)
+> +{
+> +	trigger_all_cpu_backtrace();
+> +	if (warn_irq_panic)
+> +		panic("Kernel Watchdog");
+
+panic already implies a backtrace, doesn't it ?
+
+> +
+> +	return ACPI_INTERRUPT_HANDLED;
+> +}
+> +
+> +static acpi_status __init iTCO_wdt_register_gpe(acpi_handle handle,
+> +					u32 lvl, void *context, void **rv)
+> +{
+> +	unsigned long long gpe;
+> +	acpi_status status;
+> +
+> +	status = acpi_evaluate_integer(handle, "_GPE", NULL, &gpe);
+> +	if (ACPI_FAILURE(status))
+> +		return status;
+> +
+> +	status = acpi_install_gpe_handler(NULL, gpe, ACPI_GPE_EDGE_TRIGGERED,
+> +					  iTCO_wdt_wirq, NULL);
+> +	if (ACPI_FAILURE(status))
+> +		return status;
+> +
+> +	acpi_enable_gpe(NULL, gpe);
+> +
+> +	pr_debug("interrupt=SCI GPE=0x%02llx", gpe);
+
+Is this message really useful ?
+
+> +	return AE_OK;
+> +}
+> +#endif
+> +
+>  static int iTCO_wdt_start(struct watchdog_device *wd_dev)
+>  {
+>  	unsigned int val;
+> @@ -638,9 +680,15 @@ static int __init iTCO_wdt_init_module(void)
+>  	if (err)
+>  		return err;
+>  
+> +#ifdef CONFIG_ACPI
+> +	if (warn_irq)
+> +		acpi_get_devices(tco_hid, iTCO_wdt_register_gpe, NULL, NULL);
+
+acpi_get_devices provides a dummy function if ACPI is not configured,
+so the #ifdef above is not needed.
+
+> +#endif
+> +
+>  	return 0;
+>  }
+>  
+> +
+
+Please no whitespace changes (much less whitespace changes introducing
+checkpatch problems).
+
+>  static void __exit iTCO_wdt_cleanup_module(void)
+>  {
+>  	platform_driver_unregister(&iTCO_wdt_driver);
