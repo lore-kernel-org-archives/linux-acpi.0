@@ -1,82 +1,153 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC v2 6/7] x86/PCI/ACPI: Use common interface to support PCI
- host bridge
-Date: Tue, 12 May 2015 20:19:13 +0800
-Message-ID: <5551EFC1.2010704@linaro.org>
-References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-7-git-send-email-jiang.liu@linux.intel.com>
+From: Antonio Ospite <ao2@ao2.it>
+Subject: Re: [PATCH v2 1/3] gpio / ACPI: Add support for retrieving GpioInt
+ resources from a device
+Date: Tue, 12 May 2015 14:49:01 +0200
+Message-ID: <20150512144901.49a1894b51edc0113ae35375@ao2.it>
+References: <1430908148-201129-1-git-send-email-mika.westerberg@linux.intel.com>
+	<1430908148-201129-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1430793970-11159-7-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1430908148-201129-2-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: i2c@lm-sensors.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, Octavian Purdila <octavian.purdila@intel.com>, Robert Dolca <robert.dolca@intel.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[...]
->   struct pci_root_info {
-> -	struct acpi_device *bridge;
-> -	char name[16];
-> -	struct pci_controller sd;
-> +	struct acpi_pci_root_info_common common;
->   #ifdef	CONFIG_PCI_MMCONFIG
->   	bool mcfg_added;
->   	u16 segment;
-> @@ -165,14 +164,17 @@ static int check_segment(u16 seg, struct device *dev, char *estr)
->   	return 0;
->   }
->
-> -static int setup_mcfg_map(struct pci_root_info *info, u16 seg, u8 start,
-> -			  u8 end, phys_addr_t addr)
-> +static int setup_mcfg_map(struct acpi_pci_root_info_common *ci)
->   {
->   	int result;
-> -	struct device *dev = &info->bridge->dev;
-> +	struct pci_root_info *info;
-> +	struct acpi_pci_root *root = ci->root;
-> +	struct device *dev = &ci->bridge->dev;
-> +	int seg = ci->controller.segment;
+On Wed,  6 May 2015 13:29:06 +0300
+Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
 
-...
+> ACPI specification knows two types of GPIOs: GpioIo and GpioInt. The latter
+> is used to describe that a given device interrupt line is connected to a
+> specific GPIO pin. Typical ACPI _CRS entry for such device looks like
+> below:
+> 
+>     Name (_CRS, ResourceTemplate ()
+>     {
+>         I2cSerialBus (0x004A, ControllerInitiated, 0x00061A80,
+>                       AddressingMode7Bit, "\\_SB.PCI0.I2C6",
+>                       0x00, ResourceConsumer)
+>         GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
+>                 IoRestrictionOutputOnly, "\\_SB.GPO0",
+>                 0x00, ResourceConsumer)
+>         {
+>             0x004B
+>         }
+>         GpioInt (Level, ActiveLow, Shared, PullDefault, 0x0000,
+>                  "\\_SB.GPO0", 0x00, ResourceConsumer)
+>         {
+>             0x004C
+>         }
+>     })
+> 
+> Currently drivers need to request a GPIO corresponding to the right GpioInt
+> and then translate that to Linux IRQ number. This adds unnecessary lines of
+> boiler-plate code.
+> 
+> We can ease this a bit by introducing acpi_dev_gpio_irq_get() analogous to
+> of_irq_get(). This function translates given GpioInt resource under the
+> device in question to the suitable Linux IRQ number.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
->
-> -	info->start_bus = start;
-> -	info->end_bus = end;
-> +	info = container_of(ci, struct pci_root_info, common);
-> +	info->start_bus = (u8)root->secondary.start;
-> +	info->end_bus = (u8)root->secondary.end;
->   	info->mcfg_added = false;
+Tested-by: Antonio Ospite <ao2@ao2.it>
 
-info->segment is not initialized here
+Thanks a lot Mika, this is very useful, my touchscreen now works without
+adding a struct acpi_gpio_mapping and the related boilerplate code to
+the goodix driver.
 
->
->   	/* return success if MMCFG is not in use */
-> @@ -182,7 +184,8 @@ static int setup_mcfg_map(struct pci_root_info *info, u16 seg, u8 start,
->   	if (!(pci_probe & PCI_PROBE_MMCONF))
->   		return check_segment(seg, dev, "MMCONFIG is disabled,");
->
-> -	result = pci_mmconfig_insert(dev, seg, start, end, addr);
-> +	result = pci_mmconfig_insert(dev, seg, info->start_bus, info->end_bus,
-> +				     root->mcfg_addr);
->   	if (result == 0) {
->   		/* enable MMCFG if it hasn't been enabled yet */
->   		if (raw_pci_ext_ops == NULL)
-> @@ -195,8 +198,11 @@ static int setup_mcfg_map(struct pci_root_info *info, u16 seg, u8 start,
->   	return 0;
->   }
->
-> -static void teardown_mcfg_map(struct pci_root_info *info)
-> +static void teardown_mcfg_map(struct acpi_pci_root_info_common *ci)
->   {
-> +	struct pci_root_info *info;
+Thanks again,
+   Antonio
+
+> ---
+>  drivers/gpio/gpiolib-acpi.c | 29 +++++++++++++++++++++++++++++
+>  include/linux/acpi.h        |  7 +++++++
+>  2 files changed, 36 insertions(+)
+> 
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> index d2303d50f561..bff29bb0a3fe 100644
+> --- a/drivers/gpio/gpiolib-acpi.c
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -514,6 +514,35 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
+>  	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
+>  }
+>  
+> +/**
+> + * acpi_dev_gpio_irq_get() - Find GpioInt and translate it to Linux IRQ number
+> + * @adev: pointer to a ACPI device to get IRQ from
+> + * @index: index of GpioInt resource (starting from %0)
+> + *
+> + * If the device has one or more GpioInt resources, this function can be
+> + * used to translate from the GPIO offset in the resource to the Linux IRQ
+> + * number.
+> + *
+> + * Return: Linux IRQ number (>%0) on success, negative errno on failure.
+
+The percent in the comment here is supposed to be and equal sign, isn't
+it?
+
+> + */
+> +int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
+> +{
+> +	int idx, i;
 > +
-> +	info = container_of(ci, struct pci_root_info, common);
->   	if (info->mcfg_added) {
->   		pci_mmconfig_delete(info->segment, info->start_bus,
+> +	for (i = 0, idx = 0; idx <= index; i++) {
+> +		struct acpi_gpio_info info;
+> +		struct gpio_desc *desc;
+> +
+> +		desc = acpi_get_gpiod_by_index(adev, NULL, i, &info);
+> +		if (IS_ERR(desc))
+> +			break;
+> +		if (info.gpioint && idx++ == index)
+> +			return gpiod_to_irq(desc);
+> +	}
+> +	return -ENOENT;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_dev_gpio_irq_get);
+> +
+>  static acpi_status
+>  acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+>  			    u32 bits, u64 *value, void *handler_context,
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index e4da5e35e29c..f57c440642cd 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -721,6 +721,8 @@ static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev)
+>  	if (adev)
+>  		adev->driver_gpios = NULL;
+>  }
+> +
+> +int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index);
+>  #else
+>  static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+>  			      const struct acpi_gpio_mapping *gpios)
+> @@ -728,6 +730,11 @@ static inline int acpi_dev_add_driver_gpios(struct acpi_device *adev,
+>  	return -ENXIO;
+>  }
+>  static inline void acpi_dev_remove_driver_gpios(struct acpi_device *adev) {}
+> +
+> +static inline int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
+> +{
+> +	return -ENXIO;
+> +}
+>  #endif
+>  
+>  /* Device properties */
+> -- 
+> 2.1.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-But the segment is used here to delete mmconfig entry, it seems that
-the domain is 0 so there will be no problem, did I miss something?
 
-Thanks
-Hanjun
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
