@@ -1,116 +1,80 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 1/2] thermal: support slope and offset coefficients
-Date: Mon, 11 May 2015 20:04:16 -0700
-Message-ID: <1431399857-13943-2-git-send-email-edubezval@gmail.com>
+Subject: Re: [PATCH 0/2] thermal: add support to slope and offset
+Date: Mon, 11 May 2015 20:24:30 -0700
+Message-ID: <20150512032428.GH4810@localhost.localdomain>
 References: <1431399857-13943-1-git-send-email-edubezval@gmail.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4LFBTxd4L5NLO6ly"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1431399857-13943-1-git-send-email-edubezval@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>, hongtao.jia@freescale.com, kong.kongxinwei@hisilicon.com
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>, hongtao.jia@freescale.com, kong.kongxinwei@hisilicon.com, nrajan@codeaurora.org
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It is common to have a linear extrapolation from
-the current sensor readings and the actual temperature
-value. This is specially the case when the sensor
-is in use to extrapolate hotspots.
 
-This patch adds slope and offset constants for
-single sensor linear extrapolation equation. Because
-the same sensor can be use in different locations,
-from board to board, these constants are added
-as part of thermal_zone_params.
+--4LFBTxd4L5NLO6ly
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The constants are available through sysfs.
+Hi,
 
-It is up to the device driver to determine
-the usage of these values.
+On Mon, May 11, 2015 at 08:04:15PM -0700, Eduardo Valentin wrote:
+> Hello all,
+>=20
+> This is a patch series to add support to slope and offset constants
+> of a linear extrapolation model. This type of model is very common
+> across different platforms, and many drivers are attempting
+> to have its support.
+>=20
+> The basic idea is to have this mapping in the thermal core,
+> as part of thermal_zone_params. In this series, I also add
+> a simple support to read them from DT, i.e.:
+>                 /* hotspot =3D 1 * adc + 6000 */
+> 		coefficients =3D          <1      6000>;
+>=20
+> I am copying some of the driver writers that attempted to=20
+> use this feature, but by adding their own property. Please,
+> check if this change is enough to properly map your slope
+> and offset requirement. Remember, they will be added in your
+> thermal zone DT node, instead of in your sensor DT node.
+>=20
 
-Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
----
- Documentation/thermal/sysfs-api.txt | 16 ++++++++++++++++
- drivers/thermal/thermal_core.c      |  4 ++++
- include/linux/thermal.h             | 11 +++++++++++
- 3 files changed, 31 insertions(+)
+Forgot to copy Narendran, codeaurora developer
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index 7d44d7f..c1f6864 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -190,6 +190,8 @@ Thermal zone device sys I/F, created once it's registered:
-     |---k_i:                    PID's integral term in the power allocator gov
-     |---k_d:                    PID's derivative term in the power allocator
-     |---integral_cutoff:        Offset above which errors are accumulated
-+    |---slope:                  Slope constant applied as linear extrapolation
-+    |---offset:                 Offset constant applied as linear extrapolation
- 
- Thermal cooling device sys I/F, created once it's registered:
- /sys/class/thermal/cooling_device[0-*]:
-@@ -359,6 +361,20 @@ integral_cutoff
- 	Documentation/thermal/power_allocator.txt
- 	RW, Optional
- 
-+slope
-+	The slope constant used in a linear extrapolation model
-+	to determine a hotspot temperature based off the sensor's
-+	raw readings. It is up to the device driver to determine
-+	the usage of these values.
-+	RW, Optional
-+
-+offset
-+	The offset constant used in a linear extrapolation model
-+	to determine a hotspot temperature based off the sensor's
-+	raw readings. It is up to the device driver to determine
-+	the usage of these values.
-+	RW, Optional
-+
- *****************************
- * Cooling device attributes *
- *****************************
-diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 962de18..04659bf 100644
---- a/drivers/thermal/thermal_core.c
-+++ b/drivers/thermal/thermal_core.c
-@@ -944,6 +944,8 @@ create_s32_tzp_attr(k_pu);
- create_s32_tzp_attr(k_i);
- create_s32_tzp_attr(k_d);
- create_s32_tzp_attr(integral_cutoff);
-+create_s32_tzp_attr(slope);
-+create_s32_tzp_attr(offset);
- #undef create_s32_tzp_attr
- 
- static struct device_attribute *dev_tzp_attrs[] = {
-@@ -953,6 +955,8 @@ static struct device_attribute *dev_tzp_attrs[] = {
- 	&dev_attr_k_i,
- 	&dev_attr_k_d,
- 	&dev_attr_integral_cutoff,
-+	&dev_attr_slope,
-+	&dev_attr_offset,
- };
- 
- static int create_tzp_attrs(struct device *dev)
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 6bbe11c..037e9df 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -302,6 +302,17 @@ struct thermal_zone_params {
- 
- 	/* threshold below which the error is no longer accumulated */
- 	s32 integral_cutoff;
-+
-+	/*
-+	 * @slope:	slope of a linear temperature adjustment curve.
-+	 * 		Used by thermal zone drivers.
-+	 */
-+	int slope;
-+	/*
-+	 * @offset:	offset of a linear temperature adjustment curve.
-+	 * 		Used by thermal zone drivers (default 0).
-+	 */
-+	int offset;
- };
- 
- struct thermal_genl_event {
--- 
-2.3.4
+> BR,
+>=20
+> Eduardo Valentin (2):
+>   thermal: support slope and offset coefficients
+>   thermal: of-thermal: add support for reading coefficients property
+>=20
+>  Documentation/thermal/sysfs-api.txt | 16 ++++++++++++++++
+>  drivers/thermal/of-thermal.c        | 26 ++++++++++++++++++++++++--
+>  drivers/thermal/thermal_core.c      |  4 ++++
+>  include/linux/thermal.h             | 11 +++++++++++
+>  4 files changed, 55 insertions(+), 2 deletions(-)
+>=20
+> --=20
+> 2.3.4
+>=20
 
+--4LFBTxd4L5NLO6ly
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQEcBAEBAgAGBQJVUXJnAAoJEMLUO4d9pOJWSxkH/iA0e0Dlx3bUTdynf/DRHv07
+HSfzc3QoTeDk2VC98pv7SgzljNgxe35zG5HlCPtJWVLsILkJjTlwqp+HB6xZqw83
+XJKSnZug5M3Zt0kHI5BeSWiqid6S7mzxaXhIFdirlP0A/NM4aV4dWAMABAJoES6V
+JqeU9r/HIZoBzPVCOZfNWls4iaaQnC5rpaPD7mkYZO5Dr5j85MJND+3qvpEzVrxC
+hNq/KVXDaVG4WZ2W1SjyPvxmNZo0VsWhMtsK4uTyFtZUqMi1yv/jWEdQY4qHadz3
+vMpDOadQ4oEIsLcxZwoO6R+P3CEMXGVB2pzP/2oomFGEGS+5/elZo3tcBBhvSdw=
+=yKti
+-----END PGP SIGNATURE-----
+
+--4LFBTxd4L5NLO6ly--
