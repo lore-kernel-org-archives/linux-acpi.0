@@ -1,212 +1,109 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: TCO Watchdog warning interrupt driver creation
-Date: Mon, 11 May 2015 18:28:22 -0700
-Message-ID: <20150512012822.GA10791@roeck-us.net>
-References: <B9C02DB17496AC4197F41A146D371B9B07625D40@hasmsx107.ger.corp.intel.com>
+From: "Jie, Yang" <yang.jie@intel.com>
+Subject: RE: commit b1ef29725865 (ACPI _REV=2) causes sound regression on
+ Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the XPS
+ 13 (2015) until 4.2]
+Date: Tue, 12 May 2015 07:27:17 +0000
+Message-ID: <E7B1D079BA13FB44A978CC8F69C7D6A905526D57@SHSMSX101.ccr.corp.intel.com>
+References: <55401602.5050907@dell.com> <55480021.1090402@dell.com>
+ <20150511182658.GA8516@isilmar-3.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:44894 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751922AbbELB2b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 May 2015 21:28:31 -0400
-Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.85)
-	(envelope-from <linux@roeck-us.net>)
-	id 1Yryzm-000xjw-KS
-	for linux-acpi@vger.kernel.org; Tue, 12 May 2015 01:28:30 +0000
-Content-Disposition: inline
-In-Reply-To: <B9C02DB17496AC4197F41A146D371B9B07625D40@hasmsx107.ger.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:4698 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753306AbbELH2b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2015 03:28:31 -0400
+In-Reply-To: <20150511182658.GA8516@isilmar-3.linta.de>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Muller, Francois-nicolas" <francois-nicolas.muller@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, "'platform-driver-x86@vger.kernel.org'" <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Wim Van Sebroeck <wim@iguana.be>
+To: Dominik Brodowski <linux@dominikbrodowski.net>, Mario Limonciello <mario_limonciello@dell.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "Lu, Han" <han.lu@intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Girdwood, Liam R" <liam.r.girdwood@intel.com>
 
-On Mon, Mar 30, 2015 at 01:45:08PM +0000, Muller, Francois-nicolas wrote:
-> Thanks Rafael for your comments.
-> Please find my answers embedded below and a new version of the patch.
++Liam.
 
-This makes it quite difficult to find your patch.
-Please follow the guidelines in Documentation/SubmittingPatches
-when (re)submitting kernel patches.
-
-[ ... ]
+> -----Original Message-----
+> From: Dominik Brodowski [mailto:linux@dominikbrodowski.net]
+> Sent: Tuesday, May 12, 2015 2:27 AM
+> To: Mario Limonciello; Moore, Robert; Zheng, Lv; Wysocki, Rafael J
+> Cc: linux-acpi@vger.kernel.org; broonie@kernel.org; Lu, Han; Jie, Yang; alsa-
+> devel@alsa-project.org
+> Subject: commit b1ef29725865 (ACPI _REV=2) causes sound regression on
+> Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the XPS
+> 13 (2015) until 4.2]
 > 
-> I need to be able to enable the panic or not after the warning interrupt.
-> I could also use module parameters instead of Kconfig, I don't know which one
-> is preferred in this case. Any advice ?
+> Hi,
 > 
-There should be one and only one option, and that should trigger a panic.
-Pretty much follow the "pretimeout" semantics in
-Documentation/watchdog/watchdog-api.txt.
+> (CC'ing sound experts)
+> 
+> indeed, commit b1ef29725865 causes a severe regression -- actually, it causes
+> sound to be totally unusuable on the Dell XPS 13 (2015) on Debian jessie,
+> while it works fine in 4.0 / with b1ef29725865 reverted.
+> 
+> According to an off-list discussion, the sound breakage (and not just some
+> jack detection issue) seems to be caused due to alsa-lib being too old.
+> The matter is further complicated by the issue that the driver asks for some
+> firmware blob intel/IntcPP01.bin which (at least) I cannot find anywhere.
+ 
+Lacking of IntcPP01.bin should not block Broadwell ADSP audio functions.
+
+Suppose these should be the same issues Mark told us, right?
+
+Yes, we are doing some fixes in alsa-lib/ucm/config part, without these fixes,
+You can do manual volume +/- and switches on/off in alsamixer GUI interface.
+
+BTW, if you can create kernel.org bugs to descript these issues, it will be helpful
+for to trace and fix them after we got this XPS 13 machine.
+
+Thanks,
+~Keyon
 
 > 
-> ##################################################################
+> Under the no-regression rule, this means that either b1ef29725865 needs to
+> be reverted or we need to find another solution to this matter, such as an
+> override. And I think it is needed for longer than just for 4.1, as it will
+> continue to be cause regressions on quite recent userspace.
 > 
-> >From 255184705e94f2983d965ad711f30281a1eed816 Mon Sep 17 00:00:00 2001
-> From: Francois-Nicolas Muller <francois-nicolas.muller@intel.com>
-> Date: Mon, 30 Mar 2015 14:56:39 +0200
-> Subject: [PATCH] Adding TCO watchdog warning interrupt handling.
+> Best,
+> 	Dominik
 > 
-> This feature is useful to root cause watchdog expiration.
-> It is activated by boot parameter 'warn_irq' (disabled by default).
 > 
-> Upon first expiration of the TCO watchdog, a warning interrupt is fired,
-> then the interrupt handler dumps registers and call stack of all available
-> cpus.
-> TCO watchdog reloads with 2.4 seconds timeout for second expiration.
+> PS/OT: Probably I'm preaching to the choir, but @Mario: it's a pity the XPS (or
+> some versions of it) with pre-installed Ubuntu actually ships with a Wifi
+> adapter which seems to be unsupported by upstream Linux...
 > 
-> If CONFIG_ITCO_WARN_PANIC is set, the warning interrupt also calls panic()
-> which notifies the panic handlers then reboots the platform, depending on
-> CONFIG_PANIC_TIMEOUT value :
 > 
-> - If CONFIG_PANIC_TIMEOUT is zero or greater than 3 seconds, TCO watchdog will
-> reset the platform if second expiration happens before TCO has been kicked again.
-> 
-> - If CONFIG_PANIC_TIMEOUT is < 0, platform will reboot immediately (emergency
-> restart procedure).
-> 
-> - If CONFIG_PANIC_TIMEOUT is 1 or 2 seconds, platform will reboot after 1 or 2
-> seconds delay (emergency restart procedure).
-> 
-> See Documentation/watchdog/tco-wdt-warning-interrupt.txt for more details.
-> 
-> Signed-off-by: Francois-Nicolas Muller <francois-nicolas.muller@intel.com>
-> ---
->  drivers/watchdog/Kconfig    | 13 ++++++++++++
->  drivers/watchdog/iTCO_wdt.c | 48 +++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 61 insertions(+)
-> 
-> -- 
-> 1.9.1
-> 
-> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-> index 79d2589..41f3647 100644
-> --- a/drivers/watchdog/Kconfig
-> +++ b/drivers/watchdog/Kconfig
-> @@ -674,6 +674,19 @@ config ITCO_VENDOR_SUPPORT
->  	  devices. At this moment we only have additional support for some
->  	  SuperMicro Inc. motherboards.
->  
-> +config ITCO_WARNING_PANIC
-> +	bool "Intel TCO Timer/Watchdog panic on warning interrupt"
-> +	depends on ITCO_WDT && ACPI
-> +	default y
-> +	---help---
-> +	  Force a call to panic() when TCO warning interrupt occurs.
-> +
-> +	  Warning interrupt happens if warn_irq module parameter is set and
-> +	  TCO timer first expires.
-> +
-> +	  If not set, only cpu backtraces are dumped, no call to panic() and
-> +	  no notification of panic are done.
-> +
-
-This option should go away.
-
->  config IT8712F_WDT
->  	tristate "IT8712F (Smart Guardian) Watchdog Timer"
->  	depends on X86
-> diff --git a/drivers/watchdog/iTCO_wdt.c b/drivers/watchdog/iTCO_wdt.c
-> index e802a54..8cfa5e7 100644
-> --- a/drivers/watchdog/iTCO_wdt.c
-> +++ b/drivers/watchdog/iTCO_wdt.c
-> @@ -68,6 +68,8 @@
->  #include <linux/pm.h>			/* For suspend/resume */
->  #include <linux/mfd/core.h>
->  #include <linux/mfd/lpc_ich.h>
-> +#include <linux/nmi.h>
-> +#include <linux/acpi.h>
->  
->  #include "iTCO_vendor.h"
->  
-> @@ -126,6 +128,11 @@ module_param(turn_SMI_watchdog_clear_off, int, 0);
->  MODULE_PARM_DESC(turn_SMI_watchdog_clear_off,
->  	"Turn off SMI clearing watchdog (depends on TCO-version)(default=1)");
->  
-> +static bool warn_irq;
-> +module_param(warn_irq, bool, 0);
-> +MODULE_PARM_DESC(warn_irq,
-> +	"Dump all cpus backtraces at first watchdog timer expiration (default=0)");
-> +
-This option (possibly with a better name) should be the only one
-needed to trigger the new functionality.
-
->  /*
->   * Some TCO specific functions
->   */
-> @@ -200,6 +207,41 @@ static int iTCO_wdt_unset_NO_REBOOT_bit(void)
->  	return ret; /* returns: 0 = OK, -EIO = Error */
->  }
->  
-> +#ifdef CONFIG_ACPI
-
-Question is if this ifdef is needed. Most if not all ACPI functions
-are provided as dummies if ACPI is disabled.
-
-> +static unsigned char *tco_hid = "8086229C";
-> +static bool warn_irq_panic = CONFIG_ITCO_WARNING_PANIC;
-> +
-> +static u32 iTCO_wdt_wirq(acpi_handle gpe_device, u32 gpe, void *context)
-> +{
-> +	trigger_all_cpu_backtrace();
-> +	if (warn_irq_panic)
-> +		panic("Kernel Watchdog");
-
-panic already implies a backtrace, doesn't it ?
-
-> +
-> +	return ACPI_INTERRUPT_HANDLED;
-> +}
-> +
-> +static acpi_status __init iTCO_wdt_register_gpe(acpi_handle handle,
-> +					u32 lvl, void *context, void **rv)
-> +{
-> +	unsigned long long gpe;
-> +	acpi_status status;
-> +
-> +	status = acpi_evaluate_integer(handle, "_GPE", NULL, &gpe);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	status = acpi_install_gpe_handler(NULL, gpe, ACPI_GPE_EDGE_TRIGGERED,
-> +					  iTCO_wdt_wirq, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		return status;
-> +
-> +	acpi_enable_gpe(NULL, gpe);
-> +
-> +	pr_debug("interrupt=SCI GPE=0x%02llx", gpe);
-
-Is this message really useful ?
-
-> +	return AE_OK;
-> +}
-> +#endif
-> +
->  static int iTCO_wdt_start(struct watchdog_device *wd_dev)
->  {
->  	unsigned int val;
-> @@ -638,9 +680,15 @@ static int __init iTCO_wdt_init_module(void)
->  	if (err)
->  		return err;
->  
-> +#ifdef CONFIG_ACPI
-> +	if (warn_irq)
-> +		acpi_get_devices(tco_hid, iTCO_wdt_register_gpe, NULL, NULL);
-
-acpi_get_devices provides a dummy function if ACPI is not configured,
-so the #ifdef above is not needed.
-
-> +#endif
-> +
->  	return 0;
->  }
->  
-> +
-
-Please no whitespace changes (much less whitespace changes introducing
-checkpatch problems).
-
->  static void __exit iTCO_wdt_cleanup_module(void)
->  {
->  	platform_driver_unregister(&iTCO_wdt_driver);
+> On Mon, May 04, 2015 at 06:26:25PM -0500, Mario Limonciello wrote:
+> >
+> > On 04/28/2015 06:21 PM, Mario Limonciello wrote:
+> > >Hi,
+> > >
+> > >Due to b1ef2972586577e0ca9675254ee141f65a8824e5 landing recently as a
+> result of some previous ACPI community discussion, the Dell XPS 13 (2015) no
+> longer has fully functional audio.  In case you aren't aware, the XPS 13 (2015)
+> switches audio modes based upon a combination of what's detected for the
+> _OSI string and _REV values. When "Windows 2013" is found with _REV=2
+> the audio codec will be configured for I2S audio mode.  When "Windows
+> 2013" with _REV=5 is found it will be configured for HDA audio mode.
+> > >
+> > >I2S audio is improving, but not as mature as HDA audio mode is at this
+> point.  Currently jack detection does not work properly in 4.1 with I2S audio
+> codecs.  I've been notified that the support for jack detection will be landing
+> in 4.2.  I'd like to discuss the possibility of including a quirk for the _REV
+> behavior when the DMI information corresponding to the Dell XPS 13 (2015)
+> is detected for 4.1.  This will let it continue to run in HDA mode until I2S mode
+> is mature.
+> > >
+> > >I'd also like to plan for the quirk to be dropped when jack detection has
+> landed for 4.2 (or if it gets pushed out further when it lands for 4.3).
+> > >
+> > >Would you guys be open to that?
+> > >
+> > >Thanks,
+> > Hello,
+> >
+> > I just wanted to follow up on this, I would like to come up with a solution
+> before it's too late for 4.1 on the XPS 13 (2015).
+> >
+> > Thanks,
