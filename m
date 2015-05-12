@@ -1,56 +1,60 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH RESEND V4 3/4] Documentation: i2c: Add APM X-Gene
- platform SLIMpro I2C driver documentation
-Date: Tue, 12 May 2015 22:12:02 +0200
-Message-ID: <20150512201202.GJ4449@schokonusskuchen.bad>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH RESEND V4 4/4] arm64: dts: add proxy I2C device driver on
+ APM X-Gene platform
+Date: Tue, 12 May 2015 22:12:40 +0200
+Message-ID: <20150512201240.GK4449@schokonusskuchen.bad>
 References: <1429913873-13627-1-git-send-email-fkan@apm.com>
- <1429913873-13627-4-git-send-email-fkan@apm.com>
+ <1429913873-13627-5-git-send-email-fkan@apm.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BOmey7/79ja+7F5w"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Qo8f1a4rgWw9S/zY"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:35877 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753877AbbELUMp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 May 2015 16:12:45 -0400
 Content-Disposition: inline
-In-Reply-To: <1429913873-13627-4-git-send-email-fkan-qTEPVZfXA3Y@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
-Cc: patches-qTEPVZfXA3Y@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hieu Le <hnle-qTEPVZfXA3Y@public.gmane.org>
+In-Reply-To: <1429913873-13627-5-git-send-email-fkan@apm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Feng Kan <fkan@apm.com>
+Cc: patches@apm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Hieu Le <hnle@apm.com>
 
 
---BOmey7/79ja+7F5w
+--Qo8f1a4rgWw9S/zY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 24, 2015 at 03:17:52PM -0700, Feng Kan wrote:
-> Add APM X-Gene platform SLIMpro I2C driver documentation.
+On Fri, Apr 24, 2015 at 03:17:53PM -0700, Feng Kan wrote:
+> Add proxy I2C device driver on APM X-Gene platform.
 >=20
-> Signed-off-by: Feng Kan <fkan-qTEPVZfXA3Y@public.gmane.org>
-> Signed-off-by: Hieu Le <hnle-qTEPVZfXA3Y@public.gmane.org>
+> Signed-off-by: Feng Kan <fkan@apm.com>
+> Signed-off-by: Hieu Le <hnle@apm.com>
 
-Applied to for-next, thanks!
+DTS updates need to go via arm trees usually.
 
 
---BOmey7/79ja+7F5w
+--Qo8f1a4rgWw9S/zY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJVUl6SAAoJEBQN5MwUoCm2Cm0P/i+bNtccM1MKjmz2/Ngv4sfY
-wgXkKAmBW/EGiEzoGzqE6ossTTtuf5hH2/LPbauYR1AocSOXjEllmVC5Oimrp6n4
-n7A1v4snPDYzH8fcLn/l/YXZ/xWt65vgWEZaGVHd/Fkua/93WpC/2m6HHiv6tnAe
-XQRYdFpWn5BDT/ATvJDBCjppp621b/TLAm6hFcM14GBlsRihkU5uutoo3o9zJnum
-VgOidda3TaTTQqGo8T76KCv/Fp9BSu/ivemRLtJfJe41y1nEK1HVhsapwb5SM2Dy
-9LszvGwRP6wgLqvikvic0I4XtY7cg15htUGZlLl3Kz6PFX/2rjsj7dhOR3LBxhuh
-igyxtm7ve3SelHgi0a2KAMTGD+idW8mkGYEDzKGdjqKhrA3Gc75xgJatuoAStP72
-MnzUKKTWuDbmZAdbE537ZaAcLZydicQDgTGXdu8rq9fpdlKzURnOc57rZJNuEpVd
-OA/Ca4DfaRTDvegdvDZIiadJmUV8J1U/YBOnYI/vsKB4WTzL1218UIX1pktK4Wcm
-6xy/kX1+xj2oak0QSvWfzJ2E3XQdlWI8BzHzD2fbZ13GRHPSWqds8b21ghgN6IE+
-aPBJjX9Hf8n8NXiQ1kepcADRcjkcDwJ3lvuCyCuqvYgElBM3nfhSjHinjGmV8rMo
-DtiCiWpeN+ZHvSeXHuuK
-=BiJZ
+iQIcBAEBAgAGBQJVUl64AAoJEBQN5MwUoCm2vo4P/3HyW8vIkA4TQTXyHlEbjSxo
+udxFSCMXI9aVxBaYeOYaz/pas7yIETfNo+Xlhjnl0Yh8K6kg/rRCnva6eWlNVxis
+a8OfPFcWjf6y2p9dEyuKhOyqXI8zEH/tXkGip6Je7lLLeBGcd+sIUGLV+HpUm6FW
+Hfkzui8/bwLYgi4O8aMfaZ/GyvtMWX3cWDjl8DIWIFEjvUnJOHaatO4nDT4DoFB5
+AAzukrj4nJG7ojybxVEDYhDa0UBom/ZTahQOm2PRqf+RF7+84hXVK37wbHY1Pf6/
+xAhOUdKCbb2T/lqMmWKNvQUlaa/EUU0IPwQ0MCZkR3kVnug00sjZGFU+9IvuBn9a
+HNJ9IE5Ry3KCbx4ELnjJRCT3DwfVkJvE8uZ4lYOjvgKM3rl3O2DKufW/rC5iEvOZ
+sEP6jSWQdcqRfW0frOeSyYEM8lPnZRBwPsjmlD3swDjl8rq2BbeWFFc4o6VA1v2w
+bbR+o3bsl536k3y+WKD1GNFfbuAWjBgjVko63K2ACxsQA3/CMNP3oJLNkEv8CH46
+KwB9rpVBAOhPAAyD5BHXQ+KqDxfZch7w9Xpq9HGeb+d57QZwAuEKbkWsa7/yqOxC
+yv2nvTQSX7L8zJeUgS0YGnv9z0ZorRgMw5Z8D0zQdT87qT28xMzyIPE7ZQCn/3Uu
+6kh5rx5TY+EGCr0EHk3t
+=sthr
 -----END PGP SIGNATURE-----
 
---BOmey7/79ja+7F5w--
+--Qo8f1a4rgWw9S/zY--
