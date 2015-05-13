@@ -1,87 +1,90 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v2 5/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Wed, 13 May 2015 13:36:08 +0800
-Message-ID: <5552E2C8.70307@linux.intel.com>
-References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com> <5550B056.2080608@linaro.org>
+Subject: Re: [RFC v2 6/7] x86/PCI/ACPI: Use common interface to support PCI
+ host bridge
+Date: Wed, 13 May 2015 13:38:37 +0800
+Message-ID: <5552E35D.8030501@linux.intel.com>
+References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-7-git-send-email-jiang.liu@linux.intel.com> <5551EFC1.2010704@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:39794 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751005AbbEMFgN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 May 2015 01:36:13 -0400
-In-Reply-To: <5550B056.2080608@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5551EFC1.2010704@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On 2015/5/11 21:36, Hanjun Guo wrote:
-> Hi Jiang,
->=20
-> I have comments inline.
->=20
-> On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
->> Introduce common interface acpi_pci_root_create() and related data
->> structures to create PCI root bus for ACPI PCI host bridges. It will
->> be used to kill duplicated arch specific code for IA64 and x86. It m=
-ay
->> also help ARM64 in future.
+On 2015/5/12 20:19, Hanjun Guo wrote:
+> [...]
+>>   struct pci_root_info {
+>> -    struct acpi_device *bridge;
+>> -    char name[16];
+>> -    struct pci_controller sd;
+>> +    struct acpi_pci_root_info_common common;
+>>   #ifdef    CONFIG_PCI_MMCONFIG
+>>       bool mcfg_added;
+>>       u16 segment;
+>> @@ -165,14 +164,17 @@ static int check_segment(u16 seg, struct device
+>> *dev, char *estr)
+>>       return 0;
+>>   }
 >>
->> Tested-by: Tony Luck <tony.luck@intel.com>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> ---
->> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->> +                     struct acpi_pci_root_ops *ops,
->> +                     size_t extra_size)
->> +{
->> +    int ret, busnum =3D root->secondary.start;
->> +    struct acpi_device *device =3D root->device;
->> +    struct acpi_pci_root_info_common *info;
->> +    struct pci_bus *bus;
+>> -static int setup_mcfg_map(struct pci_root_info *info, u16 seg, u8 start,
+>> -              u8 end, phys_addr_t addr)
+>> +static int setup_mcfg_map(struct acpi_pci_root_info_common *ci)
+>>   {
+>>       int result;
+>> -    struct device *dev = &info->bridge->dev;
+>> +    struct pci_root_info *info;
+>> +    struct acpi_pci_root *root = ci->root;
+>> +    struct device *dev = &ci->bridge->dev;
+>> +    int seg = ci->controller.segment;
+> 
+> ...
+> 
+>>
+>> -    info->start_bus = start;
+>> -    info->end_bus = end;
+>> +    info = container_of(ci, struct pci_root_info, common);
+>> +    info->start_bus = (u8)root->secondary.start;
+>> +    info->end_bus = (u8)root->secondary.end;
+>>       info->mcfg_added = false;
+> 
+> info->segment is not initialized here
+> 
+>>
+>>       /* return success if MMCFG is not in use */
+>> @@ -182,7 +184,8 @@ static int setup_mcfg_map(struct pci_root_info
+>> *info, u16 seg, u8 start,
+>>       if (!(pci_probe & PCI_PROBE_MMCONF))
+>>           return check_segment(seg, dev, "MMCONFIG is disabled,");
+>>
+>> -    result = pci_mmconfig_insert(dev, seg, start, end, addr);
+>> +    result = pci_mmconfig_insert(dev, seg, info->start_bus,
+>> info->end_bus,
+>> +                     root->mcfg_addr);
+>>       if (result == 0) {
+>>           /* enable MMCFG if it hasn't been enabled yet */
+>>           if (raw_pci_ext_ops == NULL)
+>> @@ -195,8 +198,11 @@ static int setup_mcfg_map(struct pci_root_info
+>> *info, u16 seg, u8 start,
+>>       return 0;
+>>   }
+>>
+>> -static void teardown_mcfg_map(struct pci_root_info *info)
+>> +static void teardown_mcfg_map(struct acpi_pci_root_info_common *ci)
+>>   {
+>> +    struct pci_root_info *info;
 >> +
->> +    info =3D kzalloc(sizeof(*info) + extra_size, GFP_KERNEL);
->=20
-> For x86, the memory is allocated on its local numa node if memory
-> is available by using kzalloc_node(), and if
-> node =3D acpi_get_node(device->handle) is NUMA_NO_NODE, the code will
-> get the numa node info by using x86_pci_root_bus_node() (which you
-> consolidate them as a function pci_acpi_root_get_node() in later
-> patch).
->=20
-> but the code here just ignore that information, so the code
-> here has functional change for x86 code since you didn't use numa
-> information.
->=20
-> I'm not sure how frequently used for the info after init, so
-> not sure about the performance impact, but I think we should
-> keep consistence with the code behavior as before.
-Hi Hanjun,
-	Good catch, will change code to respect NUMA node
-info when allocating memory.
+>> +    info = container_of(ci, struct pci_root_info, common);
+>>       if (info->mcfg_added) {
+>>           pci_mmconfig_delete(info->segment, info->start_bus,
+> 
+> But the segment is used here to delete mmconfig entry, it seems that
+> the domain is 0 so there will be no problem, did I miss something?
 
->=20
-> Further more, there is a implicit cast for
-> struct acpi_pci_root_info_common *info to arch specific
-> struct pci_root_info *info by using extra size, it's not
-> easy to understand (at least for me :) ), so how about
-> alloc the memory in arch specific function, and pass
-> struct acpi_pci_root_info_common *info fr this function?
-Good suggestion.
-Thanks!
-Gerry
+Good catch, we should use ci->controller.segment and kill info->segment.
 
-> other than that, this code is pretty good, I reworked ARM64
-> ACPI based PCI host bridge init code, and this patch simplified
-> the coed a lot, will have a test tomorrow and let you know
-> the result.
->=20
+> 
 > Thanks
 > Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
