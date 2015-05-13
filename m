@@ -1,57 +1,87 @@
-From: "Jie, Yang" <yang.jie@intel.com>
-Subject: RE: commit b1ef29725865 (ACPI _REV=2) causes sound regression on
- Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the XPS
- 13 (2015) until 4.2]
-Date: Wed, 13 May 2015 02:14:56 +0000
-Message-ID: <E7B1D079BA13FB44A978CC8F69C7D6A9055272E4@SHSMSX101.ccr.corp.intel.com>
-References: <55401602.5050907@dell.com> <55480021.1090402@dell.com>
- <20150511182658.GA8516@isilmar-3.linta.de>
- <20150512101258.GL2761@sirena.org.uk> <55521BA0.3030606@dell.com>
- <20150512161849.GD3066@sirena.org.uk> <55522E34.80702@dell.com>
- <20150512173502.GH3066@sirena.org.uk>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [RFC v2 5/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Wed, 13 May 2015 13:36:08 +0800
+Message-ID: <5552E2C8.70307@linux.intel.com>
+References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com> <5550B056.2080608@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2170 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:39794 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965002AbbEMCPG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2015 22:15:06 -0400
-In-Reply-To: <20150512173502.GH3066@sirena.org.uk>
-Content-Language: en-US
+	id S1751005AbbEMFgN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 May 2015 01:36:13 -0400
+In-Reply-To: <5550B056.2080608@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lu, Han" <han.lu@intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Matthew Garrett <mjg59@coreos.com>, "Girdwood, Liam R" <liam.r.girdwood@intel.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@kernel.org]
-> Sent: Wednesday, May 13, 2015 1:35 AM
-> To: Mario Limonciello
-> Cc: Dominik Brodowski; Moore, Robert; Zheng, Lv; Wysocki, Rafael J; linux-
-> acpi@vger.kernel.org; Lu, Han; Jie, Yang; alsa-devel@alsa-project.org;
-> Matthew Garrett; Girdwood, Liam R
-> Subject: Re: commit b1ef29725865 (ACPI _REV=2) causes sound regression
-> on Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the
-> XPS 13 (2015) until 4.2]
-> 
-> On Tue, May 12, 2015 at 11:45:40AM -0500, Mario Limonciello wrote:
-> 
-> > >I'm not seeing any of the hw_params() issues with v4.1 - are you
-> > >perhaps using an old linux-firmware?  I don't know how up to date
-> > >Ubuntu is there.
-> 
-> > linux-firmware ubuntu 15.04 version: 1.143.
-> > This is based off upstream cef33368c4d3425f11306496f0250f8ef1cf3c1f,
-> > updated on March 4 2015.
-> 
-> That's the same firmware I have.  Weird, I don't know if the Intel guys have
-> any bright ideas here?
- 
-Hi Mario, can you try disabling pulseaudio to see if anything change?
-Once I got one XPS 13 9343, I can debug on it, we have ordered it, but been
-told still need wait 4 more weeks for lacking of the LCD screen materials.
+On 2015/5/11 21:36, Hanjun Guo wrote:
+> Hi Jiang,
+>=20
+> I have comments inline.
+>=20
+> On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
+>> Introduce common interface acpi_pci_root_create() and related data
+>> structures to create PCI root bus for ACPI PCI host bridges. It will
+>> be used to kill duplicated arch specific code for IA64 and x86. It m=
+ay
+>> also help ARM64 in future.
+>>
+>> Tested-by: Tony Luck <tony.luck@intel.com>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>> +                     struct acpi_pci_root_ops *ops,
+>> +                     size_t extra_size)
+>> +{
+>> +    int ret, busnum =3D root->secondary.start;
+>> +    struct acpi_device *device =3D root->device;
+>> +    struct acpi_pci_root_info_common *info;
+>> +    struct pci_bus *bus;
+>> +
+>> +    info =3D kzalloc(sizeof(*info) + extra_size, GFP_KERNEL);
+>=20
+> For x86, the memory is allocated on its local numa node if memory
+> is available by using kzalloc_node(), and if
+> node =3D acpi_get_node(device->handle) is NUMA_NO_NODE, the code will
+> get the numa node info by using x86_pci_root_bus_node() (which you
+> consolidate them as a function pci_acpi_root_get_node() in later
+> patch).
+>=20
+> but the code here just ignore that information, so the code
+> here has functional change for x86 code since you didn't use numa
+> information.
+>=20
+> I'm not sure how frequently used for the info after init, so
+> not sure about the performance impact, but I think we should
+> keep consistence with the code behavior as before.
+Hi Hanjun,
+	Good catch, will change code to respect NUMA node
+info when allocating memory.
 
-~Keyon
+>=20
+> Further more, there is a implicit cast for
+> struct acpi_pci_root_info_common *info to arch specific
+> struct pci_root_info *info by using extra size, it's not
+> easy to understand (at least for me :) ), so how about
+> alloc the memory in arch specific function, and pass
+> struct acpi_pci_root_info_common *info fr this function?
+Good suggestion.
+Thanks!
+Gerry
 
-
+> other than that, this code is pretty good, I reworked ARM64
+> ACPI based PCI host bridge init code, and this patch simplified
+> the coed a lot, will have a test tomorrow and let you know
+> the result.
+>=20
+> Thanks
+> Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
