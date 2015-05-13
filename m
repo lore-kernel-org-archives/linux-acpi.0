@@ -1,116 +1,41 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC v2 5/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Wed, 13 May 2015 21:25:06 +0800
-Message-ID: <555350B2.8050301@linaro.org>
-References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com> <55531967.70507@linaro.org> <55534275.2040404@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / EC: Improve busy polling quirk.
+Date: Wed, 13 May 2015 15:59:16 +0200
+Message-ID: <2001512.mWiNO6mMQt@vostro.rjw.lan>
+References: <3b6064b23b148a9c3eed58566e9361a852618556.1430900840.git.lv.zheng@intel.com> <1AE640813FDE7649BE1B193DEA596E8802714BF4@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <55534275.2040404@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:61268 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932597AbbEMNeF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2015 09:34:05 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802714BF4@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2015=E5=B9=B405=E6=9C=8813=E6=97=A5 20:24, Jiang Liu wrote:
-> On 2015/5/13 17:29, Hanjun Guo wrote:
->> Hi Jiang,
->>
->> On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
->>> Introduce common interface acpi_pci_root_create() and related data
->>> structures to create PCI root bus for ACPI PCI host bridges. It wil=
-l
->>> be used to kill duplicated arch specific code for IA64 and x86. It =
-may
->>> also help ARM64 in future.
->>>
->> [...]
->>> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
->>> index a965efa52152..a292ee33d74b 100644
->>> --- a/include/linux/pci-acpi.h
->>> +++ b/include/linux/pci-acpi.h
->>> @@ -52,6 +52,30 @@ static inline acpi_handle
->>> acpi_pci_get_bridge_handle(struct pci_bus *pbus)
->>>        return ACPI_HANDLE(dev);
->>>    }
->>>
->>> +struct acpi_pci_root;
->>> +struct acpi_pci_root_ops;
->>> +
->>> +struct acpi_pci_root_info_common {
->>> +    struct pci_controller        controller;
->>
->> There is another problem that this patch will lead to
->> compile error on ARM64 since ARM64 has basic ACPI support
->> in 4.1.
->>
->> struct pci_controller        controller is not available
->> on ARM64, that's the reason why compile errors happens on ARM64.
->>
->> How about move struct pci_controller to this head file?
->>
->> because all the related file you changed in this patch set
->> are only compiled when CONFI_ACPI=3Dy, so for x86,
->>
->> struct pci_controller {
->> #ifdef CONFIG_ACPI
->>          struct acpi_device *companion;  /* ACPI companion device */
->> #endif
->> #ifdef CONFIG_X86_64
->>          void            *iommu;         /* IOMMU private data */
->> #endif
->>          int             segment;        /* PCI domain */
->>          int             node;           /* NUMA node */
->> };
->>
->> I'm sure #ifdef CONFIG_ACPI .. #endif can be removed
->> with no harm, and for *iommu, we can remove the #ifdef CONFIG_X86_64
->> with introducing little more memory on x86_32, after
->> that, the struct pci_controller is almost the same as ia64:
->
-> On x86, struct pci_controller may be used when CONFIG_ACPI is disable=
-d.
-> So we can't move it into pci-acpi.h
+On Wednesday, May 13, 2015 07:25:05 AM Zheng, Lv wrote:
+> Hi, Rafael
 
-Ah, ok, I missed this part.
+Hi,
 
->
->>
->> struct pci_controller {
->>          struct acpi_device *companion;
->>          void *iommu;
->>          int segment;
->>          int node;               /* nearest node with memory or
->> NUMA_NO_NODE for global allocation */
->>
->>          void *platform_data;
->> };
->>
->> except void *platform_data;
->>
->> On ARM64, the structure is almost the same, so how about
->> introduce
->>
->> struct pci_controller {
->>          struct acpi_device *companion;  /* ACPI companion device */
->>          void            *iommu;         /* IOMMU private data */
->>          int             segment;        /* PCI domain */
->>          int             node;           /* NUMA node */
->> #ifdef CONFIG_IA64
->>      void *platform_data;
->> #endif
->> };
->>
->> in this file, then can be used for all architectures?
-> Current mode is that architecture defines its own version of
-> struct pci_controller. It would be better to keep this pattern.
+> Since we've implemented register access guarding in the wait polling mode in this commit:
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=9e295ac
+> So all udelay() quirks may be no longer necessary and we can remove it.
+> I'm asking an original reporter to confirm this:
+> https://bugzilla.kernel.org/show_bug.cgi?id=77431
+> After removing the udelay() quirk we can turn it to be a special usage model:
+> Do busy polling as a non-default behavior using a module param so that it is still useful for debugging.
+> 
+> This commit cannot reflect all of the above stories and may leave regressions for guarding required platforms.
+> Please ignore it and I'll prepare a better patchset for this.
 
-OK, thanks for the clarify :) So how about add my basic
-PCI support patch for ARM64 on top of you patch set to fix
-this problem?
+OK, thanks!
 
-Thanks
-Hanjun
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
