@@ -1,57 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: commit b1ef29725865 (ACPI _REV=2) causes sound regression on Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the XPS 13 (2015) until 4.2]
-Date: Wed, 13 May 2015 01:38:59 +0200
-Message-ID: <28099406.1MOrFLUSgY@vostro.rjw.lan>
-References: <55401602.5050907@dell.com> <5552388C.9000500@dell.com> <CAPeXnHss+k4xqYDZsDycKEAtLGMBbsnsMiHsZ_voigbPoq3vUw@mail.gmail.com>
+From: "Jie, Yang" <yang.jie@intel.com>
+Subject: RE: commit b1ef29725865 (ACPI _REV=2) causes sound regression on
+ Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the XPS
+ 13 (2015) until 4.2]
+Date: Wed, 13 May 2015 02:14:56 +0000
+Message-ID: <E7B1D079BA13FB44A978CC8F69C7D6A9055272E4@SHSMSX101.ccr.corp.intel.com>
+References: <55401602.5050907@dell.com> <55480021.1090402@dell.com>
+ <20150511182658.GA8516@isilmar-3.linta.de>
+ <20150512101258.GL2761@sirena.org.uk> <55521BA0.3030606@dell.com>
+ <20150512161849.GD3066@sirena.org.uk> <55522E34.80702@dell.com>
+ <20150512173502.GH3066@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58375 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933866AbbELXNs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2015 19:13:48 -0400
-In-Reply-To: <CAPeXnHss+k4xqYDZsDycKEAtLGMBbsnsMiHsZ_voigbPoq3vUw@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:2170 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965002AbbEMCPG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 May 2015 22:15:06 -0400
+In-Reply-To: <20150512173502.GH3066@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <matthew.garrett@coreos.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Mario Limonciello <mario_limonciello@dell.com>, Mark Brown <broonie@kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "han.lu@intel.com" <han.lu@intel.com>, "yang.jie@intel.com" <yang.jie@intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Matthew Garrett <mjg59@coreos.com>, "liam.r.girdwood@intel.com" <liam.r.girdwood@intel.com>
+To: Mark Brown <broonie@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Lu, Han" <han.lu@intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Matthew Garrett <mjg59@coreos.com>, "Girdwood, Liam R" <liam.r.girdwood@intel.com>
 
-On Tuesday, May 12, 2015 10:43:33 AM Matthew Garrett wrote:
-> On Tue, May 12, 2015 at 10:29 AM, Mario Limonciello
-> <mario_limonciello@dell.com> wrote:
-> > Just to be clear, from the Dell side only the XPS 13 9343 has this _REV
-> > behavior.
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@kernel.org]
+> Sent: Wednesday, May 13, 2015 1:35 AM
+> To: Mario Limonciello
+> Cc: Dominik Brodowski; Moore, Robert; Zheng, Lv; Wysocki, Rafael J; linux-
+> acpi@vger.kernel.org; Lu, Han; Jie, Yang; alsa-devel@alsa-project.org;
+> Matthew Garrett; Girdwood, Liam R
+> Subject: Re: commit b1ef29725865 (ACPI _REV=2) causes sound regression
+> on Dell XPS 13 [Was: Discussion around quirking the _REV behavior for the
+> XPS 13 (2015) until 4.2]
 > 
-> The Inspiron 7437 queries _REV and uses it to modify its EC behaviour,
-> and apparently breaks on Linux without that.
+> On Tue, May 12, 2015 at 11:45:40AM -0500, Mario Limonciello wrote:
 > 
-> > What's wrong with a DMI quirk until I2S is mature on the kernel side and
-> > userspace is new enough in distros?  Is it too early in boot for DMI quirks?
-> > That would enforce that no other machines can use _REV value of 5 to detect
-> > Linux without breaking the 9343.
+> > >I'm not seeing any of the hw_params() issues with v4.1 - are you
+> > >perhaps using an old linux-firmware?  I don't know how up to date
+> > >Ubuntu is there.
 > 
-> DMI quirking is fine, but it has to be behind a config option. We're
-> going to have to carry the quirk for several years because we have to
-> support old userspace for an arbitrarily long time, and if there's no
-> config option then Linux will be stuck in HDA mode for that entire
-> time.
+> > linux-firmware ubuntu 15.04 version: 1.143.
+> > This is based off upstream cef33368c4d3425f11306496f0250f8ef1cf3c1f,
+> > updated on March 4 2015.
+> 
+> That's the same firmware I have.  Weird, I don't know if the Intel guys have
+> any bright ideas here?
+ 
+Hi Mario, can you try disabling pulseaudio to see if anything change?
+Once I got one XPS 13 9343, I can debug on it, we have ordered it, but been
+told still need wait 4 more weeks for lacking of the LCD screen materials.
 
-One problem with the DMI-based approach is that _REV is constant in ACPICA,
-so to be able to return different values from it for different systems, we'll
-need to add some ACPICA-ish code handling that specifically for Linux and
-we're a bit too late in the cycle for that.
-
-So here's what I'm going to do.  I'll revert commit b1ef29725865 for 4.1,
-but *only* for 4.1 (I've actually queued up a revert of it already) and
-I'll revert that revert during the 4.2 merge window.
-
-In the meantime, we'll develop the code to implement the DMI-based quirks
-for the Dells and apply it for 4.2.
-
-Are there any volunteers for doing the last part?
+~Keyon
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
