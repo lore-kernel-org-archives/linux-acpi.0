@@ -1,90 +1,99 @@
-From: Gianluca Anzolin <gianluca@sottospazio.it>
-Subject: Re: Debugging spurious wakeup
-Date: Wed, 13 May 2015 11:03:40 +0200
-Message-ID: <20150513090340.GA11529@sottospazio.it>
-References: <20150513065825.GA10680@sottospazio.it>
- <744357E9AAD1214791ACBA4B0B90926301501164@SHSMSX101.ccr.corp.intel.com>
- <20150513081203.GA11182@sottospazio.it>
- <744357E9AAD1214791ACBA4B0B90926301501237@SHSMSX101.ccr.corp.intel.com>
- <20150513082613.GA11327@sottospazio.it>
- <744357E9AAD1214791ACBA4B0B90926301501298@SHSMSX101.ccr.corp.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [RFC v2 5/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Wed, 13 May 2015 17:29:11 +0800
+Message-ID: <55531967.70507@linaro.org>
+References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from m-r2.th.seeweb.it ([5.144.164.171]:49322 "EHLO
-	m-r2.th.seeweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753374AbbEMJDp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2015 05:03:45 -0400
-Content-Disposition: inline
-In-Reply-To: <744357E9AAD1214791ACBA4B0B90926301501298@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1430793970-11159-6-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, May 13, 2015 at 08:30:41AM +0000, Zhang, Rui wrote:
-> 04:00.0 Ethernet controller: Intel Corporation 82574L Gigabit Network Connection
-> 	Kernel driver in use: e1000e
-> 	Kernel modules: e1000e
-> PXSX	  S4	*enabled   pci:0000:04:00.0
-> 
-> Please run "echo PXSX > /proc/acpi/wakeup" before shutdown and then checks if
-> the problem still exists.
+Hi Jiang,
 
-Thank you for directions. Here follows what I did:
+On 2015=E5=B9=B405=E6=9C=8805=E6=97=A5 10:46, Jiang Liu wrote:
+> Introduce common interface acpi_pci_root_create() and related data
+> structures to create PCI root bus for ACPI PCI host bridges. It will
+> be used to kill duplicated arch specific code for IA64 and x86. It ma=
+y
+> also help ARM64 in future.
+>
+[...]
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index a965efa52152..a292ee33d74b 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -52,6 +52,30 @@ static inline acpi_handle acpi_pci_get_bridge_hand=
+le(struct pci_bus *pbus)
+>   	return ACPI_HANDLE(dev);
+>   }
+>
+> +struct acpi_pci_root;
+> +struct acpi_pci_root_ops;
+> +
+> +struct acpi_pci_root_info_common {
+> +	struct pci_controller		controller;
 
-root@zanac:~$ echo PXSX > /proc/acpi/wakeup
-root@zanac:~$ cat /proc/acpi/wakeup | grep PX
-PXSX      S4    *disabled
-PXSX      S4    *disabled
-PXSX      S4    *disabled
-PXSX      S4    *disabled
-PXSX      S4    *disabled
-PXSX      S4    *enabled   pci:0000:04:00.0
-PXSX      S4    *enabled   pci:0000:06:00.0
-root@zanac:$ poweroff
+There is another problem that this patch will lead to
+compile error on ARM64 since ARM64 has basic ACPI support
+in 4.1.
 
-Then after 2-3 seconds the system turns on.
+struct pci_controller		controller is not available
+on ARM64, that's the reason why compile errors happens on ARM64.
 
-The echo command didn't work: infact I double checked, it didn't change the
-wakeup status.
+How about move struct pci_controller to this head file?
 
-But if I disabled the wakeup would WOL packets still work?
+because all the related file you changed in this patch set
+are only compiled when CONFI_ACPI=3Dy, so for x86,
 
-I ask because if I disable 'Wake-up by PCIe' in the BIOS the system stays off,
-but I need the WOL functionality.
+struct pci_controller {
+#ifdef CONFIG_ACPI
+         struct acpi_device *companion;  /* ACPI companion device */
+#endif
+#ifdef CONFIG_X86_64
+         void            *iommu;         /* IOMMU private data */
+#endif
+         int             segment;        /* PCI domain */
+         int             node;           /* NUMA node */
+};
 
-Currently ethtool eth0 says:
+I'm sure #ifdef CONFIG_ACPI .. #endif can be removed
+with no harm, and for *iommu, we can remove the #ifdef CONFIG_X86_64
+with introducing little more memory on x86_32, after
+that, the struct pci_controller is almost the same as ia64:
 
-        Supports Wake-on: pumbg
-        Wake-on: g
-        Current message level: 0x00000007 (7)
-                               drv probe link
+struct pci_controller {
+         struct acpi_device *companion;
+         void *iommu;
+         int segment;
+         int node;               /* nearest node with memory or=20
+NUMA_NO_NODE for global allocation */
 
-This should only allow magic-packets to wake up the system. To be sure I even
-disconnected the cable from the NIC. Unfortunately it still turns on by itself.
+         void *platform_data;
+};
 
-Thanks,
+except void *platform_data;
 
-Gianluca
+On ARM64, the structure is almost the same, so how about
+introduce
 
-> 
-> Thanks,
-> Rui
-> 
-> > -----Original Message-----
-> > From: Gianluca Anzolin [mailto:gianluca@sottospazio.it]
-> > Sent: Wednesday, May 13, 2015 4:26 PM
-> > To: Zhang, Rui
-> > Cc: linux-acpi@vger.kernel.org
-> > Subject: Re: Debugging spurious wakeup
-> > Importance: High
-> > 
-> > On Wed, May 13, 2015 at 08:13:46AM +0000, Zhang, Rui wrote:
-> > > Hmm, none of them seems to be NIC related, can you please attach the
-> > output of lspci -vvxx as well?
-> > >
-> > 
-> > file attached (with I blanked the mac address)
-> > 
-> > Gianluca
+struct pci_controller {
+         struct acpi_device *companion;  /* ACPI companion device */
+         void            *iommu;         /* IOMMU private data */
+         int             segment;        /* PCI domain */
+         int             node;           /* NUMA node */
+#ifdef CONFIG_IA64=09
+	void *platform_data;
+#endif
+};
+
+in this file, then can be used for all architectures?
+
+Thanks
+Hanjun
