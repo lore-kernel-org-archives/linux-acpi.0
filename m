@@ -1,97 +1,57 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
-Date: Wed, 13 May 2015 14:39:20 +0800
-Message-ID: <5552F198.4030304@linaro.org>
-References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org> <1430793998-21631-8-git-send-email-hanjun.guo@linaro.org> <5548A8C5.1080406@arm.com> <5548C219.9060100@linaro.org> <20150511163542.GB2942@red-moon>
+From: Gianluca Anzolin <gianluca@sottospazio.it>
+Subject: Debugging spurious wakeup
+Date: Wed, 13 May 2015 08:58:25 +0200
+Message-ID: <20150513065825.GA10680@sottospazio.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:35215 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035AbbEMGj1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2015 02:39:27 -0400
-Received: by pdbqd1 with SMTP id qd1so41526311pdb.2
-        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2015 23:39:26 -0700 (PDT)
-In-Reply-To: <20150511163542.GB2942@red-moon>
+Received: from m-r2.th.seeweb.it ([5.144.164.171]:49758 "EHLO
+	m-r2.th.seeweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752162AbbEMHHK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2015 03:07:10 -0400
+Received: from fseek.strangled.net (host112-190-dynamic.24-79-r.retail.telecomitalia.it [79.24.190.112])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by m-r2.th.seeweb.it (Postfix) with ESMTPSA id 1AB6B3EF54
+	for <linux-acpi@vger.kernel.org>; Wed, 13 May 2015 08:58:27 +0200 (CEST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: linux-acpi@vger.kernel.org
 
-On 2015=E5=B9=B405=E6=9C=8812=E6=97=A5 00:35, Lorenzo Pieralisi wrote:
-> On Tue, May 05, 2015 at 02:14:01PM +0100, Hanjun Guo wrote:
->> On 2015???05???05??? 19:25, Sudeep Holla wrote:
->>>
->>>
->>> On 05/05/15 03:46, Hanjun Guo wrote:
->>>> Introduce invalid_phys_cpuid() to identify cpu with invalid
->>>> physical ID, then used it as replacement of the direct comparisons
->>>> with PHYS_CPUID_INVALID.
->>>>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> ---
->>>>    drivers/acpi/acpi_processor.c | 4 ++--
->>>>    drivers/acpi/processor_core.c | 4 ++--
->>>>    include/linux/acpi.h          | 5 +++++
->>>>    3 files changed, 9 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/acpi_processor.c
->>>> b/drivers/acpi/acpi_processor.c
->>>> index 62c846b..92a5f73 100644
->>>> --- a/drivers/acpi/acpi_processor.c
->>>
->>> [...]
->>>
->>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->>>> index 913b49f..cc82ff3 100644
->>>> --- a/include/linux/acpi.h
->>>> +++ b/include/linux/acpi.h
->>>> @@ -163,6 +163,11 @@ static inline bool invalid_logical_cpuid(u32 =
-cpuid)
->>>>        return (int)cpuid < 0;
->>>>    }
->>>>
->>>> +static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
->>>> +{
->>>> +    return (int)phys_id < 0;
->>>
->>> Should this be phys_id =3D=3D PHYS_CPUID_INVALID ? else I don't see=
- why we
->>> need to even define PHYS_CPUID_INVALID
->>
->> I'm OK with this. For now, CPU phys_id will be valid value or
->> PHYS_CPUID_INVALID in all cases for ACPI processor driver, but
->> I want ask Rafael's opinion on this, is it OK to you too, Rafael?
->
-> Is your worry related to functions returning error values
-> other than PHYS_CPUID_INVALID (when they are expected to return a
-> physical id) ?
+Hello,
 
-Yes.
+I have a curious problem with my system: whenever I wake up the PC with a WOL
+magic packet and then power it off the systems comes back to life after a
+couple of seconds, by itself.
 
-> Is there any in the current kernel ?
+I can reproduce the problem 100% of the times.
 
-No such returns as far as I know.
+I've been having this problems for years. I remember this same issue occurred
+also with my previous computer, with a different mainboard. My current system
+has an ASUS P8B-WS mb with a Xeon 1275v2 CPU.
 
->
-> static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
-> {
-> 	return phys_id =3D=3D PHYS_CPUID_INVALID;
-> }
->
-> This should do, and if we need more mapping functions that are suppos=
-ed
-> to return physical ids they should return PHYS_CPUID_INVALID on failu=
-re.
+I've ruled out in the time many factors: traffic on the net (by disconnecting
+the cable), RTC alarms (by disabling them)... long story short: I'm stuck.
 
-OK, I will send a update version for this patch only.
+While I'm not the only one with this issue (see[1]), some people have reported
+mixed success by blacklisting some components (xhci-pci) or by setting
+unrelated BIOS options. Unfortunately these workarounds never worked for me.
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So I'm here to ask if there is a way to get the source/cause of the last wakeup
+by setting some ACPI debug option. This way I could at least pinpoint the
+device/interface that caused the spontaneous wakeup and then debug further or
+at least disable it.
+
+I've tried to enable the ACPI hardware-related messages with the kernel
+arguments: acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
+
+Unfortunately I can't see the information I'm looking for in the resulting
+output. Should I enable some other debug_layer? Could anybody point me in the
+right direction?
+
+Thank you and best regards,
+
+Gianluca
+
+[1] https://bbs.archlinux.org/viewtopic.php?id=173648
