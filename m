@@ -1,90 +1,97 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v2 6/7] x86/PCI/ACPI: Use common interface to support PCI
- host bridge
-Date: Wed, 13 May 2015 13:38:37 +0800
-Message-ID: <5552E35D.8030501@linux.intel.com>
-References: <1430793970-11159-1-git-send-email-jiang.liu@linux.intel.com> <1430793970-11159-7-git-send-email-jiang.liu@linux.intel.com> <5551EFC1.2010704@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
+Date: Wed, 13 May 2015 14:39:20 +0800
+Message-ID: <5552F198.4030304@linaro.org>
+References: <1430793998-21631-1-git-send-email-hanjun.guo@linaro.org> <1430793998-21631-8-git-send-email-hanjun.guo@linaro.org> <5548A8C5.1080406@arm.com> <5548C219.9060100@linaro.org> <20150511163542.GB2942@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5551EFC1.2010704@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:35215 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035AbbEMGj1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 May 2015 02:39:27 -0400
+Received: by pdbqd1 with SMTP id qd1so41526311pdb.2
+        for <linux-acpi@vger.kernel.org>; Tue, 12 May 2015 23:39:26 -0700 (PDT)
+In-Reply-To: <20150511163542.GB2942@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Sudeep Holla <Sudeep.Holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 2015/5/12 20:19, Hanjun Guo wrote:
-> [...]
->>   struct pci_root_info {
->> -    struct acpi_device *bridge;
->> -    char name[16];
->> -    struct pci_controller sd;
->> +    struct acpi_pci_root_info_common common;
->>   #ifdef    CONFIG_PCI_MMCONFIG
->>       bool mcfg_added;
->>       u16 segment;
->> @@ -165,14 +164,17 @@ static int check_segment(u16 seg, struct device
->> *dev, char *estr)
->>       return 0;
->>   }
+On 2015=E5=B9=B405=E6=9C=8812=E6=97=A5 00:35, Lorenzo Pieralisi wrote:
+> On Tue, May 05, 2015 at 02:14:01PM +0100, Hanjun Guo wrote:
+>> On 2015???05???05??? 19:25, Sudeep Holla wrote:
+>>>
+>>>
+>>> On 05/05/15 03:46, Hanjun Guo wrote:
+>>>> Introduce invalid_phys_cpuid() to identify cpu with invalid
+>>>> physical ID, then used it as replacement of the direct comparisons
+>>>> with PHYS_CPUID_INVALID.
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>    drivers/acpi/acpi_processor.c | 4 ++--
+>>>>    drivers/acpi/processor_core.c | 4 ++--
+>>>>    include/linux/acpi.h          | 5 +++++
+>>>>    3 files changed, 9 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/acpi_processor.c
+>>>> b/drivers/acpi/acpi_processor.c
+>>>> index 62c846b..92a5f73 100644
+>>>> --- a/drivers/acpi/acpi_processor.c
+>>>
+>>> [...]
+>>>
+>>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>>>> index 913b49f..cc82ff3 100644
+>>>> --- a/include/linux/acpi.h
+>>>> +++ b/include/linux/acpi.h
+>>>> @@ -163,6 +163,11 @@ static inline bool invalid_logical_cpuid(u32 =
+cpuid)
+>>>>        return (int)cpuid < 0;
+>>>>    }
+>>>>
+>>>> +static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+>>>> +{
+>>>> +    return (int)phys_id < 0;
+>>>
+>>> Should this be phys_id =3D=3D PHYS_CPUID_INVALID ? else I don't see=
+ why we
+>>> need to even define PHYS_CPUID_INVALID
 >>
->> -static int setup_mcfg_map(struct pci_root_info *info, u16 seg, u8 start,
->> -              u8 end, phys_addr_t addr)
->> +static int setup_mcfg_map(struct acpi_pci_root_info_common *ci)
->>   {
->>       int result;
->> -    struct device *dev = &info->bridge->dev;
->> +    struct pci_root_info *info;
->> +    struct acpi_pci_root *root = ci->root;
->> +    struct device *dev = &ci->bridge->dev;
->> +    int seg = ci->controller.segment;
-> 
-> ...
-> 
->>
->> -    info->start_bus = start;
->> -    info->end_bus = end;
->> +    info = container_of(ci, struct pci_root_info, common);
->> +    info->start_bus = (u8)root->secondary.start;
->> +    info->end_bus = (u8)root->secondary.end;
->>       info->mcfg_added = false;
-> 
-> info->segment is not initialized here
-> 
->>
->>       /* return success if MMCFG is not in use */
->> @@ -182,7 +184,8 @@ static int setup_mcfg_map(struct pci_root_info
->> *info, u16 seg, u8 start,
->>       if (!(pci_probe & PCI_PROBE_MMCONF))
->>           return check_segment(seg, dev, "MMCONFIG is disabled,");
->>
->> -    result = pci_mmconfig_insert(dev, seg, start, end, addr);
->> +    result = pci_mmconfig_insert(dev, seg, info->start_bus,
->> info->end_bus,
->> +                     root->mcfg_addr);
->>       if (result == 0) {
->>           /* enable MMCFG if it hasn't been enabled yet */
->>           if (raw_pci_ext_ops == NULL)
->> @@ -195,8 +198,11 @@ static int setup_mcfg_map(struct pci_root_info
->> *info, u16 seg, u8 start,
->>       return 0;
->>   }
->>
->> -static void teardown_mcfg_map(struct pci_root_info *info)
->> +static void teardown_mcfg_map(struct acpi_pci_root_info_common *ci)
->>   {
->> +    struct pci_root_info *info;
->> +
->> +    info = container_of(ci, struct pci_root_info, common);
->>       if (info->mcfg_added) {
->>           pci_mmconfig_delete(info->segment, info->start_bus,
-> 
-> But the segment is used here to delete mmconfig entry, it seems that
-> the domain is 0 so there will be no problem, did I miss something?
+>> I'm OK with this. For now, CPU phys_id will be valid value or
+>> PHYS_CPUID_INVALID in all cases for ACPI processor driver, but
+>> I want ask Rafael's opinion on this, is it OK to you too, Rafael?
+>
+> Is your worry related to functions returning error values
+> other than PHYS_CPUID_INVALID (when they are expected to return a
+> physical id) ?
 
-Good catch, we should use ci->controller.segment and kill info->segment.
+Yes.
 
-> 
-> Thanks
-> Hanjun
+> Is there any in the current kernel ?
+
+No such returns as far as I know.
+
+>
+> static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+> {
+> 	return phys_id =3D=3D PHYS_CPUID_INVALID;
+> }
+>
+> This should do, and if we need more mapping functions that are suppos=
+ed
+> to return physical ids they should return PHYS_CPUID_INVALID on failu=
+re.
+
+OK, I will send a update version for this patch only.
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
