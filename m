@@ -1,34 +1,100 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron
- 7437
-Date: Thu, 14 May 2015 14:17:06 -0500
-Message-ID: <5554F4B2.8080801@dell.com>
-References: <1429759476-13186-1-git-send-email-alex.hung@canonical.com> <20150424082115.GA3783@srcf.ucam.org> <CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com> <20150427174646.GA22664@srcf.ucam.org> <CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com> <20150428052448.GA3458@srcf.ucam.org> <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com> <20150428171100.GA24599@srcf.ucam.org> <CAJ=jquZMMBNsKO2CZe649OcXTBxfzO43gkxwkJn2mvHhnp+zSQ@mail.gmail.com> <5554F12A.3010003@dell.com> <20150514191358.GB23853@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] pci/hotplug: work-around for missing _RMV on HP ZBook G2
+Date: Thu, 14 May 2015 15:33:58 -0400
+Message-ID: <1431632038-39917-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:50843 "EHLO
-	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964971AbbENTRZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 15:17:25 -0400
-In-Reply-To: <20150514191358.GB23853@srcf.ucam.org>
+Received: from mx1.redhat.com ([209.132.183.28]:39456 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964998AbbENTeV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 May 2015 15:34:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alex Hung <alex.hung@canonical.com>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
+The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
+including at least BIOS revision 01.07, do not have an ACPI _RMV object
+associated with their expresscard slots, so acpi-based hotplug-capable
+slot detection fails. If we fall back to pcie-based detection, the systems
+work just fine, so this uses dmi matching to do that. With luck, a future
+BIOS will remedy this (I've let someone at HP know about the problem),
+but for now, just use this for all existing versions.
 
+Note: they *do* have a proper _RMV object for what I believe is their
+thunderbolt ports.
 
-On 05/14/2015 02:13 PM, Matthew Garrett wrote:
-> On Thu, May 14, 2015 at 02:02:02PM -0500, Mario Limonciello wrote:
->
->> * Battery information was not displayed in the OS.  The BIOS team
->> found that the Linux wasn't asking for battery information in the OS
->> in the same way that Windows does.  The delta path creates a SMI
->> event to get battery information.
-> Huh. Is there any chance we can find out what the difference is so we
-> can make them equivalent?
->
+Tested successfully on an HP ZBook 17 G2 and HP ZBook 15 G2.
 
-That was my reaction too.  I'm asking for some technical details on this.
+CC: Len Brown <lenb@kernel.org>
+CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: linux-acpi@vger.kernel.org
+CC: linux-pci@vger.kernel.org
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/pci/hotplug/pciehp_acpi.c | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/drivers/pci/hotplug/pciehp_acpi.c b/drivers/pci/hotplug/pciehp_acpi.c
+index 93cc926..db38fb5 100644
+--- a/drivers/pci/hotplug/pciehp_acpi.c
++++ b/drivers/pci/hotplug/pciehp_acpi.c
+@@ -28,6 +28,7 @@
+ #include <linux/pci_hotplug.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/dmi.h>
+ #include "pciehp.h"
+ 
+ #define PCIEHP_DETECT_PCIE	(0)
+@@ -109,10 +110,40 @@ static struct pcie_port_service_driver __initdata dummy_driver = {
+ 	.probe		= dummy_probe,
+ };
+ 
++static int __init set_slot_detection_mode_pcie(const struct dmi_system_id *d)
++{
++	info("%s lacks ACPI _RMV object for expresscard\n", d->ident);
++	return 1;
++}
++
++static struct dmi_system_id __initdata missing_acpi_rmv[] = {
++	/* ZBook 17 through at least bios v01.07 */
++	{
++	 .callback = set_slot_detection_mode_pcie,
++	 .ident = "HP ZBook 17 G2 Mobile Workstation",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 17 G2"),
++		},
++	},
++	/* ZBook 15 through at least bios v01.07 */
++	{
++	 .callback = set_slot_detection_mode_pcie,
++	 .ident = "HP ZBook 15 G2 Mobile Workstation",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 15 G2"),
++		},
++	},
++	{ .ident = NULL }
++};
++
+ static int __init select_detection_mode(void)
+ {
+ 	struct dummy_slot *slot, *tmp;
+ 
++	if (dmi_check_system(missing_acpi_rmv))
++		return PCIEHP_DETECT_PCIE;
+ 	if (pcie_port_service_register(&dummy_driver))
+ 		return PCIEHP_DETECT_ACPI;
+ 	pcie_port_service_unregister(&dummy_driver);
+@@ -134,4 +165,6 @@ void __init pciehp_acpi_slot_detection_init(void)
+ out:
+ 	if (slot_detection_mode == PCIEHP_DETECT_ACPI)
+ 		info("Using ACPI for slot detection.\n");
++	else if (slot_detection_mode == PCIEHP_DETECT_PCIE)
++		info("Using PCIE-based slot detection.\n");
+ }
+-- 
+1.8.3.1
+
