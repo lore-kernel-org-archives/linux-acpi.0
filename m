@@ -1,375 +1,143 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / PM: Rework device power management to follow ACPI 6
-Date: Fri, 15 May 2015 00:06:16 +0200
-Message-ID: <1589313.NW63o2eWqT@vostro.rjw.lan>
-References: <5141050.0s0C74Tu0K@vostro.rjw.lan>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	David Vrabel <david.vrabel@citrix.com>
+Subject: Re: Regression due to "device property: Make it
+	possible to use secondary firmware nodes" Re: Xen-unstable +
+	linux 4.1-mergewindow: problems with PV guest pci
+	passthrough: pcifront pci-0: pciback not responding!!!
+Date: Fri, 15 May 2015 00:44:29 +0200
+Message-ID: <120875582.20150515004429@eikelenboom.it>
+References: <135105791.20150427174800@eikelenboom.it>
+	<20150511152029.GA24379@l.oracle.com>
+	<3902129.1HNpjbDdb7@vostro.rjw.lan>
+	<3477983.pEhNuQXIjK@vostro.rjw.lan>
+	<238309395.20150513005236@eikelenboom.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5141050.0s0C74Tu0K@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <xen-devel-bounces@lists.xen.org>
+In-Reply-To: <238309395.20150513005236@eikelenboom.it>
+List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Sender: xen-devel-bounces@lists.xen.org
+Errors-To: xen-devel-bounces@lists.xen.org
+To: Sander Eikelenboom <linux@eikelenboom.it>
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, May 07, 2015 12:37:13 AM Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> The ACPI 6 specification has made some changes in the device power
-> management area.  In particular:
-> 
->  * The D3hot power state is now supposed to be always available
->    (instead of D3cold) and D3cold is only regarded as valid if the
->    _PR3 object is present for the given device.
-> 
->  * The required ordering of transitions into power states deeper than
->    D0 is now such that for a transition into state Dx the _PSx method
->    is supposed to be executed first, if present, and the states of
->    the power resources the device depends on are supposed to be
->    changed after that.
-> 
->  * It is now explicitly forbidden to transition devices from
->    lower-power (deeper) into higher-power (shallower) power states
->    other than D0.
-> 
-> Those changes have been made so the specification reflects the
-> Windows' device power management code that the vast majority of
-> systems using ACPI is validated against.
-> 
-> To avoid artificial differences in ACPI device power management
-> between Windows and Linux, modify the ACPI device power management
-> code to follow the new specification.  Add comments explaining the
-> code flow in some unclear places.
-> 
-> This only may affect some real corner cases in which the OS behavior
-> expected by the firmware is different from the Windows one, but that's
-> quite unlikely.  The transition ordering change affects transitions
-> to D1 and D2 which are rarely used (if at all) and into D3hot and
-> D3cold for devices actually having _PR3, but those are likely to
-> be validated against Windows anyway.  The other changes may affect
-> code calling acpi_device_get_power() or acpi_device_update_power()
-> where ACPI_STATE_D3_HOT may be returned instead of ACPI_STATE_D3_COLD
-> (that's why the ACPI fan driver needs to be updated too) and since
-> transitions into ACPI_STATE_D3_HOT may remove power now, it is better
-> to avoid this one in acpi_pm_device_sleep_state() if the "no power
-> off" PM QoS flag is set.
-> 
-> The only existing user of acpi_device_can_poweroff() really cares
-> about the case when _PR3 is present, so the change in that function
-> should not cause any problems to happen too.
-> 
-> A plus is that PCI_D3hot can be mapped to ACPI_STATE_D3_HOT
-> now and the compatibility with older systems should be covered
-> automatically.
-> 
-> In any case, if any real problems result from this, it still will
-> be better to follow the Windows' behavior (which now is reflected
-> by the specification too) in general and handle the cases when it
-> doesn't work via quirks.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Konrad / David,
 
-OK, so it looks like nobody has any comments, which in particular means
-"no objections" to me.
+One a big snip on this thread, got some more debug info, hopefully this will 
+lead to something:
 
-I'm going to queue up this patch for 4.2, then.
+On a working kernel (with the two seemingly non related patches reverted) i get:
 
-> ---
->  drivers/acpi/device_pm.c |   97 ++++++++++++++++++++++++++++-------------------
->  drivers/acpi/fan.c       |    5 +-
->  drivers/acpi/power.c     |    3 -
->  drivers/acpi/scan.c      |   26 ++----------
->  drivers/pci/pci-acpi.c   |    2 
->  include/acpi/acpi_bus.h  |    3 -
->  6 files changed, 71 insertions(+), 65 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/power.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/power.c
-> +++ linux-pm/drivers/acpi/power.c
-> @@ -684,7 +684,8 @@ int acpi_power_get_inferred_state(struct
->  		}
->  	}
->  
-> -	*state = ACPI_STATE_D3_COLD;
-> +	*state = device->power.states[ACPI_STATE_D3_COLD].flags.valid ?
-> +		ACPI_STATE_D3_COLD : ACPI_STATE_D3_HOT;
->  	return 0;
->  }
->  
-> Index: linux-pm/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-pm.orig/include/acpi/acpi_bus.h
-> +++ linux-pm/include/acpi/acpi_bus.h
-> @@ -272,7 +272,6 @@ struct acpi_device_power_flags {
->  struct acpi_device_power_state {
->  	struct {
->  		u8 valid:1;
-> -		u8 os_accessible:1;
->  		u8 explicit_set:1;	/* _PSx present? */
->  		u8 reserved:6;
->  	} flags;
-> @@ -602,7 +601,7 @@ static inline bool acpi_device_can_wakeu
->  
->  static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
->  {
-> -	return adev->power.states[ACPI_STATE_D3_COLD].flags.os_accessible;
-> +	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid;
->  }
->  
->  #else	/* CONFIG_ACPI */
-> Index: linux-pm/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/scan.c
-> +++ linux-pm/drivers/acpi/scan.c
-> @@ -1766,15 +1766,9 @@ static void acpi_bus_init_power_state(st
->  	if (acpi_has_method(device->handle, pathname))
->  		ps->flags.explicit_set = 1;
->  
-> -	/*
-> -	 * State is valid if there are means to put the device into it.
-> -	 * D3hot is only valid if _PR3 present.
-> -	 */
-> -	if (!list_empty(&ps->resources)
-> -	    || (ps->flags.explicit_set && state < ACPI_STATE_D3_HOT)) {
-> +	/* State is valid if there are means to put the device into it. */
-> +	if (!list_empty(&ps->resources) || ps->flags.explicit_set)
->  		ps->flags.valid = 1;
-> -		ps->flags.os_accessible = 1;
-> -	}
->  
->  	ps->power = -1;		/* Unknown - driver assigned */
->  	ps->latency = -1;	/* Unknown - driver assigned */
-> @@ -1810,21 +1804,13 @@ static void acpi_bus_get_power_flags(str
->  		acpi_bus_init_power_state(device, i);
->  
->  	INIT_LIST_HEAD(&device->power.states[ACPI_STATE_D3_COLD].resources);
-> +	if (!list_empty(&device->power.states[ACPI_STATE_D3_HOT].resources))
-> +		device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
->  
-> -	/* Set defaults for D0 and D3 states (always valid) */
-> +	/* Set defaults for D0 and D3hot states (always valid) */
->  	device->power.states[ACPI_STATE_D0].flags.valid = 1;
->  	device->power.states[ACPI_STATE_D0].power = 100;
-> -	device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> -	device->power.states[ACPI_STATE_D3_COLD].power = 0;
-> -
-> -	/* Set D3cold's explicit_set flag if _PS3 exists. */
-> -	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
-> -		device->power.states[ACPI_STATE_D3_COLD].flags.explicit_set = 1;
-> -
-> -	/* Presence of _PS3 or _PRx means we can put the device into D3 cold */
-> -	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set ||
-> -			device->power.flags.power_resources)
-> -		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
-> +	device->power.states[ACPI_STATE_D3_HOT].flags.valid = 1;
->  
->  	if (acpi_bus_init_power(device))
->  		device->flags.power_manageable = 0;
-> Index: linux-pm/drivers/acpi/device_pm.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -98,17 +98,16 @@ int acpi_device_get_power(struct acpi_de
->  
->  		/*
->  		 * The power resources settings may indicate a power state
-> -		 * shallower than the actual power state of the device.
-> +		 * shallower than the actual power state of the device, because
-> +		 * the same power resources may be referenced by other devices.
->  		 *
-> -		 * Moreover, on systems predating ACPI 4.0, if the device
-> -		 * doesn't depend on any power resources and _PSC returns 3,
-> -		 * that means "power off".  We need to maintain compatibility
-> -		 * with those systems.
-> +		 * For systems predating ACPI 4.0 we assume that D3hot is the
-> +		 * deepest state that can be supported.
->  		 */
->  		if (psc > result && psc < ACPI_STATE_D3_COLD)
->  			result = psc;
->  		else if (result == ACPI_STATE_UNKNOWN)
-> -			result = psc > ACPI_STATE_D2 ? ACPI_STATE_D3_COLD : psc;
-> +			result = psc > ACPI_STATE_D2 ? ACPI_STATE_D3_HOT : psc;
->  	}
->  
->  	/*
-> @@ -153,8 +152,8 @@ static int acpi_dev_pm_explicit_set(stru
->   */
->  int acpi_device_set_power(struct acpi_device *device, int state)
->  {
-> +	int target_state = state;
->  	int result = 0;
-> -	bool cut_power = false;
->  
->  	if (!device || !device->flags.power_manageable
->  	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
-> @@ -169,11 +168,21 @@ int acpi_device_set_power(struct acpi_de
->  		return 0;
->  	}
->  
-> -	if (!device->power.states[state].flags.valid) {
-> +	if (state == ACPI_STATE_D3_COLD) {
-> +		/*
-> +		 * For transitions to D3cold we need to execute _PS3 and then
-> +		 * possibly drop references to the power resources in use.
-> +		 */
-> +		state = ACPI_STATE_D3_HOT;
-> +		/* If _PR3 is not available, use D3hot as the target state. */
-> +		if (!device->power.states[ACPI_STATE_D3_COLD].flags.valid)
-> +			target_state = state;
-> +	} else if (!device->power.states[state].flags.valid) {
->  		dev_warn(&device->dev, "Power state %s not supported\n",
->  			 acpi_power_state_string(state));
->  		return -ENODEV;
->  	}
-> +
->  	if (!device->power.flags.ignore_parent &&
->  	    device->parent && (state < device->parent->power.state)) {
->  		dev_warn(&device->dev,
-> @@ -183,39 +192,38 @@ int acpi_device_set_power(struct acpi_de
->  		return -ENODEV;
->  	}
->  
-> -	/* For D3cold we should first transition into D3hot. */
-> -	if (state == ACPI_STATE_D3_COLD
-> -	    && device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible) {
-> -		state = ACPI_STATE_D3_HOT;
-> -		cut_power = true;
-> -	}
-> -
-> -	if (state < device->power.state && state != ACPI_STATE_D0
-> -	    && device->power.state >= ACPI_STATE_D3_HOT) {
-> -		dev_warn(&device->dev,
-> -			 "Cannot transition to non-D0 state from D3\n");
-> -		return -ENODEV;
-> -	}
-> -
->  	/*
->  	 * Transition Power
->  	 * ----------------
-> -	 * In accordance with the ACPI specification first apply power (via
-> -	 * power resources) and then evaluate _PSx.
-> +	 * In accordance with ACPI 6, _PSx is executed before manipulating power
-> +	 * resources, unless the target state is D0, in which case _PS0 is
-> +	 * supposed to be executed after turning the power resources on.
->  	 */
-> -	if (device->power.flags.power_resources) {
-> -		result = acpi_power_transition(device, state);
-> +	if (state > ACPI_STATE_D0) {
-> +		/*
-> +		 * According to ACPI 6, devices cannot go from lower-power
-> +		 * (deeper) states to higher-power (shallower) states.
-> +		 */
-> +		if (state < device->power.state) {
-> +			dev_warn(&device->dev, "Cannot transition from %s to %s\n",
-> +				 acpi_power_state_string(device->power.state),
-> +				 acpi_power_state_string(state));
-> +			return -ENODEV;
-> +		}
-> +
-> +		result = acpi_dev_pm_explicit_set(device, state);
->  		if (result)
->  			goto end;
-> -	}
-> -	result = acpi_dev_pm_explicit_set(device, state);
-> -	if (result)
-> -		goto end;
->  
-> -	if (cut_power) {
-> -		device->power.state = state;
-> -		state = ACPI_STATE_D3_COLD;
-> -		result = acpi_power_transition(device, state);
-> +		if (device->power.flags.power_resources)
-> +			result = acpi_power_transition(device, target_state);
-> +	} else {
-> +		if (device->power.flags.power_resources) {
-> +			result = acpi_power_transition(device, ACPI_STATE_D0);
-> +			if (result)
-> +				goto end;
-> +		}
-> +		result = acpi_dev_pm_explicit_set(device, ACPI_STATE_D0);
->  	}
->  
->   end:
-> @@ -264,13 +272,24 @@ int acpi_bus_init_power(struct acpi_devi
->  		return result;
->  
->  	if (state < ACPI_STATE_D3_COLD && device->power.flags.power_resources) {
-> +		/* Reference count the power resources. */
->  		result = acpi_power_on_resources(device, state);
->  		if (result)
->  			return result;
->  
-> -		result = acpi_dev_pm_explicit_set(device, state);
-> -		if (result)
-> -			return result;
-> +		if (state == ACPI_STATE_D0) {
-> +			/*
-> +			 * If _PSC is not present and the state inferred from
-> +			 * power resources appears to be D0, it still may be
-> +			 * necessary to execute _PS0 at this point, because
-> +			 * another device using the same power resources may
-> +			 * have been put into D0 previously and that's why we
-> +			 * see D0 here.
-> +			 */
-> +			result = acpi_dev_pm_explicit_set(device, state);
-> +			if (result)
-> +				return result;
-> +		}
->  	} else if (state == ACPI_STATE_UNKNOWN) {
->  		/*
->  		 * No power resources and missing _PSC?  Cross fingers and make
-> @@ -603,12 +622,12 @@ int acpi_pm_device_sleep_state(struct de
->  	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3_COLD)
->  		return -EINVAL;
->  
-> -	if (d_max_in > ACPI_STATE_D3_HOT) {
-> +	if (d_max_in > ACPI_STATE_D2) {
->  		enum pm_qos_flags_status stat;
->  
->  		stat = dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF);
->  		if (stat == PM_QOS_FLAGS_ALL)
-> -			d_max_in = ACPI_STATE_D3_HOT;
-> +			d_max_in = ACPI_STATE_D2;
->  	}
->  
->  	adev = ACPI_COMPANION(dev);
-> Index: linux-pm/drivers/acpi/fan.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/fan.c
-> +++ linux-pm/drivers/acpi/fan.c
-> @@ -158,8 +158,9 @@ static int fan_get_state(struct acpi_dev
->  	if (result)
->  		return result;
->  
-> -	*state = (acpi_state == ACPI_STATE_D3_COLD ? 0 :
-> -		 (acpi_state == ACPI_STATE_D0 ? 1 : -1));
-> +	*state = acpi_state == ACPI_STATE_D3_COLD
-> +			|| acpi_state == ACPI_STATE_D3_HOT ?
-> +		0 : (acpi_state == ACPI_STATE_D0 ? 1 : -1);
->  	return 0;
->  }
->  
-> Index: linux-pm/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-acpi.c
-> +++ linux-pm/drivers/pci/pci-acpi.c
-> @@ -420,7 +420,7 @@ static int acpi_pci_set_power_state(stru
->  		[PCI_D0] = ACPI_STATE_D0,
->  		[PCI_D1] = ACPI_STATE_D1,
->  		[PCI_D2] = ACPI_STATE_D2,
-> -		[PCI_D3hot] = ACPI_STATE_D3_COLD,
-> +		[PCI_D3hot] = ACPI_STATE_D3_HOT,
->  		[PCI_D3cold] = ACPI_STATE_D3_COLD,
->  	};
->  	int error = -EINVAL;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[    0.717796] pcifront pci-0: Allocated pdev @ 0xffff880019e11780 pdev->sh_info @ 0xffff880018f58000
+[    0.717848] pcifront pci-0: ?!?!? before alloc gntref: 0
+[    0.717871] pcifront pci-0: ?!?!? after alloc gntref: 8
+[    0.717892] pcifront pci-0: ?!?!? before alloc evtchn: -1
+[    0.717915] pcifront pci-0: ?!?!? after alloc evtchn: 17
+[    0.717984] pcifront pci-0: ?!?!? bound evtchn:17 to irqhandler:-1 err:31
+[    0.721640] pcifront pci-0: publishing successful!
+[    0.723684] usbcore: registered new interface driver udlfb
+[    0.724664] xen:xen_evtchn: Event-channel device installed
+[    0.726597] pcifront pci-0: Installing PCI frontend
+[    0.726853] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    0.727059] pcifront pci-0: Creating PCI Frontend Bus 0000:00
+[    0.727363] pcifront pci-0: PCI host bridge to bus 0000:00
+[    0.727391] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+[    0.727417] pci_bus 0000:00: root bus resource [mem 0x00000000-0xffffffffffff]
+[    0.727452] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.727475] pci_bus 0000:00: scanning bus
+[    0.727503] pcifront pci-0: read dev=0000:00:00.0 - offset 0 size 4
+[    0.728253] Linux agpgart interface v0.103
+[    0.728387] Hangcheck: starting hangcheck timer 0.9.1 (tick is 180 seconds, margin is 60 seconds).
+[    0.728474] [drm] Initialized drm 1.1.0 20060810
+[    0.728551] [drm] radeon kernel modesetting enabled.
+[    0.730319] pcifront pci-0: ?!?!? pciback responded !!! irq:31 irq_flags:ffff880019e100a8 ns: 1431641785551700000  ns_timeout: 1431641787541235000 evtchn:17 gnt_ref:8
+[    0.730319] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[    0.730319] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[    0.730319] pcifront pci-0: read got back value 11113f6
+[    0.738845] pcifront pci-0: read dev=0000:00:00.0 - offset e size 1
+[    0.744976] brd: module loaded
+[    0.745204] pcifront pci-0: ?!?!? pciback responded !!! irq:31 irq_flags:ffff880019e100a8 ns: 1431641785562852000  ns_timeout: 1431641787552580000 evtchn:17 gnt_ref:8
+[    0.745204] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:14 size:1
+[    0.745204] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:14 size:1
+[    0.745204] pcifront pci-0: read got back value 0
+[    0.749204] pcifront pci-0: read dev=0000:00:00.0 - offset 6 size 2
+[    0.750155] loop: module loaded
+[    0.752527] pcifront pci-0: ?!?!? pciback responded !!! irq:31 irq_flags:ffff880019e100a8 ns: 1431641785570841000  ns_timeout: 1431641787562917000 evtchn:17 gnt_ref:8
+[    0.752527] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:6 size:2
+[    0.752527] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:6 size:2
+[    0.752527] pcifront pci-0: read got back value 210
+[    0.757187] pcifront pci-0: read dev=0000:00:00.0 - offset 34 size 1
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+
+Were as in the non-working situation i get:
+
+[    0.751244] pcifront pci-0: Allocated pdev @ 0xffff880019ec2e00 pdev->sh_info @ 0xffff88001aa51000
+[    0.751295] pcifront pci-0: ?!?!? before alloc gntref: 0
+[    0.751315] pcifront pci-0: ?!?!? after alloc gntref: 8
+[    0.751334] pcifront pci-0: ?!?!? before alloc evtchn: -1
+[    0.751355] pcifront pci-0: ?!?!? after alloc evtchn: 17
+[    0.751422] pcifront pci-0: ?!?!? bound evtchn:17 to irqhandler:-1 err:31
+[    0.755215] pcifront pci-0: publishing successful!
+[    0.757341] usbcore: registered new interface driver udlfb
+[    0.758365] xen:xen_evtchn: Event-channel device installed
+[    0.760419] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    0.760819] pcifront pci-0: Installing PCI frontend
+[    0.761518] pcifront pci-0: Creating PCI Frontend Bus 0000:00
+[    0.761684] pcifront pci-0: PCI host bridge to bus 0000:00
+[    0.761710] pci_bus 0000:00: root bus resource [io  0x0000-0xffff]
+[    0.761733] pci_bus 0000:00: root bus resource [mem 0x00000000-0xffffffffffff]
+[    0.761763] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.761783] pci_bus 0000:00: scanning bus
+[    0.761805] pcifront pci-0: read dev=0000:00:00.0 - offset 0 size 4
+[    0.767207] Linux agpgart interface v0.103
+[    0.767362] Hangcheck: starting hangcheck timer 0.9.1 (tick is 180 seconds, margin is 60 seconds).
+[    0.767439] [drm] Initialized drm 1.1.0 20060810
+[    0.767515] [drm] radeon kernel modesetting enabled.
+[    0.766948] pcifront pci-0: pciback not responding!!! irq:31 irq_flags:ffff880019ec0028 ns: 1431641983026498000  ns_timeout: 1431641983026497000 evtchn:0 gnt_ref:0
+[    0.766948] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[    0.766948] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[    0.766948] pcifront pci-0: other err read got back err: ffffffff value: 0
+[    2.762062] pcifront pci-0: read dev=0000:00:01.0 - offset 0 size 4
+[    2.765203] pcifront pci-0: pciback not responding!!! irq:31 irq_flags:ffff880019ec0028 ns: 1431641985026742000  ns_timeout: 1431641985026741000 evtchn:0 gnt_ref:0
+[    2.765203] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[    2.765203] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[    2.765203] pcifront pci-0: other err read got back err: ffffffff value: 0
+[    4.762172] pcifront pci-0: read dev=0000:00:02.0 - offset 0 size 4
+[    4.764231] brd: module loaded
+[    4.765508] loop: module loaded
+[    4.766748] pcifront pci-0: pciback not responding!!! irq:31 irq_flags:ffff880019ec0028 ns: 1431641987026850000  ns_timeout: 1431641987026849000 evtchn:0 gnt_ref:0
+[    4.766748] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[    4.766748] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[    4.766748] pcifront pci-0: other err read got back err: ffffffff value: 0
+[    6.762248] pcifront pci-0: read dev=0000:00:03.0 - offset 0 size 4
+[    6.765545] pcifront pci-0: pciback not responding!!! irq:31 irq_flags:ffff880019ec0028 ns: 1431641989026930000  ns_timeout: 1431641989026929000 evtchn:0 gnt_ref:0
+[    6.765545] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[    6.765545] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[    6.765545] pcifront pci-0: other err read got back err: ffffffff value: 0
+[    8.762329] pcifront pci-0: read dev=0000:00:04.0 - offset 0 size 4
+[    8.765626] pcifront pci-0: pciback not responding!!! irq:31 irq_flags:ffff880019ec0028 ns: 1431641991027006000  ns_timeout: 1431641991027005000 evtchn:0 gnt_ref:0
+[    8.765626] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[    8.765626] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[    8.765626] pcifront pci-0: other err read got back err: ffffffff value: 0
+[   10.762410] pcifront pci-0: read dev=0000:00:05.0 - offset 0 size 4
+[   10.765701] pcifront pci-0: pciback not responding!!! irq:31 irq_flags:ffff880019ec0028 ns: 1431641993027087000  ns_timeout: 1431641993027086000 evtchn:0 gnt_ref:0
+[   10.765701] pcifront pci-0: ?!?!? op cmd:0 err:0 info:0 offset:0 size:4
+[   10.765701] pcifront pci-0: ?!?!? active_op cmd:0 err:0 info:0 offset:0 size:4
+[   10.765701] pcifront pci-0: other err read got back err: ffffffff value: 0
+[   12.762472] pcifront pci-0: read dev=0000:00:06.0 - offset 0 size 4
+
+
+So somehow in the non-working situation, pdev->evtchn and pdev->gnt_ref are 0 in 
+xen-pcifront.c:do_pci_op(), so no wonder it's not getting a response back ...
+
+Question is .. why ?
+
+--
+Sander
