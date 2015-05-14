@@ -1,109 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [update][PATCH v3 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
-Date: Fri, 15 May 2015 01:58:03 +0200
-Message-ID: <1904952.yaoqdrjHoq@vostro.rjw.lan>
-References: <1431505170-12798-1-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPI / battery: ensure acpi_battery_init() has finish
+Date: Fri, 15 May 2015 01:59:24 +0200
+Message-ID: <2846184.p0deZ4nZzp@vostro.rjw.lan>
+References: <1431380945-2923-1-git-send-email-luis.henriques@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49577 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57149 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933230AbbENXcu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 19:32:50 -0400
-In-Reply-To: <1431505170-12798-1-git-send-email-hanjun.guo@linaro.org>
+	with SMTP id S1422986AbbENXeM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 19:34:12 -0400
+In-Reply-To: <1431380945-2923-1-git-send-email-luis.henriques@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Luis Henriques <luis.henriques@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, May 13, 2015 04:19:30 PM Hanjun Guo wrote:
-> Introduce invalid_phys_cpuid() to identify cpu with invalid
-> physical ID, then used it as replacement of the direct comparisons
-> with PHYS_CPUID_INVALID.
+On Monday, May 11, 2015 10:49:05 PM Luis Henriques wrote:
+> Make sure that async function scheduled with async_schedule() has already
+> been executed.
 > 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+
+Queued up for 4.2 (along with the other two battery patches of yours), thanks!
+
 > ---
-> Hi Rafael,
+>  drivers/acpi/battery.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> This is replacement of patch 7/7 of patch set
-> "[PATCH v3 0/7] minor cleanups for ACPI processor driver",
-> which suggested by Sudeep and Lorenzo to replace 
-> "(int)phys_id" < 0 with "phys_id == PHYS_CPUID_INVALID" in
-> invalid_phys_cpuid().
-
-OK
-
-Whole series queued up for 4.2, thanks!
-
-
-> 
->  drivers/acpi/acpi_processor.c | 4 ++--
->  drivers/acpi/processor_core.c | 4 ++--
->  include/linux/acpi.h          | 5 +++++
->  3 files changed, 9 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-> index 62c846b..92a5f73 100644
-> --- a/drivers/acpi/acpi_processor.c
-> +++ b/drivers/acpi/acpi_processor.c
-> @@ -170,7 +170,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
->  	acpi_status status;
->  	int ret;
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 9c676a6f32ce..547e627611e0 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -70,6 +70,7 @@ MODULE_AUTHOR("Alexey Starikovskiy <astarikovskiy@suse.de>");
+>  MODULE_DESCRIPTION("ACPI Battery Driver");
+>  MODULE_LICENSE("GPL");
 >  
-> -	if (pr->phys_id == PHYS_CPUID_INVALID)
-> +	if (invalid_phys_cpuid(pr->phys_id))
+> +static async_cookie_t async_cookie;
+>  static int battery_bix_broken_package;
+>  static int battery_notification_delay_ms;
+>  static unsigned int cache_time = 1000;
+> @@ -1313,12 +1314,13 @@ static int __init acpi_battery_init(void)
+>  	if (acpi_disabled)
 >  		return -ENODEV;
 >  
->  	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
-> @@ -264,7 +264,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
->  
->  	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
->  					pr->acpi_id);
-> -	if (pr->phys_id == PHYS_CPUID_INVALID)
-> +	if (invalid_phys_cpuid(pr->phys_id))
->  		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
->  
->  	pr->id = acpi_map_cpuid(pr->phys_id, pr->acpi_id);
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index fd4140d..33a38d6 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -184,7 +184,7 @@ phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
->  	phys_cpuid_t phys_id;
->  
->  	phys_id = map_mat_entry(handle, type, acpi_id);
-> -	if (phys_id == PHYS_CPUID_INVALID)
-> +	if (invalid_phys_cpuid(phys_id))
->  		phys_id = map_madt_entry(type, acpi_id);
->  
->  	return phys_id;
-> @@ -196,7 +196,7 @@ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
->  	int i;
->  #endif
->  
-> -	if (phys_id == PHYS_CPUID_INVALID) {
-> +	if (invalid_phys_cpuid(phys_id)) {
->  		/*
->  		 * On UP processor, there is no _MAT or MADT table.
->  		 * So above phys_id is always set to PHYS_CPUID_INVALID.
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 913b49f..90e4ed1e 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -163,6 +163,11 @@ static inline bool invalid_logical_cpuid(u32 cpuid)
->  	return (int)cpuid < 0;
+> -	async_schedule(acpi_battery_init_async, NULL);
+> +	async_cookie = async_schedule(acpi_battery_init_async, NULL);
+>  	return 0;
 >  }
 >  
-> +static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
-> +{
-> +	return phys_id == PHYS_CPUID_INVALID;
-> +}
-> +
->  #ifdef CONFIG_ACPI_HOTPLUG_CPU
->  /* Arch dependent functions for cpu hotplug support */
->  int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
-> 
+>  static void __exit acpi_battery_exit(void)
+>  {
+> +	async_synchronize_cookie(async_cookie);
+>  	acpi_bus_unregister_driver(&acpi_battery_driver);
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+>  	acpi_unlock_battery_dir(acpi_battery_dir);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 I speak only for myself.
