@@ -1,44 +1,110 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/4] ACPI: provide an override for _REV
-Date: Fri, 15 May 2015 01:56:35 +0200
-Message-ID: <3891042.KkPtjJx6jq@vostro.rjw.lan>
-References: <1431610288-26737-1-git-send-email-linux@dominikbrodowski.net> <1515962.ItIFxq4Pla@vostro.rjw.lan>
+Subject: Re: [update][PATCH v3 7/7] ACPI / processor: Introduce invalid_phys_cpuid()
+Date: Fri, 15 May 2015 01:58:03 +0200
+Message-ID: <1904952.yaoqdrjHoq@vostro.rjw.lan>
+References: <1431505170-12798-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64439 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:49577 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1161225AbbENXbX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 19:31:23 -0400
-In-Reply-To: <1515962.ItIFxq4Pla@vostro.rjw.lan>
+	with SMTP id S933230AbbENXcu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 19:32:50 -0400
+In-Reply-To: <1431505170-12798-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: linux-acpi@vger.kernel.org, mario_limonciello@dell.com, broonie@kernel.org, matthew.garrett@coreos.com, alsa-devel@alsa-project.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sudeep Holla <Sudeep.Holla@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Thursday, May 14, 2015 10:31:59 PM Rafael J. Wysocki wrote:
-> On Thursday, May 14, 2015 03:31:24 PM Dominik Brodowski wrote:
-> > As promised, here are a few patches which allow to override the _REV
-> > (supported ACPI revision) setting of the ACPI implementation. With
-> > this patch in place (and possibly with other quirks added to
-> > drivers/acpi/osl.c -- Matthew mentioned the Inspiron 7437), the
-> > patch b1ef29725865 can be applied again (or the revert of
-> > b1ef29725865 be reverted).
-> > 
-> > Also throw in a re-ordering of the kernel-parameters Documentation.
-> > 
-> > Dominik Brodowski (4):
-> >   acpi: use same type for acpi_predefined_names values as in definition
-> >   acpi: allow for an override to set _REV
-> >   acpi: add _REV quirk for Dell XPS 13 (2015)
-> >   acpi: fix kernel-parameters ordering in Documentation
+On Wednesday, May 13, 2015 04:19:30 PM Hanjun Guo wrote:
+> Introduce invalid_phys_cpuid() to identify cpu with invalid
+> physical ID, then used it as replacement of the direct comparisons
+> with PHYS_CPUID_INVALID.
 > 
-> Thanks!
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+> Hi Rafael,
 > 
-> That's mostly OK, but I have a concern about the command line arg.
+> This is replacement of patch 7/7 of patch set
+> "[PATCH v3 0/7] minor cleanups for ACPI processor driver",
+> which suggested by Sudeep and Lorenzo to replace 
+> "(int)phys_id" < 0 with "phys_id == PHYS_CPUID_INVALID" in
+> invalid_phys_cpuid().
 
-I've queued up patches [1/4] and [4/4] for 4.2.
+OK
 
-Rafael
+Whole series queued up for 4.2, thanks!
 
+
+> 
+>  drivers/acpi/acpi_processor.c | 4 ++--
+>  drivers/acpi/processor_core.c | 4 ++--
+>  include/linux/acpi.h          | 5 +++++
+>  3 files changed, 9 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 62c846b..92a5f73 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -170,7 +170,7 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+>  	acpi_status status;
+>  	int ret;
+>  
+> -	if (pr->phys_id == PHYS_CPUID_INVALID)
+> +	if (invalid_phys_cpuid(pr->phys_id))
+>  		return -ENODEV;
+>  
+>  	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
+> @@ -264,7 +264,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+>  
+>  	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
+>  					pr->acpi_id);
+> -	if (pr->phys_id == PHYS_CPUID_INVALID)
+> +	if (invalid_phys_cpuid(pr->phys_id))
+>  		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
+>  
+>  	pr->id = acpi_map_cpuid(pr->phys_id, pr->acpi_id);
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index fd4140d..33a38d6 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -184,7 +184,7 @@ phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
+>  	phys_cpuid_t phys_id;
+>  
+>  	phys_id = map_mat_entry(handle, type, acpi_id);
+> -	if (phys_id == PHYS_CPUID_INVALID)
+> +	if (invalid_phys_cpuid(phys_id))
+>  		phys_id = map_madt_entry(type, acpi_id);
+>  
+>  	return phys_id;
+> @@ -196,7 +196,7 @@ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
+>  	int i;
+>  #endif
+>  
+> -	if (phys_id == PHYS_CPUID_INVALID) {
+> +	if (invalid_phys_cpuid(phys_id)) {
+>  		/*
+>  		 * On UP processor, there is no _MAT or MADT table.
+>  		 * So above phys_id is always set to PHYS_CPUID_INVALID.
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 913b49f..90e4ed1e 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -163,6 +163,11 @@ static inline bool invalid_logical_cpuid(u32 cpuid)
+>  	return (int)cpuid < 0;
+>  }
+>  
+> +static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+> +{
+> +	return phys_id == PHYS_CPUID_INVALID;
+> +}
+> +
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>  /* Arch dependent functions for cpu hotplug support */
+>  int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
