@@ -1,47 +1,40 @@
-From: Gianluca Anzolin <gianluca@sottospazio.it>
-Subject: Re: Debugging spurious wakeup
-Date: Thu, 14 May 2015 14:51:48 +0200
-Message-ID: <20150514125148.GA9039@sottospazio.it>
-References: <20150513065825.GA10680@sottospazio.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: [PATCH 0/4] ACPI: provide an override for _REV
+Date: Thu, 14 May 2015 15:31:24 +0200
+Message-ID: <1431610288-26737-1-git-send-email-linux@dominikbrodowski.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from m-r2.th.seeweb.it ([5.144.164.171]:57756 "EHLO
-	m-r2.th.seeweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932688AbbENMvx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 08:51:53 -0400
-Received: from fseek.strangled.net (host112-190-dynamic.24-79-r.retail.telecomitalia.it [79.24.190.112])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by m-r2.th.seeweb.it (Postfix) with ESMTPSA id 276773F43F
-	for <linux-acpi@vger.kernel.org>; Thu, 14 May 2015 14:51:50 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20150513065825.GA10680@sottospazio.it>
+Received: from isilmar-3.linta.de ([188.40.101.200]:44287 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752934AbbENNdn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 May 2015 09:33:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, mario_limonciello@dell.com, broonie@kernel.org, matthew.garrett@coreos.com, alsa-devel@alsa-project.org, Dominik Brodowski <linux@dominikbrodowski.net>
 
-On Wed, May 13, 2015 at 08:58:25AM +0200, Gianluca Anzolin wrote:
-> So I'm here to ask if there is a way to get the source/cause of the last
-> wakeup by setting some ACPI debug option. This way I could at least pinpoint
-> the device/interface that caused the spontaneous wakeup and then debug
-> further or at least disable it.
-> 
-> I've tried to enable the ACPI hardware-related messages with the kernel
-> arguments: acpi.debug_layer=0x2 acpi.debug_level=0xffffffff
-> 
+As promised, here are a few patches which allow to override the _REV
+(supported ACPI revision) setting of the ACPI implementation. With
+this patch in place (and possibly with other quirks added to
+drivers/acpi/osl.c -- Matthew mentioned the Inspiron 7437), the
+patch b1ef29725865 can be applied again (or the revert of
+b1ef29725865 be reverted).
 
-Hello,
+Also throw in a re-ordering of the kernel-parameters Documentation.
 
-I'm sorry to bother again but since the previous debug aids didn't go anywhere
-I'm here to ask again if there is a command, a debug parameter, something that
-could tell me the cause of the last system wake up.
+Dominik Brodowski (4):
+  acpi: use same type for acpi_predefined_names values as in definition
+  acpi: allow for an override to set _REV
+  acpi: add _REV quirk for Dell XPS 13 (2015)
+  acpi: fix kernel-parameters ordering in Documentation
 
-I'm aware that in Windows there is the command "powercfg -lastwake", I need
-something similar for linux, since this issue is linux specific (I can't
-reproduce it in Windows).
+ Documentation/kernel-parameters.txt | 76 ++++++++++++++++++++++---------------
+ drivers/acpi/Kconfig                | 15 ++++++++
+ drivers/acpi/bus.c                  |  2 +
+ drivers/acpi/internal.h             |  1 +
+ drivers/acpi/osl.c                  | 60 ++++++++++++++++++++++++++++-
+ include/acpi/acpiosxf.h             |  2 +-
+ 6 files changed, 123 insertions(+), 33 deletions(-)
 
-Thank you,
-
-Gianluca
+-- 
+2.1.4
 
