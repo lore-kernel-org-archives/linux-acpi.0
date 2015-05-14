@@ -1,36 +1,27 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	David Vrabel <david.vrabel@citrix.com>
-Subject: Re: Regression due to "device property: Make it
-	possible to use secondary firmware nodes" Re: Xen-unstable +
-	linux 4.1-mergewindow: problems with PV guest pci
-	passthrough: pcifront pci-0: pciback not responding!!!
-Date: Fri, 15 May 2015 00:44:29 +0200
-Message-ID: <120875582.20150515004429@eikelenboom.it>
-References: <135105791.20150427174800@eikelenboom.it>
-	<20150511152029.GA24379@l.oracle.com>
-	<3902129.1HNpjbDdb7@vostro.rjw.lan>
-	<3477983.pEhNuQXIjK@vostro.rjw.lan>
-	<238309395.20150513005236@eikelenboom.it>
+From: Sander Eikelenboom <linux@eikelenboom.it>
+Subject: Re: Regression due to "device property: Make it possible to use secondary firmware nodes" Re: Xen-unstable + linux 4.1-mergewindow: problems with PV guest  pci passthrough:  pcifront pci-0: pciback not responding!!!
+Date: Fri, 15 May 2015 00:47:27 +0200
+Message-ID: <18910734540.20150515004727@eikelenboom.it>
+References: <135105791.20150427174800@eikelenboom.it> <20150511152029.GA24379@l.oracle.com> <3902129.1HNpjbDdb7@vostro.rjw.lan> <3477983.pEhNuQXIjK@vostro.rjw.lan> <238309395.20150513005236@eikelenboom.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <xen-devel-bounces@lists.xen.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vserver.eikelenboom.it ([84.200.39.61]:53932 "EHLO
+	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422738AbbENWrd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 18:47:33 -0400
 In-Reply-To: <238309395.20150513005236@eikelenboom.it>
-List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
-	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xen.org>
-List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
-List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
-	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
-Sender: xen-devel-bounces@lists.xen.org
-Errors-To: xen-devel-bounces@lists.xen.org
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Vrabel <david.vrabel@citrix.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, xen-devel <xen-devel@lists.xenproject.org>, linux-kernel@vger.kernel.org
+
+Sorry for the resend, i messed up the to's en from's.
 
 Hi Konrad / David,
 
-One a big snip on this thread, got some more debug info, hopefully this will 
+One big snip on this thread, got some more debug info, hopefully this will 
 lead to something:
 
 On a working kernel (with the two seemingly non related patches reverted) i get:
@@ -141,3 +132,4 @@ Question is .. why ?
 
 --
 Sander
+
