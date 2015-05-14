@@ -1,241 +1,375 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
-Date: Thu, 14 May 2015 23:55:33 +0200
-Message-ID: <1582352.6U4javOB0e@vostro.rjw.lan>
-References: <1431610288-26737-1-git-send-email-linux@dominikbrodowski.net> <1431610288-26737-3-git-send-email-linux@dominikbrodowski.net> <40911270.BDUfRW4XxV@vostro.rjw.lan>
+Subject: Re: [PATCH] ACPI / PM: Rework device power management to follow ACPI 6
+Date: Fri, 15 May 2015 00:06:16 +0200
+Message-ID: <1589313.NW63o2eWqT@vostro.rjw.lan>
+References: <5141050.0s0C74Tu0K@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63814 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1161032AbbENVaV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 17:30:21 -0400
-In-Reply-To: <40911270.BDUfRW4XxV@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5141050.0s0C74Tu0K@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: linux-acpi@vger.kernel.org, mario_limonciello@dell.com, broonie@kernel.org, matthew.garrett@coreos.com, alsa-devel@alsa-project.org
 
-On Thursday, May 14, 2015 10:36:52 PM Rafael J. Wysocki wrote:
-> On Thursday, May 14, 2015 03:31:26 PM Dominik Brodowski wrote:
-> > By using a module parameter named acpi.supported_rev=<value>, the BIOS
-> > may be told a different supported ACPI revision compared to the default
-> > (which currently is 5, but will be modified to 2 when the revert of
-> > b1ef29725865 is reverted).
-> > 
-> > Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
-> > ---
-> >  Documentation/kernel-parameters.txt | 14 ++++++++++++++
-> >  drivers/acpi/osl.c                  | 16 ++++++++++++++++
-> >  2 files changed, 30 insertions(+)
-> > 
-> > diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> > index 61ab162..75f1f8e 100644
-> > --- a/Documentation/kernel-parameters.txt
-> > +++ b/Documentation/kernel-parameters.txt
-> > @@ -335,6 +335,20 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
-> >  			to assume that this machine's pmtimer latches its value
-> >  			and always returns good values.
-> >  
-> > +	acpi.rev= [HW,ACPI]
-> > +			Tell ACPI BIOS the supported ACPI REV
-> > +			Format: <int> in range 0..5
-> > +			Up to and including Linux v4.1, the BIOS was told which
-> > +			ACPI revision the ACPICA subsystem in Linux actually
-> > +			supports (which was 5 at the time); from v4.2 on, this
-> > +			value will be set statically to 2 to match the behavior
-> > +			of other ACPI implementations. As some BIOS may operate
-> > +			differently depending on which value _REV is set to, this
-> > +			parameter offers the capability to specify what to export
-> > +			to the BIOS. Note that such changes in the behavior of
-> > +			the BIOS may only be visible after cold booting the
-> > +			system with this parameter _twice_.
-> > +
-> >  	acpi_sci=	[HW,ACPI] ACPI System Control Interrupt trigger mode
-> >  			Format: { level | edge | high | low }
-> >  
-> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > index db14a66..caa52f7 100644
-> > --- a/drivers/acpi/osl.c
-> > +++ b/drivers/acpi/osl.c
-> > @@ -538,6 +538,11 @@ acpi_os_get_physical_address(void *virt, acpi_physical_address * phys)
-> >  
-> >  static char acpi_os_name[ACPI_MAX_OVERRIDE_LEN];
-> >  
-> > +/* acpi_supported_rev is 0 in case of no override; overrides are limited to
-> > + *  values between 1 to 5. To simplify casting, use an unsigned long */
-> > +static unsigned long acpi_supported_rev;
-> > +module_param_named(rev, acpi_supported_rev, ulong, 0);
-> > +
-> >  acpi_status
-> >  acpi_os_predefined_override(const struct acpi_predefined_names *init_val,
-> >  			    char **new_val)
-> > @@ -552,6 +557,17 @@ acpi_os_predefined_override(const struct acpi_predefined_names *init_val,
-> >  		*new_val = acpi_os_name;
-> >  	}
-> >  
-> > +	if (!memcmp(init_val->name, "_REV", 4) && (acpi_supported_rev > 0)) {
-> > +		if (acpi_supported_rev <= 5) {
+On Thursday, May 07, 2015 12:37:13 AM Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> So the only value that would really make sense here is 5.
+> The ACPI 6 specification has made some changes in the device power
+> management area.  In particular:
 > 
-> 1 should never ever be used with Linux, 2 is the default, 3 is equivalent to 5
-> for all practical purposes and 4 has never been used in practice, so it is
-> meaningless.
+>  * The D3hot power state is now supposed to be always available
+>    (instead of D3cold) and D3cold is only regarded as valid if the
+>    _PR3 object is present for the given device.
 > 
-> I'd be better to rename the command line switch to acpi.rev_override and
-> simply do "acpi_supported_rev = 5" for it as well as in acpi_set_supported_rev()
-> in [3/4].
+>  * The required ordering of transitions into power states deeper than
+>    D0 is now such that for a transition into state Dx the _PSx method
+>    is supposed to be executed first, if present, and the states of
+>    the power resources the device depends on are supposed to be
+>    changed after that.
 > 
-> > +			printk(KERN_INFO PREFIX
-> > +				"Overriding _REV definition to %lu\n",
-> > +				acpi_supported_rev);
-> > +			*new_val = (char *) acpi_supported_rev;
-> > +		} else
-> > +			printk(KERN_INFO PREFIX
-> > +				"_REV override must be between 1 to 5");
-> > +	}
-> > +
-> >  	return AE_OK;
-> >  }
+>  * It is now explicitly forbidden to transition devices from
+>    lower-power (deeper) into higher-power (shallower) power states
+>    other than D0.
+> 
+> Those changes have been made so the specification reflects the
+> Windows' device power management code that the vast majority of
+> systems using ACPI is validated against.
+> 
+> To avoid artificial differences in ACPI device power management
+> between Windows and Linux, modify the ACPI device power management
+> code to follow the new specification.  Add comments explaining the
+> code flow in some unclear places.
+> 
+> This only may affect some real corner cases in which the OS behavior
+> expected by the firmware is different from the Windows one, but that's
+> quite unlikely.  The transition ordering change affects transitions
+> to D1 and D2 which are rarely used (if at all) and into D3hot and
+> D3cold for devices actually having _PR3, but those are likely to
+> be validated against Windows anyway.  The other changes may affect
+> code calling acpi_device_get_power() or acpi_device_update_power()
+> where ACPI_STATE_D3_HOT may be returned instead of ACPI_STATE_D3_COLD
+> (that's why the ACPI fan driver needs to be updated too) and since
+> transitions into ACPI_STATE_D3_HOT may remove power now, it is better
+> to avoid this one in acpi_pm_device_sleep_state() if the "no power
+> off" PM QoS flag is set.
+> 
+> The only existing user of acpi_device_can_poweroff() really cares
+> about the case when _PR3 is present, so the change in that function
+> should not cause any problems to happen too.
+> 
+> A plus is that PCI_D3hot can be mapped to ACPI_STATE_D3_HOT
+> now and the compatibility with older systems should be covered
+> automatically.
+> 
+> In any case, if any real problems result from this, it still will
+> be better to follow the Windows' behavior (which now is reflected
+> by the specification too) in general and handle the cases when it
+> doesn't work via quirks.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Overall, what about the appended patch instead of your [2-3/4] (modulo the new
-command line parameter description which is missing here ATM)?
+OK, so it looks like nobody has any comments, which in particular means
+"no objections" to me.
 
----
- drivers/acpi/Kconfig     |   22 ++++++++++++++++++++++
- drivers/acpi/blacklist.c |   26 ++++++++++++++++++++++++++
- drivers/acpi/internal.h  |    4 ++++
- drivers/acpi/osl.c       |   18 ++++++++++++++++++
- 4 files changed, 70 insertions(+)
+I'm going to queue up this patch for 4.2, then.
 
-Index: linux-pm/drivers/acpi/blacklist.c
-===================================================================
---- linux-pm.orig/drivers/acpi/blacklist.c
-+++ linux-pm/drivers/acpi/blacklist.c
-@@ -162,6 +162,15 @@ static int __init dmi_disable_osi_win8(c
- 	acpi_osi_setup("!Windows 2012");
- 	return 0;
- }
-+#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
-+static int __init dmi_enable_rev_override(const struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE PREFIX "DMI detected: %s (force ACPI _REV to 5)\n",
-+	       d->ident);
-+	acpi_rev_override_setup(NULL);
-+	return 0;
-+}
-+#endif
- 
- static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
- 	{
-@@ -325,6 +334,23 @@ static struct dmi_system_id acpi_osi_dmi
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "1015PX"),
- 		},
- 	},
-+
-+#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
-+	/*
-+	 * DELL XPS 13 (2015) switches sound between HDA and I2S
-+	 * depending on the ACPI _REV callback. If userspace supports
-+	 * I2S sufficiently (or if you do not care about sound), you
-+	 * can safely disable this quirk.
-+	 */
-+	{
-+	 .callback = dmi_enable_rev_override,
-+	 .ident = "DELL XPS 13 (2015)",
-+	 .matches = {
-+		      DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		      DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9343"),
-+		},
-+	},
-+#endif
- 	{}
- };
- 
-Index: linux-pm/drivers/acpi/internal.h
-===================================================================
---- linux-pm.orig/drivers/acpi/internal.h
-+++ linux-pm/drivers/acpi/internal.h
-@@ -23,6 +23,10 @@
- 
- #define PREFIX "ACPI: "
- 
-+#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
-+int __init acpi_rev_override_setup(char *str);
-+#endif
-+
- acpi_status acpi_os_initialize1(void);
- int init_acpi_device_notify(void);
- int acpi_scan_init(void);
-Index: linux-pm/drivers/acpi/osl.c
-===================================================================
---- linux-pm.orig/drivers/acpi/osl.c
-+++ linux-pm/drivers/acpi/osl.c
-@@ -534,6 +534,19 @@ acpi_os_get_physical_address(void *virt,
- }
- #endif
- 
-+#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
-+static bool acpi_rev_override;
-+
-+int __init acpi_rev_override_setup(char *str)
-+{
-+	acpi_rev_override = true;
-+	return 1;
-+}
-+__setup("acpi_rev_override", acpi_rev_override_setup);
-+#else
-+#define acpi_rev_override	false
-+#endif
-+
- #define ACPI_MAX_OVERRIDE_LEN 100
- 
- static char acpi_os_name[ACPI_MAX_OVERRIDE_LEN];
-@@ -552,6 +565,11 @@ acpi_os_predefined_override(const struct
- 		*new_val = acpi_os_name;
- 	}
- 
-+	if (!memcmp(init_val->name, "_REV", 4) && acpi_rev_override) {
-+		printk(KERN_INFO PREFIX "Overriding _REV return value to 5\n");
-+		*new_val = (char *)5;
-+	}
-+
- 	return AE_OK;
- }
- 
-Index: linux-pm/drivers/acpi/Kconfig
-===================================================================
---- linux-pm.orig/drivers/acpi/Kconfig
-+++ linux-pm/drivers/acpi/Kconfig
-@@ -428,6 +428,28 @@ config XPOWER_PMIC_OPREGION
- 	help
- 	  This config adds ACPI operation region support for XPower AXP288 PMIC.
- 
-++config ACPI_REV_OVERRIDE_POSSIBLE
-+	bool "Allow supported ACPI revision to be overriden"
-+	depends on X86
-+	default y
-+	help
-+	  The platform firmware on some systems expects Linux to return "5" as
-+	  the supported ACPI revision which makes it expose system configuration
-+	  information in a special way.
-+
-+	  For example, based on what ACPI exports as the supported revision,
-+	  Dell XPS 13 (2015) configures its audio device to either work in HDA
-+	  mode or in I2S mode, where the former is supposed to be used on Linux
-+	  until the latter is fully supported (in the kernel as well as in user
-+	  space).
-+
-+	  This option enables a DMI-based quirk for the above Dell machine (so
-+	  that HDA audio is exposed by the platform  firmware to the kernel) and
-+	  makes it possible to force the kernel to return "5" as the supported
-+	  ACPI revision via the "acpi_rev_override" command line switch (when
-+	  using that switch it may be necessary to carry out a cold reboot
-+	  _twice_ in a row to make it take effect on the firmware).
-+
- endif
- 
- endif	# ACPI
+> ---
+>  drivers/acpi/device_pm.c |   97 ++++++++++++++++++++++++++++-------------------
+>  drivers/acpi/fan.c       |    5 +-
+>  drivers/acpi/power.c     |    3 -
+>  drivers/acpi/scan.c      |   26 ++----------
+>  drivers/pci/pci-acpi.c   |    2 
+>  include/acpi/acpi_bus.h  |    3 -
+>  6 files changed, 71 insertions(+), 65 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/power.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/power.c
+> +++ linux-pm/drivers/acpi/power.c
+> @@ -684,7 +684,8 @@ int acpi_power_get_inferred_state(struct
+>  		}
+>  	}
+>  
+> -	*state = ACPI_STATE_D3_COLD;
+> +	*state = device->power.states[ACPI_STATE_D3_COLD].flags.valid ?
+> +		ACPI_STATE_D3_COLD : ACPI_STATE_D3_HOT;
+>  	return 0;
+>  }
+>  
+> Index: linux-pm/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpi_bus.h
+> +++ linux-pm/include/acpi/acpi_bus.h
+> @@ -272,7 +272,6 @@ struct acpi_device_power_flags {
+>  struct acpi_device_power_state {
+>  	struct {
+>  		u8 valid:1;
+> -		u8 os_accessible:1;
+>  		u8 explicit_set:1;	/* _PSx present? */
+>  		u8 reserved:6;
+>  	} flags;
+> @@ -602,7 +601,7 @@ static inline bool acpi_device_can_wakeu
+>  
+>  static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
+>  {
+> -	return adev->power.states[ACPI_STATE_D3_COLD].flags.os_accessible;
+> +	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid;
+>  }
+>  
+>  #else	/* CONFIG_ACPI */
+> Index: linux-pm/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/scan.c
+> +++ linux-pm/drivers/acpi/scan.c
+> @@ -1766,15 +1766,9 @@ static void acpi_bus_init_power_state(st
+>  	if (acpi_has_method(device->handle, pathname))
+>  		ps->flags.explicit_set = 1;
+>  
+> -	/*
+> -	 * State is valid if there are means to put the device into it.
+> -	 * D3hot is only valid if _PR3 present.
+> -	 */
+> -	if (!list_empty(&ps->resources)
+> -	    || (ps->flags.explicit_set && state < ACPI_STATE_D3_HOT)) {
+> +	/* State is valid if there are means to put the device into it. */
+> +	if (!list_empty(&ps->resources) || ps->flags.explicit_set)
+>  		ps->flags.valid = 1;
+> -		ps->flags.os_accessible = 1;
+> -	}
+>  
+>  	ps->power = -1;		/* Unknown - driver assigned */
+>  	ps->latency = -1;	/* Unknown - driver assigned */
+> @@ -1810,21 +1804,13 @@ static void acpi_bus_get_power_flags(str
+>  		acpi_bus_init_power_state(device, i);
+>  
+>  	INIT_LIST_HEAD(&device->power.states[ACPI_STATE_D3_COLD].resources);
+> +	if (!list_empty(&device->power.states[ACPI_STATE_D3_HOT].resources))
+> +		device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
+>  
+> -	/* Set defaults for D0 and D3 states (always valid) */
+> +	/* Set defaults for D0 and D3hot states (always valid) */
+>  	device->power.states[ACPI_STATE_D0].flags.valid = 1;
+>  	device->power.states[ACPI_STATE_D0].power = 100;
+> -	device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
+> -	device->power.states[ACPI_STATE_D3_COLD].power = 0;
+> -
+> -	/* Set D3cold's explicit_set flag if _PS3 exists. */
+> -	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
+> -		device->power.states[ACPI_STATE_D3_COLD].flags.explicit_set = 1;
+> -
+> -	/* Presence of _PS3 or _PRx means we can put the device into D3 cold */
+> -	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set ||
+> -			device->power.flags.power_resources)
+> -		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
+> +	device->power.states[ACPI_STATE_D3_HOT].flags.valid = 1;
+>  
+>  	if (acpi_bus_init_power(device))
+>  		device->flags.power_manageable = 0;
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -98,17 +98,16 @@ int acpi_device_get_power(struct acpi_de
+>  
+>  		/*
+>  		 * The power resources settings may indicate a power state
+> -		 * shallower than the actual power state of the device.
+> +		 * shallower than the actual power state of the device, because
+> +		 * the same power resources may be referenced by other devices.
+>  		 *
+> -		 * Moreover, on systems predating ACPI 4.0, if the device
+> -		 * doesn't depend on any power resources and _PSC returns 3,
+> -		 * that means "power off".  We need to maintain compatibility
+> -		 * with those systems.
+> +		 * For systems predating ACPI 4.0 we assume that D3hot is the
+> +		 * deepest state that can be supported.
+>  		 */
+>  		if (psc > result && psc < ACPI_STATE_D3_COLD)
+>  			result = psc;
+>  		else if (result == ACPI_STATE_UNKNOWN)
+> -			result = psc > ACPI_STATE_D2 ? ACPI_STATE_D3_COLD : psc;
+> +			result = psc > ACPI_STATE_D2 ? ACPI_STATE_D3_HOT : psc;
+>  	}
+>  
+>  	/*
+> @@ -153,8 +152,8 @@ static int acpi_dev_pm_explicit_set(stru
+>   */
+>  int acpi_device_set_power(struct acpi_device *device, int state)
+>  {
+> +	int target_state = state;
+>  	int result = 0;
+> -	bool cut_power = false;
+>  
+>  	if (!device || !device->flags.power_manageable
+>  	    || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+> @@ -169,11 +168,21 @@ int acpi_device_set_power(struct acpi_de
+>  		return 0;
+>  	}
+>  
+> -	if (!device->power.states[state].flags.valid) {
+> +	if (state == ACPI_STATE_D3_COLD) {
+> +		/*
+> +		 * For transitions to D3cold we need to execute _PS3 and then
+> +		 * possibly drop references to the power resources in use.
+> +		 */
+> +		state = ACPI_STATE_D3_HOT;
+> +		/* If _PR3 is not available, use D3hot as the target state. */
+> +		if (!device->power.states[ACPI_STATE_D3_COLD].flags.valid)
+> +			target_state = state;
+> +	} else if (!device->power.states[state].flags.valid) {
+>  		dev_warn(&device->dev, "Power state %s not supported\n",
+>  			 acpi_power_state_string(state));
+>  		return -ENODEV;
+>  	}
+> +
+>  	if (!device->power.flags.ignore_parent &&
+>  	    device->parent && (state < device->parent->power.state)) {
+>  		dev_warn(&device->dev,
+> @@ -183,39 +192,38 @@ int acpi_device_set_power(struct acpi_de
+>  		return -ENODEV;
+>  	}
+>  
+> -	/* For D3cold we should first transition into D3hot. */
+> -	if (state == ACPI_STATE_D3_COLD
+> -	    && device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible) {
+> -		state = ACPI_STATE_D3_HOT;
+> -		cut_power = true;
+> -	}
+> -
+> -	if (state < device->power.state && state != ACPI_STATE_D0
+> -	    && device->power.state >= ACPI_STATE_D3_HOT) {
+> -		dev_warn(&device->dev,
+> -			 "Cannot transition to non-D0 state from D3\n");
+> -		return -ENODEV;
+> -	}
+> -
+>  	/*
+>  	 * Transition Power
+>  	 * ----------------
+> -	 * In accordance with the ACPI specification first apply power (via
+> -	 * power resources) and then evaluate _PSx.
+> +	 * In accordance with ACPI 6, _PSx is executed before manipulating power
+> +	 * resources, unless the target state is D0, in which case _PS0 is
+> +	 * supposed to be executed after turning the power resources on.
+>  	 */
+> -	if (device->power.flags.power_resources) {
+> -		result = acpi_power_transition(device, state);
+> +	if (state > ACPI_STATE_D0) {
+> +		/*
+> +		 * According to ACPI 6, devices cannot go from lower-power
+> +		 * (deeper) states to higher-power (shallower) states.
+> +		 */
+> +		if (state < device->power.state) {
+> +			dev_warn(&device->dev, "Cannot transition from %s to %s\n",
+> +				 acpi_power_state_string(device->power.state),
+> +				 acpi_power_state_string(state));
+> +			return -ENODEV;
+> +		}
+> +
+> +		result = acpi_dev_pm_explicit_set(device, state);
+>  		if (result)
+>  			goto end;
+> -	}
+> -	result = acpi_dev_pm_explicit_set(device, state);
+> -	if (result)
+> -		goto end;
+>  
+> -	if (cut_power) {
+> -		device->power.state = state;
+> -		state = ACPI_STATE_D3_COLD;
+> -		result = acpi_power_transition(device, state);
+> +		if (device->power.flags.power_resources)
+> +			result = acpi_power_transition(device, target_state);
+> +	} else {
+> +		if (device->power.flags.power_resources) {
+> +			result = acpi_power_transition(device, ACPI_STATE_D0);
+> +			if (result)
+> +				goto end;
+> +		}
+> +		result = acpi_dev_pm_explicit_set(device, ACPI_STATE_D0);
+>  	}
+>  
+>   end:
+> @@ -264,13 +272,24 @@ int acpi_bus_init_power(struct acpi_devi
+>  		return result;
+>  
+>  	if (state < ACPI_STATE_D3_COLD && device->power.flags.power_resources) {
+> +		/* Reference count the power resources. */
+>  		result = acpi_power_on_resources(device, state);
+>  		if (result)
+>  			return result;
+>  
+> -		result = acpi_dev_pm_explicit_set(device, state);
+> -		if (result)
+> -			return result;
+> +		if (state == ACPI_STATE_D0) {
+> +			/*
+> +			 * If _PSC is not present and the state inferred from
+> +			 * power resources appears to be D0, it still may be
+> +			 * necessary to execute _PS0 at this point, because
+> +			 * another device using the same power resources may
+> +			 * have been put into D0 previously and that's why we
+> +			 * see D0 here.
+> +			 */
+> +			result = acpi_dev_pm_explicit_set(device, state);
+> +			if (result)
+> +				return result;
+> +		}
+>  	} else if (state == ACPI_STATE_UNKNOWN) {
+>  		/*
+>  		 * No power resources and missing _PSC?  Cross fingers and make
+> @@ -603,12 +622,12 @@ int acpi_pm_device_sleep_state(struct de
+>  	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3_COLD)
+>  		return -EINVAL;
+>  
+> -	if (d_max_in > ACPI_STATE_D3_HOT) {
+> +	if (d_max_in > ACPI_STATE_D2) {
+>  		enum pm_qos_flags_status stat;
+>  
+>  		stat = dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF);
+>  		if (stat == PM_QOS_FLAGS_ALL)
+> -			d_max_in = ACPI_STATE_D3_HOT;
+> +			d_max_in = ACPI_STATE_D2;
+>  	}
+>  
+>  	adev = ACPI_COMPANION(dev);
+> Index: linux-pm/drivers/acpi/fan.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/fan.c
+> +++ linux-pm/drivers/acpi/fan.c
+> @@ -158,8 +158,9 @@ static int fan_get_state(struct acpi_dev
+>  	if (result)
+>  		return result;
+>  
+> -	*state = (acpi_state == ACPI_STATE_D3_COLD ? 0 :
+> -		 (acpi_state == ACPI_STATE_D0 ? 1 : -1));
+> +	*state = acpi_state == ACPI_STATE_D3_COLD
+> +			|| acpi_state == ACPI_STATE_D3_HOT ?
+> +		0 : (acpi_state == ACPI_STATE_D0 ? 1 : -1);
+>  	return 0;
+>  }
+>  
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -420,7 +420,7 @@ static int acpi_pci_set_power_state(stru
+>  		[PCI_D0] = ACPI_STATE_D0,
+>  		[PCI_D1] = ACPI_STATE_D1,
+>  		[PCI_D2] = ACPI_STATE_D2,
+> -		[PCI_D3hot] = ACPI_STATE_D3_COLD,
+> +		[PCI_D3hot] = ACPI_STATE_D3_HOT,
+>  		[PCI_D3cold] = ACPI_STATE_D3_COLD,
+>  	};
+>  	int error = -EINVAL;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
