@@ -1,82 +1,100 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 1/7] ACPI/PCI: Enhance ACPI core to support sparse IO space
-Date: Thu, 14 May 2015 16:56:37 +0800
-Message-ID: <1431593803-5213-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 3/7] ia64/PCI: Use common struct resource_entry to replace struct iospace_resource
+Date: Thu, 14 May 2015 16:56:39 +0800
+Message-ID: <1431593803-5213-4-git-send-email-jiang.liu@linux.intel.com>
 References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39900 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932576AbbENIys (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 May 2015 04:54:48 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Jiang Liu <jiang.liu@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Jakub Sitnicki <jsitnicki@gmail.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Enhance ACPI resource parsing interfaces to support sparse IO space,
-which will be used to share common code between x86 and IA64 later.
+Use common struct resource_entry to replace private
+struct iospace_resource.
 
-Tested-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/acpi/resource.c |    9 ++++++---
- include/linux/ioport.h  |    1 +
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ arch/ia64/include/asm/pci.h |    5 -----
+ arch/ia64/pci/pci.c         |   17 ++++++++---------
+ 2 files changed, 8 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 8244f013f210..fdcc73dad2c1 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index 52af5ed9f60b..5c10e0ec48d4 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -83,11 +83,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+ #define pci_legacy_read platform_pci_legacy_read
+ #define pci_legacy_write platform_pci_legacy_write
  
- static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
--				      u8 io_decode)
-+				      u8 io_decode, u8 translation_type)
+-struct iospace_resource {
+-	struct list_head list;
+-	struct resource res;
+-};
+-
+ struct pci_controller {
+ 	struct acpi_device *companion;
+ 	void *iommu;
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 23689d4c37ae..4af1b52c7a44 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -154,14 +154,14 @@ new_space (u64 phys_base, int sparse)
+ static int add_io_space(struct device *dev, struct pci_root_info *info,
+ 			struct resource_entry *entry)
  {
- 	res->flags = IORESOURCE_IO;
+-	struct iospace_resource *iospace;
++	struct resource_entry *iospace;
+ 	struct resource *resource, *res = entry->res;
+ 	char *name;
+ 	unsigned long base, min, max, base_port;
+ 	unsigned int sparse = 0, space_nr, len;
  
-@@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+ 	len = strlen(info->name) + 32;
+-	iospace = kzalloc(sizeof(*iospace) + len, GFP_KERNEL);
++	iospace = resource_list_create_entry(NULL, len);
+ 	if (!iospace) {
+ 		dev_err(dev, "PCI: No memory for %s I/O port space\n",
+ 			info->name);
+@@ -190,7 +190,7 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
+ 	if (space_nr == 0)
+ 		sparse = 1;
  
- 	if (io_decode == ACPI_DECODE_16)
- 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
-+	if (translation_type == ACPI_SPARSE_TRANSLATION)
-+		res->flags |= IORESOURCE_IO_SPARSE;
+-	resource = &iospace->res;
++	resource = iospace->res;
+ 	resource->name  = name;
+ 	resource->flags = IORESOURCE_MEM;
+ 	resource->start = base + (sparse ? IO_SPACE_SPARSE_ENCODING(min) : min);
+@@ -205,12 +205,12 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
+ 	entry->offset = base_port;
+ 	res->start = min + base_port;
+ 	res->end = max + base_port;
+-	list_add_tail(&iospace->list, &info->io_resources);
++	resource_list_add_tail(iospace, &info->io_resources);
+ 
+ 	return 0;
+ 
+ free_resource:
+-	kfree(iospace);
++	resource_list_free_entry(iospace);
+ 	return -ENOSPC;
  }
  
- static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
-@@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+@@ -369,12 +369,11 @@ static void add_resources(struct pci_root_info *info, struct device *dev)
+ static void __release_pci_root_info(struct pci_root_info *info)
  {
- 	res->start = start;
- 	res->end = start + len - 1;
--	acpi_dev_ioresource_flags(res, len, io_decode);
-+	acpi_dev_ioresource_flags(res, len, io_decode, 0);
- }
+ 	struct resource *res;
+-	struct iospace_resource *iospace, *tmp;
+ 	struct resource_entry *entry, *tentry;
  
- /**
-@@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win *win,
- 		acpi_dev_memresource_flags(res, len, wp);
- 		break;
- 	case ACPI_IO_RANGE:
--		acpi_dev_ioresource_flags(res, len, iodec);
-+		acpi_dev_ioresource_flags(res, len, iodec,
-+					  addr->info.io.translation_type);
- 		break;
- 	case ACPI_BUS_NUMBER_RANGE:
- 		res->flags = IORESOURCE_BUS;
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 388e3ae94f7a..24bea087e7af 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -94,6 +94,7 @@ struct resource {
- /* PnP I/O specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
- #define IORESOURCE_IO_FIXED		(1<<1)
-+#define IORESOURCE_IO_SPARSE		(1<<2)
+-	list_for_each_entry_safe(iospace, tmp, &info->io_resources, list) {
+-		release_resource(&iospace->res);
+-		kfree(iospace);
++	resource_list_for_each_entry_safe(entry, tentry, &info->io_resources) {
++		release_resource(entry->res);
++		resource_list_destroy_entry(entry);
+ 	}
  
- /* PCI ROM control bits (IORESOURCE_BITS) */
- #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+ 	resource_list_for_each_entry_safe(entry, tentry, &info->resources) {
 -- 
 1.7.10.4
-
