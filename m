@@ -1,545 +1,563 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 2/7] ia64/PCI/ACPI: Use common ACPI resource parsing interface for host bridge
-Date: Thu, 14 May 2015 16:56:38 +0800
-Message-ID: <1431593803-5213-3-git-send-email-jiang.liu@linux.intel.com>
-References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Jiang Liu <jiang.liu@linux.intel.com>, Yinghai Lu <yinghai@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH V2 1/2] x86/cpu hotplug: make apicid <--> cpuid mapping persistent
+Date: Thu, 14 May 2015 19:33:33 +0800
+Message-ID: <1431603214-12521-1-git-send-email-guz.fnst@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:27044 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932328AbbENLxJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 07:53:09 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: tj@kernel.org, mingo@redhat.com, x86@kernel.org, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, linux-acpi@vger.kernel.org, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, guz.fnst@cn.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com
 
-Use common ACPI resource parsing interface to parse ACPI resources for
-PCI host bridge, so we could share more code between IA64 and x86.
-Later we will consolidate arch specific implementations into ACPI core.
+Yasuaki Ishimatsu found that with node online/offline, cpu<->node
+relationship is established. Because workqueue uses a info which
+was established at boot time, but it may be changed by node hotpluging.
 
-Tested-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Once pool->node points to a stale node, following allocation failure
+happens.
+  ==
+     SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+      cache: kmalloc-192, object size: 192, buffer size: 192, default
+order:
+    1, min order: 0
+      node 0: slabs: 6172, objs: 259224, free: 245741
+      node 1: slabs: 3261, objs: 136962, free: 127656
+  ==
+
+As the apicid <---> pxm and pxm <--> node relationship are persistent, then
+the apicid <--> node mapping is persistent, so the root cause is the
+cpu-id <-> lapicid mapping is not persistent (because the currently
+implementation always choose the first free cpu id for the new added cpu).
+If we can build persistent cpu-id <-> lapicid relationship, this problem
+will be fixed.
+
+This patch tries to build the whole world mapping cpuid <-> apicid <-> pxm <-> node
+for all possible processor at the boot, the detail implementation are 2 steps:
+
+Step1: generate a logic cpu id for all the local apic (both enabled and dsiabled)
+       when register local apic
+Step2: map the cpu to the phyical node via an additional acpi ns walk for processor.
+
+Please refer to:
+https://lkml.org/lkml/2015/2/27/145
+https://lkml.org/lkml/2015/3/25/989
+for the previous discussion.
 ---
- arch/ia64/pci/pci.c |  414 ++++++++++++++++++++++++---------------------------
- 1 file changed, 193 insertions(+), 221 deletions(-)
+ V2: rebase on latest upstream.
+---
 
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index d4e162d35b34..23689d4c37ae 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -115,29 +115,12 @@ struct pci_ops pci_root_ops = {
- 	.write = pci_write,
- };
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+---
+ arch/ia64/kernel/acpi.c       |   2 +-
+ arch/x86/include/asm/mpspec.h |   1 +
+ arch/x86/kernel/acpi/boot.c   |   8 ++-
+ arch/x86/kernel/apic/apic.c   |  73 ++++++++++++++++++++-----
+ arch/x86/mm/numa.c            |  20 -------
+ drivers/acpi/acpi_processor.c |   2 +-
+ drivers/acpi/bus.c            |   3 ++
+ drivers/acpi/processor_core.c | 121 ++++++++++++++++++++++++++++++++++--------
+ include/linux/acpi.h          |   2 +
+ 9 files changed, 172 insertions(+), 60 deletions(-)
+
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index b1698bc..7db5563 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+  *  ACPI based hotplug CPU support
+  */
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+-static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+ 	/*
+diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+index b07233b..db902d8 100644
+--- a/arch/x86/include/asm/mpspec.h
++++ b/arch/x86/include/asm/mpspec.h
+@@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
+ #endif
  
--/* Called by ACPI when it finds a new root bus.  */
--
--static struct pci_controller *alloc_pci_controller(int seg)
--{
--	struct pci_controller *controller;
--
--	controller = kzalloc(sizeof(*controller), GFP_KERNEL);
--	if (!controller)
--		return NULL;
--
--	controller->segment = seg;
--	return controller;
--}
--
- struct pci_root_info {
-+	struct pci_controller controller;
- 	struct acpi_device *bridge;
--	struct pci_controller *controller;
- 	struct list_head resources;
--	struct resource *res;
--	resource_size_t *res_offset;
--	unsigned int res_num;
- 	struct list_head io_resources;
--	char *name;
-+	char name[16];
- };
+ int generic_processor_info(int apicid, int version);
++int __generic_processor_info(int apicid, int version, bool enabled);
  
- static unsigned int
-@@ -168,11 +151,11 @@ new_space (u64 phys_base, int sparse)
- 	return i;
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
+ 
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index dbe76a1..c79115b 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!enabled) {
++	if (!enabled)
+ 		++disabled_cpus;
+-		return -EINVAL;
+-	}
+ 
+ 	if (boot_cpu_physical_apicid != -1U)
+ 		ver = apic_version[boot_cpu_physical_apicid];
+ 
+-	return generic_processor_info(id, ver);
++	return __generic_processor_info(id, ver, enabled);
  }
  
--static u64 add_io_space(struct pci_root_info *info,
--			struct acpi_resource_address64 *addr)
-+static int add_io_space(struct device *dev, struct pci_root_info *info,
-+			struct resource_entry *entry)
+ static int __init
+@@ -726,7 +724,7 @@ static void __init acpi_set_irq_model_ioapic(void)
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ #include <acpi/processor.h>
+ 
+-static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
  {
- 	struct iospace_resource *iospace;
--	struct resource *resource;
-+	struct resource *resource, *res = entry->res;
- 	char *name;
- 	unsigned long base, min, max, base_port;
- 	unsigned int sparse = 0, space_nr, len;
-@@ -180,27 +163,24 @@ static u64 add_io_space(struct pci_root_info *info,
- 	len = strlen(info->name) + 32;
- 	iospace = kzalloc(sizeof(*iospace) + len, GFP_KERNEL);
- 	if (!iospace) {
--		dev_err(&info->bridge->dev,
--				"PCI: No memory for %s I/O port space\n",
--				info->name);
--		goto out;
-+		dev_err(dev, "PCI: No memory for %s I/O port space\n",
-+			info->name);
-+		return -ENOMEM;
- 	}
+ #ifdef CONFIG_ACPI_NUMA
+ 	int nid;
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index dcb5285..7fbf2cb 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1977,7 +1977,38 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
+ }
  
--	name = (char *)(iospace + 1);
--
--	min = addr->address.minimum;
--	max = min + addr->address.address_length - 1;
--	if (addr->info.io.translation_type == ACPI_SPARSE_TRANSLATION)
-+	if (res->flags & IORESOURCE_IO_SPARSE)
- 		sparse = 1;
--
--	space_nr = new_space(addr->address.translation_offset, sparse);
-+	space_nr = new_space(entry->offset, sparse);
- 	if (space_nr == ~0)
- 		goto free_resource;
- 
-+	name = (char *)(iospace + 1);
-+	min = res->start - entry->offset;
-+	max = res->end - entry->offset;
- 	base = __pa(io_space[space_nr].mmio_base);
- 	base_port = IO_SPACE_BASE(space_nr);
- 	snprintf(name, len, "%s I/O Ports %08lx-%08lx", info->name,
--		base_port + min, base_port + max);
-+		 base_port + min, base_port + max);
- 
- 	/*
- 	 * The SDM guarantees the legacy 0-64K space is sparse, but if the
-@@ -216,153 +196,195 @@ static u64 add_io_space(struct pci_root_info *info,
- 	resource->start = base + (sparse ? IO_SPACE_SPARSE_ENCODING(min) : min);
- 	resource->end   = base + (sparse ? IO_SPACE_SPARSE_ENCODING(max) : max);
- 	if (insert_resource(&iomem_resource, resource)) {
--		dev_err(&info->bridge->dev,
--				"can't allocate host bridge io space resource  %pR\n",
--				resource);
-+		dev_err(dev,
-+			"can't allocate host bridge io space resource  %pR\n",
-+			resource);
- 		goto free_resource;
- 	}
- 
-+	entry->offset = base_port;
-+	res->start = min + base_port;
-+	res->end = max + base_port;
- 	list_add_tail(&iospace->list, &info->io_resources);
--	return base_port;
-+
-+	return 0;
- 
- free_resource:
- 	kfree(iospace);
--out:
--	return ~0;
-+	return -ENOSPC;
-+}
+-int generic_processor_info(int apicid, int version)
++/*
++ * Logic cpu number(cpuid) to local APIC id persistent mappings.
++ * Do not clear the mapping even if cpu hot removed.
++ * */
++static int apicid_to_cpuid[] = {
++	[0 ... NR_CPUS - 1] = -1,
++};
 +
 +/*
-+ * An IO port or MMIO resource assigned to a PCI host bridge may be
-+ * consumed by the host bridge itself or available to its child
-+ * bus/devices. The ACPI specification defines a bit (Producer/Consumer)
-+ * to tell whether the resource is consumed by the host bridge itself,
-+ * but firmware hasn't used that bit consistently, so we can't rely on it.
-+ *
-+ * On x86 and IA64 platforms, all IO port and MMIO resources are assumed
-+ * to be available to child bus/devices except one special case:
-+ *     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
-+ *     to access PCI configuration space.
-+ *
-+ * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-+ */
-+static bool resource_is_pcicfg_ioport(struct resource *res)
++ * Internal cpu id bits, set the bit once cpu present, and never clear it.
++ * */
++static cpumask_t cpuid_mask = CPU_MASK_NONE;
++
++static int get_cpuid(int apicid)
 +{
-+	return (res->flags & IORESOURCE_IO) &&
-+		res->start == 0xCF8 && res->end == 0xCFF;
- }
- 
--static acpi_status resource_to_window(struct acpi_resource *resource,
--				      struct acpi_resource_address64 *addr)
-+static int
-+probe_pci_root_info(struct pci_root_info *info, struct acpi_device *device,
-+		    int busnum, int domain)
- {
--	acpi_status status;
-+	int ret;
-+	struct list_head *list = &info->resources;
-+	struct resource_entry *entry, *tmp;
- 
--	/*
--	 * We're only interested in _CRS descriptors that are
--	 *	- address space descriptors for memory or I/O space
--	 *	- non-zero size
--	 */
--	status = acpi_resource_to_address64(resource, addr);
--	if (ACPI_SUCCESS(status) &&
--	    (addr->resource_type == ACPI_MEMORY_RANGE ||
--	     addr->resource_type == ACPI_IO_RANGE) &&
--	    addr->address.address_length)
--		return AE_OK;
--
--	return AE_ERROR;
--}
--
--static acpi_status count_window(struct acpi_resource *resource, void *data)
--{
--	unsigned int *windows = (unsigned int *) data;
--	struct acpi_resource_address64 addr;
--	acpi_status status;
--
--	status = resource_to_window(resource, &addr);
--	if (ACPI_SUCCESS(status))
--		(*windows)++;
--
--	return AE_OK;
--}
--
--static acpi_status add_window(struct acpi_resource *res, void *data)
--{
--	struct pci_root_info *info = data;
--	struct resource *resource;
--	struct acpi_resource_address64 addr;
--	acpi_status status;
--	unsigned long flags, offset = 0;
--	struct resource *root;
--
--	/* Return AE_OK for non-window resources to keep scanning for more */
--	status = resource_to_window(res, &addr);
--	if (!ACPI_SUCCESS(status))
--		return AE_OK;
--
--	if (addr.resource_type == ACPI_MEMORY_RANGE) {
--		flags = IORESOURCE_MEM;
--		root = &iomem_resource;
--		offset = addr.address.translation_offset;
--	} else if (addr.resource_type == ACPI_IO_RANGE) {
--		flags = IORESOURCE_IO;
--		root = &ioport_resource;
--		offset = add_io_space(info, &addr);
--		if (offset == ~0)
--			return AE_OK;
--	} else
--		return AE_OK;
--
--	resource = &info->res[info->res_num];
--	resource->name = info->name;
--	resource->flags = flags;
--	resource->start = addr.address.minimum + offset;
--	resource->end = resource->start + addr.address.address_length - 1;
--	info->res_offset[info->res_num] = offset;
--
--	if (insert_resource(root, resource)) {
--		dev_err(&info->bridge->dev,
--			"can't allocate host bridge window %pR\n",
--			resource);
--	} else {
--		if (offset)
--			dev_info(&info->bridge->dev, "host bridge window %pR "
--				 "(PCI address [%#llx-%#llx])\n",
--				 resource,
--				 resource->start - offset,
--				 resource->end - offset);
--		else
--			dev_info(&info->bridge->dev,
--				 "host bridge window %pR\n", resource);
--	}
--	/* HP's firmware has a hack to work around a Windows bug.
--	 * Ignore these tiny memory ranges */
--	if (!((resource->flags & IORESOURCE_MEM) &&
--	      (resource->end - resource->start < 16)))
--		pci_add_resource_offset(&info->resources, resource,
--					info->res_offset[info->res_num]);
-+	ret = acpi_dev_get_resources(device, list,
-+				     acpi_dev_filter_resource_type_cb,
-+				     (void *)(IORESOURCE_IO | IORESOURCE_MEM));
-+	if (ret < 0)
-+		dev_warn(&device->dev,
-+			 "failed to parse _CRS method, error code %d\n", ret);
-+	else if (ret == 0)
-+		dev_dbg(&device->dev,
-+			"no IO and memory resources present in _CRS\n");
-+	else
-+		resource_list_for_each_entry_safe(entry, tmp, list) {
-+			if ((entry->res->flags & IORESOURCE_DISABLED) ||
-+			    resource_is_pcicfg_ioport(entry->res))
-+				resource_list_destroy_entry(entry);
-+			else
-+				entry->res->name = info->name;
-+		}
- 
--	info->res_num++;
--	return AE_OK;
-+	return ret;
- }
- 
--static void free_pci_root_info_res(struct pci_root_info *info)
--{
--	struct iospace_resource *iospace, *tmp;
-+static void validate_resources(struct device *dev, struct list_head *resources,
-+			       unsigned long type)
-+{
-+	LIST_HEAD(list);
-+	struct resource *res1, *res2, *root = NULL;
-+	struct resource_entry *tmp, *entry, *entry2;
++	int free_id, i;
 +
-+	BUG_ON((type & (IORESOURCE_MEM | IORESOURCE_IO)) == 0);
-+	root = (type & IORESOURCE_MEM) ? &iomem_resource : &ioport_resource;
++	free_id = cpumask_next_zero(-1, &cpuid_mask);
++	if (free_id >= nr_cpu_ids)
++		return -1;
 +
-+	list_splice_init(resources, &list);
-+	resource_list_for_each_entry_safe(entry, tmp, &list) {
-+		bool free = false;
-+		resource_size_t end;
++	for (i = 0; i < free_id; i++)
++		if (apicid_to_cpuid[i] == apicid)
++			return i;
 +
-+		res1 = entry->res;
-+		if (!(res1->flags & type))
-+			goto next;
++	apicid_to_cpuid[free_id] = apicid;
++	cpumask_set_cpu(free_id, &cpuid_mask);
 +
-+		/* Exclude non-addressable range or non-addressable portion */
-+		end = min(res1->end, root->end);
-+		if (end <= res1->start) {
-+			dev_info(dev, "host bridge window %pR (ignored, not CPU addressable)\n",
-+				 res1);
-+			free = true;
-+			goto next;
-+		} else if (res1->end != end) {
-+			dev_info(dev, "host bridge window %pR ([%#llx-%#llx] ignored, not CPU addressable)\n",
-+				 res1, (unsigned long long)end + 1,
-+				 (unsigned long long)res1->end);
-+			res1->end = end;
-+		}
- 
--	list_for_each_entry_safe(iospace, tmp, &info->io_resources, list)
--		kfree(iospace);
-+		resource_list_for_each_entry(entry2, resources) {
-+			res2 = entry2->res;
-+			if (!(res2->flags & type))
-+				continue;
-+
-+			/*
-+			 * I don't like throwing away windows because then
-+			 * our resources no longer match the ACPI _CRS, but
-+			 * the kernel resource tree doesn't allow overlaps.
-+			 */
-+			if (resource_overlaps(res1, res2)) {
-+				res2->start = min(res1->start, res2->start);
-+				res2->end = max(res1->end, res2->end);
-+				dev_info(dev, "host bridge window expanded to %pR; %pR ignored\n",
-+					 res2, res1);
-+				free = true;
-+				goto next;
-+			}
-+		}
- 
--	kfree(info->name);
--	kfree(info->res);
--	info->res = NULL;
--	kfree(info->res_offset);
--	info->res_offset = NULL;
--	info->res_num = 0;
--	kfree(info->controller);
--	info->controller = NULL;
-+next:
-+		resource_list_del(entry);
-+		if (free)
-+			resource_list_free_entry(entry);
-+		else
-+			resource_list_add_tail(entry, resources);
-+	}
++	return free_id;
 +}
 +
-+static void add_resources(struct pci_root_info *info, struct device *dev)
-+{
-+	struct resource_entry *entry, *tmp;
-+	struct resource *res, *conflict, *root = NULL;
-+	struct list_head *list = &info->resources;
-+
-+	validate_resources(dev, list, IORESOURCE_MEM);
-+	validate_resources(dev, list, IORESOURCE_IO);
-+
-+	resource_list_for_each_entry_safe(entry, tmp, list) {
-+		res = entry->res;
-+		if (res->flags & IORESOURCE_MEM) {
-+			root = &iomem_resource;
-+			/*
-+			 * HP's firmware has a hack to work around a Windows
-+			 * bug. Ignore these tiny memory ranges.
-+			 */
-+			if (resource_size(res) <= 16) {
-+				resource_list_destroy_entry(entry);
-+				continue;
-+			}
-+		} else if (res->flags & IORESOURCE_IO) {
-+			root = &ioport_resource;
-+			if (add_io_space(&info->bridge->dev, info, entry)) {
-+				resource_list_destroy_entry(entry);
-+				continue;
-+			}
-+		} else {
-+			BUG_ON(res);
-+		}
-+
-+		conflict = insert_resource_conflict(root, res);
-+		if (conflict) {
-+			dev_info(dev,
-+				 "ignoring host bridge window %pR (conflicts with %s %pR)\n",
-+				 res, conflict->name, conflict);
-+			resource_list_destroy_entry(entry);
-+		}
-+	}
- }
- 
- static void __release_pci_root_info(struct pci_root_info *info)
++int __generic_processor_info(int apicid, int version, bool enabled)
  {
--	int i;
- 	struct resource *res;
--	struct iospace_resource *iospace;
-+	struct iospace_resource *iospace, *tmp;
-+	struct resource_entry *entry, *tentry;
- 
--	list_for_each_entry(iospace, &info->io_resources, list)
-+	list_for_each_entry_safe(iospace, tmp, &info->io_resources, list) {
- 		release_resource(&iospace->res);
-+		kfree(iospace);
-+	}
- 
--	for (i = 0; i < info->res_num; i++) {
--		res = &info->res[i];
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2010,8 +2041,8 @@ int generic_processor_info(int apicid, int version)
+ 		pr_warning("APIC: Disabling requested cpu."
+ 			   " Processor %d/0x%x ignored.\n",
+ 			   thiscpu, apicid);
 -
--		if (!res->parent)
--			continue;
--
--		if (!(res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
--			continue;
--
--		release_resource(res);
-+	resource_list_for_each_entry_safe(entry, tentry, &info->resources) {
-+		res = entry->res;
-+		if (res->parent &&
-+		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
-+			release_resource(res);
-+		resource_list_destroy_entry(entry);
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
  	}
  
--	free_pci_root_info_res(info);
- 	kfree(info);
- }
+@@ -2027,8 +2058,8 @@ int generic_processor_info(int apicid, int version)
+ 			"ACPI: NR_CPUS/possible_cpus limit of %i almost"
+ 			" reached. Keeping one slot for boot cpu."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+-
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
+ 	}
  
-@@ -373,99 +395,49 @@ static void release_pci_root_info(struct pci_host_bridge *bridge)
- 	__release_pci_root_info(info);
- }
+@@ -2039,11 +2070,11 @@ int generic_processor_info(int apicid, int version)
+ 			"ACPI: NR_CPUS/possible_cpus limit of %i reached."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
  
--static int
--probe_pci_root_info(struct pci_root_info *info, struct acpi_device *device,
--		int busnum, int domain)
--{
--	char *name;
--
--	name = kmalloc(16, GFP_KERNEL);
--	if (!name)
--		return -ENOMEM;
--
--	sprintf(name, "PCI Bus %04x:%02x", domain, busnum);
--	info->bridge = device;
--	info->name = name;
--
--	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_window,
--			&info->res_num);
--	if (info->res_num) {
--		info->res =
--			kzalloc_node(sizeof(*info->res) * info->res_num,
--				     GFP_KERNEL, info->controller->node);
--		if (!info->res) {
--			kfree(name);
--			return -ENOMEM;
--		}
--
--		info->res_offset =
--			kzalloc_node(sizeof(*info->res_offset) * info->res_num,
--					GFP_KERNEL, info->controller->node);
--		if (!info->res_offset) {
--			kfree(name);
--			kfree(info->res);
--			info->res = NULL;
--			return -ENOMEM;
--		}
--
--		info->res_num = 0;
--		acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--			add_window, info);
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -EINVAL;
+ 	}
+ 
+-	num_processors++;
+ 	if (apicid == boot_cpu_physical_apicid) {
+ 		/*
+ 		 * x86_bios_cpu_apicid is required to have processors listed
+@@ -2053,9 +2084,20 @@ int generic_processor_info(int apicid, int version)
+ 		 * for BSP.
+ 		 */
+ 		cpu = 0;
 -	} else
--		kfree(name);
+-		cpu = cpumask_next_zero(-1, cpu_present_mask);
 -
--	return 0;
++	} else {
++		cpu = get_cpuid(apicid);
++		if (cpu < 0) {
++			int thiscpu = max + disabled_cpus;
++
++			pr_warning("  Processor %d/0x%x ignored.\n",
++				thiscpu, apicid);
++			if (enabled)
++				disabled_cpus++;
++			return -EINVAL;
++		}
++	}
++	if (enabled)
++		num_processors++;
+ 	/*
+ 	 * Validate version
+ 	 */
+@@ -2071,7 +2113,8 @@ int generic_processor_info(int apicid, int version)
+ 			apic_version[boot_cpu_physical_apicid], cpu, version);
+ 	}
+ 
+-	physid_set(apicid, phys_cpu_present_map);
++	if (enabled)
++		physid_set(apicid, phys_cpu_present_map);
+ 	if (apicid > max_physical_apicid)
+ 		max_physical_apicid = apicid;
+ 
+@@ -2084,11 +2127,17 @@ int generic_processor_info(int apicid, int version)
+ 		apic->x86_32_early_logical_apicid(cpu);
+ #endif
+ 	set_cpu_possible(cpu, true);
+-	set_cpu_present(cpu, true);
++	if (enabled)
++		set_cpu_present(cpu, true);
+ 
+ 	return cpu;
+ }
+ 
++int generic_processor_info(int apicid, int version)
++{
++	return __generic_processor_info(apicid, version, true);
++}
++
+ int hard_smp_processor_id(void)
+ {
+ 	return read_apic_id();
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 4053bb5..a733cf9 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -702,24 +702,6 @@ void __init x86_numa_init(void)
+ 	numa_init(dummy_numa_init);
+ }
+ 
+-static __init int find_near_online_node(int node)
+-{
+-	int n, val;
+-	int min_val = INT_MAX;
+-	int best_node = -1;
+-
+-	for_each_online_node(n) {
+-		val = node_distance(node, n);
+-
+-		if (val < min_val) {
+-			min_val = val;
+-			best_node = n;
+-		}
+-	}
+-
+-	return best_node;
 -}
 -
- struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- {
- 	struct acpi_device *device = root->device;
- 	int domain = root->segment;
- 	int bus = root->secondary.start;
--	struct pci_controller *controller;
--	struct pci_root_info *info = NULL;
--	int busnum = root->secondary.start;
-+	struct pci_root_info *info;
- 	struct pci_bus *pbus;
- 	int ret;
+ /*
+  * Setup early cpu_to_node.
+  *
+@@ -746,8 +728,6 @@ void __init init_cpu_to_node(void)
  
--	controller = alloc_pci_controller(domain);
--	if (!controller)
--		return NULL;
--
--	controller->companion = device;
--	controller->node = acpi_get_node(device->handle);
--
- 	info = kzalloc(sizeof(*info), GFP_KERNEL);
- 	if (!info) {
- 		dev_err(&device->dev,
--				"pci_bus %04x:%02x: ignored (out of memory)\n",
--				domain, busnum);
--		kfree(controller);
-+			"pci_bus %04x:%02x: ignored (out of memory)\n",
-+			domain, bus);
- 		return NULL;
+ 		if (node == NUMA_NO_NODE)
+ 			continue;
+-		if (!node_online(node))
+-			node = find_near_online_node(node);
+ 		numa_set_node(cpu, node);
  	}
- 
--	info->controller = controller;
--	INIT_LIST_HEAD(&info->io_resources);
-+	info->controller.segment = domain;
-+	info->controller.companion = device;
-+	info->controller.node = acpi_get_node(device->handle);
-+	info->bridge = device;
- 	INIT_LIST_HEAD(&info->resources);
-+	INIT_LIST_HEAD(&info->io_resources);
-+	snprintf(info->name, sizeof(info->name),
-+		 "PCI Bus %04x:%02x", domain, bus);
- 
--	ret = probe_pci_root_info(info, device, busnum, domain);
--	if (ret) {
--		kfree(info->controller);
-+	ret = probe_pci_root_info(info, device, bus, domain);
-+	if (ret <= 0) {
- 		kfree(info);
- 		return NULL;
- 	}
--	/* insert busn resource at first */
-+	add_resources(info, &info->bridge->dev);
- 	pci_add_resource(&info->resources, &root->secondary);
-+
- 	/*
- 	 * See arch/x86/pci/acpi.c.
- 	 * The desired pci bus might already be scanned in a quirk. We
- 	 * should handle the case here, but it appears that IA64 hasn't
- 	 * such quirk. So we just ignore the case now.
+ }
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 58f335c..83bc464 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -285,7 +285,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	 *  less than the max # of CPUs. They should be ignored _iff
+ 	 *  they are physically not present.
  	 */
--	pbus = pci_create_root_bus(NULL, bus, &pci_root_ops, controller,
--				   &info->resources);
-+	pbus = pci_create_root_bus(NULL, bus, &pci_root_ops,
-+				   &info->controller, &info->resources);
- 	if (!pbus) {
--		pci_free_resource_list(&info->resources);
- 		__release_pci_root_info(info);
- 		return NULL;
- 	}
+-	if (pr->id == -1) {
++	if (pr->id == -1 || !cpu_present(pr->id)) {
+ 		int ret = acpi_processor_hotadd_init(pr);
+ 		if (ret)
+ 			return ret;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index c412fdb..98cdce9 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -674,6 +674,9 @@ static int __init acpi_init(void)
+ 	acpi_debugfs_init();
+ 	acpi_sleep_proc_init();
+ 	acpi_wakeup_device_init();
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++	acpi_set_processor_mapping();
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index b1ec78b..74798fe 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -32,12 +32,12 @@ static struct acpi_table_madt *get_madt_table(void)
+ }
+ 
+ static int map_lapic_id(struct acpi_subtable_header *entry,
+-		 u32 acpi_id, phys_cpuid_t *apic_id)
++		 u32 acpi_id, phys_cpuid_t *apic_id, bool ignore_disabled)
+ {
+ 	struct acpi_madt_local_apic *lapic =
+ 		container_of(entry, struct acpi_madt_local_apic, header);
+ 
+-	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
++	if (ignore_disabled && !(lapic->lapic_flags & ACPI_MADT_ENABLED))
+ 		return -ENODEV;
+ 
+ 	if (lapic->processor_id != acpi_id)
+@@ -48,12 +48,13 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
+ }
+ 
+ static int map_x2apic_id(struct acpi_subtable_header *entry,
+-		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id)
++		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id,
++		bool ignore_disabled)
+ {
+ 	struct acpi_madt_local_x2apic *apic =
+ 		container_of(entry, struct acpi_madt_local_x2apic, header);
+ 
+-	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
++	if (ignore_disabled && !(apic->lapic_flags & ACPI_MADT_ENABLED))
+ 		return -ENODEV;
+ 
+ 	if (device_declaration && (apic->uid == acpi_id)) {
+@@ -65,12 +66,13 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
+ }
+ 
+ static int map_lsapic_id(struct acpi_subtable_header *entry,
+-		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id)
++		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id,
++		bool ignore_disabled)
+ {
+ 	struct acpi_madt_local_sapic *lsapic =
+ 		container_of(entry, struct acpi_madt_local_sapic, header);
+ 
+-	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
++	if (ignore_disabled && !(lsapic->lapic_flags & ACPI_MADT_ENABLED))
+ 		return -ENODEV;
+ 
+ 	if (device_declaration) {
+@@ -87,12 +89,13 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
+  * Retrieve the ARM CPU physical identifier (MPIDR)
+  */
+ static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+-		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr)
++		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr,
++		bool ignore_disabled)
+ {
+ 	struct acpi_madt_generic_interrupt *gicc =
+ 	    container_of(entry, struct acpi_madt_generic_interrupt, header);
+ 
+-	if (!(gicc->flags & ACPI_MADT_ENABLED))
++	if (ignore_disabled && !(gicc->flags & ACPI_MADT_ENABLED))
+ 		return -ENODEV;
+ 
+ 	/* device_declaration means Device object in DSDT, in the
+@@ -108,7 +111,7 @@ static int map_gicc_mpidr(struct acpi_subtable_header *entry,
+ 	return -EINVAL;
+ }
+ 
+-static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
++static phys_cpuid_t map_madt_entry(int type, u32 acpi_id, bool ignore_disabled)
+ {
+ 	unsigned long madt_end, entry;
+ 	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;	/* CPU hardware ID */
+@@ -128,16 +131,20 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
+ 		struct acpi_subtable_header *header =
+ 			(struct acpi_subtable_header *)entry;
+ 		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
+-			if (!map_lapic_id(header, acpi_id, &phys_id))
++			if (!map_lapic_id(header, acpi_id,
++					  &phys_id, ignore_disabled))
+ 				break;
+ 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
+-			if (!map_x2apic_id(header, type, acpi_id, &phys_id))
++			if (!map_x2apic_id(header, type, acpi_id,
++					   &phys_id, ignore_disabled))
+ 				break;
+ 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
+-			if (!map_lsapic_id(header, type, acpi_id, &phys_id))
++			if (!map_lsapic_id(header, type, acpi_id,
++					   &phys_id, ignore_disabled))
+ 				break;
+ 		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+-			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id))
++			if (!map_gicc_mpidr(header, type, acpi_id,
++					    &phys_id, ignore_disabled))
+ 				break;
+ 		}
+ 		entry += header->length;
+@@ -145,7 +152,8 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
+ 	return phys_id;
+ }
+ 
+-static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
++static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id,
++				  bool ignore_disabled)
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *obj;
+@@ -166,30 +174,39 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+ 
+ 	header = (struct acpi_subtable_header *)obj->buffer.pointer;
+ 	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
+-		map_lapic_id(header, acpi_id, &phys_id);
++		map_lapic_id(header, acpi_id, &phys_id, ignore_disabled);
+ 	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
+-		map_lsapic_id(header, type, acpi_id, &phys_id);
++		map_lsapic_id(header, type, acpi_id,
++			      &phys_id, ignore_disabled);
+ 	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
+-		map_x2apic_id(header, type, acpi_id, &phys_id);
++		map_x2apic_id(header, type, acpi_id,
++			      &phys_id, ignore_disabled);
+ 	else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT)
+-		map_gicc_mpidr(header, type, acpi_id, &phys_id);
++		map_gicc_mpidr(header, type, acpi_id,
++			       &phys_id, ignore_disabled);
+ 
+ exit:
+ 	kfree(buffer.pointer);
+ 	return phys_id;
+ }
+ 
+-phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
++static phys_cpuid_t __acpi_get_phys_id(acpi_handle handle, int type,
++				       u32 acpi_id, bool ignore_disabled)
+ {
+ 	phys_cpuid_t phys_id;
+ 
+-	phys_id = map_mat_entry(handle, type, acpi_id);
++	phys_id = map_mat_entry(handle, type, acpi_id, ignore_disabled);
+ 	if (phys_id == PHYS_CPUID_INVALID)
+-		phys_id = map_madt_entry(type, acpi_id);
++		phys_id = map_madt_entry(type, acpi_id, ignore_disabled);
+ 
+ 	return phys_id;
+ }
+ 
++phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
++{
++	return  __acpi_get_phys_id(handle, type, acpi_id, true);
++}
++
+ int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
+ {
+ #ifdef CONFIG_SMP
+@@ -246,6 +263,68 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++static bool map_processor(acpi_handle handle, int *phys_id, int *cpuid)
++{
++	int type;
++	u32 acpi_id;
++	acpi_status status;
++	acpi_object_type acpi_type;
++	unsigned long long tmp;
++	union acpi_object object = { 0 };
++	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
++
++	status = acpi_get_type(handle, &acpi_type);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	switch (acpi_type) {
++	case ACPI_TYPE_PROCESSOR:
++		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = object.processor.proc_id;
++		break;
++	case ACPI_TYPE_DEVICE:
++		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = tmp;
++		break;
++	default:
++		return false;
++	}
++
++	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
++
++	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
++	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
++	if (*cpuid == -1)
++		return false;
++	return true;
++}
++
++static acpi_status __init
++set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
++			   void **rv)
++{
++	u32 apic_id;
++	int cpu_id;
++
++	if (!map_processor(handle, &apic_id, &cpu_id))
++		return AE_ERROR;
++	acpi_map_cpu2node(handle, cpu_id, apic_id);
++	return AE_OK;
++}
++
++void __init acpi_set_processor_mapping(void)
++{
++	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
++			ACPI_UINT32_MAX,
++			set_processor_node_mapping, NULL, NULL, NULL);
++}
++#endif
++
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+ 			 u64 *phys_addr, int *ioapic_id)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e4da5e3..70166df 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -162,6 +162,8 @@ typedef u32 phys_cpuid_t;
+ /* Arch dependent functions for cpu hotplug support */
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+ int acpi_unmap_cpu(int cpu);
++void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
++void __init acpi_set_processor_mapping(void);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
 -- 
-1.7.10.4
+1.8.3.1
+
