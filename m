@@ -1,140 +1,83 @@
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH V2 2/2] gfp: use the best near online node if the target node is offline
-Date: Thu, 14 May 2015 19:33:34 +0800
-Message-ID: <1431603214-12521-2-git-send-email-guz.fnst@cn.fujitsu.com>
-References: <1431603214-12521-1-git-send-email-guz.fnst@cn.fujitsu.com>
+From: Adam Goode <agoode@google.com>
+Subject: Re: Registering a device driver before _INI?
+Date: Thu, 14 May 2015 13:36:12 +0100
+Message-ID: <CAOf41N=BW4ChU=27zhW_AUPqhkK=m5iXUcYCwNx6kmSaDD-bOw@mail.gmail.com>
+References: <CAOf41NnAjRG-2H=h8pUDBPQs2pePH4GNY0+XNnC+iXiRf30srA@mail.gmail.com>
+ <5553A0F8.8000505@redhat.com> <3348174.NCS7iW2FVj@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1431603214-12521-1-git-send-email-guz.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: tj@kernel.org, mingo@redhat.com, x86@kernel.org, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, linux-acpi@vger.kernel.org, laijs@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, guz.fnst@cn.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vn0-f45.google.com ([209.85.216.45]:34808 "EHLO
+	mail-vn0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932541AbbENMgf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 May 2015 08:36:35 -0400
+Received: by vnbf190 with SMTP id f190so5010136vnb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 14 May 2015 05:36:34 -0700 (PDT)
+In-Reply-To: <3348174.NCS7iW2FVj@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Al Stone <ahs3@redhat.com>, linux-acpi@vger.kernel.org
 
-Since the change to the cpu <--> mapping (map the cpu to the physical
-node for all possible at the boot), the node of cpu may be not present,
-so we use the best near online node if the node is not present in the low
-level allocation APIs.
+On Wed, May 13, 2015 at 11:14 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, May 13, 2015 01:07:36 PM Al Stone wrote:
+>> On 05/13/2015 10:25 AM, Adam Goode wrote:
+>> > The Macmini7,1 addresses SystemCMOS memory in _INI methods. Currently,
+>> > this fails since _INI is called before the acpi_cmos_rtc_space_handler
+>> > is registered.
+>> >
+>> > I proposed registering a default handler on the ACPICA list, but was
+>> > told that because the device has a _HID it should require a device
+>> > driver.
+>> >
+>> > So, is it possible to register a device driver before _INI is called?
+>> > Otherwise, Thunderbolt doesn't get initialized properly on this
+>> > hardware.
+>>
+>> I take it from the question that the _INI methods are using the predefined
+>> SystemCMOS OperationRegion, correct?  Are the _INI methods invoking _REG
+>> before trying to access that region?  Looking at the spec, the _INI methods
+>> must first call _REG to see if SystemCMOS is available for use (see section
+>> 6.5.1), and there is no requirement that SystemCMOS must be available for
+>> use by _INI (see 6.5.4).  So, if I think about this from the spec point of
+>> view, it sounds like the _INI methods are non-compliant.  From the kernel
+>> perspective, the SystemCMOS region is created at a reasonable time and is
+>> available when it is required to be.
 
----
-V2: Maintaining a per-cpu cache about the alternative-node
-only for x86 arch to avoid additional overhead.
----
+My reading of the ACPI spec is that the OS calls _REG when it updates
+region availability. It's not the AML that calls _REG at all. There
+are no _REG methods defined for this, so nothing to do. Further
+reading of the spec seems to indicate that the OS should be doing a
+kind of dependency analysis and registering region handlers before
+failing here. I'm not seeing anything really out of spec with the AML
+code in this case.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
----
- arch/x86/include/asm/topology.h |  2 ++
- arch/x86/mm/numa.c              | 33 +++++++++++++++++++++++++++++++++
- include/linux/gfp.h             | 12 +++++++++++-
- 3 files changed, 46 insertions(+), 1 deletion(-)
+I'm guessing that some kind of refactoring of _HID driver attachment
+would be a way forward here. But I haven't looked deeply into this
+yet.
 
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 0e8f04f..37bb6b6 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -82,6 +82,8 @@ static inline const struct cpumask *cpumask_of_node(int node)
- }
- #endif
- 
-+extern int get_near_online_node(int node);
-+
- extern void setup_node_to_cpumask_map(void);
- 
- /*
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index a733cf9..4126464 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -72,12 +72,34 @@ int numa_cpu_node(int cpu)
- cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
- EXPORT_SYMBOL(node_to_cpumask_map);
- 
-+cpumask_t node_to_cpuid_mask_map[MAX_NUMNODES];
- /*
-  * Map cpu index to node index
-  */
- DEFINE_EARLY_PER_CPU(int, x86_cpu_to_node_map, NUMA_NO_NODE);
- EXPORT_EARLY_PER_CPU_SYMBOL(x86_cpu_to_node_map);
- 
-+DEFINE_PER_CPU(int, x86_cpu_to_near_online_node);
-+EXPORT_PER_CPU_SYMBOL(x86_cpu_to_near_online_node);
-+
-+static int find_near_online_node(int node)
-+{
-+	int n, val;
-+	int min_val = INT_MAX;
-+	int best_node = -1;
-+
-+	for_each_online_node(n) {
-+		val = node_distance(node, n);
-+
-+		if (val < min_val) {
-+			min_val = val;
-+			best_node = n;
-+		}
-+	}
-+
-+	return best_node;
-+}
-+
- void numa_set_node(int cpu, int node)
- {
- 	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
-@@ -95,7 +117,11 @@ void numa_set_node(int cpu, int node)
- 		return;
- 	}
- #endif
-+
-+	per_cpu(x86_cpu_to_near_online_node, cpu) =
-+			find_near_online_node(numa_cpu_node(cpu));
- 	per_cpu(x86_cpu_to_node_map, cpu) = node;
-+	cpumask_set_cpu(cpu, &node_to_cpuid_mask_map[numa_cpu_node(cpu)]);
- 
- 	set_cpu_numa_node(cpu, node);
- }
-@@ -105,6 +131,13 @@ void numa_clear_node(int cpu)
- 	numa_set_node(cpu, NUMA_NO_NODE);
- }
- 
-+int get_near_online_node(int node)
-+{
-+	return per_cpu(x86_cpu_to_near_online_node,
-+		       cpumask_first(&node_to_cpuid_mask_map[node]));
-+}
-+EXPORT_SYMBOL(get_near_online_node);
-+
- /*
-  * Allocate node_to_cpumask_map based on number of available nodes
-  * Requires node_possible_map to be valid.
-diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index 97a9373..b233ea4 100644
---- a/include/linux/gfp.h
-+++ b/include/linux/gfp.h
-@@ -305,13 +305,23 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
- 	if (nid < 0)
- 		nid = numa_node_id();
- 
-+#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
-+	if (!node_online(nid))
-+		nid = get_near_online_node(nid);
-+#endif
- 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
- }
- 
- static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
- 						unsigned int order)
- {
--	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
-+	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
-+
-+#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
-+	if (!node_online(nid))
-+		nid = get_near_online_node(nid);
-+#endif
-+	VM_BUG_ON(!node_online(nid));
- 
- 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
- }
--- 
-1.8.3.1
+>>
+>> It seems to me that the correct answer is that there should indeed be a device
+>> driver connected to the _HID, but that it gets invoked just like any other
+>> driver, and has as part of its probe an invocation of some method to access
+>> the necessary items in the SystemCMOS (maybe add the method in an SSDT loaded
+>> at run-time?).  One could also hack around this by moving where in the kernel
+>> the SystemCMOS region gets created to some place before the _INI functions are
+>> invoked, but that feels klunky to me to handle firmware that may not be correct.
+>
+> There may be another way: Add a DMI quirk for the affected Apple system to
+> acpi_cmos_rtc.c that would install the address space handler early (ie. before
+> _INI is executed) and make acpi_install_cmos_rtc_space_handler() return
+> immediately if the address space handler is already installed.
+>
+
+I'm really wary of adding a DMI quirk. For one, I don't know the list
+of Apple devices that need the quirk, and it is likely to grow in the
+future. Secondly, Windows 8.1 works correctly here, without any
+additional drivers, and I would be quite surprised if they have a
+built-in hardcoding of this machine.
+
+
+Thanks,
+
+Adam
