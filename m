@@ -1,104 +1,88 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
+From: Gianluca Anzolin <gianluca@sottospazio.it>
 Subject: Re: Debugging spurious wakeup
-Date: Fri, 15 May 2015 09:54:53 +0200
-Message-ID: <5555A64D.6060200@linaro.org>
+Date: Fri, 15 May 2015 09:52:36 +0200
+Message-ID: <20150515075236.GA14918@sottospazio.it>
 References: <20150513065825.GA10680@sottospazio.it>
+ <20150514125148.GA9039@sottospazio.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:35539 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932771AbbEOHy5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2015 03:54:57 -0400
-Received: by wgnd10 with SMTP id d10so101248543wgn.2
-        for <linux-acpi@vger.kernel.org>; Fri, 15 May 2015 00:54:56 -0700 (PDT)
-In-Reply-To: <20150513065825.GA10680@sottospazio.it>
+Received: from m-r2.th.seeweb.it ([5.144.164.171]:58298 "EHLO
+	m-r2.th.seeweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030224AbbEOHwx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2015 03:52:53 -0400
+Received: from fseek.strangled.net (host112-190-dynamic.24-79-r.retail.telecomitalia.it [79.24.190.112])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by m-r2.th.seeweb.it (Postfix) with ESMTPSA id 71C143F498
+	for <linux-acpi@vger.kernel.org>; Fri, 15 May 2015 09:52:39 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20150514125148.GA9039@sottospazio.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gianluca Anzolin <gianluca@sottospazio.it>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-
-Hi Gianluca,
-
-do yo have the option "Remain off after power failure" in the BIOS ?
-
-Does the issue occur if you set this option ?
-
-
-
-
-On 05/13/2015 08:58 AM, Gianluca Anzolin wrote:
-> Hello,
->
-> I have a curious problem with my system: whenever I wake up the PC wi=
-th a WOL
-> magic packet and then power it off the systems comes back to life aft=
-er a
-> couple of seconds, by itself.
->
-> I can reproduce the problem 100% of the times.
->
-> I've been having this problems for years. I remember this same issue =
-occurred
-> also with my previous computer, with a different mainboard. My curren=
-t system
-> has an ASUS P8B-WS mb with a Xeon 1275v2 CPU.
->
-> I've ruled out in the time many factors: traffic on the net (by disco=
-nnecting
-> the cable), RTC alarms (by disabling them)... long story short: I'm s=
-tuck.
->
-> While I'm not the only one with this issue (see[1]), some people have=
- reported
-> mixed success by blacklisting some components (xhci-pci) or by settin=
-g
-> unrelated BIOS options. Unfortunately these workarounds never worked =
-for me.
->
-> So I'm here to ask if there is a way to get the source/cause of the l=
-ast wakeup
-> by setting some ACPI debug option. This way I could at least pinpoint=
- the
-> device/interface that caused the spontaneous wakeup and then debug fu=
-rther or
-> at least disable it.
->
-> I've tried to enable the ACPI hardware-related messages with the kern=
-el
-> arguments: acpi.debug_layer=3D0x2 acpi.debug_level=3D0xffffffff
->
-> Unfortunately I can't see the information I'm looking for in the resu=
-lting
-> output. Should I enable some other debug_layer? Could anybody point m=
-e in the
-> right direction?
->
-> Thank you and best regards,
->
+On Thu, May 14, 2015 at 02:51:48PM +0200, Gianluca Anzolin wrote:
+> I'm sorry to bother again but since the previous debug aids didn't go
+> anywhere I'm here to ask again if there is a command, a debug parameter,
+> something that could tell me the cause of the last system wake up.
+> 
+> I'm aware that in Windows there is the command "powercfg -lastwake", I need
+> something similar for linux, since this issue is linux specific (I can't
+> reproduce it in Windows).
+> 
+> Thank you,
+> 
 > Gianluca
->
-> [1] https://bbs.archlinux.org/viewtopic.php?id=3D173648
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> 
+
+Hello,
+
+since I can reproduce the issue so easily I tried to take the output of lspci
+-vvvxxx when the system stays off and when it turns on by itself.
+
+The diff between the two outputs is mainly due to changes of IRQs and
+addresses but there is something else:
+
+-               RootSta: PME ReqID 0000, PMEStatus- PMEPending-
++               RootSta: PME ReqID 0400, PMEStatus- PMEPending-
+
+for this entry:
+
+00:1c.5 PCI bridge: Intel Corporation 6 Series/C200 Series Chipset Family PCI
+Express Root Port 6 (rev b5) (prog-if 00 [Normal decode])
+
+Basically when PME ReqID is 0400 the system turn on. I don't really know what
+that means but I noticed that the PCIe port is connected to the network
+controller.
+
+This is the output of lspci -t:
+
+-[0000:00]-+-00.0
+           +-01.0-[01]--+-00.0
+           |            \-00.1
+           +-06.0-[02]--
+           +-16.0
+           +-1a.0
+           +-1b.0
+           +-1c.0-[03]--
+           +-1c.5-[04]----00.0
+           +-1c.6-[05]----00.0
+           +-1c.7-[06]----00.0
+           +-1d.0
+           +-1e.0-[07]----03.0
+           +-1f.0
+           +-1f.2
+           \-1f.3
 
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
+And this is the entry 04:00.0:
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+04:00.0 Ethernet controller: Intel Corporation 82574L Gigabit Network
+Connection
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So it's really the ethernet driver that's misbehaving?
+
+Thank you,
+
+Gianluca
