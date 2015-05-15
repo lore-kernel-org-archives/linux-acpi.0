@@ -1,77 +1,46 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 02/20] libnd, nd_acpi: initial libnd
- infrastructure and NFIT support
-Date: Fri, 15 May 2015 13:41:43 -0700
-Message-ID: <CAPcyv4ggH8j3wPiq513POy_CSRz0ekya0e2NSdNK88aY=FvH-A@mail.gmail.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150428182423.35812.20930.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<x49twvdwrq5.fsf@segfault.boston.devel.redhat.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC v1 02/11] genirq: Move field 'node' from struct irq_data
+ into struct irq_common_data
+Date: Fri, 15 May 2015 22:42:45 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505152240280.4225@nanos>
+References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com> <1430709339-29083-3-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:34674 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934085AbbEOUlp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2015 16:41:45 -0400
-Received: by wicmc15 with SMTP id mc15so47086741wic.1
-        for <linux-acpi@vger.kernel.org>; Fri, 15 May 2015 13:41:44 -0700 (PDT)
-In-Reply-To: <x49twvdwrq5.fsf@segfault.boston.devel.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1430709339-29083-3-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jason Cooper <jason@lakedaemon.net>, Grant Likely <grant.likely@linaro.org>, Kevin Cernekee <cernekee@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: linux-nvdimm <linux-nvdimm@ml01.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, May 15, 2015 at 12:44 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> Dan Williams <dan.j.williams@intel.com> writes:
->
-> Looks like the Kconfig stuff has been worked out between you and Rafael,
-> so I won't comment on that.
->
->> diff --git a/drivers/block/nd/acpi.c b/drivers/block/nd/acpi.c
->> new file mode 100644
->> index 000000000000..9f0b24390d1b
->> --- /dev/null
->> +++ b/drivers/block/nd/acpi.c
->> @@ -0,0 +1,475 @@
->> +/*
->> + * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of version 2 of the GNU General Public License as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->> + * General Public License for more details.
->> + */
->> +#include <linux/list_sort.h>
->> +#include <linux/module.h>
->> +#include <linux/list.h>
->> +#include <linux/acpi.h>
->> +#include "acpi_nfit.h"
->> +#include "libnd.h"
->> +
->> +static bool warn_checksum;
->> +module_param(warn_checksum, bool, S_IRUGO|S_IWUSR);
->> +MODULE_PARM_DESC(warn_checksum, "Turn checksum errors into warnings");
->
-> Is this just a debugging option?
+On Mon, 4 May 2015, Jiang Liu wrote:
 
-Yes, but I've deleted it in the next rev of the code since the ACPI
-core will have already done the checksum.  The driver need not
-implement it's own checksum.
+> NUMA node information is per-irq instead of per-irqchip, so move it into
+> struct irq_common_data.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/sh/kernel/irq.c          |    2 +-
+>  arch/x86/kernel/apic/vector.c |    8 ++++----
+>  arch/x86/platform/uv/uv_irq.c |    2 +-
+>  include/linux/irq.h           |   20 ++++++++++++++++++--
+>  kernel/irq/internals.h        |    5 +++++
+>  kernel/irq/irqdesc.c          |   10 ++--------
+>  kernel/irq/irqdomain.c        |    4 ++--
+>  kernel/irq/manage.c           |    2 +-
+>  kernel/irq/proc.c             |    2 +-
 
->> +
->> +enum {
->> +     NFIT_ACPI_NOTIFY_TABLE = 0x80,
->> +};
->
-> This is unused by this patch.
+Can you please split this into several patches for review and
+bisection sake?
 
-Yes.  I went ahead and deleted all the ACPI notification
-infrastructure until we're ready to implement hot-add.
+    1) Do the cleanup of s/data->node/irq_data_get_node(data)/
 
-> The rest looks ok to me.
+       1 a) core code
+       1 b) arch/sh
+       1 c) arch/x86
 
-Thanks Jeff.
+    2) Do the actual move of node to common_data
+
+Thanks,
+
+	tglx
