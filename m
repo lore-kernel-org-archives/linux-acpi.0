@@ -1,306 +1,121 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 4/6] ACPI / EC: Fix and clean up register access guarding logics.
-Date: Fri, 15 May 2015 14:16:42 +0800
-Message-ID: <164c354d80ef91bc114cae2ae4dd48d27bcbd189.1431670199.git.lv.zheng@intel.com>
+Subject: [PATCH v2 6/6] ACPI / EC: Remove non-root-caused busy polling quirks.
+Date: Fri, 15 May 2015 14:16:55 +0800
+Message-ID: <07c6a44644f9cde0a6b555c55cf37ebaa44f7b2a.1431670199.git.lv.zheng@intel.com>
 References: <3b6064b23b148a9c3eed58566e9361a852618556.1430900840.git.lv.zheng@intel.com> <cover.1431670199.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:15377 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932393AbbEOGRB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 May 2015 02:17:01 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1431670199.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-In the polling mode, EC driver shouldn't access the EC registers too
-frequently. Though this statement is concluded from the non-root caused
-bugs (see links below), we've maintained the register access guarding
-logics in the current EC driver. The guarding logics can be found here and
-there, makes it hard to root cause real timing issues. This patch collects
-the guarding logics into one single function so that all hidden logics
-related to this can be seen clearly.
+We have fixed a lot of race issues in the EC driver recently.
 
-The current guarding related code also has several issues:
-1. Per-transaction timestamp prevents inter-transaction guarding from being
-   implemented in the same place. We have an inter-transaction udelay() in
-   acpi_ec_transaction_unblocked(), this logic can be merged into ec_poll()
-   if we can use per-device timestamp. This patch completes such merge to
-   form a new ec_guard() function and collects all guarding related hidden
-   logics in it.
-   One hidden logic is: there is no inter-transaction guarding performed
-   for non MSI quirk (wait polling mode), this patch skips
-   inter-transaction guarding before wait_event_timeout() for the wait
-   polling mode to reveal the hidden logic.
-   The other hidden logic is: there is msleep() inter-transaction guarding
-   performed when the GPE storming is observed. As after merging this
-   commit:
-     Commit: e1d4d90fc0313d3d58cbd7912c90f8ef24df45ff
-     Subject: ACPI / EC: Refine command storm prevention support
-   EC_FLAGS_COMMAND_STORM is ensured to be cleared after invoking
-   acpi_ec_transaction_unlocked(), the msleep() guard logic will never
-   happen now. Since no one complains such change, this logic is likely
-   added during the old times where the EC race issues are not fixed and
-   the bugs are false root-caused to the timing issue. This patch simply
-   removes the out-dated logic. We can restore it by stop skipping
-   inter-transaction guarding for wait polling mode.
-   Two different delay values are defined for msleep() and udelay() while
-   they are merged in this patch to 550us.
-2. time_after() causes additional delay in the polling mode (can only be
-   observed in noirq suspend/resume processes where polling mode is always
-   used) before advance_transaction() is invoked ("wait polling" log is
-   added before wait_event_timeout()). We can see 2 wait_event_timeout()
-   invocations. This is because time_after() ensures a ">" validation while
-   we only need a ">=" validation here:
-   [   86.739909] ACPI: Waking up from system sleep state S3
-   [   86.742857] ACPI : EC: 2: Increase command
-   [   86.742859] ACPI : EC: ***** Command(RD_EC) started *****
-   [   86.742861] ACPI : EC: ===== TASK (0) =====
-   [   86.742871] ACPI : EC: EC_SC(R) = 0x20 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=0
-   [   86.742873] ACPI : EC: EC_SC(W) = 0x80
-   [   86.742876] ACPI : EC: ***** Event started *****
-   [   86.742880] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   86.743972] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   86.747966] ACPI : EC: ===== TASK (0) =====
-   [   86.747977] ACPI : EC: EC_SC(R) = 0x20 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=0
-   [   86.747978] ACPI : EC: EC_DATA(W) = 0x06
-   [   86.747981] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   86.751971] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   86.755969] ACPI : EC: ===== TASK (0) =====
-   [   86.755991] ACPI : EC: EC_SC(R) = 0x21 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=1
-   [   86.755993] ACPI : EC: EC_DATA(R) = 0x03
-   [   86.755994] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   86.755995] ACPI : EC: ***** Command(RD_EC) stopped *****
-   [   86.755996] ACPI : EC: 1: Decrease command
-   This patch corrects this by using time_before() instead in ec_guard():
-   [   54.283146] ACPI: Waking up from system sleep state S3
-   [   54.285414] ACPI : EC: 2: Increase command
-   [   54.285415] ACPI : EC: ***** Command(RD_EC) started *****
-   [   54.285416] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   54.285417] ACPI : EC: ===== TASK (0) =====
-   [   54.285424] ACPI : EC: EC_SC(R) = 0x20 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=0
-   [   54.285425] ACPI : EC: EC_SC(W) = 0x80
-   [   54.285427] ACPI : EC: ***** Event started *****
-   [   54.285429] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   54.287209] ACPI : EC: ===== TASK (0) =====
-   [   54.287218] ACPI : EC: EC_SC(R) = 0x20 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=0
-   [   54.287219] ACPI : EC: EC_DATA(W) = 0x06
-   [   54.287222] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   54.291190] ACPI : EC: ===== TASK (0) =====
-   [   54.291210] ACPI : EC: EC_SC(R) = 0x21 SCI_EVT=1 BURST=0 CMD=0 IBF=0 OBF=1
-   [   54.291213] ACPI : EC: EC_DATA(R) = 0x03
-   [   54.291214] ACPI : EC: ~~~~~ wait polling ~~~~~
-   [   54.291215] ACPI : EC: ***** Command(RD_EC) stopped *****
-   [   54.291216] ACPI : EC: 1: Decrease command
+The following commit introduces MSI udelay()/msleep() quirk to MSI laptops
+to make EC firmware working for bug 12011 without root causing any EC
+driver race issues:
+  Commit: 5423a0cb3f74c16e90683f8ee1cec6c240a9556e
+  Subject: ACPI: EC: Add delay for slow MSI controller
+  Commit: 34ff4dbccccce54c83b1234d39b7ad9e548a75dd
+  Subject: ACPI: EC: Separate delays for MSI hardware
 
-After cleaning up all guarding logics, we have one single function
-ec_guard() collecting all old, non-root-caused, hidden logics. Then we can
-easily tune the logics in one place to respond to the bug reports.
+The following commit extends ECDT validation quirk to MSI laptops to make
+EC driver locating EC registers properly for bug 12461:
+  Commit: a5032bfdd9c80e0231a6324661e123818eb46ecd
+  Subject: ACPI: EC: Always parse EC device
+This is a different quirk than the MSI udelay()/msleep() quirk. This patch
+keeps validating ECDT for only "Micro-Star MS-171F" as reported.
 
-Except the time_before() change, all other changes do not change the
-behavior of the EC driver.
+The following commit extends MSI udelay()/msleep() quirk to Quanta laptops
+to make EC firmware working for bug 20242, there is no requirement to
+validate ECDT for Quanta laptops:
+  Commit: 534bc4e3d27096e2f3fc00c14a20efd597837a4f Mon Sep 17 00:00:00 2001
+  Subject: ACPI EC: enable MSI workaround for Quanta laptops
+
+The following commit extends MSI udelay()/msleep() quirk to Clevo laptops
+to make EC firmware working for bug 77431, there is no requirement to
+validate ECDT for Clevo laptops:
+  Commit: 777cb382958851c88763253fe00a26529be4c0e9
+  Subject: ACPI / EC: Add msi quirk for Clevo W350etq
+
+All udelay()/msleep() quirks for MSI/Quanta/Clevo seem to be the wrong
+fixes generated without fixing the EC driver race issues.
+And even if it is not wrong, the guarding can be covered by the following
+commits in wait polling mode:
+  Commit: 9e295ac14d6a59180beed0735e6a504c2ee87761
+  Subject: ACPI / EC: Reduce ec_poll() by referencing the last register access timestamp.
+  Commit: right before this commit
+  Subject: ACPI / EC: Merge register access guarding logics.
+The only case that is not covered is the inter-transaction guarding. And
+there is no evidence that we need the inter-transaction guarding upon
+reading the noted bug entries.
+
+So it is time to remove the quirks and let the users to try again. If there
+is a regression, the only thing we need to do is to restore the
+inter-transaction guarding for the reported platforms.
 
 Reference: https://bugzilla.kernel.org/show_bug.cgi?id=12011
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=12461
 Reference: https://bugzilla.kernel.org/show_bug.cgi?id=20242
 Reference: https://bugzilla.kernel.org/show_bug.cgi?id=77431
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/ec.c       |   82 +++++++++++++++++++++++++++++++----------------
- drivers/acpi/internal.h |    1 +
- 2 files changed, 55 insertions(+), 28 deletions(-)
+ drivers/acpi/ec.c |   35 +++--------------------------------
+ 1 file changed, 3 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 20bd43f..a521b6b 100644
+index 846e0617..149b5e7 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -70,8 +70,7 @@ enum ec_command {
- 
- #define ACPI_EC_DELAY		500	/* Wait 500ms max. during EC ops */
- #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
--#define ACPI_EC_MSI_UDELAY	550	/* Wait 550us for MSI EC */
--#define ACPI_EC_UDELAY_POLL	1000	/* Wait 1ms for EC transaction polling */
-+#define ACPI_EC_UDELAY_POLL	550	/* Wait 1ms for EC transaction polling */
- #define ACPI_EC_CLEAR_MAX	100	/* Maximum number of events to query
- 					 * when trying to clear the EC */
- 
-@@ -121,7 +120,6 @@ struct transaction {
- 	u8 wlen;
- 	u8 rlen;
- 	u8 flags;
--	unsigned long timestamp;
- };
- 
- static int acpi_ec_query(struct acpi_ec *ec, u8 *data);
-@@ -218,7 +216,7 @@ static inline u8 acpi_ec_read_data(struct acpi_ec *ec)
- {
- 	u8 x = inb(ec->data_addr);
- 
--	ec->curr->timestamp = jiffies;
-+	ec->timestamp = jiffies;
- 	ec_dbg_raw("EC_DATA(R) = 0x%2.2x", x);
- 	return x;
- }
-@@ -227,14 +225,14 @@ static inline void acpi_ec_write_cmd(struct acpi_ec *ec, u8 command)
- {
- 	ec_dbg_raw("EC_SC(W) = 0x%2.2x", command);
- 	outb(command, ec->command_addr);
--	ec->curr->timestamp = jiffies;
-+	ec->timestamp = jiffies;
+@@ -1269,15 +1269,6 @@ static int ec_validate_ecdt(const struct dmi_system_id *id)
+ 	return 0;
  }
  
- static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
- {
- 	ec_dbg_raw("EC_DATA(W) = 0x%2.2x", data);
- 	outb(data, ec->data_addr);
--	ec->curr->timestamp = jiffies;
-+	ec->timestamp = jiffies;
- }
- 
- #ifdef DEBUG
-@@ -392,6 +390,18 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
- 	}
- }
- 
-+static int ec_transaction_polled(struct acpi_ec *ec)
-+{
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	if (ec->curr && (ec->curr->flags & ACPI_EC_COMMAND_POLL))
-+		ret = 1;
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+	return ret;
-+}
-+
- static int ec_transaction_completed(struct acpi_ec *ec)
- {
- 	unsigned long flags;
-@@ -490,8 +500,37 @@ static void start_transaction(struct acpi_ec *ec)
- {
- 	ec->curr->irq_count = ec->curr->wi = ec->curr->ri = 0;
- 	ec->curr->flags = 0;
--	ec->curr->timestamp = jiffies;
--	advance_transaction(ec);
-+}
-+
-+static int ec_guard(struct acpi_ec *ec)
-+{
-+	unsigned long guard = usecs_to_jiffies(ACPI_EC_UDELAY_POLL);
-+	unsigned long timeout = ec->timestamp + guard;
-+
-+	do {
-+		if (EC_FLAGS_MSI) {
-+			/* Perform busy polling */
-+			if (ec_transaction_completed(ec))
-+				return 0;
-+			udelay(jiffies_to_usecs(guard));
-+		} else {
-+			/*
-+			 * Perform wait polling
-+			 *
-+			 * The following check is there to keep the old
-+			 * logic - no inter-transaction guarding for the
-+			 * wait polling mode.
-+			 */
-+			if (!ec_transaction_polled(ec))
-+				break;
-+			if (wait_event_timeout(ec->wait,
-+					       ec_transaction_completed(ec),
-+					       guard))
-+				return 0;
-+		}
-+		/* Guard the register accesses for the polling modes */
-+	} while (time_before(jiffies, timeout));
-+	return -ETIME;
- }
- 
- static int ec_poll(struct acpi_ec *ec)
-@@ -502,24 +541,11 @@ static int ec_poll(struct acpi_ec *ec)
- 	while (repeat--) {
- 		unsigned long delay = jiffies +
- 			msecs_to_jiffies(ec_delay);
--		unsigned long usecs = ACPI_EC_UDELAY_POLL;
- 		do {
--			if (EC_FLAGS_MSI) {
--				usecs = ACPI_EC_MSI_UDELAY;
--				udelay(usecs);
--				if (ec_transaction_completed(ec))
--					return 0;
--			} else {
--				if (wait_event_timeout(ec->wait,
--						ec_transaction_completed(ec),
--						usecs_to_jiffies(usecs)))
--					return 0;
--			}
-+			if (!ec_guard(ec))
-+				return 0;
- 			spin_lock_irqsave(&ec->lock, flags);
--			if (time_after(jiffies,
--					ec->curr->timestamp +
--					usecs_to_jiffies(usecs)))
--				advance_transaction(ec);
-+			advance_transaction(ec);
- 			spin_unlock_irqrestore(&ec->lock, flags);
- 		} while (time_before(jiffies, delay));
- 		pr_debug("controller reset, restart transaction\n");
-@@ -536,8 +562,6 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 	unsigned long tmp;
- 	int ret = 0;
- 
--	if (EC_FLAGS_MSI)
--		udelay(ACPI_EC_MSI_UDELAY);
- 	/* start transaction */
- 	spin_lock_irqsave(&ec->lock, tmp);
- 	/* Enable GPE for command processing (IBF=0/OBF=1) */
-@@ -551,7 +575,9 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
- 	ec_dbg_req("Command(%s) started", acpi_ec_cmd_string(t->command));
- 	start_transaction(ec);
- 	spin_unlock_irqrestore(&ec->lock, tmp);
-+
- 	ret = ec_poll(ec);
-+
- 	spin_lock_irqsave(&ec->lock, tmp);
- 	if (t->irq_count == ec_storm_threshold)
- 		acpi_ec_clear_storm(ec, EC_FLAGS_COMMAND_STORM);
-@@ -574,6 +600,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 		return -EINVAL;
- 	if (t->rdata)
- 		memset(t->rdata, 0, t->rlen);
-+
- 	mutex_lock(&ec->mutex);
- 	if (ec->global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
-@@ -585,8 +612,6 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 
- 	status = acpi_ec_transaction_unlocked(ec, t);
- 
--	if (test_bit(EC_FLAGS_COMMAND_STORM, &ec->flags))
--		msleep(1);
- 	if (ec->global_lock)
- 		acpi_release_global_lock(glk);
- unlock:
-@@ -1002,6 +1027,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	INIT_LIST_HEAD(&ec->list);
- 	spin_lock_init(&ec->lock);
- 	INIT_WORK(&ec->work, acpi_ec_gpe_poller);
-+	ec->timestamp = jiffies;
- 	return ec;
- }
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index ba4a61e..61cb506 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -138,6 +138,7 @@ struct acpi_ec {
- 	struct transaction *curr;
- 	spinlock_t lock;
- 	struct work_struct work;
-+	unsigned long timestamp;
- };
- 
- extern struct acpi_ec *first_ec;
+-/* EC firmware needs special polling mode, enable it */
+-static int ec_use_busy_polling(const struct dmi_system_id *id)
+-{
+-	pr_debug("Detected the EC firmware requiring busy polling mode.\n");
+-	ec_busy_polling = 1;
+-	EC_FLAGS_VALIDATE_ECDT = 1;
+-	return 0;
+-}
+-
+ /*
+  * Acer EC firmware refuses to respond QR_EC when SCI_EVT is not set, for
+  * which case, we complete the QR_EC without issuing it to the firmware.
+@@ -1320,29 +1311,9 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
+ 	DMI_MATCH(DMI_BIOS_VENDOR, "COMPAL"),
+ 	DMI_MATCH(DMI_BOARD_NAME, "JFL92") }, NULL},
+ 	{
+-	ec_use_busy_polling, "MSI hardware", {
+-	DMI_MATCH(DMI_BIOS_VENDOR, "Micro-Star")}, NULL},
+-	{
+-	ec_use_busy_polling, "MSI hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star")}, NULL},
+-	{
+-	ec_use_busy_polling, "MSI hardware", {
+-	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-Star")}, NULL},
+-	{
+-	ec_use_busy_polling, "MSI hardware", {
+-	DMI_MATCH(DMI_CHASSIS_VENDOR, "MICRO-STAR")}, NULL},
+-	{
+-	ec_use_busy_polling, "Quanta hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Quanta"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "TW8/SW8/DW8"),}, NULL},
+-	{
+-	ec_use_busy_polling, "Quanta hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Quanta"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "TW9/SW9"),}, NULL},
+-	{
+-	ec_use_busy_polling, "Clevo W350etq", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "CLEVO CO."),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "W35_37ET"),}, NULL},
++	ec_validate_ecdt, "MSI MS-171F", {
++	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star"),
++	DMI_MATCH(DMI_PRODUCT_NAME, "MS-171F"),}, NULL},
+ 	{
+ 	ec_validate_ecdt, "ASUS hardware", {
+ 	DMI_MATCH(DMI_BIOS_VENDOR, "ASUS") }, NULL},
 -- 
 1.7.10
-
