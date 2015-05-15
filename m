@@ -1,61 +1,35 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 03/20] nd_acpi, nfit-test: manufactured
- NFITs for interface development
-Date: Fri, 15 May 2015 13:50:35 -0700
-Message-ID: <CAPcyv4ipwNdHy=qAS+EeuQaUDVnVe3aOab+CGO9ojrb-hZvkXg@mail.gmail.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150428182428.35812.95800.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<x49pp61wptt.fsf@segfault.boston.devel.redhat.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC v1 00/11] Split struct irq_data into common part and per-chip
+ part
+Date: Fri, 15 May 2015 22:57:46 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505152256300.4225@nanos>
+References: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <x49pp61wptt.fsf@segfault.boston.devel.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: linux-nvdimm <linux-nvdimm@ml01.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:43120 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161002AbbEOU6A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 May 2015 16:58:00 -0400
+In-Reply-To: <1430709339-29083-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, May 15, 2015 at 1:25 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> Dan Williams <dan.j.williams@intel.com> writes:
->
->> +config NFIT_TEST
->> +     tristate "NFIT TEST: Manufactured NFIT for interface testing"
->> +     depends on DMA_CMA
->> +     depends on LIBND=m
->> +     depends on ND_ACPI
->> +     depends on m
->> +     help
->> +       For development purposes register a manufactured
->> +       NFIT table to verify the resulting device model topology.
->> +       Note, this module arranges for ioremap_cache() to be
->> +       overridden locally to allow simulation of system-memory as an
->> +       io-memory-resource.
->> +
->> +       Note, this test expects to be able to find at least 256MB of
->> +       CMA space (CONFIG_CMA_SIZE_MBYTES, cma=) or it will fail to
->> +       load.
->> +
->> +       Say N unless you are doing development of the 'nd' subsystem.
->> +
->
-> Too many TLAs.  I'm guessing CMA means Conventional Memory Area to you.
-> To me it means contiguous memory allocator.
+On Mon, 4 May 2015, Jiang Liu wrote:
+> Hi all,
+> 	Now the irq core supports hierarchy irq and stacked irqchips,
+> so there may be multiple irq_datas associated with the same irq. But
+> some fields in struct irq_data are per-irq instance and duplicating
+> those fields into multiple irq_data may cause troubles.
+> 	So this patch introduces a new data structure 'struct
+> irq_common_data' to host per-irq instance data fields, and struct
+> irq_data will only host per-chip data fields after the conversion.
 
-I means Contiguous Memory Allocator to me too.
+I really like that change in general. Please address the few review
+comments and resubmit.
 
-> Anyway, please define
-> acronyms when you use them, especially in help text.  The help text also
-> doesn't really explain where it will find this memory.  Would it be
-> possible to provide more direction there?
+Thanks,
 
-I didn't think I needed to define CMA in the context of Kconfig, but
-I'll replace it with CONFIG_DMA_CMA to be more clear.
-
-> I don't have any useful commentary on the patch itself.  I do wonder if
-> you shouldn't move this to the end, as it's hardly an integral part of
-> the patch set.
-
-True.  The patches are currently in "development order" in that I
-created the test infrastructure before the rest of the implementation.
-But, I agree it makes sense to move this to the end for the next
-posting.
+	tglx
