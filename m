@@ -1,41 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/6] ACPI / EC: Update due to recent changes.
-Date: Sat, 16 May 2015 02:22:36 +0200
-Message-ID: <10548867.PAL3ammWVt@vostro.rjw.lan>
-References: <3b6064b23b148a9c3eed58566e9361a852618556.1430900840.git.lv.zheng@intel.com> <cover.1431670199.git.lv.zheng@intel.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [V4 PATCH 2/6] arm64 : Introduce support for ACPI _CCA object
+Date: Sat, 16 May 2015 13:48:07 +0200
+Message-ID: <1431776887.2341.17.camel@x220>
+References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+	 <1431724994-21601-3-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1431670199.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37410 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750743AbbEPLsQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 16 May 2015 07:48:16 -0400
+In-Reply-To: <1431724994-21601-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org
 
-On Friday, May 15, 2015 02:16:05 PM Lv Zheng wrote:
-> This patchset tries to cleanup the EC driver to reflect the recent changes.
-> There is a small fix in the patchset to use time_before() instead of
-> time_after().
-> The last patch removes all non-root-caused MSI quirks so that we may be
-> able to identify their root cause if regressions are reported against this
-> removal and generate new quirks based on the new code base.
-> 
-> Lv Zheng (6):
->   ACPI / EC: Update acpi_ec_is_gpe_raised() with new GPE status flag.
->   ACPI / EC: Remove storming threashold enlarging quirk.
->   ACPI / EC: Remove irqs_disabled() check.
->   ACPI / EC: Fix and clean up register access guarding logics.
->   ACPI / EC: Add module params for polling modes.
->   ACPI / EC: Remove non-root-caused busy polling quirks.
-> 
->  drivers/acpi/ec.c       |  148 ++++++++++++++++++++++-------------------------
->  drivers/acpi/internal.h |    1 +
->  2 files changed, 69 insertions(+), 80 deletions(-)
+Just a nit regarding the commit explanation.
 
-All of these make sense to me, so I'm queuing them up for 4.2, thanks!
+On Fri, 2015-05-15 at 16:23 -0500, Suravee Suthikulpanit wrote:
+> From http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf,
+> section 6.2.17 _CCA states that ARM platforms require ACPI _CCA
+> object to be specified for DMA-cabpable devices. This patch introduces
+> ACPI_MUST_HAVE_CCA in arm64 Kconfig to specify such requirement.
+
+s/ACPI_MUST_HAVE_CCA/ACPI_CCA_REQUIRED/.
+
+Ie, update the commit explanation to match the change introduced in V2.
+
+> In case _CCA is missing, arm64 would assign dummy_dma_ops
+> to disable DMA capability of the device.
+
+Thanks,
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Paul Bolle
+
