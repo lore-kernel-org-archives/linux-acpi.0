@@ -1,88 +1,113 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Patch v3 5/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Mon, 18 May 2015 21:08:27 +0800
-Message-ID: <5559E44B.2010702@linaro.org>
-References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com>
+From: Chris Bainbridge <chris.bainbridge@gmail.com>
+Subject: Re: [PATCH] ACPI/sbshc: Add 5us delay to fix SBS hang on MacBook
+Date: Mon, 18 May 2015 14:07:39 +0100
+Message-ID: <20150518130739.GA2483@localhost>
+References: <20150424012530.GA16763@localhost>
+ <4435249.leKkNHm9IZ@vostro.rjw.lan>
+ <20150429202140.GB25904@localhost>
+ <55594C71.9060402@fnarfbargle.com>
+ <20150518122737.GA5850@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:35715 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752396AbbERNIf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 09:08:35 -0400
-Received: by pdea3 with SMTP id a3so148015221pde.2
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 06:08:34 -0700 (PDT)
-In-Reply-To: <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:35958 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833AbbERNHn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 09:07:43 -0400
+Received: by wizk4 with SMTP id k4so78563160wiz.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 06:07:42 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150518122737.GA5850@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Brad Campbell <brad@fnarfbargle.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi Jiang,
+On Mon, May 18, 2015 at 01:27:37PM +0100, Chris Bainbridge wrote:
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index 01504c8..74f8596 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -361,16 +361,21 @@ static int acpi_manager_get_info(struct acpi_sbs *sbs)
+>  static int acpi_battery_get_info(struct acpi_battery *battery)
+>  {
+>  	int i, result = 0;
+> -
+> -	for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
+> -		result = acpi_smbus_read(battery->sbs->hc,
+> -					 info_readers[i].mode,
+> -					 ACPI_SBS_BATTERY,
+> -					 info_readers[i].command,
+> -					 (u8 *) battery +
+> -						info_readers[i].offset);
+> -		if (result)
+> -			break;
+> +	int j;
+> +
+> +	for (j = 0; j < 1000; j++) {
+> +		for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
+> +			result = acpi_smbus_read(battery->sbs->hc,
+> +						 info_readers[i].mode,
+> +						 ACPI_SBS_BATTERY,
+> +						 info_readers[i].command,
+> +						 (u8 *) battery +
+> +							info_readers[i].offset);
+> +			if (result) {
+> +				printk("FAIL\n");
+> +				break;
+> +			}
+> +		}
+>  	}
+>  	return result;
+>  }
 
-On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
-> Introduce common interface acpi_pci_root_create() and related data
-> structures to create PCI root bus for ACPI PCI host bridges. It will
-> be used to kill duplicated arch specific code for IA64 and x86. It ma=
-y
-> also help ARM64 in future.
 
-As I commented in previous version, this patch will introduce
-compile error on ACPI enabled ARM64 kernel because struct
-pci_controller is not defined for ARM64, so how about adding
-the following patch before this patch, or squash to this one,
-does it make sense?
+Better to exit immediately when SBS hangs, otherwise you could be
+waiting a long time for modprobe to return:
 
- From 11d0e98154e681e75936698208398cb4dcd73632 Mon Sep 17 00:00:00 2001
-=46rom: Hanjun Guo <hanjun.guo@linaro.org>
-Date: Mon, 18 May 2015 19:41:56 +0800
-Subject: [PATCH] ARM64 / PCI: introduce struct pci_controller for ACPI
 
-ARM64 ACPI based PCI host bridge init needs a arch dependent
-struct pci_controller to accommodate common PCI host bridge
-code which is introduced later, or it will lead to compile
-errors on ARM64.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-CC: Liviu Dudau <Liviu.Dudau@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-CC: Arnd Bergmann <arnd@arndb.de>
----
-  arch/arm64/include/asm/pci.h | 10 ++++++++++
-  1 file changed, 10 insertions(+)
-
-diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.=
-h
-index b008a72..7088495 100644
---- a/arch/arm64/include/asm/pci.h
-+++ b/arch/arm64/include/asm/pci.h
-@@ -10,6 +10,16 @@
-  #include <asm-generic/pci-bridge.h>
-  #include <asm-generic/pci-dma-compat.h>
-
-+struct acpi_device;
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 01504c8..84f422f 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -361,17 +361,22 @@ static int acpi_manager_get_info(struct acpi_sbs *sbs)
+ static int acpi_battery_get_info(struct acpi_battery *battery)
+ {
+ 	int i, result = 0;
+-
+-	for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
+-		result = acpi_smbus_read(battery->sbs->hc,
+-					 info_readers[i].mode,
+-					 ACPI_SBS_BATTERY,
+-					 info_readers[i].command,
+-					 (u8 *) battery +
+-						info_readers[i].offset);
+-		if (result)
+-			break;
++	int j;
 +
-+struct pci_controller {
-+#ifdef CONFIG_ACPI
-+       struct acpi_device *companion;  /* ACPI companion device */
-+#endif
-+       int             segment;        /* PCI domain */
-+       int             node;           /* NUMA node */
-+};
-+
-  #define PCIBIOS_MIN_IO         0x1000
-  #define PCIBIOS_MIN_MEM                0
++	for (j = 0; j < 100; j++) {
++		for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
++			result = acpi_smbus_read(battery->sbs->hc,
++						 info_readers[i].mode,
++						 ACPI_SBS_BATTERY,
++						 info_readers[i].command,
++						 (u8 *) battery +
++							info_readers[i].offset);
++			if (result)
++				goto end;
++		}
+ 	}
++      end:
++	printk(result ? "FAIL" : "OK");
+ 	return result;
+ }
+ 
 
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm sure you get the idea. Forcing repeated SBS reads is a much quicker
+way to uncover an intermittent fault than through normal usage. After
+adding the 5us delay, I was able to run the acpi_battery_get_info loop
+for 20,000 cycles without fault, but this is just one Macbook, others
+may be different. It's also possible that the delay is just covering up
+some other problem; some patches were posted a few days ago to fix some
+underlying hang issues: http://www.spinics.net/lists/linux-acpi/msg57572.html
