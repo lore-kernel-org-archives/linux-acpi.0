@@ -1,102 +1,79 @@
-From: Chris Bainbridge <chris.bainbridge@gmail.com>
-Subject: Re: [PATCH] ACPI/sbshc: Add 5us delay to fix SBS hang on MacBook
-Date: Mon, 18 May 2015 13:27:37 +0100
-Message-ID: <20150518122737.GA5850@localhost>
-References: <20150424012530.GA16763@localhost>
- <4435249.leKkNHm9IZ@vostro.rjw.lan>
- <20150429202140.GB25904@localhost>
- <55594C71.9060402@fnarfbargle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH 00/11] Add self-probe infrastructure and stacked irqdomain support for ACPI based GICv2/3 init
+Date: Mon, 18 May 2015 20:59:10 +0800
+Message-ID: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:35259 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753878AbbERM1n (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 08:27:43 -0400
-Received: by wgfl8 with SMTP id l8so34374969wgf.2
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 05:27:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <55594C71.9060402@fnarfbargle.com>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:35048 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143AbbERM7o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 08:59:44 -0400
+Received: by pdea3 with SMTP id a3so147682213pde.2
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 05:59:44 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Brad Campbell <brad@fnarfbargle.com>
-Cc: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Mon, May 18, 2015 at 10:20:33AM +0800, Brad Campbell wrote:
-> On 30/04/15 04:21, Chris Bainbridge wrote:
-> >
-> >Supporting _OSI("Darwin") caused the MacBook firmware to expose the SBS,
-> >resulting in intermittent hangs of several minutes on boot, and failure
-> >to detect or report the battery. Fix this by adding a 5us delay to the
-> >start of each SMBUS transaction. This timing is the result of
-> >experimentation - hangs were observed with 3us but never with 5us.
-> 
-> G'day Chris,
-> 
-> Using 4.1-rc3 (whatever git head was from a couple of days ago) I've still
-> been seeing ACPI lockups on my Macbook Pro (11,1). It appears to take a
-> couple of suspend/resume cycles but seems to happen within 24 hours of
-> booting whereas before this patch it was easy to hit.
-> 
-> As a test (and I do wonder if it'll lock up after I press send on this
-> E-mail) I upped the delay to 10us and I've now been up for 1 day, 17:23 with
-> the battery still responding to polling.
-> 
-> To make it easier to reproduce, I've been running a script that polls the
-> battery every 60 seconds.
-> 
-> I figure I'll let it go for another couple of days, but I wanted to put this
-> out there in case anyone else is seeing lockups after a longer period of
-> uptime. The symptoms are the ACPI command just hangs as does 'cat
-> /sys/class/power_supply/BAT0/status'. From there I can't suspend as the
-> tasks can't be frozen and I just end up hard booting the machine.
-> 
-> I've removed Len & Rafael from the cc.
-> 
-> Regards,
-> Brad
+This patch set introduce self-probe infrastructure to init IRQ
+controllers and stacked irqdomain support for ACPI based GICv2/3
+init.
 
-I used a patch similar to the following to test, it just runs the SBS
-read in a loop. acpi_battery_get_info is run when the sbs module is
-loaded. So start off with the 5us delay and a few runs through the loop
-and verify you hit the hang, then increase the delay to 10us or whatever
-and run the loop for a few thousand cycles until you're happy that
-increasing the delay fixes the problem.
+The self-probe infrastructure for ACPI GIC init is similar as
+IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+MADT table.
 
+We introduce acpi_irq_domain for GICv2/3 core domain to support
+stacked irqdomain, and pass the gsi (global system interrupt) as
+the agument (void *arg) for gic_irq_domain_alloc(), then we can
+alloc virqs via acpi_register_gsi() with stacked irqdomain.
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 01504c8..74f8596 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -361,16 +361,21 @@ static int acpi_manager_get_info(struct acpi_sbs *sbs)
- static int acpi_battery_get_info(struct acpi_battery *battery)
- {
- 	int i, result = 0;
--
--	for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
--		result = acpi_smbus_read(battery->sbs->hc,
--					 info_readers[i].mode,
--					 ACPI_SBS_BATTERY,
--					 info_readers[i].command,
--					 (u8 *) battery +
--						info_readers[i].offset);
--		if (result)
--			break;
-+	int j;
-+
-+	for (j = 0; j < 1000; j++) {
-+		for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
-+			result = acpi_smbus_read(battery->sbs->hc,
-+						 info_readers[i].mode,
-+						 ACPI_SBS_BATTERY,
-+						 info_readers[i].command,
-+						 (u8 *) battery +
-+							info_readers[i].offset);
-+			if (result) {
-+				printk("FAIL\n");
-+				break;
-+			}
-+		}
- 	}
- 	return result;
- }
+In order to make ACPI related GIC init code slef-contained, I
+consolidated all the GIC init code into drivers/irqchip/irq-gic-acpi.c.
+
+update from RFC version:
+ - Consolidate all the GIC init code into drivers/irqchip/irq-gic-acpi.c
+
+Hanjun Guo (8):
+  irqchip / GIC: Add GIC version support in ACPI MADT
+  irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+    code
+  irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+  ACPI / gsi: Add gsi_mutex to synchronize
+    acpi_register_gsi()/acpi_unregister_gsi()
+  irqchip / GICv3: Add ACPI support for GICv3+ initialization
+  irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+  irqchip / GICv2 / ACPI: Consolidate GICv2 ACPI related init code
+  irqchip / GICv3 / ACPI: Consolidate GICv3 ACPI related init code
+
+Tomasz Nowicki (3):
+  ACPICA: Introduce GIC version for arm based system
+  ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+    controller
+  irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+
+ arch/arm64/Kconfig                   |   1 +
+ arch/arm64/include/asm/irq.h         |  13 --
+ arch/arm64/kernel/acpi.c             |  25 ---
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/gsi.c                   |  41 +++--
+ drivers/acpi/irq.c                   |  40 +++++
+ drivers/irqchip/Kconfig              |   3 +
+ drivers/irqchip/Makefile             |   1 +
+ drivers/irqchip/irq-gic-acpi.c       | 318 +++++++++++++++++++++++++++++++++++
+ drivers/irqchip/irq-gic-v3.c         | 149 +++++++++-------
+ drivers/irqchip/irq-gic.c            | 129 ++------------
+ drivers/irqchip/irqchip.h            |  12 ++
+ include/acpi/actbl1.h                |  17 +-
+ include/asm-generic/vmlinux.lds.h    |  13 ++
+ include/linux/acpi.h                 |  14 ++
+ include/linux/acpi_irq.h             |   4 +-
+ include/linux/irqchip/arm-gic-acpi.h |  13 +-
+ include/linux/irqchip/arm-gic-v3.h   |  10 ++
+ include/linux/mod_devicetable.h      |   7 +
+ 19 files changed, 577 insertions(+), 234 deletions(-)
+ create mode 100644 drivers/acpi/irq.c
+ create mode 100644 drivers/irqchip/irq-gic-acpi.c
+
+-- 
+1.9.1
+
