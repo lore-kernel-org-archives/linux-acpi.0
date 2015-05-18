@@ -1,72 +1,88 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 09/11] irqchip / GICv3: Add stacked irqdomain support for ACPI based init
-Date: Mon, 18 May 2015 20:59:19 +0800
-Message-ID: <1431953961-22706-10-git-send-email-hanjun.guo@linaro.org>
-References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [Patch v3 5/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Mon, 18 May 2015 21:08:27 +0800
+Message-ID: <5559E44B.2010702@linaro.org>
+References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:36398 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283AbbERNAS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 09:00:18 -0400
-Received: by pdfh10 with SMTP id h10so148825759pdf.3
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 06:00:18 -0700 (PDT)
-In-Reply-To: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:35715 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752396AbbERNIf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 09:08:35 -0400
+Received: by pdea3 with SMTP id a3so148015221pde.2
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 06:08:34 -0700 (PDT)
+In-Reply-To: <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Similar as stacked domain support for ACPI based GICv2 init, let
-acpi_irq_domain point to the core domain of GICv3 and pass the
-gsi as the arg to support stacked irqdomain.
+Hi Jiang,
+
+On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
+> Introduce common interface acpi_pci_root_create() and related data
+> structures to create PCI root bus for ACPI PCI host bridges. It will
+> be used to kill duplicated arch specific code for IA64 and x86. It ma=
+y
+> also help ARM64 in future.
+
+As I commented in previous version, this patch will introduce
+compile error on ACPI enabled ARM64 kernel because struct
+pci_controller is not defined for ARM64, so how about adding
+the following patch before this patch, or squash to this one,
+does it make sense?
+
+ From 11d0e98154e681e75936698208398cb4dcd73632 Mon Sep 17 00:00:00 2001
+=46rom: Hanjun Guo <hanjun.guo@linaro.org>
+Date: Mon, 18 May 2015 19:41:56 +0800
+Subject: [PATCH] ARM64 / PCI: introduce struct pci_controller for ACPI
+
+ARM64 ACPI based PCI host bridge init needs a arch dependent
+struct pci_controller to accommodate common PCI host bridge
+code which is introduced later, or it will lead to compile
+errors on ARM64.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+CC: Liviu Dudau <Liviu.Dudau@arm.com>
+CC: Will Deacon <will.deacon@arm.com>
+CC: Catalin Marinas <catalin.marinas@arm.com>
+CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+CC: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/irqchip/irq-gic-v3.c | 22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+  arch/arm64/include/asm/pci.h | 10 ++++++++++
+  1 file changed, 10 insertions(+)
 
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 11946a6..e7f134e 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -733,15 +733,21 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
- static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
- 				unsigned int nr_irqs, void *arg)
- {
--	int i, ret;
-+	int i;
- 	irq_hw_number_t hwirq;
--	unsigned int type = IRQ_TYPE_NONE;
--	struct of_phandle_args *irq_data = arg;
- 
--	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
--				   irq_data->args_count, &hwirq, &type);
--	if (ret)
--		return ret;
-+	if (domain->of_node) {	/* DT case */
-+		int ret;
-+		unsigned int type = IRQ_TYPE_NONE;
-+		struct of_phandle_args *irq_data = arg;
+diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.=
+h
+index b008a72..7088495 100644
+--- a/arch/arm64/include/asm/pci.h
++++ b/arch/arm64/include/asm/pci.h
+@@ -10,6 +10,16 @@
+  #include <asm-generic/pci-bridge.h>
+  #include <asm-generic/pci-dma-compat.h>
+
++struct acpi_device;
 +
-+		ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
-+					   irq_data->args_count, &hwirq, &type);
-+		if (ret)
-+			return ret;
-+	} else {	/* ACPI case */
-+		hwirq = (irq_hw_number_t)*(u32 *)arg;
-+	}
- 
- 	for (i = 0; i < nr_irqs; i++)
- 		gic_irq_domain_map(domain, virq + i, hwirq + i);
-@@ -1012,7 +1018,7 @@ gic_v3_acpi_init(struct acpi_table_header *table)
- 	if (err)
- 		goto out_redist_unmap;
- 
--	irq_set_default_host(gic_data.domain);
-+	acpi_irq_domain = gic_data.domain;
- 	return 0;
- 
- out_redist_unmap:
--- 
-1.9.1
++struct pci_controller {
++#ifdef CONFIG_ACPI
++       struct acpi_device *companion;  /* ACPI companion device */
++#endif
++       int             segment;        /* PCI domain */
++       int             node;           /* NUMA node */
++};
++
+  #define PCIBIOS_MIN_IO         0x1000
+  #define PCIBIOS_MIN_MEM                0
 
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
