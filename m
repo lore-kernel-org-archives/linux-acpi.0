@@ -1,113 +1,127 @@
-From: Chris Bainbridge <chris.bainbridge@gmail.com>
-Subject: Re: [PATCH] ACPI/sbshc: Add 5us delay to fix SBS hang on MacBook
-Date: Mon, 18 May 2015 14:07:39 +0100
-Message-ID: <20150518130739.GA2483@localhost>
-References: <20150424012530.GA16763@localhost>
- <4435249.leKkNHm9IZ@vostro.rjw.lan>
- <20150429202140.GB25904@localhost>
- <55594C71.9060402@fnarfbargle.com>
- <20150518122737.GA5850@localhost>
+From: Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH] pci/hotplug: work-around for missing _RMV on HP ZBook
+ G2
+Date: Mon, 18 May 2015 10:30:06 -0400
+Message-ID: <5559F76E.5040203@redhat.com>
+References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <20150516143750.GG31666@google.com> <20150516144155.GH31666@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:35958 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833AbbERNHn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 09:07:43 -0400
-Received: by wizk4 with SMTP id k4so78563160wiz.1
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 06:07:42 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150518122737.GA5850@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20150516144155.GH31666@google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Brad Campbell <brad@fnarfbargle.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Mon, May 18, 2015 at 01:27:37PM +0100, Chris Bainbridge wrote:
-> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-> index 01504c8..74f8596 100644
-> --- a/drivers/acpi/sbs.c
-> +++ b/drivers/acpi/sbs.c
-> @@ -361,16 +361,21 @@ static int acpi_manager_get_info(struct acpi_sbs *sbs)
->  static int acpi_battery_get_info(struct acpi_battery *battery)
->  {
->  	int i, result = 0;
-> -
-> -	for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
-> -		result = acpi_smbus_read(battery->sbs->hc,
-> -					 info_readers[i].mode,
-> -					 ACPI_SBS_BATTERY,
-> -					 info_readers[i].command,
-> -					 (u8 *) battery +
-> -						info_readers[i].offset);
-> -		if (result)
-> -			break;
-> +	int j;
-> +
-> +	for (j = 0; j < 1000; j++) {
-> +		for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
-> +			result = acpi_smbus_read(battery->sbs->hc,
-> +						 info_readers[i].mode,
-> +						 ACPI_SBS_BATTERY,
-> +						 info_readers[i].command,
-> +						 (u8 *) battery +
-> +							info_readers[i].offset);
-> +			if (result) {
-> +				printk("FAIL\n");
-> +				break;
-> +			}
-> +		}
->  	}
->  	return result;
->  }
+On 5/16/2015 10:41 AM, Bjorn Helgaas wrote:
+> [fix Rafael's email address]
+>
+> On Sat, May 16, 2015 at 09:37:50AM -0500, Bjorn Helgaas wrote:
+>> Hi Jarod,
+>>
+>> On Thu, May 14, 2015 at 03:33:58PM -0400, Jarod Wilson wrote:
+>>> The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
+>>> including at least BIOS revision 01.07, do not have an ACPI _RMV object
+>>> associated with their expresscard slots, so acpi-based hotplug-capable
+>>> slot detection fails. If we fall back to pcie-based detection, the systems
+>>> work just fine, so this uses dmi matching to do that. With luck, a future
+>>> BIOS will remedy this (I've let someone at HP know about the problem),
+>>> but for now, just use this for all existing versions.
+>>>
+>>> Note: they *do* have a proper _RMV object for what I believe is their
+>>> thunderbolt ports.
+>>>
+>>> Tested successfully on an HP ZBook 17 G2 and HP ZBook 15 G2.
+>>>
+>>> CC: Len Brown <lenb@kernel.org>
+>>> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
+>>> CC: Bjorn Helgaas <bhelgaas@google.com>
+>>> CC: linux-acpi@vger.kernel.org
+>>> CC: linux-pci@vger.kernel.org
+>>> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+>>> ---
+>>>   drivers/pci/hotplug/pciehp_acpi.c | 33 +++++++++++++++++++++++++++++++++
+>>>   1 file changed, 33 insertions(+)
+>>>
+>>> diff --git a/drivers/pci/hotplug/pciehp_acpi.c b/drivers/pci/hotplug/pciehp_acpi.c
+>>> index 93cc926..db38fb5 100644
+>>> --- a/drivers/pci/hotplug/pciehp_acpi.c
+>>> +++ b/drivers/pci/hotplug/pciehp_acpi.c
+>>> @@ -28,6 +28,7 @@
+>>>   #include <linux/pci_hotplug.h>
+>>>   #include <linux/slab.h>
+>>>   #include <linux/module.h>
+>>> +#include <linux/dmi.h>
+>>>   #include "pciehp.h"
+>>>
+>>>   #define PCIEHP_DETECT_PCIE	(0)
+>>> @@ -109,10 +110,40 @@ static struct pcie_port_service_driver __initdata dummy_driver = {
+>>>   	.probe		= dummy_probe,
+>>>   };
+>>>
+>>> +static int __init set_slot_detection_mode_pcie(const struct dmi_system_id *d)
+>>> +{
+>>> +	info("%s lacks ACPI _RMV object for expresscard\n", d->ident);
+>>> +	return 1;
+>>> +}
+>>> +
+>>> +static struct dmi_system_id __initdata missing_acpi_rmv[] = {
+>>> +	/* ZBook 17 through at least bios v01.07 */
+>>> +	{
+>>> +	 .callback = set_slot_detection_mode_pcie,
+>>> +	 .ident = "HP ZBook 17 G2 Mobile Workstation",
+>>> +	 .matches = {
+>>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 17 G2"),
+>>> +		},
+>>> +	},
+>>> +	/* ZBook 15 through at least bios v01.07 */
+>>> +	{
+>>> +	 .callback = set_slot_detection_mode_pcie,
+>>> +	 .ident = "HP ZBook 15 G2 Mobile Workstation",
+>>> +	 .matches = {
+>>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+>>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 15 G2"),
+>>> +		},
+>>> +	},
+>>> +	{ .ident = NULL }
+>>> +};
+>>> +
+>>>   static int __init select_detection_mode(void)
+>>>   {
+>>>   	struct dummy_slot *slot, *tmp;
+>>>
+>>> +	if (dmi_check_system(missing_acpi_rmv))
+>>> +		return PCIEHP_DETECT_PCIE;
+>>
+>> Oh, my goodness.  I forgot how terrible this path is.  Can anyone write a
+>> simple explanation of how we choose to use acpiphp or pciehp?  Module
+>> parameters?  A dummy driver that looks for duplicate slot numbers?  Looking
+>> for _ADR, _EJ0, _RMV?  This is just nuts.
+>>
+>> I can't really believe that we're doing this correctly.
+>>
+>> If I understand correctly, the ZBooks don't have _RMV, but we try to use
+>> acpiphp anyway, and acpiphp doesn't work?
 
+They do have an _RMV entry for another device, whatever is on 
+0000:00:1c.0, which appears to be the thunderbolt port, but I have yet 
+to verify that (no thunderbolt devices to play with yet). The 
+expresscard slot is 0000:3c:02.0.
 
-Better to exit immediately when SBS hangs, otherwise you could be
-waiting a long time for modprobe to return:
+>> That sounds more like a problem
+>> with our acpiphp/pciehp selection "algorithm" than a BIOS bug.
+>>
+>> Jarod, can you open a report at http://bugzilla.kernel.org and attach a
+>> complete dmesg log, "lspci -vv" output, and an acpidump?  I'm particularly
+>> interested in whether the BIOS granted us control over PCIe native hotplug.
+>> If it did, I wonder why we would even attempt to use acpiphp.
 
+Done:
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 01504c8..84f422f 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -361,17 +361,22 @@ static int acpi_manager_get_info(struct acpi_sbs *sbs)
- static int acpi_battery_get_info(struct acpi_battery *battery)
- {
- 	int i, result = 0;
--
--	for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
--		result = acpi_smbus_read(battery->sbs->hc,
--					 info_readers[i].mode,
--					 ACPI_SBS_BATTERY,
--					 info_readers[i].command,
--					 (u8 *) battery +
--						info_readers[i].offset);
--		if (result)
--			break;
-+	int j;
-+
-+	for (j = 0; j < 100; j++) {
-+		for (i = 0; i < ARRAY_SIZE(info_readers); ++i) {
-+			result = acpi_smbus_read(battery->sbs->hc,
-+						 info_readers[i].mode,
-+						 ACPI_SBS_BATTERY,
-+						 info_readers[i].command,
-+						 (u8 *) battery +
-+							info_readers[i].offset);
-+			if (result)
-+				goto end;
-+		}
- 	}
-+      end:
-+	printk(result ? "FAIL" : "OK");
- 	return result;
- }
- 
+https://bugzilla.kernel.org/show_bug.cgi?id=98581
 
-I'm sure you get the idea. Forcing repeated SBS reads is a much quicker
-way to uncover an intermittent fault than through normal usage. After
-adding the 5us delay, I was able to run the acpi_battery_get_info loop
-for 20,000 cycles without fault, but this is just one Macbook, others
-may be different. It's also possible that the delay is just covering up
-some other problem; some patches were posted a few days ago to fix some
-underlying hang issues: http://www.spinics.net/lists/linux-acpi/msg57572.html
+-- 
+Jarod Wilson
+jarod@redhat.com
