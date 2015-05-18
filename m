@@ -1,126 +1,54 @@
 From: Jarod Wilson <jarod@redhat.com>
 Subject: Re: [PATCH] pci/hotplug: work-around for missing _RMV on HP ZBook
  G2
-Date: Mon, 18 May 2015 10:30:06 -0400
-Message-ID: <5559F76E.5040203@redhat.com>
-References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <20150516143750.GG31666@google.com> <20150516144155.GH31666@google.com>
+Date: Mon, 18 May 2015 10:33:08 -0400
+Message-ID: <5559F824.1020703@redhat.com>
+References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <20150516143750.GG31666@google.com> <20150516144155.GH31666@google.com> <1481007.OlNlbgiUPd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150516144155.GH31666@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1481007.OlNlbgiUPd@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 5/16/2015 10:41 AM, Bjorn Helgaas wrote:
-> [fix Rafael's email address]
+On 5/17/2015 8:26 PM, Rafael J. Wysocki wrote:
+> On Saturday, May 16, 2015 09:41:55 AM Bjorn Helgaas wrote:
+>> On Sat, May 16, 2015 at 09:37:50AM -0500, Bjorn Helgaas wrote:
+>>> Hi Jarod,
+>>>
+>>> On Thu, May 14, 2015 at 03:33:58PM -0400, Jarod Wilson wrote:
+>>>> The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
+>>>> including at least BIOS revision 01.07, do not have an ACPI _RMV object
+>>>> associated with their expresscard slots, so acpi-based hotplug-capable
+>>>> slot detection fails. If we fall back to pcie-based detection, the systems
+>>>> work just fine, so this uses dmi matching to do that. With luck, a future
+>>>> BIOS will remedy this (I've let someone at HP know about the problem),
+>>>> but for now, just use this for all existing versions.
+...
+>>> Oh, my goodness.  I forgot how terrible this path is.  Can anyone write a
+>>> simple explanation of how we choose to use acpiphp or pciehp?
 >
-> On Sat, May 16, 2015 at 09:37:50AM -0500, Bjorn Helgaas wrote:
->> Hi Jarod,
->>
->> On Thu, May 14, 2015 at 03:33:58PM -0400, Jarod Wilson wrote:
->>> The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
->>> including at least BIOS revision 01.07, do not have an ACPI _RMV object
->>> associated with their expresscard slots, so acpi-based hotplug-capable
->>> slot detection fails. If we fall back to pcie-based detection, the systems
->>> work just fine, so this uses dmi matching to do that. With luck, a future
->>> BIOS will remedy this (I've let someone at HP know about the problem),
->>> but for now, just use this for all existing versions.
->>>
->>> Note: they *do* have a proper _RMV object for what I believe is their
->>> thunderbolt ports.
->>>
->>> Tested successfully on an HP ZBook 17 G2 and HP ZBook 15 G2.
->>>
->>> CC: Len Brown <lenb@kernel.org>
->>> CC: "Rafael J. Wysocki" <rjw@sisk.pl>
->>> CC: Bjorn Helgaas <bhelgaas@google.com>
->>> CC: linux-acpi@vger.kernel.org
->>> CC: linux-pci@vger.kernel.org
->>> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->>> ---
->>>   drivers/pci/hotplug/pciehp_acpi.c | 33 +++++++++++++++++++++++++++++++++
->>>   1 file changed, 33 insertions(+)
->>>
->>> diff --git a/drivers/pci/hotplug/pciehp_acpi.c b/drivers/pci/hotplug/pciehp_acpi.c
->>> index 93cc926..db38fb5 100644
->>> --- a/drivers/pci/hotplug/pciehp_acpi.c
->>> +++ b/drivers/pci/hotplug/pciehp_acpi.c
->>> @@ -28,6 +28,7 @@
->>>   #include <linux/pci_hotplug.h>
->>>   #include <linux/slab.h>
->>>   #include <linux/module.h>
->>> +#include <linux/dmi.h>
->>>   #include "pciehp.h"
->>>
->>>   #define PCIEHP_DETECT_PCIE	(0)
->>> @@ -109,10 +110,40 @@ static struct pcie_port_service_driver __initdata dummy_driver = {
->>>   	.probe		= dummy_probe,
->>>   };
->>>
->>> +static int __init set_slot_detection_mode_pcie(const struct dmi_system_id *d)
->>> +{
->>> +	info("%s lacks ACPI _RMV object for expresscard\n", d->ident);
->>> +	return 1;
->>> +}
->>> +
->>> +static struct dmi_system_id __initdata missing_acpi_rmv[] = {
->>> +	/* ZBook 17 through at least bios v01.07 */
->>> +	{
->>> +	 .callback = set_slot_detection_mode_pcie,
->>> +	 .ident = "HP ZBook 17 G2 Mobile Workstation",
->>> +	 .matches = {
->>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
->>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 17 G2"),
->>> +		},
->>> +	},
->>> +	/* ZBook 15 through at least bios v01.07 */
->>> +	{
->>> +	 .callback = set_slot_detection_mode_pcie,
->>> +	 .ident = "HP ZBook 15 G2 Mobile Workstation",
->>> +	 .matches = {
->>> +		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
->>> +		DMI_MATCH(DMI_PRODUCT_NAME, "HP ZBook 15 G2"),
->>> +		},
->>> +	},
->>> +	{ .ident = NULL }
->>> +};
->>> +
->>>   static int __init select_detection_mode(void)
->>>   {
->>>   	struct dummy_slot *slot, *tmp;
->>>
->>> +	if (dmi_check_system(missing_acpi_rmv))
->>> +		return PCIEHP_DETECT_PCIE;
->>
->> Oh, my goodness.  I forgot how terrible this path is.  Can anyone write a
->> simple explanation of how we choose to use acpiphp or pciehp?  Module
->> parameters?  A dummy driver that looks for duplicate slot numbers?  Looking
->> for _ADR, _EJ0, _RMV?  This is just nuts.
->>
->> I can't really believe that we're doing this correctly.
->>
->> If I understand correctly, the ZBooks don't have _RMV, but we try to use
->> acpiphp anyway, and acpiphp doesn't work?
+> In theory, that should depend on the _OSC handshake in acpi_pci_root_add().
+>
+> If the firmware doesn't give us control of the PCIe features, we'll not use
+> pciehp (or at least that's the idea).
+>
+> acpiphp is used if pciehp doesn't claim the device, AFAICS.
 
-They do have an _RMV entry for another device, whatever is on 
-0000:00:1c.0, which appears to be the thunderbolt port, but I have yet 
-to verify that (no thunderbolt devices to play with yet). The 
-expresscard slot is 0000:3c:02.0.
+[    4.013326] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM 
+ClockPM Segments MSI]
+[    4.015860] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME 
+AER PCIeCapability]
 
->> That sounds more like a problem
->> with our acpiphp/pciehp selection "algorithm" than a BIOS bug.
->>
->> Jarod, can you open a report at http://bugzilla.kernel.org and attach a
->> complete dmesg log, "lspci -vv" output, and an acpidump?  I'm particularly
->> interested in whether the BIOS granted us control over PCIe native hotplug.
->> If it did, I wonder why we would even attempt to use acpiphp.
-
-Done:
-
-https://bugzilla.kernel.org/show_bug.cgi?id=98581
+So at a glance, it would appear that pciehp *should* be claiming it, 
+right? Something I noted in the bug I filed is that the device ID 
+reported there is PNP0A08, and the root_device_id table that associates 
+with acpi_pci_root_add() only includes PNP0A03 in it. Is that correct, 
+or should 08 also be in there, which might remedy this? (I can test this 
+out easily enough).
 
 -- 
 Jarod Wilson
