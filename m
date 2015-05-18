@@ -1,15 +1,15 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 01/11] ACPICA: Introduce GIC version for arm based system
-Date: Mon, 18 May 2015 20:59:11 +0800
-Message-ID: <1431953961-22706-2-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH 02/11] ACPI / irqchip: Add self-probe infrastructure to initialize IRQ controller
+Date: Mon, 18 May 2015 20:59:12 +0800
+Message-ID: <1431953961-22706-3-git-send-email-hanjun.guo@linaro.org>
 References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:33357 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbbERM7s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 08:59:48 -0400
-Received: by pdbqa5 with SMTP id qa5so148747598pdb.0
-        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 05:59:48 -0700 (PDT)
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:33942 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752683AbbERM7w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 08:59:52 -0400
+Received: by pdbnk13 with SMTP id nk13so53292995pdb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 May 2015 05:59:52 -0700 (PDT)
 In-Reply-To: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,53 +18,188 @@ Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@
 
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-A new field is added in GIC distributor to indication
-the GIC version, support it in ACPICA for later use
+This self-probe infrastructure works in the similar way as OF,
+but there is some different in the mechanism:
 
-Will upstreamed by Lv Zheng after ACPICA supporting
-ACPI 6.0 is released.
+For OF, the init fn will be called once it finds comptiable strings
+in DT,  but for ACPI, we init irqchips by static tables, and in
+static ACPI tables, there are no comptiable strings to indicate
+irqchips, so every init function with IRQCHIP_ACPI_DECLARE in the
+same table will be called, but thanks to the GIC version presented
+in ACPI table, we can init different GIC irqchips with this framework.
+
+This mechanism can also be used for clock declare and may also works
+on x86 for some table parsing too.
 
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+[hj: introduce struct acpi_table_id instead of acpi_device_id]
+[hj: rework it more generic to all ACPI tables and fix some issues]
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- include/acpi/actbl1.h | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/acpi/Makefile             |  1 +
+ drivers/acpi/irq.c                | 37 +++++++++++++++++++++++++++++++++++++
+ drivers/irqchip/irqchip.h         | 12 ++++++++++++
+ include/asm-generic/vmlinux.lds.h | 13 +++++++++++++
+ include/linux/acpi.h              | 14 ++++++++++++++
+ include/linux/mod_devicetable.h   |  7 +++++++
+ 6 files changed, 84 insertions(+)
+ create mode 100644 drivers/acpi/irq.c
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index b80b0e6..b4f0f74 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -819,7 +819,7 @@ struct acpi_madt_generic_interrupt {
- #define ACPI_MADT_PERFORMANCE_IRQ_MODE  (1<<1)	/* 01: Performance Interrupt Mode */
- #define ACPI_MADT_VGIC_IRQ_MODE         (1<<2)	/* 02: VGIC Maintenance Interrupt mode */
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 8a063e2..3e4aec3 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -80,6 +80,7 @@ obj-$(CONFIG_ACPI_HED)		+= hed.o
+ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
++obj-$(CONFIG_IRQCHIP)		+= irq.o
  
--/* 12: Generic Distributor (ACPI 5.0) */
-+/* 12: Generic Distributor (ACPI 6.0) */
- 
- struct acpi_madt_generic_distributor {
- 	struct acpi_subtable_header header;
-@@ -827,7 +827,20 @@ struct acpi_madt_generic_distributor {
- 	u32 gic_id;
- 	u64 base_address;
- 	u32 global_irq_base;
--	u32 reserved2;		/* reserved - must be zero */
-+	u8  gic_version;
-+	u8  reserved2[3];	/* reserved - must be zero */
-+};
+ # processor has its own "processor." module_param namespace
+ processor-y			:= processor_driver.o processor_throttling.o
+diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
+new file mode 100644
+index 0000000..65d6b93
+--- /dev/null
++++ b/drivers/acpi/irq.c
+@@ -0,0 +1,37 @@
++/*
++ * Copyright (c) 2015, Linaro Ltd.
++ * Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
++ *         Hanjun Guo <hanjun.guo@linaro.org>
++ *
++ * Inspired by drivers/irqchip/irqchip.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ */
 +
-+/* Values for gic_version in Generic Distributor  (ACPI 6.0) */
++#include <linux/init.h>
++#include <linux/acpi.h>
 +
-+enum acpi_madt_gic_ver_type
++/*
++ * This special acpi_table_id is the sentinel at the end of the
++ * acpi_table_id[] array of all irqchips. It is automatically placed at
++ * the end of the array by the linker, thanks to being part of a
++ * special section.
++ */
++static const struct acpi_table_id
++irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
++
++extern struct acpi_table_id __irqchip_acpi_table[];
++
++void __init acpi_irqchip_init(void)
 +{
-+	ACPI_MADT_GIC_VER_UNKNOWN	= 0,
-+	ACPI_MADT_GIC_VER_V1		= 1,
-+	ACPI_MADT_GIC_VER_V2		= 2,
-+	ACPI_MADT_GIC_VER_V3		= 3,
-+	ACPI_MADT_GIC_VER_V4		= 4,
-+	ACPI_MADT_GIC_VER_RESERVED	= 5	/* 5 and greater are reserved */
++	struct acpi_table_id *id;
++
++	if (acpi_disabled)
++		return;
++
++	for (id = __irqchip_acpi_table; id->id[0]; id++)
++		acpi_table_parse(id->id, (acpi_tbl_table_handler)id->data);
++}
+diff --git a/drivers/irqchip/irqchip.h b/drivers/irqchip/irqchip.h
+index 0f6486d..1949546 100644
+--- a/drivers/irqchip/irqchip.h
++++ b/drivers/irqchip/irqchip.h
+@@ -11,6 +11,7 @@
+ #ifndef _IRQCHIP_H
+ #define _IRQCHIP_H
+ 
++#include <linux/acpi.h>
+ #include <linux/of.h>
+ 
+ /*
+@@ -25,4 +26,15 @@
+  */
+ #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
+ 
++/*
++ * This macro must be used by the different irqchip drivers to declare
++ * the association between their ACPI table and their initialization function.
++ *
++ * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
++ * same file.
++ * @table_id: name of the ACPI table signature
++ * @fn: initialization function
++ */
++#define IRQCHIP_ACPI_DECLARE(name, table_id, fn)	\
++	ACPI_DECLARE(irqchip, name, table_id, fn)
+ #endif
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index 8bd374d..625776c 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -181,6 +181,18 @@
+ #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
+ #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
+ 
++#ifdef CONFIG_ACPI
++#define ACPI_TABLE(name)						\
++	. = ALIGN(8);							\
++	VMLINUX_SYMBOL(__##name##_acpi_table) = .;			\
++	*(__##name##_acpi_table)					\
++	*(__##name##_acpi_table_end)
++
++#define IRQCHIP_ACPI_MATCH_TABLE()	ACPI_TABLE(irqchip)
++#else
++#define IRQCHIP_ACPI_MATCH_TABLE()
++#endif
++
+ #define KERNEL_DTB()							\
+ 	STRUCT_ALIGN();							\
+ 	VMLINUX_SYMBOL(__dtb_start) = .;				\
+@@ -516,6 +528,7 @@
+ 	CPUIDLE_METHOD_OF_TABLES()					\
+ 	KERNEL_DTB()							\
+ 	IRQCHIP_OF_MATCH_TABLE()					\
++	IRQCHIP_ACPI_MATCH_TABLE()					\
+ 	EARLYCON_TABLE()						\
+ 	EARLYCON_OF_TABLES()
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 90e4ed1e..b904af3 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -820,4 +820,18 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
+ 
+ #endif
+ 
++#ifdef CONFIG_ACPI
++#define ACPI_DECLARE(table, name, table_id, fn)				\
++	static const struct acpi_table_id __acpi_table_##name		\
++		__used __section(__##table##_acpi_table)		\
++		 = { .id = table_id,					\
++		     .data = (void *)fn }
++#else
++#define ACPI_DECLARE(table, name, table_id, fn)				\
++	static const struct acpi_table_id __acpi_table_##name		\
++		__attribute__((unused))					\
++		 = { .id = table_id,					\
++		     .data = (void*)fn }
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index 3bfd567..47c1ea1 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -199,6 +199,13 @@ struct pnp_device_id {
+ 	kernel_ulong_t driver_data;
  };
  
- /* 13: Generic MSI Frame (ACPI 5.1) */
++#define ACPI_TABLE_ID_LEN	5
++
++struct acpi_table_id {
++	__u8 id[ACPI_TABLE_ID_LEN];
++	const void *data;
++};
++
+ struct pnp_card_device_id {
+ 	__u8 id[PNP_ID_LEN];
+ 	kernel_ulong_t driver_data;
 -- 
 1.9.1
 
