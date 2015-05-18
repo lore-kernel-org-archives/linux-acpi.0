@@ -1,71 +1,124 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] pci/hotplug: work-around for missing _RMV on HP ZBook G2
-Date: Mon, 18 May 2015 23:57:47 +0200
-Message-ID: <5429970.RX0mzgSQ5s@vostro.rjw.lan>
-References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <1481007.OlNlbgiUPd@vostro.rjw.lan> <5559F824.1020703@redhat.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V4 PATCH 1/6] ACPI / scan: Parse _CCA and setup device coherency
+Date: Mon, 18 May 2015 17:38:17 -0500
+Message-ID: <555A69D9.7080508@amd.com>
+References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1431724994-21601-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1880793.yBqSWvxoqF@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:47455 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751000AbbERVc3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 17:32:29 -0400
-In-Reply-To: <5559F824.1020703@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1880793.yBqSWvxoqF@vostro.rjw.lan>
+Sender: linux-crypto-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Monday, May 18, 2015 10:33:08 AM Jarod Wilson wrote:
-> On 5/17/2015 8:26 PM, Rafael J. Wysocki wrote:
-> > On Saturday, May 16, 2015 09:41:55 AM Bjorn Helgaas wrote:
-> >> On Sat, May 16, 2015 at 09:37:50AM -0500, Bjorn Helgaas wrote:
-> >>> Hi Jarod,
-> >>>
-> >>> On Thu, May 14, 2015 at 03:33:58PM -0400, Jarod Wilson wrote:
-> >>>> The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
-> >>>> including at least BIOS revision 01.07, do not have an ACPI _RMV object
-> >>>> associated with their expresscard slots, so acpi-based hotplug-capable
-> >>>> slot detection fails. If we fall back to pcie-based detection, the systems
-> >>>> work just fine, so this uses dmi matching to do that. With luck, a future
-> >>>> BIOS will remedy this (I've let someone at HP know about the problem),
-> >>>> but for now, just use this for all existing versions.
-> ...
-> >>> Oh, my goodness.  I forgot how terrible this path is.  Can anyone write a
-> >>> simple explanation of how we choose to use acpiphp or pciehp?
-> >
-> > In theory, that should depend on the _OSC handshake in acpi_pci_root_add().
-> >
-> > If the firmware doesn't give us control of the PCIe features, we'll not use
-> > pciehp (or at least that's the idea).
-> >
-> > acpiphp is used if pciehp doesn't claim the device, AFAICS.
+Hi Rafael,
 
-That wasn't precise enough, sorry.  ACPIPHP will handle device check and bus
-check notifications from ACPI even for devices that have been claimed by
-pciehp.  It won't call pci_hp_register() for them, though.
+On 5/15/2015 6:53 PM, Rafael J. Wysocki wrote:
+> On Friday, May 15, 2015 04:23:09 PM Suravee Suthikulpanit wrote:
+>> [...]
+>> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+>> index 4bf7559..f6bc438 100644
+>> --- a/drivers/acpi/acpi_platform.c
+>> +++ b/drivers/acpi/acpi_platform.c
+>> @@ -103,14 +103,18 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>>   	pdevinfo.res = resources;
+>>   	pdevinfo.num_res = count;
+>>   	pdevinfo.fwnode = acpi_fwnode_handle(adev);
+>> -	pdevinfo.dma_mask = DMA_BIT_MASK(32);
+>> +	pdevinfo.dma_mask = acpi_dma_is_supported(adev) ? DMA_BIT_MASK(32) : 0;
+>>   	pdev = platform_device_register_full(&pdevinfo);
+>> -	if (IS_ERR(pdev))
+>> +	if (IS_ERR(pdev)) {
+>>   		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+>>   			PTR_ERR(pdev));
+>> -	else
+>> +	} else {
+>> +		if (acpi_dma_is_supported(adev))
+>> +			arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
+>> +					   acpi_dma_is_coherent(adev));
+>
+> Shouldn't we generally do that in acpi_bind_one() for all bus types
+> that don't have specific handling rather than here?
 
-> [    4.013326] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM 
-> ClockPM Segments MSI]
-> [    4.015860] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME 
-> AER PCIeCapability]
-> 
-> So at a glance, it would appear that pciehp *should* be claiming it, 
-> right?
-
-Yes, it should.
-
-> Something I noted in the bug I filed is that the device ID 
-> reported there is PNP0A08, and the root_device_id table that associates 
-> with acpi_pci_root_add() only includes PNP0A03 in it. Is that correct, 
-> or should 08 also be in there, which might remedy this? (I can test this 
-> out easily enough).
-
-It is correct (or at least not obviously incorrect).  The _OSC is for the host
-bridge and determines the behavior for all devices below root ports.
+I think that would also work, and makes sense. However, I'm not sure if 
+this would help in the case when we are creating PCI end-point devices, 
+since the CCA is specified at the host bridge node, and there is no ACPI 
+companion for the end-point devices. It seems that patch 3/6 of this 
+series is still needed.
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index 849b699..c56e66a 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -11,6 +11,7 @@
+>>   #include <linux/kthread.h>
+>>   #include <linux/dmi.h>
+>>   #include <linux/nls.h>
+>> +#include <linux/dma-mapping.h>
+>>
+>>   #include <asm/pgtable.h>
+>>
+>> @@ -2137,6 +2138,44 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp)
+>>   	kfree(pnp->unique_id);
+>>   }
+>>
+>> +static void acpi_init_coherency(struct acpi_device *adev)
+>> +{
+>> +	unsigned long long cca = 0;
+>> +	acpi_status status;
+>> +	struct acpi_device *parent = adev->parent;
+>> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>> +
+>> +	if (parent && parent->flags.cca_seen) {
+>> +		/*
+>> +		 * From ACPI spec, OSPM will ignore _CCA if an ancestor
+>> +		 * already saw one.
+>> +		 */
+>> +		adev->flags.cca_seen = 1;
+>> +		cca = acpi_dma_is_coherent(parent);
+>
+> Shouldn't the device's own _CCA take precedence?
+According to the ACPI specification, the parent's _CCA take precedence.
+
+>
+>> +	} else {
+>> +		status = acpi_evaluate_integer(adev->handle, "_CCA",
+>> +					       NULL, &cca);
+>> +		if (ACPI_SUCCESS(status)) {
+>> +			adev->flags.cca_seen = 1;
+>> +		} else if (!IS_ENABLED(CONFIG_ACPI_CCA_REQUIRED)) {
+>> +			/*
+>> +			 * If architecture does not specify that _CCA is
+>> +			 * required for DMA-able devices (e.g. x86),
+>> +			 * we default to _CCA=1.
+>> +			 */
+>> +			cca = 1;
+>> +		} else {
+>
+> What about using acpi_handle_debug() here?
+Ok I can do that.
+
+>> [...]
+>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>> index 8de4fa9..2a05ffb 100644
+>> --- a/include/acpi/acpi_bus.h
+>> +++ b/include/acpi/acpi_bus.h
+>> @@ -208,7 +208,9 @@ struct acpi_device_flags {
+>>   	u32 visited:1;
+>>   	u32 hotplug_notify:1;
+>>   	u32 is_dock_station:1;
+>> -	u32 reserved:23;
+>> +	u32 is_coherent:1;
+>
+> I'd prefer to call this 'coherent_dma'.
+
+OK.
+
+Thanks,
+
+Suravee
