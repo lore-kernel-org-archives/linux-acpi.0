@@ -1,61 +1,72 @@
-From: Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Tue, 19 May 2015 17:03:29 +0300
-Message-ID: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Baluta <daniel.baluta-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jarod Wilson <jarod@redhat.com>
+Subject: Re: [Update][PATCH] PCIe / hotplug: Drop pointless ACPI-based "slot
+ detection" check
+Date: Tue, 19 May 2015 10:40:39 -0400
+Message-ID: <555B4B67.40203@redhat.com>
+References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <2168334.DgvA03CWPi@vostro.rjw.lan> <6257210.QKy3yrBgEf@vostro.rjw.lan> <1573807.HQlNd2BFYP@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1573807.HQlNd2BFYP@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-For i2c devices enumerated with ACPI you need to declare both
-acpi_match_table and id_table. When using ACPI, the i2c_device_id structure
-supplied to the probe function is null and you have to handle this case
-in the driver.
+On 5/19/2015 9:27 AM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Jarod Wilson reports that the expresscard hotplug setup doesn't work
+> on HP ZBook G2.  The problem turns out to be the ACPI-based "slot
+> detection" code called from pciehp_probe() which tries to use some
+> questionable heuristics based on what ACPI objects are present for
+> the PCIe port device at hand to figure out whether or not to register
+> a hotplug slot for that port.
+>
+> That code is used if there is at least one PCIe port having an ACPI
+> device configuration object related to hotplug (such as _EJ0 or _RMV)
+> and the Thunderbolt port on the affected machine has _RMV.  Of course,
+> Thunderbolt and PCIe native hotplug need not be mutually exclusive
+> (as they aren't on the machine in question), so that rule is simply
+> incorrect.
+>
+> Moreover, the ACPI-based "slot detection" check does not add any
+> value if pciehp_probe() is called at all and the service type of the
+> device object it has been called for is PCIE_PORT_SERVICE_HP, because
+> PCIe hotplug services are only registered if the _OSC handshake in
+> acpi_pci_root_add() allows the kernel to control the PCIe native
+> hotplug feature.  No more checks need to be carried out to decide
+> whether or not to register a native PCIe hotlug slot in that case.
+>
+> For the above reasons, make pciehp_probe() check if it has been
+> called for the right service type and drop the pointless ACPI-based
+> "slot detection" check from it.  Also remove the entire code whose
+> only user is that check (the entire pciehp_acpi.c file goes away
+> as a result) and drop function headers related to it from the
+> internal PCIeHP header file.
+>
+> Link: http://marc.info/?t=143163219300002&r=1&w=2
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=98581
+> Reported-by: Jarod Wilson <jarod@redhat.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>
+> Changes in Makefile were missing from the previous version.
+>
+> Bjorn, that's -stable material I think.  It should be applicable at least
+> since commit 5ba113f7c4fb (PCI: acpiphp: Handle PCIe ports without native
+> hotplug capability) that was shipped in 3.10.
+>
+> Thanks!
 
-The current name for the i2c client when using ACPI is "HID:UID" where the
-UID has 7 or 8 characters and the UID has 2 characters. The UID is not
-relevant for identifying the chip so it does not have any practical
-purpose.
+Changes all look good to me, and they work perfectly here with the 
+previously problematic ZBook 17.
 
-Modifying i2c_match_id we make the comparison by ignoring the UID from the
-client name when the device was discovered using ACPI. The comparison is
-case insensitive because the ACPI names are uppercase and the DT and ID
-table names are lowercase. It would not make sense to have two different
-chips with the same name and the only diference being the capitalized
-letters.
+Reviewed-by: Jarod Wilson <jarod@redhat.com>
+Tested-by: Jarod Wilson <jarod@redhat.com>
 
-With these changes the probe function gets a valid i2c_device_id and the
-driver doesn't have to declare acpi_match_table.
 
-Signed-off-by: Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/i2c/i2c-core.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index fec0e0d..c9b30b7 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -447,8 +447,18 @@ static inline int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
- static const struct i2c_device_id *i2c_match_id(const struct i2c_device_id *id,
- 						const struct i2c_client *client)
- {
-+	char name[I2C_NAME_SIZE], *c;
-+
-+	strlcpy(name, client->name, sizeof(name));
-+
-+	if (ACPI_HANDLE(&client->dev)) {
-+		c = strchr(name, ':');
-+		if (c)
-+			*c = 0;
-+	}
-+
- 	while (id->name[0]) {
--		if (strcmp(client->name, id->name) == 0)
-+		if (strncasecmp(name, id->name, sizeof(id->name)) == 0)
- 			return id;
- 		id++;
- 	}
 -- 
-1.9.1
+Jarod Wilson
+jarod@redhat.com
