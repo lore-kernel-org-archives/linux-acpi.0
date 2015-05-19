@@ -1,58 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [V4 PATCH 1/6] ACPI / scan: Parse _CCA and setup device coherency
-Date: Tue, 19 May 2015 02:28:52 +0200
-Message-ID: <1542643.dHW9Z8dPkv@vostro.rjw.lan>
-References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1880793.yBqSWvxoqF@vostro.rjw.lan> <555A69D9.7080508@amd.com>
+From: Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH] pci/hotplug: work-around for missing _RMV on HP ZBook
+ G2
+Date: Mon, 18 May 2015 23:06:53 -0400
+Message-ID: <555AA8CD.3010706@redhat.com>
+References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <555A1093.40303@redhat.com> <555A4F68.1020208@redhat.com> <1948383.UKjRPomMUp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <555A69D9.7080508@amd.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, bhelgaas@google.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1948383.UKjRPomMUp@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, May 18, 2015 05:38:17 PM Suravee Suthikulanit wrote:
-> Hi Rafael,
-> 
-> On 5/15/2015 6:53 PM, Rafael J. Wysocki wrote:
-> > On Friday, May 15, 2015 04:23:09 PM Suravee Suthikulpanit wrote:
-> >> [...]
-> >> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> >> index 4bf7559..f6bc438 100644
-> >> --- a/drivers/acpi/acpi_platform.c
-> >> +++ b/drivers/acpi/acpi_platform.c
-> >> @@ -103,14 +103,18 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
-> >>   	pdevinfo.res = resources;
-> >>   	pdevinfo.num_res = count;
-> >>   	pdevinfo.fwnode = acpi_fwnode_handle(adev);
-> >> -	pdevinfo.dma_mask = DMA_BIT_MASK(32);
-> >> +	pdevinfo.dma_mask = acpi_dma_is_supported(adev) ? DMA_BIT_MASK(32) : 0;
-> >>   	pdev = platform_device_register_full(&pdevinfo);
-> >> -	if (IS_ERR(pdev))
-> >> +	if (IS_ERR(pdev)) {
-> >>   		dev_err(&adev->dev, "platform device creation failed: %ld\n",
-> >>   			PTR_ERR(pdev));
-> >> -	else
-> >> +	} else {
-> >> +		if (acpi_dma_is_supported(adev))
-> >> +			arch_setup_dma_ops(&pdev->dev, 0, 0, NULL,
-> >> +					   acpi_dma_is_coherent(adev));
-> >
-> > Shouldn't we generally do that in acpi_bind_one() for all bus types
-> > that don't have specific handling rather than here?
-> 
-> I think that would also work, and makes sense. However, I'm not sure if 
-> this would help in the case when we are creating PCI end-point devices, 
-> since the CCA is specified at the host bridge node, and there is no ACPI 
-> companion for the end-point devices. It seems that patch 3/6 of this 
-> series is still needed.
+On 5/18/2015 7:06 PM, Rafael J. Wysocki wrote:
+> On Monday, May 18, 2015 04:45:28 PM Jarod Wilson wrote:
+...
+>>>>>>> On Thu, May 14, 2015 at 03:33:58PM -0400, Jarod Wilson wrote:
+>>>>>>>> The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
+>>>>>>>> including at least BIOS revision 01.07, do not have an ACPI _RMV
+>>>>>>>> object
+>>>>>>>> associated with their expresscard slots, so acpi-based
+>>>>>>>> hotplug-capable
+>>>>>>>> slot detection fails. If we fall back to pcie-based detection, the
+>>>>>>>> systems
+>>>>>>>> work just fine
+...
+>> Ah, I forgot some additional details. pciehp_probe() in
+>> drivers/pci/hotplug/pciehp_core.c fails on the
+>> pciehp_acpi_slot_detection_check() call for the expresscard slot, which
+>> is why the base pciehp doesn't bind. DEVICE_ACPI_HANDLE(&dev->dev) in
+>> the slot detection check is winding up with a NULL acpi device.
+>
+> So IMO the bug is that select_detection_mode() assumes that ACPI should be
+> used as the PCIe hotplug detection method if it has found at least one
+> device that looks like an "ACPI hotplug slot" (Thuderbolt breaks that "logic").
+>
+> To be honest, I'm not sure why we need the pciehp_acpi_slot_detection_check()
+> in pciehp_probe() at all.  It doesn't add any value as far as I can say.
+>
+> If pciehp_probe() is called at all, we have registered a PCIe port service
+> and if this is a "hotplug" service, we wouldn't have registered it if the
+> _OSC handshake had not given us contol over native hotplug.
+>
+> So I wonder if the patch below makes any difference.
 
-Yes, PCI needs its own handling, but there are multiple bus types that
-don't (SPI, I2C etc) in addition to the platform bus type.
-
+Yeah, that also works, for the most part. You still get spew from 
+pciehp_acpi_slot_detection_init() saying "Using ACPI for slot 
+detection.", but in re-reading pciehp_acpi.c in its entirety... I can't 
+see anything productive that it actually does. I'm of the mind that the 
+entire file should just be nuked, the path from pciehp_core.c that your 
+patch alters was the only one that called 
+pciehp_acpi_slot_detection_check(), and everything else is basically the 
+dummy probe and fluff, nothing meaningful actually happens. I can whip 
+up a follow-up patch that neuters that file entirely in the morning. At 
+the very least, the "Using ACPI" bit needs to be beaten into submission, 
+since its not going to be accurate.
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Jarod Wilson
+jarod@redhat.com
