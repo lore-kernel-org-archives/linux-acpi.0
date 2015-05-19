@@ -1,88 +1,77 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling
- MSI/MSI-X
-Date: Tue, 19 May 2015 16:39:37 -0500
-Message-ID: <20150519213937.GR31666@google.com>
-References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
- <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
+Date: Wed, 20 May 2015 01:35:06 +0200
+Message-ID: <1894651.a3DUuyBc1c@vostro.rjw.lan>
+References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:36499 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbbESVjl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2015 17:39:41 -0400
-Received: by iepj10 with SMTP id j10so24779582iep.3
-        for <linux-acpi@vger.kernel.org>; Tue, 19 May 2015 14:39:40 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:52785 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751391AbbESXJq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2015 19:09:46 -0400
+In-Reply-To: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Robert Dolca <robert.dolca@intel.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>
 
-On Thu, May 07, 2015 at 11:12:52AM +0800, Jiang Liu wrote:
-> Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
-> make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
-> So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
-> when disabling MSI/MSI-X.
-
-The rest of this series makes sense to me.  If you want to remove an
-IOAPIC, you want to make sure all of the IRQs using that IOAPIC have been
-freed.
-
-But I'm trying to figure out this patch.  Do you want to free the IRQ when
-enabling MSI because it enables you to remove the IOAPIC without removing
-the device?  That wouldn't really make sense to me because then the device
-has no possibility of using INTx.
-
-Bjorn
-
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+On Tuesday, May 19, 2015 05:03:29 PM Robert Dolca wrote:
+> For i2c devices enumerated with ACPI you need to declare both
+> acpi_match_table and id_table. When using ACPI, the i2c_device_id structure
+> supplied to the probe function is null and you have to handle this case
+> in the driver.
+> 
+> The current name for the i2c client when using ACPI is "HID:UID" where the
+> UID has 7 or 8 characters and the UID has 2 characters. The UID is not
+> relevant for identifying the chip so it does not have any practical
+> purpose.
+> 
+> Modifying i2c_match_id we make the comparison by ignoring the UID from the
+> client name when the device was discovered using ACPI. The comparison is
+> case insensitive because the ACPI names are uppercase and the DT and ID
+> table names are lowercase. It would not make sense to have two different
+> chips with the same name and the only diference being the capitalized
+> letters.
+> 
+> With these changes the probe function gets a valid i2c_device_id and the
+> driver doesn't have to declare acpi_match_table.
+> 
+> Signed-off-by: Robert Dolca <robert.dolca@intel.com>
 > ---
->  drivers/pci/msi.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  drivers/i2c/i2c-core.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-> index c3e7dfcf9ff5..47cf72c669f0 100644
-> --- a/drivers/pci/msi.c
-> +++ b/drivers/pci/msi.c
-> @@ -686,6 +686,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
->  	msi_set_enable(dev, 1);
->  	dev->msi_enabled = 1;
->  
-> +	pcibios_free_irq(dev);
->  	dev->irq = entry->irq;
->  	return 0;
->  }
-> @@ -813,9 +814,10 @@ static int msix_capability_init(struct pci_dev *dev,
->  	/* Set MSI-X enabled bits and unmask the function */
->  	pci_intx_for_msi(dev, 0);
->  	dev->msix_enabled = 1;
-> -
->  	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_MASKALL, 0);
->  
-> +	pcibios_free_irq(dev);
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index fec0e0d..c9b30b7 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -447,8 +447,18 @@ static inline int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
+>  static const struct i2c_device_id *i2c_match_id(const struct i2c_device_id *id,
+>  						const struct i2c_client *client)
+>  {
+> +	char name[I2C_NAME_SIZE], *c;
 > +
->  	return 0;
->  
->  out_avail:
-> @@ -930,6 +932,7 @@ void pci_msi_shutdown(struct pci_dev *dev)
->  
->  	/* Restore dev->irq to its default pin-assertion irq */
->  	dev->irq = desc->msi_attrib.default_irq;
-> +	pcibios_alloc_irq(dev);
->  }
->  
->  void pci_disable_msi(struct pci_dev *dev)
-> @@ -1030,6 +1033,7 @@ void pci_msix_shutdown(struct pci_dev *dev)
->  	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_ENABLE, 0);
->  	pci_intx_for_msi(dev, 1);
->  	dev->msix_enabled = 0;
-> +	pcibios_alloc_irq(dev);
->  }
->  
->  void pci_disable_msix(struct pci_dev *dev)
-> -- 
-> 1.7.10.4
+> +	strlcpy(name, client->name, sizeof(name));
+> +
+> +	if (ACPI_HANDLE(&client->dev)) {
+
+If you don't need to use the handle, it is better to call has_acpi_companion() here.
+
+> +		c = strchr(name, ':');
+> +		if (c)
+> +			*c = 0;
+> +	}
+> +
+>  	while (id->name[0]) {
+> -		if (strcmp(client->name, id->name) == 0)
+> +		if (strncasecmp(name, id->name, sizeof(id->name)) == 0)
+>  			return id;
+>  		id++;
+>  	}
 > 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
