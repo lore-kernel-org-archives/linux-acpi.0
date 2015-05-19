@@ -1,72 +1,63 @@
-From: Jarod Wilson <jarod@redhat.com>
-Subject: Re: [Update][PATCH] PCIe / hotplug: Drop pointless ACPI-based "slot
- detection" check
-Date: Tue, 19 May 2015 10:40:39 -0400
-Message-ID: <555B4B67.40203@redhat.com>
-References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <2168334.DgvA03CWPi@vostro.rjw.lan> <6257210.QKy3yrBgEf@vostro.rjw.lan> <1573807.HQlNd2BFYP@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [RFC 1/4] PCI: Add hooks to allocate/free IRQ resources when
+ binding/unbinding driver
+Date: Tue, 19 May 2015 09:45:59 -0500
+Message-ID: <20150519144559.GO31666@google.com>
+References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com>
+ <1430968374-29286-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1573807.HQlNd2BFYP@vostro.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <1430968374-29286-2-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 5/19/2015 9:27 AM, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Jarod Wilson reports that the expresscard hotplug setup doesn't work
-> on HP ZBook G2.  The problem turns out to be the ACPI-based "slot
-> detection" code called from pciehp_probe() which tries to use some
-> questionable heuristics based on what ACPI objects are present for
-> the PCIe port device at hand to figure out whether or not to register
-> a hotplug slot for that port.
->
-> That code is used if there is at least one PCIe port having an ACPI
-> device configuration object related to hotplug (such as _EJ0 or _RMV)
-> and the Thunderbolt port on the affected machine has _RMV.  Of course,
-> Thunderbolt and PCIe native hotplug need not be mutually exclusive
-> (as they aren't on the machine in question), so that rule is simply
-> incorrect.
->
-> Moreover, the ACPI-based "slot detection" check does not add any
-> value if pciehp_probe() is called at all and the service type of the
-> device object it has been called for is PCIE_PORT_SERVICE_HP, because
-> PCIe hotplug services are only registered if the _OSC handshake in
-> acpi_pci_root_add() allows the kernel to control the PCIe native
-> hotplug feature.  No more checks need to be carried out to decide
-> whether or not to register a native PCIe hotlug slot in that case.
->
-> For the above reasons, make pciehp_probe() check if it has been
-> called for the right service type and drop the pointless ACPI-based
-> "slot detection" check from it.  Also remove the entire code whose
-> only user is that check (the entire pciehp_acpi.c file goes away
-> as a result) and drop function headers related to it from the
-> internal PCIeHP header file.
->
-> Link: http://marc.info/?t=143163219300002&r=1&w=2
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=98581
-> Reported-by: Jarod Wilson <jarod@redhat.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, May 07, 2015 at 11:12:51AM +0800, Jiang Liu wrote:
+> Add two hook points pcibios_{alloc|free}_irq() into PCI core, which will
+> be called when binding/unbinding PCI device drivers. Then PCI arch code
+> may hook into these two points to allocate IRQ resources on demand and
+> free them when not used anymore.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->
-> Changes in Makefile were missing from the previous version.
->
-> Bjorn, that's -stable material I think.  It should be applicable at least
-> since commit 5ba113f7c4fb (PCI: acpiphp: Handle PCIe ports without native
-> hotplug capability) that was shipped in 3.10.
->
-> Thanks!
+>  drivers/pci/pci-driver.c |   33 +++++++++++++++++++++++----------
+>  include/linux/pci.h      |    2 ++
+>  2 files changed, 25 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+> index 3cb2210de553..8af4a671686f 100644
+> --- a/drivers/pci/pci-driver.c
+> +++ b/drivers/pci/pci-driver.c
+> ...
+> +static int pci_device_probe(struct device *dev)
+> +{
+> +	int error;
+> +	struct pci_dev *pci_dev = to_pci_dev(dev);
+> +	struct pci_driver *drv = to_pci_driver(dev->driver);
+> +
+> +	error = pcibios_alloc_irq(pci_dev);
+> +	if (error >= 0) {
+> +		pci_dev_get(pci_dev);
+> +		error = __pci_device_probe(drv, pci_dev);
+> +		if (error) {
+> +			pcibios_free_irq(pci_dev);
+> +			pci_dev_put(pci_dev);
+> +		}
+> +	}
 
-Changes all look good to me, and they work perfectly here with the 
-previously problematic ZBook 17.
+Please structure it like this so the mainline code doesn't get buried in
+the body of the "if":
 
-Reviewed-by: Jarod Wilson <jarod@redhat.com>
-Tested-by: Jarod Wilson <jarod@redhat.com>
+    irq = pcibios_alloc_irq(pci_dev);
+    if (irq < 0)
+	return irq;
 
+    pci_dev_get(pci_dev);
+    ...
 
--- 
-Jarod Wilson
-jarod@redhat.com
+>  
+>  	return error;
+>  }
