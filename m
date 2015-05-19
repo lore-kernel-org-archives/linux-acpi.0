@@ -1,72 +1,98 @@
-From: Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] pci/hotplug: work-around for missing _RMV on HP ZBook
- G2
-Date: Mon, 18 May 2015 12:17:23 -0400
-Message-ID: <555A1093.40303@redhat.com>
-References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <20150516143750.GG31666@google.com> <20150516144155.GH31666@google.com> <1481007.OlNlbgiUPd@vostro.rjw.lan> <5559F824.1020703@redhat.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [GIT PULL] Thermal-SoC management updates for v4.1-rc4
+Date: Mon, 18 May 2015 17:27:58 -0700
+Message-ID: <20150519002756.GA4319@localhost.localdomain>
+References: <20150511235006.GB4810@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55776 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932184AbbERQTB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 May 2015 12:19:01 -0400
-In-Reply-To: <5559F824.1020703@redhat.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:36339 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbbERR2C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 May 2015 13:28:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20150511235006.GB4810@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On 5/18/2015 10:33 AM, Jarod Wilson wrote:
-> On 5/17/2015 8:26 PM, Rafael J. Wysocki wrote:
->> On Saturday, May 16, 2015 09:41:55 AM Bjorn Helgaas wrote:
->>> On Sat, May 16, 2015 at 09:37:50AM -0500, Bjorn Helgaas wrote:
->>>> Hi Jarod,
->>>>
->>>> On Thu, May 14, 2015 at 03:33:58PM -0400, Jarod Wilson wrote:
->>>>> The HP ZBook 15 and 17 Mobile Workstations, generation 2, up to and
->>>>> including at least BIOS revision 01.07, do not have an ACPI _RMV
->>>>> object
->>>>> associated with their expresscard slots, so acpi-based hotplug-capable
->>>>> slot detection fails. If we fall back to pcie-based detection, the
->>>>> systems
->>>>> work just fine, so this uses dmi matching to do that. With luck, a
->>>>> future
->>>>> BIOS will remedy this (I've let someone at HP know about the problem),
->>>>> but for now, just use this for all existing versions.
-> ...
->>>> Oh, my goodness.  I forgot how terrible this path is.  Can anyone
->>>> write a
->>>> simple explanation of how we choose to use acpiphp or pciehp?
->>
->> In theory, that should depend on the _OSC handshake in
->> acpi_pci_root_add().
->>
->> If the firmware doesn't give us control of the PCIe features, we'll
->> not use
->> pciehp (or at least that's the idea).
->>
->> acpiphp is used if pciehp doesn't claim the device, AFAICS.
->
-> [    4.013326] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM
-> ClockPM Segments MSI]
-> [    4.015860] acpi PNP0A08:00: _OSC: OS now controls [PCIeHotplug PME
-> AER PCIeCapability]
->
-> So at a glance, it would appear that pciehp *should* be claiming it,
-> right? Something I noted in the bug I filed is that the device ID
-> reported there is PNP0A08, and the root_device_id table that associates
-> with acpi_pci_root_add() only includes PNP0A03 in it. Is that correct,
-> or should 08 also be in there, which might remedy this? (I can test this
-> out easily enough).
 
-Nope, makes no difference, seems those are just two different references 
-to the same bus, based on a peek at the extracted dsdt:
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Name (_HID, EisaId ("PNP0A08") /* PCI Express Bus */)  // _HID: Hardware ID
-Name (_CID, EisaId ("PNP0A03") /* PCI Bus */)  // _CID: Compatible ID
+Hello Rui,
 
--- 
-Jarod Wilson
-jarod@redhat.com
+On Mon, May 11, 2015 at 04:50:07PM -0700, Eduardo Valentin wrote:
+> Hello Rui,
+>=20
+> Please pull from
+>=20
+>   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-therma=
+l fixes
+>=20
+> to receive Thermal-SoC Management updates for v4.1-rc4 with top-most
+>=20
+> efa86858e1d8970411a140fa1e0c4dd18a8f2a89:
+>=20
+>   thermal: armada: Update Armada 380 thermal sensor coefficients (2015-05=
+-09 01:00:31 -0700)
+>=20
+>=20
+> on top of commit 5ebe6afaf0057ac3eaeb98defd5456894b446d22:
+>=20
+>   Linux 4.1-rc2 (2015-05-03 19:22:23 -0700)
+>=20
+> Specifics:
+> - Thermal soc drivers fixes on Armada (380) and TI (dra7 and OMAP5).
+>=20
+
+
+Was there anything wrong with this pull ? Any specific reason that
+prevented you from pulling it?
+
+BR,
+
+Eduardo Valentin
+
+> BR,
+>=20
+> Eduardo Valentin
+> ----------------------------------------------------------------
+> Keerthy (2):
+>       thermal: ti-soc-thermal: dra7: Implement Workaround for Errata i814
+>       thermal: ti-soc-thermal: OMAP5: Implement Workaround for Errata i813
+>=20
+> Nadav Haklai (1):
+>       thermal: armada: Update Armada 380 thermal sensor coefficients
+>=20
+>  drivers/thermal/armada_thermal.c                   |  6 +-
+>  .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  3 +-
+>  .../thermal/ti-soc-thermal/omap5-thermal-data.c    |  3 +-
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.c        | 78 ++++++++++++++++=
++++++-
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  6 ++
+>  5 files changed, 89 insertions(+), 7 deletions(-)
+
+
+
+--KsGdsel6WgEHnImy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQEcBAEBAgAGBQJVWoOHAAoJEMLUO4d9pOJWr4IH/2iM9pj4P96cpmvVQnEFe56z
+gUjyKZ3iTWRU3oBhKxjfQZgMXoWhZK10D7i5U1x/Mm7IzxgyX1luwXjodGa/kjbX
+L+tMw2mX7CV6pjJiDmoFSIFlzfV19/DVqAYDN/caRpo8NcdLp2P6BmaK/F30Bmab
+S30B4mAP3pKcO5cMHx+pjrh27JLOS6YSg2Vr4sYwKWtd5sbcAGAQtTns/Jo5mn8J
+/UGIq7lhyf5r2e1EqvLwnNTBsqaes7xG34CdC6iay83oa5haOF10pdN8Q/yKwAhj
+/gHWwnJYxMPj8OKIXQ2CARC5CQB+IoPRVwMfGeQTh6nDaWRz1PBc0MNUJwbbPns=
+=Dx1g
+-----END PGP SIGNATURE-----
+
+--KsGdsel6WgEHnImy--
