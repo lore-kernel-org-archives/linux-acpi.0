@@ -1,79 +1,72 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 11/25] keystone, irq: Use irq_data_get_xxx() to avoid redundant lookup of irq_data
-Date: Wed, 20 May 2015 17:59:59 +0800
-Message-ID: <1432116013-25902-12-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 10/25] sh: intc: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
+Date: Wed, 20 May 2015 17:59:58 +0800
+Message-ID: <1432116013-25902-11-git-send-email-jiang.liu@linux.intel.com>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Murali Karicheri <m-karicheri2@ti.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use irq_data_get_xxx() to avoid redundant lookup of irq_data while we
-already have a pointer to corresponding irq_data.
+Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+already have a pointer to corresponding irq_desc.
+
+Also replace generic_handle_irq with generic_handle_irq_desc() to avoid
+looking up irq_desc again.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/pci/host/pci-keystone-dw.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ drivers/sh/intc/core.c |    2 +-
+ drivers/sh/intc/virq.c |   14 ++++++++------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/host/pci-keystone-dw.c b/drivers/pci/host/pci-keystone-dw.c
-index f34892e0edb4..e42d077039d3 100644
---- a/drivers/pci/host/pci-keystone-dw.c
-+++ b/drivers/pci/host/pci-keystone-dw.c
-@@ -104,14 +104,13 @@ static void ks_dw_pcie_msi_irq_ack(struct irq_data *d)
+diff --git a/drivers/sh/intc/core.c b/drivers/sh/intc/core.c
+index 81f22980b2de..e4ca964ca840 100644
+--- a/drivers/sh/intc/core.c
++++ b/drivers/sh/intc/core.c
+@@ -67,7 +67,7 @@ void intc_set_prio_level(unsigned int irq, unsigned int level)
+ 
+ static void intc_redirect_irq(unsigned int irq, struct irq_desc *desc)
  {
- 	u32 offset, reg_offset, bit_pos;
- 	struct keystone_pcie *ks_pcie;
--	unsigned int irq = d->irq;
- 	struct msi_desc *msi;
- 	struct pcie_port *pp;
+-	generic_handle_irq((unsigned int)irq_get_handler_data(irq));
++	generic_handle_irq_desc(irq, desc);
+ }
  
--	msi = irq_get_msi_desc(irq);
-+	msi = irq_data_get_msi_desc(d);
- 	pp = sys_to_pcie(msi->dev->bus->sysdata);
- 	ks_pcie = to_keystone_pcie(pp);
--	offset = irq - irq_linear_revmap(pp->irq_domain, 0);
-+	offset = d->irq - irq_linear_revmap(pp->irq_domain, 0);
- 	update_reg_offset_bit_pos(offset, &reg_offset, &bit_pos);
+ static void __init intc_register_irq(struct intc_desc *desc,
+diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
+index 3dbc21696924..8083882a91c0 100644
+--- a/drivers/sh/intc/virq.c
++++ b/drivers/sh/intc/virq.c
+@@ -109,7 +109,7 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
  
- 	writel(BIT(bit_pos),
-@@ -142,15 +141,14 @@ void ks_dw_pcie_msi_clear_irq(struct pcie_port *pp, int irq)
- static void ks_dw_pcie_msi_irq_mask(struct irq_data *d)
+ static void intc_virq_handler(unsigned int irq, struct irq_desc *desc)
  {
- 	struct keystone_pcie *ks_pcie;
--	unsigned int irq = d->irq;
- 	struct msi_desc *msi;
- 	struct pcie_port *pp;
- 	u32 offset;
+-	struct irq_data *data = irq_get_irq_data(irq);
++	struct irq_data *data = irq_desc_get_irq_data(desc);
+ 	struct irq_chip *chip = irq_data_get_irq_chip(data);
+ 	struct intc_virq_list *entry, *vlist = irq_data_get_irq_handler_data(data);
+ 	struct intc_desc_int *d = get_intc_desc(irq);
+@@ -118,12 +118,14 @@ static void intc_virq_handler(unsigned int irq, struct irq_desc *desc)
  
--	msi = irq_get_msi_desc(irq);
-+	msi = irq_data_get_msi_desc(d);
- 	pp = sys_to_pcie(msi->dev->bus->sysdata);
- 	ks_pcie = to_keystone_pcie(pp);
--	offset = irq - irq_linear_revmap(pp->irq_domain, 0);
-+	offset = d->irq - irq_linear_revmap(pp->irq_domain, 0);
+ 	for_each_virq(entry, vlist) {
+ 		unsigned long addr, handle;
++		struct irq_desc *vdesc = irq_to_desc(entry->irq);
  
- 	/* Mask the end point if PVM implemented */
- 	if (IS_ENABLED(CONFIG_PCI_MSI)) {
-@@ -164,15 +162,14 @@ static void ks_dw_pcie_msi_irq_mask(struct irq_data *d)
- static void ks_dw_pcie_msi_irq_unmask(struct irq_data *d)
- {
- 	struct keystone_pcie *ks_pcie;
--	unsigned int irq = d->irq;
- 	struct msi_desc *msi;
- 	struct pcie_port *pp;
- 	u32 offset;
+-		handle = (unsigned long)irq_get_handler_data(entry->irq);
+-		addr = INTC_REG(d, _INTC_ADDR_E(handle), 0);
+-
+-		if (intc_reg_fns[_INTC_FN(handle)](addr, handle, 0))
+-			generic_handle_irq(entry->irq);
++		if (vdesc) {
++			handle = (unsigned long)irq_desc_get_handler_data(vdesc);
++			addr = INTC_REG(d, _INTC_ADDR_E(handle), 0);
++			if (intc_reg_fns[_INTC_FN(handle)](addr, handle, 0))
++				generic_handle_irq_desc(entry->irq, vdesc);
++		}
+ 	}
  
--	msi = irq_get_msi_desc(irq);
-+	msi = irq_data_get_msi_desc(d);
- 	pp = sys_to_pcie(msi->dev->bus->sysdata);
- 	ks_pcie = to_keystone_pcie(pp);
--	offset = irq - irq_linear_revmap(pp->irq_domain, 0);
-+	offset = d->irq - irq_linear_revmap(pp->irq_domain, 0);
- 
- 	/* Mask the end point if PVM implemented */
- 	if (IS_ENABLED(CONFIG_PCI_MSI)) {
+ 	chip->irq_unmask(data);
 -- 
 1.7.10.4
