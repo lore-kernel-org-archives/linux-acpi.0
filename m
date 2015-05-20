@@ -1,52 +1,48 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC 0/4] Introduce a mechanism to allocate PCI IRQ on demand
-Date: Wed, 20 May 2015 11:21:51 +0800
-Message-ID: <555BFDCF.4020303@linux.intel.com>
-References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505191535190.4225@nanos>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Patch v3 5/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Wed, 20 May 2015 11:33:37 +0800
+Message-ID: <555C0091.6050301@linaro.org>
+References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com> <5559E44B.2010702@linaro.org> <555BFC72.3060703@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1505191535190.4225@nanos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <555BFC72.3060703@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/5/19 21:35, Thomas Gleixner wrote:
-> On Thu, 7 May 2015, Jiang Liu wrote:
-> 
->> This patch set introduces a mechanism to allocate PCI IRQ on demand and
->> free it when not used anymore by hooking pci_device_probe() and
->> pci_device_remove().
->>
->> It will be used to track IOAPIC pin usage on x86 so we could support
->> IOAPIC hot-removal.
-> 
-> Bjorn, any opinion on this?
-Hi Bjorn,
-	With this patch applied, how about removing this workaround
-from arch/x86/pci/irq.c?
--------------------------------------------------------------------
-        if (io_apic_assign_pci_irqs && pci_routeirq) {
-                struct pci_dev *dev = NULL;
-                /*
-                 * PCI IRQ routing is set up by pci_enable_device(), but we
-                 * also do it here in case there are still broken
-drivers that
-                 * don't use pci_enable_device().
-                 */
-                printk(KERN_INFO "PCI: Routing PCI interrupts for all
-devices because \"pci=routeirq\" specified\n");
-                for_each_pci_dev(dev)
-                        pirq_enable_irq(dev);
-        }
--------------------------------------------------------
-Thanks!
-Gerry
++CC Suravee,
 
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+On 2015=E5=B9=B405=E6=9C=8820=E6=97=A5 11:16, Jiang Liu wrote:
+> On 2015/5/18 21:08, Hanjun Guo wrote:
+>> Hi Jiang,
+>>
+>> On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
+>>> Introduce common interface acpi_pci_root_create() and related data
+>>> structures to create PCI root bus for ACPI PCI host bridges. It wil=
+l
+>>> be used to kill duplicated arch specific code for IA64 and x86. It =
+may
+>>> also help ARM64 in future.
+>>
+>> As I commented in previous version, this patch will introduce
+>> compile error on ACPI enabled ARM64 kernel because struct
+>> pci_controller is not defined for ARM64, so how about adding
+>> the following patch before this patch, or squash to this one,
+>> does it make sense?
+> Hi Hanjun,
+> 	Thanks for fixing this building issue for ARM64. The patch
+> is really what I want:). Will merge it into next version. With this
+> patch applied, are there any other issues from ARM64 side?
+
+Suravee is testing ARM64 PCI on top of your patch set, he can confirm
+that if there are any other issues :) (Suravee has a real ARM64 hardwar=
+e
+in hand)
+
+Thanks
+Hanjun
