@@ -1,153 +1,127 @@
-From: Alexander Duyck <alexander.h.duyck@redhat.com>
-Subject: Re: [PATCH 3/7] fjes: Implement platform_driver functionality
-Date: Wed, 20 May 2015 10:13:51 -0700
-Message-ID: <555CC0CF.8040502@redhat.com>
-References: <E86EADE93E2D054CBCD4E708C38D364A5422D850@G01JPEXMBYT01>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [Devel] Correct place to send patches?
+Date: Wed, 20 May 2015 17:17:18 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0FF@ORSMSX112.amr.corp.intel.com>
+References: <CAOf41Nnj3pmqDmc4xx9bwzhEpFsoxq5P2caNtsVBX31js9Ehgg@mail.gmail.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAA86@ORSMSX112.amr.corp.intel.com>
+ <CAOf41NnO0RQVEmiX5KeMCMDtONxBfPO9BYZpAOBSNexWd1w_Fg@mail.gmail.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAAE9@ORSMSX112.amr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E880271AE0F@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802720637@SHSMSX101.ccr.corp.intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE073@ORSMSX112.amr.corp.intel.com>
+ <CAOf41N=Ps3jgrxA7kU-Tu-tca1CsqZ_Wac3GFRGCu5U3ZN9p1g@mail.gmail.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0C7@ORSMSX112.amr.corp.intel.com>
+ <CAOf41Nm50Y6dz5KA=KJaoQHqMxGHxzH2KCER91GA-AaAg=fAPQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <E86EADE93E2D054CBCD4E708C38D364A5422D850@G01JPEXMBYT01>
-Sender: netdev-owner@vger.kernel.org
-To: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
-Cc: "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:32716 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753820AbbETRRU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 13:17:20 -0400
+In-Reply-To: <CAOf41Nm50Y6dz5KA=KJaoQHqMxGHxzH2KCER91GA-AaAg=fAPQ@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adam Goode <agoode@google.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Box, David E" <david.e.box@intel.com>
 
-On 05/20/2015 01:18 AM, Izumi, Taku wrote:
-> 
-> This patch adds implementation of platform_device driver
-> to FUJITSU Extended Socket Network Device driver.
-> 
-> When "PNP0C02" is found and ACPI resource can be retrieved
-> successfuly, this driver creates platform_device.
-> platform_driver.probe and .remove routine are mock code.
-> 
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-
-This can probably be rolled into the 2nd patch as well.  It seems like
-this is mostly just putting in infrastructure and that kind of stuff is
-usually best done as just one patch if you are going to do it.
-
-> ---
->   drivers/platform/x86/fjes/fjes_main.c | 47 +++++++++++++++++++++++++++++++++++
->   1 file changed, 47 insertions(+)
-> 
-> diff --git a/drivers/platform/x86/fjes/fjes_main.c b/drivers/platform/x86/fjes/fjes_main.c
-> index 3454098..87057b8 100644
-> --- a/drivers/platform/x86/fjes/fjes_main.c
-> +++ b/drivers/platform/x86/fjes/fjes_main.c
-> @@ -22,6 +22,7 @@
->   #include <linux/module.h>
->   #include <linux/types.h>
->   #include <linux/nls.h>
-> +#include <linux/platform_device.h>
->   
->   #include "fjes.h"
->   
-> @@ -47,6 +48,9 @@ static int fjes_acpi_add(struct acpi_device *);
->   static int fjes_acpi_remove(struct acpi_device *);
->   static acpi_status fjes_get_acpi_resource(struct acpi_resource *, void*);
->   
-> +static int fjes_probe(struct platform_device *);
-> +static int fjes_remove(struct platform_device *);
-> +
->   
->   static const struct acpi_device_id fjes_acpi_ids[] = {
->   	{"PNP0C02", 0},
-> @@ -65,6 +69,15 @@ static struct acpi_driver fjes_acpi_driver = {
->   	},
->   };
->   
-> +static struct platform_driver fjes_driver = {
-> +	.driver = {
-> +		.name = DRV_NAME,
-> +		.owner = THIS_MODULE,
-> +	},
-> +	.probe = fjes_probe,
-> +	.remove = fjes_remove,
-> +};
-> +
->   static struct resource fjes_resource[] = {
->   	{
->   		.flags = IORESOURCE_MEM,
-> @@ -93,6 +106,10 @@ static int __init fjes_init_module(void)
->   			fjes_driver_string, fjes_driver_version);
->   	pr_info("%s\n", fjes_copyright);
->   
-> +	result = platform_driver_register(&fjes_driver);
-> +	if (result < 0)
-> +		return result;
-> +
->   	result = acpi_bus_register_driver(&fjes_acpi_driver);
->   	if (result < 0)
->   		goto fail_acpi_driver;
-> @@ -100,6 +117,7 @@ static int __init fjes_init_module(void)
->   	return 0;
->   
->   fail_acpi_driver:
-> +	platform_driver_unregister(&fjes_driver);
->   	return result;
->   }
->   
-> @@ -114,6 +132,7 @@ module_init(fjes_init_module);
->   static void __exit fjes_exit_module(void)
->   {
->   	acpi_bus_unregister_driver(&fjes_acpi_driver);
-> +	platform_driver_unregister(&fjes_driver);
->   }
->   
->   module_exit(fjes_exit_module);
-> @@ -126,6 +145,7 @@ static int fjes_acpi_add(struct acpi_device *device)
->   	union acpi_object *str;
->   	char str_buf[sizeof(FJES_ACPI_SYMBOL) + 1];
->   	int result;
-> +	struct platform_device *plat_dev;
->   
->   	status = acpi_evaluate_object(device->handle, "_STR", NULL, &buffer);
->   	if (ACPI_FAILURE(status))
-> @@ -148,11 +168,21 @@ static int fjes_acpi_add(struct acpi_device *device)
->   	if (ACPI_FAILURE(status))
->   		return -ENODEV;
->   
-> +	/* create platform_device */
-> +	plat_dev = platform_device_register_simple(DRV_NAME, 0,
-> +				fjes_resource, ARRAY_SIZE(fjes_resource));
-> +	device->driver_data = plat_dev;
-> +
->   	return 0;
->   }
->   
->   static int fjes_acpi_remove(struct acpi_device *device)
->   {
-> +	struct platform_device *plat_dev;
-> +
-> +	plat_dev = (struct platform_device *)acpi_driver_data(device);
-> +	platform_device_unregister(plat_dev);
-> +
->   	return 0;
->   }
->   
-> @@ -186,5 +216,22 @@ static acpi_status fjes_get_acpi_resource(struct acpi_resource *acpi_res,
->   	return AE_OK;
->   }
->   
-> +/*
-> + *  fjes_probe - Device Initialization Routine
-> + *
-> + *  Returns 0 on success, negative on failure
-> + */
-> +static int fjes_probe(struct platform_device *plat_dev)
-> +{
-> +	return 0;
-> +}
-> +
-> +/*
-> + *  fjes_remove - Device Removal Routine
-> + */
-> +static int fjes_remove(struct platform_device *plat_dev)
-> +{
-> +	return 0;
-> +}
->   
->   
-> 
+QUNQSUNBIGRvZXMgaW4gZmFjdCB0cnkgdG8gYnVnLWZvci1idWcgY29tcGF0aWJsZSB3aXRoIFdp
+bmRvd3MuDQoNClRoZSB0cmljayBpcyB0byBmaWd1cmUgb3V0IGp1c3QgKmhvdyogV2luZG93cyB3
+b3JrcyBpbiB0aGVzZSBjYXNlcy4NCg0KSSBtaWdodCBndWVzcyB0aGF0IGEgc29sdXRpb24gbWF5
+IGJlIHRoYXQgYSAiZGVmYXVsdCBoYW5kbGVyIiBmb3IgdGhlIENNT1Mgb3BlcmF0aW9uIHJlZ2lv
+biBzaG91bGQgYmUgaW5zdGFsbGVkIGltbWVkaWF0ZWx5IGF0IGJvb3QgdGltZS4gSWYgYW5kIHdo
+ZW4gdGhpcyBoYW5kbGVyIGlzIGZpcnN0IHJ1biwgaXQgc2hvdWxkIGZpZ3VyZSBvdXQgd2hpY2gg
+Q01PUyBkZXZpY2UgaXMgcHJlc2VudCBvbiB0aGUgc3lzdGVtIGFuZCB0aGVuIGluc3RhbGwgdGhl
+ICJyZWFsIiBoYW5kbGVyIGZvciB0aGUgZGV2aWNlLiBPciwgaWYgeW91IHdhbnQgdG8gc3VwcG9y
+dCBvbmx5IG9uZSBDTU9TIGRldmljZSwganVzdCBpbnN0YWxsIHRoZSByZWdpb24gaGFuZGxlciBh
+dCBib290IHRpbWUgYW5kIGJlIGRvbmUgd2l0aCBpdC4NCg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBN
+ZXNzYWdlLS0tLS0NCj4gRnJvbTogQWRhbSBHb29kZSBbbWFpbHRvOmFnb29kZUBnb29nbGUuY29t
+XQ0KPiBTZW50OiBXZWRuZXNkYXksIE1heSAyMCwgMjAxNSAxMDoxMSBBTQ0KPiBUbzogTW9vcmUs
+IFJvYmVydA0KPiBDYzogWmhlbmcsIEx2OyBMYW4sIFRpYW55dTsgbGludXgtYWNwaUB2Z2VyLmtl
+cm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmc7DQo+IEJveCwgRGF2aWQgRQ0KPiBTdWJqZWN0OiBS
+ZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRvIHNlbmQgcGF0Y2hlcz8NCj4gDQo+IFllcywgaXQg
+cmVhbGx5IGxvb2tzIGxpa2UgYSBidWcgaW4gdGhlIGZpcm13YXJlLiBTdGlsbCwgV2luZG93cyB3
+b3Jrcw0KPiBjb3JyZWN0bHkgd2l0aG91dCBhbnkgc3BlY2lhbCBzdXBwb3J0Lg0KPiANCj4gV2hh
+dCBpcyB0aGUgcG9saWN5IGZvciBBQ1BJQ0EgaW4gdGhpcyBjYXNlIHdoZXJlIFdpbmRvd3Mgd29y
+a3MgaW4gYSBzcGVjLQ0KPiB2aW9sYXRpbmcgd2F5Pw0KPiANCj4gDQo+IEFkYW0NCj4gDQo+IA0K
+PiBPbiBXZWQsIE1heSAyMCwgMjAxNSBhdCAxOjA3IFBNLCBNb29yZSwgUm9iZXJ0IDxyb2JlcnQu
+bW9vcmVAaW50ZWwuY29tPg0KPiB3cm90ZToNCj4gPiBUaGVuIHBlcmhhcHMgdGhpcyBpcyB3aGVy
+ZSB0aGUgbWFjaGluZSBpcyB2aW9sYXRpbmcgdGhlIEFDUEkNCj4gc3BlY2lmaWNhdGlvbjoNCj4g
+Pg0KPiA+DQo+ID4gNi41LjEgX0lOSSAoSW5pdCkNCj4gPg0KPiA+IFRoZSBfSU5JIG1ldGhvZCBt
+dXN0IG9ubHkgYWNjZXNzIE9wZXJhdGlvbiBSZWdpb25zIHRoYXQgaGF2ZSBiZWVuDQo+IGluZGlj
+YXRlZCB0byBiZSBhdmFpbGFibGUgYXMgZGVmaW5lZCBieSB0aGUgX1JFRyBtZXRob2QuDQo+ID4N
+Cj4gPg0KPiA+DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJv
+bTogQWRhbSBHb29kZSBbbWFpbHRvOmFnb29kZUBnb29nbGUuY29tXQ0KPiA+PiBTZW50OiBXZWRu
+ZXNkYXksIE1heSAyMCwgMjAxNSA5OjU2IEFNDQo+ID4+IFRvOiBNb29yZSwgUm9iZXJ0DQo+ID4+
+IENjOiBaaGVuZywgTHY7IExhbiwgVGlhbnl1OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsN
+Cj4gPj4gZGV2ZWxAYWNwaWNhLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0
+IHBsYWNlIHRvIHNlbmQgcGF0Y2hlcz8NCj4gPj4NCj4gPj4gTm8sIEkgZGlkIG5vdCBzZWUgYSBf
+UkVHIG1ldGhvZCBkZWZpbmVkIGluIHRoZSBjb2RlLg0KPiA+Pg0KPiA+Pg0KPiA+PiBBZGFtDQo+
+ID4+DQo+ID4+DQo+ID4+IE9uIFdlZCwgTWF5IDIwLCAyMDE1IGF0IDEyOjQ2IFBNLCBNb29yZSwg
+Um9iZXJ0DQo+ID4+IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPg0KPiA+PiB3cm90ZToNCj4gPj4g
+PiBEb2VzIHRoZSBDTU9TIG9wZXJhdGlvbiByZWdpb24gaGF2ZSBhIF9SRUcgbWV0aG9kPw0KPiA+
+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBGcm9tOiBaaGVuZywg
+THYNCj4gPj4gPiBTZW50OiBUdWVzZGF5LCBNYXkgMTksIDIwMTUgMTE6MDMgUE0NCj4gPj4gPiBU
+bzogWmhlbmcsIEx2OyBNb29yZSwgUm9iZXJ0OyBBZGFtIEdvb2RlOyBMYW4sIFRpYW55dQ0KPiA+
+PiA+IENjOiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiA+
+PiA+DQo+ID4+ID4NCj4gPj4gPiBTdWJqZWN0OiBSRTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRv
+IHNlbmQgcGF0Y2hlcz8NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBTaW5jZSBubyBy
+ZXBseSBmcm9tIFRpYW55deKApg0KPiA+PiA+DQo+ID4+ID4gV2hhdCBpZiB3ZSBtb3ZlIF9JTkkg
+aW52b2NhdGlvbiBvdXQgb2YgQUNQSUNBLCBhbmQgbGV0IE9TUE0gdG8NCj4gPj4gPiBpbnZva2UN
+Cj4gPj4gaXQuDQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4gVGhhbmtzDQo+ID4+ID4N
+Cj4gPj4gPiAtTHYNCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBGcm9tOiBEZXZlbCBb
+bWFpbHRvOmRldmVsLWJvdW5jZXNAYWNwaWNhLm9yZ10gT24gQmVoYWxmIE9mIFpoZW5nLA0KPiA+
+PiA+IEx2DQo+ID4+ID4gU2VudDogVGh1cnNkYXksIE1heSAxNCwgMjAxNSA4OjMzIEFNDQo+ID4+
+ID4gVG86IE1vb3JlLCBSb2JlcnQ7IEFkYW0gR29vZGU7IExhbiwgVGlhbnl1DQo+ID4+ID4gQ2M6
+IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+ID4+ID4gU3Vi
+amVjdDogUmU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4+ID4N
+Cj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4gWW91IHNob3VsZCBkaXNjdXNzIHRoaXMgaW4gdGhlIGxp
+bnV4LWFjcGkgbWFpbGluZyBsaXN0IHdoZXJlIHRoZQ0KPiA+PiA+IExpbnV4IENNT1Mgb3ByZWdp
+b24gZHJpdmVyIGlzIGltcGxlbWVudGVkLCByZXZpZXdlZCwgYW5kIG1lcmdlZC4NCj4gPj4gPg0K
+PiA+PiA+IExldCBtZSBDYyBUaWFueXUgd2hvIGlzIHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhl
+IENNT1Mgb3ByZWdpb24NCj4gZHJpdmVyLg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+
+IFRoYW5rcw0KPiA+PiA+DQo+ID4+ID4gLUx2DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+
+ID4gRnJvbTogTW9vcmUsIFJvYmVydA0KPiA+PiA+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDEzLCAy
+MDE1IDEwOjI1IFBNDQo+ID4+ID4gVG86IEFkYW0gR29vZGU7IFpoZW5nLCBMdg0KPiA+PiA+IENj
+OiBkZXZlbEBhY3BpY2Eub3JnDQo+ID4+ID4gU3ViamVjdDogUkU6IFtEZXZlbF0gQ29ycmVjdCBw
+bGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4gSeKA
+mWxsIGhhdmUgdG8gbGV0IEx2IGFuc3dlciB0aGlzIHF1ZXN0aW9uLg0KPiA+PiA+DQo+ID4+ID4N
+Cj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBGcm9tOiBBZGFtIEdvb2RlIFttYWlsdG86
+YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkgMTMsIDIwMTUg
+NzoyMyBBTQ0KPiA+PiA+IFRvOiBNb29yZSwgUm9iZXJ0DQo+ID4+ID4gQ2M6IGRldmVsQGFjcGlj
+YS5vcmcNCj4gPj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRvIHNlbmQg
+cGF0Y2hlcz8NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBUaGUgcHJvYmxlbSBpcyB0
+aGF0IG9uIG5ldyBBcHBsZSBoYXJkd2FyZSAoTWFjbWluaTcsMSBhbmQgb3RoZXJzKSwNCj4gPj4g
+PiB0aGUgc3lzdGVtIHJlYWRzIGFuZCB3cml0ZXMgZnJvbSBDTU9TIGluIF9JTkkuIFdpdGggbm8g
+Q01PUw0KPiA+PiA+IGhhbmRsZXIsIHRoZSBUaHVuZGVyYm9sdCBkZXZpY2UgZG9lc24ndCBpbml0
+aWFsaXplIGNvcnJlY3RseS4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBUaGUgY3Vy
+cmVudCBmcmFtZXdvcmsgaW4gTGludXggZG9lc24ndCByZWdpc3RlciB0aGUgUE5QKiBDTU9TDQo+
+ID4+ID4gZGV2aWNlcyB1bnRpbCBhZnRlciBfSU5JIHJ1bnMuIERvIHlvdSBoYXZlIGEgc3VnZ2Vz
+dGlvbiBvbiB3aGF0IHRvDQo+ID4+ID4gZG8gaW4gdGhpcyBjYXNlPyBJcyBpdCBwb3NzaWJsZSB0
+byByZWdpc3RlciBhIGRldmljZSBkcml2ZXIgYmVmb3JlDQo+IF9JTkkgcnVucz8NCj4gPj4gPg0K
+PiA+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4gVGhhbmtzLA0KPiA+PiA+DQo+
+ID4+ID4NCj4gPj4gPg0KPiA+PiA+IEFkYW0NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4g
+Pg0KPiA+PiA+DQo+ID4+ID4gT24gV2VkLCBNYXkgMTMsIDIwMTUgYXQgNDowNyBQTSwgTW9vcmUs
+IFJvYmVydA0KPiA+PiA+IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPg0KPiA+PiA+IHdyb3RlOg0K
+PiA+PiA+DQo+ID4+ID4gQWN0dWFsbHksIEkgaGFkIGEgcXVlc3Rpb24gYWJvdXQgdGhpcy4NCj4g
+Pj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBHaXZlbiB0aGF0IHRoZSBDTU9TIGRldmljZSBo
+YXMgYSBfSElEIGFuZCByZXF1aXJlcyBhIGRldmljZSBkcml2ZXINCj4gPj4gPiAodGhlcmUgY2Fu
+IGJlIG11bHRpcGxlIHR5cGVzIG9mIENNT1MgZGV2aWNlcyksIGluIEFDUElDQSB3ZSBkZWNpZGVk
+DQo+ID4+ID4gdGhhdCB3ZSBjb3VsZCBub3QgcHJvdmlkZSBDTU9TIGludGVyZmFjZXMuDQo+ID4+
+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4gV2hhdCBwcm9ibGVtIGRvZXMgdGhpcyBwYXRjaCBz
+b2x2ZSwgYW5kIGhvdyB3aWxsIGl0IHdvcmsgaW4gdGhlDQo+ID4+ID4gZmFjZSBvZiBkaWZmZXJl
+bnQgQ01PUyBkZXZpY2VzPw0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+IFRoYW5rcywN
+Cj4gPj4gPg0KPiA+PiA+IEJvYg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+
+ID4NCj4gPj4gPiBGcm9tOiBEZXZlbCBbbWFpbHRvOmRldmVsLWJvdW5jZXNAYWNwaWNhLm9yZ10g
+T24gQmVoYWxmIE9mIEFkYW0NCj4gPj4gPiBHb29kZQ0KPiA+PiA+IFNlbnQ6IFdlZG5lc2RheSwg
+TWF5IDEzLCAyMDE1IDQ6NTMgQU0NCj4gPj4gPiBUbzogZGV2ZWxAYWNwaWNhLm9yZw0KPiA+PiA+
+IFN1YmplY3Q6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4+ID4N
+Cj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4gSGksDQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+
+ID4gSXMgdGhpcyB0aGUgY29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXMgZm9yIHJldmlldz8g
+SSBoYXZlIGENCj4gPj4gPiBwYXRjaCBmcm9tIGEgZmV3IHdlZWtzIGFnbw0KPiA+PiA+IChodHRw
+czovL2xpc3RzLmFjcGljYS5vcmcvcGlwZXJtYWlsL2RldmVsLzIwMTUtTWF5LzAwMDY5OC5odG1s
+KQ0KPiA+PiA+IHRoYXQgSSB3b3VsZCBsaWtlIGZlZWRiYWNrIG9uLg0KPiA+PiA+DQo+ID4+ID4N
+Cj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBUaGFua3MsDQo+ID4+ID4NCj4gPj4gPg0K
+PiA+PiA+DQo+ID4+ID4gQWRhbQ0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPg0KPiA+PiA+DQo=
