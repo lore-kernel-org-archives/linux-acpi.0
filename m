@@ -1,35 +1,35 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC v1 25/25] genirq: Kill the first parameter 'irq' of
+Subject: Re: [RFC v1 15/25] genirq: Kill the first parameter 'irq' of
  irq_flow_handler_t
-Date: Wed, 20 May 2015 17:40:11 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1505201737510.4225@nanos>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-26-git-send-email-jiang.liu@linux.intel.com>
+Date: Wed, 20 May 2015 17:48:19 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505201748000.4225@nanos>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-16-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201715380.4225@nanos> <555CA929.3080306@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1432116013-25902-26-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <555CA929.3080306@linux.intel.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, Murali Karicheri <m-karicheri2@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Steve Longerbeam <slongerbeam@gmail.com>, Gilad Avidov <gavidov@codeaurora.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free>
 List-Id: linux-acpi@vger.kernel.org
 
 On Wed, 20 May 2015, Jiang Liu wrote:
->  /* Chained IRQ handler for IPU error interrupt */
-> -static void ipu_irq_err(unsigned int irq, struct irq_desc *desc)
-> +static void ipu_irq_err(struct irq_desc *desc)
->  {
-> +	unsigned int irq = irq_desc_to_irq(desc);
 
-Why initializing? It's overwritten in the loop.
+> On 2015/5/20 23:28, Thomas Gleixner wrote:
+> > On Wed, 20 May 2015, Jiang Liu wrote:
+> >> -static void locomo_handler(unsigned int irq, struct irq_desc *desc)
+> >> +static void locomo_handler(struct irq_desc *desc)
+> >>  {
+> >>  	struct locomo *lchip = irq_desc_get_chip_data(desc);
+> >> +	unsigned int irq;
+> >>  	int req, i;
+> > 
+> > That leaves irq unitialized ....
+> That should be OK, 'irq' here is just a local variable.
+> Actually it may be changed as:
+>         if (req) {
+>                 /* generate the next interrupt(s) */
+> -                irq = lchip->irq_base;
+> +                unsigned int irq = lchip->irq_base;
 
->  /* Chained IRQ handler for IPU function interrupt */
-> -static void ipu_irq_fn(unsigned int irq, struct irq_desc *desc)
-> +static void ipu_irq_fn(struct irq_desc *desc)
->  {
-> +	unsigned int irq = irq_desc_to_irq(desc);
-
-Ditto.
-
-Thanks,
-
-	tglx
+Indeed. 
