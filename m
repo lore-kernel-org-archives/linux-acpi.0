@@ -1,8 +1,7 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3 09/21] libnd,
- nd_pmem: add libnd support to the pmem driver
-Date: Wed, 20 May 2015 16:57:00 -0400
-Message-ID: <20150520205700.32249.9798.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v3 04/21] libnd, nfit: dimm/memory-devices
+Date: Wed, 20 May 2015 16:56:32 -0400
+Message-ID: <20150520205632.32249.3607.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,393 +10,492 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: axboe@kernel.dk
-Cc: mingo@kernel.org, Boaz Harrosh <boaz@plexistor.com>, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de
+Cc: mingo@kernel.org, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, hch@lst.de
 List-Id: linux-acpi@vger.kernel.org
 
-nd_pmem attaches to persistent memory regions and namespaces emitted by
-the libnd subsystem, and, same as the original pmem driver, presents the
-system-physical-address range as a block device.
+Enable dimm devices to be registered on a libnd bus.  The kernel
+assigned device id for dimms is dynamic.  If userspace needs a more
+static identifier it should consult a provider-specific attribute.  In
+the case where NFIT is the provider, the 'nmemX/nfit/handle' or
+'nmemX/nfit/serial' attributes may be used for this purpose.
 
-The existing e820-type-12 to pmem setup is converted to a full libnd bus
-that emits an nd_namespace_io device.
-
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/kernel/pmem.c    |    2 -
- drivers/block/Kconfig     |   19 ++++-----
- drivers/block/Makefile    |    2 -
- drivers/block/e820_pmem.c |  100 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/block/nd/Kconfig  |   17 ++++++++
- drivers/block/nd/Makefile |    3 +
- drivers/block/nd/pmem.c   |   60 +++++++++++++--------------
- 7 files changed, 159 insertions(+), 44 deletions(-)
- create mode 100644 drivers/block/e820_pmem.c
- rename drivers/block/{pmem.c => nd/pmem.c} (85%)
+ drivers/acpi/nfit.c           |  160 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit.h           |    1 
+ drivers/block/nd/Makefile     |    1 
+ drivers/block/nd/bus.c        |   14 +++-
+ drivers/block/nd/core.c       |   29 +++++++
+ drivers/block/nd/dimm_devs.c  |   92 ++++++++++++++++++++++++
+ drivers/block/nd/nd-private.h |   12 +++
+ include/linux/libnd.h         |   11 +++
+ 8 files changed, 318 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/block/nd/dimm_devs.c
 
-diff --git a/arch/x86/kernel/pmem.c b/arch/x86/kernel/pmem.c
-index 3420c874ddc5..279328c42f87 100644
---- a/arch/x86/kernel/pmem.c
-+++ b/arch/x86/kernel/pmem.c
-@@ -13,7 +13,7 @@ static __init void register_pmem_device(struct resource *res)
- 	struct platform_device *pdev;
- 	int error;
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index d31a0fffafcc..b26e1a4a59e3 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -344,6 +344,164 @@ const struct attribute_group *acpi_nfit_attribute_groups[] = {
+ };
+ EXPORT_SYMBOL_GPL(acpi_nfit_attribute_groups);
  
--	pdev = platform_device_alloc("pmem", PLATFORM_DEVID_AUTO);
-+	pdev = platform_device_alloc("e820_pmem", PLATFORM_DEVID_AUTO);
- 	if (!pdev)
- 		return;
- 
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index dfe40e5ca9bd..4c2cfb91755f 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -323,6 +323,14 @@ config BLK_DEV_NVME
- 
- source "drivers/block/nd/Kconfig"
- 
-+config E820_PMEM
-+	tristate "E820 defined Persistent Memory (legacy)"
-+	depends on PHYS_ADDR_T_64BIT
-+	depends on X86_PMEM_LEGACY
-+	default m if X86_PMEM_LEGACY
-+	select ND_DEVICES
-+	select LIBND
-+
- config BLK_DEV_SKD
- 	tristate "STEC S1120 Block Driver"
- 	depends on PCI
-@@ -406,17 +414,6 @@ config BLK_DEV_RAM_DAX
- 	  and will prevent RAM block device backing store memory from being
- 	  allocated from highmem (only a problem for highmem systems).
- 
--config BLK_DEV_PMEM
--	tristate "Persistent memory block device support"
--	help
--	  Saying Y here will allow you to use a contiguous range of reserved
--	  memory as one or more persistent block devices.
--
--	  To compile this driver as a module, choose M here: the module will be
--	  called 'pmem'.
--
--	  If unsure, say N.
--
- config CDROM_PKTCDVD
- 	tristate "Packet writing on CD/DVD media"
- 	depends on !UML
-diff --git a/drivers/block/Makefile b/drivers/block/Makefile
-index 07a6acecf4d8..4cd5f8a919d8 100644
---- a/drivers/block/Makefile
-+++ b/drivers/block/Makefile
-@@ -14,7 +14,6 @@ obj-$(CONFIG_PS3_VRAM)		+= ps3vram.o
- obj-$(CONFIG_ATARI_FLOPPY)	+= ataflop.o
- obj-$(CONFIG_AMIGA_Z2RAM)	+= z2ram.o
- obj-$(CONFIG_BLK_DEV_RAM)	+= brd.o
--obj-$(CONFIG_BLK_DEV_PMEM)	+= pmem.o
- obj-$(CONFIG_BLK_DEV_LOOP)	+= loop.o
- obj-$(CONFIG_BLK_CPQ_DA)	+= cpqarray.o
- obj-$(CONFIG_BLK_CPQ_CISS_DA)  += cciss.o
-@@ -25,6 +24,7 @@ obj-$(CONFIG_MG_DISK)		+= mg_disk.o
- obj-$(CONFIG_SUNVDC)		+= sunvdc.o
- obj-$(CONFIG_BLK_DEV_NVME)	+= nvme.o
- obj-$(CONFIG_ND_DEVICES)	+= nd/
-+obj-$(CONFIG_E820_PMEM)		+= e820_pmem.o
- obj-$(CONFIG_BLK_DEV_SKD)	+= skd.o
- obj-$(CONFIG_BLK_DEV_OSD)	+= osdblk.o
- 
-diff --git a/drivers/block/e820_pmem.c b/drivers/block/e820_pmem.c
-new file mode 100644
-index 000000000000..48c33e43f39e
---- /dev/null
-+++ b/drivers/block/e820_pmem.c
-@@ -0,0 +1,100 @@
-+/*
-+ * libnd e820 support
-+ *
-+ * Copyright (c) 2014-2015, Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ */
-+#include <linux/platform_device.h>
-+#include <linux/module.h>
-+#include <linux/libnd.h>
-+
-+static const struct attribute_group *e820_pmem_attribute_groups[] = {
-+	&nd_bus_attribute_group,
-+	NULL,
-+};
-+
-+static const struct attribute_group *e820_pmem_region_attribute_groups[] = {
-+	&nd_region_attribute_group,
-+	&nd_device_attribute_group,
-+	NULL,
-+};
-+
-+static int e820_pmem_probe(struct platform_device *pdev)
++static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
 +{
-+	struct nd_bus_descriptor *nd_desc;
-+	struct nd_region_desc ndr_desc;
-+	struct nd_bus *nd_bus;
-+	struct resource *res;
++	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
++	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
 +
-+	if (WARN_ON(pdev->num_resources > 1))
-+		return -ENXIO;
++	return __to_nfit_memdev(nfit_mem);
++}
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		return -ENXIO;
++static struct acpi_nfit_control_region *to_nfit_dcr(struct device *dev)
++{
++	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
++	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
 +
-+	nd_desc = devm_kzalloc(&pdev->dev, sizeof(*nd_desc), GFP_KERNEL);
-+	if (!nd_desc)
-+		return -ENOMEM;
++	return nfit_mem->dcr;
++}
 +
-+	nd_desc->attr_groups = e820_pmem_attribute_groups;
-+	nd_desc->provider_name = "e820";
-+	nd_bus = nd_bus_register(&pdev->dev, nd_desc);
-+	if (!nd_bus)
-+		return -ENXIO;
++static ssize_t handle_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
 +
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+	ndr_desc.res = res;
-+	ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
-+	if (!nd_pmem_region_create(nd_bus, &ndr_desc)) {
-+		nd_bus_unregister(nd_bus);
-+		return -ENXIO;
++	return sprintf(buf, "%#x\n", memdev->device_handle);
++}
++static DEVICE_ATTR_RO(handle);
++
++static ssize_t phys_id_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
++
++	return sprintf(buf, "%#x\n", memdev->physical_id);
++}
++static DEVICE_ATTR_RO(phys_id);
++
++static ssize_t vendor_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	return sprintf(buf, "%#x\n", dcr->vendor_id);
++}
++static DEVICE_ATTR_RO(vendor);
++
++static ssize_t rev_id_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	return sprintf(buf, "%#x\n", dcr->revision_id);
++}
++static DEVICE_ATTR_RO(rev_id);
++
++static ssize_t device_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	return sprintf(buf, "%#x\n", dcr->device_id);
++}
++static DEVICE_ATTR_RO(device);
++
++static ssize_t format_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	return sprintf(buf, "%#x\n", dcr->code);
++}
++static DEVICE_ATTR_RO(format);
++
++static ssize_t serial_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	return sprintf(buf, "%#x\n", dcr->serial_number);
++}
++static DEVICE_ATTR_RO(serial);
++
++static struct attribute *acpi_nfit_dimm_attributes[] = {
++	&dev_attr_handle.attr,
++	&dev_attr_phys_id.attr,
++	&dev_attr_vendor.attr,
++	&dev_attr_device.attr,
++	&dev_attr_format.attr,
++	&dev_attr_serial.attr,
++	&dev_attr_rev_id.attr,
++	NULL,
++};
++
++static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj, struct attribute *a, int n)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++
++	if (to_nfit_dcr(dev))
++		return a->mode;
++	else
++		return 0;
++}
++
++static struct attribute_group acpi_nfit_dimm_attribute_group = {
++	.name = "nfit",
++	.attrs = acpi_nfit_dimm_attributes,
++	.is_visible = acpi_nfit_dimm_attr_visible,
++};
++
++static const struct attribute_group *acpi_nfit_dimm_attribute_groups[] = {
++	&acpi_nfit_dimm_attribute_group,
++	NULL,
++};
++
++static struct nd_dimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
++		u32 device_handle)
++{
++	struct nfit_mem *nfit_mem;
++
++	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list)
++		if (__to_nfit_memdev(nfit_mem)->device_handle == device_handle)
++			return nfit_mem->nd_dimm;
++
++	return NULL;
++}
++
++static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
++{
++	struct nfit_mem *nfit_mem;
++
++	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		struct nd_dimm *nd_dimm;
++		unsigned long flags = 0;
++		u32 device_handle;
++
++		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
++		nd_dimm = acpi_nfit_dimm_by_handle(acpi_desc, device_handle);
++		if (nd_dimm) {
++			/*
++			 * If for some reason we find multiple DCRs the
++			 * first one wins
++			 */
++			dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
++					nd_dimm_name(nd_dimm));
++			continue;
++		}
++
++		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
++			flags |= NDD_ALIASING;
++
++		nd_dimm = nd_dimm_create(acpi_desc->nd_bus, nfit_mem,
++				acpi_nfit_dimm_attribute_groups, flags);
++		if (!nd_dimm)
++			return -ENOMEM;
++
++		nfit_mem->nd_dimm = nd_dimm;
 +	}
 +
-+	platform_set_drvdata(pdev, nd_bus);
-+
 +	return 0;
 +}
 +
-+static int e820_pmem_remove(struct platform_device *pdev)
-+{
-+	struct nd_bus *nd_bus = platform_get_drvdata(pdev);
-+
-+	nd_bus_unregister(nd_bus);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver e820_pmem_driver = {
-+	.probe		= e820_pmem_probe,
-+	.remove		= e820_pmem_remove,
-+	.driver		= {
-+		.owner	= THIS_MODULE,
-+		.name	= "e820_pmem",
-+	},
-+};
-+
-+MODULE_ALIAS("platform:e820_pmem*");
-+
-+static int __init e820_pmem_init(void)
-+{
-+	return platform_driver_register(&e820_pmem_driver);
-+}
-+module_init(e820_pmem_init);
-+
-+static void e820_pmem_exit(void)
-+{
-+	platform_driver_unregister(&e820_pmem_driver);
-+}
-+module_exit(e820_pmem_exit);
-+
-+MODULE_AUTHOR("Intel Corporation");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
-index 9b909c21afa1..03f572f0e3d0 100644
---- a/drivers/block/nd/Kconfig
-+++ b/drivers/block/nd/Kconfig
-@@ -17,4 +17,21 @@ if ND_DEVICES
- config LIBND
- 	tristate
+ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ {
+ 	struct device *dev = acpi_desc->dev;
+@@ -371,7 +529,7 @@ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ 	if (nfit_mem_init(acpi_desc) != 0)
+ 		return -ENOMEM;
  
-+config BLK_DEV_PMEM
-+	tristate "PMEM: Persistent memory block device support"
-+	depends on LIBND
-+	default LIBND
-+	help
-+	  Memory ranges for PMEM are described by either an NFIT
-+	  (NVDIMM Firmware Interface Table, see CONFIG_NFIT_ACPI), a
-+	  non-standard OEM-specific E820 memory type (type-12, see
-+	  CONFIG_X86_PMEM_LEGACY), or it is manually specified by the
-+	  'memmap=nn[KMG]!ss[KMG]' kernel command line (see
-+	  Documentation/kernel-parameters.txt).  This driver converts
-+	  these persistent memory ranges into block devices that are
-+	  capable of DAX (direct-access) file system mappings.  See
-+	  Documentation/blockdev/nd.txt for more details.
-+
-+	  Say Y if you want to use a NVDIMM described by NFIT
-+
- endif
+-	return 0;
++	return acpi_nfit_register_dimms(acpi_desc);
+ }
+ 
+ static int acpi_nfit_add(struct acpi_device *adev)
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index b6c85d773ca1..9d4c1634cb0e 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -59,6 +59,7 @@ struct nfit_memdev {
+ 
+ /* assembled tables for a given dimm/memory-device */
+ struct nfit_mem {
++	struct nd_dimm *nd_dimm;
+ 	struct acpi_nfit_memory_map *memdev_dcr;
+ 	struct acpi_nfit_memory_map *memdev_pmem;
+ 	struct acpi_nfit_control_region *dcr;
 diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
-index 235d9e6be94a..6f539f01fa82 100644
+index 34d1b58b3258..2954b9543bec 100644
 --- a/drivers/block/nd/Makefile
 +++ b/drivers/block/nd/Makefile
-@@ -1,4 +1,7 @@
- obj-$(CONFIG_LIBND) += libnd.o
-+obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
-+
-+nd_pmem-y := pmem.o
+@@ -2,3 +2,4 @@ obj-$(CONFIG_LIBND) += libnd.o
  
  libnd-y := core.o
  libnd-y += bus.o
-diff --git a/drivers/block/pmem.c b/drivers/block/nd/pmem.c
-similarity index 85%
-rename from drivers/block/pmem.c
-rename to drivers/block/nd/pmem.c
-index eabf4a8d0085..529a1444a918 100644
---- a/drivers/block/pmem.c
-+++ b/drivers/block/nd/pmem.c
-@@ -1,7 +1,7 @@
- /*
-  * Persistent Memory Driver
-  *
-- * Copyright (c) 2014, Intel Corporation.
-+ * Copyright (c) 2014-2015, Intel Corporation.
-  * Copyright (c) 2015, Christoph Hellwig <hch@lst.de>.
-  * Copyright (c) 2015, Boaz Harrosh <boaz@plexistor.com>.
-  *
-@@ -23,6 +23,8 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
++libnd-y += dimm_devs.o
+diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
+index 635f2e926426..ee56aa1ab2ad 100644
+--- a/drivers/block/nd/bus.c
++++ b/drivers/block/nd/bus.c
+@@ -13,6 +13,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ #include <linux/uaccess.h>
+ #include <linux/fcntl.h>
++#include <linux/async.h>
  #include <linux/slab.h>
-+#include <linux/nd.h>
-+#include "nd.h"
+ #include <linux/fs.h>
+ #include <linux/io.h>
+@@ -21,6 +22,10 @@
+ static int nd_bus_major;
+ static struct class *nd_class;
  
- #define PMEM_MINORS		16
- 
-@@ -37,7 +39,6 @@ struct pmem_device {
- };
- 
- static int pmem_major;
--static atomic_t pmem_index;
- 
- static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 			unsigned int len, unsigned int off, int rw,
-@@ -118,11 +119,11 @@ static const struct block_device_operations pmem_fops = {
- 	.direct_access =	pmem_direct_access,
- };
- 
--static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
-+static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res, int id)
++struct bus_type nd_bus_type = {
++	.name = "nd",
++};
++
+ int nd_bus_create_ndctl(struct nd_bus *nd_bus)
  {
- 	struct pmem_device *pmem;
- 	struct gendisk *disk;
--	int idx, err;
-+	int err;
- 
- 	err = -ENOMEM;
- 	pmem = kzalloc(sizeof(*pmem), GFP_KERNEL);
-@@ -159,15 +160,13 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res)
- 	if (!disk)
- 		goto out_free_queue;
- 
--	idx = atomic_inc_return(&pmem_index) - 1;
--
- 	disk->major		= pmem_major;
--	disk->first_minor	= PMEM_MINORS * idx;
-+	disk->first_minor	= PMEM_MINORS * id;
- 	disk->fops		= &pmem_fops;
- 	disk->private_data	= pmem;
- 	disk->queue		= pmem->pmem_queue;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
--	sprintf(disk->disk_name, "pmem%d", idx);
-+	sprintf(disk->disk_name, "pmem%d", id);
- 	disk->driverfs_dev = dev;
- 	set_capacity(disk, pmem->size >> 9);
- 	pmem->pmem_disk = disk;
-@@ -198,42 +197,38 @@ static void pmem_free(struct pmem_device *pmem)
- 	kfree(pmem);
- }
- 
--static int pmem_probe(struct platform_device *pdev)
-+static int nd_pmem_probe(struct device *dev)
+ 	dev_t devt = MKDEV(nd_bus_major, nd_bus->id);
+@@ -59,9 +64,13 @@ int __init nd_bus_init(void)
  {
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	struct nd_namespace_io *nsio = to_nd_namespace_io(dev);
- 	struct pmem_device *pmem;
--	struct resource *res;
--
--	if (WARN_ON(pdev->num_resources > 1))
--		return -ENXIO;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENXIO;
+ 	int rc;
  
--	pmem = pmem_alloc(&pdev->dev, res);
-+	pmem = pmem_alloc(dev, &nsio->res, nd_region->id);
- 	if (IS_ERR(pmem))
- 		return PTR_ERR(pmem);
++	rc = bus_register(&nd_bus_type);
++	if (rc)
++		return rc;
++
+ 	rc = register_chrdev(0, "ndctl", &nd_bus_fops);
+ 	if (rc < 0)
+-		return rc;
++		goto err_chrdev;
+ 	nd_bus_major = rc;
  
--	platform_set_drvdata(pdev, pmem);
-+	dev_set_drvdata(dev, pmem);
+ 	nd_class = class_create(THIS_MODULE, "nd");
+@@ -72,6 +81,8 @@ int __init nd_bus_init(void)
  
- 	return 0;
+  err_class:
+ 	unregister_chrdev(nd_bus_major, "ndctl");
++ err_chrdev:
++	bus_unregister(&nd_bus_type);
+ 
+ 	return rc;
  }
- 
--static int pmem_remove(struct platform_device *pdev)
-+static int nd_pmem_remove(struct device *dev)
+@@ -80,4 +91,5 @@ void __exit nd_bus_exit(void)
  {
--	struct pmem_device *pmem = platform_get_drvdata(pdev);
-+	struct pmem_device *pmem = dev_get_drvdata(dev);
- 
- 	pmem_free(pmem);
- 	return 0;
+ 	class_destroy(nd_class);
+ 	unregister_chrdev(nd_bus_major, "ndctl");
++	bus_unregister(&nd_bus_type);
  }
+diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
+index 49b7ac8f7606..4d0e53ecdcb0 100644
+--- a/drivers/block/nd/core.c
++++ b/drivers/block/nd/core.c
+@@ -46,6 +46,19 @@ struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus)
+ }
+ EXPORT_SYMBOL_GPL(to_nd_desc);
  
--static struct platform_driver pmem_driver = {
--	.probe		= pmem_probe,
--	.remove		= pmem_remove,
--	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= "pmem",
-+MODULE_ALIAS("pmem");
-+MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_IO);
-+static struct nd_device_driver nd_pmem_driver = {
-+	.probe = nd_pmem_probe,
-+	.remove = nd_pmem_remove,
-+	.drv = {
-+		.name = "pmem",
- 	},
-+	.type = ND_DRIVER_NAMESPACE_IO,
- };
++struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
++{
++	struct device *dev;
++
++	for (dev = nd_dev; dev; dev = dev->parent)
++		if (dev->release == nd_bus_release)
++			break;
++	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not on nd bus\n");
++	if (dev)
++		return to_nd_bus(dev);
++	return NULL;
++}
++
+ static const char *nd_bus_provider(struct nd_bus *nd_bus)
+ {
+ 	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
+@@ -118,6 +131,21 @@ struct nd_bus *nd_bus_register(struct device *parent,
+ }
+ EXPORT_SYMBOL_GPL(nd_bus_register);
  
- static int __init pmem_init(void)
-@@ -244,16 +239,19 @@ static int __init pmem_init(void)
- 	if (pmem_major < 0)
- 		return pmem_major;
++static int child_unregister(struct device *dev, void *data)
++{
++	/*
++	 * the singular ndctl class device per bus needs to be
++	 * "device_destroy"ed, so skip it here
++	 *
++	 * i.e. remove classless children
++	 */
++	if (dev->class)
++		/* pass */;
++	else
++		device_unregister(dev);
++	return 0;
++}
++
+ void nd_bus_unregister(struct nd_bus *nd_bus)
+ {
+ 	if (!nd_bus)
+@@ -127,6 +155,7 @@ void nd_bus_unregister(struct nd_bus *nd_bus)
+ 	list_del_init(&nd_bus->list);
+ 	mutex_unlock(&nd_bus_list_mutex);
  
--	error = platform_driver_register(&pmem_driver);
--	if (error)
-+	error = nd_driver_register(&nd_pmem_driver);
-+	if (error) {
- 		unregister_blkdev(pmem_major, "pmem");
--	return error;
-+		return error;
++	device_for_each_child(&nd_bus->dev, NULL, child_unregister);
+ 	nd_bus_destroy_ndctl(nd_bus);
+ 
+ 	device_unregister(&nd_bus->dev);
+diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
+new file mode 100644
+index 000000000000..19b081392f2f
+--- /dev/null
++++ b/drivers/block/nd/dimm_devs.c
+@@ -0,0 +1,92 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/device.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include "nd-private.h"
++
++static DEFINE_IDA(dimm_ida);
++
++static void nd_dimm_release(struct device *dev)
++{
++	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
++
++	ida_simple_remove(&dimm_ida, nd_dimm->id);
++	kfree(nd_dimm);
++}
++
++static struct device_type nd_dimm_device_type = {
++	.name = "nd_dimm",
++	.release = nd_dimm_release,
++};
++
++static bool is_nd_dimm(struct device *dev)
++{
++	return dev->type == &nd_dimm_device_type;
++}
++
++struct nd_dimm *to_nd_dimm(struct device *dev)
++{
++	struct nd_dimm *nd_dimm = container_of(dev, struct nd_dimm, dev);
++
++	WARN_ON(!is_nd_dimm(dev));
++	return nd_dimm;
++}
++EXPORT_SYMBOL_GPL(to_nd_dimm);
++
++const char *nd_dimm_name(struct nd_dimm *nd_dimm)
++{
++	return dev_name(&nd_dimm->dev);
++}
++EXPORT_SYMBOL_GPL(nd_dimm_name);
++
++void *nd_dimm_provider_data(struct nd_dimm *nd_dimm)
++{
++	return nd_dimm->provider_data;
++}
++EXPORT_SYMBOL_GPL(nd_dimm_provider_data);
++
++struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
++		const struct attribute_group **groups, unsigned long flags)
++{
++	struct nd_dimm *nd_dimm = kzalloc(sizeof(*nd_dimm), GFP_KERNEL);
++	struct device *dev;
++
++	if (!nd_dimm)
++		return NULL;
++
++	nd_dimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
++	if (nd_dimm->id < 0) {
++		kfree(nd_dimm);
++		return NULL;
++	}
++	nd_dimm->provider_data = provider_data;
++	nd_dimm->flags = flags;
++
++	dev = &nd_dimm->dev;
++	dev_set_name(dev, "nmem%d", nd_dimm->id);
++	dev->parent = &nd_bus->dev;
++	dev->type = &nd_dimm_device_type;
++	dev->bus = &nd_bus_type;
++	dev->groups = groups;
++	if (device_register(dev) != 0) {
++		put_device(dev);
++		return NULL;
 +	}
 +
-+	return 0;
- }
- module_init(pmem_init);
++	return nd_dimm;
++}
++EXPORT_SYMBOL_GPL(nd_dimm_create);
+diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
+index 884601f65a15..251ecdd77153 100644
+--- a/drivers/block/nd/nd-private.h
++++ b/drivers/block/nd/nd-private.h
+@@ -15,6 +15,10 @@
+ #include <linux/device.h>
+ #include <linux/libnd.h>
  
- static void pmem_exit(void)
- {
--	platform_driver_unregister(&pmem_driver);
-+	driver_unregister(&nd_pmem_driver.drv);
- 	unregister_blkdev(pmem_major, "pmem");
- }
- module_exit(pmem_exit);
++extern struct list_head nd_bus_list;
++extern struct mutex nd_bus_list_mutex;
++extern struct bus_type nd_bus_type;
++
+ struct nd_bus {
+ 	struct nd_bus_descriptor *nd_desc;
+ 	struct list_head list;
+@@ -22,6 +26,14 @@ struct nd_bus {
+ 	int id;
+ };
+ 
++struct nd_dimm {
++	unsigned long flags;
++	void *provider_data;
++	struct device dev;
++	int id;
++};
++
++struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
+ int __init nd_bus_init(void);
+ void __exit nd_bus_exit(void);
+ int nd_bus_create_ndctl(struct nd_bus *nd_bus);
+diff --git a/include/linux/libnd.h b/include/linux/libnd.h
+index 04a97653d56c..76d5839fb50e 100644
+--- a/include/linux/libnd.h
++++ b/include/linux/libnd.h
+@@ -14,6 +14,12 @@
+  */
+ #ifndef __LIBND_H__
+ #define __LIBND_H__
++
++enum {
++	/* when a dimm supports both PMEM and BLK access a label is required */
++	NDD_ALIASING = 1 << 0,
++};
++
+ extern struct attribute_group nd_bus_attribute_group;
+ 
+ struct nd_dimm;
+@@ -35,5 +41,10 @@ struct nd_bus *nd_bus_register(struct device *parent,
+ 		struct nd_bus_descriptor *nfit_desc);
+ void nd_bus_unregister(struct nd_bus *nd_bus);
+ struct nd_bus *to_nd_bus(struct device *dev);
++struct nd_dimm *to_nd_dimm(struct device *dev);
+ struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
++const char *nd_dimm_name(struct nd_dimm *nd_dimm);
++void *nd_dimm_provider_data(struct nd_dimm *nd_dimm);
++struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
++		const struct attribute_group **groups, unsigned long flags);
+ #endif /* __LIBND_H__ */
