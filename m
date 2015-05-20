@@ -1,217 +1,196 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3 00/21] libnd: non-volatile memory device support
-Date: Wed, 20 May 2015 16:56:10 -0400
-Message-ID: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v3 01/21] e820, efi: add ACPI 6.0 persistent memory types
+Date: Wed, 20 May 2015 16:56:16 -0400
+Message-ID: <20150520205616.32249.52559.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29267 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:4020 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753033AbbETU6w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 16:58:52 -0400
+	id S1753033AbbETU65 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 16:58:57 -0400
+In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: axboe@kernel.dk
-Cc: Boaz Harrosh <boaz@plexistor.com>, neilb@suse.de, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mingo@kernel.org, Boaz Harrosh <boaz@plexistor.com>, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, hch@lst.de, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@amacapital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Changes since v2 [1]:
+ACPI 6.0 formalizes e820-type-7 and efi-type-14 as persistent memory.
+Mark it "reserved" and allow it to be claimed by a persistent memory
+device driver.
 
-1/ Rebase on the ACPICA enabling for the NFIT data structures.  The
-   ACPICA project owns the definition of ACPI data structures in
-   include/acpi/.  This release incorporates the NFIT and UUID definitions
-   from ACPICA release R05_15_15 [2]. (Rafael, Bob)
+This definition is in addition to the Linux kernel's existing type-12
+definition that was recently added in support of shipping platforms with
+NVDIMM support that predate ACPI 6.0 (which now classifies type-12 as
+OEM reserved).
 
-2/ Move the ACPI NFIT driver to drivers/acpi/ (Rafael)
+Note, /proc/iomem can be consulted for differentiating legacy
+"Persistent Memory (legacy)" E820_PRAM vs standard "Persistent Memory"
+E820_PMEM.
 
-3/ Include documentation of the overall subsystem (Rafael)
-
-4/ Arrange for stable block device names in the case where the platform
-   configuration has not changed (Toshi and Robert)
-
-5/ Move test infrastructure to the end of the series (Jeff)
-
-6/ Fix up the Kconfig text for CONFIG_ND_BLK to be more descriptive
-   (Andy)
-
-7/ Report and continue upon detecting unknown NFIT tables rather than
-   failing (Jeff)
-
-8/ Rename the namespace 'type' attribute to 'nstype' so that lsblk does
-   not mistake libnd block devices for scsi disks. (Robert and Christoph)
-
-9/ Convert nd_region_{acquire|release}_lane() to user percpu variable
-   infrastructure (Ross)
-
-Thanks for all of the review!
-
-Note, there are incremental changes to address caching, persistent
-flushing, queue flags, and expanded sector size support that are
-deferred until this base support is cleared to merge.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-April/000574.html
-[2]: https://github.com/acpica/acpica/tree/R05_15_15
-
-Here is the diffstat relative to v2:
-
- Documentation/blockdev/libnd.txt            | 804 ++++++++++++++++++++++++++++
- MAINTAINERS                                 |  39 +-
- arch/ia64/kernel/efi.c                      |   2 +-
- arch/x86/kernel/e820.c                      |   4 +-
- drivers/acpi/Kconfig                        |  27 +
- drivers/acpi/Makefile                       |   1 +
- drivers/{block/nd/acpi.c => acpi/nfit.c}    | 581 ++++++++++----------
- drivers/acpi/nfit.h                         | 160 ++++++
- drivers/block/Kconfig                       |   8 +
- drivers/block/Makefile                      |   1 +
- drivers/block/{nd/e820.c => e820_pmem.c}    |  32 +-
- drivers/block/nd/Kconfig                    |  72 +--
- drivers/block/nd/Makefile                   |  12 -
- drivers/block/nd/acpi_nfit.h                | 321 -----------
- drivers/block/nd/blk.c                      |  20 +-
- drivers/block/nd/btt.c                      |  59 +-
- drivers/block/nd/btt.h                      |   7 +-
- drivers/block/nd/btt_devs.c                 |   2 +-
- drivers/block/nd/bus.c                      |   2 +-
- drivers/block/nd/core.c                     |   9 +-
- drivers/block/nd/dimm_devs.c                |   9 +
- drivers/block/nd/label.c                    |  23 +-
- drivers/block/nd/namespace_devs.c           |  14 +-
- drivers/block/nd/nd-private.h               |   5 +-
- drivers/block/nd/nd.h                       |  18 +-
- drivers/block/nd/pmem.c                     |  25 +-
- drivers/block/nd/region.c                   |  64 ++-
- drivers/block/nd/region_devs.c              |  54 +-
- drivers/block/nd/test/nfit.c                | 794 ++++++++++++++-------------
- drivers/block/nd/test/nfit_test.h           |   2 +
- include/acpi/actbl1.h                       | 154 ++++++
- include/acpi/acuuid.h                       |  89 +++
- {drivers/block/nd => include/linux}/libnd.h |  21 +-
- 33 files changed, 2202 insertions(+), 1233 deletions(-)
- create mode 100644 Documentation/blockdev/libnd.txt
- rename drivers/{block/nd/acpi.c => acpi/nfit.c} (69%)
- create mode 100644 drivers/acpi/nfit.h
- rename drivers/block/{nd/e820.c => e820_pmem.c} (69%)
- delete mode 100644 drivers/block/nd/acpi_nfit.h
- create mode 100644 include/acpi/acuuid.h
- rename {drivers/block/nd => include/linux}/libnd.h (81%)
-
-The libndctl changes for these updates are available in ndctl.git:
-https://github.com/pmem/ndctl
-
-For this set to move forward it needs acks from ACPI and BLOCK layer
-developers.  I am assuming this will ultimately go upstream via the
-block tree.  A branch in nvdimm.git will be prepared at the end of the
-week to give the pending acks some time to land.  Additional feedback
-welcome, and hopefully it can be addressed incrementally from this
-baseline going forward, i.e. aiming for inclusion in -next and no more
-rebases before the 4.2 merge window opens.
-
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Andy Lutomirski <luto@amacapital.net>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ arch/arm64/kernel/efi.c          |    1 +
+ arch/ia64/kernel/efi.c           |    4 ++++
+ arch/x86/boot/compressed/eboot.c |    4 ++++
+ arch/x86/include/uapi/asm/e820.h |    1 +
+ arch/x86/kernel/e820.c           |   28 ++++++++++++++++++++++++----
+ arch/x86/platform/efi/efi.c      |    3 +++
+ include/linux/efi.h              |    3 ++-
+ 7 files changed, 39 insertions(+), 5 deletions(-)
 
-Dan Williams (18):
-      e820, efi: add ACPI 6.0 persistent memory types
-      libnd, nfit: initial libnd infrastructure and NFIT support
-      libnd: control character device and libnd bus sysfs attributes
-      libnd, nfit: dimm/memory-devices
-      libnd: control (ioctl) messages for libnd bus and dimm devices
-      libnd, nd_dimm: dimm driver and base libnd device-driver infrastructure
-      libnd, nfit: regions (block-data-window, persistent memory, volatile memory)
-      libnd: support for legacy (non-aliasing) nvdimms
-      libnd, nd_pmem: add libnd support to the pmem driver
-      libnd, nfit: add interleave-set state-tracking infrastructure
-      libnd: namespace indices: read and validate
-      libnd: pmem label sets and namespace instantiation.
-      libnd: blk labels and namespace instantiation
-      libnd: write pmem label set
-      libnd: write blk label set
-      libnd: infrastructure for btt devices
-      nfit-test: manufactured NFITs for interface development
-      libnd: Non-Volatile Devices
+diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
+index ab21e0d58278..9d4aa18f2a82 100644
+--- a/arch/arm64/kernel/efi.c
++++ b/arch/arm64/kernel/efi.c
+@@ -158,6 +158,7 @@ static __init int is_reserve_region(efi_memory_desc_t *md)
+ 	case EFI_BOOT_SERVICES_CODE:
+ 	case EFI_BOOT_SERVICES_DATA:
+ 	case EFI_CONVENTIONAL_MEMORY:
++	case EFI_PERSISTENT_MEMORY:
+ 		return 0;
+ 	default:
+ 		break;
+diff --git a/arch/ia64/kernel/efi.c b/arch/ia64/kernel/efi.c
+index c52d7540dc05..5f6be9dd6968 100644
+--- a/arch/ia64/kernel/efi.c
++++ b/arch/ia64/kernel/efi.c
+@@ -1223,6 +1223,10 @@ efi_initialize_iomem_resources(struct resource *code_resource,
+ 				flags |= IORESOURCE_DISABLED;
+ 				break;
+ 
++			case EFI_PERSISTENT_MEMORY:
++				name = "Persistent Memory";
++				break;
++
+ 			case EFI_RESERVED_TYPE:
+ 			case EFI_RUNTIME_SERVICES_CODE:
+ 			case EFI_RUNTIME_SERVICES_DATA:
+diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
+index ef17683484e9..dde5bf7726f4 100644
+--- a/arch/x86/boot/compressed/eboot.c
++++ b/arch/x86/boot/compressed/eboot.c
+@@ -1222,6 +1222,10 @@ static efi_status_t setup_e820(struct boot_params *params,
+ 			e820_type = E820_NVS;
+ 			break;
+ 
++		case EFI_PERSISTENT_MEMORY:
++			e820_type = E820_PMEM;
++			break;
++
+ 		default:
+ 			continue;
+ 		}
+diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
+index 960a8a9dc4ab..0f457e6eab18 100644
+--- a/arch/x86/include/uapi/asm/e820.h
++++ b/arch/x86/include/uapi/asm/e820.h
+@@ -32,6 +32,7 @@
+ #define E820_ACPI	3
+ #define E820_NVS	4
+ #define E820_UNUSABLE	5
++#define E820_PMEM	7
+ 
+ /*
+  * This is a non-standardized way to represent ADR or NVDIMM regions that
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 11cc7d54ec3f..0abe20da743a 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -149,6 +149,7 @@ static void __init e820_print_type(u32 type)
+ 	case E820_UNUSABLE:
+ 		printk(KERN_CONT "unusable");
+ 		break;
++	case E820_PMEM:
+ 	case E820_PRAM:
+ 		printk(KERN_CONT "persistent (type %u)", type);
+ 		break;
+@@ -918,11 +919,32 @@ static inline const char *e820_type_to_string(int e820_type)
+ 	case E820_ACPI:	return "ACPI Tables";
+ 	case E820_NVS:	return "ACPI Non-volatile Storage";
+ 	case E820_UNUSABLE:	return "Unusable memory";
+-	case E820_PRAM: return "Persistent RAM";
++	case E820_PRAM: return "Persistent Memory (legacy)";
++	case E820_PMEM: return "Persistent Memory";
+ 	default:	return "reserved";
+ 	}
+ }
+ 
++static bool do_mark_busy(u32 type, struct resource *res)
++{
++	/* this is the legacy bios/dos rom-shadow + mmio region */
++	if (res->start < (1ULL<<20))
++		return true;
++
++	/*
++	 * Treat persistent memory like device memory, i.e. reserve it
++	 * for exclusive use of a driver
++	 */
++	switch (type) {
++	case E820_RESERVED:
++	case E820_PRAM:
++	case E820_PMEM:
++		return false;
++	default:
++		return true;
++	}
++}
++
+ /*
+  * Mark e820 reserved areas as busy for the resource manager.
+  */
+@@ -952,9 +974,7 @@ void __init e820_reserve_resources(void)
+ 		 * pci device BAR resource and insert them later in
+ 		 * pcibios_resource_survey()
+ 		 */
+-		if (((e820.map[i].type != E820_RESERVED) &&
+-		     (e820.map[i].type != E820_PRAM)) ||
+-		     res->start < (1ULL<<20)) {
++		if (do_mark_busy(e820.map[i].type, res)) {
+ 			res->flags |= IORESOURCE_BUSY;
+ 			insert_resource(&iomem_resource, res);
+ 		}
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index dbc8627a5cdf..a116e236ac3f 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -145,6 +145,9 @@ static void __init do_add_efi_memmap(void)
+ 		case EFI_UNUSABLE_MEMORY:
+ 			e820_type = E820_UNUSABLE;
+ 			break;
++		case EFI_PERSISTENT_MEMORY:
++			e820_type = E820_PMEM;
++			break;
+ 		default:
+ 			/*
+ 			 * EFI_RESERVED_TYPE EFI_RUNTIME_SERVICES_CODE
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index cf7e431cbc73..28868504aa17 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -85,7 +85,8 @@ typedef	struct {
+ #define EFI_MEMORY_MAPPED_IO		11
+ #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
+ #define EFI_PAL_CODE			13
+-#define EFI_MAX_MEMORY_TYPE		14
++#define EFI_PERSISTENT_MEMORY		14
++#define EFI_MAX_MEMORY_TYPE		15
+ 
+ /* Attribute values: */
+ #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
 
-Ross Zwisler (2):
-      pmem: Dynamically allocate partition numbers
-      libnd, nfit, nd_blk: driver for BLK-mode access persistent memory
-
-Vishal Verma (1):
-      nd_btt: atomic sector updates
-
-
- Documentation/blockdev/btt.txt    |  273 ++++++
- Documentation/blockdev/libnd.txt  |  804 +++++++++++++++++
- MAINTAINERS                       |   39 +
- arch/arm64/kernel/efi.c           |    1 
- arch/ia64/kernel/efi.c            |    4 
- arch/x86/boot/compressed/eboot.c  |    4 
- arch/x86/include/uapi/asm/e820.h  |    1 
- arch/x86/kernel/e820.c            |   28 +
- arch/x86/kernel/pmem.c            |    2 
- arch/x86/platform/efi/efi.c       |    3 
- drivers/acpi/Kconfig              |   27 +
- drivers/acpi/Makefile             |    1 
- drivers/acpi/nfit.c               | 1474 ++++++++++++++++++++++++++++++++
- drivers/acpi/nfit.h               |  160 +++
- drivers/block/Kconfig             |   21 
- drivers/block/Makefile            |    3 
- drivers/block/e820_pmem.c         |  100 ++
- drivers/block/nd/Kconfig          |   91 ++
- drivers/block/nd/Makefile         |   29 +
- drivers/block/nd/blk.c            |  252 +++++
- drivers/block/nd/btt.c            | 1438 +++++++++++++++++++++++++++++++
- drivers/block/nd/btt.h            |  186 ++++
- drivers/block/nd/btt_devs.c       |  443 ++++++++++
- drivers/block/nd/bus.c            |  770 +++++++++++++++++
- drivers/block/nd/core.c           |  472 ++++++++++
- drivers/block/nd/dimm.c           |  115 +++
- drivers/block/nd/dimm_devs.c      |  516 +++++++++++
- drivers/block/nd/label.c          |  922 ++++++++++++++++++++
- drivers/block/nd/label.h          |  143 +++
- drivers/block/nd/namespace_devs.c | 1701 +++++++++++++++++++++++++++++++++++++
- drivers/block/nd/nd-private.h     |  111 ++
- drivers/block/nd/nd.h             |  257 ++++++
- drivers/block/nd/pmem.c           |  107 ++
- drivers/block/nd/region.c         |  189 ++++
- drivers/block/nd/region_devs.c    |  667 +++++++++++++++
- drivers/block/nd/test/Makefile    |    5 
- drivers/block/nd/test/iomap.c     |  151 +++
- drivers/block/nd/test/nfit.c      | 1171 +++++++++++++++++++++++++
- drivers/block/nd/test/nfit_test.h |   28 +
- include/acpi/actbl1.h             |  154 +++
- include/acpi/acuuid.h             |   89 ++
- include/linux/efi.h               |    3 
- include/linux/libnd.h             |  129 +++
- include/linux/nd.h                |   98 ++
- include/uapi/linux/Kbuild         |    1 
- include/uapi/linux/ndctl.h        |  199 ++++
- 46 files changed, 13324 insertions(+), 58 deletions(-)
- create mode 100644 Documentation/blockdev/btt.txt
- create mode 100644 Documentation/blockdev/libnd.txt
- create mode 100644 drivers/acpi/nfit.c
- create mode 100644 drivers/acpi/nfit.h
- create mode 100644 drivers/block/e820_pmem.c
- create mode 100644 drivers/block/nd/Kconfig
- create mode 100644 drivers/block/nd/Makefile
- create mode 100644 drivers/block/nd/blk.c
- create mode 100644 drivers/block/nd/btt.c
- create mode 100644 drivers/block/nd/btt.h
- create mode 100644 drivers/block/nd/btt_devs.c
- create mode 100644 drivers/block/nd/bus.c
- create mode 100644 drivers/block/nd/core.c
- create mode 100644 drivers/block/nd/dimm.c
- create mode 100644 drivers/block/nd/dimm_devs.c
- create mode 100644 drivers/block/nd/label.c
- create mode 100644 drivers/block/nd/label.h
- create mode 100644 drivers/block/nd/namespace_devs.c
- create mode 100644 drivers/block/nd/nd-private.h
- create mode 100644 drivers/block/nd/nd.h
- rename drivers/block/{pmem.c => nd/pmem.c} (70%)
- create mode 100644 drivers/block/nd/region.c
- create mode 100644 drivers/block/nd/region_devs.c
- create mode 100644 drivers/block/nd/test/Makefile
- create mode 100644 drivers/block/nd/test/iomap.c
- create mode 100644 drivers/block/nd/test/nfit.c
- create mode 100644 drivers/block/nd/test/nfit_test.h
- create mode 100644 include/acpi/acuuid.h
- create mode 100644 include/linux/libnd.h
- create mode 100644 include/linux/nd.h
- create mode 100644 include/uapi/linux/ndctl.h
