@@ -1,269 +1,44 @@
-From: Alexander Duyck <alexander.h.duyck@redhat.com>
-Subject: Re: [PATCH 4/7] fjes: Define hardware registers and related data
- structures
-Date: Wed, 20 May 2015 10:37:19 -0700
-Message-ID: <555CC64F.3020701@redhat.com>
-References: <E86EADE93E2D054CBCD4E708C38D364A5422D862@G01JPEXMBYT01>
+From: Mario Limonciello <mario_limonciello@dell.com>
+Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron
+ 7437
+Date: Wed, 20 May 2015 12:42:14 -0500
+Message-ID: <555CC776.3030802@dell.com>
+References: <1429759476-13186-1-git-send-email-alex.hung@canonical.com> <20150424082115.GA3783@srcf.ucam.org> <CAJ=jquYe97ObpE=3eTij705QsopnH4+hChssdj0qu7YFHGsSXg@mail.gmail.com> <20150427174646.GA22664@srcf.ucam.org> <CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com> <20150428052448.GA3458@srcf.ucam.org> <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com> <20150428171100.GA24599@srcf.ucam.org> <CAJ=jquZMMBNsKO2CZe649OcXTBxfzO43gkxwkJn2mvHhnp+zSQ@mail.gmail.com> <5554F12A.3010003@dell.com> <20150514191358.GB23853@srcf.ucam.org> <5554F4B2.8080801@dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-2022-jp
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49976 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753275AbbETRh0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 13:37:26 -0400
-In-Reply-To: <E86EADE93E2D054CBCD4E708C38D364A5422D862@G01JPEXMBYT01>
+Received: from ausxippc101.us.dell.com ([143.166.85.207]:1063 "EHLO
+	ausxippc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753033AbbETRmR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 13:42:17 -0400
+In-Reply-To: <5554F4B2.8080801@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
-Cc: "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alex Hung <alex.hung@canonical.com>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-On 05/20/2015 01:19 AM, Izumi, Taku wrote:
-> 
-> This patch adds registers and related data structures
-> definition.
-> 
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+On 05/14/2015 02:17 PM, Mario Limonciello wrote:
+>
+> On 05/14/2015 02:13 PM, Matthew Garrett wrote:
+>> On Thu, May 14, 2015 at 02:02:02PM -0500, Mario Limonciello wrote:
+>>
+>>> * Battery information was not displayed in the OS.  The BIOS team
+>>> found that the Linux wasn't asking for battery information in the OS
+>>> in the same way that Windows does.  The delta path creates a SMI
+>>> event to get battery information.
+>> Huh. Is there any chance we can find out what the difference is so we
+>> can make them equivalent?
+>>
+> That was my reaction too.  I'm asking for some technical details on this.
+Hi Matthew,
 
-So this patch and the next 2 should probably be rearranged so that you
-are adding functionality a piece at a time instead of just placing large
-chunks in at once.
+I've gotten some more information on this.
+Windows: Asks for battery information update multiple times.
+Linux: Only asks once for battery information update.
 
-So normally you don't want to just add defines like this.  Instead it
-would be better to add the defines as you need them.  So this patch
-should really be broken up into several pieces and joined in as you add
-functionality for various pieces.
+The net result is that on Linux ACPI battery is missing.  In the _REV 
+test BIOS workaround, a SMI event was added to ask for battery 
+information update.
 
-> ---
->   drivers/platform/x86/fjes/fjes.h      |   2 +
->   drivers/platform/x86/fjes/fjes_hw.h   |  31 ++++++++
->   drivers/platform/x86/fjes/fjes_regs.h | 139 ++++++++++++++++++++++++++++++++++
->   3 files changed, 172 insertions(+)
->   create mode 100644 drivers/platform/x86/fjes/fjes_hw.h
->   create mode 100644 drivers/platform/x86/fjes/fjes_regs.h
-> 
-> diff --git a/drivers/platform/x86/fjes/fjes.h b/drivers/platform/x86/fjes/fjes.h
-> index 5586305..efe7cc4 100644
-> --- a/drivers/platform/x86/fjes/fjes.h
-> +++ b/drivers/platform/x86/fjes/fjes.h
-> @@ -25,6 +25,8 @@
->   
->   #include <linux/acpi.h>
->   
-> +#include "fjes_hw.h"
-> +
->   #define FJES_ACPI_SYMBOL	"Extended Socket"
->   
->   extern char fjes_driver_name[];
-> diff --git a/drivers/platform/x86/fjes/fjes_hw.h b/drivers/platform/x86/fjes/fjes_hw.h
-> new file mode 100644
-> index 0000000..c5cc4c5
-> --- /dev/null
-> +++ b/drivers/platform/x86/fjes/fjes_hw.h
-> @@ -0,0 +1,31 @@
-> +/*
-> + *  FUJITSU Extended Socket Network Device driver
-> + *  Copyright (c) 2015 FUJITSU LIMITED
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms and conditions of the GNU General Public License,
-> + * version 2, as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program; if not, see <http://www.gnu.org/licenses/>.
-> + *
-> + * The full GNU General Public License is included in this distribution in
-> + * the file called "COPYING".
-> + *
-> + */
-> +
-> +#ifndef FJES_HW_H_
-> +#define FJES_HW_H_
-> +
-> +#include <linux/netdevice.h>
-> +#include <linux/if_vlan.h>
-> +
-> +#include "fjes_regs.h"
-> +
-> +
-> +#endif /* FJES_HW_H_ */
-> diff --git a/drivers/platform/x86/fjes/fjes_regs.h b/drivers/platform/x86/fjes/fjes_regs.h
-> new file mode 100644
-> index 0000000..8546cb5
-> --- /dev/null
-> +++ b/drivers/platform/x86/fjes/fjes_regs.h
-> @@ -0,0 +1,139 @@
-> +/*
-> + *  FUJITSU Extended Socket Network Device driver
-> + *  Copyright (c) 2015 FUJITSU LIMITED
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms and conditions of the GNU General Public License,
-> + * version 2, as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program; if not, see <http://www.gnu.org/licenses/>.
-> + *
-> + * The full GNU General Public License is included in this distribution in
-> + * the file called "COPYING".
-> + *
-> + */
-> +
-> +#ifndef FJES_REGS_H_
-> +#define FJES_REGS_H_
-> +
-> +#include <linux/bitops.h>
-> +
-> +#define XSCT_DEVICE_REGISTER_SIZE 0x1000
-> +
-> +/*
-> + *  register offset
-> + */
-> +
-> +/* Information registers */
-> +#define XSCT_OWNER_EPID     0x0000  /* Owner EPID */
-> +#define XSCT_MAX_EP         0x0004  /* Maximum EP */
-> +
-> +/* Device Control registers */
-> +#define XSCT_DCTL           0x0010  /* Device Control */
-> +
-> +/* Command Control registers */
-> +#define XSCT_CR             0x0020  /* Command request */
-> +#define XSCT_CS             0x0024  /* Command status */
-> +#define XSCT_SHSTSAL        0x0028  /* Share status address Low */
-> +#define XSCT_SHSTSAH        0x002C  /* Share status address High */
-> +
-> +#define XSCT_REQBL          0x0034  /* Request Buffer length */
-> +#define XSCT_REQBAL         0x0038  /* Request Buffer Address Low */
-> +#define XSCT_REQBAH         0x003C  /* Request Buffer Address High */
-> +
-> +#define XSCT_RESPBL         0x0044  /* Response Buffer Length */
-> +#define XSCT_RESPBAL        0x0048  /* Response Buffer Address Low */
-> +#define XSCT_RESPBAH        0x004C  /* Response Buffer Address High */
-> +
-> +/* Interrupt Control registers */
-> +#define XSCT_IS             0x0080  /* Interrupt status */
-> +#define XSCT_IMS            0x0084  /* Interrupt mas set */
-> +#define XSCT_IMC            0x0088  /* Interrupt mask clear */
-> +#define XSCT_IG             0x008C  /* Interrupt generator */
-> +#define XSCT_ICTL           0x0090  /* Interrupt control */
-> +
-> +
-> +/*
-> + * register structure
-> + */
-> +
-> +/* Information registers */
-> +union REG_OWNER_EPID {
-> +	struct {
-> +		__le32 epid:16;
-> +		__le32:16;
-> +	} Bits;
-> +	__le32 Reg;
-> +};
-> +
-> +union REG_MAX_EP {
-> +	struct {
-> +		__le32 maxep:16;
-> +		__le32:16;
-> +	} Bits;
-> +	__le32 Reg;
-> +};
-> +
-> +/* Device Control registers */
-> +union REG_DCTL {
-> +	struct {
-> +		__le32 reset:1;
-> +		__le32 rsv0:15;
-> +		__le32 rsv1:16;
-> +	} Bits;
-> +	__le32 Reg;
-> +};
-> +
-> +
-> +/* Command Control registers */
-> +union REG_CR {
-> +	struct {
-> +		__le32 req_code:16;
-> +		__le32 err_info:14;
-> +		__le32 error:1;
-> +		__le32 req_start:1;
-> +	} Bits;
-> +	__le32 Reg;
-> +};
-> +
-> +union REG_CS {
-> +	struct {
-> +		__le32 req_code:16;
-> +		__le32 rsv0:14;
-> +		__le32 busy:1;
-> +		__le32 complete:1;
-> +	} Bits;
-> +	__le32 Reg;
-> +};
-> +
-
-It might be better to just define some masks and shifts instead of
-creating all these bitfield unions.  It would probably make things a lot
-less complicated since you wouldn't have to define a special union for
-each register.
-
-It is usually easier to define a write that way rather than having to
-create a union and populate the bits before you can write it.  I've
-found that there are a number of GCC versions that don't exactly do the
-smartest things when it comes to bitfields.
-
-> +/* Interrupt Control registers */
-> +union REG_ICTL {
-> +	struct {
-> +		__le32 automak:1;
-> +		__le32 rsv0:31;
-> +	} Bits;
-> +	__le32 Reg;
-> +};
-> +
-
-Should automak be automask?  Just wondering if that is a typo.  Also if
-this is a mostly reserved 0 register you could probably save yourself
-some trouble and just use the reg as-is without the need for the union.
-
-So for example you would just define a value such as:
-#define FJES_ICTL_AUTOMASK	0x00000001
-
-Then all you do is write that value when you want to enable it, or write
-0 to disable it.
-
-> +enum REG_ICTL_MASK {
-> +	REG_ICTL_MASK_INFO_UPDATE     = 1 << 20,
-> +	REG_ICTL_MASK_DEV_STOP_REQ    = 1 << 19,
-> +	REG_ICTL_MASK_TXRX_STOP_REQ   = 1 << 18,
-> +	REG_ICTL_MASK_TXRX_STOP_DONE  = 1 << 17,
-> +	REG_ICTL_MASK_RX_DATA         = 1 << 16,
-> +	REG_ICTL_MASK_ALL             = GENMASK(20, 16),
-> +};
-> +
-
-You could probably reverse the order of this for readability.  It is
-better to go from 16 to 20 rather than 20 to 16.
-
-> +enum REG_IS_MASK {
-> +	REG_IS_MASK_IS_ASSERT	= 1 << 31,
-> +	REG_IS_MASK_EPID		= GENMASK(15, 0),
-> +};
-> +
-> +
-> +#endif /* FJES_REGS_H_ */
-> 
-
-I would update the 2 lines so that indentation for the = matched.  It
-looks like the GENMASK is tabbed over one additional tab.
+Thanks,
