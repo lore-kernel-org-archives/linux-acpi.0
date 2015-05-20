@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 18/25] genirq: Kill the first parameter 'irq' of irq_flow_handler_t
-Date: Wed, 20 May 2015 18:00:06 +0800
-Message-ID: <1432116013-25902-19-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 19/25] genirq: Kill the first parameter 'irq' of irq_flow_handler_t
+Date: Wed, 20 May 2015 18:00:07 +0800
+Message-ID: <1432116013-25902-20-git-send-email-jiang.liu@linux.intel.com>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Joshua Thompson <funaho@jurai.org>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-m68k@lists.linux-m68k.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Kevin Cernekee <cernekee@gmail.com>, abdoulaye berthe <berthe.ab@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 Now most IRQ flow handlers make no use of the first parameter 'irq'.
@@ -20,165 +20,129 @@ they should be merge as one to support bisecting.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/m68k/amiga/amiints.c       |    8 ++++----
- arch/m68k/coldfire/intc-5272.c  |    4 ++--
- arch/m68k/include/asm/mac_via.h |    2 +-
- arch/m68k/mac/baboon.c          |    2 +-
- arch/m68k/mac/oss.c             |    4 ++--
- arch/m68k/mac/psc.c             |    3 ++-
- arch/m68k/mac/via.c             |    6 +++---
- 7 files changed, 15 insertions(+), 14 deletions(-)
+ arch/sh/boards/mach-se/7343/irq.c  |    4 ++--
+ arch/sh/boards/mach-se/7722/irq.c  |    3 ++-
+ arch/sh/boards/mach-se/7724/irq.c  |    3 ++-
+ arch/sh/boards/mach-x3proto/gpio.c |    4 ++--
+ arch/sh/cchips/hd6446x/hd64461.c   |    2 +-
+ drivers/sh/intc/core.c             |    4 ++--
+ drivers/sh/intc/virq.c             |    5 +++--
+ 7 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/arch/m68k/amiga/amiints.c b/arch/m68k/amiga/amiints.c
-index 47b5f90002ab..7ff739e94896 100644
---- a/arch/m68k/amiga/amiints.c
-+++ b/arch/m68k/amiga/amiints.c
-@@ -46,7 +46,7 @@ static struct irq_chip amiga_irq_chip = {
-  * The builtin Amiga hardware interrupt handlers.
-  */
+diff --git a/arch/sh/boards/mach-se/7343/irq.c b/arch/sh/boards/mach-se/7343/irq.c
+index 1087dba9b015..6129aef6db76 100644
+--- a/arch/sh/boards/mach-se/7343/irq.c
++++ b/arch/sh/boards/mach-se/7343/irq.c
+@@ -29,9 +29,9 @@
+ static void __iomem *se7343_irq_regs;
+ struct irq_domain *se7343_irq_domain;
  
--static void ami_int1(unsigned int irq, struct irq_desc *desc)
-+static void ami_int1(struct irq_desc *desc)
+-static void se7343_irq_demux(unsigned int irq, struct irq_desc *desc)
++static void se7343_irq_demux(struct irq_desc *desc)
  {
- 	unsigned short ints = amiga_custom.intreqr & amiga_custom.intenar;
+-	struct irq_data *data = irq_get_irq_data(irq);
++	struct irq_data *data = irq_desc_get_irq_data(desc);
+ 	struct irq_chip *chip = irq_data_get_irq_chip(data);
+ 	unsigned long mask;
+ 	int bit;
+diff --git a/arch/sh/boards/mach-se/7722/irq.c b/arch/sh/boards/mach-se/7722/irq.c
+index 00e699232621..7200d595fe68 100644
+--- a/arch/sh/boards/mach-se/7722/irq.c
++++ b/arch/sh/boards/mach-se/7722/irq.c
+@@ -28,8 +28,9 @@
+ static void __iomem *se7722_irq_regs;
+ struct irq_domain *se7722_irq_domain;
  
-@@ -69,7 +69,7 @@ static void ami_int1(unsigned int irq, struct irq_desc *desc)
- 	}
- }
- 
--static void ami_int3(unsigned int irq, struct irq_desc *desc)
-+static void ami_int3(struct irq_desc *desc)
- {
- 	unsigned short ints = amiga_custom.intreqr & amiga_custom.intenar;
- 
-@@ -92,7 +92,7 @@ static void ami_int3(unsigned int irq, struct irq_desc *desc)
- 	}
- }
- 
--static void ami_int4(unsigned int irq, struct irq_desc *desc)
-+static void ami_int4(struct irq_desc *desc)
- {
- 	unsigned short ints = amiga_custom.intreqr & amiga_custom.intenar;
- 
-@@ -121,7 +121,7 @@ static void ami_int4(unsigned int irq, struct irq_desc *desc)
- 	}
- }
- 
--static void ami_int5(unsigned int irq, struct irq_desc *desc)
-+static void ami_int5(struct irq_desc *desc)
- {
- 	unsigned short ints = amiga_custom.intreqr & amiga_custom.intenar;
- 
-diff --git a/arch/m68k/coldfire/intc-5272.c b/arch/m68k/coldfire/intc-5272.c
-index d1e2fbad327c..b0a19e207a63 100644
---- a/arch/m68k/coldfire/intc-5272.c
-+++ b/arch/m68k/coldfire/intc-5272.c
-@@ -143,10 +143,10 @@ static int intc_irq_set_type(struct irq_data *d, unsigned int type)
-  * We need to be careful with the masking/acking due to the side effects
-  * of masking an interrupt.
-  */
--static void intc_external_irq(unsigned int irq, struct irq_desc *desc)
-+static void intc_external_irq(struct irq_desc *desc)
- {
- 	irq_desc_get_chip(desc)->irq_ack(&desc->irq_data);
--	handle_simple_irq(irq, desc);
-+	handle_simple_irq(desc);
- }
- 
- static struct irq_chip intc_irq_chip = {
-diff --git a/arch/m68k/include/asm/mac_via.h b/arch/m68k/include/asm/mac_via.h
-index fe3fc9ae1b69..53c632c85b03 100644
---- a/arch/m68k/include/asm/mac_via.h
-+++ b/arch/m68k/include/asm/mac_via.h
-@@ -261,7 +261,7 @@ extern void via_irq_enable(int);
- extern void via_irq_disable(int);
- extern void via_nubus_irq_startup(int irq);
- extern void via_nubus_irq_shutdown(int irq);
--extern void via1_irq(unsigned int irq, struct irq_desc *desc);
-+extern void via1_irq(struct irq_desc *desc);
- extern void via1_set_head(int);
- extern int via2_scsi_drq_pending(void);
- 
-diff --git a/arch/m68k/mac/baboon.c b/arch/m68k/mac/baboon.c
-index 3fe0e43d44f6..f6f7d42713ec 100644
---- a/arch/m68k/mac/baboon.c
-+++ b/arch/m68k/mac/baboon.c
-@@ -45,7 +45,7 @@ void __init baboon_init(void)
-  * Baboon interrupt handler. This works a lot like a VIA.
-  */
- 
--static void baboon_irq(unsigned int irq, struct irq_desc *desc)
-+static void baboon_irq(struct irq_desc *desc)
- {
- 	int irq_bit, irq_num;
- 	unsigned char events;
-diff --git a/arch/m68k/mac/oss.c b/arch/m68k/mac/oss.c
-index bb11dceed7ed..1fe868166a9c 100644
---- a/arch/m68k/mac/oss.c
-+++ b/arch/m68k/mac/oss.c
-@@ -63,7 +63,7 @@ void __init oss_nubus_init(void)
-  * Handle miscellaneous OSS interrupts.
-  */
- 
--static void oss_irq(unsigned int irq, struct irq_desc *desc)
-+static void oss_irq(struct irq_desc *desc)
- {
- 	int events = oss->irq_pending &
- 	             (OSS_IP_IOPSCC | OSS_IP_SCSI | OSS_IP_IOPISM);
-@@ -97,7 +97,7 @@ static void oss_irq(unsigned int irq, struct irq_desc *desc)
-  * Unlike the VIA/RBV this is on its own autovector interrupt level.
-  */
- 
--static void oss_nubus_irq(unsigned int irq, struct irq_desc *desc)
-+static void oss_nubus_irq(struct irq_desc *desc)
- {
- 	int events, irq_bit, i;
- 
-diff --git a/arch/m68k/mac/psc.c b/arch/m68k/mac/psc.c
-index 835fa04511c8..23ddaa07fa0e 100644
---- a/arch/m68k/mac/psc.c
-+++ b/arch/m68k/mac/psc.c
-@@ -113,8 +113,9 @@ void __init psc_init(void)
-  * PSC interrupt handler. It's a lot like the VIA interrupt handler.
-  */
- 
--static void psc_irq(unsigned int irq, struct irq_desc *desc)
-+static void psc_irq(struct irq_desc *desc)
+-static void se7722_irq_demux(unsigned int irq, struct irq_desc *desc)
++static void se7722_irq_demux(struct irq_desc *desc)
  {
 +	unsigned int irq = irq_desc_get_irq(desc);
- 	unsigned int offset = (unsigned int)irq_desc_get_handler_data(desc);
- 	int pIFR	= pIFRbase + offset;
- 	int pIER	= pIERbase + offset;
-diff --git a/arch/m68k/mac/via.c b/arch/m68k/mac/via.c
-index e198dec868e4..979ea8312db8 100644
---- a/arch/m68k/mac/via.c
-+++ b/arch/m68k/mac/via.c
-@@ -446,7 +446,7 @@ void via_nubus_irq_shutdown(int irq)
-  * via6522.c :-), disable/pending masks added.
-  */
+ 	struct irq_data *data = irq_get_irq_data(irq);
+ 	struct irq_chip *chip = irq_data_get_irq_chip(data);
+ 	unsigned long mask;
+diff --git a/arch/sh/boards/mach-se/7724/irq.c b/arch/sh/boards/mach-se/7724/irq.c
+index 5d1d3ec9a6cd..64e681e66c57 100644
+--- a/arch/sh/boards/mach-se/7724/irq.c
++++ b/arch/sh/boards/mach-se/7724/irq.c
+@@ -92,8 +92,9 @@ static struct irq_chip se7724_irq_chip __read_mostly = {
+ 	.irq_unmask	= enable_se7724_irq,
+ };
  
--void via1_irq(unsigned int irq, struct irq_desc *desc)
-+void via1_irq(struct irq_desc *desc)
+-static void se7724_irq_demux(unsigned int irq, struct irq_desc *desc)
++static void se7724_irq_demux(struct irq_desc *desc)
  {
- 	int irq_num;
- 	unsigned char irq_bit, events;
-@@ -467,7 +467,7 @@ void via1_irq(unsigned int irq, struct irq_desc *desc)
- 	} while (events >= irq_bit);
++	unsigned int irq = irq_desc_get_irq(desc);
+ 	struct fpga_irq set = get_fpga_irq(irq);
+ 	unsigned short intv = __raw_readw(set.sraddr);
+ 	unsigned int ext_irq = set.base;
+diff --git a/arch/sh/boards/mach-x3proto/gpio.c b/arch/sh/boards/mach-x3proto/gpio.c
+index f035a7ac6456..1fb2cbee25f2 100644
+--- a/arch/sh/boards/mach-x3proto/gpio.c
++++ b/arch/sh/boards/mach-x3proto/gpio.c
+@@ -60,9 +60,9 @@ static int x3proto_gpio_to_irq(struct gpio_chip *chip, unsigned gpio)
+ 	return virq;
  }
  
--static void via2_irq(unsigned int irq, struct irq_desc *desc)
-+static void via2_irq(struct irq_desc *desc)
+-static void x3proto_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void x3proto_gpio_irq_handler(struct irq_desc *desc)
  {
- 	int irq_num;
- 	unsigned char irq_bit, events;
-@@ -493,7 +493,7 @@ static void via2_irq(unsigned int irq, struct irq_desc *desc)
-  * VIA2 dispatcher as a fast interrupt handler.
-  */
+-	struct irq_data *data = irq_get_irq_data(irq);
++	struct irq_data *data = irq_desc_get_irq_data(desc);
+ 	struct irq_chip *chip = irq_data_get_irq_chip(data);
+ 	unsigned long mask;
+ 	int pin;
+diff --git a/arch/sh/cchips/hd6446x/hd64461.c b/arch/sh/cchips/hd6446x/hd64461.c
+index e9735616bdc8..8180092502f7 100644
+--- a/arch/sh/cchips/hd6446x/hd64461.c
++++ b/arch/sh/cchips/hd6446x/hd64461.c
+@@ -56,7 +56,7 @@ static struct irq_chip hd64461_irq_chip = {
+ 	.irq_unmask	= hd64461_unmask_irq,
+ };
  
--void via_nubus_irq(unsigned int irq, struct irq_desc *desc)
-+void via_nubus_irq(struct irq_desc *desc)
+-static void hd64461_irq_demux(unsigned int irq, struct irq_desc *desc)
++static void hd64461_irq_demux(struct irq_desc *desc)
  {
- 	int slot_irq;
- 	unsigned char slot_bit, events;
+ 	unsigned short intv = __raw_readw(HD64461_NIRR);
+ 	unsigned int ext_irq = HD64461_IRQBASE;
+diff --git a/drivers/sh/intc/core.c b/drivers/sh/intc/core.c
+index e4ca964ca840..8c75e7c2c9b3 100644
+--- a/drivers/sh/intc/core.c
++++ b/drivers/sh/intc/core.c
+@@ -65,9 +65,9 @@ void intc_set_prio_level(unsigned int irq, unsigned int level)
+ 	raw_spin_unlock_irqrestore(&intc_big_lock, flags);
+ }
+ 
+-static void intc_redirect_irq(unsigned int irq, struct irq_desc *desc)
++static void intc_redirect_irq(struct irq_desc *desc)
+ {
+-	generic_handle_irq_desc(irq, desc);
++	generic_handle_irq_desc(desc);
+ }
+ 
+ static void __init intc_register_irq(struct intc_desc *desc,
+diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
+index 8083882a91c0..49ffc8d5cb00 100644
+--- a/drivers/sh/intc/virq.c
++++ b/drivers/sh/intc/virq.c
+@@ -107,8 +107,9 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
+ 	return 0;
+ }
+ 
+-static void intc_virq_handler(unsigned int irq, struct irq_desc *desc)
++static void intc_virq_handler(struct irq_desc *desc)
+ {
++	unsigned int irq = irq_desc_get_irq(desc);
+ 	struct irq_data *data = irq_desc_get_irq_data(desc);
+ 	struct irq_chip *chip = irq_data_get_irq_chip(data);
+ 	struct intc_virq_list *entry, *vlist = irq_data_get_irq_handler_data(data);
+@@ -124,7 +125,7 @@ static void intc_virq_handler(unsigned int irq, struct irq_desc *desc)
+ 			handle = (unsigned long)irq_desc_get_handler_data(vdesc);
+ 			addr = INTC_REG(d, _INTC_ADDR_E(handle), 0);
+ 			if (intc_reg_fns[_INTC_FN(handle)](addr, handle, 0))
+-				generic_handle_irq_desc(entry->irq, vdesc);
++				generic_handle_irq_desc(vdesc);
+ 		}
+ 	}
+ 
 -- 
 1.7.10.4
