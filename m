@@ -1,149 +1,269 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] Correct place to send patches?
-Date: Wed, 20 May 2015 17:24:07 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE133@ORSMSX112.amr.corp.intel.com>
-References: <CAOf41Nnj3pmqDmc4xx9bwzhEpFsoxq5P2caNtsVBX31js9Ehgg@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAA86@ORSMSX112.amr.corp.intel.com>
- <CAOf41NnO0RQVEmiX5KeMCMDtONxBfPO9BYZpAOBSNexWd1w_Fg@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAAE9@ORSMSX112.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880271AE0F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802720637@SHSMSX101.ccr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE073@ORSMSX112.amr.corp.intel.com>
- <CAOf41N=Ps3jgrxA7kU-Tu-tca1CsqZ_Wac3GFRGCu5U3ZN9p1g@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0C7@ORSMSX112.amr.corp.intel.com>
- <CAOf41Nm50Y6dz5KA=KJaoQHqMxGHxzH2KCER91GA-AaAg=fAPQ@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0FF@ORSMSX112.amr.corp.intel.com>
+From: Alexander Duyck <alexander.h.duyck@redhat.com>
+Subject: Re: [PATCH 4/7] fjes: Define hardware registers and related data
+ structures
+Date: Wed, 20 May 2015 10:37:19 -0700
+Message-ID: <555CC64F.3020701@redhat.com>
+References: <E86EADE93E2D054CBCD4E708C38D364A5422D862@G01JPEXMBYT01>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16597 "EHLO mga11.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49976 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755525AbbETRYJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 13:24:09 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0FF@ORSMSX112.amr.corp.intel.com>
-Content-Language: en-US
+	id S1753275AbbETRh0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 13:37:26 -0400
+In-Reply-To: <E86EADE93E2D054CBCD4E708C38D364A5422D862@G01JPEXMBYT01>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Adam Goode <agoode@google.com>
-Cc: "Lan, Tianyu" <tianyu.lan@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>, "devel@acpica.org" <devel@acpica.org>
+To: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
+Cc: "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-QW5vdGhlciBwb3NzaWJpbGl0eSBpcyB0aGF0IFdpbmRvd3MganVzdCAqaWdub3JlcyogYSBDTU9T
-IGFjY2VzcyBmcm9tIHRoZSBfSU5JIGJlZm9yZSBpdCBnZXRzIGEgcmVhbCBDTU9TIGRyaXZlciBp
-bnN0YWxsZWQuIFdlJ3ZlIHNlZW4gc2ltaWxhciBiZWZvcmUuDQoNCkNvdWxkIHlvdSBwbGVhc2Ug
-cG9zdCB0aGUgZGlzYXNzZW1ibGVkIF9JTkkgbWV0aG9kLCBvciB0aGUgYmluYXJ5IERTRFQgd2hl
-cmUgaXQgY2FtZSBmcm9tPw0KVGhhbmtzLg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+IEZyb206IERldmVsIFttYWlsdG86ZGV2ZWwtYm91bmNlc0BhY3BpY2Eub3JnXSBPbiBCZWhh
-bGYgT2YgTW9vcmUsIFJvYmVydA0KPiBTZW50OiBXZWRuZXNkYXksIE1heSAyMCwgMjAxNSAxMDox
-NyBBTQ0KPiBUbzogQWRhbSBHb29kZQ0KPiBDYzogTGFuLCBUaWFueXU7IGxpbnV4LWFjcGlAdmdl
-ci5rZXJuZWwub3JnOyBCb3gsIERhdmlkIEU7DQo+IGRldmVsQGFjcGljYS5vcmcNCj4gU3ViamVj
-dDogUmU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+IA0KPiBBQ1BJ
-Q0EgZG9lcyBpbiBmYWN0IHRyeSB0byBidWctZm9yLWJ1ZyBjb21wYXRpYmxlIHdpdGggV2luZG93
-cy4NCj4gDQo+IFRoZSB0cmljayBpcyB0byBmaWd1cmUgb3V0IGp1c3QgKmhvdyogV2luZG93cyB3
-b3JrcyBpbiB0aGVzZSBjYXNlcy4NCj4gDQo+IEkgbWlnaHQgZ3Vlc3MgdGhhdCBhIHNvbHV0aW9u
-IG1heSBiZSB0aGF0IGEgImRlZmF1bHQgaGFuZGxlciIgZm9yIHRoZSBDTU9TDQo+IG9wZXJhdGlv
-biByZWdpb24gc2hvdWxkIGJlIGluc3RhbGxlZCBpbW1lZGlhdGVseSBhdCBib290IHRpbWUuIElm
-IGFuZCB3aGVuDQo+IHRoaXMgaGFuZGxlciBpcyBmaXJzdCBydW4sIGl0IHNob3VsZCBmaWd1cmUg
-b3V0IHdoaWNoIENNT1MgZGV2aWNlIGlzDQo+IHByZXNlbnQgb24gdGhlIHN5c3RlbSBhbmQgdGhl
-biBpbnN0YWxsIHRoZSAicmVhbCIgaGFuZGxlciBmb3IgdGhlIGRldmljZS4NCj4gT3IsIGlmIHlv
-dSB3YW50IHRvIHN1cHBvcnQgb25seSBvbmUgQ01PUyBkZXZpY2UsIGp1c3QgaW5zdGFsbCB0aGUg
-cmVnaW9uDQo+IGhhbmRsZXIgYXQgYm9vdCB0aW1lIGFuZCBiZSBkb25lIHdpdGggaXQuDQo+IA0K
-PiANCj4gDQo+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiBGcm9tOiBBZGFtIEdv
-b2RlIFttYWlsdG86YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkg
-MjAsIDIwMTUgMTA6MTEgQU0NCj4gPiBUbzogTW9vcmUsIFJvYmVydA0KPiA+IENjOiBaaGVuZywg
-THY7IExhbiwgVGlhbnl1OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gPiBkZXZlbEBh
-Y3BpY2Eub3JnOyBCb3gsIERhdmlkIEUNCj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0
-IHBsYWNlIHRvIHNlbmQgcGF0Y2hlcz8NCj4gPg0KPiA+IFllcywgaXQgcmVhbGx5IGxvb2tzIGxp
-a2UgYSBidWcgaW4gdGhlIGZpcm13YXJlLiBTdGlsbCwgV2luZG93cyB3b3Jrcw0KPiA+IGNvcnJl
-Y3RseSB3aXRob3V0IGFueSBzcGVjaWFsIHN1cHBvcnQuDQo+ID4NCj4gPiBXaGF0IGlzIHRoZSBw
-b2xpY3kgZm9yIEFDUElDQSBpbiB0aGlzIGNhc2Ugd2hlcmUgV2luZG93cyB3b3JrcyBpbiBhDQo+
-ID4gc3BlYy0gdmlvbGF0aW5nIHdheT8NCj4gPg0KPiA+DQo+ID4gQWRhbQ0KPiA+DQo+ID4NCj4g
-PiBPbiBXZWQsIE1heSAyMCwgMjAxNSBhdCAxOjA3IFBNLCBNb29yZSwgUm9iZXJ0DQo+ID4gPHJv
-YmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gd3JvdGU6DQo+ID4gPiBUaGVuIHBlcmhhcHMgdGhp
-cyBpcyB3aGVyZSB0aGUgbWFjaGluZSBpcyB2aW9sYXRpbmcgdGhlIEFDUEkNCj4gPiBzcGVjaWZp
-Y2F0aW9uOg0KPiA+ID4NCj4gPiA+DQo+ID4gPiA2LjUuMSBfSU5JIChJbml0KQ0KPiA+ID4NCj4g
-PiA+IFRoZSBfSU5JIG1ldGhvZCBtdXN0IG9ubHkgYWNjZXNzIE9wZXJhdGlvbiBSZWdpb25zIHRo
-YXQgaGF2ZSBiZWVuDQo+ID4gaW5kaWNhdGVkIHRvIGJlIGF2YWlsYWJsZSBhcyBkZWZpbmVkIGJ5
-IHRoZSBfUkVHIG1ldGhvZC4NCj4gPiA+DQo+ID4gPg0KPiA+ID4NCj4gPiA+DQo+ID4gPj4gLS0t
-LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+PiBGcm9tOiBBZGFtIEdvb2RlIFttYWlsdG86
-YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4gPj4gU2VudDogV2VkbmVzZGF5LCBNYXkgMjAsIDIwMTUg
-OTo1NiBBTQ0KPiA+ID4+IFRvOiBNb29yZSwgUm9iZXJ0DQo+ID4gPj4gQ2M6IFpoZW5nLCBMdjsg
-TGFuLCBUaWFueXU7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiA+ID4+IGRldmVsQGFj
-cGljYS5vcmcNCj4gPiA+PiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRvIHNl
-bmQgcGF0Y2hlcz8NCj4gPiA+Pg0KPiA+ID4+IE5vLCBJIGRpZCBub3Qgc2VlIGEgX1JFRyBtZXRo
-b2QgZGVmaW5lZCBpbiB0aGUgY29kZS4NCj4gPiA+Pg0KPiA+ID4+DQo+ID4gPj4gQWRhbQ0KPiA+
-ID4+DQo+ID4gPj4NCj4gPiA+PiBPbiBXZWQsIE1heSAyMCwgMjAxNSBhdCAxMjo0NiBQTSwgTW9v
-cmUsIFJvYmVydA0KPiA+ID4+IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPg0KPiA+ID4+IHdyb3Rl
-Og0KPiA+ID4+ID4gRG9lcyB0aGUgQ01PUyBvcGVyYXRpb24gcmVnaW9uIGhhdmUgYSBfUkVHIG1l
-dGhvZD8NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0K
-PiA+ID4+ID4gRnJvbTogWmhlbmcsIEx2DQo+ID4gPj4gPiBTZW50OiBUdWVzZGF5LCBNYXkgMTks
-IDIwMTUgMTE6MDMgUE0NCj4gPiA+PiA+IFRvOiBaaGVuZywgTHY7IE1vb3JlLCBSb2JlcnQ7IEFk
-YW0gR29vZGU7IExhbiwgVGlhbnl1DQo+ID4gPj4gPiBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5l
-bC5vcmc7IGRldmVsQGFjcGljYS5vcmcNCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4gU3Vi
-amVjdDogUkU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4gPj4g
-Pg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPiBTaW5jZSBubyByZXBseSBmcm9tIFRpYW55
-deKApg0KPiA+ID4+ID4NCj4gPiA+PiA+IFdoYXQgaWYgd2UgbW92ZSBfSU5JIGludm9jYXRpb24g
-b3V0IG9mIEFDUElDQSwgYW5kIGxldCBPU1BNIHRvDQo+ID4gPj4gPiBpbnZva2UNCj4gPiA+PiBp
-dC4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+IFRoYW5rcw0KPiA+ID4+
-ID4NCj4gPiA+PiA+IC1Mdg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4g
-RnJvbTogRGV2ZWwgW21haWx0bzpkZXZlbC1ib3VuY2VzQGFjcGljYS5vcmddIE9uIEJlaGFsZiBP
-ZiBaaGVuZywNCj4gPiA+PiA+IEx2DQo+ID4gPj4gPiBTZW50OiBUaHVyc2RheSwgTWF5IDE0LCAy
-MDE1IDg6MzMgQU0NCj4gPiA+PiA+IFRvOiBNb29yZSwgUm9iZXJ0OyBBZGFtIEdvb2RlOyBMYW4s
-IFRpYW55dQ0KPiA+ID4+ID4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBh
-Y3BpY2Eub3JnDQo+ID4gPj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRv
-IHNlbmQgcGF0Y2hlcz8NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+IFlv
-dSBzaG91bGQgZGlzY3VzcyB0aGlzIGluIHRoZSBsaW51eC1hY3BpIG1haWxpbmcgbGlzdCB3aGVy
-ZSB0aGUNCj4gPiA+PiA+IExpbnV4IENNT1Mgb3ByZWdpb24gZHJpdmVyIGlzIGltcGxlbWVudGVk
-LCByZXZpZXdlZCwgYW5kIG1lcmdlZC4NCj4gPiA+PiA+DQo+ID4gPj4gPiBMZXQgbWUgQ2MgVGlh
-bnl1IHdobyBpcyB0aGUgb3JpZ2luYWwgYXV0aG9yIG9mIHRoZSBDTU9TIG9wcmVnaW9uDQo+ID4g
-ZHJpdmVyLg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4gVGhhbmtzDQo+
-ID4gPj4gPg0KPiA+ID4+ID4gLUx2DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4g
-Pj4gPiBGcm9tOiBNb29yZSwgUm9iZXJ0DQo+ID4gPj4gPiBTZW50OiBXZWRuZXNkYXksIE1heSAx
-MywgMjAxNSAxMDoyNSBQTQ0KPiA+ID4+ID4gVG86IEFkYW0gR29vZGU7IFpoZW5nLCBMdg0KPiA+
-ID4+ID4gQ2M6IGRldmVsQGFjcGljYS5vcmcNCj4gPiA+PiA+IFN1YmplY3Q6IFJFOiBbRGV2ZWxd
-IENvcnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRjaGVzPw0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4g
-Pj4gPg0KPiA+ID4+ID4gSeKAmWxsIGhhdmUgdG8gbGV0IEx2IGFuc3dlciB0aGlzIHF1ZXN0aW9u
-Lg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4g
-Pj4gPiBGcm9tOiBBZGFtIEdvb2RlIFttYWlsdG86YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4gPj4g
-PiBTZW50OiBXZWRuZXNkYXksIE1heSAxMywgMjAxNSA3OjIzIEFNDQo+ID4gPj4gPiBUbzogTW9v
-cmUsIFJvYmVydA0KPiA+ID4+ID4gQ2M6IGRldmVsQGFjcGljYS5vcmcNCj4gPiA+PiA+IFN1Ympl
-Y3Q6IFJlOiBbRGV2ZWxdIENvcnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRjaGVzPw0KPiA+ID4+ID4N
-Cj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4gVGhlIHByb2JsZW0gaXMgdGhhdCBvbiBuZXcg
-QXBwbGUgaGFyZHdhcmUgKE1hY21pbmk3LDEgYW5kDQo+ID4gPj4gPiBvdGhlcnMpLCB0aGUgc3lz
-dGVtIHJlYWRzIGFuZCB3cml0ZXMgZnJvbSBDTU9TIGluIF9JTkkuIFdpdGggbm8NCj4gPiA+PiA+
-IENNT1MgaGFuZGxlciwgdGhlIFRodW5kZXJib2x0IGRldmljZSBkb2Vzbid0IGluaXRpYWxpemUg
-Y29ycmVjdGx5Lg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4gVGhlIGN1
-cnJlbnQgZnJhbWV3b3JrIGluIExpbnV4IGRvZXNuJ3QgcmVnaXN0ZXIgdGhlIFBOUCogQ01PUw0K
-PiA+ID4+ID4gZGV2aWNlcyB1bnRpbCBhZnRlciBfSU5JIHJ1bnMuIERvIHlvdSBoYXZlIGEgc3Vn
-Z2VzdGlvbiBvbiB3aGF0DQo+ID4gPj4gPiB0byBkbyBpbiB0aGlzIGNhc2U/IElzIGl0IHBvc3Np
-YmxlIHRvIHJlZ2lzdGVyIGEgZGV2aWNlIGRyaXZlcg0KPiA+ID4+ID4gYmVmb3JlDQo+ID4gX0lO
-SSBydW5zPw0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+
-DQo+ID4gPj4gPiBUaGFua3MsDQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4g
-PiBBZGFtDQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4N
-Cj4gPiA+PiA+IE9uIFdlZCwgTWF5IDEzLCAyMDE1IGF0IDQ6MDcgUE0sIE1vb3JlLCBSb2JlcnQN
-Cj4gPiA+PiA+IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPg0KPiA+ID4+ID4gd3JvdGU6DQo+ID4g
-Pj4gPg0KPiA+ID4+ID4gQWN0dWFsbHksIEkgaGFkIGEgcXVlc3Rpb24gYWJvdXQgdGhpcy4NCj4g
-PiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+IEdpdmVuIHRoYXQgdGhlIENNT1Mg
-ZGV2aWNlIGhhcyBhIF9ISUQgYW5kIHJlcXVpcmVzIGEgZGV2aWNlDQo+ID4gPj4gPiBkcml2ZXIg
-KHRoZXJlIGNhbiBiZSBtdWx0aXBsZSB0eXBlcyBvZiBDTU9TIGRldmljZXMpLCBpbiBBQ1BJQ0EN
-Cj4gPiA+PiA+IHdlIGRlY2lkZWQgdGhhdCB3ZSBjb3VsZCBub3QgcHJvdmlkZSBDTU9TIGludGVy
-ZmFjZXMuDQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPiBXaGF0IHByb2Js
-ZW0gZG9lcyB0aGlzIHBhdGNoIHNvbHZlLCBhbmQgaG93IHdpbGwgaXQgd29yayBpbiB0aGUNCj4g
-PiA+PiA+IGZhY2Ugb2YgZGlmZmVyZW50IENNT1MgZGV2aWNlcz8NCj4gPiA+PiA+DQo+ID4gPj4g
-Pg0KPiA+ID4+ID4NCj4gPiA+PiA+IFRoYW5rcywNCj4gPiA+PiA+DQo+ID4gPj4gPiBCb2INCj4g
-PiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4g
-RnJvbTogRGV2ZWwgW21haWx0bzpkZXZlbC1ib3VuY2VzQGFjcGljYS5vcmddIE9uIEJlaGFsZiBP
-ZiBBZGFtDQo+ID4gPj4gPiBHb29kZQ0KPiA+ID4+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkgMTMs
-IDIwMTUgNDo1MyBBTQ0KPiA+ID4+ID4gVG86IGRldmVsQGFjcGljYS5vcmcNCj4gPiA+PiA+IFN1
-YmplY3Q6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4gPj4gPg0K
-PiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPiBIaSwNCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+
-ID4+ID4NCj4gPiA+PiA+IElzIHRoaXMgdGhlIGNvcnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRjaGVz
-IGZvciByZXZpZXc/IEkgaGF2ZSBhDQo+ID4gPj4gPiBwYXRjaCBmcm9tIGEgZmV3IHdlZWtzIGFn
-bw0KPiA+ID4+ID4gKGh0dHBzOi8vbGlzdHMuYWNwaWNhLm9yZy9waXBlcm1haWwvZGV2ZWwvMjAx
-NS1NYXkvMDAwNjk4Lmh0bWwpDQo+ID4gPj4gPiB0aGF0IEkgd291bGQgbGlrZSBmZWVkYmFjayBv
-bi4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+
-ID4+ID4gVGhhbmtzLA0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4gQWRh
-bQ0KPiA+ID4+ID4NCj4gPiA+PiA+DQo+ID4gPj4gPg0KPiA+ID4+ID4NCj4gX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCj4gRGV2ZWwgbWFpbGluZyBsaXN0
-DQo+IERldmVsQGFjcGljYS5vcmcNCj4gaHR0cHM6Ly9saXN0cy5hY3BpY2Eub3JnL21haWxtYW4v
-bGlzdGluZm8vZGV2ZWwNCg==
+On 05/20/2015 01:19 AM, Izumi, Taku wrote:
+> 
+> This patch adds registers and related data structures
+> definition.
+> 
+> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+
+So this patch and the next 2 should probably be rearranged so that you
+are adding functionality a piece at a time instead of just placing large
+chunks in at once.
+
+So normally you don't want to just add defines like this.  Instead it
+would be better to add the defines as you need them.  So this patch
+should really be broken up into several pieces and joined in as you add
+functionality for various pieces.
+
+> ---
+>   drivers/platform/x86/fjes/fjes.h      |   2 +
+>   drivers/platform/x86/fjes/fjes_hw.h   |  31 ++++++++
+>   drivers/platform/x86/fjes/fjes_regs.h | 139 ++++++++++++++++++++++++++++++++++
+>   3 files changed, 172 insertions(+)
+>   create mode 100644 drivers/platform/x86/fjes/fjes_hw.h
+>   create mode 100644 drivers/platform/x86/fjes/fjes_regs.h
+> 
+> diff --git a/drivers/platform/x86/fjes/fjes.h b/drivers/platform/x86/fjes/fjes.h
+> index 5586305..efe7cc4 100644
+> --- a/drivers/platform/x86/fjes/fjes.h
+> +++ b/drivers/platform/x86/fjes/fjes.h
+> @@ -25,6 +25,8 @@
+>   
+>   #include <linux/acpi.h>
+>   
+> +#include "fjes_hw.h"
+> +
+>   #define FJES_ACPI_SYMBOL	"Extended Socket"
+>   
+>   extern char fjes_driver_name[];
+> diff --git a/drivers/platform/x86/fjes/fjes_hw.h b/drivers/platform/x86/fjes/fjes_hw.h
+> new file mode 100644
+> index 0000000..c5cc4c5
+> --- /dev/null
+> +++ b/drivers/platform/x86/fjes/fjes_hw.h
+> @@ -0,0 +1,31 @@
+> +/*
+> + *  FUJITSU Extended Socket Network Device driver
+> + *  Copyright (c) 2015 FUJITSU LIMITED
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program; if not, see <http://www.gnu.org/licenses/>.
+> + *
+> + * The full GNU General Public License is included in this distribution in
+> + * the file called "COPYING".
+> + *
+> + */
+> +
+> +#ifndef FJES_HW_H_
+> +#define FJES_HW_H_
+> +
+> +#include <linux/netdevice.h>
+> +#include <linux/if_vlan.h>
+> +
+> +#include "fjes_regs.h"
+> +
+> +
+> +#endif /* FJES_HW_H_ */
+> diff --git a/drivers/platform/x86/fjes/fjes_regs.h b/drivers/platform/x86/fjes/fjes_regs.h
+> new file mode 100644
+> index 0000000..8546cb5
+> --- /dev/null
+> +++ b/drivers/platform/x86/fjes/fjes_regs.h
+> @@ -0,0 +1,139 @@
+> +/*
+> + *  FUJITSU Extended Socket Network Device driver
+> + *  Copyright (c) 2015 FUJITSU LIMITED
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program; if not, see <http://www.gnu.org/licenses/>.
+> + *
+> + * The full GNU General Public License is included in this distribution in
+> + * the file called "COPYING".
+> + *
+> + */
+> +
+> +#ifndef FJES_REGS_H_
+> +#define FJES_REGS_H_
+> +
+> +#include <linux/bitops.h>
+> +
+> +#define XSCT_DEVICE_REGISTER_SIZE 0x1000
+> +
+> +/*
+> + *  register offset
+> + */
+> +
+> +/* Information registers */
+> +#define XSCT_OWNER_EPID     0x0000  /* Owner EPID */
+> +#define XSCT_MAX_EP         0x0004  /* Maximum EP */
+> +
+> +/* Device Control registers */
+> +#define XSCT_DCTL           0x0010  /* Device Control */
+> +
+> +/* Command Control registers */
+> +#define XSCT_CR             0x0020  /* Command request */
+> +#define XSCT_CS             0x0024  /* Command status */
+> +#define XSCT_SHSTSAL        0x0028  /* Share status address Low */
+> +#define XSCT_SHSTSAH        0x002C  /* Share status address High */
+> +
+> +#define XSCT_REQBL          0x0034  /* Request Buffer length */
+> +#define XSCT_REQBAL         0x0038  /* Request Buffer Address Low */
+> +#define XSCT_REQBAH         0x003C  /* Request Buffer Address High */
+> +
+> +#define XSCT_RESPBL         0x0044  /* Response Buffer Length */
+> +#define XSCT_RESPBAL        0x0048  /* Response Buffer Address Low */
+> +#define XSCT_RESPBAH        0x004C  /* Response Buffer Address High */
+> +
+> +/* Interrupt Control registers */
+> +#define XSCT_IS             0x0080  /* Interrupt status */
+> +#define XSCT_IMS            0x0084  /* Interrupt mas set */
+> +#define XSCT_IMC            0x0088  /* Interrupt mask clear */
+> +#define XSCT_IG             0x008C  /* Interrupt generator */
+> +#define XSCT_ICTL           0x0090  /* Interrupt control */
+> +
+> +
+> +/*
+> + * register structure
+> + */
+> +
+> +/* Information registers */
+> +union REG_OWNER_EPID {
+> +	struct {
+> +		__le32 epid:16;
+> +		__le32:16;
+> +	} Bits;
+> +	__le32 Reg;
+> +};
+> +
+> +union REG_MAX_EP {
+> +	struct {
+> +		__le32 maxep:16;
+> +		__le32:16;
+> +	} Bits;
+> +	__le32 Reg;
+> +};
+> +
+> +/* Device Control registers */
+> +union REG_DCTL {
+> +	struct {
+> +		__le32 reset:1;
+> +		__le32 rsv0:15;
+> +		__le32 rsv1:16;
+> +	} Bits;
+> +	__le32 Reg;
+> +};
+> +
+> +
+> +/* Command Control registers */
+> +union REG_CR {
+> +	struct {
+> +		__le32 req_code:16;
+> +		__le32 err_info:14;
+> +		__le32 error:1;
+> +		__le32 req_start:1;
+> +	} Bits;
+> +	__le32 Reg;
+> +};
+> +
+> +union REG_CS {
+> +	struct {
+> +		__le32 req_code:16;
+> +		__le32 rsv0:14;
+> +		__le32 busy:1;
+> +		__le32 complete:1;
+> +	} Bits;
+> +	__le32 Reg;
+> +};
+> +
+
+It might be better to just define some masks and shifts instead of
+creating all these bitfield unions.  It would probably make things a lot
+less complicated since you wouldn't have to define a special union for
+each register.
+
+It is usually easier to define a write that way rather than having to
+create a union and populate the bits before you can write it.  I've
+found that there are a number of GCC versions that don't exactly do the
+smartest things when it comes to bitfields.
+
+> +/* Interrupt Control registers */
+> +union REG_ICTL {
+> +	struct {
+> +		__le32 automak:1;
+> +		__le32 rsv0:31;
+> +	} Bits;
+> +	__le32 Reg;
+> +};
+> +
+
+Should automak be automask?  Just wondering if that is a typo.  Also if
+this is a mostly reserved 0 register you could probably save yourself
+some trouble and just use the reg as-is without the need for the union.
+
+So for example you would just define a value such as:
+#define FJES_ICTL_AUTOMASK	0x00000001
+
+Then all you do is write that value when you want to enable it, or write
+0 to disable it.
+
+> +enum REG_ICTL_MASK {
+> +	REG_ICTL_MASK_INFO_UPDATE     = 1 << 20,
+> +	REG_ICTL_MASK_DEV_STOP_REQ    = 1 << 19,
+> +	REG_ICTL_MASK_TXRX_STOP_REQ   = 1 << 18,
+> +	REG_ICTL_MASK_TXRX_STOP_DONE  = 1 << 17,
+> +	REG_ICTL_MASK_RX_DATA         = 1 << 16,
+> +	REG_ICTL_MASK_ALL             = GENMASK(20, 16),
+> +};
+> +
+
+You could probably reverse the order of this for readability.  It is
+better to go from 16 to 20 rather than 20 to 16.
+
+> +enum REG_IS_MASK {
+> +	REG_IS_MASK_IS_ASSERT	= 1 << 31,
+> +	REG_IS_MASK_EPID		= GENMASK(15, 0),
+> +};
+> +
+> +
+> +#endif /* FJES_REGS_H_ */
+> 
+
+I would update the 2 lines so that indentation for the = matched.  It
+looks like the GENMASK is tabbed over one additional tab.
