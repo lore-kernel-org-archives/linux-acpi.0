@@ -1,58 +1,52 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: Re: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling
  MSI/MSI-X
-Date: Wed, 20 May 2015 11:06:25 +0800
-Message-ID: <555BFA31.5040206@linux.intel.com>
-References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505152259480.4225@nanos>
+Date: Wed, 20 May 2015 11:07:31 +0800
+Message-ID: <555BFA73.5060902@linux.intel.com>
+References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com> <20150519150838.GQ31666@google.com> <20150519171518-mutt-send-email-mst@redhat.com> <20150519172534-mutt-send-email-mst@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1505152259480.4225@nanos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150519172534-mutt-send-email-mst@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/5/16 5:02, Thomas Gleixner wrote:
-> On Thu, 7 May 2015, Jiang Liu wrote:
+On 2015/5/19 23:26, Michael S. Tsirkin wrote:
+> On Tue, May 19, 2015 at 05:16:54PM +0200, Michael S. Tsirkin wrote:
+>> On Tue, May 19, 2015 at 10:08:38AM -0500, Bjorn Helgaas wrote:
+>>> [+cc Michael]
+>>>
+>>> On Thu, May 07, 2015 at 11:12:52AM +0800, Jiang Liu wrote:
+>>>> Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
+>>>> make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
+>>>> So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
+>>>> when disabling MSI/MSI-X.
+>>>>
+>>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>>>> ---
+>>>>  drivers/pci/msi.c |    6 +++++-
+>>>>  1 file changed, 5 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+>>>> index c3e7dfcf9ff5..47cf72c669f0 100644
+>>>> --- a/drivers/pci/msi.c
+>>>> +++ b/drivers/pci/msi.c
+>>>> @@ -686,6 +686,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
+>>>>  	msi_set_enable(dev, 1);
+>>>>  	dev->msi_enabled = 1;
+>>>>  
+>>>> +	pcibios_free_irq(dev);
+>>>
+>>> >From the recent discussion about disabling MSI at shutdown, I seem to
+>>> recall that turning off bus mastering also effectively disables MSI and
+>>> causes at least some devices to revert to using INTx.
 > 
->> Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
->> make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
->> So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
->> when disabling MSI/MSI-X.
-> 
-> This is a bit odd. With your proposed change we'll have:
-> 
->      alloc_legacy_irq()
-> 
->      msi[x]_enable()
-> 	free_legacy_irq()
-> 
->      msi[x]_disable()
-> 	alloc_legacy_irq()
-Hi Thomas,
-	It's for safety. I'm not sure whether the device driver will
-make use of legacy IRQ after calling msi[x]_disable(). I have concerns
-about following pattern in PCI device drivers:
----------------------------------------------------
-if (enable_msi() == SUCCESS) {
-	if (allocate_resource_for_msi() == SUCCESS)
-		return;
-	disable_msi();
-}
-use_legacy_irq()
+> So to stress this point, turning off bus mastering also effectively
+> disables MSI without making devices revert to using INTx.
+> This is why clearing bus master is the right thing to do
+> if you don't want any interrupts at all.
 
-Thanks!
-Gerry
-
-> 
-> And after that we shut down the device which will free the legacy irq
-> again.
-> 
-> Shouldn't we allocate the legacy irq only if we really need it?
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+Thanks for explanation, Michael:)
