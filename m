@@ -1,105 +1,125 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 12/14] genirq: Use helper function to access irq_data->msi_desc
-Date: Wed, 20 May 2015 17:40:43 +0800
-Message-ID: <1432114845-24304-13-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v2 13/14] genirq: Move field 'msi_desc' from struct irq_data into struct irq_common_data
+Date: Wed, 20 May 2015 17:40:44 +0800
+Message-ID: <1432114845-24304-14-git-send-email-jiang.liu@linux.intel.com>
 References: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:4840 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753573AbbETJn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 05:43:27 -0400
 In-Reply-To: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Chris Metcalf <cmetcalf@ezchip.com>, Jiang Liu <jiang.liu@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Tejun Heo <tj@kernel.org>, Joe Perches <joe@perches.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Use irq_data access helper to access irq_data->msi_desc, so we could
-move msi_desc from struct irq_data into struct irq_common_data later.
+MSI descriptors are per-irq instead of per irqchip, so move it into
+struct irq_common_data.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/ia64/kernel/msi_ia64.c         |    2 +-
- arch/ia64/sn/kernel/msi_sn.c        |    2 +-
- arch/powerpc/sysdev/xics/ics-opal.c |    2 +-
- arch/powerpc/sysdev/xics/ics-rtas.c |    2 +-
- arch/tile/kernel/pci_gx.c           |    2 +-
- drivers/pci/msi.c                   |    2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/irq.h     |    8 ++++----
+ include/linux/irqdesc.h |    2 +-
+ kernel/irq/chip.c       |    2 +-
+ kernel/irq/irqdesc.c    |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
-index 6c50d332b7d7..af4eaec0f7c3 100644
---- a/arch/ia64/kernel/msi_ia64.c
-+++ b/arch/ia64/kernel/msi_ia64.c
-@@ -23,7 +23,7 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
- 	if (irq_prepare_move(irq, cpu))
- 		return -1;
- 
--	__get_cached_msi_msg(idata->msi_desc, &msg);
-+	__get_cached_msi_msg(irq_data_get_msi_desc(idata), &msg);
- 
- 	addr = msg.address_lo;
- 	addr &= MSI_ADDR_DEST_ID_MASK;
-diff --git a/arch/ia64/sn/kernel/msi_sn.c b/arch/ia64/sn/kernel/msi_sn.c
-index 42b5a13af142..fb25065b22c6 100644
---- a/arch/ia64/sn/kernel/msi_sn.c
-+++ b/arch/ia64/sn/kernel/msi_sn.c
-@@ -175,7 +175,7 @@ static int sn_set_msi_irq_affinity(struct irq_data *data,
- 	 * Release XIO resources for the old MSI PCI address
- 	 */
- 
--	__get_cached_msi_msg(data->msi_desc, &msg);
-+	__get_cached_msi_msg(irq_data_get_msi_desc(data), &msg);
- 	sn_pdev = (struct pcidev_info *)sn_irq_info->irq_pciioinfo;
- 	pdev = sn_pdev->pdi_linux_pcidev;
- 	provider = SN_PCIDEV_BUSPROVIDER(pdev);
-diff --git a/arch/powerpc/sysdev/xics/ics-opal.c b/arch/powerpc/sysdev/xics/ics-opal.c
-index 3996393c254d..27c936c080a6 100644
---- a/arch/powerpc/sysdev/xics/ics-opal.c
-+++ b/arch/powerpc/sysdev/xics/ics-opal.c
-@@ -72,7 +72,7 @@ static unsigned int ics_opal_startup(struct irq_data *d)
- 	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
- 	 * at that level, so we do it here by hand.
- 	 */
--	if (d->msi_desc)
-+	if (irq_data_get_msi_desc(d))
- 		pci_msi_unmask_irq(d);
- #endif
- 
-diff --git a/arch/powerpc/sysdev/xics/ics-rtas.c b/arch/powerpc/sysdev/xics/ics-rtas.c
-index e2665a9dfc0f..3854dd41558d 100644
---- a/arch/powerpc/sysdev/xics/ics-rtas.c
-+++ b/arch/powerpc/sysdev/xics/ics-rtas.c
-@@ -75,7 +75,7 @@ static unsigned int ics_rtas_startup(struct irq_data *d)
- 	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
- 	 * at that level, so we do it here by hand.
- 	 */
--	if (d->msi_desc)
-+	if (irq_data_get_msi_desc(d))
- 		pci_msi_unmask_irq(d);
- #endif
- 	/* unmask it */
-diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
-index b1df847d0686..65b701b3b5ed 100644
---- a/arch/tile/kernel/pci_gx.c
-+++ b/arch/tile/kernel/pci_gx.c
-@@ -1442,7 +1442,7 @@ static struct pci_ops tile_cfg_ops = {
- /* MSI support starts here. */
- static unsigned int tilegx_msi_startup(struct irq_data *d)
- {
--	if (d->msi_desc)
-+	if (irq_data_get_msi_desc(d))
- 		pci_msi_unmask_irq(d);
- 
- 	return 0;
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index be6034cf5c21..c2f0da733d3a 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -1178,7 +1178,7 @@ EXPORT_SYMBOL(pci_enable_msix_range);
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 05b2266572ce..657ccd03f94d 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -132,6 +132,7 @@ struct irq_domain;
+  * @node:		node index useful for balancing
+  * @handler_data:	per-IRQ data for the irq_chip methods
+  * @affinity:		IRQ affinity on SMP
++ * @msi_desc:		MSI descriptor
   */
- void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg)
- {
--	struct msi_desc *desc = irq_data->msi_desc;
-+	struct msi_desc *desc = irq_data_get_msi_desc(irq_data);
+ struct irq_common_data {
+ 	unsigned int		state_use_accessors;
+@@ -139,6 +140,7 @@ struct irq_common_data {
+ 	unsigned int		node;
+ #endif
+ 	void			*handler_data;
++	struct msi_desc		*msi_desc;
+ 	cpumask_var_t		affinity;
+ };
  
- 	/*
- 	 * For MSI-X desc->irq is always equal to irq_data->irq. For
+@@ -155,7 +157,6 @@ struct irq_common_data {
+  *			irq_domain
+  * @chip_data:		platform-specific per-chip private data for the chip
+  *			methods, to allow shared chip implementations
+- * @msi_desc:		MSI descriptor
+  *
+  * The fields here need to overlay the ones in irq_desc until we
+  * cleaned up the direct references and switched everything over to
+@@ -172,7 +173,6 @@ struct irq_data {
+ 	struct irq_data		*parent_data;
+ #endif
+ 	void			*chip_data;
+-	struct msi_desc		*msi_desc;
+ };
+ 
+ /*
+@@ -622,12 +622,12 @@ static inline void *irq_data_get_irq_handler_data(struct irq_data *d)
+ static inline struct msi_desc *irq_get_msi_desc(unsigned int irq)
+ {
+ 	struct irq_data *d = irq_get_irq_data(irq);
+-	return d ? d->msi_desc : NULL;
++	return d ? d->common->msi_desc : NULL;
+ }
+ 
+ static inline struct msi_desc *irq_data_get_msi_desc(struct irq_data *d)
+ {
+-	return d->msi_desc;
++	return d->common->msi_desc;
+ }
+ 
+ static inline u32 irq_get_trigger_type(unsigned int irq)
+diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
+index f595fb193c8a..8a4044d6efba 100644
+--- a/include/linux/irqdesc.h
++++ b/include/linux/irqdesc.h
+@@ -116,7 +116,7 @@ static inline void *irq_desc_get_handler_data(struct irq_desc *desc)
+ 
+ static inline struct msi_desc *irq_desc_get_msi_desc(struct irq_desc *desc)
+ {
+-	return desc->irq_data.msi_desc;
++	return desc->irq_common_data.msi_desc;
+ }
+ 
+ /*
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 46c487fc71dd..d7a50974b77d 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -105,7 +105,7 @@ int irq_set_msi_desc_off(unsigned int irq_base, unsigned int irq_offset,
+ 
+ 	if (!desc)
+ 		return -EINVAL;
+-	desc->irq_data.msi_desc = entry;
++	desc->irq_common_data.msi_desc = entry;
+ 	if (entry && !irq_offset)
+ 		entry->irq = irq_base;
+ 	irq_put_desc_unlock(desc, flags);
+diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
+index 2c39a203f78b..358f620c035a 100644
+--- a/kernel/irq/irqdesc.c
++++ b/kernel/irq/irqdesc.c
+@@ -74,12 +74,12 @@ static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node,
+ 	int cpu;
+ 
+ 	desc->irq_common_data.handler_data = NULL;
++	desc->irq_common_data.msi_desc = NULL;
+ 
+ 	desc->irq_data.common = &desc->irq_common_data;
+ 	desc->irq_data.irq = irq;
+ 	desc->irq_data.chip = &no_irq_chip;
+ 	desc->irq_data.chip_data = NULL;
+-	desc->irq_data.msi_desc = NULL;
+ 	irq_settings_clr_and_set(desc, ~0, _IRQ_DEFAULT_INIT_FLAGS);
+ 	irqd_set(&desc->irq_data, IRQD_IRQ_DISABLED);
+ 	desc->handle_irq = handle_bad_irq;
 -- 
 1.7.10.4
+
