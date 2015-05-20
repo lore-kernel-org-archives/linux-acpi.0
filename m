@@ -1,52 +1,43 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: Re: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling
  MSI/MSI-X
-Date: Wed, 20 May 2015 11:07:31 +0800
-Message-ID: <555BFA73.5060902@linux.intel.com>
-References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com> <20150519150838.GQ31666@google.com> <20150519171518-mutt-send-email-mst@redhat.com> <20150519172534-mutt-send-email-mst@redhat.com>
+Date: Wed, 20 May 2015 11:12:21 +0800
+Message-ID: <555BFB95.30208@linux.intel.com>
+References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com> <20150519213937.GR31666@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150519172534-mutt-send-email-mst@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:17023 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751903AbbETDMk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 May 2015 23:12:40 -0400
+In-Reply-To: <20150519213937.GR31666@google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-On 2015/5/19 23:26, Michael S. Tsirkin wrote:
-> On Tue, May 19, 2015 at 05:16:54PM +0200, Michael S. Tsirkin wrote:
->> On Tue, May 19, 2015 at 10:08:38AM -0500, Bjorn Helgaas wrote:
->>> [+cc Michael]
->>>
->>> On Thu, May 07, 2015 at 11:12:52AM +0800, Jiang Liu wrote:
->>>> Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
->>>> make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
->>>> So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
->>>> when disabling MSI/MSI-X.
->>>>
->>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>>> ---
->>>>  drivers/pci/msi.c |    6 +++++-
->>>>  1 file changed, 5 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
->>>> index c3e7dfcf9ff5..47cf72c669f0 100644
->>>> --- a/drivers/pci/msi.c
->>>> +++ b/drivers/pci/msi.c
->>>> @@ -686,6 +686,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
->>>>  	msi_set_enable(dev, 1);
->>>>  	dev->msi_enabled = 1;
->>>>  
->>>> +	pcibios_free_irq(dev);
->>>
->>> >From the recent discussion about disabling MSI at shutdown, I seem to
->>> recall that turning off bus mastering also effectively disables MSI and
->>> causes at least some devices to revert to using INTx.
+On 2015/5/20 5:39, Bjorn Helgaas wrote:
+> On Thu, May 07, 2015 at 11:12:52AM +0800, Jiang Liu wrote:
+>> Once PCI MSI/MSI-X is enabled by the device driver, PCI device won't
+>> make use of legacy PCI IRQ until PCI MSI/MSI-X is disabled again.
+>> So optionally free legacy PCI IRQ when enabling MSI/MSI-X and reallocate
+>> when disabling MSI/MSI-X.
 > 
-> So to stress this point, turning off bus mastering also effectively
-> disables MSI without making devices revert to using INTx.
-> This is why clearing bus master is the right thing to do
-> if you don't want any interrupts at all.
-
-Thanks for explanation, Michael:)
+> The rest of this series makes sense to me.  If you want to remove an
+> IOAPIC, you want to make sure all of the IRQs using that IOAPIC have been
+> freed.
+> 
+> But I'm trying to figure out this patch.  Do you want to free the IRQ when
+> enabling MSI because it enables you to remove the IOAPIC without removing
+> the device?  That wouldn't really make sense to me because then the device
+> has no possibility of using INTx.
+Hi Bjorn
+	Sorry for the confusion. This patch is not for IOAPIC
+hot-removal, but it's an effort to use IRQ resource precisely.
+The idea is to allocate IRQ resource on demand and release it
+when not used. We could skip this patch if it's not worth the
+cost.
+Thanks!
+Gerry
