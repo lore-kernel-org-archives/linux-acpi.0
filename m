@@ -1,44 +1,65 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [RFC v1 00/25] Optimize irq flow handler
-Date: Wed, 20 May 2015 18:23:22 +0800
-Message-ID: <555C609A.3000203@linux.intel.com>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <20150520101616.GA20163@gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [V4 PATCH 4/6] device property: Introduces
+ device_dma_is_coherent()
+Date: Wed, 20 May 2015 11:28:29 +0100
+Message-ID: <20150520102829.GB11498@arm.com>
+References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1431724994-21601-5-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150520101616.GA20163@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:37663 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752660AbbETK2f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 06:28:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1431724994-21601-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>, "msalter@redhat.com" <msalter@redhat.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, netdev@vger.kernel.org
 
-On 2015/5/20 18:16, Ingo Molnar wrote:
+On Fri, May 15, 2015 at 10:23:12PM +0100, Suravee Suthikulpanit wrote:
+> Currently, device drivers, which support both OF and ACPI,
+> need to call two separate APIs, of_dma_is_coherent() and
+> acpi_dma_is_coherent()) to determine device coherency attribute.
 > 
-> * Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> This patch simplifies this process by introducing a new device
+> property API, device_dma_is_coherent(), which calls the appropriate
+> interface based on the booting architecture.
 > 
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
->>   genirq: Kill the first parameter 'irq' of irq_flow_handler_t
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> ---
+>  drivers/base/property.c  | 12 ++++++++++++
+>  include/linux/property.h |  2 ++
+>  2 files changed, 14 insertions(+)
 > 
-> Those kinds of identical titles are not acceptable.
-Hi Ingo,
-	Those patches with identical titles will be merged into one
-when ready for merging, they are split for review only.
-Thanks!
-Gerry
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 1d0b116..8123c6e 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/export.h>
+>  #include <linux/kernel.h>
+>  #include <linux/of.h>
+> +#include <linux/of_address.h>
+>  #include <linux/property.h>
+>  
+>  /**
+> @@ -519,3 +520,14 @@ unsigned int device_get_child_node_count(struct device *dev)
+>  	return count;
+>  }
+>  EXPORT_SYMBOL_GPL(device_get_child_node_count);
+> +
+> +bool device_dma_is_coherent(struct device *dev)
+> +{
+> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+> +		return of_dma_is_coherent(dev->of_node);
+> +	else if (has_acpi_companion(dev))
+> +		return acpi_dma_is_coherent(acpi_node(dev->fwnode));
 
-> 
-> Thanks,
-> 
-> 	Ingo
-> 
+I don't think you need the has_acpi_companion check, as acpi_node handles
+this and acpi_dma_is_coherent(NULL) returns false.
+
+Will
