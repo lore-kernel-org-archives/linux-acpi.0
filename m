@@ -1,46 +1,44 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron
- 7437
-Date: Wed, 20 May 2015 15:16:08 -0500
-Message-ID: <555CEB88.70407@dell.com>
-References: <20150427174646.GA22664@srcf.ucam.org> <CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com> <20150428052448.GA3458@srcf.ucam.org> <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com> <20150428171100.GA24599@srcf.ucam.org> <CAJ=jquZMMBNsKO2CZe649OcXTBxfzO43gkxwkJn2mvHhnp+zSQ@mail.gmail.com> <5554F12A.3010003@dell.com> <20150514191358.GB23853@srcf.ucam.org> <5554F4B2.8080801@dell.com> <555CC776.3030802@dell.com> <20150520184242.GA32453@srcf.ucam.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
+ irq_flow_handler_t
+Date: Wed, 20 May 2015 22:22:38 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505202219290.4225@nanos>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201724260.4225@nanos> <555CA834.7080807@linux.intel.com> <alpine.DEB.2.11.1505201750280.4225@nanos>
+ <alpine.DEB.2.10.1505202155420.2642@hadrien> <alpine.DEB.2.11.1505202209470.4225@nanos> <alpine.DEB.2.10.1505202215230.2642@hadrien>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:47010 "EHLO
-	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819AbbETURK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 16:17:10 -0400
-In-Reply-To: <20150520184242.GA32453@srcf.ucam.org>
+Received: from www.linutronix.de ([62.245.132.108]:34976 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753053AbbETUXA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 16:23:00 -0400
+In-Reply-To: <alpine.DEB.2.10.1505202215230.2642@hadrien>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alex Hung <alex.hung@canonical.com>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Wed, 20 May 2015, Julia Lawall wrote:
+> On Wed, 20 May 2015, Thomas Gleixner wrote:
+> > On Wed, 20 May 2015, Julia Lawall wrote:
+> > > Scripting this may be a little complex, because the variable can be used
+> > > in one way in one execution path (eg if branch) and another way (or not at
+> > > all) in another.  Let me know if help is needed.
+> >
+> > I feared that, but at least identifying all functions, where the irq
+> > argument is used inside the function itself is really key for such a
+> > massive rework.
+> 
+> It's not impossible, but I may need to think a bit how best to do it.
 
+I pretty much expected that you would say that :)
 
-On 05/20/2015 01:42 PM, Matthew Garrett wrote:
-> On Wed, May 20, 2015 at 12:42:14PM -0500, Mario Limonciello wrote:
->
->> I've gotten some more information on this.
->> Windows: Asks for battery information update multiple times.
->> Linux: Only asks once for battery information update.
->>
->> The net result is that on Linux ACPI battery is missing.  In the
->> _REV test BIOS workaround, a SMI event was added to ask for battery
->> information update.
-> Hm. Why does only asking once not result in us seeing the battery?
->
-I'm not sure, this is all I was told about the difference in behavior 
-with Windows that prompted this bios workaround.  Looking through the 
-kernel log, i'm wondering if maybe 
-75646e758a0ecbed5024454507d5be5b9ea9dcbf will actually have fixed this.
+But seriously, the first important thing is to find all functions and
+to check whether they use irq internaly. Jiang has done that
+'manually' or such, so the number of function which need an actual
+change are not that big.
 
-Alex,
+But I certainly don't want to hold you off thinking about it. Such
+stuff is not a unique problem :)
 
-What was the last kernel validated on the 7*37 family?  Can you see if a 
-kernel that includes 75646e758a0ecbed5024454507d5be5b9ea9dcbf does 
-resolve it?
-
-
+	tglx
