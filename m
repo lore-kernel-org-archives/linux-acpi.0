@@ -1,63 +1,40 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 01/25] ARM, irq: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
-Date: Wed, 20 May 2015 17:59:49 +0800
-Message-ID: <1432116013-25902-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 02/25] avr32, irq: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
+Date: Wed, 20 May 2015 17:59:50 +0800
+Message-ID: <1432116013-25902-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:1484 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751182AbbETJ6W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 05:58:22 -0400
 In-Reply-To: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
 Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
 already have a pointer to corresponding irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/arm/common/locomo.c   |    2 +-
- arch/arm/common/sa1111.c   |    2 +-
- arch/arm/plat-orion/gpio.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/avr32/mach-at32ap/pio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/common/locomo.c b/arch/arm/common/locomo.c
-index b55c3625d7ee..02af4a07ceca 100644
---- a/arch/arm/common/locomo.c
-+++ b/arch/arm/common/locomo.c
-@@ -140,7 +140,7 @@ static struct locomo_dev_info locomo_devices[] = {
+diff --git a/arch/avr32/mach-at32ap/pio.c b/arch/avr32/mach-at32ap/pio.c
+index 903c7d81d0d5..2583e6cc44e9 100644
+--- a/arch/avr32/mach-at32ap/pio.c
++++ b/arch/avr32/mach-at32ap/pio.c
+@@ -286,7 +286,7 @@ static void gpio_irq_handler(unsigned irq, struct irq_desc *desc)
+ 	struct pio_device	*pio = irq_desc_get_chip_data(desc);
+ 	unsigned		gpio_irq;
  
- static void locomo_handler(unsigned int irq, struct irq_desc *desc)
- {
--	struct locomo *lchip = irq_get_chip_data(irq);
-+	struct locomo *lchip = irq_desc_get_chip_data(desc);
- 	int req, i;
- 
- 	/* Acknowledge the parent IRQ */
-diff --git a/arch/arm/common/sa1111.c b/arch/arm/common/sa1111.c
-index 5cc779c8e9c6..0d0844fa54c2 100644
---- a/arch/arm/common/sa1111.c
-+++ b/arch/arm/common/sa1111.c
-@@ -200,7 +200,7 @@ static void
- sa1111_irq_handler(unsigned int irq, struct irq_desc *desc)
- {
- 	unsigned int stat0, stat1, i;
--	struct sa1111 *sachip = irq_get_handler_data(irq);
-+	struct sa1111 *sachip = irq_desc_get_handler_data(desc);
- 	void __iomem *mapbase = sachip->base + SA1111_INTC;
- 
- 	stat0 = sa1111_readl(mapbase + SA1111_INTSTATCLR0);
-diff --git a/arch/arm/plat-orion/gpio.c b/arch/arm/plat-orion/gpio.c
-index 5168a52a17f9..caba04340619 100644
---- a/arch/arm/plat-orion/gpio.c
-+++ b/arch/arm/plat-orion/gpio.c
-@@ -409,7 +409,7 @@ static int gpio_irq_set_type(struct irq_data *d, u32 type)
- 
- static void gpio_irq_handler(unsigned irq, struct irq_desc *desc)
- {
--	struct orion_gpio_chip *ochip = irq_get_handler_data(irq);
-+	struct orion_gpio_chip *ochip = irq_desc_get_handler_data(desc);
- 	u32 cause, type;
- 	int i;
+-	gpio_irq = (unsigned) irq_get_handler_data(irq);
++	gpio_irq = (unsigned) irq_desc_get_handler_data(desc);
+ 	for (;;) {
+ 		u32		isr;
  
 -- 
 1.7.10.4
+
