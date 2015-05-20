@@ -1,161 +1,50 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Wed, 20 May 2015 16:57:16 +0300
-Message-ID: <20150520135716.GW1490@lahna.fi.intel.com>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
- <20150520074708.GQ1490@lahna.fi.intel.com>
- <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
- <20150520094829.GS1490@lahna.fi.intel.com>
- <CAFPB+YcggLY9vwtYREX_YVVJFrTYHTQYnBtvMcicvLgo5MX-+A@mail.gmail.com>
- <20150520105753.GT1490@lahna.fi.intel.com>
- <CAFPB+Ydw4Ywo4dt5NB-Aed6gtt89h2kMucXtgJa42vwommZerw@mail.gmail.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 0/7][RFC] FUJITSU Extended Socket network device driver
+Date: Wed, 20 May 2015 16:47:11 +0200
+Message-ID: <20150520144711.GE22037@vmdeb7>
+References: <E86EADE93E2D054CBCD4E708C38D364A5422D803@G01JPEXMBYT01>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:41164 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751117AbbETOrJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 10:47:09 -0400
 Content-Disposition: inline
-In-Reply-To: <CAFPB+Ydw4Ywo4dt5NB-Aed6gtt89h2kMucXtgJa42vwommZerw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert Dolca <robert.dolca-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Baluta <daniel.baluta-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <E86EADE93E2D054CBCD4E708C38D364A5422D803@G01JPEXMBYT01>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, May 20, 2015 at 04:07:00PM +0300, Robert Dolca wrote:
-> On Wed, May 20, 2015 at 1:57 PM, Mika Westerberg
-> <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> > On Wed, May 20, 2015 at 01:49:02PM +0300, Robert Dolca wrote:
-> >> On Wed, May 20, 2015 at 12:48 PM, Mika Westerberg wrote:
-> >> > On Wed, May 20, 2015 at 12:39:22PM +0300, Robert Dolca wrote:
-> >> >> Currently, if the name used for DT (in dts) matches one of the names
-> >> >> specified in the id table you will have a match. Isn't that an
-> >> >> intended behavior?
-> >> >
-> >> > I thought one needs to put IDs to the driver .of_match_table. This is
-> >> > also what i2c_device_match() is expecting, if I read it right.
-> >>
-> >> If you put the DT id in of_match_table it will match here:
-> >>
-> >> i2c_device_match
-> >>         /* Attempt an OF style match */
-> >>         if (of_driver_match_device(dev, drv))
-> >>                 return 1;
-> >>
-> >> If you don't specify of_match_table and you put the same ID in
-> >> i2c_device_id table it wil match here:
-> >>
-> >> i2c_device_match
-> >>         driver = to_i2c_driver(drv);
-> >>         /* match on an id table if there is one */
-> >>         if (driver->id_table)
-> >>                 return i2c_match_id(driver->id_table, client) != NULL;
-> >>
-> >> This is happening because the name from dts is used for client->name.
-> >> i2c_match_id does the matching based on the client name.
-> >
-> > OK.
-> >
-> >> > BTW, how modules are supposed to be matched if we allow putting ACPI
-> >> > identifiers to i2c_device_id table?
-> >>
-> >> My aproach was like this: if the driver specifies .acpi_match table it
-> >> will work like before.
-> >>
-> >> i2c_device_match
-> >>         /* Then ACPI style match */
-> >>         if (acpi_driver_match_device(dev, drv))
-> >>                 return 1;
-> >>
-> >> If the driver does not specify .acpi_match table the i2c core will
-> >> atempt to match against the  i2c_match_id table (the same way it does
-> >> for DT). In the ACPI case the client->name has that :nn suffix and
-> >> what the patch does is to ignore that when i2c_match_id is called.
-> >>
-> >> i2c_device_match
-> >>         driver = to_i2c_driver(drv);
-> >>         /* match on an id table if there is one */
-> >>         if (driver->id_table)
-> >>                 return i2c_match_id(driver->id_table, client) != NULL;
-> >
-> > Yeah but when you have device with modalias of "acpi:FOO:" how
-> > udev/modprobe is supposed find the correct module?
+On Wed, May 20, 2015 at 08:04:07AM +0000, Izumi, Taku wrote:
+> Hi All,
 > 
-> The modalias file content exposed by the i2c device in sysfs will be the same.
+> This patchsets add support for FUJITSU Extended Socket network
+> device. Extended Socket network device is a shared memory
+> based high-speed network interface between Extended Partitions of
+> PRIMEQUEST 2000 E2 series.
 
-It won't be the same. If it has an ACPI companion it will be different.
+Hi Taku,
 
-Here's one example from a machine with I2C touchscreen connected:
+A few things to keep in mind.
 
-# cat /sys/bus/i2c/devices/i2c-ATML3432\:00/modalias 
-acpi:ATML3432:PNP0C50:
+1) Always Cc the maintainer using the email address in the MAINTAINERS file,
+   in this case, dvhart at infradead.org.
 
-> Currently the alias exposed by the driver is based on the i2c_match_id
-> table and it does not have any aliases based on
-> acpi_device_id table. I am new to this are so please correct me if I am wrong.
-> 
-> >> The final goal is to simplify the driver and remove redundant code.
-> >
-> > IMHO mixing ACPI identifiers with I2C device identifiers does not
-> > simplify anything. And since you need to stick the ACPI ID somewhere
-> > anyway I don't get the point of removing redundant code either.
-> 
-> It will make the i2c_device_id be not NULL when the device is probed.
-> Here is an example:
-> 
-> static int probe(struct i2c_client *client, const struct i2c_device_id *id)
->        /* Get device name from device table or ACPI */
->         if (ACPI_HANDLE(dev)) {
->                 acpi_id = acpi_match_device(silead_ts_acpi_match, dev);
->                 if (!acpi_id)
->                         return -ENODEV;
-> 
->                 sprintf(data->fw_name, "%s.fw", acpi_id->id);
-> 
->                 for (i = 0; i < strlen(data->fw_name); i++)
->                         data->fw_name[i] = tolower(data->fw_name[i]);
->         } else {
->                 sprintf(data->fw_name, "%s.fw", id->name);
->         }
-> 
-> This will become:
->         sprintf(data->fw_name, "%s.fw", id->name);
+2) See Documentation/email-clients.txt regarding charset (you sent ISO-2022,JP):
 
-OK, in that case it shortens the code I give you that. But the normal
-case where you only need to match against the ACPI identifier (and
-handling modules properly) this does not simplify anything.
+   Email clients should not modify the character set encoding of the text.
+   Emailed patches should be in ASCII or UTF-8 encoding only.
+   If you configure your email client to send emails with UTF-8 encoding,
+   you avoid some possible charset problems.
 
-> There are allot more cases like this already in the kernel.
+3) A new driver should be functional at each patch point, so committing a
+   skeleton that does nothing is not what we're looking for by "small functional
+   changes".
 
-I didn't find too many. Most of them are under drivers/iio and they all
-do something like:
+Thanks,
 
-static const char *kmx61_match_acpi_device(struct device *dev)
-{
-        const struct acpi_device_id *id;
-
-        id = acpi_match_device(dev->driver->acpi_match_table, dev);
-        if (!id)
-                return NULL;
-        return dev_name(dev);
-}
-
-static int kmx61_probe(struct i2c_client *client, const struct i2c_device_id *id)
-{
-	...
-	if (id)
-                name = id->name;
-        else if (ACPI_HANDLE(&client->dev))
-                name = kmx61_match_acpi_device(&client->dev);
-        else
-                return -ENODEV;
-
-which I think is not needed at all. If you end up having an ACPI handle
-for your I2C device and the I2C core has already done the matching, you
-don't need to do the match again in the driver. Instead this can be written like:
-
-	if (id)
-		name = id->name;
-	else if (has_acpi_companion(&client->dev))
-		name = dev_name(&client->dev);
-	else
-		return -ENODEV;
-
-And you probably don't need that 'name' either.
+-- 
+Darren Hart
+Intel Open Source Technology Center
