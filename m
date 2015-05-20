@@ -1,165 +1,68 @@
-From: Robert Dolca <robert.dolca@gmail.com>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Thu, 21 May 2015 00:32:49 +0300
-Message-ID: <CAFPB+YcLSwyVTBmkHFZPM9MTgTsPHuzoxq1KN1b+Z0dvFNF5yw@mail.gmail.com>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
- <20150520074708.GQ1490@lahna.fi.intel.com> <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
- <20150520094829.GS1490@lahna.fi.intel.com> <CAFPB+YcggLY9vwtYREX_YVVJFrTYHTQYnBtvMcicvLgo5MX-+A@mail.gmail.com>
- <20150520105753.GT1490@lahna.fi.intel.com> <CAFPB+Ydw4Ywo4dt5NB-Aed6gtt89h2kMucXtgJa42vwommZerw@mail.gmail.com>
- <20150520135716.GW1490@lahna.fi.intel.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V4 PATCH 4/6] device property: Introduces device_dma_is_coherent()
+Date: Wed, 20 May 2015 16:32:45 -0500
+Message-ID: <555CFD7D.5090208@amd.com>
+References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1431724994-21601-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20150520102829.GB11498@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150520135716.GW1490@lahna.fi.intel.com>
+In-Reply-To: <20150520102829.GB11498@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Robert Dolca <robert.dolca@intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>, Linus Walleij <linus.walleij@linaro.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>, "msalter@redhat.com" <msalter@redhat.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 20, 2015 at 4:57 PM, Mika Westerberg wrote:
-> On Wed, May 20, 2015 at 04:07:00PM +0300, Robert Dolca wrote:
->> On Wed, May 20, 2015 at 1:57 PM, Mika Westerberg wrote:
->> > On Wed, May 20, 2015 at 01:49:02PM +0300, Robert Dolca wrote:
->> >> On Wed, May 20, 2015 at 12:48 PM, Mika Westerberg wrote:
->> >> > On Wed, May 20, 2015 at 12:39:22PM +0300, Robert Dolca wrote:
->> >> >> Currently, if the name used for DT (in dts) matches one of the names
->> >> >> specified in the id table you will have a match. Isn't that an
->> >> >> intended behavior?
->> >> >
->> >> > I thought one needs to put IDs to the driver .of_match_table. This is
->> >> > also what i2c_device_match() is expecting, if I read it right.
->> >>
->> >> If you put the DT id in of_match_table it will match here:
->> >>
->> >> i2c_device_match
->> >>         /* Attempt an OF style match */
->> >>         if (of_driver_match_device(dev, drv))
->> >>                 return 1;
->> >>
->> >> If you don't specify of_match_table and you put the same ID in
->> >> i2c_device_id table it wil match here:
->> >>
->> >> i2c_device_match
->> >>         driver = to_i2c_driver(drv);
->> >>         /* match on an id table if there is one */
->> >>         if (driver->id_table)
->> >>                 return i2c_match_id(driver->id_table, client) != NULL;
->> >>
->> >> This is happening because the name from dts is used for client->name.
->> >> i2c_match_id does the matching based on the client name.
->> >
->> > OK.
->> >
->> >> > BTW, how modules are supposed to be matched if we allow putting ACPI
->> >> > identifiers to i2c_device_id table?
->> >>
->> >> My aproach was like this: if the driver specifies .acpi_match table it
->> >> will work like before.
->> >>
->> >> i2c_device_match
->> >>         /* Then ACPI style match */
->> >>         if (acpi_driver_match_device(dev, drv))
->> >>                 return 1;
->> >>
->> >> If the driver does not specify .acpi_match table the i2c core will
->> >> atempt to match against the  i2c_match_id table (the same way it does
->> >> for DT). In the ACPI case the client->name has that :nn suffix and
->> >> what the patch does is to ignore that when i2c_match_id is called.
->> >>
->> >> i2c_device_match
->> >>         driver = to_i2c_driver(drv);
->> >>         /* match on an id table if there is one */
->> >>         if (driver->id_table)
->> >>                 return i2c_match_id(driver->id_table, client) != NULL;
->> >
->> > Yeah but when you have device with modalias of "acpi:FOO:" how
->> > udev/modprobe is supposed find the correct module?
+On 5/20/2015 5:28 AM, Will Deacon wrote:
+> On Fri, May 15, 2015 at 10:23:12PM +0100, Suravee Suthikulpanit wrote:
+>> Currently, device drivers, which support both OF and ACPI,
+>> need to call two separate APIs, of_dma_is_coherent() and
+>> acpi_dma_is_coherent()) to determine device coherency attribute.
 >>
->> The modalias file content exposed by the i2c device in sysfs will be the same.
->
-> It won't be the same. If it has an ACPI companion it will be different.
->
-> Here's one example from a machine with I2C touchscreen connected:
->
-> # cat /sys/bus/i2c/devices/i2c-ATML3432\:00/modalias
-> acpi:ATML3432:PNP0C50:
->
->> Currently the alias exposed by the driver is based on the i2c_match_id
->> table and it does not have any aliases based on
->> acpi_device_id table. I am new to this are so please correct me if I am wrong.
+>> This patch simplifies this process by introducing a new device
+>> property API, device_dma_is_coherent(), which calls the appropriate
+>> interface based on the booting architecture.
 >>
->> >> The final goal is to simplify the driver and remove redundant code.
->> >
->> > IMHO mixing ACPI identifiers with I2C device identifiers does not
->> > simplify anything. And since you need to stick the ACPI ID somewhere
->> > anyway I don't get the point of removing redundant code either.
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> ---
+>>   drivers/base/property.c  | 12 ++++++++++++
+>>   include/linux/property.h |  2 ++
+>>   2 files changed, 14 insertions(+)
 >>
->> It will make the i2c_device_id be not NULL when the device is probed.
->> Here is an example:
+>> diff --git a/drivers/base/property.c b/drivers/base/property.c
+>> index 1d0b116..8123c6e 100644
+>> --- a/drivers/base/property.c
+>> +++ b/drivers/base/property.c
+>> @@ -14,6 +14,7 @@
+>>   #include <linux/export.h>
+>>   #include <linux/kernel.h>
+>>   #include <linux/of.h>
+>> +#include <linux/of_address.h>
+>>   #include <linux/property.h>
 >>
->> static int probe(struct i2c_client *client, const struct i2c_device_id *id)
->>        /* Get device name from device table or ACPI */
->>         if (ACPI_HANDLE(dev)) {
->>                 acpi_id = acpi_match_device(silead_ts_acpi_match, dev);
->>                 if (!acpi_id)
->>                         return -ENODEV;
->>
->>                 sprintf(data->fw_name, "%s.fw", acpi_id->id);
->>
->>                 for (i = 0; i < strlen(data->fw_name); i++)
->>                         data->fw_name[i] = tolower(data->fw_name[i]);
->>         } else {
->>                 sprintf(data->fw_name, "%s.fw", id->name);
->>         }
->>
->> This will become:
->>         sprintf(data->fw_name, "%s.fw", id->name);
+>>   /**
+>> @@ -519,3 +520,14 @@ unsigned int device_get_child_node_count(struct device *dev)
+>>   	return count;
+>>   }
+>>   EXPORT_SYMBOL_GPL(device_get_child_node_count);
+>> +
+>> +bool device_dma_is_coherent(struct device *dev)
+>> +{
+>> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
+>> +		return of_dma_is_coherent(dev->of_node);
+>> +	else if (has_acpi_companion(dev))
+>> +		return acpi_dma_is_coherent(acpi_node(dev->fwnode));
 >
-> OK, in that case it shortens the code I give you that. But the normal
-> case where you only need to match against the ACPI identifier (and
-> handling modules properly) this does not simplify anything.
+> I don't think you need the has_acpi_companion check, as acpi_node handles
+> this and acpi_dma_is_coherent(NULL) returns false.
 >
->> There are allot more cases like this already in the kernel.
+> Will
 >
-> I didn't find too many. Most of them are under drivers/iio and they all
-> do something like:
->
-> static const char *kmx61_match_acpi_device(struct device *dev)
-> {
->         const struct acpi_device_id *id;
->
->         id = acpi_match_device(dev->driver->acpi_match_table, dev);
->         if (!id)
->                 return NULL;
->         return dev_name(dev);
-> }
->
-> static int kmx61_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> {
->         ...
->         if (id)
->                 name = id->name;
->         else if (ACPI_HANDLE(&client->dev))
->                 name = kmx61_match_acpi_device(&client->dev);
->         else
->                 return -ENODEV;
->
-> which I think is not needed at all. If you end up having an ACPI handle
-> for your I2C device and the I2C core has already done the matching, you
-> don't need to do the match again in the driver. Instead this can be written like:
->
->         if (id)
->                 name = id->name;
->         else if (has_acpi_companion(&client->dev))
->                 name = dev_name(&client->dev);
->         else
->                 return -ENODEV;
->
-> And you probably don't need that 'name' either.
+You are right.
 
-I get your point. The benefits are not worth mixing the i2c_device_id
-table with the ACPI ids.
+Thanks,
 
-Thanks for your valuable feedback.
-
-Robert
+Suravee
