@@ -1,27 +1,63 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Wed, 20 May 2015 12:48:29 +0300
-Message-ID: <20150520094829.GS1490@lahna.fi.intel.com>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
- <20150520074708.GQ1490@lahna.fi.intel.com>
- <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Dolca <robert.dolca@gmail.com>
-Cc: Robert Dolca <robert.dolca@intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [RFC v1 01/25] ARM, irq: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
+Date: Wed, 20 May 2015 17:59:49 +0800
+Message-ID: <1432116013-25902-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 20, 2015 at 12:39:22PM +0300, Robert Dolca wrote:
-> Currently, if the name used for DT (in dts) matches one of the names
-> specified in the id table you will have a match. Isn't that an
-> intended behavior?
+Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+already have a pointer to corresponding irq_desc.
 
-I thought one needs to put IDs to the driver .of_match_table. This is
-also what i2c_device_match() is expecting, if I read it right.
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/arm/common/locomo.c   |    2 +-
+ arch/arm/common/sa1111.c   |    2 +-
+ arch/arm/plat-orion/gpio.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-BTW, how modules are supposed to be matched if we allow putting ACPI
-identifiers to i2c_device_id table?
+diff --git a/arch/arm/common/locomo.c b/arch/arm/common/locomo.c
+index b55c3625d7ee..02af4a07ceca 100644
+--- a/arch/arm/common/locomo.c
++++ b/arch/arm/common/locomo.c
+@@ -140,7 +140,7 @@ static struct locomo_dev_info locomo_devices[] = {
+ 
+ static void locomo_handler(unsigned int irq, struct irq_desc *desc)
+ {
+-	struct locomo *lchip = irq_get_chip_data(irq);
++	struct locomo *lchip = irq_desc_get_chip_data(desc);
+ 	int req, i;
+ 
+ 	/* Acknowledge the parent IRQ */
+diff --git a/arch/arm/common/sa1111.c b/arch/arm/common/sa1111.c
+index 5cc779c8e9c6..0d0844fa54c2 100644
+--- a/arch/arm/common/sa1111.c
++++ b/arch/arm/common/sa1111.c
+@@ -200,7 +200,7 @@ static void
+ sa1111_irq_handler(unsigned int irq, struct irq_desc *desc)
+ {
+ 	unsigned int stat0, stat1, i;
+-	struct sa1111 *sachip = irq_get_handler_data(irq);
++	struct sa1111 *sachip = irq_desc_get_handler_data(desc);
+ 	void __iomem *mapbase = sachip->base + SA1111_INTC;
+ 
+ 	stat0 = sa1111_readl(mapbase + SA1111_INTSTATCLR0);
+diff --git a/arch/arm/plat-orion/gpio.c b/arch/arm/plat-orion/gpio.c
+index 5168a52a17f9..caba04340619 100644
+--- a/arch/arm/plat-orion/gpio.c
++++ b/arch/arm/plat-orion/gpio.c
+@@ -409,7 +409,7 @@ static int gpio_irq_set_type(struct irq_data *d, u32 type)
+ 
+ static void gpio_irq_handler(unsigned irq, struct irq_desc *desc)
+ {
+-	struct orion_gpio_chip *ochip = irq_get_handler_data(irq);
++	struct orion_gpio_chip *ochip = irq_desc_get_handler_data(desc);
+ 	u32 cause, type;
+ 	int i;
+ 
+-- 
+1.7.10.4
