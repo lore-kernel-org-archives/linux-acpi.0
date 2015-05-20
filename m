@@ -1,77 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Wed, 20 May 2015 01:35:06 +0200
-Message-ID: <1894651.a3DUuyBc1c@vostro.rjw.lan>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
+Subject: [PATCH] PCI / hotplug / ACPI: Check ignore_hotplug for all downstream devices
+Date: Wed, 20 May 2015 02:14:13 +0200
+Message-ID: <1499297.p2drhZLZaT@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52785 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:58017 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751391AbbESXJq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2015 19:09:46 -0400
-In-Reply-To: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
+	with SMTP id S1750750AbbESXsx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 May 2015 19:48:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Dolca <robert.dolca@intel.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tuesday, May 19, 2015 05:03:29 PM Robert Dolca wrote:
-> For i2c devices enumerated with ACPI you need to declare both
-> acpi_match_table and id_table. When using ACPI, the i2c_device_id structure
-> supplied to the probe function is null and you have to handle this case
-> in the driver.
-> 
-> The current name for the i2c client when using ACPI is "HID:UID" where the
-> UID has 7 or 8 characters and the UID has 2 characters. The UID is not
-> relevant for identifying the chip so it does not have any practical
-> purpose.
-> 
-> Modifying i2c_match_id we make the comparison by ignoring the UID from the
-> client name when the device was discovered using ACPI. The comparison is
-> case insensitive because the ACPI names are uppercase and the DT and ID
-> table names are lowercase. It would not make sense to have two different
-> chips with the same name and the only diference being the capitalized
-> letters.
-> 
-> With these changes the probe function gets a valid i2c_device_id and the
-> driver doesn't have to declare acpi_match_table.
-> 
-> Signed-off-by: Robert Dolca <robert.dolca@intel.com>
-> ---
->  drivers/i2c/i2c-core.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index fec0e0d..c9b30b7 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -447,8 +447,18 @@ static inline int acpi_i2c_install_space_handler(struct i2c_adapter *adapter)
->  static const struct i2c_device_id *i2c_match_id(const struct i2c_device_id *id,
->  						const struct i2c_client *client)
->  {
-> +	char name[I2C_NAME_SIZE], *c;
-> +
-> +	strlcpy(name, client->name, sizeof(name));
-> +
-> +	if (ACPI_HANDLE(&client->dev)) {
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-If you don't need to use the handle, it is better to call has_acpi_companion() here.
+If the ignore_hotplug flag is set for a PCI device without an ACPI
+companion and a bus check notification is received for an ancestor
+bridge that is not the device's parent, ACPIPHP will ignore that
+flag.
 
-> +		c = strchr(name, ':');
-> +		if (c)
-> +			*c = 0;
-> +	}
-> +
->  	while (id->name[0]) {
-> -		if (strcmp(client->name, id->name) == 0)
-> +		if (strncasecmp(name, id->name, sizeof(id->name)) == 0)
->  			return id;
->  		id++;
->  	}
-> 
+Namely, in that case acpiphp_check_bridge() is called for the target
+bridge and if all of the devices immediately below the bridge are
+still present, trim_stale_devices() will be called for each of them.
+That function recursively walks the hierarchy downwards and removes
+device objects corresponding to devices that don't appear to be
+present any more.  Unfortunately, it only checks ignore_hotplug
+for devices having ACPI companions, so it will remove the others
+(if they don't respond) regardless of the ignore_hotplug value.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Fix the problem by making trim_stale_devices() take ignore_hotplug
+into consideration regardless of whether or not an ACPI companion
+is present for the device it has been called for.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+This may fix BZ61891, but even if it doesn't, the bug is quite obvious to me.
+
+Should be applicable since commit b440bde74f04 (PCI: Add pci_ignore_hotplug()
+to ignore hotplug events for a device) which shipped in 3.17.
+
+---
+ drivers/pci/hotplug/acpiphp_glue.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+Index: linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+===================================================================
+--- linux-pm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-pm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -632,15 +632,14 @@ static void trim_stale_devices(struct pc
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+ 	struct pci_bus *bus = dev->subordinate;
+-	bool alive = false;
++	bool alive = dev->ignore_hotplug;
+ 
+ 	if (adev) {
+ 		acpi_status status;
+ 		unsigned long long sta;
+ 
+ 		status = acpi_evaluate_integer(adev->handle, "_STA", NULL, &sta);
+-		alive = (ACPI_SUCCESS(status) && device_status_valid(sta))
+-			|| dev->ignore_hotplug;
++		alive = alive || (ACPI_SUCCESS(status) && device_status_valid(sta));
+ 	}
+ 	if (!alive)
+ 		alive = pci_device_is_present(dev);
+
