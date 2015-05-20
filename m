@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFC v1 24/25] genirq: Kill the first parameter 'irq' of irq_flow_handler_t
-Date: Wed, 20 May 2015 18:00:12 +0800
-Message-ID: <1432116013-25902-25-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFC v1 25/25] genirq: Kill the first parameter 'irq' of irq_flow_handler_t
+Date: Wed, 20 May 2015 18:00:13 +0800
+Message-ID: <1432116013-25902-26-git-send-email-jiang.liu@linux.intel.com>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Kumar Gala <galak@codeaurora.org>, Andy Gross <agross@codeaurora.org>, David Brown <davidb@codeaurora.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, Murali Karicheri <m-karicheri2@ti.com>, Jiang Liu <jiang.liu@linux.intel.com>, Philipp Zabel <p.zabel@pengutronix.de>, Steve Longerbeam <slongerbeam@gmail.com>, Gilad Avidov <gavidov@codeaurora.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
 Now most IRQ flow handlers make no use of the first parameter 'irq'.
@@ -20,128 +20,104 @@ they should be merge as one to support bisecting.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/mfd/asic3.c        |    2 +-
- drivers/mfd/ezx-pcap.c     |    2 +-
- drivers/mfd/htc-egpio.c    |    2 +-
- drivers/mfd/jz4740-adc.c   |    2 +-
- drivers/mfd/pm8921-core.c  |    2 +-
- drivers/mfd/t7l66xb.c      |    2 +-
- drivers/mfd/tc6393xb.c     |    2 +-
- drivers/mfd/ucb1x00-core.c |    4 ++--
- 8 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/dma/ipu/ipu_irq.c       |    6 ++++--
+ drivers/gpu/ipu-v3/ipu-common.c |    4 ++--
+ drivers/pci/host/pci-keystone.c |    7 ++++---
+ drivers/spmi/spmi-pmic-arb.c    |    2 +-
+ 4 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/asic3.c b/drivers/mfd/asic3.c
-index 977bd3a3eed0..6bf17842a3e4 100644
---- a/drivers/mfd/asic3.c
-+++ b/drivers/mfd/asic3.c
-@@ -138,7 +138,7 @@ static void asic3_irq_flip_edge(struct asic3 *asic,
- 	spin_unlock_irqrestore(&asic->lock, flags);
+diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
+index 0e12af37fe2f..edd12278dc3e 100644
+--- a/drivers/dma/ipu/ipu_irq.c
++++ b/drivers/dma/ipu/ipu_irq.c
+@@ -266,8 +266,9 @@ int ipu_irq_unmap(unsigned int source)
  }
  
--static void asic3_irq_demux(unsigned int irq, struct irq_desc *desc)
-+static void asic3_irq_demux(struct irq_desc *desc)
+ /* Chained IRQ handler for IPU error interrupt */
+-static void ipu_irq_err(unsigned int irq, struct irq_desc *desc)
++static void ipu_irq_err(struct irq_desc *desc)
  {
- 	struct asic3 *asic = irq_desc_get_handler_data(desc);
- 	struct irq_data *data = irq_desc_get_irq_data(desc);
-diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
-index e5f4ffaa5414..ab83124d75f7 100644
---- a/drivers/mfd/ezx-pcap.c
-+++ b/drivers/mfd/ezx-pcap.c
-@@ -205,7 +205,7 @@ static void pcap_isr_work(struct work_struct *work)
- 	} while (gpio_get_value(pdata->gpio));
++	unsigned int irq = irq_desc_to_irq(desc);
+ 	struct ipu *ipu = irq_desc_get_handler_data(desc);
+ 	u32 status;
+ 	int i, line;
+@@ -307,8 +308,9 @@ static void ipu_irq_err(unsigned int irq, struct irq_desc *desc)
  }
  
--static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc)
-+static void pcap_irq_handler(struct irq_desc *desc)
+ /* Chained IRQ handler for IPU function interrupt */
+-static void ipu_irq_fn(unsigned int irq, struct irq_desc *desc)
++static void ipu_irq_fn(struct irq_desc *desc)
  {
- 	struct pcap_chip *pcap = irq_desc_get_handler_data(desc);
- 
-diff --git a/drivers/mfd/htc-egpio.c b/drivers/mfd/htc-egpio.c
-index 49f39feca784..8a3264e35403 100644
---- a/drivers/mfd/htc-egpio.c
-+++ b/drivers/mfd/htc-egpio.c
-@@ -98,7 +98,7 @@ static struct irq_chip egpio_muxed_chip = {
- 	.irq_unmask	= egpio_unmask,
- };
- 
--static void egpio_handler(unsigned int irq, struct irq_desc *desc)
-+static void egpio_handler(struct irq_desc *desc)
- {
- 	struct egpio_info *ei = irq_desc_get_handler_data(desc);
- 	int irqpin;
-diff --git a/drivers/mfd/jz4740-adc.c b/drivers/mfd/jz4740-adc.c
-index b31c54e4ecb2..ec1cd2297ea4 100644
---- a/drivers/mfd/jz4740-adc.c
-+++ b/drivers/mfd/jz4740-adc.c
-@@ -65,7 +65,7 @@ struct jz4740_adc {
- 	spinlock_t lock;
- };
- 
--static void jz4740_adc_irq_demux(unsigned int irq, struct irq_desc *desc)
-+static void jz4740_adc_irq_demux(struct irq_desc *desc)
- {
- 	struct irq_chip_generic *gc = irq_desc_get_handler_data(desc);
- 	uint8_t status;
-diff --git a/drivers/mfd/pm8921-core.c b/drivers/mfd/pm8921-core.c
-index 5a92646a2ccb..87dd27e49a8b 100644
---- a/drivers/mfd/pm8921-core.c
-+++ b/drivers/mfd/pm8921-core.c
-@@ -156,7 +156,7 @@ static int pm8xxx_irq_master_handler(struct pm_irq_chip *chip, int master)
- 	return ret;
++	unsigned int irq = irq_desc_to_irq(desc);
+ 	struct ipu *ipu = irq_desc_get_handler_data(desc);
+ 	u32 status;
+ 	int i, line;
+diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+index 7022825b7a2c..1125b03c36af 100644
+--- a/drivers/gpu/ipu-v3/ipu-common.c
++++ b/drivers/gpu/ipu-v3/ipu-common.c
+@@ -912,7 +912,7 @@ static void ipu_irq_handle(struct ipu_soc *ipu, const int *regs, int num_regs)
+ 	}
  }
  
--static void pm8xxx_irq_handler(unsigned int irq, struct irq_desc *desc)
-+static void pm8xxx_irq_handler(struct irq_desc *desc)
+-static void ipu_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void ipu_irq_handler(struct irq_desc *desc)
  {
- 	struct pm_irq_chip *chip = irq_desc_get_handler_data(desc);
- 	struct irq_chip *irq_chip = irq_desc_get_chip(desc);
-diff --git a/drivers/mfd/t7l66xb.c b/drivers/mfd/t7l66xb.c
-index b752ca2be549..55ade59303b1 100644
---- a/drivers/mfd/t7l66xb.c
-+++ b/drivers/mfd/t7l66xb.c
-@@ -185,7 +185,7 @@ static struct mfd_cell t7l66xb_cells[] = {
- /*--------------------------------------------------------------------------*/
+ 	struct ipu_soc *ipu = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+@@ -925,7 +925,7 @@ static void ipu_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	chained_irq_exit(chip, desc);
+ }
  
- /* Handle the T7L66XB interrupt mux */
--static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
-+static void t7l66xb_irq(struct irq_desc *desc)
+-static void ipu_err_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void ipu_err_irq_handler(struct irq_desc *desc)
  {
- 	struct t7l66xb *t7l66xb = irq_desc_get_handler_data(desc);
- 	unsigned int isr;
-diff --git a/drivers/mfd/tc6393xb.c b/drivers/mfd/tc6393xb.c
-index d21253a51cff..e22722cd667c 100644
---- a/drivers/mfd/tc6393xb.c
-+++ b/drivers/mfd/tc6393xb.c
-@@ -523,7 +523,7 @@ static int tc6393xb_register_gpio(struct tc6393xb *tc6393xb, int gpio_base)
- /*--------------------------------------------------------------------------*/
+ 	struct ipu_soc *ipu = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+diff --git a/drivers/pci/host/pci-keystone.c b/drivers/pci/host/pci-keystone.c
+index 75333b0c4f0a..659a73da372c 100644
+--- a/drivers/pci/host/pci-keystone.c
++++ b/drivers/pci/host/pci-keystone.c
+@@ -112,8 +112,9 @@ static int ks_pcie_establish_link(struct keystone_pcie *ks_pcie)
+ 	return 0;
+ }
  
- static void
--tc6393xb_irq(unsigned int irq, struct irq_desc *desc)
-+tc6393xb_irq(struct irq_desc *desc)
+-static void ks_pcie_msi_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void ks_pcie_msi_irq_handler(struct irq_desc *desc)
  {
- 	struct tc6393xb *tc6393xb = irq_desc_get_handler_data(desc);
- 	unsigned int isr;
-diff --git a/drivers/mfd/ucb1x00-core.c b/drivers/mfd/ucb1x00-core.c
-index 58ea9fdd3a15..2f8f922a34de 100644
---- a/drivers/mfd/ucb1x00-core.c
-+++ b/drivers/mfd/ucb1x00-core.c
-@@ -282,7 +282,7 @@ void ucb1x00_adc_disable(struct ucb1x00 *ucb)
-  * SIBCLK to talk to the chip.  We leave the clock running until
-  * we have finished processing all interrupts from the chip.
++	unsigned int irq = irq_desc_to_irq(desc);
+ 	struct keystone_pcie *ks_pcie = irq_desc_get_handler_data(desc);
+ 	u32 offset = irq - ks_pcie->msi_host_irqs[0];
+ 	struct pcie_port *pp = &ks_pcie->pp;
+@@ -133,14 +134,14 @@ static void ks_pcie_msi_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 
+ /**
+  * ks_pcie_legacy_irq_handler() - Handle legacy interrupt
+- * @irq: IRQ line for legacy interrupts
+  * @desc: Pointer to irq descriptor
+  *
+  * Traverse through pending legacy interrupts and invoke handler for each. Also
+  * takes care of interrupt controller level mask/ack operation.
   */
--static void ucb1x00_irq(unsigned int irq, struct irq_desc *desc)
-+static void ucb1x00_irq(struct irq_desc *desc)
+-static void ks_pcie_legacy_irq_handler(unsigned int irq, struct irq_desc *desc)
++static void ks_pcie_legacy_irq_handler(struct irq_desc *desc)
  {
- 	struct ucb1x00 *ucb = irq_desc_get_handler_data(desc);
- 	unsigned int isr, i;
-@@ -292,7 +292,7 @@ static void ucb1x00_irq(unsigned int irq, struct irq_desc *desc)
- 	ucb1x00_reg_write(ucb, UCB_IE_CLEAR, isr);
- 	ucb1x00_reg_write(ucb, UCB_IE_CLEAR, 0);
++	unsigned int irq = irq_desc_to_irq(desc);
+ 	struct keystone_pcie *ks_pcie = irq_desc_get_handler_data(desc);
+ 	struct pcie_port *pp = &ks_pcie->pp;
+ 	u32 irq_offset = irq - ks_pcie->legacy_host_irqs[0];
+diff --git a/drivers/spmi/spmi-pmic-arb.c b/drivers/spmi/spmi-pmic-arb.c
+index b32cb0a813cb..d7e7846917ae 100644
+--- a/drivers/spmi/spmi-pmic-arb.c
++++ b/drivers/spmi/spmi-pmic-arb.c
+@@ -451,7 +451,7 @@ static void periph_interrupt(struct spmi_pmic_arb_dev *pa, u8 apid)
+ 	}
+ }
  
--	for (i = 0; i < 16 && isr; i++, isr >>= 1, irq++)
-+	for (i = 0; i < 16 && isr; i++, isr >>= 1)
- 		if (isr & 1)
- 			generic_handle_irq(ucb->irq_base + i);
- 	ucb1x00_disable(ucb);
+-static void pmic_arb_chained_irq(unsigned int irq, struct irq_desc *desc)
++static void pmic_arb_chained_irq(struct irq_desc *desc)
+ {
+ 	struct spmi_pmic_arb_dev *pa = irq_desc_get_handler_data(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
 -- 
 1.7.10.4
