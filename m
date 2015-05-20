@@ -1,193 +1,69 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC v1 08/25] mfd: Use irq_desc_get_xxx() to avoid redundant
- lookup of irq_desc
-Date: Wed, 20 May 2015 11:44:36 +0100
-Message-ID: <20150520104436.GF3627@x1>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
- <1432116013-25902-9-git-send-email-jiang.liu@linux.intel.com>
+From: Robert Dolca <robert.dolca-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
+Date: Wed, 20 May 2015 13:49:02 +0300
+Message-ID: <CAFPB+YcggLY9vwtYREX_YVVJFrTYHTQYnBtvMcicvLgo5MX-+A@mail.gmail.com>
+References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
+ <20150520074708.GQ1490@lahna.fi.intel.com> <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
+ <20150520094829.GS1490@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1432116013-25902-9-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-omap-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150520094829.GS1490-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Baluta <daniel.baluta-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 20 May 2015, Jiang Liu wrote:
+On Wed, May 20, 2015 at 12:48 PM, Mika Westerberg wrote:
+> On Wed, May 20, 2015 at 12:39:22PM +0300, Robert Dolca wrote:
+>> Currently, if the name used for DT (in dts) matches one of the names
+>> specified in the id table you will have a match. Isn't that an
+>> intended behavior?
+>
+> I thought one needs to put IDs to the driver .of_match_table. This is
+> also what i2c_device_match() is expecting, if I read it right.
 
-> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-> already have a pointer to corresponding irq_desc.
->=20
-> Do the same thing to avoid pattern "irq_get_chip_data(data->irq)".
->=20
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->  drivers/mfd/ezx-pcap.c    |    2 +-
->  drivers/mfd/max8997-irq.c |    8 ++++----
->  drivers/mfd/mt6397-core.c |    8 ++++----
->  drivers/mfd/t7l66xb.c     |    2 +-
->  drivers/mfd/tc6393xb.c    |    2 +-
->  drivers/mfd/twl6030-irq.c |    2 +-
->  6 files changed, 12 insertions(+), 12 deletions(-)
+If you put the DT id in of_match_table it will match here:
 
-Again, so long as this has been properly tested:
+i2c_device_match
+        /* Attempt an OF style match */
+        if (of_driver_match_device(dev, drv))
+                return 1;
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
+If you don't specify of_match_table and you put the same ID in
+i2c_device_id table it wil match here:
 
-> diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
-> index 5991faddd3c6..e5f4ffaa5414 100644
-> --- a/drivers/mfd/ezx-pcap.c
-> +++ b/drivers/mfd/ezx-pcap.c
-> @@ -207,7 +207,7 @@ static void pcap_isr_work(struct work_struct *wor=
-k)
-> =20
->  static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc=
-)
->  {
-> -	struct pcap_chip *pcap =3D irq_get_handler_data(irq);
-> +	struct pcap_chip *pcap =3D irq_desc_get_handler_data(desc);
-> =20
->  	desc->irq_data.chip->irq_ack(&desc->irq_data);
->  	queue_work(pcap->workqueue, &pcap->isr_work);
-> diff --git a/drivers/mfd/max8997-irq.c b/drivers/mfd/max8997-irq.c
-> index 43fa61413e93..381738b477f8 100644
-> --- a/drivers/mfd/max8997-irq.c
-> +++ b/drivers/mfd/max8997-irq.c
-> @@ -113,14 +113,14 @@ static const struct max8997_irq_data max8997_ir=
-qs[] =3D {
-> =20
->  static void max8997_irq_lock(struct irq_data *data)
->  {
-> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
-> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
-> =20
->  	mutex_lock(&max8997->irqlock);
->  }
-> =20
->  static void max8997_irq_sync_unlock(struct irq_data *data)
->  {
-> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
-> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
->  	int i;
-> =20
->  	for (i =3D 0; i < MAX8997_IRQ_GROUP_NR; i++) {
-> @@ -148,7 +148,7 @@ irq_to_max8997_irq(struct max8997_dev *max8997, i=
-nt irq)
-> =20
->  static void max8997_irq_mask(struct irq_data *data)
->  {
-> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
-> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
->  	const struct max8997_irq_data *irq_data =3D irq_to_max8997_irq(max8=
-997,
->  								data->irq);
-> =20
-> @@ -157,7 +157,7 @@ static void max8997_irq_mask(struct irq_data *dat=
-a)
-> =20
->  static void max8997_irq_unmask(struct irq_data *data)
->  {
-> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
-> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
->  	const struct max8997_irq_data *irq_data =3D irq_to_max8997_irq(max8=
-997,
->  								data->irq);
-> =20
-> diff --git a/drivers/mfd/mt6397-core.c b/drivers/mfd/mt6397-core.c
-> index 09bc7804952a..dab325b9d0df 100644
-> --- a/drivers/mfd/mt6397-core.c
-> +++ b/drivers/mfd/mt6397-core.c
-> @@ -39,14 +39,14 @@ static const struct mfd_cell mt6397_devs[] =3D {
-> =20
->  static void mt6397_irq_lock(struct irq_data *data)
->  {
-> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
-> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
-> =20
->  	mutex_lock(&mt6397->irqlock);
->  }
-> =20
->  static void mt6397_irq_sync_unlock(struct irq_data *data)
->  {
-> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
-> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
-> =20
->  	regmap_write(mt6397->regmap, MT6397_INT_CON0, mt6397->irq_masks_cur=
-[0]);
->  	regmap_write(mt6397->regmap, MT6397_INT_CON1, mt6397->irq_masks_cur=
-[1]);
-> @@ -56,7 +56,7 @@ static void mt6397_irq_sync_unlock(struct irq_data =
-*data)
-> =20
->  static void mt6397_irq_disable(struct irq_data *data)
->  {
-> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
-> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
->  	int shift =3D data->hwirq & 0xf;
->  	int reg =3D data->hwirq >> 4;
-> =20
-> @@ -65,7 +65,7 @@ static void mt6397_irq_disable(struct irq_data *dat=
-a)
-> =20
->  static void mt6397_irq_enable(struct irq_data *data)
->  {
-> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
-> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
->  	int shift =3D data->hwirq & 0xf;
->  	int reg =3D data->hwirq >> 4;
-> =20
-> diff --git a/drivers/mfd/t7l66xb.c b/drivers/mfd/t7l66xb.c
-> index c09fb5dccd50..b752ca2be549 100644
-> --- a/drivers/mfd/t7l66xb.c
-> +++ b/drivers/mfd/t7l66xb.c
-> @@ -187,7 +187,7 @@ static struct mfd_cell t7l66xb_cells[] =3D {
->  /* Handle the T7L66XB interrupt mux */
->  static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
->  {
-> -	struct t7l66xb *t7l66xb =3D irq_get_handler_data(irq);
-> +	struct t7l66xb *t7l66xb =3D irq_desc_get_handler_data(desc);
->  	unsigned int isr;
->  	unsigned int i, irq_base;
-> =20
-> diff --git a/drivers/mfd/tc6393xb.c b/drivers/mfd/tc6393xb.c
-> index 63458b39a97d..d21253a51cff 100644
-> --- a/drivers/mfd/tc6393xb.c
-> +++ b/drivers/mfd/tc6393xb.c
-> @@ -525,7 +525,7 @@ static int tc6393xb_register_gpio(struct tc6393xb=
- *tc6393xb, int gpio_base)
->  static void
->  tc6393xb_irq(unsigned int irq, struct irq_desc *desc)
->  {
-> -	struct tc6393xb *tc6393xb =3D irq_get_handler_data(irq);
-> +	struct tc6393xb *tc6393xb =3D irq_desc_get_handler_data(desc);
->  	unsigned int isr;
->  	unsigned int i, irq_base;
-> =20
-> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-> index 2807e1a95663..5b8cd5cd42cf 100644
-> --- a/drivers/mfd/twl6030-irq.c
-> +++ b/drivers/mfd/twl6030-irq.c
-> @@ -231,7 +231,7 @@ static irqreturn_t twl6030_irq_thread(int irq, vo=
-id *data)
-> =20
->  static int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
->  {
-> -	struct twl6030_irq *pdata =3D irq_get_chip_data(d->irq);
-> +	struct twl6030_irq *pdata =3D irq_data_get_irq_chip_data(d);
-> =20
->  	if (on)
->  		atomic_inc(&pdata->wakeirqs);
+i2c_device_match
+        driver = to_i2c_driver(drv);
+        /* match on an id table if there is one */
+        if (driver->id_table)
+                return i2c_match_id(driver->id_table, client) != NULL;
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is happening because the name from dts is used for client->name.
+i2c_match_id does the matching based on the client name.
+
+> BTW, how modules are supposed to be matched if we allow putting ACPI
+> identifiers to i2c_device_id table?
+
+My aproach was like this: if the driver specifies .acpi_match table it
+will work like before.
+
+i2c_device_match
+        /* Then ACPI style match */
+        if (acpi_driver_match_device(dev, drv))
+                return 1;
+
+If the driver does not specify .acpi_match table the i2c core will
+atempt to match against the  i2c_match_id table (the same way it does
+for DT). In the ACPI case the client->name has that :nn suffix and
+what the patch does is to ignore that when i2c_match_id is called.
+
+i2c_device_match
+        driver = to_i2c_driver(drv);
+        /* match on an id table if there is one */
+        if (driver->id_table)
+                return i2c_match_id(driver->id_table, client) != NULL;
+
+The final goal is to simplify the driver and remove redundant code.
+
+Robert
