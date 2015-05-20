@@ -1,95 +1,210 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] Correct place to send patches?
-Date: Wed, 20 May 2015 17:07:17 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0C7@ORSMSX112.amr.corp.intel.com>
-References: <CAOf41Nnj3pmqDmc4xx9bwzhEpFsoxq5P2caNtsVBX31js9Ehgg@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAA86@ORSMSX112.amr.corp.intel.com>
- <CAOf41NnO0RQVEmiX5KeMCMDtONxBfPO9BYZpAOBSNexWd1w_Fg@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAAE9@ORSMSX112.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880271AE0F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802720637@SHSMSX101.ccr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE073@ORSMSX112.amr.corp.intel.com>
- <CAOf41N=Ps3jgrxA7kU-Tu-tca1CsqZ_Wac3GFRGCu5U3ZN9p1g@mail.gmail.com>
+From: Alexander Duyck <alexander.h.duyck@redhat.com>
+Subject: Re: [PATCH 2/7] fjes: Implement acpi_driver functionality
+Date: Wed, 20 May 2015 10:11:01 -0700
+Message-ID: <555CC025.8040506@redhat.com>
+References: <E86EADE93E2D054CBCD4E708C38D364A5422D83E@G01JPEXMBYT01>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:38188 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996AbbETRHT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 13:07:19 -0400
-In-Reply-To: <CAOf41N=Ps3jgrxA7kU-Tu-tca1CsqZ_Wac3GFRGCu5U3ZN9p1g@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <E86EADE93E2D054CBCD4E708C38D364A5422D83E@G01JPEXMBYT01>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
+Cc: "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Goode <agoode@google.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Box, David E" <david.e.box@intel.com>
 
-VGhlbiBwZXJoYXBzIHRoaXMgaXMgd2hlcmUgdGhlIG1hY2hpbmUgaXMgdmlvbGF0aW5nIHRoZSBB
-Q1BJIHNwZWNpZmljYXRpb246DQoNCg0KNi41LjEgX0lOSSAoSW5pdCkNCg0KVGhlIF9JTkkgbWV0
-aG9kIG11c3Qgb25seSBhY2Nlc3MgT3BlcmF0aW9uIFJlZ2lvbnMgdGhhdCBoYXZlIGJlZW4gaW5k
-aWNhdGVkIHRvIGJlIGF2YWlsYWJsZSBhcyBkZWZpbmVkIGJ5IHRoZSBfUkVHIG1ldGhvZC4NCg0K
-DQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBZGFtIEdvb2RlIFtt
-YWlsdG86YWdvb2RlQGdvb2dsZS5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDIwLCAyMDE1
-IDk6NTYgQU0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IFpoZW5nLCBMdjsgTGFuLCBUaWFu
-eXU7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1Ympl
-Y3Q6IFJlOiBbRGV2ZWxdIENvcnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRjaGVzPw0KPiANCj4gTm8s
-IEkgZGlkIG5vdCBzZWUgYSBfUkVHIG1ldGhvZCBkZWZpbmVkIGluIHRoZSBjb2RlLg0KPiANCj4g
-DQo+IEFkYW0NCj4gDQo+IA0KPiBPbiBXZWQsIE1heSAyMCwgMjAxNSBhdCAxMjo0NiBQTSwgTW9v
-cmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gd3JvdGU6DQo+ID4gRG9lcyB0
-aGUgQ01PUyBvcGVyYXRpb24gcmVnaW9uIGhhdmUgYSBfUkVHIG1ldGhvZD8NCj4gPg0KPiA+DQo+
-ID4NCj4gPg0KPiA+DQo+ID4gRnJvbTogWmhlbmcsIEx2DQo+ID4gU2VudDogVHVlc2RheSwgTWF5
-IDE5LCAyMDE1IDExOjAzIFBNDQo+ID4gVG86IFpoZW5nLCBMdjsgTW9vcmUsIFJvYmVydDsgQWRh
-bSBHb29kZTsgTGFuLCBUaWFueXUNCj4gPiBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7
-IGRldmVsQGFjcGljYS5vcmcNCj4gPg0KPiA+DQo+ID4gU3ViamVjdDogUkU6IFtEZXZlbF0gQ29y
-cmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4NCj4gPg0KPiA+DQo+ID4gU2luY2Ugbm8g
-cmVwbHkgZnJvbSBUaWFueXXigKYNCj4gPg0KPiA+IFdoYXQgaWYgd2UgbW92ZSBfSU5JIGludm9j
-YXRpb24gb3V0IG9mIEFDUElDQSwgYW5kIGxldCBPU1BNIHRvIGludm9rZQ0KPiBpdC4NCj4gPg0K
-PiA+DQo+ID4NCj4gPiBUaGFua3MNCj4gPg0KPiA+IC1Mdg0KPiA+DQo+ID4NCj4gPg0KPiA+IEZy
-b206IERldmVsIFttYWlsdG86ZGV2ZWwtYm91bmNlc0BhY3BpY2Eub3JnXSBPbiBCZWhhbGYgT2Yg
-WmhlbmcsIEx2DQo+ID4gU2VudDogVGh1cnNkYXksIE1heSAxNCwgMjAxNSA4OjMzIEFNDQo+ID4g
-VG86IE1vb3JlLCBSb2JlcnQ7IEFkYW0gR29vZGU7IExhbiwgVGlhbnl1DQo+ID4gQ2M6IGxpbnV4
-LWFjcGlAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+ID4gU3ViamVjdDogUmU6
-IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4NCj4gPg0KPiA+DQo+
-ID4gWW91IHNob3VsZCBkaXNjdXNzIHRoaXMgaW4gdGhlIGxpbnV4LWFjcGkgbWFpbGluZyBsaXN0
-IHdoZXJlIHRoZSBMaW51eA0KPiA+IENNT1Mgb3ByZWdpb24gZHJpdmVyIGlzIGltcGxlbWVudGVk
-LCByZXZpZXdlZCwgYW5kIG1lcmdlZC4NCj4gPg0KPiA+IExldCBtZSBDYyBUaWFueXUgd2hvIGlz
-IHRoZSBvcmlnaW5hbCBhdXRob3Igb2YgdGhlIENNT1Mgb3ByZWdpb24gZHJpdmVyLg0KPiA+DQo+
-ID4NCj4gPg0KPiA+IFRoYW5rcw0KPiA+DQo+ID4gLUx2DQo+ID4NCj4gPg0KPiA+DQo+ID4gRnJv
-bTogTW9vcmUsIFJvYmVydA0KPiA+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDEzLCAyMDE1IDEwOjI1
-IFBNDQo+ID4gVG86IEFkYW0gR29vZGU7IFpoZW5nLCBMdg0KPiA+IENjOiBkZXZlbEBhY3BpY2Eu
-b3JnDQo+ID4gU3ViamVjdDogUkU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNo
-ZXM/DQo+ID4NCj4gPg0KPiA+DQo+ID4gSeKAmWxsIGhhdmUgdG8gbGV0IEx2IGFuc3dlciB0aGlz
-IHF1ZXN0aW9uLg0KPiA+DQo+ID4NCj4gPg0KPiA+DQo+ID4NCj4gPiBGcm9tOiBBZGFtIEdvb2Rl
-IFttYWlsdG86YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkgMTMs
-IDIwMTUgNzoyMyBBTQ0KPiA+IFRvOiBNb29yZSwgUm9iZXJ0DQo+ID4gQ2M6IGRldmVsQGFjcGlj
-YS5vcmcNCj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRvIHNlbmQgcGF0
-Y2hlcz8NCj4gPg0KPiA+DQo+ID4NCj4gPiBUaGUgcHJvYmxlbSBpcyB0aGF0IG9uIG5ldyBBcHBs
-ZSBoYXJkd2FyZSAoTWFjbWluaTcsMSBhbmQgb3RoZXJzKSwgdGhlDQo+ID4gc3lzdGVtIHJlYWRz
-IGFuZCB3cml0ZXMgZnJvbSBDTU9TIGluIF9JTkkuIFdpdGggbm8gQ01PUyBoYW5kbGVyLCB0aGUN
-Cj4gPiBUaHVuZGVyYm9sdCBkZXZpY2UgZG9lc24ndCBpbml0aWFsaXplIGNvcnJlY3RseS4NCj4g
-Pg0KPiA+DQo+ID4NCj4gPiBUaGUgY3VycmVudCBmcmFtZXdvcmsgaW4gTGludXggZG9lc24ndCBy
-ZWdpc3RlciB0aGUgUE5QKiBDTU9TIGRldmljZXMNCj4gPiB1bnRpbCBhZnRlciBfSU5JIHJ1bnMu
-IERvIHlvdSBoYXZlIGEgc3VnZ2VzdGlvbiBvbiB3aGF0IHRvIGRvIGluIHRoaXMNCj4gPiBjYXNl
-PyBJcyBpdCBwb3NzaWJsZSB0byByZWdpc3RlciBhIGRldmljZSBkcml2ZXIgYmVmb3JlIF9JTkkg
-cnVucz8NCj4gPg0KPiA+DQo+ID4NCj4gPg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+DQo+ID4NCj4g
-Pg0KPiA+IEFkYW0NCj4gPg0KPiA+DQo+ID4NCj4gPg0KPiA+DQo+ID4gT24gV2VkLCBNYXkgMTMs
-IDIwMTUgYXQgNDowNyBQTSwgTW9vcmUsIFJvYmVydA0KPiA+IDxyb2JlcnQubW9vcmVAaW50ZWwu
-Y29tPg0KPiA+IHdyb3RlOg0KPiA+DQo+ID4gQWN0dWFsbHksIEkgaGFkIGEgcXVlc3Rpb24gYWJv
-dXQgdGhpcy4NCj4gPg0KPiA+DQo+ID4NCj4gPiBHaXZlbiB0aGF0IHRoZSBDTU9TIGRldmljZSBo
-YXMgYSBfSElEIGFuZCByZXF1aXJlcyBhIGRldmljZSBkcml2ZXINCj4gPiAodGhlcmUgY2FuIGJl
-IG11bHRpcGxlIHR5cGVzIG9mIENNT1MgZGV2aWNlcyksIGluIEFDUElDQSB3ZSBkZWNpZGVkDQo+
-ID4gdGhhdCB3ZSBjb3VsZCBub3QgcHJvdmlkZSBDTU9TIGludGVyZmFjZXMuDQo+ID4NCj4gPg0K
-PiA+DQo+ID4gV2hhdCBwcm9ibGVtIGRvZXMgdGhpcyBwYXRjaCBzb2x2ZSwgYW5kIGhvdyB3aWxs
-IGl0IHdvcmsgaW4gdGhlIGZhY2UNCj4gPiBvZiBkaWZmZXJlbnQgQ01PUyBkZXZpY2VzPw0KPiA+
-DQo+ID4NCj4gPg0KPiA+IFRoYW5rcywNCj4gPg0KPiA+IEJvYg0KPiA+DQo+ID4NCj4gPg0KPiA+
-DQo+ID4NCj4gPiBGcm9tOiBEZXZlbCBbbWFpbHRvOmRldmVsLWJvdW5jZXNAYWNwaWNhLm9yZ10g
-T24gQmVoYWxmIE9mIEFkYW0gR29vZGUNCj4gPiBTZW50OiBXZWRuZXNkYXksIE1heSAxMywgMjAx
-NSA0OjUzIEFNDQo+ID4gVG86IGRldmVsQGFjcGljYS5vcmcNCj4gPiBTdWJqZWN0OiBbRGV2ZWxd
-IENvcnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRjaGVzPw0KPiA+DQo+ID4NCj4gPg0KPiA+IEhpLA0K
-PiA+DQo+ID4NCj4gPg0KPiA+IElzIHRoaXMgdGhlIGNvcnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRj
-aGVzIGZvciByZXZpZXc/IEkgaGF2ZSBhIHBhdGNoDQo+ID4gZnJvbSBhIGZldyB3ZWVrcyBhZ28N
-Cj4gPiAoaHR0cHM6Ly9saXN0cy5hY3BpY2Eub3JnL3BpcGVybWFpbC9kZXZlbC8yMDE1LU1heS8w
-MDA2OTguaHRtbCkgdGhhdCBJDQo+ID4gd291bGQgbGlrZSBmZWVkYmFjayBvbi4NCj4gPg0KPiA+
-DQo+ID4NCj4gPg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+DQo+ID4NCj4gPg0KPiA+IEFkYW0NCj4g
-Pg0KPiA+DQo+ID4NCj4gPg0K
+On 05/20/2015 01:18 AM, Izumi, Taku wrote:
+> 
+> This patch adds implementation of "PNP0C02" acpi_device driver
+> to FUJITSU Extended Socket Network Device driver.
+> 
+> When "PNP0C02" is found in ACPI DSDT, it evaluates "_STR"
+> to check if "PNP0C02" is for Extended Socket device driver
+> and retrieves ACPI resource information.
+> 
+> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> ---
+>   drivers/platform/x86/fjes/fjes.h      |   4 ++
+>   drivers/platform/x86/fjes/fjes_main.c | 116 ++++++++++++++++++++++++++++++++++
+>   2 files changed, 120 insertions(+)
+> 
+> diff --git a/drivers/platform/x86/fjes/fjes.h b/drivers/platform/x86/fjes/fjes.h
+> index f12fe11..5586305 100644
+> --- a/drivers/platform/x86/fjes/fjes.h
+> +++ b/drivers/platform/x86/fjes/fjes.h
+> @@ -23,6 +23,10 @@
+>   #ifndef FJES_H_
+>   #define FJES_H_
+>   
+> +#include <linux/acpi.h>
+> +
+> +#define FJES_ACPI_SYMBOL	"Extended Socket"
+> +
+>   extern char fjes_driver_name[];
+>   extern char fjes_driver_version[];
+>   extern u32 fjes_support_mtu[];
+> diff --git a/drivers/platform/x86/fjes/fjes_main.c b/drivers/platform/x86/fjes/fjes_main.c
+> index f1e2fa0..3454098 100644
+> --- a/drivers/platform/x86/fjes/fjes_main.c
+> +++ b/drivers/platform/x86/fjes/fjes_main.c
+> @@ -21,6 +21,7 @@
+>   
+>   #include <linux/module.h>
+>   #include <linux/types.h>
+> +#include <linux/nls.h>
+>   
+>   #include "fjes.h"
+>   
+> @@ -42,6 +43,42 @@ MODULE_LICENSE("GPL");
+>   MODULE_VERSION(DRV_VERSION);
+>   
+>   
+> +static int fjes_acpi_add(struct acpi_device *);
+> +static int fjes_acpi_remove(struct acpi_device *);
+> +static acpi_status fjes_get_acpi_resource(struct acpi_resource *, void*);
+> +
+> +
+> +static const struct acpi_device_id fjes_acpi_ids[] = {
+> +	{"PNP0C02", 0},
+> +	{"", 0},
+> +};
+> +MODULE_DEVICE_TABLE(acpi, fjes_acpi_ids);
+> +
+> +static struct acpi_driver fjes_acpi_driver = {
+> +	.name = DRV_NAME,
+> +	.class = DRV_NAME,
+> +	.owner = THIS_MODULE,
+> +	.ids = fjes_acpi_ids,
+> +	.ops = {
+> +		.add = fjes_acpi_add,
+> +		.remove = fjes_acpi_remove,
+> +	},
+> +};
+> +
+> +static struct resource fjes_resource[] = {
+> +	{
+> +		.flags = IORESOURCE_MEM,
+> +		.start = 0,
+> +		.end = 0,
+> +	},
+> +	{
+> +		.flags = IORESOURCE_IRQ,
+> +		.start = 0,
+> +		.end = 0,
+> +	},
+> +};
+> +
+> +
+>   /*
+>    *  fjes_init_module - Driver Registration Routine
+>    *
+> @@ -50,11 +87,20 @@ MODULE_VERSION(DRV_VERSION);
+>    */
+>   static int __init fjes_init_module(void)
+>   {
+> +	int result;
+> +
+>   	pr_info("%s - version %s\n",
+>   			fjes_driver_string, fjes_driver_version);
+>   	pr_info("%s\n", fjes_copyright);
+>   
+> +	result = acpi_bus_register_driver(&fjes_acpi_driver);
+> +	if (result < 0)
+> +		goto fail_acpi_driver;
+> +
+>   	return 0;
+> +
+> +fail_acpi_driver:
+> +	return result;
+>   }
+>   
+>   module_init(fjes_init_module);
+> @@ -67,8 +113,78 @@ module_init(fjes_init_module);
+>    */
+>   static void __exit fjes_exit_module(void)
+>   {
+> +	acpi_bus_unregister_driver(&fjes_acpi_driver);
+>   }
+>   
+>   module_exit(fjes_exit_module);
+
+Generally you want to place the module_init and module_exit functions at
+the end of the your file.  That way you can avoid some of the function
+prototypes that will tend to build up as you add more functions to the path.
+
+> +static int fjes_acpi_add(struct acpi_device *device)
+> +{
+> +	acpi_status status;
+> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
+> +	union acpi_object *str;
+> +	char str_buf[sizeof(FJES_ACPI_SYMBOL) + 1];
+> +	int result;
+> +
+> +	status = acpi_evaluate_object(device->handle, "_STR", NULL, &buffer);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	str = buffer.pointer;
+> +	result = utf16s_to_utf8s((wchar_t *)str->string.pointer,
+> +				str->string.length, UTF16_LITTLE_ENDIAN,
+> +				str_buf, sizeof(str_buf) - 1);
+> +	str_buf[result] = 0;
+> +
+> +	if (strncmp(FJES_ACPI_SYMBOL, str_buf, strlen(FJES_ACPI_SYMBOL)) != 0) {
+> +		kfree(buffer.pointer);
+> +		return -ENODEV;
+> +	}
+> +	kfree(buffer.pointer);
+> +
+> +	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+> +				fjes_get_acpi_resource, fjes_resource);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	return 0;
+> +}
+> +
+> +static int fjes_acpi_remove(struct acpi_device *device)
+> +{
+> +	return 0;
+> +}
+> +
+
+This doesn't seem correct.  Won't there end up being things like a
+netdevice that need to be unregistered if your remove the interface?
+Seems like this should probably return an error if you don't expect it
+to ever be called.
+
+> +static acpi_status fjes_get_acpi_resource(struct acpi_resource *acpi_res,
+> +		void *data)
+> +{
+> +	struct resource *res = data;
+> +	struct acpi_resource_address32 *addr;
+> +	struct acpi_resource_irq *irq;
+> +
+> +	switch (acpi_res->type) {
+> +	case ACPI_RESOURCE_TYPE_ADDRESS32:
+> +		addr = &acpi_res->data.address32;
+> +		res[0].start = addr->address.minimum;
+> +		res[0].end = addr->address.minimum +
+> +			addr->address.address_length;
+> +		break;
+> +
+> +	case ACPI_RESOURCE_TYPE_IRQ:
+> +		irq = &acpi_res->data.irq;
+> +		if (irq->interrupt_count != 1)
+> +			return AE_ERROR;
+> +		res[1].start = irq->interrupts[0];
+> +		res[1].end = irq->interrupts[0];
+> +		break;
+> +
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +
+> +
+> 
