@@ -1,64 +1,113 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [V4 PATCH 3/6] pci: Generic function for setting up PCI device
- DMA coherency
-Date: Wed, 20 May 2015 10:34:01 +0100
-Message-ID: <20150520093401.GC25313@e104818-lin.cambridge.arm.com>
-References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <3954735.qeaTp8qOcM@vostro.rjw.lan>
- <20150520092415.GA25313@e104818-lin.cambridge.arm.com>
- <2072233.lIH4idDurI@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37457 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751211AbbETJeI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 05:34:08 -0400
-Content-Disposition: inline
-In-Reply-To: <2072233.lIH4idDurI@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v2 00/14] Split struct irq_data into common part and per-chip part
+Date: Wed, 20 May 2015 17:40:31 +0800
+Message-ID: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, will.deacon@arm.com, herbert@gondor.apana.org.au, al.stone@linaro.org, linux-acpi@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, msalter@redhat.com, grant.likely@linaro.org, hanjun.guo@linaro.org, thomas.lendacky@amd.com, Rob Herring <robh+dt@kernel.org>, bhelgaas@google.com, netdev@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, leo.duran@amd.com, linux-crypto@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, lenb@kernel.org, David Woodhouse <dwmw2@infradead.org>, davem@davemloft.net
 
-On Wed, May 20, 2015 at 11:27:54AM +0200, Arnd Bergmann wrote:
-> On Wednesday 20 May 2015 10:24:15 Catalin Marinas wrote:
-> > On Sat, May 16, 2015 at 01:59:00AM +0200, Rafael J. Wysocki wrote:
-> > > On Friday, May 15, 2015 04:23:11 PM Suravee Suthikulpanit wrote:
-> > > > +/**
-> > > > + * pci_dma_configure - Setup DMA configuration
-> > > > + * @pci_dev: ptr to pci_dev struct of the PCI device
-> > > > + *
-> > > > + * Function to update PCI devices's DMA configuration using the same
-> > > > + * info from the OF node or ACPI node of host bridge's parent (if any).
-> > > > + */
-> > > > +static void pci_dma_configure(struct pci_dev *pci_dev)
-> > > > +{
-> > > > +   struct device *dev = &pci_dev->dev;
-> > > > +   struct device *bridge = pci_get_host_bridge_device(pci_dev);
-> > > > +   struct device *host = bridge->parent;
-> > > > +   struct acpi_device *adev;
-> > > > +
-> > > > +   if (!host)
-> > > > +           return;
-> > > > +
-> > > > +   if (acpi_disabled) {
-> > > > +           of_dma_configure(dev, host->of_node);
-> > > 
-> > > I'd rather do
-> > > 
-> > >       if (IS_ENABLED(CONFIG_OF) && host->of_node) {
-> > >               of_dma_configure(dev, host->of_node);
-> > 
-> > Nitpick: do we need the CONFIG_OF check? If disabled, I don't think
-> > anyone would set host->of_node.
-> 
-> If of_dma_configure() is defined in a file that is built conditionally
-> based on CONFIG_OF, you need it.
+Hi all,
+	Now the irq core supports hierarchy irq and stacked irqchips,
+so there may be multiple irq_datas associated with the same irq. But
+some fields in struct irq_data are per-irq instance and duplicating
+those fields into multiple irq_data may cause troubles.
+	So this patch introduces a new data structure 'struct
+irq_common_data' to host per-irq instance data fields, and struct
+irq_data will only host per-chip data fields after the conversion.
 
-We have a dummy of_dma_configure() already when !CONFIG_OF, otherwise
-we would need #ifndef here. I already replied, I think for other
-architectures we need this check to avoid a useless host->of_node test.
+It's based on tip/x86/apic.
+
+And it passes Fengguang's zeroday test suite.
+
+V1->V2:
+1) Patch "net/mlx4: Cache irq_desc->affinity instead of irq_desc" is
+   still kept to avoid build failure. It may be dropped if Amir Vadai
+   changed related code.
+2) Reorganize patches according to Thomas's suggestion.
+3) Rename irq_data_get_msi() as irq_data_get_msi_desc().
+
+Thanks!
+Gerry
+
+Jiang Liu (14):
+  genirq: Introduce struct irq_common_data to host shared irq data
+  genirq: Introduce helper function irq_data_get_node()
+  x86, irq: Use accessor irq_data_get_node() to hide struct irq_data
+    detail
+  sh, irq: Use accessor irq_data_get_node() to hide struct irq_data
+    detail
+  genirq: Move field 'node' from struct irq_data into struct
+    irq_common_data
+  genirq: Move field 'handler_data' from struct irq_data into struct
+    irq_common_data
+  mn10300: Fix incorrect use of data->affinity
+  genirq: Introduce helper function irq_data_get_affinity_mask()
+  net/mlx4: Cache irq_desc->affinity instead of irq_desc
+  genirq: Move field 'affinity' from struct irq_data into struct
+    irq_common_data
+  genirq: Rename irq_data_get_msi() as irq_data_get_msi_desc()
+  genirq: Use helper function to access irq_data->msi_desc
+  genirq: Move field 'msi_desc' from struct irq_data into struct
+    irq_common_data
+  genirq: Pass irq_data to helper function
+    __irq_set_chip_handler_name_locked()
+
+ arch/alpha/kernel/irq.c                      |    2 +-
+ arch/arm/kernel/irq.c                        |    4 +-
+ arch/arm64/kernel/irq.c                      |    4 +-
+ arch/blackfin/mach-common/ints-priority.c    |    3 +-
+ arch/ia64/kernel/iosapic.c                   |    8 +-
+ arch/ia64/kernel/irq.c                       |    6 +-
+ arch/ia64/kernel/msi_ia64.c                  |    6 +-
+ arch/ia64/sn/kernel/msi_sn.c                 |    4 +-
+ arch/metag/kernel/irq.c                      |   10 ++-
+ arch/mips/alchemy/common/irq.c               |    4 +-
+ arch/mips/bcm63xx/irq.c                      |    2 +-
+ arch/mips/cavium-octeon/octeon-irq.c         |   14 ++--
+ arch/mips/pmcs-msp71xx/msp_irq_cic.c         |    3 +-
+ arch/mn10300/kernel/cevt-mn10300.c           |    2 +-
+ arch/mn10300/kernel/irq.c                    |   13 +--
+ arch/parisc/kernel/irq.c                     |   12 +--
+ arch/powerpc/kernel/irq.c                    |    2 +-
+ arch/powerpc/sysdev/xics/ics-opal.c          |    4 +-
+ arch/powerpc/sysdev/xics/ics-rtas.c          |    4 +-
+ arch/sh/kernel/irq.c                         |    9 ++-
+ arch/sparc/kernel/irq_64.c                   |   27 ++++---
+ arch/sparc/kernel/leon_kernel.c              |    6 +-
+ arch/sparc/kernel/sun4d_irq.c                |    4 +-
+ arch/sparc/kernel/sun4m_irq.c                |    6 +-
+ arch/tile/kernel/pci_gx.c                    |    2 +-
+ arch/x86/kernel/apic/io_apic.c               |    2 +-
+ arch/x86/kernel/apic/msi.c                   |    2 +-
+ arch/x86/kernel/apic/vector.c                |   13 ++-
+ arch/x86/kernel/hpet.c                       |    4 +-
+ arch/x86/kernel/irq.c                        |    5 +-
+ arch/x86/platform/uv/uv_irq.c                |    2 +-
+ arch/xtensa/kernel/irq.c                     |   10 ++-
+ drivers/gpio/gpio-davinci.c                  |    2 +-
+ drivers/gpio/gpio-zynq.c                     |    9 +--
+ drivers/irqchip/irq-metag-ext.c              |    5 +-
+ drivers/irqchip/irq-mips-gic.c               |   13 ++-
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c   |    6 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c   |    5 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |    2 +-
+ drivers/parisc/iosapic.c                     |    2 +-
+ drivers/pci/host/pcie-designware.c           |    2 +-
+ drivers/pci/msi.c                            |    4 +-
+ drivers/sh/intc/chip.c                       |    6 +-
+ drivers/sh/intc/virq.c                       |    4 +-
+ drivers/xen/events/events_base.c             |    4 +-
+ include/linux/irq.h                          |  111 +++++++++++++++++---------
+ include/linux/irqdesc.h                      |   19 +++--
+ kernel/irq/chip.c                            |    4 +-
+ kernel/irq/internals.h                       |   15 ++--
+ kernel/irq/irqdesc.c                         |   27 +++----
+ kernel/irq/irqdomain.c                       |    5 +-
+ kernel/irq/manage.c                          |   14 ++--
+ kernel/irq/proc.c                            |    4 +-
+ 53 files changed, 259 insertions(+), 203 deletions(-)
 
 -- 
-Catalin
+1.7.10.4
