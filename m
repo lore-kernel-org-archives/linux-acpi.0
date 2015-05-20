@@ -1,41 +1,29 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling
- MSI/MSI-X
-Date: Wed, 20 May 2015 09:47:33 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1505200947140.4225@nanos>
-References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505152259480.4225@nanos> <555BFA31.5040206@linux.intel.com>
+From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Subject: [PATCH 0/7][RFC] FUJITSU Extended Socket network device driver
+Date: Wed, 20 May 2015 08:04:07 +0000
+Message-ID: <E86EADE93E2D054CBCD4E708C38D364A5422D803@G01JPEXMBYT01>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <555BFA31.5040206@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Content-Type: text/plain; charset="iso-2022-jp"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mgwym03.jp.fujitsu.com ([211.128.242.42]:62948 "EHLO
+	mgwym03.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752453AbbETIOY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 04:14:24 -0400
+Content-Language: ja-JP
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
+Cc: "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 20 May 2015, Jiang Liu wrote:
-> On 2015/5/16 5:02, Thomas Gleixner wrote:
-> > This is a bit odd. With your proposed change we'll have:
-> > 
-> >      alloc_legacy_irq()
-> > 
-> >      msi[x]_enable()
-> > 	free_legacy_irq()
-> > 
-> >      msi[x]_disable()
-> > 	alloc_legacy_irq()
-> Hi Thomas,
-> 	It's for safety. I'm not sure whether the device driver will
-> make use of legacy IRQ after calling msi[x]_disable(). I have concerns
-> about following pattern in PCI device drivers:
-> ---------------------------------------------------
-> if (enable_msi() == SUCCESS) {
-> 	if (allocate_resource_for_msi() == SUCCESS)
-> 		return;
-> 	disable_msi();
-> }
-> use_legacy_irq()
+Hi All,
 
-Fair enough.
+This patchsets add support for FUJITSU Extended Socket network
+device. Extended Socket network device is a shared memory
+based high-speed network interface between Extended Partitions of
+PRIMEQUEST 2000 E2 series.
 
-     tglx
+Sincerely,
+Taku Izumi
+
+
+
