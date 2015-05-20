@@ -1,80 +1,45 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Wed, 20 May 2015 13:57:53 +0300
-Message-ID: <20150520105753.GT1490@lahna.fi.intel.com>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
- <20150520074708.GQ1490@lahna.fi.intel.com>
- <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
- <20150520094829.GS1490@lahna.fi.intel.com>
- <CAFPB+YcggLY9vwtYREX_YVVJFrTYHTQYnBtvMcicvLgo5MX-+A@mail.gmail.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V4 PATCH 2/6] arm64 : Introduce support for ACPI _CCA object
+Date: Wed, 20 May 2015 06:51:34 -0500
+Message-ID: <555C7546.4040601@amd.com>
+References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1431724994-21601-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20150520100304.GE25313@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAFPB+YcggLY9vwtYREX_YVVJFrTYHTQYnBtvMcicvLgo5MX-+A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert Dolca <robert.dolca-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Baluta <daniel.baluta-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0129.outbound.protection.outlook.com ([207.46.100.129]:37152
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751996AbbETLwC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 07:52:02 -0400
+In-Reply-To: <20150520100304.GE25313@e104818-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, bhelgaas@google.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, al.stone@linaro.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org
 
-On Wed, May 20, 2015 at 01:49:02PM +0300, Robert Dolca wrote:
-> On Wed, May 20, 2015 at 12:48 PM, Mika Westerberg wrote:
-> > On Wed, May 20, 2015 at 12:39:22PM +0300, Robert Dolca wrote:
-> >> Currently, if the name used for DT (in dts) matches one of the names
-> >> specified in the id table you will have a match. Isn't that an
-> >> intended behavior?
-> >
-> > I thought one needs to put IDs to the driver .of_match_table. This is
-> > also what i2c_device_match() is expecting, if I read it right.
-> 
-> If you put the DT id in of_match_table it will match here:
-> 
-> i2c_device_match
->         /* Attempt an OF style match */
->         if (of_driver_match_device(dev, drv))
->                 return 1;
-> 
-> If you don't specify of_match_table and you put the same ID in
-> i2c_device_id table it wil match here:
-> 
-> i2c_device_match
->         driver = to_i2c_driver(drv);
->         /* match on an id table if there is one */
->         if (driver->id_table)
->                 return i2c_match_id(driver->id_table, client) != NULL;
-> 
-> This is happening because the name from dts is used for client->name.
-> i2c_match_id does the matching based on the client name.
+On 5/20/2015 5:03 AM, Catalin Marinas wrote:
+> On Fri, May 15, 2015 at 04:23:10PM -0500, Suravee Suthikulpanit wrote:
+>>  From http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf,
+>> section 6.2.17 _CCA states that ARM platforms require ACPI _CCA
+>> object to be specified for DMA-cabpable devices. This patch introduces
+>> ACPI_MUST_HAVE_CCA in arm64 Kconfig to specify such requirement.
+>>
+>> In case _CCA is missing, arm64 would assign dummy_dma_ops
+>> to disable DMA capability of the device.
+>>
+>> Signed-off-by: Mark Salter <msalter@redhat.com>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> CC: Catalin Marinas <catalin.marinas@arm.com>
+>> CC: Will Deacon <will.deacon@arm.com>
+>> CC: Arnd Bergmann <arnd@arndb.de>
+>
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+>
 
-OK.
+Thanks,
 
-> > BTW, how modules are supposed to be matched if we allow putting ACPI
-> > identifiers to i2c_device_id table?
-> 
-> My aproach was like this: if the driver specifies .acpi_match table it
-> will work like before.
-> 
-> i2c_device_match
->         /* Then ACPI style match */
->         if (acpi_driver_match_device(dev, drv))
->                 return 1;
-> 
-> If the driver does not specify .acpi_match table the i2c core will
-> atempt to match against the  i2c_match_id table (the same way it does
-> for DT). In the ACPI case the client->name has that :nn suffix and
-> what the patch does is to ignore that when i2c_match_id is called.
-> 
-> i2c_device_match
->         driver = to_i2c_driver(drv);
->         /* match on an id table if there is one */
->         if (driver->id_table)
->                 return i2c_match_id(driver->id_table, client) != NULL;
+Suravee
 
-Yeah but when you have device with modalias of "acpi:FOO:" how
-udev/modprobe is supposed find the correct module?
-
-> The final goal is to simplify the driver and remove redundant code.
-
-IMHO mixing ACPI identifiers with I2C device identifiers does not
-simplify anything. And since you need to stick the ACPI ID somewhere
-anyway I don't get the point of removing redundant code either.
