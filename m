@@ -1,43 +1,53 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron
- 7437
-Date: Wed, 20 May 2015 19:42:42 +0100
-Message-ID: <20150520184242.GA32453@srcf.ucam.org>
-References: <20150427174646.GA22664@srcf.ucam.org>
- <CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com>
- <20150428052448.GA3458@srcf.ucam.org>
- <CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com>
- <20150428171100.GA24599@srcf.ucam.org>
- <CAJ=jquZMMBNsKO2CZe649OcXTBxfzO43gkxwkJn2mvHhnp+zSQ@mail.gmail.com>
- <5554F12A.3010003@dell.com>
- <20150514191358.GB23853@srcf.ucam.org>
- <5554F4B2.8080801@dell.com>
- <555CC776.3030802@dell.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC v1 25/25] genirq: Kill the first parameter 'irq' of
+ irq_flow_handler_t
+Date: Wed, 20 May 2015 20:43:16 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505202041280.4225@nanos>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-26-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201737510.4225@nanos> <555CAD21.7040907@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:40477 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753778AbbETSmq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 14:42:46 -0400
-Content-Disposition: inline
-In-Reply-To: <555CC776.3030802@dell.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <555CAD21.7040907@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, Murali Karicheri <m-karicheri2@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Steve Longerbeam <slongerbeam@gmail.com>, Gilad Avidov <gavidov@codeaurora.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario Limonciello <mario_limonciello@dell.com>
-Cc: Alex Hung <alex.hung@canonical.com>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-On Wed, May 20, 2015 at 12:42:14PM -0500, Mario Limonciello wrote:
 
-> I've gotten some more information on this.
-> Windows: Asks for battery information update multiple times.
-> Linux: Only asks once for battery information update.
+
+On Wed, 20 May 2015, Jiang Liu wrote:
+
+> On 2015/5/20 23:40, Thomas Gleixner wrote:
+> > On Wed, 20 May 2015, Jiang Liu wrote:
+> >>  /* Chained IRQ handler for IPU error interrupt */
+> >> -static void ipu_irq_err(unsigned int irq, struct irq_desc *desc)
+> >> +static void ipu_irq_err(struct irq_desc *desc)
+> >>  {
+> >> +	unsigned int irq = irq_desc_to_irq(desc);
+> > 
+> > Why initializing? It's overwritten in the loop.
+> Hi Thomas,
 > 
-> The net result is that on Linux ACPI battery is missing.  In the
-> _REV test BIOS workaround, a SMI event was added to ask for battery
-> information update.
+> I'm not familiar with the hardware, but if src2map() returns 0
+> on the first call, we need to initialize irq. Otherwise
+> generic_handle_irq(irq) will use random value on the first call.
+> ---------------------------------------------------------
+>                         map = src2map(32 * i + line);
+>                         if (map)
+>                                 irq = map->irq;
 
-Hm. Why does only asking once not result in us seeing the battery?
+You omitted the following code:
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+                        raw_spin_unlock(&bank_lock);
+
+                        if (!map) {
+                                pr_err("IPU: Interrupt on unmapped source %u bank %d\n",
+                                       line, i);
+                                continue;
+			}
+
+So you it does not use irq if map is 0.
+
+Thanks,
+
+	tglx
