@@ -1,32 +1,27 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
+Subject: Re: [RFC v1 15/25] genirq: Kill the first parameter 'irq' of
  irq_flow_handler_t
-Date: Wed, 20 May 2015 17:25:05 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1505201724260.4225@nanos>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com>
+Date: Wed, 20 May 2015 17:28:06 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505201715380.4225@nanos>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-16-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1432116013-25902-16-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Gregory Clement <gregory.clement@free-electrons.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Roland Stigge <stigge@antcom.de>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free>
 List-Id: linux-acpi@vger.kernel.org
 
 On Wed, 20 May 2015, Jiang Liu wrote:
-> --- a/include/linux/irqdesc.h
-> +++ b/include/linux/irqdesc.h
-> @@ -99,6 +99,11 @@ static inline struct irq_desc *irq_data_to_desc(struct irq_data *data)
->  	return container_of(data->common, struct irq_desc, irq_common_data);
->  }
->  
-> +static inline unsigned int irq_desc_get_irq(struct irq_desc *desc)
-> +{
-> +	return desc->irq_data.irq;
-> +}
-> +
+> -static void locomo_handler(unsigned int irq, struct irq_desc *desc)
+> +static void locomo_handler(struct irq_desc *desc)
+>  {
+>  	struct locomo *lchip = irq_desc_get_chip_data(desc);
+> +	unsigned int irq;
+>  	int req, i;
 
-Does not apply either.
+That leaves irq unitialized ....
 
 Thanks,
 
