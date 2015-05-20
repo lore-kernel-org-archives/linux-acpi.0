@@ -1,110 +1,72 @@
-From: Robert Dolca <robert.dolca-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Wed, 20 May 2015 16:07:00 +0300
-Message-ID: <CAFPB+Ydw4Ywo4dt5NB-Aed6gtt89h2kMucXtgJa42vwommZerw@mail.gmail.com>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
- <20150520074708.GQ1490@lahna.fi.intel.com> <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
- <20150520094829.GS1490@lahna.fi.intel.com> <CAFPB+YcggLY9vwtYREX_YVVJFrTYHTQYnBtvMcicvLgo5MX-+A@mail.gmail.com>
- <20150520105753.GT1490@lahna.fi.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch v2 11/14] genirq: Rename irq_data_get_msi() as irq_data_get_msi_desc()
+Date: Wed, 20 May 2015 08:08:59 -0500
+Message-ID: <CAErSpo4xdOAQ4P7qBGSKuib=HzvqD+trmtjvtM8Rygv-6hijMA@mail.gmail.com>
+References: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com> <1432114845-24304-12-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150520105753.GT1490-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Robert Dolca <robert.dolca-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Baluta <daniel.baluta-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432114845-24304-12-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jingoo Han <jingoohan1@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 20, 2015 at 1:57 PM, Mika Westerberg
-<mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> On Wed, May 20, 2015 at 01:49:02PM +0300, Robert Dolca wrote:
->> On Wed, May 20, 2015 at 12:48 PM, Mika Westerberg wrote:
->> > On Wed, May 20, 2015 at 12:39:22PM +0300, Robert Dolca wrote:
->> >> Currently, if the name used for DT (in dts) matches one of the names
->> >> specified in the id table you will have a match. Isn't that an
->> >> intended behavior?
->> >
->> > I thought one needs to put IDs to the driver .of_match_table. This is
->> > also what i2c_device_match() is expecting, if I read it right.
->>
->> If you put the DT id in of_match_table it will match here:
->>
->> i2c_device_match
->>         /* Attempt an OF style match */
->>         if (of_driver_match_device(dev, drv))
->>                 return 1;
->>
->> If you don't specify of_match_table and you put the same ID in
->> i2c_device_id table it wil match here:
->>
->> i2c_device_match
->>         driver = to_i2c_driver(drv);
->>         /* match on an id table if there is one */
->>         if (driver->id_table)
->>                 return i2c_match_id(driver->id_table, client) != NULL;
->>
->> This is happening because the name from dts is used for client->name.
->> i2c_match_id does the matching based on the client name.
+On Wed, May 20, 2015 at 4:40 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> Rename irq_data_get_msi() as irq_data_get_msi_desc() to keep consistency
+> with other irq_data access helpers.
 >
-> OK.
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+I assume Thomas will handle this whole series.
+
+> ---
+>  drivers/pci/host/pcie-designware.c |    2 +-
+>  drivers/pci/msi.c                  |    2 +-
+>  include/linux/irq.h                |    2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
 >
->> > BTW, how modules are supposed to be matched if we allow putting ACPI
->> > identifiers to i2c_device_id table?
->>
->> My aproach was like this: if the driver specifies .acpi_match table it
->> will work like before.
->>
->> i2c_device_match
->>         /* Then ACPI style match */
->>         if (acpi_driver_match_device(dev, drv))
->>                 return 1;
->>
->> If the driver does not specify .acpi_match table the i2c core will
->> atempt to match against the  i2c_match_id table (the same way it does
->> for DT). In the ACPI case the client->name has that :nn suffix and
->> what the patch does is to ignore that when i2c_match_id is called.
->>
->> i2c_device_match
->>         driver = to_i2c_driver(drv);
->>         /* match on an id table if there is one */
->>         if (driver->id_table)
->>                 return i2c_match_id(driver->id_table, client) != NULL;
+> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+> index 2e9f84fdd9ce..7b3432d331fd 100644
+> --- a/drivers/pci/host/pcie-designware.c
+> +++ b/drivers/pci/host/pcie-designware.c
+> @@ -309,7 +309,7 @@ static int dw_msi_setup_irq(struct msi_controller *chip, struct pci_dev *pdev,
+>  static void dw_msi_teardown_irq(struct msi_controller *chip, unsigned int irq)
+>  {
+>         struct irq_data *data = irq_get_irq_data(irq);
+> -       struct msi_desc *msi = irq_data_get_msi(data);
+> +       struct msi_desc *msi = irq_data_get_msi_desc(data);
+>         struct pcie_port *pp = sys_to_pcie(msi->dev->bus->sysdata);
 >
-> Yeah but when you have device with modalias of "acpi:FOO:" how
-> udev/modprobe is supposed find the correct module?
-
-The modalias file content exposed by the i2c device in sysfs will be the same.
-Currently the alias exposed by the driver is based on the i2c_match_id
-table and it does not have any aliases based on
-acpi_device_id table. I am new to this are so please correct me if I am wrong.
-
->> The final goal is to simplify the driver and remove redundant code.
+>         clear_irq_range(pp, irq, 1, data->hwirq);
+> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+> index c3e7dfcf9ff5..be6034cf5c21 100644
+> --- a/drivers/pci/msi.c
+> +++ b/drivers/pci/msi.c
+> @@ -270,7 +270,7 @@ static void msix_mask_irq(struct msi_desc *desc, u32 flag)
 >
-> IMHO mixing ACPI identifiers with I2C device identifiers does not
-> simplify anything. And since you need to stick the ACPI ID somewhere
-> anyway I don't get the point of removing redundant code either.
-
-It will make the i2c_device_id be not NULL when the device is probed.
-Here is an example:
-
-static int probe(struct i2c_client *client, const struct i2c_device_id *id)
-       /* Get device name from device table or ACPI */
-        if (ACPI_HANDLE(dev)) {
-                acpi_id = acpi_match_device(silead_ts_acpi_match, dev);
-                if (!acpi_id)
-                        return -ENODEV;
-
-                sprintf(data->fw_name, "%s.fw", acpi_id->id);
-
-                for (i = 0; i < strlen(data->fw_name); i++)
-                        data->fw_name[i] = tolower(data->fw_name[i]);
-        } else {
-                sprintf(data->fw_name, "%s.fw", id->name);
-        }
-
-This will become:
-        sprintf(data->fw_name, "%s.fw", id->name);
-
-There are allot more cases like this already in the kernel.
-
-Robert
+>  static void msi_set_mask_bit(struct irq_data *data, u32 flag)
+>  {
+> -       struct msi_desc *desc = irq_data_get_msi(data);
+> +       struct msi_desc *desc = irq_data_get_msi_desc(data);
+>
+>         if (desc->msi_attrib.is_msix) {
+>                 msix_mask_irq(desc, flag);
+> diff --git a/include/linux/irq.h b/include/linux/irq.h
+> index e33cc0b040f2..05b2266572ce 100644
+> --- a/include/linux/irq.h
+> +++ b/include/linux/irq.h
+> @@ -625,7 +625,7 @@ static inline struct msi_desc *irq_get_msi_desc(unsigned int irq)
+>         return d ? d->msi_desc : NULL;
+>  }
+>
+> -static inline struct msi_desc *irq_data_get_msi(struct irq_data *d)
+> +static inline struct msi_desc *irq_data_get_msi_desc(struct irq_data *d)
+>  {
+>         return d->msi_desc;
+>  }
+> --
+> 1.7.10.4
+>
