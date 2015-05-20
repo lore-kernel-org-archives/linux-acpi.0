@@ -1,176 +1,185 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC v1 24/25] genirq: Kill the first parameter 'irq' of
- irq_flow_handler_t
-Date: Wed, 20 May 2015 11:43:26 +0100
-Message-ID: <20150520104326.GE3627@x1>
+Subject: Re: [RFC v1 08/25] mfd: Use irq_desc_get_xxx() to avoid redundant
+ lookup of irq_desc
+Date: Wed, 20 May 2015 11:44:36 +0100
+Message-ID: <20150520104436.GF3627@x1>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
- <1432116013-25902-25-git-send-email-jiang.liu@linux.intel.com>
+ <1432116013-25902-9-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:36960 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbbETKnc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 06:43:32 -0400
-Received: by wibt6 with SMTP id t6so55048152wib.0
-        for <linux-acpi@vger.kernel.org>; Wed, 20 May 2015 03:43:31 -0700 (PDT)
+Return-path: <linux-omap-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1432116013-25902-25-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1432116013-25902-9-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Samuel Ortiz <sameo@linux.intel.com>, Kumar Gala <galak@codeaurora.org>, Andy Gross <agross@codeaurora.org>, David Brown <davidb@codeaurora.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 On Wed, 20 May 2015, Jiang Liu wrote:
 
-> Now most IRQ flow handlers make no use of the first parameter 'irq'.
-> And for those who do make use of 'irq', we could easily get the irq
-> number through irq_desc->irq_data->irq. So kill the first parameter
-> 'irq' of irq_flow_handler_t.
+> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+> already have a pointer to corresponding irq_desc.
 >=20
-> To ease review, I have split the changes into several parts, though
-> they should be merge as one to support bisecting.
+> Do the same thing to avoid pattern "irq_get_chip_data(data->irq)".
 >=20
 > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->  drivers/mfd/asic3.c        |    2 +-
->  drivers/mfd/ezx-pcap.c     |    2 +-
->  drivers/mfd/htc-egpio.c    |    2 +-
->  drivers/mfd/jz4740-adc.c   |    2 +-
->  drivers/mfd/pm8921-core.c  |    2 +-
->  drivers/mfd/t7l66xb.c      |    2 +-
->  drivers/mfd/tc6393xb.c     |    2 +-
->  drivers/mfd/ucb1x00-core.c |    4 ++--
->  8 files changed, 9 insertions(+), 9 deletions(-)
+>  drivers/mfd/ezx-pcap.c    |    2 +-
+>  drivers/mfd/max8997-irq.c |    8 ++++----
+>  drivers/mfd/mt6397-core.c |    8 ++++----
+>  drivers/mfd/t7l66xb.c     |    2 +-
+>  drivers/mfd/tc6393xb.c    |    2 +-
+>  drivers/mfd/twl6030-irq.c |    2 +-
+>  6 files changed, 12 insertions(+), 12 deletions(-)
 
-So long as you've build tested each of these files:
+Again, so long as this has been properly tested:
 
 Acked-by: Lee Jones <lee.jones@linaro.org>
 
-> diff --git a/drivers/mfd/asic3.c b/drivers/mfd/asic3.c
-> index 977bd3a3eed0..6bf17842a3e4 100644
-> --- a/drivers/mfd/asic3.c
-> +++ b/drivers/mfd/asic3.c
-> @@ -138,7 +138,7 @@ static void asic3_irq_flip_edge(struct asic3 *asi=
-c,
->  	spin_unlock_irqrestore(&asic->lock, flags);
->  }
-> =20
-> -static void asic3_irq_demux(unsigned int irq, struct irq_desc *desc)
-> +static void asic3_irq_demux(struct irq_desc *desc)
->  {
->  	struct asic3 *asic =3D irq_desc_get_handler_data(desc);
->  	struct irq_data *data =3D irq_desc_get_irq_data(desc);
 > diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
-> index e5f4ffaa5414..ab83124d75f7 100644
+> index 5991faddd3c6..e5f4ffaa5414 100644
 > --- a/drivers/mfd/ezx-pcap.c
 > +++ b/drivers/mfd/ezx-pcap.c
-> @@ -205,7 +205,7 @@ static void pcap_isr_work(struct work_struct *wor=
+> @@ -207,7 +207,7 @@ static void pcap_isr_work(struct work_struct *wor=
 k)
->  	} while (gpio_get_value(pdata->gpio));
->  }
 > =20
-> -static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc=
+>  static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc=
 )
-> +static void pcap_irq_handler(struct irq_desc *desc)
 >  {
->  	struct pcap_chip *pcap =3D irq_desc_get_handler_data(desc);
+> -	struct pcap_chip *pcap =3D irq_get_handler_data(irq);
+> +	struct pcap_chip *pcap =3D irq_desc_get_handler_data(desc);
 > =20
-> diff --git a/drivers/mfd/htc-egpio.c b/drivers/mfd/htc-egpio.c
-> index 49f39feca784..8a3264e35403 100644
-> --- a/drivers/mfd/htc-egpio.c
-> +++ b/drivers/mfd/htc-egpio.c
-> @@ -98,7 +98,7 @@ static struct irq_chip egpio_muxed_chip =3D {
->  	.irq_unmask	=3D egpio_unmask,
->  };
+>  	desc->irq_data.chip->irq_ack(&desc->irq_data);
+>  	queue_work(pcap->workqueue, &pcap->isr_work);
+> diff --git a/drivers/mfd/max8997-irq.c b/drivers/mfd/max8997-irq.c
+> index 43fa61413e93..381738b477f8 100644
+> --- a/drivers/mfd/max8997-irq.c
+> +++ b/drivers/mfd/max8997-irq.c
+> @@ -113,14 +113,14 @@ static const struct max8997_irq_data max8997_ir=
+qs[] =3D {
 > =20
-> -static void egpio_handler(unsigned int irq, struct irq_desc *desc)
-> +static void egpio_handler(struct irq_desc *desc)
+>  static void max8997_irq_lock(struct irq_data *data)
 >  {
->  	struct egpio_info *ei =3D irq_desc_get_handler_data(desc);
->  	int irqpin;
-> diff --git a/drivers/mfd/jz4740-adc.c b/drivers/mfd/jz4740-adc.c
-> index b31c54e4ecb2..ec1cd2297ea4 100644
-> --- a/drivers/mfd/jz4740-adc.c
-> +++ b/drivers/mfd/jz4740-adc.c
-> @@ -65,7 +65,7 @@ struct jz4740_adc {
->  	spinlock_t lock;
->  };
+> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
+> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
 > =20
-> -static void jz4740_adc_irq_demux(unsigned int irq, struct irq_desc *=
-desc)
-> +static void jz4740_adc_irq_demux(struct irq_desc *desc)
->  {
->  	struct irq_chip_generic *gc =3D irq_desc_get_handler_data(desc);
->  	uint8_t status;
-> diff --git a/drivers/mfd/pm8921-core.c b/drivers/mfd/pm8921-core.c
-> index 5a92646a2ccb..87dd27e49a8b 100644
-> --- a/drivers/mfd/pm8921-core.c
-> +++ b/drivers/mfd/pm8921-core.c
-> @@ -156,7 +156,7 @@ static int pm8xxx_irq_master_handler(struct pm_ir=
-q_chip *chip, int master)
->  	return ret;
+>  	mutex_lock(&max8997->irqlock);
 >  }
 > =20
-> -static void pm8xxx_irq_handler(unsigned int irq, struct irq_desc *de=
-sc)
-> +static void pm8xxx_irq_handler(struct irq_desc *desc)
+>  static void max8997_irq_sync_unlock(struct irq_data *data)
 >  {
->  	struct pm_irq_chip *chip =3D irq_desc_get_handler_data(desc);
->  	struct irq_chip *irq_chip =3D irq_desc_get_chip(desc);
+> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
+> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
+>  	int i;
+> =20
+>  	for (i =3D 0; i < MAX8997_IRQ_GROUP_NR; i++) {
+> @@ -148,7 +148,7 @@ irq_to_max8997_irq(struct max8997_dev *max8997, i=
+nt irq)
+> =20
+>  static void max8997_irq_mask(struct irq_data *data)
+>  {
+> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
+> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
+>  	const struct max8997_irq_data *irq_data =3D irq_to_max8997_irq(max8=
+997,
+>  								data->irq);
+> =20
+> @@ -157,7 +157,7 @@ static void max8997_irq_mask(struct irq_data *dat=
+a)
+> =20
+>  static void max8997_irq_unmask(struct irq_data *data)
+>  {
+> -	struct max8997_dev *max8997 =3D irq_get_chip_data(data->irq);
+> +	struct max8997_dev *max8997 =3D irq_data_get_irq_chip_data(data);
+>  	const struct max8997_irq_data *irq_data =3D irq_to_max8997_irq(max8=
+997,
+>  								data->irq);
+> =20
+> diff --git a/drivers/mfd/mt6397-core.c b/drivers/mfd/mt6397-core.c
+> index 09bc7804952a..dab325b9d0df 100644
+> --- a/drivers/mfd/mt6397-core.c
+> +++ b/drivers/mfd/mt6397-core.c
+> @@ -39,14 +39,14 @@ static const struct mfd_cell mt6397_devs[] =3D {
+> =20
+>  static void mt6397_irq_lock(struct irq_data *data)
+>  {
+> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
+> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
+> =20
+>  	mutex_lock(&mt6397->irqlock);
+>  }
+> =20
+>  static void mt6397_irq_sync_unlock(struct irq_data *data)
+>  {
+> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
+> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
+> =20
+>  	regmap_write(mt6397->regmap, MT6397_INT_CON0, mt6397->irq_masks_cur=
+[0]);
+>  	regmap_write(mt6397->regmap, MT6397_INT_CON1, mt6397->irq_masks_cur=
+[1]);
+> @@ -56,7 +56,7 @@ static void mt6397_irq_sync_unlock(struct irq_data =
+*data)
+> =20
+>  static void mt6397_irq_disable(struct irq_data *data)
+>  {
+> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
+> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
+>  	int shift =3D data->hwirq & 0xf;
+>  	int reg =3D data->hwirq >> 4;
+> =20
+> @@ -65,7 +65,7 @@ static void mt6397_irq_disable(struct irq_data *dat=
+a)
+> =20
+>  static void mt6397_irq_enable(struct irq_data *data)
+>  {
+> -	struct mt6397_chip *mt6397 =3D irq_get_chip_data(data->irq);
+> +	struct mt6397_chip *mt6397 =3D irq_data_get_irq_chip_data(data);
+>  	int shift =3D data->hwirq & 0xf;
+>  	int reg =3D data->hwirq >> 4;
+> =20
 > diff --git a/drivers/mfd/t7l66xb.c b/drivers/mfd/t7l66xb.c
-> index b752ca2be549..55ade59303b1 100644
+> index c09fb5dccd50..b752ca2be549 100644
 > --- a/drivers/mfd/t7l66xb.c
 > +++ b/drivers/mfd/t7l66xb.c
-> @@ -185,7 +185,7 @@ static struct mfd_cell t7l66xb_cells[] =3D {
->  /*------------------------------------------------------------------=
---------*/
-> =20
+> @@ -187,7 +187,7 @@ static struct mfd_cell t7l66xb_cells[] =3D {
 >  /* Handle the T7L66XB interrupt mux */
-> -static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
-> +static void t7l66xb_irq(struct irq_desc *desc)
+>  static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
 >  {
->  	struct t7l66xb *t7l66xb =3D irq_desc_get_handler_data(desc);
+> -	struct t7l66xb *t7l66xb =3D irq_get_handler_data(irq);
+> +	struct t7l66xb *t7l66xb =3D irq_desc_get_handler_data(desc);
 >  	unsigned int isr;
+>  	unsigned int i, irq_base;
+> =20
 > diff --git a/drivers/mfd/tc6393xb.c b/drivers/mfd/tc6393xb.c
-> index d21253a51cff..e22722cd667c 100644
+> index 63458b39a97d..d21253a51cff 100644
 > --- a/drivers/mfd/tc6393xb.c
 > +++ b/drivers/mfd/tc6393xb.c
-> @@ -523,7 +523,7 @@ static int tc6393xb_register_gpio(struct tc6393xb=
+> @@ -525,7 +525,7 @@ static int tc6393xb_register_gpio(struct tc6393xb=
  *tc6393xb, int gpio_base)
->  /*------------------------------------------------------------------=
---------*/
-> =20
 >  static void
-> -tc6393xb_irq(unsigned int irq, struct irq_desc *desc)
-> +tc6393xb_irq(struct irq_desc *desc)
+>  tc6393xb_irq(unsigned int irq, struct irq_desc *desc)
 >  {
->  	struct tc6393xb *tc6393xb =3D irq_desc_get_handler_data(desc);
+> -	struct tc6393xb *tc6393xb =3D irq_get_handler_data(irq);
+> +	struct tc6393xb *tc6393xb =3D irq_desc_get_handler_data(desc);
 >  	unsigned int isr;
-> diff --git a/drivers/mfd/ucb1x00-core.c b/drivers/mfd/ucb1x00-core.c
-> index 58ea9fdd3a15..2f8f922a34de 100644
-> --- a/drivers/mfd/ucb1x00-core.c
-> +++ b/drivers/mfd/ucb1x00-core.c
-> @@ -282,7 +282,7 @@ void ucb1x00_adc_disable(struct ucb1x00 *ucb)
->   * SIBCLK to talk to the chip.  We leave the clock running until
->   * we have finished processing all interrupts from the chip.
->   */
-> -static void ucb1x00_irq(unsigned int irq, struct irq_desc *desc)
-> +static void ucb1x00_irq(struct irq_desc *desc)
->  {
->  	struct ucb1x00 *ucb =3D irq_desc_get_handler_data(desc);
->  	unsigned int isr, i;
-> @@ -292,7 +292,7 @@ static void ucb1x00_irq(unsigned int irq, struct =
-irq_desc *desc)
->  	ucb1x00_reg_write(ucb, UCB_IE_CLEAR, isr);
->  	ucb1x00_reg_write(ucb, UCB_IE_CLEAR, 0);
+>  	unsigned int i, irq_base;
 > =20
-> -	for (i =3D 0; i < 16 && isr; i++, isr >>=3D 1, irq++)
-> +	for (i =3D 0; i < 16 && isr; i++, isr >>=3D 1)
->  		if (isr & 1)
->  			generic_handle_irq(ucb->irq_base + i);
->  	ucb1x00_disable(ucb);
+> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+> index 2807e1a95663..5b8cd5cd42cf 100644
+> --- a/drivers/mfd/twl6030-irq.c
+> +++ b/drivers/mfd/twl6030-irq.c
+> @@ -231,7 +231,7 @@ static irqreturn_t twl6030_irq_thread(int irq, vo=
+id *data)
+> =20
+>  static int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
+>  {
+> -	struct twl6030_irq *pdata =3D irq_get_chip_data(d->irq);
+> +	struct twl6030_irq *pdata =3D irq_data_get_irq_chip_data(d);
+> =20
+>  	if (on)
+>  		atomic_inc(&pdata->wakeirqs);
 
 --=20
 Lee Jones
@@ -178,7 +187,7 @@ Linaro STMicroelectronics Landing Team Lead
 Linaro.org =E2=94=82 Open source software for ARM SoCs
 =46ollow Linaro: Facebook | Twitter | Blog
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
