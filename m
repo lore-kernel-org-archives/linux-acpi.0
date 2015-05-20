@@ -1,232 +1,310 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [Devel] Correct place to send patches?
-Date: Wed, 20 May 2015 20:42:07 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE236@ORSMSX112.amr.corp.intel.com>
-References: <CAOf41Nnj3pmqDmc4xx9bwzhEpFsoxq5P2caNtsVBX31js9Ehgg@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAA86@ORSMSX112.amr.corp.intel.com>
- <CAOf41NnO0RQVEmiX5KeMCMDtONxBfPO9BYZpAOBSNexWd1w_Fg@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EAAE9@ORSMSX112.amr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E880271AE0F@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E8802720637@SHSMSX101.ccr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE073@ORSMSX112.amr.corp.intel.com>
- <CAOf41N=Ps3jgrxA7kU-Tu-tca1CsqZ_Wac3GFRGCu5U3ZN9p1g@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0C7@ORSMSX112.amr.corp.intel.com>
- <CAOf41Nm50Y6dz5KA=KJaoQHqMxGHxzH2KCER91GA-AaAg=fAPQ@mail.gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE0FF@ORSMSX112.amr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE133@ORSMSX112.amr.corp.intel.com>
- <CAOf41Nm5yjmuYuzSj34xrdE2NA41waNbvxw0Bh6ySLVQmqnm2Q@mail.gmail.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 10/11] irqchip / GICv2 / ACPI: Consolidate GICv2 ACPI
+ related init code
+Date: Wed, 20 May 2015 22:44:43 +0200
+Message-ID: <555CF23B.1000002@linaro.org>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-11-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:25391 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754757AbbETUmJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 16:42:09 -0400
-In-Reply-To: <CAOf41Nm5yjmuYuzSj34xrdE2NA41waNbvxw0Bh6ySLVQmqnm2Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1431953961-22706-11-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Goode <agoode@google.com>
-Cc: "Lan, Tianyu" <tianyu.lan@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>, "devel@acpica.org" <devel@acpica.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQWRhbSBHb29kZSBbbWFp
-bHRvOmFnb29kZUBnb29nbGUuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIE1heSAyMCwgMjAxNSAx
-Mjo1MyBQTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogTGFuLCBUaWFueXU7IGxpbnV4LWFj
-cGlAdmdlci5rZXJuZWwub3JnOyBCb3gsIERhdmlkIEU7DQo+IGRldmVsQGFjcGljYS5vcmcNCj4g
-U3ViamVjdDogUmU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+IA0K
-PiBJbnRlcmVzdGluZyBwb2ludCBhYm91dCBBQ1BJQ0EgdGhyb3dpbmcgYW4gZXhjZXB0aW9uIHdo
-ZW4gdGhlcmUgaXMgbm8NCj4gaGFuZGxlci4gVGhlIHNwZWMgKDYuMCkgc2F5cyB0aGlzOg0KPiAi
-V2hlbiBhbiBvcGVyYXRpb24gcmVnaW9uIGhhbmRsZXIgaXMgdW5hdmFpbGFibGUsIEFNTCBjYW5u
-b3QgYWNjZXNzIGRhdGENCj4gZmllbGRzIGluIHRoYXQgcmVnaW9uLiAoT3BlcmF0aW9uIHJlZ2lv
-biB3cml0ZXMgd2lsbCBiZSBpZ25vcmVkIGFuZCByZWFkcw0KPiB3aWxsIHJldHVybiBpbmRldGVy
-bWluYXRlIGRhdGEuKS4iDQoNCldlbGwsIHRoaXMgaXMgdmVyeSBpbnRlcmVzdGluZyBhbmQgSSBk
-b24ndCBleGFjdGx5IHJlbWVtYmVyIHRoaXMgdGV4dC4gUGVyaGFwcyBpdCB3YXMgYWRkZWQgaW4g
-b25lIG9mIHRoZSBtb3JlIHJlY2VudCB2ZXJzaW9ucyBvZiB0aGUgQUNQSSBzcGVjLg0KDQpJZiB0
-aGlzIGlzIHdoYXQgaXMgaGFwcGVuaW5nIG9uIFdpbmRvd3MsIHdlIHdpbGwgbmVlZCB0byBkZXRl
-cm1pbmUgd2hhdCAiaW5kZXRlcm1pbmF0ZSBkYXRhIiBtZWFucyBvbiBXaW5kb3dzLiBGb3IgZXhh
-bXBsZSwgSSB3b3VsZCBtYWtlIGl0IGVpdGhlciB6ZXJvIG9yIGFsbCBvbmVzLiBJbiBhbnkgY2Fz
-ZSwgaXQgd291bGQgYmUgc2ltcGxlIGZvciBBQ1BJQ0EgdG8gaW5zdGFsbCBpdHMgb3duICJudWxs
-IGhhbmRsZXIiIHRoYXQgd291bGQgcmV0dXJuIHRoZSAibm8gaGFuZGxlciIgdmFsdWVzLg0KDQpM
-b29rcyBsaWtlIGEgcmVhZCBpcyBoYXBwZW5pbmcgaGVyZToNCg0KPiAgICAgICAgICAgICAgICAg
-ICAgIElmICgoXF9TQi5QQ0kwLkxQQ0IuUlRDLklTV0kgIT0gMHgwMSkpDQoNClRoaXMgb2YgY291
-cnNlIHdvdWxkIGNvbmNlaXZhYmx5IGFmZmVjdCBhbGwgb2YgdGhlIHJlZ2lvbiBhZGRyZXNzIHNw
-YWNlcy4NCg0KDQoNCj4gDQo+IElmIHVuYXZhaWxhYmxlIHJlYWRzIGp1c3QgcmV0dXJuZWQgMCwg
-dGhpcyBjb2RlIHdvdWxkIGFsbCB3b3JrLiBJIGhhdmUgbm8NCj4gaWRlYSB3aGVuIHRoaXMgZmll
-bGQgd291bGQgZXZlciBiZSBzZXQuIEkgZG9uJ3Qga25vdyBpZiBXaW5kb3dzIEluc3RhbGxlcg0K
-PiBoYXMgcGFydGljdWxhciBieXRlcyBpdCBzZXRzIGluIHRoZSBDTU9TLg0KPiANCj4gUGVyaGFw
-cyBXaW5kb3dzIGlzIGp1c3QgcmV0dXJuaW5nIDAgb24gcmVhZC4gV2h5IGRvZXMgQUNQSUNBIHRo
-cm93IGFuDQo+IGV4Y2VwdGlvbj8NCj4gDQo+IA0KPiANCj4gSGVyZSBpcyB0aGUgcmVsZXZhbnQg
-ZGV2aWNlIGFuZCBfSU5JIGRpc2Fzc2VtYmx5LCB3aXRoIG1vc3QgdGhpbmdzIGVsaWRlZC4NCj4g
-T1NEVyBpcyBhIG1ldGhvZCB0aGF0IGRldGVybWluZXMgaWYgdGhlIE9TIGlzIERhcndpbi4NCj4g
-XF9TQi5QQ0kwLkxQQ0IuUlRDLklTV0kgaXMgdGhlIGZpZWxkIG9mIGludGVyZXN0LiBJIGhhdmUg
-bm90IGVsaWRlZCBhbnkgb2YNCj4gdGhlc2UgUlRDIHJlZmVyZW5jZXMuIE9uIHVucGF0Y2hlZCBB
-Q1BJQ0EvTGludXggKHdoZW4gRGFyd2luIG1vZGUgaXMNCj4gZGlzYWJsZWQpLCB0aGUgZmlyc3Qg
-RGVidWcgPSBcX1NCLlBDSTAuTFBDQi5SVEMuSVNXSSBmYWlscy4NCj4gDQo+IA0KPiANCj4gDQo+
-IC4uLi4uDQo+ICAgICAgICAgICAgICAgICBEZXZpY2UgKFJUQykNCj4gICAgICAgICAgICAgICAg
-IHsNCj4gICAgICAgICAgICAgICAgICAgICBOYW1lIChfSElELCBFaXNhSWQgKCJQTlAwQjAwIikg
-LyogQVQgUmVhbC1UaW1lIENsb2NrDQo+ICovKSAgLy8gX0hJRDogSGFyZHdhcmUgSUQNCj4gICAg
-ICAgICAgICAgICAgICAgICBOYW1lIChfQ1JTLCBSZXNvdXJjZVRlbXBsYXRlICgpICAvLyBfQ1JT
-OiBDdXJyZW50DQo+IFJlc291cmNlIFNldHRpbmdzDQo+ICAgICAgICAgICAgICAgICAgICAgew0K
-PiAgICAgICAgICAgICAgICAgICAgICAgICBJTyAoRGVjb2RlMTYsDQo+ICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAweDAwNzAsICAgICAgICAgICAgIC8vIFJhbmdlIE1pbmltdW0NCj4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIDB4MDA3MCwgICAgICAgICAgICAgLy8gUmFuZ2UgTWF4
-aW11bQ0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgMHgwMSwgICAgICAgICAgICAgICAv
-LyBBbGlnbm1lbnQNCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIDB4MDgsICAgICAgICAg
-ICAgICAgLy8gTGVuZ3RoDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICApDQo+ICAgICAg
-ICAgICAgICAgICAgICAgfSkNCj4gICAgICAgICAgICAgICAgICAgICBPcGVyYXRpb25SZWdpb24g
-KENNUzAsIFN5c3RlbUNNT1MsIDB4MDAsIDB4NDApDQo+ICAgICAgICAgICAgICAgICAgICAgRmll
-bGQgKENNUzAsIEJ5dGVBY2MsIE5vTG9jaywgUHJlc2VydmUpDQo+ICAgICAgICAgICAgICAgICAg
-ICAgew0KPiAgICAgICAgICAgICAgICAgICAgICAgICBPZmZzZXQgKDB4MzgpLA0KPiAgICAgICAg
-ICAgICAgICAgICAgICAgICBJU1RCLCAgIDEsDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAsICAgMiwNCj4gICAgICAgICAgICAgICAgICAgICAgICAgSVNXSSwgICAxLA0KPiAgICAgICAg
-ICAgICAgICAgICAgICAgICBPZmZzZXQgKDB4MzkpDQo+ICAgICAgICAgICAgICAgICAgICAgfQ0K
-PiAgICAgICAgICAgICAgICAgfQ0KPiANCj4gLi4uLi4NCj4gDQo+ICAgICBTY29wZSAoXF9TQi5Q
-Q0kwKQ0KPiAgICAgew0KPiAgICAgICAgIE1ldGhvZCAoX0lOSSwgMCwgTm90U2VyaWFsaXplZCkg
-IC8vIF9JTkk6IEluaXRpYWxpemUNCj4gICAgICAgICB7DQo+IC4uLi4uIFtlbGlkZWRdDQo+ICAg
-ICAgICAgICAgIERlYnVnID0gXF9TQi5QQ0kwLkxQQ0IuUlRDLklTV0kNCj4gICAgICAgICAgICAg
-SWYgKCFPU0RXICgpKQ0KPiAgICAgICAgICAgICB7DQo+ICAgICAgICAgICAgICAgICBJZiAoKE9T
-WVMgPj0gMHgwN0RDKSkNCj4gICAgICAgICAgICAgICAgIHsNCj4gICAgICAgICAgICAgICAgICAg
-ICBEZWJ1ZyA9ICJTYXZlIFJpZGdlIENvbmZpZyBvbiBCb290Ig0KPiAuLi4uLiBbdGh1bmRlcmJv
-bHQgaW5pdCBjb2RlIGVsaWRlZF0NCj4gICAgICAgICAgICAgICAgICAgICBJZiAoKFxfU0IuUENJ
-MC5MUENCLlJUQy5JU1dJICE9IDB4MDEpKQ0KPiAgICAgICAgICAgICAgICAgICAgIHsNCj4gICAg
-ICAgICAgICAgICAgICAgICAgICAgRGVidWcgPSAiRW5hYmxlIElDTSBvbiBCb290Ig0KPiAuLi4u
-LiBbbW9yZSBpbml0IGNvZGUgZWxpZGVkXQ0KPiAgICAgICAgICAgICAgICAgICAgIH0NCj4gICAg
-ICAgICAgICAgICAgICAgICBFbHNlDQo+ICAgICAgICAgICAgICAgICAgICAgew0KPiAgICAgICAg
-ICAgICAgICAgICAgICAgICBEZWJ1ZyA9ICJXaW5kb3dzIEluc3RhbGxhdGlvbiINCj4gICAgICAg
-ICAgICAgICAgICAgICB9DQo+IC4uLi4uIFttb3JlIGNvZGUgZWxpZGVkXQ0KPiAgICAgICAgICAg
-ICAgICAgICAgIERlYnVnID0gIkVuYWJsZSBJQ00gb24gQm9vdCwgQ29tcGxldGUiDQo+ICAgICAg
-ICAgICAgICAgICB9DQo+ICAgICAgICAgICAgIH0NCj4gDQo+IE9uIFdlZCwgTWF5IDIwLCAyMDE1
-IGF0IDE6MjQgUE0sIE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+IHdy
-b3RlOg0KPiA+IEFub3RoZXIgcG9zc2liaWxpdHkgaXMgdGhhdCBXaW5kb3dzIGp1c3QgKmlnbm9y
-ZXMqIGEgQ01PUyBhY2Nlc3MgZnJvbQ0KPiB0aGUgX0lOSSBiZWZvcmUgaXQgZ2V0cyBhIHJlYWwg
-Q01PUyBkcml2ZXIgaW5zdGFsbGVkLiBXZSd2ZSBzZWVuIHNpbWlsYXINCj4gYmVmb3JlLg0KPiA+
-DQo+ID4gQ291bGQgeW91IHBsZWFzZSBwb3N0IHRoZSBkaXNhc3NlbWJsZWQgX0lOSSBtZXRob2Qs
-IG9yIHRoZSBiaW5hcnkgRFNEVA0KPiB3aGVyZSBpdCBjYW1lIGZyb20/DQo+ID4gVGhhbmtzLg0K
-PiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IERldmVsIFtt
-YWlsdG86ZGV2ZWwtYm91bmNlc0BhY3BpY2Eub3JnXSBPbiBCZWhhbGYgT2YgTW9vcmUsDQo+ID4+
-IFJvYmVydA0KPiA+PiBTZW50OiBXZWRuZXNkYXksIE1heSAyMCwgMjAxNSAxMDoxNyBBTQ0KPiA+
-PiBUbzogQWRhbSBHb29kZQ0KPiA+PiBDYzogTGFuLCBUaWFueXU7IGxpbnV4LWFjcGlAdmdlci5r
-ZXJuZWwub3JnOyBCb3gsIERhdmlkIEU7DQo+ID4+IGRldmVsQGFjcGljYS5vcmcNCj4gPj4gU3Vi
-amVjdDogUmU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4+DQo+
-ID4+IEFDUElDQSBkb2VzIGluIGZhY3QgdHJ5IHRvIGJ1Zy1mb3ItYnVnIGNvbXBhdGlibGUgd2l0
-aCBXaW5kb3dzLg0KPiA+Pg0KPiA+PiBUaGUgdHJpY2sgaXMgdG8gZmlndXJlIG91dCBqdXN0ICpo
-b3cqIFdpbmRvd3Mgd29ya3MgaW4gdGhlc2UgY2FzZXMuDQo+ID4+DQo+ID4+IEkgbWlnaHQgZ3Vl
-c3MgdGhhdCBhIHNvbHV0aW9uIG1heSBiZSB0aGF0IGEgImRlZmF1bHQgaGFuZGxlciIgZm9yIHRo
-ZQ0KPiA+PiBDTU9TIG9wZXJhdGlvbiByZWdpb24gc2hvdWxkIGJlIGluc3RhbGxlZCBpbW1lZGlh
-dGVseSBhdCBib290IHRpbWUuDQo+ID4+IElmIGFuZCB3aGVuIHRoaXMgaGFuZGxlciBpcyBmaXJz
-dCBydW4sIGl0IHNob3VsZCBmaWd1cmUgb3V0IHdoaWNoDQo+ID4+IENNT1MgZGV2aWNlIGlzIHBy
-ZXNlbnQgb24gdGhlIHN5c3RlbSBhbmQgdGhlbiBpbnN0YWxsIHRoZSAicmVhbCINCj4gaGFuZGxl
-ciBmb3IgdGhlIGRldmljZS4NCj4gPj4gT3IsIGlmIHlvdSB3YW50IHRvIHN1cHBvcnQgb25seSBv
-bmUgQ01PUyBkZXZpY2UsIGp1c3QgaW5zdGFsbCB0aGUNCj4gPj4gcmVnaW9uIGhhbmRsZXIgYXQg
-Ym9vdCB0aW1lIGFuZCBiZSBkb25lIHdpdGggaXQuDQo+ID4+DQo+ID4+DQo+ID4+DQo+ID4+ID4g
-LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gPiBGcm9tOiBBZGFtIEdvb2RlIFttYWls
-dG86YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkgMjAsIDIw
-MTUgMTA6MTEgQU0NCj4gPj4gPiBUbzogTW9vcmUsIFJvYmVydA0KPiA+PiA+IENjOiBaaGVuZywg
-THY7IExhbiwgVGlhbnl1OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gPj4gPiBkZXZl
-bEBhY3BpY2Eub3JnOyBCb3gsIERhdmlkIEUNCj4gPj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBD
-b3JyZWN0IHBsYWNlIHRvIHNlbmQgcGF0Y2hlcz8NCj4gPj4gPg0KPiA+PiA+IFllcywgaXQgcmVh
-bGx5IGxvb2tzIGxpa2UgYSBidWcgaW4gdGhlIGZpcm13YXJlLiBTdGlsbCwgV2luZG93cw0KPiA+
-PiA+IHdvcmtzIGNvcnJlY3RseSB3aXRob3V0IGFueSBzcGVjaWFsIHN1cHBvcnQuDQo+ID4+ID4N
-Cj4gPj4gPiBXaGF0IGlzIHRoZSBwb2xpY3kgZm9yIEFDUElDQSBpbiB0aGlzIGNhc2Ugd2hlcmUg
-V2luZG93cyB3b3JrcyBpbiBhDQo+ID4+ID4gc3BlYy0gdmlvbGF0aW5nIHdheT8NCj4gPj4gPg0K
-PiA+PiA+DQo+ID4+ID4gQWRhbQ0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiBPbiBXZWQsIE1heSAy
-MCwgMjAxNSBhdCAxOjA3IFBNLCBNb29yZSwgUm9iZXJ0DQo+ID4+ID4gPHJvYmVydC5tb29yZUBp
-bnRlbC5jb20+DQo+ID4+ID4gd3JvdGU6DQo+ID4+ID4gPiBUaGVuIHBlcmhhcHMgdGhpcyBpcyB3
-aGVyZSB0aGUgbWFjaGluZSBpcyB2aW9sYXRpbmcgdGhlIEFDUEkNCj4gPj4gPiBzcGVjaWZpY2F0
-aW9uOg0KPiA+PiA+ID4NCj4gPj4gPiA+DQo+ID4+ID4gPiA2LjUuMSBfSU5JIChJbml0KQ0KPiA+
-PiA+ID4NCj4gPj4gPiA+IFRoZSBfSU5JIG1ldGhvZCBtdXN0IG9ubHkgYWNjZXNzIE9wZXJhdGlv
-biBSZWdpb25zIHRoYXQgaGF2ZSBiZWVuDQo+ID4+ID4gaW5kaWNhdGVkIHRvIGJlIGF2YWlsYWJs
-ZSBhcyBkZWZpbmVkIGJ5IHRoZSBfUkVHIG1ldGhvZC4NCj4gPj4gPiA+DQo+ID4+ID4gPg0KPiA+
-PiA+ID4NCj4gPj4gPiA+DQo+ID4+ID4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4g
-Pj4gPiA+PiBGcm9tOiBBZGFtIEdvb2RlIFttYWlsdG86YWdvb2RlQGdvb2dsZS5jb21dDQo+ID4+
-ID4gPj4gU2VudDogV2VkbmVzZGF5LCBNYXkgMjAsIDIwMTUgOTo1NiBBTQ0KPiA+PiA+ID4+IFRv
-OiBNb29yZSwgUm9iZXJ0DQo+ID4+ID4gPj4gQ2M6IFpoZW5nLCBMdjsgTGFuLCBUaWFueXU7IGxp
-bnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiA+PiA+ID4+IGRldmVsQGFjcGljYS5vcmcNCj4g
-Pj4gPiA+PiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRvIHNlbmQgcGF0Y2hl
-cz8NCj4gPj4gPiA+Pg0KPiA+PiA+ID4+IE5vLCBJIGRpZCBub3Qgc2VlIGEgX1JFRyBtZXRob2Qg
-ZGVmaW5lZCBpbiB0aGUgY29kZS4NCj4gPj4gPiA+Pg0KPiA+PiA+ID4+DQo+ID4+ID4gPj4gQWRh
-bQ0KPiA+PiA+ID4+DQo+ID4+ID4gPj4NCj4gPj4gPiA+PiBPbiBXZWQsIE1heSAyMCwgMjAxNSBh
-dCAxMjo0NiBQTSwgTW9vcmUsIFJvYmVydA0KPiA+PiA+ID4+IDxyb2JlcnQubW9vcmVAaW50ZWwu
-Y29tPg0KPiA+PiA+ID4+IHdyb3RlOg0KPiA+PiA+ID4+ID4gRG9lcyB0aGUgQ01PUyBvcGVyYXRp
-b24gcmVnaW9uIGhhdmUgYSBfUkVHIG1ldGhvZD8NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0K
-PiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gRnJvbTog
-WmhlbmcsIEx2DQo+ID4+ID4gPj4gPiBTZW50OiBUdWVzZGF5LCBNYXkgMTksIDIwMTUgMTE6MDMg
-UE0NCj4gPj4gPiA+PiA+IFRvOiBaaGVuZywgTHY7IE1vb3JlLCBSb2JlcnQ7IEFkYW0gR29vZGU7
-IExhbiwgVGlhbnl1DQo+ID4+ID4gPj4gPiBDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7
-IGRldmVsQGFjcGljYS5vcmcNCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4g
-U3ViamVjdDogUkU6IFtEZXZlbF0gQ29ycmVjdCBwbGFjZSB0byBzZW5kIHBhdGNoZXM/DQo+ID4+
-ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBTaW5jZSBubyBy
-ZXBseSBmcm9tIFRpYW55deKApg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFdoYXQgaWYgd2Ug
-bW92ZSBfSU5JIGludm9jYXRpb24gb3V0IG9mIEFDUElDQSwgYW5kIGxldCBPU1BNIHRvDQo+ID4+
-ID4gPj4gPiBpbnZva2UNCj4gPj4gPiA+PiBpdC4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0K
-PiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFRoYW5rcw0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+
-IC1Mdg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4g
-RnJvbTogRGV2ZWwgW21haWx0bzpkZXZlbC1ib3VuY2VzQGFjcGljYS5vcmddIE9uIEJlaGFsZiBP
-Zg0KPiA+PiA+ID4+ID4gWmhlbmcsIEx2DQo+ID4+ID4gPj4gPiBTZW50OiBUaHVyc2RheSwgTWF5
-IDE0LCAyMDE1IDg6MzMgQU0NCj4gPj4gPiA+PiA+IFRvOiBNb29yZSwgUm9iZXJ0OyBBZGFtIEdv
-b2RlOyBMYW4sIFRpYW55dQ0KPiA+PiA+ID4+ID4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
-b3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+ID4+ID4gPj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBD
-b3JyZWN0IHBsYWNlIHRvIHNlbmQgcGF0Y2hlcz8NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0K
-PiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFlvdSBzaG91bGQgZGlzY3VzcyB0aGlzIGluIHRoZSBs
-aW51eC1hY3BpIG1haWxpbmcgbGlzdCB3aGVyZQ0KPiA+PiA+ID4+ID4gdGhlIExpbnV4IENNT1Mg
-b3ByZWdpb24gZHJpdmVyIGlzIGltcGxlbWVudGVkLCByZXZpZXdlZCwgYW5kDQo+IG1lcmdlZC4N
-Cj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBMZXQgbWUgQ2MgVGlhbnl1IHdobyBpcyB0aGUgb3Jp
-Z2luYWwgYXV0aG9yIG9mIHRoZSBDTU9TDQo+ID4+ID4gPj4gPiBvcHJlZ2lvbg0KPiA+PiA+IGRy
-aXZlci4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+
-IFRoYW5rcw0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IC1Mdg0KPiA+PiA+ID4+ID4NCj4gPj4g
-PiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gRnJvbTogTW9vcmUsIFJvYmVydA0KPiA+
-PiA+ID4+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkgMTMsIDIwMTUgMTA6MjUgUE0NCj4gPj4gPiA+
-PiA+IFRvOiBBZGFtIEdvb2RlOyBaaGVuZywgTHYNCj4gPj4gPiA+PiA+IENjOiBkZXZlbEBhY3Bp
-Y2Eub3JnDQo+ID4+ID4gPj4gPiBTdWJqZWN0OiBSRTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRv
-IHNlbmQgcGF0Y2hlcz8NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4g
-Pj4gPiA+PiA+IEnigJlsbCBoYXZlIHRvIGxldCBMdiBhbnN3ZXIgdGhpcyBxdWVzdGlvbi4NCj4g
-Pj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4g
-Pj4gPg0KPiA+PiA+ID4+ID4gRnJvbTogQWRhbSBHb29kZSBbbWFpbHRvOmFnb29kZUBnb29nbGUu
-Y29tXQ0KPiA+PiA+ID4+ID4gU2VudDogV2VkbmVzZGF5LCBNYXkgMTMsIDIwMTUgNzoyMyBBTQ0K
-PiA+PiA+ID4+ID4gVG86IE1vb3JlLCBSb2JlcnQNCj4gPj4gPiA+PiA+IENjOiBkZXZlbEBhY3Bp
-Y2Eub3JnDQo+ID4+ID4gPj4gPiBTdWJqZWN0OiBSZTogW0RldmVsXSBDb3JyZWN0IHBsYWNlIHRv
-IHNlbmQgcGF0Y2hlcz8NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4g
-Pj4gPiA+PiA+IFRoZSBwcm9ibGVtIGlzIHRoYXQgb24gbmV3IEFwcGxlIGhhcmR3YXJlIChNYWNt
-aW5pNywxIGFuZA0KPiA+PiA+ID4+ID4gb3RoZXJzKSwgdGhlIHN5c3RlbSByZWFkcyBhbmQgd3Jp
-dGVzIGZyb20gQ01PUyBpbiBfSU5JLiBXaXRoDQo+ID4+ID4gPj4gPiBubyBDTU9TIGhhbmRsZXIs
-IHRoZSBUaHVuZGVyYm9sdCBkZXZpY2UgZG9lc24ndCBpbml0aWFsaXplDQo+IGNvcnJlY3RseS4N
-Cj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFRoZSBj
-dXJyZW50IGZyYW1ld29yayBpbiBMaW51eCBkb2Vzbid0IHJlZ2lzdGVyIHRoZSBQTlAqIENNT1MN
-Cj4gPj4gPiA+PiA+IGRldmljZXMgdW50aWwgYWZ0ZXIgX0lOSSBydW5zLiBEbyB5b3UgaGF2ZSBh
-IHN1Z2dlc3Rpb24gb24NCj4gPj4gPiA+PiA+IHdoYXQgdG8gZG8gaW4gdGhpcyBjYXNlPyBJcyBp
-dCBwb3NzaWJsZSB0byByZWdpc3RlciBhIGRldmljZQ0KPiA+PiA+ID4+ID4gZHJpdmVyIGJlZm9y
-ZQ0KPiA+PiA+IF9JTkkgcnVucz8NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+
-ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gVGhhbmtzLA0KPiA+PiA+
-ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gQWRhbQ0KPiA+PiA+
-ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+
-DQo+ID4+ID4gPj4gPiBPbiBXZWQsIE1heSAxMywgMjAxNSBhdCA0OjA3IFBNLCBNb29yZSwgUm9i
-ZXJ0DQo+ID4+ID4gPj4gPiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gPj4gPiA+PiA+IHdy
-b3RlOg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IEFjdHVhbGx5LCBJIGhhZCBhIHF1ZXN0aW9u
-IGFib3V0IHRoaXMuDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+
-ID4gPj4gPiBHaXZlbiB0aGF0IHRoZSBDTU9TIGRldmljZSBoYXMgYSBfSElEIGFuZCByZXF1aXJl
-cyBhIGRldmljZQ0KPiA+PiA+ID4+ID4gZHJpdmVyICh0aGVyZSBjYW4gYmUgbXVsdGlwbGUgdHlw
-ZXMgb2YgQ01PUyBkZXZpY2VzKSwgaW4NCj4gPj4gPiA+PiA+IEFDUElDQSB3ZSBkZWNpZGVkIHRo
-YXQgd2UgY291bGQgbm90IHByb3ZpZGUgQ01PUyBpbnRlcmZhY2VzLg0KPiA+PiA+ID4+ID4NCj4g
-Pj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gV2hhdCBwcm9ibGVtIGRvZXMgdGhp
-cyBwYXRjaCBzb2x2ZSwgYW5kIGhvdyB3aWxsIGl0IHdvcmsgaW4NCj4gPj4gPiA+PiA+IHRoZSBm
-YWNlIG9mIGRpZmZlcmVudCBDTU9TIGRldmljZXM/DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4N
-Cj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBUaGFua3MsDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+
-ID4gQm9iDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4g
-Pg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IEZyb206IERldmVsIFttYWlsdG86ZGV2ZWwtYm91
-bmNlc0BhY3BpY2Eub3JnXSBPbiBCZWhhbGYgT2YNCj4gPj4gPiA+PiA+IEFkYW0gR29vZGUNCj4g
-Pj4gPiA+PiA+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDEzLCAyMDE1IDQ6NTMgQU0NCj4gPj4gPiA+
-PiA+IFRvOiBkZXZlbEBhY3BpY2Eub3JnDQo+ID4+ID4gPj4gPiBTdWJqZWN0OiBbRGV2ZWxdIENv
-cnJlY3QgcGxhY2UgdG8gc2VuZCBwYXRjaGVzPw0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+
-ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gSGksDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4NCj4g
-Pj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBJcyB0aGlzIHRoZSBjb3JyZWN0IHBsYWNlIHRvIHNlbmQg
-cGF0Y2hlcyBmb3IgcmV2aWV3PyBJIGhhdmUgYQ0KPiA+PiA+ID4+ID4gcGF0Y2ggZnJvbSBhIGZl
-dyB3ZWVrcyBhZ28NCj4gPj4gPiA+PiA+IChodHRwczovL2xpc3RzLmFjcGljYS5vcmcvcGlwZXJt
-YWlsL2RldmVsLzIwMTUtTWF5LzAwMDY5OC5odG1sDQo+ID4+ID4gPj4gPiApIHRoYXQgSSB3b3Vs
-ZCBsaWtlIGZlZWRiYWNrIG9uLg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4g
-Pg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBUaGFua3MsDQo+ID4+ID4g
-Pj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiBBZGFtDQo+ID4+ID4g
-Pj4gPg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPg0KPiA+PiBfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPiA+PiBEZXZlbCBtYWls
-aW5nIGxpc3QNCj4gPj4gRGV2ZWxAYWNwaWNhLm9yZw0KPiA+PiBodHRwczovL2xpc3RzLmFjcGlj
-YS5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXZlbA0K
+Hi Hanjun,
+
+On 05/18/2015 02:59 PM, Hanjun Guo wrote:
+> Move GICv2 ACPI related init code in irq-gic.c to irq-gic-acpi.c,
+> this can make the ACPI related GIC init code slef-contained.
+>
+> Introduce set_acpi_core_irqdomain() to set acpi_irqdomain then
+> it will be no need to make gic_data[] as a global value, and
+> it will save the confilcts with GICv3's gic_data in the later
+> patch.
+>
+> acpi_gic_parse_distributor() have the same function as
+> gic_acpi_parse_madt_distributor() to get the GIC distributor
+> physical base address, so just remove the duplicate one, and
+> only get the GIC version when it is unknown.
+>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>   drivers/irqchip/irq-gic-acpi.c       |  95 +++++++++++++++++++++++++++++++-
+>   drivers/irqchip/irq-gic.c            | 103 +----------------------------------
+>   include/linux/irqchip/arm-gic-acpi.h |   5 ++
+>   3 files changed, 101 insertions(+), 102 deletions(-)
+>
+> diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
+> index 1388d9e..8463e48 100644
+> --- a/drivers/irqchip/irq-gic-acpi.c
+> +++ b/drivers/irqchip/irq-gic-acpi.c
+> @@ -13,12 +13,16 @@
+>
+>   #include <linux/acpi.h>
+>   #include <linux/init.h>
+> +#include <linux/irqchip/arm-gic.h>
+>   #include <linux/irqchip/arm-gic-acpi.h>
+>   #include <linux/irqchip/arm-gic-v3.h>
+
+arm-gic.h and arm-gic-v3.h describe register map for respective drivers 
+and should be used separately within parent driver only.
+
+Tomasz
+
+>
+> +#include "irqchip.h"
+> +
+>   /* GIC version presented in MADT GIC distributor structure */
+>   static u8 gic_version __initdata = ACPI_MADT_GIC_VER_UNKNOWN;
+>
+> +/* GIC distributor physical base address, which is needed for both GICv2/3 */
+>   static phys_addr_t dist_phy_base __initdata;
+>
+>   u8 __init acpi_gic_version(void)
+> @@ -26,6 +30,11 @@ u8 __init acpi_gic_version(void)
+>   	return gic_version;
+>   }
+>
+> +void __init set_acpi_core_irqdomain(struct irq_domain *domain)
+> +{
+> +	acpi_irq_domain = domain;
+> +}
+> +
+>   static int __init
+>   acpi_gic_parse_distributor(struct acpi_subtable_header *header,
+>   				const unsigned long end)
+> @@ -37,8 +46,9 @@ acpi_gic_parse_distributor(struct acpi_subtable_header *header,
+>   	if (BAD_MADT_ENTRY(dist, end))
+>   		return -EINVAL;
+>
+> -	gic_version = dist->gic_version;
+>   	dist_phy_base = dist->base_address;
+> +	if (gic_version == ACPI_MADT_GIC_VER_UNKNOWN)
+> +		gic_version = dist->gic_version;
+>   	return 0;
+>   }
+>
+> @@ -114,3 +124,86 @@ int __init acpi_gic_version_init(void)
+>
+>   	return 0;
+>   }
+> +
+> +static phys_addr_t cpu_phy_base __initdata;
+> +
+> +static int __init
+> +gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+> +			const unsigned long end)
+> +{
+> +	struct acpi_madt_generic_interrupt *processor;
+> +	phys_addr_t gic_cpu_base;
+> +	static int cpu_base_assigned;
+> +
+> +	processor = (struct acpi_madt_generic_interrupt *)header;
+> +
+> +	if (BAD_MADT_ENTRY(processor, end))
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * There is no support for non-banked GICv1/2 register in ACPI spec.
+> +	 * All CPU interface addresses have to be the same.
+> +	 */
+> +	gic_cpu_base = processor->base_address;
+> +	if (cpu_base_assigned && gic_cpu_base != cpu_phy_base)
+> +		return -EINVAL;
+> +
+> +	cpu_phy_base = gic_cpu_base;
+> +	cpu_base_assigned = 1;
+> +	return 0;
+> +}
+> +
+> +static int __init
+> +gic_v2_acpi_init(struct acpi_table_header *table)
+> +{
+> +	void __iomem *cpu_base, *dist_base;
+> +	int count;
+> +
+> +	if (acpi_gic_version() >= ACPI_MADT_GIC_VER_V3)
+> +		return -ENODEV;
+> +
+> +	/* Collect CPU base addresses */
+> +	count = acpi_parse_entries(ACPI_SIG_MADT,
+> +				   sizeof(struct acpi_table_madt),
+> +				   gic_acpi_parse_madt_cpu, table,
+> +				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
+> +	if (count <= 0) {
+> +		pr_err("No valid GICC entries exist\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * Find distributor base address. We expect one distributor entry since
+> +	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
+> +	 */
+> +	count = acpi_parse_entries(ACPI_SIG_MADT,
+> +				   sizeof(struct acpi_table_madt),
+> +				   acpi_gic_parse_distributor, table,
+> +				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
+> +	if (count <= 0) {
+> +		pr_err("No valid GICD entries exist\n");
+> +		return -EINVAL;
+> +	} else if (count > 1) {
+> +		pr_err("More than one GICD entry detected\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
+> +	if (!cpu_base) {
+> +		pr_err("Unable to map GICC registers\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	dist_base = ioremap(dist_phy_base, ACPI_GICV2_DIST_MEM_SIZE);
+> +	if (!dist_base) {
+> +		pr_err("Unable to map GICD registers\n");
+> +		iounmap(cpu_base);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+> +
+> +	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+> +	return 0;
+> +}
+> +IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_SIG_MADT, gic_v2_acpi_init);
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index 869a69f..2f934fe 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -986,6 +986,8 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>   	if (WARN_ON(!gic->domain))
+>   		return;
+>
+> +	set_acpi_core_irqdomain(gic->domain);
+> +
+>   	if (gic_nr == 0) {
+>   #ifdef CONFIG_SMP
+>   		set_smp_cross_call(gic_raise_softirq);
+> @@ -1047,104 +1049,3 @@ IRQCHIP_DECLARE(msm_8660_qgic, "qcom,msm-8660-qgic", gic_of_init);
+>   IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
+>
+>   #endif
+> -
+> -#ifdef CONFIG_ACPI
+> -static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
+> -
+> -static int __init
+> -gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+> -			const unsigned long end)
+> -{
+> -	struct acpi_madt_generic_interrupt *processor;
+> -	phys_addr_t gic_cpu_base;
+> -	static int cpu_base_assigned;
+> -
+> -	processor = (struct acpi_madt_generic_interrupt *)header;
+> -
+> -	if (BAD_MADT_ENTRY(processor, end))
+> -		return -EINVAL;
+> -
+> -	/*
+> -	 * There is no support for non-banked GICv1/2 register in ACPI spec.
+> -	 * All CPU interface addresses have to be the same.
+> -	 */
+> -	gic_cpu_base = processor->base_address;
+> -	if (cpu_base_assigned && gic_cpu_base != cpu_phy_base)
+> -		return -EINVAL;
+> -
+> -	cpu_phy_base = gic_cpu_base;
+> -	cpu_base_assigned = 1;
+> -	return 0;
+> -}
+> -
+> -static int __init
+> -gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+> -				const unsigned long end)
+> -{
+> -	struct acpi_madt_generic_distributor *dist;
+> -
+> -	dist = (struct acpi_madt_generic_distributor *)header;
+> -
+> -	if (BAD_MADT_ENTRY(dist, end))
+> -		return -EINVAL;
+> -
+> -	dist_phy_base = dist->base_address;
+> -	return 0;
+> -}
+> -
+> -static int __init
+> -gic_v2_acpi_init(struct acpi_table_header *table)
+> -{
+> -	void __iomem *cpu_base, *dist_base;
+> -	int count;
+> -
+> -	if (acpi_gic_version() >= ACPI_MADT_GIC_VER_V3)
+> -		return -ENODEV;
+> -
+> -	/* Collect CPU base addresses */
+> -	count = acpi_parse_entries(ACPI_SIG_MADT,
+> -				   sizeof(struct acpi_table_madt),
+> -				   gic_acpi_parse_madt_cpu, table,
+> -				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
+> -	if (count <= 0) {
+> -		pr_err("No valid GICC entries exist\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	/*
+> -	 * Find distributor base address. We expect one distributor entry since
+> -	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
+> -	 */
+> -	count = acpi_parse_entries(ACPI_SIG_MADT,
+> -				   sizeof(struct acpi_table_madt),
+> -				   gic_acpi_parse_madt_distributor, table,
+> -				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
+> -	if (count <= 0) {
+> -		pr_err("No valid GICD entries exist\n");
+> -		return -EINVAL;
+> -	} else if (count > 1) {
+> -		pr_err("More than one GICD entry detected\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
+> -	if (!cpu_base) {
+> -		pr_err("Unable to map GICC registers\n");
+> -		return -ENOMEM;
+> -	}
+> -
+> -	dist_base = ioremap(dist_phy_base, ACPI_GICV2_DIST_MEM_SIZE);
+> -	if (!dist_base) {
+> -		pr_err("Unable to map GICD registers\n");
+> -		iounmap(cpu_base);
+> -		return -ENOMEM;
+> -	}
+> -
+> -	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+> -	acpi_irq_domain = gic_data[0].domain;
+> -
+> -	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+> -	return 0;
+> -}
+> -IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_SIG_MADT, gic_v2_acpi_init);
+> -#endif
+> diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
+> index 245386d..f4a17c7 100644
+> --- a/include/linux/irqchip/arm-gic-acpi.h
+> +++ b/include/linux/irqchip/arm-gic-acpi.h
+> @@ -25,5 +25,10 @@ extern struct irq_domain *acpi_irq_domain;
+>
+>   int acpi_gic_version_init(void);
+>   u8 acpi_gic_version(void);
+> +
+> +void set_acpi_core_irqdomain(struct irq_domain *domain);
+> +#else
+> +#define set_acpi_core_irqdomain(domain)
+>   #endif /* CONFIG_ACPI */
+> +
+>   #endif /* ARM_GIC_ACPI_H_ */
+>
