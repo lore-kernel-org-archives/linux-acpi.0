@@ -1,123 +1,57 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 05/14] genirq: Move field 'node' from struct irq_data into struct irq_common_data
-Date: Wed, 20 May 2015 17:40:36 +0800
-Message-ID: <1432114845-24304-6-git-send-email-jiang.liu@linux.intel.com>
-References: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com>
+From: Robert Dolca <robert.dolca@gmail.com>
+Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
+Date: Wed, 20 May 2015 12:39:22 +0300
+Message-ID: <CAFPB+YfvJiL7yNidDQJqq=XbF1hA4QwdBhbVYrwB=wpLkJUOwA@mail.gmail.com>
+References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com> <20150520074708.GQ1490@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <20150520074708.GQ1490@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Robert Dolca <robert.dolca@intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-NUMA node information is per-irq instead of per-irqchip, so move it into
-struct irq_common_data. Also use CONFIG_NUMA to guard irq_common_data.node.
+On Wed, May 20, 2015 at 10:47 AM, Mika Westerberg wrote:
+> On Tue, May 19, 2015 at 05:03:29PM +0300, Robert Dolca wrote:
+>> For i2c devices enumerated with ACPI you need to declare both
+>> acpi_match_table and id_table. When using ACPI, the i2c_device_id structure
+>> supplied to the probe function is null and you have to handle this case
+>> in the driver.
+>>
+>> The current name for the i2c client when using ACPI is "HID:UID" where the
+>> UID has 7 or 8 characters and the UID has 2 characters. The UID is not
+>> relevant for identifying the chip so it does not have any practical
+>> purpose.
+>
+> First of all, it is not "HID:UID" since the number after ":" is actually
+> increasing number assigned by the ACPI core. Nothing to do with _UID.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- include/linux/irq.h    |   17 ++++++++++++++---
- kernel/irq/internals.h |    2 +-
- kernel/irq/irqdesc.c   |    4 +++-
- kernel/irq/irqdomain.c |    1 -
- 4 files changed, 18 insertions(+), 6 deletions(-)
+You are right. My mistake.
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 0de75a22b827..0138f046642c 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -129,9 +129,13 @@ struct irq_domain;
-  * struct irq_common_data - per irq data shared by all irqchips
-  * @state_use_accessors: status information for irq chip functions.
-  *			Use accessor functions to deal with it
-+ * @node:		node index useful for balancing
-  */
- struct irq_common_data {
- 	unsigned int		state_use_accessors;
-+#ifdef CONFIG_NUMA
-+	unsigned int		node;
-+#endif
- };
- 
- /**
-@@ -139,7 +143,6 @@ struct irq_common_data {
-  * @mask:		precomputed bitmask for accessing the chip registers
-  * @irq:		interrupt number
-  * @hwirq:		hardware interrupt number, local to the interrupt domain
-- * @node:		node index useful for balancing
-  * @common:		point to data shared by all irqchips
-  * @chip:		low level interrupt hardware access
-  * @domain:		Interrupt translation domain; responsible for mapping
-@@ -160,7 +163,6 @@ struct irq_data {
- 	u32			mask;
- 	unsigned int		irq;
- 	unsigned long		hwirq;
--	unsigned int		node;
- 	struct irq_common_data	*common;
- 	struct irq_chip		*chip;
- 	struct irq_domain	*domain;
-@@ -634,9 +636,18 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
- 	return d ? irqd_get_trigger_type(d) : 0;
- }
- 
--static inline int irq_data_get_node(struct irq_data *d)
-+static inline int irq_common_data_get_node(struct irq_common_data *d)
- {
-+#ifdef CONFIG_NUMA
- 	return d->node;
-+#else
-+	return 0;
-+#endif
-+}
-+
-+static inline int irq_data_get_node(struct irq_data *d)
-+{
-+	return irq_common_data_get_node(d->common);
- }
- 
- unsigned int arch_dynirq_lower_bound(unsigned int from);
-diff --git a/kernel/irq/internals.h b/kernel/irq/internals.h
-index d1f583543d40..d82a77d39aeb 100644
---- a/kernel/irq/internals.h
-+++ b/kernel/irq/internals.h
-@@ -201,7 +201,7 @@ static inline void kstat_incr_irqs_this_cpu(unsigned int irq, struct irq_desc *d
- 
- static inline int irq_desc_get_node(struct irq_desc *desc)
- {
--	return irq_data_get_node(&desc->irq_data);
-+	return irq_common_data_get_node(&desc->irq_common_data);
- }
- 
- #ifdef CONFIG_PM_SLEEP
-diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index b18d3f1d73d9..0c3057e42906 100644
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -52,11 +52,13 @@ static int alloc_masks(struct irq_desc *desc, gfp_t gfp, int node)
- 
- static void desc_smp_init(struct irq_desc *desc, int node)
- {
--	desc->irq_data.node = node;
- 	cpumask_copy(desc->irq_data.affinity, irq_default_affinity);
- #ifdef CONFIG_GENERIC_PENDING_IRQ
- 	cpumask_clear(desc->pending_mask);
- #endif
-+#ifdef CONFIG_NUMA
-+	desc->irq_common_data.node = node;
-+#endif
- }
- 
- #else
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 1b06dfed4574..93ef89059022 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -836,7 +836,6 @@ static struct irq_data *irq_domain_insert_irq_data(struct irq_domain *domain,
- 		child->parent_data = irq_data;
- 		irq_data->irq = child->irq;
- 		irq_data->common = child->common;
--		irq_data->node = child->node;
- 		irq_data->domain = domain;
- 	}
- 
--- 
-1.7.10.4
+> Secondly we do not list "_HID:nn" in drivers acpi_match_tables but
+> instead it is either "HID" or "CID", no ":nn" there.
+
+I didn't say that you do that :)
+
+>
+>> Modifying i2c_match_id we make the comparison by ignoring the UID from the
+>> client name when the device was discovered using ACPI. The comparison is
+>> case insensitive because the ACPI names are uppercase and the DT and ID
+>> table names are lowercase. It would not make sense to have two different
+>> chips with the same name and the only diference being the capitalized
+>> letters.
+>>
+>> With these changes the probe function gets a valid i2c_device_id and the
+>> driver doesn't have to declare acpi_match_table.
+>
+> No. We don't do that for DT and we definitely don't want to mix ACPI
+> identifiers with arbitrary I2C device names.
+>
+> You are not supposed to put ACPI identifiers into i2c_device_id table.
+
+Currently, if the name used for DT (in dts) matches one of the names
+specified in the id table you will have a match. Isn't that an
+intended behavior?
+
+Robert
