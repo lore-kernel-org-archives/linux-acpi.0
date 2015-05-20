@@ -1,50 +1,92 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 0/7][RFC] FUJITSU Extended Socket network device driver
-Date: Wed, 20 May 2015 16:47:11 +0200
-Message-ID: <20150520144711.GE22037@vmdeb7>
-References: <E86EADE93E2D054CBCD4E708C38D364A5422D803@G01JPEXMBYT01>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch v2 06/14] genirq: Move field 'handler_data' from struct
+ irq_data into struct irq_common_data
+Date: Wed, 20 May 2015 16:48:39 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505201628400.4225@nanos>
+References: <1432114845-24304-1-git-send-email-jiang.liu@linux.intel.com> <1432114845-24304-7-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41164 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751117AbbETOrJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 10:47:09 -0400
-Content-Disposition: inline
-In-Reply-To: <E86EADE93E2D054CBCD4E708C38D364A5422D803@G01JPEXMBYT01>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1432114845-24304-7-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, bob picco <bpicco@meloft.net>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sparclinux@vger.kernel.orgl
 List-Id: linux-acpi@vger.kernel.org
-To: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
-Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "Hart, Darren" <darren.hart@intel.com>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, May 20, 2015 at 08:04:07AM +0000, Izumi, Taku wrote:
-> Hi All,
-> 
-> This patchsets add support for FUJITSU Extended Socket network
-> device. Extended Socket network device is a shared memory
-> based high-speed network interface between Extended Partitions of
-> PRIMEQUEST 2000 E2 series.
+On Wed, 20 May 2015, Jiang Liu wrote:
 
-Hi Taku,
+> Handler data (handler_data) is per-irq instead of per irqchip, so move
+> it into struct irq_common_data.
 
-A few things to keep in mind.
+For review and debugging sake, please do the same split as you did
+with node. Convert first and then move. 5 patches this time:
 
-1) Always Cc the maintainer using the email address in the MAINTAINERS file,
-   in this case, dvhart at infradead.org.
+Sparc: 
+>  arch/sparc/kernel/irq_64.c    |   15 +++++++++------
+>  arch/sparc/kernel/sun4d_irq.c |    4 ++--
+>  arch/sparc/kernel/sun4m_irq.c |    6 ++++--
 
-2) See Documentation/email-clients.txt regarding charset (you sent ISO-2022,JP):
+x86:
+>  arch/x86/kernel/apic/msi.c    |    2 +-
+>  arch/x86/kernel/hpet.c        |    4 ++--
 
-   Email clients should not modify the character set encoding of the text.
-   Emailed patches should be in ASCII or UTF-8 encoding only.
-   If you configure your email client to send emails with UTF-8 encoding,
-   you avoid some possible charset problems.
+gpio:
+>  drivers/gpio/gpio-davinci.c   |    2 +-
 
-3) A new driver should be functional at each patch point, so committing a
-   skeleton that does nothing is not what we're looking for by "small functional
-   changes".
+sh:
+>  drivers/sh/intc/virq.c        |    4 ++--
+
+Move:
+>  include/linux/irq.h           |    8 ++++----
+>  include/linux/irqdesc.h       |    2 +-
+>  kernel/irq/chip.c             |    2 +-
+>  kernel/irq/irqdesc.c          |    3 ++-
+
+> diff --git a/drivers/gpio/gpio-davinci.c b/drivers/gpio/gpio-davinci.c
+> index c5e05c82d67c..477d5b8616ab 100644
+> --- a/drivers/gpio/gpio-davinci.c
+> +++ b/drivers/gpio/gpio-davinci.c
+> @@ -396,7 +396,7 @@ static int gpio_irq_type_unbanked(struct irq_data *data, unsigned trigger)
+>  	struct davinci_gpio_regs __iomem *g;
+>  	u32 mask;
+>  
+> -	d = (struct davinci_gpio_controller *)data->handler_data;
+> +	d = (struct davinci_gpio_controller *)irq_data_get_irq_handler_data(data);
+
+This type cast is silly, handler_data is (void *)
+
+>  	g = (struct davinci_gpio_regs __iomem *)d->regs;
+>  	mask = __gpio_mask(data->irq - d->gpio_irq);
+>  
+> diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
+> index f30ac9354ff2..3dbc21696924 100644
+> --- a/drivers/sh/intc/virq.c
+> +++ b/drivers/sh/intc/virq.c
+> @@ -87,8 +87,8 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
+>  	struct irq_data *data = irq_get_irq_data(irq);
+>  
+>  	/* scan for duplicates */
+> -	last = (struct intc_virq_list **)&data->handler_data;
+> -	for_each_virq(entry, data->handler_data) {
+> +	last = (struct intc_virq_list **)&data->common->handler_data;
+
+That does not make sense. You convert the one below, but not that one
+to the accessor function.
+
+handler_data is a pointer to a struct intc_virq_list. So 
+
+	struct intc_virq_list **last, *entry, *head; 
+
+	head = irq_data_get_irq_handler_data(data);
+	last = &head;
+	
+	for_each_virq(entry, head) {
+		....
+	}
+
+Would be clean code and lets you convert all usage sites of
+data->handler_data before actually doing the move to common data.
 
 Thanks,
 
--- 
-Darren Hart
-Intel Open Source Technology Center
+	tglx
