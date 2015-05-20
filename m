@@ -1,353 +1,419 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3 04/21] libnd, nfit: dimm/memory-devices
-Date: Wed, 20 May 2015 16:56:32 -0400
-Message-ID: <20150520205632.32249.3607.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v3 06/21] libnd,
+ nd_dimm: dimm driver and base libnd device-driver infrastructure
+Date: Wed, 20 May 2015 16:56:43 -0400
+Message-ID: <20150520205643.32249.59990.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:20282 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754760AbbETU70 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 16:59:26 -0400
 In-Reply-To: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@kernel.dk
-Cc: mingo@kernel.org, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, hch@lst.de
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: axboe@kernel.dk
+Cc: linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, hch@lst.de
 
-Enable dimm devices to be registered on a libnd bus.  The kernel
-assigned device id for dimms is dynamic.  If userspace needs a more
-static identifier it should consult a provider-specific attribute.  In
-the case where NFIT is the provider, the 'nmemX/nfit/handle' or
-'nmemX/nfit/serial' attributes may be used for this purpose.
+* Implement the device-model infrastructure for loading modules and
+  attaching drivers to nd devices.  This is a simple association of a
+  nd-device-type number with a driver that has a bitmask of supported
+  device types.  To facilitate userspace bind/unbind operations 'modalias'
+  and 'devtype', that also appear in the uevent, are added as generic
+  sysfs attributes for all nd devices.  The reason for the device-type
+  number is to support sub-types within a given parent devtype, be it a
+  vendor-specific sub-type or otherwise.
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: <linux-acpi@vger.kernel.org>
+* The first consumer of this infrastructure is the driver
+  for dimm devices.  It simply uses control messages to retrieve and
+  store the configuration-data image (label set) from each dimm.
+
+Note: nd_device_register() arranges for asynchronous registration of
+      nd bus devices by default.
+
 Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c           |  160 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit.h           |    1 
+ drivers/acpi/nfit.c           |   13 ++-
  drivers/block/nd/Makefile     |    1 
- drivers/block/nd/bus.c        |   14 +++-
- drivers/block/nd/core.c       |   29 +++++++
- drivers/block/nd/dimm_devs.c  |   92 ++++++++++++++++++++++++
- drivers/block/nd/nd-private.h |   12 +++
- include/linux/libnd.h         |   11 +++
- 8 files changed, 318 insertions(+), 2 deletions(-)
- create mode 100644 drivers/block/nd/dimm_devs.c
+ drivers/block/nd/bus.c        |  168 +++++++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/core.c       |   43 ++++++++++
+ drivers/block/nd/dimm.c       |   92 ++++++++++++++++++++++
+ drivers/block/nd/dimm_devs.c  |  136 ++++++++++++++++++++++++++++++++-
+ drivers/block/nd/nd-private.h |    8 +-
+ drivers/block/nd/nd.h         |   34 ++++++++
+ include/linux/libnd.h         |    2 
+ include/linux/nd.h            |   39 ++++++++++
+ include/uapi/linux/ndctl.h    |    6 +
+ 11 files changed, 527 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/block/nd/dimm.c
+ create mode 100644 drivers/block/nd/nd.h
+ create mode 100644 include/linux/nd.h
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d31a0fffafcc..b26e1a4a59e3 100644
+index b7c1c5a5b589..c75f4bf1c230 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -344,6 +344,164 @@ const struct attribute_group *acpi_nfit_attribute_groups[] = {
+@@ -18,6 +18,10 @@
+ #include <linux/acpi.h>
+ #include "nfit.h"
+ 
++static bool force_enable_dimms;
++module_param(force_enable_dimms, bool, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
++
+ static u8 nfit_uuid[NFIT_UUID_MAX][16];
+ 
+ static const u8 *to_nfit_uuid(enum nfit_uuids id)
+@@ -592,6 +596,7 @@ static struct attribute_group acpi_nfit_dimm_attribute_group = {
+ 
+ static const struct attribute_group *acpi_nfit_dimm_attribute_groups[] = {
+ 	&nd_dimm_attribute_group,
++	&nd_device_attribute_group,
+ 	&acpi_nfit_dimm_attribute_group,
+ 	NULL,
  };
- EXPORT_SYMBOL_GPL(acpi_nfit_attribute_groups);
+@@ -628,7 +633,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	if (!adev_dimm) {
+ 		dev_err(dev, "no ACPI.NFIT device with _ADR %#x, disabling...\n",
+ 				device_handle);
+-		return -ENODEV;
++		return force_enable_dimms ? 0 : -ENODEV;
+ 	}
  
-+static struct acpi_nfit_memory_map *to_nfit_memdev(struct device *dev)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+
-+	return __to_nfit_memdev(nfit_mem);
-+}
-+
-+static struct acpi_nfit_control_region *to_nfit_dcr(struct device *dev)
-+{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+	struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+
-+	return nfit_mem->dcr;
-+}
-+
-+static ssize_t handle_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
-+
-+	return sprintf(buf, "%#x\n", memdev->device_handle);
-+}
-+static DEVICE_ATTR_RO(handle);
-+
-+static ssize_t phys_id_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
-+
-+	return sprintf(buf, "%#x\n", memdev->physical_id);
-+}
-+static DEVICE_ATTR_RO(phys_id);
-+
-+static ssize_t vendor_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->vendor_id);
-+}
-+static DEVICE_ATTR_RO(vendor);
-+
-+static ssize_t rev_id_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->revision_id);
-+}
-+static DEVICE_ATTR_RO(rev_id);
-+
-+static ssize_t device_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->device_id);
-+}
-+static DEVICE_ATTR_RO(device);
-+
-+static ssize_t format_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->code);
-+}
-+static DEVICE_ATTR_RO(format);
-+
-+static ssize_t serial_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	return sprintf(buf, "%#x\n", dcr->serial_number);
-+}
-+static DEVICE_ATTR_RO(serial);
-+
-+static struct attribute *acpi_nfit_dimm_attributes[] = {
-+	&dev_attr_handle.attr,
-+	&dev_attr_phys_id.attr,
-+	&dev_attr_vendor.attr,
-+	&dev_attr_device.attr,
-+	&dev_attr_format.attr,
-+	&dev_attr_serial.attr,
-+	&dev_attr_rev_id.attr,
-+	NULL,
-+};
-+
-+static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+
-+	if (to_nfit_dcr(dev))
-+		return a->mode;
-+	else
-+		return 0;
-+}
-+
-+static struct attribute_group acpi_nfit_dimm_attribute_group = {
-+	.name = "nfit",
-+	.attrs = acpi_nfit_dimm_attributes,
-+	.is_visible = acpi_nfit_dimm_attr_visible,
-+};
-+
-+static const struct attribute_group *acpi_nfit_dimm_attribute_groups[] = {
-+	&acpi_nfit_dimm_attribute_group,
-+	NULL,
-+};
-+
-+static struct nd_dimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc,
-+		u32 device_handle)
-+{
-+	struct nfit_mem *nfit_mem;
-+
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list)
-+		if (__to_nfit_memdev(nfit_mem)->device_handle == device_handle)
-+			return nfit_mem->nd_dimm;
-+
-+	return NULL;
-+}
-+
-+static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nfit_mem *nfit_mem;
-+
-+	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+		struct nd_dimm *nd_dimm;
-+		unsigned long flags = 0;
-+		u32 device_handle;
-+
-+		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
-+		nd_dimm = acpi_nfit_dimm_by_handle(acpi_desc, device_handle);
-+		if (nd_dimm) {
-+			/*
-+			 * If for some reason we find multiple DCRs the
-+			 * first one wins
-+			 */
-+			dev_err(acpi_desc->dev, "duplicate DCR detected: %s\n",
-+					nd_dimm_name(nd_dimm));
-+			continue;
-+		}
-+
-+		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
-+			flags |= NDD_ALIASING;
-+
-+		nd_dimm = nd_dimm_create(acpi_desc->nd_bus, nfit_mem,
-+				acpi_nfit_dimm_attribute_groups, flags);
-+		if (!nd_dimm)
-+			return -ENOMEM;
-+
-+		nfit_mem->nd_dimm = nd_dimm;
-+	}
-+
-+	return 0;
-+}
-+
- static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
-@@ -371,7 +529,7 @@ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	if (nfit_mem_init(acpi_desc) != 0)
- 		return -ENOMEM;
+ 	status = acpi_evaluate_integer(adev_dimm->handle, "_STA", NULL, &sta);
+@@ -649,12 +654,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
  
--	return 0;
-+	return acpi_nfit_register_dimms(acpi_desc);
+-	return rc;
++	return force_enable_dimms ? 0 : rc;
  }
  
- static int acpi_nfit_add(struct acpi_device *adev)
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index b6c85d773ca1..9d4c1634cb0e 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -59,6 +59,7 @@ struct nfit_memdev {
+ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_mem *nfit_mem;
++	int dimm_count = 0;
  
- /* assembled tables for a given dimm/memory-device */
- struct nfit_mem {
-+	struct nd_dimm *nd_dimm;
- 	struct acpi_nfit_memory_map *memdev_dcr;
- 	struct acpi_nfit_memory_map *memdev_pmem;
- 	struct acpi_nfit_control_region *dcr;
+ 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
+ 		struct nd_dimm *nd_dimm;
+@@ -688,9 +694,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 			return -ENOMEM;
+ 
+ 		nfit_mem->nd_dimm = nd_dimm;
++		dimm_count++;
+ 	}
+ 
+-	return 0;
++	return nd_bus_validate_dimm_count(acpi_desc->nd_bus, dimm_count);
+ }
+ 
+ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
 diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
-index 34d1b58b3258..2954b9543bec 100644
+index 2954b9543bec..d9ef4496e8d3 100644
 --- a/drivers/block/nd/Makefile
 +++ b/drivers/block/nd/Makefile
-@@ -2,3 +2,4 @@ obj-$(CONFIG_LIBND) += libnd.o
- 
+@@ -3,3 +3,4 @@ obj-$(CONFIG_LIBND) += libnd.o
  libnd-y := core.o
  libnd-y += bus.o
-+libnd-y += dimm_devs.o
+ libnd-y += dimm_devs.o
++libnd-y += dimm.o
 diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index 635f2e926426..ee56aa1ab2ad 100644
+index f072a9e0c1bd..3f5cdbc24973 100644
 --- a/drivers/block/nd/bus.c
 +++ b/drivers/block/nd/bus.c
-@@ -13,6 +13,7 @@
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- #include <linux/uaccess.h>
+@@ -16,19 +16,183 @@
  #include <linux/fcntl.h>
-+#include <linux/async.h>
+ #include <linux/async.h>
+ #include <linux/ndctl.h>
++#include <linux/sched.h>
  #include <linux/slab.h>
  #include <linux/fs.h>
  #include <linux/io.h>
-@@ -21,6 +22,10 @@
+ #include <linux/mm.h>
++#include <linux/nd.h>
+ #include "nd-private.h"
++#include "nd.h"
+ 
+ int nd_dimm_major;
  static int nd_bus_major;
  static struct class *nd_class;
  
-+struct bus_type nd_bus_type = {
-+	.name = "nd",
-+};
-+
- int nd_bus_create_ndctl(struct nd_bus *nd_bus)
- {
- 	dev_t devt = MKDEV(nd_bus_major, nd_bus->id);
-@@ -59,9 +64,13 @@ int __init nd_bus_init(void)
- {
- 	int rc;
- 
-+	rc = bus_register(&nd_bus_type);
-+	if (rc)
-+		return rc;
-+
- 	rc = register_chrdev(0, "ndctl", &nd_bus_fops);
- 	if (rc < 0)
--		return rc;
-+		goto err_chrdev;
- 	nd_bus_major = rc;
- 
- 	nd_class = class_create(THIS_MODULE, "nd");
-@@ -72,6 +81,8 @@ int __init nd_bus_init(void)
- 
-  err_class:
- 	unregister_chrdev(nd_bus_major, "ndctl");
-+ err_chrdev:
-+	bus_unregister(&nd_bus_type);
- 
- 	return rc;
- }
-@@ -80,4 +91,5 @@ void __exit nd_bus_exit(void)
- {
- 	class_destroy(nd_class);
- 	unregister_chrdev(nd_bus_major, "ndctl");
-+	bus_unregister(&nd_bus_type);
- }
-diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 49b7ac8f7606..4d0e53ecdcb0 100644
---- a/drivers/block/nd/core.c
-+++ b/drivers/block/nd/core.c
-@@ -46,6 +46,19 @@ struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus)
- }
- EXPORT_SYMBOL_GPL(to_nd_desc);
- 
-+struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
+-struct bus_type nd_bus_type = {
++static int to_nd_device_type(struct device *dev)
 +{
-+	struct device *dev;
++	if (is_nd_dimm(dev))
++		return ND_DEVICE_DIMM;
 +
-+	for (dev = nd_dev; dev; dev = dev->parent)
-+		if (dev->release == nd_bus_release)
-+			break;
-+	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not on nd bus\n");
-+	if (dev)
-+		return to_nd_bus(dev);
-+	return NULL;
-+}
-+
- static const char *nd_bus_provider(struct nd_bus *nd_bus)
- {
- 	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-@@ -118,6 +131,21 @@ struct nd_bus *nd_bus_register(struct device *parent,
- }
- EXPORT_SYMBOL_GPL(nd_bus_register);
- 
-+static int child_unregister(struct device *dev, void *data)
-+{
-+	/*
-+	 * the singular ndctl class device per bus needs to be
-+	 * "device_destroy"ed, so skip it here
-+	 *
-+	 * i.e. remove classless children
-+	 */
-+	if (dev->class)
-+		/* pass */;
-+	else
-+		device_unregister(dev);
 +	return 0;
 +}
 +
- void nd_bus_unregister(struct nd_bus *nd_bus)
++static int nd_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	return add_uevent_var(env, "MODALIAS=" ND_DEVICE_MODALIAS_FMT,
++			to_nd_device_type(dev));
++}
++
++static int nd_bus_match(struct device *dev, struct device_driver *drv)
++{
++	struct nd_device_driver *nd_drv = to_nd_device_driver(drv);
++
++	return test_bit(to_nd_device_type(dev), &nd_drv->type);
++}
++
++static int nd_bus_probe(struct device *dev)
++{
++	struct nd_device_driver *nd_drv = to_nd_device_driver(dev->driver);
++	struct nd_bus *nd_bus = walk_to_nd_bus(dev);
++	int rc;
++
++	rc = nd_drv->probe(dev);
++	dev_dbg(&nd_bus->dev, "%s.probe(%s) = %d\n", dev->driver->name,
++			dev_name(dev), rc);
++	return rc;
++}
++
++static int nd_bus_remove(struct device *dev)
++{
++	struct nd_device_driver *nd_drv = to_nd_device_driver(dev->driver);
++	struct nd_bus *nd_bus = walk_to_nd_bus(dev);
++	int rc;
++
++	rc = nd_drv->remove(dev);
++	dev_dbg(&nd_bus->dev, "%s.remove(%s) = %d\n", dev->driver->name,
++			dev_name(dev), rc);
++	return rc;
++}
++
++static struct bus_type nd_bus_type = {
+ 	.name = "nd",
++	.uevent = nd_bus_uevent,
++	.match = nd_bus_match,
++	.probe = nd_bus_probe,
++	.remove = nd_bus_remove,
++};
++
++static ASYNC_DOMAIN_EXCLUSIVE(nd_async_domain);
++
++void nd_synchronize(void)
++{
++	async_synchronize_full_domain(&nd_async_domain);
++}
++EXPORT_SYMBOL_GPL(nd_synchronize);
++
++static void nd_async_device_register(void *d, async_cookie_t cookie)
++{
++	struct device *dev = d;
++
++	if (device_add(dev) != 0) {
++		dev_err(dev, "%s: failed\n", __func__);
++		put_device(dev);
++	}
++	put_device(dev);
++}
++
++static void nd_async_device_unregister(void *d, async_cookie_t cookie)
++{
++	struct device *dev = d;
++
++	device_unregister(dev);
++	put_device(dev);
++}
++
++void nd_device_register(struct device *dev)
++{
++	dev->bus = &nd_bus_type;
++	device_initialize(dev);
++	get_device(dev);
++	async_schedule_domain(nd_async_device_register, dev,
++			&nd_async_domain);
++}
++EXPORT_SYMBOL(nd_device_register);
++
++void nd_device_unregister(struct device *dev, enum nd_async_mode mode)
++{
++	switch (mode) {
++	case ND_ASYNC:
++		get_device(dev);
++		async_schedule_domain(nd_async_device_unregister, dev,
++				&nd_async_domain);
++		break;
++	case ND_SYNC:
++		nd_synchronize();
++		device_unregister(dev);
++		break;
++	}
++}
++EXPORT_SYMBOL(nd_device_unregister);
++
++/**
++ * __nd_driver_register() - register a region or a namespace driver
++ * @nd_drv: driver to register
++ * @owner: automatically set by nd_driver_register() macro
++ * @mod_name: automatically set by nd_driver_register() macro
++ */
++int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
++		const char *mod_name)
++{
++	struct device_driver *drv = &nd_drv->drv;
++
++	if (!nd_drv->type) {
++		pr_debug("driver type bitmask not set (%pf)\n",
++				__builtin_return_address(0));
++		return -EINVAL;
++	}
++
++	if (!nd_drv->probe || !nd_drv->remove) {
++		pr_debug("->probe() and ->remove() must be specified\n");
++		return -EINVAL;
++	}
++
++	drv->bus = &nd_bus_type;
++	drv->owner = owner;
++	drv->mod_name = mod_name;
++
++	return driver_register(drv);
++}
++EXPORT_SYMBOL(__nd_driver_register);
++
++static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	return sprintf(buf, ND_DEVICE_MODALIAS_FMT "\n",
++			to_nd_device_type(dev));
++}
++static DEVICE_ATTR_RO(modalias);
++
++static ssize_t devtype_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	return sprintf(buf, "%s\n", dev->type->name);
++}
++DEVICE_ATTR_RO(devtype);
++
++static struct attribute *nd_device_attributes[] = {
++	&dev_attr_modalias.attr,
++	&dev_attr_devtype.attr,
++	NULL,
++};
++
++/**
++ * nd_device_attribute_group - generic attributes for all devices on an nd bus
++ */
++struct attribute_group nd_device_attribute_group = {
++	.attrs = nd_device_attributes,
+ };
++EXPORT_SYMBOL_GPL(nd_device_attribute_group);
+ 
+ int nd_bus_create_ndctl(struct nd_bus *nd_bus)
  {
- 	if (!nd_bus)
-@@ -127,6 +155,7 @@ void nd_bus_unregister(struct nd_bus *nd_bus)
+@@ -402,7 +566,7 @@ int __init nd_bus_init(void)
+ 	return rc;
+ }
+ 
+-void __exit nd_bus_exit(void)
++void nd_bus_exit(void)
+ {
+ 	class_destroy(nd_class);
+ 	unregister_chrdev(nd_bus_major, "ndctl");
+diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
+index d7a922913da2..a3dd3a22ce92 100644
+--- a/drivers/block/nd/core.c
++++ b/drivers/block/nd/core.c
+@@ -18,6 +18,7 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include "nd-private.h"
++#include "nd.h"
+ 
+ LIST_HEAD(nd_bus_list);
+ DEFINE_MUTEX(nd_bus_list_mutex);
+@@ -96,8 +97,33 @@ static ssize_t provider_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(provider);
+ 
++static int flush_namespaces(struct device *dev, void *data)
++{
++	device_lock(dev);
++	device_unlock(dev);
++	return 0;
++}
++
++static int flush_regions_dimms(struct device *dev, void *data)
++{
++	device_lock(dev);
++	device_unlock(dev);
++	device_for_each_child(dev, NULL, flush_namespaces);
++	return 0;
++}
++
++static ssize_t wait_probe_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	nd_synchronize();
++	device_for_each_child(dev, NULL, flush_regions_dimms);
++	return sprintf(buf, "1\n");
++}
++static DEVICE_ATTR_RO(wait_probe);
++
+ static struct attribute *nd_bus_attributes[] = {
+ 	&dev_attr_commands.attr,
++	&dev_attr_wait_probe.attr,
+ 	&dev_attr_provider.attr,
+ 	NULL,
+ };
+@@ -158,7 +184,7 @@ static int child_unregister(struct device *dev, void *data)
+ 	if (dev->class)
+ 		/* pass */;
+ 	else
+-		device_unregister(dev);
++		nd_device_unregister(dev, ND_SYNC);
+ 	return 0;
+ }
+ 
+@@ -171,6 +197,7 @@ void nd_bus_unregister(struct nd_bus *nd_bus)
  	list_del_init(&nd_bus->list);
  	mutex_unlock(&nd_bus_list_mutex);
  
-+	device_for_each_child(&nd_bus->dev, NULL, child_unregister);
++	nd_synchronize();
+ 	device_for_each_child(&nd_bus->dev, NULL, child_unregister);
  	nd_bus_destroy_ndctl(nd_bus);
  
- 	device_unregister(&nd_bus->dev);
-diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
+@@ -180,12 +207,24 @@ EXPORT_SYMBOL_GPL(nd_bus_unregister);
+ 
+ static __init int libnd_init(void)
+ {
+-	return nd_bus_init();
++	int rc;
++
++	rc = nd_bus_init();
++	if (rc)
++		return rc;
++	rc = nd_dimm_init();
++	if (rc)
++		goto err_dimm;
++	return 0;
++ err_dimm:
++	nd_bus_exit();
++	return rc;
+ }
+ 
+ static __exit void libnd_exit(void)
+ {
+ 	WARN_ON(!list_empty(&nd_bus_list));
++	nd_dimm_exit();
+ 	nd_bus_exit();
+ }
+ 
+diff --git a/drivers/block/nd/dimm.c b/drivers/block/nd/dimm.c
 new file mode 100644
-index 000000000000..19b081392f2f
+index 000000000000..1665b7d69e3a
 --- /dev/null
-+++ b/drivers/block/nd/dimm_devs.c
++++ b/drivers/block/nd/dimm.c
 @@ -0,0 +1,92 @@
 +/*
 + * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
@@ -361,141 +427,397 @@ index 000000000000..19b081392f2f
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/vmalloc.h>
++#include <linux/module.h>
 +#include <linux/device.h>
++#include <linux/sizes.h>
++#include <linux/ndctl.h>
 +#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/fs.h>
 +#include <linux/mm.h>
-+#include "nd-private.h"
++#include <linux/nd.h>
++#include "nd.h"
 +
-+static DEFINE_IDA(dimm_ida);
-+
-+static void nd_dimm_release(struct device *dev)
++static void free_data(struct nd_dimm_drvdata *ndd)
 +{
-+	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
++	if (!ndd)
++		return;
 +
-+	ida_simple_remove(&dimm_ida, nd_dimm->id);
-+	kfree(nd_dimm);
++	if (ndd->data && is_vmalloc_addr(ndd->data))
++		vfree(ndd->data);
++	else
++		kfree(ndd->data);
++	kfree(ndd);
 +}
 +
-+static struct device_type nd_dimm_device_type = {
-+	.name = "nd_dimm",
-+	.release = nd_dimm_release,
++static int nd_dimm_probe(struct device *dev)
++{
++	struct nd_dimm_drvdata *ndd;
++	int rc;
++
++	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
++	if (!ndd)
++		return -ENOMEM;
++
++	dev_set_drvdata(dev, ndd);
++	ndd->dev = dev;
++
++	rc = nd_dimm_init_nsarea(ndd);
++	if (rc)
++		goto err;
++
++	rc = nd_dimm_init_config_data(ndd);
++	if (rc)
++		goto err;
++
++	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
++
++	return 0;
++
++ err:
++	free_data(ndd);
++	return rc;
++}
++
++static int nd_dimm_remove(struct device *dev)
++{
++	struct nd_dimm_drvdata *ndd = dev_get_drvdata(dev);
++
++	free_data(ndd);
++
++	return 0;
++}
++
++static struct nd_device_driver nd_dimm_driver = {
++	.probe = nd_dimm_probe,
++	.remove = nd_dimm_remove,
++	.drv = {
++		.name = "nd_dimm",
++	},
++	.type = ND_DRIVER_DIMM,
 +};
 +
-+static bool is_nd_dimm(struct device *dev)
++int __init nd_dimm_init(void)
 +{
-+	return dev->type == &nd_dimm_device_type;
++	return nd_driver_register(&nd_dimm_driver);
 +}
 +
-+struct nd_dimm *to_nd_dimm(struct device *dev)
++void __exit nd_dimm_exit(void)
 +{
-+	struct nd_dimm *nd_dimm = container_of(dev, struct nd_dimm, dev);
-+
-+	WARN_ON(!is_nd_dimm(dev));
-+	return nd_dimm;
++	driver_unregister(&nd_dimm_driver.drv);
 +}
-+EXPORT_SYMBOL_GPL(to_nd_dimm);
 +
-+const char *nd_dimm_name(struct nd_dimm *nd_dimm)
++MODULE_ALIAS_ND_DEVICE(ND_DEVICE_DIMM);
+diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
+index 3fa26f61c3db..33b6d5336096 100644
+--- a/drivers/block/nd/dimm_devs.c
++++ b/drivers/block/nd/dimm_devs.c
+@@ -11,6 +11,7 @@
+  * General Public License for more details.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/vmalloc.h>
+ #include <linux/device.h>
+ #include <linux/ndctl.h>
+ #include <linux/slab.h>
+@@ -18,9 +19,115 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include "nd-private.h"
++#include "nd.h"
+ 
+ static DEFINE_IDA(dimm_ida);
+ 
++/*
++ * Retrieve bus and dimm handle and return if this bus supports
++ * get_config_data commands
++ */
++static int __validate_dimm(struct nd_dimm_drvdata *ndd)
 +{
-+	return dev_name(&nd_dimm->dev);
++	struct nd_dimm *nd_dimm;
++
++	if (!ndd)
++		return -EINVAL;
++
++	nd_dimm = to_nd_dimm(ndd->dev);
++
++	if (!nd_dimm->dsm_mask)
++		return -ENXIO;
++	if (!test_bit(ND_CMD_GET_CONFIG_DATA, nd_dimm->dsm_mask))
++		return -ENXIO;
++
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nd_dimm_name);
 +
-+void *nd_dimm_provider_data(struct nd_dimm *nd_dimm)
++static int validate_dimm(struct nd_dimm_drvdata *ndd)
 +{
-+	return nd_dimm->provider_data;
++	int rc = __validate_dimm(ndd);
++
++	if (rc && ndd)
++		dev_dbg(ndd->dev, "%pf: %s error: %d\n",
++				__builtin_return_address(0), __func__, rc);
++	return rc;
 +}
-+EXPORT_SYMBOL_GPL(nd_dimm_provider_data);
 +
-+struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
-+		const struct attribute_group **groups, unsigned long flags)
++/**
++ * nd_dimm_init_nsarea - determine the geometry of a dimm's namespace area
++ * @nd_dimm: dimm to initialize
++ */
++int nd_dimm_init_nsarea(struct nd_dimm_drvdata *ndd)
 +{
-+	struct nd_dimm *nd_dimm = kzalloc(sizeof(*nd_dimm), GFP_KERNEL);
-+	struct device *dev;
++	struct nd_cmd_get_config_size *cmd = &ndd->nsarea;
++	struct nd_bus *nd_bus = walk_to_nd_bus(ndd->dev);
++	struct nd_bus_descriptor *nd_desc;
++	int rc = validate_dimm(ndd);
 +
-+	if (!nd_dimm)
-+		return NULL;
++	if (rc)
++		return rc;
 +
-+	nd_dimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
-+	if (nd_dimm->id < 0) {
-+		kfree(nd_dimm);
-+		return NULL;
++	if (cmd->config_size)
++		return 0; /* already valid */
++
++	memset(cmd, 0, sizeof(*cmd));
++	nd_desc = nd_bus->nd_desc;
++	return nd_desc->ndctl(nd_desc, to_nd_dimm(ndd->dev),
++			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd));
++}
++
++int nd_dimm_init_config_data(struct nd_dimm_drvdata *ndd)
++{
++	struct nd_bus *nd_bus = walk_to_nd_bus(ndd->dev);
++	struct nd_cmd_get_config_data_hdr *cmd;
++	struct nd_bus_descriptor *nd_desc;
++	int rc = validate_dimm(ndd);
++	u32 max_cmd_size, config_size;
++	size_t offset;
++
++	if (rc)
++		return rc;
++
++	if (ndd->data)
++		return 0;
++
++	if (ndd->nsarea.status || ndd->nsarea.max_xfer == 0)
++		return -ENXIO;
++
++	ndd->data = kmalloc(ndd->nsarea.config_size, GFP_KERNEL);
++	if (!ndd->data)
++		ndd->data = vmalloc(ndd->nsarea.config_size);
++
++	if (!ndd->data)
++		return -ENOMEM;
++
++	max_cmd_size = min_t(u32, PAGE_SIZE, ndd->nsarea.max_xfer);
++	cmd = kzalloc(max_cmd_size + sizeof(*cmd), GFP_KERNEL);
++	if (!cmd)
++		return -ENOMEM;
++
++	nd_desc = nd_bus->nd_desc;
++	for (config_size = ndd->nsarea.config_size, offset = 0;
++			config_size; config_size -= cmd->in_length,
++			offset += cmd->in_length) {
++		cmd->in_length = min(config_size, max_cmd_size);
++		cmd->in_offset = offset;
++		rc = nd_desc->ndctl(nd_desc, to_nd_dimm(ndd->dev),
++				ND_CMD_GET_CONFIG_DATA, cmd,
++				cmd->in_length + sizeof(*cmd));
++		if (rc || cmd->status) {
++			rc = -ENXIO;
++			break;
++		}
++		memcpy(ndd->data + offset, cmd->out_buf, cmd->in_length);
 +	}
-+	nd_dimm->provider_data = provider_data;
-+	nd_dimm->flags = flags;
++	dev_dbg(ndd->dev, "%s: len: %zd rc: %d\n", __func__, offset, rc);
++	kfree(cmd);
 +
-+	dev = &nd_dimm->dev;
-+	dev_set_name(dev, "nmem%d", nd_dimm->id);
-+	dev->parent = &nd_bus->dev;
-+	dev->type = &nd_dimm_device_type;
-+	dev->bus = &nd_bus_type;
-+	dev->groups = groups;
-+	if (device_register(dev) != 0) {
-+		put_device(dev);
-+		return NULL;
-+	}
-+
-+	return nd_dimm;
++	return rc;
 +}
-+EXPORT_SYMBOL_GPL(nd_dimm_create);
++
+ static void nd_dimm_release(struct device *dev)
+ {
+ 	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
+@@ -111,14 +218,33 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
+ 	dev_set_name(dev, "nmem%d", nd_dimm->id);
+ 	dev->parent = &nd_bus->dev;
+ 	dev->type = &nd_dimm_device_type;
+-	dev->bus = &nd_bus_type;
+ 	dev->devt = MKDEV(nd_dimm_major, nd_dimm->id);
+ 	dev->groups = groups;
+-	if (device_register(dev) != 0) {
+-		put_device(dev);
+-		return NULL;
+-	}
++	nd_device_register(dev);
+ 
+ 	return nd_dimm;
+ }
+ EXPORT_SYMBOL_GPL(nd_dimm_create);
++
++static int count_dimms(struct device *dev, void *c)
++{
++	int *count = c;
++
++	if (is_nd_dimm(dev))
++		(*count)++;
++	return 0;
++}
++
++int nd_bus_validate_dimm_count(struct nd_bus *nd_bus, int dimm_count)
++{
++	int count = 0;
++	/* Flush any possible dimm registration failures */
++	nd_synchronize();
++
++	device_for_each_child(&nd_bus->dev, &count, count_dimms);
++	dev_dbg(&nd_bus->dev, "%s: count: %d\n", __func__, count);
++	if (count != dimm_count)
++		return -ENXIO;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nd_bus_validate_dimm_count);
 diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index 884601f65a15..251ecdd77153 100644
+index c71a5f34355a..a333f3401ca7 100644
 --- a/drivers/block/nd/nd-private.h
 +++ b/drivers/block/nd/nd-private.h
-@@ -15,6 +15,10 @@
- #include <linux/device.h>
- #include <linux/libnd.h>
+@@ -17,7 +17,6 @@
  
-+extern struct list_head nd_bus_list;
-+extern struct mutex nd_bus_list_mutex;
-+extern struct bus_type nd_bus_type;
-+
+ extern struct list_head nd_bus_list;
+ extern struct mutex nd_bus_list_mutex;
+-extern struct bus_type nd_bus_type;
+ extern int nd_dimm_major;
+ 
  struct nd_bus {
- 	struct nd_bus_descriptor *nd_desc;
- 	struct list_head list;
-@@ -22,6 +26,14 @@ struct nd_bus {
+@@ -35,10 +34,13 @@ struct nd_dimm {
  	int id;
  };
  
-+struct nd_dimm {
-+	unsigned long flags;
-+	void *provider_data;
-+	struct device dev;
-+	int id;
+-bool is_nd_dimm(struct device *dev);
+ struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
+ int __init nd_bus_init(void);
+-void __exit nd_bus_exit(void);
++void nd_bus_exit(void);
++int __init nd_dimm_init(void);
++void __exit nd_dimm_exit(void);
+ int nd_bus_create_ndctl(struct nd_bus *nd_bus);
+ void nd_bus_destroy_ndctl(struct nd_bus *nd_bus);
++void nd_synchronize(void);
++bool is_nd_dimm(struct device *dev);
+ #endif /* __ND_PRIVATE_H__ */
+diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
+new file mode 100644
+index 000000000000..1a5a081ce640
+--- /dev/null
++++ b/drivers/block/nd/nd.h
+@@ -0,0 +1,34 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __ND_H__
++#define __ND_H__
++#include <linux/device.h>
++#include <linux/mutex.h>
++#include <linux/ndctl.h>
++
++struct nd_dimm_drvdata {
++	struct device *dev;
++	struct nd_cmd_get_config_size nsarea;
++	void *data;
 +};
 +
-+struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
- int __init nd_bus_init(void);
- void __exit nd_bus_exit(void);
- int nd_bus_create_ndctl(struct nd_bus *nd_bus);
++enum nd_async_mode {
++	ND_SYNC,
++	ND_ASYNC,
++};
++
++void nd_device_register(struct device *dev);
++void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
++int nd_dimm_init_nsarea(struct nd_dimm_drvdata *ndd);
++int nd_dimm_init_config_data(struct nd_dimm_drvdata *ndd);
++#endif /* __ND_H__ */
 diff --git a/include/linux/libnd.h b/include/linux/libnd.h
-index 04a97653d56c..76d5839fb50e 100644
+index ca72c49ae376..0d7e82401e4b 100644
 --- a/include/linux/libnd.h
 +++ b/include/linux/libnd.h
-@@ -14,6 +14,12 @@
-  */
- #ifndef __LIBND_H__
- #define __LIBND_H__
-+
-+enum {
-+	/* when a dimm supports both PMEM and BLK access a label is required */
-+	NDD_ALIASING = 1 << 0,
-+};
-+
+@@ -29,6 +29,7 @@ enum {
+ 
  extern struct attribute_group nd_bus_attribute_group;
+ extern struct attribute_group nd_dimm_attribute_group;
++extern struct attribute_group nd_device_attribute_group;
  
  struct nd_dimm;
-@@ -35,5 +41,10 @@ struct nd_bus *nd_bus_register(struct device *parent,
- 		struct nd_bus_descriptor *nfit_desc);
- void nd_bus_unregister(struct nd_bus *nd_bus);
- struct nd_bus *to_nd_bus(struct device *dev);
-+struct nd_dimm *to_nd_dimm(struct device *dev);
- struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
-+const char *nd_dimm_name(struct nd_dimm *nd_dimm);
-+void *nd_dimm_provider_data(struct nd_dimm *nd_dimm);
-+struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
-+		const struct attribute_group **groups, unsigned long flags);
+ struct nd_bus_descriptor;
+@@ -70,4 +71,5 @@ u32 nd_cmd_in_size(struct nd_dimm *nd_dimm, int cmd,
+ u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
+ 		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
+ 		const u32 *out_field);
++int nd_bus_validate_dimm_count(struct nd_bus *nd_bus, int dimm_count);
  #endif /* __LIBND_H__ */
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+new file mode 100644
+index 000000000000..e074f67e53a3
+--- /dev/null
++++ b/include/linux/nd.h
+@@ -0,0 +1,39 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __LINUX_ND_H__
++#define __LINUX_ND_H__
++#include <linux/ndctl.h>
++#include <linux/device.h>
++
++struct nd_device_driver {
++	struct device_driver drv;
++	unsigned long type;
++	int (*probe)(struct device *dev);
++	int (*remove)(struct device *dev);
++};
++
++static inline struct nd_device_driver *to_nd_device_driver(
++		struct device_driver *drv)
++{
++	return container_of(drv, struct nd_device_driver, drv);
++}
++
++#define MODULE_ALIAS_ND_DEVICE(type) \
++	MODULE_ALIAS("nd:t" __stringify(type) "*")
++#define ND_DEVICE_MODALIAS_FMT "nd:t%d"
++
++int __must_check __nd_driver_register(struct nd_device_driver *nd_drv,
++		struct module *module, const char *mod_name);
++#define nd_driver_register(driver) \
++	__nd_driver_register(driver, THIS_MODULE, KBUILD_MODNAME)
++#endif /* __LINUX_ND_H__ */
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 62c01bf76198..1ccd2c633193 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -175,4 +175,10 @@ static inline const char *nd_dimm_cmd_name(unsigned cmd)
+ #define ND_IOCTL_ARS_QUERY		_IOWR(ND_IOCTL, ND_CMD_ARS_QUERY,\
+ 					struct nd_cmd_ars_query)
+ 
++
++#define ND_DEVICE_DIMM 1            /* nd_dimm: container for "config data" */
++
++enum nd_driver_flags {
++	ND_DRIVER_DIMM            = 1 << ND_DEVICE_DIMM,
++};
+ #endif /* __NDCTL_H__ */
+
