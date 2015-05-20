@@ -1,48 +1,50 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Patch v3 5/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Wed, 20 May 2015 11:33:37 +0800
-Message-ID: <555C0091.6050301@linaro.org>
-References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com> <5559E44B.2010702@linaro.org> <555BFC72.3060703@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
+Date: Wed, 20 May 2015 10:47:08 +0300
+Message-ID: <20150520074708.GQ1490@lahna.fi.intel.com>
+References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <555BFC72.3060703@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
-Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:5166 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752163AbbETHrN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 03:47:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Dolca <robert.dolca@intel.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>
 
-+CC Suravee,
+On Tue, May 19, 2015 at 05:03:29PM +0300, Robert Dolca wrote:
+> For i2c devices enumerated with ACPI you need to declare both
+> acpi_match_table and id_table. When using ACPI, the i2c_device_id structure
+> supplied to the probe function is null and you have to handle this case
+> in the driver.
+> 
+> The current name for the i2c client when using ACPI is "HID:UID" where the
+> UID has 7 or 8 characters and the UID has 2 characters. The UID is not
+> relevant for identifying the chip so it does not have any practical
+> purpose.
 
-On 2015=E5=B9=B405=E6=9C=8820=E6=97=A5 11:16, Jiang Liu wrote:
-> On 2015/5/18 21:08, Hanjun Guo wrote:
->> Hi Jiang,
->>
->> On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
->>> Introduce common interface acpi_pci_root_create() and related data
->>> structures to create PCI root bus for ACPI PCI host bridges. It wil=
-l
->>> be used to kill duplicated arch specific code for IA64 and x86. It =
-may
->>> also help ARM64 in future.
->>
->> As I commented in previous version, this patch will introduce
->> compile error on ACPI enabled ARM64 kernel because struct
->> pci_controller is not defined for ARM64, so how about adding
->> the following patch before this patch, or squash to this one,
->> does it make sense?
-> Hi Hanjun,
-> 	Thanks for fixing this building issue for ARM64. The patch
-> is really what I want:). Will merge it into next version. With this
-> patch applied, are there any other issues from ARM64 side?
+First of all, it is not "HID:UID" since the number after ":" is actually
+increasing number assigned by the ACPI core. Nothing to do with _UID.
 
-Suravee is testing ARM64 PCI on top of your patch set, he can confirm
-that if there are any other issues :) (Suravee has a real ARM64 hardwar=
-e
-in hand)
+Secondly we do not list "_HID:nn" in drivers acpi_match_tables but
+instead it is either "HID" or "CID", no ":nn" there.
 
-Thanks
-Hanjun
+> Modifying i2c_match_id we make the comparison by ignoring the UID from the
+> client name when the device was discovered using ACPI. The comparison is
+> case insensitive because the ACPI names are uppercase and the DT and ID
+> table names are lowercase. It would not make sense to have two different
+> chips with the same name and the only diference being the capitalized
+> letters.
+> 
+> With these changes the probe function gets a valid i2c_device_id and the
+> driver doesn't have to declare acpi_match_table.
+
+No. We don't do that for DT and we definitely don't want to mix ACPI
+identifiers with arbitrary I2C device names.
+
+You are not supposed to put ACPI identifiers into i2c_device_id table.
