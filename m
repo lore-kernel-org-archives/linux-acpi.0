@@ -1,50 +1,41 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices
-Date: Wed, 20 May 2015 10:47:08 +0300
-Message-ID: <20150520074708.GQ1490@lahna.fi.intel.com>
-References: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC 2/4] PCI, MSI: Optionally free legacy PCI IRQ when enabling
+ MSI/MSI-X
+Date: Wed, 20 May 2015 09:47:33 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505200947140.4225@nanos>
+References: <1430968374-29286-1-git-send-email-jiang.liu@linux.intel.com> <1430968374-29286-3-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505152259480.4225@nanos> <555BFA31.5040206@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:5166 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752163AbbETHrN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 03:47:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1432044209-27858-1-git-send-email-robert.dolca@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <555BFA31.5040206@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Dolca <robert.dolca@intel.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Baluta <daniel.baluta@intel.com>
 
-On Tue, May 19, 2015 at 05:03:29PM +0300, Robert Dolca wrote:
-> For i2c devices enumerated with ACPI you need to declare both
-> acpi_match_table and id_table. When using ACPI, the i2c_device_id structure
-> supplied to the probe function is null and you have to handle this case
-> in the driver.
-> 
-> The current name for the i2c client when using ACPI is "HID:UID" where the
-> UID has 7 or 8 characters and the UID has 2 characters. The UID is not
-> relevant for identifying the chip so it does not have any practical
-> purpose.
+On Wed, 20 May 2015, Jiang Liu wrote:
+> On 2015/5/16 5:02, Thomas Gleixner wrote:
+> > This is a bit odd. With your proposed change we'll have:
+> > 
+> >      alloc_legacy_irq()
+> > 
+> >      msi[x]_enable()
+> > 	free_legacy_irq()
+> > 
+> >      msi[x]_disable()
+> > 	alloc_legacy_irq()
+> Hi Thomas,
+> 	It's for safety. I'm not sure whether the device driver will
+> make use of legacy IRQ after calling msi[x]_disable(). I have concerns
+> about following pattern in PCI device drivers:
+> ---------------------------------------------------
+> if (enable_msi() == SUCCESS) {
+> 	if (allocate_resource_for_msi() == SUCCESS)
+> 		return;
+> 	disable_msi();
+> }
+> use_legacy_irq()
 
-First of all, it is not "HID:UID" since the number after ":" is actually
-increasing number assigned by the ACPI core. Nothing to do with _UID.
+Fair enough.
 
-Secondly we do not list "_HID:nn" in drivers acpi_match_tables but
-instead it is either "HID" or "CID", no ":nn" there.
-
-> Modifying i2c_match_id we make the comparison by ignoring the UID from the
-> client name when the device was discovered using ACPI. The comparison is
-> case insensitive because the ACPI names are uppercase and the DT and ID
-> table names are lowercase. It would not make sense to have two different
-> chips with the same name and the only diference being the capitalized
-> letters.
-> 
-> With these changes the probe function gets a valid i2c_device_id and the
-> driver doesn't have to declare acpi_match_table.
-
-No. We don't do that for DT and we definitely don't want to mix ACPI
-identifiers with arbitrary I2C device names.
-
-You are not supposed to put ACPI identifiers into i2c_device_id table.
+     tglx
