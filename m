@@ -1,65 +1,184 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [V4 PATCH 4/6] device property: Introduces
- device_dma_is_coherent()
-Date: Wed, 20 May 2015 11:28:29 +0100
-Message-ID: <20150520102829.GB11498@arm.com>
-References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1431724994-21601-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC v1 24/25] genirq: Kill the first parameter 'irq' of
+ irq_flow_handler_t
+Date: Wed, 20 May 2015 11:43:26 +0100
+Message-ID: <20150520104326.GE3627@x1>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
+ <1432116013-25902-25-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37663 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752660AbbETK2f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 06:28:35 -0400
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:36960 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751849AbbETKnc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 06:43:32 -0400
+Received: by wibt6 with SMTP id t6so55048152wib.0
+        for <linux-acpi@vger.kernel.org>; Wed, 20 May 2015 03:43:31 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1431724994-21601-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+In-Reply-To: <1432116013-25902-25-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>, "msalter@redhat.com" <msalter@redhat.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, netdev@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Samuel Ortiz <sameo@linux.intel.com>, Kumar Gala <galak@codeaurora.org>, Andy Gross <agross@codeaurora.org>, David Brown <davidb@codeaurora.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org
 
-On Fri, May 15, 2015 at 10:23:12PM +0100, Suravee Suthikulpanit wrote:
-> Currently, device drivers, which support both OF and ACPI,
-> need to call two separate APIs, of_dma_is_coherent() and
-> acpi_dma_is_coherent()) to determine device coherency attribute.
-> 
-> This patch simplifies this process by introducing a new device
-> property API, device_dma_is_coherent(), which calls the appropriate
-> interface based on the booting architecture.
-> 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+On Wed, 20 May 2015, Jiang Liu wrote:
+
+> Now most IRQ flow handlers make no use of the first parameter 'irq'.
+> And for those who do make use of 'irq', we could easily get the irq
+> number through irq_desc->irq_data->irq. So kill the first parameter
+> 'irq' of irq_flow_handler_t.
+>=20
+> To ease review, I have split the changes into several parts, though
+> they should be merge as one to support bisecting.
+>=20
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->  drivers/base/property.c  | 12 ++++++++++++
->  include/linux/property.h |  2 ++
->  2 files changed, 14 insertions(+)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 1d0b116..8123c6e 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -14,6 +14,7 @@
->  #include <linux/export.h>
->  #include <linux/kernel.h>
->  #include <linux/of.h>
-> +#include <linux/of_address.h>
->  #include <linux/property.h>
->  
->  /**
-> @@ -519,3 +520,14 @@ unsigned int device_get_child_node_count(struct device *dev)
->  	return count;
+>  drivers/mfd/asic3.c        |    2 +-
+>  drivers/mfd/ezx-pcap.c     |    2 +-
+>  drivers/mfd/htc-egpio.c    |    2 +-
+>  drivers/mfd/jz4740-adc.c   |    2 +-
+>  drivers/mfd/pm8921-core.c  |    2 +-
+>  drivers/mfd/t7l66xb.c      |    2 +-
+>  drivers/mfd/tc6393xb.c     |    2 +-
+>  drivers/mfd/ucb1x00-core.c |    4 ++--
+>  8 files changed, 9 insertions(+), 9 deletions(-)
+
+So long as you've build tested each of these files:
+
+Acked-by: Lee Jones <lee.jones@linaro.org>
+
+> diff --git a/drivers/mfd/asic3.c b/drivers/mfd/asic3.c
+> index 977bd3a3eed0..6bf17842a3e4 100644
+> --- a/drivers/mfd/asic3.c
+> +++ b/drivers/mfd/asic3.c
+> @@ -138,7 +138,7 @@ static void asic3_irq_flip_edge(struct asic3 *asi=
+c,
+>  	spin_unlock_irqrestore(&asic->lock, flags);
 >  }
->  EXPORT_SYMBOL_GPL(device_get_child_node_count);
-> +
-> +bool device_dma_is_coherent(struct device *dev)
-> +{
-> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node)
-> +		return of_dma_is_coherent(dev->of_node);
-> +	else if (has_acpi_companion(dev))
-> +		return acpi_dma_is_coherent(acpi_node(dev->fwnode));
+> =20
+> -static void asic3_irq_demux(unsigned int irq, struct irq_desc *desc)
+> +static void asic3_irq_demux(struct irq_desc *desc)
+>  {
+>  	struct asic3 *asic =3D irq_desc_get_handler_data(desc);
+>  	struct irq_data *data =3D irq_desc_get_irq_data(desc);
+> diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
+> index e5f4ffaa5414..ab83124d75f7 100644
+> --- a/drivers/mfd/ezx-pcap.c
+> +++ b/drivers/mfd/ezx-pcap.c
+> @@ -205,7 +205,7 @@ static void pcap_isr_work(struct work_struct *wor=
+k)
+>  	} while (gpio_get_value(pdata->gpio));
+>  }
+> =20
+> -static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc=
+)
+> +static void pcap_irq_handler(struct irq_desc *desc)
+>  {
+>  	struct pcap_chip *pcap =3D irq_desc_get_handler_data(desc);
+> =20
+> diff --git a/drivers/mfd/htc-egpio.c b/drivers/mfd/htc-egpio.c
+> index 49f39feca784..8a3264e35403 100644
+> --- a/drivers/mfd/htc-egpio.c
+> +++ b/drivers/mfd/htc-egpio.c
+> @@ -98,7 +98,7 @@ static struct irq_chip egpio_muxed_chip =3D {
+>  	.irq_unmask	=3D egpio_unmask,
+>  };
+> =20
+> -static void egpio_handler(unsigned int irq, struct irq_desc *desc)
+> +static void egpio_handler(struct irq_desc *desc)
+>  {
+>  	struct egpio_info *ei =3D irq_desc_get_handler_data(desc);
+>  	int irqpin;
+> diff --git a/drivers/mfd/jz4740-adc.c b/drivers/mfd/jz4740-adc.c
+> index b31c54e4ecb2..ec1cd2297ea4 100644
+> --- a/drivers/mfd/jz4740-adc.c
+> +++ b/drivers/mfd/jz4740-adc.c
+> @@ -65,7 +65,7 @@ struct jz4740_adc {
+>  	spinlock_t lock;
+>  };
+> =20
+> -static void jz4740_adc_irq_demux(unsigned int irq, struct irq_desc *=
+desc)
+> +static void jz4740_adc_irq_demux(struct irq_desc *desc)
+>  {
+>  	struct irq_chip_generic *gc =3D irq_desc_get_handler_data(desc);
+>  	uint8_t status;
+> diff --git a/drivers/mfd/pm8921-core.c b/drivers/mfd/pm8921-core.c
+> index 5a92646a2ccb..87dd27e49a8b 100644
+> --- a/drivers/mfd/pm8921-core.c
+> +++ b/drivers/mfd/pm8921-core.c
+> @@ -156,7 +156,7 @@ static int pm8xxx_irq_master_handler(struct pm_ir=
+q_chip *chip, int master)
+>  	return ret;
+>  }
+> =20
+> -static void pm8xxx_irq_handler(unsigned int irq, struct irq_desc *de=
+sc)
+> +static void pm8xxx_irq_handler(struct irq_desc *desc)
+>  {
+>  	struct pm_irq_chip *chip =3D irq_desc_get_handler_data(desc);
+>  	struct irq_chip *irq_chip =3D irq_desc_get_chip(desc);
+> diff --git a/drivers/mfd/t7l66xb.c b/drivers/mfd/t7l66xb.c
+> index b752ca2be549..55ade59303b1 100644
+> --- a/drivers/mfd/t7l66xb.c
+> +++ b/drivers/mfd/t7l66xb.c
+> @@ -185,7 +185,7 @@ static struct mfd_cell t7l66xb_cells[] =3D {
+>  /*------------------------------------------------------------------=
+--------*/
+> =20
+>  /* Handle the T7L66XB interrupt mux */
+> -static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
+> +static void t7l66xb_irq(struct irq_desc *desc)
+>  {
+>  	struct t7l66xb *t7l66xb =3D irq_desc_get_handler_data(desc);
+>  	unsigned int isr;
+> diff --git a/drivers/mfd/tc6393xb.c b/drivers/mfd/tc6393xb.c
+> index d21253a51cff..e22722cd667c 100644
+> --- a/drivers/mfd/tc6393xb.c
+> +++ b/drivers/mfd/tc6393xb.c
+> @@ -523,7 +523,7 @@ static int tc6393xb_register_gpio(struct tc6393xb=
+ *tc6393xb, int gpio_base)
+>  /*------------------------------------------------------------------=
+--------*/
+> =20
+>  static void
+> -tc6393xb_irq(unsigned int irq, struct irq_desc *desc)
+> +tc6393xb_irq(struct irq_desc *desc)
+>  {
+>  	struct tc6393xb *tc6393xb =3D irq_desc_get_handler_data(desc);
+>  	unsigned int isr;
+> diff --git a/drivers/mfd/ucb1x00-core.c b/drivers/mfd/ucb1x00-core.c
+> index 58ea9fdd3a15..2f8f922a34de 100644
+> --- a/drivers/mfd/ucb1x00-core.c
+> +++ b/drivers/mfd/ucb1x00-core.c
+> @@ -282,7 +282,7 @@ void ucb1x00_adc_disable(struct ucb1x00 *ucb)
+>   * SIBCLK to talk to the chip.  We leave the clock running until
+>   * we have finished processing all interrupts from the chip.
+>   */
+> -static void ucb1x00_irq(unsigned int irq, struct irq_desc *desc)
+> +static void ucb1x00_irq(struct irq_desc *desc)
+>  {
+>  	struct ucb1x00 *ucb =3D irq_desc_get_handler_data(desc);
+>  	unsigned int isr, i;
+> @@ -292,7 +292,7 @@ static void ucb1x00_irq(unsigned int irq, struct =
+irq_desc *desc)
+>  	ucb1x00_reg_write(ucb, UCB_IE_CLEAR, isr);
+>  	ucb1x00_reg_write(ucb, UCB_IE_CLEAR, 0);
+> =20
+> -	for (i =3D 0; i < 16 && isr; i++, isr >>=3D 1, irq++)
+> +	for (i =3D 0; i < 16 && isr; i++, isr >>=3D 1)
+>  		if (isr & 1)
+>  			generic_handle_irq(ucb->irq_base + i);
+>  	ucb1x00_disable(ucb);
 
-I don't think you need the has_acpi_companion check, as acpi_node handles
-this and acpi_dma_is_coherent(NULL) returns false.
-
-Will
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
