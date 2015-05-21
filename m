@@ -1,43 +1,60 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
- NFIT support
-Date: Thu, 21 May 2015 07:55:14 -0600
-Message-ID: <1432216514.26714.4.camel@misato.fc.hp.com>
-References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 03/11] irqchip / GIC: Add GIC version support in ACPI
+ MADT
+Date: Thu, 21 May 2015 22:19:54 +0800
+Message-ID: <555DE98A.2000909@linaro.org>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-4-git-send-email-hanjun.guo@linaro.org> <alpine.DEB.2.11.1505202157190.4225@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hp.com ([15.240.92.67]:38634 "EHLO
-	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805AbbEUOOj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 10:14:39 -0400
-In-Reply-To: <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33942 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754702AbbEUOUA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 10:20:00 -0400
+Received: by pabru16 with SMTP id ru16so106943421pab.1
+        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2015 07:20:00 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.11.1505202157190.4225@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, hch@lst.de, mingo@kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wed, 2015-05-20 at 16:56 -0400, Dan Williams wrote:
- :
-> +/* NVDIMM - NFIT table */
-> +
-> +#define UUID_VOLATILE_MEMORY            "4f940573-dafd-e344-b16c-3f22d252e5d0"
-> +#define UUID_PERSISTENT_MEMORY          "79d3f066-f3b4-7440-ac43-0d3318b78cdb"
-> +#define UUID_CONTROL_REGION             "f601f792-b413-5d40-910b-299367e8234c"
-> +#define UUID_DATA_REGION                "3005af91-865d-0e47-a6b0-0a2db9408249"
-> +#define UUID_VOLATILE_VIRTUAL_DISK      "5a53ab77-fc45-4b62-5560-f7b281d1f96e"
-> +#define UUID_VOLATILE_VIRTUAL_CD        "30bd5a3d-7541-ce87-6d64-d2ade523c4bb"
-> +#define UUID_PERSISTENT_VIRTUAL_DISK    "c902ea5c-074d-69d3-269f-4496fbe096f9"
-> +#define UUID_PERSISTENT_VIRTUAL_CD      "88810108-cd42-48bb-100f-5387d53ded3d"
+On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 04:02, Thomas Gleixner wrote:
+> On Mon, 18 May 2015, Hanjun Guo wrote:
+>> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
+>> index 65d6b93..855ead9 100644
+>> --- a/drivers/acpi/irq.c
+>> +++ b/drivers/acpi/irq.c
+>> @@ -32,6 +32,9 @@ void __init acpi_irqchip_init(void)
+>>   	if (acpi_disabled)
+>>   		return;
+>>
+>> +	if (acpi_gic_version_init())
+>> +		return;
+>
+> This looks just wrong. acpi_irqchip_init() is a generic ACPI function
+> and now you stick a GIC specific callback into it?
 
-acpi_str_to_uuid() performs little-endian byte-swapping, so the UUID
-strings here need to be actual values.
+=46or now, acpi_irqchip_init() just introduced for GIC init, not for
+APIC init for x86, and I don't see the usage in the near future.
 
-For instance, UUID_PERSISTENT_MEMORY should be:
-#define UUID_PERSISTENT_MEMORY   "66f0d379-b4f3-4074-ac43-0d3318b78cdb"
+>
+> What calls acpi_irqchip_init?
 
-Thanks,
--Toshi
+I renamed it as acpi_irq_init() in the later patch, which
+is called in irqchip_init() in drivers/irqchip/irqchip.c
+to init irqchip when DT is not available.
 
+This is not a nice way, but the kernel should stay functional
+for each patch goes in, so I separate the patch to smaller one
+for easy review under that rule, does it make sense?
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
