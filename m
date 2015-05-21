@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 05/19] ACPICA: Parser: Move a couple externals to the proper header.
-Date: Thu, 21 May 2015 10:30:31 +0800
-Message-ID: <22945405883a7bed03469fceb0f8198139fd5fab.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 06/19] ACPICA: iASL: Enhance detection of non-ascii or corrupted input files.
+Date: Thu, 21 May 2015 10:30:38 +0800
+Message-ID: <1d7a3e712198ad4a20793e2a3c190d4e8a36b9fc.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
@@ -12,45 +12,53 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 7325b59c8b5d1522ded51ae6a76b804f6e8da5d2
+ACPICA commit 08170904011f1e8f817d9e3a9f2bb2438aeacf60
 
-Moved from a C module.
+For the compiler part (not disassembler).
+- Characters not within a comment must be be ASCII (0-0x7F), and
+now either printable or a "space" character.
+Provides better detection of files that cannot be compiled.
 
-Link: https://github.com/acpica/acpica/commit/7325b59c
+This patch only affects iASL which is not in the Linux upstream.
+
+Link: https://github.com/acpica/acpica/commit/08170904
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acparser.h |    3 +++
- drivers/acpi/acpica/psopinfo.c |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/acutils.h  |    2 +-
+ drivers/acpi/acpica/utfileio.c |    7 ++-----
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acparser.h b/drivers/acpi/acpica/acparser.h
-index 74a390c..0cdd2fc 100644
---- a/drivers/acpi/acpica/acparser.h
-+++ b/drivers/acpi/acpica/acparser.h
-@@ -70,6 +70,9 @@
-  *
-  *****************************************************************************/
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 2b3c5bd..d49f5c7 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -251,7 +251,7 @@ extern const u8 _acpi_ctype[];
+ #define _ACPI_DI     0x04	/* '0'-'9' */
+ #define _ACPI_LO     0x02	/* 'a'-'z' */
+ #define _ACPI_PU     0x10	/* punctuation */
+-#define _ACPI_SP     0x08	/* space */
++#define _ACPI_SP     0x08	/* space, tab, CR, LF, VT, FF */
+ #define _ACPI_UP     0x01	/* 'A'-'Z' */
+ #define _ACPI_XD     0x80	/* '0'-'9', 'A'-'F', 'a'-'f' */
  
-+extern const u8 acpi_gbl_short_op_index[];
-+extern const u8 acpi_gbl_long_op_index[];
-+
- /*
-  * psxface - Parser external interfaces
-  */
-diff --git a/drivers/acpi/acpica/psopinfo.c b/drivers/acpi/acpica/psopinfo.c
-index 20e1a35..5831090 100644
---- a/drivers/acpi/acpica/psopinfo.c
-+++ b/drivers/acpi/acpica/psopinfo.c
-@@ -50,9 +50,6 @@
- #define _COMPONENT          ACPI_PARSER
- ACPI_MODULE_NAME("psopinfo")
+diff --git a/drivers/acpi/acpica/utfileio.c b/drivers/acpi/acpica/utfileio.c
+index 7e1168b..f72c53c 100644
+--- a/drivers/acpi/acpica/utfileio.c
++++ b/drivers/acpi/acpica/utfileio.c
+@@ -198,11 +198,8 @@ acpi_ut_read_table(FILE * fp,
+ 			     table_header.length, file_size);
  
--extern const u8 acpi_gbl_short_op_index[];
--extern const u8 acpi_gbl_long_op_index[];
--
- static const u8 acpi_gbl_argument_count[] =
-     { 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 6 };
- 
+ #ifdef ACPI_ASL_COMPILER
+-			status = fl_check_for_ascii(fp, NULL, FALSE);
+-			if (ACPI_SUCCESS(status)) {
+-				acpi_os_printf
+-				    ("File appears to be ASCII only, must be binary\n");
+-			}
++			acpi_os_printf("File is corrupt or is ASCII text -- "
++				       "it must be a binary file\n");
+ #endif
+ 			return (AE_BAD_HEADER);
+ 		}
 -- 
 1.7.10
