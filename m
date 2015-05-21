@@ -1,92 +1,64 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
-Date: Thu, 21 May 2015 12:24:13 +0200
-Message-ID: <20150521102413.GA5866@isilmar-3.linta.de>
-References: <20150517174144.GA17503@light.dominikbrodowski.net>
- <3695901.X9t2lWziuY@vostro.rjw.lan>
- <20150518044711.GA3401@air.dominikbrodowski.net>
- <6154326.X9FC8ZVDIy@vostro.rjw.lan>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [Linaro-acpi] [V4 PATCH 1/6] ACPI / scan: Parse _CCA and setup
+ device coherency
+Date: Thu, 21 May 2015 14:01:16 +0100
+Message-ID: <20150521130116.GJ29424@e104818-lin.cambridge.arm.com>
+References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20150520100122.GD25313@e104818-lin.cambridge.arm.com>
+ <555C7563.6080409@amd.com>
+ <5074701.G8z7gpKvin@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar-3.linta.de ([188.40.101.200]:34291 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751722AbbEUKYQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 May 2015 06:24:16 -0400
+Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6154326.X9FC8ZVDIy@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <5074701.G8z7gpKvin@wuerfel>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, herbert@gondor.apana.org.au, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-crypto@vger.kernel.org, Suravee Suthikulanit <suravee.suthikulpanit@amd.com>, netdev@vger.kernel.org, bhelgaas@google.com, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, mario_limonciello@dell.com, broonie@kernel.org, matthew.garrett@coreos.com, alsa-devel@alsa-project.org
 
-On Thu, May 21, 2015 at 03:24:41AM +0200, Rafael J. Wysocki wrote:
-> On Monday, May 18, 2015 06:47:11 AM Dominik Brodowski wrote:
-> > On Mon, May 18, 2015 at 03:01:32AM +0200, Rafael J. Wysocki wrote:
-> > > On Sunday, May 17, 2015 07:41:44 PM Dominik Brodowski wrote:
-> > > > On Thu, May 14, 2015 at 11:55:33 PM Rafael J. Wysocki wrote:
-> > > > > On Thursday, May 14, 2015 10:36:52 PM Rafael J. Wysocki wrote:
-> > > > > > So the only value that would really make sense here is 5.
-> > > > 
-> > > > > Overall, what about the appended patch instead of your [2-3/4] (modulo the
-> > > > > new command line parameter description which is missing here ATM)?
-> > > > 
-> > > > Well, this approach works as well -- limiting it to an override for just 5
-> > > > seems reasonable; expanding blacklist.c to also cover this case (even though
-> > > > it's not a blacklisting per se) isn't worth any discussion.
-> > > > 
-> > > > Nonetheless, a few specifics:
-> > > > 
-> > > > > +config ACPI_REV_OVERRIDE_POSSIBLE
-> > > > 
-> > > > Why should that be a config option at all? The code savings should be
-> > > > really, really tiny;
-> > > 
-> > > The idea is not about the code savings, but about having a simple way to disable
-> > > the whole thing entirely at one point.
-> > > 
-> > > All of the workarounds under this option *including* the command line switch
-> > > should be temporary.
+On Wed, May 20, 2015 at 02:04:02PM +0200, Arnd Bergmann wrote:
+> On Wednesday 20 May 2015 06:52:03 Suravee Suthikulanit wrote:
+> > On 5/20/2015 5:01 AM, Catalin Marinas wrote:
+> > > On Fri, May 15, 2015 at 04:23:09PM -0500, Suravee Suthikulpanit wrote:
+> > >> +static inline bool acpi_dma_is_supported(struct acpi_device *adev)
+> > >> +{
+> > >> +    /**
+> > >> +     * Currently, we mainly support _CCA=1 (i.e. is_coherent=1)
+> > >> +     * This should be equivalent to specifyig dma-coherent for
+> > >> +     * a device in OF.
+> > >> +     *
+> > >> +     * For the case when _CCA=0 (i.e. is_coherent=0 && cca_seen=1),
+> > >> +     * There are two approaches:
+> > >> +     * 1. Do not support and disable DMA.
+> > >> +     * 2. Support but rely on arch-specific cache maintenance for
+> > >> +     * non-coherence DMA operations. ARM64 is one example.
+> > >> +     *
+> > >> +     * For the case when _CCA is missing (i.e. cca_seen=0) but
+> > >> +     * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
+> > >> +     * and fallback to arch-specific default handling.
+> > >> +     *
+> > >> +     * See acpi_init_coherency() for more info.
+> > >> +     */
+> > >> +    return adev && (adev->flags.is_coherent ||
+> > >> +                    (adev->flags.cca_seen && IS_ENABLED(CONFIG_ARM64)));
+> > >> +}
+> > >
+> > > I don't particularly like the check for CONFIG_ARM64 here but I
+> > > understand why it was added (I had the wrong impression that x86 can
+> > > cope with _CCA = 0).
+> > >
+> > > Alternatively, we could leave it out (together with cca_seen) until
+> > > someone comes forward with a real use-case for _CCA = 0 on arm64. One
+> > > platform I'm aware of is Juno but even though it boot with ACPI, I
+> > > wouldn't call it a server platform.
 > > 
-> > Hopefully, yes. But I am not convinced about that yet (see below).
-> > 
-> > > > and especially in the beginning we might see a few
-> > > > machines where testing the override might seem to be a good idea. So I'd
-> > > > favour having the command line optional, and then only specific quirks
-> > > > behind a config option: For the Dell XPS 13 it makes sense to disable the
-> > > > quirk if userspace can manage i2s sound; for other systems, there may not be
-> > > > such hope. And as this is a machine-specific decision, I fear that we have
-> > > > to do CONFIG options for each and every such DMI entry.
-> > > 
-> > > I'm not sure if we need a config option for Dell in particular.  We can simply
-> > > drop the quirk when it is not necessary any more.
-> > 
-> > The quirk for the Dell XPS 13 (2015), yes. Once userspace catches up (which
-> > may take _years_). But Matthew was mentioning that "[t]he Inspiron 7437
-> > queries _REV and uses it to modify its EC behaviour, and apparently breaks
-> > on Linux without that." If that is indeed the case, we will need a quirk
-> > for that Inspiron for much, much longer than for the Dell XPS 13 (2015).
-> > 
-> > Therefore, I see a need to distinguish the quirk for the Dell XPS 13 (2015),
-> > the quirk for the Inspiron 7437 and potential quirks for other systems: Some
-> > may depend on _sound_ userspace being up to date (XPS), some may depend on
-> > _other_ parts of userspace being up to date, and some may be needed for
-> > as long as these systems exist (Inspiron 7437?). And if the userspace for
-> > the XPS is up to date, the quirk for that particular issue may not be needed
-> > any more, while other quirks (such as potentially the one for the 7437) may
-> > still be needed -- that is why I see a need for different CONFIG options.
+> > Ok. That seems to be what Arnd would prefer as well.  Let's just leave 
+> > the support for _CCA=0 out until it is needed then.
 > 
-> Which doesn't explain why we need a config option per quirk.  To me, such config
-> options don't add any value, because (a) everyone will set them anyway and (b)
-> removing the quirks from the source is trivial if needed.
+> Yes, that would be best (as I said repeatedly ;-) )
 
-As long as you consider userspace and kernel moving along at a coordinated pace,
-yes -- where we should simply agree to disagree.
+I'm sure it won't be long before someone asks for this feature ;).
 
-That leaves just the question on whether the quirk (and especially the kernel
-parameter) should be hidden behind a special config option (and not just
-CONFIG_X86) -- especially if "everyone will set them anyway" and if "removing
-the quirks from the source is trivial if needed".
-
-Best,
-	Dominik
+-- 
+Catalin
