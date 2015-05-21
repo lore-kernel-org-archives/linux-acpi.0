@@ -1,109 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Turn power resources on and off in the right order during resume
-Date: Thu, 21 May 2015 04:19:49 +0200
-Message-ID: <1692579.9Aunh5vn4X@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:62136 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753554AbbEUBy2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 May 2015 21:54:28 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 01/19] ACPICA: Additional dragon_fly BSD support.
+Date: Thu, 21 May 2015 10:30:03 +0800
+Message-ID: <48edf1309680d3ebd0de594666756a8c1e864fba.1432175162.git.lv.zheng@intel.com>
+References: <cover.1432175162.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-According to Section 7.2 of ACPI 6.0, power resources should
-always be enabled and disabled in order given by the "resourceorder"
-field of the corresponding Power Resource objects: "Power Resource
-levels are enabled from low values to high values and are disabled
-from high values to low values."
+ACPICA commit 3e93431674abe947202b0f9a0afa7b625b17caa6
 
-However, this is not what happens during system resume, because
-in that case the enabling/disabling is carried out in the power
-resource registration order which may not reflect the ordering
-required by the platform.
+Makefiles and environment defines.
+This commit doesn't affect Linux builds.
 
-For this reason, make the ordering of the global list of all
-power resources in the system (used by the system resume code)
-reflect the one given by the "resourceorder" attributes of the
-Power Resource objects in the ACPI namespace and modify
-acpi_resume_power_resources() to walk the list in the reverse
-order when turning off the power resources that had been off
-before the system was suspended.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Link: https://github.com/acpica/acpica/commit/3e934316
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/power.c |   40 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 36 insertions(+), 4 deletions(-)
+ include/acpi/platform/acenv.h   |    3 +++
+ include/acpi/platform/acenvex.h |    3 +++
+ 2 files changed, 6 insertions(+)
 
-Index: linux-pm/drivers/acpi/power.c
-===================================================================
---- linux-pm.orig/drivers/acpi/power.c
-+++ linux-pm/drivers/acpi/power.c
-@@ -760,6 +760,25 @@ static void acpi_power_sysfs_remove(stru
- 	device_remove_file(&device->dev, &dev_attr_resource_in_use);
- }
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index ecdf940..073997d 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -175,6 +175,9 @@
+ #elif defined(_APPLE) || defined(__APPLE__)
+ #include "acmacosx.h"
  
-+static void acpi_power_add_resource_to_list(struct acpi_power_resource *resource)
-+{
-+	mutex_lock(&power_resource_list_lock);
++#elif defined(__DragonFly__)
++#include "acdragonfly.h"
 +
-+	if (!list_empty(&acpi_power_resource_list)) {
-+		struct acpi_power_resource *r;
-+
-+		list_for_each_entry(r, &acpi_power_resource_list, list_node)
-+			if (r->order > resource->order) {
-+				list_add_tail(&resource->list_node, &r->list_node);
-+				goto out;
-+			}
-+	}
-+	list_add_tail(&resource->list_node, &acpi_power_resource_list);
-+
-+ out:
-+	mutex_unlock(&power_resource_list_lock);
-+}
-+
- int acpi_add_power_resource(acpi_handle handle)
- {
- 	struct acpi_power_resource *resource;
-@@ -810,9 +829,7 @@ int acpi_add_power_resource(acpi_handle
- 	if (!device_create_file(&device->dev, &dev_attr_resource_in_use))
- 		device->remove = acpi_power_sysfs_remove;
+ #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+ #include "acfreebsd.h"
  
--	mutex_lock(&power_resource_list_lock);
--	list_add(&resource->list_node, &acpi_power_resource_list);
--	mutex_unlock(&power_resource_list_lock);
-+	acpi_power_add_resource_to_list(resource);
- 	acpi_device_add_finalize(device);
- 	return 0;
+diff --git a/include/acpi/platform/acenvex.h b/include/acpi/platform/acenvex.h
+index 71e5ec5..14dc6f6 100644
+--- a/include/acpi/platform/acenvex.h
++++ b/include/acpi/platform/acenvex.h
+@@ -56,6 +56,9 @@
+ #if defined(_LINUX) || defined(__linux__)
+ #include <acpi/platform/aclinuxex.h>
  
-@@ -843,7 +860,22 @@ void acpi_resume_power_resources(void)
- 		    && resource->ref_count) {
- 			dev_info(&resource->device.dev, "Turning ON\n");
- 			__acpi_power_on(resource);
--		} else if (state == ACPI_POWER_RESOURCE_STATE_ON
-+		}
++#elif defined(__DragonFly__)
++#include "acdragonflyex.h"
 +
-+		mutex_unlock(&resource->resource_lock);
-+	}
-+	list_for_each_entry_reverse(resource, &acpi_power_resource_list, list_node) {
-+		int result, state;
-+
-+		mutex_lock(&resource->resource_lock);
-+
-+		result = acpi_power_get_state(resource->device.handle, &state);
-+		if (result) {
-+			mutex_unlock(&resource->resource_lock);
-+			continue;
-+		}
-+
-+		if (state == ACPI_POWER_RESOURCE_STATE_ON
- 		    && !resource->ref_count) {
- 			dev_info(&resource->device.dev, "Turning OFF\n");
- 			__acpi_power_off(resource);
-
+ #endif
+ 
+ /*! [End] no source code translation !*/
+-- 
+1.7.10
