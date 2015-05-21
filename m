@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 02/19] ACPICA: ACPI 6.0: Add support for STAO table.
-Date: Thu, 21 May 2015 10:30:11 +0800
-Message-ID: <09a19b5771617fd85ae5baafcd014d1d159013eb.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 05/19] ACPICA: Parser: Move a couple externals to the proper header.
+Date: Thu, 21 May 2015 10:30:31 +0800
+Message-ID: <22945405883a7bed03469fceb0f8198139fd5fab.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
@@ -12,50 +12,45 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 532bf402a503061afd9d80a23e1d3c8fd99b052c
+ACPICA commit 7325b59c8b5d1522ded51ae6a76b804f6e8da5d2
 
-_STA override table.
+Moved from a C module.
 
-Link: https://github.com/acpica/acpica/commit/532bf402
+Link: https://github.com/acpica/acpica/commit/7325b59c
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl3.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/acpi/acpica/acparser.h |    3 +++
+ drivers/acpi/acpica/psopinfo.c |    3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 440ca81..eb994e9 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -68,6 +68,7 @@
- #define ACPI_SIG_PCCT           "PCCT"	/* Platform Communications Channel Table */
- #define ACPI_SIG_PMTT           "PMTT"	/* Platform Memory Topology Table */
- #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
-+#define ACPI_SIG_STAO           "STAO"	/* Status Override table */
- #define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
- 
- #define ACPI_SIG_S3PT           "S3PT"	/* S3 Performance (sub)Table */
-@@ -685,6 +686,21 @@ enum acpi_rasf_status {
- 
- /*******************************************************************************
+diff --git a/drivers/acpi/acpica/acparser.h b/drivers/acpi/acpica/acparser.h
+index 74a390c..0cdd2fc 100644
+--- a/drivers/acpi/acpica/acparser.h
++++ b/drivers/acpi/acpica/acparser.h
+@@ -70,6 +70,9 @@
   *
-+ * STAO - Status Override Table (_STA override) - ACPI 6.0
-+ *        Version 1
-+ *
-+ * Conforms to "ACPI Specification for Status Override Table"
-+ * 6 January 2015
-+ *
-+ ******************************************************************************/
+  *****************************************************************************/
+ 
++extern const u8 acpi_gbl_short_op_index[];
++extern const u8 acpi_gbl_long_op_index[];
 +
-+struct acpi_table_stao {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+	u8 ignore_uart;
-+};
-+
-+/*******************************************************************************
-+ *
-  * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
-  *        Version 3
-  *
+ /*
+  * psxface - Parser external interfaces
+  */
+diff --git a/drivers/acpi/acpica/psopinfo.c b/drivers/acpi/acpica/psopinfo.c
+index 20e1a35..5831090 100644
+--- a/drivers/acpi/acpica/psopinfo.c
++++ b/drivers/acpi/acpica/psopinfo.c
+@@ -50,9 +50,6 @@
+ #define _COMPONENT          ACPI_PARSER
+ ACPI_MODULE_NAME("psopinfo")
+ 
+-extern const u8 acpi_gbl_short_op_index[];
+-extern const u8 acpi_gbl_long_op_index[];
+-
+ static const u8 acpi_gbl_argument_count[] =
+     { 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 6 };
+ 
 -- 
 1.7.10
