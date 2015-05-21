@@ -1,34 +1,37 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-acpi] [V4 PATCH 1/6] ACPI / scan: Parse _CCA and setup device coherency
-Date: Thu, 21 May 2015 15:24:02 +0200
-Message-ID: <3038248.bRme3FQvei@wuerfel>
-References: <1431724994-21601-1-git-send-email-Suravee.Suthikulpanit@amd.com> <5074701.G8z7gpKvin@wuerfel> <20150521130116.GJ29424@e104818-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:52189 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755839AbbEUNYW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 09:24:22 -0400
-In-Reply-To: <20150521130116.GJ29424@e104818-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH] ACPI / PCI: remove stale list_head in struct acpi_prt_entry
+Date: Thu, 21 May 2015 21:52:32 +0800
+Message-ID: <1432216352-8016-1-git-send-email-hanjun.guo@linaro.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linaro-acpi@lists.linaro.org
-Cc: Catalin Marinas <catalin.marinas@arm.com>, herbert@gondor.apana.org.au, rjw@rjwysocki.net, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, bhelgaas@google.com, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 
-On Thursday 21 May 2015 14:01:16 Catalin Marinas wrote:
-> On Wed, May 20, 2015 at 02:04:02PM +0200, Arnd Bergmann wrote:
-> > On Wednesday 20 May 2015 06:52:03 Suravee Suthikulanit wrote:
-> > > 
-> > > Ok. That seems to be what Arnd would prefer as well.  Let's just leave 
-> > > the support for _CCA=0 out until it is needed then.
-> > 
-> > Yes, that would be best (as I said repeatedly  )
-> 
-> I'm sure it won't be long before someone asks for this feature ;).
+list_head "list" in struct acpi_prt_entry was used to connect
+_PRT entries for PCI irq, but after commit 181380b7 (PCI/ACPI:
+Don't cache _PRT, and don't associate them with bus numbers),
+the list head for _PRT entries was removed, but left "list" in
+struct acpi_prt_entry which is useless and stale, remove it now.
 
-If nothing else, we get to publically shame them for building crappy
-hardware then ;-)
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+CC: Yinghai Lu <yinghai@kernel.org>
+CC: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/acpi/pci_irq.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-	Arnd
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index b1def41..03e4b6c 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -44,7 +44,6 @@
+ ACPI_MODULE_NAME("pci_irq");
+ 
+ struct acpi_prt_entry {
+-	struct list_head	list;
+ 	struct acpi_pci_id	id;
+ 	u8			pin;
+ 	acpi_handle		link;
+-- 
+1.7.12.4
