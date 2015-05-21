@@ -1,87 +1,72 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/19] ACPICA: Hardware: Fix a resource leak issue in acpi_hw_build_pci_list().
-Date: Thu, 21 May 2015 10:31:12 +0800
-Message-ID: <6ccad2f9b014a0b65f1a770122cf7a018eee856f.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 07/19] ACPICA: ACPI 6.0: Add support for WPBT table.
+Date: Thu, 21 May 2015 10:30:44 +0800
+Message-ID: <5424cd968228b82495238c6ce4b46874a632bd4b.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:30673 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932335AbbEUCbb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 22:31:31 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit e4f0b73c107680841d7dd01cc04ec108df6580bd
+From: Bob Moore <robert.moore@intel.com>
 
-There is code in acpi_hw_build_pci_list() destructing returned object
-(return_list_head) before touching it while the allocated new object
-(list_head) is not tracked correctly to be destructed on the error case,
-which is detected as unsecure code by the "Coverity" tool.
+ACPICA commit a6ccb4033b49f7aa33a17ddc41dd69d57e799fbd
 
-This patch fixes this issue by always intializing the returned object in
-acpi_hw_build_pci_list() so that the caller of acpi_hw_build_pci_list() needn't
-initialize it and always using the returned object to track the new
-allocated objects. Lv Zheng.
+Windows Platform Binary Table.
 
-Link: https://github.com/acpica/acpica/commit/e4f0b73c
-Reference: https://jira01.devtools.intel.com/browse/LCK-2143
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/a6ccb403
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/hwpci.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/acpi/actbl3.h |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/hwpci.c b/drivers/acpi/acpica/hwpci.c
-index c5214de..f785ea7 100644
---- a/drivers/acpi/acpica/hwpci.c
-+++ b/drivers/acpi/acpica/hwpci.c
-@@ -123,7 +123,7 @@ acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
- 		      acpi_handle root_pci_device, acpi_handle pci_region)
- {
- 	acpi_status status;
--	struct acpi_pci_device *list_head = NULL;
-+	struct acpi_pci_device *list_head;
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index 3eed4c8..e1aac82 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -70,6 +70,7 @@
+ #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
+ #define ACPI_SIG_STAO           "STAO"	/* Status Override table */
+ #define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
++#define ACPI_SIG_WPBT           "WPBT"	/* Windows Platform Binary Table */
+ #define ACPI_SIG_XENV           "XENV"	/* Xen Environment table */
  
- 	ACPI_FUNCTION_TRACE(hw_derive_pci_id);
+ #define ACPI_SIG_S3PT           "S3PT"	/* S3 Performance (sub)Table */
+@@ -79,7 +80,6 @@
  
-@@ -177,13 +177,13 @@ acpi_hw_build_pci_list(acpi_handle root_pci_device,
- 	acpi_handle parent_device;
- 	acpi_status status;
- 	struct acpi_pci_device *list_element;
--	struct acpi_pci_device *list_head = NULL;
+ #define ACPI_SIG_MATR           "MATR"	/* Memory Address Translation Table */
+ #define ACPI_SIG_MSDM           "MSDM"	/* Microsoft Data Management Table */
+-#define ACPI_SIG_WPBT           "WPBT"	/* Windows Platform Binary Table */
  
- 	/*
- 	 * Ascend namespace branch until the root_pci_device is reached, building
- 	 * a list of device nodes. Loop will exit when either the PCI device is
- 	 * found, or the root of the namespace is reached.
- 	 */
-+	*return_list_head = NULL;
- 	current_device = pci_region;
- 	while (1) {
- 		status = acpi_get_parent(current_device, &parent_device);
-@@ -198,7 +198,6 @@ acpi_hw_build_pci_list(acpi_handle root_pci_device,
- 		/* Finished when we reach the PCI root device (PNP0A03 or PNP0A08) */
+ /*
+  * All tables must be byte-packed to match the ACPI specification, since
+@@ -732,6 +732,24 @@ struct acpi_tpm2_control {
  
- 		if (parent_device == root_pci_device) {
--			*return_list_head = list_head;
- 			return (AE_OK);
- 		}
- 
-@@ -213,9 +212,9 @@ acpi_hw_build_pci_list(acpi_handle root_pci_device,
- 
- 		/* Put new element at the head of the list */
- 
--		list_element->next = list_head;
-+		list_element->next = *return_list_head;
- 		list_element->device = parent_device;
--		list_head = list_element;
-+		*return_list_head = list_element;
- 
- 		current_device = parent_device;
- 	}
+ /*******************************************************************************
+  *
++ * WPBT - Windows Platform Environment Table (ACPI 6.0)
++ *        Version 1
++ *
++ * Conforms to "Windows Platform Binary Table (WPBT)" 29 November 2011
++ *
++ ******************************************************************************/
++
++struct acpi_table_wpbt {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u32 handoff_size;
++	u64 handoff_address;
++	u8 layout;
++	u8 type;
++	u16 arguments_length;
++};
++
++/*******************************************************************************
++ *
+  * XENV - Xen Environment Table (ACPI 6.0)
+  *        Version 1
+  *
 -- 
 1.7.10
-
