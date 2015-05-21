@@ -1,178 +1,88 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/19] ACPICA: ACPI 6.0: Add support for IORT table.
-Date: Thu, 21 May 2015 10:31:30 +0800
-Message-ID: <6c46dcce62c3e70859aab0f69aea6435b29c979d.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 16/19] ACPICA: iASL/disassembler - fix possible fault for -e option.
+Date: Thu, 21 May 2015 10:31:44 +0800
+Message-ID: <2ed8c46d53bad7187d291fb2163193bd23c9ac12.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:49646 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932431AbbEUCcD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 22:32:03 -0400
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 5de82757aef5d6163e37064033aacbce193abbca
+From: Bob Moore <robert.moore@intel.com>
 
-This patch adds support for IORT (IO Remapping Table) in iasl.
+ACPICA commit 403b8b0023fd7549b2f9bf818fcc1ba481047b69
 
-Note that some field names are modified to shrink their length or the
-decompiled IORT ASL will contain fields with ugly ":" alignment.
+If non-AML files are used with the -e option, the disassembler
+can fault. The fix is to ensure that all -e files are either
+SSDTs or a DSDT. ACPICA BZ 1158.
 
-The IORT contains field definitions around "Memory Access Properties". This
-patch also adds support to encode/decode it using inline table.
-
-This patch doesn't add inline table support for the SMMU interrupt fields
-due to a limitation in current ACPICA data table support. Lv Zheng.
-
-Link: https://github.com/acpica/acpica/commit/5de82757
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/403b8b00
+Reference: https://bugs.acpica.org/show_bug.cgi?id=1158
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |  126 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 126 insertions(+)
+ drivers/acpi/acpica/acdebug.h   |    4 +++-
+ drivers/acpi/acpica/utfileio.c  |    2 +-
+ drivers/acpi/acpica/utxferror.c |   11 +++++++++--
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 93f85e8..370d69d 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -69,6 +69,7 @@
- #define ACPI_SIG_DMAR           "DMAR"	/* DMA Remapping table */
- #define ACPI_SIG_HPET           "HPET"	/* High Precision Event Timer table */
- #define ACPI_SIG_IBFT           "IBFT"	/* iSCSI Boot Firmware Table */
-+#define ACPI_SIG_IORT           "IORT"	/* IO Remapping Table */
- #define ACPI_SIG_IVRS           "IVRS"	/* I/O Virtualization Reporting Structure */
- #define ACPI_SIG_LPIT           "LPIT"	/* Low Power Idle Table */
- #define ACPI_SIG_MCFG           "MCFG"	/* PCI Memory Mapped Configuration table */
-@@ -650,6 +651,131 @@ struct acpi_ibft_target {
+diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
+index 4169bb8..43685dd 100644
+--- a/drivers/acpi/acpica/acdebug.h
++++ b/drivers/acpi/acpica/acdebug.h
+@@ -231,7 +231,9 @@ void acpi_db_open_debug_file(char *name);
+ acpi_status acpi_db_load_acpi_table(char *filename);
  
- /*******************************************************************************
-  *
-+ * IORT - IO Remapping Table
-+ *
-+ * Conforms to "IO Remapping Table System Software on ARM Platforms",
-+ * Document number: ARM DEN 0049A, 2015
-+ *
-+ ******************************************************************************/
+ acpi_status
+-acpi_db_get_table_from_file(char *filename, struct acpi_table_header **table);
++acpi_db_get_table_from_file(char *filename,
++			    struct acpi_table_header **table,
++			    u8 must_be_aml_table);
+ 
+ /*
+  * dbhistry - debugger HISTORY command
+diff --git a/drivers/acpi/acpica/utfileio.c b/drivers/acpi/acpica/utfileio.c
+index f72c53c..857af82 100644
+--- a/drivers/acpi/acpica/utfileio.c
++++ b/drivers/acpi/acpica/utfileio.c
+@@ -312,7 +312,7 @@ acpi_ut_read_table_from_file(char *filename, struct acpi_table_header ** table)
+ 	/* Get the entire file */
+ 
+ 	fprintf(stderr,
+-		"Loading Acpi table from file %10s - Length %.8u (%06X)\n",
++		"Reading ACPI table from file %10s - Length %.8u (0x%06X)\n",
+ 		filename, file_size, file_size);
+ 
+ 	status = acpi_ut_read_table(file, table, &table_length);
+diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
+index 306e785..98d5787 100644
+--- a/drivers/acpi/acpica/utxferror.c
++++ b/drivers/acpi/acpica/utxferror.c
+@@ -107,9 +107,16 @@ acpi_exception(const char *module_name,
+ 	va_list arg_list;
+ 
+ 	ACPI_MSG_REDIRECT_BEGIN;
+-	acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
+-		       acpi_format_exception(status));
+ 
++	/* For AE_OK, just print the message */
 +
-+struct acpi_table_iort {
-+	struct acpi_table_header header;
-+	u32 node_count;
-+	u32 node_offset;
-+	u32 reserved;
-+};
++	if (ACPI_SUCCESS(status)) {
++		acpi_os_printf(ACPI_MSG_EXCEPTION);
 +
-+/*
-+ * IORT subtables
-+ */
-+struct acpi_iort_node {
-+	u8 type;
-+	u16 length;
-+	u8 revision;
-+	u32 reserved;
-+	u32 mapping_count;
-+	u32 mapping_offset;
-+	char node_data[1];
-+};
-+
-+/* Values for subtable Type above */
-+
-+enum acpi_iort_node_type {
-+	ACPI_IORT_NODE_ITS_GROUP = 0x00,
-+	ACPI_IORT_NODE_NAMED_COMPONENT = 0x01,
-+	ACPI_IORT_NODE_PCI_ROOT_COMPLEX = 0x02,
-+	ACPI_IORT_NODE_SMMU = 0x03
-+};
-+
-+struct acpi_iort_id_mapping {
-+	u32 input_base;		/* Lowest value in input range */
-+	u32 id_count;		/* Number of IDs */
-+	u32 output_base;	/* Lowest value in output range */
-+	u32 output_reference;	/* A reference to the output node */
-+	u32 flags;
-+};
-+
-+/* Masks for Flags field above for IORT subtable */
-+
-+#define ACPI_IORT_ID_SINGLE_MAPPING (1)
-+
-+struct acpi_iort_memory_access {
-+	u32 cache_coherency;
-+	u8 hints;
-+	u16 reserved;
-+	u8 memory_flags;
-+};
-+
-+/* Values for cache_coherency field above */
-+
-+#define ACPI_IORT_NODE_COHERENT         0x00000001	/* The device node is fully coherent */
-+#define ACPI_IORT_NODE_NOT_COHERENT     0x00000000	/* The device node is not coherent */
-+
-+/* Masks for Hints field above */
-+
-+#define ACPI_IORT_HT_TRANSIENT          (1)
-+#define ACPI_IORT_HT_WRITE              (1<<1)
-+#define ACPI_IORT_HT_READ               (1<<2)
-+#define ACPI_IORT_HT_OVERRIDE           (1<<3)
-+
-+/* Masks for memory_flags field above */
-+
-+#define ACPI_IORT_MF_COHERENCY          (1)
-+#define ACPI_IORT_MF_ATTRIBUTES         (1<<1)
-+
-+/*
-+ * IORT node specific subtables
-+ */
-+struct acpi_iort_its_group {
-+	u32 its_count;
-+	u32 identifiers[1];	/* GIC ITS identifier arrary */
-+};
-+
-+struct acpi_iort_named_component {
-+	u32 node_flags;
-+	u64 memory_properties;	/* Memory access properties */
-+	u8 memory_address_limit;	/* Memory address size limit */
-+	char device_name[1];	/* Path of namespace object */
-+};
-+
-+struct acpi_iort_root_complex {
-+	u64 memory_properties;	/* Memory access properties */
-+	u32 ats_attribute;
-+	u32 pci_segment_number;
-+};
-+
-+/* Values for ats_attribute field above */
-+
-+#define ACPI_IORT_ATS_SUPPORTED         0x00000001	/* The root complex supports ATS */
-+#define ACPI_IORT_ATS_UNSUPPORTED       0x00000000	/* The root complex doesn't support ATS */
-+
-+struct acpi_iort_smmu {
-+	u64 base_address;	/* SMMU base address */
-+	u64 span;		/* Length of memory range */
-+	u32 model;
-+	u32 flags;
-+	u32 global_interrupt_offset;
-+	u32 context_interrupt_count;
-+	u32 context_interrupt_offset;
-+	u32 pmu_interrupt_count;
-+	u32 pmu_interrupt_offset;
-+	u64 interrupts[1];	/* Interrupt array */
-+};
-+
-+/* Values for Model field above */
-+
-+#define ACPI_IORT_SMMU_V1               0x00000000	/* Generic SMMUv1 */
-+#define ACPI_IORT_SMMU_V2               0x00000001	/* Generic SMMUv2 */
-+#define ACPI_IORT_SMMU_CORELINK_MMU400  0x00000002	/* ARM Corelink MMU-400 */
-+#define ACPI_IORT_SMMU_CORELINK_MMU500  0x00000003	/* ARM Corelink MMU-500 */
-+
-+/* Masks for Flags field above */
-+
-+#define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
-+#define ACPI_IORT_SMMU_COHERENT_WALK    (1<<1)
-+
-+/*******************************************************************************
-+ *
-  * IVRS - I/O Virtualization Reporting Structure
-  *        Version 1
-  *
++	} else {
++		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
++			       acpi_format_exception(status));
++	}
+ 	va_start(arg_list, format);
+ 	acpi_os_vprintf(format, arg_list);
+ 	ACPI_MSG_SUFFIX;
 -- 
 1.7.10
+
