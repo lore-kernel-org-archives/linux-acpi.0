@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 17/19] ACPICA: acpi_help: Add option to display all known/supported ACPI tables.
-Date: Thu, 21 May 2015 10:31:52 +0800
-Message-ID: <766126a088089526ac664f68d5a5fcebe0763725.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 18/19] ACPICA: ACPI 6.0: Add support for NFIT table.
+Date: Thu, 21 May 2015 10:31:58 +0800
+Message-ID: <5043ee403371d025add0b5bacd0046ae07ac2783.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
@@ -12,30 +12,277 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit d6d003556c6fc22e067d5d511577128a661266c3
+ACPICA commit e4e17ca361373e9b81494bb4ca697a12cef3cba6
 
--t option displays all ACPI tables.
+NVDIMM Firmware Interface Table.
 
-Link: https://github.com/acpica/acpica/commit/d6d00355
+Link: https://github.com/acpica/acpica/commit/e4e17ca3
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/acpi/acpica/uthex.c |    4 +-
+ include/acpi/actbl1.h       |  154 +++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acuuid.h       |   64 ++++++++++++++++++
+ 3 files changed, 220 insertions(+), 2 deletions(-)
+ create mode 100644 include/acpi/acuuid.h
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 3596958..ffdb956 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -1175,4 +1175,9 @@ struct ah_uuid {
- 	char *string;
- };
+diff --git a/drivers/acpi/acpica/uthex.c b/drivers/acpi/acpica/uthex.c
+index aa44827..fda8b3d 100644
+--- a/drivers/acpi/acpica/uthex.c
++++ b/drivers/acpi/acpica/uthex.c
+@@ -75,9 +75,9 @@ char acpi_ut_hex_to_ascii_char(u64 integer, u32 position)
  
-+struct ah_table {
-+	char *signature;
-+	char *description;
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_ut_hex_char_to_value
++ * FUNCTION:    acpi_ut_ascii_char_to_hex
+  *
+- * PARAMETERS:  ascii_char            - Hex character in Ascii
++ * PARAMETERS:  hex_char                - Hex character in Ascii
+  *
+  * RETURN:      The binary value of the ascii/hex character
+  *
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index cadf21c..06b61f0 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -71,6 +71,7 @@
+ #define ACPI_SIG_SBST           "SBST"	/* Smart Battery Specification Table */
+ #define ACPI_SIG_SLIT           "SLIT"	/* System Locality Distance Information Table */
+ #define ACPI_SIG_SRAT           "SRAT"	/* System Resource Affinity Table */
++#define ACPI_SIG_NFIT           "NFIT"	/* NVDIMM Firmware Interface Table */
+ 
+ /*
+  * All tables must be byte-packed to match the ACPI specification, since
+@@ -922,6 +923,159 @@ struct acpi_msct_proximity {
+ 
+ /*******************************************************************************
+  *
++ * NFIT - NVDIMM Interface Table (ACPI 6.0)
++ *        Version 1
++ *
++ ******************************************************************************/
++
++struct acpi_table_nfit {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u32 reserved;		/* Reserved, must be zero */
 +};
 +
- #endif				/* __ACLOCAL_H__ */
++/* Subtable header for NFIT */
++
++struct acpi_nfit_header {
++	u16 type;
++	u16 length;
++};
++
++/* Values for subtable type in struct acpi_nfit_header */
++
++enum acpi_nfit_type {
++	ACPI_NFIT_TYPE_SYSTEM_ADDRESS = 0,
++	ACPI_NFIT_TYPE_MEMORY_MAP = 1,
++	ACPI_NFIT_TYPE_INTERLEAVE = 2,
++	ACPI_NFIT_TYPE_SMBIOS = 3,
++	ACPI_NFIT_TYPE_CONTROL_REGION = 4,
++	ACPI_NFIT_TYPE_DATA_REGION = 5,
++	ACPI_NFIT_TYPE_FLUSH_ADDRESS = 6,
++	ACPI_NFIT_TYPE_RESERVED = 7	/* 7 and greater are reserved */
++};
++
++/*
++ * NFIT Subtables
++ */
++
++/* 0: System Physical Address Range Structure */
++
++struct acpi_nfit_system_address {
++	struct acpi_nfit_header header;
++	u16 range_index;
++	u16 flags;
++	u32 reserved;		/* Reseved, must be zero */
++	u32 proximity_domain;
++	u8 range_guid[16];
++	u64 address;
++	u64 length;
++	u64 memory_mapping;
++};
++
++/* Flags */
++
++#define ACPI_NFIT_ADD_ONLINE_ONLY       (1)	/* 00: Add/Online Operation Only */
++#define ACPI_NFIT_PROXIMITY_VALID       (1<<1)	/* 01: Proximity Domain Valid */
++
++/* Range Type GUIDs appear in the include/acuuid.h file */
++
++/* 1: Memory Device to System Address Range Map Structure */
++
++struct acpi_nfit_memory_map {
++	struct acpi_nfit_header header;
++	u32 device_handle;
++	u16 physical_id;
++	u16 region_id;
++	u16 range_index;
++	u16 region_index;
++	u64 region_size;
++	u64 region_offset;
++	u64 address;
++	u16 interleave_index;
++	u16 interleave_ways;
++	u16 flags;
++	u16 reserved;		/* Reserved, must be zero */
++};
++
++/* Flags */
++
++#define ACPI_NFIT_MEM_SAVE_FAILED       (1)	/* 00: Last SAVE to Memory Device failed */
++#define ACPI_NFIT_MEM_RESTORE_FAILED    (1<<1)	/* 01: Last RESTORE from Memory Device failed */
++#define ACPI_NFIT_MEM_FLUSH_FAILED      (1<<2)	/* 02: Platform flush failed */
++#define ACPI_NFIT_MEM_ARMED             (1<<3)	/* 03: Memory Device observed to be not armed */
++#define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
++#define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
++
++/* 2: Interleave Structure */
++
++struct acpi_nfit_interleave {
++	struct acpi_nfit_header header;
++	u16 interleave_index;
++	u16 reserved;		/* Reserved, must be zero */
++	u32 line_count;
++	u32 line_size;
++	u32 line_offset[1];	/* Variable length */
++};
++
++/* 3: SMBIOS Management Information Structure */
++
++struct acpi_nfit_smbios {
++	struct acpi_nfit_header header;
++	u32 reserved;		/* Reserved, must be zero */
++	u8 data[1];		/* Variable length */
++};
++
++/* 4: NVDIMM Control Region Structure */
++
++struct acpi_nfit_control_region {
++	struct acpi_nfit_header header;
++	u16 region_index;
++	u16 vendor_id;
++	u16 device_id;
++	u16 revision_id;
++	u16 subsystem_vendor_id;
++	u16 subsystem_device_id;
++	u16 subsystem_revision_id;
++	u8 reserved[6];		/* Reserved, must be zero */
++	u32 serial_number;
++	u16 code;
++	u16 windows;
++	u64 window_size;
++	u64 command_offset;
++	u64 command_size;
++	u64 status_offset;
++	u64 status_size;
++	u16 flags;
++	u8 reserved1[6];	/* Reserved, must be zero */
++};
++
++/* Flags */
++
++#define ACPI_NFIT_CONTROL_BUFFERED      (1)	/* Block Data Windows implementation is buffered */
++
++/* 5: NVDIMM Block Data Window Region Structure */
++
++struct acpi_nfit_data_region {
++	struct acpi_nfit_header header;
++	u16 region_index;
++	u16 windows;
++	u64 offset;
++	u64 size;
++	u64 capacity;
++	u64 start_address;
++};
++
++/* 6: Flush Hint Address Structure */
++
++struct acpi_nfit_flush_address {
++	struct acpi_nfit_header header;
++	u32 device_handle;
++	u16 hint_count;
++	u8 reserved[6];		/* Reserved, must be zero */
++	u64 hint_address[1];	/* Variable length */
++};
++
++/*******************************************************************************
++ *
+  * SBST - Smart Battery Specification Table
+  *        Version 1
+  *
+diff --git a/include/acpi/acuuid.h b/include/acpi/acuuid.h
+new file mode 100644
+index 0000000..4955d5e
+--- /dev/null
++++ b/include/acpi/acuuid.h
+@@ -0,0 +1,64 @@
++/******************************************************************************
++ *
++ * Name: acuuid.h - ACPI-related UUID/GUID definitions
++ *
++ *****************************************************************************/
++
++/*
++ * Copyright (C) 2000 - 2015, Intel Corp.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ */
++
++#ifndef __ACUUID_H__
++#define __ACUUID_H__
++
++/*
++ * Note1: UUIDs and GUIDs are defined to be identical in ACPI.
++ *
++ * Note2: This file is standalone and should remain that way.
++ */
++
++/* NFIT/NVDIMM */
++
++#define UUID_VOLATILE_MEMORY            "4F940573-DAFD-E344-B16C-3F22D252E5D0"
++#define UUID_PERSISTENT_MEMORY          "79D3F066-F3B4-7440-AC43-0D3318B78CDB"
++#define UUID_CONTROL_REGION             "F601F792-B413-5D40-910B-299367E8234C"
++#define UUID_DATA_REGION                "3005AF91-865D-0E47-A6B0-0A2DB9408249"
++#define UUID_VOLATILE_VIRTUAL_DISK      "5A53AB77-FC45-4B62-5560-F7B281D1F96E"
++#define UUID_VOLATILE_VIRTUAL_CD        "30BD5A3D-7541-CE87-6D64-D2ADE523C4BB"
++#define UUID_PERSISTENT_VIRTUAL_DISK    "C902EA5C-074D-69D3-269F-4496FBE096F9"
++#define UUID_PERSISTENT_VIRTUAL_CD      "88810108-CD42-48BB-100F-5387D53DED3D"
++
++#endif				/* __AUUID_H__ */
 -- 
 1.7.10
