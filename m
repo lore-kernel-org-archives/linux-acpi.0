@@ -1,82 +1,72 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 12/19] ACPICA: ACPI 6.0: Add changes for MADT table.
-Date: Thu, 21 May 2015 22:36:25 +0800
-Message-ID: <555DED69.7040203@linaro.org>
-References: <cover.1432175162.git.lv.zheng@intel.com> <e5bb0a9389d04b75d702fbdb747f3015b6be51c3.1432175162.git.lv.zheng@intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 03/11] irqchip / GIC: Add GIC version support in ACPI
+ MADT
+Date: Thu, 21 May 2015 16:39:25 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1505211632180.31710@nanos>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-4-git-send-email-hanjun.guo@linaro.org> <alpine.DEB.2.11.1505202157190.4225@nanos> <555DE98A.2000909@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-5189304-1432219166=:31710"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:36363 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754097AbbEUOga (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 10:36:30 -0400
-Received: by pabts4 with SMTP id ts4so107316784pab.3
-        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2015 07:36:30 -0700 (PDT)
-In-Reply-To: <e5bb0a9389d04b75d702fbdb747f3015b6be51c3.1432175162.git.lv.zheng@intel.com>
+Received: from www.linutronix.de ([62.245.132.108]:38823 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309AbbEUOjX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 10:39:23 -0400
+In-Reply-To: <555DE98A.2000909@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi Lv,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 10:31, Lv Zheng wrote:
-> From: Bob Moore <robert.moore@intel.com>
->
-> ACPICA commit 02cbb41232bccf7a91967140cab95d5f48291f21
->
-> New subtable type. Some additions to existing subtables.
->
-> Link: https://github.com/acpica/acpica/commit/02cbb412
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
-[...]
->
->   /* Masks for Flags field above */
-> @@ -819,7 +822,7 @@ struct acpi_madt_generic_interrupt {
->   #define ACPI_MADT_PERFORMANCE_IRQ_MODE  (1<<1)	/* 01: Performance I=
-nterrupt Mode */
->   #define ACPI_MADT_VGIC_IRQ_MODE         (1<<2)	/* 02: VGIC Maintena=
-nce Interrupt mode */
->
-> -/* 12: Generic Distributor (ACPI 5.0) */
-> +/* 12: Generic Distributor (ACPI 5.0 + ACPI 6.0 changes) */
->
->   struct acpi_madt_generic_distributor {
->   	struct acpi_subtable_header header;
-> @@ -827,7 +830,8 @@ struct acpi_madt_generic_distributor {
->   	u32 gic_id;
->   	u64 base_address;
->   	u32 global_irq_base;
-> -	u32 reserved2;		/* reserved - must be zero */
-> +	u8 version;
+--8323329-5189304-1432219166=:31710
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-version filed in generic distributor has following values,
+On Thu, 21 May 2015, Hanjun Guo wrote:
+> On 2015年05月21日 04:02, Thomas Gleixner wrote:
+> > On Mon, 18 May 2015, Hanjun Guo wrote:
+> > > diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
+> > > index 65d6b93..855ead9 100644
+> > > --- a/drivers/acpi/irq.c
+> > > +++ b/drivers/acpi/irq.c
+> > > @@ -32,6 +32,9 @@ void __init acpi_irqchip_init(void)
+> > >   	if (acpi_disabled)
+> > >   		return;
+> > > 
+> > > +	if (acpi_gic_version_init())
+> > > +		return;
+> > 
+> > This looks just wrong. acpi_irqchip_init() is a generic ACPI function
+> > and now you stick a GIC specific callback into it?
+> 
+> For now, acpi_irqchip_init() just introduced for GIC init, not for
+> APIC init for x86, and I don't see the usage in the near future.
+> 
+> > 
+> > What calls acpi_irqchip_init?
+> 
+> I renamed it as acpi_irq_init() in the later patch, which
+> is called in irqchip_init() in drivers/irqchip/irqchip.c
+> to init irqchip when DT is not available.
 
-/* Values for gic_version in Generic Distributor  (ACPI 6.0) */
+Neither of those names is a good choice as they suggest that this is a
+generic acpi mechanism while in fact it is a GIC specific ACPI
+extension. And its therefor wrong to put that code into drivers/acpi.
 
-enum acpi_madt_gic_ver_type
-{
-         ACPI_MADT_GIC_VER_UNKNOWN       =3D 0,
-         ACPI_MADT_GIC_VER_V1            =3D 1,
-         ACPI_MADT_GIC_VER_V2            =3D 2,
-         ACPI_MADT_GIC_VER_V3            =3D 3,
-         ACPI_MADT_GIC_VER_V4            =3D 4,
-         ACPI_MADT_GIC_VER_RESERVED      =3D 5     /* 5 and greater are=
-=20
-reserved */
-};
+It belongs into drivers/irqchip/gic-acpi.c or some other descriptive
+name.
 
-should we put it here, or locate it to ARM64 arch related head
-file?
+Thanks,
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	tglx
+
+
+
+
+
+
+
+
+--8323329-5189304-1432219166=:31710--
