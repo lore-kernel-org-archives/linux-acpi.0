@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/19] ACPICA: ACPI 6.0: Add support for new predefined names.
-Date: Thu, 21 May 2015 10:30:18 +0800
-Message-ID: <36efe2ec459e572188d936065281d4632e646c32.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 02/19] ACPICA: ACPI 6.0: Add support for STAO table.
+Date: Thu, 21 May 2015 10:30:11 +0800
+Message-ID: <09a19b5771617fd85ae5baafcd014d1d159013eb.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
@@ -12,235 +12,50 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 7ba68f2eafa12fe75ee7aa0df7543d5ea2443051
+ACPICA commit 532bf402a503061afd9d80a23e1d3c8fd99b052c
 
-Compiler, Interpreter, acpi_help.
+_STA override table.
 
-_BTH, _CR3, _DSD, _LPI, _MTL, _PRR, _RDI,
-_RST, _TFP, _TSN.
-
-Link: https://github.com/acpica/acpica/commit/7ba68f2e
+Link: https://github.com/acpica/acpica/commit/532bf402
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h  |   10 +++++++++
- drivers/acpi/acpica/acpredef.h |   45 +++++++++++++++++++++++++++++++++++++---
- drivers/acpi/acpica/nsprepkg.c |   13 ++++++++++++
- drivers/acpi/acpica/nsrepair.c |    2 +-
- 4 files changed, 66 insertions(+), 4 deletions(-)
+ include/acpi/actbl3.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 87b2752..3596958 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -352,11 +352,21 @@ struct acpi_package_info3 {
- 	u16 reserved;
- };
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index 440ca81..eb994e9 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -68,6 +68,7 @@
+ #define ACPI_SIG_PCCT           "PCCT"	/* Platform Communications Channel Table */
+ #define ACPI_SIG_PMTT           "PMTT"	/* Platform Memory Topology Table */
+ #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
++#define ACPI_SIG_STAO           "STAO"	/* Status Override table */
+ #define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
  
-+struct acpi_package_info4 {
-+	u8 type;
-+	u8 object_type1;
-+	u8 count1;
-+	u8 sub_object_types;
-+	u8 pkg_count;
-+	u16 reserved;
+ #define ACPI_SIG_S3PT           "S3PT"	/* S3 Performance (sub)Table */
+@@ -685,6 +686,21 @@ enum acpi_rasf_status {
+ 
+ /*******************************************************************************
+  *
++ * STAO - Status Override Table (_STA override) - ACPI 6.0
++ *        Version 1
++ *
++ * Conforms to "ACPI Specification for Status Override Table"
++ * 6 January 2015
++ *
++ ******************************************************************************/
++
++struct acpi_table_stao {
++	struct acpi_table_header header;	/* Common ACPI table header */
++	u8 ignore_uart;
 +};
 +
- union acpi_predefined_info {
- 	struct acpi_name_info info;
- 	struct acpi_package_info ret_info;
- 	struct acpi_package_info2 ret_info2;
- 	struct acpi_package_info3 ret_info3;
-+	struct acpi_package_info4 ret_info4;
- };
- 
- /* Reset to default packing */
-diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
-index a972d11..b9474b5 100644
---- a/drivers/acpi/acpica/acpredef.h
-+++ b/drivers/acpi/acpica/acpredef.h
-@@ -105,6 +105,11 @@
-  *      count = 0 (optional)
-  *      (Used for _DLM)
-  *
-+ * ACPI_PTYPE2_VAR_VAR: Variable number of subpackages, each of either a
-+ *      constant or variable length. The subpackages are preceded by a
-+ *      constant number of objects.
-+ *      (Used for _LPI, _RDI)
++/*******************************************************************************
 + *
-  * ACPI_PTYPE2_UUID_PAIR: Each subpackage is preceded by a UUID Buffer. The UUID
-  *      defines the format of the package. Zero-length parent package is
-  *      allowed.
-@@ -123,7 +128,8 @@ enum acpi_return_package_types {
- 	ACPI_PTYPE2_MIN = 8,
- 	ACPI_PTYPE2_REV_FIXED = 9,
- 	ACPI_PTYPE2_FIX_VAR = 10,
--	ACPI_PTYPE2_UUID_PAIR = 11
-+	ACPI_PTYPE2_VAR_VAR = 11,
-+	ACPI_PTYPE2_UUID_PAIR = 12
- };
- 
- /* Support macros for users of the predefined info table */
-@@ -172,7 +178,7 @@ enum acpi_return_package_types {
-  * These are the names that can actually be evaluated via acpi_evaluate_object.
-  * Not present in this table are the following:
+  * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
+  *        Version 3
   *
-- *      1) Predefined/Reserved names that are never evaluated via
-+ *      1) Predefined/Reserved names that are not usually evaluated via
-  *         acpi_evaluate_object:
-  *              _Lxx and _Exx GPE methods
-  *              _Qxx EC methods
-@@ -361,6 +367,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (4 Int) */
- 	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 4, 0, 0, 0),
- 
-+	{{"_BTH", METHOD_1ARGS(ACPI_TYPE_INTEGER),	/* ACPI 6.0 */
-+	  METHOD_NO_RETURN_VALUE}},
-+
- 	{{"_BTM", METHOD_1ARGS(ACPI_TYPE_INTEGER),
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-@@ -390,6 +399,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	PACKAGE_INFO(ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER, 0,
- 		     0, 0, 0),
- 
-+	{{"_CR3", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
-+
- 	{{"_CRS", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
- 
-@@ -445,7 +457,7 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	{{"_DOS", METHOD_1ARGS(ACPI_TYPE_INTEGER),
- 	  METHOD_NO_RETURN_VALUE}},
- 
--	{{"_DSD", METHOD_0ARGS,
-+	{{"_DSD", METHOD_0ARGS,	/* ACPI 6.0 */
- 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (Pkgs) each: 1 Buf, 1 Pkg */
- 	PACKAGE_INFO(ACPI_PTYPE2_UUID_PAIR, ACPI_RTYPE_BUFFER, 1,
- 		     ACPI_RTYPE_PACKAGE, 1, 0),
-@@ -604,6 +616,12 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (1 Int(rev), n Pkg (2 Int) */
- 	PACKAGE_INFO(ACPI_PTYPE2_REV_FIXED, ACPI_RTYPE_INTEGER, 2, 0, 0, 0),
- 
-+	{{"_LPI", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (3 Int, n Pkg (10 Int/Buf) */
-+	PACKAGE_INFO(ACPI_PTYPE2_VAR_VAR, ACPI_RTYPE_INTEGER, 3,
-+		     ACPI_RTYPE_INTEGER | ACPI_RTYPE_BUFFER | ACPI_RTYPE_STRING,
-+		     10, 0),
-+
- 	{{"_MAT", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
- 
-@@ -624,6 +642,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 		       ACPI_TYPE_INTEGER),
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-+	{{"_MTL", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
-+
- 	{{"_NTT", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-@@ -716,6 +737,10 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (Refs) */
- 	PACKAGE_INFO(ACPI_PTYPE1_VAR, ACPI_RTYPE_REFERENCE, 0, 0, 0, 0),
- 
-+	{{"_PRR", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (1 Ref) */
-+	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_REFERENCE, 1, 0, 0, 0),
-+
- 	{{"_PRS", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
- 
-@@ -796,6 +821,11 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	{{"_PXM", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-+	{{"_RDI", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (1 Int, n Pkg (m Ref)) */
-+	PACKAGE_INFO(ACPI_PTYPE2_VAR_VAR, ACPI_RTYPE_INTEGER, 1,
-+		     ACPI_RTYPE_REFERENCE, 0, 0),
-+
- 	{{"_REG", METHOD_2ARGS(ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER),
- 	  METHOD_NO_RETURN_VALUE}},
- 
-@@ -808,6 +838,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	{{"_ROM", METHOD_2ARGS(ACPI_TYPE_INTEGER, ACPI_TYPE_INTEGER),
- 	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},
- 
-+	{{"_RST", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_NO_RETURN_VALUE}},
-+
- 	{{"_RTV", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-@@ -935,6 +968,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	{{"_TDL", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-+	{{"_TFP", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
-+
- 	{{"_TIP", METHOD_1ARGS(ACPI_TYPE_INTEGER),
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-@@ -959,6 +995,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
- 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (Pkgs) each 5 Int with count */
- 	PACKAGE_INFO(ACPI_PTYPE2_COUNT, ACPI_RTYPE_INTEGER, 5, 0, 0, 0),
- 
-+	{{"_TSN", METHOD_0ARGS,	/* ACPI 6.0 */
-+	  METHOD_RETURNS(ACPI_RTYPE_REFERENCE)}},
-+
- 	{{"_TSP", METHOD_0ARGS,
- 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},
- 
-diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepkg.c
-index 8b79958..9bb2519 100644
---- a/drivers/acpi/acpica/nsprepkg.c
-+++ b/drivers/acpi/acpica/nsprepkg.c
-@@ -316,6 +316,13 @@ acpi_ns_check_package(struct acpi_evaluate_info *info,
- 		    acpi_ns_check_package_list(info, package, elements, count);
- 		break;
- 
-+	case ACPI_PTYPE2_VAR_VAR:
-+		/*
-+		 * Returns a variable list of packages, each with a variable list
-+		 * of objects.
-+		 */
-+		break;
-+
- 	case ACPI_PTYPE2_UUID_PAIR:
- 
- 		/* The package must contain pairs of (UUID + type) */
-@@ -487,6 +494,12 @@ acpi_ns_check_package_list(struct acpi_evaluate_info *info,
- 			}
- 			break;
- 
-+		case ACPI_PTYPE2_VAR_VAR:
-+			/*
-+			 * Each subpackage has a fixed or variable number of elements
-+			 */
-+			break;
-+
- 		case ACPI_PTYPE2_FIXED:
- 
- 			/* Each subpackage has a fixed length */
-diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
-index 151fcd9..77d8103 100644
---- a/drivers/acpi/acpica/nsrepair.c
-+++ b/drivers/acpi/acpica/nsrepair.c
-@@ -497,10 +497,10 @@ acpi_ns_remove_null_elements(struct acpi_evaluate_info *info,
- 	case ACPI_PTYPE2_MIN:
- 	case ACPI_PTYPE2_REV_FIXED:
- 	case ACPI_PTYPE2_FIX_VAR:
--
- 		break;
- 
- 	default:
-+	case ACPI_PTYPE2_VAR_VAR:
- 	case ACPI_PTYPE1_FIXED:
- 	case ACPI_PTYPE1_OPTION:
- 		return;
 -- 
 1.7.10
