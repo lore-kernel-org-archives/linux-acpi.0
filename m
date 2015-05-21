@@ -1,63 +1,60 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] ACPI / PCI: remove stale list_head in struct acpi_prt_entry
-Date: Thu, 21 May 2015 10:53:24 -0500
-Message-ID: <CAErSpo4RebTb36xdXKK-qQ_btYgCQicbH6hF0AFNOmcBWoNRvA@mail.gmail.com>
-References: <1432216352-8016-1-git-send-email-hanjun.guo@linaro.org>
- <CAErSpo6kFfXd9gFuL86qQWcVN6NYe11Ps+SoAefz1z2md8j_tA@mail.gmail.com>
- <555DF723.2000103@linaro.org> <CAErSpo4uZ09K7BSZyyhMtxFpuMCn6hxE01QFWw8nmo7snshutg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
+ NFIT support
+Date: Thu, 21 May 2015 08:56:46 -0700
+Message-ID: <CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
+References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<1432216514.26714.4.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f176.google.com ([209.85.220.176]:35759 "EHLO
-	mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964800AbbEUPxp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 11:53:45 -0400
-Received: by qkdn188 with SMTP id n188so53434000qkd.2
-        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2015 08:53:44 -0700 (PDT)
-In-Reply-To: <CAErSpo4uZ09K7BSZyyhMtxFpuMCn6hxE01QFWw8nmo7snshutg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1432216514.26714.4.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>
 
-On Thu, May 21, 2015 at 10:21 AM, Bjorn Helgaas <bhelgaas@google.com> w=
-rote:
-> On Thu, May 21, 2015 at 10:17 AM, Hanjun Guo <hanjun.guo@linaro.org> =
-wrote:
->> On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 23:10, Bjorn Helgaas wrote:
->>>
->>> On Thu, May 21, 2015 at 8:52 AM, Hanjun Guo <hanjun.guo@linaro.org>=
- wrote:
->>>>
->>>> list_head "list" in struct acpi_prt_entry was used to connect
->>>> _PRT entries for PCI irq, but after commit 181380b7 (PCI/ACPI:
->>>> Don't cache _PRT, and don't associate them with bus numbers),
->>>> the list head for _PRT entries was removed, but left "list" in
->>>> struct acpi_prt_entry which is useless and stale, remove it now.
->>>
->>>
->>> Please use the canonical commit reference format, i.e.,
->>>
->>> 181380b702ee ("PCI/ACPI: Don't cache _PRT, and don't associate them
->>> with bus numbers")
->>
->>
->> OK, now I know what is a canonical commit reference format :)
+On Thu, May 21, 2015 at 6:55 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> On Wed, 2015-05-20 at 16:56 -0400, Dan Williams wrote:
+>  :
+>> +/* NVDIMM - NFIT table */
+>> +
+>> +#define UUID_VOLATILE_MEMORY            "4f940573-dafd-e344-b16c-3f22d252e5d0"
+>> +#define UUID_PERSISTENT_MEMORY          "79d3f066-f3b4-7440-ac43-0d3318b78cdb"
+>> +#define UUID_CONTROL_REGION             "f601f792-b413-5d40-910b-299367e8234c"
+>> +#define UUID_DATA_REGION                "3005af91-865d-0e47-a6b0-0a2db9408249"
+>> +#define UUID_VOLATILE_VIRTUAL_DISK      "5a53ab77-fc45-4b62-5560-f7b281d1f96e"
+>> +#define UUID_VOLATILE_VIRTUAL_CD        "30bd5a3d-7541-ce87-6d64-d2ade523c4bb"
+>> +#define UUID_PERSISTENT_VIRTUAL_DISK    "c902ea5c-074d-69d3-269f-4496fbe096f9"
+>> +#define UUID_PERSISTENT_VIRTUAL_CD      "88810108-cd42-48bb-100f-5387d53ded3d"
 >
-> Yeah, it'd be nice if that were better documented.  checkpatch
-> complains about it (d311cd44545f ("checkpatch: add test for commit id
-> formatting style in commit log")), but unfortunately I don't think
-> it's mentioned anywhere in Documentation/
+> acpi_str_to_uuid() performs little-endian byte-swapping, so the UUID
+> strings here need to be actual values.
+>
+> For instance, UUID_PERSISTENT_MEMORY should be:
+> #define UUID_PERSISTENT_MEMORY   "66f0d379-b4f3-4074-ac43-0d3318b78cdb"
+>
 
-I guess it actually *is* mentioned:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Do=
-cumentation/SubmittingPatches#n171,
-but it's a little bit wishy-washy.  I'll propose a tweak.
+No, the spec defines the GUID for persistent memory as:
 
-Bjorn
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+{ 0x66F0D379, 0xB4F3, 0x4074, 0xAC, 0x43, 0x0D, 0x33, 0x18, 0xB7, 0x8C, 0xDB }
+
+The byte encoding for that GUID is the following (all fields stored
+big endian: https://en.wikipedia.org/wiki/Globally_unique_identifier#Binary_encoding)
+
+{ 0x66, 0xF0, 0xD3, 0x79, 0xB4, 0xF3, 0x40,0x74, 0xAC, 0x43, 0x0D,
+0x33, 0x18, 0xB7, 0x8C, 0xDB }
+
+The reverse ACPI string translation of a UUID buffer according to
+"ACPI 6 - 19.6.136 ToUUID (Convert String to UUID Macro)"
+
+{ dd, cc, bb, aa, ff, ee, hh, gg, ii, jj, kk, ll, mm, nn, oo, pp }
+
+"aabbccdd-eeff-gghh-iijj-kkllmmnnoopp"
+
+"79d3f066-f3b4-7440-ac43-0d3318b78cdb"
+
+Indeed, v2 of this patchset got this wrong.  Thanks to the sharp eyes
+of Bob Moore on the ACPICA team, he caught this discrepancy.  It seems
+the ACPI spec uses the terms "GUID" and "UUID" interchangeably.
