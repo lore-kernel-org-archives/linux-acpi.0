@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/19] ACPICA: iASL: Enhance detection of non-ascii or corrupted input files.
-Date: Thu, 21 May 2015 10:30:38 +0800
-Message-ID: <1d7a3e712198ad4a20793e2a3c190d4e8a36b9fc.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 09/19] ACPICA: ACPI 6.0: Add changes for LPIT table.
+Date: Thu, 21 May 2015 10:30:59 +0800
+Message-ID: <36b043362d119a522de8448c3956e2de02251b0e.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
@@ -12,53 +12,62 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 08170904011f1e8f817d9e3a9f2bb2438aeacf60
+ACPICA commit d527908bb33a3ed515cfb349cbec57121deafcc8
 
-For the compiler part (not disassembler).
-- Characters not within a comment must be be ASCII (0-0x7F), and
-now either printable or a "space" character.
-Provides better detection of files that cannot be compiled.
+Second subtable type was removed from the July 2014 LPIT
+document.
 
-This patch only affects iASL which is not in the Linux upstream.
-
-Link: https://github.com/acpica/acpica/commit/08170904
+Link: https://github.com/acpica/acpica/commit/d527908b
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acutils.h  |    2 +-
- drivers/acpi/acpica/utfileio.c |    7 ++-----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ include/acpi/actbl2.h |   20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index 2b3c5bd..d49f5c7 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -251,7 +251,7 @@ extern const u8 _acpi_ctype[];
- #define _ACPI_DI     0x04	/* '0'-'9' */
- #define _ACPI_LO     0x02	/* 'a'-'z' */
- #define _ACPI_PU     0x10	/* punctuation */
--#define _ACPI_SP     0x08	/* space */
-+#define _ACPI_SP     0x08	/* space, tab, CR, LF, VT, FF */
- #define _ACPI_UP     0x01	/* 'A'-'Z' */
- #define _ACPI_XD     0x80	/* '0'-'9', 'A'-'F', 'a'-'f' */
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index cafdeb5..93f85e8 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -824,7 +824,7 @@ struct acpi_ivrs_memory {
+  *
+  * LPIT - Low Power Idle Table
+  *
+- * Conforms to "ACPI Low Power Idle Table (LPIT) and _LPD Proposal (DRAFT)"
++ * Conforms to "ACPI Low Power Idle Table (LPIT)" July 2014.
+  *
+  ******************************************************************************/
  
-diff --git a/drivers/acpi/acpica/utfileio.c b/drivers/acpi/acpica/utfileio.c
-index 7e1168b..f72c53c 100644
---- a/drivers/acpi/acpica/utfileio.c
-+++ b/drivers/acpi/acpica/utfileio.c
-@@ -198,11 +198,8 @@ acpi_ut_read_table(FILE * fp,
- 			     table_header.length, file_size);
+@@ -846,8 +846,7 @@ struct acpi_lpit_header {
  
- #ifdef ACPI_ASL_COMPILER
--			status = fl_check_for_ascii(fp, NULL, FALSE);
--			if (ACPI_SUCCESS(status)) {
--				acpi_os_printf
--				    ("File appears to be ASCII only, must be binary\n");
--			}
-+			acpi_os_printf("File is corrupt or is ASCII text -- "
-+				       "it must be a binary file\n");
- #endif
- 			return (AE_BAD_HEADER);
- 		}
+ enum acpi_lpit_type {
+ 	ACPI_LPIT_TYPE_NATIVE_CSTATE = 0x00,
+-	ACPI_LPIT_TYPE_SIMPLE_IO = 0x01,
+-	ACPI_LPIT_TYPE_RESERVED = 0x02	/* 2 and above are reserved */
++	ACPI_LPIT_TYPE_RESERVED = 0x01	/* 1 and above are reserved */
+ };
+ 
+ /* Masks for Flags field above  */
+@@ -870,21 +869,6 @@ struct acpi_lpit_native {
+ 	u64 counter_frequency;
+ };
+ 
+-/* 0x01: Simple I/O based LPI structure */
+-
+-struct acpi_lpit_io {
+-	struct acpi_lpit_header header;
+-	struct acpi_generic_address entry_trigger;
+-	u32 trigger_action;
+-	u64 trigger_value;
+-	u64 trigger_mask;
+-	struct acpi_generic_address minimum_idle_state;
+-	u32 residency;
+-	u32 latency;
+-	struct acpi_generic_address residency_counter;
+-	u64 counter_frequency;
+-};
+-
+ /*******************************************************************************
+  *
+  * MCFG - PCI Memory Mapped Configuration table and subtable
 -- 
 1.7.10
