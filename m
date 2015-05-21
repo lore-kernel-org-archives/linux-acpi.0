@@ -1,62 +1,92 @@
-From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
-Subject: RE: [PATCH 7/7] fjes: Add ethtool support
-Date: Thu, 21 May 2015 03:30:18 +0000
-Message-ID: <E86EADE93E2D054CBCD4E708C38D364A5422DCDB@G01JPEXMBYT01>
-References: <E86EADE93E2D054CBCD4E708C38D364A5422D89B@G01JPEXMBYT01>
- <20150520144347.72bdd228@lxorguk.ukuu.org.uk>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
+Date: Thu, 21 May 2015 12:24:13 +0200
+Message-ID: <20150521102413.GA5866@isilmar-3.linta.de>
+References: <20150517174144.GA17503@light.dominikbrodowski.net>
+ <3695901.X9t2lWziuY@vostro.rjw.lan>
+ <20150518044711.GA3401@air.dominikbrodowski.net>
+ <6154326.X9FC8ZVDIy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20150520144347.72bdd228@lxorguk.ukuu.org.uk>
-Content-Language: ja-JP
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from isilmar-3.linta.de ([188.40.101.200]:34291 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751722AbbEUKYQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 May 2015 06:24:16 -0400
+Content-Disposition: inline
+In-Reply-To: <6154326.X9FC8ZVDIy@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, mario_limonciello@dell.com, broonie@kernel.org, matthew.garrett@coreos.com, alsa-devel@alsa-project.org
 
-Hi Alen,
-
-  Thank you for your comment.
-
-> 1. This driver probably belongs somewhere in drivers/net rather
-> than platform-x86
-
-  I was devided between drivers/net and platform-x86...
-
-> 2. It would be helpful to undertand what the use case is. You describe it
-> as
-
-    I know. Unfortunately currently there's no good HP to illustrate 
-    Extended Socket.
-
+On Thu, May 21, 2015 at 03:24:41AM +0200, Rafael J. Wysocki wrote:
+> On Monday, May 18, 2015 06:47:11 AM Dominik Brodowski wrote:
+> > On Mon, May 18, 2015 at 03:01:32AM +0200, Rafael J. Wysocki wrote:
+> > > On Sunday, May 17, 2015 07:41:44 PM Dominik Brodowski wrote:
+> > > > On Thu, May 14, 2015 at 11:55:33 PM Rafael J. Wysocki wrote:
+> > > > > On Thursday, May 14, 2015 10:36:52 PM Rafael J. Wysocki wrote:
+> > > > > > So the only value that would really make sense here is 5.
+> > > > 
+> > > > > Overall, what about the appended patch instead of your [2-3/4] (modulo the
+> > > > > new command line parameter description which is missing here ATM)?
+> > > > 
+> > > > Well, this approach works as well -- limiting it to an override for just 5
+> > > > seems reasonable; expanding blacklist.c to also cover this case (even though
+> > > > it's not a blacklisting per se) isn't worth any discussion.
+> > > > 
+> > > > Nonetheless, a few specifics:
+> > > > 
+> > > > > +config ACPI_REV_OVERRIDE_POSSIBLE
+> > > > 
+> > > > Why should that be a config option at all? The code savings should be
+> > > > really, really tiny;
+> > > 
+> > > The idea is not about the code savings, but about having a simple way to disable
+> > > the whole thing entirely at one point.
+> > > 
+> > > All of the workarounds under this option *including* the command line switch
+> > > should be temporary.
+> > 
+> > Hopefully, yes. But I am not convinced about that yet (see below).
+> > 
+> > > > and especially in the beginning we might see a few
+> > > > machines where testing the override might seem to be a good idea. So I'd
+> > > > favour having the command line optional, and then only specific quirks
+> > > > behind a config option: For the Dell XPS 13 it makes sense to disable the
+> > > > quirk if userspace can manage i2s sound; for other systems, there may not be
+> > > > such hope. And as this is a machine-specific decision, I fear that we have
+> > > > to do CONFIG options for each and every such DMI entry.
+> > > 
+> > > I'm not sure if we need a config option for Dell in particular.  We can simply
+> > > drop the quirk when it is not necessary any more.
+> > 
+> > The quirk for the Dell XPS 13 (2015), yes. Once userspace catches up (which
+> > may take _years_). But Matthew was mentioning that "[t]he Inspiron 7437
+> > queries _REV and uses it to modify its EC behaviour, and apparently breaks
+> > on Linux without that." If that is indeed the case, we will need a quirk
+> > for that Inspiron for much, much longer than for the Dell XPS 13 (2015).
+> > 
+> > Therefore, I see a need to distinguish the quirk for the Dell XPS 13 (2015),
+> > the quirk for the Inspiron 7437 and potential quirks for other systems: Some
+> > may depend on _sound_ userspace being up to date (XPS), some may depend on
+> > _other_ parts of userspace being up to date, and some may be needed for
+> > as long as these systems exist (Inspiron 7437?). And if the userspace for
+> > the XPS is up to date, the quirk for that particular issue may not be needed
+> > any more, while other quirks (such as potentially the one for the 7437) may
+> > still be needed -- that is why I see a need for different CONFIG options.
 > 
-> "This patchsets add support for FUJITSU Extended Socket network
->  device. Extended Socket network device is a shared memory
->  based high-speed network interface between Extended Partitions of
->  PRIMEQUEST 2000 E2 series."
-> 
-> So would this interface be used to interconnect multiple instances of
-> Linxu (or other operating systems) physically partitioned running on the
-> PrimeQuest server ?
+> Which doesn't explain why we need a config option per quirk.  To me, such config
+> options don't add any value, because (a) everyone will set them anyway and (b)
+> removing the quirks from the source is trivial if needed.
 
-   This interface is used to interconnect multiple instances of Linux 
-   (currently only Linux) LOGICALLY (called Extended Partiton) partitioned
-   running PRIMEQUEST.
+As long as you consider userspace and kernel moving along at a coordinated pace,
+yes -- where we should simply agree to disagree.
 
-> Am I looking at the right information about the system here
-> 
-> http://www.researchgate.net/publication/228905336_Partitioning_Technologies_and_Dynamic_Reconfiguration_of_Mission-C
-> ritical_IA_Server_PRIMEQUEST/links/000477b10cf2ed98fb432c1b.pdf
+That leaves just the question on whether the quirk (and especially the kernel
+parameter) should be hidden behind a special config option (and not just
+CONFIG_X86) -- especially if "everyone will set them anyway" and if "removing
+the quirks from the source is trivial if needed".
 
-   That document is for PRIMEQUEST 400/500 series, so it's a bit old though basic conception is not so far.
-
-   The following manual is useful to understand Extend Partiton and
-   Extended Socket. 
-
-     http://globalsp.ts.fujitsu.com/dmsp/Publications/public/CA92344-0537.pdf
-      3.2.1 Extended Partitioning
-      3.2.2 Extended Socket
-
-  Sincerely,
-  Taku Izumi
-     
+Best,
+	Dominik
