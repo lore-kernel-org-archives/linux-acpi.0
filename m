@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/19] ACPICA: ACPI 6.0: Add changes for LPIT table.
-Date: Thu, 21 May 2015 10:30:59 +0800
-Message-ID: <36b043362d119a522de8448c3956e2de02251b0e.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 08/19] ACPICA: ACPI 6.0: Add changes for FADT table.
+Date: Thu, 21 May 2015 10:30:52 +0800
+Message-ID: <9915992c2e0f9f64f50e1d2614ffb87a89bca16c.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
@@ -12,62 +12,62 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit d527908bb33a3ed515cfb349cbec57121deafcc8
+ACPICA commit 72b0b6741990f619f6aaa915302836b7cbb41ac4
 
-Second subtable type was removed from the July 2014 LPIT
-document.
+One new 64-bit field at the end of the table.
+FADT version is now 6.
 
-Link: https://github.com/acpica/acpica/commit/d527908b
+Link: https://github.com/acpica/acpica/commit/72b0b674
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |   20 ++------------------
- 1 file changed, 2 insertions(+), 18 deletions(-)
+ include/acpi/actbl.h |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index cafdeb5..93f85e8 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -824,7 +824,7 @@ struct acpi_ivrs_memory {
-  *
-  * LPIT - Low Power Idle Table
-  *
-- * Conforms to "ACPI Low Power Idle Table (LPIT) and _LPD Proposal (DRAFT)"
-+ * Conforms to "ACPI Low Power Idle Table (LPIT)" July 2014.
-  *
-  ******************************************************************************/
- 
-@@ -846,8 +846,7 @@ struct acpi_lpit_header {
- 
- enum acpi_lpit_type {
- 	ACPI_LPIT_TYPE_NATIVE_CSTATE = 0x00,
--	ACPI_LPIT_TYPE_SIMPLE_IO = 0x01,
--	ACPI_LPIT_TYPE_RESERVED = 0x02	/* 2 and above are reserved */
-+	ACPI_LPIT_TYPE_RESERVED = 0x01	/* 1 and above are reserved */
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index d4081fe..cb8a6b9 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -284,6 +284,7 @@ struct acpi_table_fadt {
+ 	struct acpi_generic_address xgpe1_block;	/* 64-bit Extended General Purpose Event 1 Reg Blk address */
+ 	struct acpi_generic_address sleep_control;	/* 64-bit Sleep Control register (ACPI 5.0) */
+ 	struct acpi_generic_address sleep_status;	/* 64-bit Sleep Status register (ACPI 5.0) */
++	u64 hypervisor_id;	/* Hypervisor Vendor ID (ACPI 6.0) */
  };
  
- /* Masks for Flags field above  */
-@@ -870,21 +869,6 @@ struct acpi_lpit_native {
- 	u64 counter_frequency;
+ /* Masks for FADT IA-PC Boot Architecture Flags (boot_flags) [Vx]=Introduced in this FADT revision */
+@@ -341,7 +342,7 @@ enum acpi_preferred_pm_profiles {
+ 	PM_TABLET = 8
  };
  
--/* 0x01: Simple I/O based LPI structure */
--
--struct acpi_lpit_io {
--	struct acpi_lpit_header header;
--	struct acpi_generic_address entry_trigger;
--	u32 trigger_action;
--	u64 trigger_value;
--	u64 trigger_mask;
--	struct acpi_generic_address minimum_idle_state;
--	u32 residency;
--	u32 latency;
--	struct acpi_generic_address residency_counter;
--	u64 counter_frequency;
--};
--
- /*******************************************************************************
+-/* Values for sleep_status and sleep_control registers (V5 FADT) */
++/* Values for sleep_status and sleep_control registers (V5+ FADT) */
+ 
+ #define ACPI_X_WAKE_STATUS          0x80
+ #define ACPI_X_SLEEP_TYPE_MASK      0x1C
+@@ -398,15 +399,17 @@ struct acpi_table_desc {
+  * FADT is the bottom line as to what the version really is.
   *
-  * MCFG - PCI Memory Mapped Configuration table and subtable
+  * For reference, the values below are as follows:
+- *     FADT V1  size: 0x074
+- *     FADT V2  size: 0x084
+- *     FADT V3  size: 0x0F4
+- *     FADT V4  size: 0x0F4
+- *     FADT V5  size: 0x10C
++ *     FADT V1 size: 0x074
++ *     FADT V2 size: 0x084
++ *     FADT V3 size: 0x0F4
++ *     FADT V4 size: 0x0F4
++ *     FADT V5 size: 0x10C
++ *     FADT V6 size: 0x114
+  */
+ #define ACPI_FADT_V1_SIZE       (u32) (ACPI_FADT_OFFSET (flags) + 4)
+ #define ACPI_FADT_V2_SIZE       (u32) (ACPI_FADT_OFFSET (minor_revision) + 1)
+ #define ACPI_FADT_V3_SIZE       (u32) (ACPI_FADT_OFFSET (sleep_control))
+-#define ACPI_FADT_V5_SIZE       (u32) (sizeof (struct acpi_table_fadt))
++#define ACPI_FADT_V5_SIZE       (u32) (ACPI_FADT_OFFSET (hypervisor_id))
++#define ACPI_FADT_V6_SIZE       (u32) (sizeof (struct acpi_table_fadt))
+ 
+ #endif				/* __ACTBL_H__ */
 -- 
 1.7.10
