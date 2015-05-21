@@ -1,63 +1,64 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/19] ACPICA: ACPI 6.0: Add support for XENV table.
-Date: Thu, 21 May 2015 10:30:24 +0800
-Message-ID: <6b764bb02815a429a650d4013cf85e74389497e4.1432175162.git.lv.zheng@intel.com>
-References: <cover.1432175162.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Subject: RE: [PATCH 0/7][RFC] FUJITSU Extended Socket network device driver
+Date: Thu, 21 May 2015 03:16:41 +0000
+Message-ID: <E86EADE93E2D054CBCD4E708C38D364A5422DCC0@G01JPEXMBYT01>
+References: <E86EADE93E2D054CBCD4E708C38D364A5422D803@G01JPEXMBYT01>
+ <20150520144711.GE22037@vmdeb7>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-2022-jp"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20150520144711.GE22037@vmdeb7>
+Content-Language: ja-JP
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+Dear Darren, Alex,
 
-ACPICA commit 08c4197cf4ddd45f0c961078220b0fc19c10745c
+  Thanks for your comments. I'll appreciate your help.  
+  I'll resend new patchset to be updated according to your comments.
 
-Xen Environment table.
+  Sincerely,
+  Taku Izumi
 
-Link: https://github.com/acpica/acpica/commit/08c4197c
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/actbl3.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index eb994e9..3eed4c8 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -70,6 +70,7 @@
- #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
- #define ACPI_SIG_STAO           "STAO"	/* Status Override table */
- #define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
-+#define ACPI_SIG_XENV           "XENV"	/* Xen Environment table */
- 
- #define ACPI_SIG_S3PT           "S3PT"	/* S3 Performance (sub)Table */
- #define ACPI_SIG_PCCS           "PCC"	/* PCC Shared Memory Region */
-@@ -729,6 +730,23 @@ struct acpi_tpm2_control {
- 	u64 response_address;
- };
- 
-+/*******************************************************************************
-+ *
-+ * XENV - Xen Environment Table (ACPI 6.0)
-+ *        Version 1
-+ *
-+ * Conforms to "ACPI Specification for Xen Environment Table" 4 January 2015
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_table_xenv {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+	u64 grant_table_address;
-+	u64 grant_table_size;
-+	u32 event_interrupt;
-+	u8 event_flags;
-+};
-+
- /* Reset to default packing */
- 
- #pragma pack()
--- 
-1.7.10
+> -----Original Message-----
+> From: Darren Hart [mailto:dvhart@infradead.org]
+> Sent: Wednesday, May 20, 2015 11:47 PM
+> To: Izumi, Taku/泉 拓
+> Cc: platform-driver-x86@vger.kernel.org; Hart, Darren; rkhan@redhat.com; alexander.h.duyck@redhat.com;
+> netdev@vger.kernel.org; linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH 0/7][RFC] FUJITSU Extended Socket network device driver
+> 
+> On Wed, May 20, 2015 at 08:04:07AM +0000, Izumi, Taku wrote:
+> > Hi All,
+> >
+> > This patchsets add support for FUJITSU Extended Socket network
+> > device. Extended Socket network device is a shared memory
+> > based high-speed network interface between Extended Partitions of
+> > PRIMEQUEST 2000 E2 series.
+> 
+> Hi Taku,
+> 
+> A few things to keep in mind.
+> 
+> 1) Always Cc the maintainer using the email address in the MAINTAINERS file,
+>    in this case, dvhart at infradead.org.
+> 
+> 2) See Documentation/email-clients.txt regarding charset (you sent ISO-2022,JP):
+> 
+>    Email clients should not modify the character set encoding of the text.
+>    Emailed patches should be in ASCII or UTF-8 encoding only.
+>    If you configure your email client to send emails with UTF-8 encoding,
+>    you avoid some possible charset problems.
+> 
+> 3) A new driver should be functional at each patch point, so committing a
+>    skeleton that does nothing is not what we're looking for by "small functional
+>    changes".
+> 
+> Thanks,
+> 
+> --
+> Darren Hart
+> Intel Open Source Technology Center
