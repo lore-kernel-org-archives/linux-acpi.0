@@ -1,60 +1,294 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
- NFIT support
-Date: Thu, 21 May 2015 08:56:46 -0700
-Message-ID: <CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
-References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<1432216514.26714.4.camel@misato.fc.hp.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Update][PATCH] PCIe / hotplug: Drop pointless ACPI-based "slot
+ detection" check
+Date: Thu, 21 May 2015 11:11:46 -0500
+Message-ID: <20150521161146.GE32152@google.com>
+References: <1431632038-39917-1-git-send-email-jarod@redhat.com>
+ <2168334.DgvA03CWPi@vostro.rjw.lan>
+ <6257210.QKy3yrBgEf@vostro.rjw.lan>
+ <1573807.HQlNd2BFYP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1432216514.26714.4.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Lv Zheng <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1573807.HQlNd2BFYP@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 21, 2015 at 6:55 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Wed, 2015-05-20 at 16:56 -0400, Dan Williams wrote:
->  :
->> +/* NVDIMM - NFIT table */
->> +
->> +#define UUID_VOLATILE_MEMORY            "4f940573-dafd-e344-b16c-3f22d252e5d0"
->> +#define UUID_PERSISTENT_MEMORY          "79d3f066-f3b4-7440-ac43-0d3318b78cdb"
->> +#define UUID_CONTROL_REGION             "f601f792-b413-5d40-910b-299367e8234c"
->> +#define UUID_DATA_REGION                "3005af91-865d-0e47-a6b0-0a2db9408249"
->> +#define UUID_VOLATILE_VIRTUAL_DISK      "5a53ab77-fc45-4b62-5560-f7b281d1f96e"
->> +#define UUID_VOLATILE_VIRTUAL_CD        "30bd5a3d-7541-ce87-6d64-d2ade523c4bb"
->> +#define UUID_PERSISTENT_VIRTUAL_DISK    "c902ea5c-074d-69d3-269f-4496fbe096f9"
->> +#define UUID_PERSISTENT_VIRTUAL_CD      "88810108-cd42-48bb-100f-5387d53ded3d"
->
-> acpi_str_to_uuid() performs little-endian byte-swapping, so the UUID
-> strings here need to be actual values.
->
-> For instance, UUID_PERSISTENT_MEMORY should be:
-> #define UUID_PERSISTENT_MEMORY   "66f0d379-b4f3-4074-ac43-0d3318b78cdb"
->
+On Tue, May 19, 2015 at 03:27:58PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Jarod Wilson reports that the expresscard hotplug setup doesn't work
+> on HP ZBook G2.  The problem turns out to be the ACPI-based "slot
+> detection" code called from pciehp_probe() which tries to use some
+> questionable heuristics based on what ACPI objects are present for
+> the PCIe port device at hand to figure out whether or not to register
+> a hotplug slot for that port.
+> 
+> That code is used if there is at least one PCIe port having an ACPI
+> device configuration object related to hotplug (such as _EJ0 or _RMV)
+> and the Thunderbolt port on the affected machine has _RMV.  Of course,
+> Thunderbolt and PCIe native hotplug need not be mutually exclusive
+> (as they aren't on the machine in question), so that rule is simply
+> incorrect.
+> 
+> Moreover, the ACPI-based "slot detection" check does not add any
+> value if pciehp_probe() is called at all and the service type of the
+> device object it has been called for is PCIE_PORT_SERVICE_HP, because
+> PCIe hotplug services are only registered if the _OSC handshake in
+> acpi_pci_root_add() allows the kernel to control the PCIe native
+> hotplug feature.  No more checks need to be carried out to decide
+> whether or not to register a native PCIe hotlug slot in that case.
+> 
+> For the above reasons, make pciehp_probe() check if it has been
+> called for the right service type and drop the pointless ACPI-based
+> "slot detection" check from it.  Also remove the entire code whose
+> only user is that check (the entire pciehp_acpi.c file goes away
+> as a result) and drop function headers related to it from the
+> internal PCIeHP header file.
+> 
+> Link: http://marc.info/?t=143163219300002&r=1&w=2
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=98581
+> Reported-by: Jarod Wilson <jarod@redhat.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-No, the spec defines the GUID for persistent memory as:
+This is awesome!  Applied to pci/hotplug for v4.2, with Jarod's
+reviewed/tested-by.
 
-{ 0x66F0D379, 0xB4F3, 0x4074, 0xAC, 0x43, 0x0D, 0x33, 0x18, 0xB7, 0x8C, 0xDB }
+I suspect a lot of this stuff dates back to when acpiphp and pciehp could
+be modules, and one driver really couldn't know whether the other was up
+to.  In any event, I think it will be much more predictable and
+maintainable now.
 
-The byte encoding for that GUID is the following (all fields stored
-big endian: https://en.wikipedia.org/wiki/Globally_unique_identifier#Binary_encoding)
+Bjorn
 
-{ 0x66, 0xF0, 0xD3, 0x79, 0xB4, 0xF3, 0x40,0x74, 0xAC, 0x43, 0x0D,
-0x33, 0x18, 0xB7, 0x8C, 0xDB }
-
-The reverse ACPI string translation of a UUID buffer according to
-"ACPI 6 - 19.6.136 ToUUID (Convert String to UUID Macro)"
-
-{ dd, cc, bb, aa, ff, ee, hh, gg, ii, jj, kk, ll, mm, nn, oo, pp }
-
-"aabbccdd-eeff-gghh-iijj-kkllmmnnoopp"
-
-"79d3f066-f3b4-7440-ac43-0d3318b78cdb"
-
-Indeed, v2 of this patchset got this wrong.  Thanks to the sharp eyes
-of Bob Moore on the ACPICA team, he caught this discrepancy.  It seems
-the ACPI spec uses the terms "GUID" and "UUID" interchangeably.
+> ---
+> 
+> Changes in Makefile were missing from the previous version.
+> 
+> Bjorn, that's -stable material I think.  It should be applicable at least
+> since commit 5ba113f7c4fb (PCI: acpiphp: Handle PCIe ports without native
+> hotplug capability) that was shipped in 3.10.
+> 
+> Thanks!
+> 
+> ---
+>  drivers/pci/hotplug/Makefile      |    3 
+>  drivers/pci/hotplug/pciehp.h      |   17 ----
+>  drivers/pci/hotplug/pciehp_acpi.c |  137 --------------------------------------
+>  drivers/pci/hotplug/pciehp_core.c |   10 --
+>  4 files changed, 3 insertions(+), 164 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/hotplug/pciehp_core.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/pciehp_core.c
+> +++ linux-pm/drivers/pci/hotplug/pciehp_core.c
+> @@ -248,12 +248,9 @@ static int pciehp_probe(struct pcie_devi
+>  	struct slot *slot;
+>  	u8 occupied, poweron;
+>  
+> -	if (pciehp_force)
+> -		dev_info(&dev->device,
+> -			 "Bypassing BIOS check for pciehp use on %s\n",
+> -			 pci_name(dev->port));
+> -	else if (pciehp_acpi_slot_detection_check(dev->port))
+> -		goto err_out_none;
+> +	/* If this is not a "hotplug" service, we have no business here. */
+> +	if (dev->service != PCIE_PORT_SERVICE_HP)
+> +		return -ENODEV;
+>  
+>  	if (!dev->port->subordinate) {
+>  		/* Can happen if we run out of bus numbers during probe */
+> @@ -366,7 +363,6 @@ static int __init pcied_init(void)
+>  {
+>  	int retval = 0;
+>  
+> -	pciehp_firmware_init();
+>  	retval = pcie_port_service_register(&hpdriver_portdrv);
+>  	dbg("pcie_port_service_register = %d\n", retval);
+>  	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
+> Index: linux-pm/drivers/pci/hotplug/pciehp_acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/pciehp_acpi.c
+> +++ /dev/null
+> @@ -1,137 +0,0 @@
+> -/*
+> - * ACPI related functions for PCI Express Hot Plug driver.
+> - *
+> - * Copyright (C) 2008 Kenji Kaneshige
+> - * Copyright (C) 2008 Fujitsu Limited.
+> - *
+> - * All rights reserved.
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation; either version 2 of the License, or (at
+> - * your option) any later version.
+> - *
+> - * This program is distributed in the hope that it will be useful, but
+> - * WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
+> - * NON INFRINGEMENT.  See the GNU General Public License for more
+> - * details.
+> - *
+> - * You should have received a copy of the GNU General Public License
+> - * along with this program; if not, write to the Free Software
+> - * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> - *
+> - */
+> -
+> -#include <linux/acpi.h>
+> -#include <linux/pci.h>
+> -#include <linux/pci_hotplug.h>
+> -#include <linux/slab.h>
+> -#include <linux/module.h>
+> -#include "pciehp.h"
+> -
+> -#define PCIEHP_DETECT_PCIE	(0)
+> -#define PCIEHP_DETECT_ACPI	(1)
+> -#define PCIEHP_DETECT_AUTO	(2)
+> -#define PCIEHP_DETECT_DEFAULT	PCIEHP_DETECT_AUTO
+> -
+> -struct dummy_slot {
+> -	u32 number;
+> -	struct list_head list;
+> -};
+> -
+> -static int slot_detection_mode;
+> -static char *pciehp_detect_mode;
+> -module_param(pciehp_detect_mode, charp, 0444);
+> -MODULE_PARM_DESC(pciehp_detect_mode,
+> -	 "Slot detection mode: pcie, acpi, auto\n"
+> -	 "  pcie          - Use PCIe based slot detection\n"
+> -	 "  acpi          - Use ACPI for slot detection\n"
+> -	 "  auto(default) - Auto select mode. Use acpi option if duplicate\n"
+> -	 "                  slot ids are found. Otherwise, use pcie option\n");
+> -
+> -int pciehp_acpi_slot_detection_check(struct pci_dev *dev)
+> -{
+> -	if (slot_detection_mode != PCIEHP_DETECT_ACPI)
+> -		return 0;
+> -	if (acpi_pci_detect_ejectable(ACPI_HANDLE(&dev->dev)))
+> -		return 0;
+> -	return -ENODEV;
+> -}
+> -
+> -static int __init parse_detect_mode(void)
+> -{
+> -	if (!pciehp_detect_mode)
+> -		return PCIEHP_DETECT_DEFAULT;
+> -	if (!strcmp(pciehp_detect_mode, "pcie"))
+> -		return PCIEHP_DETECT_PCIE;
+> -	if (!strcmp(pciehp_detect_mode, "acpi"))
+> -		return PCIEHP_DETECT_ACPI;
+> -	if (!strcmp(pciehp_detect_mode, "auto"))
+> -		return PCIEHP_DETECT_AUTO;
+> -	warn("bad specifier '%s' for pciehp_detect_mode. Use default\n",
+> -	     pciehp_detect_mode);
+> -	return PCIEHP_DETECT_DEFAULT;
+> -}
+> -
+> -static int __initdata dup_slot_id;
+> -static int __initdata acpi_slot_detected;
+> -static struct list_head __initdata dummy_slots = LIST_HEAD_INIT(dummy_slots);
+> -
+> -/* Dummy driver for duplicate name detection */
+> -static int __init dummy_probe(struct pcie_device *dev)
+> -{
+> -	u32 slot_cap;
+> -	acpi_handle handle;
+> -	struct dummy_slot *slot, *tmp;
+> -	struct pci_dev *pdev = dev->port;
+> -
+> -	pcie_capability_read_dword(pdev, PCI_EXP_SLTCAP, &slot_cap);
+> -	slot = kzalloc(sizeof(*slot), GFP_KERNEL);
+> -	if (!slot)
+> -		return -ENOMEM;
+> -	slot->number = (slot_cap & PCI_EXP_SLTCAP_PSN) >> 19;
+> -	list_for_each_entry(tmp, &dummy_slots, list) {
+> -		if (tmp->number == slot->number)
+> -			dup_slot_id++;
+> -	}
+> -	list_add_tail(&slot->list, &dummy_slots);
+> -	handle = ACPI_HANDLE(&pdev->dev);
+> -	if (!acpi_slot_detected && acpi_pci_detect_ejectable(handle))
+> -		acpi_slot_detected = 1;
+> -	return -ENODEV;         /* dummy driver always returns error */
+> -}
+> -
+> -static struct pcie_port_service_driver __initdata dummy_driver = {
+> -	.name		= "pciehp_dummy",
+> -	.port_type	= PCIE_ANY_PORT,
+> -	.service	= PCIE_PORT_SERVICE_HP,
+> -	.probe		= dummy_probe,
+> -};
+> -
+> -static int __init select_detection_mode(void)
+> -{
+> -	struct dummy_slot *slot, *tmp;
+> -
+> -	if (pcie_port_service_register(&dummy_driver))
+> -		return PCIEHP_DETECT_ACPI;
+> -	pcie_port_service_unregister(&dummy_driver);
+> -	list_for_each_entry_safe(slot, tmp, &dummy_slots, list) {
+> -		list_del(&slot->list);
+> -		kfree(slot);
+> -	}
+> -	if (acpi_slot_detected && dup_slot_id)
+> -		return PCIEHP_DETECT_ACPI;
+> -	return PCIEHP_DETECT_PCIE;
+> -}
+> -
+> -void __init pciehp_acpi_slot_detection_init(void)
+> -{
+> -	slot_detection_mode = parse_detect_mode();
+> -	if (slot_detection_mode != PCIEHP_DETECT_AUTO)
+> -		goto out;
+> -	slot_detection_mode = select_detection_mode();
+> -out:
+> -	if (slot_detection_mode == PCIEHP_DETECT_ACPI)
+> -		info("Using ACPI for slot detection.\n");
+> -}
+> Index: linux-pm/drivers/pci/hotplug/pciehp.h
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/pciehp.h
+> +++ linux-pm/drivers/pci/hotplug/pciehp.h
+> @@ -167,21 +167,4 @@ static inline const char *slot_name(stru
+>  	return hotplug_slot_name(slot->hotplug_slot);
+>  }
+>  
+> -#ifdef CONFIG_ACPI
+> -#include <linux/pci-acpi.h>
+> -
+> -void __init pciehp_acpi_slot_detection_init(void);
+> -int pciehp_acpi_slot_detection_check(struct pci_dev *dev);
+> -
+> -static inline void pciehp_firmware_init(void)
+> -{
+> -	pciehp_acpi_slot_detection_init();
+> -}
+> -#else
+> -#define pciehp_firmware_init()				do {} while (0)
+> -static inline int pciehp_acpi_slot_detection_check(struct pci_dev *dev)
+> -{
+> -	return 0;
+> -}
+> -#endif				/* CONFIG_ACPI */
+>  #endif				/* _PCIEHP_H */
+> Index: linux-pm/drivers/pci/hotplug/Makefile
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/hotplug/Makefile
+> +++ linux-pm/drivers/pci/hotplug/Makefile
+> @@ -61,9 +61,6 @@ pciehp-objs		:=	pciehp_core.o	\
+>  				pciehp_ctrl.o	\
+>  				pciehp_pci.o	\
+>  				pciehp_hpc.o
+> -ifdef CONFIG_ACPI
+> -pciehp-objs		+=	pciehp_acpi.o
+> -endif
+>  
+>  shpchp-objs		:=	shpchp_core.o	\
+>  				shpchp_ctrl.o	\
+> 
