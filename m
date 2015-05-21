@@ -1,88 +1,92 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 16/19] ACPICA: iASL/disassembler - fix possible fault for -e option.
-Date: Thu, 21 May 2015 10:31:44 +0800
-Message-ID: <2ed8c46d53bad7187d291fb2163193bd23c9ac12.1432175162.git.lv.zheng@intel.com>
+Subject: [PATCH 15/19] ACPICA: ACPI 6.0: Add changes for DRTM table.
+Date: Thu, 21 May 2015 10:31:37 +0800
+Message-ID: <f407007c5873762cb636dbca18fa2982511b48d6.1432175162.git.lv.zheng@intel.com>
 References: <cover.1432175162.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49646 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:15834 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932431AbbEUCcD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 May 2015 22:32:03 -0400
+	id S932431AbbEUCb4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 May 2015 22:31:56 -0400
 In-Reply-To: <cover.1432175162.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit b02b754a2b7afcd0384cb3b31f29eb1be028fe90
 
-ACPICA commit 403b8b0023fd7549b2f9bf818fcc1ba481047b69
+This patch adds support for DRTM (Dynamic Root of Trust for Measurement
+table) in iasl. Lv Zheng.
 
-If non-AML files are used with the -e option, the disassembler
-can fault. The fix is to ensure that all -e files are either
-SSDTs or a DSDT. ACPICA BZ 1158.
-
-Link: https://github.com/acpica/acpica/commit/403b8b00
-Reference: https://bugs.acpica.org/show_bug.cgi?id=1158
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/b02b754a
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acdebug.h   |    4 +++-
- drivers/acpi/acpica/utfileio.c  |    2 +-
- drivers/acpi/acpica/utxferror.c |   11 +++++++++--
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ include/acpi/actbl3.h |   34 +++++++++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
-index 4169bb8..43685dd 100644
---- a/drivers/acpi/acpica/acdebug.h
-+++ b/drivers/acpi/acpica/acdebug.h
-@@ -231,7 +231,9 @@ void acpi_db_open_debug_file(char *name);
- acpi_status acpi_db_load_acpi_table(char *filename);
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index e1aac82..4018986 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -119,6 +119,8 @@ struct acpi_table_bgrt {
+ /*******************************************************************************
+  *
+  * DRTM - Dynamic Root of Trust for Measurement table
++ * Conforms to "TCG D-RTM Architecture" June 17 2013, Version 1.0.0
++ * Table version 1
+  *
+  ******************************************************************************/
  
- acpi_status
--acpi_db_get_table_from_file(char *filename, struct acpi_table_header **table);
-+acpi_db_get_table_from_file(char *filename,
-+			    struct acpi_table_header **table,
-+			    u8 must_be_aml_table);
+@@ -135,22 +137,40 @@ struct acpi_table_drtm {
+ 	u32 flags;
+ };
  
- /*
-  * dbhistry - debugger HISTORY command
-diff --git a/drivers/acpi/acpica/utfileio.c b/drivers/acpi/acpica/utfileio.c
-index f72c53c..857af82 100644
---- a/drivers/acpi/acpica/utfileio.c
-+++ b/drivers/acpi/acpica/utfileio.c
-@@ -312,7 +312,7 @@ acpi_ut_read_table_from_file(char *filename, struct acpi_table_header ** table)
- 	/* Get the entire file */
+-/* 1) Validated Tables List */
++/* Flag Definitions for above */
  
- 	fprintf(stderr,
--		"Loading Acpi table from file %10s - Length %.8u (%06X)\n",
-+		"Reading ACPI table from file %10s - Length %.8u (0x%06X)\n",
- 		filename, file_size, file_size);
- 
- 	status = acpi_ut_read_table(file, table, &table_length);
-diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
-index 306e785..98d5787 100644
---- a/drivers/acpi/acpica/utxferror.c
-+++ b/drivers/acpi/acpica/utxferror.c
-@@ -107,9 +107,16 @@ acpi_exception(const char *module_name,
- 	va_list arg_list;
- 
- 	ACPI_MSG_REDIRECT_BEGIN;
--	acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
--		       acpi_format_exception(status));
- 
-+	/* For AE_OK, just print the message */
+-struct acpi_drtm_vtl_list {
+-	u32 validated_table_list_count;
++#define ACPI_DRTM_ACCESS_ALLOWED            (1)
++#define ACPI_DRTM_ENABLE_GAP_CODE           (1<<1)
++#define ACPI_DRTM_INCOMPLETE_MEASUREMENTS   (1<<2)
++#define ACPI_DRTM_AUTHORITY_ORDER           (1<<3)
 +
-+	if (ACPI_SUCCESS(status)) {
-+		acpi_os_printf(ACPI_MSG_EXCEPTION);
++/* 1) Validated Tables List (64-bit addresses) */
 +
-+	} else {
-+		acpi_os_printf(ACPI_MSG_EXCEPTION "%s, ",
-+			       acpi_format_exception(status));
-+	}
- 	va_start(arg_list, format);
- 	acpi_os_vprintf(format, arg_list);
- 	ACPI_MSG_SUFFIX;
++struct acpi_drtm_vtable_list {
++	u32 validated_table_count;
++	u64 validated_tables[1];
+ };
+ 
+-/* 2) Resources List */
++/* 2) Resources List (of Resource Descriptors) */
++
++/* Resource Descriptor */
++
++struct acpi_drtm_resource {
++	u8 size[7];
++	u8 type;
++	u64 address;
++};
+ 
+ struct acpi_drtm_resource_list {
+-	u32 resource_list_count;
++	u32 resource_count;
++	struct acpi_drtm_resource resources[1];
+ };
+ 
+ /* 3) Platform-specific Identifiers List */
+ 
+-struct acpi_drtm_id_list {
+-	u32 id_list_count;
++struct acpi_drtm_dps_id {
++	u32 dps_id_length;
++	u8 dps_id[16];
+ };
+ 
+ /*******************************************************************************
 -- 
 1.7.10
 
