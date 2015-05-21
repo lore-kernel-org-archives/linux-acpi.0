@@ -1,113 +1,34 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v3 02/21] libnd, nfit: initial libnd infrastructure and
- NFIT support
-Date: Thu, 21 May 2015 17:49:12 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2EE7C0@ORSMSX112.amr.corp.intel.com>
-References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <20150520205621.32249.39424.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <1432216514.26714.4.camel@misato.fc.hp.com>
-	 <CAPcyv4ijJeBjX-vvMprDYwQx8PnPD3P5UJR2A-3wqNdd63p7Bg@mail.gmail.com>
- <1432229114.28126.25.camel@misato.fc.hp.com>
+From: Matthew Garrett <matthew.garrett@coreos.com>
+Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
+Date: Thu, 21 May 2015 11:10:20 -0700
+Message-ID: <CAPeXnHv07HkvcHrYFmZMr8OTp7U7F=k_k=LPYnUtp89iPn2d2Q@mail.gmail.com>
+References: <20150517174144.GA17503@light.dominikbrodowski.net>
+	<3695901.X9t2lWziuY@vostro.rjw.lan>
+	<20150518044711.GA3401@air.dominikbrodowski.net>
+	<6154326.X9FC8ZVDIy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:53208 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755334AbbEURtQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 May 2015 13:49:16 -0400
-In-Reply-To: <1432229114.28126.25.camel@misato.fc.hp.com>
-Content-Language: en-US
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:34289 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751088AbbEUSKV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 14:10:21 -0400
+Received: by wicmc15 with SMTP id mc15so20634270wic.1
+        for <linux-acpi@vger.kernel.org>; Thu, 21 May 2015 11:10:20 -0700 (PDT)
+In-Reply-To: <6154326.X9FC8ZVDIy@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, linux-acpi@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org
 
-V2hhdCBBQ1BJQ0EgaGFzIGRvbmUgaGVyZSBpcyB0byBkZWZpbmUgdGhlc2UgdmFsdWVzIGNvbnNp
-c3RlbnRseSB3aXRoIHRoZSBUb1VVSUQgQVNMIG1hY3JvOg0KDQoNCkJ5dGUgZW5jb2Rpbmcgb2Yg
-VVVJRC9HVUlEIHN0cmluZ3MgaW50byBBQ1BJIEJ1ZmZlciBvYmplY3RzICh1c2UgVG9VVUlEIGZy
-b20gQVNMKToNCg0KICAgSW5wdXQgVVVJRC9HVUlEIFN0cmluZyBmb3JtYXQgOiBhYWJiY2NkZC1l
-ZWZmLWdnaGgtaWlqai1ra2xsbW1ubm9vcHANCiAgICAgRXhwZWN0ZWQgb3V0cHV0IEFDUEkgYnVm
-ZmVyIDogZGQsY2MsYmIsYWEsIGZmLGVlLCBoaCxnZywgaWksamosIGtrLGxsLG1tLG5uLG9vLHBw
-DQoNCg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9zaGkgS2Fu
-aSBbbWFpbHRvOnRvc2hpLmthbmlAaHAuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgTWF5IDIxLCAy
-MDE1IDEwOjI1IEFNDQo+IFRvOiBXaWxsaWFtcywgRGFuIEoNCj4gQ2M6IEplbnMgQXhib2U7IGxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmc7IE5laWwgQnJvd247IEdyZWcgS0g7IFd5c29ja2ksDQo+
-IFJhZmFlbCBKOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBNb29yZSwgUm9iZXJ0OyBM
-aW51eCBBQ1BJOyBaaGVuZywNCj4gTHY7IENocmlzdG9waCBIZWxsd2lnOyBJbmdvIE1vbG5hcg0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDAyLzIxXSBsaWJuZCwgbmZpdDogaW5pdGlhbCBsaWJu
-ZCBpbmZyYXN0cnVjdHVyZQ0KPiBhbmQgTkZJVCBzdXBwb3J0DQo+IA0KPiBPbiBUaHUsIDIwMTUt
-MDUtMjEgYXQgMDg6NTYgLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiBPbiBUaHUsIE1h
-eSAyMSwgMjAxNSBhdCA2OjU1IEFNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4gd3Jv
-dGU6DQo+ID4gPiBPbiBXZWQsIDIwMTUtMDUtMjAgYXQgMTY6NTYgLTA0MDAsIERhbiBXaWxsaWFt
-cyB3cm90ZToNCj4gPiA+ICA6DQo+ID4gPj4gKy8qIE5WRElNTSAtIE5GSVQgdGFibGUgKi8NCj4g
-PiA+PiArDQo+ID4gPj4gKyNkZWZpbmUgVVVJRF9WT0xBVElMRV9NRU1PUlkgICAgICAgICAgICAi
-NGY5NDA1NzMtZGFmZC1lMzQ0LWIxNmMtDQo+IDNmMjJkMjUyZTVkMCINCj4gPiA+PiArI2RlZmlu
-ZSBVVUlEX1BFUlNJU1RFTlRfTUVNT1JZICAgICAgICAgICI3OWQzZjA2Ni1mM2I0LTc0NDAtYWM0
-My0NCj4gMGQzMzE4Yjc4Y2RiIg0KPiA+ID4+ICsjZGVmaW5lIFVVSURfQ09OVFJPTF9SRUdJT04g
-ICAgICAgICAgICAgImY2MDFmNzkyLWI0MTMtNWQ0MC05MTBiLQ0KPiAyOTkzNjdlODIzNGMiDQo+
-ID4gPj4gKyNkZWZpbmUgVVVJRF9EQVRBX1JFR0lPTiAgICAgICAgICAgICAgICAiMzAwNWFmOTEt
-ODY1ZC0wZTQ3LWE2YjAtDQo+IDBhMmRiOTQwODI0OSINCj4gPiA+PiArI2RlZmluZSBVVUlEX1ZP
-TEFUSUxFX1ZJUlRVQUxfRElTSyAgICAgICI1YTUzYWI3Ny1mYzQ1LTRiNjItNTU2MC0NCj4gZjdi
-MjgxZDFmOTZlIg0KPiA+ID4+ICsjZGVmaW5lIFVVSURfVk9MQVRJTEVfVklSVFVBTF9DRCAgICAg
-ICAgIjMwYmQ1YTNkLTc1NDEtY2U4Ny02ZDY0LQ0KPiBkMmFkZTUyM2M0YmIiDQo+ID4gPj4gKyNk
-ZWZpbmUgVVVJRF9QRVJTSVNURU5UX1ZJUlRVQUxfRElTSyAgICAiYzkwMmVhNWMtMDc0ZC02OWQz
-LTI2OWYtDQo+IDQ0OTZmYmUwOTZmOSINCj4gPiA+PiArI2RlZmluZSBVVUlEX1BFUlNJU1RFTlRf
-VklSVFVBTF9DRCAgICAgICI4ODgxMDEwOC1jZDQyLTQ4YmItMTAwZi0NCj4gNTM4N2Q1M2RlZDNk
-Ig0KPiA+ID4NCj4gPiA+IGFjcGlfc3RyX3RvX3V1aWQoKSBwZXJmb3JtcyBsaXR0bGUtZW5kaWFu
-IGJ5dGUtc3dhcHBpbmcsIHNvIHRoZSBVVUlEDQo+ID4gPiBzdHJpbmdzIGhlcmUgbmVlZCB0byBi
-ZSBhY3R1YWwgdmFsdWVzLg0KPiA+ID4NCj4gPiA+IEZvciBpbnN0YW5jZSwgVVVJRF9QRVJTSVNU
-RU5UX01FTU9SWSBzaG91bGQgYmU6DQo+ID4gPiAjZGVmaW5lIFVVSURfUEVSU0lTVEVOVF9NRU1P
-UlkgICAiNjZmMGQzNzktYjRmMy00MDc0LWFjNDMtDQo+IDBkMzMxOGI3OGNkYiINCj4gPiA+DQo+
-ID4NCj4gPiBObywgdGhlIHNwZWMgZGVmaW5lcyB0aGUgR1VJRCBmb3IgcGVyc2lzdGVudCBtZW1v
-cnkgYXM6DQo+ID4NCj4gPiB7IDB4NjZGMEQzNzksIDB4QjRGMywgMHg0MDc0LCAweEFDLCAweDQz
-LCAweDBELCAweDMzLCAweDE4LCAweEI3LA0KPiA+IDB4OEMsIDB4REIgfQ0KPiA+DQo+ID4gVGhl
-IGJ5dGUgZW5jb2RpbmcgZm9yIHRoYXQgR1VJRCBpcyB0aGUgZm9sbG93aW5nIChhbGwgZmllbGRz
-IHN0b3JlZA0KPiA+IGJpZyBlbmRpYW46DQo+ID4gaHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dp
-a2kvR2xvYmFsbHlfdW5pcXVlX2lkZW50aWZpZXIjQmluYXJ5X2VuY29kaQ0KPiA+IG5nKQ0KPiA+
-DQo+ID4geyAweDY2LCAweEYwLCAweEQzLCAweDc5LCAweEI0LCAweEYzLCAweDQwLDB4NzQsIDB4
-QUMsIDB4NDMsIDB4MEQsDQo+ID4gMHgzMywgMHgxOCwgMHhCNywgMHg4QywgMHhEQiB9DQo+ID4N
-Cj4gPiBUaGUgcmV2ZXJzZSBBQ1BJIHN0cmluZyB0cmFuc2xhdGlvbiBvZiBhIFVVSUQgYnVmZmVy
-IGFjY29yZGluZyB0bw0KPiA+ICJBQ1BJIDYgLSAxOS42LjEzNiBUb1VVSUQgKENvbnZlcnQgU3Ry
-aW5nIHRvIFVVSUQgTWFjcm8pIg0KPiA+DQo+ID4geyBkZCwgY2MsIGJiLCBhYSwgZmYsIGVlLCBo
-aCwgZ2csIGlpLCBqaiwga2ssIGxsLCBtbSwgbm4sIG9vLCBwcCB9DQo+ID4NCj4gPiAiYWFiYmNj
-ZGQtZWVmZi1nZ2hoLWlpamota2tsbG1tbm5vb3BwIg0KPiA+DQo+ID4gIjc5ZDNmMDY2LWYzYjQt
-NzQ0MC1hYzQzLTBkMzMxOGI3OGNkYiINCj4gPg0KPiA+IEluZGVlZCwgdjIgb2YgdGhpcyBwYXRj
-aHNldCBnb3QgdGhpcyB3cm9uZy4gIFRoYW5rcyB0byB0aGUgc2hhcnAgZXllcw0KPiA+IG9mIEJv
-YiBNb29yZSBvbiB0aGUgQUNQSUNBIHRlYW0sIGhlIGNhdWdodCB0aGlzIGRpc2NyZXBhbmN5LiAg
-SXQgc2VlbXMNCj4gPiB0aGUgQUNQSSBzcGVjIHVzZXMgdGhlIHRlcm1zICJHVUlEIiBhbmQgIlVV
-SUQiIGludGVyY2hhbmdlYWJseS4NCj4gDQo+IEkgYWdyZWUgdGhhdCB0aGlzIHRoaW5nIGlzIGNv
-bmZ1c2luZy4uLg0KPiANCj4gVGhlIFdpa2kgcGFnZSB5b3UgcG9pbnRlZCBzdGF0ZXMgdGhhdDoN
-Cj4gPT09DQo+IEJ5dGUgZW5jb2RpbmcNCj4gIDoNCj4gVGhpcyBlbmRpYW5uZXNzIGFwcGxpZXMg
-b25seSB0byB0aGUgd2F5IGluIHdoaWNoIGEgR1VJRCBpcyBzdG9yZWQsIGFuZCBub3QNCj4gdG8g
-dGhlIHdheSBpbiB3aGljaCBpdCBpcyByZXByZXNlbnRlZCBpbiB0ZXh0LiBHVUlEcyBhbmQgUkZD
-IDQxMjIgVVVJRHMNCj4gc2hvdWxkIGJlIGlkZW50aWNhbCB3aGVuIGRpc3BsYXllZCB0ZXh0dWFs
-bHkuDQo+IA0KPiBUZXh0IGVuY29kaW5nDQo+ICA6DQo+IEZvciB0aGUgZmlyc3QgdGhyZWUgZmll
-bGRzLCB0aGUgbW9zdCBzaWduaWZpY2FudCBkaWdpdCBpcyBvbiB0aGUgbGVmdC4NCj4gPT09DQo+
-IA0KPiBXaWtpIHBhZ2Ugb2YgVVVJRCBiZWxvdyBhbHNvIHN0YXRlcyB0aGF0Og0KPiBodHRwOi8v
-ZW4ud2lraXBlZGlhLm9yZy93aWtpL1VuaXZlcnNhbGx5X3VuaXF1ZV9pZGVudGlmaWVyDQo+ID09
-PQ0KPiBEZWZpbml0aW9uDQo+ICA6DQo+IFRoZSBmaXJzdCAzIHNlcXVlbmNlcyBhcmUgaW50ZXJw
-cmV0ZWQgYXMgY29tcGxldGUgaGV4YWRlY2ltYWwgbnVtYmVycywNCj4gd2hpbGUgdGhlIGZpbmFs
-IDIgYXMgYSBwbGFpbiBzZXF1ZW5jZSBvZiBieXRlcy4gVGhlIGJ5dGUgb3JkZXIgaXMgIm1vc3QN
-Cj4gc2lnbmlmaWNhbnQgYnl0ZSBmaXJzdCAoa25vd24gYXMgbmV0d29yayBieXRlIG9yZGVyKSA9
-PT0NCj4gDQo+IFNvLCB0aGUgdGV4dCBlbmNvZGluZyBvZiBHVUlEIHJlcHJlc2VudHMgYWN0dWFs
-IHZhbHVlOyBubyBlbmRpYW5uZXNzDQo+IGFwcGxpZXMgaGVyZS4gIFNvLCB0aGUgZm9sbG93aW5n
-IEdVSUQgZGVmaW5pdGlvbjoNCj4gDQo+IHsgMHg2NkYwRDM3OSwgMHhCNEYzLCAweDQwNzQsIDB4
-QUMsIDB4NDMsIDB4MEQsIDB4MzMsIDB4MTgsIDB4QjcsIDB4OEMsDQo+IDB4REIgfQ0KPiANCj4g
-U2hvdWxkIGJlIHRleHQgZW5jb2RlZCBhczoNCj4gDQo+ICI2NmYwZDM3OS1iNGYzLTQwNzQtYWM0
-My0wZDMzMThiNzhjZGIiDQo+IA0KPiBOb3csIGJ5dGUtZW5jb2RpbmcgaXMgY29uZnVzaW5nLiAg
-V2hpbGUgdGhlIFdpa2kgcGFnZSB5b3UgcG9pbnRlZCBzdGF0ZXMNCj4gdGhhdCBHVUlEIGhhcyBi
-aWcgZW5kaWFuIHBlciBNaWNyb3NvZnQgZGVmaW5pdGlvbiwgRUZJIHNwZWMgZGVmaW5lcw0KPiBk
-aWZmZXJlbnRseS4gIFBsZWFzZSBsb29rIGF0IEVGSSAyLjUgIkFwcGVuZGl4IEEgR1VJRCBhbmQg
-VGltZSBGb3JtYXRzIi4NCj4gDQo+IFRoZSBFRkkgc3BlYyBzdGF0ZXMgdGhhdDoNCj4gPT09DQo+
-IEFsbCBFRkkgR1VJRHMgKEdsb2JhbGx5IFVuaXF1ZSBJZGVudGlmaWVycykgaGF2ZSB0aGUgZm9y
-bWF0IGRlc2NyaWJlZCBpbg0KPiBSRkMgNDEyMiBhbmQgY29tcGx5IHdpdGggdGhlIHJlZmVyZW5j
-ZWQgYWxnb3JpdGhtcyBmb3IgZ2VuZXJhdGluZyBHVUlEcy4NCj4gSXQgc2hvdWxkIGJlIG5vdGVk
-IHRoYXQgVGltZUxvdywgVGltZU1pZCwgVGltZUhpZ2hBbmRWZXJzaW9uIGZpZWxkcyBpbiB0aGUN
-Cj4gRUZJIGFyZSBlbmNvZGVkIGFzIGxpdHRsZSBlbmRpYW4uDQo+ID09PQ0KPiANCj4gVGFibGUg
-MjEyIGRlZmluZXMgaG93IHRleHQgcmVwcmVzZW50YXRpb24gb2YgdGhlIEdVSUQgaXMgc3RvcmVk
-IGluIEJ1ZmZlciwNCj4gd2hpY2ggaXMgbGl0dGxlIGVuZGlhbiBmb3JtYXQuICBUaGlzIHRhYmxl
-IGFsc28gc3RhdGVzIHRoYXQgdGhlIG1vc3QNCj4gc2lnbmlmaWNhbnQgYnl0ZSBpcyB0aGUgZmly
-c3QgaW4gdGV4dCBlbmNvZGluZywgd2hpY2ggaXMgY29uc2lzdGVudCB3aXRoDQo+IHRoZSBXaWtp
-IHBhZ2VzLg0KPiANCj4gVGhlIEFDUEkgc3BlYywgVG9VVUlELCBpcyBjb25zaXN0ZW50IHdpdGgg
-RUZJIHNwZWMgVGFibGUgMjEyIGFzIHdlbGwuDQo+IA0KPiBUaGFua3MsDQo+IC1Ub3NoaQ0KDQo=
+On Wed, May 20, 2015 at 6:24 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+
+> Which doesn't explain why we need a config option per quirk.  To me, such config
+> options don't add any value, because (a) everyone will set them anyway and (b)
+> removing the quirks from the source is trivial if needed.
+
+We'd disable this quirk in Fedora the moment jack detection works,
+because we've got the userspace to handle it and using I2S is
+preferable to using HDA - but in doing so we might break battery
+detection on the other Dell that's playing _REV tricks. This seems
+like a suboptimal choice to have to make.
