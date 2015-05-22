@@ -1,67 +1,59 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPI / PCI: remove stale list_head in struct acpi_prt_entry
-Date: Fri, 22 May 2015 19:04:27 +0800
-Message-ID: <555F0D3B.5080607@linaro.org>
-References: <1432216352-8016-1-git-send-email-hanjun.guo@linaro.org> <CAErSpo6kFfXd9gFuL86qQWcVN6NYe11Ps+SoAefz1z2md8j_tA@mail.gmail.com> <555DF723.2000103@linaro.org> <CAErSpo4uZ09K7BSZyyhMtxFpuMCn6hxE01QFWw8nmo7snshutg@mail.gmail.com> <CAErSpo4RebTb36xdXKK-qQ_btYgCQicbH6hF0AFNOmcBWoNRvA@mail.gmail.com>
+Subject: Re: [Patch v3 5/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Fri, 22 May 2015 19:23:32 +0800
+Message-ID: <555F11B4.8000503@linaro.org>
+References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com>
+ <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com>
+ <5559E44B.2010702@linaro.org> <555BFC72.3060703@linux.intel.com>
+ <555C0091.6050301@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:34391 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038AbbEVLEb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2015 07:04:31 -0400
-Received: by pabru16 with SMTP id ru16so17145587pab.1
-        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2015 04:04:31 -0700 (PDT)
-In-Reply-To: <CAErSpo4RebTb36xdXKK-qQ_btYgCQicbH6hF0AFNOmcBWoNRvA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <555C0091.6050301@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
+Cc: linux-pci@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, "Suthikulpanit,
+ Suravee" <Suravee.Suthikulpanit@amd.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>, Yijing Wang <wangyijing@huawei.com>
 
-On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 23:53, Bjorn Helgaas wrote:
-> On Thu, May 21, 2015 at 10:21 AM, Bjorn Helgaas <bhelgaas@google.com>=
- wrote:
->> On Thu, May 21, 2015 at 10:17 AM, Hanjun Guo <hanjun.guo@linaro.org>=
- wrote:
->>> On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 23:10, Bjorn Helgaas wrote:
->>>>
->>>> On Thu, May 21, 2015 at 8:52 AM, Hanjun Guo <hanjun.guo@linaro.org=
-> wrote:
->>>>>
->>>>> list_head "list" in struct acpi_prt_entry was used to connect
->>>>> _PRT entries for PCI irq, but after commit 181380b7 (PCI/ACPI:
->>>>> Don't cache _PRT, and don't associate them with bus numbers),
->>>>> the list head for _PRT entries was removed, but left "list" in
->>>>> struct acpi_prt_entry which is useless and stale, remove it now.
->>>>
->>>>
->>>> Please use the canonical commit reference format, i.e.,
->>>>
->>>> 181380b702ee ("PCI/ACPI: Don't cache _PRT, and don't associate the=
-m
->>>> with bus numbers")
->>>
->>>
->>> OK, now I know what is a canonical commit reference format :)
->>
->> Yeah, it'd be nice if that were better documented.  checkpatch
->> complains about it (d311cd44545f ("checkpatch: add test for commit i=
-d
->> formatting style in commit log")), but unfortunately I don't think
->> it's mentioned anywhere in Documentation/
->
-> I guess it actually *is* mentioned:
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/=
-Documentation/SubmittingPatches#n171,
-> but it's a little bit wishy-washy.  I'll propose a tweak.
-
-Thanks for the guidance :)
-
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMjAxNeW5tDA15pyIMjDml6UgMTE6MzMsIEhhbmp1biBHdW8gd3JvdGU6Cj4gK0NDIFN1cmF2
+ZWUsCj4KPiBPbiAyMDE15bm0MDXmnIgyMOaXpSAxMToxNiwgSmlhbmcgTGl1IHdyb3RlOgo+PiBP
+biAyMDE1LzUvMTggMjE6MDgsIEhhbmp1biBHdW8gd3JvdGU6Cj4+PiBIaSBKaWFuZywKPj4+Cj4+
+PiBPbiAyMDE15bm0MDXmnIgxNOaXpSAxNjo1NiwgSmlhbmcgTGl1IHdyb3RlOgo+Pj4+IEludHJv
+ZHVjZSBjb21tb24gaW50ZXJmYWNlIGFjcGlfcGNpX3Jvb3RfY3JlYXRlKCkgYW5kIHJlbGF0ZWQg
+ZGF0YQo+Pj4+IHN0cnVjdHVyZXMgdG8gY3JlYXRlIFBDSSByb290IGJ1cyBmb3IgQUNQSSBQQ0kg
+aG9zdCBicmlkZ2VzLiBJdCB3aWxsCj4+Pj4gYmUgdXNlZCB0byBraWxsIGR1cGxpY2F0ZWQgYXJj
+aCBzcGVjaWZpYyBjb2RlIGZvciBJQTY0IGFuZCB4ODYuIEl0IG1heQo+Pj4+IGFsc28gaGVscCBB
+Uk02NCBpbiBmdXR1cmUuCj4+Pgo+Pj4gQXMgSSBjb21tZW50ZWQgaW4gcHJldmlvdXMgdmVyc2lv
+biwgdGhpcyBwYXRjaCB3aWxsIGludHJvZHVjZQo+Pj4gY29tcGlsZSBlcnJvciBvbiBBQ1BJIGVu
+YWJsZWQgQVJNNjQga2VybmVsIGJlY2F1c2Ugc3RydWN0Cj4+PiBwY2lfY29udHJvbGxlciBpcyBu
+b3QgZGVmaW5lZCBmb3IgQVJNNjQsIHNvIGhvdyBhYm91dCBhZGRpbmcKPj4+IHRoZSBmb2xsb3dp
+bmcgcGF0Y2ggYmVmb3JlIHRoaXMgcGF0Y2gsIG9yIHNxdWFzaCB0byB0aGlzIG9uZSwKPj4+IGRv
+ZXMgaXQgbWFrZSBzZW5zZT8KPj4gSGkgSGFuanVuLAo+PiAgICAgVGhhbmtzIGZvciBmaXhpbmcg
+dGhpcyBidWlsZGluZyBpc3N1ZSBmb3IgQVJNNjQuIFRoZSBwYXRjaAo+PiBpcyByZWFsbHkgd2hh
+dCBJIHdhbnQ6KS4gV2lsbCBtZXJnZSBpdCBpbnRvIG5leHQgdmVyc2lvbi4gV2l0aCB0aGlzCj4+
+IHBhdGNoIGFwcGxpZWQsIGFyZSB0aGVyZSBhbnkgb3RoZXIgaXNzdWVzIGZyb20gQVJNNjQgc2lk
+ZT8KPgo+IFN1cmF2ZWUgaXMgdGVzdGluZyBBUk02NCBQQ0kgb24gdG9wIG9mIHlvdXIgcGF0Y2gg
+c2V0LCBoZSBjYW4gY29uZmlybQo+IHRoYXQgaWYgdGhlcmUgYXJlIGFueSBvdGhlciBpc3N1ZXMg
+OikgKFN1cmF2ZWUgaGFzIGEgcmVhbCBBUk02NCBoYXJkd2FyZQo+IGluIGhhbmQpCgpBZnRlciBj
+b25maXJtZWQgd2l0aCBTdXJhdmVlLCB0aGlzIHBhdGNoIHNldCB3b3JrcyBPSyBvbiBBUk02NApo
+YXJkd2FyZSBmb3IgUENJIGhvc3RicmlkZ2UgaW5pdCwgYW5kIGNhbiBlbnVtZXJhdGUgUENJIGRl
+dmljZXMKKGFkZGluZyBzb21lIEFSTTY0IHJlbGF0ZWQgUENJIHBhdGNoZXMpIGFuZCB3b3JrcyBm
+aW5lIHdpdGggbGVnYWN5CmludGVycnVwdCwgc28gdG8gbWUsIHRoaXMgcGF0Y2ggc2V0IGlzIGdv
+b2QgdG8gZ28gOikKCkZvciB0aGlzIHBhdGNoc2V0OgoKVGVzdGVkLWJ5OiBTdXJhdmVlIFN1dGhp
+a3VscGFuaXQgPHN1cmF2ZWUuc3V0aGlrdWxwYW5pdEBhbWQuY29tPgoKSSB3aWxsIGFkZCBteSBS
+ZXZpZXdlZC1ieSBmb3Igc29tZSBvZiBwYXRjaGVzIGxhdGVyLgoKVGhhbmtzCkhhbmp1bgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
+cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
+dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
+bAo=
