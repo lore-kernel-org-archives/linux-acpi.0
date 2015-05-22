@@ -1,59 +1,104 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Patch v3 5/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Fri, 22 May 2015 19:23:32 +0800
-Message-ID: <555F11B4.8000503@linaro.org>
-References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com>
- <1431593803-5213-6-git-send-email-jiang.liu@linux.intel.com>
- <5559E44B.2010702@linaro.org> <555BFC72.3060703@linux.intel.com>
- <555C0091.6050301@linaro.org>
+Subject: Re: [Patch v3 1/7] ACPI/PCI: Enhance ACPI core to support sparse
+ IO space
+Date: Fri, 22 May 2015 21:35:40 +0800
+Message-ID: <555F30AC.2090904@linaro.org>
+References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <555C0091.6050301@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>
-Cc: linux-pci@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, "Suthikulpanit,
- Suravee" <Suravee.Suthikulpanit@amd.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:33769 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757362AbbEVNf7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2015 09:35:59 -0400
+Received: by pdbqa5 with SMTP id qa5so19915951pdb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2015 06:35:59 -0700 (PDT)
+In-Reply-To: <1431593803-5213-2-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Jakub Sitnicki <jsitnicki@gmail.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-T24gMjAxNeW5tDA15pyIMjDml6UgMTE6MzMsIEhhbmp1biBHdW8gd3JvdGU6Cj4gK0NDIFN1cmF2
-ZWUsCj4KPiBPbiAyMDE15bm0MDXmnIgyMOaXpSAxMToxNiwgSmlhbmcgTGl1IHdyb3RlOgo+PiBP
-biAyMDE1LzUvMTggMjE6MDgsIEhhbmp1biBHdW8gd3JvdGU6Cj4+PiBIaSBKaWFuZywKPj4+Cj4+
-PiBPbiAyMDE15bm0MDXmnIgxNOaXpSAxNjo1NiwgSmlhbmcgTGl1IHdyb3RlOgo+Pj4+IEludHJv
-ZHVjZSBjb21tb24gaW50ZXJmYWNlIGFjcGlfcGNpX3Jvb3RfY3JlYXRlKCkgYW5kIHJlbGF0ZWQg
-ZGF0YQo+Pj4+IHN0cnVjdHVyZXMgdG8gY3JlYXRlIFBDSSByb290IGJ1cyBmb3IgQUNQSSBQQ0kg
-aG9zdCBicmlkZ2VzLiBJdCB3aWxsCj4+Pj4gYmUgdXNlZCB0byBraWxsIGR1cGxpY2F0ZWQgYXJj
-aCBzcGVjaWZpYyBjb2RlIGZvciBJQTY0IGFuZCB4ODYuIEl0IG1heQo+Pj4+IGFsc28gaGVscCBB
-Uk02NCBpbiBmdXR1cmUuCj4+Pgo+Pj4gQXMgSSBjb21tZW50ZWQgaW4gcHJldmlvdXMgdmVyc2lv
-biwgdGhpcyBwYXRjaCB3aWxsIGludHJvZHVjZQo+Pj4gY29tcGlsZSBlcnJvciBvbiBBQ1BJIGVu
-YWJsZWQgQVJNNjQga2VybmVsIGJlY2F1c2Ugc3RydWN0Cj4+PiBwY2lfY29udHJvbGxlciBpcyBu
-b3QgZGVmaW5lZCBmb3IgQVJNNjQsIHNvIGhvdyBhYm91dCBhZGRpbmcKPj4+IHRoZSBmb2xsb3dp
-bmcgcGF0Y2ggYmVmb3JlIHRoaXMgcGF0Y2gsIG9yIHNxdWFzaCB0byB0aGlzIG9uZSwKPj4+IGRv
-ZXMgaXQgbWFrZSBzZW5zZT8KPj4gSGkgSGFuanVuLAo+PiAgICAgVGhhbmtzIGZvciBmaXhpbmcg
-dGhpcyBidWlsZGluZyBpc3N1ZSBmb3IgQVJNNjQuIFRoZSBwYXRjaAo+PiBpcyByZWFsbHkgd2hh
-dCBJIHdhbnQ6KS4gV2lsbCBtZXJnZSBpdCBpbnRvIG5leHQgdmVyc2lvbi4gV2l0aCB0aGlzCj4+
-IHBhdGNoIGFwcGxpZWQsIGFyZSB0aGVyZSBhbnkgb3RoZXIgaXNzdWVzIGZyb20gQVJNNjQgc2lk
-ZT8KPgo+IFN1cmF2ZWUgaXMgdGVzdGluZyBBUk02NCBQQ0kgb24gdG9wIG9mIHlvdXIgcGF0Y2gg
-c2V0LCBoZSBjYW4gY29uZmlybQo+IHRoYXQgaWYgdGhlcmUgYXJlIGFueSBvdGhlciBpc3N1ZXMg
-OikgKFN1cmF2ZWUgaGFzIGEgcmVhbCBBUk02NCBoYXJkd2FyZQo+IGluIGhhbmQpCgpBZnRlciBj
-b25maXJtZWQgd2l0aCBTdXJhdmVlLCB0aGlzIHBhdGNoIHNldCB3b3JrcyBPSyBvbiBBUk02NApo
-YXJkd2FyZSBmb3IgUENJIGhvc3RicmlkZ2UgaW5pdCwgYW5kIGNhbiBlbnVtZXJhdGUgUENJIGRl
-dmljZXMKKGFkZGluZyBzb21lIEFSTTY0IHJlbGF0ZWQgUENJIHBhdGNoZXMpIGFuZCB3b3JrcyBm
-aW5lIHdpdGggbGVnYWN5CmludGVycnVwdCwgc28gdG8gbWUsIHRoaXMgcGF0Y2ggc2V0IGlzIGdv
-b2QgdG8gZ28gOikKCkZvciB0aGlzIHBhdGNoc2V0OgoKVGVzdGVkLWJ5OiBTdXJhdmVlIFN1dGhp
-a3VscGFuaXQgPHN1cmF2ZWUuc3V0aGlrdWxwYW5pdEBhbWQuY29tPgoKSSB3aWxsIGFkZCBteSBS
-ZXZpZXdlZC1ieSBmb3Igc29tZSBvZiBwYXRjaGVzIGxhdGVyLgoKVGhhbmtzCkhhbmp1bgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
+> Enhance ACPI resource parsing interfaces to support sparse IO space,
+> which will be used to share common code between x86 and IA64 later.
+>
+> Tested-by: Tony Luck <tony.luck@intel.com>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>   drivers/acpi/resource.c |    9 ++++++---
+>   include/linux/ioport.h  |    1 +
+>   2 files changed, 7 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 8244f013f210..fdcc73dad2c1 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resourc=
+e *ares, struct resource *res)
+>   EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+>
+>   static void acpi_dev_ioresource_flags(struct resource *res, u64 len=
+,
+> -				      u8 io_decode)
+> +				      u8 io_decode, u8 translation_type)
+>   {
+>   	res->flags =3D IORESOURCE_IO;
+>
+> @@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct reso=
+urce *res, u64 len,
+>
+>   	if (io_decode =3D=3D ACPI_DECODE_16)
+>   		res->flags |=3D IORESOURCE_IO_16BIT_ADDR;
+> +	if (translation_type =3D=3D ACPI_SPARSE_TRANSLATION)
+> +		res->flags |=3D IORESOURCE_IO_SPARSE;
+>   }
+>
+>   static void acpi_dev_get_ioresource(struct resource *res, u64 start=
+, u64 len,
+> @@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resour=
+ce *res, u64 start, u64 len,
+>   {
+>   	res->start =3D start;
+>   	res->end =3D start + len - 1;
+> -	acpi_dev_ioresource_flags(res, len, io_decode);
+> +	acpi_dev_ioresource_flags(res, len, io_decode, 0);
+>   }
+>
+>   /**
+> @@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win=
+ *win,
+>   		acpi_dev_memresource_flags(res, len, wp);
+>   		break;
+>   	case ACPI_IO_RANGE:
+> -		acpi_dev_ioresource_flags(res, len, iodec);
+> +		acpi_dev_ioresource_flags(res, len, iodec,
+> +					  addr->info.io.translation_type);
+>   		break;
+>   	case ACPI_BUS_NUMBER_RANGE:
+>   		res->flags =3D IORESOURCE_BUS;
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index 388e3ae94f7a..24bea087e7af 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -94,6 +94,7 @@ struct resource {
+>   /* PnP I/O specific bits (IORESOURCE_BITS) */
+>   #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+>   #define IORESOURCE_IO_FIXED		(1<<1)
+> +#define IORESOURCE_IO_SPARSE		(1<<2)
+>
+>   /* PCI ROM control bits (IORESOURCE_BITS) */
+>   #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PC=
+I_ROM_ADDRESS_ENABLE */
+
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
