@@ -1,54 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
-Date: Fri, 22 May 2015 03:13:52 +0200
-Message-ID: <2098590.Jj0ekzOVtF@vostro.rjw.lan>
-References: <20150517174144.GA17503@light.dominikbrodowski.net> <CAPeXnHv07HkvcHrYFmZMr8OTp7U7F=k_k=LPYnUtp89iPn2d2Q@mail.gmail.com> <555E2184.3090900@dell.com>
+Subject: Re: [Update][PATCH] PCIe / hotplug: Drop pointless ACPI-based "slot detection" check
+Date: Fri, 22 May 2015 03:21:51 +0200
+Message-ID: <3372859.5Hat5UqSL7@vostro.rjw.lan>
+References: <1431632038-39917-1-git-send-email-jarod@redhat.com> <1573807.HQlNd2BFYP@vostro.rjw.lan> <20150521161146.GE32152@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59870 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:53784 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753397AbbEVAsb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 20:48:31 -0400
-In-Reply-To: <555E2184.3090900@dell.com>
+	with SMTP id S1755797AbbEVA43 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 20:56:29 -0400
+In-Reply-To: <20150521161146.GE32152@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario Limonciello <mario_limonciello@dell.com>
-Cc: Matthew Garrett <matthew.garrett@coreos.com>, Dominik Brodowski <linux@dominikbrodowski.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Thursday, May 21, 2015 01:18:44 PM Mario Limonciello wrote:
+On Thursday, May 21, 2015 11:11:46 AM Bjorn Helgaas wrote:
+> On Tue, May 19, 2015 at 03:27:58PM +0200, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > Jarod Wilson reports that the expresscard hotplug setup doesn't work
+> > on HP ZBook G2.  The problem turns out to be the ACPI-based "slot
+> > detection" code called from pciehp_probe() which tries to use some
+> > questionable heuristics based on what ACPI objects are present for
+> > the PCIe port device at hand to figure out whether or not to register
+> > a hotplug slot for that port.
+> > 
+> > That code is used if there is at least one PCIe port having an ACPI
+> > device configuration object related to hotplug (such as _EJ0 or _RMV)
+> > and the Thunderbolt port on the affected machine has _RMV.  Of course,
+> > Thunderbolt and PCIe native hotplug need not be mutually exclusive
+> > (as they aren't on the machine in question), so that rule is simply
+> > incorrect.
+> > 
+> > Moreover, the ACPI-based "slot detection" check does not add any
+> > value if pciehp_probe() is called at all and the service type of the
+> > device object it has been called for is PCIE_PORT_SERVICE_HP, because
+> > PCIe hotplug services are only registered if the _OSC handshake in
+> > acpi_pci_root_add() allows the kernel to control the PCIe native
+> > hotplug feature.  No more checks need to be carried out to decide
+> > whether or not to register a native PCIe hotlug slot in that case.
+> > 
+> > For the above reasons, make pciehp_probe() check if it has been
+> > called for the right service type and drop the pointless ACPI-based
+> > "slot detection" check from it.  Also remove the entire code whose
+> > only user is that check (the entire pciehp_acpi.c file goes away
+> > as a result) and drop function headers related to it from the
+> > internal PCIeHP header file.
+> > 
+> > Link: http://marc.info/?t=143163219300002&r=1&w=2
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=98581
+> > Reported-by: Jarod Wilson <jarod@redhat.com>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> On 05/21/2015 01:10 PM, Matthew Garrett wrote:
-> > On Wed, May 20, 2015 at 6:24 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >
-> >> Which doesn't explain why we need a config option per quirk.  To me, such config
-> >> options don't add any value, because (a) everyone will set them anyway and (b)
-> >> removing the quirks from the source is trivial if needed.
-> > We'd disable this quirk in Fedora the moment jack detection works,
-> > because we've got the userspace to handle it and using I2S is
-> > preferable to using HDA - but in doing so we might break battery
-> > detection on the other Dell that's playing _REV tricks. This seems
-> > like a suboptimal choice to have to make.
-> 
-> Having dug into this deeper with you on the other thread, battery 
-> detection already wasn't working.
-> That machine did the _REV test and fix for Linux only on Windows 2009 
-> _OSI and the _REV value of 5.
-> The kernel currently responds to a later _OSI that the machine supports 
-> so that AML does not get run.
-> 
-> I believe battery detection may be fixed on that Inspiron by 
-> 75646e758a0ecbed5024454507d5be5b9ea9dcbf.
-> if it's not, that's a tangential problem that should be fixed to match 
-> the Windows behavior for battery detection.
+> This is awesome!  Applied to pci/hotplug for v4.2, with Jarod's
+> reviewed/tested-by.
 
-OK, so do we have any proof that anything in addition to the sound thing
-is broken by returning 2 from _REV?
+Thanks!
 
-If not, then we're probably spending too much time discussing this.
+> I suspect a lot of this stuff dates back to when acpiphp and pciehp could
+> be modules, and one driver really couldn't know whether the other was up
+> to.  In any event, I think it will be much more predictable and
+> maintainable now.
 
+Yes, this code has been outdated since we changed ACPIPHP to look at the
+host bridge _OSC bits when deciding whether or not to register a hotplug
+port.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Rafael
+
