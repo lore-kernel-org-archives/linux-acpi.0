@@ -1,104 +1,182 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Patch v3 1/7] ACPI/PCI: Enhance ACPI core to support sparse
- IO space
-Date: Fri, 22 May 2015 21:35:40 +0800
-Message-ID: <555F30AC.2090904@linaro.org>
-References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: Re: [Patch v3 2/7] ia64/PCI/ACPI: Use common ACPI resource parsing
+ interface for host bridge
+Date: Fri, 22 May 2015 21:42:23 +0800
+Message-ID: <555F323F.3020107@linaro.org>
+References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-3-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:33769 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757362AbbEVNf7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2015 09:35:59 -0400
-Received: by pdbqa5 with SMTP id qa5so19915951pdb.0
-        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2015 06:35:59 -0700 (PDT)
-In-Reply-To: <1431593803-5213-2-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1431593803-5213-3-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Jakub Sitnicki <jsitnicki@gmail.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
 On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
-> Enhance ACPI resource parsing interfaces to support sparse IO space,
-> which will be used to share common code between x86 and IA64 later.
+> Use common ACPI resource parsing interface to parse ACPI resources fo=
+r
+> PCI host bridge, so we could share more code between IA64 and x86.
+> Later we will consolidate arch specific implementations into ACPI cor=
+e.
 >
 > Tested-by: Tony Luck <tony.luck@intel.com>
 > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 > ---
->   drivers/acpi/resource.c |    9 ++++++---
->   include/linux/ioport.h  |    1 +
->   2 files changed, 7 insertions(+), 3 deletions(-)
+>   arch/ia64/pci/pci.c |  414 ++++++++++++++++++++++++----------------=
+-----------
+>   1 file changed, 193 insertions(+), 221 deletions(-)
 >
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 8244f013f210..fdcc73dad2c1 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resourc=
-e *ares, struct resource *res)
->   EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+> index d4e162d35b34..23689d4c37ae 100644
+> --- a/arch/ia64/pci/pci.c
+> +++ b/arch/ia64/pci/pci.c
+> @@ -115,29 +115,12 @@ struct pci_ops pci_root_ops =3D {
+>   	.write =3D pci_write,
+>   };
 >
->   static void acpi_dev_ioresource_flags(struct resource *res, u64 len=
-,
-> -				      u8 io_decode)
-> +				      u8 io_decode, u8 translation_type)
->   {
->   	res->flags =3D IORESOURCE_IO;
+> -/* Called by ACPI when it finds a new root bus.  */
+> -
+> -static struct pci_controller *alloc_pci_controller(int seg)
+> -{
+> -	struct pci_controller *controller;
+> -
+> -	controller =3D kzalloc(sizeof(*controller), GFP_KERNEL);
+> -	if (!controller)
+> -		return NULL;
+> -
+> -	controller->segment =3D seg;
+> -	return controller;
+> -}
+> -
+>   struct pci_root_info {
+> +	struct pci_controller controller;
+>   	struct acpi_device *bridge;
+> -	struct pci_controller *controller;
+>   	struct list_head resources;
+> -	struct resource *res;
+> -	resource_size_t *res_offset;
+> -	unsigned int res_num;
+>   	struct list_head io_resources;
+> -	char *name;
+> +	char name[16];
+>   };
 >
-> @@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct reso=
-urce *res, u64 len,
->
->   	if (io_decode =3D=3D ACPI_DECODE_16)
->   		res->flags |=3D IORESOURCE_IO_16BIT_ADDR;
-> +	if (translation_type =3D=3D ACPI_SPARSE_TRANSLATION)
-> +		res->flags |=3D IORESOURCE_IO_SPARSE;
+>   static unsigned int
+> @@ -168,11 +151,11 @@ new_space (u64 phys_base, int sparse)
+>   	return i;
 >   }
 >
->   static void acpi_dev_get_ioresource(struct resource *res, u64 start=
-, u64 len,
-> @@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resour=
-ce *res, u64 start, u64 len,
+> -static u64 add_io_space(struct pci_root_info *info,
+> -			struct acpi_resource_address64 *addr)
+> +static int add_io_space(struct device *dev, struct pci_root_info *in=
+fo,
+> +			struct resource_entry *entry)
 >   {
->   	res->start =3D start;
->   	res->end =3D start + len - 1;
-> -	acpi_dev_ioresource_flags(res, len, io_decode);
-> +	acpi_dev_ioresource_flags(res, len, io_decode, 0);
->   }
+>   	struct iospace_resource *iospace;
+> -	struct resource *resource;
+> +	struct resource *resource, *res =3D entry->res;
+>   	char *name;
+>   	unsigned long base, min, max, base_port;
+>   	unsigned int sparse =3D 0, space_nr, len;
+> @@ -180,27 +163,24 @@ static u64 add_io_space(struct pci_root_info *i=
+nfo,
+>   	len =3D strlen(info->name) + 32;
+>   	iospace =3D kzalloc(sizeof(*iospace) + len, GFP_KERNEL);
+>   	if (!iospace) {
+> -		dev_err(&info->bridge->dev,
+> -				"PCI: No memory for %s I/O port space\n",
+> -				info->name);
+> -		goto out;
+> +		dev_err(dev, "PCI: No memory for %s I/O port space\n",
+> +			info->name);
+> +		return -ENOMEM;
+>   	}
 >
->   /**
-> @@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win=
- *win,
->   		acpi_dev_memresource_flags(res, len, wp);
->   		break;
->   	case ACPI_IO_RANGE:
-> -		acpi_dev_ioresource_flags(res, len, iodec);
-> +		acpi_dev_ioresource_flags(res, len, iodec,
-> +					  addr->info.io.translation_type);
->   		break;
->   	case ACPI_BUS_NUMBER_RANGE:
->   		res->flags =3D IORESOURCE_BUS;
-> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-> index 388e3ae94f7a..24bea087e7af 100644
-> --- a/include/linux/ioport.h
-> +++ b/include/linux/ioport.h
-> @@ -94,6 +94,7 @@ struct resource {
->   /* PnP I/O specific bits (IORESOURCE_BITS) */
->   #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
->   #define IORESOURCE_IO_FIXED		(1<<1)
-> +#define IORESOURCE_IO_SPARSE		(1<<2)
+> -	name =3D (char *)(iospace + 1);
+> -
+> -	min =3D addr->address.minimum;
+> -	max =3D min + addr->address.address_length - 1;
+> -	if (addr->info.io.translation_type =3D=3D ACPI_SPARSE_TRANSLATION)
+> +	if (res->flags & IORESOURCE_IO_SPARSE)
+>   		sparse =3D 1;
+> -
+> -	space_nr =3D new_space(addr->address.translation_offset, sparse);
+> +	space_nr =3D new_space(entry->offset, sparse);
+>   	if (space_nr =3D=3D ~0)
+>   		goto free_resource;
 >
->   /* PCI ROM control bits (IORESOURCE_BITS) */
->   #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PC=
-I_ROM_ADDRESS_ENABLE */
+> +	name =3D (char *)(iospace + 1);
+> +	min =3D res->start - entry->offset;
+> +	max =3D res->end - entry->offset;
+>   	base =3D __pa(io_space[space_nr].mmio_base);
+>   	base_port =3D IO_SPACE_BASE(space_nr);
+>   	snprintf(name, len, "%s I/O Ports %08lx-%08lx", info->name,
+> -		base_port + min, base_port + max);
+> +		 base_port + min, base_port + max);
+>
+>   	/*
+>   	 * The SDM guarantees the legacy 0-64K space is sparse, but if the
+> @@ -216,153 +196,195 @@ static u64 add_io_space(struct pci_root_info =
+*info,
+>   	resource->start =3D base + (sparse ? IO_SPACE_SPARSE_ENCODING(min)=
+ : min);
+>   	resource->end   =3D base + (sparse ? IO_SPACE_SPARSE_ENCODING(max)=
+ : max);
+>   	if (insert_resource(&iomem_resource, resource)) {
+> -		dev_err(&info->bridge->dev,
+> -				"can't allocate host bridge io space resource  %pR\n",
+> -				resource);
+> +		dev_err(dev,
+> +			"can't allocate host bridge io space resource  %pR\n",
+> +			resource);
+>   		goto free_resource;
+>   	}
+>
+> +	entry->offset =3D base_port;
+> +	res->start =3D min + base_port;
+> +	res->end =3D max + base_port;
+>   	list_add_tail(&iospace->list, &info->io_resources);
+> -	return base_port;
+> +
+> +	return 0;
+>
+>   free_resource:
+>   	kfree(iospace);
+> -out:
+> -	return ~0;
+> +	return -ENOSPC;
+> +}
+> +
+> +/*
+> + * An IO port or MMIO resource assigned to a PCI host bridge may be
+> + * consumed by the host bridge itself or available to its child
+> + * bus/devices. The ACPI specification defines a bit (Producer/Consu=
+mer)
+> + * to tell whether the resource is consumed by the host bridge itsel=
+f,
+> + * but firmware hasn't used that bit consistently, so we can't rely =
+on it.
+
+If we make the firmware obey to the ACPI spec, and
+=2E..
+
+> + *
+> + * On x86 and IA64 platforms, all IO port and MMIO resources are ass=
+umed
+> + * to be available to child bus/devices except one special case:
+> + *     IO port [0xCF8-0xCFF] is consumed by the host bridge itself
+> + *     to access PCI configuration space.
+> + *
+> + * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
+
+This is not going to happen on ARM64, right?
+
+but this question is not about the patch itself, so for this patch
 
 Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
 Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
