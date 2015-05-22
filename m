@@ -1,58 +1,39 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 12/19] ACPICA: ACPI 6.0: Add changes for MADT table.
-Date: Fri, 22 May 2015 00:16:51 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802720DDD@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1432175162.git.lv.zheng@intel.com>
- <e5bb0a9389d04b75d702fbdb747f3015b6be51c3.1432175162.git.lv.zheng@intel.com>
- <555DED69.7040203@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
+Date: Fri, 22 May 2015 03:02:56 +0200
+Message-ID: <2151643.NYQBfFsFjv@vostro.rjw.lan>
+References: <20150517174144.GA17503@light.dominikbrodowski.net> <6154326.X9FC8ZVDIy@vostro.rjw.lan> <CAPeXnHv07HkvcHrYFmZMr8OTp7U7F=k_k=LPYnUtp89iPn2d2Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:32334 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755177AbbEVAQ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 May 2015 20:16:56 -0400
-In-Reply-To: <555DED69.7040203@linaro.org>
-Content-Language: en-US
+Received: from v094114.home.net.pl ([79.96.170.134]:63848 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753988AbbEVAhe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 May 2015 20:37:34 -0400
+In-Reply-To: <CAPeXnHv07HkvcHrYFmZMr8OTp7U7F=k_k=LPYnUtp89iPn2d2Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Matthew Garrett <matthew.garrett@coreos.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>, linux-acpi@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org
 
-SGksDQoNCj4gRnJvbTogSGFuanVuIEd1byBbbWFpbHRvOmhhbmp1bi5ndW9AbGluYXJvLm9yZ10N
-Cj4gU2VudDogVGh1cnNkYXksIE1heSAyMSwgMjAxNSAxMDozNiBQTQ0KPiANCj4gSGkgTHYsDQo+
-IA0KPiBPbiAyMDE15bm0MDXmnIgyMeaXpSAxMDozMSwgTHYgWmhlbmcgd3JvdGU6DQo+ID4gRnJv
-bTogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPg0KPiA+DQo+ID4gQUNQSUNBIGNv
-bW1pdCAwMmNiYjQxMjMyYmNjZjdhOTE5NjcxNDBjYWI5NWQ1ZjQ4MjkxZjIxDQo+ID4NCj4gPiBO
-ZXcgc3VidGFibGUgdHlwZS4gU29tZSBhZGRpdGlvbnMgdG8gZXhpc3Rpbmcgc3VidGFibGVzLg0K
-PiA+DQo+ID4gTGluazogaHR0cHM6Ly9naXRodWIuY29tL2FjcGljYS9hY3BpY2EvY29tbWl0LzAy
-Y2JiNDEyDQo+ID4gU2lnbmVkLW9mZi1ieTogQm9iIE1vb3JlIDxyb2JlcnQubW9vcmVAaW50ZWwu
-Y29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+
-ID4gLS0tDQo+IFsuLi5dDQo+ID4NCj4gPiAgIC8qIE1hc2tzIGZvciBGbGFncyBmaWVsZCBhYm92
-ZSAqLw0KPiA+IEBAIC04MTksNyArODIyLDcgQEAgc3RydWN0IGFjcGlfbWFkdF9nZW5lcmljX2lu
-dGVycnVwdCB7DQo+ID4gICAjZGVmaW5lIEFDUElfTUFEVF9QRVJGT1JNQU5DRV9JUlFfTU9ERSAg
-KDE8PDEpCS8qIDAxOiBQZXJmb3JtYW5jZSBJbnRlcnJ1cHQgTW9kZSAqLw0KPiA+ICAgI2RlZmlu
-ZSBBQ1BJX01BRFRfVkdJQ19JUlFfTU9ERSAgICAgICAgICgxPDwyKQkvKiAwMjogVkdJQyBNYWlu
-dGVuYW5jZSBJbnRlcnJ1cHQgbW9kZSAqLw0KPiA+DQo+ID4gLS8qIDEyOiBHZW5lcmljIERpc3Ry
-aWJ1dG9yIChBQ1BJIDUuMCkgKi8NCj4gPiArLyogMTI6IEdlbmVyaWMgRGlzdHJpYnV0b3IgKEFD
-UEkgNS4wICsgQUNQSSA2LjAgY2hhbmdlcykgKi8NCj4gPg0KPiA+ICAgc3RydWN0IGFjcGlfbWFk
-dF9nZW5lcmljX2Rpc3RyaWJ1dG9yIHsNCj4gPiAgIAlzdHJ1Y3QgYWNwaV9zdWJ0YWJsZV9oZWFk
-ZXIgaGVhZGVyOw0KPiA+IEBAIC04MjcsNyArODMwLDggQEAgc3RydWN0IGFjcGlfbWFkdF9nZW5l
-cmljX2Rpc3RyaWJ1dG9yIHsNCj4gPiAgIAl1MzIgZ2ljX2lkOw0KPiA+ICAgCXU2NCBiYXNlX2Fk
-ZHJlc3M7DQo+ID4gICAJdTMyIGdsb2JhbF9pcnFfYmFzZTsNCj4gPiAtCXUzMiByZXNlcnZlZDI7
-CQkvKiByZXNlcnZlZCAtIG11c3QgYmUgemVybyAqLw0KPiA+ICsJdTggdmVyc2lvbjsNCj4gDQo+
-IHZlcnNpb24gZmlsZWQgaW4gZ2VuZXJpYyBkaXN0cmlidXRvciBoYXMgZm9sbG93aW5nIHZhbHVl
-cywNCj4gDQo+IC8qIFZhbHVlcyBmb3IgZ2ljX3ZlcnNpb24gaW4gR2VuZXJpYyBEaXN0cmlidXRv
-ciAgKEFDUEkgNi4wKSAqLw0KPiANCj4gZW51bSBhY3BpX21hZHRfZ2ljX3Zlcl90eXBlDQo+IHsN
-Cj4gICAgICAgICAgQUNQSV9NQURUX0dJQ19WRVJfVU5LTk9XTiAgICAgICA9IDAsDQo+ICAgICAg
-ICAgIEFDUElfTUFEVF9HSUNfVkVSX1YxICAgICAgICAgICAgPSAxLA0KPiAgICAgICAgICBBQ1BJ
-X01BRFRfR0lDX1ZFUl9WMiAgICAgICAgICAgID0gMiwNCj4gICAgICAgICAgQUNQSV9NQURUX0dJ
-Q19WRVJfVjMgICAgICAgICAgICA9IDMsDQo+ICAgICAgICAgIEFDUElfTUFEVF9HSUNfVkVSX1Y0
-ICAgICAgICAgICAgPSA0LA0KPiAgICAgICAgICBBQ1BJX01BRFRfR0lDX1ZFUl9SRVNFUlZFRCAg
-ICAgID0gNSAgICAgLyogNSBhbmQgZ3JlYXRlciBhcmUNCj4gcmVzZXJ2ZWQgKi8NCj4gfTsNCj4g
-DQo+IHNob3VsZCB3ZSBwdXQgaXQgaGVyZSwgb3IgbG9jYXRlIGl0IHRvIEFSTTY0IGFyY2ggcmVs
-YXRlZCBoZWFkDQo+IGZpbGU/DQoNClllcywgeW91IGNhbiBwdXQgaXQgaGVyZS4NCkFuZCBhbHNv
-IHBsZWFzZSBoZWxwIHRvIHN1Ym1pdCBhbiBBQ1BJQ0EgcGF0Y2ggdG8gPGRldmVsQGFjcGljYS5v
-cmc+Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCg0KPiANCj4gVGhhbmtzDQo+
-IEhhbmp1bg0K
+On Thursday, May 21, 2015 11:10:20 AM Matthew Garrett wrote:
+> On Wed, May 20, 2015 at 6:24 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> 
+> > Which doesn't explain why we need a config option per quirk.  To me, such config
+> > options don't add any value, because (a) everyone will set them anyway and (b)
+> > removing the quirks from the source is trivial if needed.
+> 
+> We'd disable this quirk in Fedora the moment jack detection works,
+> because we've got the userspace to handle it and using I2S is
+> preferable to using HDA - but in doing so we might break battery
+> detection on the other Dell that's playing _REV tricks. This seems
+> like a suboptimal choice to have to make.
+
+What about removing the quirk from the table in that case?  Do we
+really need a special config option around it?
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
