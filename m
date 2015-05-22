@@ -1,69 +1,59 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 14/21] libnd: blk labels and namespace instantiation
-Date: Fri, 22 May 2015 11:51:18 -0700
-Message-ID: <CAPcyv4jrxUjqKygB1zcJTELMmL+fxFHrnttW31H41O=owGSwgw@mail.gmail.com>
+From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
+Subject: RE: [PATCH v3 18/21] nd_btt: atomic sector updates
+Date: Fri, 22 May 2015 21:16:21 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A91FF1A@G9W0745.americas.hpqcorp.net>
 References: <20150520205536.32249.89779.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150520205727.32249.79684.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<94D0CD8314A33A4D9D801C0FE68B40295A91FBF3@G9W0745.americas.hpqcorp.net>
+ <20150520205749.32249.9040.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295A91FBF3@G9W0745.americas.hpqcorp.net>
+In-Reply-To: <20150520205749.32249.9040.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "neilb@suse.de" <neilb@suse.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>, "axboe@kernel.dk" <axboe@kernel.dk>
+Cc: "mingo@kernel.org" <mingo@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "neilb@suse.de" <neilb@suse.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "hch@lst.de" <hch@lst.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 22, 2015 at 11:37 AM, Elliott, Robert (Server Storage)
-<Elliott@hp.com> wrote:
->
->> -----Original Message-----
->> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Beh=
-alf Of
->> Dan Williams
->> Sent: Wednesday, May 20, 2015 3:57 PM
->> To: axboe@kernel.dk
->> Cc: linux-nvdimm@lists.01.org; neilb@suse.de; gregkh@linuxfoundation=
-=2Eorg;
->> linux-kernel@vger.kernel.org; hch@lst.de; linux-acpi@vger.kernel.org=
-;
->> mingo@kernel.org
->> Subject: [PATCH v3 14/21] libnd: blk labels and namespace instantiat=
-ion
->>
-> ...
->> @@ -1029,6 +1244,173 @@ static struct device **create_namespace_pmem=
-(struct
->> nd_region *nd_region)
->>       return NULL;
->>  }
->>
->> +struct resource *nsblk_add_resource(struct nd_region *nd_region,
->> +             struct nd_dimm_drvdata *ndd, struct nd_namespace_blk *=
-nsblk,
->> +             resource_size_t start)
->> +{
->> +     struct nd_label_id label_id;
->> +     struct resource *res;
->> +
->> +     nd_label_gen_id(&label_id, nsblk->uuid, NSLABEL_FLAG_LOCAL);
->> +     nsblk->res =3D krealloc(nsblk->res,
->> +                     sizeof(void *) * (nsblk->num_resources + 1),
->> +                     GFP_KERNEL);
->> +     if (!nsblk->res)
->> +             return NULL;
->
-> scripts/checkpatch.pl doesn't like that:
-> WARNING: Reusing the krealloc arg is almost always a bug
-> #1411: FILE: drivers/block/nd/namespace_devs.c:1411:
-> +       nsblk->res =3D krealloc(nsblk->res,
->
-> The reasoning (https://lkml.org/lkml/2013/3/14/558) is:
->
-> "If krealloc() returns NULL, it *doesn't* free the original. So any
-> code of the form 'foo =3D krealloc(foo, =E2=80=A6);' is almost certai=
-nly a bug."
->
 
-Ok, will fix that up.
+
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
+> Dan Williams
+> Sent: Wednesday, May 20, 2015 3:58 PM
+> To: axboe@kernel.dk
+> Cc: mingo@kernel.org; linux-nvdimm@lists.01.org; neilb@suse.de;
+> gregkh@linuxfoundation.org; Dave Chinner; linux-kernel@vger.kernel.org; Andy
+> Lutomirski; Jens Axboe; linux-acpi@vger.kernel.org; H. Peter Anvin;
+> hch@lst.de
+> Subject: [PATCH v3 18/21] nd_btt: atomic sector updates
+> 
+> From: Vishal Verma <vishal.l.verma@linux.intel.com>
+> 
+...
+> diff --git a/drivers/block/nd/Kconfig b/drivers/block/nd/Kconfig
+> index 00d9afe9475e..2b169806eac5 100644
+> --- a/drivers/block/nd/Kconfig
+> +++ b/drivers/block/nd/Kconfig
+> @@ -32,9 +32,25 @@ config BLK_DEV_PMEM
+>  	  capable of DAX (direct-access) file system mappings.  See
+>  	  Documentation/blockdev/nd.txt for more details.
+> 
+> -	  Say Y if you want to use a NVDIMM described by NFIT
+> +	  Say Y if you want to use a NVDIMM described by ACPI, E820, etc...
+> 
+>  config ND_BTT_DEVS
+> -	def_bool y
+> +	bool
+> +
+> +config ND_BTT
+> +	tristate "BTT: Block Translation Table (atomic sector updates)"
+> +	depends on LIBND
+> +	default LIBND
+> +	select ND_BTT_DEVS
+
+The ND_BTT option, which is presented during a kernel build,
+is missing help text. So is E820_PMEM in patch 3/21.
+
+---
+Robert Elliott, HP Server Storage
