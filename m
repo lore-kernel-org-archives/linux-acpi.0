@@ -1,110 +1,98 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [V5 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
-Date: Fri, 22 May 2015 20:38:28 -0500
-Message-ID: <555FDA14.9050404@amd.com>
-References: <1432159758-4486-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <2939517.7sXtxU6TkU@vostro.rjw.lan> <555FC695.1000404@amd.com>
- <9319342.HPcAml3MbA@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI / hotplug: Propagate the "ignore hotplug" setting to
+ parent
+Date: Fri, 22 May 2015 20:40:37 -0500
+Message-ID: <20150523014037.GL32152@google.com>
+References: <2001450.KHHLaZsp3O@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0114.outbound.protection.outlook.com ([65.55.169.114]:32992
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750707AbbEWBiw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 May 2015 21:38:52 -0400
-In-Reply-To: <9319342.HPcAml3MbA@vostro.rjw.lan>
+Received: from mail-ig0-f170.google.com ([209.85.213.170]:33114 "EHLO
+	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757526AbbEWBkl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2015 21:40:41 -0400
+Received: by igbpi8 with SMTP id pi8so4214805igb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2015 18:40:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <2001450.KHHLaZsp3O@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org
+Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 5/22/2015 8:25 PM, Rafael J. Wysocki wrote:
-> On Friday, May 22, 2015 07:15:17 PM Suravee Suthikulanit wrote:
->> On 5/22/2015 6:05 PM, Rafael J. Wysocki wrote:
->>> On Friday, May 22, 2015 05:24:15 PM Suravee Suthikulanit wrote:
->>>> Not sure if this went out earlier. So I am resending.
->>>>
->>>> On 5/22/15 16:56, Rafael J. Wysocki wrote:
->>>>>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
->>>>>>> index 39c485b..b9657af 100644
->>>>>>> --- a/drivers/acpi/glue.c
->>>>>>> +++ b/drivers/acpi/glue.c
->>>>>>> @@ -13,6 +13,7 @@
->>>>>>>    #include <linux/slab.h>
->>>>>>>    #include <linux/rwsem.h>
->>>>>>>    #include <linux/acpi.h>
->>>>>>> +#include <linux/dma-mapping.h>
->>>>>>>
->>>>>>>    #include "internal.h"
->>>>>>>
->>>>>>> @@ -167,6 +168,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->>>>>>>    	struct list_head *physnode_list;
->>>>>>>    	unsigned int node_id;
->>>>>>>    	int retval = -EINVAL;
->>>>>>> +	bool coherent;
->>>>>>>
->>>>>>>    	if (has_acpi_companion(dev)) {
->>>>>>>    		if (acpi_dev) {
->>>>>>> @@ -223,6 +225,9 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->>>>>>>    	if (!has_acpi_companion(dev))
->>>>>>>    		ACPI_COMPANION_SET(dev, acpi_dev);
->>>>>>>
->>>>>>> +	if (acpi_check_dma(acpi_dev, &coherent))
->>>>>>> +		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
->>>>>>> +
->>>>> Well, so is this going to work for PCI too after all?
->>>>>
->>>>
->>>> No, as Bjorn suggested, PCI changes for setting DMA coherent from _CCA
->>>> (patch 3/6 in V4) will be submitted separately. We are working on
->>>> cleaning up and up-streaming the PCI ACPI support for ARM64.
->>>
->>> OK, but acpi_bind_one() is called for PCI devices too.  Won't that be a problem?
->>>
->>>
->>   >
->> In this case, we would be going through the following call path:
->>
->>     --> pci_device_add()
->>      |--> pci_dma_configure() ** 1 **
->>      |--> device_add()
->>        |--> platform_notify()
->>          |--> acpi_platform_notify()
->>           |--> acpi_bind_one() ** 2 **
->>
->> At (1), we would be calling arch_setup_dma_ops() with the PCI host
->> bridge _CCA information. So, it should have already taken care of
->> setting up device coherency here.
->>
->> At (2), if there is no acpi_dev for endpoint devices (which I believe
->> this is normally the case), it would return early and skip
->> arch_setup_dma_ops().
->
-> That's not correct.  There may be ACPI companions for endpoint devices too.
+On Mon, Apr 13, 2015 at 04:23:36PM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Refine the mechanism introduced by commit f244d8b623da (ACPIPHP / radeon
+> / nouveau: Fix VGA switcheroo problem related to hotplug) to propagate
+> the ignore_hotplug setting of the device to its parent bridge in case
+> hotplug notifications related to the graphics adapter switching are
+> given for the bridge rather than for the device itself (the need to
+> be ignored in both cases).
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=61891
+> Link: https://bugs.freedesktop.org/show_bug.cgi?id=88927
+> Reported-and-tested-by: tiagdtd-lava <tiagdtd-lava@yahoo.de>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Ok. Duly noted :)
+Applied to pci/hotplug for v4.2, thanks!
 
->> At (2), if there is an acpi_dev, the coherent_dma flag should have
->> already been setup by the acpi_init_device_object during ACPI scan.
->
-> That one sets the flag for the *ACPI* *companion* of the device, which
-> I'm still thinking is pointless, isn't it?
+I marked it for stable and added a note to connect it to b440bde74f04
+("PCI: Add pci_ignore_hotplug() to ignore hotplug events for a device")
 
-When you say pointless, are you referring to the part where we are end 
-up calling arch_setup_dma_coherent() twice in this case? I am not quite 
-following your point.
-
->> However, I am not certain about this case since I don't have the DSDT
->> containing  PCI endpoint devices to test with.
->
-> Every x86 PC has them (as far as I can say), but in that case there's no
-> _CCA and they are all coherent.
-
-Ok.
-
-Thanks,
-Suravee
-
-
+> ---
+> 
+> "Stable" material AFAICS.
+> 
+> ---
+>  drivers/pci/pci.c   |   11 +++++++++++
+>  include/linux/pci.h |    6 +-----
+>  2 files changed, 12 insertions(+), 5 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.c
+> +++ linux-pm/drivers/pci/pci.c
+> @@ -4319,6 +4319,17 @@ bool pci_device_is_present(struct pci_de
+>  }
+>  EXPORT_SYMBOL_GPL(pci_device_is_present);
+>  
+> +void pci_ignore_hotplug(struct pci_dev *dev)
+> +{
+> +	struct pci_dev *bridge = dev->bus->self;
+> +
+> +	dev->ignore_hotplug = 1;
+> +	/* Propagate the "ignore hotplug" setting to the parent bridge. */
+> +	if (bridge)
+> +		bridge->ignore_hotplug = 1;
+> +}
+> +EXPORT_SYMBOL_GPL(pci_ignore_hotplug);
+> +
+>  #define RESOURCE_ALIGNMENT_PARAM_SIZE COMMAND_LINE_SIZE
+>  static char resource_alignment_param[RESOURCE_ALIGNMENT_PARAM_SIZE] = {0};
+>  static DEFINE_SPINLOCK(resource_alignment_lock);
+> Index: linux-pm/include/linux/pci.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pci.h
+> +++ linux-pm/include/linux/pci.h
+> @@ -1002,6 +1002,7 @@ int __must_check pci_assign_resource(str
+>  int __must_check pci_reassign_resource(struct pci_dev *dev, int i, resource_size_t add_size, resource_size_t align);
+>  int pci_select_bars(struct pci_dev *dev, unsigned long flags);
+>  bool pci_device_is_present(struct pci_dev *pdev);
+> +void pci_ignore_hotplug(struct pci_dev *dev);
+>  
+>  /* ROM control related routines */
+>  int pci_enable_rom(struct pci_dev *pdev);
+> @@ -1039,11 +1040,6 @@ bool pci_dev_run_wake(struct pci_dev *de
+>  bool pci_check_pme_status(struct pci_dev *dev);
+>  void pci_pme_wakeup_bus(struct pci_bus *bus);
+>  
+> -static inline void pci_ignore_hotplug(struct pci_dev *dev)
+> -{
+> -	dev->ignore_hotplug = 1;
+> -}
+> -
+>  static inline int pci_enable_wake(struct pci_dev *dev, pci_power_t state,
+>  				  bool enable)
+>  {
+> 
