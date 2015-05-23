@@ -1,94 +1,93 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 12/19] ACPICA: ACPI 6.0: Add changes for MADT table.
-Date: Sat, 23 May 2015 08:02:52 +0800
-Message-ID: <555FC3AC.1090108@linaro.org>
-References: <cover.1432175162.git.lv.zheng@intel.com> <e5bb0a9389d04b75d702fbdb747f3015b6be51c3.1432175162.git.lv.zheng@intel.com> <555DED69.7040203@linaro.org> <1AE640813FDE7649BE1B193DEA596E8802720DDD@SHSMSX101.ccr.corp.intel.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V5 PATCH 1/5] ACPI / scan: Parse _CCA and setup device coherency
+Date: Fri, 22 May 2015 19:15:17 -0500
+Message-ID: <555FC695.1000404@amd.com>
+References: <1432159758-4486-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1815824.lIg0NQ97lU@vostro.rjw.lan> <555FAC8F.4010306@amd.com>
+ <2939517.7sXtxU6TkU@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:35245 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757547AbbEWADI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 May 2015 20:03:08 -0400
-Received: by pdea3 with SMTP id a3so30455576pde.2
-        for <linux-acpi@vger.kernel.org>; Fri, 22 May 2015 17:03:07 -0700 (PDT)
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802720DDD@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <2939517.7sXtxU6TkU@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: thomas.lendacky@amd.com, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, arnd@arndb.de, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, al.stone@linaro.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, leo.duran@amd.com, hanjun.guo@linaro.org, msalter@redhat.com, grant.likely@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On 2015=E5=B9=B405=E6=9C=8822=E6=97=A5 08:16, Zheng, Lv wrote:
-> Hi,
+On 5/22/2015 6:05 PM, Rafael J. Wysocki wrote:
+> On Friday, May 22, 2015 05:24:15 PM Suravee Suthikulanit wrote:
+>> Not sure if this went out earlier. So I am resending.
+>>
+>> On 5/22/15 16:56, Rafael J. Wysocki wrote:
+>>>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+>>>>> index 39c485b..b9657af 100644
+>>>>> --- a/drivers/acpi/glue.c
+>>>>> +++ b/drivers/acpi/glue.c
+>>>>> @@ -13,6 +13,7 @@
+>>>>>   #include <linux/slab.h>
+>>>>>   #include <linux/rwsem.h>
+>>>>>   #include <linux/acpi.h>
+>>>>> +#include <linux/dma-mapping.h>
+>>>>>
+>>>>>   #include "internal.h"
+>>>>>
+>>>>> @@ -167,6 +168,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+>>>>>   	struct list_head *physnode_list;
+>>>>>   	unsigned int node_id;
+>>>>>   	int retval = -EINVAL;
+>>>>> +	bool coherent;
+>>>>>
+>>>>>   	if (has_acpi_companion(dev)) {
+>>>>>   		if (acpi_dev) {
+>>>>> @@ -223,6 +225,9 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+>>>>>   	if (!has_acpi_companion(dev))
+>>>>>   		ACPI_COMPANION_SET(dev, acpi_dev);
+>>>>>
+>>>>> +	if (acpi_check_dma(acpi_dev, &coherent))
+>>>>> +		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
+>>>>> +
+>>> Well, so is this going to work for PCI too after all?
+>>>
+>>
+>> No, as Bjorn suggested, PCI changes for setting DMA coherent from _CCA
+>> (patch 3/6 in V4) will be submitted separately. We are working on
+>> cleaning up and up-streaming the PCI ACPI support for ARM64.
 >
->> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
->> Sent: Thursday, May 21, 2015 10:36 PM
->>
->> Hi Lv,
->>
->> On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 10:31, Lv Zheng wrote:
->>> From: Bob Moore <robert.moore@intel.com>
->>>
->>> ACPICA commit 02cbb41232bccf7a91967140cab95d5f48291f21
->>>
->>> New subtable type. Some additions to existing subtables.
->>>
->>> Link: https://github.com/acpica/acpica/commit/02cbb412
->>> Signed-off-by: Bob Moore <robert.moore@intel.com>
->>> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->>> ---
->> [...]
->>>
->>>    /* Masks for Flags field above */
->>> @@ -819,7 +822,7 @@ struct acpi_madt_generic_interrupt {
->>>    #define ACPI_MADT_PERFORMANCE_IRQ_MODE  (1<<1)	/* 01: Performanc=
-e Interrupt Mode */
->>>    #define ACPI_MADT_VGIC_IRQ_MODE         (1<<2)	/* 02: VGIC Maint=
-enance Interrupt mode */
->>>
->>> -/* 12: Generic Distributor (ACPI 5.0) */
->>> +/* 12: Generic Distributor (ACPI 5.0 + ACPI 6.0 changes) */
->>>
->>>    struct acpi_madt_generic_distributor {
->>>    	struct acpi_subtable_header header;
->>> @@ -827,7 +830,8 @@ struct acpi_madt_generic_distributor {
->>>    	u32 gic_id;
->>>    	u64 base_address;
->>>    	u32 global_irq_base;
->>> -	u32 reserved2;		/* reserved - must be zero */
->>> +	u8 version;
->>
->> version filed in generic distributor has following values,
->>
->> /* Values for gic_version in Generic Distributor  (ACPI 6.0) */
->>
->> enum acpi_madt_gic_ver_type
->> {
->>           ACPI_MADT_GIC_VER_UNKNOWN       =3D 0,
->>           ACPI_MADT_GIC_VER_V1            =3D 1,
->>           ACPI_MADT_GIC_VER_V2            =3D 2,
->>           ACPI_MADT_GIC_VER_V3            =3D 3,
->>           ACPI_MADT_GIC_VER_V4            =3D 4,
->>           ACPI_MADT_GIC_VER_RESERVED      =3D 5     /* 5 and greater=
- are
->> reserved */
->> };
->>
->> should we put it here, or locate it to ARM64 arch related head
->> file?
+> OK, but acpi_bind_one() is called for PCI devices too.  Won't that be a problem?
 >
-> Yes, you can put it here.
-> And also please help to submit an ACPICA patch to <devel@acpica.org>.
+>
+ >
+In this case, we would be going through the following call path:
 
-OK, I think it is a fix to this patch too, I will
-prepare a patch soon.
+   --> pci_device_add()
+    |--> pci_dma_configure() ** 1 **
+    |--> device_add()
+      |--> platform_notify()
+        |--> acpi_platform_notify()
+         |--> acpi_bind_one() ** 2 **
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+At (1), we would be calling arch_setup_dma_ops() with the PCI host 
+bridge _CCA information. So, it should have already taken care of 
+setting up device coherency here.
+
+At (2), if there is no acpi_dev for endpoint devices (which I believe 
+this is normally the case), it would return early and skip 
+arch_setup_dma_ops().
+
+At (2), if there is an acpi_dev, the coherent_dma flag should have 
+already been setup by the acpi_init_device_object during ACPI scan. 
+However, I am not certain about this case since I don't have the DSDT 
+containing  PCI endpoint devices to test with.
+
+Thanks,
+
+Suravee
