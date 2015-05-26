@@ -1,94 +1,96 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [PATCH 10/11] XEN / PCI: Remove the dependence on arch x86 when
- PCI_MMCONFIG=y
-Date: Tue, 26 May 2015 11:44:25 -0400
-Message-ID: <556494D9.9090007@oracle.com>
-References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <1432644564-24746-11-git-send-email-hanjun.guo@linaro.org> <55647B22.3010801@oracle.com> <55647C94.9080606@oracle.com> <5564893B.2070102@linaro.org>
+From: Liviu Dudau <Liviu.Dudau@arm.com>
+Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for
+ ACPI
+Date: Tue, 26 May 2015 17:58:44 +0100
+Message-ID: <20150526165844.GD2175@e106497-lin.cambridge.arm.com>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
+ <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5564893B.2070102@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:27649 "EHLO
+	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756115AbbEZQ6s convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 May 2015 12:58:48 -0400
+In-Reply-To: <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 05/26/2015 10:54 AM, Tomasz Nowicki wrote:
-> On 26.05.2015 16:00, Boris Ostrovsky wrote:
->> On 05/26/2015 09:54 AM, Boris Ostrovsky wrote:
->>> On 05/26/2015 08:49 AM, Hanjun Guo wrote:
->>>> In drivers/xen/pci.c, there are arch x86 dependent codes when
->>>> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
->>>> depends on ACPI, so this will prevent XEN PCI running on other
->>>> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
->>>>
->>>> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
->>>> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) ==
->>>> 0),
->>>> and it's defined in asm/pci_x86.h, the code means that
->>>> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
->>>> ingnore the xen mcfg init. Actually this is duplicate, because
->>>> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
->>>> pci_mmconfig_list will be empty, and the if (list_empty())
->>>> after it will do the same job.
->>>>
->>>> So just remove the arch related code and the head file, this
->>>> will be no functional change for x86, and also makes xen/pci.c
->>>> usable for other architectures.
->>>>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->>>> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->>>> ---
->>>>   drivers/xen/pci.c | 6 ------
->>>>   1 file changed, 6 deletions(-)
->>>>
->>>> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
->>>> index 6785ebb..9a8dbe3 100644
->>>> --- a/drivers/xen/pci.c
->>>> +++ b/drivers/xen/pci.c
->>>> @@ -28,9 +28,6 @@
->>>>   #include <asm/xen/hypervisor.h>
->>>>   #include <asm/xen/hypercall.h>
->>>>   #include "../pci/pci.h"
->>>> -#ifdef CONFIG_PCI_MMCONFIG
->>>> -#include <asm/pci_x86.h>
->>>> -#endif
->>>>
->>>>   static bool __read_mostly pci_seg_supported = true;
->>>>
->>>> @@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
->>>>       if (!xen_initial_domain())
->>>>           return 0;
->>>>
->>>> -    if ((pci_probe & PCI_PROBE_MMCONF) == 0)
->>>> -        return 0;
->>>> -
->>>>       if (list_empty(&pci_mmcfg_list))
->>>>           return 0;
->>>>
->>>
->>> (+Stefano who is Xen ARM maintainer)
->>>
->>> This will not build on x86 since pci_mmcfg_list since, for example,
->>> pci_mmcfg_list is declared in pci_x86.h.
->>
->>
->> And now really with Stefano and with parsable first sentence, sorry:
->>
->>
->> This will not build on x86 since pci_mmcfg_list, for example, is
->> declared in pci_x86.h.
->
-> With this patch set, not any more. Please see preceding patches.
+On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
+> ARM64 ACPI based PCI host bridge init needs a arch dependent
+> struct pci_controller to accommodate common PCI host bridge
+> code which is introduced later, or it will lead to compile
+> errors on ARM64.
 
+Hi Hanjun,
 
-OK, I didn't notice this was part of a series.
+Two questions: why don't you introduce this patch next to the
+one that is going to make use of it (or even merge it there)?
+Second, why is the whole struct pci_controller not surrounded
+by #ifdef CONFIG_ACPI as you are implying that this is needed
+only for ACPI?
 
-Then if not having PCI_PROBE_MMCONF bit set is indeed equivalent to 
-list_empty(&pci_mmcfg_list), is there any reason for this flag to 
-(continue to) exist? (and also for pci_mmcfg_arch_init_failed.)
+Btw, looking through the whole series I'm not (yet) convinced
+that this is needed at all.
 
+Best regards,
+Liviu
 
--boris
+>=20
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> CC: Arnd Bergmann <arnd@arndb.de>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Liviu Dudau <Liviu.Dudau@arm.com>
+> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> ---
+>  arch/arm64/include/asm/pci.h | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>=20
+> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pc=
+i.h
+> index b008a72..7088495 100644
+> --- a/arch/arm64/include/asm/pci.h
+> +++ b/arch/arm64/include/asm/pci.h
+> @@ -10,6 +10,16 @@
+>  #include <asm-generic/pci-bridge.h>
+>  #include <asm-generic/pci-dma-compat.h>
+> =20
+> +struct acpi_device;
+> +
+> +struct pci_controller {
+> +#ifdef CONFIG_ACPI
+> +	struct acpi_device *companion;	/* ACPI companion device */
+> +#endif
+> +	int		segment;	/* PCI domain */
+> +	int		node;		/* NUMA node */
+> +};
+> +
+>  #define PCIBIOS_MIN_IO		0x1000
+>  #define PCIBIOS_MIN_MEM		0
+> =20
+> --=20
+> 1.9.1
+>=20
+
+--=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+| I would like to |
+| fix the world,  |
+| but they're not |
+| giving me the   |
+ \ source code!  /
+  ---------------
+    =C2=AF\_(=E3=83=84)_/=C2=AF
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
