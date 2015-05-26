@@ -1,134 +1,113 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] PCI / ACPI: Do not set ACPI companions for host bridges with parents
-Date: Tue, 26 May 2015 04:17:05 +0200
-Message-ID: <2625308.mOex6suvmm@vostro.rjw.lan>
-References: <555FDDA1.8030806@oracle.com> <2059136.yfbqz351P1@vostro.rjw.lan> <1901357.YAorP09rCo@vostro.rjw.lan>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 0/8] mfd: introduce a driver for LPSS devices on SPT
+Date: Tue, 26 May 2015 09:21:55 +0530
+Message-ID: <20150526035155.GN3140@localhost>
+References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1901357.YAorP09rCo@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Sander Eikelenboom <linux@eikelenboom.it>
-Cc: david.vrabel@citrix.com, xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:11040 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751065AbbEZDuw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 May 2015 23:50:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Tuesday, May 26, 2015 03:08:17 AM Rafael J. Wysocki wrote:
-> On Tuesday, May 26, 2015 01:42:16 AM Rafael J. Wysocki wrote:
-> > On Tuesday, May 26, 2015 01:22:12 AM Rafael J. Wysocki wrote:
-> > > On Friday, May 22, 2015 09:53:37 PM Boris Ostrovsky wrote:
-> > > > On 05/22/2015 04:11 AM, Sander Eikelenboom wrote:
-> > > > > Hello Sander,
-> > > > >
-> > 
-> > [cut]
-> > 
-> > > > (+Rafael again)
-> > > > 
-> > > > So the immediate cause of those errors is that pdev->evtchn is 0. 
-> > > > Backend is not notified and things not go well then.
-> > > > 
-> > > > And it is indeed caused by 97badf873ab60e841243b66133ff9eff2a46ef29:
-> > > > 
-> > > > We allocate pcifront_sd in pcifront_scan_root() and then pass it to 
-> > > > pci_scan_bus_parented() as sysdata. Eventually this sysdata is used in 
-> > > > pcibios_root_bridge_prepare() as pci_sysdata. It is dereferenced as 
-> > > > pci_sysdata->companion (which I believe is aliased to pcifront_sd->pdev)
-> > 
-> > Well, there is an int node field between them, so I'm not sure.
-> > 
-> > > > and then set_primary_fwnode() writes it, thus corrupting 
-> > > > pcifront_sd->pdev (and I think this is what sets evtchn to zero).
-> > 
-> > So the corruption happens when set_primary_fwnode() writes NULL to the
-> > 'secondary' field of object pointed to by 'fwnode'.
-> > 
-> > This isn't strictly necessary and we might avoid the crash by only
-> > writing to fwnode->secondary if fn is not NULL.
-> > 
-> > So, Sander please test the patch below too if possible.
-> > 
-> > Of course, that doesn't solve a problem of passing an incorrect pointer
-> > to ACPI_COMPANION_SET() in pcibios_root_bridge_prepare().
+On Mon, May 25, 2015 at 07:09:24PM +0300, Andy Shevchenko wrote:
+> The new coming Intel platforms such as Skylake will contain Sunrisepoint PCH.
 > 
-> And here's one more thing to test.
+> The driver is based on MFD framework since the main device, i.e. serial bus
+> controller, contains register space for itself, DMA part, and an additional
+> address space (convergence layer). 
+> 
+> The public specification of the register map is avaiable in [3].
+or [1]...?
 
-And the below is how I'd fix it, so you can simply test this patch and skip the
-previous ones.
+-- 
+~Vinod
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: PCI / ACPI: Do not set ACPI companions for host bridges with parents
+> 
+> This is second generation of the patch series to bring support LPSS devices
+> found on Intel Sunrisepoint (Intel Skylake PCH). First one can be found here
+> [2].
+> 
+> The series has few logical parts:
+> - patches 1-3 prepares PM core, ACPI, and driver core (PM) to handle our case
+> - patches 4-6 introduce unregistering platform devices in MFD in reversed
+>   order
+> - patch 7 implements iDMA 64-bit driver
+> - patch 8 introduces an MFD driver for LPSS devices
+> 
+> The patch 8 depends on clkdev_create() helper that has been introduced by
+> Russel King in [3].
+> 
+> The driver has been tested with SPI and UART on Intel Skylake PCH.
+> 
+> [1] https://download.01.org/future-platform-configuration-hub/skylake/register-definitions/332219_001_Final.pdf
+> [2] https://lkml.org/lkml/2015/3/31/255
+> [3] https://patchwork.linuxtv.org/patch/28464/
+> 
+> Changelog v2:
+> - new DMA driver to fully support iDMA 64-bit IP
+> - patch 3 is added to wake up parent devices when ->probe(), ->remove(), or
+>   ->shutdown()
+> - MFD core is unregistering devices in reversed order
+> - address few Lee's comments on v1
+> - address Russel's comment, therefore use clkdev_create() helper
+> - intel-lpss{,-acpi,-pci} are modified regarding to above changes
+> 
+> Andy Shevchenko (5):
+>   klist: implement klist_prev()
+>   driver core: implement device_for_each_child_reverse()
+>   mfd: make mfd_remove_devices() iterate in reverse order
+>   dmaengine: add a driver for Intel integrated DMA 64-bit
+>   mfd: Add support for Intel Sunrisepoint LPSS devices
+> 
+> Heikki Krogerus (1):
+>   core: platform: wakeup the parent before trying any driver operations
+> 
+> Mika Westerberg (2):
+>   PM / QoS: Make it possible to expose device latency tolerance to
+>     userspace
+>   ACPI / PM: Attach ACPI power domain only once
+> 
+>  drivers/acpi/device_pm.c      |   8 +
+>  drivers/acpi/internal.h       |   2 +
+>  drivers/acpi/scan.c           |  46 ++-
+>  drivers/base/core.c           |  43 +++
+>  drivers/base/platform.c       |  21 +-
+>  drivers/base/power/power.h    |   2 +
+>  drivers/base/power/qos.c      |  37 +++
+>  drivers/base/power/sysfs.c    |  11 +
+>  drivers/dma/Kconfig           |   5 +
+>  drivers/dma/Makefile          |   1 +
+>  drivers/dma/idma64.c          | 749 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/dma/idma64.h          | 233 +++++++++++++
+>  drivers/mfd/Kconfig           |  24 ++
+>  drivers/mfd/Makefile          |   3 +
+>  drivers/mfd/intel-lpss-acpi.c |  84 +++++
+>  drivers/mfd/intel-lpss-pci.c  | 113 +++++++
+>  drivers/mfd/intel-lpss.c      | 534 ++++++++++++++++++++++++++++++
+>  drivers/mfd/intel-lpss.h      |  62 ++++
+>  drivers/mfd/mfd-core.c        |   2 +-
+>  include/linux/device.h        |   2 +
+>  include/linux/klist.h         |   1 +
+>  include/linux/pm_qos.h        |   5 +
+>  lib/klist.c                   |  41 +++
+>  23 files changed, 2011 insertions(+), 18 deletions(-)
+>  create mode 100644 drivers/dma/idma64.c
+>  create mode 100644 drivers/dma/idma64.h
+>  create mode 100644 drivers/mfd/intel-lpss-acpi.c
+>  create mode 100644 drivers/mfd/intel-lpss-pci.c
+>  create mode 100644 drivers/mfd/intel-lpss.c
+>  create mode 100644 drivers/mfd/intel-lpss.h
+> 
+> -- 
+> 2.1.4
+> 
 
-Commit 97badf873ab6 (device property: Make it possible to use
-secondary firmware nodes) uncovered a bug in the x86 (and ia64) PCI
-host bridge initialization code that assumes bridge->bus->sysdata
-to always point to a struct pci_sysdata object which need not be
-the case (in particular, the Xen PCI frontend driver sets it to point
-to a different data type).  If it is not the case, an incorrect
-pointer (or a piece of data that is not a pointer at all) will be
-passed to ACPI_COMPANION_SET() and that may cause interesting
-breakage to happen going forward.
-
-To work around this problem use the observation that the ACPI
-host bridge initialization always passes NULL as parent to
-pci_create_root_bus(), so if pcibios_root_bridge_prepare() sees
-a non-NULL parent of the bridge, it should not attempt to set
-an ACPI companion for it, because that means that
-pci_create_root_bus() has been called by someone else.
-
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- arch/ia64/pci/pci.c |   13 ++++++++++---
- arch/x86/pci/acpi.c |   13 ++++++++++---
- 2 files changed, 20 insertions(+), 6 deletions(-)
-
-Index: linux-pm/arch/x86/pci/acpi.c
-===================================================================
---- linux-pm.orig/arch/x86/pci/acpi.c
-+++ linux-pm/arch/x86/pci/acpi.c
-@@ -482,9 +482,16 @@ struct pci_bus *pci_acpi_scan_root(struc
- 
- int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
- {
--	struct pci_sysdata *sd = bridge->bus->sysdata;
--
--	ACPI_COMPANION_SET(&bridge->dev, sd->companion);
-+	/*
-+	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
-+	 * here, pci_create_root_bus() has been called by someone else and
-+	 * sysdata is likely to be different from what we expect.  Let it go in
-+	 * that case.
-+	 */
-+	if (!bridge->dev.parent) {
-+		struct pci_sysdata *sd = bridge->bus->sysdata;
-+		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
-+	}
- 	return 0;
- }
- 
-Index: linux-pm/arch/ia64/pci/pci.c
-===================================================================
---- linux-pm.orig/arch/ia64/pci/pci.c
-+++ linux-pm/arch/ia64/pci/pci.c
-@@ -478,9 +478,16 @@ struct pci_bus *pci_acpi_scan_root(struc
- 
- int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
- {
--	struct pci_controller *controller = bridge->bus->sysdata;
--
--	ACPI_COMPANION_SET(&bridge->dev, controller->companion);
-+	/*
-+	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
-+	 * here, pci_create_root_bus() has been called by someone else and
-+	 * sysdata is likely to be different from what we expect.  Let it go in
-+	 * that case.
-+	 */
-+	if (!bridge->dev.parent) {
-+		struct pci_controller *controller = bridge->bus->sysdata;
-+		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
-+	}
- 	return 0;
- }
- 
+-- 
