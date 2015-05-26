@@ -1,96 +1,54 @@
-From: Liviu Dudau <Liviu.Dudau@arm.com>
-Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for
- ACPI
-Date: Tue, 26 May 2015 17:58:44 +0100
-Message-ID: <20150526165844.GD2175@e106497-lin.cambridge.arm.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Tue, 26 May 2015 18:08:18 +0100
+Message-ID: <20150526170817.GU1565@arm.com>
 References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
- <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
+ <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:27649 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756115AbbEZQ6s convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 May 2015 12:58:48 -0400
-In-Reply-To: <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
+Received: from foss.arm.com ([217.140.101.70]:50622 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751491AbbEZRIZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 May 2015 13:08:25 -0400
 Content-Disposition: inline
+In-Reply-To: <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
-> ARM64 ACPI based PCI host bridge init needs a arch dependent
-> struct pci_controller to accommodate common PCI host bridge
-> code which is introduced later, or it will lead to compile
-> errors on ARM64.
-
-Hi Hanjun,
-
-Two questions: why don't you introduce this patch next to the
-one that is going to make use of it (or even merge it there)?
-Second, why is the whole struct pci_controller not surrounded
-by #ifdef CONFIG_ACPI as you are implying that this is needed
-only for ACPI?
-
-Btw, looking through the whole series I'm not (yet) convinced
-that this is needed at all.
-
-Best regards,
-Liviu
-
->=20
+On Tue, May 26, 2015 at 01:49:18PM +0100, Hanjun Guo wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> 
+> ECAM standard and MCFG table are architecture independent and it makes
+> sense to share common code across all architectures. Both are going to
+> corresponding files - ecam.c and mcfg.c
+> 
+> While we are here, rename pci_parse_mcfg to acpi_parse_mcfg.
+> We already have acpi_parse_mcfg prototype which is used nowhere.
+> At the same time, we need pci_parse_mcfg been global so acpi_parse_mcfg
+> can be used perfectly here.
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 > Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> CC: Arnd Bergmann <arnd@arndb.de>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Liviu Dudau <Liviu.Dudau@arm.com>
-> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-> CC: Will Deacon <will.deacon@arm.com>
 > ---
->  arch/arm64/include/asm/pci.h | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->=20
-> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pc=
-i.h
-> index b008a72..7088495 100644
-> --- a/arch/arm64/include/asm/pci.h
-> +++ b/arch/arm64/include/asm/pci.h
-> @@ -10,6 +10,16 @@
->  #include <asm-generic/pci-bridge.h>
->  #include <asm-generic/pci-dma-compat.h>
-> =20
-> +struct acpi_device;
-> +
-> +struct pci_controller {
-> +#ifdef CONFIG_ACPI
-> +	struct acpi_device *companion;	/* ACPI companion device */
-> +#endif
-> +	int		segment;	/* PCI domain */
-> +	int		node;		/* NUMA node */
-> +};
-> +
->  #define PCIBIOS_MIN_IO		0x1000
->  #define PCIBIOS_MIN_MEM		0
-> =20
-> --=20
-> 1.9.1
->=20
+>  arch/x86/Kconfig               |   3 +
+>  arch/x86/include/asm/pci_x86.h |  33 ------
+>  arch/x86/pci/acpi.c            |   1 +
+>  arch/x86/pci/mmconfig-shared.c | 244 +---------------------------------------
+>  arch/x86/pci/mmconfig_32.c     |   1 +
+>  arch/x86/pci/mmconfig_64.c     |   1 +
+>  arch/x86/pci/numachip.c        |   1 +
+>  drivers/acpi/Makefile          |   1 +
+>  drivers/acpi/mcfg.c            |  57 ++++++++++
+>  drivers/pci/Kconfig            |   7 ++
+>  drivers/pci/Makefile           |   5 +
+>  drivers/pci/ecam.c             | 245 +++++++++++++++++++++++++++++++++++++++++
 
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    =C2=AF\_(=E3=83=84)_/=C2=AF
+Why can't we make use of the ECAM implementation used by pci-host-generic
+and drivers/pci/access.c?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will
