@@ -1,51 +1,155 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 0/8] mfd: introduce a driver for LPSS devices on SPT
-Date: Tue, 26 May 2015 09:51:37 +0300
-Message-ID: <CAHp75Vej=LZpP3fBBaO56p4D6rN2w2h=8kSUQYW7OO62W5Cw3Q@mail.gmail.com>
-References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<20150526035155.GN3140@localhost>
+From: Sander Eikelenboom <linux@eikelenboom.it>
+Subject: Re: [PATCH] PCI / ACPI: Do not set ACPI companions for
+	host bridges with parents
+Date: Tue, 26 May 2015 09:53:35 +0200
+Message-ID: <865795326.20150526095335@eikelenboom.it>
+References: <555FDDA1.8030806@oracle.com> <2059136.yfbqz351P1@vostro.rjw.lan>
+	<1901357.YAorP09rCo@vostro.rjw.lan>
+	<2625308.mOex6suvmm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150526035155.GN3140@localhost>
-Sender: linux-pm-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <xen-devel-bounces@lists.xen.org>
+In-Reply-To: <2625308.mOex6suvmm@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Sender: xen-devel-bounces@lists.xen.org
+Errors-To: xen-devel-bounces@lists.xen.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, david.vrabel@citrix.com, Bjorn Helgaas <bhelgaas@google.com>, xen-devel@lists.xenproject.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 26, 2015 at 6:51 AM, Vinod Koul <vinod.koul@intel.com> wrote:
-> On Mon, May 25, 2015 at 07:09:24PM +0300, Andy Shevchenko wrote:
->> The new coming Intel platforms such as Skylake will contain Sunrisepoint PCH.
->>
->> The driver is based on MFD framework since the main device, i.e. serial bus
->> controller, contains register space for itself, DMA part, and an additional
->> address space (convergence layer).
->>
->> The public specification of the register map is avaiable in [3].
-> or [1]...?
 
-You are correct!
+Tuesday, May 26, 2015, 4:17:05 AM, you wrote:
 
->> This is second generation of the patch series to bring support LPSS devices
->> found on Intel Sunrisepoint (Intel Skylake PCH). First one can be found here
->> [2].
->>
->> The series has few logical parts:
->> - patches 1-3 prepares PM core, ACPI, and driver core (PM) to handle our case
->> - patches 4-6 introduce unregistering platform devices in MFD in reversed
->>   order
->> - patch 7 implements iDMA 64-bit driver
->> - patch 8 introduces an MFD driver for LPSS devices
->>
->> The patch 8 depends on clkdev_create() helper that has been introduced by
->> Russel King in [3].
->>
->> The driver has been tested with SPI and UART on Intel Skylake PCH.
->>
->> [1] https://download.01.org/future-platform-configuration-hub/skylake/register-definitions/332219_001_Final.pdf
->> [2] https://lkml.org/lkml/2015/3/31/255
->> [3] https://patchwork.linuxtv.org/patch/28464/
+> On Tuesday, May 26, 2015 03:08:17 AM Rafael J. Wysocki wrote:
+>> On Tuesday, May 26, 2015 01:42:16 AM Rafael J. Wysocki wrote:
+>> > On Tuesday, May 26, 2015 01:22:12 AM Rafael J. Wysocki wrote:
+>> > > On Friday, May 22, 2015 09:53:37 PM Boris Ostrovsky wrote:
+>> > > > On 05/22/2015 04:11 AM, Sander Eikelenboom wrote:
+>> > > > > Hello Sander,
+>> > > > >
+>> > 
+>> > [cut]
+>> > 
+>> > > > (+Rafael again)
+>> > > > 
+>> > > > So the immediate cause of those errors is that pdev->evtchn is 0. 
+>> > > > Backend is not notified and things not go well then.
+>> > > > 
+>> > > > And it is indeed caused by 97badf873ab60e841243b66133ff9eff2a46ef29:
+>> > > > 
+>> > > > We allocate pcifront_sd in pcifront_scan_root() and then pass it to 
+>> > > > pci_scan_bus_parented() as sysdata. Eventually this sysdata is used in 
+>> > > > pcibios_root_bridge_prepare() as pci_sysdata. It is dereferenced as 
+>> > > > pci_sysdata->companion (which I believe is aliased to pcifront_sd->pdev)
+>> > 
+>> > Well, there is an int node field between them, so I'm not sure.
+>> > 
+>> > > > and then set_primary_fwnode() writes it, thus corrupting 
+>> > > > pcifront_sd->pdev (and I think this is what sets evtchn to zero).
+>> > 
+>> > So the corruption happens when set_primary_fwnode() writes NULL to the
+>> > 'secondary' field of object pointed to by 'fwnode'.
+>> > 
+>> > This isn't strictly necessary and we might avoid the crash by only
+>> > writing to fwnode->secondary if fn is not NULL.
+>> > 
+>> > So, Sander please test the patch below too if possible.
+>> > 
+>> > Of course, that doesn't solve a problem of passing an incorrect pointer
+>> > to ACPI_COMPANION_SET() in pcibios_root_bridge_prepare().
+>> 
+>> And here's one more thing to test.
 
--- 
-With Best Regards,
-Andy Shevchenko
+> And the below is how I'd fix it, so you can simply test this patch and skip the
+> previous ones.
+
+Hi Rafael,
+
+Just tested it, works for me, thanks !
+
+--
+Sander
+
+
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: PCI / ACPI: Do not set ACPI companions for host bridges with parents
+
+> Commit 97badf873ab6 (device property: Make it possible to use
+> secondary firmware nodes) uncovered a bug in the x86 (and ia64) PCI
+> host bridge initialization code that assumes bridge->bus->sysdata
+> to always point to a struct pci_sysdata object which need not be
+> the case (in particular, the Xen PCI frontend driver sets it to point
+> to a different data type).  If it is not the case, an incorrect
+> pointer (or a piece of data that is not a pointer at all) will be
+> passed to ACPI_COMPANION_SET() and that may cause interesting
+> breakage to happen going forward.
+
+> To work around this problem use the observation that the ACPI
+> host bridge initialization always passes NULL as parent to
+> pci_create_root_bus(), so if pcibios_root_bridge_prepare() sees
+> a non-NULL parent of the bridge, it should not attempt to set
+> an ACPI companion for it, because that means that
+> pci_create_root_bus() has been called by someone else.
+
+> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  arch/ia64/pci/pci.c |   13 ++++++++++---
+>  arch/x86/pci/acpi.c |   13 ++++++++++---
+>  2 files changed, 20 insertions(+), 6 deletions(-)
+
+> Index: linux-pm/arch/x86/pci/acpi.c
+> ===================================================================
+> --- linux-pm.orig/arch/x86/pci/acpi.c
+> +++ linux-pm/arch/x86/pci/acpi.c
+> @@ -482,9 +482,16 @@ struct pci_bus *pci_acpi_scan_root(struc
+>  
+>  int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>  {
+> -       struct pci_sysdata *sd = bridge->bus->sysdata;
+> -
+> -       ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+> +       /*
+> +        * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+> +        * here, pci_create_root_bus() has been called by someone else and
+> +        * sysdata is likely to be different from what we expect.  Let it go in
+> +        * that case.
+> +        */
+> +       if (!bridge->dev.parent) {
+> +               struct pci_sysdata *sd = bridge->bus->sysdata;
+> +               ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+> +       }
+>         return 0;
+>  }
+>  
+> Index: linux-pm/arch/ia64/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/arch/ia64/pci/pci.c
+> +++ linux-pm/arch/ia64/pci/pci.c
+> @@ -478,9 +478,16 @@ struct pci_bus *pci_acpi_scan_root(struc
+>  
+>  int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>  {
+> -       struct pci_controller *controller = bridge->bus->sysdata;
+> -
+> -       ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+> +       /*
+> +        * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+> +        * here, pci_create_root_bus() has been called by someone else and
+> +        * sysdata is likely to be different from what we expect.  Let it go in
+> +        * that case.
+> +        */
+> +       if (!bridge->dev.parent) {
+> +               struct pci_controller *controller = bridge->bus->sysdata;
+> +               ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+> +       }
+>         return 0;
+>  }
+>  
