@@ -1,7 +1,9 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for ACPI
-Date: Tue, 26 May 2015 20:49:14 +0800
-Message-ID: <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH 02/11] x86,
+ pci: Clean up comment about buggy MMIO config space access for AMD
+ Fam10h CPUs.
+Date: Tue, 26 May 2015 20:49:15 +0800
+Message-ID: <1432644564-24746-3-git-send-email-hanjun.guo@linaro.org>
 References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,42 +23,39 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin 
 Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu Dudau <Liviu.Dudau@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-ARM64 ACPI based PCI host bridge init needs a arch dependent
-struct pci_controller to accommodate common PCI host bridge
-code which is introduced later, or it will lead to compile
-errors on ARM64.
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
+- fix typo
+- improve explanation
+- add reference to the related document
+
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Liviu Dudau <Liviu.Dudau@arm.com>
-CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
 ---
- arch/arm64/include/asm/pci.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/x86/include/asm/pci_x86.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
-index b008a72..7088495 100644
---- a/arch/arm64/include/asm/pci.h
-+++ b/arch/arm64/include/asm/pci.h
-@@ -10,6 +10,16 @@
- #include <asm-generic/pci-bridge.h>
- #include <asm-generic/pci-dma-compat.h>
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index 164e3f8..eddf8f0 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -154,10 +154,13 @@ extern struct list_head pci_mmcfg_list;
  
-+struct acpi_device;
-+
-+struct pci_controller {
-+#ifdef CONFIG_ACPI
-+	struct acpi_device *companion;	/* ACPI companion device */
-+#endif
-+	int		segment;	/* PCI domain */
-+	int		node;		/* NUMA node */
-+};
-+
- #define PCIBIOS_MIN_IO		0x1000
- #define PCIBIOS_MIN_MEM		0
- 
+ /*
+  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+- * on their northbrige except through the * %eax register. As such, you MUST
+- * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
++ * on their northbridge except through the * %eax register. As such, you MUST
++ * NOT use normal IOMEM accesses, you need to only use the magic mmio_config_*
+  * accessor functions.
+- * In fact just use pci_config_*, nothing else please.
++ *
++ * Please refer to the following doc:
++ * "BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors",
++ * rev. 3.48, sec 2.11.1, "MMIO Configuration Coding Requirements".
+  */
+ static inline unsigned char mmio_config_readb(void __iomem *pos)
+ {
 -- 
 1.9.1
