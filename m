@@ -1,50 +1,118 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 8/8] mfd: Add support for Intel Sunrisepoint LPSS
- devices
-Date: Wed, 27 May 2015 13:41:02 +0300
-Message-ID: <20150527104102.GF1747@lahna.fi.intel.com>
-References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1432570172-86963-9-git-send-email-andriy.shevchenko@linux.intel.com>
- <20150527102241.GC11677@x1>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for
+ ACPI
+Date: Wed, 27 May 2015 19:29:17 +0800
+Message-ID: <5565AA8D.1090702@linux.intel.com>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org> <20150526165844.GD2175@e106497-lin.cambridge.arm.com> <5564AB68.6080502@linux.intel.com> <20150527094702.GE2175@e106497-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28979 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:30829 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751129AbbE0KlH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 May 2015 06:41:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20150527102241.GC11677@x1>
+	id S1751129AbbE0L3Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 May 2015 07:29:24 -0400
+In-Reply-To: <20150527094702.GE2175@e106497-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+To: Liviu Dudau <Liviu.Dudau@arm.com>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Wed, May 27, 2015 at 11:22:41AM +0100, Lee Jones wrote:
-> > +static int resume_lpss_device(struct device *dev, void *data)
-> > +{
-> > +	pm_runtime_resume(dev);
-> > +	return 0;
-> > +}
-> > +
-> > +int intel_lpss_prepare(struct device *dev)
-> > +{
-> > +	/*
-> > +	 * Resume both child devices before entering system sleep. This
-> > +	 * ensures that they are in proper state before they get suspended.
-> > +	 */
-> > +	device_for_each_child_reverse(dev, NULL, resume_lpss_device);
+On 2015/5/27 17:47, Liviu Dudau wrote:
+> On Tue, May 26, 2015 at 06:20:40PM +0100, Jiang Liu wrote:
+>> On 2015/5/27 0:58, Liviu Dudau wrote:
+>>> On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
+>>>> ARM64 ACPI based PCI host bridge init needs a arch dependent
+>>>> struct pci_controller to accommodate common PCI host bridge
+>>>> code which is introduced later, or it will lead to compile
+>>>> errors on ARM64.
+>>>
+>>> Hi Hanjun,
+>>>
+>>> Two questions: why don't you introduce this patch next to the
+>>> one that is going to make use of it (or even merge it there)?
+>>> Second, why is the whole struct pci_controller not surrounded
+>>> by #ifdef CONFIG_ACPI as you are implying that this is needed
+>>> only for ACPI?
+>>>
+>>> Btw, looking through the whole series I'm not (yet) convinced
+>>> that this is needed at all.
+>> Hi Liviu,
+>> 	This structure is required by the requested patch set
+>> at http://patchwork.ozlabs.org/patch/472249/, which consolidates
+>> the common code to support PCI host bridge into ACPI core.
+>> Thanks!
+>> Gerry
 > 
-> Why can't you do this in intel_lpss_suspend()?
+> Hi Jiang,
 > 
-> Then you can get rid of all the hand-rolled nonsense you have in the
-> header file and use SET_SYSTEM_SLEEP_PM_OPS instead.
+> Thanks for pointing me on the right answer, I've missed that series!
+> Probably not the best place to comment on that series here, but I
+> wonder why did you not made the pci_controller structure available
+> in a more generic header file that can be included so that arches
+> don't have to redefine the structure every time. After all, you are
+> trying to consolidate things.
 > 
-> Does something happen after .prepare() and before .suspend() that
-> prevents this from working?
+> Oh, and pci_controller name throws a lot of false negatives, maybe
+> a more specific one (acpi_pci_controller?) would make things clear?
+Hi Liviu,
+	It's a trade-off. Once I tried to rename it too, but gave up
+later. There are several reasons to keep it as is:
+1) Several architectures define pci_controller to support PCI
+   root bus.
+2) struct pci_controller is a generic concept, I guess, and ACPI code
+   extends pci_controller to host some ACPI specific data on IA64 and
+   x86.
+3) It will cause big code changes if we rename pci_controller to
+   something else.
+Thanks!
+Gerry
 
-At that time all children are already suspended (to system sleep) so we
-cannot bring them out of runtime suspend anymore.
-
-.prepare() is executed for all devices before suspend callbacks for
-each device.
+> 
+> Best regards,
+> Liviu
+> 
+>>
+>>>
+>>> Best regards,
+>>> Liviu
+>>>
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>>>> CC: Arnd Bergmann <arnd@arndb.de>
+>>>> CC: Catalin Marinas <catalin.marinas@arm.com>
+>>>> CC: Liviu Dudau <Liviu.Dudau@arm.com>
+>>>> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+>>>> CC: Will Deacon <will.deacon@arm.com>
+>>>> ---
+>>>>  arch/arm64/include/asm/pci.h | 10 ++++++++++
+>>>>  1 file changed, 10 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+>>>> index b008a72..7088495 100644
+>>>> --- a/arch/arm64/include/asm/pci.h
+>>>> +++ b/arch/arm64/include/asm/pci.h
+>>>> @@ -10,6 +10,16 @@
+>>>>  #include <asm-generic/pci-bridge.h>
+>>>>  #include <asm-generic/pci-dma-compat.h>
+>>>>  
+>>>> +struct acpi_device;
+>>>> +
+>>>> +struct pci_controller {
+>>>> +#ifdef CONFIG_ACPI
+>>>> +	struct acpi_device *companion;	/* ACPI companion device */
+>>>> +#endif
+>>>> +	int		segment;	/* PCI domain */
+>>>> +	int		node;		/* NUMA node */
+>>>> +};
+>>>> +
+>>>>  #define PCIBIOS_MIN_IO		0x1000
+>>>>  #define PCIBIOS_MIN_MEM		0
+>>>>  
+>>>> -- 
+>>>> 1.9.1
+>>>>
+>>>
+>>
+> 
