@@ -1,8 +1,8 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v4 05/21] libnd: control (ioctl) messages for libnd bus and
- dimm devices
-Date: Wed, 27 May 2015 18:25:09 -0400
-Message-ID: <20150527222509.17965.25255.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v4 11/21] libnd,
+ nfit: add interleave-set state-tracking infrastructure
+Date: Wed, 27 May 2015 18:25:42 -0400
+Message-ID: <20150527222542.17965.94122.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,1152 +11,532 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: axboe@kernel.dk
-Cc: mingo@kernel.org, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, akpm@linux-foundation.org, hch@lst.de
+Cc: mingo@kernel.org, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, akpm@linux-foundation.org, hch@lst.de
 List-Id: linux-acpi@vger.kernel.org
 
-Most discovery/configuration of the libnd-subsystem is done via sysfs
-attributes.  However, some libnd buses, particularly the ACPI.NFIT bus,
-define a small set of messages that can be passed to the platform.  For
-convenience we derive the initial libnd-ioctl command formats directly
-from the NFIT DSM Interface Example formats.
+On platforms that have firmware support for reading/writing per-dimm
+label space, a portion of the dimm may be accessible via an interleave
+set PMEM mapping in addition to the dimm's BLK (block-data-window
+aperture(s)) interface.  A label, stored in a "configuration data
+region" on the dimm, disambiguates which dimm addresses are accessed
+through which exclusive interface.
 
-    ND_CMD_SMART: media health and diagnostics
-    ND_CMD_GET_CONFIG_SIZE: size of the label space
-    ND_CMD_GET_CONFIG_DATA: read label space
-    ND_CMD_SET_CONFIG_DATA: write label space
-    ND_CMD_VENDOR: vendor-specific command passthrough
-    ND_CMD_ARS_CAP: report address-range-scrubbing capabilities
-    ND_CMD_START_ARS: initiate scrubbing
-    ND_CMD_QUERY_ARS: report on scrubbing state
-    ND_CMD_SMART_THRESHOLD: configure alarm thresholds for smart events
+Add infrastructure that allows the kernel to block modifications to a
+label in the set while any member dimm is active.  Note that this is
+meant only for enforcing "no modifications of active labels" via the
+coarse ioctl command.  Adding/deleting namespaces from an active
+interleave set is always possible via sysfs.
 
-If a platform later defines different commands than this set it is
-straightforward to extend support to those formats.
+Another aspect of tracking interleave sets is tracking their integrity
+when DIMMs in a set are physically re-ordered.  For this purpose we
+generate an "interleave-set cookie" that can be recorded in a label and
+validated against the current configuration.  It is the bus provider
+implementation's responsibility to calculate the interleave set cookie
+and attach it to a given region.
 
-Most of the commands target a specific dimm.  However, the
-address-range-scrubbing commands target the bus.  The 'commands'
-attribute in sysfs of a libnd-bus, or a libnd-nmem (dimm device)
-enumerate the supported commands for that object.
-
+Cc: Neil Brown <neilb@suse.de>
 Cc: <linux-acpi@vger.kernel.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Cc: Robert Moore <robert.moore@intel.com>
 Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/Kconfig          |   12 ++
- drivers/acpi/nfit.c           |  213 +++++++++++++++++++++++++++
- drivers/acpi/nfit.h           |    3 
- drivers/block/nd/bus.c        |  324 ++++++++++++++++++++++++++++++++++++++++-
- drivers/block/nd/core.c       |   16 ++
- drivers/block/nd/dimm_devs.c  |   38 ++++-
- drivers/block/nd/nd-private.h |    3 
- include/linux/libnd.h         |   25 +++
- include/uapi/linux/Kbuild     |    1 
- include/uapi/linux/ndctl.h    |  178 +++++++++++++++++++++++
- 10 files changed, 803 insertions(+), 10 deletions(-)
- create mode 100644 include/uapi/linux/ndctl.h
+ drivers/acpi/nfit.c            |   91 ++++++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/bus.c         |   41 ++++++++++++++++++
+ drivers/block/nd/core.c        |   17 +++++++
+ drivers/block/nd/dimm_devs.c   |   19 ++++++++
+ drivers/block/nd/nd-private.h  |   10 ++++
+ drivers/block/nd/nd.h          |    1 
+ drivers/block/nd/region_devs.c |   85 +++++++++++++++++++++++++++++++++++++
+ include/linux/libnd.h          |    6 +++
+ 8 files changed, 266 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 84d046d4ed17..0690045ba270 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -390,6 +390,18 @@ config ACPI_NFIT
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called nfit.
- 
-+config ACPI_NFIT_DEBUG
-+	bool "NFIT DSM debug"
-+	depends on ACPI_NFIT
-+	depends on DYNAMIC_DEBUG
-+	default n
-+	help
-+	  Enabling this option causes the nfit driver to dump the
-+	  input and output buffers of _DSM operations on the ACPI0012
-+	  device and its children.  This can be very verbose, so leave
-+	  it disabled unless you are debugging a hardware / firmware
-+	  issue.
-+
- source "drivers/acpi/apei/Kconfig"
- 
- config ACPI_EXTLOG
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index b26e1a4a59e3..b7c1c5a5b589 100644
+index 087aa57f80e7..c0e454446ab1 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -13,6 +13,7 @@
- #include <linux/list_sort.h>
- #include <linux/module.h>
- #include <linux/libnd.h>
-+#include <linux/ndctl.h>
+@@ -16,6 +16,7 @@
+ #include <linux/ndctl.h>
  #include <linux/list.h>
  #include <linux/acpi.h>
++#include <linux/sort.h>
  #include "nfit.h"
-@@ -24,11 +25,150 @@ static const u8 *to_nfit_uuid(enum nfit_uuids id)
- 	return nfit_uuid[id];
- }
  
-+static struct acpi_nfit_desc *to_acpi_nfit_desc(struct nd_bus_descriptor *nd_desc)
-+{
-+	return container_of(nd_desc, struct acpi_nfit_desc, nd_desc);
-+}
-+
-+static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nd_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
-+
-+	/*
-+	 * If provider == 'ACPI.NFIT' we can assume 'dev' is a struct
-+	 * acpi_device.
-+	 */
-+	if (!nd_desc->provider_name
-+			|| strcmp(nd_desc->provider_name, "ACPI.NFIT") != 0)
-+		return NULL;
-+
-+	return to_acpi_device(acpi_desc->dev);
-+}
-+
- static int acpi_nfit_ctl(struct nd_bus_descriptor *nd_desc,
- 		struct nd_dimm *nd_dimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len)
- {
--	return -ENOTTY;
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-+	const struct nd_cmd_desc const *desc = NULL;
-+	union acpi_object in_obj, in_buf, *out_obj;
-+	struct device *dev = acpi_desc->dev;
-+	const char *cmd_name, *dimm_name;
-+	unsigned long dsm_mask;
-+	acpi_handle handle;
-+	const u8 *uuid;
-+	u32 offset;
-+	int rc, i;
-+
-+	if (nd_dimm) {
-+		struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
-+		struct acpi_device *adev = nfit_mem->adev;
-+
-+		if (!adev)
-+			return -ENOTTY;
-+		dimm_name = dev_name(&adev->dev);
-+		cmd_name = nd_dimm_cmd_name(cmd);
-+		dsm_mask = nfit_mem->dsm_mask;
-+		desc = nd_cmd_dimm_desc(cmd);
-+		uuid = to_nfit_uuid(NFIT_DEV_DIMM);
-+		handle = adev->handle;
-+	} else {
-+		struct acpi_device *adev = to_acpi_dev(acpi_desc);
-+
-+		cmd_name = nd_bus_cmd_name(cmd);
-+		dsm_mask = nd_desc->dsm_mask;
-+		desc = nd_cmd_bus_desc(cmd);
-+		uuid = to_nfit_uuid(NFIT_DEV_BUS);
-+		handle = adev->handle;
-+		dimm_name = "bus";
-+	}
-+
-+	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
-+		return -ENOTTY;
-+
-+	if (!test_bit(cmd, &dsm_mask))
-+		return -ENOTTY;
-+
-+	in_obj.type = ACPI_TYPE_PACKAGE;
-+	in_obj.package.count = 1;
-+	in_obj.package.elements = &in_buf;
-+	in_buf.type = ACPI_TYPE_BUFFER;
-+	in_buf.buffer.pointer = buf;
-+	in_buf.buffer.length = 0;
-+
-+	/* libnd has already validated the input envelope */
-+	for (i = 0; i < desc->in_num; i++)
-+		in_buf.buffer.length += nd_cmd_in_size(nd_dimm, cmd, desc, i, buf);
-+
-+	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
-+		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
-+				dimm_name, cmd_name, in_buf.buffer.length);
-+		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
-+				4, in_buf.buffer.pointer, min_t(u32, 128,
-+					in_buf.buffer.length), true);
-+	}
-+
-+	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
-+	if (!out_obj) {
-+		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
-+				cmd_name);
-+		return -EINVAL;
-+	}
-+
-+	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
-+		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
-+				__func__, dimm_name, cmd_name, out_obj->type);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
-+		dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
-+				dimm_name, cmd_name, out_obj->buffer.length);
-+		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
-+				4, out_obj->buffer.pointer, min_t(u32, 128,
-+					out_obj->buffer.length), true);
-+	}
-+
-+	for (i = 0, offset = 0; i < desc->out_num; i++) {
-+		u32 out_size = nd_cmd_out_size(nd_dimm, cmd, desc, i, buf,
-+				(u32 *) out_obj->buffer.pointer);
-+
-+		if (offset + out_size > out_obj->buffer.length) {
-+			dev_dbg(dev, "%s:%s output object underflow cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			break;
-+		}
-+
-+		if (in_buf.buffer.length + offset + out_size > buf_len) {
-+			dev_dbg(dev, "%s:%s output overrun cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			rc = -ENXIO;
-+			goto out;
-+		}
-+		memcpy(buf + in_buf.buffer.length + offset,
-+				out_obj->buffer.pointer + offset, out_size);
-+		offset += out_size;
-+	}
-+	if (offset + in_buf.buffer.length < buf_len) {
-+		if (i >= 1) {
-+			/*
-+			 * status valid, return the number of bytes left
-+			 * unfilled in the output buffer
-+			 */
-+			rc = buf_len - offset - in_buf.buffer.length;
-+		} else {
-+			dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
-+					__func__, dimm_name, cmd_name, buf_len, offset);
-+			rc = -ENXIO;
-+		}
-+	} else
-+		rc = 0;
-+
-+ out:
-+	ACPI_FREE(out_obj);
-+
-+	return rc;
- }
- 
- static const char *spa_type_name(u16 type)
-@@ -451,6 +591,7 @@ static struct attribute_group acpi_nfit_dimm_attribute_group = {
- };
- 
- static const struct attribute_group *acpi_nfit_dimm_attribute_groups[] = {
-+	&nd_dimm_attribute_group,
- 	&acpi_nfit_dimm_attribute_group,
+ static bool force_enable_dimms;
+@@ -744,6 +745,91 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
  	NULL,
  };
-@@ -467,6 +608,50 @@ static struct nd_dimm *acpi_nfit_dimm_by_handle(struct acpi_nfit_desc *acpi_desc
- 	return NULL;
- }
  
-+static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
-+		struct nfit_mem *nfit_mem, u32 device_handle)
-+{
-+	struct acpi_device *adev, *adev_dimm;
-+	struct device *dev = acpi_desc->dev;
-+	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
-+	unsigned long long sta;
-+	int i, rc = -ENODEV;
-+	acpi_status status;
++/* enough info to uniquely specify an interleave set */
++struct nfit_set_info {
++	struct nfit_set_info_map {
++		u64 region_offset;
++		u32 serial_number;
++		u32 pad;
++	} mapping[0];
++};
 +
-+	nfit_mem->dsm_mask = acpi_desc->dimm_dsm_force_en;
-+	adev = to_acpi_dev(acpi_desc);
-+	if (!adev)
++static size_t sizeof_nfit_set_info(int num_mappings)
++{
++	return sizeof(struct nfit_set_info)
++		+ num_mappings * sizeof(struct nfit_set_info_map);
++}
++
++static int cmp_map(const void *m0, const void *m1)
++{
++	const struct nfit_set_info_map *map0 = m0;
++	const struct nfit_set_info_map *map1 = m1;
++
++	return memcmp(&map0->region_offset, &map1->region_offset,
++			sizeof(u64));
++}
++
++/* Retrieve the nth entry referencing this spa */
++static struct acpi_nfit_memory_map *memdev_from_spa(
++		struct acpi_nfit_desc *acpi_desc, u16 range_index, int n)
++{
++	struct nfit_memdev *nfit_memdev;
++
++	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list)
++		if (nfit_memdev->memdev->range_index == range_index)
++			if (n-- == 0)
++				return nfit_memdev->memdev;
++	return NULL;
++}
++
++static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
++		struct nd_region_desc *ndr_desc,
++		struct acpi_nfit_system_address *spa)
++{
++	u16 num_mappings = ndr_desc->num_mappings;
++	int i, spa_type = nfit_spa_type(spa);
++	struct device *dev = acpi_desc->dev;
++	struct nd_interleave_set *nd_set;
++	struct nfit_set_info *info;
++
++	if (spa_type == NFIT_SPA_PM || spa_type == NFIT_SPA_VOLATILE)
++		/* pass */;
++	else
 +		return 0;
 +
-+	adev_dimm = acpi_find_child_device(adev, device_handle, false);
-+	nfit_mem->adev = adev_dimm;
-+	if (!adev_dimm) {
-+		dev_err(dev, "no ACPI.NFIT device with _ADR %#x, disabling...\n",
-+				device_handle);
-+		return -ENODEV;
-+	}
-+
-+	status = acpi_evaluate_integer(adev_dimm->handle, "_STA", NULL, &sta);
-+	if (status == AE_NOT_FOUND) {
-+		dev_dbg(dev, "%s missing _STA, assuming enabled...\n",
-+				dev_name(&adev_dimm->dev));
-+		rc = 0;
-+	} else if (ACPI_FAILURE(status))
-+		dev_err(dev, "%s failed to retrieve_STA, disabling...\n",
-+				dev_name(&adev_dimm->dev));
-+	else if ((sta & ACPI_STA_DEVICE_ENABLED) == 0)
-+		dev_info(dev, "%s disabled by firmware\n",
-+				dev_name(&adev_dimm->dev));
-+	else
-+		rc = 0;
-+
-+	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
-+		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
-+			set_bit(i, &nfit_mem->dsm_mask);
-+
-+	return rc;
-+}
-+
- static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_mem *nfit_mem;
-@@ -475,6 +660,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		struct nd_dimm *nd_dimm;
- 		unsigned long flags = 0;
- 		u32 device_handle;
-+		int rc;
- 
- 		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
- 		nd_dimm = acpi_nfit_dimm_by_handle(acpi_desc, device_handle);
-@@ -491,8 +677,13 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
- 			flags |= NDD_ALIASING;
- 
-+		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
-+		if (rc)
-+			continue;
-+
- 		nd_dimm = nd_dimm_create(acpi_desc->nd_bus, nfit_mem,
--				acpi_nfit_dimm_attribute_groups, flags);
-+				acpi_nfit_dimm_attribute_groups,
-+				flags, &nfit_mem->dsm_mask);
- 		if (!nd_dimm)
- 			return -ENOMEM;
- 
-@@ -502,6 +693,22 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 	return 0;
- }
- 
-+static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct nd_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
-+	const u8 *uuid = to_nfit_uuid(NFIT_DEV_BUS);
-+	struct acpi_device *adev;
-+	int i;
-+
-+	adev = to_acpi_dev(acpi_desc);
-+	if (!adev)
-+		return;
-+
-+	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_ARS_QUERY; i++)
-+		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
-+			set_bit(i, &nd_desc->dsm_mask);
-+}
-+
- static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
-@@ -529,6 +736,8 @@ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	if (nfit_mem_init(acpi_desc) != 0)
- 		return -ENOMEM;
- 
-+	acpi_nfit_init_dsms(acpi_desc);
-+
- 	return acpi_nfit_register_dimms(acpi_desc);
- }
- 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 9d4c1634cb0e..cc496ba6bbd2 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -67,6 +67,8 @@ struct nfit_mem {
- 	struct acpi_nfit_system_address *spa_dcr;
- 	struct acpi_nfit_system_address *spa_bdw;
- 	struct list_head list;
-+	struct acpi_device *adev;
-+	unsigned long dsm_mask;
- };
- 
- struct acpi_nfit_desc {
-@@ -79,6 +81,7 @@ struct acpi_nfit_desc {
- 	struct list_head bdws;
- 	struct nd_bus *nd_bus;
- 	struct device *dev;
-+	unsigned long dimm_dsm_force_en;
- };
- 
- static inline struct acpi_nfit_memory_map *__to_nfit_memdev(struct nfit_mem *nfit_mem)
-diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
-index ee56aa1ab2ad..f072a9e0c1bd 100644
---- a/drivers/block/nd/bus.c
-+++ b/drivers/block/nd/bus.c
-@@ -11,14 +11,18 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/vmalloc.h>
- #include <linux/uaccess.h>
- #include <linux/fcntl.h>
- #include <linux/async.h>
-+#include <linux/ndctl.h>
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/io.h>
-+#include <linux/mm.h>
- #include "nd-private.h"
- 
-+int nd_dimm_major;
- static int nd_bus_major;
- static struct class *nd_class;
- 
-@@ -47,19 +51,323 @@ void nd_bus_destroy_ndctl(struct nd_bus *nd_bus)
- 	device_destroy(nd_class, MKDEV(nd_bus_major, nd_bus->id));
- }
- 
-+static const struct nd_cmd_desc const __nd_cmd_dimm_descs[] = {
-+	[ND_CMD_IMPLEMENTED] = { },
-+	[ND_CMD_SMART] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, 8, },
-+	},
-+	[ND_CMD_SMART_THRESHOLD] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, 8, },
-+	},
-+	[ND_CMD_DIMM_FLAGS] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, 4 },
-+	},
-+	[ND_CMD_GET_CONFIG_SIZE] = {
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, 4, },
-+	},
-+	[ND_CMD_GET_CONFIG_DATA] = {
-+		.in_num = 2,
-+		.in_sizes = { 4, 4, },
-+		.out_num = 2,
-+		.out_sizes = { 4, UINT_MAX, },
-+	},
-+	[ND_CMD_SET_CONFIG_DATA] = {
-+		.in_num = 3,
-+		.in_sizes = { 4, 4, UINT_MAX, },
-+		.out_num = 1,
-+		.out_sizes = { 4, },
-+	},
-+	[ND_CMD_VENDOR] = {
-+		.in_num = 3,
-+		.in_sizes = { 4, 4, UINT_MAX, },
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, UINT_MAX, },
-+	},
-+};
-+
-+const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
-+{
-+	if (cmd < ARRAY_SIZE(__nd_cmd_dimm_descs))
-+		return &__nd_cmd_dimm_descs[cmd];
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_dimm_desc);
-+
-+static const struct nd_cmd_desc const __nd_cmd_bus_descs[] = {
-+	[ND_CMD_IMPLEMENTED] = { },
-+	[ND_CMD_ARS_CAP] = {
-+		.in_num = 2,
-+		.in_sizes = { 8, 8, },
-+		.out_num = 2,
-+		.out_sizes = { 4, 4, },
-+	},
-+	[ND_CMD_ARS_START] = {
-+		.in_num = 4,
-+		.in_sizes = { 8, 8, 2, 6, },
-+		.out_num = 1,
-+		.out_sizes = { 4, },
-+	},
-+	[ND_CMD_ARS_QUERY] = {
-+		.out_num = 2,
-+		.out_sizes = { 4, UINT_MAX, },
-+	},
-+};
-+
-+const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
-+{
-+	if (cmd < ARRAY_SIZE(__nd_cmd_bus_descs))
-+		return &__nd_cmd_bus_descs[cmd];
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_bus_desc);
-+
-+u32 nd_cmd_in_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, void *buf)
-+{
-+	if (idx >= desc->in_num)
-+		return UINT_MAX;
-+
-+	if (desc->in_sizes[idx] < UINT_MAX)
-+		return desc->in_sizes[idx];
-+
-+	if (nd_dimm && cmd == ND_CMD_SET_CONFIG_DATA && idx == 2) {
-+		struct nd_cmd_set_config_hdr *hdr = buf;
-+
-+		return hdr->in_length;
-+	} else if (nd_dimm && cmd == ND_CMD_VENDOR && idx == 2) {
-+		struct nd_cmd_vendor_hdr *hdr = buf;
-+
-+		return hdr->in_length;
-+	}
-+
-+	return UINT_MAX;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_in_size);
-+
-+u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
-+		const u32 *out_field)
-+{
-+	if (idx >= desc->out_num)
-+		return UINT_MAX;
-+
-+	if (desc->out_sizes[idx] < UINT_MAX)
-+		return desc->out_sizes[idx];
-+
-+	if (nd_dimm && cmd == ND_CMD_GET_CONFIG_DATA && idx == 1)
-+		return in_field[1];
-+	else if (nd_dimm && cmd == ND_CMD_VENDOR && idx == 2)
-+		return out_field[1];
-+	else if (!nd_dimm && cmd == ND_CMD_ARS_QUERY && idx == 1)
-+		return ND_CMD_ARS_QUERY_MAX;
-+
-+	return UINT_MAX;
-+}
-+EXPORT_SYMBOL_GPL(nd_cmd_out_size);
-+
-+static int __nd_ioctl(struct nd_bus *nd_bus, struct nd_dimm *nd_dimm,
-+		int read_only, unsigned int ioctl_cmd, unsigned long arg)
-+{
-+	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-+	size_t buf_len = 0, in_len = 0, out_len = 0;
-+	static char out_env[ND_CMD_MAX_ENVELOPE];
-+	static char in_env[ND_CMD_MAX_ENVELOPE];
-+	const struct nd_cmd_desc *desc = NULL;
-+	unsigned int cmd = _IOC_NR(ioctl_cmd);
-+	void __user *p = (void __user *) arg;
-+	struct device *dev = &nd_bus->dev;
-+	const char *cmd_name, *dimm_name;
-+	unsigned long dsm_mask;
-+	void *buf;
-+	int rc, i;
-+
-+	if (nd_dimm) {
-+		desc = nd_cmd_dimm_desc(cmd);
-+		cmd_name = nd_dimm_cmd_name(cmd);
-+		dsm_mask = nd_dimm->dsm_mask ? *(nd_dimm->dsm_mask) : 0;
-+		dimm_name = dev_name(&nd_dimm->dev);
-+	} else {
-+		desc = nd_cmd_bus_desc(cmd);
-+		cmd_name = nd_bus_cmd_name(cmd);
-+		dsm_mask = nd_desc->dsm_mask;
-+		dimm_name = "bus";
-+	}
-+
-+	if (!desc || (desc->out_num + desc->in_num == 0) ||
-+			!test_bit(cmd, &dsm_mask))
-+		return -ENOTTY;
-+
-+	/* fail write commands (when read-only) */
-+	if (read_only)
-+		switch (ioctl_cmd) {
-+		case ND_IOCTL_VENDOR:
-+		case ND_IOCTL_SET_CONFIG_DATA:
-+		case ND_IOCTL_ARS_START:
-+			dev_dbg(&nd_bus->dev, "'%s' command while read-only.\n",
-+					nd_dimm ? nd_dimm_cmd_name(cmd)
-+					: nd_bus_cmd_name(cmd));
-+			return -EPERM;
-+		default:
-+			break;
-+		}
-+
-+	/* process an input envelope */
-+	for (i = 0; i < desc->in_num; i++) {
-+		u32 in_size, copy;
-+
-+		in_size = nd_cmd_in_size(nd_dimm, cmd, desc, i, in_env);
-+		if (in_size == UINT_MAX) {
-+			dev_err(dev, "%s:%s unknown input size cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			return -ENXIO;
-+		}
-+		if (!access_ok(VERIFY_READ, p + in_len, in_size))
-+			return -EFAULT;
-+		if (in_len < sizeof(in_env))
-+			copy = min_t(u32, sizeof(in_env) - in_len, in_size);
-+		else
-+			copy = 0;
-+		if (copy && copy_from_user(&in_env[in_len], p + in_len, copy))
-+			return -EFAULT;
-+		in_len += in_size;
-+	}
-+
-+	/* process an output envelope */
-+	for (i = 0; i < desc->out_num; i++) {
-+		u32 out_size = nd_cmd_out_size(nd_dimm, cmd, desc, i,
-+				(u32 *) in_env, (u32 *) out_env);
-+		u32 copy;
-+
-+		if (out_size == UINT_MAX) {
-+			dev_dbg(dev, "%s:%s unknown output size cmd: %s field: %d\n",
-+					__func__, dimm_name, cmd_name, i);
-+			return -EFAULT;
-+		}
-+		if (!access_ok(VERIFY_WRITE, p + in_len + out_len, out_size))
-+			return -EFAULT;
-+		if (out_len < sizeof(out_env))
-+			copy = min_t(u32, sizeof(out_env) - out_len, out_size);
-+		else
-+			copy = 0;
-+		if (copy && copy_from_user(&out_env[out_len], p + in_len + out_len,
-+					copy))
-+			return -EFAULT;
-+		out_len += out_size;
-+	}
-+
-+	buf_len = out_len + in_len;
-+	if (!access_ok(VERIFY_WRITE, p, sizeof(buf_len)))
-+		return -EFAULT;
-+
-+	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
-+		dev_dbg(dev, "%s:%s cmd: %s buf_len: %zd > %d\n", __func__,
-+				dimm_name, cmd_name, buf_len,
-+				ND_IOCTL_MAX_BUFLEN);
-+		return -EINVAL;
-+	}
-+
-+	buf = vmalloc(buf_len);
-+	if (!buf)
++	nd_set = devm_kzalloc(dev, sizeof(*nd_set), GFP_KERNEL);
++	if (!nd_set)
 +		return -ENOMEM;
 +
-+	if (copy_from_user(buf, p, buf_len)) {
-+		rc = -EFAULT;
-+		goto out;
-+	}
++	info = devm_kzalloc(dev, sizeof_nfit_set_info(num_mappings), GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
++	for (i = 0; i < num_mappings; i++) {
++		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
++		struct nfit_set_info_map *map = &info->mapping[i];
++		struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
++		struct nfit_mem *nfit_mem = nd_dimm_provider_data(nd_dimm);
++		struct acpi_nfit_memory_map *memdev = memdev_from_spa(acpi_desc,
++				spa->range_index, i);
 +
-+	rc = nd_desc->ndctl(nd_desc, nd_dimm, cmd, buf, buf_len);
-+	if (rc < 0)
-+		goto out;
-+	if (copy_to_user(p, buf, buf_len))
-+		rc = -EFAULT;
-+ out:
-+	vfree(buf);
-+	return rc;
-+}
-+
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	return -ENXIO;
-+	long id = (long) file->private_data;
-+	int rc = -ENXIO, read_only;
-+	struct nd_bus *nd_bus;
-+
-+	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	mutex_lock(&nd_bus_list_mutex);
-+	list_for_each_entry(nd_bus, &nd_bus_list, list) {
-+		if (nd_bus->id == id) {
-+			rc = __nd_ioctl(nd_bus, NULL, read_only, cmd, arg);
-+			break;
++		if (!memdev || !nfit_mem->dcr) {
++			dev_err(dev, "%s: failed to find DCR\n", __func__);
++			return -ENODEV;
 +		}
++
++		map->region_offset = memdev->region_offset;
++		map->serial_number = nfit_mem->dcr->serial_number;
 +	}
-+	mutex_unlock(&nd_bus_list_mutex);
 +
-+	return rc;
-+}
-+
-+static int match_dimm(struct device *dev, void *data)
-+{
-+	long id = (long) data;
-+
-+	if (is_nd_dimm(dev)) {
-+		struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+
-+		return nd_dimm->id == id;
-+	}
++	sort(&info->mapping[0], num_mappings, sizeof(struct nfit_set_info_map),
++			cmp_map, NULL);
++	nd_set->cookie = nd_fletcher64(info, sizeof_nfit_set_info(num_mappings), 0);
++	ndr_desc->nd_set = nd_set;
++	devm_kfree(dev, info);
 +
 +	return 0;
 +}
 +
-+static long nd_dimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_spa *nfit_spa)
+ {
+@@ -751,7 +837,7 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	struct acpi_nfit_system_address *spa = nfit_spa->spa;
+ 	struct nfit_memdev *nfit_memdev;
+ 	struct nd_region_desc ndr_desc;
+-	int spa_type, count = 0;
++	int spa_type, count = 0, rc;
+ 	struct resource res;
+ 	u16 range_index;
+ 
+@@ -817,6 +903,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	ndr_desc.nd_mapping = nd_mappings;
+ 	ndr_desc.num_mappings = count;
++	rc = acpi_nfit_init_interleave_set(acpi_desc, &ndr_desc, spa);
++	if (rc)
++		return rc;
+ 	if (spa_type == NFIT_SPA_PM) {
+ 		if (!nd_pmem_region_create(acpi_desc->nd_bus, &ndr_desc))
+ 			return -ENOMEM;
+diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
+index d2a62a6142f3..63b5182cf766 100644
+--- a/drivers/block/nd/bus.c
++++ b/drivers/block/nd/bus.c
+@@ -78,7 +78,10 @@ static int nd_bus_probe(struct device *dev)
+ 	if (!try_module_get(provider))
+ 		return -ENXIO;
+ 
++	nd_region_probe_start(nd_bus, dev);
+ 	rc = nd_drv->probe(dev);
++	nd_region_probe_end(nd_bus, dev, rc);
++
+ 	dev_dbg(&nd_bus->dev, "%s.probe(%s) = %d\n", dev->driver->name,
+ 			dev_name(dev), rc);
+ 	if (rc != 0)
+@@ -94,6 +97,8 @@ static int nd_bus_remove(struct device *dev)
+ 	int rc;
+ 
+ 	rc = nd_drv->remove(dev);
++	nd_region_notify_remove(nd_bus, dev, rc);
++
+ 	dev_dbg(&nd_bus->dev, "%s.remove(%s) = %d\n", dev->driver->name,
+ 			dev_name(dev), rc);
+ 	module_put(provider);
+@@ -359,6 +364,33 @@ u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
+ }
+ EXPORT_SYMBOL_GPL(nd_cmd_out_size);
+ 
++static void wait_nd_bus_probe_idle(struct nd_bus *nd_bus)
 +{
-+	int rc = -ENXIO, read_only;
++	do {
++		if (nd_bus->probe_active == 0)
++			break;
++		nd_bus_unlock(&nd_bus->dev);
++		wait_event(nd_bus->probe_wait, nd_bus->probe_active == 0);
++		nd_bus_lock(&nd_bus->dev);
++	} while (true);
++}
++
++/* set_config requires an idle interleave set */
++static int nd_cmd_clear_to_send(struct nd_dimm *nd_dimm, unsigned int cmd)
++{
 +	struct nd_bus *nd_bus;
 +
-+	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	mutex_lock(&nd_bus_list_mutex);
-+	list_for_each_entry(nd_bus, &nd_bus_list, list) {
-+		struct device *dev = device_find_child(&nd_bus->dev,
-+				file->private_data, match_dimm);
++	if (!nd_dimm || cmd != ND_CMD_SET_CONFIG_DATA)
++		return 0;
 +
-+		if (!dev)
-+			continue;
++	nd_bus = walk_to_nd_bus(&nd_dimm->dev);
++	wait_nd_bus_probe_idle(nd_bus);
 +
-+		rc = __nd_ioctl(nd_bus, to_nd_dimm(dev), read_only, cmd, arg);
-+		put_device(dev);
-+		break;
-+	}
-+	mutex_unlock(&nd_bus_list_mutex);
-+
-+	return rc;
++	if (atomic_read(&nd_dimm->busy))
++		return -EBUSY;
++	return 0;
 +}
 +
-+static int nd_open(struct inode *inode, struct file *file)
-+{
-+	long minor = iminor(inode);
-+
-+	file->private_data = (void *) minor;
-+	return 0;
- }
- 
- static const struct file_operations nd_bus_fops = {
- 	.owner = THIS_MODULE,
--	.open = nonseekable_open,
-+	.open = nd_open,
- 	.unlocked_ioctl = nd_ioctl,
- 	.compat_ioctl = nd_ioctl,
- 	.llseek = noop_llseek,
- };
- 
-+static const struct file_operations nd_dimm_fops = {
-+	.owner = THIS_MODULE,
-+	.open = nd_open,
-+	.unlocked_ioctl = nd_dimm_ioctl,
-+	.compat_ioctl = nd_dimm_ioctl,
-+	.llseek = noop_llseek,
-+};
-+
- int __init nd_bus_init(void)
+ static int __nd_ioctl(struct nd_bus *nd_bus, struct nd_dimm *nd_dimm,
+ 		int read_only, unsigned int ioctl_cmd, unsigned long arg)
  {
- 	int rc;
-@@ -70,9 +378,14 @@ int __init nd_bus_init(void)
+@@ -469,11 +501,18 @@ static int __nd_ioctl(struct nd_bus *nd_bus, struct nd_dimm *nd_dimm,
+ 		goto out;
+ 	}
  
- 	rc = register_chrdev(0, "ndctl", &nd_bus_fops);
++	nd_bus_lock(&nd_bus->dev);
++	rc = nd_cmd_clear_to_send(nd_dimm, cmd);
++	if (rc)
++		goto out_unlock;
++
+ 	rc = nd_desc->ndctl(nd_desc, nd_dimm, cmd, buf, buf_len);
  	if (rc < 0)
--		goto err_chrdev;
-+		goto err_bus_chrdev;
- 	nd_bus_major = rc;
- 
-+	rc = register_chrdev(0, "dimmctl", &nd_dimm_fops);
-+	if (rc < 0)
-+		goto err_dimm_chrdev;
-+	nd_dimm_major = rc;
-+
- 	nd_class = class_create(THIS_MODULE, "nd");
- 	if (IS_ERR(nd_class))
- 		goto err_class;
-@@ -80,8 +393,10 @@ int __init nd_bus_init(void)
- 	return 0;
- 
-  err_class:
-+	unregister_chrdev(nd_dimm_major, "dimmctl");
-+ err_dimm_chrdev:
- 	unregister_chrdev(nd_bus_major, "ndctl");
-- err_chrdev:
-+ err_bus_chrdev:
- 	bus_unregister(&nd_bus_type);
- 
+-		goto out;
++		goto out_unlock;
+ 	if (copy_to_user(p, buf, buf_len))
+ 		rc = -EFAULT;
++ out_unlock:
++	nd_bus_unlock(&nd_bus->dev);
+  out:
+ 	vfree(buf);
  	return rc;
-@@ -91,5 +406,6 @@ void __exit nd_bus_exit(void)
- {
- 	class_destroy(nd_class);
- 	unregister_chrdev(nd_bus_major, "ndctl");
-+	unregister_chrdev(nd_dimm_major, "dimmctl");
- 	bus_unregister(&nd_bus_type);
- }
 diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
-index 4d0e53ecdcb0..d7a922913da2 100644
+index 7bf88fb124b7..38fb8f4c9a2c 100644
 --- a/drivers/block/nd/core.c
 +++ b/drivers/block/nd/core.c
-@@ -14,6 +14,7 @@
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/libnd.h>
-+#include <linux/ndctl.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include "nd-private.h"
-@@ -59,6 +60,20 @@ struct nd_bus *walk_to_nd_bus(struct device *nd_dev)
- 	return NULL;
+@@ -54,6 +54,22 @@ bool is_nd_bus_locked(struct device *dev)
  }
+ EXPORT_SYMBOL(is_nd_bus_locked);
  
-+static ssize_t commands_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++u64 nd_fletcher64(void *addr, size_t len, bool le)
 +{
-+	int cmd, len = 0;
-+	struct nd_bus *nd_bus = to_nd_bus(dev);
-+	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
++	u32 *buf = addr;
++	u32 lo32 = 0;
++	u64 hi32 = 0;
++	int i;
 +
-+	for_each_set_bit(cmd, &nd_desc->dsm_mask, BITS_PER_LONG)
-+		len += sprintf(buf + len, "%s ", nd_bus_cmd_name(cmd));
-+	len += sprintf(buf + len, "\n");
-+	return len;
++	for (i = 0; i < len / sizeof(u32); i++) {
++		lo32 += le ? le32_to_cpu(buf[i]) : buf[i];
++		hi32 += lo32;
++	}
++
++	return hi32 << 32 | lo32;
 +}
-+static DEVICE_ATTR_RO(commands);
++EXPORT_SYMBOL_GPL(nd_fletcher64);
 +
- static const char *nd_bus_provider(struct nd_bus *nd_bus)
+ static void nd_bus_release(struct device *dev)
  {
- 	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
-@@ -82,6 +97,7 @@ static ssize_t provider_show(struct device *dev,
- static DEVICE_ATTR_RO(provider);
- 
- static struct attribute *nd_bus_attributes[] = {
-+	&dev_attr_commands.attr,
- 	&dev_attr_provider.attr,
- 	NULL,
- };
+ 	struct nd_bus *nd_bus = container_of(dev, struct nd_bus, dev);
+@@ -172,6 +188,7 @@ struct nd_bus *__nd_bus_register(struct device *parent,
+ 	if (!nd_bus)
+ 		return NULL;
+ 	INIT_LIST_HEAD(&nd_bus->list);
++	init_waitqueue_head(&nd_bus->probe_wait);
+ 	nd_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
+ 	mutex_init(&nd_bus->reconfig_mutex);
+ 	if (nd_bus->id < 0) {
 diff --git a/drivers/block/nd/dimm_devs.c b/drivers/block/nd/dimm_devs.c
-index 19b081392f2f..3fa26f61c3db 100644
+index 33b6d5336096..8981adc59ba4 100644
 --- a/drivers/block/nd/dimm_devs.c
 +++ b/drivers/block/nd/dimm_devs.c
-@@ -12,6 +12,7 @@
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- #include <linux/device.h>
-+#include <linux/ndctl.h>
- #include <linux/slab.h>
- #include <linux/io.h>
- #include <linux/fs.h>
-@@ -33,7 +34,7 @@ static struct device_type nd_dimm_device_type = {
- 	.release = nd_dimm_release,
- };
- 
--static bool is_nd_dimm(struct device *dev)
-+bool is_nd_dimm(struct device *dev)
- {
- 	return dev->type == &nd_dimm_device_type;
+@@ -185,7 +185,24 @@ static ssize_t commands_show(struct device *dev,
  }
-@@ -55,12 +56,41 @@ EXPORT_SYMBOL_GPL(nd_dimm_name);
+ static DEVICE_ATTR_RO(commands);
  
- void *nd_dimm_provider_data(struct nd_dimm *nd_dimm)
- {
--	return nd_dimm->provider_data;
-+	if (nd_dimm)
-+		return nd_dimm->provider_data;
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(nd_dimm_provider_data);
- 
-+static ssize_t commands_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++static ssize_t state_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
 +{
 +	struct nd_dimm *nd_dimm = to_nd_dimm(dev);
-+	int cmd, len = 0;
 +
-+	if (!nd_dimm->dsm_mask)
-+		return sprintf(buf, "\n");
-+
-+	for_each_set_bit(cmd, nd_dimm->dsm_mask, BITS_PER_LONG)
-+		len += sprintf(buf + len, "%s ", nd_dimm_cmd_name(cmd));
-+	len += sprintf(buf + len, "\n");
-+	return len;
++	/*
++	 * The state may be in the process of changing, userspace should
++	 * quiesce probing if it wants a static answer
++	 */
++	nd_bus_lock(dev);
++	nd_bus_unlock(dev);
++	return sprintf(buf, "%s\n", atomic_read(&nd_dimm->busy)
++			? "active" : "idle");
 +}
-+static DEVICE_ATTR_RO(commands);
++static DEVICE_ATTR_RO(state);
 +
-+static struct attribute *nd_dimm_attributes[] = {
-+	&dev_attr_commands.attr,
-+	NULL,
-+};
-+
-+struct attribute_group nd_dimm_attribute_group = {
-+	.attrs = nd_dimm_attributes,
-+};
-+EXPORT_SYMBOL_GPL(nd_dimm_attribute_group);
-+
- struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
--		const struct attribute_group **groups, unsigned long flags)
-+		const struct attribute_group **groups, unsigned long flags,
-+		unsigned long *dsm_mask)
- {
- 	struct nd_dimm *nd_dimm = kzalloc(sizeof(*nd_dimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -75,12 +105,14 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
- 	}
+ static struct attribute *nd_dimm_attributes[] = {
++	&dev_attr_state.attr,
+ 	&dev_attr_commands.attr,
+ 	NULL,
+ };
+@@ -213,7 +230,7 @@ struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
  	nd_dimm->provider_data = provider_data;
  	nd_dimm->flags = flags;
-+	nd_dimm->dsm_mask = dsm_mask;
- 
+ 	nd_dimm->dsm_mask = dsm_mask;
+-
++	atomic_set(&nd_dimm->busy, 0);
  	dev = &nd_dimm->dev;
  	dev_set_name(dev, "nmem%d", nd_dimm->id);
  	dev->parent = &nd_bus->dev;
- 	dev->type = &nd_dimm_device_type;
- 	dev->bus = &nd_bus_type;
-+	dev->devt = MKDEV(nd_dimm_major, nd_dimm->id);
- 	dev->groups = groups;
- 	if (device_register(dev) != 0) {
- 		put_device(dev);
 diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
-index 251ecdd77153..c71a5f34355a 100644
+index 8ef3a1b50f44..67f28011dfa5 100644
 --- a/drivers/block/nd/nd-private.h
 +++ b/drivers/block/nd/nd-private.h
-@@ -18,6 +18,7 @@
+@@ -14,6 +14,8 @@
+ #define __ND_PRIVATE_H__
+ #include <linux/device.h>
+ #include <linux/libnd.h>
++#include <linux/sizes.h>
++#include <linux/mutex.h>
+ 
  extern struct list_head nd_bus_list;
  extern struct mutex nd_bus_list_mutex;
- extern struct bus_type nd_bus_type;
-+extern int nd_dimm_major;
+@@ -21,10 +23,11 @@ extern int nd_dimm_major;
  
  struct nd_bus {
  	struct nd_bus_descriptor *nd_desc;
-@@ -29,10 +30,12 @@ struct nd_bus {
- struct nd_dimm {
- 	unsigned long flags;
- 	void *provider_data;
-+	unsigned long *dsm_mask;
++	wait_queue_head_t probe_wait;
+ 	struct module *module;
+ 	struct list_head list;
  	struct device dev;
+-	int id;
++	int id, probe_active;
+ 	struct mutex reconfig_mutex;
+ };
+ 
+@@ -33,6 +36,7 @@ struct nd_dimm {
+ 	void *provider_data;
+ 	unsigned long *dsm_mask;
+ 	struct device dev;
++	atomic_t busy;
  	int id;
  };
  
-+bool is_nd_dimm(struct device *dev);
- struct nd_bus *walk_to_nd_bus(struct device *nd_dev);
- int __init nd_bus_init(void);
- void __exit nd_bus_exit(void);
+@@ -46,10 +50,14 @@ int __init nd_dimm_init(void);
+ int __init nd_region_init(void);
+ void nd_dimm_exit(void);
+ int nd_region_exit(void);
++void nd_region_probe_start(struct nd_bus *nd_bus, struct device *dev);
++void nd_region_probe_end(struct nd_bus *nd_bus, struct device *dev, int rc);
++void nd_region_notify_remove(struct nd_bus *nd_bus, struct device *dev, int rc);
+ int nd_bus_create_ndctl(struct nd_bus *nd_bus);
+ void nd_bus_destroy_ndctl(struct nd_bus *nd_bus);
+ void nd_synchronize(void);
+ int nd_bus_register_dimms(struct nd_bus *nd_bus);
+ int nd_bus_register_regions(struct nd_bus *nd_bus);
++int nd_bus_init_interleave_sets(struct nd_bus *nd_bus);
+ int nd_match_dimm(struct device *dev, void *data);
+ #endif /* __ND_PRIVATE_H__ */
+diff --git a/drivers/block/nd/nd.h b/drivers/block/nd/nd.h
+index 72f4d7b76059..905183d45799 100644
+--- a/drivers/block/nd/nd.h
++++ b/drivers/block/nd/nd.h
+@@ -35,6 +35,7 @@ struct nd_region {
+ 	u64 ndr_start;
+ 	int id;
+ 	void *provider_data;
++	struct nd_interleave_set *nd_set;
+ 	struct nd_mapping mapping[0];
+ };
+ 
+diff --git a/drivers/block/nd/region_devs.c b/drivers/block/nd/region_devs.c
+index fdc58e333b78..221e6342b6ca 100644
+--- a/drivers/block/nd/region_devs.c
++++ b/drivers/block/nd/region_devs.c
+@@ -10,7 +10,10 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  * General Public License for more details.
+  */
++#include <linux/scatterlist.h>
++#include <linux/sched.h>
+ #include <linux/slab.h>
++#include <linux/sort.h>
+ #include <linux/io.h>
+ #include "nd-private.h"
+ #include "nd.h"
+@@ -133,6 +136,21 @@ static ssize_t nstype_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(nstype);
+ 
++static ssize_t set_cookie_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++	struct nd_interleave_set *nd_set = nd_region->nd_set;
++
++	if (is_nd_pmem(dev) && nd_set)
++		/* pass, should be precluded by nd_region_visible */;
++	else
++		return -ENXIO;
++
++	return sprintf(buf, "%#llx\n", nd_set->cookie);
++}
++static DEVICE_ATTR_RO(set_cookie);
++
+ static ssize_t init_namespaces_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -154,15 +172,81 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_mappings.attr,
++	&dev_attr_set_cookie.attr,
+ 	&dev_attr_init_namespaces.attr,
+ 	NULL,
+ };
+ 
++static umode_t nd_region_visible(struct kobject *kobj, struct attribute *a, int n)
++{
++	struct device *dev = container_of(kobj, typeof(*dev), kobj);
++	struct nd_region *nd_region = to_nd_region(dev);
++	struct nd_interleave_set *nd_set = nd_region->nd_set;
++
++	if (a != &dev_attr_set_cookie.attr)
++		return a->mode;
++
++	if (is_nd_pmem(dev) && nd_set)
++			return a->mode;
++
++	return 0;
++}
++
+ struct attribute_group nd_region_attribute_group = {
+ 	.attrs = nd_region_attributes,
++	.is_visible = nd_region_visible,
+ };
+ EXPORT_SYMBOL_GPL(nd_region_attribute_group);
+ 
++/*
++ * Upon successful probe/remove, take/release a reference on the
++ * associated interleave set (if present)
++ */
++static void nd_region_notify_driver_action(struct nd_bus *nd_bus,
++		struct device *dev, int rc, bool probe)
++{
++	if (rc)
++		return;
++
++	if (is_nd_pmem(dev) || is_nd_blk(dev)) {
++		struct nd_region *nd_region = to_nd_region(dev);
++		int i;
++
++		for (i = 0; i < nd_region->ndr_mappings; i++) {
++			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
++			struct nd_dimm *nd_dimm = nd_mapping->nd_dimm;
++
++			if (probe)
++				atomic_inc(&nd_dimm->busy);
++			else
++				atomic_dec(&nd_dimm->busy);
++		}
++	}
++}
++
++void nd_region_probe_start(struct nd_bus *nd_bus, struct device *dev)
++{
++	nd_bus_lock(&nd_bus->dev);
++	nd_bus->probe_active++;
++	nd_bus_unlock(&nd_bus->dev);
++}
++
++void nd_region_probe_end(struct nd_bus *nd_bus, struct device *dev, int rc)
++{
++	nd_bus_lock(&nd_bus->dev);
++	nd_region_notify_driver_action(nd_bus, dev, rc, true);
++	if (--nd_bus->probe_active == 0)
++		wake_up(&nd_bus->probe_wait);
++	nd_bus_unlock(&nd_bus->dev);
++}
++
++void nd_region_notify_remove(struct nd_bus *nd_bus, struct device *dev, int rc)
++{
++	nd_bus_lock(dev);
++	nd_region_notify_driver_action(nd_bus, dev, rc, false);
++	nd_bus_unlock(dev);
++}
++
+ static ssize_t mappingN(struct device *dev, char *buf, int n)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev);
+@@ -322,6 +406,7 @@ static noinline struct nd_region *nd_region_create(struct nd_bus *nd_bus,
+ 	}
+ 	nd_region->ndr_mappings = ndr_desc->num_mappings;
+ 	nd_region->provider_data = ndr_desc->provider_data;
++	nd_region->nd_set = ndr_desc->nd_set;
+ 	dev = &nd_region->dev;
+ 	dev_set_name(dev, "region%d", nd_region->id);
+ 	dev->parent = &nd_bus->dev;
 diff --git a/include/linux/libnd.h b/include/linux/libnd.h
-index 76d5839fb50e..ca72c49ae376 100644
+index 6747da2c7cb6..52f669faacfd 100644
 --- a/include/linux/libnd.h
 +++ b/include/linux/libnd.h
-@@ -14,13 +14,21 @@
-  */
- #ifndef __LIBND_H__
- #define __LIBND_H__
-+#include <linux/sizes.h>
- 
- enum {
- 	/* when a dimm supports both PMEM and BLK access a label is required */
- 	NDD_ALIASING = 1 << 0,
-+
-+	/* need to set a limit somewhere, but yes, this is likely overkill */
-+	ND_IOCTL_MAX_BUFLEN = SZ_4M,
-+	ND_CMD_MAX_ELEM = 4,
-+	ND_CMD_MAX_ENVELOPE = 16,
-+	ND_CMD_ARS_QUERY_MAX = SZ_4K,
+@@ -60,11 +60,16 @@ struct nd_cmd_desc {
+ 	int out_sizes[ND_CMD_MAX_ELEM];
  };
  
- extern struct attribute_group nd_bus_attribute_group;
-+extern struct attribute_group nd_dimm_attribute_group;
- 
- struct nd_dimm;
- struct nd_bus_descriptor;
-@@ -35,6 +43,13 @@ struct nd_bus_descriptor {
- 	ndctl_fn ndctl;
- };
- 
-+struct nd_cmd_desc {
-+	int in_num;
-+	int out_num;
-+	u32 in_sizes[ND_CMD_MAX_ELEM];
-+	int out_sizes[ND_CMD_MAX_ELEM];
++struct nd_interleave_set {
++	u64 cookie;
 +};
 +
- struct nd_bus;
- struct device;
- struct nd_bus *nd_bus_register(struct device *parent,
-@@ -46,5 +61,13 @@ struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
- const char *nd_dimm_name(struct nd_dimm *nd_dimm);
- void *nd_dimm_provider_data(struct nd_dimm *nd_dimm);
- struct nd_dimm *nd_dimm_create(struct nd_bus *nd_bus, void *provider_data,
--		const struct attribute_group **groups, unsigned long flags);
-+		const struct attribute_group **groups, unsigned long flags,
-+		unsigned long *dsm_mask);
-+const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
-+const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
-+u32 nd_cmd_in_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, void *buf);
-+u32 nd_cmd_out_size(struct nd_dimm *nd_dimm, int cmd,
-+		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
-+		const u32 *out_field);
+ struct nd_region_desc {
+ 	struct resource *res;
+ 	struct nd_mapping *nd_mapping;
+ 	u16 num_mappings;
+ 	const struct attribute_group **attr_groups;
++	struct nd_interleave_set *nd_set;
+ 	void *provider_data;
+ };
+ 
+@@ -99,4 +104,5 @@ struct nd_region *nd_blk_region_create(struct nd_bus *nd_bus,
+ 		struct nd_region_desc *ndr_desc);
+ struct nd_region *nd_volatile_region_create(struct nd_bus *nd_bus,
+ 		struct nd_region_desc *ndr_desc);
++u64 nd_fletcher64(void *addr, size_t len, bool le);
  #endif /* __LIBND_H__ */
-diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-index 68ceb97c458c..384e8d212b04 100644
---- a/include/uapi/linux/Kbuild
-+++ b/include/uapi/linux/Kbuild
-@@ -270,6 +270,7 @@ header-y += ncp_fs.h
- header-y += ncp.h
- header-y += ncp_mount.h
- header-y += ncp_no.h
-+header-y += ndctl.h
- header-y += neighbour.h
- header-y += netconf.h
- header-y += netdevice.h
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-new file mode 100644
-index 000000000000..62c01bf76198
---- /dev/null
-+++ b/include/uapi/linux/ndctl.h
-@@ -0,0 +1,178 @@
-+/*
-+ * Copyright (c) 2014-2015, Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU Lesser General Public License,
-+ * version 2.1, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT ANY
-+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-+ * more details.
-+ */
-+#ifndef __NDCTL_H__
-+#define __NDCTL_H__
-+
-+#include <linux/types.h>
-+
-+struct nd_cmd_smart {
-+	__u32 status;
-+	__u8 data[128];
-+} __packed;
-+
-+struct nd_cmd_smart_threshold {
-+	__u32 status;
-+	__u8 data[8];
-+} __packed;
-+
-+struct nd_cmd_dimm_flags {
-+	__u32 status;
-+	__u32 flags;
-+} __packed;
-+
-+struct nd_cmd_get_config_size {
-+	__u32 status;
-+	__u32 config_size;
-+	__u32 max_xfer;
-+} __packed;
-+
-+struct nd_cmd_get_config_data_hdr {
-+	__u32 in_offset;
-+	__u32 in_length;
-+	__u32 status;
-+	__u8 out_buf[0];
-+} __packed;
-+
-+struct nd_cmd_set_config_hdr {
-+	__u32 in_offset;
-+	__u32 in_length;
-+	__u8 in_buf[0];
-+} __packed;
-+
-+struct nd_cmd_vendor_hdr {
-+	__u32 opcode;
-+	__u32 in_length;
-+	__u8 in_buf[0];
-+} __packed;
-+
-+struct nd_cmd_vendor_tail {
-+	__u32 status;
-+	__u32 out_length;
-+	__u8 out_buf[0];
-+} __packed;
-+
-+struct nd_cmd_ars_cap {
-+	__u64 address;
-+	__u64 length;
-+	__u32 status;
-+	__u32 max_ars_out;
-+} __packed;
-+
-+struct nd_cmd_ars_start {
-+	__u64 address;
-+	__u64 length;
-+	__u16 type;
-+	__u8 reserved[6];
-+	__u32 status;
-+} __packed;
-+
-+struct nd_cmd_ars_query {
-+	__u32 status;
-+	__u32 out_length;
-+	__u64 address;
-+	__u64 length;
-+	__u16 type;
-+	__u32 num_records;
-+	struct nd_ars_record {
-+		__u32 handle;
-+		__u32 flags;
-+		__u64 err_address;
-+		__u64 mask;
-+	} __packed records[0];
-+} __packed;
-+
-+enum {
-+	ND_CMD_IMPLEMENTED = 0,
-+
-+	/* bus commands */
-+	ND_CMD_ARS_CAP = 1,
-+	ND_CMD_ARS_START = 2,
-+	ND_CMD_ARS_QUERY = 3,
-+
-+	/* per-dimm commands */
-+	ND_CMD_SMART = 1,
-+	ND_CMD_SMART_THRESHOLD = 2,
-+	ND_CMD_DIMM_FLAGS = 3,
-+	ND_CMD_GET_CONFIG_SIZE = 4,
-+	ND_CMD_GET_CONFIG_DATA = 5,
-+	ND_CMD_SET_CONFIG_DATA = 6,
-+	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
-+	ND_CMD_VENDOR_EFFECT_LOG = 8,
-+	ND_CMD_VENDOR = 9,
-+};
-+
-+static inline const char *nd_bus_cmd_name(unsigned cmd)
-+{
-+	static const char * const names[] = {
-+		[ND_CMD_ARS_CAP] = "ars_cap",
-+		[ND_CMD_ARS_START] = "ars_start",
-+		[ND_CMD_ARS_QUERY] = "ars_query",
-+	};
-+
-+	if (cmd < ARRAY_SIZE(names) && names[cmd])
-+		return names[cmd];
-+	return "unknown";
-+}
-+
-+static inline const char *nd_dimm_cmd_name(unsigned cmd)
-+{
-+	static const char * const names[] = {
-+		[ND_CMD_SMART] = "smart",
-+		[ND_CMD_SMART_THRESHOLD] = "smart_thresh",
-+		[ND_CMD_DIMM_FLAGS] = "flags",
-+		[ND_CMD_GET_CONFIG_SIZE] = "get_size",
-+		[ND_CMD_GET_CONFIG_DATA] = "get_data",
-+		[ND_CMD_SET_CONFIG_DATA] = "set_data",
-+		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
-+		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
-+		[ND_CMD_VENDOR] = "vendor",
-+	};
-+
-+	if (cmd < ARRAY_SIZE(names) && names[cmd])
-+		return names[cmd];
-+	return "unknown";
-+}
-+
-+#define ND_IOCTL 'N'
-+
-+#define ND_IOCTL_SMART			_IOWR(ND_IOCTL, ND_CMD_SMART,\
-+					struct nd_cmd_smart)
-+
-+#define ND_IOCTL_SMART_THRESHOLD	_IOWR(ND_IOCTL, ND_CMD_SMART_THRESHOLD,\
-+					struct nd_cmd_smart_threshold)
-+
-+#define ND_IOCTL_DIMM_FLAGS		_IOWR(ND_IOCTL, ND_CMD_DIMM_FLAGS,\
-+					struct nd_cmd_dimm_flags)
-+
-+#define ND_IOCTL_GET_CONFIG_SIZE	_IOWR(ND_IOCTL, ND_CMD_GET_CONFIG_SIZE,\
-+					struct nd_cmd_get_config_size)
-+
-+#define ND_IOCTL_GET_CONFIG_DATA	_IOWR(ND_IOCTL, ND_CMD_GET_CONFIG_DATA,\
-+					struct nd_cmd_get_config_data_hdr)
-+
-+#define ND_IOCTL_SET_CONFIG_DATA	_IOWR(ND_IOCTL, ND_CMD_SET_CONFIG_DATA,\
-+					struct nd_cmd_set_config_hdr)
-+
-+#define ND_IOCTL_VENDOR			_IOWR(ND_IOCTL, ND_CMD_VENDOR,\
-+					struct nd_cmd_vendor_hdr)
-+
-+#define ND_IOCTL_ARS_CAP		_IOWR(ND_IOCTL, ND_CMD_ARS_CAP,\
-+					struct nd_cmd_ars_cap)
-+
-+#define ND_IOCTL_ARS_START		_IOWR(ND_IOCTL, ND_CMD_ARS_START,\
-+					struct nd_cmd_ars_start)
-+
-+#define ND_IOCTL_ARS_QUERY		_IOWR(ND_IOCTL, ND_CMD_ARS_QUERY,\
-+					struct nd_cmd_ars_query)
-+
-+#endif /* __NDCTL_H__ */
