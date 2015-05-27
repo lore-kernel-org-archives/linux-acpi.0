@@ -1,123 +1,115 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [PATCH] PCI / ACPI: Do not set ACPI companions for host bridges
- with parents
-Date: Tue, 26 May 2015 22:15:54 -0400
-Message-ID: <556528DA.60809@oracle.com>
-References: <555FDDA1.8030806@oracle.com> <2625308.mOex6suvmm@vostro.rjw.lan> <556483E3.4010202@oracle.com> <1758616.haLhQtkBS0@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 10/11] XEN / PCI: Remove the dependence on arch x86 when
+ PCI_MMCONFIG=y
+Date: Wed, 27 May 2015 11:55:45 +0800
+Message-ID: <55654041.2040902@linaro.org>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <1432644564-24746-11-git-send-email-hanjun.guo@linaro.org> <55647B22.3010801@oracle.com> <55647C94.9080606@oracle.com> <5564893B.2070102@linaro.org> <556494D9.9090007@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1758616.haLhQtkBS0@vostro.rjw.lan>
+In-Reply-To: <556494D9.9090007@oracle.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sander Eikelenboom <linux@eikelenboom.it>, david.vrabel@citrix.com, xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 05/26/2015 08:07 PM, Rafael J. Wysocki wrote:
-> On Tuesday, May 26, 2015 10:32:03 AM Boris Ostrovsky wrote:
->> On 05/25/2015 10:17 PM, Rafael J. Wysocki wrote:
->>> On Tuesday, May 26, 2015 03:08:17 AM Rafael J. Wysocki wrote:
->>>> On Tuesday, May 26, 2015 01:42:16 AM Rafael J. Wysocki wrote:
->>>>> On Tuesday, May 26, 2015 01:22:12 AM Rafael J. Wysocki wrote:
->>>>>> On Friday, May 22, 2015 09:53:37 PM Boris Ostrovsky wrote:
->>>>>>> On 05/22/2015 04:11 AM, Sander Eikelenboom wrote:
->>>>>>>> Hello Sander,
->>>>>>>>
->>>>> [cut]
+On 2015=E5=B9=B405=E6=9C=8826=E6=97=A5 23:44, Boris Ostrovsky wrote:
+> On 05/26/2015 10:54 AM, Tomasz Nowicki wrote:
+>> On 26.05.2015 16:00, Boris Ostrovsky wrote:
+>>> On 05/26/2015 09:54 AM, Boris Ostrovsky wrote:
+>>>> On 05/26/2015 08:49 AM, Hanjun Guo wrote:
+>>>>> In drivers/xen/pci.c, there are arch x86 dependent codes when
+>>>>> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
+>>>>> depends on ACPI, so this will prevent XEN PCI running on other
+>>>>> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64=
+).
 >>>>>
->>>>>>> (+Rafael again)
->>>>>>>
->>>>>>> So the immediate cause of those errors is that pdev->evtchn is 0.
->>>>>>> Backend is not notified and things not go well then.
->>>>>>>
->>>>>>> And it is indeed caused by 97badf873ab60e841243b66133ff9eff2a46ef29:
->>>>>>>
->>>>>>> We allocate pcifront_sd in pcifront_scan_root() and then pass it to
->>>>>>> pci_scan_bus_parented() as sysdata. Eventually this sysdata is used in
->>>>>>> pcibios_root_bridge_prepare() as pci_sysdata. It is dereferenced as
->>>>>>> pci_sysdata->companion (which I believe is aliased to pcifront_sd->pdev)
->>>>> Well, there is an int node field between them, so I'm not sure.
+>>>>> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.=
+c,
+>>>>> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF)=
+ =3D=3D
+>>>>> 0),
+>>>>> and it's defined in asm/pci_x86.h, the code means that
+>>>>> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
+>>>>> ingnore the xen mcfg init. Actually this is duplicate, because
+>>>>> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
+>>>>> pci_mmconfig_list will be empty, and the if (list_empty())
+>>>>> after it will do the same job.
 >>>>>
->>>>>>> and then set_primary_fwnode() writes it, thus corrupting
->>>>>>> pcifront_sd->pdev (and I think this is what sets evtchn to zero).
->>>>> So the corruption happens when set_primary_fwnode() writes NULL to the
->>>>> 'secondary' field of object pointed to by 'fwnode'.
+>>>>> So just remove the arch related code and the head file, this
+>>>>> will be no functional change for x86, and also makes xen/pci.c
+>>>>> usable for other architectures.
 >>>>>
->>>>> This isn't strictly necessary and we might avoid the crash by only
->>>>> writing to fwnode->secondary if fn is not NULL.
+>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>>>>> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+>>>>> ---
+>>>>>   drivers/xen/pci.c | 6 ------
+>>>>>   1 file changed, 6 deletions(-)
 >>>>>
->>>>> So, Sander please test the patch below too if possible.
+>>>>> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
+>>>>> index 6785ebb..9a8dbe3 100644
+>>>>> --- a/drivers/xen/pci.c
+>>>>> +++ b/drivers/xen/pci.c
+>>>>> @@ -28,9 +28,6 @@
+>>>>>   #include <asm/xen/hypervisor.h>
+>>>>>   #include <asm/xen/hypercall.h>
+>>>>>   #include "../pci/pci.h"
+>>>>> -#ifdef CONFIG_PCI_MMCONFIG
+>>>>> -#include <asm/pci_x86.h>
+>>>>> -#endif
 >>>>>
->>>>> Of course, that doesn't solve a problem of passing an incorrect pointer
->>>>> to ACPI_COMPANION_SET() in pcibios_root_bridge_prepare().
->>>> And here's one more thing to test.
->>> And the below is how I'd fix it, so you can simply test this patch and skip the
->>> previous ones.
+>>>>>   static bool __read_mostly pci_seg_supported =3D true;
+>>>>>
+>>>>> @@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
+>>>>>       if (!xen_initial_domain())
+>>>>>           return 0;
+>>>>>
+>>>>> -    if ((pci_probe & PCI_PROBE_MMCONF) =3D=3D 0)
+>>>>> -        return 0;
+>>>>> -
+>>>>>       if (list_empty(&pci_mmcfg_list))
+>>>>>           return 0;
+>>>>>
+>>>>
+>>>> (+Stefano who is Xen ARM maintainer)
+>>>>
+>>>> This will not build on x86 since pci_mmcfg_list since, for example=
+,
+>>>> pci_mmcfg_list is declared in pci_x86.h.
 >>>
->>> ---
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> Subject: PCI / ACPI: Do not set ACPI companions for host bridges with parents
 >>>
->>> Commit 97badf873ab6 (device property: Make it possible to use
->>> secondary firmware nodes) uncovered a bug in the x86 (and ia64) PCI
->>> host bridge initialization code that assumes bridge->bus->sysdata
->>> to always point to a struct pci_sysdata object which need not be
->>> the case (in particular, the Xen PCI frontend driver sets it to point
->>> to a different data type).  If it is not the case, an incorrect
->>> pointer (or a piece of data that is not a pointer at all) will be
->>> passed to ACPI_COMPANION_SET() and that may cause interesting
->>> breakage to happen going forward.
+>>> And now really with Stefano and with parsable first sentence, sorry=
+:
 >>>
->>> To work around this problem use the observation that the ACPI
->>> host bridge initialization always passes NULL as parent to
->>> pci_create_root_bus(), so if pcibios_root_bridge_prepare() sees
->>> a non-NULL parent of the bridge, it should not attempt to set
->>> an ACPI companion for it, because that means that
->>> pci_create_root_bus() has been called by someone else.
+>>>
+>>> This will not build on x86 since pci_mmcfg_list, for example, is
+>>> declared in pci_x86.h.
 >>
->> I am wondering whether at some point we might want to use companion
->> information in Xen as well.
->>
->> Another option might be to require that whoever creates their own
->> sysdata structure to have pci_sysdata as its first element, e.g.
-> Well, I was thinking about that, but it would be x86-specific and I believe
-> that Xen is supposed to work on other architectures too (or at least will be
-> in the future).
+>> With this patch set, not any more. Please see preceding patches.
 >
->> --- a/drivers/pci/xen-pcifront.c
->> +++ b/drivers/pci/xen-pcifront.c
->> @@ -52,7 +52,12 @@ struct pcifront_device {
->>    };
->>
->>    struct pcifront_sd {
->> +       /*
->> +        * Must be the first element of this structure since pcifront_sd
->> +        * is assigned to bus' sysdata and may later be dereferenced as
->> +        * pci_sysdata.
->> +        */
->> +       struct pci_sysdata sd;
->>           struct pcifront_device *pdev;
->>    };
-> Also if you want to use an ACPI companion, it will be a good question *which* one.
 >
-> My half-way educated guess is that will be the ACPI companion of the parent,
-> in which case it's better to modify pcibios_root_bridge_prepare().  In any
-> case, we need to talk about that beforehand, so please let me know when you
-> have more specific plans.
+> OK, I didn't notice this was part of a series.
 
-I don't have anything specific. And after looking at this code some more 
-I am not sure pcifront will ever want to use companions since ACPI is 
-not part of device initialization here (it's done via xenbus, which is a 
-purely software construct).
-
+Sorry, I didn't cc you all of those patches.
 
 >
-> As for 4.1 (which currently is broken for Sander), I think the $subject patch
-> is the cleanest and least intrusive thing we can do.
+> Then if not having PCI_PROBE_MMCONF bit set is indeed equivalent to
+> list_empty(&pci_mmcfg_list), is there any reason for this flag to
+> (continue to) exist? (and also for pci_mmcfg_arch_init_failed.)
 
-OK. Thank you for fixing this.
+I think PCI_PROBE_MMCONF bit is needed for early init of pci mmconfig i=
+n
+the x86 arch related code, but for xen_mcfg_late(), it's called after
+acpi_init() which the mmconfig is ready for use if it's available (the
+pci_mmcfg_list is empty or not), so not having PCI_PROBE_MMCONF bit set
+is equivalent list_empty(&pci_mmcfg_list) is not suitable for all cases=
+,
+but I think it will be ok after mmconfig is initialized.
 
--boris
+I think my change log is misleading and needs updating :)
+
+Thanks
+Hanjun
