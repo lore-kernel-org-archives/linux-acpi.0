@@ -1,123 +1,378 @@
-From: Liviu Dudau <Liviu.Dudau@arm.com>
-Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for
- ACPI
-Date: Wed, 27 May 2015 10:47:02 +0100
-Message-ID: <20150527094702.GE2175@e106497-lin.cambridge.arm.com>
-References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
- <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
- <20150526165844.GD2175@e106497-lin.cambridge.arm.com>
- <5564AB68.6080502@linux.intel.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 8/8] mfd: Add support for Intel Sunrisepoint LPSS
+ devices
+Date: Wed, 27 May 2015 11:22:41 +0100
+Message-ID: <20150527102241.GC11677@x1>
+References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1432570172-86963-9-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:55070 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751263AbbE0JrH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 May 2015 05:47:07 -0400
-In-Reply-To: <5564AB68.6080502@linux.intel.com>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:33747 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322AbbE0KWq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2015 06:22:46 -0400
+Received: by wgez8 with SMTP id z8so5300255wge.0
+        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2015 03:22:45 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <1432570172-86963-9-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Tue, May 26, 2015 at 06:20:40PM +0100, Jiang Liu wrote:
-> On 2015/5/27 0:58, Liviu Dudau wrote:
-> > On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
-> >> ARM64 ACPI based PCI host bridge init needs a arch dependent
-> >> struct pci_controller to accommodate common PCI host bridge
-> >> code which is introduced later, or it will lead to compile
-> >> errors on ARM64.
-> >=20
-> > Hi Hanjun,
-> >=20
-> > Two questions: why don't you introduce this patch next to the
-> > one that is going to make use of it (or even merge it there)?
-> > Second, why is the whole struct pci_controller not surrounded
-> > by #ifdef CONFIG_ACPI as you are implying that this is needed
-> > only for ACPI?
-> >=20
-> > Btw, looking through the whole series I'm not (yet) convinced
-> > that this is needed at all.
-> Hi Liviu,
-> 	This structure is required by the requested patch set
-> at http://patchwork.ozlabs.org/patch/472249/, which consolidates
-> the common code to support PCI host bridge into ACPI core.
-> Thanks!
-> Gerry
+On Mon, 25 May 2015, Andy Shevchenko wrote:
 
-Hi Jiang,
-
-Thanks for pointing me on the right answer, I've missed that series!
-Probably not the best place to comment on that series here, but I
-wonder why did you not made the pci_controller structure available
-in a more generic header file that can be included so that arches
-don't have to redefine the structure every time. After all, you are
-trying to consolidate things.
-
-Oh, and pci_controller name throws a lot of false negatives, maybe
-a more specific one (acpi_pci_controller?) would make things clear?
-
-Best regards,
-Liviu
-
+> The new coming Intel platforms such as Skylake will contain Sunrisepo=
+int PCH.
+> The main difference to the previous platforms is that the LPSS device=
+s are
+> compound devices where usually main (SPI, HSUART, or I2C) and DMA IPs=
+ are
+> present.
 >=20
-> >=20
-> > Best regards,
-> > Liviu
-> >=20
-> >>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> >> CC: Arnd Bergmann <arnd@arndb.de>
-> >> CC: Catalin Marinas <catalin.marinas@arm.com>
-> >> CC: Liviu Dudau <Liviu.Dudau@arm.com>
-> >> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-> >> CC: Will Deacon <will.deacon@arm.com>
-> >> ---
-> >>  arch/arm64/include/asm/pci.h | 10 ++++++++++
-> >>  1 file changed, 10 insertions(+)
-> >>
-> >> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm=
-/pci.h
-> >> index b008a72..7088495 100644
-> >> --- a/arch/arm64/include/asm/pci.h
-> >> +++ b/arch/arm64/include/asm/pci.h
-> >> @@ -10,6 +10,16 @@
-> >>  #include <asm-generic/pci-bridge.h>
-> >>  #include <asm-generic/pci-dma-compat.h>
-> >> =20
-> >> +struct acpi_device;
-> >> +
-> >> +struct pci_controller {
-> >> +#ifdef CONFIG_ACPI
-> >> +	struct acpi_device *companion;	/* ACPI companion device */
-> >> +#endif
-> >> +	int		segment;	/* PCI domain */
-> >> +	int		node;		/* NUMA node */
-> >> +};
-> >> +
-> >>  #define PCIBIOS_MIN_IO		0x1000
-> >>  #define PCIBIOS_MIN_MEM		0
-> >> =20
-> >> --=20
-> >> 1.9.1
-> >>
-> >=20
+> This patch brings the driver for such devices found on Sunrisepoint P=
+CH.
 >=20
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/mfd/Kconfig           |  24 ++
+>  drivers/mfd/Makefile          |   3 +
+>  drivers/mfd/intel-lpss-acpi.c |  84 +++++++
+>  drivers/mfd/intel-lpss-pci.c  | 113 +++++++++
+>  drivers/mfd/intel-lpss.c      | 534 ++++++++++++++++++++++++++++++++=
+++++++++++
+>  drivers/mfd/intel-lpss.h      |  62 +++++
+>  6 files changed, 820 insertions(+)
+>  create mode 100644 drivers/mfd/intel-lpss-acpi.c
+>  create mode 100644 drivers/mfd/intel-lpss-pci.c
+>  create mode 100644 drivers/mfd/intel-lpss.c
+>  create mode 100644 drivers/mfd/intel-lpss.h
+>=20
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index d5ad04d..8cdaa12 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -325,6 +325,30 @@ config INTEL_SOC_PMIC
+>  	  thermal, charger and related power management functions
+>  	  on these systems.
+> =20
+> +config MFD_INTEL_LPSS
+> +	tristate
+> +	depends on X86
+> +	select COMMON_CLK
+> +	select MFD_CORE
+> +
+> +config MFD_INTEL_LPSS_ACPI
+> +	tristate "Intel Low Power Subsystem support in ACPI mode"
+> +	select MFD_INTEL_LPSS
+> +	depends on ACPI
+> +	help
+> +	  This driver supports Intel Low Power Subsystem (LPSS) devices suc=
+h as
+> +	  I2C, SPI and HS-UART starting from Intel Sunrisepoint (Intel Skyl=
+ake
+> +	  PCH) in ACPI mode.
+> +
+> +config MFD_INTEL_LPSS_PCI
+> +	tristate "Intel Low Power Subsystem support in PCI mode"
+> +	select MFD_INTEL_LPSS
+> +	depends on PCI
+> +	help
+> +	  This driver supports Intel Low Power Subsystem (LPSS) devices suc=
+h as
+> +	  I2C, SPI and HS-UART starting from Intel Sunrisepoint (Intel Skyl=
+ake
+> +	  PCH) in PCI mode.
+> +
+>  config MFD_INTEL_MSIC
+>  	bool "Intel MSIC"
+>  	depends on INTEL_SCU_IPC
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 0e5cfeb..cdf29b9 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -161,6 +161,9 @@ obj-$(CONFIG_TPS65911_COMPARATOR)	+=3D tps65911-c=
+omparator.o
+>  obj-$(CONFIG_MFD_TPS65090)	+=3D tps65090.o
+>  obj-$(CONFIG_MFD_AAT2870_CORE)	+=3D aat2870-core.o
+>  obj-$(CONFIG_MFD_ATMEL_HLCDC)	+=3D atmel-hlcdc.o
+> +obj-$(CONFIG_MFD_INTEL_LPSS)	+=3D intel-lpss.o
+> +obj-$(CONFIG_MFD_INTEL_LPSS_PCI)	+=3D intel-lpss-pci.o
+> +obj-$(CONFIG_MFD_INTEL_LPSS_ACPI)	+=3D intel-lpss-acpi.o
+>  obj-$(CONFIG_MFD_INTEL_MSIC)	+=3D intel_msic.o
+>  obj-$(CONFIG_MFD_PALMAS)	+=3D palmas.o
+>  obj-$(CONFIG_MFD_VIPERBOARD)    +=3D viperboard.o
+> diff --git a/drivers/mfd/intel-lpss-acpi.c b/drivers/mfd/intel-lpss-a=
+cpi.c
+> new file mode 100644
+> index 0000000..0d92d73
+> --- /dev/null
+> +++ b/drivers/mfd/intel-lpss-acpi.c
+> @@ -0,0 +1,84 @@
+> +/*
+> + * Intel LPSS ACPI support.
+> + *
+> + * Copyright (C) 2015, Intel Corporation
+> + *
+> + * Authors: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> + *          Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/ioport.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/pm.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/platform_device.h>
+
+[...]
+
+> +#include "intel-lpss.h"
+> +int intel_lpss_probe(struct device *dev,
+> +		     const struct intel_lpss_platform_info *info)
+> +{
+> +	struct intel_lpss *lpss;
+> +	int ret;
+> +
+> +	if (!info || !info->mem || info->irq <=3D 0)
+> +		return -EINVAL;
+> +
+> +	lpss =3D devm_kzalloc(dev, sizeof(*lpss), GFP_KERNEL);
+> +	if (!lpss)
+> +		return -ENOMEM;
+> +
+> +	lpss->priv =3D devm_ioremap(dev, info->mem->start + LPSS_PRIV_OFFSE=
+T,
+> +				  LPSS_PRIV_SIZE);
+> +	if (!lpss->priv)
+> +		return -ENOMEM;
+> +
+> +	lpss->info =3D info;
+> +	lpss->dev =3D dev;
+> +	lpss->caps =3D readl(lpss->priv + LPSS_PRIV_CAPS);
+> +
+> +	dev_set_drvdata(dev, lpss);
+> +
+> +	ret =3D intel_lpss_assign_devs(lpss);
+> +	if (ret)
+> +		return ret;
+> +
+> +	intel_lpss_init_dev(lpss);
+
+[...]
+
+> +	lpss->devid =3D ida_simple_get(&intel_lpss_devid_ida, 0, 0, GFP_KER=
+NEL);
+> +	if (lpss->devid < 0)
+> +		return lpss->devid;
+> +
+> +	ret =3D intel_lpss_register_clock(lpss);
+> +	if (ret < 0)
+> +		goto err_clk_register;
+
+Still not convinced by this.  I'd like Mike (who you *still* have not
+CC'ed), to review.
+
+> +	intel_lpss_ltr_expose(lpss);
+> +
+> +	ret =3D intel_lpss_debugfs_add(lpss);
+> +	if (ret)
+> +		dev_warn(lpss->dev, "Failed to create debugfs entries\n");
+> +
+> +	if (intel_lpss_has_idma(lpss)) {
+> +		/*
+> +		 * Ensure the DMA driver is loaded before the host
+> +		 * controller device appears, so that the host controller
+> +		 * driver can request its DMA channels as early as
+> +		 * possible.
+> +		 *
+> +		 * If the DMA module is not there that's OK as well.
+> +		 */
+> +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
+> +
+> +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs, 2,
+> +				      info->mem, info->irq, NULL);
+> +	} else {
+> +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs + 1, 1,
+> +				      info->mem, info->irq, NULL);
+> +	}
+
+I'm still not happy with the mfd_cells being manipulated in this way,
+or with the duplication you have within them.  Why don't you place the
+IDMA device it its own mfd_cell, then:
+
+> +	if (intel_lpss_has_idma(lpss)) {
+> +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
+> +
+> +		ret =3D mfd_add_devices(dev, TBC, idma_dev, ARRAY_SIZE(idma_dev),
+> +				      info->mem, info->irq, NULL);
+> +             /* Error check */
+> +	}
+> +
+> +	ret =3D mfd_add_devices(dev, TBC, proto_dev, ARRAY_SIZE(proto_dev),
+> +				      info->mem, info->irq, NULL);
+> +	if (ret < 0)
+
+if (!ret)
+
+[...]
+
+> +static int resume_lpss_device(struct device *dev, void *data)
+> +{
+> +	pm_runtime_resume(dev);
+> +	return 0;
+> +}
+> +
+> +int intel_lpss_prepare(struct device *dev)
+> +{
+> +	/*
+> +	 * Resume both child devices before entering system sleep. This
+> +	 * ensures that they are in proper state before they get suspended.
+> +	 */
+> +	device_for_each_child_reverse(dev, NULL, resume_lpss_device);
+
+Why can't you do this in intel_lpss_suspend()?
+
+Then you can get rid of all the hand-rolled nonsense you have in the
+header file and use SET_SYSTEM_SLEEP_PM_OPS instead.
+
+Does something happen after .prepare() and before .suspend() that
+prevents this from working?
+
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(intel_lpss_prepare);
+> +
+> +int intel_lpss_suspend(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(intel_lpss_suspend);
+> +
+> +int intel_lpss_resume(struct device *dev)
+> +{
+> +	struct intel_lpss *lpss =3D dev_get_drvdata(dev);
+> +
+> +	intel_lpss_init_dev(lpss);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(intel_lpss_resume);
+> +
+> +static int __init intel_lpss_init(void)
+> +{
+> +	intel_lpss_debugfs =3D debugfs_create_dir("intel_lpss", NULL);
+
+Any reason this can't be done in .probe()?
+
+> +	return 0;
+> +}
+> +module_init(intel_lpss_init);
+> +
+> +static void __exit intel_lpss_exit(void)
+> +{
+> +	debugfs_remove(intel_lpss_debugfs);
+
+=2Eremove()?
+
+> +}
+> +module_exit(intel_lpss_exit);
+> +
+> +MODULE_AUTHOR("Andy Shevchenko <andriy.shevchenko@linux.intel.com>")=
+;
+> +MODULE_AUTHOR("Mika Westerberg <mika.westerberg@linux.intel.com>");
+> +MODULE_AUTHOR("Heikki Krogerus <heikki.krogerus@linux.intel.com>");
+> +MODULE_AUTHOR("Jarkko Nikula <jarkko.nikula@linux.intel.com>");
+> +MODULE_DESCRIPTION("Intel LPSS core driver");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/drivers/mfd/intel-lpss.h b/drivers/mfd/intel-lpss.h
+> new file mode 100644
+> index 0000000..f28cb28a
+> --- /dev/null
+> +++ b/drivers/mfd/intel-lpss.h
+> @@ -0,0 +1,62 @@
+> +/*
+> + * Intel LPSS core support.
+> + *
+> + * Copyright (C) 2015, Intel Corporation
+> + *
+> + * Authors: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> + *          Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __MFD_INTEL_LPSS_H
+> +#define __MFD_INTEL_LPSS_H
+> +
+> +struct device;
+> +struct resource;
+> +
+> +struct intel_lpss_platform_info {
+> +	struct resource *mem;
+> +	int irq;
+> +	unsigned long clk_rate;
+> +	const char *clk_con_id;
+> +};
+> +
+> +int intel_lpss_probe(struct device *dev,
+> +		     const struct intel_lpss_platform_info *info);
+> +void intel_lpss_remove(struct device *dev);
+> +
+> +#ifdef CONFIG_PM
+> +int intel_lpss_prepare(struct device *dev);
+> +int intel_lpss_suspend(struct device *dev);
+> +int intel_lpss_resume(struct device *dev);
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +#define INTEL_LPSS_SLEEP_PM_OPS			\
+> +	.prepare =3D intel_lpss_prepare,		\
+> +	.suspend =3D intel_lpss_suspend,		\
+> +	.resume =3D intel_lpss_resume,		\
+> +	.freeze =3D intel_lpss_suspend,		\
+> +	.thaw =3D intel_lpss_resume,		\
+> +	.poweroff =3D intel_lpss_suspend,		\
+> +	.restore =3D intel_lpss_resume,
+> +#endif
+> +
+> +#define INTEL_LPSS_RUNTIME_PM_OPS		\
+> +	.runtime_suspend =3D intel_lpss_suspend,	\
+> +	.runtime_resume =3D intel_lpss_resume,
+> +
+> +#else /* !CONFIG_PM */
+> +#define INTEL_LPSS_SLEEP_PM_OPS
+> +#define INTEL_LPSS_RUNTIME_PM_OPS
+> +#endif /* CONFIG_PM */
+> +
+> +#define INTEL_LPSS_PM_OPS(name)			\
+> +const struct dev_pm_ops name =3D {		\
+> +	INTEL_LPSS_SLEEP_PM_OPS			\
+> +	INTEL_LPSS_RUNTIME_PM_OPS		\
+> +}
+> +
+> +#endif /* __MFD_INTEL_LPSS_H */
+
+If you _really_ need .prepare, then it's likely that some other
+platform might too.  It will be the same amount of code to just make
+this generic, so do that instead please.
 
 --=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    =C2=AF\_(=E3=83=84)_/=C2=AF
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
