@@ -1,7 +1,8 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v4 01/21] e820, efi: add ACPI 6.0 persistent memory types
-Date: Wed, 27 May 2015 18:24:47 -0400
-Message-ID: <20150527222447.17965.39057.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v4 03/21] libnd: control character device and libnd bus
+ sysfs attributes
+Date: Wed, 27 May 2015 18:24:59 -0400
+Message-ID: <20150527222458.17965.52722.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,182 +11,382 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: axboe@kernel.dk
-Cc: mingo@kernel.org, Boaz Harrosh <boaz@plexistor.com>, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, hch@lst.de, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, sfr@canb.auug.org.au, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@amacapital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: mingo@kernel.org, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, akpm@linux-foundation.org, hch@lst.de
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 formalizes e820-type-7 and efi-type-14 as persistent memory.
-Mark it "reserved" and allow it to be claimed by a persistent memory
-device driver.
+The control device for a libnd bus is registered as an "nd" class
+device.  The expectation is that there will usually only be one "nd" bus
+registered under /sys/class/nd.  However, we allow for the possibility
+of multiple buses and they will listed in discovery order as
+ndctl0...ndctlN.  This character device hosts the ioctl for passing
+control messages.  The initial command set has a 1:1 correlation with
+the commands listed in the by the "NFIT DSM Example" document [1], but
+this scheme is extensible to future command sets.
 
-This definition is in addition to the Linux kernel's existing type-12
-definition that was recently added in support of shipping platforms with
-NVDIMM support that predate ACPI 6.0 (which now classifies type-12 as
-OEM reserved).
+Note, nd_ioctl() and the backing ->ndctl() implementation are defined in
+a subsequent patch.  This is simply the initial registrations and sysfs
+attributes.
 
-Note, /proc/iomem can be consulted for differentiating legacy
-"Persistent Memory (legacy)" E820_PRAM vs standard "Persistent Memory"
-E820_PMEM.
+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
 
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Andy Lutomirski <luto@amacapital.net>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: <linux-acpi@vger.kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/arm64/kernel/efi.c          |    1 +
- arch/ia64/kernel/efi.c           |    4 ++++
- arch/x86/boot/compressed/eboot.c |    4 ++++
- arch/x86/include/uapi/asm/e820.h |    1 +
- arch/x86/kernel/e820.c           |   28 ++++++++++++++++++++++++----
- arch/x86/platform/efi/efi.c      |    3 +++
- include/linux/efi.h              |    3 ++-
- 7 files changed, 39 insertions(+), 5 deletions(-)
+ drivers/acpi/nfit.c           |   29 ++++++++++++++
+ drivers/acpi/nfit.h           |    5 ++
+ drivers/block/nd/Makefile     |    1 
+ drivers/block/nd/bus.c        |   83 +++++++++++++++++++++++++++++++++++++++
+ drivers/block/nd/core.c       |   87 ++++++++++++++++++++++++++++++++++++++++-
+ drivers/block/nd/nd-private.h |    6 +++
+ include/linux/libnd.h         |    5 ++
+ 7 files changed, 214 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/block/nd/bus.c
 
-diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
-index ab21e0d58278..9d4aa18f2a82 100644
---- a/arch/arm64/kernel/efi.c
-+++ b/arch/arm64/kernel/efi.c
-@@ -158,6 +158,7 @@ static __init int is_reserve_region(efi_memory_desc_t *md)
- 	case EFI_BOOT_SERVICES_CODE:
- 	case EFI_BOOT_SERVICES_DATA:
- 	case EFI_CONVENTIONAL_MEMORY:
-+	case EFI_PERSISTENT_MEMORY:
- 		return 0;
- 	default:
- 		break;
-diff --git a/arch/ia64/kernel/efi.c b/arch/ia64/kernel/efi.c
-index c52d7540dc05..5f6be9dd6968 100644
---- a/arch/ia64/kernel/efi.c
-+++ b/arch/ia64/kernel/efi.c
-@@ -1223,6 +1223,10 @@ efi_initialize_iomem_resources(struct resource *code_resource,
- 				flags |= IORESOURCE_DISABLED;
- 				break;
- 
-+			case EFI_PERSISTENT_MEMORY:
-+				name = "Persistent Memory";
-+				break;
-+
- 			case EFI_RESERVED_TYPE:
- 			case EFI_RUNTIME_SERVICES_CODE:
- 			case EFI_RUNTIME_SERVICES_DATA:
-diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
-index ef17683484e9..dde5bf7726f4 100644
---- a/arch/x86/boot/compressed/eboot.c
-+++ b/arch/x86/boot/compressed/eboot.c
-@@ -1222,6 +1222,10 @@ static efi_status_t setup_e820(struct boot_params *params,
- 			e820_type = E820_NVS;
- 			break;
- 
-+		case EFI_PERSISTENT_MEMORY:
-+			e820_type = E820_PMEM;
-+			break;
-+
- 		default:
- 			continue;
- 		}
-diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
-index 960a8a9dc4ab..0f457e6eab18 100644
---- a/arch/x86/include/uapi/asm/e820.h
-+++ b/arch/x86/include/uapi/asm/e820.h
-@@ -32,6 +32,7 @@
- #define E820_ACPI	3
- #define E820_NVS	4
- #define E820_UNUSABLE	5
-+#define E820_PMEM	7
- 
- /*
-  * This is a non-standardized way to represent ADR or NVDIMM regions that
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index 11cc7d54ec3f..0abe20da743a 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -149,6 +149,7 @@ static void __init e820_print_type(u32 type)
- 	case E820_UNUSABLE:
- 		printk(KERN_CONT "unusable");
- 		break;
-+	case E820_PMEM:
- 	case E820_PRAM:
- 		printk(KERN_CONT "persistent (type %u)", type);
- 		break;
-@@ -918,11 +919,32 @@ static inline const char *e820_type_to_string(int e820_type)
- 	case E820_ACPI:	return "ACPI Tables";
- 	case E820_NVS:	return "ACPI Non-volatile Storage";
- 	case E820_UNUSABLE:	return "Unusable memory";
--	case E820_PRAM: return "Persistent RAM";
-+	case E820_PRAM: return "Persistent Memory (legacy)";
-+	case E820_PMEM: return "Persistent Memory";
- 	default:	return "reserved";
- 	}
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 13132a16901c..d31a0fffafcc 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -316,6 +316,34 @@ static int nfit_mem_init(struct acpi_nfit_desc *acpi_desc)
+ 	return 0;
  }
  
-+static bool do_mark_busy(u32 type, struct resource *res)
++static ssize_t revision_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	/* this is the legacy bios/dos rom-shadow + mmio region */
-+	if (res->start < (1ULL<<20))
-+		return true;
++	struct nd_bus *nd_bus = to_nd_bus(dev);
++	struct nd_bus_descriptor *nd_desc = to_nd_desc(nd_bus);
++	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
 +
-+	/*
-+	 * Treat persistent memory like device memory, i.e. reserve it
-+	 * for exclusive use of a driver
-+	 */
-+	switch (type) {
-+	case E820_RESERVED:
-+	case E820_PRAM:
-+	case E820_PMEM:
-+		return false;
-+	default:
-+		return true;
++	return sprintf(buf, "%d\n", acpi_desc->nfit->header.revision);
++}
++static DEVICE_ATTR_RO(revision);
++
++static struct attribute *acpi_nfit_attributes[] = {
++	&dev_attr_revision.attr,
++	NULL,
++};
++
++static struct attribute_group acpi_nfit_attribute_group = {
++	.name = "nfit",
++	.attrs = acpi_nfit_attributes,
++};
++
++const struct attribute_group *acpi_nfit_attribute_groups[] = {
++	&nd_bus_attribute_group,
++	&acpi_nfit_attribute_group,
++	NULL,
++};
++EXPORT_SYMBOL_GPL(acpi_nfit_attribute_groups);
++
+ static int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ {
+ 	struct device *dev = acpi_desc->dev;
+@@ -372,6 +400,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 	nd_desc = &acpi_desc->nd_desc;
+ 	nd_desc->provider_name = "ACPI.NFIT";
+ 	nd_desc->ndctl = acpi_nfit_ctl;
++	nd_desc->attr_groups = acpi_nfit_attribute_groups;
+ 
+ 	acpi_desc->nd_bus = nd_bus_register(dev, nd_desc);
+ 	if (!acpi_desc->nd_bus)
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index ff72da9c9694..b6c85d773ca1 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -86,4 +86,9 @@ static inline struct acpi_nfit_memory_map *__to_nfit_memdev(struct nfit_mem *nfi
+ 		return nfit_mem->memdev_dcr;
+ 	return nfit_mem->memdev_pmem;
+ }
++
++static inline struct acpi_nfit_desc *to_acpi_desc(struct nd_bus_descriptor *nd_desc)
++{
++	return container_of(nd_desc, struct acpi_nfit_desc, nd_desc);
++}
+ #endif /* __NFIT_H__ */
+diff --git a/drivers/block/nd/Makefile b/drivers/block/nd/Makefile
+index a647ff6cf557..34d1b58b3258 100644
+--- a/drivers/block/nd/Makefile
++++ b/drivers/block/nd/Makefile
+@@ -1,3 +1,4 @@
+ obj-$(CONFIG_LIBND) += libnd.o
+ 
+ libnd-y := core.o
++libnd-y += bus.o
+diff --git a/drivers/block/nd/bus.c b/drivers/block/nd/bus.c
+new file mode 100644
+index 000000000000..635f2e926426
+--- /dev/null
++++ b/drivers/block/nd/bus.c
+@@ -0,0 +1,83 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/uaccess.h>
++#include <linux/fcntl.h>
++#include <linux/slab.h>
++#include <linux/fs.h>
++#include <linux/io.h>
++#include "nd-private.h"
++
++static int nd_bus_major;
++static struct class *nd_class;
++
++int nd_bus_create_ndctl(struct nd_bus *nd_bus)
++{
++	dev_t devt = MKDEV(nd_bus_major, nd_bus->id);
++	struct device *dev;
++
++	dev = device_create(nd_class, &nd_bus->dev, devt, nd_bus, "ndctl%d",
++			nd_bus->id);
++
++	if (IS_ERR(dev)) {
++		dev_dbg(&nd_bus->dev, "failed to register ndctl%d: %ld\n",
++				nd_bus->id, PTR_ERR(dev));
++		return PTR_ERR(dev);
 +	}
++	return 0;
 +}
 +
- /*
-  * Mark e820 reserved areas as busy for the resource manager.
-  */
-@@ -952,9 +974,7 @@ void __init e820_reserve_resources(void)
- 		 * pci device BAR resource and insert them later in
- 		 * pcibios_resource_survey()
- 		 */
--		if (((e820.map[i].type != E820_RESERVED) &&
--		     (e820.map[i].type != E820_PRAM)) ||
--		     res->start < (1ULL<<20)) {
-+		if (do_mark_busy(e820.map[i].type, res)) {
- 			res->flags |= IORESOURCE_BUSY;
- 			insert_resource(&iomem_resource, res);
- 		}
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index dbc8627a5cdf..a116e236ac3f 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -145,6 +145,9 @@ static void __init do_add_efi_memmap(void)
- 		case EFI_UNUSABLE_MEMORY:
- 			e820_type = E820_UNUSABLE;
- 			break;
-+		case EFI_PERSISTENT_MEMORY:
-+			e820_type = E820_PMEM;
-+			break;
- 		default:
- 			/*
- 			 * EFI_RESERVED_TYPE EFI_RUNTIME_SERVICES_CODE
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index cf7e431cbc73..28868504aa17 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -85,7 +85,8 @@ typedef	struct {
- #define EFI_MEMORY_MAPPED_IO		11
- #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
- #define EFI_PAL_CODE			13
--#define EFI_MAX_MEMORY_TYPE		14
-+#define EFI_PERSISTENT_MEMORY		14
-+#define EFI_MAX_MEMORY_TYPE		15
++void nd_bus_destroy_ndctl(struct nd_bus *nd_bus)
++{
++	device_destroy(nd_class, MKDEV(nd_bus_major, nd_bus->id));
++}
++
++static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	return -ENXIO;
++}
++
++static const struct file_operations nd_bus_fops = {
++	.owner = THIS_MODULE,
++	.open = nonseekable_open,
++	.unlocked_ioctl = nd_ioctl,
++	.compat_ioctl = nd_ioctl,
++	.llseek = noop_llseek,
++};
++
++int __init nd_bus_init(void)
++{
++	int rc;
++
++	rc = register_chrdev(0, "ndctl", &nd_bus_fops);
++	if (rc < 0)
++		return rc;
++	nd_bus_major = rc;
++
++	nd_class = class_create(THIS_MODULE, "nd");
++	if (IS_ERR(nd_class))
++		goto err_class;
++
++	return 0;
++
++ err_class:
++	unregister_chrdev(nd_bus_major, "ndctl");
++
++	return rc;
++}
++
++void __exit nd_bus_exit(void)
++{
++	class_destroy(nd_class);
++	unregister_chrdev(nd_bus_major, "ndctl");
++}
+diff --git a/drivers/block/nd/core.c b/drivers/block/nd/core.c
+index 15b89ce1a9af..49b7ac8f7606 100644
+--- a/drivers/block/nd/core.c
++++ b/drivers/block/nd/core.c
+@@ -14,9 +14,12 @@
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/libnd.h>
++#include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include "nd-private.h"
  
- /* Attribute values: */
- #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
++LIST_HEAD(nd_bus_list);
++DEFINE_MUTEX(nd_bus_list_mutex);
+ static DEFINE_IDA(nd_ida);
+ 
+ static void nd_bus_release(struct device *dev)
+@@ -27,6 +30,54 @@ static void nd_bus_release(struct device *dev)
+ 	kfree(nd_bus);
+ }
+ 
++struct nd_bus *to_nd_bus(struct device *dev)
++{
++	struct nd_bus *nd_bus = container_of(dev, struct nd_bus, dev);
++
++	WARN_ON(nd_bus->dev.release != nd_bus_release);
++	return nd_bus;
++}
++EXPORT_SYMBOL_GPL(to_nd_bus);
++
++struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus)
++{
++	/* struct nd_bus definition is private to libnd */
++	return nd_bus->nd_desc;
++}
++EXPORT_SYMBOL_GPL(to_nd_desc);
++
++static const char *nd_bus_provider(struct nd_bus *nd_bus)
++{
++	struct nd_bus_descriptor *nd_desc = nd_bus->nd_desc;
++	struct device *parent = nd_bus->dev.parent;
++
++	if (nd_desc->provider_name)
++		return nd_desc->provider_name;
++	else if (parent)
++		return dev_name(parent);
++	else
++		return "unknown";
++}
++
++static ssize_t provider_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_bus *nd_bus = to_nd_bus(dev);
++
++	return sprintf(buf, "%s\n", nd_bus_provider(nd_bus));
++}
++static DEVICE_ATTR_RO(provider);
++
++static struct attribute *nd_bus_attributes[] = {
++	&dev_attr_provider.attr,
++	NULL,
++};
++
++struct attribute_group nd_bus_attribute_group = {
++	.attrs = nd_bus_attributes,
++};
++EXPORT_SYMBOL_GPL(nd_bus_attribute_group);
++
+ struct nd_bus *nd_bus_register(struct device *parent,
+ 		struct nd_bus_descriptor *nd_desc)
+ {
+@@ -35,6 +86,7 @@ struct nd_bus *nd_bus_register(struct device *parent,
+ 
+ 	if (!nd_bus)
+ 		return NULL;
++	INIT_LIST_HEAD(&nd_bus->list);
+ 	nd_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
+ 	if (nd_bus->id < 0) {
+ 		kfree(nd_bus);
+@@ -43,15 +95,26 @@ struct nd_bus *nd_bus_register(struct device *parent,
+ 	nd_bus->nd_desc = nd_desc;
+ 	nd_bus->dev.parent = parent;
+ 	nd_bus->dev.release = nd_bus_release;
++	nd_bus->dev.groups = nd_desc->attr_groups;
+ 	dev_set_name(&nd_bus->dev, "ndbus%d", nd_bus->id);
+ 	rc = device_register(&nd_bus->dev);
+ 	if (rc) {
+ 		dev_dbg(&nd_bus->dev, "device registration failed: %d\n", rc);
+-		put_device(&nd_bus->dev);
+-		return NULL;
++		goto err;
+ 	}
+ 
++	rc = nd_bus_create_ndctl(nd_bus);
++	if (rc)
++		goto err;
++
++	mutex_lock(&nd_bus_list_mutex);
++	list_add_tail(&nd_bus->list, &nd_bus_list);
++	mutex_unlock(&nd_bus_list_mutex);
++
+ 	return nd_bus;
++ err:
++	put_device(&nd_bus->dev);
++	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(nd_bus_register);
+ 
+@@ -59,9 +122,29 @@ void nd_bus_unregister(struct nd_bus *nd_bus)
+ {
+ 	if (!nd_bus)
+ 		return;
++
++	mutex_lock(&nd_bus_list_mutex);
++	list_del_init(&nd_bus->list);
++	mutex_unlock(&nd_bus_list_mutex);
++
++	nd_bus_destroy_ndctl(nd_bus);
++
+ 	device_unregister(&nd_bus->dev);
+ }
+ EXPORT_SYMBOL_GPL(nd_bus_unregister);
+ 
++static __init int libnd_init(void)
++{
++	return nd_bus_init();
++}
++
++static __exit void libnd_exit(void)
++{
++	WARN_ON(!list_empty(&nd_bus_list));
++	nd_bus_exit();
++}
++
+ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Intel Corporation");
++module_init(libnd_init);
++module_exit(libnd_exit);
+diff --git a/drivers/block/nd/nd-private.h b/drivers/block/nd/nd-private.h
+index a107a19ffa9c..884601f65a15 100644
+--- a/drivers/block/nd/nd-private.h
++++ b/drivers/block/nd/nd-private.h
+@@ -17,7 +17,13 @@
+ 
+ struct nd_bus {
+ 	struct nd_bus_descriptor *nd_desc;
++	struct list_head list;
+ 	struct device dev;
+ 	int id;
+ };
++
++int __init nd_bus_init(void);
++void __exit nd_bus_exit(void);
++int nd_bus_create_ndctl(struct nd_bus *nd_bus);
++void nd_bus_destroy_ndctl(struct nd_bus *nd_bus);
+ #endif /* __ND_PRIVATE_H__ */
+diff --git a/include/linux/libnd.h b/include/linux/libnd.h
+index 8e4441002868..04a97653d56c 100644
+--- a/include/linux/libnd.h
++++ b/include/linux/libnd.h
+@@ -14,6 +14,8 @@
+  */
+ #ifndef __LIBND_H__
+ #define __LIBND_H__
++extern struct attribute_group nd_bus_attribute_group;
++
+ struct nd_dimm;
+ struct nd_bus_descriptor;
+ typedef int (*ndctl_fn)(struct nd_bus_descriptor *nd_desc,
+@@ -21,6 +23,7 @@ typedef int (*ndctl_fn)(struct nd_bus_descriptor *nd_desc,
+ 		unsigned int buf_len);
+ 
+ struct nd_bus_descriptor {
++	const struct attribute_group **attr_groups;
+ 	unsigned long dsm_mask;
+ 	char *provider_name;
+ 	ndctl_fn ndctl;
+@@ -31,4 +34,6 @@ struct device;
+ struct nd_bus *nd_bus_register(struct device *parent,
+ 		struct nd_bus_descriptor *nfit_desc);
+ void nd_bus_unregister(struct nd_bus *nd_bus);
++struct nd_bus *to_nd_bus(struct device *dev);
++struct nd_bus_descriptor *to_nd_desc(struct nd_bus *nd_bus);
+ #endif /* __LIBND_H__ */
