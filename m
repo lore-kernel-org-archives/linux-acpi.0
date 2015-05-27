@@ -1,119 +1,28 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PCI / ACPI: Do not set ACPI companions for host bridges with parents
-Date: Wed, 27 May 2015 02:07:16 +0200
-Message-ID: <1758616.haLhQtkBS0@vostro.rjw.lan>
-References: <555FDDA1.8030806@oracle.com> <2625308.mOex6suvmm@vostro.rjw.lan> <556483E3.4010202@oracle.com>
+Subject: Re: [PATCH 00/11] ARM64 PCI hostbridge init based on ACPI
+Date: Wed, 27 May 2015 02:30:06 +0200
+Message-ID: <1951882.p8DdrcurkC@vostro.rjw.lan>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <556483E3.4010202@oracle.com>
+In-Reply-To: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Sander Eikelenboom <linux@eikelenboom.it>, david.vrabel@citrix.com, xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, May 26, 2015 10:32:03 AM Boris Ostrovsky wrote:
-> On 05/25/2015 10:17 PM, Rafael J. Wysocki wrote:
-> > On Tuesday, May 26, 2015 03:08:17 AM Rafael J. Wysocki wrote:
-> >> On Tuesday, May 26, 2015 01:42:16 AM Rafael J. Wysocki wrote:
-> >>> On Tuesday, May 26, 2015 01:22:12 AM Rafael J. Wysocki wrote:
-> >>>> On Friday, May 22, 2015 09:53:37 PM Boris Ostrovsky wrote:
-> >>>>> On 05/22/2015 04:11 AM, Sander Eikelenboom wrote:
-> >>>>>> Hello Sander,
-> >>>>>>
-> >>>
-> >>> [cut]
-> >>>
-> >>>>> (+Rafael again)
-> >>>>>
-> >>>>> So the immediate cause of those errors is that pdev->evtchn is 0.
-> >>>>> Backend is not notified and things not go well then.
-> >>>>>
-> >>>>> And it is indeed caused by 97badf873ab60e841243b66133ff9eff2a46ef29:
-> >>>>>
-> >>>>> We allocate pcifront_sd in pcifront_scan_root() and then pass it to
-> >>>>> pci_scan_bus_parented() as sysdata. Eventually this sysdata is used in
-> >>>>> pcibios_root_bridge_prepare() as pci_sysdata. It is dereferenced as
-> >>>>> pci_sysdata->companion (which I believe is aliased to pcifront_sd->pdev)
-> >>>
-> >>> Well, there is an int node field between them, so I'm not sure.
-> >>>
-> >>>>> and then set_primary_fwnode() writes it, thus corrupting
-> >>>>> pcifront_sd->pdev (and I think this is what sets evtchn to zero).
-> >>>
-> >>> So the corruption happens when set_primary_fwnode() writes NULL to the
-> >>> 'secondary' field of object pointed to by 'fwnode'.
-> >>>
-> >>> This isn't strictly necessary and we might avoid the crash by only
-> >>> writing to fwnode->secondary if fn is not NULL.
-> >>>
-> >>> So, Sander please test the patch below too if possible.
-> >>>
-> >>> Of course, that doesn't solve a problem of passing an incorrect pointer
-> >>> to ACPI_COMPANION_SET() in pcibios_root_bridge_prepare().
-> >>
-> >> And here's one more thing to test.
-> >
-> > And the below is how I'd fix it, so you can simply test this patch and skip the
-> > previous ones.
-> >
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: PCI / ACPI: Do not set ACPI companions for host bridges with parents
-> >
-> > Commit 97badf873ab6 (device property: Make it possible to use
-> > secondary firmware nodes) uncovered a bug in the x86 (and ia64) PCI
-> > host bridge initialization code that assumes bridge->bus->sysdata
-> > to always point to a struct pci_sysdata object which need not be
-> > the case (in particular, the Xen PCI frontend driver sets it to point
-> > to a different data type).  If it is not the case, an incorrect
-> > pointer (or a piece of data that is not a pointer at all) will be
-> > passed to ACPI_COMPANION_SET() and that may cause interesting
-> > breakage to happen going forward.
-> >
-> > To work around this problem use the observation that the ACPI
-> > host bridge initialization always passes NULL as parent to
-> > pci_create_root_bus(), so if pcibios_root_bridge_prepare() sees
-> > a non-NULL parent of the bridge, it should not attempt to set
-> > an ACPI companion for it, because that means that
-> > pci_create_root_bus() has been called by someone else.
+On Tuesday, May 26, 2015 08:49:13 PM Hanjun Guo wrote:
+> This patch set is introducing ARM64 PCI hostbridge init based on ACPI,
+> which based on Jiang Liu's patch set "Consolidate ACPI PCI root common
+> code into ACPI core":
 > 
-> 
-> I am wondering whether at some point we might want to use companion 
-> information in Xen as well.
-> 
-> Another option might be to require that whoever creates their own 
-> sysdata structure to have pci_sysdata as its first element, e.g.
+> https://lkml.org/lkml/2015/5/14/98
 
-Well, I was thinking about that, but it would be x86-specific and I believe
-that Xen is supposed to work on other architectures too (or at least will be
-in the future).
+I'll be regarding this patchset as an RFC until the one from Jiang Liu goes in.
 
-> --- a/drivers/pci/xen-pcifront.c
-> +++ b/drivers/pci/xen-pcifront.c
-> @@ -52,7 +52,12 @@ struct pcifront_device {
->   };
-> 
->   struct pcifront_sd {
-> +       /*
-> +        * Must be the first element of this structure since pcifront_sd
-> +        * is assigned to bus' sysdata and may later be dereferenced as
-> +        * pci_sysdata.
-> +        */
-> +       struct pci_sysdata sd;
->          struct pcifront_device *pdev;
->   };
 
-Also if you want to use an ACPI companion, it will be a good question *which* one.
-
-My half-way educated guess is that will be the ACPI companion of the parent,
-in which case it's better to modify pcibios_root_bridge_prepare().  In any
-case, we need to talk about that beforehand, so please let me know when you
-have more specific plans.
-
-As for 4.1 (which currently is broken for Sander), I think the $subject patch
-is the cleanest and least intrusive thing we can do.
-
-Thanks,
-Rafael
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
