@@ -1,91 +1,145 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
-Date: Wed, 27 May 2015 15:52:37 -0700
-Message-ID: <CAPcyv4h9TWe0dNwiZ8PWvQAoJsHTih0dhdM7D+pMyjDVrixPsw@mail.gmail.com>
-References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<CAJZ5v0h2RpkFRHbGxGRbVXCeySkSZLm71YG16ToiaXg_XgacDQ@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI / ACPI: Do not set ACPI companions for host bridges
+ with parents
+Date: Wed, 27 May 2015 17:58:21 -0500
+Message-ID: <20150527225821.GF10210@google.com>
+References: <555FDDA1.8030806@oracle.com>
+ <2059136.yfbqz351P1@vostro.rjw.lan>
+ <1901357.YAorP09rCo@vostro.rjw.lan>
+ <2625308.mOex6suvmm@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:38808 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752406AbbE0Wwi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2015 18:52:38 -0400
-Received: by wizo1 with SMTP id o1so40332082wiz.1
-        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2015 15:52:37 -0700 (PDT)
-In-Reply-To: <CAJZ5v0h2RpkFRHbGxGRbVXCeySkSZLm71YG16ToiaXg_XgacDQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2625308.mOex6suvmm@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Sander Eikelenboom <linux@eikelenboom.it>, david.vrabel@citrix.com, xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux
 
-On Wed, May 27, 2015 at 3:36 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> Hi,
->
-> On Thu, May 28, 2015 at 12:24 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->> Jens, please pull from...
->>
->>    git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm tags/libnd-for-jens
->>
->> ...to receive the libnd sub-system for the next merge window.  This has
->> been through 3 rounds of review.  Incremental diffstats and links to
->> previous postings:
->>
->> v1: 39 files changed, 13102 insertions(+), 36 deletions(-)
->>     https://lists.01.org/pipermail/linux-nvdimm/2015-April/000484.html
->>
->> v2: 30 files changed, 3166 insertions(+), 3935 deletions(-)
->>     https://lists.01.org/pipermail/linux-nvdimm/2015-April/000574.html
->>
->> v3: 33 files changed, 2202 insertions(+), 1233 deletions(-)
->>     https://lists.01.org/pipermail/linux-nvdimm/2015-May/000804.html
->>
->> v4: Full diffstat since v3
->>
->>     Documentation/blockdev/libnd.txt  |   2 +-
->>     arch/x86/Kconfig                  |   4 ++
->>     arch/x86/kernel/pmem.c            |  92 +++++++++++++++++++++++------------
->>     drivers/acpi/nfit.c               |  20 ++++----
->>     drivers/acpi/nfit.h               |   4 +-
->>     drivers/block/Kconfig             |   8 ---
->>     drivers/block/Makefile            |   1 -
->>     drivers/block/e820_pmem.c         | 100 --------------------------------------
->>     drivers/block/nd/Kconfig          |  10 ++++
->>     drivers/block/nd/btt.h            |   2 +-
->>     drivers/block/nd/namespace_devs.c |   5 +-
->>     drivers/block/nd/pmem.c           |   2 +-
->>     drivers/block/nd/test/nfit.c      |  10 ++--
->>     include/acpi/acuuid.h             |  16 +++---
->>     14 files changed, 105 insertions(+), 171 deletions(-)
->>     delete mode 100644 drivers/block/e820_pmem.c
->>
->>     1/ Kill drivers/block/e820_pmem.c, we can just register pmem
->>        regions directly from arch/x86/kernel/pmem.c without need for an
->>        intermediary driver (Christoph).
->>
->>     2/ Update to latest NFIT UUID definitions (Toshi).  This
->>        merges cleanly with, and is identical to the include/acpi/
->>        NFIT enabling in Rafael's linux-pm.git/bleeding-edge branch.
->
-> Well, I didn't expect you to send a pull request for this right away
-> to be honest.
+On Tue, May 26, 2015 at 04:17:05AM +0200, Rafael J. Wysocki wrote:
+> On Tuesday, May 26, 2015 03:08:17 AM Rafael J. Wysocki wrote:
+> > On Tuesday, May 26, 2015 01:42:16 AM Rafael J. Wysocki wrote:
+> > > On Tuesday, May 26, 2015 01:22:12 AM Rafael J. Wysocki wrote:
+> > > > On Friday, May 22, 2015 09:53:37 PM Boris Ostrovsky wrote:
+> > > > > On 05/22/2015 04:11 AM, Sander Eikelenboom wrote:
+> > > > > > Hello Sander,
+> > > > > >
+> > > 
+> > > [cut]
+> > > 
+> > > > > (+Rafael again)
+> > > > > 
+> > > > > So the immediate cause of those errors is that pdev->evtchn is 0. 
+> > > > > Backend is not notified and things not go well then.
+> > > > > 
+> > > > > And it is indeed caused by 97badf873ab60e841243b66133ff9eff2a46ef29:
+> > > > > 
+> > > > > We allocate pcifront_sd in pcifront_scan_root() and then pass it to 
+> > > > > pci_scan_bus_parented() as sysdata. Eventually this sysdata is used in 
+> > > > > pcibios_root_bridge_prepare() as pci_sysdata. It is dereferenced as 
+> > > > > pci_sysdata->companion (which I believe is aliased to pcifront_sd->pdev)
+> > > 
+> > > Well, there is an int node field between them, so I'm not sure.
+> > > 
+> > > > > and then set_primary_fwnode() writes it, thus corrupting 
+> > > > > pcifront_sd->pdev (and I think this is what sets evtchn to zero).
+> > > 
+> > > So the corruption happens when set_primary_fwnode() writes NULL to the
+> > > 'secondary' field of object pointed to by 'fwnode'.
+> > > 
+> > > This isn't strictly necessary and we might avoid the crash by only
+> > > writing to fwnode->secondary if fn is not NULL.
+> > > 
+> > > So, Sander please test the patch below too if possible.
+> > > 
+> > > Of course, that doesn't solve a problem of passing an incorrect pointer
+> > > to ACPI_COMPANION_SET() in pcibios_root_bridge_prepare().
+> > 
+> > And here's one more thing to test.
+> 
+> And the below is how I'd fix it, so you can simply test this patch and skip the
+> previous ones.
+> 
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: PCI / ACPI: Do not set ACPI companions for host bridges with parents
+> 
+> Commit 97badf873ab6 (device property: Make it possible to use
+> secondary firmware nodes) uncovered a bug in the x86 (and ia64) PCI
+> host bridge initialization code that assumes bridge->bus->sysdata
+> to always point to a struct pci_sysdata object which need not be
+> the case (in particular, the Xen PCI frontend driver sets it to point
+> to a different data type).  If it is not the case, an incorrect
+> pointer (or a piece of data that is not a pointer at all) will be
+> passed to ACPI_COMPANION_SET() and that may cause interesting
+> breakage to happen going forward.
+> 
+> To work around this problem use the observation that the ACPI
+> host bridge initialization always passes NULL as parent to
+> pci_create_root_bus(), so if pcibios_root_bridge_prepare() sees
+> a non-NULL parent of the bridge, it should not attempt to set
+> an ACPI companion for it, because that means that
+> pci_create_root_bus() has been called by someone else.
+> 
+> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-No worries, we can address these concerns now...
+Do you want to merge this, Rafael?
 
-> Can you please pull from my acpica branch and rebase your patches on
-> top of that by any chance?
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-I noticed that bleeding-edge rebased from the last time I checked is
-that branch stable enough to use as a baseline?
-
-> And no, the "merges cleanly" part isn't sufficient as it'll create a
-> mess of a history if merged together like that.  Can we do that
-> properly instead?
-
-If I merge 'bleeding-edge' on top of v4.1-rc5 followed by this branch
-and do a "git log include/acpi/acuuid.h" then the full history from
-the 'bleeding-edge' branch shows up.
-
-I'm fine with doing the rebase, but I don't quite see the mess to
-which you are referring.  Especially compared to the thrash of moving
-our test baseline.
+> ---
+>  arch/ia64/pci/pci.c |   13 ++++++++++---
+>  arch/x86/pci/acpi.c |   13 ++++++++++---
+>  2 files changed, 20 insertions(+), 6 deletions(-)
+> 
+> Index: linux-pm/arch/x86/pci/acpi.c
+> ===================================================================
+> --- linux-pm.orig/arch/x86/pci/acpi.c
+> +++ linux-pm/arch/x86/pci/acpi.c
+> @@ -482,9 +482,16 @@ struct pci_bus *pci_acpi_scan_root(struc
+>  
+>  int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>  {
+> -	struct pci_sysdata *sd = bridge->bus->sysdata;
+> -
+> -	ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+> +	/*
+> +	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+> +	 * here, pci_create_root_bus() has been called by someone else and
+> +	 * sysdata is likely to be different from what we expect.  Let it go in
+> +	 * that case.
+> +	 */
+> +	if (!bridge->dev.parent) {
+> +		struct pci_sysdata *sd = bridge->bus->sysdata;
+> +		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+> +	}
+>  	return 0;
+>  }
+>  
+> Index: linux-pm/arch/ia64/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/arch/ia64/pci/pci.c
+> +++ linux-pm/arch/ia64/pci/pci.c
+> @@ -478,9 +478,16 @@ struct pci_bus *pci_acpi_scan_root(struc
+>  
+>  int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>  {
+> -	struct pci_controller *controller = bridge->bus->sysdata;
+> -
+> -	ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+> +	/*
+> +	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+> +	 * here, pci_create_root_bus() has been called by someone else and
+> +	 * sysdata is likely to be different from what we expect.  Let it go in
+> +	 * that case.
+> +	 */
+> +	if (!bridge->dev.parent) {
+> +		struct pci_controller *controller = bridge->bus->sysdata;
+> +		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+> +	}
+>  	return 0;
+>  }
+>  
+> 
