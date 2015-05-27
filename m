@@ -1,65 +1,119 @@
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: [PATCH v2 2/2] ACPI / PCI: Account for ARI in _PRT lookups
-Date: Tue, 26 May 2015 15:11:51 -0600
-Message-ID: <20150526211150.7537.42311.stgit@gimli.home>
-References: <20150526210927.7537.55656.stgit@gimli.home>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PCI / ACPI: Do not set ACPI companions for host bridges with parents
+Date: Wed, 27 May 2015 02:07:16 +0200
+Message-ID: <1758616.haLhQtkBS0@vostro.rjw.lan>
+References: <555FDDA1.8030806@oracle.com> <2625308.mOex6suvmm@vostro.rjw.lan> <556483E3.4010202@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59538 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751714AbbEZVL4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 May 2015 17:11:56 -0400
-In-Reply-To: <20150526210927.7537.55656.stgit@gimli.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <556483E3.4010202@oracle.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Sander Eikelenboom <linux@eikelenboom.it>, david.vrabel@citrix.com, xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: bhelgaas@google.com, ddutile@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-The PCIe specification, rev 3.0, section 2.2.8.1, contains the
-following implementation note:
+On Tuesday, May 26, 2015 10:32:03 AM Boris Ostrovsky wrote:
+> On 05/25/2015 10:17 PM, Rafael J. Wysocki wrote:
+> > On Tuesday, May 26, 2015 03:08:17 AM Rafael J. Wysocki wrote:
+> >> On Tuesday, May 26, 2015 01:42:16 AM Rafael J. Wysocki wrote:
+> >>> On Tuesday, May 26, 2015 01:22:12 AM Rafael J. Wysocki wrote:
+> >>>> On Friday, May 22, 2015 09:53:37 PM Boris Ostrovsky wrote:
+> >>>>> On 05/22/2015 04:11 AM, Sander Eikelenboom wrote:
+> >>>>>> Hello Sander,
+> >>>>>>
+> >>>
+> >>> [cut]
+> >>>
+> >>>>> (+Rafael again)
+> >>>>>
+> >>>>> So the immediate cause of those errors is that pdev->evtchn is 0.
+> >>>>> Backend is not notified and things not go well then.
+> >>>>>
+> >>>>> And it is indeed caused by 97badf873ab60e841243b66133ff9eff2a46ef29:
+> >>>>>
+> >>>>> We allocate pcifront_sd in pcifront_scan_root() and then pass it to
+> >>>>> pci_scan_bus_parented() as sysdata. Eventually this sysdata is used in
+> >>>>> pcibios_root_bridge_prepare() as pci_sysdata. It is dereferenced as
+> >>>>> pci_sysdata->companion (which I believe is aliased to pcifront_sd->pdev)
+> >>>
+> >>> Well, there is an int node field between them, so I'm not sure.
+> >>>
+> >>>>> and then set_primary_fwnode() writes it, thus corrupting
+> >>>>> pcifront_sd->pdev (and I think this is what sets evtchn to zero).
+> >>>
+> >>> So the corruption happens when set_primary_fwnode() writes NULL to the
+> >>> 'secondary' field of object pointed to by 'fwnode'.
+> >>>
+> >>> This isn't strictly necessary and we might avoid the crash by only
+> >>> writing to fwnode->secondary if fn is not NULL.
+> >>>
+> >>> So, Sander please test the patch below too if possible.
+> >>>
+> >>> Of course, that doesn't solve a problem of passing an incorrect pointer
+> >>> to ACPI_COMPANION_SET() in pcibios_root_bridge_prepare().
+> >>
+> >> And here's one more thing to test.
+> >
+> > And the below is how I'd fix it, so you can simply test this patch and skip the
+> > previous ones.
+> >
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: PCI / ACPI: Do not set ACPI companions for host bridges with parents
+> >
+> > Commit 97badf873ab6 (device property: Make it possible to use
+> > secondary firmware nodes) uncovered a bug in the x86 (and ia64) PCI
+> > host bridge initialization code that assumes bridge->bus->sysdata
+> > to always point to a struct pci_sysdata object which need not be
+> > the case (in particular, the Xen PCI frontend driver sets it to point
+> > to a different data type).  If it is not the case, an incorrect
+> > pointer (or a piece of data that is not a pointer at all) will be
+> > passed to ACPI_COMPANION_SET() and that may cause interesting
+> > breakage to happen going forward.
+> >
+> > To work around this problem use the observation that the ACPI
+> > host bridge initialization always passes NULL as parent to
+> > pci_create_root_bus(), so if pcibios_root_bridge_prepare() sees
+> > a non-NULL parent of the bridge, it should not attempt to set
+> > an ACPI companion for it, because that means that
+> > pci_create_root_bus() has been called by someone else.
+> 
+> 
+> I am wondering whether at some point we might want to use companion 
+> information in Xen as well.
+> 
+> Another option might be to require that whoever creates their own 
+> sysdata structure to have pci_sysdata as its first element, e.g.
 
-    Virtual Wire Mapping for INTx Interrupts From ARI Devices
+Well, I was thinking about that, but it would be x86-specific and I believe
+that Xen is supposed to work on other architectures too (or at least will be
+in the future).
 
-    The implied Device Number for an ARI Device is 0. When ARI-aware
-    software (including BIOS and operating system) enables ARI
-    Forwarding in the Downstream Port immediately above an ARI Device
-    in order to access its Extended Functions, software must
-    comprehend that the Downstream Port will use Device Number 0 for
-    the virtual wire mappings of INTx interrupts coming from all
-    Functions of the ARI Device. If non-ARI-aware software attempts
-    to determine the virtual wire mappings for Extended Functions, it
-    can come up with incorrect mappings by examining the traditional
-    Device Number field and finding it to be non-0.
+> --- a/drivers/pci/xen-pcifront.c
+> +++ b/drivers/pci/xen-pcifront.c
+> @@ -52,7 +52,12 @@ struct pcifront_device {
+>   };
+> 
+>   struct pcifront_sd {
+> +       /*
+> +        * Must be the first element of this structure since pcifront_sd
+> +        * is assigned to bus' sysdata and may later be dereferenced as
+> +        * pci_sysdata.
+> +        */
+> +       struct pci_sysdata sd;
+>          struct pcifront_device *pdev;
+>   };
 
-We account for this in pci_swizzle_interrupt_pin(), but it looks like
-we miss it here, looking for a _PRT entry with a slot matching the
-ARI device slot number.  This can cause errors like:
+Also if you want to use an ACPI companion, it will be a good question *which* one.
 
-pcieport 0000:80:03.0: can't derive routing for PCI INT B
-sfc 0000:82:01.1: PCI INT B: no GSI
+My half-way educated guess is that will be the ACPI companion of the parent,
+in which case it's better to modify pcibios_root_bridge_prepare().  In any
+case, we need to talk about that beforehand, so please let me know when you
+have more specific plans.
 
-pci_dev.irq is then invalid, resulting in errors for drivers that
-attempt to enable INTx on the device.  Fix by using slot 0 for ARI
-enabled devices.
+As for 4.1 (which currently is broken for Sander), I think the $subject patch
+is the cleanest and least intrusive thing we can do.
 
-Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
----
- drivers/acpi/pci_irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index b1def41..4db10b1 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -163,7 +163,7 @@ static int acpi_pci_irq_check_entry(acpi_handle handle, struct pci_dev *dev,
- {
- 	int segment = pci_domain_nr(dev->bus);
- 	int bus = dev->bus->number;
--	int device = PCI_SLOT(dev->devfn);
-+	int device = pci_ari_enabled(dev->bus) ? 0 : PCI_SLOT(dev->devfn);
- 	struct acpi_prt_entry *entry;
- 
- 	if (((prt->address >> 16) & 0xffff) != device ||
-
+Thanks,
+Rafael
