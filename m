@@ -1,49 +1,55 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] acpi_video: Add enable_native_backlight quirk for MacbookPro12,1
-Date: Thu, 28 May 2015 18:29:48 +0200
-Message-ID: <1432830588-12635-1-git-send-email-hdegoede@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions
+ (block-data-window, persistent memory, volatile memory)
+Date: Thu, 28 May 2015 12:36:16 -0600
+Message-ID: <1432838176.23540.9.camel@misato.fc.hp.com>
+References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <1430771187.23761.237.camel@misato.fc.hp.com>
+	 <CAPcyv4hx28msZ+SQ3chRKPqm3bEXBVvZhz6W3OB2CL9PKDMb0g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39273 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751556AbbE1Q3w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 May 2015 12:29:52 -0400
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:56723 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754381AbbE1Szs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2015 14:55:48 -0400
+In-Reply-To: <CAPcyv4hx28msZ+SQ3chRKPqm3bEXBVvZhz6W3OB2CL9PKDMb0g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Christopher Beland <beland@alum.mit.edu>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-It seems that the latest generation of MacbookPro needs to use the
-native backlight driver, just like most modern laptops do, but it does
-not automatically get enabled as the Apple BIOS does not advertise
-Windows 8 compatibility. So add a quirk for this.
+On Sat, 2015-05-09 at 16:55 -0700, Dan Williams wrote:
+> On Mon, May 4, 2015 at 1:26 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
+ :
+> >
+> > The libnd does not support memdev->flags, which contains "Memory Device
+> > State Flags" defined in Table 5-129 of ACPI 6.0.  In case of major
+> > errors, we should only allow a failed NVDIMM be accessed with read-only
+> > for possible data recovery (or not allow any access when the data is
+> > completely lost), and should not let users operate normally over the
+> > corrupted data until the error is dealt properly.
+> 
+> I agree with setting read-only access when these flags show that the
+> battery is not ready to persist new writes, but I don't think we
+> should block access in the case where the restore from flash failed.
+> If the data is potentially corrupted we should log that fact, but
+> otherwise enable access.  I.e. potentially corrupt data is better than
+> unavailable data.  It's up to filesystem or application to maintain
+> its own checksums to catch data corruption.
+> 
+> > Can you set memdev->flags to nd_region(_desc) so that the pmem driver
+> > can check the status in nd_pmem_probe()?  nd_pmem_probe() can then set
+> > the disk read-only or fail probing, and log errors accordingly.
+> 
+> Will do.
 
-Cc: Christopher Beland <beland@alum.mit.edu>
-Reported-by: Christopher Beland <beland@alum.mit.edu>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+I do not see this change in v4.  Is this part of the pending changes
+behind this release?
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index cc79d3f..518f0e1 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -583,6 +583,15 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "102434U"),
- 		},
- 	},
-+	{
-+	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1217249 */
-+	 .callback = video_enable_native_backlight,
-+	 .ident = "Apple MacBook Pro 12,1",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Apple Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro12,1"),
-+		},
-+	},
- 	{}
- };
- 
--- 
-2.4.1
+Thanks,
+-Toshi
 
