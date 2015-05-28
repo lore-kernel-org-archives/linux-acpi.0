@@ -1,218 +1,77 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 8/8] mfd: Add support for Intel Sunrisepoint LPSS
- devices
-Date: Thu, 28 May 2015 14:10:52 +0100
-Message-ID: <20150528131051.GR11677@x1>
-References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1432570172-86963-9-git-send-email-andriy.shevchenko@linux.intel.com>
- <20150527102241.GC11677@x1>
- <1432811843.26331.18.camel@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
+Date: Thu, 28 May 2015 07:55:47 -0700
+Message-ID: <CAPcyv4ieTpdTdH=X9o0+YQ4B+fk9Wp85a55yWKReFAXpdVnSVg@mail.gmail.com>
+References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150528085124.GA26120@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1432811843.26331.18.camel@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:34961 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549AbbE1Ozs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2015 10:55:48 -0400
+Received: by wgme6 with SMTP id e6so38806827wgm.2
+        for <linux-acpi@vger.kernel.org>; Thu, 28 May 2015 07:55:47 -0700 (PDT)
+In-Reply-To: <20150528085124.GA26120@lst.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy
 
-On Thu, 28 May 2015, Andy Shevchenko wrote:
-> On Wed, 2015-05-27 at 11:22 +0100, Lee Jones wrote:
-> > On Mon, 25 May 2015, Andy Shevchenko wrote:
-> >=20
-> > > The new coming Intel platforms such as Skylake will contain Sunri=
-sepoint PCH.
-> > > The main difference to the previous platforms is that the LPSS de=
-vices are
-> > > compound devices where usually main (SPI, HSUART, or I2C) and DMA=
- IPs are
-> > > present.
-> > >=20
-> > > This patch brings the driver for such devices found on Sunrisepoi=
-nt PCH.
->=20
-> Thanks for comments.
-> My answers below.
->=20
-> > > --- /dev/null
-> > > +++ b/drivers/mfd/intel-lpss-acpi.c
-> > > @@ -0,0 +1,84 @@
-> > > +/*
-> > > + * Intel LPSS ACPI support.
-> > > + *
-> > > + * Copyright (C) 2015, Intel Corporation
-> > > + *
-> > > + * Authors: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > + *          Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or=
- modify
-> > > + * it under the terms of the GNU General Public License version =
-2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +
-> > > +#include <linux/acpi.h>
-> > > +#include <linux/ioport.h>
-> > > +#include <linux/kernel.h>
-> > > +#include <linux/module.h>
-> > > +#include <linux/pm.h>
-> > > +#include <linux/pm_runtime.h>
-> > > +#include <linux/platform_device.h>
-> >=20
-> > [...]
-> >=20
-> > > +	lpss->devid =3D ida_simple_get(&intel_lpss_devid_ida, 0, 0, GFP=
-_KERNEL);
-> > > +	if (lpss->devid < 0)
-> > > +		return lpss->devid;
-> > > +
-> > > +	ret =3D intel_lpss_register_clock(lpss);
-> > > +	if (ret < 0)
-> > > +		goto err_clk_register;
-> >=20
-> > Still not convinced by this.  I'd like Mike (who you *still* have n=
-ot
-> > CC'ed), to review.
->=20
-> I will include him on next iteration.
->=20
-> > > +	intel_lpss_ltr_expose(lpss);
-> > > +
-> > > +	ret =3D intel_lpss_debugfs_add(lpss);
-> > > +	if (ret)
-> > > +		dev_warn(lpss->dev, "Failed to create debugfs entries\n");
-> > > +
-> > > +	if (intel_lpss_has_idma(lpss)) {
-> > > +		/*
-> > > +		 * Ensure the DMA driver is loaded before the host
-> > > +		 * controller device appears, so that the host controller
-> > > +		 * driver can request its DMA channels as early as
-> > > +		 * possible.
-> > > +		 *
-> > > +		 * If the DMA module is not there that's OK as well.
-> > > +		 */
-> > > +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
-> > > +
-> > > +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs, 2,
-> > > +				      info->mem, info->irq, NULL);
-> > > +	} else {
-> > > +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs + 1, 1,
-> > > +				      info->mem, info->irq, NULL);
-> > > +	}
-> >=20
-> > I'm still not happy with the mfd_cells being manipulated in this wa=
-y,
-> > or with the duplication you have within them.  Why don't you place =
-the
-> > IDMA device it its own mfd_cell, then:
-> >=20
-> > > +	if (intel_lpss_has_idma(lpss)) {
-> > > +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
-> > > +
-> > > +		ret =3D mfd_add_devices(dev, TBC, idma_dev, ARRAY_SIZE(idma_de=
-v),
-> > > +				      info->mem, info->irq, NULL);
-> > > +             /* Error check */
-> > > +	}
-> > > +
-> > > +	ret =3D mfd_add_devices(dev, TBC, proto_dev, ARRAY_SIZE(proto_d=
-ev),
-> > > +				      info->mem, info->irq, NULL);
->=20
-> Would be nicer to export mfd_add_device() in that case?
+On Thu, May 28, 2015 at 1:51 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Wed, May 27, 2015 at 06:24:42PM -0400, Dan Williams wrote:
+>> Jens, please pull from...
+>>
+>>    git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm tags/libnd-for-jens
+>
+> I don't really think it's quite ready.  I don't have time to sort through
+> the giant steaming pile for now, but there are a few things here:
 
-What do you mean by export?  What's wrong with using this code
-segment?
+If it weren't for the fact that I almost always like the new state of
+the code after an hch review I'd take offense at that steaming pile
+remark ;-).
 
-> > > +	if (ret < 0)
-> >=20
-> > if (!ret)
->=20
-> Do you mean a) if (ret) or b) if (!ret) return 0; ?
->=20
-> Will be fixed for option a).
+>  - stong NAK for the linker wrapping abuse in the test module
 
-Right.
+This capability has been our single largest generator of bug fixes and
+regression prevention.  Please tell me you have a non-bikeshed
+argument why this test approach must die?  We need more tests in tree,
+not less.  That said, it's at the end of the series ready to be lopped
+off like a spent booster rocket if it's really a blocker.
 
-> > > +static int __init intel_lpss_init(void)
-> > > +{
-> > > +	intel_lpss_debugfs =3D debugfs_create_dir("intel_lpss", NULL);
-> >=20
-> > Any reason this can't be done in .probe()?
->=20
-> ->probe is called per device, but we have one global folder for all o=
-f them.
->=20
-> So,
-> intel_lpss/
->   dev_name 1/
->     capabilities
->     ...
->   dev_name 2/
->     capabilities
->     ...
->   ...
->=20
-> I doubt debugfs_create_dir() works like 'mkdir -p'.
+>  - you must run the ioctls past the linux-api list at least
 
-Ah, multiple devices, yes good point.
+Ok.
 
-[...]
+>  - please make sure the legacy e820 changes are properly tested.  I could
+>    take of it, but not until Wednesday next week as I'm travelling right
+>    now.
 
-> > > +#ifdef CONFIG_PM_SLEEP
-> > > +#define INTEL_LPSS_SLEEP_PM_OPS			\
-> > > +	.prepare =3D intel_lpss_prepare,		\
-> > > +	.suspend =3D intel_lpss_suspend,		\
-> > > +	.resume =3D intel_lpss_resume,		\
-> > > +	.freeze =3D intel_lpss_suspend,		\
-> > > +	.thaw =3D intel_lpss_resume,		\
-> > > +	.poweroff =3D intel_lpss_suspend,		\
-> > > +	.restore =3D intel_lpss_resume,
-> > > +#endif
-> > > +
-> > > +#define INTEL_LPSS_RUNTIME_PM_OPS		\
-> > > +	.runtime_suspend =3D intel_lpss_suspend,	\
-> > > +	.runtime_resume =3D intel_lpss_resume,
-> > > +
-> > > +#else /* !CONFIG_PM */
-> > > +#define INTEL_LPSS_SLEEP_PM_OPS
-> > > +#define INTEL_LPSS_RUNTIME_PM_OPS
-> > > +#endif /* CONFIG_PM */
-> > > +
-> > > +#define INTEL_LPSS_PM_OPS(name)			\
-> > > +const struct dev_pm_ops name =3D {		\
-> > > +	INTEL_LPSS_SLEEP_PM_OPS			\
-> > > +	INTEL_LPSS_RUNTIME_PM_OPS		\
->=20
-> > If you _really_ need .prepare, then it's likely that some other
-> > platform might too.  It will be the same amount of code to just mak=
-e
-> > this generic, so do that instead please.
->=20
-> In 'linux/pm.h' ->prepare() is excluded since it's quite exotic to be=
-=20
-> in device drivers. That is my understanding why it makes not much sen=
-se
-> to provide a generic definition for that.
->=20
-> $ git grep -n '\.prepare[ \t]*=3D.*pm' drivers/ | wc -l
-> 33
-> $ git grep -n SET_SYSTEM_SLEEP_PM_OPS drivers/ | wc -l
-> 114
-> $ git grep -n UNIVERSAL_DEV_PM_OPS drivers/ | wc -l
-> 9
-> =E2=80=A6and there are a lot of drivers (hundreds+) that do
-> not use mentioned macros, and has no ->prepare() callback defined.
->=20
-> I can try to summon up Rafael to clarify this.
+We regularly test the pmem driver, but I'll put an e820 config through
+some extra paces.  In fact it's already better than the in-tree
+version which fails to autoload the driver module (missing module
+alias).
 
-Yes, let's do that, as I'd like a second opinion on this, thanks.
+# grep -o memmap.* /proc/cmdline
+memmap=1G!4G libnd.dyndbg rw
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+# cat /proc/partitions | grep pmem
+ 259        0    1048576 pmem0
+
+# readlink -f /sys/block/pmem0/device
+/sys/devices/platform/e820_pmem/ndbus0/region0/namespace0.0
+
+> Also a little nitpick on naming:  why is this still nd instead of the
+> widely used nvdimm?
+
+It makes the identifier prefixes shorter is the bulk of the reasoning
+and a hardware memory resource need not always be a "dimm".  If it's
+just the top-level directory I'm fine with 'nvdimm' or are you looking
+for a rename throughout?
+
+> Also as very little of it is related to block drivers
+> and a lot is management it should be under drivers/ not drivers/block/
+> I think.
+
+Fine with me.
