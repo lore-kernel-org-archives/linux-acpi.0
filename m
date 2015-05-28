@@ -1,81 +1,37 @@
-From: Y Vo <yvo@apm.com>
-Subject: [PATCH v0] gpio: xgene: add ACPI support for APM X-Gene GPIO standby
- driver
-Date: Thu, 28 May 2015 13:46:28 +0700
-Message-ID: <1432795588-17476-1-git-send-email-yvo@apm.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
+Date: Thu, 28 May 2015 10:51:24 +0200
+Message-ID: <20150528085124.GA26120@lst.de>
+References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linus.walleij@linaro.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: patches@apm.com, Toan Le <toanle@apm.com>, Loc Ho <lho@apm.com>, Y Vo <yvo@apm.com>, Phong Vo <pvo@apm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from verein.lst.de ([213.95.11.211]:55400 "EHLO newverein.lst.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751381AbbE1Iv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 May 2015 04:51:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: axboe@kernel.dk, Boaz Harrosh <boaz@plexistor.com>, neilb@suse.de, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de, sfr@canb.auug.org.au, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>
 
-Add ACPI support for APM X-Gene GPIO standby driver.
+On Wed, May 27, 2015 at 06:24:42PM -0400, Dan Williams wrote:
+> Jens, please pull from...
+> 
+>    git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm tags/libnd-for-jens
 
-Signed-off-by: Y Vo <yvo@apm.com>
----
- drivers/gpio/gpio-xgene-sb.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+I don't really think it's quite ready.  I don't have time to sort through
+the giant steaming pile for now, but there are a few things here:
 
-diff --git a/drivers/gpio/gpio-xgene-sb.c b/drivers/gpio/gpio-xgene-sb.c
-index b6a15c3..50aaae5 100644
---- a/drivers/gpio/gpio-xgene-sb.c
-+++ b/drivers/gpio/gpio-xgene-sb.c
-@@ -25,8 +25,11 @@
- #include <linux/of_gpio.h>
- #include <linux/gpio.h>
- #include <linux/gpio/driver.h>
-+#include <linux/acpi.h>
- #include <linux/basic_mmio_gpio.h>
- 
-+#include "gpiolib.h"
-+
- #define XGENE_MAX_GPIO_DS		22
- #define XGENE_MAX_GPIO_DS_IRQ		6
- 
-@@ -129,6 +132,13 @@ static int xgene_gpio_sb_probe(struct platform_device *pdev)
- 	else
- 		dev_info(&pdev->dev, "X-Gene GPIO Standby driver registered\n");
- 
-+#ifdef CONFIG_ACPI
-+	if (priv->nirq > 0) {
-+		/* Register interrupt handlers for gpio signaled acpi events */
-+		acpi_gpiochip_request_interrupts(&priv->bgc.gc);
-+	}
-+#endif
-+
- 	return ret;
- }
- 
-@@ -145,10 +155,19 @@ static const struct of_device_id xgene_gpio_sb_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, xgene_gpio_sb_of_match);
- 
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id xgene_gpio_sb_acpi_match[] = {
-+	{"APMC0D15", 0},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(acpi, xgene_gpio_sb_acpi_match);
-+#endif
-+
- static struct platform_driver xgene_gpio_sb_driver = {
- 	.driver = {
- 		   .name = "xgene-gpio-sb",
- 		   .of_match_table = xgene_gpio_sb_of_match,
-+		   .acpi_match_table = ACPI_PTR(xgene_gpio_sb_acpi_match),
- 		   },
- 	.probe = xgene_gpio_sb_probe,
- 	.remove = xgene_gpio_sb_remove,
--- 
-1.7.1
+ - stong NAK for the linker wrapping abuse in the test module
+ - you must run the ioctls past the linux-api list at least
+ - please make sure the legacy e820 changes are properly tested.  I could
+   take of it, but not until Wednesday next week as I'm travelling right
+   now.
+
+Also a little nitpick on naming:  why is this still nd instead of the
+widely used nvdimm?  Also as very little of it is related to block drivers
+and a lot is management it should be under drivers/ not drivers/block/
+I think.
