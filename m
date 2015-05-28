@@ -1,116 +1,121 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: 3 EC issues
-Date: Wed, 27 May 2015 05:57:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802722BB5@SHSMSX101.ccr.corp.intel.com>
-References: <1AE640813FDE7649BE1B193DEA596E8802721032@SHSMSX101.ccr.corp.intel.com>
- <555FCA6E.1030806@intel.com>
+From: Pan Xinhui <xinhuix.pan@intel.com>
+Subject: [PATCH] ACPI / osl: add acpi_os_down_wait to avoid a schedule BUG
+Date: Thu, 28 May 2015 14:33:34 +0800
+Message-ID: <5566B6BE.3050303@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:61000 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:21309 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752535AbbE0F7k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2015 01:59:40 -0400
-In-Reply-To: <555FCA6E.1030806@intel.com>
-Content-Language: en-US
+	id S1751265AbbE0Gfk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 May 2015 02:35:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>
-Cc: "Box, David E" <david.e.box@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, "Chen, Yu C" <yu.c.chen@intel.com>, "Huang, Ying" <ying.huang@intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Du, Julie" <julie.du@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, yanmin_zhang@linux.intel.com, mnipxh@163.com
 
-Hi,
+acpi_os_wait_semaphore can be called in local/hard irq disabled path. like in cpu up/down callback.
+So when dirver try to acquire the semaphore, current code may call down_wait which might sleep.
+Then hit panic as we can't schedule here. So introduce acpi_os_down_wait to cover such case.
+acpi_os_down_wait use down_trylock, and use cpu_relax to wait the semaphore signalled if preempt is disabled.
 
-Let me Cc intel power management and ACPI mailing list to discuss this widely.
+below is the panic.
 
-On Samsung platforms, test result shows when SCI_EVT is not set, a QR_EC can result in a real event value (non-0x00) returned.
-And after system is resumed, SCI_EVT may not be flagged while OSPM still need to send QR_EC.
-We have an EC_FLAGS_CLEAR_ON_RESUME quirk to handle this.
+[ 1148.230132, 1]smpboot: CPU 3 is now offline
+[ 1148.277288, 0]smpboot: CPU 2 is now offline
+[ 1148.322385, 1]BUG: scheduling while atomic: migration/1/13/0x00000002
+[ 1148.329604, 1]Modules linked in: hid_sensor_hub sens_col_core hid_heci_ish heci_ish heci vidt_driver atomisp_css2401a0_v21 lm3642 8723bs(O) cfg80211 gc2235 bt_lpm videobuf_vmalloc 6lowpan_iphc i        p6table_raw iptable_raw videobuf_core rfkill_gpio atmel_mxt_ts
+[ 1148.355276, 1]CPU: 1 PID: 13 Comm: migration/1 Tainted: G        W  O 3.14.37-x86_64-L1-R409-g73e8207 #25
+[ 1148.365983, 1]Hardware name: Intel Corporation CHERRYVIEW C0 PLATFORM/Cherry Trail CR, BIOS CH2TCR.X64.0004.R48.1504211851 04/21/2015
+[ 1148.379397, 1] ffff880077801140 ffff880073233a58 ffffffff819eec6c ffff8800732303d0
+[ 1148.387914, 1] ffff880073233a70 ffffffff819eb0e0 ffff88007ac92240 ffff880073233ad0
+[ 1148.396430, 1] ffffffff819f790a ffff8800732303d0 ffff880073233fd8 0000000000012240
+[ 1148.404948, 1]Call Trace:
+[ 1148.407912, 1] [<ffffffff819eec6c>] dump_stack+0x4e/0x7a
+[ 1148.413872, 1] [<ffffffff819eb0e0>] __schedule_bug+0x58/0x67
+[ 1148.420219, 1] [<ffffffff819f790a>] __schedule+0x67a/0x7b0
+[ 1148.426369, 1] [<ffffffff819f7a69>] schedule+0x29/0x70
+[ 1148.432123, 1] [<ffffffff819f6ce9>] schedule_timeout+0x269/0x310
+[ 1148.438860, 1] [<ffffffff810c519c>] ? update_group_power+0x16c/0x260
+[ 1148.445988, 1] [<ffffffff819fae59>] __down_common+0x91/0xd6
+[ 1148.452236, 1] [<ffffffff810bff00>] ? update_cfs_rq_blocked_load+0xc0/0x130
+[ 1148.460036, 1] [<ffffffff819faf11>] __down_timeout+0x16/0x18
+[ 1148.466380, 1] [<ffffffff810d21cc>] down_timeout+0x4c/0x60
+[ 1148.472534, 1] [<ffffffff813f1cf9>] acpi_os_wait_semaphore+0x43/0x57
+[ 1148.479658, 1] [<ffffffff81419ad8>] acpi_ut_acquire_mutex+0x48/0x88
+[ 1148.486683, 1] [<ffffffff813f54e7>] ? acpi_match_device+0x4d/0x4d
+[ 1148.493516, 1] [<ffffffff814119fe>] acpi_get_data+0x35/0x77
+[ 1148.499761, 1] [<ffffffff813f547d>] acpi_bus_get_device+0x21/0x3e
+[ 1148.506593, 1] [<ffffffff8141e52b>] acpi_cpu_soft_notify+0x3d/0xd3
+[ 1148.513522, 1] [<ffffffff81a00223>] notifier_call_chain+0x53/0xa0
+[ 1148.520356, 1] [<ffffffff8110b701>] ? cpu_stop_park+0x51/0x70
+[ 1148.526801, 1] [<ffffffff810b082e>] __raw_notifier_call_chain+0xe/0x10
+[ 1148.534118, 1] [<ffffffff81088963>] cpu_notify+0x23/0x50
+[ 1148.540075, 1] [<ffffffff819e64f7>] take_cpu_down+0x27/0x40
+[ 1148.546322, 1] [<ffffffff8110b831>] multi_cpu_stop+0xc1/0x110
+[ 1148.552763, 1] [<ffffffff8110b770>] ? cpu_stop_should_run+0x50/0x50
+[ 1148.559776, 1] [<ffffffff8110ba48>] cpu_stopper_thread+0x78/0x150
+[ 1148.566608, 1] [<ffffffff819fc1ee>] ? _raw_spin_unlock_irq+0x1e/0x40
+[ 1148.573730, 1] [<ffffffff810b4257>] ? finish_task_switch+0x57/0xd0
+[ 1148.580646, 1] [<ffffffff819f760e>] ? __schedule+0x37e/0x7b0
+[ 1148.586991, 1] [<ffffffff810b2f7d>] smpboot_thread_fn+0x17d/0x2b0
+[ 1148.593819, 1] [<ffffffff810b2e00>] ? SyS_setgroups+0x160/0x160
+[ 1148.600455, 1] [<ffffffff810ab9b4>] kthread+0xe4/0x100
+[ 1148.606208, 1] [<ffffffff810ab8d0>] ? kthread_create_on_node+0x190/0x190
+[ 1148.613721, 1] [<ffffffff81a044c8>] ret_from_fork+0x58/0x90
+[ 1148.619967, 1] [<ffffffff810ab8d0>] ? kthread_create_on_node+0x190/0x190
 
-On kernel Bugzilla reported platforms (Lenovo, Acer), firmware will stop responding occasionally if SCI_EVT is not set.
-We have an EC_FLAGS_QUERY_HANDSHAKE quirk to handle them.
+Signed-off-by: Pan Xinhui <xinhuix.pan@intel.com>
+---
+  drivers/acpi/osl.c | 28 +++++++++++++++++++++++++++-
+  1 file changed, 27 insertions(+), 1 deletion(-)
 
-It looks to me the 2 behavior is conflict.
-For Samsung, QR_EC need to be issued even when SCI_EVT is not set.
-While for the latter platforms, QR_EC shouldn't be issued if SCI_EVT is not set.
-
-Also IMO, the EC_FLAGS_QUERY_HANDSHAKE platforms are dangerous, it looks their firmware will be more likely to get stuck as the SCI_EVT behavior is not standardized.
-
-Unlike the EC transaction state machine, it is hardly to write a single state machine to control the conflict behavior.
-Thus I have to guess Windows just handle the SCI_EVT in a specific way that happens to work for both cases.
-
-To handle SCI_EVT, OSPM should know when the SCI_EVT will be cleared by the firmware.
-
-Unfortunately, the ACPI specification only has following 2 paragraphs talking SCI_EVT and none of them has defined this:
-
-12.2.1 Embedded Controller Status, EC_SC (R)
-The SCI event (SCI_EVT) flag is set when the embedded controller has detected an internal event that requires the operating system's attention. The embedded controller sets this bit in the status register, and generates an SCI to OSPM. OSPM needs this bit to differentiate command-complete SCIs from notification SCIs. OSPM uses the query command to request the cause of the SCI_EVT and take action. For more information, see Section 12.3, "Embedded Controller Command Set.")
-
-12.3.5 Query Embedded Controller, QR_EC (0x84)
-OSPM driver sends this command when the SCI_EVT flag in the EC_SC register is set. When the embedded controller has detected a system event that must be communicated to OSPM, it first sets the SCI_EVT flag in the EC_SC register, generates an SCI, and then waits for OSPM to send the query (QR_EC) command. OSPM detects the embedded controller SCI, sees the SCI_EVT flag set, and sends the query command to the embedded controller. Upon receipt of the QR_EC command byte, the embedded controller places a notification byte with a value between 0-255, indicating the cause of the notification. The notification byte indicates which interrupt handler operation should be executed by OSPM to process the embedded controller SCI. The query value of zero is reserved for a spurious query result and indicat
- es "no outstanding event."
-
-None of them has definitions around the timing that the SCI_EVT should be cleared.
-Following may be possible (from earliest to latest, and should be initiated from a firmware step):
-  1. After firmware noticing an EC_SC access - since OSPM should have seen the SCI_EVT.
-  2. After firmware noticing an none-empty input pipe filled with QR_EC - since OSPM has explicitly acknowledged the event by the QR_EC command.
-  3. After firmware writing the event value to the output pipe - since OSPM is ensured to see the returned event value to query.
-  4. After firmware noticing an empty output pipe - since OSPM is ensured to have obtained the returned event value to query.
-  5. After OSPM evaluating _Qxx - EVT_SCI may be implemented in the "condition" way and cleared after the condition has been changed.
-
-In order to handle both firmware variation, Windows should have prepared QR_EC in the way that
-1. can ensure additional QR_EC is issued for Samsung - when the SCI_EVT is checked again, it should have still be flagged so that a "draining QR_EC" can be issued.
-2. can ensure no additional QR_EC is issued for Lenovo/Acer - when the SCI_EVT is checked again, it must be cleared by the firmware.
-
-So if we can know the expected behavior of Windows, we may be able to work out the correct solution.
-
-Thanks and best regards
--Lv
-
-
-> From: Wysocki, Rafael J
-> Sent: Saturday, May 23, 2015 8:32 AM
-> 
-> Len,
-> 
-> It appears that we need to know what the Windows EC driver expects from
-> the firmware.
-> 
-> Who's the first point of contact for that?
-> 
-> Rafael
-> 
-> 
-> On 5/22/2015 9:33 AM, Zheng, Lv wrote:
-> > Hi, Bob and Rafael
-> >
-> > I have 3 ACPI bugs related to the EC event handling mechanism.
-> >
-> > https://bugzilla.kernel.org/show_bug.cgi?id=98111
-> > https://bugzilla.kernel.org/show_bug.cgi?id=97381
-> > https://bugzilla.kernel.org/show_bug.cgi?id=94411
-> >
-> > So it might be urgent to handle them.
-> >
-> > Currently the EC driver checks EVT_SCI flag right after QR_EC write so that EVT_SCI can be ensured to be set for Samsung platforms
-> and the 2nd QR_EC can be issued to drain the event (on Samsung platform, 0x00 will be returned to indicate no further events). This
-> logic is tricky.
-> >
-> > After seeing so many conflicts, I guess windows will start a deferred context to send QR_EC, evaluate _Qxx sequentially.
-> > For Samsung platform, I knew an 0x00 return value of QR_EC can terminate the process and Samsung platform really need driver to
-> poll until 0x00 is returned.
-> >
-> > But on other platforms, we may see non 0x00 value returned from BIOS, then I don't know how can I terminate the process on such
-> platforms.
-> >
-> > IMO, the conflict is there due to the asynchrony the firmware has implemented.
-> > It looks the firmware that won't be broken due to our current behavior is handled in the fully asynchronous way.
-> > And the above platforms have several commands handled in the synchronous way.
-> >
-> > Thus it's hard for me to determine what's the preferred behavior (thus the default OS EC driver behavior) Windows EC driver has
-> expected on the firmware.
-> > Do we have spec contact or Windows contact to clarify this?
-> >
-> > Thanks and best regards
-> > -Lv
-
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 7ccba39..57a1812 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1195,6 +1195,32 @@ void acpi_os_wait_events_complete(void)
+  	flush_workqueue(kacpi_notify_wq);
+  }
+  
++static int acpi_os_down_wait(struct semaphore *sem, long jiffies_timeout)
++{
++	unsigned long deadline_time;
++	int ret = 0;
++
++	if (down_trylock(sem)) {
++		if (unlikely(preempt_count())) {
++			deadline_time = jiffies + jiffies_timeout;
++			while (true) {
++				cpu_relax();
++
++				if (!down_trylock(sem))
++					break;
++
++				if (time_after(jiffies, deadline_time)) {
++					ret = -ETIME;
++					break;
++				}
++			}
++		} else
++			ret = down_timeout(sem, jiffies_timeout);
++	}
++
++	return ret;
++}
++
+  struct acpi_hp_work {
+  	struct work_struct work;
+  	struct acpi_device *adev;
+@@ -1309,7 +1335,7 @@ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
+  	else
+  		jiffies = msecs_to_jiffies(timeout);
+  
+-	ret = down_timeout(sem, jiffies);
++	ret = acpi_os_down_wait(sem, jiffies);
+  	if (ret)
+  		status = AE_TIME;
+  
+-- 
+1.9.1
