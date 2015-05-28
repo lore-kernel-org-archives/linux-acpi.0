@@ -1,192 +1,61 @@
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 3/6] x86, pmem: add PMEM API for persistent memory
-Date: Thu, 28 May 2015 16:35:50 -0600
-Message-ID: <1432852553-24865-4-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 1/6] pmem: add force casts to avoid __iomem annotation
+Date: Thu, 28 May 2015 16:35:48 -0600
+Message-ID: <1432852553-24865-2-git-send-email-ross.zwisler@linux.intel.com>
 References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41045 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755041AbbE1WgT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 May 2015 18:36:19 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Add a new PMEM API to x86, and allow for architectures that do not
-implement this API.  Architectures that implement the PMEM API should
-define ARCH_HAS_PMEM_API in their kernel configuration and must provide
-implementations for persistent_copy(), persistent_flush() and
-persistent_sync().
+Even though we use ioremap_nocache() to map our persistent memory in the
+pmem driver, the memory we are mapping behaves like normal memory and
+not I/O memory in that it can be accessed using regular memcpy()
+operations and doesn't need to go through memcpy_toio() and
+memcpy_fromio().  Force casting the pointers received from
+ioremap_nocache() and given to iounmap() gives us the correct behavior
+and makes sparse happy.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
 Cc: linux-nvdimm@lists.01.org
 ---
- MAINTAINERS                       |  1 +
- arch/x86/Kconfig                  |  3 ++
- arch/x86/include/asm/cacheflush.h | 23 ++++++++++++
- include/linux/pmem.h              | 79 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 106 insertions(+)
- create mode 100644 include/linux/pmem.h
+ drivers/block/nd/pmem.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0448fec8e44a..ca1f3d99618d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5944,6 +5944,7 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/block/nd/pmem.c
-+F:	include/linux/pmem.h
+diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
+index 5e8c9c629f22..a8712e41e7f5 100644
+--- a/drivers/block/nd/pmem.c
++++ b/drivers/block/nd/pmem.c
+@@ -163,7 +163,8 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res,
+ 	 * of the CPU caches in case of a crash.
+ 	 */
+ 	err = -ENOMEM;
+-	pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem->size);
++	pmem->virt_addr = (__force void *)ioremap_nocache(pmem->phys_addr,
++			pmem->size);
+ 	if (!pmem->virt_addr)
+ 		goto out_release_region;
  
- LINUX FOR IBM pSERIES (RS/6000)
- M:	Paul Mackerras <paulus@au.ibm.com>
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 23c587938804..eb8f12e715af 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -215,6 +215,9 @@ config ARCH_HAS_CPU_RELAX
- config ARCH_HAS_CACHE_LINE_SIZE
- 	def_bool y
- 
-+config ARCH_HAS_PMEM_API
-+	def_bool y
-+
- config HAVE_SETUP_PER_CPU_AREA
- 	def_bool y
- 
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 47c8e32f621a..ffd5ccdc86f0 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -4,6 +4,7 @@
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
-+#include <asm/uaccess.h>
- 
- /*
-  * The set_memory_* API can be used to change various attributes of a virtual
-@@ -84,6 +85,28 @@ int set_pages_rw(struct page *page, int numpages);
- 
- void clflush_cache_range(void *addr, unsigned int size);
- 
-+static inline void arch_persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	/*
-+	 * We are copying between two kernel buffers, so it should be
-+	 * impossible for us to hit this BUG_ON() because we should never need
-+	 * to take a page fault.
-+	 */
-+	BUG_ON(__copy_from_user_inatomic_nocache(dst,
-+				(__user const void *)src, n));
-+}
-+
-+static inline void arch_persistent_flush(void *vaddr, size_t size)
-+{
-+	clflush_cache_range(vaddr, size);
-+}
-+
-+static inline void arch_persistent_sync(void)
-+{
-+	wmb();
-+	pcommit_sfence();
-+}
-+
- #ifdef CONFIG_DEBUG_RODATA
- void mark_rodata_ro(void);
- extern const int rodata_test_data;
-diff --git a/include/linux/pmem.h b/include/linux/pmem.h
-new file mode 100644
-index 000000000000..88ade7376632
---- /dev/null
-+++ b/include/linux/pmem.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#ifndef __PMEM_H__
-+#define __PMEM_H__
-+
-+#include <asm/cacheflush.h>
-+
-+/*
-+ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
-+ * for persistent_copy(), persistent_flush() and persistent_sync().
-+ */
-+
-+#ifdef CONFIG_ARCH_HAS_PMEM_API
-+/**
-+ * persistent_copy - copy data to persistent memory
-+ * @dst: destination buffer for the copy
-+ * @src: source buffer for the copy
-+ * @n: length of the copy in bytes
-+ *
-+ * Perform a memory copy that results in the destination of the copy being
-+ * evicted from the processor cache hierarchy ("accepted to memory").  This
-+ * can typically be accomplished with non-temporal stores or by regular stores
-+ * followed by cache flush commands via persistent_flush().
-+ */
-+static inline void persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	arch_persistent_copy(dst, src, n);
-+}
-+
-+/**
-+ * persistent_flush - flush a memory range from the processor cache
-+ * @vaddr: virtual address to begin flushing
-+ * @size: number of bytes to flush
-+ *
-+ * This call needs to include fencing so that the flushing will be ordered
-+ * with respect to both reads and writes.
-+ */
-+static inline void persistent_flush(void *vaddr, size_t size)
-+{
-+	arch_persistent_flush(vaddr, size);
-+}
-+
-+/**
-+ * persistent_sync - synchronize writes to persistent memory
-+ *
-+ * To be used after a series of copies and/or flushes, this should perform any
-+ * necessary fencing to order writes/flushes and then ensure that writes that
-+ * have been "accepted to memory", i.e. previously flushed from the cache
-+ * hierarchy, are actually written to the appropriate DIMMs.  This typically
-+ * involves making sure they are flushed from any platform buffers not covered
-+ * by the cache flushes performed by persistent_flush().
-+ */
-+static inline void persistent_sync(void)
-+{
-+	arch_persistent_sync();
-+}
-+
-+#else /* ! CONFIG_ARCH_HAS_PMEM_API */
-+
-+static inline void persistent_copy(void *dst, const void *src, size_t n)
-+{
-+	memcpy(dst, src, n);
-+}
-+static inline void persistent_flush(void *vaddr, size_t size) {}
-+static inline void persistent_sync(void) {}
-+
-+#endif /* CONFIG_ARCH_HAS_PMEM_API */
-+
-+#endif /* __PMEM_H__ */
+@@ -195,7 +196,7 @@ static struct pmem_device *pmem_alloc(struct device *dev, struct resource *res,
+ out_free_queue:
+ 	blk_cleanup_queue(pmem->pmem_queue);
+ out_unmap:
+-	iounmap(pmem->virt_addr);
++	iounmap((__force void __iomem *)pmem->virt_addr);
+ out_release_region:
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ out_free_dev:
+@@ -209,7 +210,7 @@ static void pmem_free(struct pmem_device *pmem)
+ 	del_gendisk(pmem->pmem_disk);
+ 	put_disk(pmem->pmem_disk);
+ 	blk_cleanup_queue(pmem->pmem_queue);
+-	iounmap(pmem->virt_addr);
++	iounmap((__force void __iomem *)pmem->virt_addr);
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ 	kfree(pmem);
+ }
 -- 
 1.9.3
-
