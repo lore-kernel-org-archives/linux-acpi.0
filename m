@@ -1,80 +1,69 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [Linux-nvdimm] [PATCH v2 08/20] libnd, nd_acpi: regions
- (block-data-window, persistent memory, volatile memory)
-Date: Thu, 28 May 2015 13:58:38 -0700
-Message-ID: <CAPcyv4j3niw+Txyw_wwws7ynt5bc4gG46PhpC4cp5nMo8QR1Ww@mail.gmail.com>
-References: <20150428181203.35812.60474.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150428182455.35812.14950.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<1430771187.23761.237.camel@misato.fc.hp.com>
-	<CAPcyv4hx28msZ+SQ3chRKPqm3bEXBVvZhz6W3OB2CL9PKDMb0g@mail.gmail.com>
-	<1432838176.23540.9.camel@misato.fc.hp.com>
-	<CAPcyv4hAGG6hJ8O+ODWH9c89PtXJSZCAyhHze7PGEuraQmuMSw@mail.gmail.com>
-	<55677FCD.1090704@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 0/6] I/O path improvements for ND_BLK and PMEM
+Date: Thu, 28 May 2015 16:35:47 -0600
+Message-ID: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:33546 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306AbbE1U6k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 May 2015 16:58:40 -0400
-Received: by wicmx19 with SMTP id mx19so98189wic.0
-        for <linux-acpi@vger.kernel.org>; Thu, 28 May 2015 13:58:39 -0700 (PDT)
-In-Reply-To: <55677FCD.1090704@hp.com>
+Received: from mga09.intel.com ([134.134.136.24]:6370 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754676AbbE1WgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 May 2015 18:36:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hp.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-On Thu, May 28, 2015 at 1:51 PM, Linda Knippers <linda.knippers@hp.com> wrote:
-> On 5/28/2015 3:59 PM, Dan Williams wrote:
->> On Thu, May 28, 2015 at 11:36 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->>> On Sat, 2015-05-09 at 16:55 -0700, Dan Williams wrote:
->>>> On Mon, May 4, 2015 at 1:26 PM, Toshi Kani <toshi.kani@hp.com> wrote:
->>>>> On Tue, 2015-04-28 at 14:24 -0400, Dan Williams wrote:
->>>  :
->>>>>
->>>>> The libnd does not support memdev->flags, which contains "Memory Device
->>>>> State Flags" defined in Table 5-129 of ACPI 6.0.  In case of major
->>>>> errors, we should only allow a failed NVDIMM be accessed with read-only
->>>>> for possible data recovery (or not allow any access when the data is
->>>>> completely lost), and should not let users operate normally over the
->>>>> corrupted data until the error is dealt properly.
->>>>
->>>> I agree with setting read-only access when these flags show that the
->>>> battery is not ready to persist new writes, but I don't think we
->>>> should block access in the case where the restore from flash failed.
->>>> If the data is potentially corrupted we should log that fact, but
->>>> otherwise enable access.  I.e. potentially corrupt data is better than
->>>> unavailable data.  It's up to filesystem or application to maintain
->>>> its own checksums to catch data corruption.
->>>>
->>>>> Can you set memdev->flags to nd_region(_desc) so that the pmem driver
->>>>> can check the status in nd_pmem_probe()?  nd_pmem_probe() can then set
->>>>> the disk read-only or fail probing, and log errors accordingly.
->>>>
->>>> Will do.
->>>
->>> I do not see this change in v4.  Is this part of the pending changes
->>> behind this release?
->>
->> Yes, I was holding it off until we had an upstream acceptance baseline
->> set.  That is on hold pending Christoph's review.  He's looking to
->> come back next Wednesday with deeper review comments.  The runway to
->> land this in v4.2 is running short...
->
-> Hi Dan,
->
-> Do you have a short list of pending changes, especially if some weren't
-> discussed on the list?  That might help reviewers.
->
-> I know we're still looking at and trying a number of things, like using
-> the BTT on today's NVDIMMs and adding another example DSM, so we will
-> have more feedback and patches and may need to adapt some of the
-> structure to do that.  This can happen after the initial patches are
-> pulled in but I just wanted to let you know where we are.  Not sure
-> about others.
->
+This series adds a new PMEM API consisting of three functions:
+persistent_copy(), persistent_flush() and persistent_sync().
 
-It seems it's just Christoph that has asserted there are things he'd
-liked changed, so I don't see much potential for confusion in letting
-out the pending backlog.  I'll see to it.
+These three functions are then used in the I/O paths for both the ND_BLK driver
+and the PMEM driver to ensure that writes actually make it to the DIMM and
+become durable before the I/O operation completes.
+
+The first two patches in the series are just cleanup and correctness patches.
+
+Patch three provides a reasonable architecture neutral default implementation
+for these three APIs for architectures that do not implement the PMEM API.
+These defaults allow all architectures to mostly work, aliasing
+persistent_copy() to memcpy() and having persistent_flush() and
+persistent_sync() be noops.  With this patch set this implementation is
+provided at the pmem.h level.
+
+It's possible that other future consumers of the PMEM API (DAX, possibly
+others) would prefer to have a different default behavior for architectures
+that don't support the PMEM API.  If this is the case we could move the choice
+about what to do for those architectures down into consumer-specific header
+files, so nd.h for libnd, for example.  If DAX and other consumers are fine
+with our defaults it's nicer to keep them common and in a global place.  Please
+let us know how other future consumers of the PMEM API feel about this.
+
+Patches 5 and 6 update the I/O paths for flush hints and NVDIMM flags.
+
+This series applies cleanly to Dan's "ndctl-for-next" tree:
+
+https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=libnd-for-next
+
+One last note - I'm going to be unavailable soon, so patch feedback will most
+likely be handled by Dan Williams.  Thanks, Dan. :)
+
+Ross Zwisler (6):
+  pmem: add force casts to avoid __iomem annotation
+  nfit: Fix up address spaces, sparse warnings
+  x86, pmem: add PMEM API for persistent memory
+  pmem, nd_blk: update I/O paths to use PMEM API
+  nd_blk: add support for flush hints
+  nd_blk: add support for NVDIMM flags
+
+ MAINTAINERS                       |  1 +
+ arch/x86/Kconfig                  |  3 ++
+ arch/x86/include/asm/cacheflush.h | 23 ++++++++++
+ drivers/acpi/nfit.c               | 89 ++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/nfit.h               | 28 +++++++++++-
+ drivers/block/nd/pmem.c           | 22 +++++++---
+ include/linux/pmem.h              | 79 ++++++++++++++++++++++++++++++++++
+ include/uapi/linux/ndctl.h        |  5 +++
+ 8 files changed, 232 insertions(+), 18 deletions(-)
+ create mode 100644 include/linux/pmem.h
+
+-- 
+1.9.3
+
