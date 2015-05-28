@@ -1,146 +1,118 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 4/6] pmem, nd_blk: update I/O paths to use PMEM API
-Date: Thu, 28 May 2015 16:35:51 -0600
-Message-ID: <1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH 6/6] nd_blk: add support for NVDIMM flags
+Date: Thu, 28 May 2015 16:35:53 -0600
+Message-ID: <1432852553-24865-7-git-send-email-ross.zwisler@linux.intel.com>
 References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20172 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755066AbbE1WgU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 May 2015 18:36:20 -0400
-In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Update the PMEM and ND_BLK I/O paths to use the new PMEM API and to
-adhere to the read/write flows outlined in the "NVDIMM Block Window
-Driver Writer's Guide":
+Add support in the ND_BLK I/O path for the "latch" and "flush" flags
+defined in the "Get Block NVDIMM Flags" _DSM function:
 
-http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
+http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 ---
- drivers/acpi/nfit.c     | 10 ++++++++--
- drivers/block/nd/pmem.c | 15 +++++++++++----
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit.c        | 26 ++++++++++++++++++++++++--
+ drivers/acpi/nfit.h        |  1 +
+ include/uapi/linux/ndctl.h |  5 +++++
+ 3 files changed, 30 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index df14652ea13e..22df61968c1c 100644
+index 6cca50d1c690..0da84e067643 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -18,6 +18,7 @@
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include <linux/sort.h>
-+#include <linux/pmem.h>
- #include <linux/io.h>
- #include "nfit.h"
- 
-@@ -926,7 +927,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 	if (mmio->num_lines)
- 		offset = to_interleave_offset(offset, mmio);
- 
-+	/* mmio->base must be mapped uncacheable */
+@@ -951,7 +951,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 	/* mmio->base must be mapped uncacheable */
  	writeq(cmd, mmio->base + offset);
-+	persistent_sync();
- 	/* FIXME: conditionally perform read-back if mandated by firmware */
+ 	nfit_blk->psync(nfit_blk);
+-	/* FIXME: conditionally perform read-back if mandated by firmware */
++
++	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
++		readq(mmio->base + offset);
  }
  
-@@ -940,7 +943,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
- 	int rc;
- 
- 	base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES + bw * mmio->size;
--	/* TODO: non-temporal access, flush hints, cache management etc... */
- 	write_blk_ctl(nfit_blk, bw, dpa, len, write);
- 	while (len) {
- 		unsigned int c;
-@@ -959,13 +961,17 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
- 		}
+ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
+@@ -983,8 +985,12 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
  
  		if (write)
--			memcpy(mmio->aperture + offset, iobuf + copied, c);
-+			persistent_copy(mmio->aperture + offset, iobuf + copied, c);
- 		else
+ 			persistent_copy(mmio->aperture + offset, iobuf + copied, c);
+-		else
++		else {
++			if (nfit_blk->dimm_flags & ND_BLK_FLUSH_REQUIRED)
++				persistent_flush(mmio->aperture + offset, c);
++
  			memcpy(iobuf + copied, mmio->aperture + offset, c);
++		}
  
  		copied += c;
  		len -= c;
- 	}
-+
-+	if (write)
-+		persistent_sync();
-+
- 	rc = read_blk_stat(nfit_blk, bw) ? -EIO : 0;
- 	return rc;
- }
-diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
-index a8712e41e7f5..1a447c351aef 100644
---- a/drivers/block/nd/pmem.c
-+++ b/drivers/block/nd/pmem.c
-@@ -15,15 +15,16 @@
-  * more details.
-  */
- 
--#include <asm/cacheflush.h>
- #include <linux/blkdev.h>
- #include <linux/hdreg.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/pmem.h>
- #include <linux/slab.h>
- #include <linux/nd.h>
-+#include <asm/cacheflush.h>
- #include "nd.h"
- 
- struct pmem_device {
-@@ -51,7 +52,7 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 		flush_dcache_page(page);
- 	} else {
- 		flush_dcache_page(page);
--		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
-+		persistent_copy(pmem->virt_addr + pmem_off, mem + off, len);
- 	}
- 
- 	kunmap_atomic(mem);
-@@ -82,6 +83,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 		sector += bvec.bv_len >> 9;
- 	}
- 
-+	if (rw & WRITE)
-+		persistent_sync();
- out:
- 	bio_endio(bio, err);
- }
-@@ -92,6 +95,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	struct pmem_device *pmem = bdev->bd_disk->private_data;
- 
- 	pmem_do_bvec(pmem, page, PAGE_CACHE_SIZE, 0, rw, sector);
-+	if (rw & WRITE)
-+		persistent_sync();
- 	page_endio(page, rw & WRITE, 0);
- 
- 	return 0;
-@@ -111,8 +116,10 @@ static int pmem_rw_bytes(struct nd_io *ndio, void *buf, size_t offset,
- 
- 	if (rw == READ)
- 		memcpy(buf, pmem->virt_addr + offset, n);
--	else
--		memcpy(pmem->virt_addr + offset, buf, n);
-+	else {
-+		persistent_copy(pmem->virt_addr + offset, buf, n);
-+		persistent_sync();
-+	}
- 
+@@ -1146,6 +1152,20 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
  	return 0;
  }
+ 
++static void nd_acpi_blk_get_flags(struct nd_bus_descriptor *nd_desc,
++		struct nd_dimm *nd_dimm, struct nfit_blk *nfit_blk)
++{
++	struct nd_cmd_dimm_flags flags;
++	int rc;
++
++	memset(&flags, 0, sizeof(flags));
++	rc = nd_desc->ndctl(nd_desc, nd_dimm, ND_CMD_DIMM_FLAGS, &flags,
++			sizeof(flags));
++
++	if (rc >= 0 && !flags.status)
++		nfit_blk->dimm_flags = flags.flags;
++}
++
+ static int acpi_nfit_blk_region_enable(struct nd_bus *nd_bus, struct device *dev)
+ {
+ 	struct nd_bus_descriptor *nd_desc = to_nd_desc(nd_bus);
+@@ -1217,6 +1237,8 @@ static int acpi_nfit_blk_region_enable(struct nd_bus *nd_bus, struct device *dev
+ 		return rc;
+ 	}
+ 
++	nd_acpi_blk_get_flags(nd_desc, nd_dimm, nfit_blk);
++
+ 	nfit_flush = nfit_mem->nfit_flush;
+ 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
+ 		struct acpi_nfit_flush_address *flush = nfit_flush->flush;
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 858719017bef..d22b04ac3d2c 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -139,6 +139,7 @@ struct nfit_blk {
+ 	u64 bdw_offset; /* post interleave offset */
+ 	u64 stat_offset;
+ 	u64 cmd_offset;
++	u32 dimm_flags;
+ 	void __iomem *flush_hint;
+ 	void (*psync)(struct nfit_blk *nfit_blk);
+ };
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index e595751c613d..bb0fa1c611e0 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -30,6 +30,11 @@ struct nd_cmd_dimm_flags {
+ 	__u32 flags;
+ } __packed;
+ 
++enum {
++	ND_BLK_FLUSH_REQUIRED = 1,
++	ND_BLK_DCR_LATCH = 2,
++};
++
+ struct nd_cmd_get_config_size {
+ 	__u32 status;
+ 	__u32 config_size;
 -- 
 1.9.3
-
