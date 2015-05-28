@@ -1,69 +1,97 @@
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/6] I/O path improvements for ND_BLK and PMEM
-Date: Thu, 28 May 2015 16:35:47 -0600
-Message-ID: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 2/6] nfit: Fix up address spaces, sparse warnings
+Date: Thu, 28 May 2015 16:35:49 -0600
+Message-ID: <1432852553-24865-3-git-send-email-ross.zwisler@linux.intel.com>
+References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6370 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:4632 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754676AbbE1WgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 May 2015 18:36:06 -0400
+	id S1755021AbbE1WgT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 May 2015 18:36:19 -0400
+In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-This series adds a new PMEM API consisting of three functions:
-persistent_copy(), persistent_flush() and persistent_sync().
+Fix a couple of sparse warnings (duplicate const, incorrect address
+space), and go back to using memcpy() instead of memcpy_toio() and
+memcpy_fromio() when talking to our block apertures.  Instead, include a
+union to alias mmio->base and mmio->aperture so that we can continue to
+reuse common code for ioremapping and deinterleaving.  mmio->base still
+has the __iomem annotation and is used via readq() and writeq() for the
+control and status registers.  mmio->aperture is used via normal
+memcpy() for aperture I/O.
 
-These three functions are then used in the I/O paths for both the ND_BLK driver
-and the PMEM driver to ensure that writes actually make it to the DIMM and
-become durable before the I/O operation completes.
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/nfit.c | 10 +++++-----
+ drivers/acpi/nfit.h |  5 ++++-
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-The first two patches in the series are just cleanup and correctness patches.
-
-Patch three provides a reasonable architecture neutral default implementation
-for these three APIs for architectures that do not implement the PMEM API.
-These defaults allow all architectures to mostly work, aliasing
-persistent_copy() to memcpy() and having persistent_flush() and
-persistent_sync() be noops.  With this patch set this implementation is
-provided at the pmem.h level.
-
-It's possible that other future consumers of the PMEM API (DAX, possibly
-others) would prefer to have a different default behavior for architectures
-that don't support the PMEM API.  If this is the case we could move the choice
-about what to do for those architectures down into consumer-specific header
-files, so nd.h for libnd, for example.  If DAX and other consumers are fine
-with our defaults it's nicer to keep them common and in a global place.  Please
-let us know how other future consumers of the PMEM API feel about this.
-
-Patches 5 and 6 update the I/O paths for flush hints and NVDIMM flags.
-
-This series applies cleanly to Dan's "ndctl-for-next" tree:
-
-https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/log/?h=libnd-for-next
-
-One last note - I'm going to be unavailable soon, so patch feedback will most
-likely be handled by Dan Williams.  Thanks, Dan. :)
-
-Ross Zwisler (6):
-  pmem: add force casts to avoid __iomem annotation
-  nfit: Fix up address spaces, sparse warnings
-  x86, pmem: add PMEM API for persistent memory
-  pmem, nd_blk: update I/O paths to use PMEM API
-  nd_blk: add support for flush hints
-  nd_blk: add support for NVDIMM flags
-
- MAINTAINERS                       |  1 +
- arch/x86/Kconfig                  |  3 ++
- arch/x86/include/asm/cacheflush.h | 23 ++++++++++
- drivers/acpi/nfit.c               | 89 ++++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit.h               | 28 +++++++++++-
- drivers/block/nd/pmem.c           | 22 +++++++---
- include/linux/pmem.h              | 79 ++++++++++++++++++++++++++++++++++
- include/uapi/linux/ndctl.h        |  5 +++
- 8 files changed, 232 insertions(+), 18 deletions(-)
- create mode 100644 include/linux/pmem.h
-
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 34f879808ada..df14652ea13e 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -60,7 +60,7 @@ static int acpi_nfit_ctl(struct nd_bus_descriptor *nd_desc,
+ 		unsigned int buf_len)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+-	const struct nd_cmd_desc const *desc = NULL;
++	const struct nd_cmd_desc *desc = NULL;
+ 	union acpi_object in_obj, in_buf, *out_obj;
+ 	struct device *dev = acpi_desc->dev;
+ 	const char *cmd_name, *dimm_name;
+@@ -895,7 +895,7 @@ static u64 to_interleave_offset(u64 offset, struct nfit_blk_mmio *mmio)
+ 
+ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ {
+-	struct nfit_blk_mmio __iomem *mmio = &nfit_blk->mmio[DCR];
++	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+ 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
+ 
+ 	if (mmio->num_lines)
+@@ -908,7 +908,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 		resource_size_t dpa, unsigned int len, unsigned int write)
+ {
+ 	u64 cmd, offset;
+-	struct nfit_blk_mmio __iomem *mmio = &nfit_blk->mmio[DCR];
++	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+ 
+ 	enum {
+ 		BCW_OFFSET_MASK = (1ULL << 48)-1,
+@@ -959,9 +959,9 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
+ 		}
+ 
+ 		if (write)
+-			memcpy_fromio(mmio->base + offset, iobuf + copied, c);
++			memcpy(mmio->aperture + offset, iobuf + copied, c);
+ 		else
+-			memcpy_toio(iobuf + copied, mmio->base + offset, c);
++			memcpy(iobuf + copied, mmio->aperture + offset, c);
+ 
+ 		copied += c;
+ 		len -= c;
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index e462214f94cd..b882a22ee7bb 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -115,7 +115,10 @@ enum nd_blk_mmio_selector {
+ 
+ struct nfit_blk {
+ 	struct nfit_blk_mmio {
+-		void __iomem *base;
++		union {
++			void __iomem *base;
++			void *aperture;
++		};
+ 		u64 size;
+ 		u64 base_offset;
+ 		u32 line_size;
 -- 
 1.9.3
 
