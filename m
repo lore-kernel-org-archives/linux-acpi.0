@@ -1,118 +1,192 @@
-From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 6/6] nd_blk: add support for NVDIMM flags
-Date: Thu, 28 May 2015 16:35:53 -0600
-Message-ID: <1432852553-24865-7-git-send-email-ross.zwisler@linux.intel.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH 3/6] x86, pmem: add PMEM API for persistent memory
+Date: Thu, 28 May 2015 16:35:50 -0600
+Message-ID: <1432852553-24865-4-git-send-email-ross.zwisler@linux.intel.com>
 References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:41045 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755041AbbE1WgT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 May 2015 18:36:19 -0400
+In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
 
-Add support in the ND_BLK I/O path for the "latch" and "flush" flags
-defined in the "Get Block NVDIMM Flags" _DSM function:
+Add a new PMEM API to x86, and allow for architectures that do not
+implement this API.  Architectures that implement the PMEM API should
+define ARCH_HAS_PMEM_API in their kernel configuration and must provide
+implementations for persistent_copy(), persistent_flush() and
+persistent_sync().
 
-http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: linux-nvdimm@lists.01.org
 ---
- drivers/acpi/nfit.c        | 26 ++++++++++++++++++++++++--
- drivers/acpi/nfit.h        |  1 +
- include/uapi/linux/ndctl.h |  5 +++++
- 3 files changed, 30 insertions(+), 2 deletions(-)
+ MAINTAINERS                       |  1 +
+ arch/x86/Kconfig                  |  3 ++
+ arch/x86/include/asm/cacheflush.h | 23 ++++++++++++
+ include/linux/pmem.h              | 79 +++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 106 insertions(+)
+ create mode 100644 include/linux/pmem.h
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 6cca50d1c690..0da84e067643 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -951,7 +951,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 	/* mmio->base must be mapped uncacheable */
- 	writeq(cmd, mmio->base + offset);
- 	nfit_blk->psync(nfit_blk);
--	/* FIXME: conditionally perform read-back if mandated by firmware */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0448fec8e44a..ca1f3d99618d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5944,6 +5944,7 @@ L:	linux-nvdimm@lists.01.org
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ S:	Supported
+ F:	drivers/block/nd/pmem.c
++F:	include/linux/pmem.h
+ 
+ LINUX FOR IBM pSERIES (RS/6000)
+ M:	Paul Mackerras <paulus@au.ibm.com>
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 23c587938804..eb8f12e715af 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -215,6 +215,9 @@ config ARCH_HAS_CPU_RELAX
+ config ARCH_HAS_CACHE_LINE_SIZE
+ 	def_bool y
+ 
++config ARCH_HAS_PMEM_API
++	def_bool y
 +
-+	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
-+		readq(mmio->base + offset);
- }
+ config HAVE_SETUP_PER_CPU_AREA
+ 	def_bool y
  
- static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
-@@ -983,8 +985,12 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index 47c8e32f621a..ffd5ccdc86f0 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -4,6 +4,7 @@
+ /* Caches aren't brain-dead on the intel. */
+ #include <asm-generic/cacheflush.h>
+ #include <asm/special_insns.h>
++#include <asm/uaccess.h>
  
- 		if (write)
- 			persistent_copy(mmio->aperture + offset, iobuf + copied, c);
--		else
-+		else {
-+			if (nfit_blk->dimm_flags & ND_BLK_FLUSH_REQUIRED)
-+				persistent_flush(mmio->aperture + offset, c);
-+
- 			memcpy(iobuf + copied, mmio->aperture + offset, c);
-+		}
+ /*
+  * The set_memory_* API can be used to change various attributes of a virtual
+@@ -84,6 +85,28 @@ int set_pages_rw(struct page *page, int numpages);
  
- 		copied += c;
- 		len -= c;
-@@ -1146,6 +1152,20 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
- 	return 0;
- }
+ void clflush_cache_range(void *addr, unsigned int size);
  
-+static void nd_acpi_blk_get_flags(struct nd_bus_descriptor *nd_desc,
-+		struct nd_dimm *nd_dimm, struct nfit_blk *nfit_blk)
++static inline void arch_persistent_copy(void *dst, const void *src, size_t n)
 +{
-+	struct nd_cmd_dimm_flags flags;
-+	int rc;
-+
-+	memset(&flags, 0, sizeof(flags));
-+	rc = nd_desc->ndctl(nd_desc, nd_dimm, ND_CMD_DIMM_FLAGS, &flags,
-+			sizeof(flags));
-+
-+	if (rc >= 0 && !flags.status)
-+		nfit_blk->dimm_flags = flags.flags;
++	/*
++	 * We are copying between two kernel buffers, so it should be
++	 * impossible for us to hit this BUG_ON() because we should never need
++	 * to take a page fault.
++	 */
++	BUG_ON(__copy_from_user_inatomic_nocache(dst,
++				(__user const void *)src, n));
 +}
 +
- static int acpi_nfit_blk_region_enable(struct nd_bus *nd_bus, struct device *dev)
- {
- 	struct nd_bus_descriptor *nd_desc = to_nd_desc(nd_bus);
-@@ -1217,6 +1237,8 @@ static int acpi_nfit_blk_region_enable(struct nd_bus *nd_bus, struct device *dev
- 		return rc;
- 	}
- 
-+	nd_acpi_blk_get_flags(nd_desc, nd_dimm, nfit_blk);
++static inline void arch_persistent_flush(void *vaddr, size_t size)
++{
++	clflush_cache_range(vaddr, size);
++}
 +
- 	nfit_flush = nfit_mem->nfit_flush;
- 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
- 		struct acpi_nfit_flush_address *flush = nfit_flush->flush;
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 858719017bef..d22b04ac3d2c 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -139,6 +139,7 @@ struct nfit_blk {
- 	u64 bdw_offset; /* post interleave offset */
- 	u64 stat_offset;
- 	u64 cmd_offset;
-+	u32 dimm_flags;
- 	void __iomem *flush_hint;
- 	void (*psync)(struct nfit_blk *nfit_blk);
- };
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index e595751c613d..bb0fa1c611e0 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -30,6 +30,11 @@ struct nd_cmd_dimm_flags {
- 	__u32 flags;
- } __packed;
- 
-+enum {
-+	ND_BLK_FLUSH_REQUIRED = 1,
-+	ND_BLK_DCR_LATCH = 2,
-+};
++static inline void arch_persistent_sync(void)
++{
++	wmb();
++	pcommit_sfence();
++}
 +
- struct nd_cmd_get_config_size {
- 	__u32 status;
- 	__u32 config_size;
+ #ifdef CONFIG_DEBUG_RODATA
+ void mark_rodata_ro(void);
+ extern const int rodata_test_data;
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+new file mode 100644
+index 000000000000..88ade7376632
+--- /dev/null
++++ b/include/linux/pmem.h
+@@ -0,0 +1,79 @@
++/*
++ * Copyright(c) 2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#ifndef __PMEM_H__
++#define __PMEM_H__
++
++#include <asm/cacheflush.h>
++
++/*
++ * Architectures that define ARCH_HAS_PMEM_API must provide implementations
++ * for persistent_copy(), persistent_flush() and persistent_sync().
++ */
++
++#ifdef CONFIG_ARCH_HAS_PMEM_API
++/**
++ * persistent_copy - copy data to persistent memory
++ * @dst: destination buffer for the copy
++ * @src: source buffer for the copy
++ * @n: length of the copy in bytes
++ *
++ * Perform a memory copy that results in the destination of the copy being
++ * evicted from the processor cache hierarchy ("accepted to memory").  This
++ * can typically be accomplished with non-temporal stores or by regular stores
++ * followed by cache flush commands via persistent_flush().
++ */
++static inline void persistent_copy(void *dst, const void *src, size_t n)
++{
++	arch_persistent_copy(dst, src, n);
++}
++
++/**
++ * persistent_flush - flush a memory range from the processor cache
++ * @vaddr: virtual address to begin flushing
++ * @size: number of bytes to flush
++ *
++ * This call needs to include fencing so that the flushing will be ordered
++ * with respect to both reads and writes.
++ */
++static inline void persistent_flush(void *vaddr, size_t size)
++{
++	arch_persistent_flush(vaddr, size);
++}
++
++/**
++ * persistent_sync - synchronize writes to persistent memory
++ *
++ * To be used after a series of copies and/or flushes, this should perform any
++ * necessary fencing to order writes/flushes and then ensure that writes that
++ * have been "accepted to memory", i.e. previously flushed from the cache
++ * hierarchy, are actually written to the appropriate DIMMs.  This typically
++ * involves making sure they are flushed from any platform buffers not covered
++ * by the cache flushes performed by persistent_flush().
++ */
++static inline void persistent_sync(void)
++{
++	arch_persistent_sync();
++}
++
++#else /* ! CONFIG_ARCH_HAS_PMEM_API */
++
++static inline void persistent_copy(void *dst, const void *src, size_t n)
++{
++	memcpy(dst, src, n);
++}
++static inline void persistent_flush(void *vaddr, size_t size) {}
++static inline void persistent_sync(void) {}
++
++#endif /* CONFIG_ARCH_HAS_PMEM_API */
++
++#endif /* __PMEM_H__ */
 -- 
 1.9.3
+
