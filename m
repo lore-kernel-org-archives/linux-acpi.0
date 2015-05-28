@@ -1,97 +1,146 @@
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 2/6] nfit: Fix up address spaces, sparse warnings
-Date: Thu, 28 May 2015 16:35:49 -0600
-Message-ID: <1432852553-24865-3-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 4/6] pmem, nd_blk: update I/O paths to use PMEM API
+Date: Thu, 28 May 2015 16:35:51 -0600
+Message-ID: <1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
 References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4632 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:20172 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755021AbbE1WgT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 May 2015 18:36:19 -0400
+	id S1755066AbbE1WgU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 May 2015 18:36:20 -0400
 In-Reply-To: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Fix a couple of sparse warnings (duplicate const, incorrect address
-space), and go back to using memcpy() instead of memcpy_toio() and
-memcpy_fromio() when talking to our block apertures.  Instead, include a
-union to alias mmio->base and mmio->aperture so that we can continue to
-reuse common code for ioremapping and deinterleaving.  mmio->base still
-has the __iomem annotation and is used via readq() and writeq() for the
-control and status registers.  mmio->aperture is used via normal
-memcpy() for aperture I/O.
+Update the PMEM and ND_BLK I/O paths to use the new PMEM API and to
+adhere to the read/write flows outlined in the "NVDIMM Block Window
+Driver Writer's Guide":
+
+http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: linux-nvdimm@lists.01.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/nfit.c | 10 +++++-----
- drivers/acpi/nfit.h |  5 ++++-
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit.c     | 10 ++++++++--
+ drivers/block/nd/pmem.c | 15 +++++++++++----
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 34f879808ada..df14652ea13e 100644
+index df14652ea13e..22df61968c1c 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -60,7 +60,7 @@ static int acpi_nfit_ctl(struct nd_bus_descriptor *nd_desc,
- 		unsigned int buf_len)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
--	const struct nd_cmd_desc const *desc = NULL;
-+	const struct nd_cmd_desc *desc = NULL;
- 	union acpi_object in_obj, in_buf, *out_obj;
- 	struct device *dev = acpi_desc->dev;
- 	const char *cmd_name, *dimm_name;
-@@ -895,7 +895,7 @@ static u64 to_interleave_offset(u64 offset, struct nfit_blk_mmio *mmio)
+@@ -18,6 +18,7 @@
+ #include <linux/list.h>
+ #include <linux/acpi.h>
+ #include <linux/sort.h>
++#include <linux/pmem.h>
+ #include <linux/io.h>
+ #include "nfit.h"
  
- static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
- {
--	struct nfit_blk_mmio __iomem *mmio = &nfit_blk->mmio[DCR];
-+	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
- 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
- 
+@@ -926,7 +927,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
  	if (mmio->num_lines)
-@@ -908,7 +908,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 		resource_size_t dpa, unsigned int len, unsigned int write)
- {
- 	u64 cmd, offset;
--	struct nfit_blk_mmio __iomem *mmio = &nfit_blk->mmio[DCR];
-+	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+ 		offset = to_interleave_offset(offset, mmio);
  
- 	enum {
- 		BCW_OFFSET_MASK = (1ULL << 48)-1,
-@@ -959,9 +959,9 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
++	/* mmio->base must be mapped uncacheable */
+ 	writeq(cmd, mmio->base + offset);
++	persistent_sync();
+ 	/* FIXME: conditionally perform read-back if mandated by firmware */
+ }
+ 
+@@ -940,7 +943,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
+ 	int rc;
+ 
+ 	base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES + bw * mmio->size;
+-	/* TODO: non-temporal access, flush hints, cache management etc... */
+ 	write_blk_ctl(nfit_blk, bw, dpa, len, write);
+ 	while (len) {
+ 		unsigned int c;
+@@ -959,13 +961,17 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
  		}
  
  		if (write)
--			memcpy_fromio(mmio->base + offset, iobuf + copied, c);
-+			memcpy(mmio->aperture + offset, iobuf + copied, c);
+-			memcpy(mmio->aperture + offset, iobuf + copied, c);
++			persistent_copy(mmio->aperture + offset, iobuf + copied, c);
  		else
--			memcpy_toio(iobuf + copied, mmio->base + offset, c);
-+			memcpy(iobuf + copied, mmio->aperture + offset, c);
+ 			memcpy(iobuf + copied, mmio->aperture + offset, c);
  
  		copied += c;
  		len -= c;
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index e462214f94cd..b882a22ee7bb 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -115,7 +115,10 @@ enum nd_blk_mmio_selector {
+ 	}
++
++	if (write)
++		persistent_sync();
++
+ 	rc = read_blk_stat(nfit_blk, bw) ? -EIO : 0;
+ 	return rc;
+ }
+diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
+index a8712e41e7f5..1a447c351aef 100644
+--- a/drivers/block/nd/pmem.c
++++ b/drivers/block/nd/pmem.c
+@@ -15,15 +15,16 @@
+  * more details.
+  */
  
- struct nfit_blk {
- 	struct nfit_blk_mmio {
--		void __iomem *base;
-+		union {
-+			void __iomem *base;
-+			void *aperture;
-+		};
- 		u64 size;
- 		u64 base_offset;
- 		u32 line_size;
+-#include <asm/cacheflush.h>
+ #include <linux/blkdev.h>
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
++#include <linux/pmem.h>
+ #include <linux/slab.h>
+ #include <linux/nd.h>
++#include <asm/cacheflush.h>
+ #include "nd.h"
+ 
+ struct pmem_device {
+@@ -51,7 +52,7 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 		flush_dcache_page(page);
+ 	} else {
+ 		flush_dcache_page(page);
+-		memcpy(pmem->virt_addr + pmem_off, mem + off, len);
++		persistent_copy(pmem->virt_addr + pmem_off, mem + off, len);
+ 	}
+ 
+ 	kunmap_atomic(mem);
+@@ -82,6 +83,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ 		sector += bvec.bv_len >> 9;
+ 	}
+ 
++	if (rw & WRITE)
++		persistent_sync();
+ out:
+ 	bio_endio(bio, err);
+ }
+@@ -92,6 +95,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 
+ 	pmem_do_bvec(pmem, page, PAGE_CACHE_SIZE, 0, rw, sector);
++	if (rw & WRITE)
++		persistent_sync();
+ 	page_endio(page, rw & WRITE, 0);
+ 
+ 	return 0;
+@@ -111,8 +116,10 @@ static int pmem_rw_bytes(struct nd_io *ndio, void *buf, size_t offset,
+ 
+ 	if (rw == READ)
+ 		memcpy(buf, pmem->virt_addr + offset, n);
+-	else
+-		memcpy(pmem->virt_addr + offset, buf, n);
++	else {
++		persistent_copy(pmem->virt_addr + offset, buf, n);
++		persistent_sync();
++	}
+ 
+ 	return 0;
+ }
 -- 
 1.9.3
 
