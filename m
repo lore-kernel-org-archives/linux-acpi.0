@@ -1,94 +1,106 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: [GIT PULL v4 00/21] libnd: non-volatile memory device support
-Date: Thu, 28 May 2015 02:42:32 +0200
-Message-ID: <CAJZ5v0hHgJe92kMLj+CKdFDN9jo4RYYEj4bTrYwo-c9P6CZWfg@mail.gmail.com>
+Date: Wed, 27 May 2015 17:55:57 -0700
+Message-ID: <CAPcyv4j7LmWMMo-hSg58xKYVOBTKcavSPXkL+srH4bstXDosdQ@mail.gmail.com>
 References: <20150527210155.17965.74864.stgit@dwillia2-desk3.amr.corp.intel.com>
 	<CAJZ5v0h2RpkFRHbGxGRbVXCeySkSZLm71YG16ToiaXg_XgacDQ@mail.gmail.com>
 	<CAPcyv4h9TWe0dNwiZ8PWvQAoJsHTih0dhdM7D+pMyjDVrixPsw@mail.gmail.com>
 	<CAJZ5v0jxLTX3U7L_KSHCKW0GTeWfDS7ZaJP=wK96y3_Cio976A@mail.gmail.com>
 	<CAPcyv4gJmd0dhh-v+Z45ADGg7DErvb4c78XqFJBEon6GyCNT=A@mail.gmail.com>
+	<CAJZ5v0hHgJe92kMLj+CKdFDN9jo4RYYEj4bTrYwo-c9P6CZWfg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:33769 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922AbbE1Ame (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2015 20:42:34 -0400
-In-Reply-To: <CAPcyv4gJmd0dhh-v+Z45ADGg7DErvb4c78XqFJBEon6GyCNT=A@mail.gmail.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34756 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751712AbbE1Az6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 May 2015 20:55:58 -0400
+Received: by wicmc15 with SMTP id mc15so109093210wic.1
+        for <linux-acpi@vger.kernel.org>; Wed, 27 May 2015 17:55:57 -0700 (PDT)
+In-Reply-To: <CAJZ5v0hHgJe92kMLj+CKdFDN9jo4RYYEj4bTrYwo-c9P6CZWfg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@l>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Boaz Harrosh <boaz@plexistor.com>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Christoph Hellwig <hch@lst.de>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux
 
-On Thu, May 28, 2015 at 2:34 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Wed, May 27, 2015 at 4:17 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Thu, May 28, 2015 at 12:52 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->>> On Wed, May 27, 2015 at 3:36 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>>> Hi,
-
-[...]
-
->>>>>     2/ Update to latest NFIT UUID definitions (Toshi).  This
->>>>>        merges cleanly with, and is identical to the include/acpi/
->>>>>        NFIT enabling in Rafael's linux-pm.git/bleeding-edge branch.
+On Wed, May 27, 2015 at 5:42 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Thu, May 28, 2015 at 2:34 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> On Wed, May 27, 2015 at 4:17 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>> On Thu, May 28, 2015 at 12:52 AM, Dan Williams <dan.j.williams@intel.com> wrote:
+>>>> On Wed, May 27, 2015 at 3:36 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>>>> Hi,
+>
+> [...]
+>
+>>>>>>     2/ Update to latest NFIT UUID definitions (Toshi).  This
+>>>>>>        merges cleanly with, and is identical to the include/acpi/
+>>>>>>        NFIT enabling in Rafael's linux-pm.git/bleeding-edge branch.
+>>>>>
+>>>>> Well, I didn't expect you to send a pull request for this right away
+>>>>> to be honest.
 >>>>
->>>> Well, I didn't expect you to send a pull request for this right away
->>>> to be honest.
+>>>> No worries, we can address these concerns now...
+>>>>
+>>>>> Can you please pull from my acpica branch and rebase your patches on
+>>>>> top of that by any chance?
+>>>>
+>>>> I noticed that bleeding-edge rebased from the last time I checked is
+>>>> that branch stable enough to use as a baseline?
 >>>
->>> No worries, we can address these concerns now...
+>>> There is a separate acpica branch (called "acpica") that's not going
+>>> to be rebased.  Please use that one.
 >>>
->>>> Can you please pull from my acpica branch and rebase your patches on
->>>> top of that by any chance?
+>>>>> And no, the "merges cleanly" part isn't sufficient as it'll create a
+>>>>> mess of a history if merged together like that.  Can we do that
+>>>>> properly instead?
+>>>>
+>>>> If I merge 'bleeding-edge' on top of v4.1-rc5 followed by this branch
+>>>> and do a "git log include/acpi/acuuid.h" then the full history from
+>>>> the 'bleeding-edge' branch shows up.
+>>>>
+>>>> I'm fine with doing the rebase, but I don't quite see the mess to
+>>>> which you are referring.  Especially compared to the thrash of moving
+>>>> our test baseline.
 >>>
->>> I noticed that bleeding-edge rebased from the last time I checked is
->>> that branch stable enough to use as a baseline?
+>>> People will not be running your test baseline, mind you.  They will be
+>>> running the product of merging that with other stuff and for example
+>>> the same change showing as two different commits in the history is not
+>>> a particularly clean thing.
 >>
->> There is a separate acpica branch (called "acpica") that's not going
->> to be rebased.  Please use that one.
+>> That's what -rc kernels are for, to test your development baseline
+>> against everything that came in during the merge window, i.e. when you
+>> know you have a solid development baseline to reference.  Linus
+>> reprimands late rebasing for good reason.
 >>
->>>> And no, the "merges cleanly" part isn't sufficient as it'll create a
->>>> mess of a history if merged together like that.  Can we do that
->>>> properly instead?
->>>
->>> If I merge 'bleeding-edge' on top of v4.1-rc5 followed by this branch
->>> and do a "git log include/acpi/acuuid.h" then the full history from
->>> the 'bleeding-edge' branch shows up.
->>>
->>> I'm fine with doing the rebase, but I don't quite see the mess to
->>> which you are referring.  Especially compared to the thrash of moving
->>> our test baseline.
->>
->> People will not be running your test baseline, mind you.  They will be
->> running the product of merging that with other stuff and for example
->> the same change showing as two different commits in the history is not
->> a particularly clean thing.
+>> Really, we're going to rebase 13,000 lines of new functionality and 20
+>> patches to prevent recording some extra history around 200+ lines of
+>> header definitions?  The history for those 200 lines being
+>> autogenerated from another repo.  I struggle to resolve the risk
+>> benefit tradeoff of going this route... are you sure this is a hard
+>> gate for moving forward with this patch set?
 >
-> That's what -rc kernels are for, to test your development baseline
-> against everything that came in during the merge window, i.e. when you
-> know you have a solid development baseline to reference.  Linus
-> reprimands late rebasing for good reason.
+> And how much time is it going to take to rebase it, actually?
 >
-> Really, we're going to rebase 13,000 lines of new functionality and 20
-> patches to prevent recording some extra history around 200+ lines of
-> header definitions?  The history for those 200 lines being
-> autogenerated from another repo.  I struggle to resolve the risk
-> benefit tradeoff of going this route... are you sure this is a hard
-> gate for moving forward with this patch set?
+> If all is so clean as you're suggesting, a "git rebase" should be
+> sufficient for that really.  Is it not the case?
 
-And how much time is it going to take to rebase it, actually?
+Of course the rebase is trivial, it's the testing that has gone into
+the baseline being forfeited for no good reason that I take issue.
 
-If all is so clean as you're suggesting, a "git rebase" should be
-sufficient for that really.  Is it not the case?
+> I do believe that having a clean history in the repository is
+> important, especially for big new and complicated features like this
+> one.
 
-I do believe that having a clean history in the repository is
-important, especially for big new and complicated features like this
-one.
+Sure, in the general case, but this is one extra commit for
+autogenerated acpica history.
 
-For the same reason I don't believe that rushing such features in no
-matter what is the right approach.
+> For the same reason I don't believe that rushing such features in no
+> matter what is the right approach.
+>
+> If Jens decides to pull it regardless, it's his call, but I wouldn't
+> do that if I were him.
 
-If Jens decides to pull it regardless, it's his call, but I wouldn't
-do that if I were him.
-
-Thanks,
-Rafael
+I'm not going to push code around your objection.  I understand and
+agree with the general policy, but in this specific case I believe an
+exception is warranted.  If you still don't ack the approach I'll
+proceed with the rebase.
