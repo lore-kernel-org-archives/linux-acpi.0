@@ -1,49 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/2] ACPI / PCI: Fix _PRT lookup for ARI enabled devices
-Date: Sat, 30 May 2015 01:53:30 +0200
-Message-ID: <3075635.JhZ4D0jF4G@vostro.rjw.lan>
-References: <20150526210927.7537.55656.stgit@gimli.home> <20150529221848.GD12733@google.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] PCI / ACPI fix for 4.1-rc6
+Date: Sat, 30 May 2015 01:39:19 +0200
+Message-ID: <CAJZ5v0i5Z5rn49Qk33Ygnriu_UWeeoeMxe01UGbX86ov+8H8YQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52160 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753944AbbE2X16 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 19:27:58 -0400
-In-Reply-To: <20150529221848.GD12733@google.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:37632 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753912AbbE2XjU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 19:39:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, ddutile@redhat.com, linux-kernel@vger.kernel.org, lenb@kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, May 29, 2015 05:18:48 PM Bjorn Helgaas wrote:
-> On Tue, May 26, 2015 at 03:11:38PM -0600, Alex Williamson wrote:
-> > v2: don't modify entry->id.device
-> > 
-> > In most cases we only use ARI with SR-IOV VFs, which do not support
-> > INTx and therefore never hit this problem.  However, some non-SR-IOV
-> > implementations create multiple PFs, extending beyond the standard
-> > 3-bit function numbers with ARI, and do support INTx for those
-> > additional functions.  This can happen with Solarflare SFC9120
-> > adapters.  The host driver typically doesn't use INTx, so we also
-> > haven't noticed this problem on bare metal, but when we attempt to
-> > assign the device to a VM using vfio-pci, we fail trying to setup
-> > default INTx signaling.  Thanks,
-> > 
-> > Alex
-> > 
-> > ---
-> > 
-> > Alex Williamson (2):
-> >       PCI: Move pci_ari_enabled() to global header
-> >       ACPI / PCI: Account for ARI in _PRT lookups
-> 
-> Rafael, do you want this or should I take it?
-> 
-> I put it on my pci/virtualization branch for v4.2.
+Hi Linus,
 
-That's fine.  Please feel free to add my ACKs to those if that helps.
+Please pull from
 
-Rafael
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-pci-4.1-rc6
 
+to receive a fix for the ACPI PCI host bridge initialization code
+as commit dc4fdaf0e4839109169d8261814813816951c75f
+
+ PCI / ACPI: Do not set ACPI companions for host bridges with parents
+
+on top of commit ba155e2d21f6bf05de86a78dbe5bfd8757604a65
+
+ Linux 4.1-rc5
+
+This fixes a bug uncovered by a recent driver core change that
+modified the implementation of the ACPI_COMPANION_SET() macro to
+strictly rely on its second argument to be either NULL or a valid
+pointer to struct acpi_device.
+
+As it turns out, pcibios_root_bridge_prepare() on x86 and ia64
+works with the assumption that the only code path calling
+pci_create_root_bus() is pci_acpi_scan_root() and therefore
+the sysdata argument passed to it will always match the
+expectations of pcibios_root_bridge_prepare().  That need not
+be the case, however, and in particular it is not the case for
+the Xen pcifront driver that passes a pointer to its own private
+data strcture as sysdata to pci_scan_bus_parented() which then
+passes it to pci_create_root_bus() and it ends up being used
+incorrectly by pcibios_root_bridge_prepare().
+
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (1):
+      PCI / ACPI: Do not set ACPI companions for host bridges with parents
+
+---------------
+
+ arch/ia64/pci/pci.c | 13 ++++++++++---
+ arch/x86/pci/acpi.c | 13 ++++++++++---
+ 2 files changed, 20 insertions(+), 6 deletions(-)
