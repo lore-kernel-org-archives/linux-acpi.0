@@ -1,60 +1,90 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [RFC][PATCH] x86: remove vmalloc.h from asm/io.h
-Date: Sat, 30 May 2015 01:28:03 +1000
-Message-ID: <20150530012803.46ba702e@canb.auug.org.au>
-References: <20150529191847.2d4cb3a7@canb.auug.org.au>
-	<s5h8uc75zbx.wl-tiwai@suse.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Add MADT generic distributor version values for
+ ACPI 6.0
+Date: Fri, 29 May 2015 15:45:31 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F08B1@ORSMSX112.amr.corp.intel.com>
+References: <1432885567-5924-1-git-send-email-hanjun.guo@linaro.org>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F07D1@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/rERSifRt57LCh9w/H0guhpe"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:50042 "EHLO ozlabs.org"
+Received: from mga11.intel.com ([192.55.52.93]:35973 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755351AbbE2P2M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 May 2015 11:28:12 -0400
-In-Reply-To: <s5h8uc75zbx.wl-tiwai@suse.de>
+	id S1756317AbbE2Ppe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 11:45:34 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F07D1@ORSMSX112.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vinod Koul <vinod.koul@intel.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Hiral Patel <hiralpat@cisco.com>, Suma Ramars <sramars@cisco.com>, Brian Uchino <buchino@cisco.com>, "James E.J. Bottomley" <JBottomley@odin.com>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@lin>
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>, "devel@acpica.org" <devel@acpica.org>
 
---Sig_/rERSifRt57LCh9w/H0guhpe
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Actually, that is fine the way it is. I'll integrate it today.
 
-Hi Takashi,
 
-On Fri, 29 May 2015 14:43:14 +0200 Takashi Iwai <tiwai@suse.de> wrote:
->
-> For the sound bits,
->   Acked-by: Takashi Iwai <tiwai@suse.de>
-
-Thanks, noted.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Sig_/rERSifRt57LCh9w/H0guhpe
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVaIWIAAoJEMDTa8Ir7ZwVIEoP/1t+zkWzh2piTjp5sJfGDbtx
-KiJXilqI9SfJX8d1uI05Ht5DBdlua71z4IMQ9pX5kJWwFoxpu7VimJOdirOpUiJ8
-dDmAS6PoqgiQtaCXIS85TjGYYJmzdlMOaskrlXeouMKGIp2YoR8cBwdI/gw1tpjB
-e3s4sVRyvp2WAFG87rMUW6u93C4jHRUVNUESqf5j5RvRWE54HDEIMcFDBT2hxI9j
-GjAYIQWWkNksDTH2cGihE6nlFaV0ki9yzLe9QK6tbrGz4gR6XRj1jnoHozaCxAJY
-bR5gkizW5NJpATBAy8ASAGWY04jMePYGYlAkdkrHtfIeyVCGN1i0SXynKb5laht6
-ZZznv2HpbQZZeypYThULDY/UpRblzK1WueZ7mtAQRanvNb0L/WVjHTUE3fLMxJKs
-dDYBLU3OiFMdGnoZnuvc06693WqvZ2Lo4JtQt9XsxQmdf8lkM5yTsxhzWV6Lvjwr
-i1L3Sfr4FikKETHHfXyGVc7p6TrhAZthJQPFeb9HLBWvTTWqeH5SIWBZtyxXrDwE
-38ukU7/qSmHZfVHneqI0OUSnnwpRCfmefi1kCi4SVfeVSDJJCZ3iwBVAZ84d0JUD
-iPhOm4Z0Q87wTTjt5SLjbmB8uY3bzUw+gnKR6mxQiaQf8G7tNIwuEzip+e4SEUY7
-qOMUZeW9GN2bybzYo8AB
-=ai0Y
------END PGP SIGNATURE-----
-
---Sig_/rERSifRt57LCh9w/H0guhpe--
+> -----Original Message-----
+> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Moore, Robert
+> Sent: Friday, May 29, 2015 5:55 AM
+> To: Hanjun Guo; Zheng, Lv
+> Cc: linux-acpi@vger.kernel.org; Rafael J. Wysocki; Al Stone;
+> devel@acpica.org
+> Subject: Re: [Devel] [PATCH] ACPICA: Add MADT generic distributor version
+> values for ACPI 6.0
+> 
+> Usually, we ACPICA just #defines the individual values so that it is very
+> easy to see the values at a glance. We only enum internal things.
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
+> > Sent: Friday, May 29, 2015 12:46 AM
+> > To: Zheng, Lv
+> > Cc: Moore, Robert; Rafael J. Wysocki; Al Stone; devel@acpica.org;
+> > linux- acpi@vger.kernel.org; Hanjun Guo
+> > Subject: [PATCH] ACPICA: Add MADT generic distributor version values
+> > for ACPI 6.0
+> >
+> > ACPI 6.0 specified MADT generic distributor version values, but the
+> > detail definition is missing in ACPICA version 20150515, add its
+> > support in this patch.
+> >
+> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> > ---
+> >
+> > This is the linux version of GIC version patch, please help to handle
+> > it, thanks!
+> >
+> >  include/acpi/actbl1.h | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> >
+> > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
+> > 06b61f0..a53530d1 100644
+> > --- a/include/acpi/actbl1.h
+> > +++ b/include/acpi/actbl1.h
+> > @@ -835,6 +835,17 @@ struct acpi_madt_generic_distributor {
+> >  	u8 reserved2[3];	/* reserved - must be zero */
+> >  };
+> >
+> > +/* Values for version in Generic Distributor  (ACPI 6.0) */
+> > +
+> > +enum acpi_madt_gic_version_type {
+> > +	ACPI_MADT_GIC_VER_UNKNOWN	= 0,
+> > +	ACPI_MADT_GIC_VER_V1		= 1,
+> > +	ACPI_MADT_GIC_VER_V2		= 2,
+> > +	ACPI_MADT_GIC_VER_V3		= 3,
+> > +	ACPI_MADT_GIC_VER_V4		= 4,
+> > +	ACPI_MADT_GIC_VER_RESERVED	= 5	/* 5 and greater are reserved */
+> > +};
+> > +
+> >  /* 13: Generic MSI Frame (ACPI 5.1) */
+> >
+> >  struct acpi_madt_generic_msi_frame {
+> > --
+> > 1.9.1
+> 
+> _______________________________________________
+> Devel mailing list
+> Devel@acpica.org
+> https://lists.acpica.org/mailman/listinfo/devel
