@@ -1,156 +1,60 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 4/6] pmem, nd_blk: update I/O paths to use PMEM API
-Date: Fri, 29 May 2015 07:11:16 -0700
-Message-ID: <CAPcyv4g+hX2NCdH6HdjUBVP-k8_qPe5Z1FRJsp=ciz3NPsySnQ@mail.gmail.com>
-References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-	<1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [RFC][PATCH] x86: remove vmalloc.h from asm/io.h
+Date: Sat, 30 May 2015 01:28:03 +1000
+Message-ID: <20150530012803.46ba702e@canb.auug.org.au>
+References: <20150529191847.2d4cb3a7@canb.auug.org.au>
+	<s5h8uc75zbx.wl-tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/rERSifRt57LCh9w/H0guhpe"; protocol="application/pgp-signature"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:33577 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097AbbE2OLR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 10:11:17 -0400
-Received: by wgez8 with SMTP id z8so63816648wge.0
-        for <linux-acpi@vger.kernel.org>; Fri, 29 May 2015 07:11:16 -0700 (PDT)
-In-Reply-To: <1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
+Received: from ozlabs.org ([103.22.144.67]:50042 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755351AbbE2P2M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 May 2015 11:28:12 -0400
+In-Reply-To: <s5h8uc75zbx.wl-tiwai@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vinod Koul <vinod.koul@intel.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Hiral Patel <hiralpat@cisco.com>, Suma Ramars <sramars@cisco.com>, Brian Uchino <buchino@cisco.com>, "James E.J. Bottomley" <JBottomley@odin.com>, Jaroslav Kysela <perex@perex.cz>, Andrew Morton <akpm@lin>
 
-On Thu, May 28, 2015 at 3:35 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> Update the PMEM and ND_BLK I/O paths to use the new PMEM API and to
-> adhere to the read/write flows outlined in the "NVDIMM Block Window
-> Driver Writer's Guide":
->
-> http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
->
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: linux-nvdimm@lists.01.org
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: linux-acpi@vger.kernel.org
-> ---
->  drivers/acpi/nfit.c     | 10 ++++++++--
->  drivers/block/nd/pmem.c | 15 +++++++++++----
->  2 files changed, 19 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index df14652ea13e..22df61968c1c 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -18,6 +18,7 @@
->  #include <linux/list.h>
->  #include <linux/acpi.h>
->  #include <linux/sort.h>
-> +#include <linux/pmem.h>
->  #include <linux/io.h>
->  #include "nfit.h"
->
-> @@ -926,7 +927,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
->         if (mmio->num_lines)
->                 offset = to_interleave_offset(offset, mmio);
->
-> +       /* mmio->base must be mapped uncacheable */
->         writeq(cmd, mmio->base + offset);
-> +       persistent_sync();
->         /* FIXME: conditionally perform read-back if mandated by firmware */
->  }
->
-> @@ -940,7 +943,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
->         int rc;
->
->         base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES + bw * mmio->size;
-> -       /* TODO: non-temporal access, flush hints, cache management etc... */
->         write_blk_ctl(nfit_blk, bw, dpa, len, write);
->         while (len) {
->                 unsigned int c;
-> @@ -959,13 +961,17 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
->                 }
->
->                 if (write)
-> -                       memcpy(mmio->aperture + offset, iobuf + copied, c);
-> +                       persistent_copy(mmio->aperture + offset, iobuf + copied, c);
->                 else
->                         memcpy(iobuf + copied, mmio->aperture + offset, c);
->
->                 copied += c;
->                 len -= c;
->         }
-> +
-> +       if (write)
-> +               persistent_sync();
-> +
->         rc = read_blk_stat(nfit_blk, bw) ? -EIO : 0;
->         return rc;
->  }
-> diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
-> index a8712e41e7f5..1a447c351aef 100644
-> --- a/drivers/block/nd/pmem.c
-> +++ b/drivers/block/nd/pmem.c
-> @@ -15,15 +15,16 @@
->   * more details.
->   */
->
-> -#include <asm/cacheflush.h>
->  #include <linux/blkdev.h>
->  #include <linux/hdreg.h>
->  #include <linux/init.h>
->  #include <linux/platform_device.h>
->  #include <linux/module.h>
->  #include <linux/moduleparam.h>
-> +#include <linux/pmem.h>
->  #include <linux/slab.h>
->  #include <linux/nd.h>
-> +#include <asm/cacheflush.h>
->  #include "nd.h"
->
->  struct pmem_device {
-> @@ -51,7 +52,7 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
->                 flush_dcache_page(page);
->         } else {
->                 flush_dcache_page(page);
-> -               memcpy(pmem->virt_addr + pmem_off, mem + off, len);
-> +               persistent_copy(pmem->virt_addr + pmem_off, mem + off, len);
->         }
->
->         kunmap_atomic(mem);
-> @@ -82,6 +83,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
->                 sector += bvec.bv_len >> 9;
->         }
->
-> +       if (rw & WRITE)
-> +               persistent_sync();
->  out:
->         bio_endio(bio, err);
->  }
-> @@ -92,6 +95,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
->         struct pmem_device *pmem = bdev->bd_disk->private_data;
->
->         pmem_do_bvec(pmem, page, PAGE_CACHE_SIZE, 0, rw, sector);
-> +       if (rw & WRITE)
-> +               persistent_sync();
->         page_endio(page, rw & WRITE, 0);
->
->         return 0;
-> @@ -111,8 +116,10 @@ static int pmem_rw_bytes(struct nd_io *ndio, void *buf, size_t offset,
->
->         if (rw == READ)
->                 memcpy(buf, pmem->virt_addr + offset, n);
-> -       else
-> -               memcpy(pmem->virt_addr + offset, buf, n);
-> +       else {
-> +               persistent_copy(pmem->virt_addr + offset, buf, n);
-> +               persistent_sync();
-> +       }
->
+--Sig_/rERSifRt57LCh9w/H0guhpe
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-It bothers me that persistent_sync() is a lie for almost every system
-on the planet.  Even though uncached mappings are not sufficient for
-guaranteeing persistence the potential damage is minimized.   To me it
-seems the driver should have separate I/O paths for the persistent and
-non-persistent case determined and notified at init time.  I.e.
-arrange to never call persistent_sync() when it is known to be a nop
-and tell the user "btw, your data is at risk".
+Hi Takashi,
+
+On Fri, 29 May 2015 14:43:14 +0200 Takashi Iwai <tiwai@suse.de> wrote:
+>
+> For the sound bits,
+>   Acked-by: Takashi Iwai <tiwai@suse.de>
+
+Thanks, noted.
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Sig_/rERSifRt57LCh9w/H0guhpe
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJVaIWIAAoJEMDTa8Ir7ZwVIEoP/1t+zkWzh2piTjp5sJfGDbtx
+KiJXilqI9SfJX8d1uI05Ht5DBdlua71z4IMQ9pX5kJWwFoxpu7VimJOdirOpUiJ8
+dDmAS6PoqgiQtaCXIS85TjGYYJmzdlMOaskrlXeouMKGIp2YoR8cBwdI/gw1tpjB
+e3s4sVRyvp2WAFG87rMUW6u93C4jHRUVNUESqf5j5RvRWE54HDEIMcFDBT2hxI9j
+GjAYIQWWkNksDTH2cGihE6nlFaV0ki9yzLe9QK6tbrGz4gR6XRj1jnoHozaCxAJY
+bR5gkizW5NJpATBAy8ASAGWY04jMePYGYlAkdkrHtfIeyVCGN1i0SXynKb5laht6
+ZZznv2HpbQZZeypYThULDY/UpRblzK1WueZ7mtAQRanvNb0L/WVjHTUE3fLMxJKs
+dDYBLU3OiFMdGnoZnuvc06693WqvZ2Lo4JtQt9XsxQmdf8lkM5yTsxhzWV6Lvjwr
+i1L3Sfr4FikKETHHfXyGVc7p6TrhAZthJQPFeb9HLBWvTTWqeH5SIWBZtyxXrDwE
+38ukU7/qSmHZfVHneqI0OUSnnwpRCfmefi1kCi4SVfeVSDJJCZ3iwBVAZ84d0JUD
+iPhOm4Z0Q87wTTjt5SLjbmB8uY3bzUw+gnKR6mxQiaQf8G7tNIwuEzip+e4SEUY7
+qOMUZeW9GN2bybzYo8AB
+=ai0Y
+-----END PGP SIGNATURE-----
+
+--Sig_/rERSifRt57LCh9w/H0guhpe--
