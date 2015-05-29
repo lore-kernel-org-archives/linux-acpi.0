@@ -1,90 +1,139 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Add MADT generic distributor version values for
- ACPI 6.0
-Date: Fri, 29 May 2015 15:45:31 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F08B1@ORSMSX112.amr.corp.intel.com>
-References: <1432885567-5924-1-git-send-email-hanjun.guo@linaro.org>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F07D1@ORSMSX112.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/6] x86, pmem: add PMEM API for persistent memory
+Date: Fri, 29 May 2015 08:48:01 -0700
+Message-ID: <CAPcyv4ibjpHF_2mGoBnELajHR_1m8QqPiD1_k8Znmjsv2oF==g@mail.gmail.com>
+References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
+	<1432852553-24865-4-git-send-email-ross.zwisler@linux.intel.com>
+	<5567A2C4.3040407@zytor.com>
+	<1432901277.4282.22.camel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:35973 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756317AbbE2Ppe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 11:45:34 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F07D1@ORSMSX112.amr.corp.intel.com>
-Content-Language: en-US
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:35481 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751995AbbE2PsD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 11:48:03 -0400
+Received: by wgme6 with SMTP id e6so66213174wgm.2
+        for <linux-acpi@vger.kernel.org>; Fri, 29 May 2015 08:48:02 -0700 (PDT)
+In-Reply-To: <1432901277.4282.22.camel@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>, "devel@acpica.org" <devel@acpica.org>
+To: Ross Zwisler <zwisler@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-nvdimm <linux-nvdimm@ml01.01.org>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 
-Actually, that is fine the way it is. I'll integrate it today.
+On Fri, May 29, 2015 at 5:07 AM, Ross Zwisler <zwisler@gmail.com> wrote:
+> On Thu, 2015-05-28 at 16:20 -0700, H. Peter Anvin wrote:
+>> On 05/28/2015 03:35 PM, Ross Zwisler wrote:
+>> > Add a new PMEM API to x86, and allow for architectures that do not
+>> > implement this API.  Architectures that implement the PMEM API
+>> > should
+>> > define ARCH_HAS_PMEM_API in their kernel configuration and must
+>> > provide
+>> > implementations for persistent_copy(), persistent_flush() and
+>> > persistent_sync().
+>>
+>> >
+>> >  void clflush_cache_range(void *addr, unsigned int size);
+>> >
+>>
+>> No, no, no, no, no.  Include the proper header file.
+>
+> I'm confused - I did inlcude <asm/cacheflush.h> in pmem.h?  The line
+> you're quoting above was an unmodified line from asm/cacheflush.h - I
+> didn't redefine the prototype for clflush_cache_range() anywhere.
+>
+> Or does this comment mean that you think we shouldn't have an
+> architecture agnostic PMEM API, and that you think the PMEM and ND_BLK
+> drivers should just directly include asm/cacheflush.h and use the x86
+> APIs directly?
+>
+>> > +static inline void arch_persistent_flush(void *vaddr, size_t size)
+>> > +{
+>> > +   clflush_cache_range(vaddr, size);
+>> > +}
+>>
+>> Shouldn't this really be using clwb() -- we really need a
+>> clwb_cache_range() I guess?
+>
+> I think we will need a clwb_cache_range() for DAX, for when it responds
+> to a msync() or fsync() call and needs to rip through a bunch of
+> memory, writing it back to the DIMMs.  I just didn't add it yet because
+> I didn't have a consumer.
+>
+> It turns out that for the block aperture I/O case we really do need a
+> flush instead of a writeback, though, so clflush_cache_range() is
+> perfect.  Here's the flow, which is a read from a block window
+> aperture:
+>
+> 1) The nd_blk driver gets a read request, and selects a block window to
+> use.  It's entirely possible that this block window's aperture has
+> clean cache lines associated with it in the processor cache hierarchy.
+>  It shouldn't be possible that it has dirty cache lines - we either
+> just did a read, or we did a write and would have used NT stores.
+>
+> 2) Write a new address into the block window control register.  The
+> memory backing the aperture moves to the new address.  Any clean lines
+> held in the processor cache are now out of sync.
+>
+> 3) Flush the cache lines associated with the aperture.  The lines are
+> guaranteed to be clean, so the flush will just discard them and no
+> writebacks will occur.
+>
+> 4) Read the contents of the block aperture, servicing the read.
+>
+> This is the read flow outlined it the "driver writer's guide":
+>
+> http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
+>
+>> Incidentally, clflush_cache_range() seems to have the same flaw as
+>> the
+>> proposed use case for clwb() had... if the buffer is aligned it will
+>> needlessly flush the last line twice.  It should really look
+>> something
+>> like this (which would be a good standalone patch):
+>>
+>> void clflush_cache_range(void *vaddr, unsigned int size)
+>> {
+>>         void *vend = vaddr + size - 1;
+>>
+>>         mb();
+>>
+>>       vaddr = (void *)
+>>               ((unsigned long)vaddr
+>>                & ~(boot_cpu_data.x86_clflush_size - 1));
+>>
+>>         for (; vaddr < vend; vaddr += boot_cpu_data.x86_clflush_size)
+>>                 clflushopt(vaddr);
+>>
+>>         mb();
+>> }
+>> EXPORT_SYMBOL_GPL(clflush_cache_range);
+>
+> Ah, yep, I saw the same thing and already submitted patches to fix.  I
+> think this change should be in the TIP tree:
+>
+> https://lkml.org/lkml/2015/5/11/336
+>
+>
+>> I also note that with your implementation we have a wmb() in
+>> arch_persistent_sync() and an mb() in arch_persistent_flush()...
+>> surely one is redundant?
+>
+> Actually, the way that we need to use arch_persistent_flush() for our
+> block window read case, the fencing works out so that nothing is
+> redundant.  We never actually use both a persistent_sync() call and a
+> persistent_flush() call during the same I/O.  Reads use
+> persistent_flush() to invalidate obsolete lines in the cache before
+> reading real data from the aperture of ete DIMM, and writes use a bunch
+> of NT stores followed by a persistent_sync().
+>
+> The PMEM driver doesn't use persistent_flush() at all - this API is
+> only needed for the block window read case.
 
-
-> -----Original Message-----
-> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Moore, Robert
-> Sent: Friday, May 29, 2015 5:55 AM
-> To: Hanjun Guo; Zheng, Lv
-> Cc: linux-acpi@vger.kernel.org; Rafael J. Wysocki; Al Stone;
-> devel@acpica.org
-> Subject: Re: [Devel] [PATCH] ACPICA: Add MADT generic distributor version
-> values for ACPI 6.0
-> 
-> Usually, we ACPICA just #defines the individual values so that it is very
-> easy to see the values at a glance. We only enum internal things.
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> > Sent: Friday, May 29, 2015 12:46 AM
-> > To: Zheng, Lv
-> > Cc: Moore, Robert; Rafael J. Wysocki; Al Stone; devel@acpica.org;
-> > linux- acpi@vger.kernel.org; Hanjun Guo
-> > Subject: [PATCH] ACPICA: Add MADT generic distributor version values
-> > for ACPI 6.0
-> >
-> > ACPI 6.0 specified MADT generic distributor version values, but the
-> > detail definition is missing in ACPICA version 20150515, add its
-> > support in this patch.
-> >
-> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > ---
-> >
-> > This is the linux version of GIC version patch, please help to handle
-> > it, thanks!
-> >
-> >  include/acpi/actbl1.h | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> >
-> > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
-> > 06b61f0..a53530d1 100644
-> > --- a/include/acpi/actbl1.h
-> > +++ b/include/acpi/actbl1.h
-> > @@ -835,6 +835,17 @@ struct acpi_madt_generic_distributor {
-> >  	u8 reserved2[3];	/* reserved - must be zero */
-> >  };
-> >
-> > +/* Values for version in Generic Distributor  (ACPI 6.0) */
-> > +
-> > +enum acpi_madt_gic_version_type {
-> > +	ACPI_MADT_GIC_VER_UNKNOWN	= 0,
-> > +	ACPI_MADT_GIC_VER_V1		= 1,
-> > +	ACPI_MADT_GIC_VER_V2		= 2,
-> > +	ACPI_MADT_GIC_VER_V3		= 3,
-> > +	ACPI_MADT_GIC_VER_V4		= 4,
-> > +	ACPI_MADT_GIC_VER_RESERVED	= 5	/* 5 and greater are reserved */
-> > +};
-> > +
-> >  /* 13: Generic MSI Frame (ACPI 5.1) */
-> >
-> >  struct acpi_madt_generic_msi_frame {
-> > --
-> > 1.9.1
-> 
-> _______________________________________________
-> Devel mailing list
-> Devel@acpica.org
-> https://lists.acpica.org/mailman/listinfo/devel
+Then that's not a "persistence flush", that's a shootdown of the
+previous mmio block window setting.  If it's only for BLK reads I
+think we need to use clflush_cache_range() directly.  Given that BLK
+mode already depends on ACPI I think it's fine for now to make BLK
+mode depend on x86.  Otherwise, we need a new cross-arch generic cache
+flush primitive like io_flush_cache_range() and have BLK mode depend
+on ARCH_HAS_IO_FLUSH_CACHE_RANGE.
