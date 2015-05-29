@@ -1,88 +1,156 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 1/6] pmem: add force casts to avoid __iomem annotation
-Date: Fri, 29 May 2015 06:22:50 -0700
-Message-ID: <CAPcyv4jA+ax5_uGuSWXxUGZEfFC0fi72o95bK5NSNt20272X3A@mail.gmail.com>
+Subject: Re: [PATCH 4/6] pmem, nd_blk: update I/O paths to use PMEM API
+Date: Fri, 29 May 2015 07:11:16 -0700
+Message-ID: <CAPcyv4g+hX2NCdH6HdjUBVP-k8_qPe5Z1FRJsp=ciz3NPsySnQ@mail.gmail.com>
 References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
-	<1432852553-24865-2-git-send-email-ross.zwisler@linux.intel.com>
-	<CAPcyv4iY5DSw-wf5kaKOXZk0qx9CZttU9X35i+gGwd6EYB=hbw@mail.gmail.com>
-	<1432899584.4282.2.camel@gmail.com>
-	<CAPcyv4jzpzbPmp6DXXz+fwiDOm9CWJJftF-9708bcFcY6ut6rw@mail.gmail.com>
+	<1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:38893 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752833AbbE2NWv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 09:22:51 -0400
-Received: by wizo1 with SMTP id o1so23641009wiz.1
-        for <linux-acpi@vger.kernel.org>; Fri, 29 May 2015 06:22:50 -0700 (PDT)
-In-Reply-To: <CAPcyv4jzpzbPmp6DXXz+fwiDOm9CWJJftF-9708bcFcY6ut6rw@mail.gmail.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:33577 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752097AbbE2OLR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 10:11:17 -0400
+Received: by wgez8 with SMTP id z8so63816648wge.0
+        for <linux-acpi@vger.kernel.org>; Fri, 29 May 2015 07:11:16 -0700 (PDT)
+In-Reply-To: <1432852553-24865-5-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <zwisler@gmail.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Fri, May 29, 2015 at 5:53 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Fri, May 29, 2015 at 4:39 AM, Ross Zwisler <zwisler@gmail.com> wrote:
->> On Thu, 2015-05-28 at 15:47 -0700, Dan Williams wrote:
->>> On Thu, May 28, 2015 at 3:35 PM, Ross Zwisler
->>> <ross.zwisler@linux.intel.com> wrote:
->>> > Even though we use ioremap_nocache() to map our persistent memory
->>> > in the
->>> > pmem driver, the memory we are mapping behaves like normal memory
->>> > and
->>> > not I/O memory in that it can be accessed using regular memcpy()
->>> > operations and doesn't need to go through memcpy_toio() and
->>> > memcpy_fromio().  Force casting the pointers received from
->>> > ioremap_nocache() and given to iounmap() gives us the correct
->>> > behavior
->>> > and makes sparse happy.
->>> >
->>> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
->>> > Cc: Dan Williams <dan.j.williams@intel.com>
->>> > Cc: linux-nvdimm@lists.01.org
->>> > ---
->>> >  drivers/block/nd/pmem.c | 7 ++++---
->>> >  1 file changed, 4 insertions(+), 3 deletions(-)
->>> >
->>> > diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
->>> > index 5e8c9c629f22..a8712e41e7f5 100644
->>> > --- a/drivers/block/nd/pmem.c
->>> > +++ b/drivers/block/nd/pmem.c
->>> > @@ -163,7 +163,8 @@ static struct pmem_device *pmem_alloc(struct
->>> > device *dev, struct resource *res,
->>> >          * of the CPU caches in case of a crash.
->>> >          */
->>> >         err = -ENOMEM;
->>> > -       pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem
->>> > ->size);
->>> > +       pmem->virt_addr = (__force void *)ioremap_nocache(pmem
->>> > ->phys_addr,
->>> > +                       pmem->size);
->>>
->>> I think I'd rather see casting when ->virt_addr is used (the
->>> __io_virt() helper can be used to make this a tad cleaner), or
->>> provide
->>> ioremap apis that don't attach __iomem to their return value.
->>>  Because
->>> in this and other cases ioremap() is being on non "i/o" memory.
->>
->> The reason that I thought this was cleaner was that now when you look
->> at the pmem->virt_addr definition it is just a clean void* with no
->> annotations.  This correctly describes the memory to the user (it's
->> usable as regular memory, it's in the kernel address space, etc.).
->>
->> Having the pointer itself annotated with __iomem feels weird to me
->> because a random well meaning user could incorrectly try to use it as
->> I/O memory.
+On Thu, May 28, 2015 at 3:35 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Update the PMEM and ND_BLK I/O paths to use the new PMEM API and to
+> adhere to the read/write flows outlined in the "NVDIMM Block Window
+> Driver Writer's Guide":
 >
-> pmem->virt_addr does not leak outside the driver to random well
-> meaning users.  I think we have two options, provide physical address
-> remap helpers from the outset (memremap()?) that don't attach __iomem,
-> or put the casts on the non-iomem usages.
+> http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: linux-nvdimm@lists.01.org
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+>  drivers/acpi/nfit.c     | 10 ++++++++--
+>  drivers/block/nd/pmem.c | 15 +++++++++++----
+>  2 files changed, 19 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index df14652ea13e..22df61968c1c 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/list.h>
+>  #include <linux/acpi.h>
+>  #include <linux/sort.h>
+> +#include <linux/pmem.h>
+>  #include <linux/io.h>
+>  #include "nfit.h"
+>
+> @@ -926,7 +927,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+>         if (mmio->num_lines)
+>                 offset = to_interleave_offset(offset, mmio);
+>
+> +       /* mmio->base must be mapped uncacheable */
+>         writeq(cmd, mmio->base + offset);
+> +       persistent_sync();
+>         /* FIXME: conditionally perform read-back if mandated by firmware */
+>  }
+>
+> @@ -940,7 +943,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
+>         int rc;
+>
+>         base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES + bw * mmio->size;
+> -       /* TODO: non-temporal access, flush hints, cache management etc... */
+>         write_blk_ctl(nfit_blk, bw, dpa, len, write);
+>         while (len) {
+>                 unsigned int c;
+> @@ -959,13 +961,17 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk, void *iobuf,
+>                 }
+>
+>                 if (write)
+> -                       memcpy(mmio->aperture + offset, iobuf + copied, c);
+> +                       persistent_copy(mmio->aperture + offset, iobuf + copied, c);
+>                 else
+>                         memcpy(iobuf + copied, mmio->aperture + offset, c);
+>
+>                 copied += c;
+>                 len -= c;
+>         }
+> +
+> +       if (write)
+> +               persistent_sync();
+> +
+>         rc = read_blk_stat(nfit_blk, bw) ? -EIO : 0;
+>         return rc;
+>  }
+> diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
+> index a8712e41e7f5..1a447c351aef 100644
+> --- a/drivers/block/nd/pmem.c
+> +++ b/drivers/block/nd/pmem.c
+> @@ -15,15 +15,16 @@
+>   * more details.
+>   */
+>
+> -#include <asm/cacheflush.h>
+>  #include <linux/blkdev.h>
+>  #include <linux/hdreg.h>
+>  #include <linux/init.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/module.h>
+>  #include <linux/moduleparam.h>
+> +#include <linux/pmem.h>
+>  #include <linux/slab.h>
+>  #include <linux/nd.h>
+> +#include <asm/cacheflush.h>
+>  #include "nd.h"
+>
+>  struct pmem_device {
+> @@ -51,7 +52,7 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+>                 flush_dcache_page(page);
+>         } else {
+>                 flush_dcache_page(page);
+> -               memcpy(pmem->virt_addr + pmem_off, mem + off, len);
+> +               persistent_copy(pmem->virt_addr + pmem_off, mem + off, len);
+>         }
+>
+>         kunmap_atomic(mem);
+> @@ -82,6 +83,8 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+>                 sector += bvec.bv_len >> 9;
+>         }
+>
+> +       if (rw & WRITE)
+> +               persistent_sync();
+>  out:
+>         bio_endio(bio, err);
+>  }
+> @@ -92,6 +95,8 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+>         struct pmem_device *pmem = bdev->bd_disk->private_data;
+>
+>         pmem_do_bvec(pmem, page, PAGE_CACHE_SIZE, 0, rw, sector);
+> +       if (rw & WRITE)
+> +               persistent_sync();
+>         page_endio(page, rw & WRITE, 0);
+>
+>         return 0;
+> @@ -111,8 +116,10 @@ static int pmem_rw_bytes(struct nd_io *ndio, void *buf, size_t offset,
+>
+>         if (rw == READ)
+>                 memcpy(buf, pmem->virt_addr + offset, n);
+> -       else
+> -               memcpy(pmem->virt_addr + offset, buf, n);
+> +       else {
+> +               persistent_copy(pmem->virt_addr + offset, buf, n);
+> +               persistent_sync();
+> +       }
+>
 
-In other words, I don't like the fact that we apply a coarse / private
-hack to fix a general kernel mis-annotation problem.  Either fix it
-for everybody with something like memremap() or use __io_virt() to
-document the non-iomem usages of pmem->virt_addr like the other
-iomem-to-undecorated pointer helper routines in the kernel.
+It bothers me that persistent_sync() is a lie for almost every system
+on the planet.  Even though uncached mappings are not sufficient for
+guaranteeing persistence the potential damage is minimized.   To me it
+seems the driver should have separate I/O paths for the persistent and
+non-persistent case determined and notified at init time.  I.e.
+arrange to never call persistent_sync() when it is known to be a nop
+and tell the user "btw, your data is at risk".
