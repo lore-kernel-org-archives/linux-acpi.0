@@ -1,87 +1,144 @@
-From: Y Vo <yvo@apm.com>
-Subject: [PATCH v1] gpio: xgene: add ACPI support for APM X-Gene GPIO standby driver
-Date: Fri, 29 May 2015 16:52:41 +0700
-Message-ID: <1432893161-3888-2-git-send-email-yvo@apm.com>
-References: <1432893161-3888-1-git-send-email-yvo@apm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 8/8] mfd: Add support for Intel Sunrisepoint LPSS
+ devices
+Date: Fri, 29 May 2015 13:03:15 +0300
+Message-ID: <1432893795.26331.21.camel@linux.intel.com>
+References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1432570172-86963-9-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <20150527102241.GC11677@x1> <1432811843.26331.18.camel@linux.intel.com>
+	 <20150528131051.GR11677@x1>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exprod5og116.obsmtp.com ([64.18.0.147]:39837 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755077AbbE2Jw6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 05:52:58 -0400
-Received: by pacrp13 with SMTP id rp13so5905734pac.2
-        for <linux-acpi@vger.kernel.org>; Fri, 29 May 2015 02:52:57 -0700 (PDT)
-In-Reply-To: <1432893161-3888-1-git-send-email-yvo@apm.com>
+Received: from mga14.intel.com ([192.55.52.115]:23198 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932362AbbE2KDW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 May 2015 06:03:22 -0400
+In-Reply-To: <20150528131051.GR11677@x1>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linus.walleij@linaro.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: Y Vo <yvo@apm.com>, Phong Vo <pvo@apm.com>, Toan Le <toanle@apm.com>, Loc Ho <lho@apm.com>, Tai Nguyen <ttnguyen@apm.com>, patches@apm.com
+To: Lee Jones <lee.jones@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-Add ACPI support for APM X-Gene GPIO standby driver.
+On Thu, 2015-05-28 at 14:10 +0100, Lee Jones wrote:
+> On Thu, 28 May 2015, Andy Shevchenko wrote:
+> > On Wed, 2015-05-27 at 11:22 +0100, Lee Jones wrote:
+> > > On Mon, 25 May 2015, Andy Shevchenko wrote:
 
-Signed-off-by: Y Vo <yvo@apm.com>
----
- drivers/gpio/gpio-xgene-sb.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+[]
 
-diff --git a/drivers/gpio/gpio-xgene-sb.c b/drivers/gpio/gpio-xgene-sb.c
-index b6a15c3..df5a04f 100644
---- a/drivers/gpio/gpio-xgene-sb.c
-+++ b/drivers/gpio/gpio-xgene-sb.c
-@@ -25,8 +25,11 @@
- #include <linux/of_gpio.h>
- #include <linux/gpio.h>
- #include <linux/gpio/driver.h>
-+#include <linux/acpi.h>
- #include <linux/basic_mmio_gpio.h>
- 
-+#include "gpiolib.h"
-+
- #define XGENE_MAX_GPIO_DS		22
- #define XGENE_MAX_GPIO_DS_IRQ		6
- 
-@@ -129,6 +132,11 @@ static int xgene_gpio_sb_probe(struct platform_device *pdev)
- 	else
- 		dev_info(&pdev->dev, "X-Gene GPIO Standby driver registered\n");
- 
-+	if (priv->nirq > 0) {
-+		/* Register interrupt handlers for gpio signaled acpi events */
-+		acpi_gpiochip_request_interrupts(&priv->bgc.gc);
-+	}
-+
- 	return ret;
- }
- 
-@@ -136,6 +144,10 @@ static int xgene_gpio_sb_remove(struct platform_device *pdev)
- {
- 	struct xgene_gpio_sb *priv = platform_get_drvdata(pdev);
- 
-+	if (priv->nirq > 0) {
-+		acpi_gpiochip_free_interrupts(&priv->bgc.gc);
-+	}
-+
- 	return bgpio_remove(&priv->bgc);
- }
- 
-@@ -145,10 +157,19 @@ static const struct of_device_id xgene_gpio_sb_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, xgene_gpio_sb_of_match);
- 
-+#ifdef CONFIG_ACPI
-+static const struct acpi_device_id xgene_gpio_sb_acpi_match[] = {
-+	{"APMC0D15", 0},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(acpi, xgene_gpio_sb_acpi_match);
-+#endif
-+
- static struct platform_driver xgene_gpio_sb_driver = {
- 	.driver = {
- 		   .name = "xgene-gpio-sb",
- 		   .of_match_table = xgene_gpio_sb_of_match,
-+		   .acpi_match_table = ACPI_PTR(xgene_gpio_sb_acpi_match),
- 		   },
- 	.probe = xgene_gpio_sb_probe,
- 	.remove = xgene_gpio_sb_remove,
--- 
-1.7.1
+> > > > +	intel_lpss_ltr_expose(lpss);
+> > > > +
+> > > > +	ret =3D intel_lpss_debugfs_add(lpss);
+> > > > +	if (ret)
+> > > > +		dev_warn(lpss->dev, "Failed to create debugfs entries\n");
+> > > > +
+> > > > +	if (intel_lpss_has_idma(lpss)) {
+> > > > +		/*
+> > > > +		 * Ensure the DMA driver is loaded before the host
+> > > > +		 * controller device appears, so that the host controller
+> > > > +		 * driver can request its DMA channels as early as
+> > > > +		 * possible.
+> > > > +		 *
+> > > > +		 * If the DMA module is not there that's OK as well.
+> > > > +		 */
+> > > > +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
+> > > > +
+> > > > +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs, 2,
+> > > > +				      info->mem, info->irq, NULL);
+> > > > +	} else {
+> > > > +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs + 1, 1,
+> > > > +				      info->mem, info->irq, NULL);
+> > > > +	}
+> > >=20
+> > > I'm still not happy with the mfd_cells being manipulated in this =
+way,
+> > > or with the duplication you have within them.  Why don't you plac=
+e the
+> > > IDMA device it its own mfd_cell, then:
+> > >=20
+> > > > +	if (intel_lpss_has_idma(lpss)) {
+> > > > +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
+> > > > +
+> > > > +		ret =3D mfd_add_devices(dev, TBC, idma_dev, ARRAY_SIZE(idma_=
+dev),
+> > > > +				      info->mem, info->irq, NULL);
+> > > > +             /* Error check */
+> > > > +	}
+> > > > +
+> > > > +	ret =3D mfd_add_devices(dev, TBC, proto_dev, ARRAY_SIZE(proto=
+_dev),
+> > > > +				      info->mem, info->irq, NULL);
+> >=20
+> > Would be nicer to export mfd_add_device() in that case?
+>=20
+> What do you mean by export?  What's wrong with using this code
+> segment?
 
+I took a closer look into this, indeed, we can call mfd_add_devices() a=
+s
+many time as we want to add a new child device.
+
+Will refactor this piece of code.
+
+> > > > +#ifdef CONFIG_PM_SLEEP
+> > > > +#define INTEL_LPSS_SLEEP_PM_OPS			\
+> > > > +	.prepare =3D intel_lpss_prepare,		\
+> > > > +	.suspend =3D intel_lpss_suspend,		\
+> > > > +	.resume =3D intel_lpss_resume,		\
+> > > > +	.freeze =3D intel_lpss_suspend,		\
+> > > > +	.thaw =3D intel_lpss_resume,		\
+> > > > +	.poweroff =3D intel_lpss_suspend,		\
+> > > > +	.restore =3D intel_lpss_resume,
+> > > > +#endif
+> > > > +
+> > > > +#define INTEL_LPSS_RUNTIME_PM_OPS		\
+> > > > +	.runtime_suspend =3D intel_lpss_suspend,	\
+> > > > +	.runtime_resume =3D intel_lpss_resume,
+> > > > +
+> > > > +#else /* !CONFIG_PM */
+> > > > +#define INTEL_LPSS_SLEEP_PM_OPS
+> > > > +#define INTEL_LPSS_RUNTIME_PM_OPS
+> > > > +#endif /* CONFIG_PM */
+> > > > +
+> > > > +#define INTEL_LPSS_PM_OPS(name)			\
+> > > > +const struct dev_pm_ops name =3D {		\
+> > > > +	INTEL_LPSS_SLEEP_PM_OPS			\
+> > > > +	INTEL_LPSS_RUNTIME_PM_OPS		\
+> >=20
+> > > If you _really_ need .prepare, then it's likely that some other
+> > > platform might too.  It will be the same amount of code to just m=
+ake
+> > > this generic, so do that instead please.
+> >=20
+> > In 'linux/pm.h' ->prepare() is excluded since it's quite exotic to =
+be=20
+> > in device drivers. That is my understanding why it makes not much s=
+ense
+> > to provide a generic definition for that.
+> >=20
+> > $ git grep -n '\.prepare[ \t]*=3D.*pm' drivers/ | wc -l
+> > 33
+> > $ git grep -n SET_SYSTEM_SLEEP_PM_OPS drivers/ | wc -l
+> > 114
+> > $ git grep -n UNIVERSAL_DEV_PM_OPS drivers/ | wc -l
+> > 9
+> > =E2=80=A6and there are a lot of drivers (hundreds+) that do
+> > not use mentioned macros, and has no ->prepare() callback defined.
+> >=20
+> > I can try to summon up Rafael to clarify this.
+>=20
+> Yes, let's do that, as I'd like a second opinion on this, thanks.
+
+Rafael, it would be nice to have your input here.
+
+--=20
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
