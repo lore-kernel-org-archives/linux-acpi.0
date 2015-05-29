@@ -1,45 +1,32 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [RFC][PATCH] x86: remove vmalloc.h from asm/io.h
-Date: Fri, 29 May 2015 11:21:05 +0200
-Message-ID: <20150529092105.GA30603@gmail.com>
-References: <20150529191847.2d4cb3a7@canb.auug.org.au>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v0] gpio: xgene: add ACPI support for APM X-Gene GPIO
+ standby driver
+Date: Fri, 29 May 2015 12:25:01 +0300
+Message-ID: <20150529092501.GI1747@lahna.fi.intel.com>
+References: <1432795588-17476-1-git-send-email-yvo@apm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:34339 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755589AbbE2JVN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 05:21:13 -0400
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150529191847.2d4cb3a7@canb.auug.org.au>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1432795588-17476-1-git-send-email-yvo@apm.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Y Vo <yvo@apm.com>
+Cc: linus.walleij@linaro.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Phong Vo <pvo@apm.com>, Toan Le <toanle@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Kristen Carlson Accardi <kristen@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vinod Koul <vinod.koul@intel.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Hiral Patel <hiralpat@cisco.com>, Suma Ramars <sramars@cisco.com>, Brian Uchino <buchino@cisco.com>, "James E.J. Bottomley" <JBottomley@odin.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.d>
 
+On Thu, May 28, 2015 at 01:46:28PM +0700, Y Vo wrote:
+> +#ifdef CONFIG_ACPI
+> +	if (priv->nirq > 0) {
+> +		/* Register interrupt handlers for gpio signaled acpi events */
+> +		acpi_gpiochip_request_interrupts(&priv->bgc.gc);
+> +	}
+> +#endif
 
-* Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+You don't need to check CONFIG_ACPI as acpi_gpiochip_request_interrupts()
+will be stubbed out if !CONFIG_ACPI.
 
-> Nothing in asm/io.h uses anything from vmalloc.h, so remove the include
-> and fix up the build problems in an allmodconfig (64 bit and 32 bit)
-> build.
-> 
-> This may be the place where x86 builds get vmalloc.h implicitly included
-> and that tends to hide places where vmalloc() et al are added to files
-> but the include of vmalloc.h is forgotten.
+Should you call acpi_gpiochip_free_interrupts() somewhere to unregister
+the interrupts as well?
 
-Good idea.
-
-Acked-by: Ingo Molnar <mingo@kernel.org>
-
-> Based in Linus' tree of today.
-> 
-> There are probably more places that need vmalloc.h included, but this passes 64 
-> bit and 32 bit allmodconfig builds, so is a place to start.
-
-Please also test x86 allnoconfig and defconfig 32/64, that tends to unearth the 
-remaining places. People doing randconfig testing will find the rest.
-
-Thanks,
-
-	Ingo
+Even better if you can switch your driver to use GPIOLIB_IRQCHIP all
+this is done automatically for you.
