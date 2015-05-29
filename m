@@ -1,54 +1,144 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH] ACPICA: Add MADT generic distributor version values for ACPI 6.0
-Date: Fri, 29 May 2015 15:46:07 +0800
-Message-ID: <1432885567-5924-1-git-send-email-hanjun.guo@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: 3 EC issues
+Date: Fri, 29 May 2015 07:56:09 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802723351@SHSMSX101.ccr.corp.intel.com>
+References: <1AE640813FDE7649BE1B193DEA596E8802721032@SHSMSX101.ccr.corp.intel.com>
+ <555FCA6E.1030806@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E8802722BB5@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:33367 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754234AbbE2HqX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 03:46:23 -0400
-Received: by padbw4 with SMTP id bw4so47988506pad.0
-        for <linux-acpi@vger.kernel.org>; Fri, 29 May 2015 00:46:22 -0700 (PDT)
+Received: from mga14.intel.com ([192.55.52.115]:28311 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754429AbbE2H4W convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 03:56:22 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802722BB5@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>, devel@acpica.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>
 
-ACPI 6.0 specified MADT generic distributor version values, but
-the detail definition is missing in ACPICA version 20150515, add
-its support in this patch.
+Hi,
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
+I just made a freak change to let reporters to try.
+https://bugzilla.kernel.org/attachment.cgi?id=178271&action=diff
+I'll report back after seeing their test results.
 
-This is the linux version of GIC version patch, please
-help to handle it, thanks!
+Thanks and best regards
+-Lv
 
- include/acpi/actbl1.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 06b61f0..a53530d1 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -835,6 +835,17 @@ struct acpi_madt_generic_distributor {
- 	u8 reserved2[3];	/* reserved - must be zero */
- };
- 
-+/* Values for version in Generic Distributor  (ACPI 6.0) */
-+
-+enum acpi_madt_gic_version_type {
-+	ACPI_MADT_GIC_VER_UNKNOWN	= 0,
-+	ACPI_MADT_GIC_VER_V1		= 1,
-+	ACPI_MADT_GIC_VER_V2		= 2,
-+	ACPI_MADT_GIC_VER_V3		= 3,
-+	ACPI_MADT_GIC_VER_V4		= 4,
-+	ACPI_MADT_GIC_VER_RESERVED	= 5	/* 5 and greater are reserved */
-+};
-+
- /* 13: Generic MSI Frame (ACPI 5.1) */
- 
- struct acpi_madt_generic_msi_frame {
--- 
-1.9.1
+> From: Zheng, Lv
+> Sent: Wednesday, May 27, 2015 1:57 PM
+> 
+> Hi,
+> 
+> Let me Cc intel power management and ACPI mailing list to discuss this widely.
+> 
+> On Samsung platforms, test result shows when SCI_EVT is not set, a QR_EC can result in a real event value (non-0x00) returned.
+> And after system is resumed, SCI_EVT may not be flagged while OSPM still need to send QR_EC.
+> We have an EC_FLAGS_CLEAR_ON_RESUME quirk to handle this.
+> 
+> On kernel Bugzilla reported platforms (Lenovo, Acer), firmware will stop responding occasionally if SCI_EVT is not set.
+> We have an EC_FLAGS_QUERY_HANDSHAKE quirk to handle them.
+> 
+> It looks to me the 2 behavior is conflict.
+> For Samsung, QR_EC need to be issued even when SCI_EVT is not set.
+> While for the latter platforms, QR_EC shouldn't be issued if SCI_EVT is not set.
+> 
+> Also IMO, the EC_FLAGS_QUERY_HANDSHAKE platforms are dangerous, it looks their firmware will be more likely to get stuck as the
+> SCI_EVT behavior is not standardized.
+> 
+> Unlike the EC transaction state machine, it is hardly to write a single state machine to control the conflict behavior.
+> Thus I have to guess Windows just handle the SCI_EVT in a specific way that happens to work for both cases.
+> 
+> To handle SCI_EVT, OSPM should know when the SCI_EVT will be cleared by the firmware.
+> 
+> Unfortunately, the ACPI specification only has following 2 paragraphs talking SCI_EVT and none of them has defined this:
+> 
+> 12.2.1 Embedded Controller Status, EC_SC (R)
+> The SCI event (SCI_EVT) flag is set when the embedded controller has detected an internal event that requires the operating system's
+> attention. The embedded controller sets this bit in the status register, and generates an SCI to OSPM. OSPM needs this bit to
+> differentiate command-complete SCIs from notification SCIs. OSPM uses the query command to request the cause of the SCI_EVT
+> and take action. For more information, see Section 12.3, "Embedded Controller Command Set.")
+> 
+> 12.3.5 Query Embedded Controller, QR_EC (0x84)
+> OSPM driver sends this command when the SCI_EVT flag in the EC_SC register is set. When the embedded controller has detected a
+> system event that must be communicated to OSPM, it first sets the SCI_EVT flag in the EC_SC register, generates an SCI, and then
+> waits for OSPM to send the query (QR_EC) command. OSPM detects the embedded controller SCI, sees the SCI_EVT flag set, and
+> sends the query command to the embedded controller. Upon receipt of the QR_EC command byte, the embedded controller places a
+> notification byte with a value between 0-255, indicating the cause of the notification. The notification byte indicates which interrupt
+> handler operation should be executed by OSPM to process the embedded controller SCI. The query value of zero is reserved for a
+> spurious query result and indicates "no outstanding event."
+> 
+> None of them has definitions around the timing that the SCI_EVT should be cleared.
+> Following may be possible (from earliest to latest, and should be initiated from a firmware step):
+>   1. After firmware noticing an EC_SC access - since OSPM should have seen the SCI_EVT.
+>   2. After firmware noticing an none-empty input pipe filled with QR_EC - since OSPM has explicitly acknowledged the event by the
+> QR_EC command.
+>   3. After firmware writing the event value to the output pipe - since OSPM is ensured to see the returned event value to query.
+>   4. After firmware noticing an empty output pipe - since OSPM is ensured to have obtained the returned event value to query.
+>   5. After OSPM evaluating _Qxx - EVT_SCI may be implemented in the "condition" way and cleared after the condition has been
+> changed.
+> 
+> In order to handle both firmware variation, Windows should have prepared QR_EC in the way that
+> 1. can ensure additional QR_EC is issued for Samsung - when the SCI_EVT is checked again, it should have still be flagged so that a
+> "draining QR_EC" can be issued.
+> 2. can ensure no additional QR_EC is issued for Lenovo/Acer - when the SCI_EVT is checked again, it must be cleared by the firmware.
+> 
+> So if we can know the expected behavior of Windows, we may be able to work out the correct solution.
+> 
+> Thanks and best regards
+> -Lv
+> 
+> 
+> > From: Wysocki, Rafael J
+> > Sent: Saturday, May 23, 2015 8:32 AM
+> >
+> > Len,
+> >
+> > It appears that we need to know what the Windows EC driver expects from
+> > the firmware.
+> >
+> > Who's the first point of contact for that?
+> >
+> > Rafael
+> >
+> >
+> > On 5/22/2015 9:33 AM, Zheng, Lv wrote:
+> > > Hi, Bob and Rafael
+> > >
+> > > I have 3 ACPI bugs related to the EC event handling mechanism.
+> > >
+> > > https://bugzilla.kernel.org/show_bug.cgi?id=98111
+> > > https://bugzilla.kernel.org/show_bug.cgi?id=97381
+> > > https://bugzilla.kernel.org/show_bug.cgi?id=94411
+> > >
+> > > So it might be urgent to handle them.
+> > >
+> > > Currently the EC driver checks EVT_SCI flag right after QR_EC write so that EVT_SCI can be ensured to be set for Samsung
+> platforms
+> > and the 2nd QR_EC can be issued to drain the event (on Samsung platform, 0x00 will be returned to indicate no further events). This
+> > logic is tricky.
+> > >
+> > > After seeing so many conflicts, I guess windows will start a deferred context to send QR_EC, evaluate _Qxx sequentially.
+> > > For Samsung platform, I knew an 0x00 return value of QR_EC can terminate the process and Samsung platform really need driver
+> to
+> > poll until 0x00 is returned.
+> > >
+> > > But on other platforms, we may see non 0x00 value returned from BIOS, then I don't know how can I terminate the process on
+> such
+> > platforms.
+> > >
+> > > IMO, the conflict is there due to the asynchrony the firmware has implemented.
+> > > It looks the firmware that won't be broken due to our current behavior is handled in the fully asynchronous way.
+> > > And the above platforms have several commands handled in the synchronous way.
+> > >
+> > > Thus it's hard for me to determine what's the preferred behavior (thus the default OS EC driver behavior) Windows EC driver has
+> > expected on the firmware.
+> > > Do we have spec contact or Windows contact to clarify this?
+> > >
+> > > Thanks and best regards
+> > > -Lv
 
