@@ -1,32 +1,37 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Y Vo <yvo@apm.com>
 Subject: Re: [PATCH v0] gpio: xgene: add ACPI support for APM X-Gene GPIO
  standby driver
-Date: Fri, 29 May 2015 12:25:01 +0300
-Message-ID: <20150529092501.GI1747@lahna.fi.intel.com>
+Date: Fri, 29 May 2015 16:42:00 +0700
+Message-ID: <CAL4ahLdjea-K10BUJYQjVJmy+AiiJQH6VJKdYKayr=7hHDTbcQ@mail.gmail.com>
 References: <1432795588-17476-1-git-send-email-yvo@apm.com>
+	<20150529092501.GI1747@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1432795588-17476-1-git-send-email-yvo@apm.com>
+In-Reply-To: <20150529092501.GI1747@lahna.fi.intel.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Y Vo <yvo@apm.com>
-Cc: linus.walleij@linaro.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Phong Vo <pvo@apm.com>, Toan Le <toanle@apm.com>, Loc Ho <lho@apm.com>, patches@apm.com
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Phong Vo <pvo@apm.com>, Toan Le <toanle@apm.com>, Loc Ho <lho@apm.com>, patches <patches@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 28, 2015 at 01:46:28PM +0700, Y Vo wrote:
-> +#ifdef CONFIG_ACPI
-> +	if (priv->nirq > 0) {
-> +		/* Register interrupt handlers for gpio signaled acpi events */
-> +		acpi_gpiochip_request_interrupts(&priv->bgc.gc);
-> +	}
-> +#endif
+On Fri, May 29, 2015 at 4:25 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Thu, May 28, 2015 at 01:46:28PM +0700, Y Vo wrote:
+>> +#ifdef CONFIG_ACPI
+>> +     if (priv->nirq > 0) {
+>> +             /* Register interrupt handlers for gpio signaled acpi events */
+>> +             acpi_gpiochip_request_interrupts(&priv->bgc.gc);
+>> +     }
+>> +#endif
+>
+> You don't need to check CONFIG_ACPI as acpi_gpiochip_request_interrupts()
+> will be stubbed out if !CONFIG_ACPI.
+I will remove this check.
+>
+> Should you call acpi_gpiochip_free_interrupts() somewhere to unregister
+> the interrupts as well?
+I will add this to xgene_gpio_sb_remove function.
 
-You don't need to check CONFIG_ACPI as acpi_gpiochip_request_interrupts()
-will be stubbed out if !CONFIG_ACPI.
-
-Should you call acpi_gpiochip_free_interrupts() somewhere to unregister
-the interrupts as well?
-
-Even better if you can switch your driver to use GPIOLIB_IRQCHIP all
-this is done automatically for you.
+>
+> Even better if you can switch your driver to use GPIOLIB_IRQCHIP all
+> this is done automatically for you.
