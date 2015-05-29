@@ -1,144 +1,72 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 8/8] mfd: Add support for Intel Sunrisepoint LPSS
- devices
-Date: Fri, 29 May 2015 13:03:15 +0300
-Message-ID: <1432893795.26331.21.camel@linux.intel.com>
-References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1432570172-86963-9-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <20150527102241.GC11677@x1> <1432811843.26331.18.camel@linux.intel.com>
-	 <20150528131051.GR11677@x1>
+From: Ross Zwisler <zwisler@gmail.com>
+Subject: Re: [PATCH 1/6] pmem: add force casts to avoid __iomem annotation
+Date: Fri, 29 May 2015 05:39:44 -0600
+Message-ID: <1432899584.4282.2.camel@gmail.com>
+References: <1432852553-24865-1-git-send-email-ross.zwisler@linux.intel.com>
+	 <1432852553-24865-2-git-send-email-ross.zwisler@linux.intel.com>
+	 <CAPcyv4iY5DSw-wf5kaKOXZk0qx9CZttU9X35i+gGwd6EYB=hbw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23198 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932362AbbE2KDW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 May 2015 06:03:22 -0400
-In-Reply-To: <20150528131051.GR11677@x1>
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:36245 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099AbbE2Ljw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 07:39:52 -0400
+In-Reply-To: <CAPcyv4iY5DSw-wf5kaKOXZk0qx9CZttU9X35i+gGwd6EYB=hbw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 
-On Thu, 2015-05-28 at 14:10 +0100, Lee Jones wrote:
-> On Thu, 28 May 2015, Andy Shevchenko wrote:
-> > On Wed, 2015-05-27 at 11:22 +0100, Lee Jones wrote:
-> > > On Mon, 25 May 2015, Andy Shevchenko wrote:
+On Thu, 2015-05-28 at 15:47 -0700, Dan Williams wrote:
+> On Thu, May 28, 2015 at 3:35 PM, Ross Zwisler
+> <ross.zwisler@linux.intel.com> wrote:
+> > Even though we use ioremap_nocache() to map our persistent memory 
+> > in the
+> > pmem driver, the memory we are mapping behaves like normal memory 
+> > and
+> > not I/O memory in that it can be accessed using regular memcpy()
+> > operations and doesn't need to go through memcpy_toio() and
+> > memcpy_fromio().  Force casting the pointers received from
+> > ioremap_nocache() and given to iounmap() gives us the correct 
+> > behavior
+> > and makes sparse happy.
+> > 
+> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: linux-nvdimm@lists.01.org
+> > ---
+> >  drivers/block/nd/pmem.c | 7 ++++---
+> >  1 file changed, 4 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/block/nd/pmem.c b/drivers/block/nd/pmem.c
+> > index 5e8c9c629f22..a8712e41e7f5 100644
+> > --- a/drivers/block/nd/pmem.c
+> > +++ b/drivers/block/nd/pmem.c
+> > @@ -163,7 +163,8 @@ static struct pmem_device *pmem_alloc(struct 
+> > device *dev, struct resource *res,
+> >          * of the CPU caches in case of a crash.
+> >          */
+> >         err = -ENOMEM;
+> > -       pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem
+> > ->size);
+> > +       pmem->virt_addr = (__force void *)ioremap_nocache(pmem
+> > ->phys_addr,
+> > +                       pmem->size);
+> 
+> I think I'd rather see casting when ->virt_addr is used (the
+> __io_virt() helper can be used to make this a tad cleaner), or 
+> provide
+> ioremap apis that don't attach __iomem to their return value. 
+>  Because
+> in this and other cases ioremap() is being on non "i/o" memory.
 
-[]
+The reason that I thought this was cleaner was that now when you look
+at the pmem->virt_addr definition it is just a clean void* with no
+annotations.  This correctly describes the memory to the user (it's
+usable as regular memory, it's in the kernel address space, etc.).
 
-> > > > +	intel_lpss_ltr_expose(lpss);
-> > > > +
-> > > > +	ret =3D intel_lpss_debugfs_add(lpss);
-> > > > +	if (ret)
-> > > > +		dev_warn(lpss->dev, "Failed to create debugfs entries\n");
-> > > > +
-> > > > +	if (intel_lpss_has_idma(lpss)) {
-> > > > +		/*
-> > > > +		 * Ensure the DMA driver is loaded before the host
-> > > > +		 * controller device appears, so that the host controller
-> > > > +		 * driver can request its DMA channels as early as
-> > > > +		 * possible.
-> > > > +		 *
-> > > > +		 * If the DMA module is not there that's OK as well.
-> > > > +		 */
-> > > > +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
-> > > > +
-> > > > +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs, 2,
-> > > > +				      info->mem, info->irq, NULL);
-> > > > +	} else {
-> > > > +		ret =3D mfd_add_devices(dev, lpss->devid, lpss->devs + 1, 1,
-> > > > +				      info->mem, info->irq, NULL);
-> > > > +	}
-> > >=20
-> > > I'm still not happy with the mfd_cells being manipulated in this =
-way,
-> > > or with the duplication you have within them.  Why don't you plac=
-e the
-> > > IDMA device it its own mfd_cell, then:
-> > >=20
-> > > > +	if (intel_lpss_has_idma(lpss)) {
-> > > > +		intel_lpss_request_dma_module(LPSS_IDMA_DRIVER_NAME);
-> > > > +
-> > > > +		ret =3D mfd_add_devices(dev, TBC, idma_dev, ARRAY_SIZE(idma_=
-dev),
-> > > > +				      info->mem, info->irq, NULL);
-> > > > +             /* Error check */
-> > > > +	}
-> > > > +
-> > > > +	ret =3D mfd_add_devices(dev, TBC, proto_dev, ARRAY_SIZE(proto=
-_dev),
-> > > > +				      info->mem, info->irq, NULL);
-> >=20
-> > Would be nicer to export mfd_add_device() in that case?
->=20
-> What do you mean by export?  What's wrong with using this code
-> segment?
-
-I took a closer look into this, indeed, we can call mfd_add_devices() a=
-s
-many time as we want to add a new child device.
-
-Will refactor this piece of code.
-
-> > > > +#ifdef CONFIG_PM_SLEEP
-> > > > +#define INTEL_LPSS_SLEEP_PM_OPS			\
-> > > > +	.prepare =3D intel_lpss_prepare,		\
-> > > > +	.suspend =3D intel_lpss_suspend,		\
-> > > > +	.resume =3D intel_lpss_resume,		\
-> > > > +	.freeze =3D intel_lpss_suspend,		\
-> > > > +	.thaw =3D intel_lpss_resume,		\
-> > > > +	.poweroff =3D intel_lpss_suspend,		\
-> > > > +	.restore =3D intel_lpss_resume,
-> > > > +#endif
-> > > > +
-> > > > +#define INTEL_LPSS_RUNTIME_PM_OPS		\
-> > > > +	.runtime_suspend =3D intel_lpss_suspend,	\
-> > > > +	.runtime_resume =3D intel_lpss_resume,
-> > > > +
-> > > > +#else /* !CONFIG_PM */
-> > > > +#define INTEL_LPSS_SLEEP_PM_OPS
-> > > > +#define INTEL_LPSS_RUNTIME_PM_OPS
-> > > > +#endif /* CONFIG_PM */
-> > > > +
-> > > > +#define INTEL_LPSS_PM_OPS(name)			\
-> > > > +const struct dev_pm_ops name =3D {		\
-> > > > +	INTEL_LPSS_SLEEP_PM_OPS			\
-> > > > +	INTEL_LPSS_RUNTIME_PM_OPS		\
-> >=20
-> > > If you _really_ need .prepare, then it's likely that some other
-> > > platform might too.  It will be the same amount of code to just m=
-ake
-> > > this generic, so do that instead please.
-> >=20
-> > In 'linux/pm.h' ->prepare() is excluded since it's quite exotic to =
-be=20
-> > in device drivers. That is my understanding why it makes not much s=
-ense
-> > to provide a generic definition for that.
-> >=20
-> > $ git grep -n '\.prepare[ \t]*=3D.*pm' drivers/ | wc -l
-> > 33
-> > $ git grep -n SET_SYSTEM_SLEEP_PM_OPS drivers/ | wc -l
-> > 114
-> > $ git grep -n UNIVERSAL_DEV_PM_OPS drivers/ | wc -l
-> > 9
-> > =E2=80=A6and there are a lot of drivers (hundreds+) that do
-> > not use mentioned macros, and has no ->prepare() callback defined.
-> >=20
-> > I can try to summon up Rafael to clarify this.
->=20
-> Yes, let's do that, as I'd like a second opinion on this, thanks.
-
-Rafael, it would be nice to have your input here.
-
---=20
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Having the pointer itself annotated with __iomem feels weird to me
+because a random well meaning user could incorrectly try to use it as
+I/O memory.
