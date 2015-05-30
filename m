@@ -1,61 +1,24 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] PCI / ACPI fix for 4.1-rc6
-Date: Sat, 30 May 2015 01:39:19 +0200
-Message-ID: <CAJZ5v0i5Z5rn49Qk33Ygnriu_UWeeoeMxe01UGbX86ov+8H8YQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [Notice] ACPI core and PM core maintenance in travel mode until June 7
+Date: Sat, 30 May 2015 03:04:47 +0200
+Message-ID: <5472640.IAE0t5Y86B@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:37632 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912AbbE2XjU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 May 2015 19:39:20 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+Hi All,
 
-Please pull from
+In the next few days I'll be traveling for LinuxCon Japan starting tomorrow.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-pci-4.1-rc6
+I'll do my best to keep up with the patch flow during that time, but that
+usually is hard for me during conferences, so please be prepared for extra
+delays.
 
-to receive a fix for the ACPI PCI host bridge initialization code
-as commit dc4fdaf0e4839109169d8261814813816951c75f
+Kind regards,
+Rafael
 
- PCI / ACPI: Do not set ACPI companions for host bridges with parents
-
-on top of commit ba155e2d21f6bf05de86a78dbe5bfd8757604a65
-
- Linux 4.1-rc5
-
-This fixes a bug uncovered by a recent driver core change that
-modified the implementation of the ACPI_COMPANION_SET() macro to
-strictly rely on its second argument to be either NULL or a valid
-pointer to struct acpi_device.
-
-As it turns out, pcibios_root_bridge_prepare() on x86 and ia64
-works with the assumption that the only code path calling
-pci_create_root_bus() is pci_acpi_scan_root() and therefore
-the sysdata argument passed to it will always match the
-expectations of pcibios_root_bridge_prepare().  That need not
-be the case, however, and in particular it is not the case for
-the Xen pcifront driver that passes a pointer to its own private
-data strcture as sysdata to pci_scan_bus_parented() which then
-passes it to pci_create_root_bus() and it ends up being used
-incorrectly by pcibios_root_bridge_prepare().
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      PCI / ACPI: Do not set ACPI companions for host bridges with parents
-
----------------
-
- arch/ia64/pci/pci.c | 13 ++++++++++---
- arch/x86/pci/acpi.c | 13 ++++++++++---
- 2 files changed, 20 insertions(+), 6 deletions(-)
