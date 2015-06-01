@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 22/36] mn10300, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:31 +0800
-Message-ID: <1433145945-789-23-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 26/36] sparc, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:35 +0800
+Message-ID: <1433145945-789-27-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <sparclinux-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-am33-list@redhat.com
+Sender: sparclinux-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "David S. Miller" <davem@davemloft.net>, bob picco <bpicco@meloft.net>, Jiang Liu <jiang.liu@linux.intel.com>, Andreas Larsson <andreas@gaisler.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sparclinux@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 Use access helper irq_data_get_affinity_mask() to hide implementation
@@ -15,74 +15,85 @@ details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/mn10300/kernel/cevt-mn10300.c |    2 +-
- arch/mn10300/kernel/irq.c          |   13 +++++++------
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/irq_64.c      |   12 +++++++-----
+ arch/sparc/kernel/leon_kernel.c |    6 +++---
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/arch/mn10300/kernel/cevt-mn10300.c b/arch/mn10300/kernel/cevt-mn10300.c
-index 60f64ca1752a..326677d4a3b2 100644
---- a/arch/mn10300/kernel/cevt-mn10300.c
-+++ b/arch/mn10300/kernel/cevt-mn10300.c
-@@ -123,7 +123,7 @@ int __init init_clockevents(void)
- 	{
- 		struct irq_data *data;
- 		data = irq_get_irq_data(cd->irq);
--		cpumask_copy(data->affinity, cpumask_of(cpu));
-+		cpumask_copy(irq_data_get_affinity_mask(data), cpumask_of(cpu));
- 		iact->flags |= IRQF_NOBALANCING;
- 	}
- #endif
-diff --git a/arch/mn10300/kernel/irq.c b/arch/mn10300/kernel/irq.c
-index 480de70f4059..c716437baa2c 100644
---- a/arch/mn10300/kernel/irq.c
-+++ b/arch/mn10300/kernel/irq.c
-@@ -87,7 +87,8 @@ static void mn10300_cpupic_mask_ack(struct irq_data *d)
- 		tmp2 = GxICR(irq);
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 5130f6e3e68e..e22416ce56ea 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -377,7 +377,8 @@ static void sun4u_irq_enable(struct irq_data *data)
+ 		unsigned long cpuid, imap, val;
+ 		unsigned int tid;
  
- 		irq_affinity_online[irq] =
--			cpumask_any_and(d->affinity, cpu_online_mask);
-+			cpumask_any_and(irq_data_get_affinity_mask(d),
-+					cpu_online_mask);
- 		CROSS_GxICR(irq, irq_affinity_online[irq]) =
- 			(tmp & (GxICR_LEVEL | GxICR_ENABLE)) | GxICR_DETECT;
- 		tmp = CROSS_GxICR(irq, irq_affinity_online[irq]);
-@@ -124,7 +125,7 @@ static void mn10300_cpupic_unmask_clear(struct irq_data *d)
- 	} else {
- 		tmp = GxICR(irq);
+-		cpuid = irq_choose_cpu(data->irq, data->affinity);
++		cpuid = irq_choose_cpu(data->irq,
++				       irq_data_get_affinity_mask(data));
+ 		imap = handler_data->imap;
  
--		irq_affinity_online[irq] = cpumask_any_and(d->affinity,
-+		irq_affinity_online[irq] = cpumask_any_and(irq_data_get_affinity_mask(d),
- 							   cpu_online_mask);
- 		CROSS_GxICR(irq, irq_affinity_online[irq]) = (tmp & GxICR_LEVEL) | GxICR_ENABLE | GxICR_DETECT;
- 		tmp = CROSS_GxICR(irq, irq_affinity_online[irq]);
-@@ -316,15 +317,16 @@ void migrate_irqs(void)
- 	self = smp_processor_id();
- 	for (irq = 0; irq < NR_IRQS; irq++) {
- 		struct irq_data *data = irq_get_irq_data(irq);
-+		struct cpumask *mask = irq_data_get_affinity_mask(data);
+ 		tid = sun4u_compute_tid(imap, cpuid);
+@@ -449,7 +450,8 @@ static void sun4u_irq_eoi(struct irq_data *data)
  
- 		if (irqd_is_per_cpu(data))
- 			continue;
+ static void sun4v_irq_enable(struct irq_data *data)
+ {
+-	unsigned long cpuid = irq_choose_cpu(data->irq, data->affinity);
++	unsigned long cpuid = irq_choose_cpu(data->irq,
++					     irq_data_get_affinity_mask(data));
+ 	unsigned int ino = irq_data_to_sysino(data);
+ 	int err;
  
--		if (cpumask_test_cpu(self, data->affinity) &&
-+		if (cpumask_test_cpu(self, mask) &&
- 		    !cpumask_intersects(&irq_affinity[irq], cpu_online_mask)) {
- 			int cpu_id;
- 			cpu_id = cpumask_first(cpu_online_mask);
--			cpumask_set_cpu(cpu_id, data->affinity);
-+			cpumask_set_cpu(cpu_id, mask);
+@@ -511,7 +513,7 @@ static void sun4v_virq_enable(struct irq_data *data)
+ 	unsigned long cpuid;
+ 	int err;
+ 
+-	cpuid = irq_choose_cpu(data->irq, data->affinity);
++	cpuid = irq_choose_cpu(data->irq, irq_data_get_affinity_mask(data));
+ 
+ 	err = sun4v_vintr_set_target(dev_handle, dev_ino, cpuid);
+ 	if (err != HV_EOK)
+@@ -884,8 +886,8 @@ void fixup_irqs(void)
+ 		if (desc->action && !irqd_is_per_cpu(data)) {
+ 			if (data->chip->irq_set_affinity)
+ 				data->chip->irq_set_affinity(data,
+-							     data->affinity,
+-							     false);
++					irq_data_get_affinity_mask(data),
++					false);
  		}
- 		/* We need to operate irq_affinity_online atomically. */
- 		arch_local_cli_save(flags);
-@@ -335,8 +337,7 @@ void migrate_irqs(void)
- 			GxICR(irq) = x & GxICR_LEVEL;
- 			tmp = GxICR(irq);
+ 		raw_spin_unlock_irqrestore(&desc->lock, flags);
+ 	}
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 9bbb8f2bbfcc..0299f052a2ef 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -126,7 +126,7 @@ static int leon_set_affinity(struct irq_data *data, const struct cpumask *dest,
+ 	int oldcpu, newcpu;
  
--			new = cpumask_any_and(data->affinity,
--					      cpu_online_mask);
-+			new = cpumask_any_and(mask, cpu_online_mask);
- 			irq_affinity_online[irq] = new;
+ 	mask = (unsigned long)data->chip_data;
+-	oldcpu = irq_choose_cpu(data->affinity);
++	oldcpu = irq_choose_cpu(irq_data_get_affinity_mask(data));
+ 	newcpu = irq_choose_cpu(dest);
  
- 			CROSS_GxICR(irq, new) =
+ 	if (oldcpu == newcpu)
+@@ -149,7 +149,7 @@ static void leon_unmask_irq(struct irq_data *data)
+ 	int cpu;
+ 
+ 	mask = (unsigned long)data->chip_data;
+-	cpu = irq_choose_cpu(data->affinity);
++	cpu = irq_choose_cpu(irq_data_get_affinity_mask(data));
+ 	spin_lock_irqsave(&leon_irq_lock, flags);
+ 	oldmask = LEON3_BYPASS_LOAD_PA(LEON_IMASK(cpu));
+ 	LEON3_BYPASS_STORE_PA(LEON_IMASK(cpu), (oldmask | mask));
+@@ -162,7 +162,7 @@ static void leon_mask_irq(struct irq_data *data)
+ 	int cpu;
+ 
+ 	mask = (unsigned long)data->chip_data;
+-	cpu = irq_choose_cpu(data->affinity);
++	cpu = irq_choose_cpu(irq_data_get_affinity_mask(data));
+ 	spin_lock_irqsave(&leon_irq_lock, flags);
+ 	oldmask = LEON3_BYPASS_LOAD_PA(LEON_IMASK(cpu));
+ 	LEON3_BYPASS_STORE_PA(LEON_IMASK(cpu), (oldmask & ~mask));
 -- 
 1.7.10.4
+
