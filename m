@@ -1,59 +1,35 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 11/36] sh, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
-Date: Mon,  1 Jun 2015 16:05:20 +0800
-Message-ID: <1433145945-789-12-git-send-email-jiang.liu@linux.intel.com>
-References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/3] Use acpi_video_unregister_backlight instead of acpi_video_unregister in platfrom backlight drivers
+Date: Mon,  1 Jun 2015 11:25:05 +0200
+Message-ID: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:55853 "EHLO mga03.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:58219 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936AbbFAIF1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:05:27 -0400
-In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
+	id S1751798AbbFAJZM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Jun 2015 05:25:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 
-Use helper function irq_data_get_irq_handler_data() to hide irq_desc
-implementation details.
+Hi All,
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- drivers/sh/intc/virq.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+I'm working on cleaning up the currently somewhat convoluted logic to
+select which backlight interfaces to register on x86 systems, see:
+http://lists.freedesktop.org/archives/dri-devel/2014-December/074687.html
 
-diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
-index f30ac9354ff2..bc0601cf0f8f 100644
---- a/drivers/sh/intc/virq.c
-+++ b/drivers/sh/intc/virq.c
-@@ -83,12 +83,11 @@ EXPORT_SYMBOL_GPL(intc_irq_lookup);
- 
- static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
- {
--	struct intc_virq_list **last, *entry;
--	struct irq_data *data = irq_get_irq_data(irq);
-+	struct intc_virq_list *entry;
-+	struct intc_virq_list **last = NULL;
- 
- 	/* scan for duplicates */
--	last = (struct intc_virq_list **)&data->handler_data;
--	for_each_virq(entry, data->handler_data) {
-+	for_each_virq(entry, irq_get_handler_data(irq)) {
- 		if (entry->irq == virq)
- 			return 0;
- 		last = &entry->next;
-@@ -102,7 +101,10 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
- 
- 	entry->irq = virq;
- 
--	*last = entry;
-+	if (last)
-+		*last = entry;
-+	else
-+		irq_set_handler_data(irq, entry);
- 
- 	return 0;
- }
--- 
-1.7.10.4
+For a rought outline (details will change in the actual patch-set).
 
+These 3 patches are a preparation for that work, as the behavior of the
+current code is not always consistent (it changes depending on module
+loading order in some cases). These 3 patches remove this inconsistency
+which in some cases may result in a behavior change.
+
+This way the cleanup can have a consistent base to build upon, and I can
+ensure that the cleanup itself does not cause any functional changes.
+
+I hope to post a v1 of the actual cleanup patch-set in 1-2 weeks.
+
+Regards,
+
+Hans
