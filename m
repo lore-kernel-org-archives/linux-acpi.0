@@ -1,53 +1,44 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 14/36] genirq: Introduce helper function irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:23 +0800
-Message-ID: <1433145945-789-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 16/36] ARM, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:25 +0800
+Message-ID: <1433145945-789-17-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56115 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752317AbbFAIFz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:05:55 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Introduce helper function irq_data_get_affinity_mask() and
-irq_get_affinity_mask() to hide implementation details,
-so we could move field 'affinity' from struct irq_data into
-struct irq_common_data later.
+Use access helper irq_data_get_affinity_mask() to hide implementation
+details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- include/linux/irq.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/kernel/irq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 68874efe19d3..91fbf10bdae0 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -656,6 +656,18 @@ static inline int irq_data_get_node(struct irq_data *d)
- 	return irq_common_data_get_node(d->common);
+diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
+index 350f188c92d2..baf8edebe26f 100644
+--- a/arch/arm/kernel/irq.c
++++ b/arch/arm/kernel/irq.c
+@@ -140,7 +140,7 @@ int __init arch_probe_nr_irqs(void)
+ static bool migrate_one_irq(struct irq_desc *desc)
+ {
+ 	struct irq_data *d = irq_desc_get_irq_data(desc);
+-	const struct cpumask *affinity = d->affinity;
++	const struct cpumask *affinity = irq_data_get_affinity_mask(d);
+ 	struct irq_chip *c;
+ 	bool ret = false;
+ 
+@@ -160,7 +160,7 @@ static bool migrate_one_irq(struct irq_desc *desc)
+ 	if (!c->irq_set_affinity)
+ 		pr_debug("IRQ%u: unable to set affinity\n", d->irq);
+ 	else if (c->irq_set_affinity(d, affinity, false) == IRQ_SET_MASK_OK && ret)
+-		cpumask_copy(d->affinity, affinity);
++		cpumask_copy(irq_data_get_affinity_mask(d), affinity);
+ 
+ 	return ret;
  }
- 
-+static inline struct cpumask *irq_get_affinity_mask(int irq)
-+{
-+	struct irq_data *d = irq_get_irq_data(irq);
-+
-+	return d ? d->affinity : NULL;
-+}
-+
-+static inline struct cpumask *irq_data_get_affinity_mask(struct irq_data *d)
-+{
-+	return d->affinity;
-+}
-+
- unsigned int arch_dynirq_lower_bound(unsigned int from);
- 
- int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
 -- 
 1.7.10.4
-
