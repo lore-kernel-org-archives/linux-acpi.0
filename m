@@ -1,65 +1,30 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [Patch v3 11/36] sh, irq: Use helper irq_data_get_irq_handler_data()
- to hide irq_desc details
-Date: Mon, 01 Jun 2015 14:38:57 +0300
-Message-ID: <556C4451.50503@cogentembedded.com>
-References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com> <1433145945-789-12-git-send-email-jiang.liu@linux.intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC v1 05/25] gpio: Use irq_desc_get_xxx() to avoid redundant
+ lookup of irq_desc
+Date: Mon, 1 Jun 2015 14:45:59 +0200
+Message-ID: <CACRpkdZfWK5H+gRD6inX31Ouq1XCvq7CneNDJV8x0iihXHzWjw@mail.gmail.com>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
+	<1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <1433145945-789-12-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ray Jui <rjui@broadcom.com>, Alexandre Courbot <gnurou@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.o>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+On Wed, May 20, 2015 at 11:59 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
 
-On 6/1/2015 11:05 AM, Jiang Liu wrote:
-
-> Use helper function irq_data_get_irq_handler_data() to hide irq_desc
-> implementation details.
-
-    I'm only seeing calls to irq_{get|set}_handler_data() below...
-
+> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+> already have a pointer to corresponding irq_desc.
+>
 > Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> ---
->   drivers/sh/intc/virq.c |   12 +++++++-----
->   1 file changed, 7 insertions(+), 5 deletions(-)
 
-> diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
-> index f30ac9354ff2..bc0601cf0f8f 100644
-> --- a/drivers/sh/intc/virq.c
-> +++ b/drivers/sh/intc/virq.c
-> @@ -83,12 +83,11 @@ EXPORT_SYMBOL_GPL(intc_irq_lookup);
->
->   static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
->   {
-> -	struct intc_virq_list **last, *entry;
-> -	struct irq_data *data = irq_get_irq_data(irq);
-> +	struct intc_virq_list *entry;
-> +	struct intc_virq_list **last = NULL;
->
->   	/* scan for duplicates */
-> -	last = (struct intc_virq_list **)&data->handler_data;
-> -	for_each_virq(entry, data->handler_data) {
-> +	for_each_virq(entry, irq_get_handler_data(irq)) {
->   		if (entry->irq == virq)
->   			return 0;
->   		last = &entry->next;
-> @@ -102,7 +101,10 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
->
->   	entry->irq = virq;
->
-> -	*last = entry;
-> +	if (last)
-> +		*last = entry;
-> +	else
-> +		irq_set_handler_data(irq, entry);
->
->   	return 0;
->   }
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-WBR, Sergei
+Are there dependencies on this patch or can I just apply it
+directly to the GPIO tree?
 
+Yours,
+Linus Walleij
