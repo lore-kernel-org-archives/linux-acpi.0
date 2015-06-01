@@ -1,18 +1,14 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/3] apple_gmux: Use acpi_video_unregister_backlight instead of acpi_video_unregister
-Date: Mon,  1 Jun 2015 11:25:06 +0200
-Message-ID: <1433150708-8498-2-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 2/3] asus-wmi: Use acpi_video_unregister_backlight instead of acpi_video_unregister
+Date: Mon,  1 Jun 2015 11:25:07 +0200
+Message-ID: <1433150708-8498-3-git-send-email-hdegoede@redhat.com>
 References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44438 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751386AbbFAJZN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 05:25:13 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>
-Cc: Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Seth Forshee <seth.forshee@canonical.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, acpi4asus-user@lists.sourceforge.net
+List-Id: linux-acpi@vger.kernel.org
 
 acpi_video_unregister() not only unregisters the acpi-video backlight
 interface but also unregisters the acpi video bus event listener, causing
@@ -24,21 +20,22 @@ acpi_video_unregister_backlight().
 
 Another problem with using acpi_video_unregister() rather then using
 acpi_video_unregister_backlight() is that on systems with an intel video
-opregion (most systems) whether or not the acpi video bus event listener
-actually gets unregistered depends on module load ordering:
+opregion (most systems) and a wmi_backlight_power quirk, whether or not
+the acpi video bus event listener actually gets unregistered depends on
+module load ordering:
 
 Scenario a:
 1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
    is an intel opregion.
 2) intel.ko gets loaded, calls acpi_video_register() which registers both
    the listener and the acpi backlight interface
-3) apple-gmux.ko gets loaded, calls acpi_video_unregister() causing both
+3) asus-wmi.ko gets loaded, calls acpi_video_unregister() causing both
    the listener and the acpi backlight interface to unregister
 
 Scenario b:
 1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
    is an intel opregion.
-2) apple-gmux.ko gets loaded, calls acpi_video_dmi_promote_vendor(),
+2) asus-wmi.ko gets loaded, calls acpi_video_dmi_promote_vendor(),
    calls acpi_video_unregister(), which is a nop since acpi_video_register
    has not yet been called
 2) intel.ko gets loaded, calls acpi_video_register() which registers
@@ -66,25 +63,25 @@ the canonical source for brightness events I believe that the latter case
 will needs to be handled on a case by case basis by filtering out the
 duplicate keypresses at the other source for them.
 
-Cc: Seth Forshee <seth.forshee@canonical.com>
+Cc: Corentin Chary <corentin.chary@gmail.com>
+Cc: acpi4asus-user@lists.sourceforge.net
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/apple-gmux.c | 2 +-
+ drivers/platform/x86/asus-wmi.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
-index 6808715..45032ce 100644
---- a/drivers/platform/x86/apple-gmux.c
-+++ b/drivers/platform/x86/apple-gmux.c
-@@ -551,7 +551,7 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
- 	 * Disable the other backlight choices.
- 	 */
- 	acpi_video_dmi_promote_vendor();
--	acpi_video_unregister();
-+	acpi_video_unregister_backlight();
- 	apple_bl_unregister();
- 
- 	gmux_data->power_state = VGA_SWITCHEROO_ON;
+diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+index 7543a56..945145d 100644
+--- a/drivers/platform/x86/asus-wmi.c
++++ b/drivers/platform/x86/asus-wmi.c
+@@ -1777,7 +1777,7 @@ static int asus_wmi_add(struct platform_device *pdev)
+ 		acpi_video_dmi_promote_vendor();
+ 	if (!acpi_video_backlight_support()) {
+ 		pr_info("Disabling ACPI video driver\n");
+-		acpi_video_unregister();
++		acpi_video_unregister_backlight();
+ 		err = asus_wmi_backlight_init(asus);
+ 		if (err && err != -ENODEV)
+ 			goto fail_backlight;
 -- 
 2.4.2
-
