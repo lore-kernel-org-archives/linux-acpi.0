@@ -1,102 +1,85 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 21/36] mips, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:30 +0800
-Message-ID: <1433145945-789-22-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 23/36] parisc, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:32 +0800
+Message-ID: <1433145945-789-24-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:17013 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932101AbbFAIHU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Jun 2015 04:07:20 -0400
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Jonas Gorski <jogo@openwrt.org>, Aleksey Makarov <aleksey.makarov@auriga.com>, David Daney <david.daney@cavium.com>, Christoph Lameter <cl@linux.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mips@linux-mips.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-parisc@vger.kernel.org
 
 Use access helper irq_data_get_affinity_mask() to hide implementation
 details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/mips/bcm63xx/irq.c              |    2 +-
- arch/mips/cavium-octeon/octeon-irq.c |   14 ++++++++------
- arch/mips/pmcs-msp71xx/msp_irq_cic.c |    3 ++-
- 3 files changed, 11 insertions(+), 8 deletions(-)
+ arch/parisc/kernel/irq.c |   12 ++++++------
+ drivers/parisc/iosapic.c |    2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/mips/bcm63xx/irq.c b/arch/mips/bcm63xx/irq.c
-index e3e808a6c542..02983b90826d 100644
---- a/arch/mips/bcm63xx/irq.c
-+++ b/arch/mips/bcm63xx/irq.c
-@@ -60,7 +60,7 @@ static inline int enable_irq_for_cpu(int cpu, struct irq_data *d,
- 	if (m)
- 		enable &= cpumask_test_cpu(cpu, m);
- 	else if (irqd_affinity_was_set(d))
--		enable &= cpumask_test_cpu(cpu, d->affinity);
-+		enable &= cpumask_test_cpu(cpu, irq_data_get_affinity_mask(d));
- #endif
- 	return enable;
+diff --git a/arch/parisc/kernel/irq.c b/arch/parisc/kernel/irq.c
+index f3191db6e2e9..413ec3c3f9cc 100644
+--- a/arch/parisc/kernel/irq.c
++++ b/arch/parisc/kernel/irq.c
+@@ -131,7 +131,7 @@ static int cpu_set_affinity_irq(struct irq_data *d, const struct cpumask *dest,
+ 	if (cpu_dest < 0)
+ 		return -1;
+ 
+-	cpumask_copy(d->affinity, dest);
++	cpumask_copy(irq_data_get_affinity_mask(d), dest);
+ 
+ 	return 0;
  }
-diff --git a/arch/mips/cavium-octeon/octeon-irq.c b/arch/mips/cavium-octeon/octeon-irq.c
-index 10f762557b92..0643ae614284 100644
---- a/arch/mips/cavium-octeon/octeon-irq.c
-+++ b/arch/mips/cavium-octeon/octeon-irq.c
-@@ -225,13 +225,14 @@ static int next_cpu_for_irq(struct irq_data *data)
+@@ -339,7 +339,7 @@ unsigned long txn_affinity_addr(unsigned int irq, int cpu)
+ {
+ #ifdef CONFIG_SMP
+ 	struct irq_data *d = irq_get_irq_data(irq);
+-	cpumask_copy(d->affinity, cpumask_of(cpu));
++	cpumask_copy(irq_data_get_affinity_mask(d), cpumask_of(cpu));
+ #endif
+ 
+ 	return per_cpu(cpu_data, cpu).txn_addr;
+@@ -508,7 +508,7 @@ void do_cpu_irq_mask(struct pt_regs *regs)
+ 	unsigned long eirr_val;
+ 	int irq, cpu = smp_processor_id();
+ #ifdef CONFIG_SMP
+-	struct irq_desc *desc;
++	struct irq_data *irq_data;
+ 	cpumask_t dest;
+ #endif
+ 
+@@ -522,9 +522,9 @@ void do_cpu_irq_mask(struct pt_regs *regs)
+ 	irq = eirr_to_irq(eirr_val);
  
  #ifdef CONFIG_SMP
- 	int cpu;
--	int weight = cpumask_weight(data->affinity);
-+	struct cpumask *mask = irq_data_get_affinity_mask(data);
-+	int weight = cpumask_weight(mask);
- 	struct octeon_ciu_chip_data *cd = irq_data_get_irq_chip_data(data);
+-	desc = irq_to_desc(irq);
+-	cpumask_copy(&dest, desc->irq_data.affinity);
+-	if (irqd_is_per_cpu(&desc->irq_data) &&
++	irq_data = irq_get_irq_data(irq);
++	cpumask_copy(&dest, irq_data_get_affinity_mask(irq_data));
++	if (irqd_is_per_cpu(irq_data) &&
+ 	    !cpumask_test_cpu(smp_processor_id(), &dest)) {
+ 		int cpu = cpumask_first(&dest);
  
- 	if (weight > 1) {
- 		cpu = cd->current_cpu;
- 		for (;;) {
--			cpu = cpumask_next(cpu, data->affinity);
-+			cpu = cpumask_next(cpu, mask);
- 			if (cpu >= nr_cpu_ids) {
- 				cpu = -1;
- 				continue;
-@@ -240,7 +241,7 @@ static int next_cpu_for_irq(struct irq_data *data)
- 			}
- 		}
- 	} else if (weight == 1) {
--		cpu = cpumask_first(data->affinity);
-+		cpu = cpumask_first(mask);
- 	} else {
- 		cpu = smp_processor_id();
- 	}
-@@ -710,16 +711,17 @@ static void octeon_irq_cpu_offline_ciu(struct irq_data *data)
- {
- 	int cpu = smp_processor_id();
- 	cpumask_t new_affinity;
-+	struct cpumask *mask = irq_data_get_affinity_mask(data);
+diff --git a/drivers/parisc/iosapic.c b/drivers/parisc/iosapic.c
+index 9ee04b4b68bf..144c77dfe4b1 100644
+--- a/drivers/parisc/iosapic.c
++++ b/drivers/parisc/iosapic.c
+@@ -691,7 +691,7 @@ static int iosapic_set_affinity_irq(struct irq_data *d,
+ 	if (dest_cpu < 0)
+ 		return -1;
  
--	if (!cpumask_test_cpu(cpu, data->affinity))
-+	if (!cpumask_test_cpu(cpu, mask))
- 		return;
+-	cpumask_copy(d->affinity, cpumask_of(dest_cpu));
++	cpumask_copy(irq_data_get_affinity_mask(d), cpumask_of(dest_cpu));
+ 	vi->txn_addr = txn_affinity_addr(d->irq, dest_cpu);
  
--	if (cpumask_weight(data->affinity) > 1) {
-+	if (cpumask_weight(mask) > 1) {
- 		/*
- 		 * It has multi CPU affinity, just remove this CPU
- 		 * from the affinity set.
- 		 */
--		cpumask_copy(&new_affinity, data->affinity);
-+		cpumask_copy(&new_affinity, mask);
- 		cpumask_clear_cpu(cpu, &new_affinity);
- 	} else {
- 		/* Otherwise, put it on lowest numbered online CPU. */
-diff --git a/arch/mips/pmcs-msp71xx/msp_irq_cic.c b/arch/mips/pmcs-msp71xx/msp_irq_cic.c
-index 1207ec4dfb77..8b9cf6463040 100644
---- a/arch/mips/pmcs-msp71xx/msp_irq_cic.c
-+++ b/arch/mips/pmcs-msp71xx/msp_irq_cic.c
-@@ -88,7 +88,8 @@ static void unmask_cic_irq(struct irq_data *d)
- 	* Make sure we have IRQ affinity.  It may have changed while
- 	* we were processing the IRQ.
- 	*/
--	if (!cpumask_test_cpu(smp_processor_id(), d->affinity))
-+	if (!cpumask_test_cpu(smp_processor_id(),
-+			      irq_data_get_affinity_mask(d)))
- 		return;
- #endif
- 
+ 	spin_lock_irqsave(&iosapic_lock, flags);
 -- 
 1.7.10.4
+
