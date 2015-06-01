@@ -1,104 +1,35 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V2 3/3] acpi, apei: use EFI memmap to map GHES memory
-Date: Mon,  1 Jun 2015 12:12:20 -0700
-Message-ID: <1433185940-24770-4-git-send-email-zjzhang@codeaurora.org>
-References: <1433185940-24770-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1433185940-24770-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, leif.lindholm@linaro.org, al.stone@linaro.org, fu.wei@linaro.org
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [RFC][PATCH] x86: remove vmalloc.h from asm/io.h
+Date: Mon, 01 Jun 2015 15:59:31 -0700 (PDT)
+Message-ID: <20150601.155931.1230241015446814769.davem@davemloft.net>
+References: <20150529191847.2d4cb3a7@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20150529191847.2d4cb3a7@canb.auug.org.au>
+Sender: linux-pm-owner@vger.kernel.org
+To: sfr@canb.auug.org.au
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, konrad.wilk@oracle.com, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, anton@enomsg.org, ccross@android.com, keescook@chromium.org, tony.luck@intel.com, rjw@rjwysocki.net, lenb@kernel.org, kristen@linux.intel.com, viresh.kumar@linaro.org, vinod.koul@intel.com, kys@microsoft.com, haiyangz@microsoft.com, hiralpat@cisco.com, sramars@cisco.com, buchino@cisco.com, JBottomley@odin.com, perex@perex.cz, tiwai@suse.de, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, dmaengine@vger.kernel.org, devel@linuxdriverproject.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Fri, 29 May 2015 19:18:47 +1000
 
-With ACPI APEI firmware first handling, generic hardware error
-record is updated by firmware in GHES memory region. When firmware
-updated GHES memory region in DDR without going through cache,
-Linux reads stale data from cache.
+> Nothing in asm/io.h uses anything from vmalloc.h, so remove the include
+> and fix up the build problems in an allmodconfig (64 bit and 32 bit)
+> build.
+> 
+> This may be the place where x86 builds get vmalloc.h implicitly included
+> and that tends to hide places where vmalloc() et al are added to files
+> but the include of vmalloc.h is forgotten.
+> 
+ ...
+> Suggested-by: David Miller <davem@davemloft.net>
+> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 
-GHES memory region should be mapped with cache attributes
-according to EFI memory map when applicable. If firmware updates
-DDR directly, EFI memory map has GHES memory region defined as
-uncached; If firmware updates cache, EFI memory map has GHES
-memory region defined as cached.
+With the follow-on allnoconfig fixes:
 
-When EFI is configued, map IRQ page using efi_remap() provided by
-EFI subsystem.
+Acked-by: David S. Miller <davem@davemloft.net>
 
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index e82d0976a5d0..56875ca76aa7 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -48,6 +48,7 @@
- #include <linux/pci.h>
- #include <linux/aer.h>
- #include <linux/nmi.h>
-+#include <linux/efi.h>
- 
- #include <acpi/ghes.h>
- #include <acpi/apei.h>
-@@ -159,6 +160,7 @@ static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
- 	return (void __iomem *)vaddr;
- }
- 
-+#ifndef CONFIG_EFI
- static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- {
- 	unsigned long vaddr;
-@@ -169,6 +171,7 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- 
- 	return (void __iomem *)vaddr;
- }
-+#endif
- 
- static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
- {
-@@ -180,6 +183,7 @@ static void ghes_iounmap_nmi(void __iomem *vaddr_ptr)
- 	arch_apei_flush_tlb_one(vaddr);
- }
- 
-+#ifndef CONFIG_EFI
- static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
- {
- 	unsigned long vaddr = (unsigned long __force)vaddr_ptr;
-@@ -189,6 +193,7 @@ static void ghes_iounmap_irq(void __iomem *vaddr_ptr)
- 	unmap_kernel_range_noflush(vaddr, PAGE_SIZE);
- 	arch_apei_flush_tlb_one(vaddr);
- }
-+#endif
- 
- static int ghes_estatus_pool_init(void)
- {
-@@ -309,7 +314,11 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
- 			vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
- 		} else {
- 			spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
-+#ifdef CONFIG_EFI
-+			vaddr = efi_remap(paddr & PAGE_MASK, PAGE_SIZE);
-+#else
- 			vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
-+#endif
- 		}
- 		trunk = PAGE_SIZE - offset;
- 		trunk = min(trunk, len);
-@@ -324,7 +333,11 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
- 			ghes_iounmap_nmi(vaddr);
- 			raw_spin_unlock(&ghes_ioremap_lock_nmi);
- 		} else {
-+#ifdef CONFIG_EFI
-+			iounmap(vaddr);
-+#else
- 			ghes_iounmap_irq(vaddr);
-+#endif
- 			spin_unlock_irqrestore(&ghes_ioremap_lock_irq, flags);
- 		}
- 	}
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Thanks a lot for doing this!
