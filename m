@@ -1,56 +1,183 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 28/36] xtensa, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:37 +0800
-Message-ID: <1433145945-789-29-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 31/36] genirq: Move field 'affinity' from struct irq_data into struct irq_common_data
+Date: Mon,  1 Jun 2015 16:05:40 +0800
+Message-ID: <1433145945-789-32-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-xtensa@linux-xtensa.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use access helper irq_data_get_affinity_mask() to hide implementation
-details of struct irq_desc.
+Irq affinity mask is per-irq instead of per irqchip, so move it into
+struct irq_common_data.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/xtensa/kernel/irq.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/irq.h  |   12 ++++++------
+ kernel/irq/irqdesc.c |    9 +++++----
+ kernel/irq/manage.c  |   12 ++++++------
+ kernel/irq/proc.c    |    2 +-
+ 4 files changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/arch/xtensa/kernel/irq.c b/arch/xtensa/kernel/irq.c
-index 3eee94f621eb..d7b5a4c8ae5d 100644
---- a/arch/xtensa/kernel/irq.c
-+++ b/arch/xtensa/kernel/irq.c
-@@ -166,23 +166,25 @@ void migrate_irqs(void)
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 91fbf10bdae0..9d01cd8ca8a2 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -110,8 +110,8 @@ enum {
+ /*
+  * Return value for chip->irq_set_affinity()
+  *
+- * IRQ_SET_MASK_OK	- OK, core updates irq_data.affinity
+- * IRQ_SET_MASK_NOCPY	- OK, chip did update irq_data.affinity
++ * IRQ_SET_MASK_OK	- OK, core updates irq_common_data.affinity
++ * IRQ_SET_MASK_NOCPY	- OK, chip did update irq_common_data.affinity
+  * IRQ_SET_MASK_OK_DONE	- Same as IRQ_SET_MASK_OK for core. Special code to
+  *			  support stacked irqchips, which indicates skipping
+  *			  all descendent irqchips.
+@@ -131,6 +131,7 @@ struct irq_domain;
+  *			Use accessor functions to deal with it
+  * @node:		node index useful for balancing
+  * @handler_data:	per-IRQ data for the irq_chip methods
++ * @affinity:		IRQ affinity on SMP
+  */
+ struct irq_common_data {
+ 	unsigned int		state_use_accessors;
+@@ -138,6 +139,7 @@ struct irq_common_data {
+ 	unsigned int		node;
+ #endif
+ 	void			*handler_data;
++	cpumask_var_t		affinity;
+ };
  
- 	for_each_active_irq(i) {
- 		struct irq_data *data = irq_get_irq_data(i);
-+		struct cpumask *mask;
- 		unsigned int newcpu;
+ /**
+@@ -154,7 +156,6 @@ struct irq_common_data {
+  * @chip_data:		platform-specific per-chip private data for the chip
+  *			methods, to allow shared chip implementations
+  * @msi_desc:		MSI descriptor
+- * @affinity:		IRQ affinity on SMP
+  *
+  * The fields here need to overlay the ones in irq_desc until we
+  * cleaned up the direct references and switched everything over to
+@@ -172,7 +173,6 @@ struct irq_data {
+ #endif
+ 	void			*chip_data;
+ 	struct msi_desc		*msi_desc;
+-	cpumask_var_t		affinity;
+ };
  
- 		if (irqd_is_per_cpu(data))
- 			continue;
+ /*
+@@ -660,12 +660,12 @@ static inline struct cpumask *irq_get_affinity_mask(int irq)
+ {
+ 	struct irq_data *d = irq_get_irq_data(irq);
  
--		if (!cpumask_test_cpu(cpu, data->affinity))
-+		mask = irq_data_get_affinity_mask(data);
-+		if (!cpumask_test_cpu(cpu, mask))
- 			continue;
- 
--		newcpu = cpumask_any_and(data->affinity, cpu_online_mask);
-+		newcpu = cpumask_any_and(mask, cpu_online_mask);
- 
- 		if (newcpu >= nr_cpu_ids) {
- 			pr_info_ratelimited("IRQ%u no longer affine to CPU%u\n",
- 					    i, cpu);
- 
--			cpumask_setall(data->affinity);
-+			cpumask_setall(mask);
- 		}
--		irq_set_affinity(i, data->affinity);
-+		irq_set_affinity(i, mask);
- 	}
+-	return d ? d->affinity : NULL;
++	return d ? d->common->affinity : NULL;
  }
- #endif /* CONFIG_HOTPLUG_CPU */
+ 
+ static inline struct cpumask *irq_data_get_affinity_mask(struct irq_data *d)
+ {
+-	return d->affinity;
++	return d->common->affinity;
+ }
+ 
+ unsigned int arch_dynirq_lower_bound(unsigned int from);
+diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
+index 7f881792ad5f..2c39a203f78b 100644
+--- a/kernel/irq/irqdesc.c
++++ b/kernel/irq/irqdesc.c
+@@ -38,12 +38,13 @@ static void __init init_irq_default_affinity(void)
+ #ifdef CONFIG_SMP
+ static int alloc_masks(struct irq_desc *desc, gfp_t gfp, int node)
+ {
+-	if (!zalloc_cpumask_var_node(&desc->irq_data.affinity, gfp, node))
++	if (!zalloc_cpumask_var_node(&desc->irq_common_data.affinity,
++				     gfp, node))
+ 		return -ENOMEM;
+ 
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+ 	if (!zalloc_cpumask_var_node(&desc->pending_mask, gfp, node)) {
+-		free_cpumask_var(desc->irq_data.affinity);
++		free_cpumask_var(desc->irq_common_data.affinity);
+ 		return -ENOMEM;
+ 	}
+ #endif
+@@ -52,7 +53,7 @@ static int alloc_masks(struct irq_desc *desc, gfp_t gfp, int node)
+ 
+ static void desc_smp_init(struct irq_desc *desc, int node)
+ {
+-	cpumask_copy(desc->irq_data.affinity, irq_default_affinity);
++	cpumask_copy(desc->irq_common_data.affinity, irq_default_affinity);
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+ 	cpumask_clear(desc->pending_mask);
+ #endif
+@@ -124,7 +125,7 @@ static void free_masks(struct irq_desc *desc)
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+ 	free_cpumask_var(desc->pending_mask);
+ #endif
+-	free_cpumask_var(desc->irq_data.affinity);
++	free_cpumask_var(desc->irq_common_data.affinity);
+ }
+ #else
+ static inline void free_masks(struct irq_desc *desc) { }
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index f9744853b656..e7688140bfb6 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -190,7 +190,7 @@ int irq_do_set_affinity(struct irq_data *data, const struct cpumask *mask,
+ 	switch (ret) {
+ 	case IRQ_SET_MASK_OK:
+ 	case IRQ_SET_MASK_OK_DONE:
+-		cpumask_copy(data->affinity, mask);
++		cpumask_copy(desc->irq_common_data.affinity, mask);
+ 	case IRQ_SET_MASK_OK_NOCOPY:
+ 		irq_set_thread_affinity(desc);
+ 		ret = 0;
+@@ -302,7 +302,7 @@ static void irq_affinity_notify(struct work_struct *work)
+ 	if (irq_move_pending(&desc->irq_data))
+ 		irq_get_pending(cpumask, desc);
+ 	else
+-		cpumask_copy(cpumask, desc->irq_data.affinity);
++		cpumask_copy(cpumask, desc->irq_common_data.affinity);
+ 	raw_spin_unlock_irqrestore(&desc->lock, flags);
+ 
+ 	notify->notify(notify, cpumask);
+@@ -374,9 +374,9 @@ setup_affinity(unsigned int irq, struct irq_desc *desc, struct cpumask *mask)
+ 	 * one of the targets is online.
+ 	 */
+ 	if (irqd_has_set(&desc->irq_data, IRQD_AFFINITY_SET)) {
+-		if (cpumask_intersects(desc->irq_data.affinity,
++		if (cpumask_intersects(desc->irq_common_data.affinity,
+ 				       cpu_online_mask))
+-			set = desc->irq_data.affinity;
++			set = desc->irq_common_data.affinity;
+ 		else
+ 			irqd_clear(&desc->irq_data, IRQD_AFFINITY_SET);
+ 	}
+@@ -827,8 +827,8 @@ irq_thread_check_affinity(struct irq_desc *desc, struct irqaction *action)
+ 	 * This code is triggered unconditionally. Check the affinity
+ 	 * mask pointer. For CPU_MASK_OFFSTACK=n this is optimized out.
+ 	 */
+-	if (desc->irq_data.affinity)
+-		cpumask_copy(mask, desc->irq_data.affinity);
++	if (desc->irq_common_data.affinity)
++		cpumask_copy(mask, desc->irq_common_data.affinity);
+ 	else
+ 		valid = false;
+ 	raw_spin_unlock_irq(&desc->lock);
+diff --git a/kernel/irq/proc.c b/kernel/irq/proc.c
+index 0e97c142ce40..e3a8c9577ba6 100644
+--- a/kernel/irq/proc.c
++++ b/kernel/irq/proc.c
+@@ -39,7 +39,7 @@ static struct proc_dir_entry *root_irq_dir;
+ static int show_irq_affinity(int type, struct seq_file *m, void *v)
+ {
+ 	struct irq_desc *desc = irq_to_desc((long)m->private);
+-	const struct cpumask *mask = desc->irq_data.affinity;
++	const struct cpumask *mask = desc->irq_common_data.affinity;
+ 
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
+ 	if (irqd_is_setaffinity_pending(&desc->irq_data))
 -- 
 1.7.10.4
