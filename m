@@ -1,17 +1,26 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC v1 05/25] gpio: Use irq_desc_get_xxx() to avoid redundant
+Subject: Re: [RFC v1 06/25] pinctrl: Use irq_desc_get_xxx() to avoid redundant
  lookup of irq_desc
-Date: Mon, 1 Jun 2015 14:45:59 +0200
-Message-ID: <CACRpkdZfWK5H+gRD6inX31Ouq1XCvq7CneNDJV8x0iihXHzWjw@mail.gmail.com>
+Date: Mon, 1 Jun 2015 14:46:34 +0200
+Message-ID: <CACRpkdazXuq7WZZPiObRNFBTokazUN9yisU7VNobS4ezgZTHJw@mail.gmail.com>
 References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com>
-	<1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
+ <1432116013-25902-7-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1432116013-25902-6-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1432116013-25902-7-git-send-email-jiang.liu@linux.intel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ray Jui <rjui@broadcom.com>, Alexandre Courbot <gnurou@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.o>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Heiko Stuebner <heiko@sntech.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tomasz Figa <tomasz.figa@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Maoguang Meng <maoguang.meng@mediatek.com>, "H. Peter Anvin" <hpa@zytor.com>, kernel@stlinux.com, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Axel Lin <axel.lin@ingics.com>, "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>, Hongzhou Yang <hongzhou.yang@mediatek.com>, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Chen-Yu Tsai <wens@csie.org>, Ingo Molnar <mingo@redhat.com>, Thomas Abraham <thomas.abraham@linaro.org>, Bjorn Andersson <bjorn.andersson@sonymobile.com>lin
 List-Id: linux-acpi@vger.kernel.org
 
 On Wed, May 20, 2015 at 11:59 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
