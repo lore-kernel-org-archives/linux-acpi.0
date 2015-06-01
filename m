@@ -1,85 +1,63 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 23/36] parisc, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:32 +0800
-Message-ID: <1433145945-789-24-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 24/36] powerpc, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:33 +0800
+Message-ID: <1433145945-789-25-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:17013 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932101AbbFAIHU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:07:20 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Anton Blanchard <anton@samba.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Christoph Lameter <cl@linux.com>, Tejun Heo <tj@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-parisc@vger.kernel.org
 
 Use access helper irq_data_get_affinity_mask() to hide implementation
 details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/parisc/kernel/irq.c |   12 ++++++------
- drivers/parisc/iosapic.c |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ arch/powerpc/kernel/irq.c           |    2 +-
+ arch/powerpc/sysdev/xics/ics-opal.c |    2 +-
+ arch/powerpc/sysdev/xics/ics-rtas.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/parisc/kernel/irq.c b/arch/parisc/kernel/irq.c
-index f3191db6e2e9..413ec3c3f9cc 100644
---- a/arch/parisc/kernel/irq.c
-+++ b/arch/parisc/kernel/irq.c
-@@ -131,7 +131,7 @@ static int cpu_set_affinity_irq(struct irq_data *d, const struct cpumask *dest,
- 	if (cpu_dest < 0)
- 		return -1;
+diff --git a/arch/powerpc/kernel/irq.c b/arch/powerpc/kernel/irq.c
+index 45096033d37b..290559df1e8b 100644
+--- a/arch/powerpc/kernel/irq.c
++++ b/arch/powerpc/kernel/irq.c
+@@ -441,7 +441,7 @@ void migrate_irqs(void)
  
--	cpumask_copy(d->affinity, dest);
-+	cpumask_copy(irq_data_get_affinity_mask(d), dest);
+ 		chip = irq_data_get_irq_chip(data);
  
- 	return 0;
- }
-@@ -339,7 +339,7 @@ unsigned long txn_affinity_addr(unsigned int irq, int cpu)
- {
- #ifdef CONFIG_SMP
- 	struct irq_data *d = irq_get_irq_data(irq);
--	cpumask_copy(d->affinity, cpumask_of(cpu));
-+	cpumask_copy(irq_data_get_affinity_mask(d), cpumask_of(cpu));
- #endif
+-		cpumask_and(mask, data->affinity, map);
++		cpumask_and(mask, irq_data_get_affinity_mask(data), map);
+ 		if (cpumask_any(mask) >= nr_cpu_ids) {
+ 			pr_warn("Breaking affinity for irq %i\n", irq);
+ 			cpumask_copy(mask, map);
+diff --git a/arch/powerpc/sysdev/xics/ics-opal.c b/arch/powerpc/sysdev/xics/ics-opal.c
+index 68c7e5cc98e0..3996393c254d 100644
+--- a/arch/powerpc/sysdev/xics/ics-opal.c
++++ b/arch/powerpc/sysdev/xics/ics-opal.c
+@@ -54,7 +54,7 @@ static void ics_opal_unmask_irq(struct irq_data *d)
+ 	if (hw_irq == XICS_IPI || hw_irq == XICS_IRQ_SPURIOUS)
+ 		return;
  
- 	return per_cpu(cpu_data, cpu).txn_addr;
-@@ -508,7 +508,7 @@ void do_cpu_irq_mask(struct pt_regs *regs)
- 	unsigned long eirr_val;
- 	int irq, cpu = smp_processor_id();
- #ifdef CONFIG_SMP
--	struct irq_desc *desc;
-+	struct irq_data *irq_data;
- 	cpumask_t dest;
- #endif
+-	server = xics_get_irq_server(d->irq, d->affinity, 0);
++	server = xics_get_irq_server(d->irq, irq_data_get_affinity_mask(d), 0);
+ 	server = ics_opal_mangle_server(server);
  
-@@ -522,9 +522,9 @@ void do_cpu_irq_mask(struct pt_regs *regs)
- 	irq = eirr_to_irq(eirr_val);
+ 	rc = opal_set_xive(hw_irq, server, DEFAULT_PRIORITY);
+diff --git a/arch/powerpc/sysdev/xics/ics-rtas.c b/arch/powerpc/sysdev/xics/ics-rtas.c
+index 0af97deb83f3..e2665a9dfc0f 100644
+--- a/arch/powerpc/sysdev/xics/ics-rtas.c
++++ b/arch/powerpc/sysdev/xics/ics-rtas.c
+@@ -47,7 +47,7 @@ static void ics_rtas_unmask_irq(struct irq_data *d)
+ 	if (hw_irq == XICS_IPI || hw_irq == XICS_IRQ_SPURIOUS)
+ 		return;
  
- #ifdef CONFIG_SMP
--	desc = irq_to_desc(irq);
--	cpumask_copy(&dest, desc->irq_data.affinity);
--	if (irqd_is_per_cpu(&desc->irq_data) &&
-+	irq_data = irq_get_irq_data(irq);
-+	cpumask_copy(&dest, irq_data_get_affinity_mask(irq_data));
-+	if (irqd_is_per_cpu(irq_data) &&
- 	    !cpumask_test_cpu(smp_processor_id(), &dest)) {
- 		int cpu = cpumask_first(&dest);
+-	server = xics_get_irq_server(d->irq, d->affinity, 0);
++	server = xics_get_irq_server(d->irq, irq_data_get_affinity_mask(d), 0);
  
-diff --git a/drivers/parisc/iosapic.c b/drivers/parisc/iosapic.c
-index 9ee04b4b68bf..144c77dfe4b1 100644
---- a/drivers/parisc/iosapic.c
-+++ b/drivers/parisc/iosapic.c
-@@ -691,7 +691,7 @@ static int iosapic_set_affinity_irq(struct irq_data *d,
- 	if (dest_cpu < 0)
- 		return -1;
- 
--	cpumask_copy(d->affinity, cpumask_of(dest_cpu));
-+	cpumask_copy(irq_data_get_affinity_mask(d), cpumask_of(dest_cpu));
- 	vi->txn_addr = txn_affinity_addr(d->irq, dest_cpu);
- 
- 	spin_lock_irqsave(&iosapic_lock, flags);
+ 	call_status = rtas_call(ibm_set_xive, 3, 1, NULL, hw_irq, server,
+ 				DEFAULT_PRIORITY);
 -- 
 1.7.10.4
-
