@@ -1,123 +1,141 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 07/36] genirq: Move field 'node' from struct irq_data into struct irq_common_data
-Date: Mon,  1 Jun 2015 16:05:16 +0800
-Message-ID: <1433145945-789-8-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 08/36] sparc, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
+Date: Mon,  1 Jun 2015 16:05:17 +0800
+Message-ID: <1433145945-789-9-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:38942 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752157AbbFAIFE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Jun 2015 04:05:04 -0400
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "David S. Miller" <davem@davemloft.net>, bob picco <bpicco@meloft.net>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sparclinux@vger.kernel.org
 
-NUMA node information is per-irq instead of per-irqchip, so move it into
-struct irq_common_data. Also use CONFIG_NUMA to guard irq_common_data.node.
+Use helper function irq_data_get_irq_handler_data() to hide irq_desc
+implementation details.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- include/linux/irq.h    |   17 ++++++++++++++---
- kernel/irq/internals.h |    2 +-
- kernel/irq/irqdesc.c   |    4 +++-
- kernel/irq/irqdomain.c |    1 -
- 4 files changed, 18 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/irq_64.c    |   15 +++++++++------
+ arch/sparc/kernel/sun4d_irq.c |    4 ++--
+ arch/sparc/kernel/sun4m_irq.c |    6 ++++--
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index b3b82a5344c8..bcedf9f952d4 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -129,9 +129,13 @@ struct irq_domain;
-  * struct irq_common_data - per irq data shared by all irqchips
-  * @state_use_accessors: status information for irq chip functions.
-  *			Use accessor functions to deal with it
-+ * @node:		node index useful for balancing
-  */
- struct irq_common_data {
- 	unsigned int		state_use_accessors;
-+#ifdef CONFIG_NUMA
-+	unsigned int		node;
-+#endif
- };
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 4033c23bdfa6..5130f6e3e68e 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -210,21 +210,21 @@ struct irq_handler_data {
  
- /**
-@@ -139,7 +143,6 @@ struct irq_common_data {
-  * @mask:		precomputed bitmask for accessing the chip registers
-  * @irq:		interrupt number
-  * @hwirq:		hardware interrupt number, local to the interrupt domain
-- * @node:		node index useful for balancing
-  * @common:		point to data shared by all irqchips
-  * @chip:		low level interrupt hardware access
-  * @domain:		Interrupt translation domain; responsible for mapping
-@@ -160,7 +163,6 @@ struct irq_data {
- 	u32			mask;
- 	unsigned int		irq;
- 	unsigned long		hwirq;
--	unsigned int		node;
- 	struct irq_common_data	*common;
- 	struct irq_chip		*chip;
- 	struct irq_domain	*domain;
-@@ -640,9 +642,18 @@ static inline u32 irq_get_trigger_type(unsigned int irq)
- 	return d ? irqd_get_trigger_type(d) : 0;
- }
- 
--static inline int irq_data_get_node(struct irq_data *d)
-+static inline int irq_common_data_get_node(struct irq_common_data *d)
+ static inline unsigned int irq_data_to_handle(struct irq_data *data)
  {
-+#ifdef CONFIG_NUMA
- 	return d->node;
-+#else
-+	return 0;
-+#endif
-+}
-+
-+static inline int irq_data_get_node(struct irq_data *d)
-+{
-+	return irq_common_data_get_node(d->common);
+-	struct irq_handler_data *ihd = data->handler_data;
++	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
+ 
+ 	return ihd->dev_handle;
  }
  
- unsigned int arch_dynirq_lower_bound(unsigned int from);
-diff --git a/kernel/irq/internals.h b/kernel/irq/internals.h
-index 4834ee828c41..b117e4c243d8 100644
---- a/kernel/irq/internals.h
-+++ b/kernel/irq/internals.h
-@@ -199,7 +199,7 @@ static inline void kstat_incr_irqs_this_cpu(unsigned int irq, struct irq_desc *d
- 
- static inline int irq_desc_get_node(struct irq_desc *desc)
+ static inline unsigned int irq_data_to_ino(struct irq_data *data)
  {
--	return irq_data_get_node(&desc->irq_data);
-+	return irq_common_data_get_node(&desc->irq_common_data);
+-	struct irq_handler_data *ihd = data->handler_data;
++	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
+ 
+ 	return ihd->dev_ino;
  }
  
- #ifdef CONFIG_PM_SLEEP
-diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
-index b18d3f1d73d9..0c3057e42906 100644
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -52,11 +52,13 @@ static int alloc_masks(struct irq_desc *desc, gfp_t gfp, int node)
- 
- static void desc_smp_init(struct irq_desc *desc, int node)
+ static inline unsigned long irq_data_to_sysino(struct irq_data *data)
  {
--	desc->irq_data.node = node;
- 	cpumask_copy(desc->irq_data.affinity, irq_default_affinity);
- #ifdef CONFIG_GENERIC_PENDING_IRQ
- 	cpumask_clear(desc->pending_mask);
- #endif
-+#ifdef CONFIG_NUMA
-+	desc->irq_common_data.node = node;
-+#endif
- }
+-	struct irq_handler_data *ihd = data->handler_data;
++	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
  
- #else
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 1b06dfed4574..93ef89059022 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -836,7 +836,6 @@ static struct irq_data *irq_domain_insert_irq_data(struct irq_domain *domain,
- 		child->parent_data = irq_data;
- 		irq_data->irq = child->irq;
- 		irq_data->common = child->common;
--		irq_data->node = child->node;
- 		irq_data->domain = domain;
- 	}
+ 	return ihd->sysino;
+ }
+@@ -370,8 +370,9 @@ static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
+ 
+ static void sun4u_irq_enable(struct irq_data *data)
+ {
+-	struct irq_handler_data *handler_data = data->handler_data;
++	struct irq_handler_data *handler_data;
+ 
++	handler_data = irq_data_get_irq_handler_data(data);
+ 	if (likely(handler_data)) {
+ 		unsigned long cpuid, imap, val;
+ 		unsigned int tid;
+@@ -393,8 +394,9 @@ static void sun4u_irq_enable(struct irq_data *data)
+ static int sun4u_set_affinity(struct irq_data *data,
+ 			       const struct cpumask *mask, bool force)
+ {
+-	struct irq_handler_data *handler_data = data->handler_data;
++	struct irq_handler_data *handler_data;
+ 
++	handler_data = irq_data_get_irq_handler_data(data);
+ 	if (likely(handler_data)) {
+ 		unsigned long cpuid, imap, val;
+ 		unsigned int tid;
+@@ -438,8 +440,9 @@ static void sun4u_irq_disable(struct irq_data *data)
+ 
+ static void sun4u_irq_eoi(struct irq_data *data)
+ {
+-	struct irq_handler_data *handler_data = data->handler_data;
++	struct irq_handler_data *handler_data;
+ 
++	handler_data = irq_data_get_irq_handler_data(data);
+ 	if (likely(handler_data))
+ 		upa_writeq(ICLR_IDLE, handler_data->iclr);
+ }
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index a1bb2675b280..a87d0e47c168 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -188,7 +188,7 @@ void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs)
+ 
+ static void sun4d_mask_irq(struct irq_data *data)
+ {
+-	struct sun4d_handler_data *handler_data = data->handler_data;
++	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
+ 	unsigned int real_irq;
+ #ifdef CONFIG_SMP
+ 	int cpuid = handler_data->cpuid;
+@@ -206,7 +206,7 @@ static void sun4d_mask_irq(struct irq_data *data)
+ 
+ static void sun4d_unmask_irq(struct irq_data *data)
+ {
+-	struct sun4d_handler_data *handler_data = data->handler_data;
++	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
+ 	unsigned int real_irq;
+ #ifdef CONFIG_SMP
+ 	int cpuid = handler_data->cpuid;
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index 8bb3b3fddea7..da737c712fa8 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -188,9 +188,10 @@ static unsigned long sun4m_imask[0x50] = {
+ 
+ static void sun4m_mask_irq(struct irq_data *data)
+ {
+-	struct sun4m_handler_data *handler_data = data->handler_data;
++	struct sun4m_handler_data *handler_data;
+ 	int cpu = smp_processor_id();
+ 
++	handler_data = irq_data_get_irq_handler_data(data);
+ 	if (handler_data->mask) {
+ 		unsigned long flags;
+ 
+@@ -206,9 +207,10 @@ static void sun4m_mask_irq(struct irq_data *data)
+ 
+ static void sun4m_unmask_irq(struct irq_data *data)
+ {
+-	struct sun4m_handler_data *handler_data = data->handler_data;
++	struct sun4m_handler_data *handler_data;
+ 	int cpu = smp_processor_id();
+ 
++	handler_data = irq_data_get_irq_handler_data(data);
+ 	if (handler_data->mask) {
+ 		unsigned long flags;
  
 -- 
 1.7.10.4
+
