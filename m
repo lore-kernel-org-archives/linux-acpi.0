@@ -1,44 +1,50 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 16/36] ARM, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:25 +0800
-Message-ID: <1433145945-789-17-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 13/36] mn10300: Fix incorrect use of data->affinity
+Date: Mon,  1 Jun 2015 16:05:22 +0800
+Message-ID: <1433145945-789-14-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Russell King <linux@arm.linux.org.uk>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-am33-list@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Use access helper irq_data_get_affinity_mask() to hide implementation
-details of struct irq_desc.
+The field affinity in struct irq_data is type of cpumask_var_t, so
+we should pass in data->affinity instead of &data->affinity when
+calling cpumask_xxxx().
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/arm/kernel/irq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mn10300/kernel/irq.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
-index 350f188c92d2..baf8edebe26f 100644
---- a/arch/arm/kernel/irq.c
-+++ b/arch/arm/kernel/irq.c
-@@ -140,7 +140,7 @@ int __init arch_probe_nr_irqs(void)
- static bool migrate_one_irq(struct irq_desc *desc)
- {
- 	struct irq_data *d = irq_desc_get_irq_data(desc);
--	const struct cpumask *affinity = d->affinity;
-+	const struct cpumask *affinity = irq_data_get_affinity_mask(d);
- 	struct irq_chip *c;
- 	bool ret = false;
+diff --git a/arch/mn10300/kernel/irq.c b/arch/mn10300/kernel/irq.c
+index 6ab3b73efcf8..480de70f4059 100644
+--- a/arch/mn10300/kernel/irq.c
++++ b/arch/mn10300/kernel/irq.c
+@@ -320,11 +320,11 @@ void migrate_irqs(void)
+ 		if (irqd_is_per_cpu(data))
+ 			continue;
  
-@@ -160,7 +160,7 @@ static bool migrate_one_irq(struct irq_desc *desc)
- 	if (!c->irq_set_affinity)
- 		pr_debug("IRQ%u: unable to set affinity\n", d->irq);
- 	else if (c->irq_set_affinity(d, affinity, false) == IRQ_SET_MASK_OK && ret)
--		cpumask_copy(d->affinity, affinity);
-+		cpumask_copy(irq_data_get_affinity_mask(d), affinity);
+-		if (cpumask_test_cpu(self, &data->affinity) &&
++		if (cpumask_test_cpu(self, data->affinity) &&
+ 		    !cpumask_intersects(&irq_affinity[irq], cpu_online_mask)) {
+ 			int cpu_id;
+ 			cpu_id = cpumask_first(cpu_online_mask);
+-			cpumask_set_cpu(cpu_id, &data->affinity);
++			cpumask_set_cpu(cpu_id, data->affinity);
+ 		}
+ 		/* We need to operate irq_affinity_online atomically. */
+ 		arch_local_cli_save(flags);
+@@ -335,7 +335,7 @@ void migrate_irqs(void)
+ 			GxICR(irq) = x & GxICR_LEVEL;
+ 			tmp = GxICR(irq);
  
- 	return ret;
- }
+-			new = cpumask_any_and(&data->affinity,
++			new = cpumask_any_and(data->affinity,
+ 					      cpu_online_mask);
+ 			irq_affinity_online[irq] = new;
+ 
 -- 
 1.7.10.4
