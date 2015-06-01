@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 18/36] blackfin, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:27 +0800
-Message-ID: <1433145945-789-19-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 17/36] ARM64, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:26 +0800
+Message-ID: <1433145945-789-18-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Steven Miao <realmz6@gmail.com>, Christoph Lameter <cl@linux.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
 Use access helper irq_data_get_affinity_mask() to hide implementation
@@ -15,22 +15,30 @@ details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/blackfin/mach-common/ints-priority.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm64/kernel/irq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/blackfin/mach-common/ints-priority.c b/arch/blackfin/mach-common/ints-priority.c
-index 7236bdfc71e6..332a434b4669 100644
---- a/arch/blackfin/mach-common/ints-priority.c
-+++ b/arch/blackfin/mach-common/ints-priority.c
-@@ -194,7 +194,8 @@ void bfin_internal_unmask_irq(unsigned int irq)
- #ifdef CONFIG_SMP
- static void bfin_internal_unmask_irq_chip(struct irq_data *d)
+diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
+index 240b75c0e94f..463fa2e7e34c 100644
+--- a/arch/arm64/kernel/irq.c
++++ b/arch/arm64/kernel/irq.c
+@@ -61,7 +61,7 @@ void __init init_IRQ(void)
+ static bool migrate_one_irq(struct irq_desc *desc)
  {
--	bfin_internal_unmask_irq_affinity(d->irq, d->affinity);
-+	bfin_internal_unmask_irq_affinity(d->irq,
-+					  irq_data_get_affinity_mask(d));
- }
+ 	struct irq_data *d = irq_desc_get_irq_data(desc);
+-	const struct cpumask *affinity = d->affinity;
++	const struct cpumask *affinity = irq_data_get_affinity_mask(d);
+ 	struct irq_chip *c;
+ 	bool ret = false;
  
- static int bfin_internal_set_affinity(struct irq_data *d,
+@@ -81,7 +81,7 @@ static bool migrate_one_irq(struct irq_desc *desc)
+ 	if (!c->irq_set_affinity)
+ 		pr_debug("IRQ%u: unable to set affinity\n", d->irq);
+ 	else if (c->irq_set_affinity(d, affinity, false) == IRQ_SET_MASK_OK && ret)
+-		cpumask_copy(d->affinity, affinity);
++		cpumask_copy(irq_data_get_affinity_mask(d), affinity);
+ 
+ 	return ret;
+ }
 -- 
 1.7.10.4
