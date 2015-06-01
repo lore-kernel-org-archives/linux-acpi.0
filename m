@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 19/36] IA64, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:28 +0800
-Message-ID: <1433145945-789-20-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 21/36] mips, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:30 +0800
+Message-ID: <1433145945-789-22-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Jiang Liu <jiang.liu@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Jonas Gorski <jogo@openwrt.org>, Aleksey Makarov <aleksey.makarov@auriga.com>, David Daney <david.daney@cavium.com>, Christoph Lameter <cl@linux.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mips@linux-mips.org
 List-Id: linux-acpi@vger.kernel.org
 
 Use access helper irq_data_get_affinity_mask() to hide implementation
@@ -15,84 +15,88 @@ details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/ia64/kernel/iosapic.c   |    2 +-
- arch/ia64/kernel/irq.c       |    6 +++---
- arch/ia64/kernel/msi_ia64.c  |    4 ++--
- arch/ia64/sn/kernel/msi_sn.c |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ arch/mips/bcm63xx/irq.c              |    2 +-
+ arch/mips/cavium-octeon/octeon-irq.c |   14 ++++++++------
+ arch/mips/pmcs-msp71xx/msp_irq_cic.c |    3 ++-
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/arch/ia64/kernel/iosapic.c b/arch/ia64/kernel/iosapic.c
-index bc9501e36e77..4d2698d43c39 100644
---- a/arch/ia64/kernel/iosapic.c
-+++ b/arch/ia64/kernel/iosapic.c
-@@ -838,7 +838,7 @@ iosapic_unregister_intr (unsigned int gsi)
- 	if (iosapic_intr_info[irq].count == 0) {
- #ifdef CONFIG_SMP
- 		/* Clear affinity */
--		cpumask_setall(irq_get_irq_data(irq)->affinity);
-+		cpumask_setall(irq_get_affinity_mask(irq));
+diff --git a/arch/mips/bcm63xx/irq.c b/arch/mips/bcm63xx/irq.c
+index e3e808a6c542..02983b90826d 100644
+--- a/arch/mips/bcm63xx/irq.c
++++ b/arch/mips/bcm63xx/irq.c
+@@ -60,7 +60,7 @@ static inline int enable_irq_for_cpu(int cpu, struct irq_data *d,
+ 	if (m)
+ 		enable &= cpumask_test_cpu(cpu, m);
+ 	else if (irqd_affinity_was_set(d))
+-		enable &= cpumask_test_cpu(cpu, d->affinity);
++		enable &= cpumask_test_cpu(cpu, irq_data_get_affinity_mask(d));
  #endif
- 		/* Clear the interrupt information */
- 		iosapic_intr_info[irq].dest = 0;
-diff --git a/arch/ia64/kernel/irq.c b/arch/ia64/kernel/irq.c
-index 812a1e6b3179..de4fc00dea98 100644
---- a/arch/ia64/kernel/irq.c
-+++ b/arch/ia64/kernel/irq.c
-@@ -67,7 +67,7 @@ static char irq_redir [NR_IRQS]; // = { [0 ... NR_IRQS-1] = 1 };
- void set_irq_affinity_info (unsigned int irq, int hwid, int redir)
- {
- 	if (irq < NR_IRQS) {
--		cpumask_copy(irq_get_irq_data(irq)->affinity,
-+		cpumask_copy(irq_get_affinity_mask(irq),
- 			     cpumask_of(cpu_logical_id(hwid)));
- 		irq_redir[irq] = (char) (redir & 0xff);
+ 	return enable;
+ }
+diff --git a/arch/mips/cavium-octeon/octeon-irq.c b/arch/mips/cavium-octeon/octeon-irq.c
+index 10f762557b92..0643ae614284 100644
+--- a/arch/mips/cavium-octeon/octeon-irq.c
++++ b/arch/mips/cavium-octeon/octeon-irq.c
+@@ -225,13 +225,14 @@ static int next_cpu_for_irq(struct irq_data *data)
+ 
+ #ifdef CONFIG_SMP
+ 	int cpu;
+-	int weight = cpumask_weight(data->affinity);
++	struct cpumask *mask = irq_data_get_affinity_mask(data);
++	int weight = cpumask_weight(mask);
+ 	struct octeon_ciu_chip_data *cd = irq_data_get_irq_chip_data(data);
+ 
+ 	if (weight > 1) {
+ 		cpu = cd->current_cpu;
+ 		for (;;) {
+-			cpu = cpumask_next(cpu, data->affinity);
++			cpu = cpumask_next(cpu, mask);
+ 			if (cpu >= nr_cpu_ids) {
+ 				cpu = -1;
+ 				continue;
+@@ -240,7 +241,7 @@ static int next_cpu_for_irq(struct irq_data *data)
+ 			}
+ 		}
+ 	} else if (weight == 1) {
+-		cpu = cpumask_first(data->affinity);
++		cpu = cpumask_first(mask);
+ 	} else {
+ 		cpu = smp_processor_id();
  	}
-@@ -119,8 +119,8 @@ static void migrate_irqs(void)
- 		if (irqd_is_per_cpu(data))
- 			continue;
+@@ -710,16 +711,17 @@ static void octeon_irq_cpu_offline_ciu(struct irq_data *data)
+ {
+ 	int cpu = smp_processor_id();
+ 	cpumask_t new_affinity;
++	struct cpumask *mask = irq_data_get_affinity_mask(data);
  
--		if (cpumask_any_and(data->affinity, cpu_online_mask)
--		    >= nr_cpu_ids) {
-+		if (cpumask_any_and(irq_data_get_affinity_mask(data),
-+				    cpu_online_mask) >= nr_cpu_ids) {
- 			/*
- 			 * Save it for phase 2 processing
- 			 */
-diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
-index d70bf15c690a..6c50d332b7d7 100644
---- a/arch/ia64/kernel/msi_ia64.c
-+++ b/arch/ia64/kernel/msi_ia64.c
-@@ -36,7 +36,7 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
- 	msg.data = data;
+-	if (!cpumask_test_cpu(cpu, data->affinity))
++	if (!cpumask_test_cpu(cpu, mask))
+ 		return;
  
- 	pci_write_msi_msg(irq, &msg);
--	cpumask_copy(idata->affinity, cpumask_of(cpu));
-+	cpumask_copy(irq_data_get_affinity_mask(idata), cpumask_of(cpu));
+-	if (cpumask_weight(data->affinity) > 1) {
++	if (cpumask_weight(mask) > 1) {
+ 		/*
+ 		 * It has multi CPU affinity, just remove this CPU
+ 		 * from the affinity set.
+ 		 */
+-		cpumask_copy(&new_affinity, data->affinity);
++		cpumask_copy(&new_affinity, mask);
+ 		cpumask_clear_cpu(cpu, &new_affinity);
+ 	} else {
+ 		/* Otherwise, put it on lowest numbered online CPU. */
+diff --git a/arch/mips/pmcs-msp71xx/msp_irq_cic.c b/arch/mips/pmcs-msp71xx/msp_irq_cic.c
+index 1207ec4dfb77..8b9cf6463040 100644
+--- a/arch/mips/pmcs-msp71xx/msp_irq_cic.c
++++ b/arch/mips/pmcs-msp71xx/msp_irq_cic.c
+@@ -88,7 +88,8 @@ static void unmask_cic_irq(struct irq_data *d)
+ 	* Make sure we have IRQ affinity.  It may have changed while
+ 	* we were processing the IRQ.
+ 	*/
+-	if (!cpumask_test_cpu(smp_processor_id(), d->affinity))
++	if (!cpumask_test_cpu(smp_processor_id(),
++			      irq_data_get_affinity_mask(d)))
+ 		return;
+ #endif
  
- 	return 0;
- }
-@@ -148,7 +148,7 @@ static int dmar_msi_set_affinity(struct irq_data *data,
- 	msg.address_lo |= MSI_ADDR_DEST_ID_CPU(cpu_physical_id(cpu));
- 
- 	dmar_msi_write(irq, &msg);
--	cpumask_copy(data->affinity, mask);
-+	cpumask_copy(irq_data_get_affinity_mask(data), mask);
- 
- 	return 0;
- }
-diff --git a/arch/ia64/sn/kernel/msi_sn.c b/arch/ia64/sn/kernel/msi_sn.c
-index a0eb27b66d13..42b5a13af142 100644
---- a/arch/ia64/sn/kernel/msi_sn.c
-+++ b/arch/ia64/sn/kernel/msi_sn.c
-@@ -206,7 +206,7 @@ static int sn_set_msi_irq_affinity(struct irq_data *data,
- 	msg.address_lo = (u32)(bus_addr & 0x00000000ffffffff);
- 
- 	pci_write_msi_msg(irq, &msg);
--	cpumask_copy(data->affinity, cpu_mask);
-+	cpumask_copy(irq_data_get_affinity_mask(data), cpu_mask);
- 
- 	return 0;
- }
 -- 
 1.7.10.4
-
