@@ -1,58 +1,59 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 09/36] x86, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
-Date: Mon,  1 Jun 2015 16:05:18 +0800
-Message-ID: <1433145945-789-10-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 11/36] sh, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
+Date: Mon,  1 Jun 2015 16:05:20 +0800
+Message-ID: <1433145945-789-12-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:55853 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750936AbbFAIF1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Jun 2015 04:05:27 -0400
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
 
 Use helper function irq_data_get_irq_handler_data() to hide irq_desc
 implementation details.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/x86/kernel/apic/msi.c |    2 +-
- arch/x86/kernel/hpet.c     |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/sh/intc/virq.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/msi.c b/arch/x86/kernel/apic/msi.c
-index 1a9d735e09c6..5f1feb6854af 100644
---- a/arch/x86/kernel/apic/msi.c
-+++ b/arch/x86/kernel/apic/msi.c
-@@ -264,7 +264,7 @@ static inline int hpet_dev_id(struct irq_domain *domain)
+diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
+index f30ac9354ff2..bc0601cf0f8f 100644
+--- a/drivers/sh/intc/virq.c
++++ b/drivers/sh/intc/virq.c
+@@ -83,12 +83,11 @@ EXPORT_SYMBOL_GPL(intc_irq_lookup);
  
- static void hpet_msi_write_msg(struct irq_data *data, struct msi_msg *msg)
+ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
  {
--	hpet_msi_write(data->handler_data, msg);
-+	hpet_msi_write(irq_data_get_irq_handler_data(data), msg);
+-	struct intc_virq_list **last, *entry;
+-	struct irq_data *data = irq_get_irq_data(irq);
++	struct intc_virq_list *entry;
++	struct intc_virq_list **last = NULL;
+ 
+ 	/* scan for duplicates */
+-	last = (struct intc_virq_list **)&data->handler_data;
+-	for_each_virq(entry, data->handler_data) {
++	for_each_virq(entry, irq_get_handler_data(irq)) {
+ 		if (entry->irq == virq)
+ 			return 0;
+ 		last = &entry->next;
+@@ -102,7 +101,10 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
+ 
+ 	entry->irq = virq;
+ 
+-	*last = entry;
++	if (last)
++		*last = entry;
++	else
++		irq_set_handler_data(irq, entry);
+ 
+ 	return 0;
  }
- 
- static struct irq_chip hpet_msi_controller = {
-diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
-index e2449cf38b06..40cf79a55fe7 100644
---- a/arch/x86/kernel/hpet.c
-+++ b/arch/x86/kernel/hpet.c
-@@ -426,7 +426,7 @@ static struct irq_domain *hpet_domain;
- 
- void hpet_msi_unmask(struct irq_data *data)
- {
--	struct hpet_dev *hdev = data->handler_data;
-+	struct hpet_dev *hdev = irq_data_get_irq_handler_data(data);
- 	unsigned int cfg;
- 
- 	/* unmask it */
-@@ -437,7 +437,7 @@ void hpet_msi_unmask(struct irq_data *data)
- 
- void hpet_msi_mask(struct irq_data *data)
- {
--	struct hpet_dev *hdev = data->handler_data;
-+	struct hpet_dev *hdev = irq_data_get_irq_handler_data(data);
- 	unsigned int cfg;
- 
- 	/* mask it */
 -- 
 1.7.10.4
+
