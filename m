@@ -1,56 +1,48 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 0/3] Use acpi_video_unregister_backlight instead of acpi_video_unregister
- in platfrom backlight drivers
-Date: Mon, 01 Jun 2015 19:58:17 +0200
-Message-ID: <556C9D39.8030506@redhat.com>
-References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com> <20150601174103.GC87111@vmdeb7>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20150601174103.GC87111@vmdeb7>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V2 0/3] map GHES memory region with EFI memory map
+Date: Mon,  1 Jun 2015 12:12:17 -0700
+Message-ID: <1433185940-24770-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, leif.lindholm@linaro.org, al.stone@linaro.org, fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Darren,
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-On 01-06-15 19:41, Darren Hart wrote:
-> On Mon, Jun 01, 2015 at 11:25:05AM +0200, Hans de Goede wrote:
->> Hi All,
->>
->> I'm working on cleaning up the currently somewhat convoluted logic to
->> select which backlight interfaces to register on x86 systems, see:
->> http://lists.freedesktop.org/archives/dri-devel/2014-December/074687.html
->>
->> For a rought outline (details will change in the actual patch-set).
->>
->> These 3 patches are a preparation for that work, as the behavior of the
->> current code is not always consistent (it changes depending on module
->> loading order in some cases). These 3 patches remove this inconsistency
->> which in some cases may result in a behavior change.
->>
->> This way the cleanup can have a consistent base to build upon, and I can
->> ensure that the cleanup itself does not cause any functional changes.
->>
->> I hope to post a v1 of the actual cleanup patch-set in 1-2 weeks.
->
-> That will likely mean we miss the 4.2 merge window and will target this for 4.3
-> (which is fine by me, but just so you know).
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
 
-IMHO this patches are worthwhile to have by themselves, as said
-they fix various inconsistencies, which is a good thing to fix
-regardless.
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
 
-I think that these going into 4.2, and the cleanup which depends on them
-(but is other then that pretty much an orthogonal patch set) going into
-4.3 is actually a good thing, because if people then experience any
-problems due to my work on this, we can easily see if it is due to
-the behavior change these 3 patches may introduce in some cases, or
-if it is due to the actual cleanup causing a behavior change (which it
-should not).
+Since both arch/x86 and arc/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 and arch/ia64 into EFI subsystem. On top of that,
+efi_remap() is added.
 
-Regards,
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+into two patches.
 
-Hans
+Jonathan (Zhixiong) Zhang (3):
+  efi: arch, x86: arch, ia64: move efi_mem_attributes()
+  efi: add efi_remap()
+  acpi, apei: use EFI memmap to map GHES memory
+
+ arch/ia64/kernel/efi.c      | 11 -----------
+ arch/x86/platform/efi/efi.c | 18 ------------------
+ drivers/acpi/apei/ghes.c    | 13 +++++++++++++
+ drivers/firmware/efi/efi.c  | 27 +++++++++++++++++++++++++++
+ include/linux/efi.h         |  1 +
+ 5 files changed, 41 insertions(+), 29 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
