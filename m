@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 25/36] sh, irq: Use access helper irq_data_get_affinity_mask()
-Date: Mon,  1 Jun 2015 16:05:34 +0800
-Message-ID: <1433145945-789-26-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 27/36] x86, irq: Use access helper irq_data_get_affinity_mask()
+Date: Mon,  1 Jun 2015 16:05:36 +0800
+Message-ID: <1433145945-789-28-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, David Vrabel <david.vrabel@citrix.com>, Jiang Liu <jiang.liu@linux.intel.com>, Feng Wu <feng.wu@intel.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Brian Gerst <brgerst@gmail.com>, Rusty Russell <rusty@rustcorp.com.au>, Juergen Gross <jgross@suse.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, xen-devel@lists.xenproject.org
 List-Id: linux-acpi@vger.kernel.org
 
 Use access helper irq_data_get_affinity_mask() to hide implementation
@@ -15,64 +15,85 @@ details of struct irq_desc.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/sh/kernel/irq.c   |    7 ++++---
- drivers/sh/intc/chip.c |    6 +++---
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ arch/x86/kernel/apic/io_apic.c   |    2 +-
+ arch/x86/kernel/apic/vector.c    |    5 ++---
+ arch/x86/kernel/irq.c            |    5 +++--
+ drivers/xen/events/events_base.c |    4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sh/kernel/irq.c b/arch/sh/kernel/irq.c
-index 8dc677cc136b..6c0378c0b8b5 100644
---- a/arch/sh/kernel/irq.c
-+++ b/arch/sh/kernel/irq.c
-@@ -228,15 +228,16 @@ void migrate_irqs(void)
- 		struct irq_data *data = irq_get_irq_data(irq);
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 845dc0df2002..09921de4210f 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -2541,7 +2541,7 @@ void __init setup_ioapic_dest(void)
+ 		 * Honour affinities which have been set in early boot
+ 		 */
+ 		if (!irqd_can_balance(idata) || irqd_affinity_was_set(idata))
+-			mask = idata->affinity;
++			mask = irq_data_get_affinity_mask(idata);
+ 		else
+ 			mask = apic->target_cpus();
  
- 		if (irq_data_get_node(data) == cpu) {
--			unsigned int newcpu = cpumask_any_and(data->affinity,
-+			struct cpumask *mask = irq_data_get_affinity_mask(data);
-+			unsigned int newcpu = cpumask_any_and(mask,
- 							      cpu_online_mask);
- 			if (newcpu >= nr_cpu_ids) {
- 				pr_info_ratelimited("IRQ%u no longer affine to CPU%u\n",
- 						    irq, cpu);
+diff --git a/arch/x86/kernel/apic/vector.c b/arch/x86/kernel/apic/vector.c
+index 9b62f690b0ff..dfa3a5f5b3d3 100644
+--- a/arch/x86/kernel/apic/vector.c
++++ b/arch/x86/kernel/apic/vector.c
+@@ -494,9 +494,8 @@ static int apic_set_affinity(struct irq_data *irq_data,
  
--				cpumask_setall(data->affinity);
-+				cpumask_setall(mask);
- 			}
--			irq_set_affinity(irq, data->affinity);
-+			irq_set_affinity(irq, mask);
- 		}
+ 	err = assign_irq_vector(irq, data, dest);
+ 	if (err) {
+-		struct irq_data *top = irq_get_irq_data(irq);
+-
+-		if (assign_irq_vector(irq, data, top->affinity))
++		if (assign_irq_vector(irq, data,
++				      irq_data_get_affinity_mask(irq_data)))
+ 			pr_err("Failed to recover vector for irq %d\n", irq);
+ 		return err;
  	}
- }
-diff --git a/drivers/sh/intc/chip.c b/drivers/sh/intc/chip.c
-index 46427b48e2f1..358df7510186 100644
---- a/drivers/sh/intc/chip.c
-+++ b/drivers/sh/intc/chip.c
-@@ -22,7 +22,7 @@ void _intc_enable(struct irq_data *data, unsigned long handle)
+diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
+index 7e10c8b4b318..37685e37550c 100644
+--- a/arch/x86/kernel/irq.c
++++ b/arch/x86/kernel/irq.c
+@@ -342,7 +342,8 @@ int check_irq_vectors_for_cpu_disable(void)
+ 				continue;
  
- 	for (cpu = 0; cpu < SMP_NR(d, _INTC_ADDR_E(handle)); cpu++) {
+ 			data = irq_desc_get_irq_data(desc);
+-			cpumask_copy(&affinity_new, data->affinity);
++			cpumask_copy(&affinity_new,
++				     irq_data_get_affinity_mask(data));
+ 			cpumask_clear_cpu(this_cpu, &affinity_new);
+ 
+ 			/* Do not count inactive or per-cpu irqs. */
+@@ -420,7 +421,7 @@ void fixup_irqs(void)
+ 		raw_spin_lock(&desc->lock);
+ 
+ 		data = irq_desc_get_irq_data(desc);
+-		affinity = data->affinity;
++		affinity = irq_data_get_affinity_mask(data);
+ 		if (!irq_has_action(irq) || irqd_is_per_cpu(data) ||
+ 		    cpumask_subset(affinity, cpu_online_mask)) {
+ 			raw_spin_unlock(&desc->lock);
+diff --git a/drivers/xen/events/events_base.c b/drivers/xen/events/events_base.c
+index 2b8553bd8715..d00e0be8e9ea 100644
+--- a/drivers/xen/events/events_base.c
++++ b/drivers/xen/events/events_base.c
+@@ -336,7 +336,7 @@ static void bind_evtchn_to_cpu(unsigned int chn, unsigned int cpu)
+ 
+ 	BUG_ON(irq == -1);
  #ifdef CONFIG_SMP
--		if (!cpumask_test_cpu(cpu, data->affinity))
-+		if (!cpumask_test_cpu(cpu, irq_data_get_affinity_mask(data)))
- 			continue;
+-	cpumask_copy(irq_get_irq_data(irq)->affinity, cpumask_of(cpu));
++	cpumask_copy(irq_get_affinity_mask(irq), cpumask_of(cpu));
  #endif
- 		addr = INTC_REG(d, _INTC_ADDR_E(handle), cpu);
-@@ -50,7 +50,7 @@ static void intc_disable(struct irq_data *data)
+ 	xen_evtchn_port_bind_to_cpu(info, cpu);
  
- 	for (cpu = 0; cpu < SMP_NR(d, _INTC_ADDR_D(handle)); cpu++) {
+@@ -373,7 +373,7 @@ static void xen_irq_init(unsigned irq)
+ 	struct irq_info *info;
  #ifdef CONFIG_SMP
--		if (!cpumask_test_cpu(cpu, data->affinity))
-+		if (!cpumask_test_cpu(cpu, irq_data_get_affinity_mask(data)))
- 			continue;
+ 	/* By default all event channels notify CPU#0. */
+-	cpumask_copy(irq_get_irq_data(irq)->affinity, cpumask_of(0));
++	cpumask_copy(irq_get_affinity_mask(irq), cpumask_of(0));
  #endif
- 		addr = INTC_REG(d, _INTC_ADDR_D(handle), cpu);
-@@ -72,7 +72,7 @@ static int intc_set_affinity(struct irq_data *data,
- 	if (!cpumask_intersects(cpumask, cpu_online_mask))
- 		return -1;
  
--	cpumask_copy(data->affinity, cpumask);
-+	cpumask_copy(irq_data_get_affinity_mask(data), cpumask);
- 
- 	return IRQ_SET_MASK_OK_NOCOPY;
- }
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
 -- 
 1.7.10.4
