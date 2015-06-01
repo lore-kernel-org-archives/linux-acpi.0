@@ -1,69 +1,105 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 32/36] genirq: Rename irq_data_get_msi() as irq_data_get_msi_desc()
-Date: Mon,  1 Jun 2015 16:05:41 +0800
-Message-ID: <1433145945-789-33-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 33/36] genirq: Use helper function to access irq_data->msi_desc
+Date: Mon,  1 Jun 2015 16:05:42 +0800
+Message-ID: <1433145945-789-34-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62480 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932337AbbFAIIx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:08:53 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Chris Metcalf <cmetcalf@ezchip.com>, Jiang Liu <jiang.liu@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Tejun Heo <tj@kernel.org>, Joe Perches <joe@perches.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jingoo Han <jingoohan1@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Rename irq_data_get_msi() as irq_data_get_msi_desc() to keep consistency
-with other irq_data access helpers.
+Use irq_data access helper to access irq_data->msi_desc, so we could
+move msi_desc from struct irq_data into struct irq_common_data later.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/host/pcie-designware.c |    2 +-
- drivers/pci/msi.c                  |    2 +-
- include/linux/irq.h                |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/msi_ia64.c         |    2 +-
+ arch/ia64/sn/kernel/msi_sn.c        |    2 +-
+ arch/powerpc/sysdev/xics/ics-opal.c |    2 +-
+ arch/powerpc/sysdev/xics/ics-rtas.c |    2 +-
+ arch/tile/kernel/pci_gx.c           |    2 +-
+ drivers/pci/msi.c                   |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
-index 2e9f84fdd9ce..7b3432d331fd 100644
---- a/drivers/pci/host/pcie-designware.c
-+++ b/drivers/pci/host/pcie-designware.c
-@@ -309,7 +309,7 @@ static int dw_msi_setup_irq(struct msi_controller *chip, struct pci_dev *pdev,
- static void dw_msi_teardown_irq(struct msi_controller *chip, unsigned int irq)
- {
- 	struct irq_data *data = irq_get_irq_data(irq);
--	struct msi_desc *msi = irq_data_get_msi(data);
-+	struct msi_desc *msi = irq_data_get_msi_desc(data);
- 	struct pcie_port *pp = sys_to_pcie(msi->dev->bus->sysdata);
+diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
+index 6c50d332b7d7..af4eaec0f7c3 100644
+--- a/arch/ia64/kernel/msi_ia64.c
++++ b/arch/ia64/kernel/msi_ia64.c
+@@ -23,7 +23,7 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
+ 	if (irq_prepare_move(irq, cpu))
+ 		return -1;
  
- 	clear_irq_range(pp, irq, 1, data->hwirq);
+-	__get_cached_msi_msg(idata->msi_desc, &msg);
++	__get_cached_msi_msg(irq_data_get_msi_desc(idata), &msg);
+ 
+ 	addr = msg.address_lo;
+ 	addr &= MSI_ADDR_DEST_ID_MASK;
+diff --git a/arch/ia64/sn/kernel/msi_sn.c b/arch/ia64/sn/kernel/msi_sn.c
+index 42b5a13af142..fb25065b22c6 100644
+--- a/arch/ia64/sn/kernel/msi_sn.c
++++ b/arch/ia64/sn/kernel/msi_sn.c
+@@ -175,7 +175,7 @@ static int sn_set_msi_irq_affinity(struct irq_data *data,
+ 	 * Release XIO resources for the old MSI PCI address
+ 	 */
+ 
+-	__get_cached_msi_msg(data->msi_desc, &msg);
++	__get_cached_msi_msg(irq_data_get_msi_desc(data), &msg);
+ 	sn_pdev = (struct pcidev_info *)sn_irq_info->irq_pciioinfo;
+ 	pdev = sn_pdev->pdi_linux_pcidev;
+ 	provider = SN_PCIDEV_BUSPROVIDER(pdev);
+diff --git a/arch/powerpc/sysdev/xics/ics-opal.c b/arch/powerpc/sysdev/xics/ics-opal.c
+index 3996393c254d..27c936c080a6 100644
+--- a/arch/powerpc/sysdev/xics/ics-opal.c
++++ b/arch/powerpc/sysdev/xics/ics-opal.c
+@@ -72,7 +72,7 @@ static unsigned int ics_opal_startup(struct irq_data *d)
+ 	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
+ 	 * at that level, so we do it here by hand.
+ 	 */
+-	if (d->msi_desc)
++	if (irq_data_get_msi_desc(d))
+ 		pci_msi_unmask_irq(d);
+ #endif
+ 
+diff --git a/arch/powerpc/sysdev/xics/ics-rtas.c b/arch/powerpc/sysdev/xics/ics-rtas.c
+index e2665a9dfc0f..3854dd41558d 100644
+--- a/arch/powerpc/sysdev/xics/ics-rtas.c
++++ b/arch/powerpc/sysdev/xics/ics-rtas.c
+@@ -75,7 +75,7 @@ static unsigned int ics_rtas_startup(struct irq_data *d)
+ 	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
+ 	 * at that level, so we do it here by hand.
+ 	 */
+-	if (d->msi_desc)
++	if (irq_data_get_msi_desc(d))
+ 		pci_msi_unmask_irq(d);
+ #endif
+ 	/* unmask it */
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index b1df847d0686..65b701b3b5ed 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -1442,7 +1442,7 @@ static struct pci_ops tile_cfg_ops = {
+ /* MSI support starts here. */
+ static unsigned int tilegx_msi_startup(struct irq_data *d)
+ {
+-	if (d->msi_desc)
++	if (irq_data_get_msi_desc(d))
+ 		pci_msi_unmask_irq(d);
+ 
+ 	return 0;
 diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index c3e7dfcf9ff5..be6034cf5c21 100644
+index be6034cf5c21..c2f0da733d3a 100644
 --- a/drivers/pci/msi.c
 +++ b/drivers/pci/msi.c
-@@ -270,7 +270,7 @@ static void msix_mask_irq(struct msi_desc *desc, u32 flag)
- 
- static void msi_set_mask_bit(struct irq_data *data, u32 flag)
+@@ -1178,7 +1178,7 @@ EXPORT_SYMBOL(pci_enable_msix_range);
+  */
+ void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg)
  {
--	struct msi_desc *desc = irq_data_get_msi(data);
-+	struct msi_desc *desc = irq_data_get_msi_desc(data);
+-	struct msi_desc *desc = irq_data->msi_desc;
++	struct msi_desc *desc = irq_data_get_msi_desc(irq_data);
  
- 	if (desc->msi_attrib.is_msix) {
- 		msix_mask_irq(desc, flag);
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 9d01cd8ca8a2..2b95fee48c55 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -631,7 +631,7 @@ static inline struct msi_desc *irq_get_msi_desc(unsigned int irq)
- 	return d ? d->msi_desc : NULL;
- }
- 
--static inline struct msi_desc *irq_data_get_msi(struct irq_data *d)
-+static inline struct msi_desc *irq_data_get_msi_desc(struct irq_data *d)
- {
- 	return d->msi_desc;
- }
+ 	/*
+ 	 * For MSI-X desc->irq is always equal to irq_data->irq. For
 -- 
 1.7.10.4
-
