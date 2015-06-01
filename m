@@ -1,141 +1,35 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v3 08/36] sparc, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
-Date: Mon,  1 Jun 2015 16:05:17 +0800
-Message-ID: <1433145945-789-9-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Patch v3 10/36] x86, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
+Date: Mon,  1 Jun 2015 16:05:19 +0800
+Message-ID: <1433145945-789-11-git-send-email-jiang.liu@linux.intel.com>
 References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:38942 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157AbbFAIFE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 04:05:04 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "David S. Miller" <davem@davemloft.net>, bob picco <bpicco@meloft.net>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sparclinux@vger.kernel.org
 
 Use helper function irq_data_get_irq_handler_data() to hide irq_desc
 implementation details.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/sparc/kernel/irq_64.c    |   15 +++++++++------
- arch/sparc/kernel/sun4d_irq.c |    4 ++--
- arch/sparc/kernel/sun4m_irq.c |    6 ++++--
- 3 files changed, 15 insertions(+), 10 deletions(-)
+ drivers/gpio/gpio-davinci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 4033c23bdfa6..5130f6e3e68e 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -210,21 +210,21 @@ struct irq_handler_data {
+diff --git a/drivers/gpio/gpio-davinci.c b/drivers/gpio/gpio-davinci.c
+index c5e05c82d67c..477d5b8616ab 100644
+--- a/drivers/gpio/gpio-davinci.c
++++ b/drivers/gpio/gpio-davinci.c
+@@ -396,7 +396,7 @@ static int gpio_irq_type_unbanked(struct irq_data *data, unsigned trigger)
+ 	struct davinci_gpio_regs __iomem *g;
+ 	u32 mask;
  
- static inline unsigned int irq_data_to_handle(struct irq_data *data)
- {
--	struct irq_handler_data *ihd = data->handler_data;
-+	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
- 
- 	return ihd->dev_handle;
- }
- 
- static inline unsigned int irq_data_to_ino(struct irq_data *data)
- {
--	struct irq_handler_data *ihd = data->handler_data;
-+	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
- 
- 	return ihd->dev_ino;
- }
- 
- static inline unsigned long irq_data_to_sysino(struct irq_data *data)
- {
--	struct irq_handler_data *ihd = data->handler_data;
-+	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
- 
- 	return ihd->sysino;
- }
-@@ -370,8 +370,9 @@ static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
- 
- static void sun4u_irq_enable(struct irq_data *data)
- {
--	struct irq_handler_data *handler_data = data->handler_data;
-+	struct irq_handler_data *handler_data;
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (likely(handler_data)) {
- 		unsigned long cpuid, imap, val;
- 		unsigned int tid;
-@@ -393,8 +394,9 @@ static void sun4u_irq_enable(struct irq_data *data)
- static int sun4u_set_affinity(struct irq_data *data,
- 			       const struct cpumask *mask, bool force)
- {
--	struct irq_handler_data *handler_data = data->handler_data;
-+	struct irq_handler_data *handler_data;
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (likely(handler_data)) {
- 		unsigned long cpuid, imap, val;
- 		unsigned int tid;
-@@ -438,8 +440,9 @@ static void sun4u_irq_disable(struct irq_data *data)
- 
- static void sun4u_irq_eoi(struct irq_data *data)
- {
--	struct irq_handler_data *handler_data = data->handler_data;
-+	struct irq_handler_data *handler_data;
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (likely(handler_data))
- 		upa_writeq(ICLR_IDLE, handler_data->iclr);
- }
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index a1bb2675b280..a87d0e47c168 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -188,7 +188,7 @@ void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs)
- 
- static void sun4d_mask_irq(struct irq_data *data)
- {
--	struct sun4d_handler_data *handler_data = data->handler_data;
-+	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
- 	unsigned int real_irq;
- #ifdef CONFIG_SMP
- 	int cpuid = handler_data->cpuid;
-@@ -206,7 +206,7 @@ static void sun4d_mask_irq(struct irq_data *data)
- 
- static void sun4d_unmask_irq(struct irq_data *data)
- {
--	struct sun4d_handler_data *handler_data = data->handler_data;
-+	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
- 	unsigned int real_irq;
- #ifdef CONFIG_SMP
- 	int cpuid = handler_data->cpuid;
-diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
-index 8bb3b3fddea7..da737c712fa8 100644
---- a/arch/sparc/kernel/sun4m_irq.c
-+++ b/arch/sparc/kernel/sun4m_irq.c
-@@ -188,9 +188,10 @@ static unsigned long sun4m_imask[0x50] = {
- 
- static void sun4m_mask_irq(struct irq_data *data)
- {
--	struct sun4m_handler_data *handler_data = data->handler_data;
-+	struct sun4m_handler_data *handler_data;
- 	int cpu = smp_processor_id();
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (handler_data->mask) {
- 		unsigned long flags;
- 
-@@ -206,9 +207,10 @@ static void sun4m_mask_irq(struct irq_data *data)
- 
- static void sun4m_unmask_irq(struct irq_data *data)
- {
--	struct sun4m_handler_data *handler_data = data->handler_data;
-+	struct sun4m_handler_data *handler_data;
- 	int cpu = smp_processor_id();
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (handler_data->mask) {
- 		unsigned long flags;
+-	d = (struct davinci_gpio_controller *)data->handler_data;
++	d = (struct davinci_gpio_controller *)irq_data_get_irq_handler_data(data);
+ 	g = (struct davinci_gpio_regs __iomem *)d->regs;
+ 	mask = __gpio_mask(data->irq - d->gpio_irq);
  
 -- 
 1.7.10.4
-
