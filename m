@@ -1,41 +1,25 @@
-From: Martin Herkt <lachs0r@srsfckn.biz>
-Subject: Re: ASUS PU551LD, fan stuck at full speed after waking up from S3
-Date: Sat, 30 May 2015 15:11:49 +0200
-Message-ID: <1782051.buOE1ZNEjm@sakuya>
-References: <1949840.6Csghk90X0@sakuya> <4235637.TmQrMxa1o1@vostro.rjw.lan>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2 4/8] klist: implement klist_prev()
+Date: Mon, 1 Jun 2015 10:21:21 +0900
+Message-ID: <20150601012121.GA22743@kroah.com>
+References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1432570172-86963-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srsfckn.biz ([148.251.137.227]:52608 "EHLO srsfckn.biz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752733AbbE3NLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 May 2015 09:11:52 -0400
-In-Reply-To: <4235637.TmQrMxa1o1@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1432570172-86963-5-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, linux-pm@vger.kernel.org
 
-On Saturday 30 May 2015 14:14:06 Rafael J. Wysocki wrote:
-> On Friday, May 29, 2015 01:51:57 PM Martin Herkt wrote:
-> > My ASUS PU551LD laptop has a problem with its fan state when resuming from
-> > S3. In particular, the fan goes to full speed a second or two after
-> > waking up and cannot be reset without turning off the laptop. For
-> > example, rebooting to Windows and doing a suspend/resume cycle while the
-> > fan is in bad state will not reset it. I have observed this behavior with
-> > all kernel versions I have used on this laptop (oldest being 3.16, newest
-> > 4.1-rc5).
-> > 
-> > sensors(1) does not show any fans, but asus-nb-wmi exposes
-> > /sys/class/hwmon/hwmon2/pwm1, which shows values like 85 during normal
-> > operation but goes to the expected 255 when the fan is running at full
-> > speed after waking up from S3.
+On Mon, May 25, 2015 at 07:09:28PM +0300, Andy Shevchenko wrote:
+> klist_prev() gets the previous element in the list. It is useful to traverse
+> through the list in reverse order, for example, to provide LIFO (last in first
+> out) variant of access.
 > 
-> Can you please check if applying the patch at
-> 
-> https://patchwork.kernel.org/patch/6451241/
-> 
-> on top of 4.1-rc5 makes any difference?
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
 
-No, still happens with that patch.
+Acked-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
