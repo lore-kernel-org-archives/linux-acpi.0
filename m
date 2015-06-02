@@ -1,102 +1,63 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 00/11] Add self-probe infrastructure and stacked irqdomain
- support for ACPI based GICv2/3 init
-Date: Tue, 02 Jun 2015 20:24:24 +0800
-Message-ID: <556DA078.4020901@linaro.org>
-References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 7/8] dmaengine: add a driver for Intel integrated DMA
+ 64-bit
+Date: Tue, 2 Jun 2015 18:19:03 +0530
+Message-ID: <20150602124903.GR3140@localhost>
+References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1432570172-86963-8-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20150526040651.GP3140@localhost>
+ <CAHp75VeCHMmYsgrb5GThCfsG_TekZjRfy+MsveAk01QDaUR8gQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:36029 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753437AbbFBMYi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2015 08:24:38 -0400
-Received: by pdjm12 with SMTP id m12so48985396pdj.3
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Jun 2015 05:24:38 -0700 (PDT)
-In-Reply-To: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeCHMmYsgrb5GThCfsG_TekZjRfy+MsveAk01QDaUR8gQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi Marc,
+On Tue, May 26, 2015 at 09:49:57AM +0300, Andy Shevchenko wrote:
+> On Tue, May 26, 2015 at 7:06 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+> > On Mon, May 25, 2015 at 07:09:31PM +0300, Andy Shevchenko wrote:
+> >> Intel integrated DMA (iDMA) 64-bit is a specific IP that is used as a part of
+> >> LPSS devices such as HSUART or SPI. The iDMA IP is attached for private
+> >> usage on each host controller independently.
+> >>
+> >> While it has similarities with Synopsys DesignWare DMA, the following
+> >> distinctions doesn't allow to use the existing driver:
+> >> - 64-bit mode with corresponding changes in Hardware Linked List data structure
+> >> - many slight differences in the channel registers
+> >>
+> >> Moreover this driver is based on the DMA virtual channels framework that helps
+> >> to make the driver cleaner and easy to understand.
+> >>
+> > Looking at code and iDMA controllers (if this is the same as I have used), we
+> > have register compatibility with DW controller, so why new driver and why not
+> > use and enhance dw driver ?
+> 
+> Take a look closer. There are many, like I mentioned, slight but not
+> least changes in the registers, besides *64-bit mode*:
+> - ctl_hi represents bytes, not items
+> - 2 bytes of burst is supported (dw has no gap there)
+> - shuffling bits between ctl_* and cfg_*
+> - new bits with different meaning in ctl_* and cfg_*.
+Yes these are the changes which I was thinking and these would impact only
+calculating different values for a descriptor, so based on device probed you
+cna load a specfic operation for calculating, rest of the driver code is
+agnostic
 
-Ping, could you comment on if we are on the right direction
-for this patch set? much appreciated.
+> 
+> Preliminary we did a patchset for dw_dmac, but above hw changes blows
+> up and messes the driver code. I really would prefer to have those two
+> separate
+I think it should be doable and reading this patch also doesnt convince me
+for that
 
-Thanks
-Hanjun
+> 
+> However, the 32-bit iDMA which is used in Baytrail might be driven by dw_dmac.
+Also what part here is specfic to *64* bit ?
 
-On 2015=E5=B9=B405=E6=9C=8818=E6=97=A5 20:59, Hanjun Guo wrote:
-> This patch set introduce self-probe infrastructure to init IRQ
-> controllers and stacked irqdomain support for ACPI based GICv2/3
-> init.
->
-> The self-probe infrastructure for ACPI GIC init is similar as
-> IRQCHIP_DECLARE() and based on the GIC version support in ACPI
-> MADT table.
->
-> We introduce acpi_irq_domain for GICv2/3 core domain to support
-> stacked irqdomain, and pass the gsi (global system interrupt) as
-> the agument (void *arg) for gic_irq_domain_alloc(), then we can
-> alloc virqs via acpi_register_gsi() with stacked irqdomain.
->
-> In order to make ACPI related GIC init code slef-contained, I
-> consolidated all the GIC init code into drivers/irqchip/irq-gic-acpi.=
-c.
->
-> update from RFC version:
->   - Consolidate all the GIC init code into drivers/irqchip/irq-gic-ac=
-pi.c
->
-> Hanjun Guo (8):
->    irqchip / GIC: Add GIC version support in ACPI MADT
->    irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 i=
-nit
->      code
->    irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 =
-init
->    ACPI / gsi: Add gsi_mutex to synchronize
->      acpi_register_gsi()/acpi_unregister_gsi()
->    irqchip / GICv3: Add ACPI support for GICv3+ initialization
->    irqchip / GICv3: Add stacked irqdomain support for ACPI based init
->    irqchip / GICv2 / ACPI: Consolidate GICv2 ACPI related init code
->    irqchip / GICv3 / ACPI: Consolidate GICv3 ACPI related init code
->
-> Tomasz Nowicki (3):
->    ACPICA: Introduce GIC version for arm based system
->    ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
->      controller
->    irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
->
->   arch/arm64/Kconfig                   |   1 +
->   arch/arm64/include/asm/irq.h         |  13 --
->   arch/arm64/kernel/acpi.c             |  25 ---
->   drivers/acpi/Makefile                |   1 +
->   drivers/acpi/gsi.c                   |  41 +++--
->   drivers/acpi/irq.c                   |  40 +++++
->   drivers/irqchip/Kconfig              |   3 +
->   drivers/irqchip/Makefile             |   1 +
->   drivers/irqchip/irq-gic-acpi.c       | 318 ++++++++++++++++++++++++=
-+++++++++++
->   drivers/irqchip/irq-gic-v3.c         | 149 +++++++++-------
->   drivers/irqchip/irq-gic.c            | 129 ++------------
->   drivers/irqchip/irqchip.h            |  12 ++
->   include/acpi/actbl1.h                |  17 +-
->   include/asm-generic/vmlinux.lds.h    |  13 ++
->   include/linux/acpi.h                 |  14 ++
->   include/linux/acpi_irq.h             |   4 +-
->   include/linux/irqchip/arm-gic-acpi.h |  13 +-
->   include/linux/irqchip/arm-gic-v3.h   |  10 ++
->   include/linux/mod_devicetable.h      |   7 +
->   19 files changed, 577 insertions(+), 234 deletions(-)
->   create mode 100644 drivers/acpi/irq.c
->   create mode 100644 drivers/irqchip/irq-gic-acpi.c
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+~Vinod
+
