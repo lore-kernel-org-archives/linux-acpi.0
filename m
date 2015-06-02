@@ -1,114 +1,76 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 0/3] Use acpi_video_unregister_backlight instead of
- acpi_video_unregister in platfrom backlight drivers
-Date: Tue, 2 Jun 2015 22:33:50 +0800
-Message-ID: <20150602143350.GB367@aaronlu.sh.intel.com>
-References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
- <87zj4ie8i9.fsf@intel.com>
- <556D8204.5030904@redhat.com>
+From: Andreas Mohr <andi@lisas.de>
+Subject: pm: record / retain actual reason of last system wakeup??
+Date: Tue, 2 Jun 2015 21:07:02 +0200
+Message-ID: <20150602190702.GA9112@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11458 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758929AbbFBOcu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Jun 2015 10:32:50 -0400
+Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:33381 "EHLO
+	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708AbbFBTHE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2015 15:07:04 -0400
 Content-Disposition: inline
-In-Reply-To: <556D8204.5030904@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Tue, Jun 02, 2015 at 12:14:28PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 02-06-15 11:59, Jani Nikula wrote:
-> >On Mon, 01 Jun 2015, Hans de Goede <hdegoede@redhat.com> wrote:
-> >>Hi All,
-> >>
-> >>I'm working on cleaning up the currently somewhat convoluted logic to
-> >>select which backlight interfaces to register on x86 systems, see:
-> >>http://lists.freedesktop.org/archives/dri-devel/2014-December/074687.html
-> >>
-> >>For a rought outline (details will change in the actual patch-set).
-> >>
-> >>These 3 patches are a preparation for that work, as the behavior of the
-> >>current code is not always consistent (it changes depending on module
-> >>loading order in some cases). These 3 patches remove this inconsistency
-> >>which in some cases may result in a behavior change.
-> >>
-> >>This way the cleanup can have a consistent base to build upon, and I can
-> >>ensure that the cleanup itself does not cause any functional changes.
-> >
-> >Thanks for doing this.
-> >
-> >Slightly unrelated, but you'll end up calling:
-> >
-> >acpi_video_unregister_backlight
-> >	acpi_video_bus_unregister_backlight
-> >		acpi_video_dev_unregister_backlight
-> >			thermal_cooling_device_unregister
-> >
-> >Uhm, err, what? What business does *that* have in the backlight
-> >unregister call chain?!
-> 
-> I think the idea is that having the backlight on can cause the main board
-> to heat up as there is often a regulator / pwm for the backlight on the
-> main board. If that is turned off it may help to cool down the main board,
-> so the backlight is a cooling device in the sense that when it is turned
-> off it stops generating heat.
+Hi,
 
-I think so.
+I'm wondering whether we're actually recording / retaining
+any info about the precise reason for the machine wakeup
+that was responsible for having woken up the current (continued) session
+(e.g. WOL, RTC, configured keyboard wakeup, ...).
 
-> 
-> If this makes sense (*) then the cooling device stuff should maybe moved
-> from the acpi/video.c code to the backlight core code.
+See also
+http://superuser.com/questions/297057/linux-how-to-get-the-reason-for-wakeup
+, which comes up pretty much empty on this topic.
 
-It's just a specific driver that provides thermal capability, no need to
-move to the core code.
+The reason that I'm asking is that I've got a nice (well not so nice)
+PCI card which is acting up
+which I'm trying to debug
+(see "fw-ohci: ALi M52xx unsupported" https://bugzilla.kernel.org/show_bug.cgi?id=10935 for details)
+which even prevents proper shutdown or pm-suspend of the PC
+(somehow causes immediate re-launch).
+Needless to say I don't see anything in dmesg (currently on 4.1-rc5 BTW)
+which would hint at why exactly the re-launch occurred
+i.e. through which means exactly it managed to force re-launch
+(this would be important to further nail down its misbehaviour).
 
-> 
-> Or does the acpi-video code use some info from the BIOS to determine
-> whether or not to register a cooling device ?
+Rather than having such very important information
+turn up temporarily in dmesg output,
+it should be reliably recorded/retained in a specific sysfs attribute anyway,
+in a *system-global* / generic / non-ACPI-specific manner.
+I.e. there should perhaps be a kernel-global sink for such information,
+to be written to by whichever component is able to indicate
+why a wakeup occurred.
 
-As long as we create the ACPI video backlight interface, we will create
-the thermal cooling device. If we somehow knows that the ACPI methods to
-adjust the backlight level doesn't work(a good hint is that the
-acpi_video_unregister_backlight is called), we should make that cooling
-device disappear.
+Pseudo code could be:
+if (directly_prior_to_suspend)
+    wakeup_reason_zero();
 
-Regards,
-Aaron
+if (platform_knows_stuff)
+    wakeup_reason_append(generic_knowledge);
 
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> 
-> 
-> *) This is tricky, e.g. going low brightness may cause the main board
-> to heat up more then full brightness depending on how things are hooked
-> up.
-> 
-> 
-> 
->  Should that be untangled from the mess too?
-> >
-> >BR,
-> >Jani.
-> >
-> >
-> >>
-> >>I hope to post a v1 of the actual cleanup patch-set in 1-2 weeks.
-> >>
-> >>Regards,
-> >>
-> >>Hans
-> >>_______________________________________________
-> >>dri-devel mailing list
-> >>dri-devel@lists.freedesktop.org
-> >>http://lists.freedesktop.org/mailman/listinfo/dri-devel
-> >
+if (special_driver_knows_stuff)
+    wakeup_reason_append(very_magic_special_info);
+
+
+wakeup_reason_zero()
+{
+    wakeup_reason_sysfs_attr_zero();
+}
+
+wakeup_reason_append(info)
+{
+    wakeup_reason_sysfs_attr_append(info);
+}
+
+And once (the moment that) such an implementation got created,
+it should be documented,
+since currently grepping of Documentation/ for wakeup|grep -i reason
+does not show any hints.
+
+Thanks,
+
+Andreas Mohr
