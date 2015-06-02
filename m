@@ -1,90 +1,102 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 0/3] Use acpi_video_unregister_backlight instead of acpi_video_unregister
- in platfrom backlight drivers
-Date: Tue, 02 Jun 2015 12:14:28 +0200
-Message-ID: <556D8204.5030904@redhat.com>
-References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com> <87zj4ie8i9.fsf@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 00/11] Add self-probe infrastructure and stacked irqdomain
+ support for ACPI based GICv2/3 init
+Date: Tue, 02 Jun 2015 20:24:24 +0800
+Message-ID: <556DA078.4020901@linaro.org>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <87zj4ie8i9.fsf@intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Jani Nikula <jani.nikula@linux.intel.com>, Darren Hart <dvhart@infradead.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:36029 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753437AbbFBMYi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2015 08:24:38 -0400
+Received: by pdjm12 with SMTP id m12so48985396pdj.3
+        for <linux-acpi@vger.kernel.org>; Tue, 02 Jun 2015 05:24:38 -0700 (PDT)
+In-Reply-To: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hi,
+Hi Marc,
 
-On 02-06-15 11:59, Jani Nikula wrote:
-> On Mon, 01 Jun 2015, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi All,
->>
->> I'm working on cleaning up the currently somewhat convoluted logic to
->> select which backlight interfaces to register on x86 systems, see:
->> http://lists.freedesktop.org/archives/dri-devel/2014-December/074687.html
->>
->> For a rought outline (details will change in the actual patch-set).
->>
->> These 3 patches are a preparation for that work, as the behavior of the
->> current code is not always consistent (it changes depending on module
->> loading order in some cases). These 3 patches remove this inconsistency
->> which in some cases may result in a behavior change.
->>
->> This way the cleanup can have a consistent base to build upon, and I can
->> ensure that the cleanup itself does not cause any functional changes.
+Ping, could you comment on if we are on the right direction
+for this patch set? much appreciated.
+
+Thanks
+Hanjun
+
+On 2015=E5=B9=B405=E6=9C=8818=E6=97=A5 20:59, Hanjun Guo wrote:
+> This patch set introduce self-probe infrastructure to init IRQ
+> controllers and stacked irqdomain support for ACPI based GICv2/3
+> init.
 >
-> Thanks for doing this.
+> The self-probe infrastructure for ACPI GIC init is similar as
+> IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+> MADT table.
 >
-> Slightly unrelated, but you'll end up calling:
+> We introduce acpi_irq_domain for GICv2/3 core domain to support
+> stacked irqdomain, and pass the gsi (global system interrupt) as
+> the agument (void *arg) for gic_irq_domain_alloc(), then we can
+> alloc virqs via acpi_register_gsi() with stacked irqdomain.
 >
-> acpi_video_unregister_backlight
-> 	acpi_video_bus_unregister_backlight
-> 		acpi_video_dev_unregister_backlight
-> 			thermal_cooling_device_unregister
+> In order to make ACPI related GIC init code slef-contained, I
+> consolidated all the GIC init code into drivers/irqchip/irq-gic-acpi.=
+c.
 >
-> Uhm, err, what? What business does *that* have in the backlight
-> unregister call chain?!
-
-I think the idea is that having the backlight on can cause the main board
-to heat up as there is often a regulator / pwm for the backlight on the
-main board. If that is turned off it may help to cool down the main board,
-so the backlight is a cooling device in the sense that when it is turned
-off it stops generating heat.
-
-If this makes sense (*) then the cooling device stuff should maybe moved
-from the acpi/video.c code to the backlight core code.
-
-Or does the acpi-video code use some info from the BIOS to determine
-whether or not to register a cooling device ?
-
-Regards,
-
-Hans
-
-
-
-
-*) This is tricky, e.g. going low brightness may cause the main board
-to heat up more then full brightness depending on how things are hooked
-up.
-
-
-
-  Should that be untangled from the mess too?
+> update from RFC version:
+>   - Consolidate all the GIC init code into drivers/irqchip/irq-gic-ac=
+pi.c
 >
-> BR,
-> Jani.
+> Hanjun Guo (8):
+>    irqchip / GIC: Add GIC version support in ACPI MADT
+>    irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 i=
+nit
+>      code
+>    irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 =
+init
+>    ACPI / gsi: Add gsi_mutex to synchronize
+>      acpi_register_gsi()/acpi_unregister_gsi()
+>    irqchip / GICv3: Add ACPI support for GICv3+ initialization
+>    irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+>    irqchip / GICv2 / ACPI: Consolidate GICv2 ACPI related init code
+>    irqchip / GICv3 / ACPI: Consolidate GICv3 ACPI related init code
 >
+> Tomasz Nowicki (3):
+>    ACPICA: Introduce GIC version for arm based system
+>    ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+>      controller
+>    irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
 >
->>
->> I hope to post a v1 of the actual cleanup patch-set in 1-2 weeks.
->>
->> Regards,
->>
->> Hans
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>   arch/arm64/Kconfig                   |   1 +
+>   arch/arm64/include/asm/irq.h         |  13 --
+>   arch/arm64/kernel/acpi.c             |  25 ---
+>   drivers/acpi/Makefile                |   1 +
+>   drivers/acpi/gsi.c                   |  41 +++--
+>   drivers/acpi/irq.c                   |  40 +++++
+>   drivers/irqchip/Kconfig              |   3 +
+>   drivers/irqchip/Makefile             |   1 +
+>   drivers/irqchip/irq-gic-acpi.c       | 318 ++++++++++++++++++++++++=
++++++++++++
+>   drivers/irqchip/irq-gic-v3.c         | 149 +++++++++-------
+>   drivers/irqchip/irq-gic.c            | 129 ++------------
+>   drivers/irqchip/irqchip.h            |  12 ++
+>   include/acpi/actbl1.h                |  17 +-
+>   include/asm-generic/vmlinux.lds.h    |  13 ++
+>   include/linux/acpi.h                 |  14 ++
+>   include/linux/acpi_irq.h             |   4 +-
+>   include/linux/irqchip/arm-gic-acpi.h |  13 +-
+>   include/linux/irqchip/arm-gic-v3.h   |  10 ++
+>   include/linux/mod_devicetable.h      |   7 +
+>   19 files changed, 577 insertions(+), 234 deletions(-)
+>   create mode 100644 drivers/acpi/irq.c
+>   create mode 100644 drivers/irqchip/irq-gic-acpi.c
 >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
