@@ -1,68 +1,64 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [v3,33/36] genirq: Use helper function to access irq_data->msi_desc
-Date: Tue, 02 Jun 2015 13:46:36 +0800
-Message-ID: <556D433C.4040508@linux.intel.com>
-References: <20150602034507.1BBCB1412F1@ozlabs.org>
+Subject: Re: [Patch v3 6/7] x86/PCI/ACPI: Use common interface to support
+ PCI host bridge
+Date: Tue, 02 Jun 2015 13:56:51 +0800
+Message-ID: <556D45A3.9070708@linux.intel.com>
+References: <1431593803-5213-1-git-send-email-jiang.liu@linux.intel.com> <1431593803-5213-7-git-send-email-jiang.liu@linux.intel.com> <555F355E.7060706@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150602034507.1BBCB1412F1@ozlabs.org>
+In-Reply-To: <555F355E.7060706@linaro.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paul Mackerras <paulus@samba.org>, Chris Metcalf <cmetcalf@ezchip.com>, Rusty Russell <rusty@rustcorp.com.au>, Tejun Heo <tj@kernel.org>, Joe Perches <joe@perches.com>
-Cc: linux-ia64@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Yijing Wang <wangyijing@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/6/2 11:45, Michael Ellerman wrote:
-> On Mon, 2015-01-06 at 08:05:42 UTC, Jiang Liu wrote:
->> Use irq_data access helper to access irq_data->msi_desc, so we could
->> move msi_desc from struct irq_data into struct irq_common_data later.
+On 2015/5/22 21:55, Hanjun Guo wrote:
+> On 2015=E5=B9=B405=E6=9C=8814=E6=97=A5 16:56, Jiang Liu wrote:
+>> Use common interface to simplify ACPI PCI host bridge implementation=
+=2E
 >>
 >> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 >> ---
->>  arch/powerpc/sysdev/xics/ics-opal.c |    2 +-
->>  arch/powerpc/sysdev/xics/ics-rtas.c |    2 +-
+>>   arch/x86/pci/acpi.c |  292
+>> +++++++++++++++------------------------------------
+>>   1 file changed, 85 insertions(+), 207 deletions(-)
 >>
->> diff --git a/arch/powerpc/sysdev/xics/ics-opal.c b/arch/powerpc/sysdev/xics/ics-opal.c
->> index 3996393c254d..27c936c080a6 100644
->> --- a/arch/powerpc/sysdev/xics/ics-opal.c
->> +++ b/arch/powerpc/sysdev/xics/ics-opal.c
->> @@ -72,7 +72,7 @@ static unsigned int ics_opal_startup(struct irq_data *d)
->>  	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
->>  	 * at that level, so we do it here by hand.
->>  	 */
->> -	if (d->msi_desc)
->> +	if (irq_data_get_msi_desc(d))
->>  		pci_msi_unmask_irq(d);
->>  #endif
->>  
->> diff --git a/arch/powerpc/sysdev/xics/ics-rtas.c b/arch/powerpc/sysdev/xics/ics-rtas.c
->> index e2665a9dfc0f..3854dd41558d 100644
->> --- a/arch/powerpc/sysdev/xics/ics-rtas.c
->> +++ b/arch/powerpc/sysdev/xics/ics-rtas.c
->> @@ -75,7 +75,7 @@ static unsigned int ics_rtas_startup(struct irq_data *d)
->>  	 * card, using the MSI mask bits. Firmware doesn't appear to unmask
->>  	 * at that level, so we do it here by hand.
->>  	 */
->> -	if (d->msi_desc)
->> +	if (irq_data_get_msi_desc(d))
->>  		pci_msi_unmask_irq(d);
->>  #endif
->>  	/* unmask it */
-> 
-> These look OK.
-> 
-> Though I would point out we already have 16 irq_foo_get_bar() accessors?!
-Hi Michael,
-	Thanks for review. We are trying to solve some issues introduced
-by hierarchy irqdomain/irqchip by splitting irq_data into a common part
-(irq_common_data) and per-chip part(irq_data). These accessors are used
-to ease the transition and hide implementation details.
+> [...]
+>> -static void release_pci_root_info(struct pci_host_bridge *bridge)
+>> +static void pci_acpi_root_release_info(struct acpi_pci_root_info *c=
+i)
+>>   {
+>> -    struct resource *res;
+>> -    struct resource_entry *entry;
+>> -    struct pci_root_info *info =3D bridge->release_data;
+>> -
+>> -    resource_list_for_each_entry(entry, &bridge->windows) {
+>> -        res =3D entry->res;
+>> -        if (res->parent &&
+>> -            (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
+>> -            release_resource(res);
+>> -    }
+>> -
+>> -    teardown_mcfg_map(info);
+>> -    kfree(info);
+>> +    teardown_mcfg_map(ci);
+>> +    kfree(ci);
+>=20
+> Implicit pointer cast? I think add a comment here that %p of ci
+> is same as %p of info would be helpful for review and easy understood=
+=2E
+
+Good point, will change as:
+	kfree(container_of(ci, struct pci_root_info, common));
 Thanks!
 Gerry
 
-> 
-> Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-> 
-> cheers
-> 
+>=20
+> other than that,
+>=20
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>=20
+> Thanks
+> Hanjun
