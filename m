@@ -1,63 +1,30 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 7/8] dmaengine: add a driver for Intel integrated DMA
- 64-bit
-Date: Tue, 2 Jun 2015 18:19:03 +0530
-Message-ID: <20150602124903.GR3140@localhost>
-References: <1432570172-86963-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1432570172-86963-8-git-send-email-andriy.shevchenko@linux.intel.com>
- <20150526040651.GP3140@localhost>
- <CAHp75VeCHMmYsgrb5GThCfsG_TekZjRfy+MsveAk01QDaUR8gQ@mail.gmail.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v1] gpio: xgene: add ACPI support for APM X-Gene GPIO
+ standby driver
+Date: Tue, 2 Jun 2015 14:52:25 +0200
+Message-ID: <CACRpkdbfcSsjqTU9o=crobwVVzaQOHgOVcDzjBmgM_rxSO2piQ@mail.gmail.com>
+References: <1432893161-3888-1-git-send-email-yvo@apm.com>
+	<1432893161-3888-2-git-send-email-yvo@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHp75VeCHMmYsgrb5GThCfsG_TekZjRfy+MsveAk01QDaUR8gQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1432893161-3888-2-git-send-email-yvo-qTEPVZfXA3Y@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Y Vo <yvo-qTEPVZfXA3Y@public.gmane.org>
+Cc: "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Phong Vo <pvo-qTEPVZfXA3Y@public.gmane.org>, Toan Le <toanle-qTEPVZfXA3Y@public.gmane.org>, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, Tai Nguyen <ttnguyen-qTEPVZfXA3Y@public.gmane.org>, patches <patches-qTEPVZfXA3Y@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 26, 2015 at 09:49:57AM +0300, Andy Shevchenko wrote:
-> On Tue, May 26, 2015 at 7:06 AM, Vinod Koul <vinod.koul@intel.com> wrote:
-> > On Mon, May 25, 2015 at 07:09:31PM +0300, Andy Shevchenko wrote:
-> >> Intel integrated DMA (iDMA) 64-bit is a specific IP that is used as a part of
-> >> LPSS devices such as HSUART or SPI. The iDMA IP is attached for private
-> >> usage on each host controller independently.
-> >>
-> >> While it has similarities with Synopsys DesignWare DMA, the following
-> >> distinctions doesn't allow to use the existing driver:
-> >> - 64-bit mode with corresponding changes in Hardware Linked List data structure
-> >> - many slight differences in the channel registers
-> >>
-> >> Moreover this driver is based on the DMA virtual channels framework that helps
-> >> to make the driver cleaner and easy to understand.
-> >>
-> > Looking at code and iDMA controllers (if this is the same as I have used), we
-> > have register compatibility with DW controller, so why new driver and why not
-> > use and enhance dw driver ?
-> 
-> Take a look closer. There are many, like I mentioned, slight but not
-> least changes in the registers, besides *64-bit mode*:
-> - ctl_hi represents bytes, not items
-> - 2 bytes of burst is supported (dw has no gap there)
-> - shuffling bits between ctl_* and cfg_*
-> - new bits with different meaning in ctl_* and cfg_*.
-Yes these are the changes which I was thinking and these would impact only
-calculating different values for a descriptor, so based on device probed you
-cna load a specfic operation for calculating, rest of the driver code is
-agnostic
+On Fri, May 29, 2015 at 11:52 AM, Y Vo <yvo-qTEPVZfXA3Y@public.gmane.org> wrote:
 
-> 
-> Preliminary we did a patchset for dw_dmac, but above hw changes blows
-> up and messes the driver code. I really would prefer to have those two
-> separate
-I think it should be doable and reading this patch also doesnt convince me
-for that
+> Add ACPI support for APM X-Gene GPIO standby driver.
+>
+> Signed-off-by: Y Vo <yvo-qTEPVZfXA3Y@public.gmane.org>
 
-> 
-> However, the 32-bit iDMA which is used in Baytrail might be driven by dw_dmac.
-Also what part here is specfic to *64* bit ?
+Patch applied.
 
--- 
-~Vinod
-
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
