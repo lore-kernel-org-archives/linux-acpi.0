@@ -1,156 +1,77 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v2 3/4] PCI: Introduce helpers to manage pci_dev->irq and pci_dev->irq_managed
-Date: Tue,  2 Jun 2015 10:49:18 +0800
-Message-ID: <1433213360-3700-4-git-send-email-jiang.liu@linux.intel.com>
-References: <1433213360-3700-1-git-send-email-jiang.liu@linux.intel.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI / blacklist: blacklist Win8 OSI for Dell Inspiron 7437
+Date: Tue, 2 Jun 2015 11:20:18 +0800
+Message-ID: <CAJ=jquaab4ONUJMp0HBQoC__GMX23KGjTY8tMx53ADKyWqsstQ@mail.gmail.com>
+References: <20150427174646.GA22664@srcf.ucam.org>
+	<CAJ=jquZ7wTNBMEwZaxKRd6B2iC6qaum5h+oW=Qf364+xhs20kg@mail.gmail.com>
+	<20150428052448.GA3458@srcf.ucam.org>
+	<CAJ=jquYYDixG7-XtVJRvuHDWHgF3Ww3fiafDbmgD5KY8QJjeQQ@mail.gmail.com>
+	<20150428171100.GA24599@srcf.ucam.org>
+	<CAJ=jquZMMBNsKO2CZe649OcXTBxfzO43gkxwkJn2mvHhnp+zSQ@mail.gmail.com>
+	<5554F12A.3010003@dell.com>
+	<20150514191358.GB23853@srcf.ucam.org>
+	<5554F4B2.8080801@dell.com>
+	<555CC776.3030802@dell.com>
+	<20150520184242.GA32453@srcf.ucam.org>
+	<555CEB88.70407@dell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10602 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754938AbbFBCr2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Jun 2015 22:47:28 -0400
-In-Reply-To: <1433213360-3700-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:33196 "EHLO
+	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754873AbbFBDUT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jun 2015 23:20:19 -0400
+Received: by qkhg32 with SMTP id g32so94643302qkh.0
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jun 2015 20:20:18 -0700 (PDT)
+In-Reply-To: <555CEB88.70407@dell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mario Limonciello <mario_limonciello@dell.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-Introduce three helpers to manage pci_dev->irq and pci_dev->irq_managed,
-which helps to improve maintenance.
+I ran at least kernel 3.19 (Ubuntu Vivid), 4.0 and 4.1rc on 7437, and
+they have the same symptom - ACPI events are not generated with
+wireless hotkey presses and battery info is not updated. The commit
+75646e758a0ecbed5024454507d5be5b9ea9dcbf is included.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/pci/intel_mid_pci.c |    4 ++--
- arch/x86/pci/irq.c           |   10 ++++------
- drivers/acpi/pci_irq.c       |   10 ++++------
- include/linux/pci.h          |   17 +++++++++++++++++
- 4 files changed, 27 insertions(+), 14 deletions(-)
+If I ran "cat /proc/interrupts", interrupt 9 (acpi) is not incrementing.
 
-diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
-index fb7a1f96d80c..22aaefb4f1ca 100644
---- a/arch/x86/pci/intel_mid_pci.c
-+++ b/arch/x86/pci/intel_mid_pci.c
-@@ -211,7 +211,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- 	struct irq_alloc_info info;
- 	int polarity;
- 
--	if (dev->irq_managed && dev->irq > 0)
-+	if (pci_has_managed_irq(dev))
- 		return 0;
- 
- 	if (intel_mid_identify_cpu() == INTEL_MID_CPU_CHIP_TANGIER)
-@@ -234,7 +234,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
- 
- static void intel_mid_pci_irq_disable(struct pci_dev *dev)
- {
--	if (dev->irq_managed && dev->irq > 0) {
-+	if (pci_has_managed_irq(dev)) {
- 		mp_unmap_irq(dev->irq);
- 		dev->irq_managed = 0;
- 		/*
-diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
-index 72108f0b66b1..32e70343e6fd 100644
---- a/arch/x86/pci/irq.c
-+++ b/arch/x86/pci/irq.c
-@@ -1202,7 +1202,7 @@ static int pirq_enable_irq(struct pci_dev *dev)
- 			struct pci_dev *temp_dev;
- 			int irq;
- 
--			if (dev->irq_managed && dev->irq > 0)
-+			if (pci_has_managed_irq(dev))
- 				return 0;
- 
- 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
-@@ -1230,8 +1230,7 @@ static int pirq_enable_irq(struct pci_dev *dev)
- 			}
- 			dev = temp_dev;
- 			if (irq >= 0) {
--				dev->irq_managed = 1;
--				dev->irq = irq;
-+				pci_set_managed_irq(dev, irq);
- 				dev_info(&dev->dev, "PCI->APIC IRQ transform: "
- 					 "INT %c -> IRQ %d\n", 'A' + pin - 1, irq);
- 				return 0;
-@@ -1259,9 +1258,8 @@ static int pirq_enable_irq(struct pci_dev *dev)
- 
- static void pirq_disable_irq(struct pci_dev *dev)
- {
--	if (io_apic_assign_pci_irqs && dev->irq_managed && dev->irq) {
-+	if (io_apic_assign_pci_irqs && pci_has_managed_irq(dev)) {
- 		mp_unmap_irq(dev->irq);
--		dev->irq = 0;
--		dev->irq_managed = 0;
-+		pci_reset_managed_irq(dev);
- 	}
- }
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index e7f718d6918a..9d6343d02f7e 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -413,7 +413,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		return 0;
- 	}
- 
--	if (dev->irq_managed && dev->irq > 0)
-+	if (pci_has_managed_irq(dev))
- 		return 0;
- 
- 	entry = acpi_pci_irq_lookup(dev, pin);
-@@ -458,8 +458,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 		kfree(entry);
- 		return rc;
- 	}
--	dev->irq = rc;
--	dev->irq_managed = 1;
-+	pci_set_managed_irq(dev, rc);
- 
- 	if (link)
- 		snprintf(link_desc, sizeof(link_desc), " -> Link[%s]", link);
-@@ -482,7 +481,7 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
- 	u8 pin;
- 
- 	pin = dev->pin;
--	if (!pin || !dev->irq_managed || dev->irq <= 0)
-+	if (!pin || !pci_has_managed_irq(dev))
- 		return;
- 
- 	entry = acpi_pci_irq_lookup(dev, pin);
-@@ -504,7 +503,6 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
- 	dev_dbg(&dev->dev, "PCI INT %c disabled\n", pin_name(pin));
- 	if (gsi >= 0) {
- 		acpi_unregister_gsi(gsi);
--		dev->irq_managed = 0;
--		dev->irq = 0;
-+		pci_reset_managed_irq(dev);
- 	}
- }
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index f50d16a04abc..4bc640eef76f 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -958,6 +958,23 @@ static inline int pci_is_managed(struct pci_dev *pdev)
- 	return pdev->is_managed;
- }
- 
-+static inline void pci_set_managed_irq(struct pci_dev *pdev, unsigned int irq)
-+{
-+	pdev->irq = irq;
-+	pdev->irq_managed = 1;
-+}
-+
-+static inline void pci_reset_managed_irq(struct pci_dev *pdev)
-+{
-+	pdev->irq = 0;
-+	pdev->irq_managed = 0;
-+}
-+
-+static inline bool pci_has_managed_irq(struct pci_dev *pdev)
-+{
-+	return pdev->irq_managed && pdev->irq > 0;
-+}
-+
- void pci_disable_device(struct pci_dev *dev);
- 
- extern unsigned int pcibios_max_latency;
+If AC is plugged/unplugged, battery will be updated once. This implies
+AC event is generated correctly.
+
+On Thu, May 21, 2015 at 4:16 AM, Mario Limonciello
+<mario_limonciello@dell.com> wrote:
+>
+>
+> On 05/20/2015 01:42 PM, Matthew Garrett wrote:
+>>
+>> On Wed, May 20, 2015 at 12:42:14PM -0500, Mario Limonciello wrote:
+>>
+>>> I've gotten some more information on this.
+>>> Windows: Asks for battery information update multiple times.
+>>> Linux: Only asks once for battery information update.
+>>>
+>>> The net result is that on Linux ACPI battery is missing.  In the
+>>> _REV test BIOS workaround, a SMI event was added to ask for battery
+>>> information update.
+>>
+>> Hm. Why does only asking once not result in us seeing the battery?
+>>
+> I'm not sure, this is all I was told about the difference in behavior with
+> Windows that prompted this bios workaround.  Looking through the kernel log,
+> i'm wondering if maybe 75646e758a0ecbed5024454507d5be5b9ea9dcbf will
+> actually have fixed this.
+>
+> Alex,
+>
+> What was the last kernel validated on the 7*37 family?  Can you see if a
+> kernel that includes 75646e758a0ecbed5024454507d5be5b9ea9dcbf does resolve
+> it?
+>
+>
+
+
+
 -- 
-1.7.10.4
-
+Cheers,
+Alex Hung
