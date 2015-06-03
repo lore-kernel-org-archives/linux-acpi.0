@@ -1,143 +1,121 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Patch v4 5/8] ARM64/PCI/ACPI: Introduce struct pci_controller
- for ACPI
-Date: Wed, 3 Jun 2015 13:49:41 +0100
-Message-ID: <20150603124940.GA28247@red-moon>
-References: <1433225576-8215-1-git-send-email-jiang.liu@linux.intel.com>
- <1433225576-8215-6-git-send-email-jiang.liu@linux.intel.com>
- <20150602093525.GA23543@red-moon>
- <556EBE6D.90907@linaro.org>
- <556ECA93.7040800@linux.intel.com>
- <20150603100343.GA27917@red-moon>
- <556ED51C.4070302@linux.intel.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [V5 PATCH 2/5] arm64 : Introduce support for ACPI _CCA object
+Date: Wed, 3 Jun 2015 09:37:09 -0500
+Message-ID: <556F1115.3080302@amd.com>
+References: <1432159758-4486-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+	 <1432159758-4486-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1432867099.24429.4.camel@deneb.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <556ED51C.4070302@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86 @ kernel . org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1432867099.24429.4.camel@deneb.redhat.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Mark Salter <msalter@redhat.com>, kashyap.desai@avagotech.com, sumit.saxena@avagotech.com, uday.lingala@avagotech.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org, megaraidlinux.pdl@avagotech.com, linux-scsi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 03, 2015 at 11:21:16AM +0100, Jiang Liu wrote:
-> On 2015/6/3 18:03, Lorenzo Pieralisi wrote:
-> > On Wed, Jun 03, 2015 at 10:36:19AM +0100, Jiang Liu wrote:
-> >> On 2015/6/3 16:44, Hanjun Guo wrote:
-> >>> On 2015???06???02??? 17:35, Lorenzo Pieralisi wrote:
-> >>>> On Tue, Jun 02, 2015 at 07:12:53AM +0100, Jiang Liu wrote:
-> >>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>>
-> >>>>> ARM64 ACPI based PCI host bridge init needs a arch dependent
-> >>>>> struct pci_controller to accommodate common PCI host bridge
-> >>>>> code which is introduced later, or it will lead to compile
-> >>>>> errors on ARM64.
-> >>>>>
-> >>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> >>>>> CC: Arnd Bergmann <arnd@arndb.de>
-> >>>>> CC: Catalin Marinas <catalin.marinas@arm.com>
-> >>>>> CC: Liviu Dudau <Liviu.Dudau@arm.com>
-> >>>>> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-> >>>>> CC: Will Deacon <will.deacon@arm.com>
-> >>>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >>>>> ---
-> >>>>>   arch/arm64/include/asm/pci.h |   10 ++++++++++
-> >>>>>   1 file changed, 10 insertions(+)
-> >>>>>
-> >>>>> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
-> >>>>> index b008a72f8bc0..70884957f253 100644
-> >>>>> --- a/arch/arm64/include/asm/pci.h
-> >>>>> +++ b/arch/arm64/include/asm/pci.h
-> >>>>> @@ -10,6 +10,16 @@
-> >>>>>   #include <asm-generic/pci-bridge.h>
-> >>>>>   #include <asm-generic/pci-dma-compat.h>
-> >>>>>
-> >>>>> +struct acpi_device;
-> >>>>> +
-> >>>>> +struct pci_controller {
-> >>>>> +#ifdef CONFIG_ACPI
-> >>>>> +    struct acpi_device *companion;    /* ACPI companion device */
-> >>>>> +#endif
-> >>>>> +    int        segment;    /* PCI domain */
-> >>>>> +    int        node;        /* NUMA node */
-> >>>>> +};
-> >>>>
-> >>>> There is nothing ARM64 specific in this structure. The only
-> >>>> reason I see you want to keep it arch specific is the iommu
-> >>>> pointer on x86,
-> >>>
-> >>> And also plarform_data for IA64 too.
-> >>>
-> >>>> but I think we should find a way to make
-> >>>> the common bits shared across archs (ie the struct above) and
-> >>>> add (maybe a void*) to the generic struct to cater for arch
-> >>>> specific data.
-> >>>>
-> >>>> Thoughts ?
-> >>>
-> >>> We discussed this already, it has limitations to make it
-> >>> common to all archs, I think the limitation are:
-> >>>
-> >>>   - struct pci_controller are also used for other archs
-> >>>     such as PowerPC and Tile, they will not use it for
-> >>>     ACPI purpose, so we can not used for all archs.
-> >>>
-> >>>   - if we let struct pci_controller defined only for archs
-> >>>     using ACPI, such as introduce it in linux/acpi.h, we still
-> >>>     can not satisfy that the struct pci_controller is not
-> >>>     only used for ACPI case on x86, it will be used for
-> >>>     non-ACPI too.
-> >>>
-> >>> So it's pretty difficult to share it with across archs to me,
-> >>> any more ideas?
-> >> Hi Hanjun and Lorenzo,
-> >> 	As mentioned by Hanjun, I have no idea yet about how to
-> >> consolidating "struct pci_controller" further. One possible
-> >> way is to move "struct pci_controller" related code into
-> >> arch, but apparently that will reduce code reusing.
-> > 
-> > I guess you can't move that struct pci_controller to generic code
-> > since it is present on other archs too (with completely different
-> > members).
-> > 
-> > What you can do is creating a new struct (ie same purpose of pci_controller
-> > with a different name) common to all archs that contains the common bits
-> > + a void* data that contains arch specific data, and convert x86 and ia64
-> > to using it.
-> > 
-> > It is weird to be forced to declare a pci_controller structure in arm64
-> > code with 0 arch specific data in it.
-> 
-> Hi Lorenzo,
-> 	I have thought to consolidate pci_controller for x86 and ia64,
-> but that will make the change set much more bigger. How about to
-> consolidate pci_controller by another patch set. That will be easier
-> for review.
+On 5/28/2015 9:38 PM, Mark Salter wrote:
+> On Wed, 2015-05-20 at 17:09 -0500, Suravee Suthikulpanit wrote:
+>> >Fromhttp://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf,
+>> >section 6.2.17 _CCA states that ARM platforms require ACPI _CCA
+>> >object to be specified for DMA-cabpable devices. Therefore, this pa=
+tch
+>> >specifies ACPI_CCA_REQUIRED in arm64 Kconfig.
+>> >
+>> >In addition, to handle the case when _CCA is missing, arm64 would a=
+ssign
+>> >dummy_dma_ops to disable DMA capability of the device.
+>> >
+>> >Acked-by: Catalin Marinas<catalin.marinas@arm.com>
+>> >Signed-off-by: Mark Salter<msalter@redhat.com>
+>> >Signed-off-by: Suravee Suthikulpanit<Suravee.Suthikulpanit@amd.com>
+>> >---
+>> >  arch/arm64/Kconfig                   |  1 +
+>> >  arch/arm64/include/asm/dma-mapping.h | 18 ++++++-
+>> >  arch/arm64/mm/dma-mapping.c          | 92 +++++++++++++++++++++++=
++++++++++++++
+>> >  3 files changed, 109 insertions(+), 2 deletions(-)
+>> >
+>> >diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> >index 4269dba..95307b4 100644
+>> >--- a/arch/arm64/Kconfig
+>> >+++ b/arch/arm64/Kconfig
+>> >@@ -1,5 +1,6 @@
+>> >  config ARM64
+>> >  	def_bool y
+>> >+	select ACPI_CCA_REQUIRED if ACPI
+>> >  	select ACPI_GENERIC_GSI if ACPI
+>> >  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>> >  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>> >diff --git a/arch/arm64/include/asm/dma-mapping.h b/arch/arm64/incl=
+ude/asm/dma-mapping.h
+>> >index 9437e3d..f0d6d0b 100644
+>> >--- a/arch/arm64/include/asm/dma-mapping.h
+>> >+++ b/arch/arm64/include/asm/dma-mapping.h
+>> >@@ -18,6 +18,7 @@
+>> >
+>> >  #ifdef __KERNEL__
+>> >
+>> >+#include <linux/acpi.h>
+>> >  #include <linux/types.h>
+>> >  #include <linux/vmalloc.h>
+>> >
+> ^^^ This hunk causes build issues with a couple of drivers:
+>
+> drivers/scsi/megaraid/megaraid_sas_fp.c:69:0: warning: "FALSE" redefi=
+ned [enabled by default]
+>   #define FALSE 0
+>   ^
+> In file included from include/acpi/acpi.h:58:0,
+>                   from include/linux/acpi.h:37,
+>                   from ./arch/arm64/include/asm/dma-mapping.h:21,
+>                   from include/linux/dma-mapping.h:86,
+>                   from ./arch/arm64/include/asm/pci.h:7,
+>                   from include/linux/pci.h:1460,
+>                   from drivers/scsi/megaraid/megaraid_sas_fp.c:37:
+> include/acpi/actypes.h:433:0: note: this is the location of the previ=
+ous definition
+>   #define FALSE                           (1 =3D=3D 0)
+>   ^
+>
+>
+> In file included from include/acpi/acpi.h:58:0,
+>                   from include/linux/acpi.h:37,
+>                   from ./arch/arm64/include/asm/dma-mapping.h:21,
+>                   from include/linux/dma-mapping.h:86,
+>                   from include/scsi/scsi_cmnd.h:4,
+>                   from drivers/scsi/ufs/ufshcd.h:60,
+>                   from drivers/scsi/ufs/ufshcd.c:43:
+> include/acpi/actypes.h:433:41: error: expected identifier before =E2=80=
+=98(=E2=80=99 token
+>   #define FALSE                           (1 =3D=3D 0)
+>                                           ^
+> drivers/scsi/ufs/unipro.h:203:2: note: in expansion of macro =E2=80=98=
+=46ALSE=E2=80=99
+>    FALSE =3D 0,
+>    ^
+>
+> This happens because the ACPI definitions of TRUE and FALSE conflict
+> with local definitions in megaraid and enum declaration in ufs.
+>
+Mark,
 
-Agreed, but with this set you are forcing arm64 to define pci_controller
-as pci_bus sysdata and I am not really keen on that, there are already
-function calls in the arm64 pci layer that are there to make ACPI
-compile and it is a bit annoying, instead of removing them we are
-adding arch stuff on top.
+Thanks for pointing this out. Although, I would think that the=20
+megaraid_sas_fp.c should have had the #ifndef to check before defining=20
+the TRUE and FALSE as following.
 
-How about passing a void* pointer (ie that is what pci_create_root_bus
-expects) to acpi_pci_root_create through a member in acpi_pci_root_info
-(I mean acpi_pci_root_info replaces the controller member with a void*
-where you can add x86/ia64 pci_controller) ?
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
 
-I understand this forces you to alloc the pci_controller in arch code,
-but that's not a big deal right ? This way you can drop the
-pci_controller struct from arm64 (I do not even know if it will ever
-be needed, by looking at Hanjun's code, the bits of code that
-need the pci_controller can be moved to generic PCI layer).
+This seems to be what other drivers are also doing. If this is okay, I=20
+can send out a fix-up patch for the megaraid driver.
 
-https://lkml.org/lkml/2015/5/26/215
+Thanks,
 
-This way we can add the generic struct we discussed later
-(pci_controller refactoring), I agree it is going to be a bigger
-change but at least you do not force something into arm64 that we do
-not even know if it is required.
-
-Thanks anyway for putting this series together.
-Lorenzo
+Suravee
