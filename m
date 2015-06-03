@@ -1,25 +1,99 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v5 09/21] libnvdimm, nd_pmem: add libnvdimm support to
- the pmem driver
-Date: Wed, 3 Jun 2015 00:44:24 -0700
-Message-ID: <20150603074424.GA24949@infradead.org>
-References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150602001458.4506.76492.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Patch v4 5/8] ARM64/PCI/ACPI: Introduce struct pci_controller
+ for ACPI
+Date: Wed, 03 Jun 2015 16:44:29 +0800
+Message-ID: <556EBE6D.90907@linaro.org>
+References: <1433225576-8215-1-git-send-email-jiang.liu@linux.intel.com> <1433225576-8215-6-git-send-email-jiang.liu@linux.intel.com> <20150602093525.GA23543@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60443 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654AbbFCHob (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jun 2015 03:44:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20150602001458.4506.76492.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:35592 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689AbbFCIoi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jun 2015 04:44:38 -0400
+Received: by padjw17 with SMTP id jw17so2682760pad.2
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Jun 2015 01:44:38 -0700 (PDT)
+In-Reply-To: <20150602093525.GA23543@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@ml01.01.org, axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-api@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86 @ kernel . org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>
 
-This patch doesn't apply, as it seems to use some git magic.
+On 2015=E5=B9=B406=E6=9C=8802=E6=97=A5 17:35, Lorenzo Pieralisi wrote:
+> On Tue, Jun 02, 2015 at 07:12:53AM +0100, Jiang Liu wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> ARM64 ACPI based PCI host bridge init needs a arch dependent
+>> struct pci_controller to accommodate common PCI host bridge
+>> code which is introduced later, or it will lead to compile
+>> errors on ARM64.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> CC: Arnd Bergmann <arnd@arndb.de>
+>> CC: Catalin Marinas <catalin.marinas@arm.com>
+>> CC: Liviu Dudau <Liviu.Dudau@arm.com>
+>> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+>> CC: Will Deacon <will.deacon@arm.com>
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> ---
+>>   arch/arm64/include/asm/pci.h |   10 ++++++++++
+>>   1 file changed, 10 insertions(+)
+>>
+>> diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/p=
+ci.h
+>> index b008a72f8bc0..70884957f253 100644
+>> --- a/arch/arm64/include/asm/pci.h
+>> +++ b/arch/arm64/include/asm/pci.h
+>> @@ -10,6 +10,16 @@
+>>   #include <asm-generic/pci-bridge.h>
+>>   #include <asm-generic/pci-dma-compat.h>
+>>
+>> +struct acpi_device;
+>> +
+>> +struct pci_controller {
+>> +#ifdef CONFIG_ACPI
+>> +	struct acpi_device *companion;	/* ACPI companion device */
+>> +#endif
+>> +	int		segment;	/* PCI domain */
+>> +	int		node;		/* NUMA node */
+>> +};
+>
+> There is nothing ARM64 specific in this structure. The only
+> reason I see you want to keep it arch specific is the iommu
+> pointer on x86,
 
-But looking at it it's also wrong in that it mixes a file move
-and actual changes to the file.
+And also plarform_data for IA64 too.
+
+> but I think we should find a way to make
+> the common bits shared across archs (ie the struct above) and
+> add (maybe a void*) to the generic struct to cater for arch
+> specific data.
+>
+> Thoughts ?
+
+We discussed this already, it has limitations to make it
+common to all archs, I think the limitation are:
+
+   - struct pci_controller are also used for other archs
+     such as PowerPC and Tile, they will not use it for
+     ACPI purpose, so we can not used for all archs.
+
+   - if we let struct pci_controller defined only for archs
+     using ACPI, such as introduce it in linux/acpi.h, we still
+     can not satisfy that the struct pci_controller is not
+     only used for ACPI case on x86, it will be used for
+     non-ACPI too.
+
+So it's pretty difficult to share it with across archs to me,
+any more ideas?
+
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
