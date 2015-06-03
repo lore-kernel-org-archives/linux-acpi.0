@@ -1,52 +1,63 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 0/3] Add NUMA support for NVDIMM devices
-Date: Tue,  2 Jun 2015 18:26:49 -0600
-Message-ID: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH 2/3] acpi: Add export to acpi_map_pxm_to_node()
+Date: Tue,  2 Jun 2015 18:26:51 -0600
+Message-ID: <1433291212-23367-3-git-send-email-toshi.kani@hp.com>
+References: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hp.com ([15.201.208.55]:39678 "EHLO
-	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbbFCAq2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2015 20:46:28 -0400
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:43017 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537AbbFCAqc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2015 20:46:32 -0400
+In-Reply-To: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 
-Since NVDIMMs are installed on memory slots, they expose the NUMA
-topology of a platform.  This patchset adds support of sysfs
-'numa_node' to the NVDIMM devices under /sys/bus/nd/devices.
-With this change, numactl(8) accepts 'block:' and 'file:' paths of
-pmem and btt devices as shown in the examples below.
-  numactl --preferred block:pmem0 --show
-  numactl --preferred file:/dev/pmem0s --show
+acpi_get_node() allows ACPI kernel modules to map a proximity ID
+to a node ID from ACPI _PXM method.  Some ACPI static tables,
+such as SRAT, DMAR, PMTT and NFIT, also contain proximity IDs.
 
-Here is a result of fio benchmark to ext4/dax on pmem0 using numactl
-on an HP DL380 with 2 sockets; pmem0 on node 0, and pmem1 on node 1.
+This patch exports acpi_map_pxm_to_node() so that ACPI kernel
+modules can call this function to map a proximity ID to a node ID
+from an ACPI static table as well.
 
-  Local [1] :  4098.3MB/s
-  Remote [2]:  3718.4MB/s
+When CONFIG_ACPI_NUMA is not set, acpi_map_pxm_to_node() always
+returns 0.
 
-[1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
-[2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
-
-Patch 1/3-2/3 apply on top of the acpica branch of the pm tree.
-Patch 3/3 applies on top of Dan Williams's v5 patch series of 
-"libnvdimm: non-volatile memory devices".
-
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
-Toshi Kani (3):
-  1/3 acpi: Fix acpi_map_pxm_to_node() to handle numa_off
-  2/3 acpi: Add export to acpi_map_pxm_to_node()
-  3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
+ drivers/acpi/numa.c  |    1 +
+ include/linux/acpi.h |    5 +++++
+ 2 files changed, 6 insertions(+)
 
----
- drivers/acpi/nfit.c          |  2 ++
- drivers/acpi/numa.c          | 13 ++++++++++---
- drivers/nvdimm/btt.c         |  2 ++
- drivers/nvdimm/bus.c         | 12 ++++++++++++
- drivers/nvdimm/nd.h          |  1 +
- drivers/nvdimm/region.c      |  1 +
- drivers/nvdimm/region_devs.c |  1 +
- include/linux/acpi.h         |  5 +++++
- include/linux/libnvdimm.h    |  1 +
- 9 files changed, 35 insertions(+), 3 deletions(-)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 4898082..8f50d5d 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -90,6 +90,7 @@ int acpi_map_pxm_to_node(int pxm)
+ 
+ 	return node;
+ }
++EXPORT_SYMBOL(acpi_map_pxm_to_node);
+ 
+ static void __init
+ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e4da5e3..7a76e51 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
+ extern void acpi_osi_setup(char *str);
+ 
+ #ifdef CONFIG_ACPI_NUMA
++int acpi_map_pxm_to_node(int pxm);
+ int acpi_get_node(acpi_handle handle);
+ #else
++static inline int acpi_map_pxm_to_node(int pxm)
++{
++	return 0;
++}
+ static inline int acpi_get_node(acpi_handle handle)
+ {
+ 	return 0;
