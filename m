@@ -1,32 +1,52 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 0/3] Use acpi_video_unregister_backlight instead of
- acpi_video_unregister in platfrom backlight drivers
-Date: Wed, 3 Jun 2015 08:31:00 +0800
-Message-ID: <20150603003100.GA3562@aaronlu.sh.intel.com>
-References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
- <87zj4ie8i9.fsf@intel.com>
- <556D8204.5030904@redhat.com>
- <20150602143350.GB367@aaronlu.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150602143350.GB367@aaronlu.sh.intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>, Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH 0/3] Add NUMA support for NVDIMM devices
+Date: Tue,  2 Jun 2015 18:26:49 -0600
+Message-ID: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:39678 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751443AbbFCAq2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Jun 2015 20:46:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 
-On Tue, Jun 02, 2015 at 10:33:50PM +0800, Aaron Lu wrote:
-> On Tue, Jun 02, 2015 at 12:14:28PM +0200, Hans de Goede wrote:
-> > 
-> > If this makes sense (*) then the cooling device stuff should maybe moved
-> > from the acpi/video.c code to the backlight core code.
-> 
-> It's just a specific driver that provides thermal capability, no need to
-> move to the core code.
+Since NVDIMMs are installed on memory slots, they expose the NUMA
+topology of a platform.  This patchset adds support of sysfs
+'numa_node' to the NVDIMM devices under /sys/bus/nd/devices.
+With this change, numactl(8) accepts 'block:' and 'file:' paths of
+pmem and btt devices as shown in the examples below.
+  numactl --preferred block:pmem0 --show
+  numactl --preferred file:/dev/pmem0s --show
 
-I didn't get this when replying and now I think it's doable.
+Here is a result of fio benchmark to ext4/dax on pmem0 using numactl
+on an HP DL380 with 2 sockets; pmem0 on node 0, and pmem1 on node 1.
 
-Regards,
-Aaron
+  Local [1] :  4098.3MB/s
+  Remote [2]:  3718.4MB/s
+
+[1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
+[2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
+
+Patch 1/3-2/3 apply on top of the acpica branch of the pm tree.
+Patch 3/3 applies on top of Dan Williams's v5 patch series of 
+"libnvdimm: non-volatile memory devices".
+
+---
+Toshi Kani (3):
+  1/3 acpi: Fix acpi_map_pxm_to_node() to handle numa_off
+  2/3 acpi: Add export to acpi_map_pxm_to_node()
+  3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
+
+---
+ drivers/acpi/nfit.c          |  2 ++
+ drivers/acpi/numa.c          | 13 ++++++++++---
+ drivers/nvdimm/btt.c         |  2 ++
+ drivers/nvdimm/bus.c         | 12 ++++++++++++
+ drivers/nvdimm/nd.h          |  1 +
+ drivers/nvdimm/region.c      |  1 +
+ drivers/nvdimm/region_devs.c |  1 +
+ include/linux/acpi.h         |  5 +++++
+ include/linux/libnvdimm.h    |  1 +
+ 9 files changed, 35 insertions(+), 3 deletions(-)
