@@ -1,57 +1,28 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 3/3] libnvdimm: Add sysfs numa_node to NVDIMM devices
-Date: Wed, 03 Jun 2015 09:23:21 -0600
-Message-ID: <1433345001.23540.157.camel@misato.fc.hp.com>
-References: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
-	 <1433291212-23367-4-git-send-email-toshi.kani@hp.com>
-	 <CAPcyv4hn_YX=atGXXEPaFf1xk2ZzaWgZjeTpPpEsZZdLiQCXAA@mail.gmail.com>
-	 <CAPcyv4i3LU2jXm3q1CDzgMAhzzpuYky1g8M6eT3wv_9BxsUnDA@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [v3,33/36] genirq: Use helper function to access
+ irq_data->msi_desc
+Date: Wed, 3 Jun 2015 18:53:24 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1506031850340.31424@nanos>
+References: <20150602034507.1BBCB1412F1@ozlabs.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3425.houston.hp.com ([15.201.208.53]:23601 "EHLO
-	g4t3425.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052AbbFCPm5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jun 2015 11:42:57 -0400
-In-Reply-To: <CAPcyv4i3LU2jXm3q1CDzgMAhzzpuYky1g8M6eT3wv_9BxsUnDA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20150602034507.1BBCB1412F1@ozlabs.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paul Mackerras <paulus@samba.org>, Chris Metcalf <cmetcalf@ezchip.com>Jiang Liu <jiang.liu@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Tejun Heo <tj@kernel.org>, Joe Perches <joe@perches.com>, linux-ia64@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, 2015-06-02 at 19:51 -0700, Dan Williams wrote:
-> On Tue, Jun 2, 2015 at 6:01 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> > On Tue, Jun 2, 2015 at 5:26 PM, Toshi Kani <toshi.kani@hp.com> wrote:
- :
-> >>
-> >> +#ifdef CONFIG_NUMA
-> >> +static ssize_t numa_node_show(struct device *dev, struct device_attribute *attr,
-> >> +               char *buf)
-> >> +{
-> >> +       return sprintf(buf, "%d\n", dev->numa_node);
-> >> +}
-> >> +DEVICE_ATTR_RO(numa_node);
-> >> +#endif
-> >> +
-> >>  static struct attribute *nd_device_attributes[] = {
-> >>         &dev_attr_modalias.attr,
-> >>         &dev_attr_devtype.attr,
-> >> +#ifdef CONFIG_NUMA
-> >> +       &dev_attr_numa_node.attr,
-> >> +#endif
-> >>         NULL,
-> >>  };
-> >
-> > I'd prefer you define is_visible() in the nd_device_attribute_group
-> > and gate showing this attribute on IS_ENABLED(CONFIG_NUMA) rather than
-> > including these ifdef guards.  The ifdef guards aren't necessary in
-> > the CONFIG_NUMA=n case.
-> 
-> I also think is_visible() should hide this attribute on is_nvdimm() devices.
+On Tue, 2 Jun 2015, Michael Ellerman wrote:
+> Though I would point out we already have 16 irq_foo_get_bar() accessors?!
 
-Agreed.  Will do.
+Say thanks to the people who mindlessly fiddled in the core managed
+fields of irqdesc and irqdata. The hard to track down wreckage they
+caused me to enforce accessors.
+
+The new accessors are to help migrating members of irq_data to a new
+data structure without breaking the world and some more.
 
 Thanks,
--Toshi
 
+	tglx
