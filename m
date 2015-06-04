@@ -1,375 +1,87 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 18/48] genirq: Kill the parameter 'irq' of note_interrupt()
-Date: Thu,  4 Jun 2015 12:13:28 +0800
-Message-ID: <1433391238-19471-19-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 04/48] powerpc,
+ irq: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
+Date: Thu,  4 Jun 2015 12:13:14 +0800
+Message-ID: <1433391238-19471-5-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Anatolij Gustschin <agust@denx.de>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Arnd Bergmann <arnd@arndb.de>
+Cc: cbe-oss-dev@lists.ozlabs.org, Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Simplify interrupt management interfaces by killing the parameter 'irq'
-of note_interrupt().
-
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- include/linux/irq.h    |    3 +--
- kernel/irq/chip.c      |    4 ++--
- kernel/irq/handle.c    |    2 +-
- kernel/irq/internals.h |    7 +++----
- kernel/irq/manage.c    |   25 +++++++++++++------------
- kernel/irq/pm.c        |   12 ++++++------
- kernel/irq/spurious.c  |   33 ++++++++++++++++-----------------
- 7 files changed, 42 insertions(+), 44 deletions(-)
-
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 2de650d61a4e..ab6dca4ad968 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -487,8 +487,7 @@ extern int irq_chip_set_vcpu_affinity_parent(struct irq_data *data,
- #endif
- 
- /* Handling of unhandled and spurious interrupts: */
--extern void note_interrupt(unsigned int irq, struct irq_desc *desc,
--			   irqreturn_t action_ret);
-+extern void note_interrupt(struct irq_desc *desc, irqreturn_t action_ret);
- 
- 
- /* Enable/disable irq debugging output: */
-diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
-index 7fe80d2fcc6c..048698045dad 100644
---- a/kernel/irq/chip.c
-+++ b/kernel/irq/chip.c
-@@ -63,7 +63,7 @@ int irq_set_irq_type(unsigned int irq, unsigned int type)
- 		return -EINVAL;
- 
- 	type &= IRQ_TYPE_SENSE_MASK;
--	ret = __irq_set_trigger(desc, irq, type);
-+	ret = __irq_set_trigger(desc, type);
- 	irq_put_desc_busunlock(desc, flags);
- 	return ret;
- }
-@@ -328,7 +328,7 @@ void handle_nested_irq(unsigned int irq)
- 
- 	action_ret = action->thread_fn(action->irq, action->dev_id);
- 	if (!noirqdebug)
--		note_interrupt(irq, desc, action_ret);
-+		note_interrupt(desc, action_ret);
- 
- 	raw_spin_lock_irq(&desc->lock);
- 	irqd_clear(&desc->irq_data, IRQD_IRQ_INPROGRESS);
-diff --git a/kernel/irq/handle.c b/kernel/irq/handle.c
-index 4d37b96343e9..b6eeea8a80c5 100644
---- a/kernel/irq/handle.c
-+++ b/kernel/irq/handle.c
-@@ -176,7 +176,7 @@ handle_irq_event_percpu(struct irq_desc *desc, struct irqaction *action)
- 	add_interrupt_randomness(irq, flags);
- 
- 	if (!noirqdebug)
--		note_interrupt(irq, desc, retval);
-+		note_interrupt(desc, retval);
- 	return retval;
- }
- 
-diff --git a/kernel/irq/internals.h b/kernel/irq/internals.h
-index ca2ca5531be6..3d274e2fe605 100644
---- a/kernel/irq/internals.h
-+++ b/kernel/irq/internals.h
-@@ -59,10 +59,9 @@ enum {
- #include "debug.h"
- #include "settings.h"
- 
--extern int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
--		unsigned long flags);
--extern void __disable_irq(struct irq_desc *desc, unsigned int irq);
--extern void __enable_irq(struct irq_desc *desc, unsigned int irq);
-+extern int __irq_set_trigger(struct irq_desc *desc, unsigned long flags);
-+extern void __disable_irq(struct irq_desc *desc);
-+extern void __enable_irq(struct irq_desc *desc);
- 
- extern int irq_startup(struct irq_desc *desc, bool resend);
- extern void irq_shutdown(struct irq_desc *desc);
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index 379a1d60c4f4..32567d4d7031 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -423,7 +423,7 @@ setup_affinity(unsigned int irq, struct irq_desc *desc, struct cpumask *mask)
- }
- #endif
- 
--void __disable_irq(struct irq_desc *desc, unsigned int irq)
-+void __disable_irq(struct irq_desc *desc)
- {
- 	if (!desc->depth++)
- 		irq_disable(desc);
-@@ -436,7 +436,7 @@ static int __disable_irq_nosync(unsigned int irq)
- 
- 	if (!desc)
- 		return -EINVAL;
--	__disable_irq(desc, irq);
-+	__disable_irq(desc);
- 	irq_put_desc_busunlock(desc, flags);
- 	return 0;
- }
-@@ -503,12 +503,13 @@ bool disable_hardirq(unsigned int irq)
- }
- EXPORT_SYMBOL_GPL(disable_hardirq);
- 
--void __enable_irq(struct irq_desc *desc, unsigned int irq)
-+void __enable_irq(struct irq_desc *desc)
- {
- 	switch (desc->depth) {
- 	case 0:
-  err_out:
--		WARN(1, KERN_WARNING "Unbalanced enable for IRQ %d\n", irq);
-+		WARN(1, KERN_WARNING "Unbalanced enable for IRQ %d\n",
-+		     irq_desc_get_irq(desc));
- 		break;
- 	case 1: {
- 		if (desc->istate & IRQS_SUSPENDED)
-@@ -546,7 +547,7 @@ void enable_irq(unsigned int irq)
- 		 KERN_ERR "enable_irq before setup/request_irq: irq %u\n", irq))
- 		goto out;
- 
--	__enable_irq(desc, irq);
-+	__enable_irq(desc);
- out:
- 	irq_put_desc_busunlock(desc, flags);
- }
-@@ -637,8 +638,7 @@ int can_request_irq(unsigned int irq, unsigned long irqflags)
- 	return canrequest;
- }
- 
--int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
--		      unsigned long flags)
-+int __irq_set_trigger(struct irq_desc *desc, unsigned long flags)
- {
- 	struct irq_chip *chip = desc->irq_data.chip;
- 	int ret, unmask = 0;
-@@ -648,7 +648,8 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
- 		 * IRQF_TRIGGER_* but the PIC does not support multiple
- 		 * flow-types?
- 		 */
--		pr_debug("No set_type function for IRQ %d (%s)\n", irq,
-+		pr_debug("No set_type function for IRQ %d (%s)\n",
-+			 irq_desc_get_irq(desc),
- 			 chip ? (chip->name ? : "unknown") : "unknown");
- 		return 0;
- 	}
-@@ -685,7 +686,7 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned int irq,
- 		break;
- 	default:
- 		pr_err("Setting trigger mode %lu for irq %u failed (%pF)\n",
--		       flags, irq, chip->irq_set_type);
-+		       flags, irq_desc_get_irq(desc), chip->irq_set_type);
- 	}
- 	if (unmask)
- 		unmask_irq(desc);
-@@ -1221,7 +1222,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 
- 		/* Setup the type (level, edge polarity) if configured: */
- 		if (new->flags & IRQF_TRIGGER_MASK) {
--			ret = __irq_set_trigger(desc, irq,
-+			ret = __irq_set_trigger(desc,
- 					new->flags & IRQF_TRIGGER_MASK);
- 
- 			if (ret)
-@@ -1280,7 +1281,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 	 */
- 	if (shared && (desc->istate & IRQS_SPURIOUS_DISABLED)) {
- 		desc->istate &= ~IRQS_SPURIOUS_DISABLED;
--		__enable_irq(desc, irq);
-+		__enable_irq(desc);
- 	}
- 
- 	raw_spin_unlock_irqrestore(&desc->lock, flags);
-@@ -1650,7 +1651,7 @@ void enable_percpu_irq(unsigned int irq, unsigned int type)
- 	if (type != IRQ_TYPE_NONE) {
- 		int ret;
- 
--		ret = __irq_set_trigger(desc, irq, type);
-+		ret = __irq_set_trigger(desc, type);
- 
- 		if (ret) {
- 			WARN(1, "failed to set type for IRQ%d\n", irq);
-diff --git a/kernel/irq/pm.c b/kernel/irq/pm.c
-index 5204a6d1b985..50d1a594da7e 100644
---- a/kernel/irq/pm.c
-+++ b/kernel/irq/pm.c
-@@ -68,7 +68,7 @@ void irq_pm_remove_action(struct irq_desc *desc, struct irqaction *action)
- 		desc->cond_suspend_depth--;
- }
- 
--static bool suspend_device_irq(struct irq_desc *desc, int irq)
-+static bool suspend_device_irq(struct irq_desc *desc)
- {
- 	if (!desc->action || desc->no_suspend_depth)
- 		return false;
-@@ -85,7 +85,7 @@ static bool suspend_device_irq(struct irq_desc *desc, int irq)
- 	}
- 
- 	desc->istate |= IRQS_SUSPENDED;
--	__disable_irq(desc, irq);
-+	__disable_irq(desc);
- 
- 	/*
- 	 * Hardware which has no wakeup source configuration facility
-@@ -124,7 +124,7 @@ void suspend_device_irqs(void)
- 		bool sync;
- 
- 		raw_spin_lock_irqsave(&desc->lock, flags);
--		sync = suspend_device_irq(desc, irq);
-+		sync = suspend_device_irq(desc);
- 		raw_spin_unlock_irqrestore(&desc->lock, flags);
- 
- 		if (sync)
-@@ -133,7 +133,7 @@ void suspend_device_irqs(void)
- }
- EXPORT_SYMBOL_GPL(suspend_device_irqs);
- 
--static void resume_irq(struct irq_desc *desc, int irq)
-+static void resume_irq(struct irq_desc *desc)
- {
- 	irqd_clear(&desc->irq_data, IRQD_WAKEUP_ARMED);
- 
-@@ -148,7 +148,7 @@ static void resume_irq(struct irq_desc *desc, int irq)
- 	desc->depth++;
- resume:
- 	desc->istate &= ~IRQS_SUSPENDED;
--	__enable_irq(desc, irq);
-+	__enable_irq(desc);
- }
- 
- static void resume_irqs(bool want_early)
-@@ -165,7 +165,7 @@ static void resume_irqs(bool want_early)
- 			continue;
- 
- 		raw_spin_lock_irqsave(&desc->lock, flags);
--		resume_irq(desc, irq);
-+		resume_irq(desc);
- 		raw_spin_unlock_irqrestore(&desc->lock, flags);
- 	}
- }
-diff --git a/kernel/irq/spurious.c b/kernel/irq/spurious.c
-index e2514b0e439e..db9e06169adb 100644
---- a/kernel/irq/spurious.c
-+++ b/kernel/irq/spurious.c
-@@ -60,7 +60,7 @@ bool irq_wait_for_poll(struct irq_desc *desc)
- /*
-  * Recovery handler for misrouted interrupts.
-  */
--static int try_one_irq(int irq, struct irq_desc *desc, bool force)
-+static int try_one_irq(struct irq_desc *desc, bool force)
- {
- 	irqreturn_t ret = IRQ_NONE;
- 	struct irqaction *action;
-@@ -133,7 +133,7 @@ static int misrouted_irq(int irq)
- 		if (i == irq)	/* Already tried */
- 			continue;
- 
--		if (try_one_irq(i, desc, false))
-+		if (try_one_irq(desc, false))
- 			ok = 1;
- 	}
- out:
-@@ -164,7 +164,7 @@ static void poll_spurious_irqs(unsigned long dummy)
- 			continue;
- 
- 		local_irq_disable();
--		try_one_irq(i, desc, true);
-+		try_one_irq(desc, true);
- 		local_irq_enable();
- 	}
- out:
-@@ -189,9 +189,9 @@ static inline int bad_action_ret(irqreturn_t action_ret)
-  *  functioning device sharing an IRQ with the failing one)
-  */
- static void
--__report_bad_irq(unsigned int irq, struct irq_desc *desc,
--		 irqreturn_t action_ret)
-+__report_bad_irq(struct irq_desc *desc, irqreturn_t action_ret)
- {
-+	unsigned int irq = irq_desc_get_irq(desc);
- 	struct irqaction *action;
- 	unsigned long flags;
- 
-@@ -225,19 +225,18 @@ __report_bad_irq(unsigned int irq, struct irq_desc *desc,
- }
- 
- static void
--report_bad_irq(unsigned int irq, struct irq_desc *desc, irqreturn_t action_ret)
-+report_bad_irq(struct irq_desc *desc, irqreturn_t action_ret)
- {
- 	static int count = 100;
- 
- 	if (count > 0) {
- 		count--;
--		__report_bad_irq(irq, desc, action_ret);
-+		__report_bad_irq(desc, action_ret);
- 	}
- }
- 
- static inline int
--try_misrouted_irq(unsigned int irq, struct irq_desc *desc,
--		  irqreturn_t action_ret)
-+try_misrouted_irq(struct irq_desc *desc, irqreturn_t action_ret)
- {
- 	struct irqaction *action;
- 
-@@ -256,7 +255,7 @@ try_misrouted_irq(unsigned int irq, struct irq_desc *desc,
- 	if (irqfixup < 2)
- 		return 0;
- 
--	if (!irq)
-+	if (!irq_desc_get_irq(desc))
- 		return 1;
- 
- 	/*
-@@ -272,15 +271,14 @@ try_misrouted_irq(unsigned int irq, struct irq_desc *desc,
- 
- #define SPURIOUS_DEFERRED	0x80000000
- 
--void note_interrupt(unsigned int irq, struct irq_desc *desc,
--		    irqreturn_t action_ret)
-+void note_interrupt(struct irq_desc *desc, irqreturn_t action_ret)
- {
- 	if (desc->istate & IRQS_POLL_INPROGRESS ||
- 	    irq_settings_is_polled(desc))
- 		return;
- 
- 	if (bad_action_ret(action_ret)) {
--		report_bad_irq(irq, desc, action_ret);
-+		report_bad_irq(desc, action_ret);
- 		return;
- 	}
- 
-@@ -398,8 +396,8 @@ void note_interrupt(unsigned int irq, struct irq_desc *desc,
- 		desc->last_unhandled = jiffies;
- 	}
- 
--	if (unlikely(try_misrouted_irq(irq, desc, action_ret))) {
--		int ok = misrouted_irq(irq);
-+	if (unlikely(try_misrouted_irq(desc, action_ret))) {
-+		int ok = misrouted_irq(irq_desc_get_irq(desc));
- 		if (action_ret == IRQ_NONE)
- 			desc->irqs_unhandled -= ok;
- 	}
-@@ -413,11 +411,12 @@ void note_interrupt(unsigned int irq, struct irq_desc *desc,
- 		/*
- 		 * The interrupt is stuck
- 		 */
--		__report_bad_irq(irq, desc, action_ret);
-+		__report_bad_irq(desc, action_ret);
- 		/*
- 		 * Now kill the IRQ
- 		 */
--		printk(KERN_EMERG "Disabling IRQ #%d\n", irq);
-+		printk(KERN_EMERG "Disabling IRQ #%d\n",
-+		       irq_desc_get_irq(desc));
- 		desc->istate |= IRQS_SPURIOUS_DISABLED;
- 		desc->depth++;
- 		irq_disable(desc);
--- 
-1.7.10.4
+VXNlIGlycV9kZXNjX2dldF94eHgoKSB0byBhdm9pZCByZWR1bmRhbnQgbG9va3VwIG9mIGlycV9k
+ZXNjIHdoaWxlIHdlCmFscmVhZHkgaGF2ZSBhIHBvaW50ZXIgdG8gY29ycmVzcG9uZGluZyBpcnFf
+ZGVzYy4KCk5vdGU6IHRoaXMgcGF0Y2ggaGFzIGJlZW4gcXVldWVkIGZvciA0LjIgYnkgTWljaGFl
+bCBFbGxlcm1hbiA8bXBlQGVsbGVybWFuLmlkLmF1PgoKU2lnbmVkLW9mZi1ieTogSmlhbmcgTGl1
+IDxqaWFuZy5saXVAbGludXguaW50ZWwuY29tPgotLS0KIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMv
+NTJ4eC9tcGM1Mnh4X2dwdC5jICAgICB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMv
+Y2VsbC9heG9uX21zaS5jICAgICAgICB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMv
+ZW1iZWRkZWQ2eHgvaGx3ZC1waWMuYyB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9zeXNkZXYvdWlj
+LmMgICAgICAgICAgICAgICAgICAgICB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9zeXNkZXYveGlj
+cy94aWNzLWNvbW1vbi5jICAgICAgICB8ICAgIDIgKy0KIDUgZmlsZXMgY2hhbmdlZCwgNSBpbnNl
+cnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvcG93ZXJwYy9wbGF0
+Zm9ybXMvNTJ4eC9tcGM1Mnh4X2dwdC5jIGIvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy81Mnh4L21w
+YzUyeHhfZ3B0LmMKaW5kZXggYzk0OWNhMDU1NzEyLi42MzAxNjYyMWFmZjggMTAwNjQ0Ci0tLSBh
+L2FyY2gvcG93ZXJwYy9wbGF0Zm9ybXMvNTJ4eC9tcGM1Mnh4X2dwdC5jCisrKyBiL2FyY2gvcG93
+ZXJwYy9wbGF0Zm9ybXMvNTJ4eC9tcGM1Mnh4X2dwdC5jCkBAIC0xOTMsNyArMTkzLDcgQEAgc3Rh
+dGljIHN0cnVjdCBpcnFfY2hpcCBtcGM1Mnh4X2dwdF9pcnFfY2hpcCA9IHsKIAogdm9pZCBtcGM1
+Mnh4X2dwdF9pcnFfY2FzY2FkZSh1bnNpZ25lZCBpbnQgdmlycSwgc3RydWN0IGlycV9kZXNjICpk
+ZXNjKQogewotCXN0cnVjdCBtcGM1Mnh4X2dwdF9wcml2ICpncHQgPSBpcnFfZ2V0X2hhbmRsZXJf
+ZGF0YSh2aXJxKTsKKwlzdHJ1Y3QgbXBjNTJ4eF9ncHRfcHJpdiAqZ3B0ID0gaXJxX2Rlc2NfZ2V0
+X2hhbmRsZXJfZGF0YShkZXNjKTsKIAlpbnQgc3ViX3ZpcnE7CiAJdTMyIHN0YXR1czsKIApkaWZm
+IC0tZ2l0IGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9jZWxsL2F4b25fbXNpLmMgYi9hcmNoL3Bv
+d2VycGMvcGxhdGZvcm1zL2NlbGwvYXhvbl9tc2kuYwppbmRleCA2MjNiZDk2MTQ2NWEuLjgxN2Qw
+ZTY3NDdlYSAxMDA2NDQKLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9jZWxsL2F4b25fbXNp
+LmMKKysrIGIvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9jZWxsL2F4b25fbXNpLmMKQEAgLTk1LDcg
+Kzk1LDcgQEAgc3RhdGljIHZvaWQgbXNpY19kY3Jfd3JpdGUoc3RydWN0IGF4b25fbXNpYyAqbXNp
+YywgdW5zaWduZWQgaW50IGRjcl9uLCB1MzIgdmFsKQogc3RhdGljIHZvaWQgYXhvbl9tc2lfY2Fz
+Y2FkZSh1bnNpZ25lZCBpbnQgaXJxLCBzdHJ1Y3QgaXJxX2Rlc2MgKmRlc2MpCiB7CiAJc3RydWN0
+IGlycV9jaGlwICpjaGlwID0gaXJxX2Rlc2NfZ2V0X2NoaXAoZGVzYyk7Ci0Jc3RydWN0IGF4b25f
+bXNpYyAqbXNpYyA9IGlycV9nZXRfaGFuZGxlcl9kYXRhKGlycSk7CisJc3RydWN0IGF4b25fbXNp
+YyAqbXNpYyA9IGlycV9kZXNjX2dldF9oYW5kbGVyX2RhdGEoZGVzYyk7CiAJdTMyIHdyaXRlX29m
+ZnNldCwgbXNpOwogCWludCBpZHg7CiAJaW50IHJldHJ5ID0gMDsKZGlmZiAtLWdpdCBhL2FyY2gv
+cG93ZXJwYy9wbGF0Zm9ybXMvZW1iZWRkZWQ2eHgvaGx3ZC1waWMuYyBiL2FyY2gvcG93ZXJwYy9w
+bGF0Zm9ybXMvZW1iZWRkZWQ2eHgvaGx3ZC1waWMuYwppbmRleCBjMjY5Y2FlZTU4ZjkuLjlkZDE1
+NGQ2Zjg5YSAxMDA2NDQKLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9lbWJlZGRlZDZ4eC9o
+bHdkLXBpYy5jCisrKyBiL2FyY2gvcG93ZXJwYy9wbGF0Zm9ybXMvZW1iZWRkZWQ2eHgvaGx3ZC1w
+aWMuYwpAQCAtMTI0LDcgKzEyNCw3IEBAIHN0YXRpYyB2b2lkIGhsd2RfcGljX2lycV9jYXNjYWRl
+KHVuc2lnbmVkIGludCBjYXNjYWRlX3ZpcnEsCiAJCQkJICAgICAgc3RydWN0IGlycV9kZXNjICpk
+ZXNjKQogewogCXN0cnVjdCBpcnFfY2hpcCAqY2hpcCA9IGlycV9kZXNjX2dldF9jaGlwKGRlc2Mp
+OwotCXN0cnVjdCBpcnFfZG9tYWluICppcnFfZG9tYWluID0gaXJxX2dldF9oYW5kbGVyX2RhdGEo
+Y2FzY2FkZV92aXJxKTsKKwlzdHJ1Y3QgaXJxX2RvbWFpbiAqaXJxX2RvbWFpbiA9IGlycV9kZXNj
+X2dldF9oYW5kbGVyX2RhdGEoZGVzYyk7CiAJdW5zaWduZWQgaW50IHZpcnE7CiAKIAlyYXdfc3Bp
+bl9sb2NrKCZkZXNjLT5sb2NrKTsKZGlmZiAtLWdpdCBhL2FyY2gvcG93ZXJwYy9zeXNkZXYvdWlj
+LmMgYi9hcmNoL3Bvd2VycGMvc3lzZGV2L3VpYy5jCmluZGV4IDdjMzcxNTdkNGMyNC4uZTc2M2Zl
+MjE1Y2Y1IDEwMDY0NAotLS0gYS9hcmNoL3Bvd2VycGMvc3lzZGV2L3VpYy5jCisrKyBiL2FyY2gv
+cG93ZXJwYy9zeXNkZXYvdWljLmMKQEAgLTE5OCw3ICsxOTgsNyBAQCB2b2lkIHVpY19pcnFfY2Fz
+Y2FkZSh1bnNpZ25lZCBpbnQgdmlycSwgc3RydWN0IGlycV9kZXNjICpkZXNjKQogewogCXN0cnVj
+dCBpcnFfY2hpcCAqY2hpcCA9IGlycV9kZXNjX2dldF9jaGlwKGRlc2MpOwogCXN0cnVjdCBpcnFf
+ZGF0YSAqaWRhdGEgPSBpcnFfZGVzY19nZXRfaXJxX2RhdGEoZGVzYyk7Ci0Jc3RydWN0IHVpYyAq
+dWljID0gaXJxX2dldF9oYW5kbGVyX2RhdGEodmlycSk7CisJc3RydWN0IHVpYyAqdWljID0gaXJx
+X2Rlc2NfZ2V0X2hhbmRsZXJfZGF0YShkZXNjKTsKIAl1MzIgbXNyOwogCWludCBzcmM7CiAJaW50
+IHN1YnZpcnE7CmRpZmYgLS1naXQgYS9hcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3MveGljcy1jb21t
+b24uYyBiL2FyY2gvcG93ZXJwYy9zeXNkZXYveGljcy94aWNzLWNvbW1vbi5jCmluZGV4IDg3OGE1
+NDAzNmEyNS4uNzZiZTdiMDBkZDgwIDEwMDY0NAotLS0gYS9hcmNoL3Bvd2VycGMvc3lzZGV2L3hp
+Y3MveGljcy1jb21tb24uYworKysgYi9hcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3MveGljcy1jb21t
+b24uYwpAQCAtMjI3LDcgKzIyNyw3IEBAIHZvaWQgeGljc19taWdyYXRlX2lycXNfYXdheSh2b2lk
+KQogCiAJCS8qIExvY2F0ZSBpbnRlcnJ1cHQgc2VydmVyICovCiAJCXNlcnZlciA9IC0xOwotCQlp
+Y3MgPSBpcnFfZ2V0X2NoaXBfZGF0YSh2aXJxKTsKKwkJaWNzID0gaXJxX2Rlc2NfZ2V0X2NoaXBf
+ZGF0YShkZXNjKTsKIAkJaWYgKGljcykKIAkJCXNlcnZlciA9IGljcy0+Z2V0X3NlcnZlcihpY3Ms
+IGlycSk7CiAJCWlmIChzZXJ2ZXIgPCAwKSB7Ci0tIAoxLjcuMTAuNAoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlz
+dApMaW51eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcv
+bGlzdGluZm8vbGludXhwcGMtZGV2
