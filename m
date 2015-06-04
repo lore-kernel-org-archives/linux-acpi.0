@@ -1,87 +1,54 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 04/48] powerpc,
- irq: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
-Date: Thu,  4 Jun 2015 12:13:14 +0800
-Message-ID: <1433391238-19471-5-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 01/48] genirq: Clean up outdated comments related to include/linux/irqdesc.h
+Date: Thu,  4 Jun 2015 12:13:11 +0800
+Message-ID: <1433391238-19471-2-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:38741 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387AbbFDEMM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jun 2015 00:12:12 -0400
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppd-linuxppc64-dev=m.gmane.org@lists.ozlabs.org>
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Anatolij Gustschin <agust@denx.de>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Arnd Bergmann <arnd@arndb.de>
-Cc: cbe-oss-dev@lists.ozlabs.org, Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Jiang Liu <jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-VXNlIGlycV9kZXNjX2dldF94eHgoKSB0byBhdm9pZCByZWR1bmRhbnQgbG9va3VwIG9mIGlycV9k
-ZXNjIHdoaWxlIHdlCmFscmVhZHkgaGF2ZSBhIHBvaW50ZXIgdG8gY29ycmVzcG9uZGluZyBpcnFf
-ZGVzYy4KCk5vdGU6IHRoaXMgcGF0Y2ggaGFzIGJlZW4gcXVldWVkIGZvciA0LjIgYnkgTWljaGFl
-bCBFbGxlcm1hbiA8bXBlQGVsbGVybWFuLmlkLmF1PgoKU2lnbmVkLW9mZi1ieTogSmlhbmcgTGl1
-IDxqaWFuZy5saXVAbGludXguaW50ZWwuY29tPgotLS0KIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMv
-NTJ4eC9tcGM1Mnh4X2dwdC5jICAgICB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMv
-Y2VsbC9heG9uX21zaS5jICAgICAgICB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9wbGF0Zm9ybXMv
-ZW1iZWRkZWQ2eHgvaGx3ZC1waWMuYyB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9zeXNkZXYvdWlj
-LmMgICAgICAgICAgICAgICAgICAgICB8ICAgIDIgKy0KIGFyY2gvcG93ZXJwYy9zeXNkZXYveGlj
-cy94aWNzLWNvbW1vbi5jICAgICAgICB8ICAgIDIgKy0KIDUgZmlsZXMgY2hhbmdlZCwgNSBpbnNl
-cnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvcG93ZXJwYy9wbGF0
-Zm9ybXMvNTJ4eC9tcGM1Mnh4X2dwdC5jIGIvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy81Mnh4L21w
-YzUyeHhfZ3B0LmMKaW5kZXggYzk0OWNhMDU1NzEyLi42MzAxNjYyMWFmZjggMTAwNjQ0Ci0tLSBh
-L2FyY2gvcG93ZXJwYy9wbGF0Zm9ybXMvNTJ4eC9tcGM1Mnh4X2dwdC5jCisrKyBiL2FyY2gvcG93
-ZXJwYy9wbGF0Zm9ybXMvNTJ4eC9tcGM1Mnh4X2dwdC5jCkBAIC0xOTMsNyArMTkzLDcgQEAgc3Rh
-dGljIHN0cnVjdCBpcnFfY2hpcCBtcGM1Mnh4X2dwdF9pcnFfY2hpcCA9IHsKIAogdm9pZCBtcGM1
-Mnh4X2dwdF9pcnFfY2FzY2FkZSh1bnNpZ25lZCBpbnQgdmlycSwgc3RydWN0IGlycV9kZXNjICpk
-ZXNjKQogewotCXN0cnVjdCBtcGM1Mnh4X2dwdF9wcml2ICpncHQgPSBpcnFfZ2V0X2hhbmRsZXJf
-ZGF0YSh2aXJxKTsKKwlzdHJ1Y3QgbXBjNTJ4eF9ncHRfcHJpdiAqZ3B0ID0gaXJxX2Rlc2NfZ2V0
-X2hhbmRsZXJfZGF0YShkZXNjKTsKIAlpbnQgc3ViX3ZpcnE7CiAJdTMyIHN0YXR1czsKIApkaWZm
-IC0tZ2l0IGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9jZWxsL2F4b25fbXNpLmMgYi9hcmNoL3Bv
-d2VycGMvcGxhdGZvcm1zL2NlbGwvYXhvbl9tc2kuYwppbmRleCA2MjNiZDk2MTQ2NWEuLjgxN2Qw
-ZTY3NDdlYSAxMDA2NDQKLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9jZWxsL2F4b25fbXNp
-LmMKKysrIGIvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9jZWxsL2F4b25fbXNpLmMKQEAgLTk1LDcg
-Kzk1LDcgQEAgc3RhdGljIHZvaWQgbXNpY19kY3Jfd3JpdGUoc3RydWN0IGF4b25fbXNpYyAqbXNp
-YywgdW5zaWduZWQgaW50IGRjcl9uLCB1MzIgdmFsKQogc3RhdGljIHZvaWQgYXhvbl9tc2lfY2Fz
-Y2FkZSh1bnNpZ25lZCBpbnQgaXJxLCBzdHJ1Y3QgaXJxX2Rlc2MgKmRlc2MpCiB7CiAJc3RydWN0
-IGlycV9jaGlwICpjaGlwID0gaXJxX2Rlc2NfZ2V0X2NoaXAoZGVzYyk7Ci0Jc3RydWN0IGF4b25f
-bXNpYyAqbXNpYyA9IGlycV9nZXRfaGFuZGxlcl9kYXRhKGlycSk7CisJc3RydWN0IGF4b25fbXNp
-YyAqbXNpYyA9IGlycV9kZXNjX2dldF9oYW5kbGVyX2RhdGEoZGVzYyk7CiAJdTMyIHdyaXRlX29m
-ZnNldCwgbXNpOwogCWludCBpZHg7CiAJaW50IHJldHJ5ID0gMDsKZGlmZiAtLWdpdCBhL2FyY2gv
-cG93ZXJwYy9wbGF0Zm9ybXMvZW1iZWRkZWQ2eHgvaGx3ZC1waWMuYyBiL2FyY2gvcG93ZXJwYy9w
-bGF0Zm9ybXMvZW1iZWRkZWQ2eHgvaGx3ZC1waWMuYwppbmRleCBjMjY5Y2FlZTU4ZjkuLjlkZDE1
-NGQ2Zjg5YSAxMDA2NDQKLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9lbWJlZGRlZDZ4eC9o
-bHdkLXBpYy5jCisrKyBiL2FyY2gvcG93ZXJwYy9wbGF0Zm9ybXMvZW1iZWRkZWQ2eHgvaGx3ZC1w
-aWMuYwpAQCAtMTI0LDcgKzEyNCw3IEBAIHN0YXRpYyB2b2lkIGhsd2RfcGljX2lycV9jYXNjYWRl
-KHVuc2lnbmVkIGludCBjYXNjYWRlX3ZpcnEsCiAJCQkJICAgICAgc3RydWN0IGlycV9kZXNjICpk
-ZXNjKQogewogCXN0cnVjdCBpcnFfY2hpcCAqY2hpcCA9IGlycV9kZXNjX2dldF9jaGlwKGRlc2Mp
-OwotCXN0cnVjdCBpcnFfZG9tYWluICppcnFfZG9tYWluID0gaXJxX2dldF9oYW5kbGVyX2RhdGEo
-Y2FzY2FkZV92aXJxKTsKKwlzdHJ1Y3QgaXJxX2RvbWFpbiAqaXJxX2RvbWFpbiA9IGlycV9kZXNj
-X2dldF9oYW5kbGVyX2RhdGEoZGVzYyk7CiAJdW5zaWduZWQgaW50IHZpcnE7CiAKIAlyYXdfc3Bp
-bl9sb2NrKCZkZXNjLT5sb2NrKTsKZGlmZiAtLWdpdCBhL2FyY2gvcG93ZXJwYy9zeXNkZXYvdWlj
-LmMgYi9hcmNoL3Bvd2VycGMvc3lzZGV2L3VpYy5jCmluZGV4IDdjMzcxNTdkNGMyNC4uZTc2M2Zl
-MjE1Y2Y1IDEwMDY0NAotLS0gYS9hcmNoL3Bvd2VycGMvc3lzZGV2L3VpYy5jCisrKyBiL2FyY2gv
-cG93ZXJwYy9zeXNkZXYvdWljLmMKQEAgLTE5OCw3ICsxOTgsNyBAQCB2b2lkIHVpY19pcnFfY2Fz
-Y2FkZSh1bnNpZ25lZCBpbnQgdmlycSwgc3RydWN0IGlycV9kZXNjICpkZXNjKQogewogCXN0cnVj
-dCBpcnFfY2hpcCAqY2hpcCA9IGlycV9kZXNjX2dldF9jaGlwKGRlc2MpOwogCXN0cnVjdCBpcnFf
-ZGF0YSAqaWRhdGEgPSBpcnFfZGVzY19nZXRfaXJxX2RhdGEoZGVzYyk7Ci0Jc3RydWN0IHVpYyAq
-dWljID0gaXJxX2dldF9oYW5kbGVyX2RhdGEodmlycSk7CisJc3RydWN0IHVpYyAqdWljID0gaXJx
-X2Rlc2NfZ2V0X2hhbmRsZXJfZGF0YShkZXNjKTsKIAl1MzIgbXNyOwogCWludCBzcmM7CiAJaW50
-IHN1YnZpcnE7CmRpZmYgLS1naXQgYS9hcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3MveGljcy1jb21t
-b24uYyBiL2FyY2gvcG93ZXJwYy9zeXNkZXYveGljcy94aWNzLWNvbW1vbi5jCmluZGV4IDg3OGE1
-NDAzNmEyNS4uNzZiZTdiMDBkZDgwIDEwMDY0NAotLS0gYS9hcmNoL3Bvd2VycGMvc3lzZGV2L3hp
-Y3MveGljcy1jb21tb24uYworKysgYi9hcmNoL3Bvd2VycGMvc3lzZGV2L3hpY3MveGljcy1jb21t
-b24uYwpAQCAtMjI3LDcgKzIyNyw3IEBAIHZvaWQgeGljc19taWdyYXRlX2lycXNfYXdheSh2b2lk
-KQogCiAJCS8qIExvY2F0ZSBpbnRlcnJ1cHQgc2VydmVyICovCiAJCXNlcnZlciA9IC0xOwotCQlp
-Y3MgPSBpcnFfZ2V0X2NoaXBfZGF0YSh2aXJxKTsKKwkJaWNzID0gaXJxX2Rlc2NfZ2V0X2NoaXBf
-ZGF0YShkZXNjKTsKIAkJaWYgKGljcykKIAkJCXNlcnZlciA9IGljcy0+Z2V0X3NlcnZlcihpY3Ms
-IGlycSk7CiAJCWlmIChzZXJ2ZXIgPCAwKSB7Ci0tIAoxLjcuMTAuNAoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlz
-dApMaW51eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcv
-bGlzdGluZm8vbGludXhwcGMtZGV2
+Seems we have little chance to move irqdesc.h from include/linux/ into
+kernel/irq/, so kill the outdated comments.
+
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ include/linux/irq.h     |    1 -
+ include/linux/irqdesc.h |    3 ---
+ 2 files changed, 4 deletions(-)
+
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index a38610520b33..2de650d61a4e 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -409,7 +409,6 @@ enum {
+ 	IRQCHIP_EOI_THREADED		= (1 <<  6),
+ };
+ 
+-/* This include will go away once we isolated irq_desc usage to core code */
+ #include <linux/irqdesc.h>
+ 
+ /*
+diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
+index 749755bffbc1..8c84a2513665 100644
+--- a/include/linux/irqdesc.h
++++ b/include/linux/irqdesc.h
+@@ -3,9 +3,6 @@
+ 
+ /*
+  * Core internal functions to deal with irq descriptors
+- *
+- * This include will move to kernel/irq once we cleaned up the tree.
+- * For now it's included from <linux/irq.h>
+  */
+ 
+ struct irq_affinity_notify;
+-- 
+1.7.10.4
+
