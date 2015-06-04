@@ -1,137 +1,91 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 10/48] irqchip: Use irq_desc_get_xxx() to avoid redundant
- lookup of irq_desc
-Date: Thu,  4 Jun 2015 12:13:20 +0800
-Message-ID: <1433391238-19471-11-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 25/48] mips, irq: Prepare for killing the first parameter 'irq' of irq_flow_handler_t
+Date: Thu,  4 Jun 2015 12:13:35 +0800
+Message-ID: <1433391238-19471-26-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Tony Luck <tony.luck@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pci@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Sergey Ryazanov <ryazanov.s.a@gmail.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mips@linux-mips.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-already have a pointer to corresponding irq_desc.
+Change irq flow handlers to prepare for killing the first parameter 'irq'
+of irq_flow_handler_t.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/irqchip/exynos-combiner.c   |    4 ++--
- drivers/irqchip/irq-armada-370-xp.c |    2 +-
- drivers/irqchip/irq-dw-apb-ictl.c   |    4 ++--
- drivers/irqchip/irq-gic.c           |    4 ++--
- drivers/irqchip/irq-orion.c         |    2 +-
- drivers/irqchip/irq-sunxi-nmi.c     |    2 +-
- drivers/irqchip/spear-shirq.c       |    2 +-
- 7 files changed, 10 insertions(+), 10 deletions(-)
+ arch/mips/alchemy/devboards/bcsr.c |    3 ++-
+ arch/mips/ath79/irq.c              |    9 ++++++---
+ arch/mips/pci/pci-rt3883.c         |    4 +---
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/irqchip/exynos-combiner.c b/drivers/irqchip/exynos-combiner.c
-index 5945223b73fa..039ceb46fcc0 100644
---- a/drivers/irqchip/exynos-combiner.c
-+++ b/drivers/irqchip/exynos-combiner.c
-@@ -62,8 +62,8 @@ static void combiner_unmask_irq(struct irq_data *data)
- 
- static void combiner_handle_cascade_irq(unsigned int irq, struct irq_desc *desc)
+diff --git a/arch/mips/alchemy/devboards/bcsr.c b/arch/mips/alchemy/devboards/bcsr.c
+index c98c9ea3372c..8d6ea369bde4 100644
+--- a/arch/mips/alchemy/devboards/bcsr.c
++++ b/arch/mips/alchemy/devboards/bcsr.c
+@@ -85,8 +85,9 @@ EXPORT_SYMBOL_GPL(bcsr_mod);
+ /*
+  * DB1200/PB1200 CPLD IRQ muxer
+  */
+-static void bcsr_csc_handler(unsigned int irq, struct irq_desc *d)
++static void bcsr_csc_handler(unsigned int __irq, struct irq_desc *d)
  {
--	struct combiner_chip_data *chip_data = irq_get_handler_data(irq);
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct combiner_chip_data *chip_data = irq_desc_get_handler_data(desc);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	unsigned int cascade_irq, combiner_irq;
- 	unsigned long status;
++	unsigned int irq = irq_desc_get_irq(d);
+ 	unsigned short bisr = __raw_readw(bcsr_virt + BCSR_REG_INTSTAT);
  
-diff --git a/drivers/irqchip/irq-armada-370-xp.c b/drivers/irqchip/irq-armada-370-xp.c
-index daccc8bdbb42..40b5fe99a1d5 100644
---- a/drivers/irqchip/irq-armada-370-xp.c
-+++ b/drivers/irqchip/irq-armada-370-xp.c
-@@ -451,7 +451,7 @@ static void armada_370_xp_handle_msi_irq(struct pt_regs *r, bool b) {}
- static void armada_370_xp_mpic_handle_cascade_irq(unsigned int irq,
- 						  struct irq_desc *desc)
+ 	disable_irq_nosync(irq);
+diff --git a/arch/mips/ath79/irq.c b/arch/mips/ath79/irq.c
+index 6adae366f11a..1b6620b0c057 100644
+--- a/arch/mips/ath79/irq.c
++++ b/arch/mips/ath79/irq.c
+@@ -120,8 +120,9 @@ static void __init ath79_misc_irq_init(void)
+ 	irq_set_chained_handler(ATH79_CPU_IRQ(6), ath79_misc_irq_handler);
+ }
+ 
+-static void ar934x_ip2_irq_dispatch(unsigned int irq, struct irq_desc *desc)
++static void ar934x_ip2_irq_dispatch(unsigned int __irq, struct irq_desc *desc)
  {
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	unsigned long irqmap, irqn, irqsrc, cpuid;
- 	unsigned int cascade_irq;
++	unsigned int irq = irq_desc_get_irq(desc);
+ 	u32 status;
  
-diff --git a/drivers/irqchip/irq-dw-apb-ictl.c b/drivers/irqchip/irq-dw-apb-ictl.c
-index 53bb7326a60a..cddcd3b75f00 100644
---- a/drivers/irqchip/irq-dw-apb-ictl.c
-+++ b/drivers/irqchip/irq-dw-apb-ictl.c
-@@ -28,8 +28,8 @@
+ 	disable_irq_nosync(irq);
+@@ -153,8 +154,9 @@ static void ar934x_ip2_irq_init(void)
+ 	irq_set_chained_handler(ATH79_CPU_IRQ(2), ar934x_ip2_irq_dispatch);
+ }
  
- static void dw_apb_ictl_handler(unsigned int irq, struct irq_desc *desc)
+-static void qca955x_ip2_irq_dispatch(unsigned int irq, struct irq_desc *desc)
++static void qca955x_ip2_irq_dispatch(unsigned int __irq, struct irq_desc *desc)
  {
--	struct irq_chip *chip = irq_get_chip(irq);
--	struct irq_chip_generic *gc = irq_get_handler_data(irq);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
-+	struct irq_chip_generic *gc = irq_desc_get_handler_data(desc);
- 	struct irq_domain *d = gc->private;
- 	u32 stat;
- 	int n;
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 01999d74bd3a..6c8a5a7fb4a0 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -288,8 +288,8 @@ static void __exception_irq_entry gic_handle_irq(struct pt_regs *regs)
++	unsigned int irq = irq_desc_get_irq(desc);
+ 	u32 status;
  
- static void gic_handle_cascade_irq(unsigned int irq, struct irq_desc *desc)
+ 	disable_irq_nosync(irq);
+@@ -181,8 +183,9 @@ enable:
+ 	enable_irq(irq);
+ }
+ 
+-static void qca955x_ip3_irq_dispatch(unsigned int irq, struct irq_desc *desc)
++static void qca955x_ip3_irq_dispatch(unsigned int __irq, struct irq_desc *desc)
  {
--	struct gic_chip_data *chip_data = irq_get_handler_data(irq);
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct gic_chip_data *chip_data = irq_desc_get_handler_data(desc);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	unsigned int cascade_irq, gic_irq;
- 	unsigned long status;
++	unsigned int irq = irq_desc_get_irq(desc);
+ 	u32 status;
  
-diff --git a/drivers/irqchip/irq-orion.c b/drivers/irqchip/irq-orion.c
-index ad0c0f6f1d65..58e034db0e7c 100644
---- a/drivers/irqchip/irq-orion.c
-+++ b/drivers/irqchip/irq-orion.c
-@@ -109,7 +109,7 @@ IRQCHIP_DECLARE(orion_intc, "marvell,orion-intc", orion_irq_init);
+ 	disable_irq_nosync(irq);
+diff --git a/arch/mips/pci/pci-rt3883.c b/arch/mips/pci/pci-rt3883.c
+index 80fafe646e74..67d483206d6c 100644
+--- a/arch/mips/pci/pci-rt3883.c
++++ b/arch/mips/pci/pci-rt3883.c
+@@ -147,9 +147,7 @@ static void rt3883_pci_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	while (pending) {
+ 		unsigned bit = __ffs(pending);
  
- static void orion_bridge_irq_handler(unsigned int irq, struct irq_desc *desc)
- {
--	struct irq_domain *d = irq_get_handler_data(irq);
-+	struct irq_domain *d = irq_desc_get_handler_data(desc);
- 
- 	struct irq_chip_generic *gc = irq_get_domain_generic_chip(d, 0);
- 	u32 stat = readl_relaxed(gc->reg_base + ORION_BRIDGE_IRQ_CAUSE) &
-diff --git a/drivers/irqchip/irq-sunxi-nmi.c b/drivers/irqchip/irq-sunxi-nmi.c
-index 4a9ce5b50c5b..2eaa9d9df241 100644
---- a/drivers/irqchip/irq-sunxi-nmi.c
-+++ b/drivers/irqchip/irq-sunxi-nmi.c
-@@ -61,7 +61,7 @@ static inline u32 sunxi_sc_nmi_read(struct irq_chip_generic *gc, u32 off)
- static void sunxi_sc_nmi_handle_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	struct irq_domain *domain = irq_desc_get_handler_data(desc);
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	unsigned int virq = irq_find_mapping(domain, 0);
- 
- 	chained_irq_enter(chip, desc);
-diff --git a/drivers/irqchip/spear-shirq.c b/drivers/irqchip/spear-shirq.c
-index 9c145a7cb056..fb68ee9c0424 100644
---- a/drivers/irqchip/spear-shirq.c
-+++ b/drivers/irqchip/spear-shirq.c
-@@ -185,7 +185,7 @@ static struct spear_shirq *spear320_shirq_blocks[] = {
- 
- static void shirq_handler(unsigned irq, struct irq_desc *desc)
- {
--	struct spear_shirq *shirq = irq_get_handler_data(irq);
-+	struct spear_shirq *shirq = irq_desc_get_handler_data(desc);
- 	u32 pend;
- 
- 	pend = readl(shirq->base + shirq->status_reg) & shirq->mask;
+-		irq = irq_find_mapping(rpc->irq_domain, bit);
+-		generic_handle_irq(irq);
+-
++		generic_handle_irq(irq_find_mapping(rpc->irq_domain, bit));
+ 		pending &= ~BIT(bit);
+ 	}
+ }
 -- 
 1.7.10.4
