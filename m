@@ -1,22 +1,18 @@
 From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 2/3] asus-wmi: Use acpi_video_unregister_backlight instead
- of acpi_video_unregister
-Date: Thu, 4 Jun 2015 15:42:46 +0100
-Message-ID: <CAHR064jcPfqkEDZkySRx7atRnHtNf=1G3PsjO7aLb+v=YeZFqg@mail.gmail.com>
+Subject: Re: [PATCH 3/3] samsung-laptop: Use acpi_video_unregister_backlight
+ instead of acpi_video_unregister
+Date: Thu, 4 Jun 2015 15:43:06 +0100
+Message-ID: <CAHR064hhjGnk6AA2Fjq5KufrmA_Vspxs+k7LKPiEGWidio_xcw@mail.gmail.com>
 References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
-	<1433150708-8498-3-git-send-email-hdegoede@redhat.com>
+	<1433150708-8498-4-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:33559 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932125AbbFDOmr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jun 2015 10:42:47 -0400
-In-Reply-To: <1433150708-8498-3-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1433150708-8498-4-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Darren Hart <dvhart@infradead.org>, Ben Skeggs <bskeggs@redhat.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux acpi <linux-acpi@vger.kernel.org>, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>
+Cc: Darren Hart <dvhart@infradead.org>, Ben Skeggs <bskeggs@redhat.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 On Mon, Jun 1, 2015 at 10:25 AM, Hans de Goede <hdegoede@redhat.com> wrote:
 > acpi_video_unregister() not only unregisters the acpi-video backlight
@@ -29,7 +25,7 @@ On Mon, Jun 1, 2015 at 10:25 AM, Hans de Goede <hdegoede@redhat.com> wrote:
 >
 > Another problem with using acpi_video_unregister() rather then using
 > acpi_video_unregister_backlight() is that on systems with an intel video
-> opregion (most systems) and a wmi_backlight_power quirk, whether or not
+> opregion (most systems) and a broken_acpi_video quirk, whether or not
 > the acpi video bus event listener actually gets unregistered depends on
 > module load ordering:
 >
@@ -38,13 +34,13 @@ On Mon, Jun 1, 2015 at 10:25 AM, Hans de Goede <hdegoede@redhat.com> wrote:
 >    is an intel opregion.
 > 2) intel.ko gets loaded, calls acpi_video_register() which registers both
 >    the listener and the acpi backlight interface
-> 3) asus-wmi.ko gets loaded, calls acpi_video_unregister() causing both
->    the listener and the acpi backlight interface to unregister
+> 3) samsung-laptop.ko gets loaded, calls acpi_video_unregister() causing
+>    both the listener and the acpi backlight interface to unregister
 >
 > Scenario b:
 > 1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
 >    is an intel opregion.
-> 2) asus-wmi.ko gets loaded, calls acpi_video_dmi_promote_vendor(),
+> 2) samsung-laptop.ko gets loaded, calls acpi_video_dmi_promote_vendor(),
 >    calls acpi_video_unregister(), which is a nop since acpi_video_register
 >    has not yet been called
 > 2) intel.ko gets loaded, calls acpi_video_register() which registers
@@ -73,25 +69,32 @@ On Mon, Jun 1, 2015 at 10:25 AM, Hans de Goede <hdegoede@redhat.com> wrote:
 > duplicate keypresses at the other source for them.
 >
 > Cc: Corentin Chary <corentin.chary@gmail.com>
-> Cc: acpi4asus-user@lists.sourceforge.net
 > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 > ---
->  drivers/platform/x86/asus-wmi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/platform/x86/samsung-laptop.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-> index 7543a56..945145d 100644
-> --- a/drivers/platform/x86/asus-wmi.c
-> +++ b/drivers/platform/x86/asus-wmi.c
-> @@ -1777,7 +1777,7 @@ static int asus_wmi_add(struct platform_device *pdev)
->                 acpi_video_dmi_promote_vendor();
->         if (!acpi_video_backlight_support()) {
+> diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
+> index 9e701b2..0df03e2 100644
+> --- a/drivers/platform/x86/samsung-laptop.c
+> +++ b/drivers/platform/x86/samsung-laptop.c
+> @@ -1730,14 +1730,14 @@ static int __init samsung_init(void)
+>                 samsung->handle_backlight = false;
+>         } else if (samsung->quirks->broken_acpi_video) {
 >                 pr_info("Disabling ACPI video driver\n");
 > -               acpi_video_unregister();
 > +               acpi_video_unregister_backlight();
->                 err = asus_wmi_backlight_init(asus);
->                 if (err && err != -ENODEV)
->                         goto fail_backlight;
+>         }
+>
+>         if (samsung->quirks->use_native_backlight) {
+>                 pr_info("Using native backlight driver\n");
+>                 /* Tell acpi-video to not handle the backlight */
+>                 acpi_video_dmi_promote_vendor();
+> -               acpi_video_unregister();
+> +               acpi_video_unregister_backlight();
+>                 /* And also do not handle it ourselves */
+>                 samsung->handle_backlight = false;
+>         }
 > --
 > 2.4.2
 >
