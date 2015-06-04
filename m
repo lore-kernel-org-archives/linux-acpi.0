@@ -1,91 +1,52 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 25/48] mips, irq: Prepare for killing the first parameter 'irq' of irq_flow_handler_t
-Date: Thu,  4 Jun 2015 12:13:35 +0800
-Message-ID: <1433391238-19471-26-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 22/48] blackfin, irq: Prepare for killing the first parameter 'irq' of irq_flow_handler_t
+Date: Thu,  4 Jun 2015 12:13:32 +0800
+Message-ID: <1433391238-19471-23-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Sergey Ryazanov <ryazanov.s.a@gmail.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mips@linux-mips.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Steven Miao <realmz6@gmail.com>, Christoph Lameter <cl@linux.com>, Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Change irq flow handlers to prepare for killing the first parameter 'irq'
+Change irq flow handler to prepare for killing the first parameter 'irq'
 of irq_flow_handler_t.
+
+Seems ipipe.c is never used at all, and it may fail to compile if it's
+used.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/mips/alchemy/devboards/bcsr.c |    3 ++-
- arch/mips/ath79/irq.c              |    9 ++++++---
- arch/mips/pci/pci-rt3883.c         |    4 +---
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ arch/blackfin/kernel/ipipe.c              |    2 +-
+ arch/blackfin/mach-common/ints-priority.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/mips/alchemy/devboards/bcsr.c b/arch/mips/alchemy/devboards/bcsr.c
-index c98c9ea3372c..8d6ea369bde4 100644
---- a/arch/mips/alchemy/devboards/bcsr.c
-+++ b/arch/mips/alchemy/devboards/bcsr.c
-@@ -85,8 +85,9 @@ EXPORT_SYMBOL_GPL(bcsr_mod);
+diff --git a/arch/blackfin/kernel/ipipe.c b/arch/blackfin/kernel/ipipe.c
+index f657b38163e3..6007a1375c5b 100644
+--- a/arch/blackfin/kernel/ipipe.c
++++ b/arch/blackfin/kernel/ipipe.c
+@@ -56,7 +56,7 @@ EXPORT_SYMBOL(__ipipe_irq_lvmask);
+ 
+ static void __ipipe_ack_irq(unsigned irq, struct irq_desc *desc)
+ {
+-	desc->ipipe_ack(irq, desc);
++	desc->ipipe_ack(irq_desc_get_irq(desc), desc);
+ }
+ 
  /*
-  * DB1200/PB1200 CPLD IRQ muxer
-  */
--static void bcsr_csc_handler(unsigned int irq, struct irq_desc *d)
-+static void bcsr_csc_handler(unsigned int __irq, struct irq_desc *d)
+diff --git a/arch/blackfin/mach-common/ints-priority.c b/arch/blackfin/mach-common/ints-priority.c
+index 332a434b4669..4e3155e5aa20 100644
+--- a/arch/blackfin/mach-common/ints-priority.c
++++ b/arch/blackfin/mach-common/ints-priority.c
+@@ -830,7 +830,7 @@ void bfin_demux_gpio_irq(unsigned int inta_irq,
  {
-+	unsigned int irq = irq_desc_get_irq(d);
- 	unsigned short bisr = __raw_readw(bcsr_virt + BCSR_REG_INTSTAT);
+ 	unsigned int irq;
  
- 	disable_irq_nosync(irq);
-diff --git a/arch/mips/ath79/irq.c b/arch/mips/ath79/irq.c
-index 6adae366f11a..1b6620b0c057 100644
---- a/arch/mips/ath79/irq.c
-+++ b/arch/mips/ath79/irq.c
-@@ -120,8 +120,9 @@ static void __init ath79_misc_irq_init(void)
- 	irq_set_chained_handler(ATH79_CPU_IRQ(6), ath79_misc_irq_handler);
- }
- 
--static void ar934x_ip2_irq_dispatch(unsigned int irq, struct irq_desc *desc)
-+static void ar934x_ip2_irq_dispatch(unsigned int __irq, struct irq_desc *desc)
- {
-+	unsigned int irq = irq_desc_get_irq(desc);
- 	u32 status;
- 
- 	disable_irq_nosync(irq);
-@@ -153,8 +154,9 @@ static void ar934x_ip2_irq_init(void)
- 	irq_set_chained_handler(ATH79_CPU_IRQ(2), ar934x_ip2_irq_dispatch);
- }
- 
--static void qca955x_ip2_irq_dispatch(unsigned int irq, struct irq_desc *desc)
-+static void qca955x_ip2_irq_dispatch(unsigned int __irq, struct irq_desc *desc)
- {
-+	unsigned int irq = irq_desc_get_irq(desc);
- 	u32 status;
- 
- 	disable_irq_nosync(irq);
-@@ -181,8 +183,9 @@ enable:
- 	enable_irq(irq);
- }
- 
--static void qca955x_ip3_irq_dispatch(unsigned int irq, struct irq_desc *desc)
-+static void qca955x_ip3_irq_dispatch(unsigned int __irq, struct irq_desc *desc)
- {
-+	unsigned int irq = irq_desc_get_irq(desc);
- 	u32 status;
- 
- 	disable_irq_nosync(irq);
-diff --git a/arch/mips/pci/pci-rt3883.c b/arch/mips/pci/pci-rt3883.c
-index 80fafe646e74..67d483206d6c 100644
---- a/arch/mips/pci/pci-rt3883.c
-+++ b/arch/mips/pci/pci-rt3883.c
-@@ -147,9 +147,7 @@ static void rt3883_pci_irq_handler(unsigned int irq, struct irq_desc *desc)
- 	while (pending) {
- 		unsigned bit = __ffs(pending);
- 
--		irq = irq_find_mapping(rpc->irq_domain, bit);
--		generic_handle_irq(irq);
--
-+		generic_handle_irq(irq_find_mapping(rpc->irq_domain, bit));
- 		pending &= ~BIT(bit);
- 	}
- }
+-	switch (inta_irq) {
++	switch (irq_desc_get_irq(desc)) {
+ #if defined(BF537_FAMILY)
+ 	case IRQ_PF_INTA_PG_INTA:
+ 		bfin_demux_gpio_block(IRQ_PF0);
 -- 
 1.7.10.4
