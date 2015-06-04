@@ -1,160 +1,68 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 08/48] mfd: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
-Date: Thu,  4 Jun 2015 12:13:18 +0800
-Message-ID: <1433391238-19471-9-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 26/48] powerpc, irq: Prepare for killing the first parameter 'irq' of irq_flow_handler_t
+Date: Thu,  4 Jun 2015 12:13:36 +0800
+Message-ID: <1433391238-19471-27-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Anatolij Gustschin <agust@denx.de>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Scott Wood <scottwood@freescale.com>, Kumar Gala <galak@kernel.crashing.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, cbe-oss-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-already have a pointer to corresponding irq_desc.
-
-Do the same thing to avoid pattern "irq_get_chip_data(data->irq)".
+Change irq flow handler to prepare for killing the first parameter 'irq'
+of irq_flow_handler_t.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/mfd/ezx-pcap.c    |    2 +-
- drivers/mfd/max8997-irq.c |    8 ++++----
- drivers/mfd/mt6397-core.c |    8 ++++----
- drivers/mfd/t7l66xb.c     |    2 +-
- drivers/mfd/tc6393xb.c    |    2 +-
- drivers/mfd/twl6030-irq.c |    2 +-
- 6 files changed, 12 insertions(+), 12 deletions(-)
+ arch/powerpc/platforms/512x/mpc5121_ads_cpld.c  |    4 +++-
+ arch/powerpc/platforms/85xx/socrates_fpga_pic.c |    2 +-
+ arch/powerpc/platforms/cell/interrupt.c         |    3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/ezx-pcap.c b/drivers/mfd/ezx-pcap.c
-index 5991faddd3c6..e5f4ffaa5414 100644
---- a/drivers/mfd/ezx-pcap.c
-+++ b/drivers/mfd/ezx-pcap.c
-@@ -207,7 +207,7 @@ static void pcap_isr_work(struct work_struct *work)
- 
- static void pcap_irq_handler(unsigned int irq, struct irq_desc *desc)
- {
--	struct pcap_chip *pcap = irq_get_handler_data(irq);
-+	struct pcap_chip *pcap = irq_desc_get_handler_data(desc);
- 
- 	desc->irq_data.chip->irq_ack(&desc->irq_data);
- 	queue_work(pcap->workqueue, &pcap->isr_work);
-diff --git a/drivers/mfd/max8997-irq.c b/drivers/mfd/max8997-irq.c
-index 43fa61413e93..381738b477f8 100644
---- a/drivers/mfd/max8997-irq.c
-+++ b/drivers/mfd/max8997-irq.c
-@@ -113,14 +113,14 @@ static const struct max8997_irq_data max8997_irqs[] = {
- 
- static void max8997_irq_lock(struct irq_data *data)
- {
--	struct max8997_dev *max8997 = irq_get_chip_data(data->irq);
-+	struct max8997_dev *max8997 = irq_data_get_irq_chip_data(data);
- 
- 	mutex_lock(&max8997->irqlock);
+diff --git a/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c b/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c
+index ca3a062ed1b9..4411ed51803e 100644
+--- a/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c
++++ b/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c
+@@ -105,8 +105,10 @@ cpld_pic_get_irq(int offset, u8 ignore, u8 __iomem *statusp,
  }
  
- static void max8997_irq_sync_unlock(struct irq_data *data)
- {
--	struct max8997_dev *max8997 = irq_get_chip_data(data->irq);
-+	struct max8997_dev *max8997 = irq_data_get_irq_chip_data(data);
- 	int i;
- 
- 	for (i = 0; i < MAX8997_IRQ_GROUP_NR; i++) {
-@@ -148,7 +148,7 @@ irq_to_max8997_irq(struct max8997_dev *max8997, int irq)
- 
- static void max8997_irq_mask(struct irq_data *data)
- {
--	struct max8997_dev *max8997 = irq_get_chip_data(data->irq);
-+	struct max8997_dev *max8997 = irq_data_get_irq_chip_data(data);
- 	const struct max8997_irq_data *irq_data = irq_to_max8997_irq(max8997,
- 								data->irq);
- 
-@@ -157,7 +157,7 @@ static void max8997_irq_mask(struct irq_data *data)
- 
- static void max8997_irq_unmask(struct irq_data *data)
- {
--	struct max8997_dev *max8997 = irq_get_chip_data(data->irq);
-+	struct max8997_dev *max8997 = irq_data_get_irq_chip_data(data);
- 	const struct max8997_irq_data *irq_data = irq_to_max8997_irq(max8997,
- 								data->irq);
- 
-diff --git a/drivers/mfd/mt6397-core.c b/drivers/mfd/mt6397-core.c
-index 09bc7804952a..dab325b9d0df 100644
---- a/drivers/mfd/mt6397-core.c
-+++ b/drivers/mfd/mt6397-core.c
-@@ -39,14 +39,14 @@ static const struct mfd_cell mt6397_devs[] = {
- 
- static void mt6397_irq_lock(struct irq_data *data)
- {
--	struct mt6397_chip *mt6397 = irq_get_chip_data(data->irq);
-+	struct mt6397_chip *mt6397 = irq_data_get_irq_chip_data(data);
- 
- 	mutex_lock(&mt6397->irqlock);
- }
- 
- static void mt6397_irq_sync_unlock(struct irq_data *data)
- {
--	struct mt6397_chip *mt6397 = irq_get_chip_data(data->irq);
-+	struct mt6397_chip *mt6397 = irq_data_get_irq_chip_data(data);
- 
- 	regmap_write(mt6397->regmap, MT6397_INT_CON0, mt6397->irq_masks_cur[0]);
- 	regmap_write(mt6397->regmap, MT6397_INT_CON1, mt6397->irq_masks_cur[1]);
-@@ -56,7 +56,7 @@ static void mt6397_irq_sync_unlock(struct irq_data *data)
- 
- static void mt6397_irq_disable(struct irq_data *data)
- {
--	struct mt6397_chip *mt6397 = irq_get_chip_data(data->irq);
-+	struct mt6397_chip *mt6397 = irq_data_get_irq_chip_data(data);
- 	int shift = data->hwirq & 0xf;
- 	int reg = data->hwirq >> 4;
- 
-@@ -65,7 +65,7 @@ static void mt6397_irq_disable(struct irq_data *data)
- 
- static void mt6397_irq_enable(struct irq_data *data)
- {
--	struct mt6397_chip *mt6397 = irq_get_chip_data(data->irq);
-+	struct mt6397_chip *mt6397 = irq_data_get_irq_chip_data(data);
- 	int shift = data->hwirq & 0xf;
- 	int reg = data->hwirq >> 4;
- 
-diff --git a/drivers/mfd/t7l66xb.c b/drivers/mfd/t7l66xb.c
-index c09fb5dccd50..b752ca2be549 100644
---- a/drivers/mfd/t7l66xb.c
-+++ b/drivers/mfd/t7l66xb.c
-@@ -187,7 +187,7 @@ static struct mfd_cell t7l66xb_cells[] = {
- /* Handle the T7L66XB interrupt mux */
- static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
- {
--	struct t7l66xb *t7l66xb = irq_get_handler_data(irq);
-+	struct t7l66xb *t7l66xb = irq_desc_get_handler_data(desc);
- 	unsigned int isr;
- 	unsigned int i, irq_base;
- 
-diff --git a/drivers/mfd/tc6393xb.c b/drivers/mfd/tc6393xb.c
-index 63458b39a97d..d21253a51cff 100644
---- a/drivers/mfd/tc6393xb.c
-+++ b/drivers/mfd/tc6393xb.c
-@@ -525,7 +525,7 @@ static int tc6393xb_register_gpio(struct tc6393xb *tc6393xb, int gpio_base)
  static void
- tc6393xb_irq(unsigned int irq, struct irq_desc *desc)
+-cpld_pic_cascade(unsigned int irq, struct irq_desc *desc)
++cpld_pic_cascade(unsigned int __irq, struct irq_desc *desc)
  {
--	struct tc6393xb *tc6393xb = irq_get_handler_data(irq);
-+	struct tc6393xb *tc6393xb = irq_desc_get_handler_data(desc);
- 	unsigned int isr;
- 	unsigned int i, irq_base;
++	unsigned int irq;
++
+ 	irq = cpld_pic_get_irq(0, PCI_IGNORE, &cpld_regs->pci_status,
+ 		&cpld_regs->pci_mask);
+ 	if (irq != NO_IRQ) {
+diff --git a/arch/powerpc/platforms/85xx/socrates_fpga_pic.c b/arch/powerpc/platforms/85xx/socrates_fpga_pic.c
+index 55a9682b9529..5153e58654f7 100644
+--- a/arch/powerpc/platforms/85xx/socrates_fpga_pic.c
++++ b/arch/powerpc/platforms/85xx/socrates_fpga_pic.c
+@@ -100,7 +100,7 @@ void socrates_fpga_pic_cascade(unsigned int irq, struct irq_desc *desc)
+ 	 * See if we actually have an interrupt, call generic handling code if
+ 	 * we do.
+ 	 */
+-	cascade_irq = socrates_fpga_pic_get_irq(irq);
++	cascade_irq = socrates_fpga_pic_get_irq(irq_desc_get_irq(desc));
  
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index 2807e1a95663..5b8cd5cd42cf 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -231,7 +231,7 @@ static irqreturn_t twl6030_irq_thread(int irq, void *data)
- 
- static int twl6030_irq_set_wake(struct irq_data *d, unsigned int on)
+ 	if (cascade_irq != NO_IRQ)
+ 		generic_handle_irq(cascade_irq);
+diff --git a/arch/powerpc/platforms/cell/interrupt.c b/arch/powerpc/platforms/cell/interrupt.c
+index 3af8324c122e..e2dd6c9d3a78 100644
+--- a/arch/powerpc/platforms/cell/interrupt.c
++++ b/arch/powerpc/platforms/cell/interrupt.c
+@@ -99,8 +99,9 @@ static void iic_ioexc_eoi(struct irq_data *d)
  {
--	struct twl6030_irq *pdata = irq_get_chip_data(d->irq);
-+	struct twl6030_irq *pdata = irq_data_get_irq_chip_data(d);
+ }
  
- 	if (on)
- 		atomic_inc(&pdata->wakeirqs);
+-static void iic_ioexc_cascade(unsigned int irq, struct irq_desc *desc)
++static void iic_ioexc_cascade(unsigned int __irq, struct irq_desc *desc)
+ {
++	unsigned int irq = irq_desc_get_irq(desc);
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 	struct cbe_iic_regs __iomem *node_iic =
+ 		(void __iomem *)irq_desc_get_handler_data(desc);
 -- 
 1.7.10.4
