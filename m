@@ -1,43 +1,30 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 16/48] genirq: Introduce helper irq_desc_get_irq()
-Date: Thu,  4 Jun 2015 12:13:26 +0800
-Message-ID: <1433391238-19471-17-git-send-email-jiang.liu@linux.intel.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [RFT v2 10/48] irqchip: Use irq_desc_get_xxx() to avoid redundant
+ lookup of irq_desc
+Date: Thu, 04 Jun 2015 13:50:30 +0900
+Message-ID: <556FD916.3070103@samsung.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36512 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752780AbbFDEPI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Jun 2015 00:15:08 -0400
-In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+ <1433391238-19471-11-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1433391238-19471-11-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kukjin Kim <kgene@kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Introduce helper irq_desc_get_irq() to hide irq_desc implementation
-details.
+On 04.06.2015 13:13, Jiang Liu wrote:
+> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+> already have a pointer to corresponding irq_desc.
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  drivers/irqchip/exynos-combiner.c   |    4 ++--
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- include/linux/irqdesc.h |    5 +++++
- 1 file changed, 5 insertions(+)
+For exynos:
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
-index 8c84a2513665..a7aaef44a10e 100644
---- a/include/linux/irqdesc.h
-+++ b/include/linux/irqdesc.h
-@@ -100,6 +100,11 @@ static inline struct irq_desc *irq_data_to_desc(struct irq_data *data)
- #endif
- }
- 
-+static inline unsigned int irq_desc_get_irq(struct irq_desc *desc)
-+{
-+	return desc->irq_data.irq;
-+}
-+
- static inline struct irq_data *irq_desc_get_irq_data(struct irq_desc *desc)
- {
- 	return &desc->irq_data;
--- 
-1.7.10.4
-
+Best regards,
+Krzysztof
