@@ -1,37 +1,43 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 14/48] spmi: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
-Date: Thu,  4 Jun 2015 12:13:24 +0800
-Message-ID: <1433391238-19471-15-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 02/48] genirq: Kill never used irq_node()
+Date: Thu,  4 Jun 2015 12:13:12 +0800
+Message-ID: <1433391238-19471-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:23384 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751685AbbFDEMR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jun 2015 00:12:17 -0400
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Gilad Avidov <gavidov@codeaurora.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-already have a pointer to corresponding irq_desc.
+Macro irq_node() is never used, so kill it.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- drivers/spmi/spmi-pmic-arb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/irqnr.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/spmi/spmi-pmic-arb.c b/drivers/spmi/spmi-pmic-arb.c
-index d7119db49cfe..b32cb0a813cb 100644
---- a/drivers/spmi/spmi-pmic-arb.c
-+++ b/drivers/spmi/spmi-pmic-arb.c
-@@ -453,8 +453,8 @@ static void periph_interrupt(struct spmi_pmic_arb_dev *pa, u8 apid)
+diff --git a/include/linux/irqnr.h b/include/linux/irqnr.h
+index fdd5cc16c9c4..9669bf9d4f48 100644
+--- a/include/linux/irqnr.h
++++ b/include/linux/irqnr.h
+@@ -23,12 +23,6 @@ unsigned int irq_get_next_irq(unsigned int offset);
+ 			;						\
+ 		else
  
- static void pmic_arb_chained_irq(unsigned int irq, struct irq_desc *desc)
- {
--	struct spmi_pmic_arb_dev *pa = irq_get_handler_data(irq);
--	struct irq_chip *chip = irq_get_chip(irq);
-+	struct spmi_pmic_arb_dev *pa = irq_desc_get_handler_data(desc);
-+	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	void __iomem *intr = pa->intr;
- 	int first = pa->min_apid >> 5;
- 	int last = pa->max_apid >> 5;
+-#ifdef CONFIG_SMP
+-#define irq_node(irq)	(irq_get_irq_data(irq)->node)
+-#else
+-#define irq_node(irq)	0
+-#endif
+-
+ # define for_each_active_irq(irq)			\
+ 	for (irq = irq_get_next_irq(0); irq < nr_irqs;	\
+ 	     irq = irq_get_next_irq(irq + 1))
 -- 
 1.7.10.4
+
